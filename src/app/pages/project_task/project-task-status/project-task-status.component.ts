@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -10,6 +10,8 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzRadioModule } from 'ng-zorro-antd/radio';
+import { ProjectTaskStatusChartComponent } from '../project-task-status-chart/project-task-status-chart.component';
 
 // PrimeNG
 import { TableModule } from 'primeng/table';
@@ -52,12 +54,18 @@ export interface EnhancedItem extends ProjectTaskViewStatusItem {
     TagModule,
     TooltipModule,
     InputTextModule,
-    MultiSelectModule
+    MultiSelectModule,
+    NzRadioModule,
+    ProjectTaskStatusChartComponent
   ],
   templateUrl: './project-task-status.component.html',
   styleUrl: './project-task-status.component.css'
 })
 export class ProjectTaskStatusComponent implements OnInit {
+  @ViewChild(ProjectTaskStatusChartComponent) chartComponent?: ProjectTaskStatusChartComponent;
+
+  // ===== View Type =====
+  viewType: 'table' | 'chart' = 'table';
 
   // ===== Filter params (search form) =====
   dateStart: string = '';
@@ -182,12 +190,10 @@ export class ProjectTaskStatusComponent implements OnInit {
     if (this.departmentId > 0) {
       this.loadTeamsByDepartment(this.departmentId);
     }
-    this.loadData();
   }
 
   onTeamChange(): void {
     this.userId = 0;
-    this.loadData();
   }
 
   // ===== Load data từ API =====
@@ -214,28 +220,44 @@ export class ProjectTaskStatusComponent implements OnInit {
       keyword: this.keyword.trim()
     };
 
-    this.projectTaskStatusService.getList(params).subscribe({
-      next: (res: any) => {
-        this.loading.set(false);
-        if (res && res.status === 1 && res.data) {
-          this.rawItems = Array.isArray(res.data) ? res.data : [];
-        } else if (Array.isArray(res)) {
-          this.rawItems = res;
-        } else {
-          this.rawItems = [];
+    if (this.viewType === 'table') {
+      this.projectTaskStatusService.getList(params).subscribe({
+        next: (res: any) => {
+          this.loading.set(false);
+          if (res && res.status === 1 && res.data) {
+            this.rawItems = Array.isArray(res.data) ? res.data : [];
+          } else if (Array.isArray(res)) {
+            this.rawItems = res;
+          } else {
+            this.rawItems = [];
+          }
+          // Reset column filter khi search mới
+          this.filterFullName = '';
+          this.filterProjectCode = '';
+          this.filterProjectName = '';
+          this.processData();
+        },
+        error: (err: any) => {
+          this.loading.set(false);
+          const msg = err?.error?.message || err?.error?.Message || err?.message || 'Lỗi khi tải dữ liệu!';
+          this.notification.error(NOTIFICATION_TITLE.error, msg);
         }
-        // Reset column filter khi search mới
-        this.filterFullName = '';
-        this.filterProjectCode = '';
-        this.filterProjectName = '';
-        this.processData();
-      },
-      error: (err: any) => {
-        this.loading.set(false);
-        const msg = err?.error?.message || err?.error?.Message || err?.message || 'Lỗi khi tải dữ liệu!';
-        this.notification.error(NOTIFICATION_TITLE.error, msg);
-      }
-    });
+      });
+    } else {
+      this.loading.set(false);
+    }
+
+    // Nếu đang ở dạng biểu đồ, gọi loadData của component biểu đồ
+    if (this.viewType === 'chart' && this.chartComponent) {
+      this.chartComponent.loadData();
+    }
+  }
+
+  onViewTypeChange(): void {
+    // Đợi 1 nhịp để @if (viewType === 'chart') kịp render component chart
+    setTimeout(() => {
+      this.loadData();
+    }, 0);
   }
 
   // ===== Xử lý dữ liệu: filter + sort + tính rowspan =====

@@ -1,18 +1,38 @@
 <div class="task-detail-container">
     <!-- Header - Fixed: Project Selector -->
     <div class="task-detail-header d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-white">
-        <div class="project-badge d-flex align-items-center gap-2">
-            <div class="project-icon">
-                <i nz-icon nzType="project" nzTheme="outline"></i>
+        <div class="d-flex align-items-center gap-3">
+            <!-- Project Selector -->
+            <div class="project-badge d-flex align-items-center gap-2">
+                <div class="project-icon">
+                    <i nz-icon nzType="project" nzTheme="outline"></i>
+                </div>
+                <nz-select [(ngModel)]="selectedProjectId" nzAllowClear [nzDisabled]="isReadOnly"
+                    (ngModelChange)="onProjectChange($event)" nzBorderless nzSize="small" class="project-select"
+                    nzShowSearch nzPlaceHolder="Chọn dự án" [nzFilterOption]="filterProjectOption"
+                    [nzCustomTemplate]="projectSelectedTpl">
+                    @for (project of projects; track project.ID) {
+                    <nz-option [nzLabel]="project.ProjectCode + ' - ' + project.ProjectName"
+                        [nzValue]="project.ID"></nz-option>
+                    }
+                </nz-select>
             </div>
-            <nz-select [(ngModel)]="selectedProjectId" nzAllowClear [nzDisabled]="isReadOnly"
-                (ngModelChange)="onProjectChange($event)" nzBorderless nzSize="small" class="project-select"
-                nzShowSearch nzPlaceHolder="Chọn dự án" [nzFilterOption]="filterProjectOption">
-                @for (project of projects; track project.ID) {
-                <nz-option [nzLabel]="project.ProjectCode + ' - ' + project.ProjectName"
-                    [nzValue]="project.ID"></nz-option>
-                }
-            </nz-select>
+
+            <!-- Parent Task Selector -->
+            <div class="project-badge d-flex align-items-center gap-2">
+                <div class="project-icon parent-task-icon">
+                    <i nz-icon nzType="cluster" nzTheme="outline"></i>
+                </div>
+                <nz-select [(ngModel)]="parentTaskId" nzAllowClear [nzDisabled]="isReadOnly"
+                    nzBorderless nzSize="small" class="project-select"
+                    nzShowSearch nzPlaceHolder="Chọn công việc cha" [nzFilterOption]="filterParentTaskOption"
+                    [nzCustomTemplate]="parentTaskSelectedTpl">
+                    @for (pt of parentTaskList; track pt.ID) {
+                    <nz-option [nzValue]="pt.ID"
+                        [nzLabel]="(pt.Code || '').trim() + ' - ' + (pt.Mission || '')"></nz-option>
+                    }
+                </nz-select>
+            </div>
         </div>
 
         <!-- Status Selector -->
@@ -29,11 +49,19 @@
             </div>
             <!-- Loại công việc -->
             <nz-select [(ngModel)]="selectedTaskTypeId" nzBorderless nzSize="small" class="task-type-select"
-                nzPlaceHolder="Loại công việc" nzAllowClear [nzDisabled]="isReadOnly">
+                nzPlaceHolder="Loại công việc" nzAllowClear [nzDisabled]="isReadOnly"
+                [nzCustomTemplate]="taskTypeSelectedTpl">
                 @for (t of taskTypeList; track t.ID) {
-                <nz-option [nzValue]="t.ID" [nzLabel]="t.TypeName" />
+                <nz-option [nzValue]="t.ID" nzCustomContent [nzLabel]="t.TypeName">
+                    <span class="status-dot" [style.background]="t.Color || '#1890ff'"></span>
+                    {{ t.TypeName }}
+                </nz-option>
                 }
             </nz-select>
+            <ng-template #taskTypeSelectedTpl let-selected>
+                <span class="status-dot" [style.background]="getTaskTypeInfo(selected.nzValue).Color || '#1890ff'"></span>
+                {{ selected.nzLabel }}
+            </ng-template>
             <nz-select [(ngModel)]="taskStatus" (ngModelChange)="onStatusChange($event)" nzBorderless nzSize="small"
                 class="status-select" [nzCustomTemplate]="statusSelectedTpl" [nzDisabled]="isReadOnly">
                 @for (s of statusList; track s.value) {
@@ -48,6 +76,20 @@
                 {{ selected.nzLabel }}
             </ng-template>
 
+            <!-- Custom Templates for Project and Parent Task -->
+            <ng-template #projectSelectedTpl let-selected>
+                <div class="custom-selected-item" [nz-tooltip]="selected.nzLabel">
+                    <span class="truncate-text">{{ selected.nzLabel }}</span>
+                    <i nz-icon nzType="copy" (click)="copyToClipboard($event, selected.nzLabel)" class="copy-icon"></i>
+                </div>
+            </ng-template>
+
+            <ng-template #parentTaskSelectedTpl let-selected>
+                <div class="custom-selected-item" [nz-tooltip]="selected.nzLabel">
+                    <span class="truncate-text">{{ selected.nzLabel }}</span>
+                    <i nz-icon nzType="copy" (click)="copyToClipboard($event, selected.nzLabel)" class="copy-icon"></i>
+                </div>
+            </ng-template>
         </div>
     </div>
 
@@ -70,7 +112,7 @@
                             <small>&nbsp;</small>
                             }
                             <small [class.text-danger]="title && title.length > 150" class="text-muted">{{
-                                title?.length || 0 }}/150</small>
+                                title.length || 0 }}/150</small>
                         </div>
                         @if (isSaving) {
                         <i nz-icon nzType="loading" class="ms-2 text-primary"></i>
@@ -113,19 +155,7 @@
                                 </div>
                             </div>
 
-                            <!-- Công việc cha -->
-                            <div class="mb-3 mobile-mb-1">
-                                <label class="form-label">Công việc cha</label>
-                                <nz-select [(ngModel)]="parentTaskId" [nzDisabled]="isReadOnly" nzShowSearch
-                                    nzAllowClear nzPlaceHolder="Chọn công việc cha"
-                                    [nzFilterOption]="filterParentTaskOption" style="width: 100%;">
-                                    @for (pt of parentTaskList; track pt.ID) {
-                                    <nz-option [nzValue]="pt.ID"
-                                        [nzLabel]="(pt.Code || '').trim() + ' - ' + (pt.Mission || '')"></nz-option>
-                                    }
-                                </nz-select>
-                            </div>
-
+                            <!-- Công việc cha + Deadline -->
 
                             <!-- Employee Select Popover Template -->
                             <ng-template #employeeSelectContent>
@@ -218,7 +248,7 @@
                                     }
                                 </div>
                             </div>
-
+                            
                             <!-- Ngay thuc te -->
                             <div class="d-flex gap-2 mb-3 mobile-mb-1 mobile-dates-row">
                                 <div class="date-col">
@@ -235,6 +265,12 @@
                                         [style.border-color]="dateValidationError && dateValidationError.includes('thuc te') ? '#ff4d4f' : '#d9d9d9'"
                                         style="width:100%;padding:4px 8px;font-size:12px;border:1px solid;border-radius:4px;box-sizing:border-box;text-align:center;" />
                                 </div>
+                            </div>
+
+                            <div class="mb-3 mobile-mb-1">
+                                <label class="form-label">Deadline</label>
+                                <input type="date" [(ngModel)]="deadlineStr" [disabled]="isReadOnly"
+                                    style="width:100%;padding:4px 8px;font-size:12px;border:1px solid #d9d9d9;border-radius:4px;box-sizing:border-box;text-align:center;" />
                             </div>
                             @if (dateValidationError) {
                             <div style="color:#ff4d4f;font-size:12px;margin-top:-8px;margin-bottom:8px;">{{
@@ -257,6 +293,40 @@
                     </div>
                 </div>
             </nz-tab>
+
+            <!-- Tab: Nguyên nhân / Phương án xử lý (chỉ hiển thị khi loại công việc = Bug, ID=2) -->
+            @if (selectedTaskTypeId === 2) {
+            <nz-tab nzTitle="Nguyên nhân / Phương án xử lý">
+                <div class="tab-content p-3 solution-tab-content">
+                    <div class="solution-header mb-2">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i nz-icon nzType="bug" nzTheme="outline" class="solution-icon"></i>
+                            <span class="section-title mb-0">Nguyên nhân và phương án xử lý</span>
+                        </div>
+                        <small class="text-muted">Bắt buộc nhập khi hoàn thành công việc loại Bug (tối thiểu 10 ký tự, không tính khoảng trắng)</small>
+                    </div>
+
+                    <textarea nz-input [(ngModel)]="descriptionSolution"
+                        placeholder="Nhập nguyên nhân lỗi và phương án xử lý..."
+                        class="description-textarea solution-full-height"
+                        [disabled]="isReadOnly">
+                    </textarea>
+
+                    <!-- Character count (không tính khoảng trắng) -->
+                    <div class="d-flex justify-content-between mt-1">
+                        @if (taskStatus === 3 && getSolutionCleanLength() < 10) {
+                            <small class="text-danger">
+                                <i nz-icon nzType="warning"></i>
+                                Cần tối thiểu 10 ký tự (hiện tại: {{ getSolutionCleanLength() }})
+                            </small>
+                        } @else {
+                            <small>&nbsp;</small>
+                        }
+                        <small class="text-muted">{{ getSolutionCleanLength() }} ký tự (không tính khoảng trắng)</small>
+                    </div>
+                </div>
+            </nz-tab>
+            }
 
             <!-- Tab 3: Danh sách người thực hiện -->
             <nz-tab nzTitle="Người thực hiện">
@@ -365,10 +435,13 @@
                     <nz-progress [nzPercent]="checklistProgress" nzSize="small" class="mb-2"></nz-progress>
                     }
 
-                    <!-- Checklist items -->
-                    <div class="checklist-items">
+                    <div class="checklist-items" cdkDropList (cdkDropListDropped)="dropChecklist($event)">
                         @for (item of checklists; track item.ID) {
-                        <div class="checklist-item" [class.readonly]="isReadOnly">
+                        <div class="checklist-item" [class.readonly]="isReadOnly" cdkDrag [cdkDragDisabled]="isReadOnly">
+                            <div class="drag-handle me-2" *ngIf="!isReadOnly" cdkDragHandle>
+                                <i nz-icon nzType="holder" nzTheme="outline"></i>
+                            </div>
+                            
                             <label nz-checkbox [(ngModel)]="item.IsDone" [nzDisabled]="isReadOnly"
                                 (ngModelChange)="isReadOnly ? null : toggleChecklist(item)"></label>
 
@@ -394,6 +467,9 @@
                                     (click)="deleteChecklistItemAction(item)"></i>
                             </div>
                             }
+                            
+                            <!-- Placeholder when dragging -->
+                            <div class="checklist-placeholder" *cdkDragPlaceholder></div>
                         </div>
                         }
                     </div>
@@ -434,7 +510,7 @@
                     <div *ngIf="!isReadOnly" class="upload-area" (drop)="onFileDrop($event)"
                         (dragover)="onDragOver($event)" (click)="fileInput.click()">
                         <i nz-icon nzType="cloud-upload" class="fs-32 text-muted"></i>
-                        <div class="text-muted mt-2">Thả tệp hoặc click để tải lên</div>
+                        <div class="text-muted mt-2">Thả tệp, paste hoặc click để tải lên</div>
                         <div class="text-muted small">Ảnh < 1MB, Video < 5MB</div>
                                 <input #fileInput type="file" multiple accept="image/*,video/*"
                                     (change)="onFileSelected($event)" style="display: none;">

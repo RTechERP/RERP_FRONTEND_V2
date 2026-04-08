@@ -188,9 +188,9 @@ export class KanbanService {
     }
 
     // --- Approval Methods ---
-    approveTask(projectTaskIDs: number[], isApproved: boolean, review: string = ''): Observable<IAPIResponse<any>> {
+    approveTask(projectTaskIDs: number[], isApproved: boolean, review: string = '', completionRating: number | null = null): Observable<IAPIResponse<any>> {
         return this.http.post<IAPIResponse<any>>(
-            `${this.apiUrl}/Approve?isApproved=${isApproved}&review=${encodeURIComponent(review)}`,
+            `${this.apiUrl}/Approve?isApproved=${isApproved}&review=${encodeURIComponent(review)}&completionRating=${completionRating ?? ''}`,
             projectTaskIDs
         );
     }

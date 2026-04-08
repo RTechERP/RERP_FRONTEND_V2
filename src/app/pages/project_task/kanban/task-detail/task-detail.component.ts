@@ -1,4 +1,5 @@
 import { Component, Input, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, HostListener } from '@angular/core';
+import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { AppUserService } from '../../../../services/app-user.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -54,7 +55,10 @@ import { AddRelatedPeopleComponent } from '../add-related-people/add-related-peo
         NzInputNumberModule,
         NzListModule,
         NzEmptyModule,
-        NzTableModule
+        NzListModule,
+        NzEmptyModule,
+        NzTableModule,
+        DragDropModule
     ],
     templateUrl: './task-detail.component.html',
     styleUrls: ['./task-detail.component.css']
@@ -77,8 +81,8 @@ export class TaskDetailComponent implements OnInit {
 
     // Task Type
     selectedTaskTypeId?: number;
-    taskTypeList: { ID: number; TypeName: string }[] = [];
-
+    taskTypeList: { ID: number; TypeName: string; Color?: string }[] = [];
+    descriptionSolution: string = '';
     isPersonalProject: boolean = false;
     taskComplexity: number = 1;
     isAdditional: boolean = false;
@@ -99,6 +103,7 @@ export class TaskDetailComponent implements OnInit {
     endTime?: Date;
     planStartDate?: Date;
     planEndDate?: Date;
+    deadline?: Date;
     selectedTabIndex: number = 0;
 
     estimatedTime: string = '';
@@ -195,6 +200,14 @@ export class TaskDetailComponent implements OnInit {
         this.validateDates();
     }
 
+    get deadlineStr(): string {
+        return this.deadline ? this.toDateInputString(this.deadline) : '';
+    }
+    set deadlineStr(val: string) {
+        const d = this.parseInputDate(val);
+        this.deadline = d;
+    }
+
     get minActualEndDate(): string {
         const date = new Date();
         date.setDate(date.getDate() - 1);
@@ -205,6 +218,14 @@ export class TaskDetailComponent implements OnInit {
     }
 
     checklists: IProjectTaskChecklist[] = [];
+
+    dropChecklist(event: CdkDragDrop<IProjectTaskChecklist[]>) {
+        if (this.isReadOnly) return;
+        moveItemInArray(this.checklists, event.previousIndex, event.currentIndex);
+        this.reorderChecklists();
+        this.cdr.detectChanges();
+    }
+
     newChecklistItem: string = '';
 
     // Checklist inline add state
@@ -235,8 +256,29 @@ export class TaskDetailComponent implements OnInit {
         return this.statusList.find(s => s.value === status) || this.statusList[0];
     }
 
+    getTaskTypeInfo(typeId: number) {
+        return this.taskTypeList.find(t => t.ID === typeId) || { ID: 0, TypeName: '', Color: '#1890ff' };
+    }
+
     onStatusChange(status: number): void {
         const oldStatus = this.previousStatus;
+
+        // BẮT BUỘC HOÀN THÀNH CHECKLIST TRƯỚC KHI HOÀN THÀNH TASK
+        if (status === 3 && this.checklists.length > 0 && this.completedChecklists < this.checklists.length) {
+            this.message.error('Vui lòng hoàn thành tất cả checklist trước khi đặt trạng thái Hoàn thành');
+
+            // Chuyển sang tab Checklist (Bug: index 4, Khác: index 3)
+            this.activeMainTabIndex = (this.selectedTaskTypeId == 2) ? 4 : 3;
+
+            // Revert lại trạng thái cũ bằng setTimeout để tránh xung đột vòng lặp ngModelChange
+            setTimeout(() => {
+                this.taskStatus = oldStatus;
+                this.previousStatus = oldStatus;
+                this.cdr.detectChanges();
+            }, 0);
+            return;
+        }
+
         if (status === 4 && this.isUpdateMode) {
             this.showPendingReasonModal(oldStatus);
             return;
@@ -356,10 +398,11 @@ export class TaskDetailComponent implements OnInit {
         if (currentUserId === undefined || currentUserId === null) return true;
 
         const isAssigner = this.assignerId === currentUserId;
-        const isAssignee = this.assigneeIds.includes(currentUserId);
+        const isOriginalAssignee = this.originalAssigneeIds.includes(currentUserId);
 
-        // Nếu không phải người giao, cũng không phải người thực hiện -> Chỉ xem
-        return !isAssigner && !isAssignee;
+        // Nếu không phải người giao, cũng không phải người thực hiện ban đầu -> Chỉ xem
+        // Việc dùng originalAssigneeIds cho phép người dùng giữ quyền Lưu khi chuyển công việc cho người khác
+        return !isAssigner && !isOriginalAssignee;
     }
 
     // Computed property for assigner (for display)
@@ -424,7 +467,7 @@ export class TaskDetailComponent implements OnInit {
             next: (res) => {
                 if (res.status === 200 || res.status === 1) {
                     this.taskTypeList = res.data || [];
-                    
+
                     // Optional: If current selection is invalid, reset it
                     if (this.selectedTaskTypeId && !this.taskTypeList.some(t => t.ID === this.selectedTaskTypeId)) {
                         // Keep current if it is default (1) or just let the user re-select
@@ -592,6 +635,11 @@ export class TaskDetailComponent implements OnInit {
         return Math.round((this.completedChecklists / this.checklists.length) * 100);
     }
 
+    // Computed: đếm ký tự DescriptionSolution không tính khoảng trắng
+    getSolutionCleanLength(): number {
+        return (this.descriptionSolution || '').replace(/\s/g, '').length;
+    }
+
 
     // Helper: Convert hex color to rgba
     private hexToRgba(hex: string, alpha: number): string {
@@ -699,6 +747,17 @@ export class TaskDetailComponent implements OnInit {
         if (diffHours < 24) return `${diffHours} giờ trước`;
         if (diffDays < 7) return `${diffDays} ngày trước`;
         return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    copyToClipboard(event: MouseEvent, text: string): void {
+        event.stopPropagation();
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            this.message.success('Đã sao chép vào bộ nhớ tạm');
+        }).catch(err => {
+            console.error('Không thể sao chép văn bản: ', err);
+            this.message.error('Lỗi khi sao chép');
+        });
     }
 
     // Select employee from popover (single selection for assignee)
@@ -1318,6 +1377,8 @@ export class TaskDetailComponent implements OnInit {
             if (this.isUpdateMode) {
                 if (activeTask.PlanStartDate) this.planStartDate = new Date(activeTask.PlanStartDate);
                 if (activeTask.PlanEndDate) this.planEndDate = new Date(activeTask.PlanEndDate);
+                if (activeTask.Deadline) this.deadline = new Date(activeTask.Deadline);
+                this.descriptionSolution = activeTask.DescriptionSolution || '';
             }
 
             this.selectedProjectId = activeTask.ProjectID;
@@ -1573,7 +1634,7 @@ export class TaskDetailComponent implements OnInit {
 
             if (item.ID > 0) {
                 // For existing items, update OrderIndex in pending ops if they exist
-                const existingOp = this.pendingChecklistOps.find(op => 
+                const existingOp = this.pendingChecklistOps.find(op =>
                     op.item.ID === item.ID && (op.type === 'edit' || op.type === 'toggle')
                 );
                 if (existingOp) {
@@ -1584,7 +1645,7 @@ export class TaskDetailComponent implements OnInit {
                 }
             } else {
                 // For new items, update their pending 'add' operation
-                const addOp = this.pendingChecklistOps.find(op => 
+                const addOp = this.pendingChecklistOps.find(op =>
                     op.item.ID === item.ID && op.type === 'add'
                 );
                 if (addOp) {
@@ -1731,10 +1792,12 @@ export class TaskDetailComponent implements OnInit {
         const calls: Observable<any>[] = this.pendingChecklistOps.map(op => {
             switch (op.type) {
                 case 'add':
+                    // Lấy trạng thái IsDone mới nhất từ this.checklists (source of truth)
+                    const currentItem = this.checklists.find(c => c.ID === op.item.ID);
                     return this.kanbanService.addChecklistItem({
                         ProjectTaskID: taskId,
                         ChecklistTitle: op.item.ChecklistTitle,
-                        IsDone: op.item.IsDone ?? false,
+                        IsDone: currentItem?.IsDone ?? op.item.IsDone ?? false,
                         OrderIndex: op.item.OrderIndex ?? 0
                     });
                 case 'toggle':
@@ -1896,6 +1959,23 @@ export class TaskDetailComponent implements OnInit {
             return;
         }
 
+        // Bắt buộc hoàn thành checklist (Status = 3)
+        if (this.taskStatus === 3 && this.checklists.length > 0 && this.completedChecklists < this.checklists.length) {
+            this.message.error('Vui lòng hoàn thành tất cả checklist trước khi đặt trạng thái Hoàn thành');
+            this.activeMainTabIndex = (this.selectedTaskTypeId == 2) ? 4 : 3;
+            return;
+        }
+
+        // Validate Solution for BUG (ID=2) khi Hoàn thành (ID=3)
+        if (this.selectedTaskTypeId === 2 && this.taskStatus === 3) {
+            const cleaned = (this.descriptionSolution || '').replace(/\s/g, '');
+            if (cleaned.length < 10) {
+                this.message.error('Vui lòng nhập nguyên nhân và phương án xử lý (tối thiểu 10 ký tự)');
+                this.activeMainTabIndex = 1; // Tab Solution
+                return;
+            }
+        }
+
         this.isSaving = true;
 
         // Pipeline: upload files → sync attachments → sync employees → sync checklists → save task
@@ -1937,8 +2017,13 @@ export class TaskDetailComponent implements OnInit {
                     Employee: this.assigneeIds,
                     EmployeeRelate: this.relatedPeopleIds,
                     Files: this.fileAttachmentIds,
-                    Links: this.linkAttachmentIds
+                    Links: this.linkAttachmentIds,
+                    Deadline: this.formatDateForApi(this.deadline),
+                    DescriptionSolution: this.selectedTaskTypeId == 2 ? this.descriptionSolution : ''
                 };
+                console.log('descriptionSolution', this.descriptionSolution);
+                console.log('selectedTaskTypeId', this.selectedTaskTypeId);
+                console.log('result', this.selectedTaskTypeId == 2);
                 return this.kanbanService.saveTask(saveData);
             })
         ).subscribe({
@@ -2000,6 +2085,23 @@ export class TaskDetailComponent implements OnInit {
             return;
         }
 
+        // Bắt buộc hoàn thành checklist (Status = 3)
+        if (this.taskStatus === 3 && this.checklists.length > 0 && this.completedChecklists < this.checklists.length) {
+            this.message.error('Vui lòng hoàn thành tất cả checklist trước khi đặt trạng thái Hoàn thành');
+            this.activeMainTabIndex = (this.selectedTaskTypeId == 2) ? 4 : 3;
+            return;
+        }
+
+        // Validate Solution for BUG (ID = 2) khi Hoàn thành (ID = 3)
+        if (this.selectedTaskTypeId === 2 && this.taskStatus === 3) {
+            const cleaned = (this.descriptionSolution || '').replace(/\s/g, '');
+            if (cleaned.length < 10) {
+                this.message.error('Vui lòng nhập nguyên nhân và phương án xử lý (tối thiểu 10 ký tự)');
+                this.activeMainTabIndex = 1; // Tab Solution
+                return;
+            }
+        }
+
         // Bắt buộc chọn ngày bắt đầu nếu là Đang làm/Hoàn thành
         if ((this.taskStatus === 2 || this.taskStatus === 3) && !this.startDate) {
             this.message.error('Vui lòng chọn ngày bắt đầu thực tế');
@@ -2041,23 +2143,25 @@ export class TaskDetailComponent implements OnInit {
                     EmployeeRelate: this.relatedPeopleIds,
                     Files: [...this.fileAttachmentIds, ...(newFileIds || [])],
                     Links: this.linkAttachmentIds,
-                    ParentID: this.parentTaskId
+                    ParentID: this.parentTaskId,
+                    Deadline: this.formatDateForApi(this.deadline),
+                    DescriptionSolution: this.selectedTaskTypeId == 2 ? this.descriptionSolution : undefined
                 };
 
                 return this.kanbanService.saveTask(taskData);
             }),
-                    switchMap((res: any) => {
-                        if (!res) return of(null);
-                        if (res.status === 200 || res.status === 1) {
-                            const newTaskId = res.data?.ID || res.data;
-                            // Sync checklist and additional operations with the newly created task ID
-                            return forkJoin({
-                                checklists: this.syncChecklistsToApi(newTaskId),
-                                additionals: this.syncAdditionalsToApi(newTaskId)
-                            }).pipe(map(() => res));
-                        }
-                        return of(res);
-                    })
+            switchMap((res: any) => {
+                if (!res) return of(null);
+                if (res.status === 200 || res.status === 1) {
+                    const newTaskId = res.data?.ID || res.data;
+                    // Sync checklist and additional operations with the newly created task ID
+                    return forkJoin({
+                        checklists: this.syncChecklistsToApi(newTaskId),
+                        additionals: this.syncAdditionalsToApi(newTaskId)
+                    }).pipe(map(() => res));
+                }
+                return of(res);
+            })
         ).subscribe({
             next: (res: any) => {
                 this.isSaving = false;
@@ -2084,7 +2188,9 @@ export class TaskDetailComponent implements OnInit {
     private resetFormAfterSave(): void {
         this.title = '';
         this.description = '';
+        this.descriptionSolution = '';
         this.checklists = [];
+        this.deadline = undefined;
         this.pendingChecklistOps = [];
         this.attachments = [];
         this.fileAttachmentIds = [];
@@ -2142,10 +2248,12 @@ export class TaskDetailComponent implements OnInit {
             IsApproved: activeTask.IsApproved,
             TaskComplexity: this.taskComplexity,
             IsAdditional: this.isAdditional,
+            Deadline: this.formatDateForApi(this.deadline),
+            DescriptionSolution: this.selectedTaskTypeId == 2 ? this.descriptionSolution : undefined,
             // Merge with any additional data passed in
             ...data
         };
-
+        console.log('descriptionSolution', this.descriptionSolution);
         this.isSaving = true;
 
         this.kanbanService.saveTask(completeTaskData).subscribe({

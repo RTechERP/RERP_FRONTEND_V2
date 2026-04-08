@@ -38,6 +38,10 @@
     font-size: 18px;
 }
 
+.parent-task-icon {
+    background: linear-gradient(135deg, #3b82f6, #06b6d4);
+}
+
 .user-icon {
     width: 24px;
     height: 24px;
@@ -114,6 +118,7 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
+    margin-right: 5px;
     flex-shrink: 0;
 }
 
@@ -210,6 +215,37 @@
 .project-select ::ng-deep .ant-select-selection-placeholder {
     text-align: left !important;
     line-height: 30px !important;
+}
+
+/* Custom Selected Item with Tooltip & Copy */
+.custom-selected-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 200px; /* Adjust based on parent width */
+}
+
+.truncate-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.copy-icon {
+    font-size: 13px;
+    color: #1890ff;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: all 0.2s ease;
+    padding: 2px;
+}
+
+.copy-icon:hover {
+    opacity: 1;
+    color: #096dd9;
+    transform: scale(1.2);
 }
 
 .group-select {
@@ -576,6 +612,47 @@
 
 .checklist-edit-input {
     border-radius: 4px;
+}
+
+/* Drag and Drop Styles */
+.checklist-item.cdk-drag-preview {
+    box-sizing: border-box;
+    border-radius: 4px;
+    box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+                0 8px 10px 1px rgba(0, 0, 0, 0.14),
+                0 3px 14px 2px rgba(0, 0, 0, 0.12);
+    background: white;
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+}
+
+.checklist-placeholder {
+    background: #fafafa;
+    border: 2px dashed #ccc;
+    min-height: 40px;
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+    margin: 4px 0;
+    border-radius: 4px;
+}
+
+.cdk-drop-list-dragging .checklist-item:not(.cdk-drag-placeholder) {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.checklist-item.cdk-drag-animating {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.drag-handle {
+    cursor: grab;
+    color: #bfbfbf;
+    display: flex;
+    align-items: center;
+}
+
+.checklist-item:active .drag-handle {
+    cursor: grabbing;
 }
 
 .cursor-pointer {
@@ -1634,6 +1711,28 @@ nz-date-picker ::ng-deep .ant-picker-input>input {
 }
 
 .description-full-height {
+    flex: 1;
+    min-height: 200px;
+    resize: vertical;
+}
+
+/* ==================== SOLUTION TAB (Bug) ==================== */
+.solution-tab-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.solution-header {
+    flex-shrink: 0;
+}
+
+.solution-icon {
+    font-size: 18px;
+    color: #ff4d4f;
+}
+
+.solution-full-height {
     flex: 1;
     min-height: 200px;
     resize: vertical;

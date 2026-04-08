@@ -101,8 +101,8 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
         if (n === 1 || n === 2) return n;
         // Text fallback
         const s = String(val).trim().toLowerCase();
-        if (s === 'nam' || s === 'male' || s === 'm') return 1;
-        if (s === 'nữ' || s === 'nu' || s === 'female' || s === 'f') return 2;
+        if (s === 'nam' || s === 'male' || s === 'm') return 0;
+        if (s === 'nữ' || s === 'nu' || s === 'female' || s === 'f') return 1;
         return null;
     }
 

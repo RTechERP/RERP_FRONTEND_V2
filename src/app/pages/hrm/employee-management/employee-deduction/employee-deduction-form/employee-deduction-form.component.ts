@@ -15,7 +15,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { EmployeeDeductionService } from '../employee-deduction.service';
 import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../../app.config';
-
+import { EmployeeDeductionTypeService } from '../employee-deduction-type/employee-deduction-type.service';
 @Component({
   selector: 'app-employee-deduction-form',
   standalone: true,
@@ -43,26 +43,52 @@ export class EmployeeDeductionFormComponent implements OnInit {
   form!: FormGroup;
   isLoading: boolean = false;
 
-  deductionTypes = [
-    { label: 'Đi muộn về sớm', value: 1 },
-    { label: 'Quên chấm công', value: 2 },
-    { label: 'Đăng ký nghỉ', value: 3 },
-    { label: 'Khác', value: 4 },
-  ];
+  deductionTypes: any[] = [];
+  currentEmployeeLevel: number = 1;
 
   constructor(
     private fb: FormBuilder,
     private deductionService: EmployeeDeductionService,
     private notification: NzNotificationService,
-    public activeModal: NgbActiveModal
-  ) {}
+    public activeModal: NgbActiveModal,
+    private employeeDeductionTypeService: EmployeeDeductionTypeService
+  ) { }
 
   ngOnInit(): void {
     this.initForm();
+    this.getDeductionTypes();
     this.groupDropdownEmployees(this.employees);
     if (this.mode === 'edit' && this.deductionData) {
       this.patchForm();
     }
+  }
+
+  getDeductionTypes(): void {
+    this.isLoading = true;
+    this.employeeDeductionTypeService.getAll().subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          this.deductionTypes = (res.data || []).map((item: any) => ({
+            label: item.DeductionTypeName,
+            value: item.ID,
+            MoneyLevel1: item.MoneyLevel1,
+            MoneyLevel2: item.MoneyLevel2,
+          }));
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Lỗi tải dữ liệu');
+        }
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+        this.isLoading = false;
+      }
+    });
   }
 
   private initForm(): void {
@@ -70,21 +96,24 @@ export class EmployeeDeductionFormComponent implements OnInit {
       ID: [0],
       EmployeeID: [null, [Validators.required]],
       DeductionDate: [new Date(), [Validators.required]],
-      DeductionType: [1, [Validators.required]],
+      DeductionType: [null, [Validators.required]],
       DeductionTypeName: [null],
       DeductionAmount: [0, [Validators.required, Validators.min(0)]],
       Reason: [''],
     });
 
-    this.form.get('DeductionType')?.valueChanges.subscribe((type) => {
-      const typeNameControl = this.form.get('DeductionTypeName');
-      if (type === 4) {
-        typeNameControl?.setValidators([Validators.required]);
+    this.form.get('EmployeeID')?.valueChanges.subscribe((empId) => {
+      if (empId) {
+        this.checkEmployeeDeductionLevel(empId);
       } else {
-        typeNameControl?.clearValidators();
-        typeNameControl?.setValue(null);
+        this.form.get('DeductionAmount')?.setValue(0);
       }
-      typeNameControl?.updateValueAndValidity();
+    });
+
+    this.form.get('DeductionType')?.valueChanges.subscribe((type) => {
+      if (type) {
+        this.updateDeductionAmount(type);
+      }
     });
   }
 
@@ -93,11 +122,15 @@ export class EmployeeDeductionFormComponent implements OnInit {
       ID: this.deductionData.ID || 0,
       EmployeeID: this.deductionData.EmployeeID,
       DeductionDate: this.deductionData.DeductionDate ? new Date(this.deductionData.DeductionDate) : new Date(),
-      DeductionType: this.deductionData.DeductionType || 1,
+      DeductionType: this.deductionData.DeductionType,
       DeductionTypeName: this.deductionData.DeductionTypeName,
       DeductionAmount: this.deductionData.DeductionAmount || 0,
       Reason: this.deductionData.Reason || '',
     });
+
+    if (this.deductionData.EmployeeID) {
+      this.checkEmployeeDeductionLevel(this.deductionData.EmployeeID);
+    }
   }
 
   onSave(): void {
@@ -114,6 +147,11 @@ export class EmployeeDeductionFormComponent implements OnInit {
 
     this.isLoading = true;
     const formValue = this.form.getRawValue();
+    // Gán DeductionTypeName từ label của DeductionType đã chọn
+    const selectedType = this.deductionTypes.find(t => t.value === formValue.DeductionType);
+    if (selectedType) {
+      formValue.DeductionTypeName = selectedType.label;
+    }
 
     this.deductionService.saveManual(formValue).subscribe({
       next: (res: any) => {
@@ -156,6 +194,27 @@ export class EmployeeDeductionFormComponent implements OnInit {
   parser = (value: string): number => {
     return Number(value.replace(/\$\s?|(,*)/g, '')) || 0;
   };
+
+  private checkEmployeeDeductionLevel(employeeID: number): void {
+    this.employeeDeductionTypeService.checkAmountLevel(employeeID).subscribe({
+      next: (res: any) => {
+        if (res?.status === 1 && res.data) {
+          // Nếu data là mảng, lấy phần tử đầu tiên
+          const data = Array.isArray(res.data) ? res.data[0] : res.data;
+          this.currentEmployeeLevel = data?.CostLevel || data?.DeductionCostLevel || data?.Level || 1;
+          this.updateDeductionAmount(this.form.get('DeductionType')?.value);
+        }
+      }
+    });
+  }
+
+  private updateDeductionAmount(typeID: number): void {
+    const selectedType = this.deductionTypes.find(t => t.value === typeID);
+    if (selectedType) {
+      const amount = this.currentEmployeeLevel === 2 ? selectedType.MoneyLevel2 : selectedType.MoneyLevel1;
+      this.form.patchValue({ DeductionAmount: amount });
+    }
+  }
 
   private groupDropdownEmployees(employees: any[]): void {
     if (!employees || employees.length === 0) {

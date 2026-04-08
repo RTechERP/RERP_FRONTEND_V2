@@ -62,17 +62,7 @@
           </nz-form-item>
         </nz-col>
       </nz-row>
-      <nz-row *ngIf="form.get('DeductionType')?.value === 4" [nzGutter]="16">
-        <nz-col [nzSpan]="24">
-          <nz-form-item class="mb-2">
-            <nz-form-label [nzRequired]="true">Tên loại phạt khác</nz-form-label>
-            <nz-form-control nzErrorTip="Vui lòng nhập tên loại phạt">
-              <input nz-input formControlName="DeductionTypeName"
-                placeholder="Ví dụ: Phạt hút thuốc, vi phạm nội quy..." nzSize="small" />
-            </nz-form-control>
-          </nz-form-item>
-        </nz-col>
-      </nz-row>
+
       <nz-row [nzGutter]="16">
         <nz-col [nzSpan]="24">
           <nz-form-item class="mb-0">

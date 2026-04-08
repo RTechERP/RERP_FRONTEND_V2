@@ -123,9 +123,9 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
   showPassword = true;
   isSaving = false;
   genderList: any[] = [
-    { ID: 0, GenderName: 'Nam' },
-    { ID: 1, GenderName: 'Nữ' },
-    { ID: 2, GenderName: 'Khác' },
+    { ID: 0, GenderName: 'Chọn giới tính' },
+    { ID: 1, GenderName: 'Nam' },
+    { ID: 2, GenderName: 'Nữ' },
   ];
 
   statusList: any[] = [
@@ -150,7 +150,7 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
     ID: this.fb.control(0),
     STT: this.fb.control({ value: '', disabled: true }),
     DateApply: this.fb.control<Date | null>(new Date(), [Validators.required]),
-    Gender: this.fb.control(2),
+    Gender: this.fb.control(0),
     FullName: this.fb.control('', [Validators.required]),
     DateOfBirth: this.fb.control<Date | null>(new Date()),
     UserName: this.fb.control('', [
@@ -275,7 +275,7 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
       STT: data.STT ?? this.stt ?? 1,
       DateApply: data.DateApply ? new Date(data.DateApply) : new Date(),
 
-      Gender: data.Gender ?? 2,
+      Gender: data.Gender ?? 0,
       FullName: data.FullName ?? '',
       DateOfBirth: data.DateOfBirth ? new Date(data.DateOfBirth) : new Date(),
 

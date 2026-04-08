@@ -221,6 +221,45 @@
     background-color: var(--p-surface-50, #f8fafc) !important;
 }
 
+/* Frozen header cells (incl. filter row) must always render above scrolling non-frozen cells.
+   Non-frozen cells with datetime filters have position:relative children which can create
+   stacking contexts that overlap frozen columns when scrolling horizontally. */
+:host ::ng-deep .p-datatable-thead>tr>th.p-datatable-frozen-column {
+    z-index: 3 !important;
+}
+
+/* Non-frozen filter-row cells: prevent p-datepicker's internal position:relative wrapper
+   from creating a stacking context that paints over frozen columns on horizontal scroll.
+   We reset position/z-index on the datepicker container so it stays in normal flow. */
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) p-datepicker,
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) .p-datepicker {
+    position: static !important;
+    z-index: auto !important;
+}
+
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) p-datepicker .p-datepicker-input-icon-container,
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) p-datepicker .p-inputtext {
+    position: relative;
+    z-index: auto !important;
+}
+
+/* Also prevent the p-columnFilter wrapper (which may have position:relative) from elevating */
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) p-columnfilter {
+    position: static !important;
+    z-index: auto !important;
+}
+
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) .p-column-filter {
+    position: static !important;
+    z-index: auto !important;
+}
+
+/* Reset the datetime-filter wrapper div (position:relative set inline) in non-frozen columns
+   so it does not create an elevated stacking context that overlaps frozen cells. */
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) {
+    z-index: 0 !important;
+}
+
 :host ::ng-deep .p-datatable .p-datatable-tbody>tr>td.p-frozen-column,
 :host ::ng-deep .p-datatable .p-datatable-tfoot>tr>td.p-frozen-column {
     background-color: var(--p-surface-0, #ffffff) !important;

@@ -281,19 +281,13 @@
                         [matchMode]="dateFilterMode[col.field] === 'range' ? 'dateRange' : 'dateIs'" display="row"
                         [showMenu]="false">
                         <ng-template pTemplate="filter" let-value let-filterCallback="filterCallback">
-                            <div style="position:relative;width:100%;">
-                                <i [class]="'pi cursor-pointer ' + (dateFilterMode[col.field] === 'range' ? 'pi-calendar-clock' : 'pi-calendar')"
-                                    [style.color]="dateFilterMode[col.field] === 'range' ? 'var(--p-primary-color)' : 'var(--p-text-muted-color)'"
-                                    [title]="dateFilterMode[col.field] !== 'range' ? 'Chọn ngày – click để chọn khoảng ngày' : 'Chọn khoảng ngày – click để chọn ngày đơn'"
-                                    style="position:absolute;left:6px;top:50%;transform:translateY(-50%);z-index:2;font-size:0.75rem"
-                                    (click)="toggleDateFilterMode(col.field, filterCallback);$event.stopPropagation()">
-                                </i>
+                            <div style="width:100%;">
                                 <!-- Single date picker -->
                                 <p-datepicker *ngIf="dateFilterMode[col.field] !== 'range'"
                                     [(ngModel)]="dateSingleFilter[col.field]" (ngModelChange)="filterCallback($event)"
                                     [dateFormat]="col.editDateFormat || 'dd/mm/yy'" appendTo="body" [showClear]="false"
                                     [showIcon]="false"
-                                    [inputStyle]="{'padding-left':'10px','padding-right':'4px','padding-top':'0px','padding-bottom':'0px','width':'100%'}"
+                                    [inputStyle]="{'padding-left':'4px','padding-right':'4px','padding-top':'0px','padding-bottom':'0px','width':'100%'}"
                                     [style]="{'width':'100%'}">
                                     <ng-template pTemplate="footer">
                                         <div
@@ -311,7 +305,7 @@
                                     (ngModelChange)="onDateRangeChange(col.field, $event, filterCallback)"
                                     selectionMode="range" [dateFormat]="col.editDateFormat || 'dd/mm/yy'"
                                     appendTo="body" [showClear]="false" [showIcon]="false"
-                                    [inputStyle]="{'padding-left':'10px','padding-right':'4px','padding-top':'0px','padding-bottom':'0px','width':'100%'}"
+                                    [inputStyle]="{'padding-left':'4px','padding-right':'4px','padding-top':'0px','padding-bottom':'0px','width':'100%'}"
                                     [style]="{'width':'100%'}">
                                     <ng-template pTemplate="footer">
                                         <div

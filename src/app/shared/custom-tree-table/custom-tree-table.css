@@ -65,6 +65,33 @@
     background-color: var(--p-surface-0, #ffffff) !important;
 }
 
+/* Frozen header cells (incl. filter row) must always render above scrolling non-frozen cells.
+   Non-frozen cells with datetime filters have position:relative children which can create
+   stacking contexts that overlap frozen columns when scrolling horizontally. */
+:host ::ng-deep .p-treetable-thead > tr > th.p-frozen-column {
+    z-index: 3 !important;
+}
+
+/* Non-frozen filter-row cells: prevent p-datepicker's internal position:relative wrapper
+   from creating a stacking context that paints over frozen columns on horizontal scroll. */
+:host ::ng-deep .filter-header-row th:not(.p-frozen-column) p-datepicker,
+:host ::ng-deep .filter-header-row th:not(.p-frozen-column) .p-datepicker {
+    position: static !important;
+    z-index: auto !important;
+}
+
+:host ::ng-deep .filter-header-row th:not(.p-frozen-column) p-datepicker .p-datepicker-input-icon-container,
+:host ::ng-deep .filter-header-row th:not(.p-frozen-column) p-datepicker .p-inputtext {
+    position: relative;
+    z-index: auto !important;
+}
+
+/* Reset the datetime-filter wrapper div (position:relative set inline) in non-frozen columns
+   so it does not create an elevated stacking context that overlaps frozen cells. */
+:host ::ng-deep .filter-header-row th:not(.p-frozen-column) {
+    z-index: 0 !important;
+}
+
 /* Table Lookup Cell (select-like appearance) */
 .table-lookup-cell {
     cursor: pointer;

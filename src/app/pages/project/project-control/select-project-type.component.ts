@@ -17,16 +17,11 @@ import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
       [nzDefaultExpandAll]="true"
       (ngModelChange)="onValueChange($event)"
       style="width: 100%; font-size: 0.75rem;"
+      [nzDropdownMatchSelectWidth]="false"
+      [nzDropdownStyle]="{ 'min-width': '400px' }"
     >
     </nz-tree-select>
   `,
-  styles: [
-    `
-      #cdk-overlay-1 {
-        width: 18% !important;
-      }
-    `,
-  ],
 })
 export class SelectProjectTypeComponent implements OnInit {
   constructor(private projectService: ProjectService) {}

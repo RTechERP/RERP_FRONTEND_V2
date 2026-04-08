@@ -316,6 +316,9 @@ import { CommercialPriceRequestComponent } from './pages/purchase/project-partli
 // import { BillImportPrimeComponent } from './pages/old/Sale/BillImport/bill-import-prime/bill-import-prime.component';
 // import { PaymentOrderNewComponent } from './pages/general-category/payment-order/payment-order-new/payment-order-new.component';
 import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
+import { PurchaseQuoteSummaryMainComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary-main/purchase-quote-summary-main.component';
+import { EmployeeDeductionTypeComponent } from './pages/hrm/employee-management/employee-deduction/employee-deduction-type/employee-deduction-type.component';
+
 export const routes: Routes = [
     {
         path: 'file-preview',
@@ -1165,6 +1168,9 @@ export const routes: Routes = [
             { path: 'project-task-project', component: ProjectTaskProjectComponent, canActivate: [authGuard] },
             { path: 'purchase-quote-summary', component: PurchaseQuoteSummaryComponent, canActivate: [authGuard] },
             { path: 'commercial-price-request', component: CommercialPriceRequestComponent, canActivate: [authGuard] },
+            { path: 'purchase-quote-summary-main', component: PurchaseQuoteSummaryMainComponent, canActivate: [authGuard] },
+            { path: 'employee-deduction-type', component: EmployeeDeductionTypeComponent, canActivate: [authGuard] },
+
         ],
     },
 ];

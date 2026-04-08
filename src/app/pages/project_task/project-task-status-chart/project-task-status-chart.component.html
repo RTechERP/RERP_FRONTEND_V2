@@ -1,0 +1,177 @@
+<div class="ptsc-container">
+
+    <!-- ===== SEARCH FORM ===== -->
+    @if (!hideSearch) {
+    <div class="card border-0 rounded-0 sticky-header">
+        <div class="card-header bg-white p-2">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="m-0 text-uppercase fw-bold">Thống kê trạng thái công việc (Biểu đồ)</h6>
+            </div>
+            <nz-row [nzGutter]="[8, 8]" nzAlign="bottom" nzJustify="space-between">
+                <!-- Từ ngày -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Từ ngày</label>
+                        <input type="date" [(ngModel)]="dateStart" name="dateStart"
+                            style="width: 100%; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                    </div>
+                </nz-col>
+
+                <!-- Đến ngày -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Đến ngày</label>
+                        <input type="date" [(ngModel)]="dateEnd" name="dateEnd"
+                            style="width: 100%; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                    </div>
+                </nz-col>
+
+                <!-- Phòng ban -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Phòng ban</label>
+                        <nz-select nzPlaceHolder="Phòng ban" [(ngModel)]="departmentId" nzSize="small" nzShowSearch
+                            nzAllowClear (ngModelChange)="onDepartmentChange()" style="width: 100%;">
+                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                            <nz-option *ngFor="let item of departmentList" [nzLabel]="item.Name || ''"
+                                [nzValue]="item.ID">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                </nz-col>
+
+                <!-- Team -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Team</label>
+                        <nz-select nzPlaceHolder="Team" [(ngModel)]="teamId" nzSize="small" nzShowSearch nzAllowClear
+                            (ngModelChange)="onTeamChange()" style="width: 100%;">
+                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                            <nz-option *ngFor="let item of teamList" [nzLabel]="item.Name || ''" [nzValue]="item.ID">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                </nz-col>
+
+                <!-- Nhân viên -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Nhân viên</label>
+                        <nz-select nzPlaceHolder="Nhân viên" [(ngModel)]="userId" nzSize="small" nzShowSearch
+                            nzAllowClear style="width: 100%;">
+                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                            <nz-option *ngFor="let item of userList" [nzLabel]="item.FullName || ''"
+                                [nzValue]="item.UserID">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                </nz-col>
+
+                <!-- Dự án -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="4">
+                    <div class="form-field-vertical">
+                        <label>Dự án</label>
+                        <nz-select nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch
+                            nzAllowClear style="width: 100%;">
+                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                            <nz-option *ngFor="let item of projectList"
+                                [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                </nz-col>
+                
+                <!-- Từ khóa -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Từ khóa</label>
+                        <input nz-input placeholder="Nhập từ khóa..." [(ngModel)]="keyword" (keyup.enter)="loadData()"
+                            nzSize="small" class="search-input-field" />
+                    </div>
+                </nz-col>
+
+                <!-- Nút hành động -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="2">
+                    <div class="form-field-vertical">
+                        <label>&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button nz-button nzType="default" nzSize="small" (click)="resetSearch()" nz-tooltip
+                                nzTooltipTitle="Đặt lại">
+                                <span nz-icon nzType="reload"></span>
+                            </button>
+                            <button nz-button nzType="primary" nzSize="small" (click)="loadData()" nz-tooltip
+                                nzTooltipTitle="Tìm kiếm">
+                                <span nz-icon nzType="search"></span>
+                            </button>
+                        </div>
+                    </div>
+                </nz-col>
+            </nz-row>
+        </div>
+    </div>
+    }
+
+    <!-- ===== BIỂU ĐỒ ===== -->
+    <div class="chart-content flex-layout">
+        <div class="chart-main-area">
+            <!-- Nút Toggle Sidebar -->
+            <button class="sidebar-toggle-btn" [class.is-collapsed]="!showSidebar" (click)="showSidebar = !showSidebar">
+                <span nz-icon [nzType]="showSidebar ? 'double-right' : 'double-left'" nzTheme="outline"></span>
+            </button>
+
+            <div class="chart-container-wrapper">
+                <div echarts [options]="chartOptions" class="status-chart" (chartInit)="onChartInit($event)"></div>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div class="loading-overlay" *ngIf="loading()">
+                <span nz-icon nzType="loading" nzTheme="outline"></span>
+                <p>Đang tải dữ liệu...</p>
+            </div>
+
+            <!-- No Data Overlay -->
+            <div class="loading-overlay"
+                *ngIf="!loading() && (!chartOptions.series || chartOptions.xAxis.data.length === 0)">
+                <span nz-icon nzType="inbox" nzTheme="outline" style="font-size: 40px; color: #cbd5e1;"></span>
+                <p>Không có dữ liệu thống kê</p>
+            </div>
+        </div>
+
+        <!-- Sidebar chọn nhân viên -->
+        <div class="employee-sidebar" [class.sidebar-hidden]="!showSidebar" *ngIf="!loading() && fullData.length > 0">
+            <div class="sidebar-header">
+                <div class="limit-control d-flex justify-content-between align-items-center mb-2">
+                    <span class="label-text">Số lượng hiển thị:</span>
+                    <nz-input-number [(ngModel)]="limitCount" [nzMin]="0" [nzStep]="1"
+                        nzSize="small" (ngModelChange)="onFilterChange()" style="width: 70px;"></nz-input-number>
+                </div>
+                <nz-input-group [nzPrefix]="prefixIconSearch" nzSize="small">
+                    <input type="text" nz-input placeholder="Tìm nhân viên..." [(ngModel)]="searchEmployeeText" />
+                </nz-input-group>
+                <ng-template #prefixIconSearch>
+                    <span nz-icon nzType="search"></span>
+                </ng-template>
+            </div>
+
+            <div class="sidebar-body">
+                <div class="employee-list-container">
+                    <div class="employee-item" *ngFor="let emp of getFilteredSelections()">
+                        <label nz-checkbox [(ngModel)]="emp.selected" (ngModelChange)="onFilterChange()"
+                            nz-tooltip [nzTooltipTitle]="emp.FullName">
+                            <span class="emp-name-text">{{ emp.FullName }}</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer d-flex justify-content-between">
+                <button nz-button nzType="link" nzSize="small" (click)="toggleAll(true)">
+                    Tất cả
+                </button>
+                <button nz-button nzType="link" nzSize="small" (click)="toggleAll(false)" nzDanger>
+                    Bỏ chọn
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

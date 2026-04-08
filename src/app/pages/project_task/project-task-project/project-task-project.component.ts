@@ -83,15 +83,15 @@ export class ProjectTaskProjectComponent implements OnInit {
   cols: any[] = [
     { field: 'Code', header: 'Mã CV', width: '200px', minWidth: '200px', filterable: true },
     { field: 'Mission', header: 'Tên công việc', width: '300px', filterable: true },
-    { field: 'DisplayStatus', header: 'Trạng thái', width: '150px' },
-    { field: 'FullName', header: 'Người thực hiện', width: '150px', filterable: true },
-    { field: 'IsAdditional', header: 'Phát sinh', width: '100px' },
-    { field: 'TaskComplexity', header: 'Phức tạp', width: '100px' },
-    { field: 'PercentOverTime', header: '% Quá hạn', width: '150px' },
+    { field: 'DisplayStatus', header: 'Trạng thái', width: '150px',align: 'center' },
+    { field: 'FullName', header: 'Người giao việc', width: '150px', filterable: true },
     { field: 'PlanStartDateObj', header: 'Ngày BĐ dự kiến', width: '150px', isDate: true },
     { field: 'PlanEndDateObj', header: 'Ngày KT dự kiến', width: '150px', isDate: true },
     { field: 'StartDateObj', header: 'Ngày BĐ thực tế', width: '150px', isDate: true },
-    { field: 'DueDateObj', header: 'Ngày KT thực tế', width: '150px', isDate: true }
+    { field: 'DueDateObj', header: 'Ngày KT thực tế', width: '150px', isDate: true },
+    { field: 'IsAdditional', header: 'Phát sinh', width: '100px', align: 'center' },
+    { field: 'TaskComplexity', header: 'Phức tạp', width: '100px', align: 'center' },
+    { field: 'PercentOverTime', header: '% Quá hạn', width: '150px', align: 'center' }
   ];
 
   statusOptions = [
@@ -277,7 +277,7 @@ export class ProjectTaskProjectComponent implements OnInit {
         // Hàng công việc: map labels
         row.DisplayStatusLabel = this.getDisplayStatus(data).label;
         row.IsAdditionalLabel = data.IsAdditional ? 'Có' : '-';
-        row.PercentLabel = data.PercentOverTime !== null ? (data.PercentOverTime * 100) + '%' : '-';
+        row.PercentLabel = data.PercentOverTime !== null ? (data.PercentOverTime * 100).toFixed(0) + '%' : '-';
       }
 
       result.push(row);
@@ -299,7 +299,7 @@ export class ProjectTaskProjectComponent implements OnInit {
       { header: 'Mã CV / Dự án', field: 'Code' },
       { header: 'Tên công việc', field: 'Mission' },
       { header: 'Trạng thái', field: 'DisplayStatusLabel' },
-      { header: 'Người thực hiện', field: 'FullName' },
+      { header: 'Người giao việc', field: 'FullName' },
       { header: 'Phát sinh', field: 'IsAdditionalLabel' },
       { header: 'Phức tạp', field: 'TaskComplexity' },
       { header: 'Quá hạn (%)', field: 'PercentLabel' },

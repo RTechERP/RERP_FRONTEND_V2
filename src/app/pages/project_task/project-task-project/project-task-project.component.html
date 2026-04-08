@@ -227,7 +227,7 @@
                         @if (col.field === 'PercentOverTime') {
                         @if (rowData.PercentOverTime !== null && rowData.PercentOverTime !== undefined) {
                         <span [style.color]="rowData.PercentOverTime > 0 ? '#ff4d4f' : 'inherit'" class="fw-bold">
-                            {{ rowData.PercentOverTime * 100 }}%
+                            {{ (rowData.PercentOverTime * 100).toFixed(0) }}%
                         </span>
                         } @else {
                         <span class="text-muted">-</span>

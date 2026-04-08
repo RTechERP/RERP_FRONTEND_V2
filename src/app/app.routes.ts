@@ -309,16 +309,13 @@ import { ProjectTaskTimelineComponent } from './pages/project_task/project-task-
 import { ProjectTaskStatusComponent } from './pages/project_task/project-task-status/project-task-status.component'
 import { ProjectTaskTypeComponent } from './pages/project_task/project-task-type/project-task-type.component'
 import { ProjectTaskProjectComponent } from './pages/project_task/project-task-project/project-task-project.component'
+import { ProjectTaskTimeLineTotalComponent } from './pages/project_task/project-task-time-line-total/project-task-time-line-total.component'
+import { ProjectTaskStatusChartComponent } from './pages/project_task/project-task-status-chart/project-task-status-chart.component'
+import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
 import { PurchaseQuoteSummaryComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary.component';
 import { CommercialPriceRequestComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/commercial-price-request/commercial-price-request.component';
-
-// import { ListProductProjectCustomerComponent } from './pages/old/Sale/list-product-project-customer/list-product-project-customer.component';
-// import { BillImportPrimeComponent } from './pages/old/Sale/BillImport/bill-import-prime/bill-import-prime.component';
-// import { PaymentOrderNewComponent } from './pages/general-category/payment-order/payment-order-new/payment-order-new.component';
-import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
 import { PurchaseQuoteSummaryMainComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary-main/purchase-quote-summary-main.component';
 import { EmployeeDeductionTypeComponent } from './pages/hrm/employee-management/employee-deduction/employee-deduction-type/employee-deduction-type.component';
-
 export const routes: Routes = [
     {
         path: 'file-preview',
@@ -1166,10 +1163,8 @@ export const routes: Routes = [
             { path: 'project-task-status', component: ProjectTaskStatusComponent, canActivate: [authGuard] },
             { path: 'project-task-type', component: ProjectTaskTypeComponent, canActivate: [authGuard] },
             { path: 'project-task-project', component: ProjectTaskProjectComponent, canActivate: [authGuard] },
-            { path: 'purchase-quote-summary', component: PurchaseQuoteSummaryComponent, canActivate: [authGuard] },
-            { path: 'commercial-price-request', component: CommercialPriceRequestComponent, canActivate: [authGuard] },
-            { path: 'purchase-quote-summary-main', component: PurchaseQuoteSummaryMainComponent, canActivate: [authGuard] },
-            { path: 'employee-deduction-type', component: EmployeeDeductionTypeComponent, canActivate: [authGuard] },
+            { path: 'project-task-status-chart', component: ProjectTaskStatusChartComponent, canActivate: [authGuard] },
+            { path: 'project-task-timeline-total', component: ProjectTaskTimeLineTotalComponent, canActivate: [authGuard] }
 
         ],
     },

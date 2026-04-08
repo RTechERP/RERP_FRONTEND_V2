@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { IAPIResponse } from '../../../models/kanban.interface';
+import { IAPIResponse, IProjectTaskEmailBand } from '../../../models/kanban.interface';
 import * as ExcelJS from 'exceljs';
 import { Table } from 'primeng/table';
 import { DateTime } from 'luxon';
@@ -49,6 +49,11 @@ export interface ProjectTaskItem {
     PercentOverTime?: number | null;
     AsigneeEmployeeID?: number | null;
     AsigneeEmployeeFullName?: string | null;
+    ProjectTaskColor?: string | null;
+    CompletionRating?: number | null;
+    ReviewCompletionRating?: number | null;
+    TotalActualHours?: number | null;
+    IsCheck?: boolean | null;
 }
 
 export interface ProjectTaskResponse {
@@ -180,5 +185,22 @@ export class ProjectTaskService {
         a.download = `${fileName}_${DateTime.now().toFormat('ddMMyyyy')}.xlsx`;
         a.click();
         window.URL.revokeObjectURL(url);
+    }
+
+    getEmailBandData(): Observable<IAPIResponse<IProjectTaskEmailBand>> {
+        return this.http.get<IAPIResponse<IProjectTaskEmailBand>>(`${this.apiUrl}/email-band`);
+    }
+
+    saveEmailBandData(isActive: boolean): Observable<IAPIResponse<IProjectTaskEmailBand>> {
+        const params = new HttpParams()
+            .set('isActive', isActive.toString());
+        return this.http.post<IAPIResponse<IProjectTaskEmailBand>>(`${this.apiUrl}/email-band`, {}, { params });
+    }
+
+    saveAttendance(projectTaskID: number, isCheck: boolean): Observable<IAPIResponse<any>> {
+        const params = new HttpParams()
+            .set('projectTaskID', projectTaskID.toString())
+            .set('isCheck', isCheck.toString());
+        return this.http.post<IAPIResponse<any>>(`${this.apiUrl}/attendance`, {}, { params });
     }
 }

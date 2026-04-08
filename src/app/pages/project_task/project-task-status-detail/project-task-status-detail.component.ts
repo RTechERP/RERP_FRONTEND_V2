@@ -14,6 +14,7 @@ import { KanbanService } from '../kanban/kanban.service';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzRateModule } from 'ng-zorro-antd/rate';
 import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 import { DateTime } from 'luxon';
 import { Table } from 'primeng/table';
@@ -31,7 +32,8 @@ import { Table } from 'primeng/table';
     TableModule,
     TagModule,
     TooltipModule,
-    MultiSelectModule
+    MultiSelectModule,
+    NzRateModule
   ],
   templateUrl: './project-task-status-detail.component.html',
   styleUrl: './project-task-status-detail.component.css'
@@ -70,6 +72,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
   @ViewChild('rejectModalTpl') rejectModalTpl!: TemplateRef<any>;
 
   approveReviewText: string = '';
+  approveCompletionRating: number = 5;
   rejectReviewText: string = '';
   rejectReviewError: boolean = false;
   isApproving: boolean = false;
@@ -252,17 +255,23 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
 
   approveTask(task: ProjectTaskItem): void {
     this.approveReviewText = '';
+    this.approveCompletionRating = 5;
     this.modal.create({
       nzTitle: 'Xác nhận duyệt công việc',
       nzContent: this.approveModalTpl,
       nzOkText: 'Duyệt',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
+        if (!this.approveCompletionRating || this.approveCompletionRating < 1) {
+          this.message.error('Vui lòng đánh giá tối thiểu 1 sao');
+          return;
+        }
         this.isApproving = true;
         return new Promise<void>((resolve, reject) => {
-          this.kanbanService.approveTask([task.ID], true, this.approveReviewText).subscribe({
+          this.kanbanService.approveTask([task.ID], true, this.approveReviewText, this.approveCompletionRating).subscribe({
             next: () => {
               task.IsApproved = 2;
+              task.CompletionRating = this.approveCompletionRating;
               this.message.success(`Đã duyệt công việc "${task.Mission}"`);
               this.isApproving = false;
               this.loadData();

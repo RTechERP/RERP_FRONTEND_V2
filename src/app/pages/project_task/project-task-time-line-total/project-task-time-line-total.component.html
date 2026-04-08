@@ -1,0 +1,265 @@
+<div class="timeline-container">
+
+    <!-- ===== PHẦN TÌM KIẾM ===== -->
+    <div class="card border-0 rounded-0 sticky-header">
+        <div class="card-header bg-white p-2">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="m-0 text-uppercase fw-bold">Kế hoạch công việc theo nhân viên</h6>
+                <div class="legend-bar">
+                    <div class="legend-item">
+                        <span class="box planned"></span> Dự kiến
+                    </div>
+                    <div class="legend-item">
+                        <span class="box actual"></span> Thực tế
+                    </div>
+                </div>
+            </div>
+            <nz-row [nzGutter]="[8, 8]" nzAlign="bottom" nzJustify="space-between">
+                <!-- Từ ngày -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Từ ngày</label>
+                        <input type="date" [(ngModel)]="dateStart" name="dateStart"
+                            style="width: 100%; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                    </div>
+                </nz-col>
+
+                <!-- Đến ngày -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Đến ngày</label>
+                        <input type="date" [(ngModel)]="dateEnd" name="dateEnd"
+                            style="width: 100%; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                    </div>
+                </nz-col>
+
+                <!-- Phòng ban -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Phòng ban</label>
+                        <nz-select nzPlaceHolder="Phòng ban" [(ngModel)]="departmentId" nzSize="small" nzShowSearch
+                            nzAllowClear (ngModelChange)="onDepartmentChange()" style="width: 100%;">
+                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                            <nz-option *ngFor="let item of departmentList" [nzLabel]="item.Name || ''"
+                                [nzValue]="item.ID">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                </nz-col>
+
+                <!-- Team -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Team</label>
+                        <nz-select nzPlaceHolder="Team" [(ngModel)]="teamId" nzSize="small" nzShowSearch nzAllowClear
+                            (ngModelChange)="onTeamChange()" style="width: 100%;">
+                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                            <nz-option *ngFor="let item of teamList" [nzLabel]="item.Name || ''" [nzValue]="item.ID">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                </nz-col>
+
+                <!-- Nhân viên -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Nhân viên</label>
+                        <nz-select nzPlaceHolder="Nhân viên" [(ngModel)]="userId" nzSize="small" nzShowSearch
+                            nzAllowClear (ngModelChange)="loadTimeline()" style="width: 100%;">
+                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                            <nz-option *ngFor="let item of userList" [nzLabel]="item.FullName || ''"
+                                [nzValue]="item.UserID">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                </nz-col>
+
+                <!-- Dự án -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="4">
+                    <div class="form-field-vertical">
+                        <label>Dự án</label>
+                        <nz-select nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch
+                            nzAllowClear (ngModelChange)="loadTimeline()" style="width: 100%;">
+                            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                            <nz-option *ngFor="let item of projectList"
+                                [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                </nz-col>
+
+                <!-- Nút hành động -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="2">
+                    <div class="form-field-vertical">
+                        <label>&nbsp;</label>
+                        <div class="d-flex gap-2">
+                            <button nz-button nzType="default" nzSize="small" (click)="resetSearch()" nz-tooltip
+                                nzTooltipTitle="Đặt lại">
+                                <span nz-icon nzType="reload"></span>
+                            </button>
+                            <button nz-button nzType="primary" nzSize="small" (click)="loadTimeline()" nz-tooltip
+                                nzTooltipTitle="Tìm kiếm">
+                                <span nz-icon nzType="search"></span>
+                            </button>
+                        </div>
+                    </div>
+                </nz-col>
+            </nz-row>
+        </div>
+    </div>
+
+    <!-- ===== BẢNG TIMELINE ===== -->
+    <div class="timeline-content" [class.loading]="loading()">
+        <div class="table-container">
+            <table class="grid-table">
+                <thead>
+                    <!-- Hàng 1: Tên cột + Tên ngày -->
+                    <tr>
+                        <th rowspan="2" class="sticky-col col-stt">STT</th>
+                        <th rowspan="2" class="sticky-col col-name">
+                            Họ và tên
+                            <input type="text" class="filter-input" [(ngModel)]="filterFullName"
+                                (keyup)="onColumnFilter()" placeholder="Tìm kiếm...">
+                        </th>
+                        <th rowspan="2" class="sticky-col col-job">
+                            Công việc
+                            <input type="text" class="filter-input" [(ngModel)]="filterTaskKeyword"
+                                (keyup)="onColumnFilter()" placeholder="Tìm mã/tên...">
+                        </th>
+                        <th rowspan="2" class="col-parent">
+                            CV Cha
+                            <input type="text" class="filter-input" [(ngModel)]="filterParentCode"
+                                (keyup)="onColumnFilter()" placeholder="Tìm kiếm...">
+                        </th>
+                        <th rowspan="2" class="col-proj">
+                            Dự án
+                            <input type="text" class="filter-input" [(ngModel)]="filterProjectKeyword"
+                                (keyup)="onColumnFilter()" placeholder="Tìm dự án...">
+                        </th>
+                        <th rowspan="2" class="col-status">
+                            Trạng Thái
+                            <p-multiSelect [options]="statusOptions" [(ngModel)]="selectedStatuses"
+                                placeholder="Tất cả" [showHeader]="false" [filter]="false"
+                                (onChange)="onColumnFilter()" styleClass="timeline-status-multi"
+                                [maxSelectedLabels]="1" selectedItemsLabel="{0} trạng thái"
+                                appendTo="body" />
+                        </th>
+                        <th rowspan="2" class="col-time">Thời gian</th>
+                        <th rowspan="2" class="col-type">Loại</th>
+                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday" class="date-header">
+                            {{ col.dayName }}
+                        </th>
+                    </tr>
+                    <tr>
+                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday" class="date-subheader">
+                            {{ col.dateDisplay }}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngFor="let group of filteredData(); let gi = index">
+                        <ng-container *ngFor="let task of group.tasks; let ti = index">
+                            <ng-container *ngFor="let row of task.rows; let ri = index">
+                                <tr [class.row-actual]="ri === 1">
+                                    <!-- STT: chỉ ở dòng đầu tiên của nhóm nhân viên -->
+                                    <td *ngIf="ti === 0 && ri === 0" [attr.rowspan]="group.tasks.length * 2"
+                                        class="sticky-col col-stt text-center cell-group">
+                                        {{ gi + 1 }}
+                                    </td>
+                                    <!-- Họ và tên: chỉ ở dòng đầu tiên của nhóm nhân viên -->
+                                    <td *ngIf="ti === 0 && ri === 0" [attr.rowspan]="group.tasks.length * 2"
+                                        class="sticky-col col-name cell-group cell-name-text">
+                                        {{ group.FullName }}
+                                    </td>
+                                    <!-- Công việc: span 2 dòng (Dự kiến + Thực tế) -->
+                                    <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-job">
+                                        <div class="task-info">
+                                            <a class="task-code-link"
+                                                (click)="openTaskDetail(task.ProjectTaskID); $event.stopPropagation()">
+                                                {{ task.ProjectTaskCode }}
+                                            </a>
+                                            <div class="task-title text-wrap">{{ task.ProjectTaskTitle }}</div>
+                                        </div>
+                                    </td>
+                                    <!-- CV Cha: span 2 dòng -->
+                                    <td *ngIf="ri === 0" rowspan="2" class="col-parent">
+                                        <div class="task-info">
+                                            <ng-container *ngIf="task.ProjectTaskParentCode; else noParent">
+                                                <a class="task-code-link"
+                                                    (click)="openTaskDetail(task.ProjectTaskParentID); $event.stopPropagation()">
+                                                    {{ task.ProjectTaskParentCode }}
+                                                </a>
+                                                <div class="task-title text-wrap">{{ task.ProjectTaskParentTitle }}</div>
+                                            </ng-container>
+                                            <ng-template #noParent>-</ng-template>
+                                        </div>
+                                    </td>
+                                    <!-- Dự án: span 2 dòng -->
+                                    <td *ngIf="ri === 0" rowspan="2" class="col-proj">
+                                        <div class="project-info">
+                                            <span class="fw-bold">{{ task.ProjectCode }}</span>
+                                            <div class="project-name text-wrap">{{ task.ProjectName }}</div>
+                                        </div>
+                                    </td>
+                                    <!-- Trạng thái: span 2 dòng -->
+                                    <td *ngIf="ri === 0" rowspan="2" class="col-status text-center">
+                                        <span class="status-tag" [attr.data-status]="task.Status">
+                                            {{ task.StatusName }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Thời gian -->
+                                    <td class="col-time text-center fw-bold">
+                                        {{ calculateRowTime(row) }}
+                                    </td>
+
+                                    <!-- Loại -->
+                                    <td class="col-type text-center">
+                                        {{ row.TypeDate === 1 ? 'Dự kiến' : 'Thực tế' }}
+                                    </td>
+
+                                    <!-- Các ô ngày -->
+                                    <td *ngFor="let col of dateColumns" class="gantt-cell"
+                                        [class.sunday]="col.isSunday"
+                                        [class.filled-planned]="row.TypeDate === 1 && getValue(row, col.dateStr) >= 1"
+                                        [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
+                                        <!-- Dự kiến: >= 2 hiển thị icon check -->
+                                        <ng-container *ngIf="row.TypeDate === 1 && getValue(row, col.dateStr) >= 2">
+                                            <span nz-icon nzType="check" nzTheme="outline" class="check-icon"></span>
+                                        </ng-container>
+                                        <!-- Thực tế: > 0 hiển thị số giờ -->
+                                        <ng-container *ngIf="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
+                                            <span class="actual-hours">
+                                                {{ getValue(row, col.dateStr) }}
+                                            </span>
+                                        </ng-container>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </ng-container>
+                    </ng-container>
+
+                    <!-- Trống -->
+                    <tr *ngIf="filteredData().length === 0 && !loading()">
+                        <td [attr.colspan]="8 + dateColumns.length" class="empty-cell">
+                            Không có dữ liệu cho khoảng thời gian này
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td [attr.colspan]="8 + dateColumns.length" class="table-footer-total">
+                            Tổng số công việc: <span class="total-count">{{ getTotalTasks() }}</span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" *ngIf="loading()">
+            <span nz-icon nzType="loading" nzTheme="outline"></span>
+            <p>Đang tải dữ liệu...</p>
+        </div>
+    </div>
+</div>

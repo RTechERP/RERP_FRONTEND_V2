@@ -245,7 +245,14 @@
     flex-direction: column;
 }
 
-/* Task Name Cell */
+/* Task Info Block Layout */
+.task-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 0;
+}
+
 .task-name-cell {
     display: flex;
     align-items: center;
@@ -253,17 +260,17 @@
 }
 
 .task-title {
-    color: #1890ff;
+    color: #000000;
     font-weight: 500;
     word-break: break-word;
     white-space: normal;
     cursor: pointer;
 }
 
-.task-title:hover {
+/* .task-title:hover {
     text-decoration: underline;
     color: #40a9ff;
-}
+} */
 
 /* Project Cell */
 .project-cell {
@@ -278,6 +285,11 @@
     white-space: normal;
 }
 
+.project-code {
+    color: #000000;
+    font-weight: 500;
+}
+
 /* Task Code Link */
 .task-code-link {
     color: #1890ff;
@@ -290,6 +302,13 @@
 .task-code-link:hover {
     text-decoration: underline;
     color: #40a9ff;
+}
+
+.task-description {
+    color: #595959;
+    font-size: 13px;
+    word-break: break-word;
+    white-space: normal;
 }
 
 /* Date Text */
@@ -751,4 +770,25 @@
     display: flex !important;
     align-items: center !important;
     height: 100% !important;
+}
+
+.email-status-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+    padding-left: 12px;
+    border-left: 1px solid #f0f0f0;
+    height: 30px;
+}
+
+.email-toggle-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #595959;
+}
+
+/* Custom switch colors if needed to match theme */
+:host ::ng-deep .ant-switch-checked {
+    background-color: #52c41a !important; /* Green */
 }

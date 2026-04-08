@@ -6,6 +6,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzMessageService, NzMessageModule } from 'ng-zorro-antd/message';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
+import { NzRateModule } from 'ng-zorro-antd/rate';
 import { ProjectTaskDashboardService, DashboardStats, ChartData } from './project-task-dashboard.service';
 import { KanbanService } from '../kanban/kanban.service';
 import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
@@ -29,7 +30,8 @@ import { TooltipModule } from 'primeng/tooltip';
     NzMessageModule,
     NzButtonModule,
     ChartModule,
-    TooltipModule
+    TooltipModule,
+    NzRateModule
   ],
   templateUrl: './project-task-dashboard.component.html',
   styleUrl: './project-task-dashboard.component.css'
@@ -48,6 +50,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
   @ViewChild('rejectModalTpl') rejectModalTpl!: TemplateRef<any>;
  
   approveReviewText: string = '';
+  approveCompletionRating: number = 5;
   rejectReviewText: string = '';
   rejectReviewError: boolean = false;
   isApproving: boolean = false;
@@ -329,15 +332,20 @@ export class ProjectTaskDashboardComponent implements OnInit {
 
   approveTask(task: ProjectTaskItem): void {
     this.approveReviewText = '';
+    this.approveCompletionRating = 5;
     this.modal.create({
       nzTitle: 'Xác nhận duyệt công việc',
       nzContent: this.approveModalTpl,
       nzOkText: 'Duyệt',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
+        if (!this.approveCompletionRating || this.approveCompletionRating < 1) {
+          this.message.error('Vui lòng đánh giá tối thiểu 1 sao');
+          return;
+        }
         this.isApproving = true;
         return new Promise<void>((resolve, reject) => {
-          this.kanbanService.approveTask([task.ID], true, this.approveReviewText).subscribe({
+          this.kanbanService.approveTask([task.ID], true, this.approveReviewText, this.approveCompletionRating).subscribe({
             next: () => {
               this.message.success(`Đã duyệt công việc "${task.Mission}"`);
               this.isApproving = false;

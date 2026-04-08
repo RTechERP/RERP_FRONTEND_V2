@@ -6,6 +6,8 @@ import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzRateModule } from 'ng-zorro-antd/rate';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { forkJoin } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -23,7 +25,7 @@ import { PrimeNG } from 'primeng/config';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { ContextMenuModule } from 'primeng/contextmenu';
 import { MenuItem } from 'primeng/api';
-
+import { AppUserService } from '../../../services/app-user.service';
 import { ProjectTaskService, ProjectTaskItem } from './project-task.service';
 
 type TabType = 'all' | 'assigned' | 'related' | 'myApproval';
@@ -38,6 +40,8 @@ type TabType = 'all' | 'assigned' | 'related' | 'myApproval';
     NzModalModule,
     NzInputModule,
     NzToolTipModule,
+    NzRateModule,
+    NzSwitchModule,
 
     ButtonModule,
     TableModule,
@@ -59,12 +63,17 @@ export class ProjectTaskComponent implements OnInit {
 
   // Approval modal state
   approveReviewText: string = '';
+  approveCompletionRating: number = 5;
   rejectReviewText: string = '';
   rejectReviewError: boolean = false;
   isApproving: boolean = false;
   isOpeningDetail: boolean = false; // Guard against spam-click opening multiple modals
   selectedTaskForCopy: ProjectTaskItem | null = null;
   contextMenuItems: MenuItem[] = [];
+
+  // Email status
+  isEmailActive: boolean = true;
+  isEmailLoading: boolean = false;
 
   // RemoveSort state
   initialTasks: ProjectTaskItem[] = [];  // lưu thứ tự gốc (ID giảm dần)
@@ -86,7 +95,8 @@ export class ProjectTaskComponent implements OnInit {
     private primeNG: PrimeNG,
     private filterService: FilterService,
     private ngbModal: NgbModal,
-    private el: ElementRef
+    private el: ElementRef,
+    private appUserService: AppUserService
   ) { }
 
   // Data signals
@@ -235,8 +245,48 @@ export class ProjectTaskComponent implements OnInit {
   ngOnInit() {
     this.setVietnameseLocale();
     this.registerCustomFilters();
+    this.currentUserId.set(this.appUserService.employeeID || 0);
     this.loadTasks();
     this.loadTaskTypes();
+    this.loadEmailStatus();
+  }
+
+  loadEmailStatus() {
+    this.projectTaskService.getEmailBandData().subscribe({
+      next: (res) => {
+        if (res.status === 200 || res.status === 1) {
+          // Nếu data null hoặc IsActive = true thì sáng (true)
+          this.isEmailActive = res.data ? (res.data.IsActive ?? true) : true;
+        } else {
+          this.isEmailActive = true;
+        }
+      },
+      error: () => {
+        this.isEmailActive = true;
+      }
+    });
+  }
+
+  onEmailStatusChange(status: boolean) {
+    this.isEmailLoading = true;
+    this.projectTaskService.saveEmailBandData(status).subscribe({
+      next: (res) => {
+        this.isEmailLoading = false;
+        if (res.status === 200 || res.status === 1) {
+          this.isEmailActive = status;
+          this.message.success(`${status ? 'Đã bật' : 'Đã tắt'} nhận email thông báo thành công`);
+        } else {
+          this.message.error(res.message || 'Cập nhật trạng thái nhận mail thất bại');
+          // Revert toggle
+          this.isEmailActive = !status;
+        }
+      },
+      error: (err) => {
+        this.isEmailLoading = false;
+        this.message.error('Lỗi khi cập nhật trạng thái nhận mail');
+        this.isEmailActive = !status;
+      }
+    });
   }
 
   loadTaskTypes(): void {
@@ -276,6 +326,48 @@ export class ProjectTaskComponent implements OnInit {
         return true;
       }
       return !!value === filter;
+    });
+
+    this.filterService.register('isCheck', (value: any, filter: any): boolean => {
+      if (filter === undefined || filter === null || filter === '') {
+        return true;
+      }
+      if (filter === true) {
+        return !!value;
+      }
+      return !value; // This covers false, null, and undefined
+    });
+
+    this.filterService.register('actualRatio', (value: any, filter: any): boolean => {
+      if (filter === undefined || filter === null || filter.trim() === '') {
+        return true;
+      }
+      if (value === undefined || value === null) {
+        return false;
+      }
+
+      const numValue = Number(value);
+      if (filter === 'under') {
+        return numValue <= 100;
+      }
+      if (filter === 'over') {
+        return numValue > 100;
+      }
+      return true;
+    });
+
+    this.filterService.register('actualHours', (value: any, filter: any): boolean => {
+      if (filter === undefined || filter === null || filter.trim() === '') {
+        return true;
+      }
+      const numValue = value ? Number(value) : 0;
+      if (filter === 'hasHours') {
+        return numValue > 0;
+      }
+      if (filter === 'noHours') {
+        return numValue === 0;
+      }
+      return true;
     });
   }
 
@@ -359,6 +451,9 @@ export class ProjectTaskComponent implements OnInit {
           .map((t: any) => ({
             ...t,
             ProjectFullName: `${t.ProjectCode || ''} - ${t.ProjectName || ''}`,
+            ProjectSearchText: `${t.ProjectCode || ''} ${t.ProjectName || ''}`,
+            TaskSearchText: `${t.Code || ''} ${t.Mission || ''}`,
+            ParentSearchText: `${t.ParentCode || ''} ${t.ParentTitle || ''}`,
             DisplayStatus: this.computeDisplayStatus(t),
             // Use ParentCode from API instead of manual lookup
             ParentCode: (t.ParentCode || '').trim(),
@@ -366,7 +461,8 @@ export class ProjectTaskComponent implements OnInit {
             PlanStartDate: t.PlanStartDate ? new Date(t.PlanStartDate) : null,
             PlanEndDate: t.PlanEndDate ? new Date(t.PlanEndDate) : null,
             ActualStartDate: t.ActualStartDate ? new Date(t.ActualStartDate) : null,
-            ActualEndDate: t.ActualEndDate ? new Date(t.ActualEndDate) : null
+            ActualEndDate: t.ActualEndDate ? new Date(t.ActualEndDate) : null,
+            ActualPlannedRatio: this.calculateActualPlannedRatio(t)
           }));
 
         this.allTasks.set(tasks);
@@ -442,6 +538,28 @@ export class ProjectTaskComponent implements OnInit {
     return false;
   }
 
+  // Tính tỷ lệ % thời gian thực tế / kế hoạch
+  calculateActualPlannedRatio(task: any): number {
+    if (!task.TotalActualHours || !task.PlanStartDate || !task.PlanEndDate) {
+      return 0;
+    }
+
+    const start = new Date(task.PlanStartDate);
+    const end = new Date(task.PlanEndDate);
+
+    // Đặt giờ về 0 để tính số ngày trọn vẹn
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    const diffMs = end.getTime() - start.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+
+    if (diffDays <= 0) return 0;
+
+    const plannedHours = diffDays * 8;
+    return (task.TotalActualHours / plannedHours) * 100;
+  }
+
   getDisplayStatus(task: any): { label: string; severity: 'info' | 'success' | 'danger' | 'warn' | 'secondary' | 'contrast' | undefined } {
     const ds = task.DisplayStatus ?? task.Status;
     switch (ds) {
@@ -502,6 +620,7 @@ export class ProjectTaskComponent implements OnInit {
   // Duyệt đơn lẻ
   approveTask(task: ProjectTaskItem): void {
     this.approveReviewText = '';
+    this.approveCompletionRating = 5;
     this.modal.create({
       nzTitle: 'Xác nhận duyệt công việc',
       nzContent: this.approveModalTpl,
@@ -509,11 +628,16 @@ export class ProjectTaskComponent implements OnInit {
       nzCancelText: 'Hủy',
       nzOkDanger: false,
       nzOnOk: () => {
+        if (!this.approveCompletionRating || this.approveCompletionRating < 1) {
+          this.message.error('Vui lòng đánh giá tối thiểu 1 sao');
+          return;
+        }
         this.isApproving = true;
         return new Promise<void>((resolve, reject) => {
-          this.kanbanService.approveTask([task.ID], true, this.approveReviewText).subscribe({
+          this.kanbanService.approveTask([task.ID], true, this.approveReviewText, this.approveCompletionRating).subscribe({
             next: () => {
               task.IsApproved = 2;
+              task.CompletionRating = this.approveCompletionRating;
               task.DisplayStatus = this.computeDisplayStatus(task);
               this.message.success(`Đã duyệt công việc "${task.Mission}"`);
               this.isApproving = false;
@@ -575,6 +699,7 @@ export class ProjectTaskComponent implements OnInit {
       return;
     }
     this.approveReviewText = '';
+    this.approveCompletionRating = 5;
     this.modal.create({
       nzTitle: `Duyệt ${selected.length} công việc`,
       nzContent: this.approveModalTpl,
@@ -582,13 +707,18 @@ export class ProjectTaskComponent implements OnInit {
       nzCancelText: 'Hủy',
       nzOkDanger: false,
       nzOnOk: () => {
+        if (!this.approveCompletionRating || this.approveCompletionRating < 1) {
+          this.message.error('Vui lòng đánh giá tối thiểu 1 sao');
+          return;
+        }
         const ids = selected.map(t => t.ID);
         this.isApproving = true;
         return new Promise<void>((resolve, reject) => {
-          this.kanbanService.approveTask(ids, true, this.approveReviewText).subscribe({
+          this.kanbanService.approveTask(ids, true, this.approveReviewText, this.approveCompletionRating).subscribe({
             next: () => {
               selected.forEach(t => {
                 t.IsApproved = 2;
+                t.CompletionRating = this.approveCompletionRating;
                 t.DisplayStatus = this.computeDisplayStatus(t);
               });
               this.selectedTasks.set([]);
@@ -663,6 +793,23 @@ export class ProjectTaskComponent implements OnInit {
     }
   }
 
+  toggleAttendance(task: ProjectTaskItem): void {
+    const newStatus = !task.IsCheck;
+    this.projectTaskService.saveAttendance(task.ID, newStatus).subscribe({
+      next: (res) => {
+        if (res.status === 200 || res.status === 1) {
+          task.IsCheck = newStatus;
+          this.message.success(`${newStatus ? 'Đã điểm danh' : 'Đã hủy điểm danh'} thành công`);
+        } else {
+          this.message.error(res.message || 'Lỗi khi cập nhật trạng thái điểm danh');
+        }
+      },
+      error: () => {
+        this.message.error('Lỗi khi gửi yêu cầu điểm danh');
+      }
+    });
+  }
+
   // ========== EXPORT EXCEL ==========
   async exportToExcel() {
     const getStatusExcelStyle = (task: any) => {
@@ -705,15 +852,31 @@ export class ProjectTaskComponent implements OnInit {
         map: (val: any) => val ? 'Cá nhân' : 'Dự án'
       },
       { header: 'Loại công việc', field: 'ProjectTaskTypeName' },
+      { header: 'Điểm danh', field: 'IsCheck', type: 'boolean' },
       { header: 'Phát sinh', field: 'IsAdditional', type: 'boolean' },
       { header: 'Phức tạp', field: 'TaskComplexity' },
-      { header: '% Quá hạn', field: 'PercentOverTime' },
+      { header: 'Thời gian thực tế', field: 'TotalActualHours' },
+      { 
+        header: '% TG thực tế/KH', 
+        field: 'ActualPlannedRatioValue', // Use a separate field for raw value
+        cellStyle: (item: any) => {
+          if (item.ActualPlannedRatio > 100) {
+            return { font: { color: { argb: 'FFFF4D4F' }, bold: true } };
+          }
+          return {};
+        }
+      },
+      { 
+        header: '% Quá hạn', 
+        field: 'PercentOverTimeValue' // Use a separate field for raw value
+      },
       { header: 'Ngày BĐ dự kiến', field: 'PlanStartDate', type: 'date' },
       { header: 'Ngày KT dự kiến', field: 'PlanEndDate', type: 'date' },
       { header: 'Ngày BĐ thực tế', field: 'ActualStartDate', type: 'date' },
       { header: 'Ngày KT thực tế', field: 'ActualEndDate', type: 'date' },
       { header: 'Phòng ban giao', field: 'DepartmentAssignerName' },
-      { header: 'Phòng ban nhận', field: 'DepartmentAssigneeName' }
+      { header: 'Phòng ban nhận', field: 'DepartmentAssigneeName' },
+      { header: 'Đánh giá (Review)', field: 'ReviewCompletionRating' }
     ];
 
     // Lấy dữ liệu hiện tại từ Table (bao gồm cả Sort và Filter)
@@ -723,7 +886,9 @@ export class ProjectTaskComponent implements OnInit {
     const dataForExport = currentTableData.map((t: any) => {
       const mappedTask = {
         ...t,
-        DisplayStatusLabel: this.getDisplayStatus(t).label
+        DisplayStatusLabel: this.getDisplayStatus(t).label,
+        ActualPlannedRatioValue: t.ActualPlannedRatio != null ? Math.round(t.ActualPlannedRatio) : 0,
+        PercentOverTimeValue: t.PercentOverTime != null ? Math.round(t.PercentOverTime * 100) : 0
       };
 
       // Áp dụng custom map cho các cột nếu có
@@ -992,31 +1157,60 @@ export class ProjectTaskComponent implements OnInit {
     this.totalRecords.set(event.filteredValue.length);
   }
 
-  // Right-click context menu for cell copy
-  onCellContextMenu(event: MouseEvent, cm: any): void {
+  // Right-click context menu for cell actions
+  onCellContextMenu(event: MouseEvent, cm: any, task: ProjectTaskItem): void {
     const target = event.target as HTMLElement;
     const cell = target.closest('td');
     if (cell) {
       const text = (cell.innerText || '').trim();
+
+      this.contextMenuItems = [];
+
+      // Copy option (if text exists)
       if (text && text !== '-') {
-        this.contextMenuItems = [
-          {
-            label: `Copy: ${text.length > 30 ? text.substring(0, 30) + '...' : text}`,
-            icon: 'pi pi-copy',
-            command: () => {
-              navigator.clipboard.writeText(text).then(() => {
-                this.message.success('Đã copy vào clipboard');
-              }).catch(err => {
-                console.error('Copy failed:', err);
-                this.message.error('Không thể copy nội dung');
-              });
-            }
+        this.contextMenuItems.push({
+          label: `Copy nội dung`,
+          icon: 'pi pi-copy',
+          command: () => {
+            navigator.clipboard.writeText(text).then(() => {
+              this.message.success('Đã copy vào clipboard');
+            }).catch(err => {
+              console.error('Copy failed:', err);
+              this.message.error('Không thể copy nội dung');
+            });
           }
-        ];
+        });
+      }
+
+      // Attendance option
+      this.contextMenuItems.push({
+        label: `Điểm danh công việc`,
+        icon: 'pi pi-user-edit',
+        command: () => {
+          this.saveAttendance(task);
+        }
+      });
+
+      if (this.contextMenuItems.length > 0) {
         cm.show(event);
       }
     }
     event.preventDefault();
     event.stopPropagation();
+  }
+
+  saveAttendance(task: ProjectTaskItem) {
+    this.projectTaskService.saveAttendance(task.ID, true).subscribe({
+      next: (res) => {
+        if (res.status === 200 || res.status === 1) {
+          this.message.success('Điểm danh công việc thành công');
+        } else {
+          this.message.error(res.message || 'Lỗi khi điểm danh công việc');
+        }
+      },
+      error: () => {
+        this.message.error('Lỗi khi gửi yêu cầu điểm danh');
+      }
+    });
   }
 }

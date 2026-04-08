@@ -8,6 +8,25 @@
     font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
+.view-toggle {
+    display: flex;
+    align-items: center;
+}
+
+.content-wrapper {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-view-container {
+    flex: 1;
+    overflow: hidden;
+    padding: 0;
+    background: #fff;
+}
+
 /* ===== Sticky Search Header ===== */
 .sticky-header {
     position: sticky;

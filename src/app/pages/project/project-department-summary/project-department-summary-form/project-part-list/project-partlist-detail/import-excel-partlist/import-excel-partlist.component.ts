@@ -680,7 +680,6 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
   // Tiếp tục với import-check
   proceedWithImportCheck(validDataToSave: any[]): void {
     // Reset tiến trình
-    
     this.processedRowsForSave = 0;
     const totalRowsToSave = validDataToSave.length;
     this.displayText = `Đang kiểm tra: 0/${totalRowsToSave} bản ghi`;
@@ -793,7 +792,6 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
     this.partlistService.applyDiff(payload).subscribe({
       next: (res: any) => {
         console.log('Response từ apply-diff API:', res);
-        
 
         if (res.status === 1 || res.success) {
           this.displayProgress = 100;
@@ -968,7 +966,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
               const content = warningMessage
                 ? `
                   <div>
-                    <p>Danh mục đã tồn tại. Bạn có muốn ghi đè không?</p>
+                    <p>Danh mục đã tồn tại. Bạn có muốn ghi đè không? <span style="color: red;">(Lưu ý: Dữ liệu cũ sẽ bị XÓA! )</span></p>
                     <br>
                     <div style="padding: 12px; background: #fff7e6; border-left: 4px solid #FF8C00; border-radius: 4px; max-height: 300px; overflow-y: auto;">
                       ${warningMessage}

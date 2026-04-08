@@ -16,6 +16,8 @@ import { ProjectService } from '../project-service/project.service';
       nzAllowClear
       nzShowSearch
       nzDropdownClassName="leader-select-dropdown"
+      [nzDropdownMatchSelectWidth]="false"
+      [nzDropdownStyle]="{ 'min-width': '400px' }"
     >
       @for (item of leaders; track $index) {
       <nz-option

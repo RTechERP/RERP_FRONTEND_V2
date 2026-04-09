@@ -70,7 +70,12 @@
                     <div class="row g-2 align-items-end mb-2">
                       <div class="col">
                         <nz-form-item class="mb-0">
-                          <nz-form-label class="mb-1 ps-1 fs-12">Khách hàng</nz-form-label>
+                          <nz-form-label class="mb-1 ps-1 fs-12">Khách hàng <span class="text-danger ps-1">*</span>
+                            <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
+                                (click)="openCustomerModal()" title="Thêm khách hàng">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                          </nz-form-label>
                           <nz-form-control>
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn khách hàng" class="w-100"
                               nzDropdownClassName="select-dropdown" nzSize="small" [(ngModel)]="task.CustomerID"

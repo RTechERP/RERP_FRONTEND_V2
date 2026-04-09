@@ -143,15 +143,17 @@
                         <!-- Body -->
                         <ng-template pTemplate="body" let-rowData let-rowIndex="rowIndex">
                             <tr [class.row-selected]="selectedRow === rowData" (click)="onTableRowClick(rowData)">
-                                <td *ngFor="let col of tableColumns" [style.min-width]="col.width"
-                                    (click)="onCellClick(col.field, rowData)"
-                                    [class.cell-selected]="isCellSelected(col.field, rowData)" pFrozenColumn
-                                    [frozen]="col.frozen || false">
-                                    <div [class.wrap-text]="col.isLongText" [class.truncate-text]="!col.isLongText"
-                                        class="cell-text">
-                                        {{ rowData[col.field] }}
-                                    </div>
-                                </td>
+                                <ng-container *ngFor="let col of tableColumns; let colIndex = index">
+                                    <td *ngIf="shouldRenderMergedCell(rowIndex, colIndex)"
+                                        [attr.rowspan]="getMergedRowSpan(rowIndex, colIndex)"
+                                        [style.min-width]="col.width" (click)="onCellClick(col.field, rowData)"
+                                        [class.cell-selected]="isCellSelected(col.field, rowData)" pFrozenColumn
+                                        [frozen]="col.frozen || false">
+                                        <div [class.wrap-text]="col.isLongText" [class.truncate-text]="!col.isLongText"
+                                            class="cell-text" [innerHTML]="formatCellContent(rowData[col.field], col)">
+                                        </div>
+                                    </td>
+                                </ng-container>
                             </tr>
                         </ng-template>
 

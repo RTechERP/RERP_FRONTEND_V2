@@ -107,6 +107,7 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
   headerGroups: { header: string; colspan: number; frozen?: boolean }[][] = [];
   dataset: any[] = [];
   isLoadingData: boolean = false;
+  readonly mergeColumnCount: number = 2;
 
   sizeSearch: string = '0';
   isMobile: boolean = false;
@@ -444,7 +445,7 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
 
                 if (key === 'FullName') {
                   title = 'Họ tên';
-                  width = '140px';
+                  width = '120px';
                   colGroupName = 'Nhân viên';
                   frozen = true;
                 } else if (key === 'Code') {
@@ -456,30 +457,13 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
                   title = 'Tên nhóm';
                   width = '150px';
                   colGroupName = 'Nhóm';
-                } else if (key.includes('_')) {
-                  const parts = key.split('_');
-                  const datePart = parts[0];
-                  const typePart = parts[1];
-                  const dateObj = new Date(datePart);
-
-                  if (!isNaN(dateObj.getTime())) {
-                    colGroupName = `${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getFullYear()}`;
-                  } else {
-                    colGroupName = datePart;
-                  }
-
-                  if (typePart === 'Customer') {
-                    title = 'Khách hàng';
-                    width = '200px';
-                  } else if (typePart === 'Content') {
-                    title = 'Nội dung và kết quả';
-                    width = '350px';
-                    isLongText = true;
-                  } else if (typePart === 'Problem') {
-                    title = 'Khó khăn';
-                    width = '350px';
-                    isLongText = true;
-                  }
+                } else if (/^\d{4}-\d{2}-\d{2}$/.test(key)) {
+                  const dateObj = new Date(key);
+                  const dayOfWeek = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][dateObj.getDay()];
+                  title = `${dayOfWeek} (${dateObj.getDate().toString().padStart(2, '0')}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')})`;
+                  width = '300px';
+                  colGroupName = 'Kế hoạch trong tuần';
+                  isLongText = true;
                 }
 
                 columns.push({ field: key, header: title, width, isLongText, frozen });
@@ -509,9 +493,6 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
               this.headerGroups = [];
             }
 
-            // Consolidate rows by user
-            data = this.consolidateRowsByUser(data);
-
             this.dataset = data.map((item: any, index: number) => ({
               ...item,
               id: `${item.UserID || 'temp'}_${index}`
@@ -538,13 +519,13 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
     }
     if (
       !this.selectedField ||
-      ['FullName', 'Code', 'UserID', 'ParentID'].includes(this.selectedField)
+      ['FullName', 'Code', 'UserID', 'ParentID', 'GroupSalesName'].includes(this.selectedField)
     ) {
       this.notification.info('Thông báo', 'Vui lòng chọn đúng ô ngày cần xóa');
       return;
     }
 
-    const datePart = this.selectedField.split('_')[0];
+    const datePart = this.selectedField;
     const dateFromField = new Date(datePart);
 
     const UserID = this.selectedId;
@@ -587,6 +568,70 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
         });
       },
     });
+  }
+
+  shouldRenderMergedCell(rowIndex: number, colIndex: number): boolean {
+    if (colIndex >= this.mergeColumnCount) {
+      return true;
+    }
+
+    if (rowIndex === 0) {
+      return true;
+    }
+
+    return !this.isSameMergeGroup(this.dataset[rowIndex], this.dataset[rowIndex - 1]);
+  }
+
+  getMergedRowSpan(rowIndex: number, colIndex: number): number | null {
+    if (colIndex >= this.mergeColumnCount || !this.shouldRenderMergedCell(rowIndex, colIndex)) {
+      return null;
+    }
+
+    let span = 1;
+
+    while (
+      rowIndex + span < this.dataset.length &&
+      this.isSameMergeGroup(this.dataset[rowIndex], this.dataset[rowIndex + span])
+    ) {
+      span++;
+    }
+
+    return span;
+  }
+
+  private isSameMergeGroup(currentRow: any, previousRow: any): boolean {
+    if (!currentRow || !previousRow || this.tableColumns.length < this.mergeColumnCount) {
+      return false;
+    }
+
+    return this.tableColumns
+      .slice(0, this.mergeColumnCount)
+      .every((col) => currentRow?.[col.field] === previousRow?.[col.field]);
+  }
+
+  formatCellContent(value: any, col: TableCol): string {
+    const text = value == null ? '' : String(value);
+    const escapedText = this.escapeHtml(text);
+
+    if (!col.isLongText) {
+      return escapedText;
+    }
+
+    const htmlWithBreaks = escapedText.replace(/\r?\n/g, '<br>');
+
+    return htmlWithBreaks
+      .replace(/(^|<br\s*\/?>)(Khách hàng:)/g, '$1<strong>$2</strong>')
+      .replace(/(^|<br\s*\/?>)(Nội dung:)/g, '$1<strong>$2</strong>')
+      .replace(/(^|<br\s*\/?>)(Khó khăn:)/g, '$1<strong>$2</strong>');
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   async exportMainTableToExcel() {
@@ -734,85 +779,4 @@ export class PlanWeekSharkTeamComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private consolidateRowsByUser(data: any[]): any[] {
-    if (!data || data.length === 0) return data;
-
-    const firstRow = data[0];
-    const datePrefixes: string[] = [];
-    Object.keys(firstRow).forEach(key => {
-      if (key.includes('_')) {
-        const datePart = key.split('_')[0];
-        if (!datePrefixes.includes(datePart) && !isNaN(new Date(datePart).getTime())) {
-          datePrefixes.push(datePart);
-        }
-      }
-    });
-
-    const userGroups = new Map<number, any[]>();
-    const userOrder: number[] = [];
-    data.forEach(row => {
-      const uid = row.UserID;
-      if (!userGroups.has(uid)) {
-        userGroups.set(uid, []);
-        userOrder.push(uid);
-      }
-      userGroups.get(uid)!.push(row);
-    });
-
-    const result: any[] = [];
-
-    userOrder.forEach(uid => {
-      const rows = userGroups.get(uid)!;
-      const baseInfo = {
-        UserID: rows[0].UserID,
-        Code: rows[0].Code,
-        FullName: rows[0].FullName,
-        ParentID: rows[0].ParentID,
-        GroupSalesName: rows[0].GroupSalesName,
-      };
-
-      const dateRecords: Map<string, any[]> = new Map();
-      datePrefixes.forEach(dp => dateRecords.set(dp, []));
-
-      rows.forEach(row => {
-        datePrefixes.forEach(dp => {
-          const customerKey = `${dp}_Customer`;
-          const contentKey = `${dp}_Content`;
-          const problemKey = `${dp}_Problem`;
-          const hasData = (row[customerKey] && String(row[customerKey]).trim() !== '')
-            || (row[contentKey] && String(row[contentKey]).trim() !== '')
-            || (row[problemKey] && String(row[problemKey]).trim() !== '');
-          if (hasData) {
-            dateRecords.get(dp)!.push({
-              [customerKey]: row[customerKey] || '',
-              [contentKey]: row[contentKey] || '',
-              [problemKey]: row[problemKey] || '',
-            });
-          }
-        });
-      });
-
-      let maxRows = 1;
-      dateRecords.forEach(records => {
-        if (records.length > maxRows) maxRows = records.length;
-      });
-
-      for (let i = 0; i < maxRows; i++) {
-        const newRow: any = { ...baseInfo };
-        datePrefixes.forEach(dp => {
-          const records = dateRecords.get(dp)!;
-          if (i < records.length) {
-            Object.assign(newRow, records[i]);
-          } else {
-            newRow[`${dp}_Customer`] = '';
-            newRow[`${dp}_Content`] = '';
-            newRow[`${dp}_Problem`] = '';
-          }
-        });
-        result.push(newRow);
-      }
-    });
-
-    return result;
-  }
 }

@@ -119,6 +119,13 @@ export class ProjectTaskComponent implements OnInit {
     { label: 'Pending', value: 4 }
   ];
 
+  // MultiSelect filter options (built from loaded data)
+  projectOptions: { label: string, value: string }[] = [];
+  assignerOptions: { label: string, value: string }[] = [];
+  assigneeOptions: { label: string, value: string }[] = [];
+  deptAssignerOptions: { label: string, value: string }[] = [];
+  deptAssigneeOptions: { label: string, value: string }[] = [];
+
   // Computed: only tasks eligible for approval (Status=3, not yet reviewed)
   pendingTasks = computed(() => this.filteredTasks().filter(t =>
     t.Status === 3 && t.IsApproved !== 2 && t.IsApproved !== 3
@@ -462,6 +469,7 @@ export class ProjectTaskComponent implements OnInit {
             PlanEndDate: t.PlanEndDate ? new Date(t.PlanEndDate) : null,
             ActualStartDate: t.ActualStartDate ? new Date(t.ActualStartDate) : null,
             ActualEndDate: t.ActualEndDate ? new Date(t.ActualEndDate) : null,
+            Deadline: t.Deadline ? new Date(t.Deadline) : null,
             ActualPlannedRatio: this.calculateActualPlannedRatio(t)
           }));
 
@@ -470,6 +478,7 @@ export class ProjectTaskComponent implements OnInit {
         this.isSorted = null;
         this.currentUserId.set(response.UserID || 0);
         this.totalRecords.set(tasks.length);
+        this.buildFilterOptions(tasks);
         this.loading.set(false);
       },
       error: (err) => {
@@ -478,6 +487,43 @@ export class ProjectTaskComponent implements OnInit {
         this.message.error('Không thể tải danh sách công việc');
       }
     });
+  }
+
+  private buildFilterOptions(tasks: any[]): void {
+    // Dự án: chỉ hiện mã
+    const projectSet = new Set<string>();
+    tasks.forEach(t => { if (t.ProjectCode) projectSet.add(t.ProjectCode); });
+    this.projectOptions = Array.from(projectSet)
+      .sort()
+      .map(code => ({ label: code, value: code }));
+
+    // Người giao việc
+    const assignerSet = new Set<string>();
+    tasks.forEach(t => { if (t.FullName) assignerSet.add(t.FullName); });
+    this.assignerOptions = Array.from(assignerSet)
+      .sort()
+      .map(name => ({ label: name, value: name }));
+
+    // Người nhận việc
+    const assigneeSet = new Set<string>();
+    tasks.forEach(t => { if (t.AsigneeEmployeeFullName) assigneeSet.add(t.AsigneeEmployeeFullName); });
+    this.assigneeOptions = Array.from(assigneeSet)
+      .sort()
+      .map(name => ({ label: name, value: name }));
+
+    // Phòng ban giao
+    const deptAssignerSet = new Set<string>();
+    tasks.forEach(t => { if (t.DepartmentAssignerName) deptAssignerSet.add(t.DepartmentAssignerName); });
+    this.deptAssignerOptions = Array.from(deptAssignerSet)
+      .sort()
+      .map(name => ({ label: name, value: name }));
+
+    // Phòng ban nhận
+    const deptAssigneeSet = new Set<string>();
+    tasks.forEach(t => { if (t.DepartmentAssigneeName) deptAssigneeSet.add(t.DepartmentAssigneeName); });
+    this.deptAssigneeOptions = Array.from(deptAssigneeSet)
+      .sort()
+      .map(name => ({ label: name, value: name }));
   }
 
   setActiveTab(tab: TabType): void {
@@ -636,11 +682,9 @@ export class ProjectTaskComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask([task.ID], true, this.approveReviewText, this.approveCompletionRating).subscribe({
             next: () => {
-              task.IsApproved = 2;
-              task.CompletionRating = this.approveCompletionRating;
-              task.DisplayStatus = this.computeDisplayStatus(task);
               this.message.success(`Đã duyệt công việc "${task.Mission}"`);
               this.isApproving = false;
+              this.loadTasks();
               resolve();
             },
             error: () => {
@@ -674,10 +718,9 @@ export class ProjectTaskComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask([task.ID], false, this.rejectReviewText).subscribe({
             next: () => {
-              task.IsApproved = 3;
-              task.DisplayStatus = this.computeDisplayStatus(task);
               this.message.warning(`Đã từ chối công việc "${task.Mission}"`);
               this.isApproving = false;
+              this.loadTasks();
               resolve();
             },
             error: () => {
@@ -716,14 +759,10 @@ export class ProjectTaskComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask(ids, true, this.approveReviewText, this.approveCompletionRating).subscribe({
             next: () => {
-              selected.forEach(t => {
-                t.IsApproved = 2;
-                t.CompletionRating = this.approveCompletionRating;
-                t.DisplayStatus = this.computeDisplayStatus(t);
-              });
               this.selectedTasks.set([]);
               this.message.success(`Đã duyệt ${selected.length} công việc`);
               this.isApproving = false;
+              this.loadTasks();
               resolve();
             },
             error: () => {
@@ -763,13 +802,10 @@ export class ProjectTaskComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask(ids, false, this.rejectReviewText).subscribe({
             next: () => {
-              selected.forEach(t => {
-                t.IsApproved = 3;
-                t.DisplayStatus = this.computeDisplayStatus(t);
-              });
               this.selectedTasks.set([]);
               this.message.warning(`Đã từ chối ${selected.length} công việc`);
               this.isApproving = false;
+              this.loadTasks();
               resolve();
             },
             error: () => {
@@ -798,8 +834,8 @@ export class ProjectTaskComponent implements OnInit {
     this.projectTaskService.saveAttendance(task.ID, newStatus).subscribe({
       next: (res) => {
         if (res.status === 200 || res.status === 1) {
-          task.IsCheck = newStatus;
           this.message.success(`${newStatus ? 'Đã điểm danh' : 'Đã hủy điểm danh'} thành công`);
+          this.loadTasks();
         } else {
           this.message.error(res.message || 'Lỗi khi cập nhật trạng thái điểm danh');
         }
@@ -1204,6 +1240,7 @@ export class ProjectTaskComponent implements OnInit {
       next: (res) => {
         if (res.status === 200 || res.status === 1) {
           this.message.success('Điểm danh công việc thành công');
+          this.loadTasks();
         } else {
           this.message.error(res.message || 'Lỗi khi điểm danh công việc');
         }

@@ -162,6 +162,10 @@
                         Ngày KT dự kiến
                         <p-sortIcon field="PlanEndDate" />
                     </th>
+                    <th pResizableColumn pSortableColumn="Deadline" class="col-date" style="width: 100px">
+                        Deadline
+                        <p-sortIcon field="Deadline" />
+                    </th>
                     <th pResizableColumn pSortableColumn="ActualStartDate" class="col-date" style="width: 100px">
                         Ngày BĐ thực tế
                         <p-sortIcon field="ActualStartDate" />
@@ -247,18 +251,37 @@
                             placeholder="Tìm kiếm..." />
                     </th>
                     <th>
-                        <p-columnFilter matchMode="contains" type="text" field="ProjectSearchText"
-                            placeholder="Tìm kiếm..." />
+                        <p-columnFilter field="ProjectCode" matchMode="in" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-multiSelect [options]="projectOptions" [ngModel]="value"
+                                    (onChange)="filter($event.value)" placeholder="Tất cả"
+                                    [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
+                                    selectedItemsLabel="..." appendTo="body" />
+                            </ng-template>
+                        </p-columnFilter>
                     </th>
                     @if (activeTab() !== 'myApproval') {
                     <th>
-                        <p-columnFilter matchMode="contains" type="text" field="FullName" placeholder="Tìm kiếm..." />
+                        <p-columnFilter field="FullName" matchMode="in" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-multiSelect [options]="assignerOptions" [ngModel]="value"
+                                    (onChange)="filter($event.value)" placeholder="Tất cả"
+                                    [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
+                                    selectedItemsLabel="..." appendTo="body" />
+                            </ng-template>
+                        </p-columnFilter>
                     </th>
                     }
                     @if (activeTab() !== 'assigned') {
                     <th>
-                        <p-columnFilter matchMode="contains" type="text" field="AsigneeEmployeeFullName"
-                            placeholder="Tìm kiếm..." />
+                        <p-columnFilter field="AsigneeEmployeeFullName" matchMode="in" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-multiSelect [options]="assigneeOptions" [ngModel]="value"
+                                    (onChange)="filter($event.value)" placeholder="Tất cả"
+                                    [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
+                                    selectedItemsLabel="..." appendTo="body" />
+                            </ng-template>
+                        </p-columnFilter>
                     </th>
                     }
 
@@ -294,6 +317,9 @@
                     </th>
                     <th class="col-date">
                         <p-columnFilter type="date" field="PlanEndDate" placeholder="Tìm kiếm..." />
+                    </th>
+                    <th class="col-date">
+                        <p-columnFilter type="date" field="Deadline" placeholder="Tìm kiếm..." />
                     </th>
                     <th class="col-date">
                         <p-columnFilter type="date" field="ActualStartDate" placeholder="Tìm kiếm..." />
@@ -393,14 +419,26 @@
                     </th>
                     @if (activeTab() === 'all' || activeTab() === 'myApproval') {
                     <th>
-                        <p-columnFilter matchMode="contains" type="text" field="DepartmentAssignerName"
-                            placeholder="Tìm kiếm..." />
+                        <p-columnFilter field="DepartmentAssignerName" matchMode="in" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-multiSelect [options]="deptAssignerOptions" [ngModel]="value"
+                                    (onChange)="filter($event.value)" placeholder="Tất cả"
+                                    [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
+                                    selectedItemsLabel="..." appendTo="body" />
+                            </ng-template>
+                        </p-columnFilter>
                     </th>
                     }
                     @if (activeTab() === 'all' || activeTab() === 'assigned') {
                     <th>
-                        <p-columnFilter matchMode="contains" type="text" field="DepartmentAssigneeName"
-                            placeholder="Tìm kiếm..." />
+                        <p-columnFilter field="DepartmentAssigneeName" matchMode="in" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <p-multiSelect [options]="deptAssigneeOptions" [ngModel]="value"
+                                    (onChange)="filter($event.value)" placeholder="Tất cả"
+                                    [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
+                                    selectedItemsLabel="..." appendTo="body" />
+                            </ng-template>
+                        </p-columnFilter>
                     </th>
                     }
                     @if (filterStatus === -1 || filterStatus === 1) {
@@ -506,6 +544,9 @@
                     </td>
                     <td class="col-date">
                         <span class="date-text">{{ formatDate(task.PlanEndDate) }}</span>
+                    </td>
+                    <td class="col-date">
+                        <span class="date-text">{{ formatDate(task.Deadline) }}</span>
                     </td>
                     <td class="col-date">
                         <span class="date-text">{{ formatDate(task.ActualStartDate) }}</span>

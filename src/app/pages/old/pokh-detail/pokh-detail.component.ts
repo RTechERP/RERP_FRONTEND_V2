@@ -2052,6 +2052,17 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       size: 'xl',
       backdrop: 'static',
     });
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadCustomers();
+        }
+      },
+      (reason) => {
+        console.log('Modal dismissed');
+      }
+    );
   }
 
   openProductSaleDetailModal() {

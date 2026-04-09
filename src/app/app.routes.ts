@@ -1118,6 +1118,7 @@ export const routes: Routes = [
             { path: 'kpi-error', component: KpiErrorComponent, canActivate: [authGuard] }, // danh sách lỗi kt
             { path: 'kpi-error-agv', component: KpiErrorComponent, canActivate: [authGuard] }, // damh sách lỗi agv
             { path: 'kpi-error-employee', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
+            { path: 'kpi-error-employee-agv', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-error-employee-summary-max', component: KpiErrorEmployeeSummaryMaxComponent, canActivate: [authGuard] },
             { path: 'summary-kpi-error-employee-month', component: SummaryKpiErrorEmployeeMonthComponent, canActivate: [authGuard] },
             { path: 'summary-kpi-error-employee-new', component: SummaryKpiErrorEmployeeNewComponent, canActivate: [authGuard] },

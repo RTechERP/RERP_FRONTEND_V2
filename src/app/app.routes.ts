@@ -1165,7 +1165,12 @@ export const routes: Routes = [
             { path: 'project-task-type', component: ProjectTaskTypeComponent, canActivate: [authGuard] },
             { path: 'project-task-project', component: ProjectTaskProjectComponent, canActivate: [authGuard] },
             { path: 'project-task-status-chart', component: ProjectTaskStatusChartComponent, canActivate: [authGuard] },
-            { path: 'project-task-timeline-total', component: ProjectTaskTimeLineTotalComponent, canActivate: [authGuard] }
+            { path: 'project-task-timeline-total', component: ProjectTaskTimeLineTotalComponent, canActivate: [authGuard] },
+            { path: 'purchase-quote-summary', component: PurchaseQuoteSummaryComponent, canActivate: [authGuard] },
+            { path: 'commercial-price-request', component: CommercialPriceRequestComponent, canActivate: [authGuard] },
+            { path: 'purchase-quote-summary-main', component: PurchaseQuoteSummaryMainComponent, canActivate: [authGuard] },
+            { path: 'employee-deduction-type', component: EmployeeDeductionTypeComponent, canActivate: [authGuard] },
+
 
         ],
     },

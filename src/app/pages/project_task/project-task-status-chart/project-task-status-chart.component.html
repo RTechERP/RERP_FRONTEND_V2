@@ -140,6 +140,15 @@
         <!-- Sidebar chọn nhân viên -->
         <div class="employee-sidebar" [class.sidebar-hidden]="!showSidebar" *ngIf="!loading() && fullData.length > 0">
             <div class="sidebar-header">
+                <div class="filter-mode-control d-flex justify-content-between align-items-center mb-2">
+                    <span class="label-text">Chế độ lọc:</span>
+                    <nz-select [(ngModel)]="employeeFilterMode" nzSize="small"
+                        (ngModelChange)="onEmployeeFilterModeChange()" style="width: 150px;">
+                        <nz-option nzValue="all" [nzLabel]="'Tất cả (' + countAll + ')'"></nz-option>
+                        <nz-option nzValue="hasTasks" [nzLabel]="'Có công việc (' + countHasTasks + ')'"></nz-option>
+                        <nz-option nzValue="noTasks" [nzLabel]="'Không có CV (' + countNoTasks + ')'"></nz-option>
+                    </nz-select>
+                </div>
                 <div class="limit-control d-flex justify-content-between align-items-center mb-2">
                     <span class="label-text">Số lượng hiển thị:</span>
                     <nz-input-number [(ngModel)]="limitCount" [nzMin]="0" [nzStep]="1"
@@ -156,8 +165,7 @@
             <div class="sidebar-body">
                 <div class="employee-list-container">
                     <div class="employee-item" *ngFor="let emp of getFilteredSelections()">
-                        <label nz-checkbox [(ngModel)]="emp.selected" (ngModelChange)="onFilterChange()"
-                            nz-tooltip [nzTooltipTitle]="emp.FullName">
+                        <label nz-checkbox [(ngModel)]="emp.selected" (ngModelChange)="onFilterChange()">
                             <span class="emp-name-text">{{ emp.FullName }}</span>
                         </label>
                     </div>

@@ -54,6 +54,7 @@ export interface ProjectTaskItem {
     ReviewCompletionRating?: number | null;
     TotalActualHours?: number | null;
     IsCheck?: boolean | null;
+    Deadline?: string | Date | null;
 }
 
 export interface ProjectTaskResponse {

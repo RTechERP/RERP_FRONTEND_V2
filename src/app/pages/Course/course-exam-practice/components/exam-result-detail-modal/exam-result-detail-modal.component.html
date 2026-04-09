@@ -1,0 +1,88 @@
+<nz-modal [(nzVisible)]="isVisible" nzTitle="CHI TIẾT BÀI THI" (nzOnCancel)="handleCancel()" [nzWidth]="1400"
+    [nzFooter]="modalFooter" nzClassName="exam-detail-modal" [nzStyle]="{ top: '20px' }">
+
+    <ng-container *nzModalContent>
+        <div class="exam-detail-container">
+            <!-- Filter Bar (matching request: Xuất Excel on same row as Tìm kiếm) -->
+            <div class="filter-bar d-flex flex-wrap align-items-center gap-3 mb-2 p-2 bg-light rounded border">
+                <div class="filter-item d-flex align-items-center gap-2">
+                    <span class="fw-bold">Khóa học:</span>
+                    <nz-select [(ngModel)]="filterCourseID" [nzDisabled]="disabled" nzShowSearch class="filter-select">
+                        <nz-option *ngFor="let course of courseData" [nzValue]="course.ID"
+                            [nzLabel]="course.Code + ' - ' + course.NameCourse"></nz-option>
+                    </nz-select>
+                </div>
+
+                <div class="filter-item d-flex align-items-center gap-2">
+                    <span class="fw-bold">Nhân viên:</span>
+                    <nz-select [(ngModel)]="filterEmployeeID" [nzDisabled]="disabled" nzShowSearch
+                        class="filter-select">
+                        <nz-option-group *ngFor="let group of groupedEmployees"
+                            [nzLabel]="'Phòng ban: ' + group.department">
+                            <nz-option *ngFor="let emp of group.employees" [nzValue]="emp.ID"
+                                [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                        </nz-option-group>
+                    </nz-select>
+                </div>
+
+                <button nz-button nzType="primary" [disabled]="disabled" (click)="handleSearch()" class="btn-search">
+                    <i nz-icon nzType="search"></i> TÌM KIẾM
+                </button>
+
+                <button nz-button nzType="default" (click)="handleExportExcel()"
+                    class="btn-excel text-success border-success">
+                    <i nz-icon nzType="file-excel"></i> Xuất Excel
+                </button>
+            </div>
+
+            <!-- Header Info Labels -->
+            <div
+                class="header-labels d-flex flex-wrap align-items-center gap-3 gap-md-5 mb-2 py-2 px-3 bg-white border-bottom shadow-sm">
+                <div class="label-item">
+                    <span class="label-title">ĐỀ THI:</span>
+                    <span class="label-value text-primary font-monospace">{{ examCode }}</span>
+                </div>
+                <div class="label-item">
+                    <span class="label-title">THỜI GIAN:</span>
+                    <span class="label-value">{{ testTime }} phút</span>
+                </div>
+                <div class="label-item">
+                    <span class="label-title">NGƯỜI THAM GIA:</span>
+                    <span class="label-value">{{ employeeName }}</span>
+                </div>
+            </div>
+
+            <nz-spin [nzSpinning]="isLoading" [nzSize]="'large'" class="flex-grow-1 overflow-hidden d-flex flex-column">
+                <div class="table-container flex-grow-1">
+                    <div #DetailTable class="h-100"></div>
+                </div>
+            </nz-spin>
+
+            <!-- Summary Text Footer -->
+            <div class="summary-footer mt-2 d-flex justify-content-between align-items-start">
+                <div class="border rounded p-1 bg-light d-flex align-items-center gap-2">
+                    <span class="text-secondary small fw-bold">Tổng: </span>
+                    <span class="text-primary small fw-bold">{{ totalQuestions }}</span>
+                </div>
+                <div class="summary-box d-flex flex-column align-items-end border rounded p-2 bg-light">
+                    <div class="summary-row d-flex justify-content-between w-100 gap-4">
+                        <span class="text-secondary small">Tổng đúng =</span>
+                        <span class="text-success fw-bold">{{ totalCorrect }}</span>
+                        <span class="text-dark fw-bold border-start ps-3" style="min-width: 40px; text-align: right;">{{
+                            totalCorrect }}</span>
+                    </div>
+                    <div class="summary-row d-flex justify-content-between w-100 gap-4 mt-1 border-top pt-1">
+                        <span class="text-secondary small">Tổng sai  =</span>
+                        <span class="text-danger fw-bold">{{ totalIncorrect }}</span>
+                        <span class="text-dark fw-bold border-start ps-3" style="min-width: 40px; text-align: right;">{{
+                            totalIncorrect }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+
+    <ng-template #modalFooter>
+        <button nz-button nzType="default" (click)="handleCancel()">Đóng</button>
+    </ng-template>
+</nz-modal>

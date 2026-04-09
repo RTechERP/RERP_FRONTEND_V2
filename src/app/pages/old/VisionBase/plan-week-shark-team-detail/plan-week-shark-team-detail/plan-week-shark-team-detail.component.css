@@ -1,0 +1,74 @@
+/* Giới hạn chiều cao modal body và thêm scroll */
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* Cố định phần filter khi scroll */
+.modal-body .container-fluid>.row:first-child {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 10;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+/* Cố định footer ở dưới cùng */
+.modal-footer {
+    position: sticky;
+    bottom: 0;
+    background-color: #fff;
+    border-top: 1px solid #dee2e6;
+    z-index: 10;
+}
+
+:host ::ng-deep .ant-collapse {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+:host ::ng-deep .ant-collapse-item {
+    background-color: #fff !important;
+    border: 1px solid #e0e5eb !important;
+    border-radius: 8px !important;
+    margin-bottom: 20px !important;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+:host ::ng-deep .ant-collapse-header {
+    background-color: #f8fafc !important;
+    font-weight: 600 !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid #e0e5eb !important;
+}
+
+:host ::ng-deep .ant-collapse-content {
+    border-top: none !important;
+}
+
+:host ::ng-deep .ant-collapse-content-box {
+    padding: 16px !important;
+}
+
+/* Task block styling */
+.task-block {
+    background-color: #f9fafb;
+    border: 1px solid #eef0f3;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.task-block:last-child {
+    margin-bottom: 0 !important;
+}
+
+:host ::ng-deep .task-block .ant-form-label {
+    padding: 0 !important;
+    line-height: 1.4;
+}
+
+:host ::ng-deep .task-block .ant-form-item {
+    margin-bottom: 0;
+}

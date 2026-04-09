@@ -1,51 +1,286 @@
+:host {
+    font-size: 12px !important;
+}
+
 .fs-12 {
-  font-size: 0.75rem;
+    font-size: 12px !important;
 }
 
-.reset {
-  all: revert;
+/* Card styles */
+.card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body>div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: visible;
+}
+
+.card-header {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 20;
+    background: white;
+}
+
+/* Search form positioning and z-index */
+.filter-bar {
+    position: relative;
+    z-index: 10;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Menubar adjustments */
+::ng-deep .p-menubar {
+    padding: 0.25rem 0.5rem !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+::ng-deep .p-menuitem-text {
+    font-size: 12px !important;
+}
+
+/* Card body with/without search bar */
+.card-body.with-search-bar {
+    height: calc(100% - 100px);
+}
+
+.card-body.without-search-bar {
+    height: 100%;
+}
+
+/* Mobile modal styles */
+@media (max-width: 768px) {
+    .filter-bar.mobile-modal {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        background: white;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        max-height: 70vh;
+        overflow-y: auto;
+        margin: 16px;
+        border-radius: 8px;
+    }
+
+    .filter-backdrop {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1040;
+    }
+}
+
+@media (min-width: 769px) {
+    .filter-backdrop {
+        display: none !important;
+    }
+
+    .filter-bar {
+        position: static !important;
+        z-index: 1 !important;
+    }
+}
+
+/* Table Section */
+.table-section {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .table-section p-table {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+:host ::ng-deep .p-datatable {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .p-datatable-wrapper {
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+
+/* PrimeNG Table font-size 12px */
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    font-size: 12px;
+    padding: 6px 8px;
+    background: #f5f5f5;
+    font-weight: 600;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr:hover {
+    background: #e6f7ff;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr.p-highlight {
+    background: #bae7ff;
+}
+
+:host ::ng-deep .p-paginator {
+    font-size: 12px;
+}
+
+/* Status badge */
+.badge {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #fff;
+}
+
+/* Detail panel styles */
+.detail-panel {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-left: 1px solid #e8e8e8;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background: #fafafa;
+    border-bottom: 1px solid #e8e8e8;
+    min-height: 36px;
+}
+
+.detail-title {
+    font-weight: bold;
+    font-size: 12px;
+    color: #1890ff;
+}
+
+.detail-body {
+    flex: 1;
+    overflow: auto;
+    height: calc(100% - 36px);
+}
+
+/* Splitter styling */
 .ant-splitter-panel {
-  position: relative;
+    overflow: hidden;
 }
 
-.tabulator {
-  font-size: 0.75rem;
-  position: absolute;
-  width: 100%;
+.ant-splitter {
+    height: 84vh !important;
 }
 
-.tabulator-cell {
-  padding: 0px;
+/* Detail panel content */
+.detail-section {
+    padding: 0;
 }
 
-.inner-content {
-  padding: 0 !important;
+.section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0c0c0c;
+    border-bottom: 1px solid #e8e8e8;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
 }
 
-.ant-tabs-tab-btn {
-  font-size: 0.75rem;
+.detail-value {
+    font-size: 12px;
+    color: #333;
+    padding: 2px 0;
 }
 
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
-  color: #141a24 !important;
-  opacity: 1 !important;
-  padding: 4px !important;
-  padding-left: 12px !important;
-}
-:host
-  ::ng-deep
-  nz-tabset.approval-tabs
-  .ant-tabs-tab.ant-tabs-tab-active
-  .ant-tabs-tab-btn {
-  color: #0e1114 !important;
-  font-weight: 600;
-}
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-ink-bar {
-  background: #1677ff !important;
+.detail-text-area {
+    font-size: 12px;
+    color: #333;
+    white-space: pre-wrap;
+    background: #f8f9fa;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid #e8e8e8;
+    min-height: 40px;
 }
 
-::ng-deep .ant-splitter-panel {
-  height: 94vh !important;
+label {
+    font-size: 11px;
+    color: #666;
+    font-weight: 600;
+    display: block;
+}
+
+/* Approval tabs */
+::ng-deep .approval-tabs .ant-tabs-content {
+    overflow-y: auto;
+}
+
+::ng-deep .ant-card-body {
+    padding: 0px !important;
+    /* padding: 24px; */
+}
+
+/* Group Headers Styling */
+::ng-deep .p-rowgroup-header {
+    background-color: #f8f9fa !important;
+    transition: background-color 0.2s;
+}
+
+::ng-deep .p-rowgroup-header:hover {
+    background-color: #f1f3f5 !important;
+}
+
+::ng-deep .p-rowgroup-header td {
+    border-top: 1px solid #dee2e6 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+:host ::ng-deep .p-rowgroup-header .font-bold {
+    font-weight: 700;
+    color: #495057;
+}
+
+:host ::ng-deep .p-rowgroup-header .p-button.p-button-text {
+    color: #495057;
+    width: 2rem;
+    height: 2rem;
+}
+
+::ng-deep .p-component.p-inputtext {
+    font-size: 12px;
+    padding: 0;
+    width: 100% !important;
+}
+
+::ng-deep p-columnfilterformelement {
+    width: 100% !important;
 }

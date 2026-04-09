@@ -82,6 +82,8 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   currentPartListId: number = 0; // Lưu trữ ID của partlist đang edit
   hasDataChanged: boolean = false; // Flag để track xem có thay đổi dữ liệu hay không (mã đặc biệt)
   isParentNode: boolean = false; // Flag xác định đây là node cha (không có ProductCode) - không cần validate mã TB, hãng SX, đơn vị
+  currentDeadlinePriceRequest: any = null;
+  currentDatePriceRequest: any = null;
 
   diffDataIsFix: any = {};
   // Regex pattern cho TT
@@ -294,6 +296,8 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     // Node cha: có __hasChildren = true - KHÔNG validate productCode/maker/unit
     // Node con: không có __hasChildren hoặc = false - VALIDATE đầy đủ
     this.isParentNode = !!(data.__hasChildren === true);
+    this.currentDeadlinePriceRequest = !this.isParentNode ? (data.DeadlinePriceRequest || null) : null;
+    this.currentDatePriceRequest = !this.isParentNode ? (data.DatePriceRequest || null) : null;
 
     this.formGroup.patchValue({
       projectId: this.projectId || null, // mã dự án
@@ -853,7 +857,9 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
       ReturnDate: formValue.receiveDate ? DateTime.fromJSDate(new Date(formValue.receiveDate)).toISO() : null,
       QuantityReturn: formValue.quantityReturn || 0,
       Status: formValue.statusId || null,
-      Quality: formValue.quality?.trim() || null
+      Quality: formValue.quality?.trim() || null,
+      DeadlinePriceRequest: !this.isParentNode && this.currentDeadlinePriceRequest ? DateTime.fromJSDate(new Date(this.currentDeadlinePriceRequest)).toISO() : null,
+      DatePriceRequest: !this.isParentNode && this.currentDatePriceRequest ? DateTime.fromJSDate(new Date(this.currentDatePriceRequest)).toISO() : null
     };
     console.log("dataToSave", dataToSave);
     // Gọi API để lưu dữ liệu

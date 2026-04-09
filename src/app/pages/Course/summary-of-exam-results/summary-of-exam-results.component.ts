@@ -64,7 +64,7 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
     private examResultsService: SummaryOfExamResultsService,
     private projectService: ProjectService,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.breakpointObserver.observe([Breakpoints.Handset])
@@ -139,7 +139,7 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
       },
     });
   }
-  searchData(){
+  searchData() {
     this.getEmployeeData();
     this.getExamResultsByEmployeeID(0);
   }
@@ -162,7 +162,7 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
         } else {
           this.employeeData = [];
         }
-        
+
         if (this.employeeTable) {
           this.employeeTable.replaceData(this.employeeData);
         }
@@ -201,7 +201,7 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
         } else {
           this.examResultsData = [];
         }
-        
+
         if (this.examResultsTable) {
           this.examResultsTable.setData(this.examResultsData);
         }
@@ -228,7 +228,7 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         height: '83vh',
         selectableRows: 1,
-        paginationMode: 'local',
+        pagination: false,
         rowHeader: false,
         groupBy: 'DepartmentName',
         groupHeader: function (value, count, data, group) {
@@ -289,7 +289,7 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         height: '83vh',
         selectableRows: false,
-        paginationMode: 'local',
+        pagination: false,
         columnCalcs: 'table',
         groupBy: 'NameCourseCatalog',
         rowHeader: false,
@@ -330,21 +330,21 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
               const value = cell.getValue();
               const rowData = cell.getRow().getData();
               const evaluate = rowData['Evaluate'];
-              
+
               // Tô màu cho ô dựa vào Evaluate
               if (evaluate === 1) {
                 cell.getElement().style.backgroundColor = 'lightgreen'; // Xanh nhạt
               } else if (evaluate === 0) {
                 cell.getElement().style.backgroundColor = '#FF6600'; // Cam nhạt
               }
-              
+
               return value != null && value !== '' ? value.toString() : '-';
             },
             bottomCalc: (values: any[], data: any[]) => {
               // Đếm số lượng Đạt (Evaluate === 1) và Không đạt (Evaluate === 0)
               let datCount = 0;
               let khongDatCount = 0;
-              
+
               data.forEach((row: any) => {
                 if (row.Evaluate === 1) {
                   datCount++;
@@ -352,17 +352,17 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
                   khongDatCount++;
                 }
               });
-              
+
               return { dat: datCount, khongDat: khongDatCount };
             },
             bottomCalcFormatter: (cell: any) => {
               const value = cell.getValue();
               const datCount = value?.dat || 0;
               const khongDatCount = value?.khongDat || 0;
-              
+
               // Tô màu nền cho ô bottomCalc
               cell.getElement().style.backgroundColor = '#f0f0f0';
-              
+
               // Tạo HTML với 2 dòng có màu
               return `<div style="line-height: 1.5;">
                 <div style="font-weight: bold;">Đạt = ${datCount}</div>
@@ -447,6 +447,7 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
             hozAlign: 'center',
             headerHozAlign: 'center',
             width: 220,
+            minWidth: 220,
             formatter: (cell: any) => {
               const value = cell.getValue();
               if (value != null && value !== 0) {
@@ -509,7 +510,7 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
         if (field === 'LeadTime' || field === 'TotalTimeLearned') {
           return value != null && value !== 0 ? value : '';
         }
-        
+
         // Xử lý các điểm số - ưu tiên Text field nếu có
         if (field === 'QuizPoints' && row['QuizPointsText'] && row['QuizPointsText'] !== '-') {
           return row['QuizPointsText'];

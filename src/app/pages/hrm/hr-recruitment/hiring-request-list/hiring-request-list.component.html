@@ -1,0 +1,114 @@
+<div class="h-100 flex-column overflow-hidden">
+  <!-- Header / Filter Bar -->
+  <div class="filter-bar bg-light border-bottom p-2 d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center">
+      <h5 class="mb-0 mr-4 text-primary font-weight-bold">
+        <i class="fa-solid fa-list-check mr-2"></i> Danh sách yêu cầu tuyển dụng
+      </h5>
+      <p-selectButton [options]="statusOptions" [(ngModel)]="isCompleted" (onChange)="onStatusChange()"
+        optionLabel="label" optionValue="value" [allowEmpty]="false"
+        [styleClass]="'p-buttonset-sm ' + (isCompleted ? 'status-success' : 'status-warn')"></p-selectButton>
+    </div>
+
+    <div>
+      <button pButton icon="fa-solid fa-rotate" class="p-button-secondary p-button-sm p-button-text"
+        (click)="loadData()" pTooltip="Làm mới"></button>
+    </div>
+  </div>
+
+  <!-- Table Body -->
+  <div class="flex-grow-1 overflow-auto max-h-100 p-2 bg-white">
+    <nz-spin [nzSpinning]="isLoading">
+      <p-table [value]="listData" [scrollable]="true" scrollHeight="flex"
+        styleClass="p-datatable-sm p-datatable-gridlines w-100 custom-table">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 50px; text-align: center;">STT</th>
+            <th>Mã yêu cầu</th>
+            <th>Vị trí tuyển dụng</th>
+            <th style="width: 150px;">Phòng ban</th>
+            <th style="width: 200px; text-align: center;" pSortableColumn="CreatedDate">
+              Ngày tạo<p-sortIcon field="CreatedDate"></p-sortIcon>
+            </th>
+            <th style="width: 120px; text-align: center;" pSortableColumn="QuantityHiring">
+              SL tuyển dụng<p-sortIcon field="QuantityHiring"></p-sortIcon>
+            </th>
+            <th style="width: 150px; text-align: center;" pSortableColumn="uv">
+              Ứng viên tham gia<p-sortIcon field="uv"></p-sortIcon>
+            </th>
+            <th style="width: 150px; text-align: center;" pSortableColumn="examresult">
+              Đã làm bài<p-sortIcon field="examresult"></p-sortIcon>
+            </th>
+            <th style="width: 150px; text-align: center;">Thao tác</th>
+          </tr>
+          <tr>
+            <th></th>
+            <th>
+              <p-columnFilter type="text" field="HiringRequestCode" placeholder="Tìm mã yêu cầu..." filterOn="input"
+                matchMode="contains"></p-columnFilter>
+            </th>
+            <th>
+              <p-columnFilter type="text" field="PositionName" placeholder="Tìm vị trí..." filterOn="input"
+                matchMode="contains"></p-columnFilter>
+            </th>
+            <th>
+              <p-columnFilter type="text" field="Name" placeholder="Tìm phòng ban..." filterOn="input"
+                matchMode="contains"></p-columnFilter>
+            </th>
+            <th>
+              <p-columnFilter type="date" placeholder="Tìm ngày tạo..." field="CreatedDate"
+                display="row"></p-columnFilter>
+            </th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
+          <tr>
+            <td style="text-align: center;">{{rowIndex + 1}}</td>
+            <td>
+              <div class="font-weight-bold text-dark">{{row.HiringRequestCode}}</div>
+            </td>
+            <td>
+              <div class="font-weight-bold text-dark">{{row.PositionName}}</div>
+              <!-- <small class="text-muted">{{row.Name}}</small> -->
+            </td>
+            <td>
+              <div class="font-weight-bold text-dark">{{row.Name}}</div>
+            </td>
+            <td style="text-align: center;">
+              {{row.CreatedDate | date:'dd/MM/yyyy'}}
+            </td>
+            <td style="text-align: center;">
+              <p-tag [value]="row.QuantityHiring" severity="info"></p-tag>
+            </td>
+            <td style="text-align: center;">
+              <span class="badge badge-light-primary px-3 py-2" style="font-size: 13px;">
+                {{row.uv}}
+              </span>
+            </td>
+            <td style="text-align: center;">
+              <span class="badge badge-light-success px-3 py-2" style="font-size: 13px;">
+                {{row.examresult}}
+              </span>
+            </td>
+            <td style="text-align: center;">
+              <button pButton icon="fa-solid fa-file-pen" label="Đánh giá"
+                class="p-button-sm p-button-primary grading-btn" (click)="evaluate(row)"></button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="text-center p-5 text-muted">
+              <i class="fa-solid fa-folder-open fa-3x mb-3 d-block opacity-50"></i>
+              Không tìm thấy yêu cầu tuyển dụng nào.
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </nz-spin>
+  </div>
+</div>

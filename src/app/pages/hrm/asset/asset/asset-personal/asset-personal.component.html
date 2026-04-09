@@ -2,75 +2,37 @@
     <!-- Header với search và buttons -->
     <div class="card-header bg-white p-2 flex-shrink-0">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <h6 class="m-0 text-uppercase fw-bold">Quản lý tài sản cá nhân</h6>
+            <h6 class="m-0 text-uppercase fw-bold" style="font-size: 12px;">Quản lý tài sản cá nhân</h6>
             <div class="d-flex gap-2 align-items-center flex-wrap">
                 <!-- Search form -->
                 <form nz-form nzLayout="inline" class="d-flex gap-2 align-items-end flex-wrap">
-                    <nz-form-item>
-                        <nz-form-label class="mb-1" style="font-size: 12px;">Từ ngày</nz-form-label>
+                    <nz-form-item *ngIf="selectedTabIndex === 0">
+                        <nz-form-label class="mb-1" style="font-size: 12px;">Loại biên bản</nz-form-label>
                         <nz-form-control>
-                            <nz-date-picker 
-                                [(ngModel)]="dateStart" 
-                                nzPlaceHolder="Từ ngày" 
-                                nzFormat="dd/MM/yyyy"
-                                nzSize="small"
-                                name="dateStart"
-                                style="width: 120px;">
-                            </nz-date-picker>
-                        </nz-form-control>
-                    </nz-form-item>
-                    
-                    <nz-form-item>
-                        <nz-form-label class="mb-1" style="font-size: 12px;">Đến ngày</nz-form-label>
-                        <nz-form-control>
-                            <nz-date-picker 
-                                [(ngModel)]="dateEnd" 
-                                nzPlaceHolder="Đến ngày" 
-                                nzFormat="dd/MM/yyyy"
-                                nzSize="small"
-                                name="dateEnd"
-                                style="width: 120px;">
-                            </nz-date-picker>
-                        </nz-form-control>
-                    </nz-form-item>
-
-                    <nz-form-item>
-                        <nz-form-label class="mb-1" style="font-size: 12px;">Loại tài sản</nz-form-label>
-                        <nz-form-control>
-                            <nz-select 
-                                nzPlaceHolder="Loại tài sản" 
-                                [(ngModel)]="assetCategory"
-                                nzSize="small"
-                                name="assetCategory"
-                                style="width: 120px;">
-                                <nz-option 
-                                    *ngFor="let item of assetCategoryList" 
-                                    [nzLabel]="item.label" 
+                            <nz-select nzPlaceHolder="Loại tài sản" [(ngModel)]="assetCategory" nzSize="small"
+                                (ngModelChange)="onSearch()" name="assetCategory" style="width: 250px;">
+                                <nz-option *ngFor="let item of assetCategoryList" [nzLabel]="item.label"
                                     [nzValue]="item.value">
                                 </nz-option>
                             </nz-select>
                         </nz-form-control>
                     </nz-form-item>
 
-                    <nz-form-item>
+                    <nz-form-item *ngIf="selectedTabIndex === 1">
                         <nz-form-label class="mb-1" style="font-size: 12px;">Từ khóa</nz-form-label>
                         <nz-form-control>
-                            <input 
-                                nz-input 
-                                placeholder="Từ khóa..." 
-                                [(ngModel)]="keyword"
-                                nzSize="small"
-                                name="keyword"
-                                style="width: 150px;" />
+                            <input nz-input placeholder="Từ khóa..." [(ngModel)]="keyword" nzSize="small" name="keyword"
+                                (blur)="keyword = keyword.trim()" (keyup.enter)="onSearch()"
+                                style="width: 350px; font-size: 12px;" />
                         </nz-form-control>
                     </nz-form-item>
                 </form>
 
-                <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">
+                <button nz-button nzType="default" nzSize="small" (click)="resetSearch()" style="font-size: 12px;">
                     Đặt lại
                 </button>
-                
-                <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+
+                <button nz-button nzType="primary" nzSize="small" (click)="onSearch()" style="font-size: 12px;">
                     <span nz-icon nzType="search"></span>
                     Tìm kiếm
                 </button>
@@ -80,25 +42,118 @@
 
     <!-- Tabs -->
     <div class="card-body p-1 position-relative flex-grow-1" style="min-height: 0; height: 100%;">
-        <nz-tabset class="approval-tabs" [(nzSelectedIndex)]="selectedTabIndex" (nzSelectedIndexChange)="onTabChange($event)">
+        <nz-tabset class="approval-tabs" [(nzSelectedIndex)]="selectedTabIndex"
+            (nzSelectedIndexChange)="onTabChange($event)">
             <!-- Tab 1: Biên bản -->
-            <nz-tab nzTitle="Biên bản">
-                <ng-template #nzTabTitle>
-                    <span class="custom-tab-title">Biên bản</span>
-                </ng-template>
+            <nz-tab nzTitle="Biên bản" [nzForceRender]="true">
                 <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..." style="height: calc(100vh - 180px);">
                     <nz-splitter nzLayout="vertical" style="height: 100%; flex: 1;">
-                        <!-- Bảng Master - Biên bản (ở trên) - 60% -->
-                        <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="50%">
-                            <div #recordsTable style="height: 100%; width: 100%; overflow: auto;"></div>
+                        <!-- Bảng Master - Biên bản (ở trên) -->
+                        <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="true" nzSize="50%">
+                            <p-table [value]="recordsData" [scrollable]="true" scrollHeight="flex"
+                                selectionMode="single" [(selection)]="selectedRecord"
+                                (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
+                                styleClass="p-datatable-sm p-datatable-gridlines custom-table">
+                                <ng-template pTemplate="header">
+                                    <tr class="sticky-top-table">
+                                        <th class="sticky-left" style="width: 80px; text-align: center;">Thao tác</th>
+                                        <th class="text-nowrap" style="width: 70px; text-align: center;">Duyệt</th>
+                                        <th class="text-nowrap" style="width: 80px; text-align: center;">HR duyệt</th>
+                                        <th class="text-nowrap" style="width: 100px; text-align: center;">Kế toán duyệt
+                                        </th>
+                                        <th class="text-nowrap" style="width: 120px; user-select: text !important;">Mã
+                                            biên bản</th>
+                                        <th class="text-nowrap" style="width: 150px;">Loại biên bản</th>
+                                        <th class="text-nowrap" style="width: 110px; text-align: center;">Ngày bàn giao
+                                        </th>
+
+                                        <th class="text-nowrap" style="width: 150px;">Người giao/<br />Người thu hồi
+                                        </th>
+                                        <th class="text-nowrap" style="width: 150px;">Phòng ban</th>
+                                        <th class="text-nowrap" style="width: 120px;">Chức vụ</th>
+                                        <th class="text-nowrap" style="width: 150px;">Người nhận/<br />Thu hồi từ
+                                        </th>
+                                        <th class="text-nowrap" style="width: 150px;">Phòng ban</th>
+                                        <th class="text-nowrap" style="width: 120px;">Chức vụ</th>
+                                        <th class="text-nowrap">Lý do</th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                                    <tr [pSelectableRow]="item">
+                                        <td class="text-nowrap sticky-left" style="text-align: center;">
+                                            <div class="d-flex gap-1 justify-content-center" *ngIf="!item.IsApproved">
+                                                <button pButton icon="pi pi-check"
+                                                    class="p-button-success p-button-sm p-button-rounded"
+                                                    (click)="approveAsset(item); $event.stopPropagation()"
+                                                    title="Duyệt"></button>
+                                                <button pButton icon="pi pi-times"
+                                                    class="p-button-danger p-button-sm p-button-rounded"
+                                                    (click)="rejectAsset(item); $event.stopPropagation()"
+                                                    title="Hủy duyệt"></button>
+                                            </div>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <p-checkbox [binary]="true" [ngModel]="item.IsApprovedPersonalProperty"
+                                                [disabled]="true"></p-checkbox>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <p-checkbox [binary]="true" [ngModel]="item.IsApproved"
+                                                [disabled]="true"></p-checkbox>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <p-checkbox [binary]="true" [ngModel]="item.IsApproveAccountant"
+                                                [disabled]="true"></p-checkbox>
+                                        </td>
+                                        <td class="text-left" style="user-select: text !important;">
+                                            <span class="text-success cursor-pointer fw-semibold"
+                                                (click)="onRowSelect({data: item}); selectedRecord = item"
+                                                style="font-size: 12px; user-select: text !important;">{{item.AssetCode}}</span>
+                                        </td>
+                                        <td class="text-left">{{item.AssetCategoryText || item.AssetCategorytext}}</td>
+                                        <td style="text-align: center;">{{formatDate(item.ImplementationDate)}}</td>
+
+                                        <td class="text-left">{{item.DeliverName}}</td>
+                                        <td class="text-left">{{item.DepartmentDeliver}}</td>
+                                        <td class="text-left">{{item.PossitionDeliver}}</td>
+                                        <td class="text-left">{{item.ReceiverName}}</td>
+                                        <td class="text-left">{{item.DepartmentReceiver}}</td>
+                                        <td class="text-left">{{item.PossitionReceiver}}</td>
+                                        <td class="text-left">{{item.AssetNote}}</td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
                         </nz-splitter-panel>
 
-                        <!-- Bảng Detail - Chi tiết cấp phát (ở dưới) - 40% -->
-                        <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="50%">
+                        <!-- Bảng Detail - Chi tiết cấp phát (ở dưới) -->
+                        <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="true" nzSize="50%">
                             <div style="height: 100%; display: flex; flex-direction: column;">
-                                <nz-tabset style="padding-left: 10px; flex: 1; height: 0;">
+                                <nz-tabset style="padding-left: 10px; flex: 1; height: 100%;">
                                     <nz-tab [nzTitle]="detailTabTitle">
-                                        <div #recordDetailTable style="height: 100%; width: 100%; overflow: auto;"></div>
+                                        <p-table [value]="recordDetails" [scrollable]="true" scrollHeight="flex"
+                                            styleClass="p-datatable-sm p-datatable-gridlines custom-table">
+                                            <ng-template pTemplate="header">
+                                                <tr>
+                                                    <th style="width: 50px; text-align: center;">STT</th>
+                                                    <th style="width: 140px;">Mã tài sản</th>
+                                                    <th style="width: 400px;">Tên tài sản</th>
+                                                    <th style="width: 80px;">Đơn vị</th>
+                                                    <th style="width: 100px;">Tình trạng</th>
+                                                    <th style="width: 80px; text-align: center;">Số lượng</th>
+                                                    <th>Ghi chú</th>
+                                                </tr>
+                                            </ng-template>
+                                            <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                                                <tr>
+                                                    <td style="text-align: center;">{{rowIndex + 1}}</td>
+                                                    <td>{{item.TSCodeNCC}}</td>
+                                                    <td>{{item.TSAssetName}}</td>
+                                                    <td>{{item.UnitName}}</td>
+                                                    <td>{{item.Status}}</td>
+                                                    <td style="text-align: center;">{{item.Quantity}}</td>
+                                                    <td>{{item.Note}}</td>
+                                                </tr>
+                                            </ng-template>
+                                        </p-table>
                                     </nz-tab>
                                 </nz-tabset>
                             </div>
@@ -108,12 +163,49 @@
             </nz-tab>
 
             <!-- Tab 2: Tài sản cá nhân -->
-            <nz-tab nzTitle="Tài sản cá nhân">
-                <ng-template #nzTabTitle>
-                    <span class="custom-tab-title">Tài sản cá nhân</span>
-                </ng-template>
+            <nz-tab nzTitle="Tài sản cá nhân" [nzForceRender]="true">
                 <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..." style="height: 100%;">
-                    <div #assetsTable style="height: 70vh;" id="assetsTable"></div>
+                    <p-table [value]="assetsData" [scrollable]="true" scrollHeight="calc(100vh - 160px)"
+                        styleClass="p-datatable-sm p-datatable-gridlines custom-table">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th style="width: 50px; text-align: center;">STT</th>
+                                <th style="width: 120px;">Mã tài sản</th>
+                                <th style="width: 200px;">Tên tài sản</th>
+                                <th style="width: 150px;">Tên loại tài sản</th>
+                                <th style="width: 120px;">Mã loại tài sản</th>
+                                <th style="width: 120px;">Nhà cung cấp</th>
+                                <th style="width: 100px;">Seri</th>
+                                <th style="width: 80px;">Đơn vị</th>
+                                <th style="width: 100px;">Tình trạng</th>
+                                <th style="width: 80px; text-align: center;">Số lượng</th>
+                                <th style="width: 150px;">Phòng ban</th>
+                                <th style="width: 150px;">Người sử dụng</th>
+                                <th style="width: 120px; text-align: center;">Thời gian mua</th>
+                                <th style="width: 120px; text-align: center;">Ngày hiệu lực</th>
+                                <th>Thông số</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                            <tr>
+                                <td style="text-align: center;">{{rowIndex + 1}}</td>
+                                <td>{{item.TSCodeNCC}}</td>
+                                <td>{{item.TSAssetName}}</td>
+                                <td>{{item.AssetType}}</td>
+                                <td>{{item.AssetCode}}</td>
+                                <td>{{item.SupplierName}}</td>
+                                <td>{{item.Seri}}</td>
+                                <td>{{item.UnitName}}</td>
+                                <td>{{item.Status}}</td>
+                                <td style="text-align: center;">{{item.Quantity}}</td>
+                                <td>{{item.Name}}</td>
+                                <td>{{item.FullName}}</td>
+                                <td style="text-align: center;">{{formatDate(item.DateBuy)}}</td>
+                                <td style="text-align: center;">{{formatDate(item.DateEffect)}}</td>
+                                <td>{{item.SpecificationsAsset}}</td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
                 </nz-spin>
             </nz-tab>
         </nz-tabset>

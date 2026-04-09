@@ -22,7 +22,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 // Services
 import { HrhiringRequestService } from '../hrhiring-request-service/hrhiring-request.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../app.config';
 
 @Component({
   selector: 'app-hrhiring-request-detail',
@@ -94,7 +94,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
     private service: HrhiringRequestService,
     private notification: NzNotificationService,
     public activeModal: NgbActiveModal
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initForm();
@@ -191,9 +191,14 @@ export class HrhiringRequestDetailComponent implements OnInit {
           this.departmentList = [];
         }
       },
-      error: (error) => {
-        console.error('Error loading departments:', error);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách phòng ban');
+      error: (err: any) => {
+        // console.error('Error loading departments:', error);
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
       },
     });
 
@@ -208,9 +213,14 @@ export class HrhiringRequestDetailComponent implements OnInit {
           this.positionList = [];
         }
       },
-      error: (error) => {
-        console.error('Error loading positions:', error);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách vị trí');
+      error: (err: any) => {
+        // console.error('Error loading positions:', error);
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
       },
     });
   }
@@ -270,28 +280,11 @@ export class HrhiringRequestDetailComponent implements OnInit {
         CommAuthorities: Boolean(this.data.CommAuthorities),
       });
 
-      console.log('Form after patch:', this.form.value);
+
 
       // SỬA: Log các giá trị để debug
-      console.log('AppearanceSelections:', this.data.AppearanceSelections);
-      console.log('Health values:', {
-        NeedPhysical: this.data.NeedPhysical,
-        PhysicalNote: this.data.PhysicalNote,
-        NeedSpecialStrength: this.data.NeedSpecialStrength,
-        StrengthNote: this.data.StrengthNote,
-        EnsureHealth: this.data.EnsureHealth,
-        HealthNote: this.data.HealthNote,
-      });
 
-      console.log('Communication values:', {
-        CommNoneExternal: this.data.CommNoneExternal,
-        CommInternal: this.data.CommInternal,
-        CommDomesticCustomer: this.data.CommDomesticCustomer,
-        CommForeignCustomer: this.data.CommForeignCustomer,
-        CommForeignCountry: this.data.CommForeignCountry,
-        CommMedia: this.data.CommMedia,
-        CommAuthorities: this.data.CommAuthorities,
-      });
+
     }
   }
 
@@ -346,7 +339,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
     return Math.max(0, parsed); // Đảm bảo không âm
   }
 
-  validateNumberInput(event: KeyboardEvent,event1:any): void {
+  validateNumberInput(event: KeyboardEvent, event1: any): void {
     const char = event.key;
 
     // Cho phép: số (0-9), Backspace, Delete, Tab, Enter, Arrow keys
@@ -464,16 +457,16 @@ export class HrhiringRequestDetailComponent implements OnInit {
 
   onMinSalaryChange(event: any): void {
     let value = parseInt(event.target.value);
-    if(value >this.form.value.SalaryMax){
-        value = this.form.value.SalaryMax
+    if (value > this.form.value.SalaryMax) {
+      value = this.form.value.SalaryMax
     }
     this.form.patchValue({ SalaryMin: value });
   }
 
   onMaxSalaryChange(event: any): void {
     let value = parseInt(event.target.value);
-    if(value<this.form.value.SalaryMin){
-        value = this.form.value.SalaryMin
+    if (value < this.form.value.SalaryMin) {
+      value = this.form.value.SalaryMin
     }
     this.form.patchValue({ SalaryMax: value });
   }
@@ -481,17 +474,17 @@ export class HrhiringRequestDetailComponent implements OnInit {
   // Age range handlers - CẢI THIỆN ĐỂ TRÁNH TRÙNG NHAU
   onMinAgeChange(event: any): void {
     let value = parseInt(event.target.value);
-if(value>this.form.value.AgeMax){
-    value = this.form.value.AgeMax
-}
+    if (value > this.form.value.AgeMax) {
+      value = this.form.value.AgeMax
+    }
     this.form.patchValue({ AgeMin: value });
   }
 
   onMaxAgeChange(event: any): void {
     let value = parseInt(event.target.value);
-    if(value<this.form.value.AgeMin){
-    value = this.form.value.AgeMin
-}
+    if (value < this.form.value.AgeMin) {
+      value = this.form.value.AgeMin
+    }
     this.form.patchValue({ AgeMax: value });
   }
 
@@ -500,8 +493,8 @@ if(value>this.form.value.AgeMax){
     const rawValue = event.target.value.replace(/,/g, ''); // Loại bỏ dấu phẩy
     let numericValue = parseInt(rawValue) || 0;
 
-    if(numericValue>this.form.value.SalaryMax){
-        numericValue = this.form.value.SalaryMax;
+    if (numericValue > this.form.value.SalaryMax) {
+      numericValue = this.form.value.SalaryMax;
     }
     // Validate range: 0 - 100,000,000
     if (isNaN(numericValue) || numericValue < 0) {
@@ -519,8 +512,8 @@ if(value>this.form.value.AgeMax){
   onMaxSalaryInputChange(event: any): void {
     const rawValue = event.target.value.replace(/,/g, ''); // Loại bỏ dấu phẩy
     let numericValue = parseInt(rawValue) || 0;
-        if(numericValue<this.form.value.SalaryMin){
-        numericValue = this.form.value.SalaryMin;
+    if (numericValue < this.form.value.SalaryMin) {
+      numericValue = this.form.value.SalaryMin;
     }
     // Validate range: 0 - 100,000,000
     if (isNaN(numericValue) || numericValue < 0) {
@@ -548,8 +541,8 @@ if(value>this.form.value.AgeMax){
   onMinAgeInputChange(event: any): void {
     const inputValue = event.target.value.replace(/,/g, '');
     let numericValue = parseInt(inputValue, 10);
-    if(numericValue>this.form.value.AgeMax){
-        numericValue = this.form.value.AgeMax
+    if (numericValue > this.form.value.AgeMax) {
+      numericValue = this.form.value.AgeMax
     }
     // Validate range: 18 - 65
     if (isNaN(numericValue) || numericValue < 18) {
@@ -565,8 +558,8 @@ if(value>this.form.value.AgeMax){
   onMaxAgeInputChange(event: any): void {
     const inputValue = event.target.value.replace(/,/g, '');
     let numericValue = parseInt(inputValue, 10);
-    if(numericValue<this.form.value.AgeMin){
-        numericValue = this.form.value.AgeMin
+    if (numericValue < this.form.value.AgeMin) {
+      numericValue = this.form.value.AgeMin
     }
 
     // Validate range: 18 - 65
@@ -743,6 +736,8 @@ if(value>this.form.value.AgeMax){
 
   // Cập nhật save method trong component
   save(): void {
+    if (this.isSaving) return;
+
     // VALIDATE FORM TRƯỚC KHI SAVE
     if (!this.validateForm()) {
       return;
@@ -937,12 +932,12 @@ if(value>this.form.value.AgeMax){
       next: (response: any) => {
         this.isSaving = false;
         if (response?.status === 1) {
-          this.notification.success(
-            'Thành công',
-            this.mode === 'edit'
-              ? 'Cập nhật yêu cầu tuyển dụng thành công!'
-              : 'Thêm mới yêu cầu tuyển dụng thành công!'
-          );
+          // this.notification.success(
+          //   'Thành công',
+          //   this.mode === 'edit'
+          //     ? 'Cập nhật yêu cầu tuyển dụng thành công!'
+          //     : 'Thêm mới yêu cầu tuyển dụng thành công!'
+          // );
           this.activeModal.close({ action: 'save', data: response.data });
         } else {
           this.notification.error(
@@ -951,10 +946,14 @@ if(value>this.form.value.AgeMax){
           );
         }
       },
-      error: (error) => {
+      error: (err: any) => {
         this.isSaving = false;
-        console.error('Save error details:', error);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu dữ liệu!');
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
       },
     });
   }

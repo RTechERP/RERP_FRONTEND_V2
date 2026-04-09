@@ -1,0 +1,182 @@
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+        </a>
+    </ng-template>
+</p-menubar>
+
+<div class="page-wrapper">
+
+    <!-- Stats card -->
+    <div class="stats-bar">
+        <div class="stats-item">
+            <i class="fa-solid fa-list-check text-primary me-1"></i>
+            <span>Tổng: <strong>{{ dataList.length }}</strong> loại task</span>
+        </div>
+        <div class="stats-item" *ngIf="selectedRow">
+            <i class="fa-solid fa-circle-check text-success me-1"></i>
+            <span>Đang chọn: <strong>{{ selectedRow.TypeName }}</strong></span>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <nz-spin [nzSpinning]="isLoading">
+        <nz-table #nzTable [nzData]="dataList" [nzFrontPagination]="false" nzSize="small" class="task-type-table">
+
+            <thead>
+                <tr>
+                    <th nzWidth="60px" nzAlign="center">STT</th>
+                    <th nzWidth="150px">Mã</th>
+                    <th>Tên loại task</th>
+                    <th nzWidth="180px">Phòng ban</th>
+                    <th nzWidth="100px" nzAlign="center">Màu sắc</th>
+                    <th nzWidth="140px" nzAlign="center">Ngày tạo</th>
+                    <th nzWidth="140px" nzAlign="center">Cập nhật</th>
+                    <th nzWidth="100px" nzAlign="center">Thao tác</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr *ngFor="let item of nzTable.data; let i = index" (click)="selectRow(item)"
+                    [class.row-selected]="isSelected(item)" class="table-row-hover">
+
+                    <!-- STT -->
+                    <td nzAlign="center">
+                        {{ i + 1 }}
+                    </td>
+
+                    <!-- Mã -->
+                    <td>
+                        <a href="javascript:void(0)" class="code-link fw-bold text-primary" (click)="openEditModal(item)">
+                            {{ item.Code }}
+                        </a>
+                    </td>
+
+                    <!-- Tên loại task -->
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <!-- <span class="type-badge">
+                                <i class="fa-solid fa-tag"></i>
+                            </span> -->
+                            <span class="type-name">{{ item.TypeName }}</span>
+                        </div>
+                    </td>
+
+                    <!-- Phòng ban -->
+                    <td>
+                        <span class="dept-text">{{ getDepartmentName(item.DepartmentID) }}</span>
+                    </td>
+
+                    <!-- Màu sắc -->
+                    <td nzAlign="center">
+                        <nz-tag [nzColor]="item.Color || '#1890ff'" class="color-tag">
+                            {{ item.Color || '#1890ff' }}
+                        </nz-tag>
+                    </td>
+
+                    <!-- Ngày tạo -->
+                    <td nzAlign="center">
+                        <span class="date-text">{{ formatDate(item.CreatedDate) }}</span>
+                    </td>
+
+                    <!-- Ngày cập nhật -->
+                    <td nzAlign="center">
+                        <span class="date-text">{{ formatDate(item.UpdatedDate) }}</span>
+                    </td>
+
+                    <!-- Thao tác -->
+                    <td nzAlign="center" (click)="$event.stopPropagation()">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button nz-button nzType="text" nzSize="small" nz-tooltip nzTooltipTitle="Sửa"
+                                class="btn-action btn-edit" (click)="openEditModal(item)">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button nz-button nzType="text" nzSize="small" nz-tooltip nzTooltipTitle="Xóa"
+                                class="btn-action btn-delete" (click)="deleteRecord(item)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Empty state -->
+                <tr *ngIf="!isLoading && dataList.length === 0">
+                    <td colspan="8" nzAlign="center" class="empty-state">
+                        <i class="fa-solid fa-inbox fa-2x text-muted mb-2 d-block"></i>
+                        <span class="text-muted">Chưa có loại task nào</span>
+                    </td>
+                </tr>
+            </tbody>
+        </nz-table>
+    </nz-spin>
+
+</div>
+
+
+<!-- Modal Thêm / Sửa -->
+<div class="modal fade" id="projectTaskTypeModal" tabindex="-1" aria-labelledby="projectTaskTypeModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered fs-12">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="projectTaskTypeModalLabel">
+                    <i class="fa-solid fa-tag me-2"></i>
+                    {{ form.get('ID')?.value > 0 ? 'CẬP NHẬT LOẠI TASK' : 'THÊM MỚI LOẠI TASK' }}
+                </h6>
+                <button type="button" class="btn-close-custom" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form nz-form [formGroup]="form" (ngSubmit)="onSubmit()" nzLayout="vertical">
+                    <nz-form-item>
+                        <nz-form-label nzRequired>Mã loại task</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập mã loại task">
+                            <input nz-input formControlName="Code" placeholder="Nhập mã loại task..."
+                                [nzStatus]="form.get('Code')?.invalid && form.get('Code')?.touched ? 'error' : ''"
+                                class="text-uppercase" />
+                        </nz-form-control>
+                    </nz-form-item>
+                    <nz-form-item>
+                        <nz-form-label nzRequired>Tên loại task</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập tên loại task">
+                            <input nz-input formControlName="TypeName" placeholder="Nhập tên loại task..."
+                                [nzStatus]="form.get('TypeName')?.invalid && form.get('TypeName')?.touched ? 'error' : ''" />
+                        </nz-form-control>
+                    </nz-form-item>
+                    <nz-form-item>
+                        <nz-form-label>Phòng ban</nz-form-label>
+                        <nz-form-control>
+                            <nz-select formControlName="DepartmentID" nzPlaceHolder="Chọn phòng ban..." nzShowSearch
+                                nzAllowClear>
+                                <nz-option *ngFor="let dept of departmentList()" [nzLabel]="dept.Name"
+                                    [nzValue]="dept.ID"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                    <nz-form-item>
+                        <nz-form-label>Màu sắc hiển thị</nz-form-label>
+                        <nz-form-control>
+                            <div class="color-picker-container">
+                                <input type="color" formControlName="Color" class="color-input" />
+                                <span class="color-code">{{ form.get('Color')?.value }}</span>
+                            </div>
+                        </nz-form-control>
+                    </nz-form-item>
+                </form>
+            </div>
+            <div class="modal-footer py-1">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Đóng
+                </button>
+                <button nz-button nzType="primary" type="button" [nzLoading]="isSaving" [disabled]="isSaving"
+                    (click)="onSubmit()">
+                    <i class="fa-solid fa-floppy-disk me-1" *ngIf="!isSaving"></i>
+                    Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

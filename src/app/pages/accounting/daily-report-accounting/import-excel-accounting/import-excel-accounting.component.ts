@@ -38,6 +38,7 @@ export class ImportExcelAccountingComponent implements OnInit {
 
   tableData: any[] = [];
   tableHeaders: string[] = [];
+  isLoading = false;
 
   @ViewChild('excelTable', { static: true }) excelTable!: ElementRef;
   tabulator!: Tabulator;
@@ -222,6 +223,8 @@ export class ImportExcelAccountingComponent implements OnInit {
   }
 
   importData() {
+    if (this.isLoading) return;
+
     if (!this.tableData || this.tableData.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
       return;
@@ -299,8 +302,10 @@ export class ImportExcelAccountingComponent implements OnInit {
       return newRow;
     });
 
+    this.isLoading = true;
     this.dailyReportAccountingService.importExcel(mappedData).subscribe({
       next: (res: any) => {
+        this.isLoading = false;
         if (res.status === 1) {
           const created = res?.data?.created ?? 0;
           const skipped = res?.data?.skipped ?? 0;
@@ -332,6 +337,7 @@ export class ImportExcelAccountingComponent implements OnInit {
         }
       },
       error: (err: any) => {
+        this.isLoading = false;
         console.error('Import excel error:', err);
         this.notification.error('Thông báo', err?.error?.message || 'Có lỗi xảy ra khi nhập dữ liệu!');
       }

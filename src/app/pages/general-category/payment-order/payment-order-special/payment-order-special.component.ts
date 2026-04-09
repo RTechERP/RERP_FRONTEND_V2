@@ -83,6 +83,10 @@ export class PaymentOrderSpecialComponent implements OnInit {
         {
             "value": 16,
             "label": "HCM"
+        },
+        {
+            "value": 20,
+            "label": "MRO Samsung"
         }
     ];
 

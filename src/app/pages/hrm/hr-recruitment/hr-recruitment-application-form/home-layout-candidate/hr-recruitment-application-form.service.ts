@@ -53,7 +53,7 @@ export class HRRecruitmentApplicationFormService {
         });
     }
 
-    getDataExamByEmployee(): Observable<any> {
-        return this.http.get<any>(`${this.apiUrlExam}/get-data-exam-by-employee`);
+    getDataExamByEmployee(hRRecruitmentCandidateID: number): Observable<any> {
+        return this.http.get<any>(`${this.apiUrlExam}/get-data-exam-by-employee`, { params: { hRRecruitmentCandidateID } });
     }
 }

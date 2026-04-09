@@ -17,7 +17,7 @@ export class HrhiringRequestService {
     this.LoginName = this.appUserService.loginName || '';
     this.ISADMIN = this.appUserService.isAdmin || false;
     this.GlobalDepartmentId = this.appUserService.departmentID || 0;
-    
+
   }
 
   GlobalEmployeeId: number = 78;
@@ -561,4 +561,14 @@ export class HrhiringRequestService {
     return this.http.post<any>(this.apiUrl + 'approved-bgd', data);
   }
   //#endregion
+
+  updateCompleted(list: any[]): Observable<any> {
+    const headers = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+    return this.http.post<any>(this.apiUrl + 'update-completed', list, {
+      headers,
+    });
+  }
 }

@@ -131,6 +131,15 @@
                             <img src="assets/icon/list_project_report_16.png" alt="Danh sách báo cáo công việc"
                                 class="me-1" /> Ds báo cáo công việc
                         </button>
+                        <button nz-button nzSize="small" (click)="openFolder('online')"
+                            style="background-color: #28a745; border-color: #28a745; color: white;" 
+                            title="Đường dẫn Online">
+                            <img src="assets/icon/tree_folder_16.png" alt="Cây thư mục" />
+                        </button>
+                        <button nz-button nzType="primary" nzSize="small" (click)="openFolder('noi_bo')"
+                            title="Đường dẫn Nội bộ">
+                            <img src="assets/icon/tree_folder_16.png" alt="Cây thư mục" />
+                        </button>
                         <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openWorkItemModal()">
                             <img src="assets/icon/work_item_16.png" alt="Hạng mục công việc" class="me-1" /> Hạng mục
                             công việc

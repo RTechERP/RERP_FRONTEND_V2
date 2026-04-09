@@ -1,0 +1,794 @@
+/* Project Task List Page Styles */
+
+.project-task-container {
+    background: #fff;
+    height: calc(100vh - 64px);
+    /* Trừ đi header của layout */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+:host ::ng-deep button.p-button {
+    width: min-content !important;
+}
+
+/* Header Section */
+.header-section {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e8e8e8;
+    gap: 8px;
+}
+
+/* Header Right (add button + action buttons) */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+}
+
+/* Search Bar (separate row below header) */
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    border-bottom: 1px solid #e8e8e8;
+    background: #fafafa;
+}
+
+.search-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.search-label {
+    font-size: 12px;
+    color: #595959;
+    white-space: nowrap;
+}
+
+.btn-search {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background: #1890ff;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-search:hover {
+    background: #40a9ff;
+}
+
+.btn-sm {
+    padding: 4px 12px !important;
+    font-size: 13px !important;
+    height: 30px;
+}
+
+/* Tabs */
+.tabs-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab {
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #595959;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.tab:hover {
+    background: #f5f5f5;
+}
+
+.tab.active {
+    color: #1890ff;
+    font-weight: 500;
+}
+
+.tab .badge {
+    background: #f0f0f0;
+    color: #8c8c8c;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.tab .badge.highlight {
+    background: #1890ff;
+    color: #fff;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+
+/* Disabled search button */
+.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-outline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    color: #595959;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-outline:hover {
+    border-color: #ff4d4f;
+    color: #ff4d4f;
+}
+
+.btn-danger-outline {
+    border-color: #ff4d4f !important;
+    color: #ff4d4f !important;
+}
+
+.btn-danger-outline:hover {
+    background: #fff1f0 !important;
+    border-color: #ff7875 !important;
+    color: #ff7875 !important;
+}
+
+.btn-primary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #1890ff;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: #40a9ff;
+}
+
+.btn-success {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #52c41a;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-success:hover {
+    background: #73d13d;
+}
+
+.btn-refresh {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    background: #fff;
+    color: #595959;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+}
+
+.btn-refresh:hover {
+    border-color: #1890ff;
+    color: #1890ff;
+}
+
+.btn-refresh .spin {
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Table Container */
+.table-container {
+    flex: 1;
+    overflow: hidden;
+    padding: 0 16px 16px 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Task Info Block Layout */
+.task-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 0;
+}
+
+.task-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.task-title {
+    color: #000000;
+    font-weight: 500;
+    word-break: break-word;
+    white-space: normal;
+    cursor: pointer;
+}
+
+/* .task-title:hover {
+    text-decoration: underline;
+    color: #40a9ff;
+} */
+
+/* Project Cell */
+.project-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.project-name {
+    color: #262626;
+    word-break: break-word;
+    white-space: normal;
+}
+
+.project-code {
+    color: #000000;
+    font-weight: 500;
+}
+
+/* Task Code Link */
+.task-code-link {
+    color: #1890ff;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.task-code-link:hover {
+    text-decoration: underline;
+    color: #40a9ff;
+}
+
+.task-description {
+    color: #595959;
+    font-size: 13px;
+    word-break: break-word;
+    white-space: normal;
+}
+
+/* Date Text */
+.date-text {
+    color: #262626;
+    font-size: 14px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+/* Text Wrap Helper */
+.text-wrap {
+    word-break: break-word;
+    white-space: normal !important;
+}
+
+/* Date Cell */
+.date-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #8c8c8c;
+}
+
+/* Status Filter */
+.status-filter {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    font-size: 12px;
+    background: #fff;
+    cursor: pointer;
+    margin: 0 auto;
+    display: block;
+    max-width: 100px;
+}
+
+.status-filter:focus {
+    outline: none;
+    border-color: #1890ff;
+}
+
+/* Center filter content in Status & ReviewStatus columns */
+:host ::ng-deep .p-column-filter {
+    display: flex;
+    justify-content: center;
+}
+
+/* Approval Buttons */
+/* Status Cell - chứa badge + nút duyệt/từ chối */
+.status-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.table-footer-total {
+    font-weight: 600;
+    background-color: #f8f9fa !important;
+    padding: 10px 16px !important;
+    color: #495057;
+    border-top: 2px solid #dee2e6 !important;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+.table-footer-total .total-count {
+    color: #007ad9;
+    font-size: 1.1em;
+}
+
+.approval-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.approval-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+}
+
+.approval-btn.approve {
+    border: 1.5px solid #1890ff;
+    color: #1890ff;
+}
+
+.approval-btn.approve:hover {
+    background: #1890ff;
+    color: #fff;
+}
+
+.approval-btn.reject {
+    border: 1.5px solid #ff4d4f;
+    color: #ff4d4f;
+}
+
+.approval-btn.reject:hover {
+    background: #ff4d4f;
+    color: #fff;
+}
+
+/* Review Status Badges */
+.review-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.review-badge.pending {
+    background: #fffbe6;
+    color: #faad14;
+    border: 1px solid #ffe58f;
+}
+
+.review-badge.approved {
+    background: #f6ffed;
+    color: #52c41a;
+    border: 1px solid #b7eb8f;
+}
+
+.review-badge.rejected {
+    background: #fff2f0;
+    color: #ff4d4f;
+    border: 1px solid #ffccc7;
+}
+
+/* Empty State */
+.empty-message {
+    text-align: center;
+    padding: 0 !important;
+    height: calc(100vh - 350px);
+    vertical-align: middle;
+    background: transparent !important;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+    color: #ffffff;
+}
+
+.empty-icon {
+    font-size: 64px;
+    color: #d9d9d9;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 16px;
+    color: #595959;
+}
+
+/* PrimeNG Table Overrides */
+:host ::ng-deep .p-datatable {
+    font-size: 14px;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    background: #fafafa;
+    font-weight: 500;
+    color: #262626;
+    padding: 1px 5px;
+    border-color: #e8e8e8;
+    text-align: center;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    padding: 1px 5px;
+    border-color: #f0f0f0;
+    color: #595959;
+}
+
+
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr:hover {
+    background: #f5f5f5 !important;
+}
+
+:host ::ng-deep .p-datatable .p-column-filter-menu-button,
+:host ::ng-deep .p-datatable .p-column-filter-clear-button {
+    width: 28px;
+    height: 28px;
+}
+
+:host ::ng-deep .p-datatable .p-sortable-column .p-sortable-column-icon {
+    color: #8c8c8c;
+}
+
+:host ::ng-deep .p-datatable .p-column-resizer {
+    width: 8px;
+}
+
+:host ::ng-deep .p-inputtext {
+    padding: 4px 6px;
+    font-size: 12px;
+    min-width: 0;
+}
+
+/* Make column filters compact so date columns can shrink */
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-datatable-inline-filter {
+    justify-content: space-between !important;
+}
+
+/* Extra compact inputs ONLY for date columns */
+.col-date ::ng-deep .p-inputtext {
+    padding: 2px 2px;
+    text-align: center;
+    width: 100px;
+}
+
+:host ::ng-deep .p-inputtext {
+    width: 100% !important;
+}
+
+:host ::ng-deep .p-fluid {
+    width: 100% !important;
+}
+
+:host ::ng-deep .p-column-filter-menu-button,
+:host ::ng-deep .p-column-filter-clear-button {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+}
+
+/* Compact column for dates */
+.col-date {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    text-align: center !important;
+}
+
+.col-date .date-text {
+    font-size: 14px;
+}
+
+/* Hide filter menu icon for date columns to save space if needed - currently disabled to show icons */
+/* .col-date ::ng-deep .p-column-filter-menu-button {
+    display: none !important;
+} */
+
+.col-date ::ng-deep .p-column-filter-clear-button {
+    margin-left: 0 !important;
+}
+
+/* Date filter inputs: visible and centered */
+.col-date ::ng-deep .p-column-filter-element {
+    display: block;
+}
+
+:host ::ng-deep .col-date .p-calendar .p-inputtext,
+:host ::ng-deep .col-date p-calendar input {
+    text-align: center;
+}
+
+:host ::ng-deep .p-checkbox .p-checkbox-box {
+    width: 18px;
+    height: 18px;
+}
+
+/* Loading state */
+:host ::ng-deep .p-datatable-loading-overlay {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+:host ::ng-deep .table-container {
+    padding: 0px;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    .header-section {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .tabs-container {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .tab {
+        padding: 5px 8px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    .header-right {
+        margin-left: 0;
+        flex-wrap: wrap;
+    }
+
+    .search-bar {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 12px;
+    }
+
+    .btn-search {
+        display: flex !important;
+        width: 36px;
+        height: 32px;
+        flex-shrink: 0;
+    }
+
+    .btn-primary.btn-sm {
+        height: 36px;
+        justify-content: center;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 4px;
+    }
+
+    .action-buttons button,
+    .btn-primary,
+    .btn-success,
+    .btn-outline {
+        width: 100% !important;
+        justify-content: center;
+        padding: 8px 12px;
+        font-size: 13px;
+        height: 36px;
+    }
+
+    .table-container {
+        padding: 8px;
+    }
+}
+
+/* Row selected for copy */
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr.row-selected>td {
+    background: #e6f7ff !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr.row-selected {
+    outline: 1px solid #91d5ff;
+}
+
+/* Excel Import Modal 90% Height & Width */
+:host ::ng-deep .excel-import-modal-90 .modal-dialog {
+    max-width: 80vw;
+    /* Tăng chiều rộng */
+    height: 85vh;
+    display: flex;
+    align-items: center;
+    margin: 0vh auto;
+}
+
+:host ::ng-deep .excel-import-modal-90 .modal-content {
+    height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .excel-import-modal-90 .modal-body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    /* Remove padding to let component fill space */
+}
+
+:host ::ng-deep .excel-import-modal-90 .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0 !important;
+}
+
+:host ::ng-deep .excel-import-modal-90 #taskImportTable {
+    flex: 1;
+    height: 95% !important;
+    width: 100% !important;
+}
+/* MultiSelect Status Filter */
+.status-filter-multi ::ng-deep .p-multiselect {
+    background: #ffffff !important;
+    border: 1px solid #d9d9d9 !important;
+    border-radius: 4px !important;
+    height: 30px !important;
+    width: 100% !important;
+    max-width: 130px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.status-filter-multi ::ng-deep .p-multiselect-label {
+    padding: 2px 8px !important;
+    font-size: 12px !important;
+    line-height: normal !important;
+}
+
+.status-filter-multi ::ng-deep .p-multiselect-trigger {
+    width: 24px !important;
+}
+
+.status-filter-multi ::ng-deep .p-multiselect-panel .p-multiselect-items .p-multiselect-item {
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+}
+
+/* Standardizing MultiSelect with PrimeNG pInputText */
+.status-filter-multi ::ng-deep .p-multiselect {
+    height: 30px !important;
+    border: 1px solid #d9d9d9 !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    padding: 0 !important;
+    line-height: normal !important;
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: 130px !important;
+    margin: 0 auto !important;
+}
+
+.status-filter-multi ::ng-deep .p-multiselect-label {
+    padding: 0 8px !important;
+    line-height: 28px !important;
+    font-size: 12px !important;
+    color: #595959 !important;
+    display: flex !important;
+    align-items: center !important;
+    height: 100% !important;
+}
+
+.email-status-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+    padding-left: 12px;
+    border-left: 1px solid #f0f0f0;
+    height: 30px;
+}
+
+.email-toggle-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #595959;
+}
+
+/* Custom switch colors if needed to match theme */
+:host ::ng-deep .ant-switch-checked {
+    background-color: #52c41a !important; /* Green */
+}

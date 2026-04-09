@@ -8,13 +8,15 @@
 
     <ng-template #end>
         <div class="d-flex flex-nowrap align-items-center gap-2">
-            <div class="d-flex align-items-center gap-1">
+            <div class="d-flex align-items-center gap-1" (click)="toggleHighlightFilter()" style="cursor: pointer;"
+                [style.border]="isHighlightFilterActive ? '1px solid #1890ff' : 'none'" [style.border-radius]="'4px'"
+                [style.padding]="'2px'">
                 <div style="width: 20px; height: 20px; background-color:#efc6ed8c; border: 1px solid #ccc;"></div>
                 <span class="fs-12" style="white-space: nowrap;">Đăng ký bổ sung</span>
             </div>
             <button nz-button nzType="text" nzShape="circle"
                 (click)="ToggleSearchPanelNew($event); $event.stopPropagation()">
-                <nz-icon nzType="search" />
+              <nz-icon nzType="down" nzTheme="outline" />
             </button>
         </div>
     </ng-template>
@@ -220,8 +222,7 @@
                                     <nz-option [nzValue]="0" nzLabel="Chờ duyệt"></nz-option>
                                     <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
                                     <nz-option [nzValue]="2" nzLabel="Không đồng ý duyệt"></nz-option>
-                                    <nz-option [nzValue]="3" nzLabel="Chờ duyệt hủy đăng ký"></nz-option>
-                                    <nz-option [nzValue]="4" nzLabel="Đã duyệt hủy đăng ký"></nz-option>
+
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>

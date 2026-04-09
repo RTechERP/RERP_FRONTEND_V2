@@ -170,7 +170,7 @@
                     <nz-splitter-panel [nzMin]="'15%'">
                         <nz-splitter nzLayout="vertical" class="h-100">
                             <!-- Top: File List -->
-                            <nz-splitter-panel nzDefaultSize="50%" [nzMin]="'20%'">
+                            <nz-splitter-panel [nzSize]="isImageVisible ? '50%' : '100%'" [nzMin]="'20%'">
                                 <div class="grid-container h-100">
                                     <angular-slickgrid gridId="gridFile" [columns]="colDefFile"
                                         [options]="gridOptionsCommon" [dataset]="datasetFile"
@@ -180,12 +180,14 @@
                             </nz-splitter-panel>
 
                             <!-- Bottom: Image Preview -->
-                            <nz-splitter-panel [nzMin]="'20%'">
+                            <nz-splitter-panel [nzMin]="'20%'" *ngIf="isImageVisible">
                                 <div
-                                    class="image-container h-100 d-flex justify-content-center align-items-center bg-light">
+                                    class="position-relative image-container h-100 d-flex justify-content-center align-items-center bg-light">
+                                    <button nz-button nzType="text" nzSize="small" class="position-absolute border-0 text-danger" style="top: 5px; right: 5px; z-index: 10;" (click)="closeImage()">
+                                        <nz-icon nzType="close" nzTheme="outline" />
+                                    </button>
                                     <img *ngIf="imageUrl" [src]="imageUrl" alt="Error Image" class="img-fluid"
                                         style="max-height: 100%; max-width: 100%; object-fit: contain;" />
-                                    <span *ngIf="!imageUrl" class="text-muted">Không có ảnh</span>
                                 </div>
                             </nz-splitter-panel>
                         </nz-splitter>
@@ -377,7 +379,7 @@
                             </div>
                             <nz-splitter nzLayout="vertical" class="flex-grow-1" style="min-height: 0;">
                                 <!-- Top: Employee Grid -->
-                                <nz-splitter-panel nzDefaultSize="60%" [nzMin]="'20%'">
+                                <nz-splitter-panel [nzSize]="isImageEmployeeVisible ? '60%' : '100%'" [nzMin]="'20%'">
                                     <div class="grid-container h-100">
                                         <angular-slickgrid gridId="gridEmployee" [columns]="colDefEmployee"
                                             [options]="gridOptionsCommon" [dataset]="datasetEmployee"
@@ -387,13 +389,15 @@
                                 </nz-splitter-panel>
 
                                 <!-- Bottom: Image Preview -->
-                                <nz-splitter-panel [nzMin]="'20%'">
+                                <nz-splitter-panel [nzMin]="'20%'" *ngIf="isImageEmployeeVisible">
                                     <div
-                                        class="image-container h-100 d-flex justify-content-center align-items-center bg-light">
+                                        class="position-relative image-container h-100 d-flex justify-content-center align-items-center bg-light">
+                                        <button nz-button nzType="text" nzSize="small" class="position-absolute border-0 text-danger" style="top: 5px; right: 5px; z-index: 10;" (click)="closeEmployeeImage()">
+                                            <nz-icon nzType="close" nzTheme="outline" />
+                                        </button>
                                         <img *ngIf="imageUrlEmployee" [src]="imageUrlEmployee" alt="Error Image"
                                             class="img-fluid"
                                             style="max-height: 100%; max-width: 100%; object-fit: contain;" />
-                                        <span *ngIf="!imageUrlEmployee" class="text-muted">Không có ảnh</span>
                                     </div>
                                 </nz-splitter-panel>
                             </nz-splitter>

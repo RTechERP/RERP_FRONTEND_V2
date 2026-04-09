@@ -58,8 +58,7 @@
         <!-- Exams Table Section -->
         <div class="exams-table">
             <h6 class="font-weight-bold mb-2">Danh sách bài thi</h6>
-            <p-table [value]="exams" [(selection)]="selectedExams" dataKey="ID" rowGroupMode="subheader"
-                groupRowsBy="DepartmentName" [scrollable]="true" scrollHeight="400px"
+            <p-table [value]="exams" [(selection)]="selectedExams" dataKey="ID" [scrollable]="true" scrollHeight="400px"
                 styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped">
 
                 <ng-template pTemplate="header">
@@ -67,29 +66,25 @@
                         <th style="width: 3rem" class="text-center">
                             <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                         </th>
-                        <th pResizableColumn style="width: 150px">Mã bài thi</th>
+                        <th pResizableColumn style="width: 120px">Mã bài thi</th>
                         <th pResizableColumn>Tên bài thi</th>
-                        <th pResizableColumn style="width: 150px">Loại đề</th>
-                        <th pResizableColumn style="width: 100px" class="text-center">Thời gian</th>
-                        <th pResizableColumn style="width: 100px" class="text-center">Điểm đạt</th>
+                        <th pResizableColumn style="width: 200px">Phòng ban</th>
+                        <th pResizableColumn style="width: 120px">Loại đề</th>
+                        <th pResizableColumn style="width: 90px" class="text-center">Thời gian</th>
+                        <th pResizableColumn style="width: 90px" class="text-center">Điểm đạt</th>
                     </tr>
                     <tr>
                         <th></th>
-                        <th><p-columnFilter type="text" field="CodeExam" display="row"></p-columnFilter></th>
-                        <th><p-columnFilter type="text" field="NameExam" display="row"></p-columnFilter></th>
-                        <th><p-columnFilter type="text" field="ExamTypeText" display="row"></p-columnFilter></th>
-                        <th style="width: 100px" class="text-right"><p-columnFilter type="numeric" field="TestTime"
-                                display="row"></p-columnFilter></th>
-                        <th style="width: 100px" class="text-right"><p-columnFilter type="numeric" field="Goal"
-                                display="row"></p-columnFilter></th>
-                    </tr>
-                </ng-template>
-
-                <ng-template pTemplate="groupheader" let-exam let-rowIndex="rowIndex" let-expanded="expanded">
-                    <tr>
-                        <td colspan="7" class="bg-light text-primary font-weight-bold p-2">
-                            <span>Phòng ban: {{ exam.DepartmentName || 'Không xác định' }}</span>
-                        </td>
+                        <th><p-columnFilter type="text" field="CodeExam" display="row" filterOn="input"
+                                matchMode="contains"></p-columnFilter></th>
+                        <th><p-columnFilter type="text" field="NameExam" display="row" filterOn="input"
+                                matchMode="contains"></p-columnFilter></th>
+                        <th><p-columnFilter type="text" field="DepartmentName" display="row" filterOn="input"
+                                matchMode="contains"></p-columnFilter></th>
+                        <th><p-columnFilter type="text" field="ExamTypeText" display="row" filterOn="input"
+                                matchMode="contains"></p-columnFilter></th>
+                        <th></th>
+                        <th></th>
                     </tr>
                 </ng-template>
 
@@ -100,6 +95,7 @@
                         </td>
                         <td>{{ exam.CodeExam }}</td>
                         <td>{{ exam.NameExam }}</td>
+                        <td>{{ exam.DepartmentName || 'Không xác định' }}</td>
                         <td>{{ exam.ExamTypeText }}</td>
                         <td class="text-center">{{ exam.TestTime }}</td>
                         <td class="text-center">{{ exam.Goal }}</td>

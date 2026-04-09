@@ -3,122 +3,73 @@
             background-position: center; 
             background-repeat: no-repeat;"> -->
 <nav class="navbar sticky-top p-0" style="background-color: #23458a">
-  <div class="container-fluid">
-    <a class="navbar-brand p-0" href="#" style="width: 6%" routerLink="/home">
-      <img
-        src="assets/images/logo-RTC-2023-1200-red-white.png"
-        alt=""
-        width="100%"
-        class="d-inline-block align-text-top"
-      />
-    </a>
-    <span
-      *ngIf="hasNewVersion"
-      (click)="showUpdateModal()"
-      class="text-white fw-bold cursor-pointer blink-text"
-      style="font-size: 14px; margin: 0 10px; vertical-align: right"
-    >
-      <i nz-icon nzType="info-circle" nzTheme="outline"></i> Có phiên bản cập
-      nhật mới!
-      <span
-        style="
+    <div class="container-fluid">
+        <a class="navbar-brand p-0" href="#" style="width: 6%" routerLink="/home">
+            <img src="assets/images/logo-RTC-2023-1200-red-white.png" alt="" width="100%"
+                class="d-inline-block align-text-top" />
+        </a>
+        <span *ngIf="hasNewVersion" (click)="showUpdateModal()" class="text-white fw-bold cursor-pointer blink-text"
+            style="font-size: 14px; margin: 0 10px; vertical-align: right">
+            <i nz-icon nzType="info-circle" nzTheme="outline"></i> Có phiên bản cập
+            nhật mới!
+            <span style="
           text-decoration: underline;
           margin-left: 5px;
           font-weight: normal;
           font-size: 12px;
-        "
-        >(Xem chi tiết)</span
-      >
-    </span>
-    <div class="">
-      <button
-        nz-button
-        nz-dropdown
-        [nzDropdownMenu]="appmenu"
-        nzPlacement="bottomRight"
-        nzType="text"
-        [(nzVisible)]="isAppMenuVisible"
-        [nzClickHide]="false"
-        style="border: none !important; background-color: transparent"
-        nzTrigger="click"
-      >
-        <img src="assets/icon/app_store.svg" />
-      </button>
+        ">(Xem chi tiết)</span>
+        </span>
+        <div class="">
+            <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
+                [(nzVisible)]="isAppMenuVisible" [nzClickHide]="false"
+                style="border: none !important; background-color: transparent" nzTrigger="click">
+                <img src="assets/icon/app_store.svg" />
+            </button>
 
-      <nz-dropdown-menu #appmenu="nzDropdownMenu">
-        <div class="app-launcher">
-          <div class="app-launcher-inner">
-            @for (m of menus; track $index) {
-              <a
-                [href]="m.router"
-                (click)="openModule($event, m.router, m.key)"
-                *ngIf="m.isPermission"
-                [class.active]="m.key === selectedModuleKey"
-              >
-                <img [src]="m.icon" />
-                <span class="mt-1">{{ m.title }}</span>
-              </a>
-            }
-          </div>
-          <div class="app-launcher-footer">
-            <button
-              nz-button
-              nzType="primary"
-              (click)="isAppMenuVisible = false"
-              style="
+            <nz-dropdown-menu #appmenu="nzDropdownMenu">
+                <div class="app-launcher">
+                    <div class="app-launcher-inner">
+                        @for (m of menus; track $index) {
+                        <a [href]="m.router" (click)="openModule($event, m.router, m.key)" *ngIf="m.isPermission"
+                            [class.active]="m.key === selectedModuleKey">
+                            <img [src]="m.icon" />
+                            <span class="mt-1">{{ m.title }}</span>
+                        </a>
+                        }
+                    </div>
+                    <div class="app-launcher-footer">
+                        <button nz-button nzType="primary" (click)="isAppMenuVisible = false" style="
                 font-size: 12px;
                 height: 30px;
                 border-radius: 4px;
                 padding: 0 20px;
-              "
-            >
-              OK
-            </button>
-          </div>
-        </div>
-      </nz-dropdown-menu>
+              ">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            </nz-dropdown-menu>
 
-      <app-app-notifycation-dropdown
-        [items]="notifItems"
-        (itemClick)="onPick($event)"
-      >
-        <button
-          style="
+            <app-app-notifycation-dropdown [items]="notifItems" (itemClick)="onPick($event)">
+                <button style="
             border: none !important;
             background-color: transparent;
             margin: 0 5px;
-          "
-          nz-button
-          nzType="text"
-          class="fs-7"
-          trigger
-        >
-          <nz-badge
-            [nzOverflowCount]="9"
-            [nzCount]="notifItems.length"
-            class="fs-7"
-          >
-            <img
-              src="assets/icon/notification_home.svg"
-              class="bell-icon"
-              [ngClass]="{ 'has-notif': notifItems.length > 0 }"
-            />
-          </nz-badge>
-        </button>
-      </app-app-notifycation-dropdown>
+          " nz-button nzType="text" class="fs-7" trigger>
+                    <nz-badge [nzOverflowCount]="9" [nzCount]="notifItems.length" class="fs-7">
+                        <img src="assets/icon/notification_home.svg" class="bell-icon"
+                            [ngClass]="{ 'has-notif': notifItems.length > 0 }" />
+                    </nz-badge>
+                </button>
+            </app-app-notifycation-dropdown>
 
-      <app-app-user-dropdown>
-        <button
-          nz-button
-          nzType="text"
-          trigger
-          style="border: none !important; background-color: transparent"
-        >
-          <img src="assets/icon/user.svg" />
-        </button>
-      </app-app-user-dropdown>
+            <app-app-user-dropdown>
+                <button nz-button nzType="text" trigger style="border: none !important; background-color: transparent">
+                    <img src="assets/icon/user.svg" />
+                </button>
+            </app-app-user-dropdown>
+        </div>
     </div>
-  </div>
 </nav>
 <!-- <div *ngIf="showLixiRain" class="lixi-container">
     <div *ngFor="let lixi of lixis" class="lixi" [style.left.%]="lixi.left"
@@ -129,582 +80,459 @@
 </div> -->
 <!-- <div class="row m-0" style="background-color: rgb(238, 220, 176);"> -->
 <div class="row m-0" style="background-color: rgb(230, 230, 230)">
-  <div class="col-xl-3 col-md-6 col-sm-12 col-12 p-2 fixed-col">
-    <div class="card">
-      <div class="card-header">
-        <h5 class="card-title m-0 text-uppercase fw-bold py-1">
-          truy cập nhanh
-        </h5>
-      </div>
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 p-2 fixed-col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">
+                    truy cập nhanh
+                </h5>
+            </div>
 
-      <div class="card-body p-0">
-        <ul class="list-group list-group-flush">
-          @for (item of menuQickAcesss.children; track $index) {
-            <li
-              class="list-group-item border-0 py-1"
-              *ngIf="
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @for (item of menuQickAcesss.children; track $index) {
+                    <li class="list-group-item border-0 py-1" *ngIf="
                 item.key == 'M79' ||
                 item.key == 'M136' ||
                 item.key == 'M137' ||
                 item.key == 'M139'
-              "
-            >
-              <a
-                [attr.href]="item.router ? item.router : null"
-                (click)="handleClickLink($event, item.router, item.title)"
-              >
-                <img [src]="item.icon" width="5%" />
-                <span> {{ item.title }}</span>
-              </a>
-              <ul class="list-group">
-                @for (c of item.children; track $index) {
-                  <li
-                    class="list-group-item border-0 py-1"
-                    [ngClass]="{
+              ">
+                        <a [attr.href]="item.router ? item.router : null"
+                            (click)="handleClickLink($event, item.router, item.title)">
+                            <img [src]="item.icon" width="5%" />
+                            <span> {{ item.title }}</span>
+                        </a>
+                        <ul class="list-group">
+                            @for (c of item.children; track $index) {
+                            <li class="list-group-item border-0 py-1" [ngClass]="{
                       'border-bottom': $index < item.children.length - 1,
                       '': $index == item.children.length - 1,
-                    }"
-                  >
-                    <a
-                      [attr.href]="c.router ? c.router : null"
-                      (click)="handleClickLink($event, c.router, c.title)"
-                    >
-                      <img [src]="c.icon" width="5%" />
-                      <span> {{ c.title }}</span>
-                    </a>
-                  </li>
-                }
-              </ul>
-            </li>
-          }
-        </ul>
-      </div>
-    </div>
+                    }">
+                                <a [attr.href]="c.router ? c.router : null"
+                                    (click)="handleClickLink($event, c.router, c.title)">
+                                    <img [src]="c.icon" width="5%" />
+                                    <span> {{ c.title }}</span>
+                                </a>
+                            </li>
+                            }
+                        </ul>
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
 
-    <div class="card">
-      <div class="card-header">
-        <h5 class="card-title m-0 text-uppercase fw-bold py-1">chức năng</h5>
-      </div>
-      <div class="card-body p-2">
-        <div class="gutter-example">
-          <div nz-row [nzGutter]="[16, 16]">
-            @for (m of menus; track $index) {
-              <a
-                nz-col
-                class="gutter-row"
-                [nzXs]="8"
-                [nzMd]="6"
-                [nzLg]="6"
-                *ngIf="m.isPermission"
-                [href]="m.router"
-                (click)="openModule($event, m.router, m.key)"
-              >
-                <div
-                  class="grid-config text-center py-1 shadow"
-                  style="
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">chức năng</h5>
+            </div>
+            <div class="card-body p-2">
+                <div class="gutter-example">
+                    <div nz-row [nzGutter]="[16, 16]">
+                        @for (m of menus; track $index) {
+                        <a nz-col class="gutter-row" [nzXs]="8" [nzMd]="6" [nzLg]="6" *ngIf="m.isPermission"
+                            [href]="m.router" (click)="openModule($event, m.router, m.key)">
+                            <div class="grid-config text-center py-1 shadow" style="
                     display: flex;
                     flex-flow: column;
                     justify-content: center;
                     align-items: center;
                     height: 103px;
-                  "
-                >
-                  <img
-                    [style.width]="'70%'"
-                    [src]="m.icon?.replace('24', '64')"
-                    alt=""
-                  />
-                  <p
-                    class="m-0 mt-2 fw-bold text-dark"
-                    style="line-height: normal"
-                  >
-                    {{ m.title }}
-                  </p>
+                  ">
+                                <img [style.width]="'70%'" [src]="m.icon?.replace('24', '64')" alt="" />
+                                <p class="m-0 mt-2 fw-bold text-dark" style="line-height: normal">
+                                    {{ m.title }}
+                                </p>
+                            </div>
+                        </a>
+                        }
+                    </div>
                 </div>
-              </a>
-            }
-          </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <div class="col-xl-3 col-md-6 col-sm-12 col-12 p-2 fixed-col">
-    <!-- <div class="card"
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 p-2 fixed-col">
+        <!-- <div class="card"
             style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('assets/icon/Gemini_Generated_Image_ec1n9dec1n9dec1n.png'); background-size: auto 100%; background-repeat: repeat-x; background-position: center;">
             <div class="card-header">
                 <h5 class="card-title m-0 text-uppercase fw-bold py-1">duyệt cá nhân</h5>
             </div> -->
 
-    <div class="card" *ngIf="!hasMenuApprovePermission">
-      <div class="card-header">
-        <h5 class="card-title m-0 text-uppercase fw-bold py-1">
-          duyệt cá nhân
-        </h5>
-      </div>
+        <div class="card" *ngIf="!hasMenuApprovePermission">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">
+                    duyệt cá nhân
+                </h5>
+            </div>
 
-      <div class="card-body p-0">
-        <ul class="list-group list-group-flush">
-          @for (item of menuApproves.children; track $index) {
-            <li
-              class="list-group-item border-0 border-bottom py-1"
-              *ngIf="item.isPermission"
-            >
-              <a
-                class="text-dark"
-                [attr.href]="item.router ? item.router : null"
-                *ngIf="(item.router || '') != '#' && (item.router || '') != ''"
-                (click)="
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @for (item of menuApproves.children; track $index) {
+                    <li class="list-group-item border-0 border-bottom py-1" *ngIf="item.isPermission">
+                        <a class="text-dark" [attr.href]="item.router ? item.router : null"
+                            *ngIf="(item.router || '') != '#' && (item.router || '') != ''" (click)="
                   handleClickLink($event, item.router, item.Title, item.data)
-                "
-              >
-                <img [src]="item.icon" />
-                <span>{{ item.title }}</span>
-              </a>
+                ">
+                            <img [src]="item.icon" />
+                            <span>{{ item.title }}</span>
+                        </a>
 
-              <a
-                class="text-dark"
-                *ngIf="(item.router || '') == '#' || (item.router || '') == ''"
-              >
-                <img [src]="item.icon" />
-                <span> {{ item.title }}</span>
-              </a>
-              <ul class="list-group">
-                @for (c of item.children; track $index) {
-                  <li
-                    class="list-group-item border-0 py-1"
-                    *ngIf="item.isPermission"
-                    [ngClass]="{
+                        <a class="text-dark" *ngIf="(item.router || '') == '#' || (item.router || '') == ''">
+                            <img [src]="item.icon" />
+                            <span> {{ item.title }}</span>
+                        </a>
+                        <ul class="list-group">
+                            @for (c of item.children; track $index) {
+                            <li class="list-group-item border-0 py-1" *ngIf="item.isPermission" [ngClass]="{
                       'border-bottom': $index < item.children.length - 1,
                       '': $index == item.children.length - 1,
-                    }"
-                  >
-                    <a
-                      [attr.href]="c.router ? c.router : null"
-                      (click)="
+                    }">
+                                <a [attr.href]="c.router ? c.router : null" (click)="
                         handleClickLink($event, c.router, c.title, c.data)
-                      "
-                    >
-                      <img [src]="c.icon" />
-                      <span> {{ c.title }}</span>
-                    </a>
-                  </li>
-                }
-              </ul>
-            </li>
-          }
-        </ul>
-      </div>
-    </div>
+                      ">
+                                    <img [src]="c.icon" />
+                                    <span> {{ c.title }}</span>
+                                </a>
+                            </li>
+                            }
+                        </ul>
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
 
-    <div class="card">
-      <div
-        class="card-header d-flex justify-content-between align-items-center"
-      >
-        <h5 class="card-title m-0 text-uppercase fw-bold py-1">Thông báo</h5>
-        <a
-          routerLink="/newsletter-view-all"
-          class="small text-primary fw-bold"
-          style="text-decoration: none"
-        >
-          Xem tất cả <i nz-icon nzType="right" nzTheme="outline"></i>
-        </a>
-      </div>
-      <div class="card-body p-0">
-        <div
-          *ngIf="
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">Thông báo</h5>
+                <a routerLink="/newsletter-view-all" class="small text-primary fw-bold" style="text-decoration: none">
+                    Xem tất cả <i nz-icon nzType="right" nzTheme="outline"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div *ngIf="
             quantityApprove?.Count > 0 ||
             quantityBorrow > 0 ||
             quantityBorrowExpried > 0 ||
             quantityBorrowSale > 0 ||
             quantityBorrowExpriedSale > 0
-          "
-        >
-          <div
-            class="px-3 py-2 bg-light"
-            style="
+          ">
+                    <div class="px-3 py-2 bg-light" style="
               background-color: #fff3cd !important;
               border-left: 4px solid #ffc107;
-            "
-          >
-            <small class="text-muted fw-bold">
-              <div *hasPermission="'N1,N32,N85'">
-                <ng-container *ngIf="quantityApprove?.Count > 0">
-                  Bạn đang có
-                  <span class="text-danger fw-bold">{{
-                    quantityApprove?.Count || 0
-                  }}</span>
-                  đơn đăng kí công chưa duyệt!
-                  <span
-                    class="text-primary cursor-pointer fw-bold"
-                    style="
+            ">
+                        <small class="text-muted fw-bold">
+                            <div *hasPermission="'N1,N32,N85'">
+                                <ng-container *ngIf="quantityApprove?.Count > 0">
+                                    Bạn đang có
+                                    <span class="text-danger fw-bold">{{
+                                        quantityApprove?.Count || 0
+                                        }}</span>
+                                    đơn đăng kí công chưa duyệt!
+                                    <span class="text-primary cursor-pointer fw-bold" style="
                       color: #007bff !important;
                       text-decoration: underline;
                       cursor: pointer;
                       font-weight: 600;
-                    "
-                    (click)="newTabApprove()"
-                    >Bấm vào đây để duyệt</span
-                  >
-                </ng-container>
-              </div>
-              <ng-container
-                *ngIf="
+                    " (click)="newTabApprove()">Bấm vào đây để duyệt</span>
+                                </ng-container>
+                            </div>
+                            <ng-container *ngIf="
                   quantityApprove?.Count > 0 &&
                   (quantityBorrow > 0 || quantityBorrowExpried > 0)
-                "
-              >
-                <br />
-              </ng-container>
-              <ng-container
-                *ngIf="quantityBorrow > 0 || quantityBorrowExpried > 0"
-              >
-                Bạn đang có
-                <ng-container *ngIf="quantityBorrow > 0">
-                  <span class="text-danger fw-bold">{{ quantityBorrow }}</span>
-                  vật tư sắp hết hạn
-                </ng-container>
-                <ng-container
-                  *ngIf="quantityBorrow > 0 && quantityBorrowExpried > 0"
-                >
-                  và
-                </ng-container>
-                <ng-container *ngIf="quantityBorrowExpried > 0">
-                  <span class="text-danger fw-bold">{{
-                    quantityBorrowExpried
-                  }}</span>
-                  vật tư quá hạn
-                </ng-container>
-                kho demo!
-                <span
-                  class="text-primary cursor-pointer fw-bold"
-                  style="
+                ">
+                                <br />
+                            </ng-container>
+                            <ng-container *ngIf="quantityBorrow > 0 || quantityBorrowExpried > 0">
+                                Bạn đang có
+                                <ng-container *ngIf="quantityBorrow > 0">
+                                    <span class="text-danger fw-bold">{{ quantityBorrow }}</span>
+                                    vật tư sắp hết hạn
+                                </ng-container>
+                                <ng-container *ngIf="quantityBorrow > 0 && quantityBorrowExpried > 0">
+                                    và
+                                </ng-container>
+                                <ng-container *ngIf="quantityBorrowExpried > 0">
+                                    <span class="text-danger fw-bold">{{
+                                        quantityBorrowExpried
+                                        }}</span>
+                                    vật tư quá hạn
+                                </ng-container>
+                                kho demo!
+                                <span class="text-primary cursor-pointer fw-bold" style="
                     color: #007bff !important;
                     text-decoration: underline;
                     cursor: pointer;
                     font-weight: 600;
-                  "
-                  (click)="onPickHistoryProduct()"
-                  >Tới lịch sử mượn kho demo</span
-                >
-                <br />
-              </ng-container>
-              <ng-container
-                *ngIf="quantityBorrowSale > 0 || quantityBorrowExpriedSale > 0"
-              >
-                Bạn đang có
-                <ng-container *ngIf="quantityBorrowSale > 0">
-                  <span class="text-danger fw-bold">{{
-                    quantityBorrowSale
-                  }}</span>
-                  vật tư sắp hết hạn
-                </ng-container>
-                <ng-container
-                  *ngIf="
+                  " (click)="onPickHistoryProduct()">Tới lịch sử mượn kho demo</span>
+                                <br />
+                            </ng-container>
+                            <ng-container *ngIf="quantityBorrowSale > 0 || quantityBorrowExpriedSale > 0">
+                                Bạn đang có
+                                <ng-container *ngIf="quantityBorrowSale > 0">
+                                    <span class="text-danger fw-bold">{{
+                                        quantityBorrowSale
+                                        }}</span>
+                                    vật tư sắp hết hạn
+                                </ng-container>
+                                <ng-container *ngIf="
                     quantityBorrowSale > 0 && quantityBorrowExpriedSale > 0
-                  "
-                >
-                  và
-                </ng-container>
-                <ng-container *ngIf="quantityBorrowExpriedSale > 0">
-                  <span class="text-danger fw-bold">{{
-                    quantityBorrowExpriedSale
-                  }}</span>
-                  vật tư quá hạn
-                </ng-container>
-                kho sale!
-                <span
-                  class="text-primary cursor-pointer fw-bold"
-                  style="
+                  ">
+                                    và
+                                </ng-container>
+                                <ng-container *ngIf="quantityBorrowExpriedSale > 0">
+                                    <span class="text-danger fw-bold">{{
+                                        quantityBorrowExpriedSale
+                                        }}</span>
+                                    vật tư quá hạn
+                                </ng-container>
+                                kho sale!
+                                <span class="text-primary cursor-pointer fw-bold" style="
                     color: #007bff !important;
                     text-decoration: underline;
                     cursor: pointer;
                     font-weight: 600;
-                  "
-                  (click)="onPickHistoryProductSale()"
-                  >Tới lịch sử mượn kho sale</span
-                >
-                <br />
-              </ng-container>
-            </small>
-          </div>
-        </div>
-
-        <ul class="list-group list-group-flush">
-          @for (item of newsletters; track item.ID) {
-            <li class="list-group-item py-3">
-              <div class="d-flex w-100 gap-3 align-items-center">
-                <!-- <img [src]="getNewsletterImageUrl(item)" alt="Newsletter thumb" -->
-                <img
-                  src="assets/icon/thongbao.jpg"
-                  alt="Newsletter thumb"
-                  class="flex-shrink-0 rounded shadow-sm"
-                  style="
-                    width: 60px;
-                    height: 60px;
-                    object-fit: cover;
-                    border: 1px solid #eee;
-                  "
-                />
-                <div class="flex-grow-1 overflow-hidden">
-                  <div
-                    class="d-flex w-100 justify-content-between align-items-start mb-1"
-                  >
-                    <h6
-                      class="mb-0 fw-bold text-truncate pt-2"
-                      [title]="item.Title"
-                      style="max-width: calc(100% - 90px)"
-                    >
-                      {{ item.Title }}
-                    </h6>
-                    <small
-                      class="text-muted flex-shrink-0"
-                      style="font-size: 11px"
-                    >
-                      {{ item.CreatedDate | date: "dd/MM/yyyy" }}
-                    </small>
-                  </div>
-                  <div
-                    class="text-primary cursor-pointer fw-bold"
-                    style="
-                      font-size: 12px;
-                      color: #007bff !important;
-                      text-decoration: underline;
-                      cursor: pointer;
-                      font-weight: 600;
-                    "
-                    (click)="openNewsletterDetail(item.ID)"
-                  >
-                    Xem chi tiết
-                  </div>
+                  " (click)="onPickHistoryProductSale()">Tới lịch sử mượn kho sale</span>
+                                <br />
+                            </ng-container>
+                        </small>
+                    </div>
                 </div>
-              </div>
-            </li>
-          }
 
-          @if (newsletters.length === 0) {
-            <li class="list-group-item text-center text-muted py-4">
-              <small>Chưa có thông báo mới</small>
-            </li>
-          }
-        </ul>
-      </div>
+                <ul class="list-group list-group-flush">
+                    @for (item of newsletters; track item.ID) {
+                    <li class="list-group-item py-2">
+                        <!-- Hàng trên: Ảnh và Tiêu đề -->
+                        <div class="d-flex w-100 gap-2 align-items-center mb-1">
+                            <div class="flex-shrink-0">
+                                <img src="assets/icon/thongbao.jpg" alt="Newsletter thumb" class="rounded shadow-sm"
+                                    style="
+                      width: 50px;
+                      height: 50px;
+                      object-fit: cover;
+                      border: 1px solid #eee;
+                    " />
+                            </div>
+                            <div class="flex-grow-1 fw-bold" [title]="item.Title" style="
+                    font-size: 12px;
+                    line-height: 1.4;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    line-clamp: 2;
+                    overflow: hidden;
+                    word-break: break-word;
+                  ">
+                                {{ item.Title }}
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <!-- Hàng dưới: Ngày (dưới ảnh) và Xem chi tiết (bên phải) -->
+                            <div class="text-muted d-flex justify-content-center flex-shrink-0"
+                                style="width: 50px; font-size: 10px; white-space: nowrap;">
+                                {{ item.CreatedDate | date: "dd/MM/yyyy" }}
+                            </div>
+                            <div class="text-primary cursor-pointer fw-bold" style="
+                    font-size: 11px;
+                    color: #007bff;
+                    text-decoration: underline;
+                    cursor: pointer;
+                    font-weight: 600;
+                  " (click)="openNewsletterDetail(item.ID)">
+                                Xem chi tiết
+                            </div>
+                        </div>
+                    </li>
+                    }
+
+                    @if (newsletters.length === 0) {
+                    <li class="list-group-item text-center text-muted py-4">
+                        <small>Chưa có thông báo mới</small>
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="col-xl-3 col-md-6 col-sm-12 col-12 p-2 fixed-col">
-    <div class="card">
-      <div class="card-header">
-        <h5 class="card-title m-0 text-uppercase fw-bold py-1">Cá nhân</h5>
-      </div>
-      <div class="card-body p-0" style="height: 80vh; overflow: auto">
-        <nz-tabset nzCentered>
-          @for (item of menuPersons; track $index) {
-            <nz-tab [nzTitle]="item.title">
-              <ul class="list-group">
-                @for (c1 of item.children; track $index) {
-                  <li
-                    class="list-group-item border-0 border-bottom py-1"
-                    *ngIf="c1.isPermission"
-                  >
-                    <a
-                      class="text-dark"
-                      [attr.href]="c1.router ? c1.router : null"
-                      *ngIf="
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 p-2 fixed-col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">Cá nhân</h5>
+            </div>
+            <div class="card-body p-0" style="height: 80vh; overflow: auto">
+                <nz-tabset nzCentered>
+                    @for (item of menuPersons; track $index) {
+                    <nz-tab [nzTitle]="item.title">
+                        <ul class="list-group">
+                            @for (c1 of item.children; track $index) {
+                            <li class="list-group-item border-0 border-bottom py-1" *ngIf="c1.isPermission">
+                                <a class="text-dark" [attr.href]="c1.router ? c1.router : null" *ngIf="
                         (c1.router || '') != '#' && (c1.router || '') != ''
-                      "
-                      (click)="
+                      " (click)="
                         handleClickLink($event, c1.router, c1.title, c1.data)
-                      "
-                    >
-                      <img [src]="c1.icon" />
-                      <span> {{ c1.title }}</span>
-                    </a>
+                      ">
+                                    <img [src]="c1.icon" />
+                                    <span> {{ c1.title }}</span>
+                                </a>
 
-                    <a
-                      class="text-dark"
-                      *ngIf="
+                                <a class="text-dark" *ngIf="
                         (c1.router || '') == '#' || (c1.router || '') == ''
-                      "
-                    >
-                      <img [src]="c1.icon" />
-                      <span> {{ c1.title }}</span>
-                    </a>
-                    <ul class="list-group">
-                      @for (c2 of c1.children; track $index) {
-                        <li
-                          class="list-group-item border-0 py-1"
-                          *ngIf="c2.isPermission"
-                          [ngClass]="{
+                      ">
+                                    <img [src]="c1.icon" />
+                                    <span> {{ c1.title }}</span>
+                                </a>
+                                <ul class="list-group">
+                                    @for (c2 of c1.children; track $index) {
+                                    <li class="list-group-item border-0 py-1" *ngIf="c2.isPermission" [ngClass]="{
                             'border-bottom': $index < c1.children.length - 1,
                             '': $index == c1.children.length - 1,
-                          }"
-                        >
-                          <a
-                            [attr.href]="c2.router ? c2.router : null"
-                            (click)="
+                          }">
+                                        <a [attr.href]="c2.router ? c2.router : null" (click)="
                               handleClickLink(
                                 $event,
                                 c2.router,
                                 c2.title,
                                 c2.data
                               )
-                            "
-                          >
-                            <img [src]="c2.icon" />
-                            <span> {{ c2.title }}</span>
-                          </a>
-                        </li>
-                      }
-                    </ul>
-                  </li>
-                }
-              </ul>
-            </nz-tab>
-          }
-        </nz-tabset>
-      </div>
-    </div>
+                            ">
+                                            <img [src]="c2.icon" />
+                                            <span> {{ c2.title }}</span>
+                                        </a>
+                                    </li>
+                                    }
+                                </ul>
+                            </li>
+                            }
+                        </ul>
+                    </nz-tab>
+                    }
+                </nz-tabset>
+            </div>
+        </div>
 
-    <div class="card">
-      <div class="card-header">
-        <h5 class="card-title m-0 text-uppercase fw-bold py-1">
-          Kế hoạch tuần
-        </h5>
-      </div>
-      <div class="card-body p-0">
-        <ul class="list-group list-group-flush">
-          @for (item of menuWeekplans.children; track $index) {
-            <li class="list-group-item border-0 py-1">
-              <a
-                [href]="item.router == '' ? '#' : item.router"
-                (click)="
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">
+                    Kế hoạch tuần
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @for (item of menuWeekplans.children; track $index) {
+                    <li class="list-group-item border-0 py-1">
+                        <a [href]="item.router == '' ? '#' : item.router" (click)="
                   handleClickLink($event, item.router, item.Title, item.data)
-                "
-              >
-                <img [src]="item.icon" />
-                <span> {{ item.title }}</span>
-              </a>
-            </li>
-          }
-        </ul>
-      </div>
+                ">
+                            <img [src]="item.icon" style="width: 20px; height: 20px;" />
+                            <span> {{ item.title }}</span>
+                        </a>
+                    </li>
+                    }
+                </ul>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="col-xl-3 col-md-6 col-sm-12 col-12 p-2 fixed-col">
-    <div class="card">
-      <!-- style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)),
+    <div class="col-xl-3 col-md-6 col-sm-12 col-12 p-2 fixed-col">
+        <div class="card">
+            <!-- style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)),
             url('assets/icon/1212121.jpg');
             background-size: auto 100%;
             background-repeat: repeat-x;
             background-position: center;" -->
-      <div class="card-header">
-        <nz-tabset nzCentered [(nzSelectedIndex)]="activeTab">
-          <nz-tab [nzTitle]="titleTemplateOnleave"></nz-tab>
-          <nz-tab [nzTitle]="titleTemplateWFH"></nz-tab>
-        </nz-tabset>
-        <ng-template class="panel-title" #titleTemplateOnleave>
-          NGHỈ PHÉP
-          {{ totalEmployeeOnleave == 0 ? "" : `(${totalEmployeeOnleave})` }} -
-          {{ today | date: "dd/MM/yyyy" }}
-        </ng-template>
-        <ng-template class="panel-title" #titleTemplateWFH
-          >WFH {{ totalEmployeeWfh == 0 ? "" : `(${totalEmployeeWfh})` }} -
-          {{ today | date: "dd/MM/yyyy" }}
-        </ng-template>
-      </div>
+            <div class="card-header">
+                <nz-tabset nzCentered [(nzSelectedIndex)]="activeTab">
+                    <nz-tab [nzTitle]="titleTemplateOnleave"></nz-tab>
+                    <nz-tab [nzTitle]="titleTemplateWFH"></nz-tab>
+                </nz-tabset>
+                <ng-template class="panel-title" #titleTemplateOnleave>
+                    NGHỈ PHÉP
+                    {{ totalEmployeeOnleave == 0 ? "" : `(${totalEmployeeOnleave})` }} -
+                    {{ today | date: "dd/MM/yyyy" }}
+                </ng-template>
+                <ng-template class="panel-title" #titleTemplateWFH>WFH {{ totalEmployeeWfh == 0 ? "" :
+                    `(${totalEmployeeWfh})`
+                    }} -
+                    {{ today | date: "dd/MM/yyyy" }}
+                </ng-template>
+            </div>
 
-      <div class="card-body p-0">
-        <ng-container [ngSwitch]="activeTab">
-          <ng-container *ngSwitchCase="0">
-            <ul class="list-group list-group-flush">
-              @for (item of employeeOnleaves; track $index) {
-                <li class="list-group-item border-0 border-bottom py-1">
-                  <details open>
-                    <summary class="fw-bold" style="font-size: 12px">
-                      {{ item.DepartmentName }} ({{ item.Employees.length }})
-                    </summary>
-                    <ul class="list-group">
-                      @for (e of item.Employees; track $index) {
-                        <li
-                          class="list-group-item border-0 py-1"
-                          style="font-size: 12px"
-                        >
-                          <span
-                            >{{ $index + 1 }}.{{ e.EmployeeLeave
-                            }}{{ e.TimeOnLeaveText }}</span
-                          >
-                        </li>
-                      }
-                    </ul>
-                  </details>
-                </li>
-              }
-            </ul>
-          </ng-container>
+            <div class="card-body p-0">
+                <ng-container [ngSwitch]="activeTab">
+                    <ng-container *ngSwitchCase="0">
+                        <ul class="list-group list-group-flush">
+                            @for (item of employeeOnleaves; track $index) {
+                            <li class="list-group-item border-0 border-bottom py-1">
+                                <details open>
+                                    <summary class="fw-bold" style="font-size: 12px">
+                                        {{ item.DepartmentName }} ({{ item.Employees.length }})
+                                    </summary>
+                                    <ul class="list-group">
+                                        @for (e of item.Employees; track $index) {
+                                        <li class="list-group-item border-0 py-1" style="font-size: 12px">
+                                            <span>{{ $index + 1 }}.{{ e.EmployeeLeave
+                                                }}{{ e.TimeOnLeaveText }}</span>
+                                        </li>
+                                        }
+                                    </ul>
+                                </details>
+                            </li>
+                            }
+                        </ul>
+                    </ng-container>
 
-          <ng-container *ngSwitchCase="1">
-            <ul class="list-group list-group-flush">
-              @for (item of employeeWfhs; track $index) {
-                <li class="list-group-item border-0 border-bottom py-1">
-                  <details open>
-                    <summary class="fw-bold">
-                      {{ item.DepartmentName }} ({{ item.Employees.length }})
-                    </summary>
-                    <ul class="list-group">
-                      @for (e of item.Employees; track $index) {
-                        <li class="list-group-item border-0 py-1">
-                          <span
-                            >{{ $index + 1 }}.{{ e.EmployeeName }}
-                            {{ e.TimeWFHText }}{{ e.IsApprovedBGDText }}</span
-                          >
-                        </li>
-                      }
-                    </ul>
-                  </details>
-                </li>
-              }
-            </ul>
-          </ng-container>
-        </ng-container>
-      </div>
-    </div>
-    <!-- <div class="card" style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('assets/icon/—Pngtree—in spring peach blossoms are_5618880.png');
+                    <ng-container *ngSwitchCase="1">
+                        <ul class="list-group list-group-flush">
+                            @for (item of employeeWfhs; track $index) {
+                            <li class="list-group-item border-0 border-bottom py-1">
+                                <details open>
+                                    <summary class="fw-bold">
+                                        {{ item.DepartmentName }} ({{ item.Employees.length }})
+                                    </summary>
+                                    <ul class="list-group">
+                                        @for (e of item.Employees; track $index) {
+                                        <li class="list-group-item border-0 py-1">
+                                            <span>{{ $index + 1 }}.{{ e.EmployeeName }}
+                                                {{ e.TimeWFHText }}{{ e.IsApprovedBGDText }}</span>
+                                        </li>
+                                        }
+                                    </ul>
+                                </details>
+                            </li>
+                            }
+                        </ul>
+                    </ng-container>
+                </ng-container>
+            </div>
+        </div>
+        <!-- <div class="card" style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('assets/icon/—Pngtree—in spring peach blossoms are_5618880.png');
   background-size: auto 100%;
   background-repeat: repeat-x;
   background-position: center;"> -->
-    <div class="card">
-      <div class="card-header d-flex align-items-center">
-        <h5 class="card-title m-0 text-uppercase fw-bold py-1">
-          Lịch làm việc
-        </h5>
-        <span class="badge bg-danger ms-auto">Ngày nghỉ</span>
-      </div>
-      <div class="card-body p-0 pt-1">
-        <nz-calendar
-          [nzFullscreen]="false"
-          [(ngModel)]="calendarDate"
-          [nzCustomHeader]=""
-          [nzDateFullCell]="dateCell"
-          (nzSelectChange)="onSelectChangeCalendar($event)"
-        >
-        </nz-calendar>
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <h5 class="card-title m-0 text-uppercase fw-bold py-1">
+                    Lịch làm việc
+                </h5>
+                <span class="badge bg-danger ms-auto">Ngày nghỉ</span>
+            </div>
+            <div class="card-body p-0 pt-1">
+                <nz-calendar [nzFullscreen]="false" [(ngModel)]="calendarDate" [nzCustomHeader]=""
+                    [nzDateFullCell]="dateCell" (nzSelectChange)="onSelectChangeCalendar($event)">
+                </nz-calendar>
 
-        <ng-template #dateCell let-date>
-          <div
-            class="custom-date-cell"
-            [ngClass]="{ holiday: isHoliday(date) || isSaturday(date) }"
-          >
-            {{ date.getDate() }}
-          </div>
-        </ng-template>
-      </div>
+                <ng-template #dateCell let-date>
+                    <div class="custom-date-cell" [ngClass]="{ holiday: isHoliday(date) || isSaturday(date) }">
+                        {{ date.getDate() }}
+                    </div>
+                </ng-template>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
-<nz-footer
-  style="
+<nz-footer style="
     padding: 0 10px !important;
     background-color: #ffffff;
     font-size: 11px;
@@ -714,9 +542,8 @@
     line-height: 30px;
     display: block;
     border-top: 1px solid #f0f0f0;
-  "
->
-  Version: {{ userAppVersion }}
+  ">
+    Version: {{ userAppVersion }}
 </nz-footer>
 
 <!-- <nz-layout>

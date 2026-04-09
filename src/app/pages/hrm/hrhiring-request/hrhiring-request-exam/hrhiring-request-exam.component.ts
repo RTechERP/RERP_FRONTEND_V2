@@ -59,18 +59,18 @@ export class HRHiringRequestExamComponent implements OnInit {
 
   initMenu(): void {
     this.items = [
+      // {
+
+      //   label: 'Thêm',
+      //   icon: 'fa-solid fa-plus text-success',
+      //   hasPermission: 'N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86',
+      //   command: () => this.onAdd()
+      // },
       {
-        label: 'Thêm',
-        icon: 'fa-solid fa-plus text-success',
-        hasPermission: 'N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86',
-        command: () => this.onAdd()
-      },
-      {
-        label: 'Sửa',
+        label: 'Thiết lập bài thi',
         icon: 'fa-solid fa-pencil text-primary',
         hasPermission: 'N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86',
-        command: () => this.onEdit(),
-        disabled: true
+        command: () => this.onEdit()
       },
       // {
       //   label: 'Xóa',
@@ -91,7 +91,12 @@ export class HRHiringRequestExamComponent implements OnInit {
       {
         label: 'Kích hoạt bài thi',
         icon: 'fa-solid fa-check text-success',
-        command: () => this.onActivateExam(this.selectedRow)
+        command: () => this.onActivateExam(this.selectedRow, true)
+      },
+      {
+        label: 'Hủy kích hoạt bài thi',
+        icon: 'fa-solid fa-times text-danger',
+        command: () => this.onActivateExam(this.selectedRow, false)
       }
     ];
   }
@@ -133,9 +138,6 @@ export class HRHiringRequestExamComponent implements OnInit {
   updateMenuState(): void {
     const hasSelectionOnLeft = !!this.selectedHiringRequest;
     const hasSelectionOnRight = this.selectedItems && this.selectedItems.length > 0;
-
-    this.items[1].disabled = !hasSelectionOnLeft; // Edit (depends on left selection)
-    this.items[2].disabled = !hasSelectionOnRight; // Delete (depends on right selection)
   }
 
   onSelectionChange(event: any): void {
@@ -281,10 +283,47 @@ export class HRHiringRequestExamComponent implements OnInit {
     this.selectedRow = event.data;
   }
 
-  onActivateExam(item: any): void {
+  onActivateExam(item: any, status: boolean): void {
     if (!item) return;
     // Placeholder for activation logic
-    console.log('Activating exam:', item);
-    this.messageService.add({ severity: 'info', summary: 'Thông báo', detail: `Kích hoạt bài thi: ${item.NameExam} (Chờ xử lý)` });
+    console.log('Activating exam for request:', item);
+    this.loading = true;
+    const savePayload = {
+      IsActiveExam: status,
+      HiringRequestID: item.HiringRequestID,
+      //listHiringRequestIDExam: [],
+      //deletedHiringRequestIDExam: []
+    };
+
+    this.service.saveData(savePayload).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.notification.create(
+            'success',
+            'Thành công',
+            `${status ? 'Kích hoạt' : 'Hủy kích hoạt'} bài thi cho vị trí: ${item.PositionName || item.HiringRequestCode}`,
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
+          this.loadData();
+        } else {
+          this.notification.create(
+            'error',
+            'Lỗi',
+            res.message || 'Không thể kích hoạt bài thi',
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
+        }
+        this.loading = false;
+      },
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+        this.loading = false;
+      }
+    });
   }
 }

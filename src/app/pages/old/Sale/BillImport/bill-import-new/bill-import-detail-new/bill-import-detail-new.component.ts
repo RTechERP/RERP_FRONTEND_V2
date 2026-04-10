@@ -2198,10 +2198,10 @@ export class BillImportDetailNewComponent
     }
     //#endregion
 
-    //#region Save & Close
-    closeModal(): void {
-        this.activeModal.close();
-    }
+  //#region Save & Close
+  closeModal(): void {
+    this.activeModal.dismiss(false);
+  }
 
     private mapTableDataToBillImportDetails(tableData: any[]): any[] {
         const parsePOKHList = (
@@ -2477,33 +2477,33 @@ export class BillImportDetailNewComponent
                         this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!'
                     );
 
-                    if (this.isEmbedded) {
-                        this.saveSuccess.emit();
-                    } else {
-                        this.closeModal();
-                    }
-                } else {
-                    this.notification.warning(
-                        NOTIFICATION_TITLE.warning,
-                        res.message ||
-                        (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
-                    );
-                }
-                this.isSaving = false;
-            },
-            error: (err: any) => {
-                console.error('Save error:', err);
-                let errorMessage =
-                    'Có lỗi xảy ra khi ' + (this.isCheckmode ? 'cập nhật!' : 'thêm mới!');
-                if (err.error && err.error.message) {
-                    errorMessage += ' Chi tiết: ' + err.error.message;
-                }
-                this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
-                this.isSaving = false;
-            },
-        });
-    }
-    //#endregion
+          if (this.isEmbedded) {
+            this.saveSuccess.emit();
+          } else {
+            this.activeModal.close(true);
+          }
+        } else {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            res.message ||
+            (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
+          );
+        }
+        this.isSaving = false;
+      },
+      error: (err: any) => {
+        console.error('Save error:', err);
+        let errorMessage =
+          'Có lỗi xảy ra khi ' + (this.isCheckmode ? 'cập nhật!' : 'thêm mới!');
+        if (err.error && err.error.message) {
+          errorMessage += ' Chi tiết: ' + err.error.message;
+        }
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+        this.isSaving = false;
+      },
+    });
+  }
+  //#endregion
 
     //#region Document Import Grid
     initDocumentGridOptions(): void {
@@ -2884,16 +2884,16 @@ export class BillImportDetailNewComponent
         return true;
     }
 
-    async closeModalWithCheck(): Promise<void> {
-        const isValid = await this.checkSerial();
-        if (!isValid) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                'Số lượng serial không khớp với số lượng sản phẩm!'
-            );
-            return;
-        }
-        this.activeModal.close();
+  async closeModalWithCheck(): Promise<void> {
+    const isValid = await this.checkSerial();
+    if (!isValid) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Số lượng serial không khớp với số lượng sản phẩm!'
+      );
+      return;
     }
-    //#endregion
+    this.activeModal.close(true);
+  }
+  //#endregion
 }

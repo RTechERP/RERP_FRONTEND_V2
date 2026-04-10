@@ -1585,8 +1585,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         filterable: true, filter: { model: Filters['compoundDate'] }
       },
       { id: 'RequestDatePurchase', field: 'RequestDatePurchase', name: 'Ngày bắt đầu đặt hàng', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
-      { id: 'ExpectedDatePurchase', field: 'ExpectedDatePurchase', name: 'Ngày dự kiến đặt hàng', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
-      { id: 'ExpectedArrivalDate', field: 'ExpectedArrivalDate', name: 'Ngày dự kiến hàng về', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'ExpectedDatePurchase', field: 'ExpectedDatePurchase', name: 'Ngày dự kiến hàng về', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
+      // { id: 'ExpectedArrivalDate', field: 'ExpectedArrivalDate', name: 'Ngày dự kiến hàng về', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
       {
         id: 'BillCodePurchase', field: 'BillCodePurchase', name: 'Mã đặt hàng', width: 120, columnGroup: 'Yêu cầu mua hàng',
         filterable: true,

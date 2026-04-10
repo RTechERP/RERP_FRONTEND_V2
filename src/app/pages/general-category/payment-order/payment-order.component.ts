@@ -60,6 +60,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { NzResizeObserverDirective } from "ng-zorro-antd/cdk/resize-observer";
+import { PaymentOrderDetailOldComponent } from '../payment-order-detail-old/payment-order-detail-old.component';
 // import { PaymentOrderDetailOldComponent } from '../payment-order-detail-old/payment-order-detail-old.component';
 // import { SlickGlobalEditorLock } from 'angular-slickgrid';
 
@@ -138,6 +139,7 @@ export class PaymentOrderComponent implements OnInit {
     isLoading = false;
     isMobile = window.innerWidth <= 768;
     isShowModal = false;
+    isSearchAreaVisible = true;
 
     activeTab = '0';
     isApprove = false;
@@ -1677,15 +1679,20 @@ export class PaymentOrderComponent implements OnInit {
                 hideCloseButton: false,
                 commandTitle: '', // optional, add title
                 commandItems: [
-
                     {
-                        command: '', title: 'Bổ sung file', iconCssClass: 'fa-solid fa-paperclip', positionOrder: 1,
+                        command: '', title: 'Xem đề nghị thanh toán', iconCssClass: 'fa-solid fa-eye', positionOrder: 1,
+                        action: (e, args) => {
+                            this.onPrint(e, args as any);
+                        }
+                    },
+                    {
+                        command: '', title: 'Bổ sung file', iconCssClass: 'fa-solid fa-paperclip', positionOrder: 2,
                         action: (e, args) => {
                             this.onAttachFileExtend();
                         }
                     },
                     {
-                        command: 'viewContract', title: 'Xem hợp đồng', iconCssClass: 'fa-solid fa-eye', positionOrder: 2,
+                        command: 'viewContract', title: 'Xem hợp đồng', iconCssClass: 'fa-solid fa-eye', positionOrder: 3,
                         action: (e, args) => {
                             // console.log('viewContract:', args);
                             let pathFolder = args.dataContext?.FolderPath;
@@ -1703,7 +1710,7 @@ export class PaymentOrderComponent implements OnInit {
                         }
                     },
                     {
-                        command: '', title: 'Lịch sử duyệt/không duyệt', iconCssClass: 'fa-solid fa-clock-rotate-left fa-lg text-info', positionOrder: 3,
+                        command: '', title: 'Lịch sử duyệt/không duyệt', iconCssClass: 'fa-solid fa-clock-rotate-left fa-lg text-info', positionOrder: 4,
                         action: (e, args) => {
                             this.onOpenPaymentOrderLog();
                         }
@@ -3180,7 +3187,7 @@ export class PaymentOrderComponent implements OnInit {
         // console.log('paymentOrder.IsSpecialOrder:', paymentOrder.IsSpecialOrder);
         if (!paymentOrder.IsSpecialOrder) {
 
-            const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
+            const modalRef = this.modalService.open(PaymentOrderDetailOldComponent, {
                 centered: true,
                 size: 'xl',
                 backdrop: 'static',
@@ -3355,7 +3362,9 @@ export class PaymentOrderComponent implements OnInit {
             item.FullName = this.appUserService.currentUser?.FullName || '';
             item.DepartmentName = this.appUserService.currentUser?.DepartmentName || '';
             item.Code = '';
-
+            item.AccountingNote = '';
+            item.Note = '';
+            item.ReasonCancel = '';
             item = item as PaymentOrder;
             // console.log('onCopy item:', item);
             this.initModal(item, true);
@@ -4912,7 +4921,9 @@ export class PaymentOrderComponent implements OnInit {
                 newWindow.onload = () => { newWindow.document.title = fileName; };
             }
         } else {
-            const url = `${environment.baseHref}/file-preview?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}`;
+            const baseUrl = environment.baseHref ? environment.baseHref.replace(/\/$/, '') : '';
+            // const url = `${baseUrl}${environment.baseHref}/file-preview?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}`;
+            const url = `${baseUrl}/file-preview?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}`;
             window.open(url, '_blank');
         }
     }

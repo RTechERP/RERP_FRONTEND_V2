@@ -102,6 +102,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
   limitCount: number = 0;
   searchEmployeeText: string = '';
   showSidebar: boolean = true;
+  employeeFilterMode: 'all' | 'hasTasks' | 'noTasks' = 'hasTasks';
 
   constructor() {
     const now = DateTime.now();
@@ -227,8 +228,26 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
   initEmployeeSelections() {
     this.employeeSelections = this.fullData.map(item => ({
       FullName: item.FullName || 'N/A',
-      selected: true
+      selected: this.isEmployeeMatchingMode(item)
     }));
+  }
+
+  /** Kiểm tra nhân viên có khớp chế độ lọc hiện tại không */
+  private isEmployeeMatchingMode(item: ProjectTaskChartItem): boolean {
+    if (this.employeeFilterMode === 'hasTasks') return item.TotalTasks > 0;
+    if (this.employeeFilterMode === 'noTasks') return item.TotalTasks === 0;
+    return true; // 'all'
+  }
+
+  /** Số nhân viên theo từng chế độ */
+  get countAll(): number {
+    return this.fullData.length;
+  }
+  get countHasTasks(): number {
+    return this.fullData.filter(d => d.TotalTasks > 0).length;
+  }
+  get countNoTasks(): number {
+    return this.fullData.filter(d => d.TotalTasks === 0).length;
   }
 
   onFilterChange() {
@@ -249,9 +268,26 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
   }
 
   getFilteredSelections() {
-    if (!this.searchEmployeeText) return this.employeeSelections;
-    const txt = this.searchEmployeeText.toLowerCase();
-    return this.employeeSelections.filter(s => s.FullName.toLowerCase().includes(txt));
+    let list = this.employeeSelections;
+
+    // Chỉ lọc theo text tìm kiếm, danh sách luôn hiển thị đầy đủ
+    if (this.searchEmployeeText) {
+      const txt = this.searchEmployeeText.toLowerCase();
+      list = list.filter(s => s.FullName.toLowerCase().includes(txt));
+    }
+
+    return list;
+  }
+
+  onEmployeeFilterModeChange() {
+    // Cập nhật trạng thái chọn/bỏ chọn theo chế độ mới
+    this.employeeSelections.forEach(s => {
+      const data = this.fullData.find(d => (d.FullName || 'N/A') === s.FullName);
+      if (data) {
+        s.selected = this.isEmployeeMatchingMode(data);
+      }
+    });
+    this.onFilterChange();
   }
 
   toggleAll(selected: boolean) {

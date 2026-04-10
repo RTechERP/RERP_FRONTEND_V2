@@ -81,6 +81,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
 
   // Unique gridId based on warehouseCode
   gridId: string = '';
+  dirtyItems: Set<any> = new Set();
 
   selectedKhoTypes: number[] = [];
   cbbStatus: any = [
@@ -816,6 +817,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         // Get the edited item and its new value
         const editedItem = this.angularGrid.dataView.getItem(args.row);
         const newValue = editedItem[field];
+        this.dirtyItems.add(editedItem);
 
         // Get all selected row indexes
         const selectedRowIndexes = this.angularGrid.slickGrid.getSelectedRows() || [];
@@ -836,6 +838,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
                 if (item) {
                   // Update the same field with the new value
                   item[field] = newValue;
+                  this.dirtyItems.add(item);
 
                   // If DateSomeBill or DPO changed, recalculate DueDate
                   if (field === 'DateSomeBill' || field === 'DPO') {
@@ -975,6 +978,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
 
   // #region Save Data
   saveData() {
+    console.log('saveData');
     if (!this.angularGrid) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
@@ -985,11 +989,10 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
 
     // Get all data - in SlickGrid we need to track edited cells differently
     // For now, we'll save all selected rows or use a different approach
-    const allData = this.angularGrid.dataView.getItems();
     const dataToSave: any[] = [];
     const deniedRows: string[] = [];
 
-    allData.forEach((row: any) => {
+    this.dirtyItems.forEach((row: any) => {
       const id = row.IDDetail || 0;
       if (id <= 0) return;
 
@@ -1019,32 +1022,24 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         UpdatedBy: this.appUserService.loginName || '',
         UpdatedDate: new Date().toISOString(),
       };
-
+      
       dataToSave.push(updateData);
     });
 
-    // Nếu không có quyền với tất cả các dòng thì bỏ qua không làm gì
-    if (dataToSave.length === 0 && deniedRows.length > 0) {
+    if (dataToSave.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        deniedRows.length > 0 ? 'Bạn không có quyền sửa các phiếu đã chọn!' : 'Không có dữ liệu hợp lệ để lưu!'
+      );
       return;
     }
 
-    if (deniedRows.length >= 0) {
-      // this.notification.warning(
-      //   NOTIFICATION_TITLE.warning,
-      //   `Bạn không có quyền sửa ${deniedRows.length} phiếu: ${deniedRows
-      //     .slice(0, 3)
-      //     .join(', ')}${deniedRows.length > 3 ? '...' : ''}`
-      // );
-      return;
+    if (deniedRows.length > 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        `Có ${deniedRows.length} phiếu bạn không có quyền sửa và sẽ bị bỏ qua!`
+      );
     }
-
-    // if (dataToSave.length === 0) {
-    //   // this.notification.warning(
-    //   //   NOTIFICATION_TITLE.warning,
-    //   //   'Không có dữ liệu hợp lệ để lưu!'
-    //   // );
-    //   return;
-    // }
 
     this.billImportService.SaveDataBillDetail(dataToSave).subscribe({
       next: (res) => {
@@ -1053,6 +1048,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
             NOTIFICATION_TITLE.success,
             res.message || 'Lưu thành công!'
           );
+          this.dirtyItems.clear();
           this.loadDataBillImportSynthetic();
         } else {
           this.notification.error(
@@ -1469,6 +1465,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         next: (res) => {
           this.isLoading = false;
           if (res.status === 1) {
+            this.dirtyItems.clear();
             this.dataTable = res.data;
             // Add id field for SlickGrid and recalculate DueDate from DPO + DateSomeBill
             this.dataset = this.dataTable.map((item, index) => {

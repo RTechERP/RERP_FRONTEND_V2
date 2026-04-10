@@ -1,0 +1,32 @@
+:host ::ng-deep div[id^="listProductProjectGridCustomer-"] {
+  height: 85vh !important;
+}
+
+.list-product-project-customer-fs-12 {
+  font-size: 0.75rem !important;
+}
+
+.list-product-project-customer-grid-container {
+  width: 100%;
+  height: 100%;
+}
+
+:host ::ng-deep
+  .slickgrid-container
+  .slick-footerrow
+  .slick-footerrow-columns
+  .slick-footerrow-column {
+  border-right: 1px solid #ddd !important;
+  justify-content: end !important;
+}
+
+/* Căn phải pagination */
+:host ::ng-deep .slick-pagination {
+  display: flex;
+  justify-content: end;
+}
+
+:host ::ng-deep .slick-pagination-count,
+:host ::ng-deep .text-item-per-page {
+  display: none !important;
+}

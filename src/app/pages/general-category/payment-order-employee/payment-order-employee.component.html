@@ -135,7 +135,7 @@
               <nz-form-item>
                 <nz-form-label>Tình trạng</nz-form-label>
                 <nz-form-control>
-                  <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.step" nzSize="small"
+                  <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.step" nzSize="small"
                     name="step_m" class="w-100">
                     @for (item of steps; track item) {
                     <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
@@ -148,7 +148,7 @@
               <nz-form-item>
                 <nz-form-label>Trạng thái</nz-form-label>
                 <nz-form-control>
-                  <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.isApproved"
+                  <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.isApproved"
                     nzSize="small" name="isApproved_m" class="w-100">
                     @for (item of isApproveds; track item) {
                     <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>

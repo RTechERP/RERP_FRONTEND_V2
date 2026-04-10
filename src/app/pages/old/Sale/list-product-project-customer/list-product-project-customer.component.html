@@ -1,0 +1,30 @@
+<ng-container class="w-100 list-product-project-customer-w-100">
+    <div [id]="'list-product-project-customer-container-' + warehouseCode"
+        class="card h-100 border-0 rounded-0 list-product-project-customer-card list-product-project-customer-h-100 list-product-project-customer-border-0 list-product-project-customer-rounded-0"
+        style="background: transparent">
+        <div
+            class="card-header bg-white p-1 list-product-project-customer-card-header list-product-project-customer-bg-white list-product-project-customer-p-1">
+            <div
+                class="d-flex gap-1 align-items-center list-product-project-customer-d-flex list-product-project-customer-gap-1 list-product-project-customer-align-items-center">
+                <nz-select class="fs-12 list-product-project-customer-fs-12" style="width: 500px"
+                    [(ngModel)]="sreachParam.selectedProject" nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án"
+                    name="projectID" (ngModelChange)="loadData()">
+                    <nz-option style="width: 500px" *ngFor="let id of cbbProject" [nzValue]="id"
+                        [nzLabel]="id.ProjectCode + ' - ' + id.ProjectName">
+                    </nz-option>
+                </nz-select>
+                <p-menubar [model]="listProductMenu"
+                    class="p-0 border-0 list-product-project-customer-p-0 list-product-project-customer-border-0">
+                </p-menubar>
+            </div>
+        </div>
+        <div class="card-body p-0 w-100 list-product-project-customer-card-body list-product-project-customer-p-0 list-product-project-customer-w-100"
+            style="height: 90vh">
+            <app-custom-table [data]="dataset" [columns]="columnDefinitions" [loading]="isLoading" [showFooter]="true"
+                [scrollable]="true" height="100%" [rowSpanBy]="'ProductID'" [exportable]="false"
+                [showGlobalFilter]="false" columnLayout="fixed"
+                [contextMenuItems]="contextMenu" [(selectedContextRow)]="selectedContextRow">
+            </app-custom-table>
+        </div>
+    </div>
+</ng-container>

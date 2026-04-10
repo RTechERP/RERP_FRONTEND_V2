@@ -1,0 +1,120 @@
+<nz-splitter style="height: 100%">
+  <!-- Bảng Tree: Loại dự án -->
+  <nz-splitter-panel>
+    <div class="tree-table-section">
+      <app-custom-tree-table
+        [columns]="projectTypeColumns"
+        [data]="projectTypeTreeData"
+        [loading]="loadingProjectTypes"
+        dataKey="ID"
+        [scrollable]="true"
+        scrollHeight="flex"
+        height="100%"
+        [resizable]="true"
+        [showGridlines]="true"
+        [showColumnFilter]="true"
+        [sortMode]="'single'"
+        title="Danh sách loại dự án"
+        tableId="project-types-tree-table"
+        [clickSelectRow]="true"
+        (rowClick)="onProjectTypeClick($event)"
+      >
+      </app-custom-tree-table>
+    </div>
+  </nz-splitter-panel>
+
+  <!-- Bảng phẳng: Loại ứng dụng dự án -->
+
+  <nz-splitter-panel>
+    <div class="card-body p-0 h-100">
+      <nz-tabset
+        class="h-100 w-100 project-tabset"
+        [nzAnimated]="false"
+        nzType="card"
+      >
+        <nz-tab nzTitle="Danh sách loại ứng dụng dự án">
+          <div class="d-flex flex-column h-100 w-100">
+            <div
+              class="card-header bg-white p-1 border-bottom"
+              style="overflow-x: auto; flex-shrink: 0"
+            >
+              <p-menubar
+                [model]="menuBars"
+                [style]="{
+                  border: 'none',
+                  padding: '0',
+                  background: 'transparent',
+                  'min-height': 'auto',
+                }"
+              ></p-menubar>
+            </div>
+            <div class="flex-grow-1" style="min-height: 0">
+              <div class="flat-table-section h-100">
+                <app-custom-table
+                  [columns]="columns"
+                  [data]="dataset"
+                  [loading]="loading"
+                  dataKey="ID"
+                  [scrollable]="true"
+                  scrollHeight="flex"
+                  height="100%"
+                  [resizable]="true"
+                  [showGridlines]="true"
+                  [showColumnFilter]="true"
+                  [sortMode]="'single'"
+                  exportFilename="project-application-types"
+                  tableId="project-application-types-table"
+                  [selectionMode]="'multiple'"
+                  [(selection)]="selectedApplicationTypes"
+                  (rowDblClick)="onEditProjectApplicationType()"
+                >
+                </app-custom-table>
+              </div>
+            </div>
+          </div>
+        </nz-tab>
+        <nz-tab nzTitle="Dự án">
+          <div class="d-flex flex-column h-100 w-100">
+            <div
+              class="card-header bg-white p-1 border-bottom"
+              style="overflow-x: auto; flex-shrink: 0"
+            >
+              <p-menubar
+                [model]="menuBarsTechnology"
+                [style]="{
+                  border: 'none',
+                  padding: '0',
+                  background: 'transparent',
+                  'min-height': 'auto',
+                }"
+              ></p-menubar>
+            </div>
+            <div class="flex-grow-1" style="min-height: 0">
+              <div class="flat-table-section h-100">
+                <app-custom-table
+                  [columns]="columnsTechnology"
+                  [data]="dataTechnology"
+                  [loading]="loadingTechnology"
+                  dataKey="ID"
+                  [scrollable]="true"
+                  scrollHeight="flex"
+                  height="100%"
+                  [resizable]="true"
+                  [showGridlines]="true"
+                  [showColumnFilter]="true"
+                  [sortMode]="'single'"
+                  exportFilename="project-technology"
+                  tableId="project-technology-table"
+                  [selectionMode]="'multiple'"
+                  [(selection)]="selectedTechnologies"
+                  (rowDblClick)="onEditProjectTechnology()"
+                >
+                </app-custom-table>
+              </div>
+            </div>
+          </div>
+        </nz-tab>
+      </nz-tabset>
+    </div>
+  </nz-splitter-panel>
+</nz-splitter>

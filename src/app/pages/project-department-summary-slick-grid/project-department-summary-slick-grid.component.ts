@@ -253,6 +253,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
   }
   openFolder(type: 'online' | 'noi_bo') {
     const selectedIDs = this.getSelectedIds();
+    const projectCode = this.getSelectedRows().map(x => x.ProjectCode).join(',');
     if (selectedIDs.length == 0) {
       this.notification.error('Thông báo', 'Vui lòng chọn dự án!');
       return;
@@ -268,7 +269,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
     });
 
     if (selectedProjectTypeIds.length === 0) {
-      this.notification.error('Thông báo', 'Vui lòng chọn ít nhất 1 kiểu dự án!');
+      this.notification.error('Thông báo', `Dự án ${projectCode} chưa có kiểu dự án nên chưa có thư mục trên server!`);
       return;
     }
 

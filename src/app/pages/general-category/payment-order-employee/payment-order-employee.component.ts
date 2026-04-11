@@ -53,6 +53,7 @@ import { environment } from '../../../../environments/environment';
 import pdfMake from 'pdfmake/build/pdfmake';
 import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
 import { PaymentOrderLogComponent } from '../payment-order/payment-order-log/payment-order-log.component';
+import { PaymentOrderDetailOldComponent } from '../payment-order-detail-old/payment-order-detail-old.component';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -236,12 +237,24 @@ export class PaymentOrderEmployeeComponent implements OnInit {
     }
 
     initColumns() {
-        const fmtDate = (val: any) =>
-            val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
-        const fmtDateTime = (val: any) =>
-            val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy HH:mm') : '';
-        const fmtTime = (val: any) =>
-            val ? DateTime.fromISO(val).toFormat('HH:mm') : '';
+        const fmtDate = (val: any) => {
+            if (!val) return '';
+            let dt = DateTime.fromISO(val);
+            if (!dt.isValid) dt = DateTime.fromJSDate(new Date(val));
+            return dt.isValid ? dt.toFormat('dd/MM/yyyy') : '';
+        };
+        const fmtDateTime = (val: any) => {
+            if (!val) return '';
+            let dt = DateTime.fromISO(val);
+            if (!dt.isValid) dt = DateTime.fromJSDate(new Date(val));
+            return dt.isValid ? dt.toFormat('dd/MM/yyyy HH:mm') : '';
+        };
+        const fmtTime = (val: any) => {
+            if (!val) return '';
+            let dt = DateTime.fromISO(val);
+            if (!dt.isValid) dt = DateTime.fromJSDate(new Date(val));
+            return dt.isValid ? dt.toFormat('HH:mm') : '';
+        };
         const fmtMoney = (val: any) =>
             val != null ? val.toLocaleString('vi-VN') : '';
         const fmtBool = (val: any) => (val ? '✓' : '');
@@ -687,11 +700,15 @@ export class PaymentOrderEmployeeComponent implements OnInit {
     }
     onCopy() {
         if (!this.selectedItem) return;
-        let item = this.selectedItem; // data object
+        let item = { ...this.selectedItem }; // data object
         item.DateOrder = new Date();
         item.FullName = this.appUserService.currentUser?.FullName || '';
         item.DepartmentName = this.appUserService.currentUser?.DepartmentName || '';
         item.Code = '';
+        item.ReasonCancel = '';
+        item.AccountingNote = '';
+        item.HRNote = '';
+        item.Note = '';
         item = item as PaymentOrder;
         this.initModal(item, true);
     }
@@ -1057,7 +1074,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
         paymentOrder.IsSpecialOrder = this.activeTab == '1';
 
         if (!paymentOrder.IsSpecialOrder) {
-            const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
+            const modalRef = this.modalService.open(PaymentOrderDetailOldComponent, {
                 centered: true,
                 size: 'xl',
                 backdrop: 'static',

@@ -322,52 +322,52 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center'
       },
-      {
-        id: 'Code',
-        name: 'Mã nhân viên',
-        field: 'Code',
-        sortable: true,
-        filterable: true,
-        width: 130,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
-        },
-      },
-      {
-        id: 'FullName',
-        name: 'Họ và tên',
-        field: 'FullName',
-        sortable: true,
-        filterable: true,
-        width: 180,
-        formatter: (_row, _cell, value) => {
-          if (!value) return '';
-          return `
-                        <span
-                            title="${value}"
-                            style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
-                        >
-                            ${value}
-                        </span>
-                    `;
-        },
-        customTooltip: {
-          useRegularTooltip: true,
-        },
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
-        },
-      },
+      // {
+      //   id: 'Code',
+      //   name: 'Mã nhân viên',
+      //   field: 'Code',
+      //   sortable: true,
+      //   filterable: true,
+      //   width: 130,
+      //   filter: {
+      //     collection: [],
+      //     model: Filters['multipleSelect'],
+      //     filterOptions: {
+      //       autoAdjustDropHeight: true,
+      //       filter: true,
+      //     } as MultipleSelectOption,
+      //   },
+      // },
+      // {
+      //   id: 'FullName',
+      //   name: 'Họ và tên',
+      //   field: 'FullName',
+      //   sortable: true,
+      //   filterable: true,
+      //   width: 180,
+      //   formatter: (_row, _cell, value) => {
+      //     if (!value) return '';
+      //     return `
+      //                   <span
+      //                       title="${value}"
+      //                       style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+      //                   >
+      //                       ${value}
+      //                   </span>
+      //               `;
+      //   },
+      //   customTooltip: {
+      //     useRegularTooltip: true,
+      //   },
+      //   filter: {
+      //     collection: [],
+      //     model: Filters['multipleSelect'],
+      //     filterOptions: {
+      //       autoAdjustDropHeight: true,
+      //       filter: true,
+      //     } as MultipleSelectOption,
+      //   },
+      // },
       {
         id: 'BorrowCode',
         name: 'Mã phiếu mượn',
@@ -670,6 +670,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
       enableContextMenu: true,
       enableGrouping: true,
       enableHtmlRendering: true,
+      frozenColumn: 4,
     };
 
     this.loadData();

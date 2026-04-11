@@ -432,4 +432,13 @@ export class BillExportService {
             responseType: 'blob',
         });
     }
+        getViewDetail(billId: number): Observable<any> {
+        return this.http.get(environment.host + `api/BillExport/get-view-export-detail/${billId}`);
+    }
+    confirmTem(lstBillexportdetailID: number[], status: boolean): Observable<any> {
+    return this.http.post<any>(
+      environment.host + `api/billexport/confirm-tem?status=${status}`,
+      lstBillexportdetailID
+    );
+    }
 }

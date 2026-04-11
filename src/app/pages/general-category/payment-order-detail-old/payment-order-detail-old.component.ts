@@ -341,29 +341,54 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                     const ridII = rowII?.ID ?? rowII?.Id ?? 0;
                     const detailRows = ridII ? details.filter(r => (r.ParentID ?? r.ParentId ?? 0) === ridII) : [];
 
-                    const mapRow = (r: any, defaultId: number) => {
-                        if (!r) return null;
-                        const rid = r.ID ?? r.Id ?? 0;
-                        const pid = r.ParentID ?? r.ParentId ?? 0;
-                        let pct = this.parseNum(r.PaymentPercentage);
-                        if (defaultId > 5 && pct === 0) pct = 100;
-                        if (defaultId <= 5) pct = 0;
-                        return {
-                            ...r,
-                            _id: rid || defaultId,
-                            ParentID: pid || null,
-                            PaymentPercentage: pct
-                        };
-                    };
+                    // const mapRow = (r: any, defaultId: number) => {
+                    //     if (!r) return null;
+                    //     const rid = r.ID ?? r.Id ?? 0;
+                    //     const pid = r.ParentID ?? r.ParentId ?? 0;
+                    //     let pct = this.parseNum(r.PaymentPercentage);
+                    //     if (defaultId > 5 && pct === 0) pct = 100;
+                    //     if (defaultId <= 5) pct = 0;
+                    //     return {
+                    //         ...r,
+                    //         _id: rid || defaultId,
+                    //         ParentID: pid || null,
+                    //         PaymentPercentage: pct
+                    //     };
+                    // };
 
-                    this.dataset2 = [
-                        mapRow(rowI, 1),
-                        mapRow(rowII, 2),
-                        ...detailRows.map((r, i) => mapRow(r, 6 + i)),
-                        mapRow(rowIII, 3),
-                        mapRow(d1, 4),
-                        mapRow(d2, 5),
-                    ].filter(Boolean);
+                    // this.dataset2 = [
+                    //     mapRow(rowI, 1),
+                    //     mapRow(rowII, 2),
+                    //     ...detailRows.map((r, i) => mapRow(r, 6 + i)),
+                    //     mapRow(rowIII, 3),
+                    //     mapRow(d1, 4),
+                    //     mapRow(d2, 5),
+                    // ].filter(Boolean);
+                    const mapRow = (r: any, defaultId: number, isHeader: boolean = false) => {
+    if (!r) return null;
+    const rid = r.ID ?? r.Id ?? 0;
+    const pid = r.ParentID ?? r.ParentId ?? 0;
+    let pct = this.parseNum(r.PaymentPercentage);
+    if (defaultId > 5 && pct === 0) pct = 100;
+    if (defaultId <= 5) pct = 0;
+
+    return {
+        ...r,
+        // Nếu là dòng Header I, II, III thì ép ID cố định 1, 2, 3
+        _id: isHeader ? defaultId : (rid || defaultId), 
+        ParentID: isHeader ? null : pid,
+        PaymentPercentage: pct
+    };
+};
+
+this.dataset2 = [
+    mapRow(rowI, 1, true),   // Header I -> _id: 1
+    mapRow(rowII, 2, true),  // Header II -> _id: 2
+    ...detailRows.map((r, i) => mapRow(r, 6 + i)), // Dòng chi tiết
+    mapRow(rowIII, 3, true), // Header III -> _id: 3
+    mapRow(d1, 4),
+    mapRow(d2, 5),
+].filter(Boolean);
                 }
                 if (!this.isCopy) {
                     this.dataFiles = (res.data.files || []).map((x: any, i: number) => ({ ...x, _rowId: i + 1 }));
@@ -516,14 +541,33 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         if (this.paymentOrder.TypeOrder != 2) {
             details = this.dataset.map(r => sanitize(r, { ID: this.isCopy ? 0 : r.ID }));
         } else {
+            // details = [
+            //     sanitize(this.t2RowI, { ID: this.isCopy ? 0 : (this.t2RowI.ID || 0) }),
+            //     sanitize(this.t2RowII, { ID: this.isCopy ? 0 : (this.t2RowII.ID || 0), TotalMoney: this.totalII }),
+            //     ...this.t2DetailRows.map(r => sanitize(r, { ID: this.isCopy ? 0 : (r.ID || 0) })),
+            //     sanitize(this.t2RowIII, { ID: this.isCopy ? 0 : (this.t2RowIII.ID || 0), TotalMoney: this.totalDiff }),
+            //     sanitize(this.dataset2.find(r => r.ContentPayment?.includes('Tạm ứng chi không hết')) || {}, { ID: 0, TotalMoney: this.diff1 }),
+            //     sanitize(this.dataset2.find(r => r.ContentPayment?.includes('Số chi quá tạm ứng')) || {}, { ID: 0, TotalMoney: this.diff2 }),
+            // ].filter(r => r.Stt !== undefined);
             details = [
-                sanitize(this.t2RowI, { ID: this.isCopy ? 0 : (this.t2RowI.ID || 0) }),
-                sanitize(this.t2RowII, { ID: this.isCopy ? 0 : (this.t2RowII.ID || 0), TotalMoney: this.totalII }),
-                ...this.t2DetailRows.map(r => sanitize(r, { ID: this.isCopy ? 0 : (r.ID || 0) })),
-                sanitize(this.t2RowIII, { ID: this.isCopy ? 0 : (this.t2RowIII.ID || 0), TotalMoney: this.totalDiff }),
-                sanitize(this.dataset2.find(r => r.ContentPayment?.includes('Tạm ứng chi không hết')) || {}, { ID: 0, TotalMoney: this.diff1 }),
-                sanitize(this.dataset2.find(r => r.ContentPayment?.includes('Số chi quá tạm ứng')) || {}, { ID: 0, TotalMoney: this.diff2 }),
-            ].filter(r => r.Stt !== undefined);
+    sanitize(this.t2RowI, { ID: this.isCopy ? 0 : (this.t2RowI.ID || 0) }),
+    sanitize(this.t2RowII, { ID: this.isCopy ? 0 : (this.t2RowII.ID || 0), TotalMoney: this.totalII }),
+    
+    // Đối với các dòng chi tiết của mục II
+    ...this.t2DetailRows.map(r => sanitize(r, { 
+        ID: this.isCopy ? 0 : (r.ID || 0),
+        // Nếu là copy, ép ParentID về 2 (ID của Header II) để đồng bộ với dòng mới thêm
+        ParentID: this.isCopy ? 2 : r.ParentID 
+    })),
+
+    sanitize(this.t2RowIII, { ID: this.isCopy ? 0 : (this.t2RowIII.ID || 0), TotalMoney: this.totalDiff }),
+    
+    // Các dòng chênh lệch ở mục III
+    sanitize(this.dataset2.find(r => r.ContentPayment?.includes('Tạm ứng chi không hết')) || {}, 
+        { ID: 0, TotalMoney: this.diff1, ParentID: this.isCopy ? 3 : 3 }), // ParentID mục III là 3
+    sanitize(this.dataset2.find(r => r.ContentPayment?.includes('Số chi quá tạm ứng')) || {}, 
+        { ID: 0, TotalMoney: this.diff2, ParentID: this.isCopy ? 3 : 3 }),
+].filter(r => r.Stt !== undefined);
         }
 
         const formRawValue = this.validateForm.getRawValue();

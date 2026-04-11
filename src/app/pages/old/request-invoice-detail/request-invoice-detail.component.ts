@@ -422,12 +422,14 @@ export class RequestInvoiceDetailComponent implements OnInit {
       IsUrgency: this.formData.isUrgency,
       IsCustomsDeclared: this.formData.isCustomsDeclared,
       DealineUrgency: this.formData.deadline,
+      UpdatedDate: new Date().toLocaleDateString('vi-VN'),
     };
 
     const requestInvoiceDetails = this.tb_DataTable.getData().map((item) => ({
       ...item,
       ProductSaleID: item.ProductSaleID === '' ? null : item.ProductSaleID,
       ProjectID: item.ProjectID === '' ? null : item.ProjectID,
+      UpdatedDate: new Date().toLocaleDateString('vi-VN'),
     }));
 
     const payload = {

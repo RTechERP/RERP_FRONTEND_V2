@@ -316,6 +316,7 @@ import { PurchaseQuoteSummaryComponent } from './pages/purchase/project-partlist
 import { CommercialPriceRequestComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/commercial-price-request/commercial-price-request.component';
 import { PurchaseQuoteSummaryMainComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary-main/purchase-quote-summary-main.component';
 import { EmployeeDeductionTypeComponent } from './pages/hrm/employee-management/employee-deduction/employee-deduction-type/employee-deduction-type.component';
+import { ListProductProjectCustomerComponent } from './pages/old/Sale/list-product-project-customer/list-product-project-customer.component';
 export const routes: Routes = [
     {
         path: 'file-preview',
@@ -1170,7 +1171,7 @@ export const routes: Routes = [
             { path: 'commercial-price-request', component: CommercialPriceRequestComponent, canActivate: [authGuard] },
             { path: 'purchase-quote-summary-main', component: PurchaseQuoteSummaryMainComponent, canActivate: [authGuard] },
             { path: 'employee-deduction-type', component: EmployeeDeductionTypeComponent, canActivate: [authGuard] },
-
+            { path: 'product-project-customer-hn', component: ListProductProjectCustomerComponent, canActivate: [authGuard] },
 
         ],
     },

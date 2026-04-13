@@ -429,6 +429,8 @@ export class RequestInvoiceDetailComponent implements OnInit {
       ...item,
       ProductSaleID: item.ProductSaleID === '' ? null : item.ProductSaleID,
       ProjectID: item.ProjectID === '' ? null : item.ProjectID,
+      InvoiceDate: item.InvoiceDate || null,
+      ExportDate: item.ExportDate || null,
       UpdatedDate: this.toLocalISOString(new Date()),
     }));
 

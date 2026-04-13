@@ -61,8 +61,7 @@ import { PermissionService } from '../../../services/permission.service';
   styleUrl: './project-partlist-price-request-old.component.css',
 })
 export class ProjectPartlistPriceRequestOldComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   //#region Khai báo biến
   projectPartlistPriceRequestOldMenu: MenuItem[] = [];
 
@@ -116,7 +115,7 @@ export class ProjectPartlistPriceRequestOldComponent
     private appUserService: AppUserService,
     private ngbModal: NgbModal,
     private permissionService: PermissionService
-  ) {}
+  ) { }
   //#endregion
 
   //#region Lifecycle
@@ -398,6 +397,11 @@ export class ProjectPartlistPriceRequestOldComponent
         'TotalImportPrice',
         'TotalDayLeadTime',
         'CurrencyRate',
+        'TotalHN',
+        'TotalHCM',
+        'TotalBN',
+        'TotalHP',
+        'TotalDP',
       ];
 
       const convertedItem = { ...item, id: uniqueId };
@@ -580,6 +584,26 @@ export class ProjectPartlistPriceRequestOldComponent
         (sum, item) => sum + (Number(item.UnitImportPrice) || 0),
         0
       );
+      const totalHNSum = (items || []).reduce(
+        (sum, item) => sum + (Number(item.TotalHN) || 0),
+        0
+      );
+      const totalHCMSum = (items || []).reduce(
+        (sum, item) => sum + (Number(item.TotalHCM) || 0),
+        0
+      );
+      const totalBNSum = (items || []).reduce(
+        (sum, item) => sum + (Number(item.TotalBN) || 0),
+        0
+      );
+      const totalHPSum = (items || []).reduce(
+        (sum, item) => sum + (Number(item.TotalHP) || 0),
+        0
+      );
+      const totalDPSum = (items || []).reduce(
+        (sum, item) => sum + (Number(item.TotalDP) || 0),
+        0
+      );
 
       this.angularGrid.slickGrid.setFooterRowVisibility(true);
 
@@ -646,6 +670,21 @@ export class ProjectPartlistPriceRequestOldComponent
             footerCell.innerHTML = `<b>${totalImportPrice.toLocaleString(
               'en-US'
             )}</b>`;
+            break;
+          case 'TotalHN':
+            footerCell.innerHTML = `<b>${totalHNSum.toLocaleString('en-US')}</b>`;
+            break;
+          case 'TotalHCM':
+            footerCell.innerHTML = `<b>${totalHCMSum.toLocaleString('en-US')}</b>`;
+            break;
+          case 'TotalBN':
+            footerCell.innerHTML = `<b>${totalBNSum.toLocaleString('en-US')}</b>`;
+            break;
+          case 'TotalHP':
+            footerCell.innerHTML = `<b>${totalHPSum.toLocaleString('en-US')}</b>`;
+            break;
+          case 'TotalDP':
+            footerCell.innerHTML = `<b>${totalDPSum.toLocaleString('en-US')}</b>`;
             break;
           default:
             footerCell.innerHTML = '';
@@ -1219,6 +1258,76 @@ export class ProjectPartlistPriceRequestOldComponent
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
       },
+      {
+        id: 'TotalHN',
+        field: 'TotalHN',
+        name: 'Tồn cuối kỳ sử dụng kho HN',
+        width: 180,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        formatter: (_row, _cell, value: any) => {
+          if (value == null) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      {
+        id: 'TotalHCM',
+        field: 'TotalHCM',
+        name: 'Tồn cuối kỳ sử dụng kho HCM',
+        width: 180,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        formatter: (_row, _cell, value: any) => {
+          if (value == null) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      {
+        id: 'TotalBN',
+        field: 'TotalBN',
+        name: 'Tồn cuối kỳ sử dụng kho BN',
+        width: 180,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        formatter: (_row, _cell, value: any) => {
+          if (value == null) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      {
+        id: 'TotalHP',
+        field: 'TotalHP',
+        name: 'Tồn cuối kỳ sử dụng kho HP',
+        width: 180,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        formatter: (_row, _cell, value: any) => {
+          if (value == null) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
+        filter: { model: Filters['compoundInputNumber'] },
+      },
+      {
+        id: 'TotalDP',
+        field: 'TotalDP',
+        name: 'Tồn cuối kỳ sử dụng kho DP',
+        width: 180,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        formatter: (_row, _cell, value: any) => {
+          if (value == null) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
+        filter: { model: Filters['compoundInputNumber'] },
+      },
     ];
   }
 
@@ -1778,8 +1887,8 @@ export class ProjectPartlistPriceRequestOldComponent
               status === 1
                 ? null
                 : status === 2
-                ? DateTime.local().toISO()
-                : formatDate(rowData['DatePriceQuote']),
+                  ? DateTime.local().toISO()
+                  : formatDate(rowData['DatePriceQuote']),
             TotalPriceExchange: toNumber(rowData['TotalPriceExchange']),
             CurrencyRate: toNumber(rowData['CurrencyRate']),
             CurrencyID: toNumber(rowData['CurrencyID']),
@@ -1859,8 +1968,8 @@ export class ProjectPartlistPriceRequestOldComponent
                       EmployeeID: Number(rowData['EmployeeID'] || 0),
                       QuoteEmployee: String(
                         rowData['QuoteEmployee'] ||
-                          rowData['FullNameQuote'] ||
-                          ''
+                        rowData['FullNameQuote'] ||
+                        ''
                       ),
                       ProjectCode: String(rowData['ProjectCode'] || ''),
                       ProductCode: String(rowData['ProductCode'] || ''),
@@ -1871,42 +1980,42 @@ export class ProjectPartlistPriceRequestOldComponent
                       Quantity: Number(rowData['Quantity'] || 0),
                       Unit: String(
                         rowData['Unit'] ||
-                          rowData['UnitName'] ||
-                          rowData['UnitCount'] ||
-                          ''
+                        rowData['UnitName'] ||
+                        rowData['UnitCount'] ||
+                        ''
                       ),
                       DateRequest: rowData['DateRequest']
                         ? (() => {
-                            const date = rowData['DateRequest'];
-                            if (date instanceof Date) return date.toISOString();
-                            if (typeof date === 'string') {
-                              const dt = DateTime.fromISO(date);
-                              return dt.isValid ? dt.toISO() : null;
-                            }
-                            return null;
-                          })()
+                          const date = rowData['DateRequest'];
+                          if (date instanceof Date) return date.toISOString();
+                          if (typeof date === 'string') {
+                            const dt = DateTime.fromISO(date);
+                            return dt.isValid ? dt.toISO() : null;
+                          }
+                          return null;
+                        })()
                         : null,
                       Deadline: rowData['Deadline']
                         ? (() => {
-                            const date = rowData['Deadline'];
-                            if (date instanceof Date) return date.toISOString();
-                            if (typeof date === 'string') {
-                              const dt = DateTime.fromISO(date);
-                              return dt.isValid ? dt.toISO() : null;
-                            }
-                            return null;
-                          })()
+                          const date = rowData['Deadline'];
+                          if (date instanceof Date) return date.toISOString();
+                          if (typeof date === 'string') {
+                            const dt = DateTime.fromISO(date);
+                            return dt.isValid ? dt.toISO() : null;
+                          }
+                          return null;
+                        })()
                         : null,
                       DatePriceQuote: rowData['DatePriceQuote']
                         ? (() => {
-                            const date = rowData['DatePriceQuote'];
-                            if (date instanceof Date) return date.toISOString();
-                            if (typeof date === 'string') {
-                              const dt = DateTime.fromISO(date);
-                              return dt.isValid ? dt.toISO() : null;
-                            }
-                            return null;
-                          })()
+                          const date = rowData['DatePriceQuote'];
+                          if (date instanceof Date) return date.toISOString();
+                          if (typeof date === 'string') {
+                            const dt = DateTime.fromISO(date);
+                            return dt.isValid ? dt.toISO() : null;
+                          }
+                          return null;
+                        })()
                         : null,
                       CurrencyID: Number(rowData['CurrencyID'] || 0),
                       UnitPrice: Number(rowData['UnitPrice'] || 0),
@@ -2020,7 +2129,7 @@ export class ProjectPartlistPriceRequestOldComponent
       windowClass: 'full-screen-modal',
     });
     modalRef.componentInstance.supplierSaleID = 0; // 0 = thêm mới
-    modalRef.result.finally(() => {});
+    modalRef.result.finally(() => { });
   }
   //#endregion
 
@@ -2204,9 +2313,9 @@ export class ProjectPartlistPriceRequestOldComponent
             return numValue === 0
               ? 0
               : new Intl.NumberFormat('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }).format(numValue);
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }).format(numValue);
           }
 
           // Format date columns thành dd/MM/yyyy
@@ -2310,9 +2419,9 @@ export class ProjectPartlistPriceRequestOldComponent
         return result === 0
           ? 0
           : new Intl.NumberFormat('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            }).format(result);
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }).format(result);
       }
 
       // Format số cho các cột số khác
@@ -2411,9 +2520,8 @@ export class ProjectPartlistPriceRequestOldComponent
 
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = `price-request-${
-      new Date().toISOString().split('T')[0]
-    }.xlsx`;
+    link.download = `price-request-${new Date().toISOString().split('T')[0]
+      }.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -2553,9 +2661,9 @@ export class ProjectPartlistPriceRequestOldComponent
               return numValue === 0
                 ? 0
                 : new Intl.NumberFormat('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }).format(numValue);
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }).format(numValue);
             }
 
             // Format date columns thành dd/MM/yyyy
@@ -2659,9 +2767,9 @@ export class ProjectPartlistPriceRequestOldComponent
           return result === 0
             ? 0
             : new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }).format(result);
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }).format(result);
         }
 
         // Format số cho các cột số khác
@@ -2763,9 +2871,8 @@ export class ProjectPartlistPriceRequestOldComponent
 
       const link = document.createElement('a');
       link.href = window.URL.createObjectURL(blob);
-      link.download = `price-request-full-${
-        new Date().toISOString().split('T')[0]
-      }.xlsx`;
+      link.download = `price-request-full-${new Date().toISOString().split('T')[0]
+        }.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

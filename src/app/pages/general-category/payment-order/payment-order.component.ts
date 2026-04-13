@@ -1697,14 +1697,16 @@ export class PaymentOrderComponent implements OnInit {
                             // console.log('viewContract:', args);
                             let pathFolder = args.dataContext?.FolderPath;
                             const documentName = args.dataContext?.DocumentName || '';
-                            if (pathFolder == '') {
+                            if (!pathFolder) {
                                 this.notification.warning(NOTIFICATION_TITLE.warning, `Không tìm thấy đường dẫn cho hợp đồng số [${documentName}]`)
                             } else {
-                                pathFolder = pathFolder.replace('\\\\192.168.1.190\\File Scan HĐ\\', 'api/share/FileScanHD/');
-                                // pathFolder = pathFolder.replace('\', '/');
-
-                                // console.log('pathFolder:', pathFolder);
-                                const url = environment.host + pathFolder;
+                                const uncPath = this.extractServerPath(pathFolder);
+                                if (!uncPath) {
+                                    this.notification.warning(NOTIFICATION_TITLE.warning, `Không tìm thấy đường dẫn cho hợp đồng số [${documentName}]`);
+                                    return;
+                                }
+                                const apiPath = uncPath.replace('\\\\192.168.1.190\\File Scan HĐ\\', 'api/share/FileScanHD/');
+                                const url = environment.host + apiPath;
                                 window.open(url, '_blank');
                             }
                         }
@@ -3276,11 +3278,30 @@ export class PaymentOrderComponent implements OnInit {
             const item = grid.dataView.getItem(rowIndex) as PaymentOrder; // data object
 
             // console.log('Row index:', rowIndex);
-            // console.log('Row data:', item);
+            console.log('Row data:', item);
             this.initModal(item);
         }
     }
+    extractServerPath(input: string): string | null {
+        if (!input) return null;
 
+        // Format 2: search-ms URI — extract UNC path from crumb=location: parameter
+        if (input.startsWith('search-ms:')) {
+            const decoded = decodeURIComponent(input);
+            const crumbMatch = decoded.match(/crumb=location:(\\\\[\d.]+\\.+)/);
+            return crumbMatch ? crumbMatch[1] : null;
+        }
+
+        // Format 1: direct UNC path \\server\...
+        if (input.startsWith('\\\\')) {
+            return input;
+        }
+
+        // Fallback: try to extract UNC path after decoding
+        const decoded = decodeURIComponent(input);
+        const match = decoded.match(/\\\\[\d.]+\\.+/);
+        return match ? match[0] : null;
+    }
     onDelete() {
         // let grid = this.angularGrid;
         // if (this.activeTab == '1') grid = this.angularGridSpecial;

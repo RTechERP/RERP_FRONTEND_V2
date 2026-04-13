@@ -391,13 +391,14 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td class="text-end fw-bold">{{ totalII | number:'1.2-2' }}</td>
+                        <td class="text-end fw-bold">{{ totalIIThanhTien | number:'1.2-2' }}</td>
                         <td></td>
                         <!-- <td>
               <input class="tbl-input tbl-num fw-bold" [value]="t2RowII.TotalMoneyWithInvoice | number:'1.2-2'" appCurrencyFormatRealtime
                 (blur)="t2RowII.TotalMoneyWithInvoice = parseNum($any($event.target).value)" type="text"
                 [style.background]="validateForm.get('IsBill')?.value && (t2RowII.TotalMoneyWithInvoice === null || t2RowII.TotalMoneyWithInvoice === undefined || t2RowII.TotalMoneyWithInvoice === '') ? '#fff3cd' : ''" />
             </td> -->
+                        <td class="text-end text-nowrap fw-bold">{{ totalII | number:'1.2-2' }}</td>
                         <td></td>
                     </tr>
 

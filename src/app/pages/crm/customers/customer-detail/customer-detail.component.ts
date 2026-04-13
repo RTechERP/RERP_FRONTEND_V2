@@ -120,12 +120,14 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   provincesData: any[] = [];
   businessFieldData: any[] = [];
   majorData: any[] = [];
+  customerIndustryData: any[] = [];
 
   listIdsContact: any[] = [];
   listIdsAdress: any[] = [];
   listIdsEmp: any[] = [];
 
   dictCustomer: { [key: number]: string } = {};
+  dataCustomer: any = {};
 
   // Form validation
   formGroup: FormGroup;
@@ -149,6 +151,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
     checkVoucher: '',
     noteDelivery: '',
     closingDateDebt: new Date(),
+    customerIndustryID: 0,
   };
 
   customerTypeData: any[] = [
@@ -190,6 +193,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       checkVoucher: [''],
       noteDelivery: [''],
       closingDateDebt: [new Date()],
+      customerIndustryID: [null, [Validators.required]],
     });
   }
 
@@ -197,6 +201,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
     this.loadBusinessField();
     this.loadCustomerSpecialization();
     this.loadProvinces();
+    this.loadCustomerIndustry();
     this.loadEmployee();
     if (this.isEditMode) {
       this.loadDetailEditMode(this.EditID);
@@ -228,6 +233,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
     this.customerService.getDetail(id).subscribe({
       next: (response) => {
         if (response.status === 1) {
+          this.dataCustomer = response.data;
           let province = this.provincesData.find(
             (x) => x.ProvinceCode == response.data.provinceCode
           );
@@ -251,6 +257,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
             productDetails: response.data.model.ProductDetails,
             checkVoucher: response.data.model.CheckVoucher,
             noteDelivery: response.data.model.NoteDelivery,
+            customerIndustryID: response.data.model.CustomerIndustriesID,
             closingDateDebt: response.data.model.ClosingDateDebt
               ? response.data.model.ClosingDateDebt.substring(0, 10)
               : new Date().toISOString().split('T')[0],
@@ -275,6 +282,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
             productDetails: response.data.model.ProductDetails,
             checkVoucher: response.data.model.CheckVoucher,
             noteDelivery: response.data.model.NoteDelivery,
+            customerIndustryID: response.data.model.CustomerIndustriesID,
             closingDateDebt: response.data.model.ClosingDateDebt
               ? response.data.model.ClosingDateDebt.substring(0, 10)
               : new Date().toISOString().split('T')[0],
@@ -352,7 +360,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
 
       container.appendChild((componentRef.hostView as any).rootNodes[0]);
       appRef.attachView(componentRef.hostView);
-      onRendered(() => {});
+      onRendered(() => { });
 
       return container;
     };
@@ -429,6 +437,20 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
+        this.notification.error(NOTIFICATION_TITLE.error, error);
+      },
+    });
+  }
+  loadCustomerIndustry(): void {
+    this.customerService.getCustomerIndustry().subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          this.customerIndustryData = response.data;
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
+        }
+      },
+      error: (error: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
@@ -538,6 +560,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       ClosingDateDebt: formValues.closingDateDebt ?? null,
       FullName: formValues.fullName ?? '',
       CustomerSpecializationID: formValues.majorId ?? 0,
+      CustomerIndustriesID: formValues.customerIndustryID ?? 0,
     } as any;
 
     const payload = {
@@ -875,37 +898,56 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   // Method để lấy error message cho các trường
   getFieldError(fieldName: string): string | undefined {
     const control = this.formGroup.get(fieldName);
-    if (control?.invalid && (control?.dirty || control?.touched)) {
-      if (control.errors?.['required']) {
-        switch (fieldName) {
-          case 'province':
-            return 'Vui lòng chọn tỉnh!';
-          case 'customerShortName':
-            return 'Vui lòng nhập ký hiệu!';
-          case 'fullName':
-            return 'Vui lòng nhập tên khách hàng!';
-          case 'address':
-            return 'Vui lòng nhập địa chỉ!';
-          case 'majorId':
-            return 'Vui lòng chọn ngành nghề!';
-          default:
-            return 'Trường này là bắt buộc!';
-        }
+    if (!control || control.valid || (!control.dirty && !control.touched)) {
+      return undefined;
+    }
+
+    // Logic kiểm tra xem trường này có thực sự bắt buộc trong ngữ cảnh hiện tại hay không
+    const isRequired = this.checkFieldRequired(fieldName);
+    if (!isRequired) return undefined;
+
+    if (control.errors?.['required']) {
+      switch (fieldName) {
+        case 'province':
+          return 'Vui lòng chọn tỉnh!';
+        case 'customerShortName':
+          return 'Vui lòng nhập ký hiệu!';
+        case 'fullName':
+          return 'Vui lòng nhập tên khách hàng!';
+        case 'address':
+          return 'Vui lòng nhập địa chỉ!';
+        case 'majorId':
+          return 'Vui lòng chọn ngành nghề!';
+        case 'customerIndustryID':
+          return 'Vui lòng chọn lĩnh vực khách hàng!';
+        default:
+          return 'Trường này là bắt buộc!';
       }
     }
     return undefined;
   }
 
+  // Hàm helper để xác định một trường có bắt buộc hay không dựa trên rule mới
+  private checkFieldRequired(fieldName: string): boolean {
+    const alwaysRequired = ['province', 'customerShortName', 'fullName', 'address', 'majorId'];
+    if (alwaysRequired.includes(fieldName)) return true;
+
+    if (fieldName === 'customerIndustryID') {
+      // Bắt buộc nếu là Tạo mới HOẶC Cập nhật khách hàng sau ngày 11/04/2026
+      return !this.isEditMode || (this.isEditMode && this.dataCustomer.CreatedDate > '2026-04-11');
+    }
+
+    return false;
+  }
+
   // Method để validate form
   validateForm(): boolean {
     this.trimAllStringControls();
-    const requiredFields = [
-      'province',
-      'customerShortName',
-      'fullName',
-      'address',
-      'majorId',
-    ];
+    
+    // Sử dụng helper checkFieldRequired để lấy danh sách các trường cần validate
+    const allFields = ['province', 'customerShortName', 'fullName', 'address', 'majorId', 'customerIndustryID'];
+    const requiredFields = allFields.filter(field => this.checkFieldRequired(field));
+
     const invalidFields = requiredFields.filter((key) => {
       const control = this.formGroup.get(key);
       return (

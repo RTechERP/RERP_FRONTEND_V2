@@ -2,9 +2,9 @@ export interface EditLookupConfig {
     /** Static data source. Optional when loadData is provided (used as fallback for display). */
     data?: any[];
     /** Lazy load function: called on popup open and on global search input change.
-     *  Receives the current search query. Returns array or Promise<array>.
+     *  Receives the current search query and optional row data. Returns array or Promise<array>.
      *  When provided, the popup table data comes from this function. */
-    loadData?: (query: string) => any[] | Promise<any[]>;
+    loadData?: (query: string, rowData?: any) => any[] | Promise<any[]>;
     /** Columns displayed in the lookup popup */
     columns: { field: string; header: string; width?: string }[];
     /** Field from selected row to store as the cell value */
@@ -100,4 +100,8 @@ export interface ColumnDef {
     rowSpan?: boolean;
     /** Whether the column is visible. Default: true. Set to false to hide the column. */
     visible?: boolean;
+    /** Whether to exclude this column from excel/csv export. Default: false */
+    excludeFromExport?: boolean;
+    id?: string;
+    name?: string;
 }

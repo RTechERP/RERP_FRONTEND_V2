@@ -21,11 +21,8 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
-import { ViewContainerRef } from '@angular/core';
 import { SelectLeaderComponent } from '../project-control/select-leader.component';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
@@ -37,14 +34,25 @@ import { SelectProjectEmployeeGroupComponent } from '../project-control/select-p
 import { CustomerDetailComponent } from '../../crm/customers/customer-detail/customer-detail.component';
 
 import { FirmBaseDetailComponent } from '../firmbase-detail/firm-base-detail.component';
-// THÊM DÒNG NÀY:
+import { SelectApplicationTypeComponent } from '../project-control/select-application-type.component';
+import { SelectTechnologyComponent } from '../project-control/select-technology.component';
 import { combineLatest, debounceTime, distinctUntilChanged, filter } from 'rxjs';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { AuthService } from '../../../auth/auth.service';
+import { TreeTableModule } from 'primeng/treetable';
+import { CheckboxModule } from 'primeng/checkbox';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
+import { TreeNode } from 'primeng/api';
+import { CommonModule } from '@angular/common';
+import { CustomTreeTable } from '../../../shared/custom-tree-table/custom-tree-table';
+import { TreeColumnDef } from '../../../shared/custom-tree-table/tree-column-def.model';
 
 @Component({
   selector: 'app-project-detail',
+  standalone: true,
   imports: [
+    CommonModule,
     NzTabsModule,
     NzSelectModule,
     FormsModule,
@@ -56,6 +64,11 @@ import { AuthService } from '../../../auth/auth.service';
     NzButtonModule,
     NzModalModule,
     NzFormModule,
+    TreeTableModule,
+    CheckboxModule,
+    MultiSelectModule,
+    SelectModule,
+    CustomTreeTable
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.css',
@@ -63,16 +76,18 @@ import { AuthService } from '../../../auth/auth.service';
 export class ProjectDetailComponent implements OnInit, AfterViewInit {
   //#region Khai báo các biến
   @Input() projectId: any;
-  @ViewChild('tb_projectTypeLinks', { static: false })
-  tb_projectTypeLinksContainer!: ElementRef;
-  @ViewChild('tb_projectTypeLinksDetail', { static: false })
-  tb_projectTypeLinksDetailContainer!: ElementRef;
   @ViewChild('dateChangeStatus', { static: false })
   dateChangeStatusContainer!: TemplateRef<any>;
 
   projectIdleader: any = 0;
-  tb_projectTypeLinks: any;
-  tb_projectTypeLinksDetail: any;
+
+  projectTypeNodes: TreeNode[] = [];
+  selectedTypeNodes: TreeNode[] = [];
+  projectTypeCols: TreeColumnDef[] = [];
+
+  projectTypeNodesDetail: TreeNode[] = [];
+  selectedTypeNodesDetail: TreeNode[] = [];
+  projectTypeDetailCols: TreeColumnDef[] = [];
 
   customers: any[] = [];
   users: any[] = [];
@@ -80,6 +95,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   pms: any[] = [];
   firmBases: any[] = [];
   projectTypeBases: any[] = [];
+  customerIndustries: any[] = [];
 
   listPriorities: any;
   projectCode: any;
@@ -123,15 +139,22 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   projectStatus: any;
   projectStatusIdDetail: any;
   projects: any;
+  situlator: any;
 
   projectStatusId: any;
   projectContactName: any;
-
-  situlator: any;
-  situlatorDetail: any;
   currentTab: any = 0;
 
   dictLeader: { [key: number]: string } = {};
+  applicationTypes: any[] = [];
+  technologies: any[] = [];
+  dictApplicationTypes: { [key: number]: string } = {};
+  dictTechnologies: { [key: number]: string } = {};
+
+  leaderLookupConfig: any;
+  appLookupConfig: any;
+  techLookupConfig: any = {};
+
   currentUser: any = {};
   // Form validation
   formGroup: FormGroup;
@@ -159,6 +182,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       projectStatusId: [null],
       pmId: [null, [Validators.required]],
       endUserId: [null, [Validators.required]],
+      customerIndustryId: [{ value: null, disabled: true }],
+      endUserIndustryId: [{ value: null, disabled: true }],
       firmBaseId: [null],
       prjTypeBaseId: [null],
       expectedPlanDate: [null, [Validators.required]],
@@ -186,6 +211,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     // Đồng bộ dữ liệu từ form controls với các biến
     this.formGroup.get('customerId')?.valueChanges.subscribe(value => {
       this.customerId = value;
+      this.syncIndustry(value, 'customerIndustryId');
     });
     this.formGroup.get('projectName')?.valueChanges.subscribe(value => {
       this.projectName = value;
@@ -201,6 +227,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     });
     this.formGroup.get('endUserId')?.valueChanges.subscribe(value => {
       this.endUserId = value;
+      this.syncIndustry(value, 'endUserIndustryId');
     });
     this.formGroup.get('expectedPlanDate')?.valueChanges.subscribe(value => {
       this.expectedPlanDate = value;
@@ -260,43 +287,146 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     //   debugger
     //   this.getProjectCode();
     // });
+    this.initTableColumns();
   }
 
   ngAfterViewInit(): void {
-    if (this.tb_projectTypeLinksContainer?.nativeElement) {
-      this.drawTbProjectTypeLinks(
-        this.tb_projectTypeLinksContainer.nativeElement
-      );
-      this.getProjectTypeLinks();
-    }
-
-    // Khởi tạo bảng detail chỉ khi element tồn tại
-    // Nếu element chưa tồn tại (tab chưa được render), sẽ khởi tạo khi tab được active
-    if (this.tb_projectTypeLinksDetailContainer?.nativeElement) {
-      this.drawTbProjectTypeLinksDetail(
-        this.tb_projectTypeLinksDetailContainer.nativeElement
-      );
-      this.getProjectTypeLinksDetail();
-    }
-
-    this.getCustomers();
-    this.getFollowProjectBase();
-    this.getUsers();
+    this.getProject();
     this.getStatuses();
+    this.getCustomers();
+    this.getCustomerIndustries();
     this.getPms();
     this.getFirmBase();
     this.getProjectTypeBase();
-    this.getProjectLeader();
-
-    this.getProjectStatus();
-    this.getUserTeams();
-    this.loadProject(this.projectId);
-    this.getProject();
-    this.projectIdleader = this.projectId;
-    // Đảm bảo getCurrentUser() hoàn thành trước khi gọi getProjectCurrentSituation()
+    this.getApplicationTypes();
+    this.getTechnologies();
     this.getCurrentUser();
+    this.getUserTeams();
+    this.getProjectLeader();
+    this.getProjectStatus();
+    this.getProjectTypeLinks();
+    this.getProjectTypeLinksDetail();
+    this.getFollowProjectBase();
+    this.getUsers();
+    this.initLookupConfigs();
+    this.initTableColumns();
+    this.loadProject(this.projectId);
+    this.projectIdleader = this.projectId;
   }
   //#endregion
+
+  initTableColumns() {
+    this.projectTypeCols = [
+      { field: 'ProjectTypeName', header: 'Kiểu dự án', treeToggler: true, width: '200px' },
+      { field: 'FullName', header: 'Leader', width: '150px' },
+      {
+        field: 'ApplicationTypeIDs', header: 'Kiểu ứng dụng',
+        editable: true,
+        isEditable: (rowData) => !!rowData.Selected,
+        cellClass: (rowData) => !rowData.Selected ? 'cell-disabled' : '',
+        editType: 'table-lookup',
+        editLookupConfig: this.appLookupConfig
+      },
+      {
+        field: 'TechnologyIDs', header: 'Công nghệ ứng dụng',
+        editable: true,
+        isEditable: (rowData) => !!rowData.Selected,
+        cellClass: (rowData) => !rowData.Selected ? 'cell-disabled' : '',
+        editType: 'table-lookup',
+        editLookupConfig: this.techLookupConfig
+      }
+    ];
+
+    this.projectTypeDetailCols = [
+      { field: 'ProjectTypeName', header: 'Kiểu dự án', treeToggler: true },
+      {
+        field: 'LeaderID', header: 'Leader', width: '250px',
+        editable: true,
+        isEditable: (rowData) => true,
+        editType: 'lookup',
+        cssClass: 'app-leader',
+        editOptions: [] // Will be populated with projectUserTeams
+      },
+      {
+        field: 'ApplicationTypeIDs', header: 'Kiểu ứng dụng', width: '250px',
+        editable: true,
+        isEditable: (rowData) => !!rowData.Selected,
+        cellClass: (rowData) => !rowData.Selected ? 'cell-disabled' : '',
+        editType: 'multiselect',
+        editOptions: []
+      },
+      {
+        field: 'TechnologyIDs', header: 'Công nghệ ứng dụng', width: '250px',
+        editable: true,
+        isEditable: (rowData) => !!rowData.Selected,
+        cellClass: (rowData) => !rowData.Selected ? 'cell-disabled' : '',
+        editType: 'multiselect',
+        editOptions: []
+      }
+    ];
+  }
+
+  initLookupConfigs() {
+    this.leaderLookupConfig = {
+      data: this.projectUserTeams,
+      columns: [
+        { field: 'Code', header: 'Mã nhân viên', width: '120px' },
+        { field: 'FullName', header: 'Họ tên' }
+      ],
+      valueField: 'EmployeeID',
+      displayField: 'FullName'
+    };
+
+    this.appLookupConfig = {
+      data: this.applicationTypes,
+      multiSelect: true,
+      columns: [
+        { field: 'ApplicationName', header: 'Tên kiểu ứng dụng' }
+      ],
+      valueField: 'ID',
+      displayField: 'ApplicationName',
+      loadData: (query: string, rowData?: any) => {
+        const typeId = rowData?.ProjectTypeID || rowData?.ID;
+        let filtered = this.applicationTypes.filter(x => x.ProjectTypeID === typeId);
+        if (query) {
+          query = query.toLowerCase();
+          filtered = filtered.filter(x => x.ApplicationName?.toLowerCase().includes(query));
+        }
+        return filtered;
+      }
+    };
+
+    this.techLookupConfig = {
+      data: this.technologies,
+      multiSelect: true,
+      columns: [
+        { field: 'TechnologyName', header: 'Tên công nghệ' }
+      ],
+      valueField: 'ID',
+      displayField: 'TechnologyName',
+      loadData: (query: string, rowData?: any) => {
+        const typeId = rowData?.ProjectTypeID || rowData?.ID;
+        let filtered = this.technologies.filter(x => x.ProjectTypeID === typeId);
+        if (query) {
+          query = query.toLowerCase();
+          filtered = filtered.filter(x => x.TechnologyName?.toLowerCase().includes(query));
+        }
+        return filtered;
+      }
+    };
+  }
+
+  updateColumnOptions() {
+    // No longer needed to populate editOptions for dropdowns as we use table-lookup
+    // But we update the static data in the lookup configs
+    if (this.leaderLookupConfig) this.leaderLookupConfig.data = this.projectUserTeams;
+    if (this.appLookupConfig) this.appLookupConfig.data = this.applicationTypes;
+    if (this.techLookupConfig) this.techLookupConfig.data = this.technologies;
+  }
+
+  handleCellValueChange(event: any) {
+    // Optional logic to trigger dirty checking if needed, otherwise cell binding handles the model update
+  }
 
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
@@ -306,10 +436,38 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     });
   }
   //#region load dữ liệu từ API
+  getApplicationTypes() {
+    this.projectService.getApplicationTypes().subscribe({
+      next: (res: any) => {
+        this.applicationTypes = res.data;
+        this.applicationTypes.forEach((item: any) => {
+          this.dictApplicationTypes[item.ID] = item.ApplicationName;
+        });
+        this.updateColumnOptions();
+      }
+    });
+  }
+
+  getTechnologies() {
+    this.projectService.getTechnologies().subscribe({
+      next: (res: any) => {
+        this.technologies = res.data;
+        this.technologies.forEach((item: any) => {
+          this.dictTechnologies[item.ID] = item.TechnologyName;
+        });
+        this.updateColumnOptions();
+      }
+    });
+  }
   getCustomers() {
     this.projectService.getCustomers().subscribe({
       next: (response: any) => {
         this.customers = response.data;
+        // Thực hiện đồng bộ industry sau khi đã có danh sách khách hàng
+        const customerId = this.formGroup.get('customerId')?.value;
+        const endUserId = this.formGroup.get('endUserId')?.value;
+        if (customerId) this.syncIndustry(customerId, 'customerIndustryId');
+        if (endUserId) this.syncIndustry(endUserId, 'endUserIndustryId');
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
@@ -317,6 +475,31 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         console.error('Lỗi:', error.error);
       },
     });
+  }
+
+  getCustomerIndustries() {
+    this.projectService.getCustomerIndustries().subscribe({
+      next: (response: any) => {
+        this.customerIndustries = response.data;
+      },
+      error: (error: any) => {
+        const msg = error.message || 'Lỗi không xác định';
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
+      },
+    });
+  }
+
+  syncIndustry(customerId: any, targetControl: string) {
+    if (!customerId || this.customers.length === 0) {
+      this.formGroup.get(targetControl)?.patchValue(null);
+      return;
+    }
+    const customer = this.customers.find(x => x.ID === customerId);
+    if (customer && customer.CustomerIndustriesID) {
+      this.formGroup.get(targetControl)?.patchValue(customer.CustomerIndustriesID);
+    } else {
+      this.formGroup.get(targetControl)?.patchValue(null);
+    }
   }
 
   getUsers() {
@@ -779,6 +962,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     this.projectService.getUserTeams().subscribe({
       next: (response: any) => {
         this.projectUserTeams = response.data;
+        this.updateColumnOptions();
         this.getProjectTypeLinksDetail();
         this.createLabelsFromData();
       },
@@ -880,9 +1064,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   save() {
-    const allData = this.tb_projectTypeLinks.getData();
-    const projectTypeLinks =
-      this.projectService.getSelectedRowsRecursive(allData);
+    const projectTypeLinks = this.getSelectedData(this.projectTypeNodes);
 
     // Kiểm tra mã dự án
     if (!this.projectCode) {
@@ -1059,11 +1241,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const prjTypeLinks = this.projectService.getSelectedRowsRecursive(
-      this.tb_projectTypeLinksDetail.getData()
-    );
+    const prjTypeLinks = this.getSelectedData(this.projectTypeNodesDetail);
 
-    // Lấy giá trị từ form controls
     const projectIdleader = this.formGroup.get('projectIdleader')?.value;
     const projectStatusIdDetail = this.formGroup.get('projectStatusIdDetail')?.value;
     const situlatorDetail = this.formGroup.get('situlatorDetail')?.value;
@@ -1094,59 +1273,74 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
     });
   }
-  //#endregion
 
-  //#region Xử lý bẳng chi tiết dự án
-  drawTbProjectTypeLinks(container: HTMLElement) {
-    this.tb_projectTypeLinks = new Tabulator(container, {
-      height: '28vh',
-      dataTree: true,
-      dataTreeStartExpanded: true,
-      layout: 'fitDataStretch',
-      locale: 'vi',
-
-      columns: [
-        {
-          title: 'Chọn',
-          field: 'Selected',
-          headerHozAlign: 'center',
-          formatter: function (cell, formatterParams, onRendered) {
-            const checked = cell.getValue() ? 'checked' : '';
-            return `<input type='checkbox' ${checked} />`;
-          },
-          cellClick: function (e, cell) {
-            const newValue = !cell.getValue();
-            const row = cell.getRow();
-            if (row.getTreeChildren && row.getTreeChildren().length > 0) {
-              const children = row.getTreeChildren();
-
-              children.forEach((childRow) => {
-                const childData = childRow.getData();
-                childRow.update({ Selected: newValue });
-              });
-            }
-            cell.setValue(newValue);
-          },
-          hozAlign: 'center',
-          width: '20px',
-        },
-        {
-          title: 'Kiểu dự án',
-          field: 'ProjectTypeName',
-          headerHozAlign: 'center',
-        },
-        { title: 'Leader', field: 'FullName', headerHozAlign: 'center' },
-      ],
+  mapToTreeNodes(data: any[]): TreeNode[] {
+    return data.map(item => {
+      const node: TreeNode = {
+        data: item,
+        expanded: true,
+        children: item._children ? this.mapToTreeNodes(item._children) : []
+      };
+      return node;
     });
   }
 
+  syncSelectionToData(nodes: TreeNode[], selection: TreeNode[]) {
+    nodes.forEach(node => {
+      node.data.Selected = selection.some(s => s.data.ID === node.data.ID);
+      if (node.children) {
+        this.syncSelectionToData(node.children, selection);
+      }
+    });
+  }
+
+  onSelectionChange(event: any, isDetail: boolean = false) {
+    if (isDetail) {
+      this.selectedTypeNodesDetail = event;
+      this.syncSelectionToData(this.projectTypeNodesDetail, event);
+    } else {
+      this.selectedTypeNodes = event;
+      this.syncSelectionToData(this.projectTypeNodes, event);
+    }
+  }
+
+  getFlatNodes(nodes: TreeNode[], selection: TreeNode[]) {
+    nodes.forEach(node => {
+      if (node.data.Selected) {
+        selection.push(node);
+      }
+      if (node.children) {
+        this.getFlatNodes(node.children, selection);
+      }
+    });
+  }
+  //#endregion
+
+  //#endregion
+
 
   getProjectTypeLinks() {
-    this.projectService.getProjectTypeLinks(this.projectId).subscribe({
-      next: (response: any) => {
-        this.tb_projectTypeLinks.setData(
-          this.projectService.setDataTree(response.data, 'ID')
-        );
+    combineLatest([
+      this.projectService.getProjectTypeLinks(this.projectId),
+      this.projectService.getProjectApplicationLinks(this.projectId),
+      this.projectService.getProjectTechnologyLinks(this.projectId)
+    ]).subscribe({
+      next: ([responseLinks, responseApps, responseTechs]: any) => {
+        const links = responseLinks.data || [];
+        const apps = (responseApps.data || []);
+        const techs = (responseTechs.data || []);
+
+        links.forEach((item: any) => {
+          item.ApplicationTypeIDs = apps.filter((a: any) => a.ProjectTypeLinkID == item.ProjectTypeLinkID).map((x: any) => x.ApplicationTypeID);
+          item.TechnologyIDs = techs.filter((a: any) => a.ProjectTypeLinkID == item.ProjectTypeLinkID).map((x: any) => x.TechnologyID);
+        });
+
+        const treeData = this.projectService.setDataTree(links, 'ID');
+        this.projectTypeNodes = this.mapToTreeNodes(treeData);
+
+        // Sync initial selection
+        this.selectedTypeNodes = [];
+        this.getFlatNodes(this.projectTypeNodes, this.selectedTypeNodes);
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
@@ -1158,64 +1352,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
   //#endregion
 
-  //#region xử lý kiểu dự án cập nhật leader
-  drawTbProjectTypeLinksDetail(container: HTMLElement) {
-    this.tb_projectTypeLinksDetail = new Tabulator(container, {
-      height: '30vh',
-      dataTree: true,
-      dataTreeStartExpanded: true,
-      layout: 'fitDataStretch',
-      locale: 'vi',
-      columns: [
-        {
-          title: 'Chọn',
-          field: 'Selected',
-          formatter: function (cell, formatterParams, onRendered) {
-            const checked = cell.getValue() ? 'checked' : '';
-            return `<input type='checkbox' ${checked} />`;
-          },
-          cellClick: function (e, cell) {
-            const newValue = !cell.getValue();
-            const row = cell.getRow();
-            if (row.getTreeChildren && row.getTreeChildren().length > 0) {
-              const children = row.getTreeChildren();
-
-              children.forEach((childRow) => {
-                const childData = childRow.getData();
-                childRow.update({ Selected: newValue });
-              });
-            }
-            cell.setValue(newValue);
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-        },
-        {
-          title: 'Kiểu dự án',
-          field: 'ProjectTypeName',
-          headerHozAlign: 'center',
-        },
-        {
-          title: 'Leader',
-          field: 'LeaderID',
-          headerHozAlign: 'center',
-          editor: this.createdControl(
-            SelectLeaderComponent,
-            this.injector,
-            this.appRef,
-            this.projectUserTeams
-          ),
-          formatter: (cell) => {
-            const val = cell.getValue();
-            console.log(this.dictLeader);
-            return val
-              ? `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${this.dictLeader[val]}</p> <i class="fas fa-angle-down"></i> <div>`
-              : '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">Chọn leader</p> <i class="fas fa-angle-down"></i> <div>';
-          },
-        },
-      ],
-    });
-  }
+  //#endregion
 
   createLabelsFromData() {
     this.dictLeader = {};
@@ -1229,26 +1366,27 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   getProjectTypeLinksDetail() {
-    // Kiểm tra bảng đã được khởi tạo chưa
-    if (!this.tb_projectTypeLinksDetail) {
-      // Nếu chưa khởi tạo và element đã tồn tại, khởi tạo ngay
-      if (this.tb_projectTypeLinksDetailContainer?.nativeElement) {
-        this.drawTbProjectTypeLinksDetail(
-          this.tb_projectTypeLinksDetailContainer.nativeElement
-        );
-      } else {
-        // Nếu element chưa tồn tại, bỏ qua (sẽ được khởi tạo khi tab được active)
-        return;
-      }
-    }
+    combineLatest([
+      this.projectService.getProjectTypeLinks(this.projectIdleader),
+      this.projectService.getProjectApplicationLinks(this.projectIdleader),
+      this.projectService.getProjectTechnologyLinks(this.projectIdleader)
+    ]).subscribe({
+      next: ([responseLinks, responseApps, responseTechs]: any) => {
+        const links = responseLinks.data || [];
+        const apps = (responseApps.data || []);
+        const techs = (responseTechs.data || []);
 
-    this.projectService.getProjectTypeLinks(this.projectIdleader).subscribe({
-      next: (response: any) => {
-        if (this.tb_projectTypeLinksDetail) {
-          this.tb_projectTypeLinksDetail.setData(
-            this.projectService.setDataTree(response.data, 'ID')
-          );
-        }
+        links.forEach((item: any) => {
+          item.ApplicationTypeIDs = apps.filter((a: any) => a.ProjectTypeLinkID == item.ProjectTypeLinkID).map((x: any) => x.ApplicationTypeID);
+          item.TechnologyIDs = techs.filter((a: any) => a.ProjectTypeLinkID == item.ProjectTypeLinkID).map((x: any) => x.TechnologyID);
+        });
+
+        const treeData = this.projectService.setDataTree(links, 'ID');
+        this.projectTypeNodesDetail = this.mapToTreeNodes(treeData);
+
+        // Sync initial selection
+        this.selectedTypeNodesDetail = [];
+        this.getFlatNodes(this.projectTypeNodesDetail, this.selectedTypeNodesDetail);
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
@@ -1256,6 +1394,23 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         console.error('Lỗi:', error.error);
       },
     });
+  }
+
+  getApplicationOptions(rowData: any) {
+    if (!rowData) return [];
+    const typeId = rowData.ProjectTypeID || rowData.ID;
+    return this.applicationTypes.filter((x: any) => x.ProjectTypeID === typeId);
+  }
+
+  getTechnologyOptions(rowData: any) {
+    if (!rowData) return [];
+    const typeId = rowData.ProjectTypeID || rowData.ID;
+    return this.technologies.filter((x: any) => x.ProjectTypeID === typeId);
+  }
+
+  getNames(ids: any[], dict: any) {
+    if (!ids || !Array.isArray(ids)) return '';
+    return ids.map(id => dict[id]).filter(n => n).join(', ');
   }
 
   createdControl(
@@ -1295,9 +1450,41 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     };
   }
 
-  getdt() {
-    console.log(this.tb_projectTypeLinksDetail.getData());
+  createdControlMulti(
+    component: Type<any>,
+    injector: EnvironmentInjector,
+    appRef: ApplicationRef,
+    optionsFn: (cell: any) => any[]
+  ) {
+    return (cell: any, onRendered: any, success: any, cancel: any, editorParams: any) => {
+      const container = document.createElement('div');
+      container.style.width = '100%';
+      container.style.height = '100%';
+      container.style.display = 'block';
+      const componentRef = createComponent(component, {
+        environmentInjector: injector,
+      });
+
+      componentRef.instance.selectedIds = cell.getValue() || [];
+      componentRef.instance.options = optionsFn(cell);
+
+      componentRef.instance.valueChange.subscribe((val: any) => {
+        success(val);
+      });
+
+      container.appendChild((componentRef.hostView as any).rootNodes[0]);
+      appRef.attachView(componentRef.hostView);
+
+      onRendered(() => {
+        if (container.firstElementChild) {
+          const focusEl = container.firstElementChild.querySelector('input') || container.firstElementChild;
+          (focusEl as HTMLElement).focus();
+        }
+      });
+      return container;
+    };
   }
+
   //#endregion
 
   //#region sự kiện chuyển tab
@@ -1307,15 +1494,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       this.projectStatusIdDetail = this.projectTypeId;
       this.currentTab = 1;
 
-      // Đợi DOM render xong rồi mới khởi tạo bảng
-      setTimeout(() => {
-        if (this.tb_projectTypeLinksDetailContainer?.nativeElement && !this.tb_projectTypeLinksDetail) {
-          this.drawTbProjectTypeLinksDetail(
-            this.tb_projectTypeLinksDetailContainer.nativeElement
-          );
-        }
-        this.loadAll();
-      }, 0);
+      // Tải lại dữ liệu cho bảng detail
+      this.getProjectTypeLinksDetail();
+      this.loadAll();
     } else {
       this.currentTab = 0;
     }
@@ -1449,22 +1630,42 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       return false;
     }
 
-    // Kiểm tra bảng kiểu dự án có ít nhất 1 dòng được chọn
-    if (this.tb_projectTypeLinks) {
-      const allData = this.tb_projectTypeLinks.getData();
-      const projectTypeLinks = this.projectService.getSelectedRowsRecursive(allData);
+    // Lấy dữ liệu projectTypeLinks và statusId để kiểm tra attributes
+    const projectTypeLinks = this.getSelectedData(this.projectTypeNodes);
 
-      // Chỉ kiểm tra nếu projectTypeId <= 1 (Dự án hoặc Thương mại)
-      if (this.projectTypeId <= 1 && projectTypeLinks.length === 0) {
-        this.notification.error('Thông báo', 'Vui lòng chọn ít nhất 1 kiểu dự án trong bảng!');
-        this.formGroup.markAllAsTouched();
-        return false;
-      }
+    // Chỉ kiểm tra nếu projectTypeId <= 1 (Dự án hoặc Thương mại)
+    if (this.projectTypeId <= 1 && projectTypeLinks.length === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn ít nhất 1 kiểu dự án trong bảng!');
+      this.formGroup.markAllAsTouched();
+      return false;
+    }
+
+    const currentProjectStatusId = this.formGroup.get('projectStatusId')?.value;
+    if (!this.validateProjectAttributes(projectTypeLinks, currentProjectStatusId)) {
+      return false;
     }
 
     if (invalidFields.length > 0) {
       this.formGroup.markAllAsTouched();
       return false;
+    }
+    return true;
+  }
+
+  validateProjectAttributes(gridData: any[], statusId: number): boolean {
+    const VALID_STATUS_FOR_ATTRIBUTES = [4, 5, 9];
+    if (VALID_STATUS_FOR_ATTRIBUTES.includes(parseInt(statusId.toString()))) {
+      const selectedLinks = gridData.filter(x => x.Selected === true);
+      for (const link of selectedLinks) {
+        if (!link.ApplicationTypeIDs || !Array.isArray(link.ApplicationTypeIDs) || link.ApplicationTypeIDs.length === 0) {
+          this.notification.error('Thông báo', `Vui lòng chọn kiểu ứng dụng cho loại dự án: ${link.ProjectTypeName}`);
+          return false;
+        }
+        if (!link.TechnologyIDs || !Array.isArray(link.TechnologyIDs) || link.TechnologyIDs.length === 0) {
+          this.notification.error('Thông báo', `Vui lòng chọn công nghệ sử dụng cho loại dự án: ${link.ProjectTypeName}`);
+          return false;
+        }
+      }
     }
     return true;
   }
@@ -1485,9 +1686,27 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     }
     if (!isValid) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn dự án và trạng thái!');
+      return false;
     }
 
-    return isValid;
+    const projectTypeLinks = this.getSelectedData(this.projectTypeNodesDetail);
+    if (!this.validateProjectAttributes(projectTypeLinks, projectStatusIdDetail?.value)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  getSelectedData(nodes: TreeNode[], result: any[] = []) {
+    nodes.forEach(node => {
+      if (node.data.Selected) {
+        result.push(node.data);
+      }
+      if (node.children) {
+        this.getSelectedData(node.children, result);
+      }
+    });
+    return result;
   }
   openAddCustomer() {
     const modalRef = this.modalService.open(CustomerDetailComponent, {

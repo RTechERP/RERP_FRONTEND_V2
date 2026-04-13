@@ -1143,7 +1143,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
 
     getBillImportDetail(id: number): void {
         this.isDetailLoad = true;
-        this.billImportService.getBillImportDetail(id).subscribe({
+        this.billImportService.getViewDetail(id).subscribe({
             next: (res) => {
                 this.datasetDetail = res.data || [];
                 this.datasetDetail = this.datasetDetail.map((item: any) => ({

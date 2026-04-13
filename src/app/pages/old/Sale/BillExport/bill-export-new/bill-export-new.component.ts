@@ -1061,14 +1061,14 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         }
 
         this.isDetailLoad = true;
-        this.billExportService.getBillExportDetail(billExportID).subscribe({
+        this.billExportService.getViewDetail(billExportID).subscribe({
             next: (res) => {
                 this.isDetailLoad = false;
                 if (res.status === 1 && res.data) {
                     this.datasetDetail = res.data;
-                    this.datasetDetail = this.datasetDetail.map((item: any) => ({
+                    this.datasetDetail = this.datasetDetail.map((item: any, index: number) => ({
                         ...item,
-                        id: item.ID
+                        id: item.ID > 0 ? item.ID : -(index + 1)
                     }));
                     this.sizeTbDetail = res.data.length;
                     this.updateTabDetailTitle();
@@ -1163,14 +1163,14 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         modalRef.componentInstance.isCheckmode = this.isCheckmode;
         modalRef.componentInstance.id = isCheckmode ? this.id : 0; // Chỉ truyền id khi sửa
         modalRef.componentInstance.wareHouseCode = this.warehouseCode;
-        modalRef.result.then(() => {
-            this.isModalOpening = false;
-        }).catch((result) => {
+        modalRef.result.then((result) => {
             this.isModalOpening = false;
             if (result === true) {
                 this.id = 0;
                 this.loadDataBillExport();
             }
+        }).catch(() => {
+            this.isModalOpening = false;
         });
     }
 

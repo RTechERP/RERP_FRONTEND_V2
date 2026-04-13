@@ -41,7 +41,6 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { SupplierSaleService } from '../supplier-sale/supplier-sale.service';
 import { NzSpinComponent } from 'ng-zorro-antd/spin';
 import { PonccDetailComponent } from '../poncc/poncc-detail/poncc-detail.component';
-import { PonccSummaryComponent } from '../poncc/poncc-summary/poncc-summary.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { BillImportDetailComponent } from '../../old/Sale/BillImport/Modal/bill-import-detail/bill-import-detail.component';
@@ -60,6 +59,7 @@ import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { BillImportDetailNewComponent } from '../../old/Sale/BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
+import { PonccSummaryComponent } from '../poncc/poncc-summary/poncc-summary.component';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -2830,12 +2830,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onOpenSummary() {
-    const modalRef = this.modalService.open(PonccSummaryComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-      windowClass: 'full-screen-modal',
+    this.tabService.openTabComp({
+      comp: PonccSummaryComponent,
+      title: 'Tổng hợp PONCC',
+      key: 'poncc-summary',
+      data: {}
     });
   }
 

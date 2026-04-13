@@ -201,6 +201,41 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                formatter: (
+                    row: number,
+                    cell: number,
+                    value: any,
+                    columnDef: Column,
+                    dataContext: any
+                ) => {
+                    const statusNew = dataContext['StatusNew'];
+                    const status = dataContext['Status'];
+                    const billExportID = dataContext['BillExportTechnicalID'] || 0;
+
+                    let bgColor = '';
+                    let textColor = 'black';
+
+                    if (statusNew == 6) {
+                        // Sắp đến ngày
+                        bgColor = 'rgb(255, 255, 74)';
+                    } else if (statusNew == 5) {
+                        // Quá hạn
+                        bgColor = 'rgb(239, 31, 62)';
+                        textColor = 'white';
+                    } else if (status == 4) {
+                        // Đăng ký trả
+                        bgColor = 'rgb(0, 255, 0)';
+                    } else if (billExportID > 0) {
+                        // Từ phiếu xuất
+                        bgColor = 'rgb(128, 255, 255)';
+                    }
+
+                    if (bgColor) {
+                        return `<span style="background-color: ${bgColor}; color: ${textColor}; display: block; width: 100%; height: 100%; padding: 3px;">${value || ''
+                            }</span>`;
+                    }
+                    return value || '';
+                },
             },
             {
                 id: 'AdminConfirm',
@@ -217,6 +252,21 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                         { value: true, label: 'Có' },
                         { value: false, label: 'Không' },
                     ],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'ProductCode',
+                field: 'ProductCode',
+                name: 'Mã sản phẩm',
+                minWidth: 160,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
                     filterOptions: {
                         filter: true,
                     } as MultipleSelectOption,
@@ -252,21 +302,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                     } as MultipleSelectOption,
                 },
             },
-            {
-                id: 'ProductCode',
-                field: 'ProductCode',
-                name: 'Mã sản phẩm',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
+
             {
                 id: 'ProductQRCode',
                 field: 'ProductQRCode',
@@ -410,57 +446,23 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                     } as MultipleSelectOption,
                 },
             },
-            {
-                id: 'FullName',
-                field: 'FullName',
-                name: 'Người mượn',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-                // Custom formatter for cell coloring
-                formatter: (
-                    row: number,
-                    cell: number,
-                    value: any,
-                    columnDef: Column,
-                    dataContext: any
-                ) => {
-                    const statusNew = dataContext['StatusNew'];
-                    const status = dataContext['Status'];
-                    const billExportID = dataContext['BillExportTechnicalID'] || 0;
+            // {
+            //     id: 'FullName',
+            //     field: 'FullName',
+            //     name: 'Người mượn',
+            //     width: 150,
+            //     sortable: true,
+            //     filterable: true,
+            //     filter: {
+            //         model: Filters['multipleSelect'],
+            //         collection: [],
+            //         filterOptions: {
+            //             filter: true,
+            //         } as MultipleSelectOption,
+            //     },
+            //     // Custom formatter for cell coloring
 
-                    let bgColor = '';
-                    let textColor = 'black';
-
-                    if (statusNew == 6) {
-                        // Sắp đến ngày
-                        bgColor = 'rgb(255, 255, 74)';
-                    } else if (statusNew == 5) {
-                        // Quá hạn
-                        bgColor = 'rgb(239, 31, 62)';
-                        textColor = 'white';
-                    } else if (status == 4) {
-                        // Đăng ký trả
-                        bgColor = 'rgb(0, 255, 0)';
-                    } else if (billExportID > 0) {
-                        // Từ phiếu xuất
-                        bgColor = 'rgb(128, 255, 255)';
-                    }
-
-                    if (bgColor) {
-                        return `<span style="background-color: ${bgColor}; color: ${textColor}; display: block; width: 100%; height: 100%; padding: 3px;">${value || ''
-                            }</span>`;
-                    }
-                    return value || '';
-                },
-            },
+            // },
             {
                 id: 'DateBorrow',
                 field: 'DateBorrow',
@@ -693,6 +695,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
             enableHtmlRendering: true,
             showFooterRow: true,
             createFooterRow: true,
+            frozenColumn: 3,
         };
     }
 

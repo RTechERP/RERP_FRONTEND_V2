@@ -5,8 +5,11 @@ import {
   EventEmitter,
   OnInit,
   OnChanges,
+  OnDestroy,
   SimpleChanges,
   ViewChild,
+  ViewChildren,
+  QueryList,
   ElementRef,
   HostListener,
 } from '@angular/core';
@@ -23,7 +26,12 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
-import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { VgCoreModule, VgApiService } from '@videogular/ngx-videogular/core';
+import { VgControlsModule } from '@videogular/ngx-videogular/controls';
+import { VgOverlayPlayModule } from '@videogular/ngx-videogular/overlay-play';
+import { VgBufferingModule } from '@videogular/ngx-videogular/buffering';
 import { CourseManagementService } from '../../../course-management/course-management-service/course-management.service';
 import { CoursePracticeService } from '../../course-practice.service';
 import { environment } from '../../../../../../environments/environment';
@@ -77,6 +85,12 @@ interface CourseLesson {
   LastWatchedSecond?: number;
   MaxWatchedSecond?: number;
   WatchedPercent?: number;
+  Chapters?: Chapter[];
+
+}
+export interface Chapter {
+  title: string;
+  startTime: number;
 }
 
 @Component({
@@ -91,11 +105,15 @@ interface CourseLesson {
     NzCheckboxModule,
     NzDropDownModule,
     NzToolTipModule,
+    VgCoreModule,
+    VgControlsModule,
+    VgOverlayPlayModule,
+    VgBufferingModule,
   ],
   templateUrl: './lesson-view.component.html',
   styleUrl: './lesson-view.component.css',
 })
-export class LessonViewComponent implements OnChanges, OnInit {
+export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
   @Input() lessonData: CourseLesson[] = [];
   @Input() selectedCourseName: string = '';
   @Input() splitterLayout: 'horizontal' | 'vertical' = 'horizontal';
@@ -133,15 +151,42 @@ export class LessonViewComponent implements OnChanges, OnInit {
   private maxWatchedSecond: number = 0;
   public urlPDF?: SafeResourceUrl;
   private readonly INTERVAL = 1; // 1 second
+  chapters: Chapter[] = [
+    // { title: 'Giới thiệu', startTime: 0, endTime: 120 },
+    // { title: 'Cài đặt môi trường', startTime: 120, endTime: 240 },
+    // { title: 'Viết code cơ bản', startTime: 240, endTime: 360 },
+    // { title: 'Xử lý sự kiện', startTime: 360, endTime: 480 },
+    // { title: 'Kết thúc & Bài tập', startTime: 480, endTime: 654 }
+  ];
+
+  // Tooltip & Preview features
+  tooltipVisible = false;
+  tooltipText = '';
+  tooltipTime = '';
+  tooltipFixedX = 0;
+  tooltipFixedY = 0;
+  activeChapterIndex = 0;
+  hoveredChapterIndex = -1;
+  currentChapterName = '';
+  isUserActive = true;
+  private userActiveTimer: any;
+  private readonly INACTIVE_TIME = 3000; // 3 seconds
+  private timeUpdateInterval: any;
+  private lastSeekTime = -1;
+  private seekDebounceTimer: any = null;
 
   // ViewChild for video player to force reload
-  @ViewChild('videoPlayer') videoPlayer!: ElementRef<HTMLVideoElement>;
+  // Videogular API
+  vgApi: VgApiService | null = null;
+  @ViewChild('previewVideo') previewVideoRef?: ElementRef<HTMLVideoElement>;
+  @ViewChild('playerWrapper') playerWrapperRef!: ElementRef<HTMLDivElement>;
+  @ViewChildren('chapterItem') chapterItemRefs!: QueryList<ElementRef>;
 
   constructor(
     private coursePracticeService: CoursePracticeService,
     private courseService: CourseManagementService,
     private sanitizer: DomSanitizer,
-    private message: NzMessageService,
+    private notification: NzNotificationService,
   ) { }
 
   /**
@@ -164,6 +209,200 @@ export class LessonViewComponent implements OnChanges, OnInit {
 
     return this.sanitizer.bypassSecurityTrustHtml(processedHtml);
   }
+  formatTime(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    return h > 0
+      ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+      : `${m}:${s.toString().padStart(2, '0')}`;
+  }
+  getChapterLeft(chapter: Chapter): string {
+    if (!this.videoDuration) return '0%';
+    return (chapter.startTime / this.videoDuration * 100) + '%';
+  }
+
+  getChapterWidth(chapter: Chapter, index: number): string {
+    const duration = this.videoDuration || 0;
+    if (duration === 0) return '0%';
+    const nextStart = this.chapters[index + 1]?.startTime ?? duration;
+    const chunkDuration = Math.max(0, nextStart - chapter.startTime);
+    return (chunkDuration / duration * 100) + '%';
+  }
+
+  getChapterDuration(chapter: Chapter, index: number): string {
+    const duration = this.videoDuration || 0;
+    const nextStart = this.chapters[index + 1]?.startTime ?? duration;
+    return this.formatTime(nextStart - chapter.startTime);
+  }
+
+  onPlayerReady(api: VgApiService) {
+    this.vgApi = api;
+
+    this.vgApi.getDefaultMedia().subscriptions.timeUpdate.subscribe(() => {
+      this.onTimeUpdate();
+      this.updateCurrentChapter();
+    });
+
+    this.vgApi.getDefaultMedia().subscriptions.seeking.subscribe(() => {
+      this.onSeeking();
+    });
+
+    this.vgApi.getDefaultMedia().subscriptions.loadedMetadata.subscribe(() => {
+      this.videoDuration = Math.floor(this.vgApi!.getDefaultMedia().duration);
+      this.updateCurrentChapter();
+    });
+
+    // Set video to resume from last position once ready
+    if (this.lastWatchedSecond > 0) {
+      this.setVideoStartPosition();
+    }
+  }
+
+  updateCurrentChapter() {
+    const video = this.vgApi?.getDefaultMedia()?.elem;
+    if (!video || this.chapters.length === 0) return;
+
+    const t = video.currentTime;
+    const duration = this.videoDuration || 0;
+
+    const index = this.chapters.findIndex((ch, i) => {
+      const nextStart = this.chapters[i + 1]?.startTime ?? duration;
+      return t >= ch.startTime && t < nextStart;
+    });
+
+    if (index !== -1 && index !== this.activeChapterIndex) {
+      this.activeChapterIndex = index;
+      this.currentChapterName = this.chapters[index].title;
+      this.scrollToActiveChapter(index);
+    }
+  }
+
+  private scrollToActiveChapter(index: number) {
+    setTimeout(() => {
+      const element = this.chapterItemRefs?.toArray()[index]?.nativeElement;
+      if (element) {
+        const container = element.parentElement;
+        if (container) {
+          container.scrollTo({
+            top: element.offsetTop,
+            behavior: 'smooth',
+          });
+        }
+      }
+    }, 100);
+  }
+
+  goToNextChapter() {
+    const next = this.activeChapterIndex + 1;
+    if (next < this.chapters.length) {
+      this.onClickChapter(this.chapters[next], next);
+    }
+  }
+
+  onClickChapter(chapter: Chapter, index: number) {
+    const video = this.vgApi?.getDefaultMedia()?.elem;
+    if (!video) return;
+
+    this.activeChapterIndex = index;
+    this.currentChapterName = chapter.title;
+    video.currentTime = chapter.startTime;
+    video.play();
+    this.resetUserActive();
+  }
+
+  private resetUserActive() {
+    this.isUserActive = true;
+    if (this.userActiveTimer) clearTimeout(this.userActiveTimer);
+
+    this.userActiveTimer = setTimeout(() => {
+      // Only hide if video is playing
+      const video = this.vgApi?.getDefaultMedia()?.elem;
+      if (video && !video.paused) {
+        this.isUserActive = false;
+      }
+    }, this.INACTIVE_TIME);
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  onDocumentMouseMove(event: MouseEvent) {
+    this.resetUserActive();
+
+    if (!this.playerWrapperRef || !this.videoDuration || this.chapters.length === 0 || !this.vgApi) {
+      this.tooltipVisible = false;
+      return;
+    }
+
+    const wrapper = this.playerWrapperRef.nativeElement;
+    const vgPlayer = wrapper.querySelector('vg-player') as HTMLElement;
+    if (!vgPlayer) { this.tooltipVisible = false; return; }
+
+    const playerRect = vgPlayer.getBoundingClientRect();
+    const mouseX = event.clientX;
+    const mouseY = event.clientY;
+
+    const inHorizontal = mouseX >= playerRect.left && mouseX <= playerRect.right;
+    const inBottom = mouseY >= (playerRect.bottom - 100) && mouseY <= playerRect.bottom;
+
+    if (inHorizontal && inBottom) {
+      const relativeX = mouseX - playerRect.left;
+      const percent = Math.max(0, Math.min(1, relativeX / playerRect.width));
+      const time = percent * this.videoDuration;
+
+      const chapterIndex = this.chapters.findIndex((ch, i) => {
+        const nextStart = this.chapters[i + 1]?.startTime ?? this.videoDuration!;
+        return time >= ch.startTime && time < nextStart;
+      });
+
+      if (chapterIndex !== -1) {
+        this.hoveredChapterIndex = chapterIndex;
+        const chapter = this.chapters[chapterIndex];
+        this.tooltipVisible = true;
+        this.tooltipText = chapter.title;
+        this.tooltipTime = this.formatTime(time);
+
+        // Clamp relative X within player boundaries
+        const tooltipWidth = 160;
+        const minX = tooltipWidth / 2;
+        const maxX = playerRect.width - tooltipWidth / 2;
+        this.tooltipFixedX = Math.max(minX, Math.min(maxX, relativeX));
+
+        // Position tooltip 150px above the player bottom
+        this.tooltipFixedY = playerRect.height - 180;
+        this.seekPreview(time);
+      } else {
+        // Fallback for parts not assigned to a chapter
+        this.tooltipVisible = true;
+        this.tooltipText = 'Video';
+        this.tooltipTime = this.formatTime(time);
+        this.hoveredChapterIndex = -1;
+
+        const tooltipWidth = 160;
+        const minX = tooltipWidth / 2;
+        const maxX = playerRect.width - tooltipWidth / 2;
+        this.tooltipFixedX = Math.max(minX, Math.min(maxX, relativeX));
+        this.tooltipFixedY = playerRect.height - 180;
+        this.seekPreview(time);
+      }
+    } else {
+      this.tooltipVisible = false;
+      this.hoveredChapterIndex = -1;
+    }
+  }
+
+  private seekPreview(time: number) {
+    const video = this.previewVideoRef?.nativeElement;
+    if (!video) return;
+
+    const roundedTime = Math.floor(time);
+    if (roundedTime === this.lastSeekTime) return;
+    this.lastSeekTime = roundedTime;
+
+    if (this.seekDebounceTimer) clearTimeout(this.seekDebounceTimer);
+    this.seekDebounceTimer = setTimeout(() => {
+      video.currentTime = roundedTime;
+    }, 50);
+  }
 
   ngOnInit(): void {
     // Bắt các sự kiện để lưu progress
@@ -176,6 +415,16 @@ export class LessonViewComponent implements OnChanges, OnInit {
 
   ngOnDestroy() {
     this.flush();
+
+    if (this.timeUpdateInterval) clearInterval(this.timeUpdateInterval);
+    if (this.seekDebounceTimer) clearTimeout(this.seekDebounceTimer);
+
+    const preview = this.previewVideoRef?.nativeElement;
+    if (preview) {
+      preview.pause();
+      preview.src = '';
+      preview.remove();
+    }
 
     // Cleanup tất cả listeners
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
@@ -216,7 +465,7 @@ export class LessonViewComponent implements OnChanges, OnInit {
   };
 
   private forcePause() {
-    const video = this.videoPlayer?.nativeElement;
+    const video = this.vgApi?.getDefaultMedia()?.elem;
     if (!video) return;
 
     if (!video.paused) {
@@ -233,6 +482,15 @@ export class LessonViewComponent implements OnChanges, OnInit {
   }
 
   onSelectLesson(lesson: CourseLesson): void {
+    // Reset video state for the new lesson
+    this.videoDuration = 0;
+    this.maxWatchedSecond = 0;
+    this.lastWatchedSecond = 0;
+    this.lastTime = 0;
+    this.watchAccumulator = 0;
+    this.activeChapterIndex = 0;
+    this.currentChapterName = '';
+
     // get lịch sử bài học
     this.getLessonHistory(lesson.ID);
     this.selectedLessonID = lesson.ID;
@@ -242,31 +500,74 @@ export class LessonViewComponent implements OnChanges, OnInit {
     this.checkExamType();
     // this.videoUrl = this.getVideoUrl(lesson.VideoURL);
     this.videoUrl = this.getVideoUrl(lesson.ID);
-    console.log('videoUrl', this.videoUrl);
     this.urlPDF = this.getUrlPDFFile(lesson?.UrlPDF);
+    // Robust chapter parsing
+    const rawChapters = lesson?.Chapters;
+    if (rawChapters) {
+      if (Array.isArray(rawChapters)) {
+        this.chapters = rawChapters;
+      } else if (typeof rawChapters === 'string') {
+        try {
+          // Attempt to parse standard JSON
+          let parsed = JSON.parse(rawChapters);
+          // If the result is still a string (doubly encoded), parse again
+          if (typeof parsed === 'string') {
+            parsed = JSON.parse(parsed);
+          }
+          this.chapters = Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          let fixed = '';
+          try {
+            // Fallback for JS-style literal (single quotes + unquoted keys)
+            const rawStr = (rawChapters as unknown as string);
+            fixed = rawStr
+              .replace(/'/g, '"') // Convert single quotes to double quotes for values
+              .replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":'); // Wrap unquoted keys in double quotes
+
+            this.chapters = JSON.parse(fixed);
+            if (typeof this.chapters === 'string') {
+              this.chapters = JSON.parse(this.chapters);
+            }
+          } catch (e2) {
+            this.chapters = [];
+          }
+        }
+      }
+    } else {
+      this.chapters = [];
+    }
     // Force reload video when lesson changes
     this.reloadVideo();
   }
 
   // Force video player to reload with new source
   private reloadVideo(): void {
-    setTimeout(() => {
-      const video = this.videoPlayer?.nativeElement;
+    const video = this.vgApi?.getDefaultMedia()?.elem;
+    if (video) {
+      video.pause();
+      // Reset currentTime to 0 immediately before loading new source
+      // to prevent flashes of previous video state
+      video.currentTime = 0;
+      video.load();
+    }
 
-      if (video) {
+    setTimeout(() => {
+      const videoElem = this.vgApi?.getDefaultMedia()?.elem;
+      if (videoElem) {
         this.isProgrammaticSeek = true;
-        video.currentTime = this.lastWatchedSecond;
-        video.load();
+        // The actual seek will happen after getLessonHistory returns and sets lastWatchedSecond
+        videoElem.currentTime = this.lastWatchedSecond;
       }
-    }, 0);
+    }, 100);
   }
 
   // Set video to start from last watched position
   private setVideoStartPosition(): void {
     setTimeout(() => {
-      if (this.videoPlayer?.nativeElement && this.lastWatchedSecond > 0) {
+      const video = this.vgApi?.getDefaultMedia()?.elem;
+      if (video && this.lastWatchedSecond > 0) {
         this.isProgrammaticSeek = true;
-        this.videoPlayer.nativeElement.currentTime = this.lastWatchedSecond;
+        video.currentTime = this.lastWatchedSecond;
         this.lastTime = this.lastWatchedSecond;
       }
     }, 500); // Wait for video to load
@@ -283,11 +584,9 @@ export class LessonViewComponent implements OnChanges, OnInit {
           this.watchedPercent = lessonHistory?.WatchedPercent || 0;
           this.lastWatchedSecond = lessonHistory?.LastWatchedSecond || 0;
           this.maxWatchedSecond = lessonHistory?.MaxWatchedSecond || 0;
-          console.log('Lịch sử bài học:', lessonHistory);
           // Set video to resume from last position
           this.setVideoStartPosition();
         } else {
-          console.warn('Không thể tải lịch sử bài học:', response?.message);
           // Reset values if no history
           this.videoDuration = 0;
           this.watchedPercent = 0;
@@ -299,15 +598,19 @@ export class LessonViewComponent implements OnChanges, OnInit {
   }
 
   onTimeUpdate() {
-    const video = this.videoPlayer.nativeElement;
+    const video = this.vgApi?.getDefaultMedia()?.elem;
+    if (!video) return;
 
     // Don't track if paused, tab is hidden, or forcibly paused
-    if (video.paused || document.hidden || this.isForcedPause) return;
+    if (video.paused || document.hidden) return;
 
     // Chặn thay đổi tốc độ phát (playbackRate)
     if (video.playbackRate !== 1) {
       video.playbackRate = 1;
-      this.message.warning('Không được phép thay đổi tốc độ video');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không được phép thay đổi tốc độ video',
+      );
     }
 
     // Set video duration from actual video if not set from DB
@@ -330,13 +633,13 @@ export class LessonViewComponent implements OnChanges, OnInit {
 
     this.lastTime = currentTime;
 
-    // Gửi tiến độ mỗi 30 giây
-    if (this.watchAccumulator >= 30 || currentTime == video.duration - 2) {
+    // Gửi tiến độ mỗi 30 giây hoặc khi sắp hết video
+    // Thêm check videoDuration > 30 để tránh trigger nhầm khi duration chưa load xong hoặc quá ngắn
+    const isVideoEnded = this.videoDuration && currentTime >= this.videoDuration;
+
+    if (this.watchAccumulator >= 30 || isVideoEnded) {
       // Cập nhật lastWatchedSecond tại vị trí hiện tại
       const newLastWatched = Math.floor(currentTime);
-      console.log(
-        `[10s accumulated] Updating lastWatched: ${this.lastWatchedSecond} → ${newLastWatched}, currentTime: ${currentTime.toFixed(2)}`,
-      );
       this.lastWatchedSecond = newLastWatched;
       this.sendProgress(newLastWatched);
       this.watchAccumulator = 0;
@@ -352,7 +655,7 @@ export class LessonViewComponent implements OnChanges, OnInit {
   }
 
   flush(): void {
-    const video = this.videoPlayer?.nativeElement;
+    const video = this.vgApi?.getDefaultMedia()?.elem;
     if (!video) return;
 
     const currentTime = Math.floor(video.currentTime);
@@ -382,7 +685,6 @@ export class LessonViewComponent implements OnChanges, OnInit {
       VideoDuration: this.videoDuration,
     };
 
-    console.log('Sending progress:', progressData);
 
     this.coursePracticeService.SaveLessonHistory(progressData).subscribe({
       next: (response: any) => {
@@ -390,11 +692,9 @@ export class LessonViewComponent implements OnChanges, OnInit {
           this.watchedPercent = response.data.WatchedPercent || 0;
           // cập nhật hiển thị nút hoàn thành khóa học
 
-          console.log('Progress saved:', currentSecond);
         }
       },
       error: (error: any) => {
-        console.error('Error saving progress:', error);
       },
     });
   }
@@ -426,9 +726,7 @@ export class LessonViewComponent implements OnChanges, OnInit {
         this.isPractice = courseExam.some((exam) => exam.ExamType === 2);
         this.isExercise = courseExam.some((exam) => exam.ExamType === 1);
       }
-      console.log('courseExam', courseExam);
     }
-    console.log('selectedCourseID', this.selectedCourseID);
   }
 
   getLessonFiles(lessonID: number): void {
@@ -441,7 +739,6 @@ export class LessonViewComponent implements OnChanges, OnInit {
         }
       },
       (error) => {
-        console.error('Error loading lesson files:', error);
         this.currentLessonFiles = [];
       },
     );
@@ -472,7 +769,8 @@ export class LessonViewComponent implements OnChanges, OnInit {
 
   onOpenQuiz(): void {
     if (!this.areAllLessonsCompleted()) {
-      this.message.warning(
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
         `Bạn phải hoàn thành tất cả bài học (${this.getCompletedLessonsCount()}/${this.lessonData.length}) để làm bài này`,
       );
       return;
@@ -482,7 +780,8 @@ export class LessonViewComponent implements OnChanges, OnInit {
 
   onOpenExercise(): void {
     if (!this.areAllLessonsCompleted()) {
-      this.message.warning(
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
         `Bạn phải hoàn thành tất cả bài học (${this.getCompletedLessonsCount()}/${this.lessonData.length}) để làm bài này`,
       );
       return;
@@ -492,7 +791,8 @@ export class LessonViewComponent implements OnChanges, OnInit {
 
   onOpenPractice(): void {
     if (!this.areAllLessonsCompleted()) {
-      this.message.warning(
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
         `Bạn phải hoàn thành tất cả bài học (${this.getCompletedLessonsCount()}/${this.lessonData.length}) để làm bài này`,
       );
       return;
@@ -547,10 +847,12 @@ export class LessonViewComponent implements OnChanges, OnInit {
   onOpenLessonExam(lesson: CourseLesson, exam: CourseExam): void {
     // Kiểm tra lesson đã hoàn thành chưa
     if (!this.isLessonCompleted(lesson.ID)) {
-      this.message.warning('Bạn phải hoàn thành lesson này trước khi làm bài');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Bạn phải hoàn thành lesson này trước khi làm bài',
+      );
       return;
     }
-    console.log('Open lesson exam:', lesson.LessonTitle, exam);
     this.openLessonExamResult.emit({ lessonID: lesson.ID, exam });
   }
   onCheckboxClick(event: Event, lesson: CourseLesson) {
@@ -561,83 +863,71 @@ export class LessonViewComponent implements OnChanges, OnInit {
   }
 
   onLessonCompletionChange(lesson: CourseLesson, completed: boolean): void {
-    // Lưu status cũ để restore nếu validation fail
+    // 1. Lưu status cũ để restore nếu validation fail
     const originalStatus = lesson.Status;
-    lesson.Status = completed ? 1 : 0;
-    // get bài học ( lesson)
-    if (completed == true) {
-      // nếu không có video hoặc video yêu cầu đạt 0% thì cho hoàn thành luôn
+    const originalStatusText = lesson.StatusText;
 
+    // 2. Gán ngay lập tức (Optimistic Update) để UI phản hồi ngay (tick/untick luôn)
+    lesson.Status = completed ? 1 : 0;
+    lesson.StatusText = completed ? 'Đã học' : 'Chưa học';
+    this.lessonData = [...this.lessonData];
+
+    if (completed) {
+      // 3. Thực hiện validation ngầm
       this.coursePracticeService.getLessonByLessonId(lesson.ID).subscribe({
         next: (response: any) => {
           if (response && response.status == 1) {
             const lessonFromDb = response.data;
+
+            // Trường hợp 1: Không có video hoặc không yêu cầu % xem -> Cho qua luôn
             if (
-              lessonFromDb.VideoURL == null ||
-              lessonFromDb.VideoURL == '' ||
+              !lessonFromDb.VideoURL ||
               lessonFromDb.RequiredWatchedPercent == 0
             ) {
-              lesson.Status = 1;
-              this.loadChangeStatusLessonHistory(lesson.ID, lesson.Status == 1);
+              this.loadChangeStatusLessonHistory(lesson.ID, true);
               return;
             }
-            this.coursePracticeService
-              .GetLessonHistoryByLessonId(lesson.ID)
-              .subscribe({
-                next: (response: any) => {
-                  if (response && response.status == 1) {
-                    const lessonHistory = response.data;
-                    if (
-                      lessonFromDb.RequiredWatchedPercent != null &&
-                      (
-                        lessonHistory.WatchedPercent == null ||
-                        lessonHistory.WatchedPercent == 0 ||
-                        lessonHistory.WatchedPercent < lessonFromDb.RequiredWatchedPercent
-                      )
-                    ) {
-                      lesson.Status = originalStatus;
-                      // this.loadChangeStatusLessonHistory(
-                      //   lesson.ID,
-                      //   lesson.Status == 1,
-                      // );
-                      setTimeout(() => {
-                        this.lessonData = [...this.lessonData];
-                      }, 0);
 
-                      this.message.warning(
-                        `Bạn cần xem tối thiểu ${lessonFromDb.RequiredWatchedPercent}% video bài học để đánh dấu hoàn thành.`,
-                      );
-                    } else {
-                      lesson.Status = 1;
-                      this.loadChangeStatusLessonHistory(
-                        lesson.ID,
-                        lesson.Status == 1,
-                      );
-                    }
-                  }
-                },
-                error: (error) => {
+            // Trường hợp 2: Có video -> Phải check lịch sử xem có đủ % không
+            this.coursePracticeService.GetLessonHistoryByLessonId(lesson.ID).subscribe({
+              next: (historyRes: any) => {
+                const lessonHistory = historyRes?.data;
+                const watchedPercent = lessonHistory?.WatchedPercent || 0;
+                const requiredPercent = lessonFromDb.RequiredWatchedPercent || 0;
+
+                if (watchedPercent < requiredPercent) {
+                  // KHÔNG THOẢ MÃN -> Gán lại trạng thái cũ (Bỏ tick)
                   lesson.Status = originalStatus;
-                  setTimeout(() => {
-                    this.lessonData = [...this.lessonData];
-                  }, 0);
-                },
-              });
+                  lesson.StatusText = originalStatusText;
+                  this.lessonData = [...this.lessonData];
+
+                  this.notification.warning(
+                    NOTIFICATION_TITLE.warning,
+                    `Bạn cần xem tối thiểu ${requiredPercent}% video bài học để đánh dấu hoàn thành.`
+                  );
+                } else {
+                  // THOẢ MÃN -> Lưu vào lịch sử
+                  this.loadChangeStatusLessonHistory(lesson.ID, true);
+                }
+              },
+              error: () => {
+                // Lỗi API -> Revert
+                lesson.Status = originalStatus;
+                lesson.StatusText = originalStatusText;
+                this.lessonData = [...this.lessonData];
+              }
+            });
           }
         },
-        error: (error) => {
-          // Nếu có lỗi, restore lại status cũ
+        error: () => {
+          // Lỗi API -> Revert
           lesson.Status = originalStatus;
-          // Force re-render
-          setTimeout(() => {
-            this.lessonData = [...this.lessonData];
-          }, 0);
-        },
+          lesson.StatusText = originalStatusText;
+          this.lessonData = [...this.lessonData];
+        }
       });
     } else {
-      // Bỏ tick → Cho phép luôn
-      lesson.Status = 0;
-      // Tính lại completed từ status
+      // Trường hợp bỏ tick -> Luôn cho phép
       this.loadChangeStatusLessonHistory(lesson.ID, false);
     }
   }
@@ -651,13 +941,11 @@ export class LessonViewComponent implements OnChanges, OnInit {
       .ChangeStatusLessonHistory(lessonId, completed)
       .subscribe({
         next: (response: any) => {
-          console.log('ChangeStatusLessonHistory', response, completed);
 
           // Force Angular to re-check areAllLessonsCompleted() by cloning array
           this.lessonData = [...this.lessonData];
         },
         error: (error: any) => {
-          console.error('Error change status lesson history:', error);
         },
       });
   }
@@ -685,7 +973,8 @@ export class LessonViewComponent implements OnChanges, OnInit {
 
   // kiểm tra khi người dùng tua video
   onSeeking() {
-    const video = this.videoPlayer.nativeElement;
+    const video = this.vgApi?.getDefaultMedia()?.elem;
+    if (!video) return;
 
     // Bỏ qua nếu đang tua do lập trình (ví dụ: load video lần đầu)
     if (this.isProgrammaticSeek) {
@@ -701,9 +990,6 @@ export class LessonViewComponent implements OnChanges, OnInit {
       this.lastTime = currentTime;
       // Reset watchAccumulator để bắt đầu đếm lại từ 0
       this.watchAccumulator = 0;
-      console.log(
-        `[Seek backward] currentTime: ${currentTime.toFixed(2)}, lastWatched: ${this.lastWatchedSecond}, maxWatched: ${this.maxWatchedSecond.toFixed(2)}, accumulator reset to 0`,
-      );
       return;
     }
 
@@ -713,9 +999,9 @@ export class LessonViewComponent implements OnChanges, OnInit {
       this.isProgrammaticSeek = true;
       video.currentTime = this.maxWatchedSecond;
       this.lastTime = this.maxWatchedSecond;
-      console.log(
-        `[Seek forward blocked] Forced back to maxWatched: ${this.maxWatchedSecond.toFixed(2)}`,
-      );
+
     }
+
   }
+
 }

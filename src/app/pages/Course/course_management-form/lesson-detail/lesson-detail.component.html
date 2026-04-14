@@ -4,8 +4,8 @@
     <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
 </div>
 
-<div class="modal-body modal-body-scrollable" style="max-height: 75vh !important; overflow-y: auto;">
-    <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7 mt-2">
+<div class="modal-body pt-0">
+    <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7">
 
         <nz-tabset>
             <!-- Fieldset 1: Copy -->
@@ -51,7 +51,6 @@
 
                 <!-- Fieldset 2: Thông tin bài học -->
                 <fieldset class="reset m-0 mb-3">
-                    <legend class="reset fs-12 p-0">Thông tin bài học</legend>
                     <nz-row [nzGutter]="24">
                         <nz-col [nzSpan]="24">
                             <nz-form-item>
@@ -141,7 +140,7 @@
                                 <nz-form-control [nzSpan]="24">
                                     <div class="d-flex gap-2 align-items-center">
                                         <!-- Video File Selection -->
-                                        <nz-upload nzAccept="video/*" [nzBeforeUpload]="beforeUploadVideo"
+                                        <nz-upload nzAccept="video/mp4,.mp4" [nzBeforeUpload]="beforeUploadVideo"
                                             [nzShowUploadList]="false" [nzMultiple]="false">
                                             <button nz-button>
                                                 <span nz-icon nzType="upload"></span>
@@ -162,8 +161,8 @@
 
                                         <!-- URL Input -->
                                         <input id="videoUrlInput" [readonly]="true" nz-input name="VideoUrl"
-                                            placeholder="Nhập URL video hoặc chọn file từ máy tính"
-                                            formControlName="VideoUrl" style="flex: 1;" />
+                                            placeholder="Chọn file video từ máy tính" formControlName="VideoUrl"
+                                            style="flex: 1;" />
                                     </div>
 
                                     <!-- Progress Bar (hiển thị khi đang upload) -->
@@ -240,7 +239,6 @@
             <!-- Fieldset 3: File đính kèm -->
             <nz-tab nzTitle="File đính kèm">
                 <fieldset class="reset m-0 mb-3">
-                    <legend class="reset fs-12 p-0">File đính kèm</legend>
                     <nz-row [nzGutter]="24">
                         <nz-col [nzSpan]="24">
                             <nz-form-item>
@@ -266,8 +264,7 @@
                                         <!-- Danh sách file hiện có (khi edit mode) -->
                                         <div *ngIf="existingFiles.length > 0" class="mt-2">
                                             <small class="text-muted fw-bold">Duyệt danh sách file:</small>
-                                            <div class="existing-files-list mt-1"
-                                                style="max-height: 150px; overflow-y: auto;">
+                                            <div class="existing-files-list mt-1" style="overflow-y: auto;">
                                                 <div *ngFor="let file of existingFiles"
                                                     class="d-flex align-items-center gap-2 mb-1 p-2 border rounded bg-light"
                                                     [style.opacity]="deletedFileIds.includes(file.ID!) ? '0.5' : '1'">
@@ -307,17 +304,16 @@
             <!-- Fieldset 4: Nội dung -->
             <nz-tab nzTitle="Nội dung bài học">
                 <fieldset class="reset m-0 mb-3">
-                    <legend class="reset fs-12 p-0">Nội dung bài học</legend>
                     <nz-row [nzGutter]="24">
                         <nz-col [nzSpan]="24">
                             <nz-form-item>
                                 <nz-form-control [nzSpan]="24">
                                     <p-editor #editor formControlName="Content"
-                                        [style]="{'height': '320px', 'margin-bottom': '-45px'}"
+                                        [style]="{'min-height': '55vh','margin-bottom': '-45px'}"
                                         [modules]="editorModules">
                                         <ng-template pTemplate="header">
                                             <span class="ql-formats">
-                                                <select class="ql-header">
+                                                <select c lass="ql-header">
                                                     <option value="1">Heading 1</option>
                                                     <option value="2">Heading 2</option>
                                                     <option selected>Normal</option>
@@ -366,21 +362,165 @@
                     </nz-row>
                 </fieldset>
             </nz-tab>
+
+            <!-- Fieldset 5: Chapters -->
+            <nz-tab nzTitle="Phân đoạn Video" [nzDisabled]="!formGroup.get('VideoUrl')?.value">
+                <fieldset class="reset m-0 mb-3">
+                    <legend class="reset fs-12 p-0 d-flex align-items-center justify-content-end w-100 kpi-toolbar">
+                        <div class="d-flex gap-2">
+                            <button nz-button nzType="default" nzSize="small" (click)="copyChapters()"
+                                [disabled]="chapters.length === 0">
+                                <i nz-icon nzType="copy" nzTheme="outline"></i> Sao chép
+                            </button>
+                            <button nz-button nzType="default" nzSize="small" (click)="onShowVideoImport()">
+                                <i nz-icon nzType="video-camera" nzTheme="outline"></i> Nhập từ video
+                            </button>
+                            <button nz-button nzType="default" nzSize="small" (click)="onShowBulkImport()">
+                                <i nz-icon nzType="import" nzTheme="outline"></i> Nhập nhanh
+                            </button>
+                            <button nz-button nzType="primary" nzSize="small" (click)="addChapter()">
+                                <i nz-icon nzType="plus" nzTheme="outline"></i> Thêm phân đoạn
+                            </button>
+                        </div>
+                    </legend>
+
+                    <nz-table #chapterTable [nzData]="chapters" [nzFrontPagination]="false" [nzShowPagination]="false"
+                        nzSize="small" class="mt-2 text-center">
+                        <thead>
+                            <tr>
+                                <th nzWidth="60px">STT</th>
+                                <th nzWidth="130px">Bắt đầu (hh:mm:ss)</th>
+                                <th>Tiêu đề phân đoạn</th>
+                                <th nzWidth="100px">Thứ tự</th>
+                                <th nzWidth="60px">Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let data of chapterTable.data; let i = index">
+                                <td>{{ i + 1 }}</td>
+
+                                <td>
+                                    <input nz-input [(ngModel)]="data.tempStartTime"
+                                        [ngModelOptions]="{standalone: true}"
+                                        (ngModelChange)="onTimeInputChange(i, 'start')" placeholder="00:00:00"
+                                        class="text-center" />
+                                </td>
+                                <td>
+                                    <input nz-input [(ngModel)]="data.title" [ngModelOptions]="{standalone: true}"
+                                        placeholder="Nhập tiêu đề..." />
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <button nz-button nzType="text" nzSize="small" (click)="moveChapter(i, 'up')"
+                                            [disabled]="i === 0">
+                                            <i nz-icon nzType="arrow-up" nzTheme="outline"></i>
+                                        </button>
+                                        <button nz-button nzType="text" nzSize="small" (click)="moveChapter(i, 'down')"
+                                            [disabled]="i === chapters.length - 1">
+                                            <i nz-icon nzType="arrow-down" nzTheme="outline"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <button nz-button nzType="text" nzDanger (click)="removeChapter(i)">
+                                        <i nz-icon nzType="delete" nzTheme="outline"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </nz-table>
+
+
+                </fieldset>
+            </nz-tab>
         </nz-tabset>
     </form>
+
+    <!-- Modal Nhập nhanh Chapter - DI CHUYỂN VÀO TRONG modal-body -->
+    <nz-modal [(nzVisible)]="isVisibleBulkImport" nzTitle="Nhập nhanh phân đoạn Video"
+        (nzOnCancel)="isVisibleBulkImport = false" (nzOnOk)="handleBulkImport()" [nzOkText]="'Xác nhận nhập'"
+        [nzCancelText]="'Hủy bỏ'" nzWidth="650px">
+        <ng-container *nzModalContent>
+            <div class="p-2">
+                <div class="alert alert-info py-2 mb-3 fs-12">
+                    <i nz-icon nzType="info-circle" nzTheme="outline" class="me-2"></i>
+                    Hỗ trợ định dạng: <strong>[giờ:phút:giây] Tiêu đề</strong> (ví dụ: 00:02:15 Bắt đầu bài học). Mỗi
+                    phân đoạn một dòng.
+                </div>
+
+                <label class="d-block mb-1 fw-500 fs-13 text-secondary">Dán danh sách phân đoạn từ YouTube hoặc ghi chú
+                    vào đây:</label>
+                <textarea nz-input [(ngModel)]="bulkChapterText" [nzAutosize]="{ minRows: 12, maxRows: 20 }"
+                    class="font-monospace fs-13"
+                    placeholder="00:00:00 Giới thiệu&#10;00:02:00 Nội dung 1&#10;00:03:00 Nội dung 2 &#10;00:05:00 Kết thúc video"></textarea>
+
+                <div class="mt-3 p-2 bg-light border-start border-warning border-3 rounded fs-11 text-muted">
+                    <i nz-icon nzType="warning" nzTheme="outline" class="text-warning me-1"></i>
+                    <strong>Lưu ý:</strong> Thao tác này sẽ xóa và thay thế toàn bộ danh sách phân đoạn hiện tại trong
+                    bảng.
+                </div>
+            </div>
+        </ng-container>
+    </nz-modal>
+
+    <!-- Modal Nhập từ Video -->
+    <nz-modal [(nzVisible)]="isVisibleVideoImport" nzTitle="Nhập phân đoạn từ Video"
+        (nzOnCancel)="closeVideoImportModal()" (nzOnOk)="handleVideoImport()" [nzOkText]="'Xác nhận nhập'"
+        [nzCancelText]="'Hủy bỏ'" nzWidth="850px">
+        <ng-container *nzModalContent>
+            <div class="p-2">
+                <div *ngIf="videoPreviewUrl; else noVideo">
+                    <video #previewVideo controls style="width: 100%; height: 320px; border-radius: 4px;"
+                        [src]="videoPreviewUrl"></video>
+
+                    <div class="mt-2 d-flex gap-2">
+                        <button nz-button nzType="primary" (click)="addTempChapterFromVideo(previewVideo.currentTime)">
+                            <i nz-icon nzType="clock-circle" nzTheme="outline"></i> Thêm mốc hiện tại
+                        </button>
+                    </div>
+
+                    <nz-table *ngIf="tempVideoChapters.length > 0" #tempChapterTable [nzData]="tempVideoChapters"
+                        [nzFrontPagination]="false" [nzShowPagination]="false" nzSize="small" class="mt-3 text-center"
+                        [nzScroll]="{ y: '200px' }">
+                        <thead>
+                            <tr>
+                                <th nzWidth="60px">STT</th>
+                                <th nzWidth="130px">Bắt đầu (hh:mm:ss)</th>
+                                <th>Tiêu đề phân đoạn</th>
+                                <th nzWidth="60px">Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let data of tempChapterTable.data; let i = index">
+                                <td>{{ tempChapterTable.data.length - i }}</td>
+                                <td>
+                                    <input nz-input [(ngModel)]="data.tempStartTime"
+                                        [ngModelOptions]="{standalone: true}" (ngModelChange)="onTempTimeInputChange(i)"
+                                        class="text-center" />
+                                </td>
+                                <td>
+                                    <input nz-input [(ngModel)]="data.title" [ngModelOptions]="{standalone: true}"
+                                        placeholder="Nhập tiêu đề..." />
+                                </td>
+                                <td class="text-center">
+                                    <button nz-button nzType="text" nzDanger (click)="removeTempChapter(i)">
+                                        <i nz-icon nzType="delete" nzTheme="outline"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </nz-table>
+                </div>
+                <ng-template #noVideo>
+                    <nz-empty
+                        nzNotFoundContent="Chưa có video. Vui lòng chọn video trước khi nhập phân đoạn."></nz-empty>
+                </ng-template>
+            </div>
+        </ng-container>
+    </nz-modal>
 </div>
 
 <div class="modal-footer flex-column">
-    <!-- Progress Bar cho Video Upload -->
-    <div *ngIf="videoUploadProgress > 0 && videoUploadProgress < 100" class="w-100 mb-2">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-            <small class="text-muted">Đang upload video...</small>
-            <small class="text-primary">{{ videoUploadProgress }}% • {{ videoUploadSpeed }}</small>
-        </div>
-        <nz-progress [nzPercent]="videoUploadProgress" nzStatus="active" [nzShowInfo]="false" [nzStrokeWidth]="6">
-        </nz-progress>
-    </div>
-
     <div class="d-flex gap-2 w-100 justify-content-end">
         <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
             Đóng

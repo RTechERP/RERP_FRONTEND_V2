@@ -128,7 +128,6 @@ export class CourseListComponent implements OnInit, OnChanges {
     }
 
     this.courseSelected.emit(course);
-    console.log(' this.courseSelected.emit(course)', course);
   }
 
   // Lấy tên khóa học trước đó

@@ -49,7 +49,7 @@ export class CourseManagementService {
 
   // Lấy danh sách loại vị trí
   getDataKPI(): Observable<any> {
-    return this.http.get<any>(this.apiUrl + 'load-kpipositiontype');
+    return this.http.get<any>(this.apiUrl + 'load-kpi-employee-team');
   }
 
   // Lấy danh sách người phụ trách

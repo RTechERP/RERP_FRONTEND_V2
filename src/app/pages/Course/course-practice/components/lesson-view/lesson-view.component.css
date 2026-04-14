@@ -1,4 +1,390 @@
-﻿/* ========== LESSON LIST STYLES ========== */
+﻿@import "https://unpkg.com/@videogular/ngx-videogular/fonts/videogular.css";
+
+/* ========== VIDEOGULAR STYLES ========== */
+vg-player {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #000;
+}
+
+video {
+    width: 100%;
+    height: 100%;
+}
+
+vg-controls {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* YouTube-style Segmented Progress Bar */
+vg-scrub-bar {
+    height: 2px !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    display: block !important;
+    position: absolute !important;
+    bottom: 50px;
+    /* Above controls */
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    transition: height 0.15s ease-in-out, opacity 0.3s ease-in-out, bottom 0.3s ease-in-out;
+}
+
+.player-wrapper.vg-inactive {
+    cursor: none;
+}
+
+.vg-inactive vg-controls,
+.vg-inactive vg-scrub-bar {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+vg-player:hover vg-scrub-bar {
+    height: 8px !important;
+}
+
+.vg-scrub-segments {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    display: flex;
+}
+
+.segment {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-right: 4px solid #000;
+    /* Distinct black gaps */
+    box-sizing: border-box;
+    background: transparent;
+    transition: all 0.15s ease-in-out;
+}
+
+.segment:last-child {
+    border-right: none;
+}
+
+
+.segment.hovered {
+    height: 14px !important;
+    top: -3px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    z-index: 100;
+}
+
+/* YouTube Red Progress Bar */
+::ng-deep vg-scrub-bar-current-time {
+    background-color: transparent !important;
+    height: 100% !important;
+    pointer-events: none;
+    /* Let clicks pass to parent if needed, but vg-scrub-bar handles it */
+}
+
+/* Red Playhead (Knob) - Now attached to .background which has the correct width */
+::ng-deep vg-scrub-bar-current-time .background::after {
+    content: "";
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%) scale(0);
+    width: 12px;
+    height: 12px;
+    background: #ff0000;
+    border-radius: 50%;
+    transition: transform 0.1s ease-in-out;
+    z-index: 20;
+}
+
+vg-player:hover ::ng-deep vg-scrub-bar-current-time .background::after {
+    transform: translateY(-50%) scale(1);
+}
+
+::ng-deep vg-scrub-bar-buffering-time {
+    background-color: transparent !important;
+    height: 100% !important;
+}
+
+::ng-deep vg-scrub-bar-current-time .background {
+    background-color: #ff0000 !important;
+    height: 100% !important;
+    position: relative;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+    /* Ensure only inner background is red */
+}
+
+::ng-deep vg-scrub-bar-buffering-time .background {
+    background-color: rgba(255, 255, 255, 0.4) !important;
+    height: 100% !important;
+}
+
+.video-container {
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+h3 {
+    color: white;
+    margin-bottom: 12px;
+}
+
+.player-wrapper {
+    position: relative;
+}
+
+/* ---- Current chapter in controls ---- */
+.current-chapter-label {
+    color: #fff;
+    font-size: 13px;
+    padding: 4px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+}
+
+.current-chapter-label:hover {
+    opacity: 1;
+}
+
+.time-sep {
+    color: #aaa;
+    font-size: 13px;
+    padding: 0 2px;
+    display: flex;
+    align-items: center;
+}
+
+/* ---- Chapter tooltip with preview thumbnail ---- */
+.chapter-tooltip {
+    position: absolute;
+    transform: translateX(-50%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 100;
+    /* Lower z-index since it's now inside the wrapper */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.chapter-tooltip.visible {
+    opacity: 1;
+}
+
+/* Preview thumbnail */
+.tooltip-preview {
+    width: 160px;
+    height: 90px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+    background: #000;
+}
+
+.tooltip-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.tooltip-preview-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #222;
+}
+
+/* Time + title row below thumbnail */
+.tooltip-info {
+    background: rgba(0, 0, 0, 0.92);
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.tooltip-time {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.tooltip-sep {
+    width: 6px;
+}
+
+.tooltip-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #aad4ff;
+}
+
+/* ---- Chapters List ---- */
+.chapters-section {
+    margin-top: 16px;
+}
+
+.section-title {
+    color: #262626;
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chapter-list {
+    list-style: none;
+    padding: 0 2px 0 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    position: relative;
+}
+
+/* Custom Scrollbar for Chapter List */
+.chapter-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chapter-list::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 10px;
+}
+
+.chapter-list::-webkit-scrollbar-thumb {
+    background: #dcdfe6;
+    border-radius: 10px;
+}
+
+.chapter-list::-webkit-scrollbar-thumb:hover {
+    background: #c0c4cc;
+}
+
+.chapter-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    background: #ffffff;
+    border: 1px solid #dcdfe6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.chapter-item:hover {
+    background: #f3f6f8;
+    border-color: #6eb6fa;
+}
+
+.chapter-item.active {
+    background: #e6f4ff;
+    border-color: #1890ff;
+    border-width: 1.5px;
+    box-shadow: 0 2px 10px rgba(24, 144, 255, 0.1);
+}
+
+.chapter-index {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #f0f2f5;
+    color: #595959;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    border: 1px solid #d9d9d9;
+}
+
+.chapter-item.active .chapter-index {
+    background: #1890ff;
+    color: #ffffff;
+    border-color: #1890ff;
+}
+
+.chapter-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.chapter-name {
+    color: #1a1a1a;
+    font-size: 13px;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.chapter-item.active .chapter-name {
+    color: #1890ff;
+}
+
+.chapter-time {
+    color: #595959;
+    font-size: 11px;
+    transition: color 0.3s;
+}
+
+.chapter-item.active .chapter-time {
+    color: #40a9ff;
+}
+
+/* ---- Playlist ---- */
+.playlist-section {
+    margin-top: 20px;
+}
+
+.playlist-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+li.playlist-item {
+    padding: 10px 14px;
+    background: #2a2a2a;
+    margin-bottom: 2px;
+    cursor: pointer;
+    color: #ddd;
+    border-radius: 4px;
+    border-left: 3px solid transparent;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+li.playlist-item:hover {
+    background: #3a3a3a;
+}
+
+li.playlist-item.selected {
+    background: #1a3a5c;
+    border-left-color: #4dabf7;
+    color: #fff;
+}
+
+/* ========== LESSON LIST STYLES ========== */
 .lesson-list {
     display: flex;
     flex-direction: column;

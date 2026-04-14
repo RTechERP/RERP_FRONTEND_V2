@@ -1,0 +1,211 @@
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command() : null">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text ml-2" style="font-size: 12px;">{{ item.label }}</span>
+        </a>
+    </ng-template>
+</p-menubar>
+
+<div class="p-2 bg-white" style="height: calc(100vh - 100px); overflow-y: auto;">
+    <nz-spin [nzSpinning]="isLoading" nzTip="Đang lưu dữ liệu bảng ma trận...">
+
+        <!-- TAB 0: DANH SÁCH CÁC ĐỢT -->
+        <ng-container *ngIf="currentTab === 0">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light py-2">
+                    <span class="fw-bold fs-12">Danh sách đợt chấm điểm 5S</span>
+                </div>
+                <div class="card-body p-0">
+                    <p-table [value]="sessions" selectionMode="single" [(selection)]="selectedSession" dataKey="ID"
+                        (onRowSelect)="onRowSelect($event)" styleClass="p-datatable-sm p-datatable-gridlines"
+                        [scrollable]="true" scrollHeight="500px">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th style="width: 50px;">STT</th>
+                                <th>Mã đợt</th>
+                                <th>Tháng/Năm</th>
+                                <th>Ngày đánh giá</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-item let-i="rowIndex">
+                            <tr [pSelectableRow]="item" style="cursor: pointer;">
+                                <td class="text-center">{{i + 1}}</td>
+                                <td class="text-center fw-bold">{{item.Code}}</td>
+                                <td class="text-center">{{item.MonthValue}}/{{item.YearValue}}</td>
+                                <td class="text-center">{{formatDate(item.RatingDate)}}</td>
+                                <td>{{item.Note}}</td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="5" class="text-center p-4 text-muted">Không có dữ liệu đợt chấm điểm</td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- TAB 1: MA TRẬN CHẤM ĐIỂM -->
+        <ng-container *ngIf="currentTab === 1">
+            <div class="matrix-form-container">
+                <!-- Bộ lọc và cấu hình ma trận -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body p-2">
+                        <div nz-row [nzGutter]="16">
+                            <div nz-col [nzSpan]="4">
+                                <label class="fw-bold fs-12 mb-1 d-block">Người chấm 1</label>
+                                <nz-select [(ngModel)]="rating1" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn người chấm 1" nzSize="small" [nzDisabled]="!!ticketId">
+                                    <nz-option *ngFor="let emp of employees" [nzLabel]="emp.FullName"
+                                        [nzValue]="emp.ID"></nz-option>
+                                </nz-select>
+                            </div>
+                            <div nz-col [nzSpan]="4">
+                                <label class="fw-bold fs-12 mb-1 d-block">Người chấm 2 (Nếu có)</label>
+                                <nz-select [(ngModel)]="rating2" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn người chấm 2" nzSize="small" [nzDisabled]="!!ticketId">
+                                    <nz-option *ngFor="let emp of employees" [nzLabel]="emp.FullName"
+                                        [nzValue]="emp.ID"></nz-option>
+                                </nz-select>
+                            </div>
+                            <div nz-col [nzSpan]="10">
+                                <label class="fw-bold fs-12 mb-1 d-block">Phòng ban chấm điểm</label>
+                                <div class="d-flex flex-wrap gap-1 mt-1">
+                                    <nz-tag *ngFor="let dept of selectedDepts" nzColor="blue" style="font-size: 13px; padding: 2px 8px;">
+                                        {{dept.Name}}
+                                    </nz-tag>
+                                    <span *ngIf="selectedDepts.length === 0" class="text-muted fs-12 fst-italic">Không có phòng ban nào được chọn</span>
+                                </div>
+                            </div>
+                            <div nz-col [nzSpan]="6"
+                                class="text-right d-flex align-items-end flex-column justify-content-end">
+                                <div
+                                    class="bg-blue-50 px-2 py-1 mb-1 rounded w-100 text-right border-1 border-blue-100">
+                                    <span class="fs-12 fw-bold text-blue-600">Đợt chấm: {{selectedSession?.Code}}</span>
+                                </div>
+                                <div *ngIf="ticketId"
+                                    class="bg-green-50 px-2 py-1 rounded w-100 text-right border-1 border-green-100">
+                                    <span class="fs-12 fw-bold text-green-600">Phiếu: #{{ticketId}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bảng Ma trận -->
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <p-table [value]="matrixData" styleClass="p-datatable-sm p-datatable-gridlines"
+                            [scrollable]="true" scrollHeight="76vh">
+                            <ng-template pTemplate="header">
+                                <tr>
+
+                                    <th style="width: 100px; text-align: center; font-weight: bold;" rowspan="2">Loại
+                                        lỗi</th>
+                                    <th style="width: 50px; text-align: center; font-weight: bold;" rowspan="2">STT</th>
+                                    <th style="width: 300px; text-align: center; font-weight: bold;" rowspan="2">Chi
+                                        tiết</th>
+
+                                    <th colspan="3" class="text-center bg-gray-50">Điểm đánh giá</th>
+                                    <th [attr.colspan]="selectedDepts.length" class="text-center bg-blue-50"
+                                        *ngIf="selectedDepts.length > 0">
+                                        Chấm điểm thực hành
+                                    </th>
+                                    <th style="width: 100px; text-align: center;" rowspan="2">Ghi chú lỗi(Ghi rõ tên cá
+                                        nhân/vị trí phạm lỗi)</th>
+                                </tr>
+                                <tr>
+                                    <th style="width: 80px;" class="fs-12 bg-orange-50 text-orange-700 text-center">
+                                        Kém<br><span class="fw-normal fs-12">(-1 điểm/lỗi)</span>
+                                    </th>
+                                    <th style="width: 80px;" class="fs-12 bg-green-50 text-green-700 text-center">
+                                        Tốt<br><span class="fw-normal fs-12">(Không trừ điểm)</span>
+                                    </th>
+                                    <th style="width: 80px;" class="fs-12 bg-blue-50 text-blue-700 text-center">
+                                        Rất tốt<br><span class="fw-normal fs-12">(+2 điểm/lần (lỗi))</span>
+                                    </th>
+                                    <th *ngFor="let col of selectedDepts" style="width: 120px; background: #eef2ff;">
+                                        {{col.Name}}
+                                    </th>
+                                </tr>
+                            </ng-template>
+
+                            <ng-template pTemplate="body" let-row let-i="rowIndex">
+                                <tr>
+                                    <td *ngIf="rowGroupMetadata[row.TypeError].index === i"
+                                        [attr.rowspan]="rowGroupMetadata[row.TypeError].size"
+                                        class="text-center fw-bold bg-light cell-vertical">
+                                        <div>{{getTypeErrorName(row.TypeError)}}</div>
+                                    </td>
+
+                                    <td class="text-center fw-bold">{{row.STT}}</td>
+
+                                    <!-- Cột Loại lỗi gộp hàng -->
+
+                                    <td class="cell-wrap fs-12 fw-bold">{{row.DetailError}}</td>
+
+                                    <!-- 3 cột Mô tả Mức độ -->
+                                    <td class="fs-12 text-muted bg-orange-50  text-center">
+                                        {{row.rules['Kém']?.Description}}
+                                    </td>
+                                    <td class="fs-12 text-muted bg-green-50  text-center">
+                                        {{row.rules['Tốt']?.Description}}
+                                    </td>
+                                    <td class="fs-12 text-muted bg-blue-50  text-center">
+                                        {{row.rules['Rất tốt']?.Description}}
+                                    </td>
+
+                                    <!-- Cột động cho các Phòng Ban -->
+                                    <td *ngFor="let dept of selectedDepts" class="p-0 border-none text-center">
+                                        <div class="w-100 h-100">
+                                            <input nz-input [(ngModel)]="row['dept_' + dept.ID]" list="ratingPoints"
+                                                class="borderless-input" placeholder="..."
+                                                (change)="validateRating(row, dept.ID)"
+                                                (blur)="validateRating(row, dept.ID)" />
+                                        </div>
+                                    </td>
+                                    <td class="p-1">
+                                        <textarea nz-input [(ngModel)]="row.GeneralNote" nzSize="small"
+                                            placeholder="Ghi chú chi tiết lỗi..." class="w-100 fs-12"
+                                            [nzAutosize]="{ minRows: 3, maxRows: 9 }"></textarea>
+                                    </td>
+                                </tr>
+                            </ng-template>
+
+                            <ng-template pTemplate="footer">
+                                <tr class="bg-light fw-bold" *ngIf="matrixData.length > 0">
+                                    <td colspan="6" class="text-right pr-4 fs-12">
+                                        TỔNG CỘNG (Điểm):
+                                    </td>
+                                    <td *ngFor="let col of selectedDepts" class="text-center text-primary fs-12">
+                                        {{getDeptTotal(col.ID)}}
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </ng-template>
+
+                            <ng-template pTemplate="emptymessage">
+                                <tr>
+                                    <td [attr.colspan]="7 + (selectedDepts.length || 0)" class="text-center p-4">
+                                        Chưa chọn phòng ban hoặc không có cấu trúc lỗi được tải.
+                                    </td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+
+    </nz-spin>
+
+    <!-- Datalist cho điểm số - Ổn định nhất trong bảng ma trận -->
+    <datalist id="ratingPoints">
+        <option value="-1">(-1) Kém</option>
+        <option value="0">(0) Tốt</option>
+        <option value="2">(2) Rất tốt</option>
+    </datalist>
+</div>

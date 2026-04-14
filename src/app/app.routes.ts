@@ -319,7 +319,6 @@ import { FiveSMinusComponent } from './pages/hrm/RatingError/five-s-minus/five-s
 import { ProjectTaskTimeLineTotalComponent } from './pages/project_task/project-task-time-line-total/project-task-time-line-total.component'
 import { ProjectTaskStatusChartComponent } from './pages/project_task/project-task-status-chart/project-task-status-chart.component'
 import { ProjectTaskSettingComponent } from './pages/project_task/project-task-setting/project-task-setting.component'
-import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
 import { PurchaseQuoteSummaryComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary.component';
 import { CommercialPriceRequestComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/commercial-price-request/commercial-price-request.component';
 import { PinResetComponent } from './auth/pin-pass-word/pin-reset/pin-reset.component';

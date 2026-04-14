@@ -1,12 +1,13 @@
 import { Component, OnInit, inject, signal, computed, ChangeDetectorRef, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
- 
+
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzMessageService, NzMessageModule } from 'ng-zorro-antd/message';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzRateModule } from 'ng-zorro-antd/rate';
+import { NzInputModule } from 'ng-zorro-antd/input';
 import { ProjectTaskDashboardService, DashboardStats, ChartData } from './project-task-dashboard.service';
 import { KanbanService } from '../kanban/kanban.service';
 import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
@@ -17,22 +18,49 @@ import { AppUserService } from '../../../services/app-user.service';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { ProjectTaskStatusDetailComponent } from '../project-task-status-detail/project-task-status-detail.component';
 import { TooltipModule } from 'primeng/tooltip';
- 
+
+// ECharts
+import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
+import * as echarts from 'echarts/core';
+import { CanvasRenderer } from 'echarts/renderers';
+import { BarChart, LineChart } from 'echarts/charts';
+import {
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+  DataZoomComponent
+} from 'echarts/components';
+
+echarts.use([
+  CanvasRenderer,
+  BarChart,
+  LineChart,
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+  DataZoomComponent
+]);
+
 @Component({
   selector: 'app-project-task-dashboard',
   standalone: true,
   imports: [
     CommonModule,
     FormsModule,
- 
+
     NzIconModule,
     NzModalModule,
     NzMessageModule,
     NzButtonModule,
     ChartModule,
     TooltipModule,
-    NzRateModule
+    NzRateModule,
+    NgxEchartsDirective,
+    NzInputModule
   ],
+  providers: [provideEchartsCore({ echarts })],
   templateUrl: './project-task-dashboard.component.html',
   styleUrl: './project-task-dashboard.component.css'
 })
@@ -45,10 +73,10 @@ export class ProjectTaskDashboardComponent implements OnInit {
   private router = inject(Router);
   private appUserService = inject(AppUserService);
   private tabService = inject(TabServiceService);
- 
+
   @ViewChild('approveModalTpl') approveModalTpl!: TemplateRef<any>;
   @ViewChild('rejectModalTpl') rejectModalTpl!: TemplateRef<any>;
- 
+
   approveReviewText: string = '';
   approveCompletionRating: number = 5;
   rejectReviewText: string = '';
@@ -65,6 +93,26 @@ export class ProjectTaskDashboardComponent implements OnInit {
   stats = signal<DashboardStats | null>(null);
   statusChartData = signal<any>(null);
   projectChartData = signal<any>(null);
+
+  // My Tasks Analytics
+  typeStackedChartOptions = signal<any>({});
+  typeSelections = signal<{ name: string, color: string, selected: boolean, count: number }[]>([]);
+  searchTypeText = signal<string>('');
+
+  totalTasksInSidebar = computed(() => {
+    return this.typeSelections().reduce((acc, curr) => acc + curr.count, 0);
+  });
+
+  showTypeSidebar = signal<boolean>(true);
+
+  toggleTypeSidebar() {
+    this.showTypeSidebar.set(!this.showTypeSidebar());
+    // Rezize chart after sidebar transition
+    setTimeout(() => {
+        // Trigger resize event for ECharts
+        window.dispatchEvent(new Event('resize'));
+    }, 300);
+  }
 
   // Navigation
   goToProjectTask() {
@@ -83,9 +131,9 @@ export class ProjectTaskDashboardComponent implements OnInit {
       }
     });
   }
- 
+
   private statusChartMapping = [1, 2, 21, 3, 31, 32, 33, 4];
- 
+
   onStatusChartClick(event: any) {
     if (!event.element) return;
     const index = event.element.index;
@@ -289,6 +337,11 @@ export class ProjectTaskDashboardComponent implements OnInit {
         this.stats.set(data.stats);
         this.statusChartData.set(data.statusChartData);
         this.projectChartData.set(data.projectChartData);
+        
+        // My Tasks Analytics
+        this.initTypeSelections(data.tasks);
+        this.updateTypeStackedChart();
+
         this.loading.set(false);
         this.cdr.detectChanges();
       },
@@ -323,9 +376,12 @@ export class ProjectTaskDashboardComponent implements OnInit {
 
   private isOverdue(task: ProjectTaskItem, now: Date): boolean {
     const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
-    const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
+    if (planEnd) planEnd.setHours(0, 0, 0, 0);
 
-    if (dueDate && planEnd && new Date(dueDate) > planEnd) return true;
+    const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
+    if (dueDate) dueDate.setHours(0, 0, 0, 0);
+
+    if (dueDate && planEnd && dueDate > planEnd) return true;
     if (!dueDate && planEnd && planEnd < now && task.Status !== 4) return true;
     return false;
   }
@@ -425,5 +481,116 @@ export class ProjectTaskDashboardComponent implements OnInit {
   formatDate(dateVal: any): string {
     if (!dateVal) return '-';
     return new Date(dateVal).toLocaleDateString('vi-VN');
+  }
+
+  // ===== My Tasks Analytics Logic =====
+
+  private initTypeSelections(tasks: ProjectTaskItem[]) {
+    // Only count tasks for current user
+    const currentUserId = this.appUserService.employeeID || 0;
+    const myTasks = tasks.filter(t => t.AsigneeEmployeeID === currentUserId);
+
+    const typeCounts = new Map<string, { count: number, color: string }>();
+    myTasks.forEach(t => {
+      const typeName = t.ProjectTaskTypeName || 'Khác';
+      const existing = typeCounts.get(typeName);
+      if (existing) {
+        existing.count++;
+      } else {
+        typeCounts.set(typeName, { count: 1, color: t.ProjectTaskColor || '#1890ff' });
+      }
+    });
+
+    const selections = Array.from(typeCounts.entries()).map(([name, data]) => ({
+      name,
+      color: data.color,
+      selected: true,
+      count: data.count
+    })).sort((a, b) => b.count - a.count);
+
+    this.typeSelections.set(selections);
+  }
+
+  get filteredTypeSelections() {
+    const search = this.searchTypeText().toLowerCase().trim();
+    if (!search) return this.typeSelections();
+    return this.typeSelections().filter(s => s.name.toLowerCase().includes(search));
+  }
+
+  toggleTypeSelection(typeName: string) {
+    const current = this.typeSelections();
+    const target = current.find(s => s.name === typeName);
+    if (target) {
+      target.selected = !target.selected;
+      this.typeSelections.set([...current]);
+      this.updateTypeStackedChart();
+    }
+  }
+
+  toggleAllTypes(selected: boolean) {
+    const current = this.typeSelections();
+    current.forEach(s => s.selected = selected);
+    this.typeSelections.set([...current]);
+    this.updateTypeStackedChart();
+  }
+
+  updateTypeStackedChart() {
+    const currentUserId = this.appUserService.employeeID || 0;
+    const selectedTypes = this.typeSelections().filter(s => s.selected).map(s => s.name);
+    
+    // Filter tasks for current user and selected types
+    const filteredTasks = this.allTasks().filter(t => 
+      t.AsigneeEmployeeID === currentUserId && 
+      selectedTypes.includes(t.ProjectTaskTypeName || 'Khác')
+    );
+
+    const data = this.dashboardService.prepareTypeStackedChartData(filteredTasks, selectedTypes);
+    
+    // Convert ChartData to ECharts Options
+    this.typeStackedChartOptions.set({
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        formatter: (params: any[]) => {
+          let html = `<strong>${params[0].name}</strong><br/>`;
+          params.forEach(p => {
+            if (p.value > 0 || p.seriesType === 'line') {
+              html += `${p.marker} ${p.seriesName}: <b>${p.value}</b><br/>`;
+            }
+          });
+          return html;
+        }
+      },
+      legend: {
+        bottom: 0,
+        type: 'scroll'
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '15%',
+        top: '10%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: data.labels,
+        axisLabel: { rotate: 30, interval: 0, fontSize: 11 }
+      },
+      yAxis: {
+        type: 'value',
+        name: 'Số lượng CV'
+      },
+      series: data.datasets.map((ds: any) => ({
+        name: ds.label,
+        type: ds.type || 'bar',
+        stack: ds.stack || undefined,
+        data: ds.data,
+        itemStyle: { color: ds.backgroundColor },
+        lineStyle: ds.type === 'line' ? { width: 3 } : undefined,
+        symbol: ds.type === 'line' ? 'circle' : undefined,
+        symbolSize: ds.type === 'line' ? 8 : undefined
+      }))
+    });
   }
 }

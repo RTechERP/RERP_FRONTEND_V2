@@ -42,6 +42,7 @@ export interface IProject {
 export interface IProjectTask {
     ID: number;
     ProjectID?: number;
+    UserID?: number;
     Mission?: string;
     Description?: string;
     EmployeeIDRequest?: number;
@@ -59,6 +60,8 @@ export interface IProjectTask {
     TaskComplexity?: number;
     IsAdditional?: boolean;
     TypeProjectItem?: number;
+    ProjectTaskTypeID?: number;
+    ProjectTaskResult?: string;
     PercentOverTime?: number;
     Deadline?: Date;
     DescriptionSolution?: string;
@@ -146,6 +149,20 @@ export interface IProjectTaskEmailBand {
     EmployeeID?: number;
     EmployeeEmail?: string;
     IsActive?: boolean;
+    CreatedDate?: Date;
+    CreatedBy?: string;
+    UpdatedDate?: Date;
+    UpdatedBy?: string;
+    IsDeleted?: boolean;
+}
+
+export interface IProjectTaskSetting {
+    ID: number;
+    EmployeeID?: number;
+    EmployeeEmail?: string;
+    SendMailCreateProjectTask?: boolean;
+    SendFinishProjectTask?: boolean;
+    SendApproveProjectTask?: boolean;
     CreatedDate?: Date;
     CreatedBy?: string;
     UpdatedDate?: Date;

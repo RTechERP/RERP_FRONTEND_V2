@@ -193,7 +193,7 @@
                             <p-treeTableToggler [rowNode]="rowNode" />
 
                             @if (col.field === 'Code') {
-                            <span class="task-code-link" (click)="openTaskDetail(rowData)">{{ rowData.Code }}</span>
+                            <span class="task-code-link" (click)="openTaskDetail(rowData)">{{ rowData.Code || 'N/A' }}</span>
                             }
                             @if (col.field === 'Mission') {
                             <span class="task-title">{{ rowData.Mission }}</span>
@@ -201,7 +201,7 @@
                         </div>
                         } @else {
                         @if (col.field === 'Code') {
-                        <span class="task-code-link" (click)="openTaskDetail(rowData)">{{ rowData.Code }}</span>
+                        <span class="task-code-link" (click)="openTaskDetail(rowData)">{{ rowData.Code || 'N/A' }}</span>
                         }
                         @if (col.field === 'Mission') {
                         <span class="task-title">{{ rowData.Mission }}</span>

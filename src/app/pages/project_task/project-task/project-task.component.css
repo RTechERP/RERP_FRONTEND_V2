@@ -240,7 +240,7 @@
 .table-container {
     flex: 1;
     overflow: hidden;
-    padding: 0 16px 16px 16px;
+    padding: 0;
     display: flex;
     flex-direction: column;
 }
@@ -605,72 +605,154 @@
     background: rgba(255, 255, 255, 0.8);
 }
 
-:host ::ng-deep .table-container {
-    padding: 0px;
+
+/* ==================== RESPONSIVE & MOBILE MENU ==================== */
+.mobile-header {
+    display: none;
+    padding: 12px 16px;
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-/* ==================== RESPONSIVE ==================== */
+.mobile-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: #1890ff;
+    letter-spacing: 0.5px;
+}
+
+.hamburger-btn {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    color: #595959;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+/* Mobile Drawer Content Styles */
+.mobile-drawer-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-bottom: 24px;
+}
+
+.drawer-group {
+    background: #f9f9f9;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.drawer-group-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8c8c8c;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed #d9d9d9;
+}
+
+.drawer-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.drawer-tab {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #595959;
+    transition: all 0.2s;
+}
+
+.drawer-tab.active {
+    background: #e6f7ff;
+    border-color: #91d5ff;
+    color: #1890ff;
+    font-weight: 600;
+}
+
+.drawer-tab .badge {
+    padding: 2px 8px;
+    background: #f5f5f5;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #8c8c8c;
+}
+
+.drawer-tab.active .badge {
+    background: #1890ff;
+    color: #fff;
+}
+
+.drawer-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.filter-item label {
+    font-size: 13px;
+    color: #595959;
+    font-weight: 500;
+}
+
+.mobile-input {
+    width: 100% !important;
+    padding: 8px !important;
+    border: 1px solid #d9d9d9 !important;
+    border-radius: 4px !important;
+    font-size: 14px !important;
+    height: 38px !important;
+    background: #fff !important;
+}
+
+/* Base Responsive */
 @media (max-width: 768px) {
-    .header-section {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
+    .main-header, .main-search {
+        display: none !important;
     }
 
-    .tabs-container {
-        flex-wrap: wrap;
-        gap: 4px;
+    .mobile-header {
+        display: flex;
     }
 
-    .tab {
-        padding: 5px 8px;
-        font-size: 12px;
-        white-space: nowrap;
-    }
-
-    .header-right {
-        margin-left: 0;
-        flex-wrap: wrap;
-    }
-
-    .search-bar {
-        flex-wrap: wrap;
-        gap: 8px;
-        padding: 8px 12px;
-    }
-
-    .btn-search {
-        display: flex !important;
-        width: 36px;
-        height: 32px;
-        flex-shrink: 0;
-    }
-
-    .btn-primary.btn-sm {
-        height: 36px;
-        justify-content: center;
-    }
-
-    .action-buttons {
-        flex-direction: column;
-        gap: 6px;
-        margin-top: 4px;
-    }
-
-    .action-buttons button,
-    .btn-primary,
-    .btn-success,
-    .btn-outline {
-        width: 100% !important;
-        justify-content: center;
-        padding: 8px 12px;
-        font-size: 13px;
-        height: 36px;
+    .project-task-container {
+        height: 100vh;
     }
 
     .table-container {
         padding: 8px;
     }
+
+    .w-100 { width: 100%; }
+    .flex-1 { flex: 1; }
+    .mb-2 { margin-bottom: 8px; }
+    .mt-2 { margin-top: 8px; }
 }
 
 /* Row selected for copy */

@@ -121,21 +121,19 @@
                             <input type="text" class="filter-input" [(ngModel)]="filterFullName"
                                 (keyup)="onColumnFilter()" placeholder="Tìm kiếm...">
                         </th>
+                        
+                        <th rowspan="2" class="sticky-col col-proj">
+                            Dự án
+                            <input type="text" class="filter-input" [(ngModel)]="filterProjectKeyword"
+                                (keyup)="onColumnFilter()" placeholder="Tìm dự án...">
+                        </th>
+
                         <th rowspan="2" class="sticky-col col-job">
                             Công việc
                             <input type="text" class="filter-input" [(ngModel)]="filterTaskKeyword"
                                 (keyup)="onColumnFilter()" placeholder="Tìm mã/tên...">
                         </th>
-                        <th rowspan="2" class="col-parent">
-                            CV Cha
-                            <input type="text" class="filter-input" [(ngModel)]="filterParentCode"
-                                (keyup)="onColumnFilter()" placeholder="Tìm kiếm...">
-                        </th>
-                        <th rowspan="2" class="col-proj">
-                            Dự án
-                            <input type="text" class="filter-input" [(ngModel)]="filterProjectKeyword"
-                                (keyup)="onColumnFilter()" placeholder="Tìm dự án...">
-                        </th>
+
                         <th rowspan="2" class="col-status">
                             Trạng Thái
                             <p-multiSelect [options]="statusOptions" [(ngModel)]="selectedStatuses"
@@ -144,97 +142,97 @@
                                 [maxSelectedLabels]="1" selectedItemsLabel="{0} trạng thái"
                                 appendTo="body" />
                         </th>
-                        <th rowspan="2" class="col-time">Thời gian</th>
+                        <th rowspan="2" class="col-time">Thời gian (h)</th>
                         <th rowspan="2" class="col-type">Loại</th>
-                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday" class="date-header">
+                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday" [class.today-col]="col.isToday" class="date-header">
                             {{ col.dayName }}
                         </th>
                     </tr>
                     <tr>
-                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday" class="date-subheader">
+                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday" [class.today-col]="col.isToday" class="date-subheader">
                             {{ col.dateDisplay }}
                         </th>
                     </tr>
                 </thead>
                 <tbody>
                     <ng-container *ngFor="let group of filteredData(); let gi = index">
-                        <ng-container *ngFor="let task of group.tasks; let ti = index">
-                            <ng-container *ngFor="let row of task.rows; let ri = index">
-                                <tr [class.row-actual]="ri === 1">
-                                    <!-- STT: chỉ ở dòng đầu tiên của nhóm nhân viên -->
-                                    <td *ngIf="ti === 0 && ri === 0" [attr.rowspan]="group.tasks.length * 2"
-                                        class="sticky-col col-stt text-center cell-group">
-                                        {{ gi + 1 }}
-                                    </td>
-                                    <!-- Họ và tên: chỉ ở dòng đầu tiên của nhóm nhân viên -->
-                                    <td *ngIf="ti === 0 && ri === 0" [attr.rowspan]="group.tasks.length * 2"
-                                        class="sticky-col col-name cell-group cell-name-text">
-                                        {{ group.FullName }}
-                                    </td>
-                                    <!-- Công việc: span 2 dòng (Dự kiến + Thực tế) -->
-                                    <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-job">
-                                        <div class="task-info">
-                                            <a class="task-code-link"
-                                                (click)="openTaskDetail(task.ProjectTaskID); $event.stopPropagation()">
-                                                {{ task.ProjectTaskCode }}
-                                            </a>
-                                            <div class="task-title text-wrap">{{ task.ProjectTaskTitle }}</div>
-                                        </div>
-                                    </td>
-                                    <!-- CV Cha: span 2 dòng -->
-                                    <td *ngIf="ri === 0" rowspan="2" class="col-parent">
-                                        <div class="task-info">
-                                            <ng-container *ngIf="task.ProjectTaskParentCode; else noParent">
-                                                <a class="task-code-link"
-                                                    (click)="openTaskDetail(task.ProjectTaskParentID); $event.stopPropagation()">
-                                                    {{ task.ProjectTaskParentCode }}
-                                                </a>
-                                                <div class="task-title text-wrap">{{ task.ProjectTaskParentTitle }}</div>
-                                            </ng-container>
-                                            <ng-template #noParent>-</ng-template>
-                                        </div>
-                                    </td>
-                                    <!-- Dự án: span 2 dòng -->
-                                    <td *ngIf="ri === 0" rowspan="2" class="col-proj">
-                                        <div class="project-info">
-                                            <span class="fw-bold">{{ task.ProjectCode }}</span>
-                                            <div class="project-name text-wrap">{{ task.ProjectName }}</div>
-                                        </div>
-                                    </td>
-                                    <!-- Trạng thái: span 2 dòng -->
-                                    <td *ngIf="ri === 0" rowspan="2" class="col-status text-center">
-                                        <span class="status-tag" [attr.data-status]="task.Status">
-                                            {{ task.StatusName }}
-                                        </span>
-                                    </td>
+                        <ng-container *ngFor="let project of group.projects; let pi = index">
+                            <ng-container *ngFor="let task of project.tasks; let ti = index">
+                                <ng-container *ngFor="let row of task.rows; let ri = index">
+                                    <tr [class.row-actual]="ri === 1">
+                                        <!-- STT: chỉ ở dòng đầu tiên của nhóm nhân viên -->
+                                        <td *ngIf="pi === 0 && ti === 0 && ri === 0" 
+                                            [attr.rowspan]="calculateGroupRowspan(group)"
+                                            class="sticky-col col-stt text-center cell-group">
+                                            {{ gi + 1 }}
+                                        </td>
+                                        <!-- Họ và tên: chỉ ở dòng đầu tiên của nhóm nhân viên -->
+                                        <td *ngIf="pi === 0 && ti === 0 && ri === 0" 
+                                            [attr.rowspan]="calculateGroupRowspan(group)"
+                                            class="sticky-col col-name cell-group cell-name-text">
+                                            {{ group.FullName }}
+                                        </td>
+                                        
+                                        <!-- Dự án: chỉ ở dòng đầu tiên của dự án trong nhóm nhân viên -->
+                                        <td *ngIf="ti === 0 && ri === 0" [attr.rowspan]="project.tasks.length * 2" class="sticky-col col-proj">
+                                            <div class="project-info">
+                                                <span class="fw-bold">{{ project.ProjectCode }}</span>
+                                                <div class="project-name text-wrap">{{ project.ProjectName }}</div>
+                                            </div>
+                                        </td>
 
-                                    <!-- Thời gian -->
-                                    <td class="col-time text-center fw-bold">
-                                        {{ calculateRowTime(row) }}
-                                    </td>
-
-                                    <!-- Loại -->
-                                    <td class="col-type text-center">
-                                        {{ row.TypeDate === 1 ? 'Dự kiến' : 'Thực tế' }}
-                                    </td>
-
-                                    <!-- Các ô ngày -->
-                                    <td *ngFor="let col of dateColumns" class="gantt-cell"
-                                        [class.sunday]="col.isSunday"
-                                        [class.filled-planned]="row.TypeDate === 1 && getValue(row, col.dateStr) >= 1"
-                                        [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
-                                        <!-- Dự kiến: >= 2 hiển thị icon check -->
-                                        <ng-container *ngIf="row.TypeDate === 1 && getValue(row, col.dateStr) >= 2">
-                                            <span nz-icon nzType="check" nzTheme="outline" class="check-icon"></span>
-                                        </ng-container>
-                                        <!-- Thực tế: > 0 hiển thị số giờ -->
-                                        <ng-container *ngIf="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
-                                            <span class="actual-hours">
-                                                {{ getValue(row, col.dateStr) }}
+                                        <!-- Công việc: span 2 dòng (Dự kiến + Thực tế) -->
+                                        <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-job">
+                                            <div class="task-info">
+                                                <div class="d-flex align-items-center gap-1 text-nowrap w-100 overflow-hidden">
+                                                    <a class="task-code-link"
+                                                        (click)="openTaskDetail(task.ProjectTaskID); $event.stopPropagation()">
+                                                        {{ task.ProjectTaskCode || 'N/A' }}
+                                                    </a>
+                                                    <span *ngIf="task.ProjectTaskParentCode" class="text-muted d-inline-block text-truncate" nz-tooltip [nzTooltipTitle]="task.ProjectTaskParentTitle" style="max-width: 130px;">
+                                                        - <a class="task-code-link" (click)="openTaskDetail(task.ProjectTaskParentID); $event.stopPropagation()">{{ task.ProjectTaskParentCode || 'N/A' }}</a>
+                                                    </span>
+                                                </div>
+                                                <div class="task-title text-wrap mt-1">{{ task.ProjectTaskTitle }}</div>
+                                            </div>
+                                        </td>
+                                        
+                                        <!-- Trạng thái: span 2 dòng -->
+                                        <td *ngIf="ri === 0" rowspan="2" class="col-status text-center">
+                                            <span class="status-tag" [attr.data-status]="task.Status">
+                                                {{ task.StatusName }}
                                             </span>
-                                        </ng-container>
-                                    </td>
-                                </tr>
+                                        </td>
+
+                                        <!-- Thời gian -->
+                                        <td class="col-time text-center fw-bold">
+                                            {{ calculateRowTime(row) }}
+                                        </td>
+
+                                        <!-- Loại -->
+                                        <td class="col-type text-center">
+                                            {{ row.TypeDate === 1 ? 'Dự kiến' : 'Thực tế' }}
+                                        </td>
+
+                                        <!-- Các ô ngày -->
+                                        <td *ngFor="let col of dateColumns" class="gantt-cell"
+                                            [class.sunday]="col.isSunday"
+                                            [class.today-col]="col.isToday"
+                                            [class.filled-planned]="row.TypeDate === 1 && getValue(row, col.dateStr) >= 1"
+                                            [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
+                                            <!-- Dự kiến: >= 2 hiển thị icon check -->
+                                            <ng-container *ngIf="row.TypeDate === 1 && getValue(row, col.dateStr) >= 2">
+                                                <span nz-icon nzType="check" nzTheme="outline" class="check-icon"></span>
+                                            </ng-container>
+                                            <!-- Thực tế: > 0 hiển thị số giờ -->
+                                            <ng-container *ngIf="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
+                                                <span class="actual-hours">
+                                                    {{ getValue(row, col.dateStr) }}
+                                                </span>
+                                            </ng-container>
+                                        </td>
+                                    </tr>
+                                </ng-container>
                             </ng-container>
                         </ng-container>
                     </ng-container>

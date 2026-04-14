@@ -87,14 +87,14 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
   dateEnd: string = '';
 
   statusOptions = [
-    { label: 'Chưa làm', value: 1 },
-    { label: 'Đang làm', value: 2 },
-    { label: 'Đang làm quá hạn', value: 21 },
-    { label: 'Hoàn thành', value: 3 },
-    { label: 'Hoàn thành quá hạn', value: 31 },
-    { label: 'Đã duyệt', value: 32 },
-    { label: 'Đã hủy duyệt', value: 33 },
-    { label: 'Pending', value: 4 }
+    { label: 'Chưa làm', value: 0 },
+    { label: 'Đang làm', value: 1 },
+    { label: 'Đang làm quá hạn', value: 11 },
+    { label: 'Hoàn thành', value: 2 },
+    { label: 'Hoàn thành quá hạn', value: 21 },
+    { label: 'Đã duyệt', value: 22 },
+    { label: 'Đã hủy duyệt', value: 23 },
+    { label: 'Pending', value: 3 }
   ];
 
   ngOnInit() {
@@ -146,7 +146,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
           // Status filter
           let matchesStatus = false;
           if (this.statusId === 0) {
-              matchesStatus = (t.Status === 3 && t.IsApproved === 1);
+              matchesStatus = (t.Status === 2 && t.IsApproved === 1);
           } else {
               matchesStatus = (t.DisplayStatus === this.statusId);
           }
@@ -188,37 +188,42 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
 
   computeDisplayStatus(task: any): number {
     const isOverdue = this.isTaskOverdue(task);
-    if (task.Status === 3 && task.IsApproved === 2) return 32;
-    if (task.Status === 3 && task.IsApproved === 3) return 33;
-    if (task.Status === 3 && isOverdue) return 31;
-    if (task.Status === 3) return 3;
+    if (task.Status === 2 && task.IsApproved === 2) return 22;
+    if (task.Status === 2 && task.IsApproved === 3) return 23;
     if (task.Status === 2 && isOverdue) return 21;
     if (task.Status === 2) return 2;
-    if (task.Status === 4) return 4;
-    return 1;
+    if (task.Status === 1 && isOverdue) return 11;
+    if (task.Status === 1) return 1;
+    if (task.Status === 3) return 3;
+    return 0;
   }
 
   private isTaskOverdue(task: any): boolean {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
+
     const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
+    if (planEnd) planEnd.setHours(0, 0, 0, 0);
+
     const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
+    if (dueDate) dueDate.setHours(0, 0, 0, 0);
+
     if (dueDate && planEnd && dueDate > planEnd) return true;
-    if (!dueDate && planEnd && planEnd < now && task.Status !== 4) return true;
+    if (!dueDate && planEnd && planEnd < now && task.Status !== 3) return true;
     return false;
   }
 
   getDisplayStatus(task: any): { label: string; severity: 'info' | 'success' | 'danger' | 'warn' | 'secondary' | 'contrast' | undefined } {
     const ds = task.DisplayStatus ?? task.Status;
     switch (ds) {
-      case 1: return { label: 'Chưa làm', severity: 'secondary' };
-      case 2: return { label: 'Đang làm', severity: 'info' };
-      case 21: return { label: 'Đang làm quá hạn', severity: 'danger' };
-      case 3: return { label: 'Hoàn thành', severity: 'success' };
-      case 31: return { label: 'Hoàn thành quá hạn', severity: 'warn' };
-      case 32: return { label: 'Đã duyệt', severity: 'success' };
-      case 33: return { label: 'Đã hủy duyệt', severity: 'danger' };
-      case 4: return { label: 'Pending', severity: 'warn' };
+      case 0: return { label: 'Chưa làm', severity: 'secondary' };
+      case 1: return { label: 'Đang làm', severity: 'info' };
+      case 11: return { label: 'Đang làm quá hạn', severity: 'danger' };
+      case 2: return { label: 'Hoàn thành', severity: 'success' };
+      case 21: return { label: 'Hoàn thành quá hạn', severity: 'warn' };
+      case 22: return { label: 'Đã duyệt', severity: 'success' };
+      case 23: return { label: 'Đã hủy duyệt', severity: 'danger' };
+      case 3: return { label: 'Pending', severity: 'warn' };
       default: return { label: 'Chưa xác định', severity: 'secondary' };
     }
   }
@@ -250,7 +255,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
   showApprovalButtons(task: any): boolean {
     const ds = task.DisplayStatus;
     // Hiển thị khi Hoàn thành hoặc Hoàn thành quá hạn (IsApproved=1)
-    return (ds === 3 || ds === 31) && task.IsApproved === 1;
+    return (ds === 2 || ds === 21) && task.IsApproved === 1;
   }
 
   approveTask(task: ProjectTaskItem): void {
@@ -456,14 +461,14 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
       let fontColor = '000000'; // Default black
 
       switch (ds) {
-        case 1: color = '6C757D'; fontColor = 'FFFFFF'; break; // Grey
-        case 2: color = '17A2B8'; fontColor = 'FFFFFF'; break; // Blue
-        case 21: color = 'DC3545'; fontColor = 'FFFFFF'; break; // Red
-        case 3: color = '28A745'; fontColor = 'FFFFFF'; break; // Green
-        case 31: color = 'FFC107'; fontColor = '000000'; break; // Orange/Yellow
-        case 32: color = '28A745'; fontColor = 'FFFFFF'; break; // Green
-        case 33: color = 'DC3545'; fontColor = 'FFFFFF'; break; // Red
-        case 4: color = 'FFC107'; fontColor = '000000'; break; // Orange/Yellow
+        case 0: color = '6C757D'; fontColor = 'FFFFFF'; break; // Grey
+        case 1: color = '17A2B8'; fontColor = 'FFFFFF'; break; // Blue
+        case 11: color = 'DC3545'; fontColor = 'FFFFFF'; break; // Red
+        case 2: color = '28A745'; fontColor = 'FFFFFF'; break; // Green
+        case 21: color = 'FFC107'; fontColor = '000000'; break; // Orange/Yellow
+        case 22: color = '28A745'; fontColor = 'FFFFFF'; break; // Green
+        case 23: color = 'DC3545'; fontColor = 'FFFFFF'; break; // Red
+        case 3: color = 'FFC107'; fontColor = '000000'; break; // Orange/Yellow
       }
 
       return {

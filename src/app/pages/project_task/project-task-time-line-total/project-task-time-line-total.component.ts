@@ -78,15 +78,14 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   filterFullName = '';
   filterTaskKeyword = '';
   filterProjectKeyword = '';
-  filterParentCode = '';
   selectedStatuses: number[] = [];
 
   statusOptions = [
-    { label: 'Chưa làm', value: 1 },
-    { label: 'Đang làm', value: 2 },
-    { label: 'Hoàn thành', value: 3 },
-    { label: 'Tạm dừng', value: 4 },
-    { label: 'Quá hạn', value: 5 }
+    { label: 'Chưa làm', value: 0 },
+    { label: 'Đang làm', value: 1 },
+    { label: 'Hoàn thành', value: 2 },
+    { label: 'Pending', value: 3 },
+    { label: 'Quá hạn', value: 4 }
   ];
 
   // ===== LIFECYCLE =====
@@ -113,22 +112,14 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
   getDefaultDateStart(): string {
     const now = new Date();
-    const day = now.getDay();
-    const diffToMonday = day === 0 ? -6 : 1 - day;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + diffToMonday);
-    return this.formatDateForInput(monday);
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    return this.formatDateForInput(firstDay);
   }
 
   getDefaultDateEnd(): string {
     const now = new Date();
-    const day = now.getDay();
-    const diffToMonday = day === 0 ? -6 : 1 - day;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + diffToMonday);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    return this.formatDateForInput(sunday);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return this.formatDateForInput(lastDay);
   }
 
   // ===== LOAD DROPDOWN =====
@@ -209,7 +200,6 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     this.filterFullName = '';
     this.filterTaskKeyword = '';
     this.filterProjectKeyword = '';
-    this.filterParentCode = '';
     this.selectedStatuses = [];
     this.teamList = [];
     this.userList = [];
@@ -258,13 +248,15 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     let current = new Date(start);
     while (current <= end) {
       const d = new Date(current);
+      const dateStr = this.formatDate(d);
       dates.push({
         fullDate: d,
-        dateStr: this.formatDate(d),
+        dateStr: dateStr,
         dayName: this.getDayShortName(d),
-        dateDisplay: (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getDate().toString().padStart(2, '0'),
+        dateDisplay: d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0'),
         isWeekend: d.getDay() === 0 || d.getDay() === 6,
-        isSunday: d.getDay() === 0
+        isSunday: d.getDay() === 0,
+        isToday: dateStr === this.formatDate(new Date())
       });
       current.setDate(current.getDate() + 1);
     }
@@ -286,33 +278,42 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   // ===== XỬ LÝ DỮ LIỆU =====
 
   transformData(raw: TimelineByTeamItem[]) {
-    // Bước 1: Gộp theo EmployeeID trước, sau đó gộp theo ProjectTaskID bên trong mỗi nhân viên
+    // Bước 1: Gộp theo EmployeeID -> Project -> ProjectTaskID
     const employeeMap = new Map<number, any>();
 
     raw.forEach(item => {
       const empId = item.ID; // Mã nhân viên
+      const projectKey = `${item.ProjectCode}_${item.ProjectName}`;
       const taskId = item.ProjectTaskID; // Mã công việc
 
       if (!employeeMap.has(empId)) {
         employeeMap.set(empId, {
           employeeId: empId,
           FullName: item.FullName || 'N/A',
-          tasksMap: new Map<number, any>()
+          projectsMap: new Map<string, any>()
         });
       }
 
       const empRecord = employeeMap.get(empId);
 
-      if (!empRecord.tasksMap.has(taskId)) {
-        empRecord.tasksMap.set(taskId, {
+      if (!empRecord.projectsMap.has(projectKey)) {
+        empRecord.projectsMap.set(projectKey, {
+          ProjectCode: item.ProjectCode || '',
+          ProjectName: item.ProjectName || '',
+          tasksMap: new Map<number, any>()
+        });
+      }
+
+      const projectRecord = empRecord.projectsMap.get(projectKey);
+
+      if (!projectRecord.tasksMap.has(taskId)) {
+        projectRecord.tasksMap.set(taskId, {
           ProjectTaskID: taskId,
           ProjectTaskCode: item.ProjectTaskCode || '',
           ProjectTaskTitle: item.ProjectTaskTitle || '',
           ProjectTaskParentID: item.ProjectTaskParentID,
           ProjectTaskParentCode: item.ProjectTaskParentCode || '',
           ProjectTaskParentTitle: item.ProjectTaskParentTitle || '',
-          ProjectCode: item.ProjectCode || '',
-          ProjectName: item.ProjectName || '',
           Status: item.Status,
           StatusName: this.getStatusName(item.Status),
           planned: null,
@@ -320,21 +321,25 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
         });
       }
 
-      const taskEntry = empRecord.tasksMap.get(taskId);
+      const taskEntry = projectRecord.tasksMap.get(taskId);
       if (item.TypeDate === 1) taskEntry.planned = item;
       else if (item.TypeDate === 2) taskEntry.actual = item;
     });
 
-    // Bước 2: Chuyển đổi Map thành mảng dữ liệu phân cấp
+    // Bước 2: Chuyển đổi Map thành mảng dữ liệu phân cấp Employee -> Project -> Task
     this.groupedData = Array.from(employeeMap.values()).map(emp => ({
       employeeId: emp.employeeId,
       FullName: emp.FullName,
-      tasks: Array.from(emp.tasksMap.values()).map((t: any) => ({
-        ...t,
-        rows: [
-          t.planned || { TypeDate: 1 },
-          t.actual || { TypeDate: 2 }
-        ]
+      projects: Array.from(emp.projectsMap.values()).map((p: any) => ({
+        ProjectCode: p.ProjectCode,
+        ProjectName: p.ProjectName,
+        tasks: Array.from(p.tasksMap.values()).map((t: any) => ({
+          ...t,
+          rows: [
+            t.planned || { TypeDate: 1 },
+            t.actual || { TypeDate: 2 }
+          ]
+        }))
       }))
     }));
   }
@@ -342,7 +347,10 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   // ===== BỘ LỌC CỘT =====
 
   applyFilters() {
-    let groups = this.groupedData.map(g => ({ ...g, tasks: [...g.tasks] }));
+    let groups = this.groupedData.map(g => ({
+      ...g,
+      projects: g.projects.map((p: any) => ({ ...p, tasks: [...p.tasks] }))
+    }));
 
     // Lọc theo Họ và tên
     if (this.filterFullName) {
@@ -350,48 +358,44 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       groups = groups.filter(g => g.FullName.toLowerCase().includes(fn));
     }
 
-    // Lọc theo Công việc
-    if (this.filterTaskKeyword) {
-      const fk = this.filterTaskKeyword.toLowerCase();
-      groups = groups.map(g => ({
-        ...g,
-        tasks: g.tasks.filter((t: any) =>
-          t.ProjectTaskCode.toLowerCase().includes(fk) ||
-          t.ProjectTaskTitle.toLowerCase().includes(fk)
-        )
-      })).filter(g => g.tasks.length > 0);
-    }
-
     // Lọc theo Dự án
     if (this.filterProjectKeyword) {
       const fpk = this.filterProjectKeyword.toLowerCase();
       groups = groups.map(g => ({
         ...g,
-        tasks: g.tasks.filter((t: any) =>
-          t.ProjectCode.toLowerCase().includes(fpk) ||
-          t.ProjectName.toLowerCase().includes(fpk)
+        projects: g.projects.filter((p: any) =>
+          p.ProjectCode.toLowerCase().includes(fpk) ||
+          p.ProjectName.toLowerCase().includes(fpk)
         )
-      })).filter(g => g.tasks.length > 0);
+      })).filter(g => g.projects.length > 0);
     }
 
-    // Lọc theo CV Cha
-    if (this.filterParentCode) {
-      const fpc = this.filterParentCode.toLowerCase();
+    // Lọc theo Công việc (Con & Cha)
+    if (this.filterTaskKeyword) {
+      const fk = this.filterTaskKeyword.toLowerCase();
       groups = groups.map(g => ({
         ...g,
-        tasks: g.tasks.filter((t: any) =>
-          (t.ProjectTaskParentCode || '').toLowerCase().includes(fpc) ||
-          (t.ProjectTaskParentTitle || '').toLowerCase().includes(fpc)
-        )
-      })).filter(g => g.tasks.length > 0);
+        projects: g.projects.map((p: any) => ({
+          ...p,
+          tasks: p.tasks.filter((t: any) =>
+            t.ProjectTaskCode.toLowerCase().includes(fk) ||
+            t.ProjectTaskTitle.toLowerCase().includes(fk) ||
+            (t.ProjectTaskParentCode || '').toLowerCase().includes(fk) ||
+            (t.ProjectTaskParentTitle || '').toLowerCase().includes(fk)
+          )
+        })).filter((p: any) => p.tasks.length > 0)
+      })).filter(g => g.projects.length > 0);
     }
 
     // Lọc theo Trạng thái
     if (this.selectedStatuses && this.selectedStatuses.length > 0) {
       groups = groups.map(g => ({
         ...g,
-        tasks: g.tasks.filter((t: any) => this.selectedStatuses.includes(t.Status))
-      })).filter(g => g.tasks.length > 0);
+        projects: g.projects.map((p: any) => ({
+          ...p,
+          tasks: p.tasks.filter((t: any) => this.selectedStatuses.includes(t.Status))
+        })).filter((p: any) => p.tasks.length > 0)
+      })).filter(g => g.projects.length > 0);
     }
 
     this.filteredData.set(groups);
@@ -414,19 +418,20 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   calculateRowTime(row: any): number {
     let total = 0;
     if (row.TypeDate === 1) {
-      // Loại 1 (Dự kiến): Đếm số ngày có giá trị > 0 rồi nhân 8
-      let count = 0;
-      this.dateColumns.forEach(dt => {
-        if (this.getValue(row, dt.dateStr) > 0) {
-          count++;
-        }
-      });
-      total = count * 8;
+      // Loại 1 (Dự kiến): (PlanEndDate - PlanStartDate + 1) * 8
+      if (row.PlanStartDate && row.PlanEndDate) {
+        const start = new Date(row.PlanStartDate);
+        const end = new Date(row.PlanEndDate);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+        
+        const diffTime = Math.abs(end.getTime() - start.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        total = diffDays > 0 ? diffDays * 8 : 0;
+      }
     } else if (row.TypeDate === 2) {
-      // Loại 2 (Thực tế): Tổng cộng dồn các giá trị trong các ngày
-      this.dateColumns.forEach(dt => {
-        total += this.getValue(row, dt.dateStr);
-      });
+      // Loại 2 (Thực tế): Hiển thị SumTotalHour
+      total = row.SumTotalHour || 0;
     }
     return total;
   }
@@ -435,19 +440,30 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
   getStatusName(status: number): string {
     switch (status) {
-      case 1: return 'Chưa làm';
-      case 2: return 'Đang làm';
-      case 3: return 'Hoàn thành';
-      case 4: return 'Tạm dừng';
-      case 5: return 'Quá hạn';
+      case 0: return 'Chưa làm';
+      case 1: return 'Đang làm';
+      case 2: return 'Hoàn thành';
+      case 3: return 'Pending';
+      case 4: return 'Quá hạn';
       default: return 'N/A';
     }
+  }
+
+  // ===== TỔNG SỐ DÒNG CỦA NHÓM NHÂN VIÊN =====
+
+  calculateGroupRowspan(group: any): number {
+    if (!group || !group.projects) return 0;
+    const tasksCount = group.projects.reduce((sum: number, p: any) => sum + p.tasks.length, 0);
+    return tasksCount * 2;
   }
 
   // ===== TỔNG SỐ TASK =====
 
   getTotalTasks(): number {
-    return this.filteredData().reduce((sum, g) => sum + g.tasks.length, 0);
+    return this.filteredData().reduce((sum, g) => {
+      const tasksInProjects = g.projects.reduce((pSum: number, p: any) => pSum + p.tasks.length, 0);
+      return sum + tasksInProjects;
+    }, 0);
   }
 
   // ===== MỞ CHI TIẾT =====

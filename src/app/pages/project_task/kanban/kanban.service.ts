@@ -119,6 +119,15 @@ export class KanbanService {
     getSubtaskDetail(id: number): Observable<IAPIResponse<IProjectSubtask>> {
         return this.http.get<IAPIResponse<IProjectSubtask>>(`${this.apiUrl}/Subtasks/${id}`);
     }
+
+    // --- Child Task Methods ---
+    getChildTasks(projectTaskID: number): Observable<IAPIResponse<any[]>> {
+        return this.http.get<IAPIResponse<any[]>>(`${this.apiUrl}/project-task-child?projectTaskID=${projectTaskID}`);
+    }
+
+    saveChildTask(item: any): Observable<IAPIResponse<any>> {
+        return this.http.post<IAPIResponse<any>>(`${this.apiUrl}/project-task-child`, item);
+    }
     private _employees$: Observable<any> | null = null;
 
     getEmployees(): Observable<any> {

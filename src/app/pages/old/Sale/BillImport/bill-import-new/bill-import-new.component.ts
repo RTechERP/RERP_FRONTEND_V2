@@ -1146,9 +1146,9 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         this.billImportService.getViewDetail(id).subscribe({
             next: (res) => {
                 this.datasetDetail = res.data || [];
-                this.datasetDetail = this.datasetDetail.map((item: any) => ({
+                this.datasetDetail = this.datasetDetail.map((item: any, index: number) => ({
                     ...item,
-                    id: item.ID
+                    id: index + 1
                 }));
                 this.isDetailLoad = false;
 
@@ -1157,6 +1157,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                     if (this.angularGridDetail?.resizerService) {
                         this.angularGridDetail.resizerService.resizeGrid();
                     }
+                    this.angularGridDetail.dataView.refresh();
+                    this.angularGridDetail.slickGrid?.render();
                     this.updateDetailFooterRow();
                 }, 100);
             },

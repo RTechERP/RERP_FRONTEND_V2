@@ -63,11 +63,11 @@ export class ProjectTaskTimelineComponent implements OnInit {
   selectedStatuses: number[] = [];
 
   statusOptions = [
-    { label: 'Chưa làm', value: 1 },
-    { label: 'Đang làm', value: 2 },
-    { label: 'Hoàn thành', value: 3 },
-    { label: 'Tạm dừng', value: 4 },
-    { label: 'Quá hạn', value: 5 }
+    { label: 'Chưa làm', value: 0 },
+    { label: 'Đang làm', value: 1 },
+    { label: 'Hoàn thành', value: 2 },
+    { label: 'Pending', value: 3 },
+    { label: 'Quá hạn', value: 4 }
   ];
 
   ngOnInit() {
@@ -247,11 +247,11 @@ export class ProjectTaskTimelineComponent implements OnInit {
 
   getStatusName(status: number): string {
     switch (status) {
-      case 1: return 'Chưa làm';
-      case 2: return 'Đang làm';
-      case 3: return 'Hoàn thành';
-      case 4: return 'Tạm dừng';
-      case 5: return 'Quá hạn';
+      case 0: return 'Chưa làm';
+      case 1: return 'Đang làm';
+      case 2: return 'Hoàn thành';
+      case 3: return 'Pending';
+      case 4: return 'Quá hạn';
       default: return 'N/A';
     }
   }
@@ -265,16 +265,20 @@ export class ProjectTaskTimelineComponent implements OnInit {
   computeDisplayStatus(originalStatus: number, planEndStr: string | null, dueDateStr: string | null): number {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
+
     const planEnd = planEndStr ? new Date(planEndStr) : null;
+    if (planEnd) planEnd.setHours(0, 0, 0, 0);
+
     const dueDate = dueDateStr ? new Date(dueDateStr) : null;
+    if (dueDate) dueDate.setHours(0, 0, 0, 0);
 
     // Ngày KT thực tế > Ngày KT dự kiến → Quá hạn
     if (dueDate && planEnd && dueDate > planEnd) {
-      return 5;
+      return 4;
     }
     // Ngày KT thực tế null, Ngày KT dự kiến < hôm nay, status khác Tạm dừng → Quá hạn
-    if (!dueDate && planEnd && planEnd < now && originalStatus !== 4) {
-      return 5;
+    if (!dueDate && planEnd && planEnd < now && originalStatus !== 3) {
+      return 4;
     }
     return originalStatus;
   }

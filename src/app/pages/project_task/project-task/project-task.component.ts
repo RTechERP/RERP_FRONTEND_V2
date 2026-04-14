@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, TemplateRef, ChangeDetectorRef, signal, computed, ElementRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -8,6 +9,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzRateModule } from 'ng-zorro-antd/rate';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { forkJoin } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -42,6 +44,7 @@ type TabType = 'all' | 'assigned' | 'related' | 'myApproval';
     NzToolTipModule,
     NzRateModule,
     NzSwitchModule,
+    NzDrawerModule,
 
     ButtonModule,
     TableModule,
@@ -71,9 +74,9 @@ export class ProjectTaskComponent implements OnInit {
   selectedTaskForCopy: ProjectTaskItem | null = null;
   contextMenuItems: MenuItem[] = [];
 
-  // Email status
-  isEmailActive: boolean = true;
-  isEmailLoading: boolean = false;
+  // Mobile drawer state
+  isMobileMenuOpen: boolean = false;
+
 
   // RemoveSort state
   initialTasks: ProjectTaskItem[] = [];  // lưu thứ tự gốc (ID giảm dần)
@@ -96,8 +99,17 @@ export class ProjectTaskComponent implements OnInit {
     private filterService: FilterService,
     private ngbModal: NgbModal,
     private el: ElementRef,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private router: Router
   ) { }
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+  }
 
   // Data signals
   allTasks = signal<ProjectTaskItem[]>([]);
@@ -109,14 +121,14 @@ export class ProjectTaskComponent implements OnInit {
   totalRecords = signal<number>(0);
 
   statusOptions = [
-    { label: 'Chưa làm', value: 1 },
-    { label: 'Đang làm', value: 2 },
-    { label: 'Đang làm quá hạn', value: 21 },
-    { label: 'Hoàn thành', value: 3 },
-    { label: 'Hoàn thành quá hạn', value: 31 },
-    { label: 'Đã duyệt', value: 32 },
-    { label: 'Đã hủy duyệt', value: 33 },
-    { label: 'Pending', value: 4 }
+    { label: 'Chưa làm', value: 0 },
+    { label: 'Đang làm', value: 1 },
+    { label: 'Đang làm quá hạn', value: 11 },
+    { label: 'Hoàn thành', value: 2 },
+    { label: 'Hoàn thành quá hạn', value: 21 },
+    { label: 'Đã duyệt', value: 22 },
+    { label: 'Đã hủy duyệt', value: 23 },
+    { label: 'Pending', value: 3 }
   ];
 
   // MultiSelect filter options (built from loaded data)
@@ -126,9 +138,9 @@ export class ProjectTaskComponent implements OnInit {
   deptAssignerOptions: { label: string, value: string }[] = [];
   deptAssigneeOptions: { label: string, value: string }[] = [];
 
-  // Computed: only tasks eligible for approval (Status=3, not yet reviewed)
+  // Computed: only tasks eligible for approval (Status=2, not yet reviewed)
   pendingTasks = computed(() => this.filteredTasks().filter(t =>
-    t.Status === 3 && t.IsApproved !== 2 && t.IsApproved !== 3
+    t.Status === 2 && t.IsApproved !== 2 && t.IsApproved !== 3
   ));
 
   // Computed: are all pending tasks selected?
@@ -255,45 +267,10 @@ export class ProjectTaskComponent implements OnInit {
     this.currentUserId.set(this.appUserService.employeeID || 0);
     this.loadTasks();
     this.loadTaskTypes();
-    this.loadEmailStatus();
   }
 
-  loadEmailStatus() {
-    this.projectTaskService.getEmailBandData().subscribe({
-      next: (res) => {
-        if (res.status === 200 || res.status === 1) {
-          // Nếu data null hoặc IsActive = true thì sáng (true)
-          this.isEmailActive = res.data ? (res.data.IsActive ?? true) : true;
-        } else {
-          this.isEmailActive = true;
-        }
-      },
-      error: () => {
-        this.isEmailActive = true;
-      }
-    });
-  }
-
-  onEmailStatusChange(status: boolean) {
-    this.isEmailLoading = true;
-    this.projectTaskService.saveEmailBandData(status).subscribe({
-      next: (res) => {
-        this.isEmailLoading = false;
-        if (res.status === 200 || res.status === 1) {
-          this.isEmailActive = status;
-          this.message.success(`${status ? 'Đã bật' : 'Đã tắt'} nhận email thông báo thành công`);
-        } else {
-          this.message.error(res.message || 'Cập nhật trạng thái nhận mail thất bại');
-          // Revert toggle
-          this.isEmailActive = !status;
-        }
-      },
-      error: (err) => {
-        this.isEmailLoading = false;
-        this.message.error('Lỗi khi cập nhật trạng thái nhận mail');
-        this.isEmailActive = !status;
-      }
-    });
+  goToSettings(): void {
+    this.router.navigate(['/project-task-setting']);
   }
 
   loadTaskTypes(): void {
@@ -540,47 +517,53 @@ export class ProjectTaskComponent implements OnInit {
 
   // ========== TRẠNG THÁI GỘP (Status + ReviewStatus + Quá hạn) ==========
   // Mã trạng thái mới:
-  // 1  = Chưa làm
-  // 2  = Đang làm
-  // 21 = Đang làm quá hạn
-  // 3  = Hoàn thành
-  // 31 = Hoàn thành quá hạn
-  // 32 = Đã duyệt (Hoàn thành + IsApproved=2)
-  // 33 = Đã hủy duyệt (Hoàn thành + IsApproved=3)
-  // 4  = Pending
+  // 0  = Chưa làm
+  // 1  = Đang làm
+  // 11 = Đang làm quá hạn
+  // 2  = Hoàn thành
+  // 21 = Hoàn thành quá hạn
+  // 22 = Đã duyệt (Hoàn thành + IsApproved=2)
+  // 23 = Đã hủy duyệt (Hoàn thành + IsApproved=3)
+  // 3  = Pending
 
   computeDisplayStatus(task: any): number {
     const isOverdue = this.isTaskOverdue(task);
 
     // Hoàn thành + đã duyệt
-    if (task.Status === 3 && task.IsApproved === 2) return 32;
+    if (task.Status === 2 && task.IsApproved === 2) return 22;
     // Hoàn thành + hủy duyệt
-    if (task.Status === 3 && task.IsApproved === 3) return 33;
+    if (task.Status === 2 && task.IsApproved === 3) return 23;
     // Hoàn thành + quá hạn (chưa duyệt/hủy)
-    if (task.Status === 3 && isOverdue) return 31;
-    // Hoàn thành bình thường
-    if (task.Status === 3) return 3;
-    // Đang làm + quá hạn
     if (task.Status === 2 && isOverdue) return 21;
-    // Đang làm
+    // Hoàn thành bình thường
     if (task.Status === 2) return 2;
+    // Đang làm + quá hạn
+    if (task.Status === 1 && isOverdue) return 11;
+    // Đang làm
+    if (task.Status === 1) return 1;
     // Pending
-    if (task.Status === 4) return 4;
+    if (task.Status === 3) return 3;
     // Chưa làm
-    return 1;
+    return 0;
   }
 
   // Kiểm tra quá hạn
   private isTaskOverdue(task: any): boolean {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
+
     const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
+    if (planEnd) planEnd.setHours(0, 0, 0, 0);
+
     const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
+    if (dueDate) dueDate.setHours(0, 0, 0, 0);
 
     // Ngày KT thực tế > Ngày KT dự kiến → Quá hạn
     if (dueDate && planEnd && dueDate > planEnd) return true;
+    
     // Ngày KT thực tế null, Ngày KT dự kiến < hôm nay, status khác Pending → Quá hạn
-    if (!dueDate && planEnd && planEnd < now && task.Status !== 4) return true;
+    if (!dueDate && planEnd && planEnd < now && task.Status !== 3) return true;
+    
     return false;
   }
 
@@ -609,14 +592,14 @@ export class ProjectTaskComponent implements OnInit {
   getDisplayStatus(task: any): { label: string; severity: 'info' | 'success' | 'danger' | 'warn' | 'secondary' | 'contrast' | undefined } {
     const ds = task.DisplayStatus ?? task.Status;
     switch (ds) {
-      case 1: return { label: 'Chưa làm', severity: 'secondary' };
-      case 2: return { label: 'Đang làm', severity: 'info' };
-      case 21: return { label: 'Đang làm quá hạn', severity: 'danger' };
-      case 3: return { label: 'Hoàn thành', severity: 'success' };
-      case 31: return { label: 'Hoàn thành quá hạn', severity: 'warn' };
-      case 32: return { label: 'Đã duyệt', severity: 'success' };
-      case 33: return { label: 'Đã hủy duyệt', severity: 'danger' };
-      case 4: return { label: 'Pending', severity: 'warn' };
+      case 0: return { label: 'Chưa làm', severity: 'secondary' };
+      case 1: return { label: 'Đang làm', severity: 'info' };
+      case 11: return { label: 'Đang làm quá hạn', severity: 'danger' };
+      case 2: return { label: 'Hoàn thành', severity: 'success' };
+      case 21: return { label: 'Hoàn thành quá hạn', severity: 'warn' };
+      case 22: return { label: 'Đã duyệt', severity: 'success' };
+      case 23: return { label: 'Đã hủy duyệt', severity: 'danger' };
+      case 3: return { label: 'Pending', severity: 'warn' };
       default: return { label: 'Chưa xác định', severity: 'secondary' };
     }
   }
@@ -626,7 +609,7 @@ export class ProjectTaskComponent implements OnInit {
     if (this.activeTab() !== 'myApproval') return false;
     const ds = task.DisplayStatus;
     // Hiển thị khi Hoàn thành hoặc Hoàn thành quá hạn (chưa duyệt/hủy)
-    return ds === 3 || ds === 31;
+    return ds === 2 || ds === 21;
   }
   // Default date helpers
   private formatDateForInput(d: Date): string {
@@ -830,6 +813,7 @@ export class ProjectTaskComponent implements OnInit {
   }
 
   toggleAttendance(task: ProjectTaskItem): void {
+    if (this.activeTab() !== 'assigned') return;
     const newStatus = !task.IsCheck;
     this.projectTaskService.saveAttendance(task.ID, newStatus).subscribe({
       next: (res) => {
@@ -854,14 +838,14 @@ export class ProjectTaskComponent implements OnInit {
       let fontColor = '000000'; // Default black
 
       switch (ds) {
-        case 1: color = '6C757D'; fontColor = 'FFFFFF'; break; // Grey
-        case 2: color = '17A2B8'; fontColor = 'FFFFFF'; break; // Blue
-        case 21: color = 'DC3545'; fontColor = 'FFFFFF'; break; // Red
-        case 3: color = '28A745'; fontColor = 'FFFFFF'; break; // Green
-        case 31: color = 'FFC107'; fontColor = '000000'; break; // Orange/Yellow
-        case 32: color = '28A745'; fontColor = 'FFFFFF'; break; // Green
-        case 33: color = 'DC3545'; fontColor = 'FFFFFF'; break; // Red
-        case 4: color = 'FFC107'; fontColor = '000000'; break; // Orange/Yellow
+        case 0: color = '6C757D'; fontColor = 'FFFFFF'; break; // Grey
+        case 1: color = '17A2B8'; fontColor = 'FFFFFF'; break; // Blue
+        case 11: color = 'DC3545'; fontColor = 'FFFFFF'; break; // Red
+        case 2: color = '28A745'; fontColor = 'FFFFFF'; break; // Green
+        case 21: color = 'FFC107'; fontColor = '000000'; break; // Orange/Yellow
+        case 22: color = '28A745'; fontColor = 'FFFFFF'; break; // Green
+        case 23: color = 'DC3545'; fontColor = 'FFFFFF'; break; // Red
+        case 3: color = 'FFC107'; fontColor = '000000'; break; // Orange/Yellow
       }
 
       return {
@@ -1061,7 +1045,7 @@ export class ProjectTaskComponent implements OnInit {
             ...fullTask,
             ID: undefined,
             Code: undefined,
-            Status: 1,
+            Status: 0,
             IsApproved: 0,
             ActualStartDate: undefined,
             ActualEndDate: undefined,
@@ -1219,13 +1203,15 @@ export class ProjectTaskComponent implements OnInit {
       }
 
       // Attendance option
-      this.contextMenuItems.push({
-        label: `Điểm danh công việc`,
-        icon: 'pi pi-user-edit',
-        command: () => {
-          this.saveAttendance(task);
-        }
-      });
+      if (this.activeTab() === 'assigned') {
+        this.contextMenuItems.push({
+          label: `Điểm danh công việc`,
+          icon: 'pi pi-user-edit',
+          command: () => {
+            this.saveAttendance(task);
+          }
+        });
+      }
 
       if (this.contextMenuItems.length > 0) {
         cm.show(event);
@@ -1236,6 +1222,7 @@ export class ProjectTaskComponent implements OnInit {
   }
 
   saveAttendance(task: ProjectTaskItem) {
+    if (this.activeTab() !== 'assigned') return;
     this.projectTaskService.saveAttendance(task.ID, true).subscribe({
       next: (res) => {
         if (res.status === 200 || res.status === 1) {

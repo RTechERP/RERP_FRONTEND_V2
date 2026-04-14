@@ -78,12 +78,12 @@ export class ProjectTaskStatusComponent implements OnInit {
   selectedStatuses: number[] = [];
 
   statusOptions = [
-    { label: 'Chưa làm', value: 1 },
-    { label: 'Đang làm (còn hạn)', value: 2 },
-    { label: 'Đang làm (hết hạn)', value: 21 },
-    { label: 'Hoàn thành', value: 3 },
-    { label: 'Hoàn thành (trễ)', value: 31 },
-    { label: 'Pending', value: 4 }
+    { label: 'Chưa làm', value: 0 },
+    { label: 'Đang làm (còn hạn)', value: 1 },
+    { label: 'Đang làm (hết hạn)', value: 11 },
+    { label: 'Hoàn thành', value: 2 },
+    { label: 'Hoàn thành (quá hạn)', value: 21 },
+    { label: 'Pending', value: 3 }
   ];
 
   // ===== Column filter (manual) =====
@@ -279,12 +279,12 @@ export class ProjectTaskStatusComponent implements OnInit {
       filtered = filtered.filter(item => {
         return this.selectedStatuses.some(status => {
           switch (status) {
-            case 1: return item.NotStarted > 0;
-            case 2: return item.Doing > 0;
-            case 21: return item.DoingOverdue > 0;
-            case 3: return item.Done > 0;
-            case 31: return item.DoneLate > 0;
-            case 4: return item.Pending > 0;
+            case 0: return item.NotStarted > 0;
+            case 1: return item.Doing > 0;
+            case 11: return item.DoingOverdue > 0;
+            case 2: return item.Done > 0;
+            case 21: return item.DoneLate > 0;
+            case 3: return item.Pending > 0;
             default: return false;
           }
         });
@@ -341,7 +341,7 @@ export class ProjectTaskStatusComponent implements OnInit {
       { header: 'Đang làm (còn hạn)', field: 'Doing' },
       { header: 'Đang làm (hết hạn)', field: 'DoingOverdue' },
       { header: 'Hoàn thành', field: 'Done' },
-      { header: 'Hoàn thành (trễ)', field: 'DoneLate' },
+      { header: 'Hoàn thành (quá hạn)', field: 'DoneLate' },
       { header: 'Pending', field: 'Pending' },
       { header: 'Tổng', field: 'TotalTasks' },
     ];

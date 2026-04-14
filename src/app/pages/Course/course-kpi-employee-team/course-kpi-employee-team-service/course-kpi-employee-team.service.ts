@@ -8,8 +8,8 @@ import { environment } from '../../../../../environments/environment';
 })
 export class CourseKpiEmployeeTeamService {
 
-  private apiUrlTeam = `${environment.host}api/Course_KPIEmployeeTeam`;
-  private apiUrlLink = `${environment.host}api/Course_KPIEmployeeTeamLink`;
+  private apiUrlTeam = `${environment.host}api/coursekpiemployeeteam`;
+  private apiUrlLink = `${environment.host}api/coursekpiemployeeteamlink`;
 
 
   constructor(private http: HttpClient) { }

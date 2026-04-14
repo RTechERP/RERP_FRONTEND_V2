@@ -162,12 +162,28 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     // --- Virtual Scrolling ---
     @Input() virtualScroll: boolean = false;
     @Input() virtualScrollItemSize: number = 46;
-    /** Auto-enable virtual scroll when data exceeds this threshold (0 = disabled) */
+    /**
+     * Auto-enable PrimeNG virtual scroll when row count exceeds this value (0 = never auto).
+     * Note: with [virtualScroll]="false", auto still applies if threshold is exceeded — use 0 to disable.
+     */
     @Input() lazyRenderThreshold: number = 100;
+    /** Passed to p-table → Scroller (e.g. { numToleratedItems: 24 }). Merged with sensible defaults when virtual scroll is on. */
+    @Input() virtualScrollOptions: Record<string, unknown> | null = null;
 
     /** Resolved: true if virtualScroll is on OR data exceeds threshold */
     get isVirtualScroll(): boolean {
         return this.virtualScroll || (this.lazyRenderThreshold > 0 && this._data.length > this.lazyRenderThreshold);
+    }
+
+    /** Extra rows rendered above/below viewport — reduces blank area when scrolling fast */
+    get mergedVirtualScrollOptions(): Record<string, unknown> | undefined {
+        if (!this.isVirtualScroll) {
+            return undefined;
+        }
+        return {
+            numToleratedItems: 24,
+            ...(this.virtualScrollOptions ?? {})
+        };
     }
 
     /** Resolved: scrollable must be true when virtual scroll is active */

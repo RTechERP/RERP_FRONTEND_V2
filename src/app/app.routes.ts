@@ -317,6 +317,8 @@ import { CommercialPriceRequestComponent } from './pages/purchase/project-partli
 import { PurchaseQuoteSummaryMainComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary-main/purchase-quote-summary-main.component';
 import { EmployeeDeductionTypeComponent } from './pages/hrm/employee-management/employee-deduction/employee-deduction-type/employee-deduction-type.component';
 import { ListProductProjectCustomerComponent } from './pages/old/Sale/list-product-project-customer/list-product-project-customer.component';
+import { ProjectTechnologyFormComponent } from './pages/project/project-application-types/project-technology-form/project-technology-form.component';
+import { ProjectApplicationTypesComponent } from './pages/project/project-application-types/project-application-types.component';
 export const routes: Routes = [
     {
         path: 'file-preview',
@@ -703,12 +705,14 @@ export const routes: Routes = [
             { path: 'project-item-person', component: ProjectItemPersonComponent, canActivate: [authGuard] },
             { path: 'summary-project-join', component: SummaryProjectJoinComponent, canActivate: [authGuard] },
             { path: 'project-part-list', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
+            { path: 'project-application-types', component: ProjectApplicationTypesComponent, canActivate: [authGuard] },
+
+            //kpi
             { path: 'kpi-tech', component: KPIEvaluationEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring-tbp', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring-bgd', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
-
 
 
             //Mua hàng

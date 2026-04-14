@@ -31,6 +31,7 @@ export class ProjectApplicationTypesFormComponent implements OnInit {
 
   form!: FormGroup;
   isLoading: boolean = false;
+  hasSaved: boolean = false; // Flag to track if at least one item was saved
 
   constructor(
     public activeModal: NgbActiveModal,
@@ -51,7 +52,7 @@ export class ProjectApplicationTypesFormComponent implements OnInit {
     }
   }
 
-  save(): void {
+  save(addNew: boolean = false): void {
     if (this.form.invalid) {
       Object.values(this.form.controls).forEach(control => {
         if (control.invalid) {
@@ -68,8 +69,25 @@ export class ProjectApplicationTypesFormComponent implements OnInit {
     this.applicationTypesService.saveProjectApplicationType(value).subscribe({
       next: (res: any) => {
         this.isLoading = false;
+        this.hasSaved = true;
         this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công!');
-        this.activeModal.close(true);
+        
+        if (addNew) {
+          // Reset form to add new entry, keeping ProjectTypeID
+          this.form.reset({
+            ID: 0,
+            ProjectTypeID: this.projectTypeID,
+            ApplicationName: '',
+            Descriptions: ''
+          });
+          // Reset validation state
+          Object.values(this.form.controls).forEach(control => {
+            control.markAsPristine();
+            control.markAsUntouched();
+          });
+        } else {
+          this.activeModal.close(true);
+        }
       },
       error: (err: any) => {
         this.isLoading = false;
@@ -80,6 +98,7 @@ export class ProjectApplicationTypesFormComponent implements OnInit {
   }
 
   close(): void {
-    this.activeModal.dismiss();
+    // Return hasSaved flag so parent reloads if anything was saved
+    this.activeModal.close(this.hasSaved);
   }
 }

@@ -1919,31 +1919,6 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           formatter: 'textarea',
           width: 300,
         },
-        {
-          title: '%',
-          field: 'PercentItem',
-          hozAlign: 'right',
-          editor: 'input',
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            if (value === null || value === undefined || value === '') {
-              return '';
-            }
-            const numValue = Number(value);
-            if (isNaN(numValue)) {
-              return value;
-            }
-            return numValue.toFixed(2) + '%';
-          },
-        },
-        {
-          title: 'Công việc',
-          field: 'Mission',
-          hozAlign: 'left',
-          editor: 'textarea',
-          formatter: 'textarea',
-          width: 300,
-        },
         // --- KẾ HOẠCH ---
         {
           title: 'KẾ HOẠCH',

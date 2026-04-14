@@ -49,6 +49,7 @@ import { EmployeeRegisterBussinessComponent } from './pages/hrm/employee-managem
 import { EmployeeCurricularComponent } from './pages/hrm/employee-management/employee-curriculart/employee-curricular/employee-curricular.component';
 import { EmployeeErrorComponent } from './pages/hrm/employee-management/employee-error/employee-error.component';
 import { EmployeeDeductionComponent } from './pages/hrm/employee-management/employee-deduction/employee-deduction.component';
+import { EmployeeDeductionTypeComponent } from './pages/hrm/employee-management/employee-deduction/employee-deduction-type/employee-deduction-type.component';
 import { EmployeeDeductionSummaryComponent } from './pages/hrm/employee-management/employee-deduction/employee-deduction-summary/employee-deduction-summary.component';
 import { EmployeeNightShiftPersonSummaryComponent } from './pages/hrm/employee-management/employee-night-shift/employee-night-shift-person-summary/employee-night-shift-person-summary.component';
 import { EmployeeNightShiftComponent } from './pages/hrm/employee-management/employee-night-shift/employee-night-shift/employee-night-shift.component';
@@ -233,6 +234,7 @@ import { HistoryProductRtcProtectiveGearNewComponent } from './pages/hrm/product
 // import { CustomerSlickgridComponent } from './pages/hrm/customers/customer-slickgrid/customer-slickgrid.component';
 import { InventoryBorrowNCCComponent } from './pages/old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
 import { OfficeSupplyRequestPersonComponent } from './pages/hrm/office-supply/OfficeSupplyRequests/office-supply-request-person/office-supply-request-person.component';
+import { PersonalInfomationComponent } from './pages/general-category/infomation-personal/personal-infomation.component';
 
 
 import { CourseManagementComponent } from './pages/Course/course-management/course-management.component';
@@ -278,6 +280,8 @@ import { LuckyNumberComponent } from './pages/hrm/lucky-number/lucky-number.comp
 import { CoursePracticeComponent } from './pages/Course/course-practice/course-practice.component';
 import { CourseExamComponent } from './pages/Course/course-exam/course-exam.component';
 import { CourseExamPracticeComponent } from './pages/Course/course-exam-practice/course-exam-practice.component';
+import { CourseKpiEmployeeTeamComponent } from './pages/Course/course-kpi-employee-team/course-kpi-employee-team.component';
+import { CommercialPriceRequestComponent } from './pages/commercial-price-request/commercial-price-request.component';
 import { KpiSyntheticYearsComponent } from './pages/old/Technical/kpi-synthetic-years/kpi-synthetic-years.component';
 import { SummaryKpiEmployeePointComponent } from './pages/old/Technical/summary-kpi-employee-point/summary-kpi-employee-point.component';
 import { FollowProjectBaseSlickgridComponent } from './pages/old/VisionBase/kho-base/follow-project-base-slickgrid/follow-project-base-slickgrid.component';
@@ -301,22 +305,34 @@ import { SummaryAssetPersionalComponent } from './pages/hrm/asset/summary-asset-
 import { PaymentOrderEmployeeComponent } from './pages/general-category/payment-order-employee/payment-order-employee.component';
 import { PaymentOrderTeamComponent } from './pages/general-category/payment-order-team/payment-order-team.component';
 import { PlanWeekSharkTeamComponent } from './pages/old/VisionBase/plan-week-shark-team/plan-week-shark-team.component';
+import { FiveSDepartmentComponent } from './pages/hrm/RatingError/FiveSDepartment/five-s-department.component';
+import { FiveSErrorComponent } from './pages/hrm/RatingError/FiveSError/five-s-error.component';
+import { FiveSRuleErrorComponent } from './pages/hrm/RatingError/FiveSRuleError/five-s-rule-error.component';
+import { FiveSRatingComponent } from './pages/hrm/RatingError/FiveSRating/five-s-rating.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
-
 import { ProjectTaskComponent } from './pages/project_task/project-task/project-task.component'
 import { ProjectTaskDashboardComponent } from './pages/project_task/project-task-dashboard/project-task-dashboard.component'
 import { ProjectTaskTimelineComponent } from './pages/project_task/project-task-timeline/project-task-timeline.component'
 import { ProjectTaskStatusComponent } from './pages/project_task/project-task-status/project-task-status.component'
 import { ProjectTaskTypeComponent } from './pages/project_task/project-task-type/project-task-type.component'
 import { ProjectTaskProjectComponent } from './pages/project_task/project-task-project/project-task-project.component'
+import { FiveSRatingDetailComponent } from './pages/hrm/RatingError/five-s-rating-detail/five-s-rating-detail.component'
+import { FiveSMinusComponent } from './pages/hrm/RatingError/five-s-minus/five-s-minus.component'
 import { ProjectTaskTimeLineTotalComponent } from './pages/project_task/project-task-time-line-total/project-task-time-line-total.component'
 import { ProjectTaskStatusChartComponent } from './pages/project_task/project-task-status-chart/project-task-status-chart.component'
-import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
+import { ProjectTaskSettingComponent } from './pages/project_task/project-task-setting/project-task-setting.component'
 import { PurchaseQuoteSummaryComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary.component';
 import { CommercialPriceRequestComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/commercial-price-request/commercial-price-request.component';
+import { PinResetComponent } from './auth/pin-pass-word/pin-reset/pin-reset.component';
+import { ChangePasswordComponent } from './auth/change-password/change-password.component';
+
+
 import { PurchaseQuoteSummaryMainComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary-main/purchase-quote-summary-main.component';
-import { EmployeeDeductionTypeComponent } from './pages/hrm/employee-management/employee-deduction/employee-deduction-type/employee-deduction-type.component';
+import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
+import { ProjectPrimeNg2Component } from './pages/project/project-prime-ng2/project-prime-ng2.component';
 import { ListProductProjectCustomerComponent } from './pages/old/Sale/list-product-project-customer/list-product-project-customer.component';
+import { ProjectTechnologyFormComponent } from './pages/project/project-application-types/project-technology-form/project-technology-form.component';
+import { ProjectApplicationTypesComponent } from './pages/project/project-application-types/project-application-types.component';
 export const routes: Routes = [
     {
         path: 'file-preview',
@@ -331,7 +347,6 @@ export const routes: Routes = [
             { path: '', redirectTo: 'login', pathMatch: 'full' },
         ],
     },
-
     {
         path: '',
         // component: HomeLayoutComponent,
@@ -340,7 +355,6 @@ export const routes: Routes = [
         // children: [{ path: 'home', component: HomeLayoutComponent }],
         children: [{ path: 'home', component: HomeLayoutNewComponent }],
     },
-
     {
         path: '',
         canActivate: [candidateAuthGuard],
@@ -349,7 +363,6 @@ export const routes: Routes = [
             { path: 'home-candidate', component: HomeLayoutCandidateComponent }
         ],
     },
-
     {
         path: '',
         component: MainLayoutComponent, // layout chứa sidebar, topbar, etc.
@@ -360,19 +373,15 @@ export const routes: Routes = [
             //#region hệ thống
             { path: 'menu-app', component: MenuAppComponent, canActivate: [authGuard] },
             //#endregion
-
             //#region crm
             { path: 'customer', component: CustomerComponent, canActivate: [authGuard] },
             //#endregion
-
             //#region kế toán
             { path: 'paymentorder', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'kt-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
             { path: 'daily-report-accounting', component: DailyReportAccountingSlickgridComponent, canActivate: [authGuard] },
             { path: 'daily-report-accounting-person', component: DailyReportAccountingSlickgridComponent, canActivate: [authGuard] },
             //#endregion
-
-
             //#region  Các phân hệ chính
             { path: 'approve', component: ApproveComponent, canActivate: [authGuard] },
             { path: 'person', component: PersonComponent, canActivate: [authGuard] },
@@ -456,8 +465,11 @@ export const routes: Routes = [
             { path: 'employee-attendance', component: EmployeeAttendanceComponent, canActivate: [authGuard] },
             { path: 'employee-error', component: EmployeeErrorComponent, canActivate: [authGuard] },
             { path: 'employee-deduction', component: EmployeeDeductionComponent, canActivate: [authGuard] },
+            { path: 'employee-deduction-type', component: EmployeeDeductionTypeComponent, canActivate: [authGuard] },
             { path: 'employee-deduction-hr', component: EmployeeDeductionComponent, canActivate: [authGuard] },
 
+            { path: 'five-s-rating-detail', component: FiveSRatingDetailComponent, canActivate: [authGuard] },
+            { path: 'five-s-minus', component: FiveSMinusComponent, canActivate: [authGuard] },
             { path: 'employee-deduction-summary', component: EmployeeDeductionSummaryComponent, canActivate: [authGuard] },
             { path: 'employee-curricular', component: EmployeeCurricularComponent, canActivate: [authGuard] },
             { path: 'payroll', component: PayrollComponent, canActivate: [authGuard] },
@@ -599,6 +611,7 @@ export const routes: Routes = [
             { path: 'nofinger', component: EmployeeNoFingerprintComponent, canActivate: [authGuard] },
             { path: 'person-summary', component: SummaryEmployeeComponent, canActivate: [authGuard] },
             { path: 'person-summary-payroll', component: EmployeeSyntheticPersonalComponent, canActivate: [authGuard] },
+            { path: 'personal-information', component: PersonalInfomationComponent, canActivate: [authGuard] },
 
 
             //Đăng ký chung
@@ -703,12 +716,15 @@ export const routes: Routes = [
             { path: 'project-item-person', component: ProjectItemPersonComponent, canActivate: [authGuard] },
             { path: 'summary-project-join', component: SummaryProjectJoinComponent, canActivate: [authGuard] },
             { path: 'project-part-list', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
+            { path: 'project-task-setting', component: ProjectTaskSettingComponent, canActivate: [authGuard] },
+            { path: 'project-application-types', component: ProjectApplicationTypesComponent, canActivate: [authGuard] },
+
+            //kpi
             { path: 'kpi-tech', component: KPIEvaluationEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring-tbp', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring-bgd', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
-
 
 
             //Mua hàng
@@ -1083,7 +1099,10 @@ export const routes: Routes = [
             { path: 'protect-gear-hr', component: ProtectgearComponent, canActivate: [authGuard] },
             { path: 'phase-allocation-hr', component: PhaseAllocationPersonComponent, canActivate: [authGuard] },
             { path: 'workplan-summary', component: WorkplanSummaryComponent, canActivate: [authGuard] },
-
+            { path: 'five-s-department', component: FiveSDepartmentComponent, canActivate: [authGuard] },
+            { path: 'five-s-error', component: FiveSErrorComponent, canActivate: [authGuard] },
+            { path: 'five-s-rule-error', component: FiveSRuleErrorComponent, canActivate: [authGuard] },
+            { path: 'five-s-rating', component: FiveSRatingComponent, canActivate: [authGuard] },
             { path: 'bill-import-qc', component: BillImportQcComponent, canActivate: [authGuard] },
 
             { path: 'newsletter', component: NewsletterComponent, canActivate: [authGuard] },
@@ -1140,11 +1159,14 @@ export const routes: Routes = [
             { path: 'inventoryaa', component: InventoryNewComponent, canActivate: [authGuard] },
             { path: 'lucky-number-person', component: LuckyNumberComponent, canActivate: [authGuard] },
             { path: 'lucky-number', component: LuckyNumberComponent, canActivate: [authGuard] },
+            { path: 'course-kpi-employee-team', component: CourseKpiEmployeeTeamComponent, canActivate: [authGuard] },
+            { path: 'commercial-price-request', component: CommercialPriceRequestComponent, canActivate: [authGuard] },
             { path: 'update-version', component: UpdateVersionComponent, canActivate: [authGuard] },
 
             { path: 'daily-report-bod', component: DailyReportThrComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-candidate', component: HRRecruitmentCandidateComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-exam', component: HRRecruitmentExamComponent, canActivate: [authGuard] },
+            { path: 'project-prime-ng2', component: ProjectPrimeNg2Component, canActivate: [authGuard] },
             { path: 'hr-recruitment-application', component: HRRecruitmentApplicationComponent, canActivate: [authGuard] },
             { path: 'history-borrow-sale-personal', component: HistoryBorrowSalePersonalComponent, canActivate: [authGuard] },
             { path: 'history-product-rtc-personal', component: HistoryProductRtcPersonalComponent, canActivate: [authGuard] },

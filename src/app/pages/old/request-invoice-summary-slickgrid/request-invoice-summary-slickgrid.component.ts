@@ -65,12 +65,13 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import * as ExcelJS from 'exceljs';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE, EMPLOYEE_ID_LIST_DOWNLOAD_FILE_YCHXD_SUMMARY } from '../../../app.config';
 import { RequestInvoiceService } from '../request-invoice/request-invoice-service/request-invoice-service.service'
 import { RequestInvoiceStatusLinkComponent } from '../request-invoice-status-link/request-invoice-status-link.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { ActivatedRoute } from '@angular/router';
 import { Menubar } from 'primeng/menubar';
+import { AppUserService } from '../../../services/app-user.service';
 
 // Custom formatter for checkbox display
 const checkboxFormatter: Formatter = (row, cell, value, columnDef, dataContext) => {
@@ -174,6 +175,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         private requestInvoiceService: RequestInvoiceService,
         private viewPokhService: ViewPokhService,
         private route: ActivatedRoute,
+        private appUserService: AppUserService,
         @Optional() @Inject('tabData') private tabData: any
     ) {
         // Nhận data từ tab nếu có
@@ -185,6 +187,14 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
     menuBars: any[] = [];
 
     initMenuBar() {
+        const currentEmployeeId = this.appUserService.employeeID ?? 0;
+        const currentUser = this.appUserService.currentUser;
+        const hasN1Permission = currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N1') : false;
+        
+        const canDownload = EMPLOYEE_ID_LIST_DOWNLOAD_FILE_YCHXD_SUMMARY.includes(currentEmployeeId) 
+            || this.appUserService.isAdmin 
+            || hasN1Permission;
+
         this.menuBars = [
             {
                 label: 'Xuất Excel',
@@ -193,13 +203,13 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                     this.exportToExcel();
                 }
             },
-            {
+            ...(canDownload ? [{
                 label: 'Tải file',
                 icon: 'fa-solid fa-download fa-lg text-primary',
                 command: () => {
                     this.downloadBatchFiles();
                 }
-            },
+            }] : []),
             {
                 label: 'Quản lý trạng thái',
                 icon: 'fa-solid fa-list-check fa-lg text-warning',

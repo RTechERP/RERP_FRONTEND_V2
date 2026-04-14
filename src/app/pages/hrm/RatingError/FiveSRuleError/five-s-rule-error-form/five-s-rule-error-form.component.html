@@ -1,0 +1,58 @@
+<div class="modal-header  bg-primary py-2">
+    <h5 class="modal-title text-white fs-14">{{ isEdit ? 'Cập nhật quy tắc lỗi 5S' : 'Thêm mới quy tắc lỗi 5S' }}</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+
+</div>
+<div class="modal-body p-3">
+    <form nz-form [formGroup]="form" nzLayout="vertical">
+        <div class="row">
+            <div class="col-md-6">
+                <nz-form-item>
+                    <nz-form-label nzRequired style="font-size: 12px;">Tên quy tắc lỗi</nz-form-label>
+                    <nz-form-control nzErrorTip="Vui lòng nhập tên quy tắc lỗi">
+                        <input nz-input formControlName="Name" placeholder="Nhập tên quy tắc lỗi" nzSize="small" />
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div class="col-md-3">
+                <nz-form-item>
+                    <nz-form-label nzRequired style="font-size: 12px;">Loại điểm</nz-form-label>
+                    <nz-form-control nzErrorTip="Vui lòng chọn loại điểm">
+                        <nz-select formControlName="TypePoint" nzPlaceHolder="Chọn loại điểm" nzSize="small">
+                            <nz-option *ngFor="let opt of typePointOptions" [nzValue]="opt.value"
+                                [nzLabel]="opt.label"></nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div class="col-md-3">
+                <nz-form-item>
+                    <nz-form-label style="font-size: 12px;">Điểm</nz-form-label>
+                    <nz-form-control>
+                        <nz-input-number formControlName="Point" [nzMin]="0" [nzStep]="0.1" [nzPrecision]="1"
+                            class="w-100" nzSize="small"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+
+        <nz-form-item>
+            <nz-form-label style="font-size: 12px;">Ghi chú</nz-form-label>
+            <nz-form-control>
+                <input nz-input formControlName="Note" placeholder="Ghi chú bổ sung" nzSize="small" />
+            </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+            <nz-form-label style="font-size: 12px;">Mô tả chi tiết</nz-form-label>
+            <nz-form-control>
+                <textarea nz-input formControlName="Description" rows="3"
+                    placeholder="Mô tả chi tiết quy tắc lỗi"></textarea>
+            </nz-form-control>
+        </nz-form-item>
+    </form>
+</div>
+<div class="modal-footer p-2">
+    <button nz-button nzType="primary" nzDanger (click)="onCancel()" nzSize="small">Đóng</button>
+    <button nz-button nzType="primary" (click)="onSubmit()" [nzLoading]="isLoading" nzSize="small">Lưu</button>
+</div>

@@ -282,7 +282,6 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
           'Thông báo',
           'Có lỗi xảy ra khi tải danh sách danh mục!',
         );
-        console.error('Error loading categories:', error);
         this.categoryData = [];
         if (this.categoryTable) {
           this.categoryTable.replaceData(this.categoryData);
@@ -308,7 +307,6 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
       this.courseData = [];
       if (this.courseTable) {
         this.courseTable.setData(this.courseData);
-        console.log('courseData', this.courseData);
       }
       return;
     }
@@ -336,7 +334,6 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
           'Thông báo',
           'Có lỗi xảy ra khi tải danh sách khóa học!',
         );
-        console.error('Error loading courses:', error);
         this.courseData = [];
         if (this.courseTable) {
           this.courseTable.setData(this.courseData);
@@ -377,7 +374,6 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
           'Thông báo',
           'Có lỗi xảy ra khi tải danh sách bài học!',
         );
-        console.error('Error loading lessons:', error);
         this.lessonData = [];
         if (this.lessonTable) {
           this.lessonTable.setData(this.lessonData);
@@ -475,9 +471,6 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.maxSTT = 0;
     modalRef.componentInstance.dataDepartment = [...this.dataDepartment];
     modalRef.componentInstance.dataTeam = [...this.dataTeam];
-    console.log('dataToEdit', dataToEdit);
-    console.log('dataDepartment', this.dataDepartment);
-    console.log('dataTeam', this.dataTeam);
 
     modalRef.result.then(
       (result) => {
@@ -560,7 +553,6 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
               'Thông báo',
               'Có lỗi xảy ra khi thực hiện xóa danh sách danh mục!',
             );
-            console.error('Error deleting categories:', err);
             this.getDataCategory();
           },
         });
@@ -624,7 +616,6 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
     });
 
     modalRef.componentInstance.dataInput = dataToEdit;
-    console.log('Dữ liệu truyền vào modal sửa khóa học:', dataToEdit);
 
     modalRef.componentInstance.dataCategory = this.categoryData;
     modalRef.componentInstance.dataCourse = this.courseData;
@@ -837,7 +828,6 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
               'Thông báo',
               'Có lỗi xảy ra khi thực hiện xóa danh sách bài học!',
             );
-            console.error('Error deleting lessons:', err);
             this.getLessonByCourseID(
               dataSelect[0].CourseID || dataToEdit.CourseID,
             );
@@ -862,7 +852,6 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         return (a.NameDepartment || '')
           .localeCompare(b.NameDepartment || '');
       });
-    console.log('categoryData', this.categoryData);
   }
   draw_categoryTable(): void {
     this.sortCategoryData();

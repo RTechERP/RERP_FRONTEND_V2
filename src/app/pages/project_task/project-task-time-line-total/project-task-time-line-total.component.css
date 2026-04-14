@@ -6,7 +6,7 @@
     flex-direction: column;
     height: calc(100vh - 64px);
     background-color: #f4f7f9;
-    padding: 12px;
+    padding: 0px;
     overflow: hidden;
     font-family: 'Inter', sans-serif;
 }
@@ -78,7 +78,7 @@
     border-spacing: 0;
     width: max-content;
     min-width: 100%;
-    font-size: 12px;
+    font-size: 11px;
     table-layout: fixed;
 }
 
@@ -113,38 +113,33 @@ thead tr:nth-child(2) th {
 }
 
 .col-name {
-    width: 180px;
-    min-width: 180px;
+    width: 130px;
+    min-width: 130px;
 }
 
 .col-job {
-    width: 300px;
-    min-width: 300px;
-}
-
-.col-parent {
-    width: 200px;
-    min-width: 200px;
+    width: 240px;
+    min-width: 240px;
 }
 
 .col-proj {
-    width: 220px;
-    min-width: 220px;
+    width: 150px;
+    min-width: 150px;
 }
 
 .col-status {
-    width: 100px;
-    min-width: 100px;
+    width: 85px;
+    min-width: 85px;
 }
 
 .col-time {
-    width: 80px;
-    min-width: 80px;
+    width: 65px;
+    min-width: 65px;
 }
 
 .col-type {
-    width: 80px;
-    min-width: 80px;
+    width: 60px;
+    min-width: 60px;
 }
 
 /* ===== STICKY COLUMNS ===== */
@@ -167,15 +162,39 @@ thead .sticky-col {
     left: 45px;
 }
 
+.col-proj.sticky-col {
+    left: 175px; 
+}
+
 .col-job.sticky-col {
-    left: 225px;
+    left: 325px; 
 }
 
 /* ===== DATE COLUMNS ===== */
 .date-header,
 .date-subheader {
-    width: 60px;
-    min-width: 60px;
+    width: 38px;
+    min-width: 38px;
+    font-size: 10px;
+    position: relative;
+}
+
+.today-col {
+    position: relative;
+    background-color: #fff1f0 !important;
+}
+
+.today-col::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    background-color: #ff4d4f;
+    transform: translateX(-50%);
+    z-index: 5;
+    pointer-events: none;
 }
 
 .sunday {
@@ -187,13 +206,13 @@ thead .sticky-col {
     color: #e11d48;
 }
 
-/* ===== GANTT CELLS ===== */
 .gantt-cell {
     padding: 0 !important;
-    width: 60px;
-    min-width: 60px;
+    width: 38px;
+    min-width: 38px;
     text-align: center;
     vertical-align: middle;
+    position: relative;
 }
 
 .filled-planned {
@@ -290,9 +309,14 @@ thead .sticky-col {
     color: #475569;
 }
 
+.status-tag[data-status="0"] {
+    background: #f1f5f9;
+    color: #475569;
+}
+
 .status-tag[data-status="1"] {
-    background: #e2e8f0;
-    color: #64748b;
+    background: #e0f2fe;
+    color: #0369a1;
 }
 
 .status-tag[data-status="2"] {
@@ -301,16 +325,11 @@ thead .sticky-col {
 }
 
 .status-tag[data-status="3"] {
-    background: #e0f2fe;
-    color: #0369a1;
+    background: #fffbe6;
+    color: #b45309;
 }
 
 .status-tag[data-status="4"] {
-    background: #fffbe6;
-    color: #faad14;
-}
-
-.status-tag[data-status="5"] {
     background: #fff1f2;
     color: #e11d48;
 }

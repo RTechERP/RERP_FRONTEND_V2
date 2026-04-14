@@ -120,6 +120,9 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
     }
 
     get totalI(): number { return this.round2(this.parseNum(this.t2RowI?.TotalMoney)); }
+    get totalIIThanhTien(): number {
+        return this.round2(this.t2DetailRows.reduce((s, r) => s + this.parseNum(r.TotalMoney), 0));
+    }
     get totalII(): number {
         const total = this.t2DetailRows.reduce((s, r) => {
             const tm = this.parseNum(r.TotalMoney);
@@ -337,8 +340,8 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                     const d1 = details.find(r => (r.ContentPayment || '').trim().includes('Tạm ứng chi không hết'));
                     const d2 = details.find(r => (r.ContentPayment || '').trim().includes('Số chi quá tạm ứng'));
 
-                    const ridII = rowII?.ID ?? rowII?.Id ?? 0;
-                    const detailRows = ridII ? details.filter(r => (r.ParentID ?? r.ParentId ?? 0) === ridII) : [];
+                    const ridII = rowII?.Id || rowII?.ID || 0;
+                    const detailRows = ridII ? details.filter(r => (r.ParentId || r.ParentID || 0) === ridII) : [];
 
                     // const mapRow = (r: any, defaultId: number) => {
                     //     if (!r) return null;
@@ -365,8 +368,8 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                     // ].filter(Boolean);
                     const mapRow = (r: any, defaultId: number, isHeader: boolean = false) => {
                         if (!r) return null;
-                        const rid = r.ID ?? r.Id ?? 0;
-                        const pid = r.ParentID ?? r.ParentId ?? 0;
+                        const rid = r.Id || r.ID || 0;
+                        const pid = r.ParentId || r.ParentID || 0;
                         let pct = this.parseNum(r.PaymentPercentage);
                         if (defaultId > 5 && pct === 0) pct = 100;
                         if (defaultId <= 5) pct = 0;
@@ -550,13 +553,13 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             // ].filter(r => r.Stt !== undefined);
             details = [
                 sanitize(this.t2RowI, { ID: this.isCopy ? 0 : (this.t2RowI.ID || 0) }),
-                sanitize(this.t2RowII, { ID: this.isCopy ? 0 : (this.t2RowII.ID || 0), TotalMoney: this.totalII }),
+                sanitize(this.t2RowII, { ID: this.isCopy ? 0 : (this.t2RowII.ID || 0), TotalMoney: this.totalII, TotalPaymentAmount: this.totalII }),
 
                 // Đối với các dòng chi tiết của mục II
                 ...this.t2DetailRows.map(r => sanitize(r, {
                     ID: this.isCopy ? 0 : (r.ID || 0),
-                    // Nếu là copy, ép ParentID về 2 (ID của Header II) để đồng bộ với dòng mới thêm
-                    ParentID: this.isCopy ? 2 : r.ParentID
+                    // Luôn dùng _id của Header II (= 2) để C# khớp x.ParentID == item._id
+                    ParentID: this.t2RowII._id
                 })),
 
                 sanitize(this.t2RowIII, { ID: this.isCopy ? 0 : (this.t2RowIII.ID || 0), TotalMoney: this.totalDiff }),

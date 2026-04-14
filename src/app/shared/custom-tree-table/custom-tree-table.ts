@@ -455,6 +455,9 @@ export class CustomTreeTable implements OnChanges, OnInit {
             const opt = col.editOptions.find(o => o.value === val);
             if (opt) return opt.label;
         }
+        if (col.editType === 'multiselect' && col.editOptions && Array.isArray(val)) {
+            return val.map(v => col.editOptions!.find(o => o.value === v)?.label || v).join(', ');
+        }
         if (col.editType === 'table-lookup' && col.editLookupConfig) {
             const cfg = col.editLookupConfig;
             const source = cfg.data || this.lookupDataCache[col.field] || [];
@@ -502,7 +505,7 @@ export class CustomTreeTable implements OnChanges, OnInit {
             this.lookupLoading = true;
             this.lookupFilteredData = [];
             try {
-                const result = await Promise.resolve(cfg.loadData(''));
+                const result = await Promise.resolve(cfg.loadData('', rowData));
                 this.lookupFilteredData = result;
                 this.lookupDataCache[col.field] = result;
             } finally {
@@ -527,7 +530,7 @@ export class CustomTreeTable implements OnChanges, OnInit {
             this.lookupDebounceTimer = setTimeout(async () => {
                 this.lookupLoading = true;
                 try {
-                    const result = await Promise.resolve(cfg.loadData!(this.lookupSearchText));
+                    const result = await Promise.resolve(cfg.loadData!(this.lookupSearchText, this.activeLookupRowData));
                     this.lookupFilteredData = this.applyLookupColFilters(cfg, result);
                 } finally {
                     this.lookupLoading = false;

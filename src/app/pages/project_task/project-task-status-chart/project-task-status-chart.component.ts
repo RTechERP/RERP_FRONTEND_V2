@@ -336,7 +336,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
         }
       },
       legend: {
-        data: ['Chưa làm', 'Đang làm', 'Đang làm quá hạn', 'Hoàn thành', 'Hoàn thành trễ', 'Pending', 'Tổng công việc'],
+        data: ['Chưa làm', 'Đang làm', 'Đang làm quá hạn', 'Hoàn thành', 'Hoàn thành quá hạn', 'Pending', 'Tổng công việc'],
         bottom: 0,
         type: 'scroll'
       },
@@ -391,7 +391,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
           itemStyle: { color: '#22c55e' }
         },
         {
-          name: 'Hoàn thành trễ',
+          name: 'Hoàn thành quá hạn',
           type: 'bar',
           stack: 'status',
           data: doneLate,

@@ -31,6 +31,7 @@ export class ProjectTechnologyFormComponent implements OnInit {
 
   form!: FormGroup;
   isLoading: boolean = false;
+  hasSaved: boolean = false; // Flag to track if at least one item was saved
 
   constructor(
     public activeModal: NgbActiveModal,
@@ -51,7 +52,7 @@ export class ProjectTechnologyFormComponent implements OnInit {
     }
   }
 
-  save(): void {
+  save(addNew: boolean = false): void {
     if (this.form.invalid) {
       Object.values(this.form.controls).forEach(control => {
         if (control.invalid) {
@@ -61,15 +62,32 @@ export class ProjectTechnologyFormComponent implements OnInit {
       });
       return;
     }
-
+ 
     this.isLoading = true;
     const value = this.form.value;
-
+ 
     this.applicationTypesService.saveProjectTechnology(value).subscribe({
       next: (res: any) => {
         this.isLoading = false;
+        this.hasSaved = true;
         this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công!');
-        this.activeModal.close(true);
+        
+        if (addNew) {
+          // Reset form to add new entry, keeping ProjectTypeID
+          this.form.reset({
+            ID: 0,
+            ProjectTypeID: this.projectTypeID,
+            TechnologyName: '',
+            Descriptions: ''
+          });
+          // Reset validation state
+          Object.values(this.form.controls).forEach(control => {
+            control.markAsPristine();
+            control.markAsUntouched();
+          });
+        } else {
+          this.activeModal.close(true);
+        }
       },
       error: (err: any) => {
         this.isLoading = false;
@@ -80,6 +98,6 @@ export class ProjectTechnologyFormComponent implements OnInit {
   }
 
   close(): void {
-    this.activeModal.dismiss();
+    this.activeModal.close(this.hasSaved);
   }
 }

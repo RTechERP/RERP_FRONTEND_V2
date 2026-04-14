@@ -10,7 +10,8 @@
     [contextMenu]="contextMenuItems.length > 0 ? cm : null" [(contextMenuSelection)]="selectedContextRow"
     (onContextMenuSelect)="onContextMenuSelect($event)" [rowHover]="true" [stripedRows]="stripedRows"
     [reorderableColumns]="reorderableColumns" (onRowReorder)="onRowReorder($event)" (onColResize)="onColResize()"
-    [virtualScroll]="isVirtualScroll" [virtualScrollItemSize]="virtualScrollItemSize" [stateKey]="stateKey"
+    [virtualScroll]="isVirtualScroll" [virtualScrollItemSize]="virtualScrollItemSize"
+    [virtualScrollOptions]="mergedVirtualScrollOptions" [stateKey]="stateKey"
     [stateStorage]="stateStorage" [expandedRowKeys]="expandable ? expandedRows : expandedRowKeys"
     [rowExpandMode]="rowExpandMode" [editMode]="editMode || 'cell'" [exportFilename]="exportFilename"
     [filterDelay]="300">
@@ -69,9 +70,9 @@
                 class="frozen-left">
                 <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
             </th>
-            <th *ngFor="let col of columns; trackBy: trackByField" [attr.data-field]="col.field" pResizableColumn [pSortableColumn]="col.field"
-                [pSortableColumnDisabled]="!col.sortable || !!col.headerFormat" pFrozenColumn
-                [frozen]="col.frozen || false" [alignFrozen]="col.alignFrozen || 'left'"
+            <th *ngFor="let col of columns; trackBy: trackByField" [attr.data-field]="col.field" pResizableColumn
+                [pSortableColumn]="col.field" [pSortableColumnDisabled]="!col.sortable || !!col.headerFormat"
+                pFrozenColumn [frozen]="col.frozen || false" [alignFrozen]="col.alignFrozen || 'left'"
                 [style.width]="col.width || null" [style.min-width]="col.width || '60px'" pReorderableColumn
                 [pReorderableColumnDisabled]="!reorderableColumns"
                 [ngClass]="[col.cssClass || '', col.frozen ? (col.alignFrozen === 'right' ? 'frozen-right' : 'frozen-left') : '']"
@@ -144,8 +145,7 @@
                                                                     </div>
 
                                                                     <!-- Virtual scroll: chỉ render rows đang thấy, tránh crash khi có nhiều options -->
-                                                                    <cdk-virtual-scroll-viewport
-                                                                        itemSize="30"
+                                                                    <cdk-virtual-scroll-viewport itemSize="30"
                                                                         class="filter-virtual-viewport">
                                                                         <div *cdkVirtualFor="let opt of getFilteredOptions(col); trackBy: trackByValue"
                                                                             class="filter-list-item flex align-items-center gap-2"
@@ -365,68 +365,68 @@
             </td>
             <!-- Data columns -->
             <ng-container *ngFor="let col of columns; trackBy: trackByField">
-            <td *ngIf="showRowSpanCell(rowIndex, col)"
-                [attr.rowspan]="col.rowSpan && rowSpanBy ? getRowSpanCount(rowIndex) : null"
-                pFrozenColumn [frozen]="col.frozen || false"
-                [alignFrozen]="col.alignFrozen || 'left'"
-                [pEditableColumn]="col.editable && editMode && col.editType !== 'table-lookup' && col.editType !== 'progressbar' && col.editType !== 'badge' ? rowData : null"
-                [pEditableColumnField]="col.editable && editMode && col.editType !== 'table-lookup' && col.editType !== 'progressbar' && col.editType !== 'badge' ? col.field : ''"
-                [ngClass]="getTdClass(col, rowData)" [ngStyle]="col.cellStyle ? col.cellStyle(rowData) : null"
-                (click)="onCellClick($event, col, rowData)">
+                <td *ngIf="showRowSpanCell(rowIndex, col)"
+                    [attr.rowspan]="col.rowSpan && rowSpanBy ? getRowSpanCount(rowIndex) : null" pFrozenColumn
+                    [frozen]="col.frozen || false" [alignFrozen]="col.alignFrozen || 'left'"
+                    [pEditableColumn]="col.editable && editMode && col.editType !== 'table-lookup' && col.editType !== 'progressbar' && col.editType !== 'badge' ? rowData : null"
+                    [pEditableColumnField]="col.editable && editMode && col.editType !== 'table-lookup' && col.editType !== 'progressbar' && col.editType !== 'badge' ? col.field : ''"
+                    [ngClass]="getTdClass(col, rowData)" [ngStyle]="col.cellStyle ? col.cellStyle(rowData) : null"
+                    (click)="onCellClick($event, col, rowData)">
 
-                <!-- Table Lookup: click cell to open popup directly -->
-                <ng-container *ngIf="col.editType === 'table-lookup' && col.editable && editMode; else normalCell">
-                    <div class="table-lookup-cell" [title]="getCellValue(col, rowData)">
-                        <span class="table-lookup-value">{{ getCellValue(col, rowData) || 'Chọn...' }}</span>
-                        <i class="pi pi-chevron-down table-lookup-chevron"></i>
-                    </div>
-                </ng-container>
+                    <!-- Table Lookup: click cell to open popup directly -->
+                    <ng-container *ngIf="col.editType === 'table-lookup' && col.editable && editMode; else normalCell">
+                        <div class="table-lookup-cell" [title]="getCellValue(col, rowData)">
+                            <span class="table-lookup-value">{{ getCellValue(col, rowData) || 'Chọn...' }}</span>
+                            <i class="pi pi-chevron-down table-lookup-chevron"></i>
+                        </div>
+                    </ng-container>
 
-                <ng-template #normalCell>
-                    <!-- Editable cell (non table-lookup) -->
-                    <ng-container *ngIf="col.editable && editMode; else readOnlyCell">
-                        <p-cellEditor>
-                            <ng-template pTemplate="input">
-                                <!-- Lookup: searchable dropdown -->
-                                <ng-container *ngIf="col.editType === 'lookup'; else dateOrDefault">
-                                    <p-select [options]="col.editOptions || []" [(ngModel)]="rowData[col.field]"
-                                        optionLabel="label" optionValue="value" [filter]="true"
-                                        filterPlaceholder="Tìm kiếm..." appendTo="body" [style]="{ 'width': '100%' }">
-                                    </p-select>
-                                </ng-container>
-                                <ng-template #dateOrDefault>
-                                    <!-- Date picker -->
-                                    <ng-container *ngIf="col.editType === 'date'; else textareaOrInput">
-                                        <p-datepicker [(ngModel)]="rowData[col.field]" [showIcon]="true"
-                                            [showOnFocus]="false" appendTo="body"
-                                            [dateFormat]="col.editDateFormat || 'dd/mm/yy'"
-                                            [showTime]="col.editShowTime || false" [style]="{ 'width': '100%' }">
-                                        </p-datepicker>
+                    <ng-template #normalCell>
+                        <!-- Editable cell (non table-lookup) -->
+                        <ng-container *ngIf="col.editable && editMode; else readOnlyCell">
+                            <p-cellEditor>
+                                <ng-template pTemplate="input">
+                                    <!-- Lookup: searchable dropdown -->
+                                    <ng-container *ngIf="col.editType === 'lookup'; else dateOrDefault">
+                                        <p-select [options]="col.editOptions || []" [(ngModel)]="rowData[col.field]"
+                                            optionLabel="label" optionValue="value" [filter]="true"
+                                            filterPlaceholder="Tìm kiếm..." appendTo="body"
+                                            [style]="{ 'width': '100%' }">
+                                        </p-select>
                                     </ng-container>
-                                    <ng-template #textareaOrInput>
-                                        <textarea *ngIf="col.editType === 'textarea'; else defaultInput" pTextarea
-                                            [(ngModel)]="rowData[col.field]" [autoResize]="true" rows="3"
-                                            class="w-full"></textarea>
-                                        <ng-template #defaultInput>
-                                            <input pInputText [type]="col.editType === 'number' ? 'number' : 'text'"
-                                                [(ngModel)]="rowData[col.field]" style="width: 100%;" />
+                                    <ng-template #dateOrDefault>
+                                        <!-- Date picker -->
+                                        <ng-container *ngIf="col.editType === 'date'; else textareaOrInput">
+                                            <p-datepicker [(ngModel)]="rowData[col.field]" [showIcon]="true"
+                                                [showOnFocus]="false" appendTo="body"
+                                                [dateFormat]="col.editDateFormat || 'dd/mm/yy'"
+                                                [showTime]="col.editShowTime || false" [style]="{ 'width': '100%' }">
+                                            </p-datepicker>
+                                        </ng-container>
+                                        <ng-template #textareaOrInput>
+                                            <textarea *ngIf="col.editType === 'textarea'; else defaultInput" pTextarea
+                                                [(ngModel)]="rowData[col.field]" [autoResize]="true" rows="3"
+                                                class="w-full"></textarea>
+                                            <ng-template #defaultInput>
+                                                <input pInputText [type]="col.editType === 'number' ? 'number' : 'text'"
+                                                    [(ngModel)]="rowData[col.field]" style="width: 100%;" />
+                                            </ng-template>
                                         </ng-template>
                                     </ng-template>
                                 </ng-template>
-                            </ng-template>
-                            <ng-template pTemplate="output">
-                                <ng-container
-                                    *ngTemplateOutlet="visualRenderer; context: {$implicit: col, rowData: rowData}"></ng-container>
-                            </ng-template>
-                        </p-cellEditor>
-                    </ng-container>
-                    <!-- Read-only cell -->
-                    <ng-template #readOnlyCell>
-                        <ng-container
-                            *ngTemplateOutlet="visualRenderer; context: {$implicit: col, rowData: rowData}"></ng-container>
+                                <ng-template pTemplate="output">
+                                    <ng-container
+                                        *ngTemplateOutlet="visualRenderer; context: {$implicit: col, rowData: rowData}"></ng-container>
+                                </ng-template>
+                            </p-cellEditor>
+                        </ng-container>
+                        <!-- Read-only cell -->
+                        <ng-template #readOnlyCell>
+                            <ng-container
+                                *ngTemplateOutlet="visualRenderer; context: {$implicit: col, rowData: rowData}"></ng-container>
+                        </ng-template>
                     </ng-template>
-                </ng-template>
-            </td>
+                </td>
             </ng-container>
         </tr>
     </ng-template>
@@ -505,76 +505,86 @@
 </p-table>
 
 <!-- Table Lookup Popup -->
-<p-popover #lookupPanel appendTo="body" [style]="{ 'min-width': '400px', 'max-width': '700px' }">
-    <div class="flex flex-column gap-2 p-1">
-        <div class="flex align-items-center gap-2">
-            <p-iconfield class="flex-1">
+<p-popover #lookupPanel appendTo="body" [style]="{ 'min-width': '450px', 'max-width': '750px' }">
+    <div style="display: flex; flex-direction: column; gap: 12px; padding: 8px;">
+        <!-- Search Header -->
+        <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+            <p-iconfield style="flex: 1;">
                 <p-inputicon styleClass="pi pi-search" />
                 <input pInputText type="text" [(ngModel)]="lookupSearchText" (input)="filterLookupData()"
                     placeholder="Tìm kiếm..." style="width: 100%;" />
             </p-iconfield>
-            <button pButton icon="pi pi-times" class="p-button-sm p-button-danger p-button-text"
-                (click)="lookupPanel.hide()"></button>
+            <p-button icon="pi pi-times" [text]="true" severity="danger" (click)="lookupPanel.hide()"
+                [style]="{ 'padding': '0.5rem' }"></p-button>
         </div>
+
         <!-- Loading state -->
-        <div *ngIf="lookupLoading" class="flex justify-content-center align-items-center" style="min-height: 80px;">
-            <i class="pi pi-spin pi-spinner" style="font-size: 1.5rem; color: var(--p-primary-color);"></i>
+        <div *ngIf="lookupLoading"
+            style="display: flex; justify-content: center; align-items: center; min-height: 100px;">
+            <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--p-primary-color);"></i>
         </div>
-        <div *ngIf="!lookupLoading" style="max-height: 300px; overflow-y: auto;">
-            <table class="lookup-table">
-                <thead>
+
+        <!-- Data Table -->
+        <div *ngIf="!lookupLoading" class="lookup-table-container">
+            <p-table [value]="lookupFilteredData" [scrollable]="true" scrollHeight="350px"
+                styleClass="p-datatable-sm p-datatable-gridlines" [rows]="100">
+                <ng-template pTemplate="header">
                     <tr>
-                        <!-- Checkbox column header (multi-select) -->
                         <th *ngIf="activeLookupCol?.editLookupConfig?.multiSelect"
-                            style="width: 36px; text-align: center;">
+                            style="width: 3rem; text-align: center;">
                             <p-checkbox [binary]="true"
                                 [ngModel]="lookupSelectedRows.length === lookupFilteredData.length && lookupFilteredData.length > 0"
                                 (ngModelChange)="toggleAllLookupRows()">
                             </p-checkbox>
                         </th>
                         <th *ngFor="let lc of activeLookupCol?.editLookupConfig?.columns"
-                            [style.width]="lc.width || 'auto'">{{ lc.header }}</th>
-                    </tr>
-                    <tr>
-                        <th *ngIf="activeLookupCol?.editLookupConfig?.multiSelect" style="padding: 2px 4px;"></th>
-                        <th *ngFor="let lc of activeLookupCol?.editLookupConfig?.columns" style="padding: 2px 4px;">
-                            <input pInputText type="text" [(ngModel)]="lookupColFilters[lc.field]"
-                                (input)="filterLookupData()" [placeholder]="'Lọc...'"
-                                style="width: 100%; font-size: 0.75rem; padding: 2px 6px;" />
+                            [style.width]="lc.width || 'auto'">
+                            {{ lc.header }}
                         </th>
                     </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let row of lookupFilteredData" class="lookup-row"
-                        [class.lookup-row-selected]="isLookupRowSelected(row)"
+                    <tr>
+                        <th *ngIf="activeLookupCol?.editLookupConfig?.multiSelect" style="padding: 4px;"></th>
+                        <th *ngFor="let lc of activeLookupCol?.editLookupConfig?.columns" style="padding: 4px;">
+                            <input pInputText type="text" [(ngModel)]="lookupColFilters[lc.field]"
+                                (input)="filterLookupData()" [placeholder]="'Lọc...'"
+                                style="width: 100%; font-size: 0.75rem; padding: 4px 8px;" />
+                        </th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-row>
+                    <tr class="lookup-row cursor-pointer" [class.lookup-row-selected]="isLookupRowSelected(row)"
                         (click)="activeLookupCol?.editLookupConfig?.multiSelect ? toggleLookupRow(row) : selectLookupRow(row)">
-                        <!-- Checkbox cell (multi-select) -->
                         <td *ngIf="activeLookupCol?.editLookupConfig?.multiSelect"
-                            style="width: 36px; text-align: center;" (click)="$event.stopPropagation()">
+                            style="width: 3rem; text-align: center;" (click)="$event.stopPropagation()">
                             <p-checkbox [binary]="true" [ngModel]="isLookupRowSelected(row)"
                                 (ngModelChange)="toggleLookupRow(row)"></p-checkbox>
                         </td>
-                        <td *ngFor="let lc of activeLookupCol?.editLookupConfig?.columns">{{ row[lc.field] }}</td>
+                        <td *ngFor="let lc of activeLookupCol?.editLookupConfig?.columns">
+                            {{ row[lc.field] }}
+                        </td>
                     </tr>
-                    <tr *ngIf="lookupFilteredData.length === 0">
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
                         <td [attr.colspan]="(activeLookupCol?.editLookupConfig?.columns?.length || 0) + (activeLookupCol?.editLookupConfig?.multiSelect ? 1 : 0)"
-                            class="text-center text-500">
+                            class="text-center text-500 p-4">
                             Không tìm thấy kết quả
                         </td>
                     </tr>
-                </tbody>
-            </table>
+                </ng-template>
+            </p-table>
         </div>
-        <!-- Multi-select footer -->
+
+        <!-- Multi-select Footer -->
         <div *ngIf="activeLookupCol?.editLookupConfig?.multiSelect"
-            class="flex align-items-center justify-content-between pt-2"
-            style="border-top: 1px solid var(--p-surface-200);">
-            <span class="text-sm text-500">Đã chọn: {{ lookupSelectedRows.length }}</span>
-            <div class="flex gap-2">
-                <button pButton label="Bỏ chọn" icon="pi pi-times" class="p-button-sm p-button-text p-button-secondary"
-                    (click)="lookupSelectedRows = []"></button>
-                <button pButton label="Xác nhận" icon="pi pi-check" class="p-button-sm p-button-success"
-                    (click)="confirmLookupSelection()"></button>
+            style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding-top: 12px; border-top: 1px solid var(--p-surface-200);">
+            <span style="font-size: 0.875rem; color: var(--p-text-muted-color);">Đã chọn: <b
+                    style="color: var(--p-primary-color);">{{ lookupSelectedRows.length }}</b></span>
+            <div style="display: flex; gap: 8px;">
+                <p-button label="Bỏ chọn" icon="pi pi-times" [text]="true" severity="secondary" size="small"
+                    (click)="lookupSelectedRows = []"></p-button>
+                <p-button label="Xác nhận" icon="pi pi-check" severity="success" size="small"
+                    (click)="confirmLookupSelection()"></p-button>
             </div>
         </div>
     </div>

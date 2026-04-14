@@ -21,8 +21,8 @@ export interface TreeColumnDef {
     frozenRight?: string;
     /** PrimeNG filter type: 'text' | 'numeric' | 'date'. Default: 'text' */
     filterType?: string;
-    /** Filter UI mode: 'input' | 'dropdown' | 'multiselect'. Default: 'input' */
-    filterMode?: 'input' | 'dropdown' | 'multiselect';
+    /** Filter UI mode: 'input' | 'dropdown' | 'multiselect' | 'datetime'. Default: 'input' */
+    filterMode?: 'input' | 'dropdown' | 'multiselect' | 'datetime';
     /** Manual filter options. Format: [{label, value}] */
     filterOptions?: { label: string; value: any }[];
     /** Lazy-load filter options once on init (returns Promise or array) */
@@ -33,6 +33,8 @@ export interface TreeColumnDef {
     filterVirtualScrollItemSize?: number;
     /** Enable inline editing for this column */
     editable?: boolean;
+    /** Dynamic inline editable condition based on row data. Overrides editable if provided. */
+    isEditable?: (rowData: any) => boolean;
     /** Whether to wrap text or truncate with ellipsis */
     textWrap?: boolean;
     /** Format function for display: (value, rowData?) => string */
@@ -44,7 +46,7 @@ export interface TreeColumnDef {
     /** Dynamic inline style applied to body cells based on row data. */
     cellStyle?: (rowData: any) => { [klass: string]: any } | null;
     /** Edit type. Default: 'text' */
-    editType?: 'text' | 'number' | 'date' | 'lookup' | 'table-lookup' | 'textarea' | 'progressbar' | 'badge';
+    editType?: 'text' | 'number' | 'date' | 'lookup' | 'table-lookup' | 'textarea' | 'progressbar' | 'badge' | 'multiselect';
     /** Dynamic severity for badge type based on row data. */
     badgeSeverity?: (rowData: any) => 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' | undefined;
     /** Date format for date picker (PrimeNG format). Default: 'dd/mm/yy' */
@@ -73,4 +75,11 @@ export interface TreeColumnDef {
     headerClickable?: boolean;
     /** @internal used by TableLayoutService to track column visibility */
     visible?: boolean;
+    /** Whether to exclude this column from excel/csv export. Default: false */
+    excludeFromExport?: boolean;
+    id?: string;
+    name?: string;
+    hidden?: boolean;
+    filterable?: boolean;
+    filter?: any;
 }

@@ -31,9 +31,8 @@
   flex-shrink: 0;
 }
 
-.table-container
-{
-  height: 83vh!important;
+.table-container {
+  height: 80vh !important;
 }
 
 /* Font-size 12px cho filter bar */
@@ -75,8 +74,8 @@
   }
 }
 
- ::ng-deep div[id^="grid-"] {
-  height: 75vh!important;
+::ng-deep div[id^="grid-"] {
+  height: 80vh !important;
 }
 
 /* Căn phải các cột số */
@@ -98,28 +97,32 @@
 
 /* Bôi màu đỏ cho dòng đã xóa (IsDeleted = true hoặc IsDeleted = 1) */
 ::ng-deep .slick-row.row-deleted {
-  background-color: #FEE3E2 !important;
-  color: #DA342E !important;
+  background-color: #fee3e2 !important;
+  color: #da342e !important;
 }
 
 ::ng-deep .slick-row.row-deleted .slick-cell {
-  background-color: #FEE3E2 !important;
-  color: #DA342E !important;
+  background-color: #fee3e2 !important;
+  color: #da342e !important;
 }
 
 /* Bôi màu xanh lục cho dòng đã báo giá ở tab HCNS/MARKETING */
 ::ng-deep .slick-row.row-quoted {
-  background-color: #D4EDDA !important;
+  background-color: #d4edda !important;
   color: #155724 !important;
 }
 
 ::ng-deep .slick-row.row-quoted .slick-cell {
-  background-color: #D4EDDA !important;
+  background-color: #d4edda !important;
   color: #34ff63 !important;
 }
 
 /* Footer row styling */
-::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
+::ng-deep
+  .slickgrid-container
+  .slick-footerrow
+  .slick-footerrow-columns
+  .slick-footerrow-column {
   border-right: 1px solid #ddd !important;
   padding: 4px 6px;
   font-size: 0.75rem;

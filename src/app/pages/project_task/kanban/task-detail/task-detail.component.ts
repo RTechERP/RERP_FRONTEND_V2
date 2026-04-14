@@ -1,4 +1,6 @@
 import { Component, Input, OnInit, inject, ChangeDetectorRef, ViewChild, TemplateRef, HostListener } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { AppUserService } from '../../../../services/app-user.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,7 +26,11 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzListModule } from 'ng-zorro-antd/list';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { KanbanService } from '../kanban.service';
+import { WorkItemServiceService } from '../../../project/work-item/work-item-service/work-item-service.service';
 import { environment } from '../../../../../environments/environment';
 
 import { IProjectTask, IProjectTaskChecklist, IProjectTaskAdditional, IProjectSubtask, IProjectTaskGroup, IProjectTaskAttachment, IProject } from '../../../../models/kanban.interface';
@@ -54,7 +60,12 @@ import { AddRelatedPeopleComponent } from '../add-related-people/add-related-peo
         NzInputNumberModule,
         NzListModule,
         NzEmptyModule,
-        NzTableModule
+        NzTableModule,
+        NzTagModule,
+        NzGridModule,
+        NzDrawerModule,
+        AddRelatedPeopleComponent,
+        DragDropModule
     ],
     templateUrl: './task-detail.component.html',
     styleUrls: ['./task-detail.component.css']
@@ -62,23 +73,27 @@ import { AddRelatedPeopleComponent } from '../add-related-people/add-related-peo
 export class TaskDetailComponent implements OnInit {
     readonly nzModalData = inject<{ task: IProjectTask }>(NZ_MODAL_DATA, { optional: true });
     private message = inject(NzMessageService);
+    private workItemService: WorkItemServiceService = inject(WorkItemServiceService);
 
     @Input() task: any;
 
 
     // Task Status
-    taskStatus: number = 1;
+    taskStatus: number = 0;
     statusList = [
-        { value: 1, label: 'Chưa làm', color: '#8c8c8c', icon: 'minus-circle' },
-        { value: 2, label: 'Đang làm', color: '#1890ff', icon: 'sync' },
-        { value: 3, label: 'Hoàn thành', color: '#52c41a', icon: 'check-circle' },
-        { value: 4, label: 'Pending', color: '#faad14', icon: 'clock-circle' }
+        { value: 0, label: 'Chưa làm', color: '#8c8c8c', icon: 'minus-circle' },
+        { value: 1, label: 'Đang làm', color: '#1890ff', icon: 'sync' },
+        { value: 2, label: 'Hoàn thành', color: '#52c41a', icon: 'check-circle' },
+        { value: 3, label: 'Pending', color: '#faad14', icon: 'clock-circle' }
     ];
 
     // Task Type
     selectedTaskTypeId?: number;
-    taskTypeList: { ID: number; TypeName: string }[] = [];
-
+    selectedTypeProjectItemId?: number;
+    taskTypeList: { ID: number; TypeName: string; Color?: string }[] = [];
+    typeProjectItems: any[] = [];
+    projectTaskResult: string = '';
+    descriptionSolution: string = '';
     isPersonalProject: boolean = false;
     taskComplexity: number = 1;
     isAdditional: boolean = false;
@@ -99,6 +114,7 @@ export class TaskDetailComponent implements OnInit {
     endTime?: Date;
     planStartDate?: Date;
     planEndDate?: Date;
+    deadline?: Date;
     selectedTabIndex: number = 0;
 
     estimatedTime: string = '';
@@ -138,19 +154,18 @@ export class TaskDetailComponent implements OnInit {
             }
         }
 
-        // Ràng buộc mới: Ngày kết thúc thực tế >= (hôm nay - 1)
-        if (this.endDate && this.isUpdateMode) {
-            const yesterday = new Date();
-            yesterday.setHours(0, 0, 0, 0);
-            yesterday.setDate(yesterday.getDate() - 1);
 
-            const selectedEndDate = new Date(this.endDate);
-            selectedEndDate.setHours(0, 0, 0, 0);
-
-            if (selectedEndDate < yesterday) {
-                this.dateValidationError = 'Ngày KT thực tế phải từ ngày hôm qua trở đi';
+        // Ràng buộc: Ngày kết thúc thực tế >= Ngày bắt đầu thực tế
+        if (this.startDate && this.endDate) {
+            const s = new Date(this.startDate).setHours(0, 0, 0, 0);
+            const e = new Date(this.endDate).setHours(0, 0, 0, 0);
+            if (e < s) {
+                this.dateValidationError = 'Ngày KT thực tế không được trước Ngày BĐ thực tế';
             }
         }
+
+        // Tự động tính lại tổng thời gian dự kiến
+        this.updateEstimatedTime();
     }
 
     onPersonalProjectChange(checked: boolean): void {
@@ -166,7 +181,6 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.planStartDate = d;
         this.validateDates();
-        this.onPlanStartDateChange(d!);
     }
 
     get planEndDateStr(): string {
@@ -176,7 +190,6 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.planEndDate = d;
         this.validateDates();
-        this.onPlanEndDateChange(d!);
     }
 
     get startDateStr(): string {
@@ -186,7 +199,6 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.startDate = d;
         this.validateDates();
-        this.onStartDateChange(d!);
     }
 
     get endDateStr(): string {
@@ -196,7 +208,14 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.endDate = d;
         this.validateDates();
-        this.onEndDateChange(d!);
+    }
+
+    get deadlineStr(): string {
+        return this.deadline ? this.toDateInputString(this.deadline) : '';
+    }
+    set deadlineStr(val: string) {
+        const d = this.parseInputDate(val);
+        this.deadline = d;
     }
 
     get minActualEndDate(): string {
@@ -209,6 +228,14 @@ export class TaskDetailComponent implements OnInit {
     }
 
     checklists: IProjectTaskChecklist[] = [];
+
+    dropChecklist(event: CdkDragDrop<IProjectTaskChecklist[]>) {
+        if (this.isReadOnly) return;
+        moveItemInArray(this.checklists, event.previousIndex, event.currentIndex);
+        this.reorderChecklists();
+        this.cdr.detectChanges();
+    }
+
     newChecklistItem: string = '';
 
     // Checklist inline add state
@@ -225,6 +252,13 @@ export class TaskDetailComponent implements OnInit {
     // Temp ID counter for new items in CREATE mode (negative to avoid clash with real IDs)
     private _tempChecklistIdCounter: number = -1;
 
+    // Child Tasks state
+    childTasks: any[] = [];
+    isAddingChildTask = false;
+    newChildTask: any = {};
+    pendingChildTaskOps: Array<{ type: 'add' | 'delete', item: any }> = [];
+    private _tempChildTaskIdCounter: number = -1;
+
     // Mode detection
     isCreateMode: boolean = false;  // true if task doesn't have ID
     isUpdateMode: boolean = false;  // true if task has ID
@@ -233,22 +267,47 @@ export class TaskDetailComponent implements OnInit {
     taskLogs: any[] = [];
     isLoadingLogs: boolean = false;
     reviewStatus?: number;
-    previousStatus: number = 1;
+    previousStatus: number = 0;
 
     getStatusInfo(status: number) {
         return this.statusList.find(s => s.value === status) || this.statusList[0];
     }
 
+    getTaskTypeInfo(typeId: number) {
+        return this.taskTypeList.find(t => t.ID === typeId) || { ID: 0, TypeName: '', Color: '#1890ff' };
+    }
+
+    getTypeProjectItemName(id: number): string {
+        return this.typeProjectItems.find(t => t.ID === id)?.ProjectTypeName || '';
+    }
+
     onStatusChange(status: number): void {
         const oldStatus = this.previousStatus;
-        if (status === 4 && this.isUpdateMode) {
+
+        // BẮT BUỘC HOÀN THÀNH CHECKLIST TRƯỚC KHI HOÀN THÀNH TASK
+        if (status === 2 && this.checklists.length > 0 && this.completedChecklists < this.checklists.length) {
+            this.message.error('Vui lòng hoàn thành tất cả checklist trước khi đặt trạng thái Hoàn thành');
+
+            // Chuyển sang tab Checklist (Bug: index 4, Khác: index 3)
+            this.activeMainTabIndex = (this.selectedTaskTypeId == 2) ? 4 : 3;
+
+            // Revert lại trạng thái cũ bằng setTimeout để tránh xung đột vòng lặp ngModelChange
+            setTimeout(() => {
+                this.taskStatus = oldStatus;
+                this.previousStatus = oldStatus;
+                this.cdr.detectChanges();
+            }, 0);
+            return;
+        }
+
+        if (status === 3 && this.isUpdateMode) {
             this.showPendingReasonModal(oldStatus);
             return;
         }
 
         this.taskStatus = status;
         this.previousStatus = status;
-        if (status === 3) {
+        if (status === 2) {
             // Hoàn thành → set ngày KT thực tế = hôm nay
             this.endDate = new Date();
             this.endTime = new Date();
@@ -279,9 +338,9 @@ export class TaskDetailComponent implements OnInit {
                 {
                     label: 'Xác nhận',
                     type: 'primary',
-                    disabled: (content) => !this.pendingReasonText.trim(),
+                    disabled: (content) => !(this.pendingReasonText || '').trim(),
                     onClick: () => {
-                        const reason = this.pendingReasonText.trim();
+                        const reason = (this.pendingReasonText || '').trim();
                         if (reason) {
                             const tempId = this._tempAdditionalIdCounter--;
                             const newItem: IProjectTaskAdditional = {
@@ -295,8 +354,8 @@ export class TaskDetailComponent implements OnInit {
                             this.pendingAdditionalOps.push({ type: 'add', item: newItem });
                             this.isAdditional = true;
 
-                            this.taskStatus = 4;
-                            this.previousStatus = 4;
+                            this.taskStatus = 3;
+                            this.previousStatus = 3;
                             modal.destroy();
                             this.cdr.detectChanges();
                         }
@@ -356,14 +415,19 @@ export class TaskDetailComponent implements OnInit {
         // Nếu đã duyệt hoặc từ chối (ReviewStatus >= 2), thì chỉ xem
         if (this.reviewStatus !== undefined && this.reviewStatus >= 2) return true;
 
-        const currentUserId = this.appUserService.employeeID;
-        if (currentUserId === undefined || currentUserId === null) return true;
+        const currentEmployeeId = this.appUserService.employeeID;
+        const currentAccountUserId = this.appUserService.id;
+        if (currentEmployeeId === undefined || currentEmployeeId === null) return true;
 
-        const isAssigner = this.assignerId === currentUserId;
-        const isAssignee = this.assigneeIds.includes(currentUserId);
+        const isAssigner = this.assignerId === currentEmployeeId;
+        const isOriginalAssignee = this.originalAssigneeIds.includes(currentEmployeeId);
 
-        // Nếu không phải người giao, cũng không phải người thực hiện -> Chỉ xem
-        return !isAssigner && !isAssignee;
+        // Nếu danh sách người thực hiện trống, người có UserID trùng với Task sẽ có quyền sửa
+        const activeTask = this.nzModalData?.task || this.task;
+        const isFallbackUser = (this.originalAssigneeIds.length === 0) && (activeTask?.UserID === currentAccountUserId);
+
+        // Nếu không phải người giao, không phải người thực hiện ban đầu, và không phải người chịu trách nhiệm fallback -> Chỉ xem
+        return !isAssigner && !isOriginalAssignee && !isFallbackUser;
     }
 
     // Computed property for assigner (for display)
@@ -376,6 +440,33 @@ export class TaskDetailComponent implements OnInit {
 
     // Main tabs for task detail
     activeMainTabIndex: number = 0;
+
+    get mobileTabs(): any[] {
+        const tabs = [
+            { id: 'main', title: 'Nội dung', icon: 'info-circle' },
+            { id: 'solution', title: 'Nguyên nhân', icon: 'bug', hidden: this.selectedTaskTypeId !== 2 },
+            { id: 'assignees', title: 'Người thực hiện', icon: 'team' },
+            { id: 'related', title: 'Người liên quan', icon: 'usergroup-add' },
+            { id: 'child', title: 'Công việc con', icon: 'cluster' },
+            { id: 'checklist', title: 'Checklist', icon: 'check-square' },
+            { id: 'attachments', title: 'Tệp đính kèm', icon: 'paper-clip' }
+        ];
+        return tabs.filter(t => !t.hidden);
+    }
+
+    
+    
+    // Toggle state for mobile responsive elements
+    showMobileSettings: boolean = false;
+    isMobileMenuOpen: boolean = false;
+
+    toggleMobileMenu(): void {
+        this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    }
+
+    closeMobileMenu(): void {
+        this.isMobileMenuOpen = false;
+    }
 
     // Computed property for assignee display
     get assignee(): string {
@@ -428,7 +519,11 @@ export class TaskDetailComponent implements OnInit {
             next: (res) => {
                 if (res.status === 200 || res.status === 1) {
                     this.taskTypeList = res.data || [];
-                    
+
+                    if (this.isCreateMode && this.taskTypeList.length > 0 && !this.selectedTaskTypeId) {
+                        this.selectedTaskTypeId = this.taskTypeList[0].ID;
+                    }
+
                     // Optional: If current selection is invalid, reset it
                     if (this.selectedTaskTypeId && !this.taskTypeList.some(t => t.ID === this.selectedTaskTypeId)) {
                         // Keep current if it is default (1) or just let the user re-select
@@ -438,6 +533,25 @@ export class TaskDetailComponent implements OnInit {
                 }
             },
             error: (err) => console.error('Error loading task types:', err)
+        });
+    }
+
+    loadTypeProjectItems(): void {
+        this.workItemService.cbbTypeProject().subscribe({
+            next: (response: any) => {
+                this.typeProjectItems = response.data || [];
+
+                if (this.isCreateMode && this.typeProjectItems.length > 0 && !this.selectedTypeProjectItemId) {
+                    this.selectedTypeProjectItemId = this.typeProjectItems[0].ID;
+                }
+
+                this.cdr.detectChanges();
+                console.log('Type project items loaded:', this.typeProjectItems.length, 'items');
+            },
+            error: (error: any) => {
+                console.error('Error loading type project items:', error);
+                this.typeProjectItems = [];
+            }
         });
     }
 
@@ -465,8 +579,23 @@ export class TaskDetailComponent implements OnInit {
     // File validation constants
     readonly MAX_IMAGE_SIZE = 1 * 1024 * 1024; // 1MB
     readonly MAX_VIDEO_SIZE = 5 * 1024 * 1024; // 5MB
+    readonly MAX_DOCUMENT_SIZE = 10 * 1024 * 1024; // 10MB
     readonly IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     readonly VIDEO_TYPES = ['video/mp4', 'video/avi', 'video/mov', 'video/mkv', 'video/webm'];
+    readonly DOCUMENT_TYPES = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    readonly DOCUMENT_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx'];
+
+    // Document preview state
+    isPreviewVisible: boolean = false;
+    previewUrl: SafeResourceUrl = '';
+    previewRawUrl: string = '';
+    previewFileName: string = '';
 
     // Update all filtered lists - call this whenever source data changes
     updateFilteredLists(): void {
@@ -596,6 +725,11 @@ export class TaskDetailComponent implements OnInit {
         return Math.round((this.completedChecklists / this.checklists.length) * 100);
     }
 
+    // Computed: đếm ký tự DescriptionSolution không tính khoảng trắng
+    getSolutionCleanLength(): number {
+        return (this.descriptionSolution || '').replace(/\s/g, '').length;
+    }
+
 
     // Helper: Convert hex color to rgba
     private hexToRgba(hex: string, alpha: number): string {
@@ -705,6 +839,17 @@ export class TaskDetailComponent implements OnInit {
         return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
+    copyToClipboard(event: MouseEvent, text: string): void {
+        event.stopPropagation();
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            this.message.success('Đã sao chép vào bộ nhớ tạm');
+        }).catch(err => {
+            console.error('Không thể sao chép văn bản: ', err);
+            this.message.error('Lỗi khi sao chép');
+        });
+    }
+
     // Select employee from popover (single selection for assignee)
     selectEmployee(employee: any): void {
         const employeeId = employee.ID;
@@ -761,7 +906,8 @@ export class TaskDetailComponent implements OnInit {
         private modalRef: NzModalRef,
         private modalService: NzModalService,
         private cdr: ChangeDetectorRef,
-        private appUserService: AppUserService
+        private appUserService: AppUserService,
+        private sanitizer: DomSanitizer
     ) { }
 
 
@@ -781,14 +927,7 @@ export class TaskDetailComponent implements OnInit {
         if (!endValue) {
             return false;
         }
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
         const e = new Date(endValue).setHours(0, 0, 0, 0);
-
-        if (e < today.getTime()) {
-            return true;
-        }
-
         if (this.startDate) {
             const s = new Date(this.startDate).setHours(0, 0, 0, 0);
             return e < s;
@@ -823,9 +962,9 @@ export class TaskDetailComponent implements OnInit {
             this.startDate = new Date();
         }
         if (date) {
-            this.taskStatus = 3; // Hoàn thành
+            this.taskStatus = 2; // Hoàn thành
         } else {
-            this.taskStatus = 2; // Đang làm (nếu xóa ngày KT)
+            this.taskStatus = 1; // Đang làm (nếu xóa ngày KT)
         }
     }
 
@@ -911,11 +1050,16 @@ export class TaskDetailComponent implements OnInit {
 
         const files: File[] = [];
         for (let i = 0; i < items.length; i++) {
-            if (items[i].type.indexOf('image') !== -1) {
-                const blob = items[i].getAsFile();
+            const item = items[i];
+            if (item.kind === 'file') {
+                const blob = item.getAsFile();
                 if (blob) {
-                    const fileName = `pasted-image-${Date.now()}.${blob.type.split('/')[1] || 'png'}`;
-                    files.push(new File([blob], fileName, { type: blob.type }));
+                    if (item.type.indexOf('image') !== -1) {
+                        const fileName = `pasted-image-${Date.now()}.${blob.type.split('/')[1] || 'png'}`;
+                        files.push(new File([blob], fileName, { type: blob.type }));
+                    } else {
+                        files.push(blob);
+                    }
                 }
             }
         }
@@ -939,7 +1083,9 @@ export class TaskDetailComponent implements OnInit {
 
         for (const file of files) {
             const tempId = this._tempAttachId--;
-            const previewUrl = URL.createObjectURL(file);
+            // Only create object URL for image/video; for documents use empty string
+            const isMediaFile = this.IMAGE_TYPES.includes(file.type) || this.VIDEO_TYPES.includes(file.type);
+            const previewUrl = isMediaFile ? URL.createObjectURL(file) : '';
 
             if (this.isUpdateMode) {
                 // UPDATE mode: thêm vào pending queue + preview tạm
@@ -970,11 +1116,13 @@ export class TaskDetailComponent implements OnInit {
     validateFile(file: File): { valid: boolean; error?: string } {
         const isImage = this.IMAGE_TYPES.includes(file.type);
         const isVideo = this.VIDEO_TYPES.includes(file.type);
+        const isDocument = this.DOCUMENT_TYPES.includes(file.type)
+            || this.DOCUMENT_EXTENSIONS.some(ext => file.name.toLowerCase().endsWith(ext));
 
-        if (!isImage && !isVideo) {
+        if (!isImage && !isVideo && !isDocument) {
             return {
                 valid: false,
-                error: `File "${file.name}" không đúng định dạng. Chỉ chấp nhận ảnh (JPG, PNG, GIF, WebP) hoặc video (MP4, AVI, MOV, MKV, WebM).`
+                error: `File "${file.name}" không đúng định dạng. Chỉ chấp nhận ảnh (JPG, PNG, GIF, WebP), video (MP4, AVI, MOV, MKV, WebM), hoặc tài liệu (PDF, DOC, DOCX, XLS, XLSX).`
             };
         }
 
@@ -989,6 +1137,13 @@ export class TaskDetailComponent implements OnInit {
             return {
                 valid: false,
                 error: `Video "${file.name}" vượt quá 5MB (${this.formatFileSize(file.size)}).`
+            };
+        }
+
+        if (isDocument && file.size > this.MAX_DOCUMENT_SIZE) {
+            return {
+                valid: false,
+                error: `Tài liệu "${file.name}" vượt quá 10MB (${this.formatFileSize(file.size)}).`
             };
         }
 
@@ -1178,7 +1333,21 @@ export class TaskDetailComponent implements OnInit {
         const fileName = attachment.FileName?.toLowerCase() || '';
         if (fileName.match(/\.(jpg|jpeg|png|gif|webp)$/)) return 'file-image';
         if (fileName.match(/\.(mp4|avi|mov|mkv|webm)$/)) return 'video-camera';
+        if (fileName.match(/\.pdf$/)) return 'file-pdf';
+        if (fileName.match(/\.(doc|docx)$/)) return 'file-word';
+        if (fileName.match(/\.(xls|xlsx)$/)) return 'file-excel';
         return 'file';
+    }
+
+    getFileIconColor(attachment: IProjectTaskAttachment): string {
+        const fileName = attachment.FileName?.toLowerCase() || '';
+        if (attachment.Type === 2) return '#1890ff';
+        if (fileName.match(/\.pdf$/)) return '#ff4d4f';
+        if (fileName.match(/\.(doc|docx)$/)) return '#2b579a';
+        if (fileName.match(/\.(xls|xlsx)$/)) return '#217346';
+        if (fileName.match(/\.(jpg|jpeg|png|gif|webp)$/)) return '#1890ff';
+        if (fileName.match(/\.(mp4|avi|mov|mkv|webm)$/)) return '#722ed1';
+        return '#8c8c8c';
     }
 
     formatFileSize(bytes: number): string {
@@ -1197,6 +1366,21 @@ export class TaskDetailComponent implements OnInit {
     isVideoFile(attachment: IProjectTaskAttachment): boolean {
         const fileName = attachment.FileName?.toLowerCase() || '';
         return fileName.match(/\.(mp4|avi|mov|mkv|webm)$/) !== null;
+    }
+
+    isDocumentFile(attachment: IProjectTaskAttachment): boolean {
+        const fileName = attachment.FileName?.toLowerCase() || '';
+        return fileName.match(/\.(pdf|doc|docx|xls|xlsx)$/) !== null;
+    }
+
+    isPdfFile(attachment: IProjectTaskAttachment): boolean {
+        const fileName = attachment.FileName?.toLowerCase() || '';
+        return fileName.match(/\.pdf$/) !== null;
+    }
+
+    isOfficeFile(attachment: IProjectTaskAttachment): boolean {
+        const fileName = attachment.FileName?.toLowerCase() || '';
+        return fileName.match(/\.(doc|docx|xls|xlsx)$/) !== null;
     }
 
     openLink(url: string): void {
@@ -1246,18 +1430,42 @@ export class TaskDetailComponent implements OnInit {
         });
     }
 
+    getFileUrl(attachment: IProjectTaskAttachment): string {
+        const host = environment.host + 'api/share/';
+        let urlFile = (attachment.FilePath || '').replace("\\\\192.168.1.190\\", "");
+        urlFile = urlFile.replace(/\\/g, '/');
+        return host + urlFile;
+    }
+
     viewFileAttachment(attachment: IProjectTaskAttachment): void {
         if (!attachment.FilePath) {
             this.message.error('Đường dẫn file không hợp lệ');
             return;
         }
 
-        const host = environment.host + 'api/share/';
-        let urlFile = attachment.FilePath.replace("\\\\192.168.1.190\\", "");
-        urlFile = urlFile.replace(/\\/g, '/');
-        urlFile = host + urlFile;
+        const fileUrl = this.getFileUrl(attachment);
 
-        const newWindow = window.open(urlFile, '_blank', 'width=1000,height=700');
+        // PDF: preview inline trong modal
+        if (this.isPdfFile(attachment)) {
+            this.previewFileName = attachment.FileName || 'PDF File';
+            this.previewRawUrl = fileUrl;
+            this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileUrl);
+            this.isPreviewVisible = true;
+            return;
+        }
+
+        // Office files (DOC/Excel): mở tab mới (browser sẽ download)
+        if (this.isOfficeFile(attachment)) {
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.target = '_blank';
+            link.download = attachment.FileName || 'file';
+            link.click();
+            return;
+        }
+
+        // Image/Video: mở trong tab mới như cũ
+        const newWindow = window.open(fileUrl, '_blank', 'width=1000,height=700');
         if (newWindow) {
             newWindow.onload = () => {
                 newWindow.document.title = attachment.FileName || 'File';
@@ -1267,7 +1475,27 @@ export class TaskDetailComponent implements OnInit {
         }
     }
 
+    closePreview(): void {
+        this.isPreviewVisible = false;
+        this.previewUrl = '';
+        this.previewRawUrl = '';
+        this.previewFileName = '';
+    }
 
+    downloadAttachment(attachment: IProjectTaskAttachment): void {
+        if (!attachment.FilePath) {
+            this.message.error('Đường dẫn file không hợp lệ');
+            return;
+        }
+        const fileUrl = this.getFileUrl(attachment);
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.target = '_blank';
+        link.download = attachment.FileName || 'file';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 
     private uploadPendingFiles(taskId?: number): Observable<number[]> {
         if (this.selectedFiles.length === 0) return of([] as number[]);
@@ -1322,13 +1550,18 @@ export class TaskDetailComponent implements OnInit {
             if (this.isUpdateMode) {
                 if (activeTask.PlanStartDate) this.planStartDate = new Date(activeTask.PlanStartDate);
                 if (activeTask.PlanEndDate) this.planEndDate = new Date(activeTask.PlanEndDate);
+                if (activeTask.Deadline) this.deadline = new Date(activeTask.Deadline);
+                this.descriptionSolution = activeTask.DescriptionSolution || '';
             }
 
             this.selectedProjectId = activeTask.ProjectID;
-            this.taskStatus = activeTask.Status || 1;
+            this.taskStatus = activeTask.Status ?? 0;
             this.previousStatus = this.taskStatus;
             this.assignerId = activeTask.EmployeeIDRequest;
-            this.selectedTaskTypeId = activeTask.TypeProjectItem ?? undefined;
+            // Ánh xạ mới: Loại công việc -> ProjectTaskTypeID, Loại hạng mục -> TypeProjectItem
+            this.selectedTaskTypeId = activeTask.ProjectTaskTypeID ?? undefined;
+            this.selectedTypeProjectItemId = activeTask.TypeProjectItem ?? undefined;
+            this.projectTaskResult = activeTask.ProjectTaskResult || '';
             this.taskComplexity = activeTask.TaskComplexity ?? 1;
 
             if (activeTask.AssignedToEmployeeID) {
@@ -1368,6 +1601,15 @@ export class TaskDetailComponent implements OnInit {
                         }
 
                         // 4. Chỉ gọi updateFilteredLists() 1 lần duy nhất sau khi TẤT CẢ data về
+                        
+                        // Fix #2: Nếu không có người thực hiện, tự động gán theo UserID của Task
+                        if (this.assigneeIds.length === 0 && activeTask.UserID) {
+                            const matchingEmp = this.employees.find(emp => emp.UserID === activeTask.UserID);
+                            if (matchingEmp) {
+                                this.assigneeIds = [matchingEmp.ID];
+                            }
+                        }
+
                         this.loadProjectTaskTypes();
                         this.updateFilteredLists();
                     },
@@ -1378,7 +1620,7 @@ export class TaskDetailComponent implements OnInit {
                 this.kanbanService.getChecklists(activeTask.ID).subscribe({
                     next: (res) => {
                         if (res.status === 200 || res.status === 1) {
-                            this.checklists = res.data || [];
+                            this.checklists = (res.data || []).sort((a, b) => (a.OrderIndex || 0) - (b.OrderIndex || 0));
                         }
                     },
                     error: (err) => console.error('Error fetching checklists', err)
@@ -1407,6 +1649,8 @@ export class TaskDetailComponent implements OnInit {
                     },
                     error: (err) => console.error('Error fetching additional issues', err)
                 });
+                
+                this.loadChildTasks(activeTask.ID);
 
             } else {
                 // COPY mode (CREATE with pre-filled data)
@@ -1432,7 +1676,6 @@ export class TaskDetailComponent implements OnInit {
         } else {
             // Pure CREATE mode (no copy data)
             this.loadAllProjects();
-            this.selectedTaskTypeId = 1; // Mặc định loại công việc là 1
             const currentEmployeeId = this.appUserService.employeeID;
             this.assignerId = currentEmployeeId;
             if (currentEmployeeId) {
@@ -1455,6 +1698,7 @@ export class TaskDetailComponent implements OnInit {
         // Tải danh sách công việc cha
         this.parentTaskId = activeTask?.ParentID;
         this.loadParentTasks();
+        this.loadTypeProjectItems();
     }
 
     // Save progress percentage
@@ -1472,13 +1716,14 @@ export class TaskDetailComponent implements OnInit {
     }
 
     addChecklistItem() {
-        if (!this.newChecklistItem.trim()) return;
+        const title = (this.newChecklistItem || '').trim();
+        if (!title) return;
 
         // Build a local item with a temp ID — actual API call is deferred to Save
         const tempItem: IProjectTaskChecklist = {
             ID: this._tempChecklistIdCounter--,
             ProjectTaskID: 0,
-            ChecklistTitle: this.newChecklistItem.trim(),
+            ChecklistTitle: title,
             IsDone: false,
             OrderIndex: this.checklists.length
         } as IProjectTaskChecklist;
@@ -1486,6 +1731,7 @@ export class TaskDetailComponent implements OnInit {
         this.checklists = [...this.checklists, tempItem];
         this.pendingChecklistOps.push({ type: 'add', item: { ...tempItem } });
         this.newChecklistItem = '';
+        this.reorderChecklists();
     }
 
     toggleChecklist(item: IProjectTaskChecklist) {
@@ -1500,13 +1746,15 @@ export class TaskDetailComponent implements OnInit {
     }
 
     cancelAddChecklist(): void {
-        if (!this.newChecklistItem.trim()) {
+        const title = (this.newChecklistItem || '').trim();
+        if (!title) {
             this.isAddingChecklist = false;
         }
     }
 
     saveNewChecklist(): void {
-        if (this.newChecklistItem.trim()) {
+        const title = (this.newChecklistItem || '').trim();
+        if (title) {
             this.addChecklistItem();
             // Tiếp tục hiển thị ô nhập liệu để nhập mục mới
             this.isAddingChecklist = true;
@@ -1536,6 +1784,7 @@ export class TaskDetailComponent implements OnInit {
             // Real item — queue a delete
             this.pendingChecklistOps.push({ type: 'delete', item: { ...item } });
         }
+        this.reorderChecklists();
     }
 
     // Start editing a checklist item
@@ -1546,13 +1795,14 @@ export class TaskDetailComponent implements OnInit {
 
     // Save edited checklist item
     saveEditChecklist(item: IProjectTaskChecklist): void {
-        if (!this.editingChecklistTitle.trim()) {
+        const title = (this.editingChecklistTitle || '').trim();
+        if (!title) {
             this.cancelEditChecklist();
             return;
         }
 
         // Update in memory only — deferred to Save
-        item.ChecklistTitle = this.editingChecklistTitle.trim();
+        item.ChecklistTitle = title;
         this.pendingChecklistOps.push({ type: 'edit', item: { ...item } });
         this.editingChecklistId = null;
         this.editingChecklistTitle = '';
@@ -1564,15 +1814,44 @@ export class TaskDetailComponent implements OnInit {
         this.editingChecklistTitle = '';
     }
 
+    private reorderChecklists(): void {
+        this.checklists.forEach((item, index) => {
+            const oldOrder = item.OrderIndex;
+            item.OrderIndex = index;
+
+            if (item.ID > 0) {
+                // For existing items, update OrderIndex in pending ops if they exist
+                const existingOp = this.pendingChecklistOps.find(op =>
+                    op.item.ID === item.ID && (op.type === 'edit' || op.type === 'toggle')
+                );
+                if (existingOp) {
+                    existingOp.item.OrderIndex = index;
+                } else if (oldOrder !== index) {
+                    // Item moved but no other change -> queue an edit for OrderIndex sync
+                    this.pendingChecklistOps.push({ type: 'edit', item: { ...item } });
+                }
+            } else {
+                // For new items, update their pending 'add' operation
+                const addOp = this.pendingChecklistOps.find(op =>
+                    op.item.ID === item.ID && op.type === 'add'
+                );
+                if (addOp) {
+                    addOp.item.OrderIndex = index;
+                }
+            }
+        });
+    }
+
     // ========== ADDITIONAL ISSUES METHODS (Phát sinh) ==========
 
     addAdditionalItem() {
-        if (!this.newAdditionalItem.trim()) return;
+        const desc = (this.newAdditionalItem || '').trim();
+        if (!desc) return;
 
         const tempItem: IProjectTaskAdditional = {
             ID: this._tempAdditionalIdCounter--,
             ProjectTaskID: 0,
-            Description: this.newAdditionalItem.trim(),
+            Description: desc,
             CreatedBy: this.appUserService.fullName,
             CreatedDate: new Date(),
             IsDeleted: false
@@ -1589,13 +1868,15 @@ export class TaskDetailComponent implements OnInit {
     }
 
     cancelAddAdditional(): void {
-        if (!this.newAdditionalItem.trim()) {
+        const desc = (this.newAdditionalItem || '').trim();
+        if (!desc) {
             this.isAddingAdditional = false;
         }
     }
 
     saveNewAdditional(): void {
-        if (this.newAdditionalItem.trim()) {
+        const desc = (this.newAdditionalItem || '').trim();
+        if (desc) {
             this.addAdditionalItem();
             this.isAddingAdditional = true;
             setTimeout(() => {
@@ -1611,7 +1892,7 @@ export class TaskDetailComponent implements OnInit {
     }
 
     deleteAdditionalAction(item: IProjectTaskAdditional): void {
-        if (this.taskStatus === 4) {
+        if (this.taskStatus === 3) {
             this.message.warning('Không thể xóa nội dung phát sinh khi đang ở trạng thái Pending');
             return;
         }
@@ -1638,11 +1919,12 @@ export class TaskDetailComponent implements OnInit {
     }
 
     saveEditAdditional(item: IProjectTaskAdditional): void {
-        if (!this.editingAdditionalDescription.trim()) {
+        const desc = (this.editingAdditionalDescription || '').trim();
+        if (!desc) {
             this.cancelEditAdditional();
             return;
         }
-        item.Description = this.editingAdditionalDescription.trim();
+        item.Description = desc;
         this.pendingAdditionalOps.push({ type: 'edit', item: { ...item } });
         this.editingAdditionalId = null;
         this.editingAdditionalDescription = '';
@@ -1697,10 +1979,12 @@ export class TaskDetailComponent implements OnInit {
         const calls: Observable<any>[] = this.pendingChecklistOps.map(op => {
             switch (op.type) {
                 case 'add':
+                    // Lấy trạng thái IsDone mới nhất từ this.checklists (source of truth)
+                    const currentItem = this.checklists.find(c => c.ID === op.item.ID);
                     return this.kanbanService.addChecklistItem({
                         ProjectTaskID: taskId,
                         ChecklistTitle: op.item.ChecklistTitle,
-                        IsDone: op.item.IsDone ?? false,
+                        IsDone: currentItem?.IsDone ?? op.item.IsDone ?? false,
                         OrderIndex: op.item.OrderIndex ?? 0
                     });
                 case 'toggle':
@@ -1825,16 +2109,148 @@ export class TaskDetailComponent implements OnInit {
         );
     }
 
+    // ==================== CHILD TASKS METHODS ====================
+
+    loadChildTasks(taskId: number): void {
+        this.kanbanService.getChildTasks(taskId).subscribe({
+            next: (res) => {
+                if (res.status === 200 || res.status === 1) {
+                    this.childTasks = res.data || [];
+                }
+            },
+            error: (err) => console.error('Error loading child tasks:', err)
+        });
+    }
+
+    openAddChildTask(): void {
+        this.isAddingChildTask = true;
+        this.newChildTask = {
+            Mission: '',
+            PlanStartDate: this.startDate || this.planStartDate ? this.toDateInputString(this.startDate || this.planStartDate!) : '',
+            PlanEndDate: this.endDate || this.planEndDate ? this.toDateInputString(this.endDate || this.planEndDate!) : '',
+            EmployeeAssigneeID: this.assigneeIds.length > 0 ? this.assigneeIds[0] : null,
+            EmployeeIDRequest: this.assignerId,
+            TaskComplexity: this.taskComplexity || 1,
+            TypeProjectItem: this.selectedTypeProjectItemId || (this.typeProjectItems.length > 0 ? this.typeProjectItems[0].ID : undefined),
+            ProjectTaskTypeID: this.selectedTaskTypeId || (this.taskTypeList.length > 0 ? this.taskTypeList[0].ID : undefined)
+        };
+    }
+
+    cancelAddChildTask(): void {
+        this.isAddingChildTask = false;
+        this.newChildTask = {};
+    }
+
+    confirmAddChildTask(): void {
+        if (!this.newChildTask.Mission?.trim()) {
+            this.message.error('Vui lòng nhập nội dung công việc con');
+            return;
+        }
+        if (!this.newChildTask.ProjectTaskTypeID) {
+            this.message.error('Vui lòng chọn loại công việc cho công việc con');
+            return;
+        }
+        if (!this.newChildTask.TypeProjectItem) {
+            this.message.error('Vui lòng chọn loại hạng mục cho công việc con');
+            return;
+        }
+
+        const tempId = this._tempChildTaskIdCounter--;
+        const newTask = {
+            ...this.newChildTask,
+            ID: tempId,
+            FullName: this.employees.find(e => e.ID === this.newChildTask.EmployeeAssigneeID)?.FullName,
+            EmployeeRequestName: this.employees.find(e => e.ID === this.newChildTask.EmployeeIDRequest)?.FullName,
+            IsDeletedFromParent: false
+        };
+
+        this.childTasks = [...this.childTasks, newTask];
+        this.pendingChildTaskOps.push({ type: 'add', item: newTask });
+        
+        this.isAddingChildTask = false;
+        this.newChildTask = {};
+    }
+
+    removeChildTask(task: any): void {
+        if (task.ID < 0) {
+            this.childTasks = this.childTasks.filter(t => t.ID !== task.ID);
+            this.pendingChildTaskOps = this.pendingChildTaskOps.filter(op => op.item.ID !== task.ID);
+        } else {
+            const target = this.childTasks.find(t => t.ID === task.ID);
+            if (target) {
+                target.IsDeletedFromParent = true;
+                this.pendingChildTaskOps.push({ type: 'delete', item: target });
+            }
+        }
+    }
+
+    openChildTaskDetail(taskId: number): void {
+        this.kanbanService.getTaskById(taskId).subscribe({
+            next: (res) => {
+                if (res.status === 200 || res.status === 1) {
+                    const taskData = res.data;
+                    const modalRef = this.modalService.create({
+                        nzTitle: 'CHI TIẾT CÔNG VIỆC CON',
+                        nzContent: TaskDetailComponent,
+                        nzData: { task: taskData },
+                        nzFooter: null,
+                        nzWidth: '100vw',
+                        nzBodyStyle: { padding: '0', height: '80vh', overflow: 'hidden' },
+                        nzStyle: { borderRadius: '12px', top: '5vh' },
+                        nzMaskClosable: false,
+                        nzClosable: true,
+                        nzCentered: false
+                    });
+
+                    modalRef.afterClose.subscribe(result => {
+                        if (result && this.isUpdateMode) {
+                            this.loadChildTasks(this.task?.ID || this.nzModalData?.task?.ID);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    syncChildTasksToApi(parentId: number): Observable<any> {
+        if (this.pendingChildTaskOps.length === 0) return of([]);
+
+        const calls = this.pendingChildTaskOps.map(op => {
+            if (op.type === 'delete') {
+                 return this.kanbanService.saveChildTask({
+                     ID: op.item.ID,
+                     IsDeletedFromParent: true
+                 }).pipe(catchError(() => of(null)));
+            } else {
+                 return this.kanbanService.saveChildTask({
+                     ProjectID: this.selectedProjectId || 0,
+                     ParentID: parentId,
+                     Mission: op.item.Mission,
+                     PlanStartDate: op.item.PlanStartDate ? new Date(op.item.PlanStartDate) : null,
+                     PlanEndDate: op.item.PlanEndDate ? new Date(op.item.PlanEndDate) : null,
+                     TypeProjectItem: op.item.TypeProjectItem,
+                     EmployeeIDRequest: op.item.EmployeeIDRequest,
+                     TaskComplexity: op.item.TaskComplexity,
+                     ProjectTaskTypeID: op.item.ProjectTaskTypeID,
+                     EmployeeAssigneeID: op.item.EmployeeAssigneeID
+                 }).pipe(catchError(() => of(null)));
+            }
+        });
+
+        return forkJoin(calls);
+    }
+
     save() {
         const activeTask = this.nzModalData?.task || this.task;
         if (!activeTask) return;
 
-        if (!this.title || !this.title.trim()) {
-            this.message.error('Vui l\u00f2ng nh\u1eadp t\u00ean c\u00f4ng vi\u1ec7c');
+        const mission = (this.title || '').trim();
+        if (!mission) {
+            this.message.error('Vui lòng nhập tên công việc');
             return;
         }
-        if (this.title.length > 150) {
-            this.message.error('T\u00ean c\u00f4ng vi\u1ec7c kh\u00f4ng \u0111\u01b0\u1ee3c qu\u00e1 150 k\u00fd t\u1ef1');
+        if (mission.length > 150) {
+            this.message.error('Tên công việc không được quá 150 ký tự');
             return;
         }
         if (!this.assignerId) {
@@ -1844,11 +2260,11 @@ export class TaskDetailComponent implements OnInit {
         if (!this.planStartDate) {
             this.planStartDate = new Date();
         }
-        if (this.selectedProjectId && !this.planEndDate) {
-            this.message.error('Vui l\u00f2ng ch\u1ecdn ng\u00e0y k\u1ebft th\u00fac d\u1ef1 ki\u1ebfn');
+        if (this.taskStatus !== 0 && this.taskStatus !== 3 && !this.planEndDate) {
+            this.message.error('Vui lòng chọn ngày kết thúc dự kiến');
             return;
         }
-        if ((this.taskStatus === 2 || this.taskStatus === 3) && !this.startDate) {
+        if ((this.taskStatus === 1 || this.taskStatus === 2) && !this.startDate) {
             this.message.error('Vui lòng chọn ngày bắt đầu thực tế');
             return;
         }
@@ -1858,6 +2274,32 @@ export class TaskDetailComponent implements OnInit {
         }
         if (this.dateValidationError) {
             this.message.error(this.dateValidationError);
+            return;
+        }
+
+        // Bắt buộc hoàn thành checklist (Status = 2)
+        if (this.taskStatus === 2 && this.checklists.length > 0 && this.completedChecklists < this.checklists.length) {
+            this.message.error('Vui lòng hoàn thành tất cả checklist trước khi đặt trạng thái Hoàn thành');
+            this.activeMainTabIndex = (this.selectedTaskTypeId == 2) ? 4 : 3;
+            return;
+        }
+
+        // Validate Solution for BUG (ID=2) khi Hoàn thành (ID=2)
+        if (this.selectedTaskTypeId === 2 && this.taskStatus === 2) {
+            const cleaned = (this.descriptionSolution || '').replace(/\s/g, '');
+            if (cleaned.length < 10) {
+                this.message.error('Vui lòng nhập nguyên nhân và phương án xử lý (tối thiểu 10 ký tự)');
+                this.activeMainTabIndex = 1; // Tab Solution
+                return;
+            }
+        }
+
+        if (!this.selectedTaskTypeId) {
+            this.message.error('Vui lòng chọn loại công việc');
+            return;
+        }
+        if (!this.selectedTypeProjectItemId) {
+            this.message.error('Vui lòng chọn loại hạng mục công việc');
             return;
         }
 
@@ -1880,6 +2322,9 @@ export class TaskDetailComponent implements OnInit {
                 return this.syncAdditionalsToApi(activeTask.ID);
             }),
             switchMap(() => {
+                return this.syncChildTasksToApi(activeTask.ID);
+            }),
+            switchMap(() => {
                 const saveData: any = {
                     ID: activeTask.ID,
                     Mission: this.title.trim(),
@@ -1894,7 +2339,9 @@ export class TaskDetailComponent implements OnInit {
                     Status: this.taskStatus,
                     IsPersonalProject: this.isPersonalProject,
                     IsAdditional: this.isAdditional,
-                    TypeProjectItem: this.selectedTaskTypeId,
+                    TypeProjectItem: this.selectedTypeProjectItemId,
+                    ProjectTaskTypeID: this.selectedTaskTypeId,
+                    ProjectTaskResult: this.projectTaskResult,
                     TaskComplexity: this.taskComplexity,
                     AssignedToEmployeeID: this.assigneeIds.length > 0 ? this.assigneeIds[0] : undefined,
                     OrderIndex: activeTask.OrderIndex,
@@ -1902,8 +2349,13 @@ export class TaskDetailComponent implements OnInit {
                     Employee: this.assigneeIds,
                     EmployeeRelate: this.relatedPeopleIds,
                     Files: this.fileAttachmentIds,
-                    Links: this.linkAttachmentIds
+                    Links: this.linkAttachmentIds,
+                    Deadline: this.formatDateForApi(this.deadline),
+                    DescriptionSolution: this.selectedTaskTypeId == 2 ? this.descriptionSolution : ''
                 };
+                console.log('descriptionSolution', this.descriptionSolution);
+                console.log('selectedTaskTypeId', this.selectedTaskTypeId);
+                console.log('result', this.selectedTaskTypeId == 2);
                 return this.kanbanService.saveTask(saveData);
             })
         ).subscribe({
@@ -1949,10 +2401,18 @@ export class TaskDetailComponent implements OnInit {
             this.message.error('Vui lòng chọn người giao việc');
             return;
         }
+        if (!this.selectedTaskTypeId) {
+            this.message.error('Vui lòng chọn loại công việc');
+            return;
+        }
+        if (!this.selectedTypeProjectItemId) {
+            this.message.error('Vui lòng chọn loại hạng mục công việc');
+            return;
+        }
         if (!this.planStartDate) {
             this.planStartDate = new Date();
         }
-        if (this.selectedProjectId && !this.planEndDate) {
+        if (this.taskStatus !== 0 && this.taskStatus !== 3 && !this.planEndDate) {
             this.message.error('Vui lòng chọn ngày kết thúc dự kiến');
             return;
         }
@@ -1965,8 +2425,25 @@ export class TaskDetailComponent implements OnInit {
             return;
         }
 
+        // Bắt buộc hoàn thành checklist (Status = 2)
+        if (this.taskStatus === 2 && this.checklists.length > 0 && this.completedChecklists < this.checklists.length) {
+            this.message.error('Vui lòng hoàn thành tất cả checklist trước khi đặt trạng thái Hoàn thành');
+            this.activeMainTabIndex = (this.selectedTaskTypeId == 2) ? 4 : 3;
+            return;
+        }
+
+        // Validate Solution for BUG (ID = 2) khi Hoàn thành (ID = 2)
+        if (this.selectedTaskTypeId === 2 && this.taskStatus === 2) {
+            const cleaned = (this.descriptionSolution || '').replace(/\s/g, '');
+            if (cleaned.length < 10) {
+                this.message.error('Vui lòng nhập nguyên nhân và phương án xử lý (tối thiểu 10 ký tự)');
+                this.activeMainTabIndex = 1; // Tab Solution
+                return;
+            }
+        }
+
         // Bắt buộc chọn ngày bắt đầu nếu là Đang làm/Hoàn thành
-        if ((this.taskStatus === 2 || this.taskStatus === 3) && !this.startDate) {
+        if ((this.taskStatus === 1 || this.taskStatus === 2) && !this.startDate) {
             this.message.error('Vui lòng chọn ngày bắt đầu thực tế');
             return;
         }
@@ -1998,7 +2475,9 @@ export class TaskDetailComponent implements OnInit {
                     IsPersonalProject: this.isPersonalProject,
                     Priority: 1,
                     Status: this.taskStatus,
-                    TypeProjectItem: this.selectedTaskTypeId,
+                    TypeProjectItem: this.selectedTypeProjectItemId,
+                    ProjectTaskTypeID: this.selectedTaskTypeId,
+                    ProjectTaskResult: this.projectTaskResult,
                     IsAdditional: this.isAdditional,
                     TaskComplexity: this.taskComplexity,
                     EmployeeIDRequest: this.assignerId,
@@ -2006,23 +2485,26 @@ export class TaskDetailComponent implements OnInit {
                     EmployeeRelate: this.relatedPeopleIds,
                     Files: [...this.fileAttachmentIds, ...(newFileIds || [])],
                     Links: this.linkAttachmentIds,
-                    ParentID: this.parentTaskId
+                    ParentID: this.parentTaskId,
+                    Deadline: this.formatDateForApi(this.deadline),
+                    DescriptionSolution: this.selectedTaskTypeId == 2 ? this.descriptionSolution : undefined
                 };
 
                 return this.kanbanService.saveTask(taskData);
             }),
-                    switchMap((res: any) => {
-                        if (!res) return of(null);
-                        if (res.status === 200 || res.status === 1) {
-                            const newTaskId = res.data?.ID || res.data;
-                            // Sync checklist and additional operations with the newly created task ID
-                            return forkJoin({
-                                checklists: this.syncChecklistsToApi(newTaskId),
-                                additionals: this.syncAdditionalsToApi(newTaskId)
-                            }).pipe(map(() => res));
-                        }
-                        return of(res);
-                    })
+            switchMap((res: any) => {
+                if (!res) return of(null);
+                if (res.status === 200 || res.status === 1) {
+                    const newTaskId = res.data?.ID || res.data;
+                    // Sync checklist and additional operations with the newly created task ID
+                    return forkJoin({
+                        checklists: this.syncChecklistsToApi(newTaskId),
+                        additionals: this.syncAdditionalsToApi(newTaskId),
+                        childTasks: this.syncChildTasksToApi(newTaskId)
+                    }).pipe(map(() => res));
+                }
+                return of(res);
+            })
         ).subscribe({
             next: (res: any) => {
                 this.isSaving = false;
@@ -2049,7 +2531,9 @@ export class TaskDetailComponent implements OnInit {
     private resetFormAfterSave(): void {
         this.title = '';
         this.description = '';
+        this.descriptionSolution = '';
         this.checklists = [];
+        this.deadline = undefined;
         this.pendingChecklistOps = [];
         this.attachments = [];
         this.fileAttachmentIds = [];
@@ -2099,7 +2583,7 @@ export class TaskDetailComponent implements OnInit {
             PlanEndDate: this.formatDateForApi(planEndDateValue),
             ProjectID: this.selectedProjectId,
             Priority: activeTask.Priority || 1,
-            Status: activeTask.Status || 1,
+            Status: activeTask.Status ?? 0,
             EmployeeIDRequest: this.assignerId || activeTask.EmployeeIDRequest,
             AssignedToEmployeeID: activeTask.AssignedToEmployeeID,
             OrderIndex: activeTask.OrderIndex,
@@ -2107,10 +2591,15 @@ export class TaskDetailComponent implements OnInit {
             IsApproved: activeTask.IsApproved,
             TaskComplexity: this.taskComplexity,
             IsAdditional: this.isAdditional,
+            TypeProjectItem: this.selectedTypeProjectItemId,
+            ProjectTaskTypeID: this.selectedTaskTypeId,
+            ProjectTaskResult: this.projectTaskResult,
+            Deadline: this.formatDateForApi(this.deadline),
+            DescriptionSolution: this.selectedTaskTypeId == 2 ? this.descriptionSolution : undefined,
             // Merge with any additional data passed in
             ...data
         };
-
+        console.log('descriptionSolution', this.descriptionSolution);
         this.isSaving = true;
 
         this.kanbanService.saveTask(completeTaskData).subscribe({

@@ -1,0 +1,326 @@
+<!-- ===== Dialog chi tiết câu hỏi ===== -->
+<div class="question-detail-form" *ngIf="!isLoading; else loadingTpl">
+
+    <!-- Header -->
+    <!-- <div class="modal-header bg-primary p-2">
+        <h6 class="modal-title text-white text-uppercase">
+            {{ isEditMode ? 'SỬA CÂU HỎI' : 'THÊM CÂU HỎI MỚI' }}
+        </h6>
+        <button type="button" class="btn-close me-1" aria-label="Close" (click)="onClose()"></button>
+    </div> -->
+    <div class="modal-footer bg-light p-2">
+        <div class="d-flex gap-2 w-100">
+            <!-- <button nz-button nzDanger nzType="default" (click)="onClose()" [disabled]="isSaving">Đóng</button> -->
+            <button nz-button nzType="default" (click)="onSaveAndNew()" [nzLoading]="isSaving">Lưu &amp; Thêm
+                mới</button>
+            <button nz-button nzType="primary" (click)="onSaveAndClose()" [nzLoading]="isSaving">Lưu &amp;
+                Đóng</button>
+        </div>
+    </div>
+    <!-- Body -->
+    <div class="form-body">
+
+        <!-- ===== Hàng 1: STT + Điểm (chỉ 2 trường dùng formGroup) ===== -->
+        <form nz-form [formGroup]="formGroup" nzLayout="vertical">
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="6">
+                    <nz-form-item>
+                        <nz-form-label nzRequired>STT</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập STT!">
+                            <nz-input-number formControlName="STT" [nzMin]="1" [nzMax]="9999" [nzStep]="1"
+                                style="width:100%;"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item>
+                        <nz-form-label>Điểm</nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number formControlName="Point" [nzMin]="0" [nzMax]="100" [nzStep]="0.5"
+                                style="width:100%;"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item>
+                        <nz-form-label nzRequired>Loại câu hỏi</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn loại câu hỏi!">
+                            <nz-select formControlName="QuestionType" (ngModelChange)="onQuestionTypeChange($event)"
+                                [nzDisabled]="examType !== 3">
+                                <nz-option [nzValue]="1" nzLabel="Trắc nghiệm"></nz-option>
+                                <nz-option [nzValue]="2" nzLabel="Tự luận"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <!-- Checkbox -->
+                <nz-col [nzSpan]="6">
+                    <nz-form-item *ngIf="showEssayFields">
+                        <nz-form-label style="visibility: hidden;">.</nz-form-label>
+                        <nz-form-control>
+                            <label nz-checkbox (nzCheckedChange)="onAnswerNumberChange($event)"
+                                formControlName="IsAnswerNumberValue">
+                                Tự luận số
+                            </label>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </form>
+
+        <!-- ===== Hàng 2: p-editor + Ảnh (NGOÀI formGroup để ngModel bind đúng) ===== -->
+        <nz-row [nzGutter]="16" style="margin-top:8px;">
+            <!-- Nội dung câu hỏi - PrimeNG Editor -->
+            <nz-col [nzSpan]="16">
+                <div class="editor-label required-label">
+                    Nội dung câu hỏi
+                </div>
+                <p-editor [(ngModel)]="questionText" name="questionText"
+                    [style]="{'height': '180px', 'margin-bottom': '10px'}" [modules]="editorModules">
+                    <ng-template pTemplate="header">
+                        <span class="ql-formats">
+                            <select class="ql-header">
+                                <option value="1">Heading 1</option>
+                                <option value="2">Heading 2</option>
+                                <option selected>Normal</option>
+                            </select>
+                            <select class="ql-font">
+                                <option value="arial" selected>Arial</option>
+                                <option value="times-new-roman">Times New Roman</option>
+                                <option value="tahoma">Tahoma</option>
+                                <option value="verdana">Verdana</option>
+                            </select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-bold"></button>
+                            <button class="ql-italic"></button>
+                            <button class="ql-underline"></button>
+                            <button class="ql-strike"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <select class="ql-color"></select>
+                            <select class="ql-background"></select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-list" value="ordered"></button>
+                            <button class="ql-list" value="bullet"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-link"></button>
+                            <button class="ql-clean"></button>
+                        </span>
+                    </ng-template>
+                </p-editor>
+            </nz-col>
+
+            <!-- Ảnh/File câu hỏi (nhiều file) -->
+            <nz-col [nzSpan]="8">
+                <div class="editor-label">
+                    <span>Đính kèm ảnh/file</span>
+                    <button nz-button nzType="default" nzSize="small" (click)="openFileSelectorQuestion()"
+                        title="Thêm file">
+                        <nz-icon nzType="upload"></nz-icon> Thêm file
+                    </button>
+                </div>
+
+                <!-- Danh sách file đính kèm -->
+                <div class="file-attachment-list">
+                    <div *ngIf="questionImages.length === 0" class="file-attachment-empty">
+                        <nz-icon nzType="paper-clip" style="font-size:30px;color:#ccc;"></nz-icon>
+                        <p style="color:#aaa;margin:4px 0 0;">Thả tệp hoặc click thêm file để tải lên.</p>
+                    </div>
+
+                    <div *ngFor="let img of questionImages; let i = index" class="file-attachment-item">
+                        <!-- Preview ảnh -->
+                        <div class="file-thumb" *ngIf="img.isImage">
+                            <img *ngIf="img.previewUrl" [src]="img.previewUrl" class="file-thumb-img"
+                                title="Double-click để xem to" (dblclick)="openImageOverlay(img.previewUrl!)" />
+                            <div *ngIf="!img.previewUrl" class="file-thumb-placeholder">
+                                <nz-icon nzType="loading"></nz-icon>
+                            </div>
+                        </div>
+                        <!-- Icon cho file không phải ảnh -->
+                        <div class="file-thumb file-thumb-icon" *ngIf="!img.isImage">
+                            <nz-icon nzType="file-text" style="font-size:28px;color:#1d39c4;"></nz-icon>
+                        </div>
+
+                        <!-- Tên file -->
+                        <div class="file-attachment-name" [title]="img.FileNameOrigin"
+                            [class.clickable]="!img.isImage && img.ServerPath && !img.originFile"
+                            (click)="!img.isImage && img.ServerPath && !img.originFile && downloadQuestionImage(img)">
+                            {{ img.FileNameOrigin }}
+                            <small *ngIf="!img.ServerPath && img.originFile" style="color:#f5a623;display:block;">(Chưa
+                                upload)</small>
+                        </div>
+
+                        <!-- Nút xóa -->
+                        <button class="file-attachment-remove" (click)="removeQuestionImage(i)" title="Xóa file">
+                            <nz-icon nzType="close-circle" nzTheme="fill" style="color:#ff4d4f;"></nz-icon>
+                        </button>
+                    </div>
+                </div>
+            </nz-col>
+        </nz-row>
+
+        <!-- ===== Bảng đáp án (chỉ khi Trắc nghiệm) ===== -->
+        <div class="answer-section" *ngIf="showAnswerGrid">
+            <div class="answer-header">
+                <span class="answer-title">ĐÁP ÁN <small class="text-muted"
+                        style="text-transform: none; font-weight: normal; margin-left: 4px;">(Nhấn Tab để thêm
+                        mới hoặc chuyển nội dung đáp án tiếp theo)</small></span>
+                <button nz-button nzSize="small" nzType="primary" (click)="onAddAnswer()">
+                    <nz-icon nzType="plus"></nz-icon> Thêm đáp án
+                </button>
+            </div>
+
+            <div class="answer-table-container" *ngIf="answers.length > 0; else noAnswerTpl">
+                <table class="answer-table">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;">Xóa</th>
+                            <th style="width:40px;">STT</th>
+                            <th style="width:50px;">Mã</th>
+                            <th>Nội dung đáp án</th>
+                            <th style="width:80px;text-align:center;">Đ/A đúng</th>
+                            <th style="width:130px;text-align:center;">Ảnh đáp án</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let answer of answers; let i = index">
+                            <td class="text-center">
+                                <button class="btn-delete-answer" (click)="onDeleteAnswer(i)"
+                                    (keydown.enter)="onDeleteAnswer(i)" title="Xóa">
+                                    <nz-icon nzType="delete" style="color:red;"></nz-icon>
+                                </button>
+                            </td>
+                            <td class="text-center">{{ answer.AnswerNumber }}</td>
+                            <td class="text-center fw-bold">{{ answer.Code }}</td>
+                            <td>
+                                <textarea #answerInput nz-input [(ngModel)]="answer.AnswerText"
+                                    placeholder="Nhập nội dung đáp án..." rows="1"
+                                    (keydown.tab)="onAnswerTab($event, i)"></textarea>
+                            </td>
+                            <td class="text-center">
+                                <label nz-checkbox [(ngModel)]="answer.RightAnswer" [name]="'rightAnswer_' + i"></label>
+                            </td>
+                            <td class="text-center">
+                                <div class="answer-image-cell">
+                                    <img *ngIf="answer.imagePreviewUrl" [src]="answer.imagePreviewUrl"
+                                        class="answer-thumb" [title]="'Ảnh đáp án ' + answer.Code"
+                                        (dblclick)="openImageOverlay(answer.imagePreviewUrl)"
+                                        (click)="$event.stopPropagation()" />
+                                    <button *ngIf="answer.imagePreviewUrl" class="btn-delete-answer"
+                                        (click)="onRemoveAnswerImage(i)" title="Xóa ảnh đáp án">
+                                        <nz-icon nzType="delete" style="color:red;font-size:11px;"></nz-icon>
+                                    </button>
+                                    <label class="btn-browse-answer-img" [for]="'answerImg_' + i" title="Chọn ảnh">
+                                        <nz-icon nzType="camera"></nz-icon>
+                                    </label>
+                                    <input type="file" [id]="'answerImg_' + i" accept="image/*"
+                                        (change)="onSelectAnswerImage($event, i)" style="display:none;" />
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <ng-template #noAnswerTpl>
+                <div class="no-answer-msg">
+                    <p>Chưa có đáp án. Nhấn "Thêm đáp án" để thêm mới.</p>
+                </div>
+            </ng-template>
+        </div>
+
+        <!-- ===== Phần tự luận (QuestionType = 2) ===== -->
+        <div class="essay-section" *ngIf="showEssayFields">
+
+            <!-- Đáp án đúng (tùy chọn — nếu nhập thì tự chấm, để trống thì chấm thủ công) -->
+            <!-- <div class="answer-section">
+                <div class="answer-header">
+                    <span class="answer-title">ĐÁP ÁN ĐÚNG <small class="text-muted fw-normal">(Tùy chọn — để tự động
+                            chấm điểm)</small></span>
+                </div>
+                <input nz-input [(ngModel)]="essayCorrectAnswerText" name="essayCorrectAnswerText"
+                    placeholder="Nhập đáp án đúng (vd: 79, Hà Nội). Để trống nếu cần chấm thủ công..." />
+                <small class="text-muted d-block mt-1">Nếu nhập đáp án, hệ thống sẽ so khớp chính xác để tự chấm điểm.
+                    Để trống → giám khảo chấm thủ công.</small>
+            </div> -->
+
+            <!--Đáp án số/Gợi ý / Hướng dẫn chấm -->
+            <div class="answer-section" style="margin-top:12px;">
+                <div class="answer-header">
+                    <span class="answer-title">ĐÁP ÁN SỐ/ GỢI Ý/ HƯỚNG DẪN CHẤM <small class="text-muted fw-normal">(Tùy
+                            chọn —
+                            chỉ hiển cho giám khảo)</small></span>
+                </div>
+
+                <ng-container *ngIf="!formGroup.get('IsAnswerNumberValue')?.value; else numericInputTpl">
+                    <p-editor [(ngModel)]="essayGuidanceText" name="essayGuidanceText"
+                        [style]="{'height': '150px', 'margin-bottom': '6px'}" [modules]="editorModules"
+                        (onTextChange)="onEssayGuidanceTextChange($event)">
+                        <ng-template pTemplate="header">
+                            <span class="ql-formats">
+                                <select class="ql-header">
+                                    <option value="1">Heading 1</option>
+                                    <option value="2">Heading 2</option>
+                                    <option selected>Normal</option>
+                                </select>
+                            </span>
+                            <span class="ql-formats">
+                                <button class="ql-bold"></button>
+                                <button class="ql-italic"></button>
+                                <button class="ql-underline"></button>
+                            </span>
+                            <span class="ql-formats">
+                                <select class="ql-color"></select>
+                                <select class="ql-background"></select>
+                            </span>
+                            <span class="ql-formats">
+                                <button class="ql-list" value="ordered"></button>
+                                <button class="ql-list" value="bullet"></button>
+                            </span>
+                            <span class="ql-formats">
+                                <button class="ql-clean"></button>
+                            </span>
+                        </ng-template>
+                    </p-editor>
+                    <small class="text-muted">Nội dung hướng dẫn chấm — ứng viên không nhìn thấy.</small>
+                </ng-container>
+
+                <ng-template #numericInputTpl>
+                    <div style="margin-bottom: 6px;">
+                        <input nz-input [(ngModel)]="essayGuidanceText" (input)="onNumericInput($event)"
+                            [nzStatus]="!isNumeric(essayGuidanceText) && essayGuidanceText ? 'error' : ''"
+                            placeholder="Nhập giá trị số (vd: 123.45)..." />
+                        <div *ngIf="!isNumeric(essayGuidanceText) && essayGuidanceText" class="text-danger"
+                            style="font-size: 12px; margin-top: 4px;">
+                            Vui lòng chỉ nhập số!
+                        </div>
+                    </div>
+                    <small class="text-muted">Chế độ đáp án số: Chỉ cho phép nhập ký tự số và dấu chấm.</small>
+                </ng-template>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+
+</div>
+
+<!-- Loading template -->
+<ng-template #loadingTpl>
+    <div class="loading-container">
+        <nz-spin nzTip="Đang tải dữ liệu..."></nz-spin>
+    </div>
+</ng-template>
+
+<!-- ===== Image Overlay (xem ảnh to) ===== -->
+<div class="img-overlay" *ngIf="overlayImageUrl" (click)="closeImageOverlay()">
+    <div class="img-overlay-content" (click)="$event.stopPropagation()">
+        <button class="img-overlay-close" (click)="closeImageOverlay()">
+            <nz-icon nzType="close" style="font-size:20px;"></nz-icon>
+        </button>
+        <img [src]="overlayImageUrl" class="img-overlay-img" alt="Xem ảnh to" />
+    </div>
+</div>

@@ -384,37 +384,37 @@ export class CustomerComponent implements OnInit, AfterViewInit {
 
   onDelete() {
     const selectedRows = this.tb_MainTable?.getSelectedData();
-      if (!selectedRows || selectedRows.length === 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
-        return;
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
+      return;
+    }
+    const isDeleted = selectedRows.map((item: any) => item.ID);
+
+    // Tạo chuỗi tên khách hàng
+    let nameDisplay = '';
+    selectedRows.forEach((item: any, index: number) => {
+      nameDisplay += item.CustomerName + ',';
+    });
+
+    if (selectedRows.length > 10) {
+      if (nameDisplay.length > 10) {
+        nameDisplay = nameDisplay.slice(0, 10) + '...';
       }
-      const isDeleted = selectedRows.map((item: any) => item.ID);
-
-      // Tạo chuỗi tên khách hàng
-      let nameDisplay = '';
-      selectedRows.forEach((item: any, index: number) => {
-        nameDisplay += item.CustomerName + ',';
-      });
-
-      if (selectedRows.length > 10) {
-        if (nameDisplay.length > 10) {
-          nameDisplay = nameDisplay.slice(0, 10) + '...';
-        }
-        nameDisplay += ` và ${selectedRows.length - 1} khách hàng khác`;
-      } else {
-        if (nameDisplay.length > 20) {
-          nameDisplay = nameDisplay.slice(0, 20) + '...';
-        }
+      nameDisplay += ` và ${selectedRows.length - 1} khách hàng khác`;
+    } else {
+      if (nameDisplay.length > 20) {
+        nameDisplay = nameDisplay.slice(0, 20) + '...';
       }
+    }
 
-      // Hiển thị confirm
-      this.modal.confirm({
-        nzTitle: 'Xác nhận xóa',
-        nzContent: `Bạn có chắc chắn muốn xóa khách hàng <b>[${nameDisplay}]</b> không?`,
-        nzOkText: 'Đồng ý',
-        nzCancelText: 'Hủy',
-        nzOkDanger: true,
-        nzOnOk: () => {
+    // Hiển thị confirm
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa khách hàng <b>[${nameDisplay}]</b> không?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOkDanger: true,
+      nzOnOk: () => {
 
         // const payload = {
         //   isDeleted: isDeleted
@@ -582,36 +582,37 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       //   },
       columns: [
         { title: 'ID', field: 'ID', visible: false, frozen: true },
-        { title: 'Mã khách', field: 'CustomerCode', frozen: true, width:'150' },
-        { title: 'Tên kí hiệu', field: 'CustomerShortName', frozen: true, width:'100'  },
+        { title: 'Mã khách', field: 'CustomerCode', frozen: true, width: '150' },
+        { title: 'Tên kí hiệu', field: 'CustomerShortName', frozen: true, width: '100' },
         {
           title: 'Tên khách',
           field: 'CustomerName',
           formatter: 'textarea',
           bottomCalc: 'count',
-          width:'250'
+          width: '250'
         },
-        { title: 'Địa chỉ', field: 'Address', formatter: 'textarea', width:'350' },
-        { title: 'Mã số thuế', field: 'TaxCode', width:'200' },
-        { title: 'Loại hình', field: 'TypeName', width:'100' },
+        { title: 'Địa chỉ', field: 'Address', formatter: 'textarea', width: '350' },
+        { title: 'Lĩnh vực', field: 'IndustriesNameVI', width: '250' },
+        { title: 'Mã số thuế', field: 'TaxCode', width: '200' },
+        { title: 'Loại hình', field: 'TypeName', width: '100' },
         {
           title: 'Lưu ý giao hàng',
           field: 'NoteDelivery',
           formatter: 'textarea',
-          width:'250'
+          width: '250'
         },
         {
           title: 'Lưu ý chứng từ',
           field: 'NoteVoucher',
           formatter: 'textarea',
-          width:'250'
+          width: '250'
         },
-        { title: 'Đầu mối gửi check chứng từ', field: 'CheckVoucher', width:'250' },
-        { title: 'Đầu mối gửi chứng từ bản cứng', field: 'HardCopyVoucher', width:'250' },
+        { title: 'Đầu mối gửi check chứng từ', field: 'CheckVoucher', width: '250' },
+        { title: 'Đầu mối gửi chứng từ bản cứng', field: 'HardCopyVoucher', width: '250' },
         {
           title: 'Ngày chốt công nợ',
           field: 'ClosingDateDebt',
-          width:'100',
+          width: '100',
           formatter: (cell: any) => {
             const value = cell.getValue();
             if (!value) return '';
@@ -623,18 +624,18 @@ export class CustomerComponent implements OnInit, AfterViewInit {
             return `${day}/${month}/${year}`;
           }
         },
-        { title: 'Công nợ', field: 'Debt', width:'100' },
+        { title: 'Công nợ', field: 'Debt', width: '100' },
         {
           title: 'Địa chỉ giao hàng',
           field: 'AdressStock',
           formatter: 'textarea',
-          width:'250'
+          width: '250'
         },
       ],
     });
     this.tb_MainTable.on('dataLoading', () => {
       this.tb_MainTable.deselectRow();
-      this.sizeTbDetail='0';
+      this.sizeTbDetail = '0';
       this.selectedIds = [];
     });
 
@@ -669,7 +670,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       this.tb_ContactTableElement.nativeElement,
       {
         data: this.customerContactData,
-        layout:"fitColumns",
+        layout: "fitColumns",
 
         // selectableRows: 1,
         pagination: false,
@@ -702,7 +703,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       this.tb_AddressTableElement.nativeElement,
       {
         data: this.addressStockData,
-        layout:"fitColumns",
+        layout: "fitColumns",
 
         // selectableRows: 1,
         pagination: true,
@@ -728,7 +729,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   initCustomerSaleTable(): void {
     this.tb_SaleTable = new Tabulator(this.tb_SaleTableElement.nativeElement, {
       data: this.employeeSaleData,
-      layout:"fitColumns",
+      layout: "fitColumns",
       height: '80vh',
       columns: [
         { title: 'ID', field: 'ID', visible: false },

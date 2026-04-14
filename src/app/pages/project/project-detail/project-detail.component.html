@@ -5,19 +5,19 @@
     </h6>
     <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"></button>
   </div>
-  <div class="modal-body pt-0 pb-0 p-2 w-100" style="width: 800px; min-height: 60vh">
+  <div class="modal-body pt-0 pb-0 p-2 w-100" style="width: 800px; min-height: 75vh">
     <nz-tabset class="p-0" (nzSelectedIndexChange)="onChangeIndexTab($event)"
       style="height: 70vh; display: flex; flex-direction: column;">
       <nz-tab nzTitle="Chi tiết dự án">
         <div style="height: calc(70vh - 50px); overflow-y: auto; padding-right: 4px; overflow-x: hidden;">
           <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated">
-            <div nz-row [nzGutter]="16" class="pb-2">
+            <div nz-row [nzGutter]="16">
 
               <!-- CỘT TRÁI -->
               <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
 
                 <!-- Khách hàng -->
-                <nz-form-item class="pt-2">
+                <nz-form-item>
                   <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
                     <div class="d-flex">
                       Khách hàng <span class="text-danger ps-1">*</span>
@@ -39,9 +39,28 @@
                     </nz-select>
                   </nz-form-control>
                 </nz-form-item>
-
+                <nz-form-item>
+                  <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                    <div class="d-flex">
+                      Lĩnh vực khác hàng <span class="text-danger ps-1">*</span>
+                      <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzSize="small" title="Thêm khách hàng"
+                        nzType="text" (click)="openAddCustomer()">
+                        <i class="fas fa-plus"></i>
+                      </button>
+                    </div>
+                  </nz-form-label>
+                  <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('customerIndustryId')">
+                    <nz-select formControlName="customerIndustryId" class="w-100" nzShowSearch nzAllowClear
+                      nzPlaceHolder="" [nzDisabled]="true">
+                      @for (item of customerIndustries; track $index) {
+                      <nz-option [nzLabel]="item.IndustriesNameVI + ' - ' + item.IndustriesNameEN"
+                        [nzValue]="item.ID"></nz-option>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
                 <!-- Mã dự án & Ngày tạo -->
-                <div nz-row [nzGutter]="12" style="margin-top: -13px;">
+                <div nz-row [nzGutter]="12">
                   <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                     <nz-form-item>
                       <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
@@ -63,7 +82,7 @@
                 </div>
 
                 <!-- Tên dự án -->
-                <nz-form-item style="margin-top: -13px;">
+                <nz-form-item>
                   <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
                     Tên dự án <span class="text-danger ps-1">*</span>
                   </nz-form-label>
@@ -73,7 +92,7 @@
                 </nz-form-item>
 
                 <!-- Sale & Technical -->
-                <div nz-row nzGutter="12" style="margin-top: -13px;">
+                <div nz-row nzGutter="12">
                   <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                     <nz-form-item>
                       <nz-form-label class="fs-12" [nzSpan]="24">
@@ -120,7 +139,7 @@
                 </div>
 
                 <!-- Trạng thái & PM -->
-                <div nz-row nzGutter="12" style="margin-top: -13px;">
+                <div nz-row nzGutter="12">
                   <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                     <nz-form-item>
                       <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
@@ -169,7 +188,7 @@
                 </div>
 
                 <!-- End User -->
-                <nz-form-item style="margin-top: -13px;">
+                <nz-form-item>
                   <nz-form-label class="fs-12" [nzSpan]="24">
                     End User <span class="text-danger ps-1">*</span>
                   </nz-form-label>
@@ -184,9 +203,23 @@
                     </nz-select>
                   </nz-form-control>
                 </nz-form-item>
+                <nz-form-item>
+                  <nz-form-label class="fs-12" [nzSpan]="24">
+                    Lĩnh vực End User <span class="text-danger ps-1">*</span>
+                  </nz-form-label>
+                  <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('endUserIndustryId')">
+                    <nz-select formControlName="endUserIndustryId" class="w-100" nzShowSearch nzAllowClear
+                      nzPlaceHolder="" [nzDisabled]="true">
+                      @for (item of customerIndustries; track $index) {
+                      <nz-option [nzLabel]="item.IndustriesNameVI + ' - ' + item.IndustriesNameEN"
+                        [nzValue]="item.ID"></nz-option>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
 
                 <!-- Hãng & Loại -->
-                <div nz-row nzGutter="12" style="margin-top: -13px;">
+                <div nz-row nzGutter="12">
                   <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                     <nz-form-item>
                       <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
@@ -226,12 +259,6 @@
                   </div>
                 </div>
 
-                <!-- Bảng loại dự án -->
-                <div nz-row>
-                  <div nz-col [nzSpan]="24">
-                    <div #tb_projectTypeLinks></div>
-                  </div>
-                </div>
               </div>
 
               <!-- Cột bên phải -->
@@ -260,7 +287,7 @@
                           </nz-form-item>
                         </div>
                       </div>
-                      <div nz-row nzGutter="12" style="margin-top: -13px;">
+                      <div nz-row nzGutter="12">
                         <div nz-col [nzSpan]="12">
                           <nz-form-item>
                             <nz-form-label class="fs-12" [nzSpan]="24">Ngày PO</nz-form-label>
@@ -305,7 +332,7 @@
                           </nz-form-item>
                         </div>
                       </div>
-                      <div nz-row nzGutter="12" style="margin-top: -13px;">
+                      <div nz-row nzGutter="12">
                         <div nz-col [nzSpan]="12">
                           <nz-form-item>
                             <nz-form-label class="fs-12" [nzSpan]="24">Ngày PO</nz-form-label>
@@ -328,7 +355,7 @@
                 </div>
                 <div nz-row>
                   <div nz-col [nzSpan]="24">
-                    <nz-form-item class="pt-2">
+                    <nz-form-item>
                       <nz-form-label class="fs-12" [nzSpan]="24">
                         Người phụ trách PIC
                       </nz-form-label>
@@ -339,9 +366,9 @@
                     </nz-form-item>
                   </div>
                 </div>
-                <div nz-row [nzGutter]="12" style="margin-top: -13px;">
+                <div nz-row [nzGutter]="12">
                   <div nz-col [nzSpan]="12">
-                    <nz-form-item class="pt-1">
+                    <nz-form-item>
                       <nz-form-label class="fs-12" [nzSpan]="24">
                         Mức ưu tiên <span class="text-danger ps-1">*</span>
                         <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzType="text" nzSize="small"
@@ -355,7 +382,7 @@
                     </nz-form-item>
                   </div>
                   <div nz-col [nzSpan]="12">
-                    <nz-form-item class="pt-1">
+                    <nz-form-item>
                       <nz-form-label class="fs-12" [nzSpan]="24"> Kiểu dự án <span
                           class="text-danger ps-1">*</span></nz-form-label>
                       <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectTypeId')">
@@ -371,23 +398,23 @@
                   </div>
                 </div>
 
-                <div nz-row style="margin-top: -13px;">
+                <div nz-row>
                   <div nz-col [nzSpan]="24">
-                    <nz-form-item class="pt-1">
+                    <nz-form-item>
                       <nz-form-label class="fs-12" [nzSpan]="24"> Mô tả dự án </nz-form-label>
                       <nz-form-control [nzSpan]="24">
-                        <textarea formControlName="note" rows="4" nz-input placeholder="Nhập mô tả dự án"></textarea>
+                        <textarea formControlName="note" rows="2" nz-input placeholder="Nhập mô tả dự án"></textarea>
                       </nz-form-control>
                     </nz-form-item>
                   </div>
                 </div>
 
-                <div nz-row style="margin-top: -13px;">
+                <div nz-row>
                   <div nz-col [nzSpan]="24">
-                    <nz-form-item class="pt-1">
+                    <nz-form-item>
                       <nz-form-label class="fs-12" [nzSpan]="24"> Hiện trạng </nz-form-label>
                       <nz-form-control [nzSpan]="24">
-                        <textarea formControlName="currentState" rows="4" nz-input
+                        <textarea formControlName="currentState" rows="1" nz-input
                           placeholder="Nhập hiện trạng"></textarea>
                       </nz-form-control>
                     </nz-form-item>
@@ -395,10 +422,22 @@
                 </div>
               </div>
             </div>
+
+            <!-- Bảng loại dự án (100% Width) -->
+            <div nz-row class="pt-2">
+              <div nz-col [nzSpan]="24">
+                <app-custom-tree-table [data]="projectTypeNodes" [columns]="projectTypeCols" selectionMode="checkbox"
+                  [(selection)]="selectedTypeNodes" (selectionChange)="onSelectionChange($event)" [scrollable]="true"
+                  scrollHeight="28vh" [editMode]="'cell'" (cellValueChange)="handleCellValueChange($event)"
+                  class="rerp-tree-table">
+                </app-custom-tree-table>
+              </div>
+            </div>
+
           </form>
         </div>
       </nz-tab>
-      <nz-tab nzTitle="Cập nhật leader" *ngIf="true">
+      <nz-tab nzTitle="Cập nhật leader" *ngIf="false">
         <div style="height: calc(70vh - 50px); overflow-y: auto; padding-right: 4px; overflow-x: hidden;">
           <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated">
             <div nz-row [nzGutter]="16" class="pt-1 pb-1 w-100 m-0">
@@ -455,9 +494,11 @@
 
               <!-- Bảng chi tiết -->
               <div nz-col [nzSpan]="24" class="p-0" style="margin-top: -13px;">
-
-                <div #tb_projectTypeLinksDetail></div>
-
+                <app-custom-tree-table [data]="projectTypeNodesDetail" [columns]="projectTypeDetailCols"
+                  selectionMode="checkbox" [(selection)]="selectedTypeNodesDetail"
+                  (selectionChange)="onSelectionChange($event, true)" [scrollable]="true" scrollHeight="30vh"
+                  [editMode]="'cell'" (cellValueChange)="handleCellValueChange($event)" class="rerp-tree-table">
+                </app-custom-tree-table>
               </div>
 
             </div>

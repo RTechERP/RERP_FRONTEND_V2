@@ -22,6 +22,10 @@
     min-height: 0;
 }
 
+:host ::ng-deep .p-treetable-table {
+    table-layout: auto !important;
+}
+
 .truncate-text {
     white-space: nowrap;
     overflow: hidden;
@@ -33,72 +37,8 @@
     word-break: break-word;
 }
 
-/* Table font size (controlled via --table-font-size CSS variable) */
-:host ::ng-deep .p-treetable {
-    font-size: var(--table-font-size, 11px);
-}
-
 :host ::ng-deep .p-treetable .p-treetable-thead>tr>th {
     text-align: center;
-}
-
-/* Filter row compact height */
-:host ::ng-deep .p-treetable-thead > tr.filter-header-row > th {
-    padding: 2px 4px !important;
-}
-
-/* Normalize filter input heights */
-:host ::ng-deep .filter-header-row .p-inputtext,
-:host ::ng-deep .filter-header-row .p-select {
-    height: 24px !important;
-    min-height: 24px !important;
-    max-height: 24px !important;
-    box-sizing: border-box !important;
-    font-size: var(--table-font-size, 11px);
-    width: 100% !important;
-}
-
-:host ::ng-deep .filter-header-row .p-inputtext {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    line-height: 22px !important;
-}
-
-:host ::ng-deep .filter-header-row .p-select .p-select-label {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    line-height: 22px !important;
-    font-size: var(--table-font-size, 11px);
-}
-
-:host ::ng-deep .filter-header-row .p-select .p-select-dropdown {
-    width: 24px !important;
-}
-
-:host ::ng-deep .filter-header-row .p-multiselect {
-    height: 24px !important;
-    min-height: 24px !important;
-    max-height: 24px !important;
-    box-sizing: border-box !important;
-    font-size: var(--table-font-size, 11px);
-    width: 100% !important;
-}
-
-:host ::ng-deep .filter-header-row .p-multiselect .p-multiselect-label {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    line-height: 22px !important;
-    font-size: var(--table-font-size, 11px);
-}
-
-:host ::ng-deep .filter-header-row .p-multiselect .p-multiselect-dropdown {
-    width: 24px !important;
-}
-
-/* Click-to-select row highlight */
-:host ::ng-deep .p-treetable-tbody > tr.row-click-selected > td {
-    background: var(--p-primary-50, rgba(59, 130, 246, 0.08)) !important;
-    border-color: var(--p-primary-100, rgba(59, 130, 246, 0.2));
 }
 
 :host ::ng-deep .p-treetable .p-treetable-thead>tr>th .p-column-filter {
@@ -123,6 +63,33 @@
 :host ::ng-deep .p-treetable .p-treetable-tbody > tr > td.p-frozen-column,
 :host ::ng-deep .p-treetable .p-treetable-tfoot > tr > td.p-frozen-column {
     background-color: var(--p-surface-0, #ffffff) !important;
+}
+
+/* Frozen header cells (incl. filter row) must always render above scrolling non-frozen cells.
+   Non-frozen cells with datetime filters have position:relative children which can create
+   stacking contexts that overlap frozen columns when scrolling horizontally. */
+:host ::ng-deep .p-treetable-thead > tr > th.p-frozen-column {
+    z-index: 3 !important;
+}
+
+/* Non-frozen filter-row cells: prevent p-datepicker's internal position:relative wrapper
+   from creating a stacking context that paints over frozen columns on horizontal scroll. */
+:host ::ng-deep .filter-header-row th:not(.p-frozen-column) p-datepicker,
+:host ::ng-deep .filter-header-row th:not(.p-frozen-column) .p-datepicker {
+    position: static !important;
+    z-index: auto !important;
+}
+
+:host ::ng-deep .filter-header-row th:not(.p-frozen-column) p-datepicker .p-datepicker-input-icon-container,
+:host ::ng-deep .filter-header-row th:not(.p-frozen-column) p-datepicker .p-inputtext {
+    position: relative;
+    z-index: auto !important;
+}
+
+/* Reset the datetime-filter wrapper div (position:relative set inline) in non-frozen columns
+   so it does not create an elevated stacking context that overlaps frozen cells. */
+:host ::ng-deep .filter-header-row th:not(.p-frozen-column) {
+    z-index: 0 !important;
 }
 
 /* Table Lookup Cell (select-like appearance) */
@@ -190,17 +157,187 @@
     z-index: 1;
 }
 
-/* Multiselect overlay font size */
+/* ── Font size ── */
+:host ::ng-deep .p-treetable {
+    font-size: var(--table-font-size, 11px);
+}
+
+/* ── Header: compact, no-wrap ── */
+:host ::ng-deep .p-treetable-thead > tr > th {
+    white-space: nowrap;
+    overflow: hidden;
+    vertical-align: middle;
+}
+
+/* ── Filter row compact height ── */
+:host ::ng-deep .p-treetable-thead > tr.filter-header-row > th {
+    padding: 2px 4px !important;
+}
+
+:host ::ng-deep .filter-header-row .p-inputtext,
+:host ::ng-deep .filter-header-row .p-select {
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+    box-sizing: border-box !important;
+    font-size: var(--table-font-size, 11px);
+}
+
+:host ::ng-deep .filter-header-row .p-inputtext {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 22px !important;
+    font-size: var(--table-font-size, 11px);
+}
+
+:host ::ng-deep .filter-header-row .p-select .p-select-label {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 22px !important;
+    font-size: var(--table-font-size, 11px);
+}
+
+:host ::ng-deep .filter-header-row .p-select .p-select-dropdown {
+    width: 24px !important;
+}
+
+:host ::ng-deep .filter-header-row .p-multiselect {
+    height: 24px !important;
+    min-height: 24px !important;
+    max-height: 24px !important;
+    box-sizing: border-box !important;
+    font-size: var(--table-font-size, 11px);
+}
+
+:host ::ng-deep .filter-header-row .p-multiselect .p-multiselect-label {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 22px !important;
+    font-size: var(--table-font-size, 11px);
+}
+
+:host ::ng-deep .filter-header-row .p-multiselect .p-multiselect-dropdown {
+    width: 24px !important;
+}
+
+/* ── Filter inputs full width ── */
+:host ::ng-deep .p-treetable-thead .p-inputtext,
+:host ::ng-deep .p-column-filter-row .p-inputtext {
+    width: 100% !important;
+}
+
+:host ::ng-deep .p-column-filter-row {
+    width: 100% !important;
+}
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100% !important;
+}
+
+:host ::ng-deep .p-column-filter-element input {
+    width: 100% !important;
+}
+
+:host ::ng-deep p-columnfilterformelement,
+:host ::ng-deep p-columnfilterformelement.p-fluid {
+    width: 100% !important;
+}
+
+/* ── Multiselect overlay font size ── */
 ::ng-deep .p-multiselect-overlay .p-select-overlay {
     font-size: 12px !important;
 }
+
 ::ng-deep .p-multiselect-filter .p-inputtext {
     padding: 3px 15px 3px 5px;
     font-size: 12px;
 }
+
 ::ng-deep .p-select-list-container {
     font-size: 12px;
 }
+
 ::ng-deep .p-multiselect-list {
     font-size: 12px;
+}
+
+/* ── Context menu ── */
+::ng-deep .tbl-header-cm .p-contextmenu-submenu,
+.tbl-header-cm .p-submenu-list {
+    max-height: var(--tbl-submenu-max-height, 240px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* ── Excel-style filter panel ── */
+.excel-filter-tabs {
+    min-width: 250px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+:host ::ng-deep .excel-filter-tabs .p-tablist {
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--p-surface-200);
+}
+
+:host ::ng-deep .excel-filter-tabs .p-tab {
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+:host ::ng-deep .excel-filter-tabs .p-tabpanels {
+    padding: 0;
+    background: transparent;
+}
+
+.filter-list-container {
+    border: 1px solid var(--p-surface-200);
+    border-radius: 4px;
+    margin-top: 5px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.filter-virtual-viewport {
+    height: 180px;
+}
+
+.filter-list-item {
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-list-item:hover {
+    background-color: var(--p-surface-100);
+}
+
+.filter-list-item label {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    color: var(--p-surface-700);
+    flex: 1;
+    cursor: pointer;
+}
+
+/* ── Highlight (global search) ── */
+:host ::ng-deep mark {
+    background-color: #fff176;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: bold;
+    color: #000;
+}
+
+/* ── Click-to-select row highlight ── */
+:host ::ng-deep .p-treetable-tbody > tr.row-click-selected > td {
+    background: var(--p-primary-50, rgba(59, 130, 246, 0.08)) !important;
+    border-color: var(--p-primary-100, rgba(59, 130, 246, 0.2));
 }

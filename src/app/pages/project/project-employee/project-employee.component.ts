@@ -347,6 +347,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
                   ? `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${this.dictEmployee[val]}</p> <div>`
                   : '';
               },
+              width: 250,
             },
             {
               title: 'Leader',
@@ -434,8 +435,8 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
                 });
                 this.updateSTTColumn();
               },
-            
               hozAlign: 'center',
+              width: 40,
             },
             {
               title: 'STT',
@@ -452,8 +453,8 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
               headerClick: (e, column) => {
                 this.addRowTbEmployeeMain();
               },
-            
               hozAlign: 'center',
+              width: 50,
             },
             {
               title: 'Họ Tên',
@@ -477,7 +478,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
                 let isDeleted = data['IsDeleted'];
                 return !isDeleted ? true : false;
               },
-           
+              width: 250,
             },
             {
               title: 'Kiểu dự án',
@@ -500,7 +501,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
                 let isDeleted = data['IsDeleted'];
                 return !isDeleted ? true : false;
               },
-            
+              width: 200,
             },
             {
               title: 'Bàn giao',
@@ -524,6 +525,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
                 let isDeleted = data['IsDeleted'];
                 return !isDeleted ? true : false;
               },
+              width: 250,
             },
             {
               title: 'Leader',
@@ -614,6 +616,9 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
       container.appendChild((componentRef.hostView as any).rootNodes[0]);
       appRef.attachView(componentRef.hostView);
       onRendered(() => {
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.display = 'block';
         if (container.firstElementChild) {
           (container.firstElementChild as HTMLElement).focus();
         }

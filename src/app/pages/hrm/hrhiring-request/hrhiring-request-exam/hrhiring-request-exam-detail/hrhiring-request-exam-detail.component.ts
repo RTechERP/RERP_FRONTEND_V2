@@ -13,7 +13,6 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
-
 @Component({
   selector: 'app-hrhiring-request-exam-detail',
   standalone: true,
@@ -25,7 +24,7 @@ import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '
     NzFormModule,
     NzCheckboxModule,
     TableModule,
-    ButtonModule
+    ButtonModule,
   ],
   templateUrl: './hrhiring-request-exam-detail.component.html',
   styleUrl: './hrhiring-request-exam-detail.component.css',
@@ -134,8 +133,20 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
       next: (res) => {
         console.log('loadAllExams success:', res);
         if (res.status === 1) {
-          // Sort by DepartmentName to ensure proper grouping in the table
+          // Sort by Selection state first (if provided), then by DepartmentName to ensure proper grouping
           this.exams = res.data.sort((a: any, b: any) => {
+            // Priority 1: Selected exams at the top
+            if (selectedExamIds && selectedExamIds.length > 0) {
+              const idA = a.ID || a.ExamID || a.Id;
+              const idB = b.ID || b.ExamID || b.Id;
+              const isSelectedA = selectedExamIds.includes(idA) ? 1 : 0;
+              const isSelectedB = selectedExamIds.includes(idB) ? 1 : 0;
+
+              if (isSelectedA > isSelectedB) return -1;
+              if (isSelectedA < isSelectedB) return 1;
+            }
+
+            // Priority 2: Sort by Department form alphabetical groups
             const nameA = (a.DepartmentName || '').toUpperCase();
             const nameB = (b.DepartmentName || '').toUpperCase();
             if (nameA < nameB) return -1;
@@ -204,14 +215,24 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
 
   onSave(isAddNew: boolean = false): void {
     if (!this.selectedHiringRequestId) {
-      this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Vui lòng chọn Yêu cầu tuyển dụng' });
+      this.notification.create(
+        'error',
+        'Lỗi',
+        'Vui lòng chọn Yêu cầu tuyển dụng',
+        { nzStyle: { whiteSpace: 'pre-line' } }
+      );
       return;
     }
 
-    if (!this.selectedExams || this.selectedExams.length === 0) {
-      this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Vui lòng chọn ít nhất 1 bài thi' });
-      return;
-    }
+    // if (!this.selectedExams || this.selectedExams.length === 0) {
+    //   this.notification.create(
+    //     'error',
+    //     'Lỗi',
+    //     'Vui lòng chọn ít nhất 1 bài thi',
+    //     { nzStyle: { whiteSpace: 'pre-line' } }
+    //   );
+    //   return;
+    // }
 
     this.loading = true;
     const currentExamIds = this.selectedExams.map(exam => exam.ID || exam.ExamID || exam.Id);
@@ -220,7 +241,7 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
     const deletedExamIds = this.initialExamIds.filter(id => !currentExamIds.includes(id));
 
     const savePayload = {
-      IsActiveExam: this.isActive,
+      IsActiveExam: this.isActive ?? false,
       HiringRequestID: this.selectedHiringRequestId,
       listHiringRequestIDExam: currentExamIds,
       deletedHiringRequestIDExam: deletedExamIds
@@ -230,7 +251,12 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
       next: (res) => {
         this.loading = false;
         if (res.status === 1) {
-          this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Lưu thiết lập bài thi thành công' });
+          this.notification.create(
+            'success',
+            'Thành công',
+            'Lưu thiết lập bài thi thành công',
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
           if (isAddNew) {
             this.resetForm();
             this.selectedExams = [];
@@ -239,7 +265,12 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
             this.activeModal.close({ success: true });
           }
         } else {
-          this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: res.message || 'Lưu thất bại' });
+          this.notification.create(
+            'error',
+            'Lỗi',
+            res.message || 'Lưu thất bại',
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
         }
       },
       error: (err: any) => {

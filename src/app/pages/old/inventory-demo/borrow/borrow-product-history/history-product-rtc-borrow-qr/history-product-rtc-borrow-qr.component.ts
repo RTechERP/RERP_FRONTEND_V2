@@ -80,8 +80,7 @@ import { ID_ADMIN_DEMO_LIST } from '../../../../../../app.config';
   styleUrl: './history-product-rtc-borrow-qr.component.css',
 })
 export class HistoryProductRtcBorrowQrComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   //#region Khai báo biến
   constructor(
     private fb: FormBuilder,
@@ -93,17 +92,17 @@ export class HistoryProductRtcBorrowQrComponent
     private cdr: ChangeDetectorRef,
     private borrowService: BorrowService,
     private projectService: ProjectService
-  ) {}
+  ) { }
 
   @ViewChild('qrCodeInput') qrCodeInput!: ElementRef<HTMLInputElement>;
 
   @Input() warehouseID: number = 1;
   @Input() _qrCodes: string[] = [];
   @Input() isLoadQR: boolean = false;
-  IDAdminDemo: number[] = [24, 1434, 88, 1534];
+  IDAdminDemo: number[] = [];
   isAdmin: boolean = false;
   listQrCode: string[] = [];
-
+  isLoadingSave: boolean = false;
   borrowInfoForm!: FormGroup; // Thông tin mượn
 
   angularGridMaster!: AngularGridInstance;
@@ -117,6 +116,7 @@ export class HistoryProductRtcBorrowQrComponent
 
   //#region Khởi tạo
   ngOnInit(): void {
+    this.IDAdminDemo = ID_ADMIN_DEMO_LIST;
     this.isAdmin = this.appUserService.isAdmin;
     this.loadLookUp();
     this.initForm();
@@ -128,7 +128,7 @@ export class HistoryProductRtcBorrowQrComponent
     }, 100);
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
 
   initForm(): void {
     const employeeID = this.appUserService.id;
@@ -217,9 +217,9 @@ export class HistoryProductRtcBorrowQrComponent
             this.notification.error(
               NOTIFICATION_TITLE.error,
               'Lỗi khi tải QR code ' +
-                qrCode +
-                ': ' +
-                (error?.error?.message ?? error?.message)
+              qrCode +
+              ': ' +
+              (error?.error?.message ?? error?.message)
             );
           }
         }
@@ -485,6 +485,7 @@ export class HistoryProductRtcBorrowQrComponent
   //#region Lưu dữ liệu
   onSave() {
     // Validate form
+
     if (this.borrowInfoForm.invalid) {
       Object.values(this.borrowInfoForm.controls).forEach((control) => {
         if (control.invalid) {
@@ -515,7 +516,7 @@ export class HistoryProductRtcBorrowQrComponent
     // Chuẩn bị dữ liệu theo từng row
     const formValue = this.borrowInfoForm.value;
     const status = this.isAdmin || isAdminDemo ? 1 : 7;
-
+    this.isLoadingSave = true;
     const saveDataList = this.borrowData.map((row) => ({
       ProductRTCID: row.ProductRTCID,
       ProductRTCQRCodeID: row.ID, // ID của ProductRTCQRCode
@@ -536,6 +537,7 @@ export class HistoryProductRtcBorrowQrComponent
           NOTIFICATION_TITLE.success,
           'Đăng ký mượn thiết bị thành công!'
         );
+        this.isLoadingSave = false;
         this.activeModal.close(true);
       },
       error: (error: any) => {
@@ -543,6 +545,7 @@ export class HistoryProductRtcBorrowQrComponent
           NOTIFICATION_TITLE.error,
           'Lỗi khi lưu: ' + (error?.error?.message ?? error?.message)
         );
+        this.isLoadingSave = false;
       },
     });
   }

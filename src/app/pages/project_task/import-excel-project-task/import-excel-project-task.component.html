@@ -1,7 +1,9 @@
 <div class="modal-content">
   <div class="modal-header bg-primary text-uppercase py-2">
     <h6 class="modal-title text-white" id="ExcelModalLabel">NHẬP DỮ LIỆU CÔNG VIỆC TỪ EXCEL</h6>
-    <button type="button" class="btn-close" (click)="onClose()"></button>
+    <button type="button" class="btn-close-custom" (click)="onClose()" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
   </div>
   <div class="modal-body">
     <div class="d-flex gap-2 align-items-center p-2">

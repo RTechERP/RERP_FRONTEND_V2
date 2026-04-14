@@ -1,0 +1,170 @@
+/* Week Navigator Styles */
+.week-navigator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.week-navigator ::ng-deep .ant-btn-group {
+  display: flex;
+  width: 100%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.week-navigator ::ng-deep .week-nav-btn {
+  min-width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border: 1px solid #d9d9d9;
+}
+
+.week-navigator ::ng-deep .week-nav-btn:hover {
+  background-color: #1890ff;
+  color: white;
+  border-color: #1890ff;
+}
+
+.week-navigator ::ng-deep .week-nav-btn:hover .anticon {
+  color: white;
+}
+
+.week-navigator ::ng-deep .week-nav-btn:active {
+  background-color: #096dd9;
+  border-color: #096dd9;
+}
+
+.week-navigator ::ng-deep .week-nav-current {
+  border-left: 1px solid #d9d9d9;
+  border-right: 1px solid #d9d9d9;
+  background-color: #fafafa;
+  cursor: default;
+  font-size: 12px;
+  font-weight: 500;
+  color: #595959;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.week-navigator ::ng-deep .week-nav-current .anticon {
+  color: #1890ff;
+  font-size: 14px;
+}
+
+.ant-splitter {
+  height: 89vh !important;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel {
+  position: relative;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+
+/* PrimeNG Table Container */
+.grid-container-plan-week {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .grid-container-plan-week p-table {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+:host ::ng-deep .grid-container-plan-week .p-datatable {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+:host ::ng-deep .grid-container-plan-week .p-datatable-table-container {
+  flex: 1;
+  overflow: auto;
+}
+
+/* Table font size */
+:host ::ng-deep .p-datatable-sm .p-datatable-tbody > tr > td,
+:host ::ng-deep .p-datatable-sm .p-datatable-thead > tr > th {
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+/* Header group row */
+:host ::ng-deep .header-group-cell {
+  background-color: #f0f5ff !important;
+  font-weight: 600 !important;
+  border-bottom: 2px solid #d4d4d4 !important;
+}
+
+/* Wrap text for long content cells */
+.wrap-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.truncate-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Selected row */
+:host ::ng-deep .row-selected > td {
+  background-color: #e6f7ff !important;
+}
+
+:host ::ng-deep .row-selected:hover > td {
+  background-color: #bae7ff !important;
+}
+
+/* Row hover */
+:host ::ng-deep .p-datatable-tbody > tr:hover > td {
+  background-color: #f5f5f5;
+}
+
+/* Selected cell - blue border highlight */
+:host ::ng-deep .cell-selected {
+  outline: 2px solid #1890ff !important;
+  outline-offset: -2px;
+  background-color: #e6f7ff !important;
+}
+
+/* Cell text selectable for copy */
+.cell-text {
+  user-select: text;
+  cursor: text;
+}
+
+/* Frozen column shadow */
+:host ::ng-deep .p-datatable-frozen-column {
+  background-color: #fafafa;
+}
+
+:host ::ng-deep .p-datatable-tbody > tr:hover > .p-datatable-frozen-column {
+  background-color: #f0f0f0;
+}
+
+:host ::ng-deep .row-selected > .p-datatable-frozen-column {
+  background-color: #d6efff !important;
+}

@@ -36,7 +36,7 @@ import {
     GridOption,
     MultipleSelectOption,
     OnSelectedRowsChangedEventArgs,
-    MenuCommandItemCallbackArgs
+    MenuCommandItemCallbackArgs,
 } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import * as ExcelJS from 'exceljs';
@@ -46,7 +46,7 @@ import { ProductsaleServiceService } from '../../ProductSale/product-sale-servic
 import { InventoryService } from '../inventory-service/inventory.service';
 import { ProductGroupDetailComponent } from '../../ProductSale/product-group-detail/product-group-detail.component';
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
 import { ChiTietSanPhamSaleComponent } from '../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
@@ -54,6 +54,8 @@ import { ProjectPartlistPriceRequestNewComponent } from '../../../../purchase/pr
 import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { AppUserService } from '../../../../../services/app-user.service';
 import { ProjectPartlistPriceRequestFormComponent } from '../../../project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
+import { ProductLocationService } from '../../../../general-category/product-location/product-location-service/product-location.service';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 
 interface ProductGroup {
     ID?: number;
@@ -85,6 +87,7 @@ interface ProductGroup {
         NzSpinModule,
         NgbModule,
         AngularSlickgridModule,
+        HasPermissionDirective
     ],
     templateUrl: './inventory-new.component.html',
     styleUrls: ['./inventory-new.component.css'],
@@ -145,11 +148,16 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         ParentID: 0
     };
 
+
+
     private subscriptions: Subscription[] = [];
 
     // ResizeObserver để detect khi tab được hiển thị lại
     private resizeObserver: ResizeObserver | null = null;
     private lastVisibleWidth: number = 0;
+    //nhat them set location cho san pham
+    locations: any[] = [];
+    locationID: number = 0;
 
     constructor(
         private productsaleSV: ProductsaleServiceService,
@@ -164,6 +172,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         @Optional() @Inject('tabData') private tabData: any,
         private elementRef: ElementRef,
         private tabService: TabServiceService,
+        private productLocationService: ProductLocationService,
     ) { }
 
     ngOnInit(): void {
@@ -246,6 +255,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             // Load data mỗi khi params thay đổi
             this.getProductGroup();
             this.getDataProductGroupWareHouse(this.productGroupID);
+            this.getLocation();
         });
         this.subscriptions.push(sub);
     }
@@ -501,7 +511,6 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             enableGrouping: true,
         };
     }
-
 
     //#endregion
 
@@ -859,7 +868,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 },
                 error: (err) => {
                     this.isLoadingProductGroup = false;
-                    console.error('Lỗi khi lấy nhóm vật tư:', err);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
+                        { nzStyle: { whiteSpace: 'pre-line' } }
+                    );
                 },
             });
         this.subscriptions.push(sub);
@@ -887,7 +901,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
             },
             error: (err) => {
-                console.error('Lỗi khi lấy dữ liệu sản phẩm:', err);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
             },
         });
         this.subscriptions.push(sub);
@@ -939,7 +958,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 },
                 error: (err) => {
                     this.isLoadingInventory = false;
-                    console.error('Lỗi khi lấy dữ liệu sản phẩm:', err);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
+                        { nzStyle: { whiteSpace: 'pre-line' } }
+                    );
                 },
             });
         this.subscriptions.push(sub);
@@ -1252,11 +1276,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 // Open modal
                 this.openBillExportDetailModal(dtDetail, lstTonCk, warehouseID, khoTypeID);
             });
-        } catch (error) {
-            console.error('Error in requestBorrow:', error);
-            this.notification.error(
-                NOTIFICATION_TITLE.error,
-                'Có lỗi xảy ra khi xử lý yêu cầu mượn'
+        } catch (error: any) {
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[error?.status] || 'error',
+                NOTIFICATION_TITLE_MAP[error?.status as RESPONSE_STATUS] || 'Lỗi',
+                error?.error?.message || `${error?.error}\n${error?.message}`,
+                { nzStyle: { whiteSpace: 'pre-line' } }
             );
         }
     }
@@ -1575,11 +1600,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     { nzDuration: 1000 }
                 );
             });
-        } catch (error) {
-            console.error('Lỗi khi xuất Excel:', error);
-            this.notification.error(
-                NOTIFICATION_TITLE.error,
-                'Có lỗi xảy ra khi xuất file Excel'
+        } catch (error: any) {
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[error?.status] || 'error',
+                NOTIFICATION_TITLE_MAP[error?.status as RESPONSE_STATUS] || 'Lỗi',
+                error?.error?.message || `${error?.error}\n${error?.message}`,
+                { nzStyle: { whiteSpace: 'pre-line' } }
             );
         }
     }
@@ -2098,4 +2124,45 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     //#endregion
 
+    //#region Set Location
+    getLocation() {
+        this.productLocationService.getProductLocations().subscribe((res: any) => {
+            this.locations = res.data;
+            console.log('location', this.locations);
+        });
+    }
+    onSetLocation() {
+        const selectedRows = this.getSelectedInventoryRows();
+        if (selectedRows.length === 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn sản phẩm để set vị trí!');
+            return;
+        }
+
+        if (this.locationID === 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn vị trí!');
+            return;
+        }
+
+        const lstIDs = selectedRows.map((row: any) => row.ProductSaleID || row.ID);
+
+        this.inventoryService.setLocationList(this.locationID, lstIDs, this.warehouseId).subscribe({
+            next: (res) => {
+                if (res.status == 1) {
+                    this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật vị trí thành công');
+                    this.getInventory();
+                } else {
+                    this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Cập nhật vị trí thất bại');
+                }
+            },
+            error: (err) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+            }
+        });
+    }
+    //#endregion
 }

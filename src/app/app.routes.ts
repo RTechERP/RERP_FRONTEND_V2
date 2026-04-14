@@ -236,6 +236,9 @@ import { OfficeSupplyRequestPersonComponent } from './pages/hrm/office-supply/Of
 
 
 import { CourseManagementComponent } from './pages/Course/course-management/course-management.component';
+import { CourseTypeComponent } from './pages/Course/course-type/course-type.component';
+import { SummaryOfExamResultsComponent } from './pages/Course/summary-of-exam-results/summary-of-exam-results.component';
+import { ExamResultQuarterlyComponent } from './pages/Course/exam-result-quarterly/exam-result-quarterly.component';
 import { EconimicContractTermComponent } from './pages/hrm/economic-contract/econimic-contract-term/econimic-contract-term.component';
 import { EconomicContractTypeComponent } from './pages/hrm/economic-contract/economic-contract-type/economic-contract-type.component';
 import { EconomicContractComponent } from './pages/hrm/economic-contract/economic-contract.component';
@@ -273,6 +276,8 @@ import { UpdateVersionComponent } from './pages/systems/update-version/update-ve
 import { KpiEvaluationFactorsComponent } from './pages/old/Technical/kpi-evaluation-factors/kpi-evaluation-factors.component';
 import { LuckyNumberComponent } from './pages/hrm/lucky-number/lucky-number.component';
 import { CoursePracticeComponent } from './pages/Course/course-practice/course-practice.component';
+import { CourseExamComponent } from './pages/Course/course-exam/course-exam.component';
+import { CourseExamPracticeComponent } from './pages/Course/course-exam-practice/course-exam-practice.component';
 import { CourseKpiEmployeeTeamComponent } from './pages/Course/course-kpi-employee-team/course-kpi-employee-team.component';
 import { CommercialPriceRequestComponent } from './pages/commercial-price-request/commercial-price-request.component';
 import { KpiSyntheticYearsComponent } from './pages/old/Technical/kpi-synthetic-years/kpi-synthetic-years.component';
@@ -281,7 +286,9 @@ import { FollowProjectBaseSlickgridComponent } from './pages/old/VisionBase/kho-
 import { DailyReportSaleAdminSlickgridComponent } from './pages/old/KPISale/daily-report-sale-admin-slickgrid/daily-report-sale-admin-slickgrid.component';
 import { HRRecruitmentCandidateComponent } from './pages/hrm/hr-recruitment-candidate/hr-recruitment-candidate.component';
 import { HRRecruitmentExamComponent } from './pages/hrm/hr-recruitment/HRRecruitmentExam/hrrecruitment-exam/hrrecruitment-exam.component';
+import { ExamScoreComponent } from './pages/hrm/hr-recruitment-exam-score/exam-score/exam-score.component';
 import { HRHiringRequestExamComponent } from './pages/hrm/hrhiring-request/hrhiring-request-exam/hrhiring-request-exam.component';
+import { HiringRequestListComponent } from './pages/hrm/hr-recruitment/hiring-request-list/hiring-request-list.component';
 import { HRRecruitmentApplicationComponent } from './pages/hrm/hr-recruitment/hr-recruitment-application-form/hr-recruitment-application/hr-recruitment-application.component';
 import { HistoryBorrowSalePersonalComponent } from './pages/old/Sale/HistoryBorrowSale/history-borrow-sale-personal/history-borrow-sale-personal.component';
 import { HistoryProductRtcPersonalComponent } from './pages/old/inventory-demo/borrow/borrow-product-history/history-product-rtc-personal/history-product-rtc-personal.component';
@@ -295,6 +302,7 @@ import { JobRequirementPersonalComponent } from './pages/hrm/job-requirement/job
 import { SummaryAssetPersionalComponent } from './pages/hrm/asset/summary-asset-persional/summary-asset-persional.component';
 import { PaymentOrderEmployeeComponent } from './pages/general-category/payment-order-employee/payment-order-employee.component';
 import { PaymentOrderTeamComponent } from './pages/general-category/payment-order-team/payment-order-team.component';
+import { PlanWeekSharkTeamComponent } from './pages/old/VisionBase/plan-week-shark-team/plan-week-shark-team.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
 
 import { ProjectTaskComponent } from './pages/project_task/project-task/project-task.component'
@@ -303,7 +311,22 @@ import { ProjectTaskTimelineComponent } from './pages/project_task/project-task-
 import { ProjectTaskStatusComponent } from './pages/project_task/project-task-status/project-task-status.component'
 import { ProjectTaskTypeComponent } from './pages/project_task/project-task-type/project-task-type.component'
 import { ProjectTaskProjectComponent } from './pages/project_task/project-task-project/project-task-project.component'
+import { ProjectTaskTimeLineTotalComponent } from './pages/project_task/project-task-time-line-total/project-task-time-line-total.component'
+import { ProjectTaskStatusChartComponent } from './pages/project_task/project-task-status-chart/project-task-status-chart.component'
+import { ProjectTaskSettingComponent } from './pages/project_task/project-task-setting/project-task-setting.component'
+import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
+import { PurchaseQuoteSummaryComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary.component';
+import { CommercialPriceRequestComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/commercial-price-request/commercial-price-request.component';
+import { PurchaseQuoteSummaryMainComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary-main/purchase-quote-summary-main.component';
+import { EmployeeDeductionTypeComponent } from './pages/hrm/employee-management/employee-deduction/employee-deduction-type/employee-deduction-type.component';
+import { ListProductProjectCustomerComponent } from './pages/old/Sale/list-product-project-customer/list-product-project-customer.component';
+import { ProjectTechnologyFormComponent } from './pages/project/project-application-types/project-technology-form/project-technology-form.component';
+import { ProjectApplicationTypesComponent } from './pages/project/project-application-types/project-application-types.component';
 export const routes: Routes = [
+    {
+        path: 'file-preview',
+        component: FilePreviewComponent,
+    },
     {
         path: '',
         component: AuthLayoutComponent,
@@ -450,6 +473,8 @@ export const routes: Routes = [
             { path: 'phase-allocation-person', component: PhaseAllocationPersonComponent, canActivate: [authGuard] },
             { path: 'training-registration', component: TrainingRegistrationComponent, canActivate: [authGuard] },
             { path: 'factory-visit-registration', component: FactoryVisitRegistrationComponent, canActivate: [authGuard] },
+            { path: 'hr-recruitment-exam-score', component: ExamScoreComponent, canActivate: [authGuard] },
+            { path: 'hiring-request-list', component: HiringRequestListComponent, data: { title: 'DS Yêu cầu tuyển dụng' }, canActivate: [authGuard] },
             { path: 'app', component: AppComponent, canActivate: [authGuard] },
             { path: 'warehouse', component: WarehouseComponent1, canActivate: [authGuard] },
             { path: 'inventory-by-product', component: InventoryByProductComponent, canActivate: [authGuard] },
@@ -628,6 +653,7 @@ export const routes: Routes = [
             { path: 'pokh-kpi-hn', component: PokhKpiComponent, canActivate: [authGuard] },
             { path: 'pokh-history-hn', component: PokhHistoryComponent, canActivate: [authGuard] },
             { path: 'plan-week-hn', component: PlanWeekComponent, canActivate: [authGuard] },
+            { path: 'plan-week-shark-team-hn', component: PlanWeekSharkTeamComponent, canActivate: [authGuard] },
             { path: 'follow-project-base-hn', component: FollowProjectBaseSlickgridComponent, canActivate: [authGuard] },
             { path: 'customer-sale-hn', component: CustomerComponent, canActivate: [authGuard] },
 
@@ -682,12 +708,15 @@ export const routes: Routes = [
             { path: 'project-item-person', component: ProjectItemPersonComponent, canActivate: [authGuard] },
             { path: 'summary-project-join', component: SummaryProjectJoinComponent, canActivate: [authGuard] },
             { path: 'project-part-list', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
+            { path: 'project-task-setting', component: ProjectTaskSettingComponent, canActivate: [authGuard] },
+            { path: 'project-application-types', component: ProjectApplicationTypesComponent, canActivate: [authGuard] },
+
+            //kpi
             { path: 'kpi-tech', component: KPIEvaluationEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring-tbp', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring-bgd', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
-
 
 
             //Mua hàng
@@ -1083,9 +1112,14 @@ export const routes: Routes = [
             { path: 'inventory-borrow-ncc', component: InventoryBorrowNCCComponent, canActivate: [authGuard] },
 
 
-            // COURSE
+            // COURSE: Khóa học
+            { path: 'course-type', component: CourseTypeComponent, canActivate: [authGuard] },
             { path: 'course-management', component: CourseManagementComponent, canActivate: [authGuard] },
             { path: 'course-practice', component: CoursePracticeComponent, canActivate: [authGuard] },
+            { path: 'course-exam', component: CourseExamComponent, canActivate: [authGuard] },
+            { path: 'course-exam-practice', component: CourseExamPracticeComponent, canActivate: [authGuard] },
+            { path: 'summary-of-exam-results', component: SummaryOfExamResultsComponent, canActivate: [authGuard] },
+            { path: 'exam-result-quarterly', component: ExamResultQuarterlyComponent, canActivate: [authGuard] },
 
             { path: 'chi-tiet-san-pham-sale', component: ChiTietSanPhamSaleComponent, canActivate: [authGuard] },
 
@@ -1093,6 +1127,7 @@ export const routes: Routes = [
             { path: 'kpi-error', component: KpiErrorComponent, canActivate: [authGuard] }, // danh sách lỗi kt
             { path: 'kpi-error-agv', component: KpiErrorComponent, canActivate: [authGuard] }, // damh sách lỗi agv
             { path: 'kpi-error-employee', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
+            { path: 'kpi-error-employee-agv', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-error-employee-summary-max', component: KpiErrorEmployeeSummaryMaxComponent, canActivate: [authGuard] },
             { path: 'summary-kpi-error-employee-month', component: SummaryKpiErrorEmployeeMonthComponent, canActivate: [authGuard] },
             { path: 'summary-kpi-error-employee-new', component: SummaryKpiErrorEmployeeNewComponent, canActivate: [authGuard] },
@@ -1140,6 +1175,14 @@ export const routes: Routes = [
             { path: 'project-task-status', component: ProjectTaskStatusComponent, canActivate: [authGuard] },
             { path: 'project-task-type', component: ProjectTaskTypeComponent, canActivate: [authGuard] },
             { path: 'project-task-project', component: ProjectTaskProjectComponent, canActivate: [authGuard] },
+            { path: 'project-task-status-chart', component: ProjectTaskStatusChartComponent, canActivate: [authGuard] },
+            { path: 'project-task-timeline-total', component: ProjectTaskTimeLineTotalComponent, canActivate: [authGuard] },
+            { path: 'purchase-quote-summary', component: PurchaseQuoteSummaryComponent, canActivate: [authGuard] },
+            { path: 'commercial-price-request', component: CommercialPriceRequestComponent, canActivate: [authGuard] },
+            { path: 'purchase-quote-summary-main', component: PurchaseQuoteSummaryMainComponent, canActivate: [authGuard] },
+            { path: 'employee-deduction-type', component: EmployeeDeductionTypeComponent, canActivate: [authGuard] },
+            { path: 'product-project-customer-hn', component: ListProductProjectCustomerComponent, canActivate: [authGuard] },
+
         ],
     },
 ];

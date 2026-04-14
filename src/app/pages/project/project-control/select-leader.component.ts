@@ -12,10 +12,11 @@ import { ProjectService } from '../project-service/project.service';
       nzPlaceHolder="Chọn leader"
       style="width: 100%; height: 100%; font-size: 0.75rem;"
       [(ngModel)]="leaderId"
-      nzAutoFocus
       nzAllowClear
       nzShowSearch
       nzDropdownClassName="leader-select-dropdown"
+      [nzDropdownMatchSelectWidth]="false"
+      [nzDropdownStyle]="{ 'min-width': '400px' }"
     >
       @for (item of leaders; track $index) {
       <nz-option

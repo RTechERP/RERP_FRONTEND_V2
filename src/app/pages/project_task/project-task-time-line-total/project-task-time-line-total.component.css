@@ -1,0 +1,424 @@
+:host ::ng-deep .ant-row-space-between {
+    justify-content: flex-start;
+}
+.timeline-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 64px);
+    background-color: #f4f7f9;
+    padding: 0px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+/* ===== SEARCH FORM ===== */
+.sticky-header {
+    z-index: 20;
+}
+
+.form-field-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-field-vertical label {
+    font-size: 12px;
+    color: #595959;
+    font-weight: 500;
+}
+
+.legend-bar {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #475569;
+}
+
+.legend-item .box {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+}
+
+.box.planned {
+    background-color: #38bdf8;
+}
+
+.box.actual {
+    background-color: #f472b6;
+}
+
+/* ===== TABLE ===== */
+.timeline-content {
+    flex: 1;
+    background: #fff;
+    border-radius: 0 0 8px 8px;
+    border: 1px solid #e2e8f0;
+    position: relative;
+    overflow: hidden;
+}
+
+.table-container {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
+.grid-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: max-content;
+    min-width: 100%;
+    font-size: 11px;
+    table-layout: fixed;
+}
+
+.grid-table th,
+.grid-table td {
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 6px 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Sticky Headers */
+thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8fafc;
+    z-index: 10;
+    font-weight: 600;
+    color: #334155;
+    text-align: center;
+}
+
+thead tr:nth-child(2) th {
+    top: 31px;
+}
+
+/* ===== CỘT KÍCH THƯỚC ===== */
+.col-stt {
+    width: 45px;
+    min-width: 45px;
+}
+
+.col-name {
+    width: 130px;
+    min-width: 130px;
+}
+
+.col-job {
+    width: 240px;
+    min-width: 240px;
+}
+
+.col-proj {
+    width: 150px;
+    min-width: 150px;
+}
+
+.col-status {
+    width: 85px;
+    min-width: 85px;
+}
+
+.col-time {
+    width: 65px;
+    min-width: 65px;
+}
+
+.col-type {
+    width: 60px;
+    min-width: 60px;
+}
+
+/* ===== STICKY COLUMNS ===== */
+.sticky-col {
+    position: sticky;
+    left: 0;
+    z-index: 11;
+    background-color: #fff;
+}
+
+thead .sticky-col {
+    z-index: 15;
+}
+
+.col-stt.sticky-col {
+    left: 0;
+}
+
+.col-name.sticky-col {
+    left: 45px;
+}
+
+.col-proj.sticky-col {
+    left: 175px; 
+}
+
+.col-job.sticky-col {
+    left: 325px; 
+}
+
+/* ===== DATE COLUMNS ===== */
+.date-header,
+.date-subheader {
+    width: 38px;
+    min-width: 38px;
+    font-size: 10px;
+    position: relative;
+}
+
+.today-col {
+    position: relative;
+    background-color: #fff1f0 !important;
+}
+
+.today-col::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    background-color: #ff4d4f;
+    transform: translateX(-50%);
+    z-index: 5;
+    pointer-events: none;
+}
+
+.sunday {
+    background-color: #fff1f2 !important;
+}
+
+.date-header.sunday,
+.date-subheader.sunday {
+    color: #e11d48;
+}
+
+.gantt-cell {
+    padding: 0 !important;
+    width: 38px;
+    min-width: 38px;
+    text-align: center;
+    vertical-align: middle;
+    position: relative;
+}
+
+.filled-planned {
+    background-color: #38bdf8 !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.filled-actual {
+    background-color: #f472b6 !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+/* Icon check trong ô Dự kiến */
+.check-icon {
+    color: #fff;
+    font-size: 25px;
+    font-weight: 700;
+}
+
+/* Số giờ trong ô Thực tế */
+.actual-percent,
+.actual-hours {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== ROW STYLING ===== */
+.row-actual td {
+    border-bottom: 2px solid #cbd5e1;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* ===== CELL GROUP (gộp nhóm nhân viên) ===== */
+.cell-group {
+    vertical-align: middle;
+    background-color: #f8fafc !important;
+    border-right: 2px solid #e2e8f0;
+}
+
+.cell-name-text {
+    font-weight: 600;
+    color: #1e293b;
+    padding-left: 12px !important;
+}
+
+/* ===== TASK INFO ===== */
+.task-info,
+.project-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 2px 0;
+}
+
+.task-title,
+.project-name {
+    font-size: 11px;
+    color: #64748b;
+    line-height: normal;
+}
+
+.text-wrap {
+    white-space: normal !important;
+    word-break: break-word;
+    display: inline-block;
+    width: 100%;
+}
+
+.task-code-link {
+    color: #1890ff;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.task-code-link:hover {
+    text-decoration: underline;
+    color: #40a9ff;
+}
+
+/* ===== STATUS TAGS ===== */
+.status-tag {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.status-tag[data-status="0"] {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.status-tag[data-status="1"] {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.status-tag[data-status="2"] {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.status-tag[data-status="3"] {
+    background: #fffbe6;
+    color: #b45309;
+}
+
+.status-tag[data-status="4"] {
+    background: #fff1f2;
+    color: #e11d48;
+}
+
+/* ===== FILTER INPUT ===== */
+.filter-input {
+    width: 100%;
+    height: 24px;
+    border: 1px solid #e2e8f0;
+    border-radius: 3px;
+    font-size: 11px;
+    padding: 0 4px;
+    font-weight: normal;
+    display: block;
+    margin-top: 4px;
+}
+
+.filter-input:focus {
+    border-color: #38bdf8;
+    outline: none;
+}
+
+/* ===== LOADING ===== */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+}
+
+.loading-overlay nz-icon {
+    font-size: 32px;
+    color: #38bdf8;
+    margin-bottom: 8px;
+}
+
+/* ===== EMPTY & FOOTER ===== */
+.empty-cell {
+    text-align: center;
+    padding: 32px !important;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+tfoot td {
+    position: sticky;
+    bottom: 0;
+    z-index: 15;
+    background-color: #f8fafc !important;
+    font-weight: 600;
+    color: #334155;
+    border-top: 2px solid #e2e8f0 !important;
+    padding: 10px 16px !important;
+    text-align: left;
+}
+
+.total-count {
+    color: #1890ff;
+    font-size: 1.1em;
+    margin-left: 4px;
+}
+
+/* ===== MULTISELECT IN TABLE HEADER ===== */
+:host ::ng-deep .timeline-status-multi.p-multiselect {
+    border: 1px solid #e2e8f0;
+    border-radius: 3px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    font-weight: normal;
+    margin-top: 4px;
+    width: 100%;
+}
+
+:host ::ng-deep .timeline-status-multi .p-multiselect-label {
+    padding: 0 4px;
+    font-size: 11px;
+    line-height: normal;
+}
+
+:host ::ng-deep .timeline-status-multi .p-multiselect-trigger {
+    width: 20px;
+    height: 22px;
+}

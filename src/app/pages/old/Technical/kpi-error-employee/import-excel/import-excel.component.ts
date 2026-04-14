@@ -52,15 +52,12 @@ export class ImportExcelKpiErrorEmployeeComponent implements OnInit {
     }
 
     onFileChange(evt: any) {
-        const target: DataTransfer = <DataTransfer>evt.target;
+        const target = evt.target as HTMLInputElement;
         if (!target.files || target.files.length === 0) {
-            if (this.selectedSheet && this.sheetNames.length > 0) {
-                return;
-            }
             return;
         }
+        const file = target.files[0];
         this.resetPreview();
-        if (target.files.length !== 1) return;
 
         const reader: FileReader = new FileReader();
         reader.onload = (e: any) => {
@@ -73,8 +70,11 @@ export class ImportExcelKpiErrorEmployeeComponent implements OnInit {
                 this.selectedSheet = this.sheetNames[0];
                 this.onSheetChange();
             }
+            
+            // Reset the input value so the change event can fire again for the same file or a new file
+            target.value = '';
         };
-        reader.readAsBinaryString(target.files[0]);
+        reader.readAsBinaryString(file);
     }
 
     private resetPreview() {
@@ -84,8 +84,12 @@ export class ImportExcelKpiErrorEmployeeComponent implements OnInit {
         this.tableData = [];
 
         if (this.tabulator) {
-            this.tabulator.clearData();
-            this.tabulator.setColumns([]);
+            try {
+                this.tabulator.destroy();
+            } catch (e) {
+                console.error('Error destroying tabulator', e);
+            }
+            this.tabulator = null as any;
         }
     }
 

@@ -35,4 +35,8 @@ export class EmployeeSaleManagerService {
   saveEmployeeDetail(payload: any): Observable<any> {
     return this.http.post(this._url + 'save-employee-detail', payload);
   }
+
+  deleteEmployeeTeamSaleLink(id: number): Observable<any> {
+    return this.http.post(this._url + `delete-employee-link?id=${id}`, null);
+  }
 }

@@ -50,7 +50,8 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { ProjectService } from '../project/project-service/project.service';
 import { ProjectWorkerService } from '../project/project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
@@ -165,6 +166,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   dataProjectPartList: any[] = [];
   dataProjectPartListMaster: any[] = []; // Luôn giữ bản gốc 100% data để lọc
   projects: any[] = [];
+  recentProjects: any[] = [];
   warehouses: any[] = [];
   treeWorkerData: any[] = [];
 
@@ -177,6 +179,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   type: number = 0;
   keyword: string = '';
   searchKeyword: string = '';
+  private searchSubject = new Subject<string>();
   isDeleted: number = 0;
   isApprovedTBP: number = -1;
   isApprovedPurchase: number = -1;
@@ -205,6 +208,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
   // Modal data
   deadlinePriceRequest: Date | null = null;
+  noteData = {
+    content: ''
+  };
   deadlinePurchaseRequest: Date | null = null;
   reasonDeleted: string = '';
   reasonDeletedVersion: string = '';
@@ -219,6 +225,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   filterReturn: boolean = false;
   filterProductSale: boolean = false;
   headerFilterFunction: any = null; // Lưu header filter function gốc
+
+  // Recent projects localStorage key (per-user)
+  private readonly MAX_RECENT_PROJECTS = 10;
+  private get recentProjectsKey(): string {
+    const userId = this.appUserService.id || 'default';
+    return `recent_project_ids_partlist_${userId}`;
+  }
 
   // Subscriptions
   private subscriptions: Subscription[] = [];
@@ -315,6 +328,15 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     this.isDeleted = 0;
     this.isApprovedTBP = -1;
     this.isApprovedPurchase = -1;
+
+    // Setup debounce for keyword search
+    const searchSub = this.searchSubject.pipe(
+      debounceTime(2000),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.searchDataProjectWorker();
+    });
+    this.subscriptions.push(searchSub);
 
     // Initialize grids in ngOnInit to ensure options are ready before grid renders
     this.initializeGrids();
@@ -1393,7 +1415,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       },
       { id: 'DateExpectedQuote', field: 'DateExpectedQuote', name: 'Ngày về dự kiến', width: 110, columnGroup: 'Yêu cầu báo giá', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
       {
-        id: 'NoteQuote', field: 'NoteQuote', name: 'Ghi chú báo giá', width: 200, columnGroup: 'Yêu cầu báo giá', filterable: true, filter: { model: Filters['compoundInputText'] },
+        id: 'NoteQuote', field: 'NoteQuote', name: 'Ghi chú báo giá (Pur)', width: 200, columnGroup: 'Yêu cầu báo giá', filterable: true, filter: { model: Filters['compoundInputText'] },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -1419,6 +1441,32 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         },
       },
 
+      {
+        id: 'NoteRequest', field: 'NoteRequest', name: 'Ghi chú báo giá (kỹ thuật)', width: 200, columnGroup: 'Yêu cầu báo giá', filterable: true, filter: { model: Filters['compoundInputText'] },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.NoteRequest}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
       // ==================== NHÓM: Yêu cầu mua hàng ====================
       {
         id: 'IsApprovedPurchase', field: 'IsApprovedPurchase', name: 'Yêu cầu mua', width: 90, columnGroup: 'Yêu cầu mua hàng',
@@ -1528,8 +1576,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         filterable: true, filter: { model: Filters['compoundDate'] }
       },
       { id: 'RequestDatePurchase', field: 'RequestDatePurchase', name: 'Ngày bắt đầu đặt hàng', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
-      { id: 'ExpectedDatePurchase', field: 'ExpectedDatePurchase', name: 'Ngày dự kiến đặt hàng', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
-      { id: 'ExpectedArrivalDate', field: 'ExpectedArrivalDate', name: 'Ngày dự kiến hàng về', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'ExpectedDatePurchase', field: 'ExpectedDatePurchase', name: 'Ngày dự kiến hàng về', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
+      // { id: 'ExpectedArrivalDate', field: 'ExpectedArrivalDate', name: 'Ngày dự kiến hàng về', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
       {
         id: 'BillCodePurchase', field: 'BillCodePurchase', name: 'Mã đặt hàng', width: 120, columnGroup: 'Yêu cầu mua hàng',
         filterable: true,
@@ -2491,12 +2539,50 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       next: (response: any) => {
         if (response && response.status === 1) {
           this.projects = response.data || [];
+          // Nếu projectId được truyền từ bên ngoài (tabData/queryParams), lưu vào recent
+          if (this.projectId > 0) {
+            this.saveRecentProject(this.projectId);
+          }
+          this.loadRecentProjects();
         }
       },
       error: (error: any) => {
         console.error('Error loading projects:', error);
       },
     });
+  }
+
+  // Load recent projects from localStorage
+  private loadRecentProjects(): void {
+    try {
+      const key = this.recentProjectsKey;
+      const recentIds: number[] = JSON.parse(localStorage.getItem(key) || '[]');
+      this.recentProjects = recentIds
+        .map(id => this.projects.find(p => p.ID === id))
+        .filter(p => !!p);
+    } catch {
+      this.recentProjects = [];
+    }
+  }
+
+  // Save a project ID to recent history
+  private saveRecentProject(projectId: number): void {
+    if (!projectId || projectId <= 0) return;
+    try {
+      const key = this.recentProjectsKey;
+      let recentIds: number[] = JSON.parse(localStorage.getItem(key) || '[]');
+      // Remove if already exists, then add to front
+      recentIds = recentIds.filter(id => id !== projectId);
+      recentIds.unshift(projectId);
+      // Keep max items
+      if (recentIds.length > this.MAX_RECENT_PROJECTS) {
+        recentIds = recentIds.slice(0, this.MAX_RECENT_PROJECTS);
+      }
+      localStorage.setItem(key, JSON.stringify(recentIds));
+      this.loadRecentProjects();
+    } catch (e) {
+      console.error('Error saving recent project:', e);
+    }
   }
 
   loadWarehouses(): void {
@@ -3937,6 +4023,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       if (selectedProject) {
         this.projectCodex = selectedProject.ProjectCode || '';
       }
+      // Save to recent projects
+      this.saveRecentProject(this.projectId);
       this.loadDataSolution();
     } else {
       this.projectCodex = '';
@@ -3946,6 +4034,11 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       this.dataProjectPartList = [];
       this.projectSolutionId = 0;
     }
+  }
+
+  onKeywordChange(value: string): void {
+    this.keyword = value;
+    this.searchSubject.next(value);
   }
 
   searchDataProjectWorker(): void {
@@ -4227,20 +4320,20 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.notification.warning('Thông báo', 'Không tìm thấy phiên bản giải pháp đã chọn');
         return;
       }
-      if (selectedVersion['StatusVersion'] == 2) {
-        this.notification.warning('Thông báo', `Phiên bản [${selectedVersion.Code}] đã bị PO. Bạn không thể yêu cầu báo giá!`);
-        return;
-      }
+      // if (selectedVersion['StatusVersion'] == 2) {
+      //   this.notification.warning('Thông báo', `Phiên bản [${selectedVersion.Code}] đã bị PO. Bạn không thể yêu cầu báo giá!`);
+      //   return;
+      // }
     } else {
       selectedVersion = this.dataPOVersion.find((v: any) => v.ID === this.versionPOID);
       if (!selectedVersion) {
         this.notification.warning('Thông báo', 'Không tìm thấy phiên bản PO đã chọn');
         return;
       }
-      if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
-        this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);
-        return;
-      }
+      // if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
+      //   this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);
+      //   return;
+      // }
     }
 
     // Validate từng vật tư được chọn
@@ -4309,6 +4402,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         IsApprovedTBPNewCode: row.IsApprovedTBPNewCode ?? false,
         StatusPriceRequest: row.StatusPriceRequest,
         IsLeaf: isLeaf,
+        Note: '',
         DatePriceQuote: row.DatePriceQuote || null,
         DeadlinePriceRequest: null
       });
@@ -4316,29 +4410,31 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
 
     this.deadlinePriceRequest = null;
-    this.showPriceRequestModal(requestItems);
+    this.noteData.content = '';
+    this.showPriceRequestModal(requestItems, false);
   }
 
   // Hiển thị modal chọn deadline báo giá
-  showPriceRequestModal(requestItems: any[]): void {
+  showPriceRequestModal(requestItems: any[], isRequestAgain: boolean): void {
     this.modal.confirm({
-      nzTitle: 'Yêu cầu báo giá',
+      nzTitle: isRequestAgain ? 'Yêu cầu báo giá lại' : 'Yêu cầu báo giá',
       nzContent: this.priceRequestModalContent,
       nzOkText: 'Xác nhận',
       nzCancelText: 'Hủy',
       nzOkType: 'primary',
       nzWidth: 500,
       nzOnOk: () => {
-        return this.validateAndConfirmDeadline(requestItems);
+        return this.validateAndConfirmDeadline(requestItems, isRequestAgain);
       },
       nzOnCancel: () => {
         this.deadlinePriceRequest = null;
+        this.noteData.content = '';
       }
     });
   }
 
   // Validate và xác nhận deadline (có thể trả về Promise để xử lý modal lồng nhau)
-  validateAndConfirmDeadline(requestItems: any[]): Promise<boolean> {
+  validateAndConfirmDeadline(requestItems: any[], isRequestAgain: boolean): Promise<boolean> {
     return new Promise((resolve, reject) => {
       // Validate deadline đã chọn
       if (!this.deadlinePriceRequest) {
@@ -4402,7 +4498,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             this.deadlinePriceRequest = finalDeadlineDate;
             // Người dùng xác nhận → Gán deadline và gọi API (truyền trực tiếp finalDeadlineDate)
             this.assignDeadlineToItems(requestItems, finalDeadlineDate);
-            this.confirmPriceRequest(requestItems);
+            this.confirmPriceRequest(requestItems, isRequestAgain);
             resolve(true); // Đóng modal đầu tiên
           },
           nzOnCancel: () => {
@@ -4418,7 +4514,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         // Không có ngày cuối tuần → Cập nhật deadline và gọi API trực tiếp
         this.deadlinePriceRequest = finalDeadlineDate;
         this.assignDeadlineToItems(requestItems, finalDeadlineDate);
-        this.confirmPriceRequest(requestItems);
+        this.confirmPriceRequest(requestItems, isRequestAgain);
         resolve(true); // Đóng modal
       }
     });
@@ -4442,31 +4538,55 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     // Backend ASP.NET Core sẽ tự động parse ISO string thành DateTime
     const deadlineISO = deadlineFixed.toISOString();
 
+    console.log('Assigning note to items:', this.noteData.content);
     requestItems.forEach((item: any) => {
       // Gán deadline vào đúng trường DeadlinePriceRequest
       item.DeadlinePriceRequest = deadlineISO;
+      // Gán Note từ noteContent người dùng đã nhập trong modal
+      item.Note = this.noteData.content || '';
     });
   }
 
   // Hàm xác nhận và gọi API
-  confirmPriceRequest(requestItems: any[]): void {
-    this.projectPartListService.requestPrice(requestItems).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          this.notification.success('Thành công', response.message || 'Yêu cầu báo giá thành công!');
-          this.loadDataProjectPartList();
-          this.deadlinePriceRequest = null;
-        } else if (response.status === 2) {
-          this.notification.warning('Thông báo', response.message || 'Không thể yêu cầu báo giá');
-        } else {
-          this.notification.error('Lỗi', response.message || 'Không thể yêu cầu báo giá');
+  confirmPriceRequest(requestItems: any[], isRequestAgain: boolean): void {
+    console.log('Sending price request payload:', requestItems);
+    if (isRequestAgain) {
+      this.projectPartListService.requestPriceAgain(requestItems).subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            this.notification.success('Thành công', response.message || 'Yêu cầu báo giá thành công!');
+            this.loadDataProjectPartList();
+            this.deadlinePriceRequest = null;
+          } else if (response.status === 2) {
+            this.notification.warning('Thông báo', response.message || 'Không thể yêu cầu báo giá');
+          } else {
+            this.notification.error('Lỗi', response.message || 'Không thể yêu cầu báo giá');
+          }
+        },
+        error: (error: any) => {
+          const errorMessage = error?.error?.message || error?.message || 'Không thể yêu cầu báo giá';
+          this.notification.error('Lỗi', errorMessage);
         }
-      },
-      error: (error: any) => {
-        const errorMessage = error?.error?.message || error?.message || 'Không thể yêu cầu báo giá';
-        this.notification.error('Lỗi', errorMessage);
-      }
-    });
+      });
+    } else {
+      this.projectPartListService.requestPrice(requestItems).subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            this.notification.success('Thành công', response.message || 'Yêu cầu báo giá thành công!');
+            this.loadDataProjectPartList();
+            this.deadlinePriceRequest = null;
+          } else if (response.status === 2) {
+            this.notification.warning('Thông báo', response.message || 'Không thể yêu cầu báo giá');
+          } else {
+            this.notification.error('Lỗi', response.message || 'Không thể yêu cầu báo giá');
+          }
+        },
+        error: (error: any) => {
+          const errorMessage = error?.error?.message || error?.message || 'Không thể yêu cầu báo giá lại';
+          this.notification.error('Lỗi', errorMessage);
+        }
+      });
+    }
   }
 
   // Hủy yêu cầu báo giá
@@ -4498,6 +4618,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       }
 
       // Kiểm tra đã yêu cầu báo giá chưa
+      debugger;
       if (!row.StatusPriceRequest || row.StatusPriceRequest <= 0) {
         this.notification.warning('Thông báo', `Vật tư Stt [${row.TT}] chưa được yêu cầu báo giá.\nKhông thể hủy yêu cầu báo giá!`);
         return;
@@ -5606,6 +5727,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       { header: 'Loại tiền Pur báo', field: 'CurrencyQuote', width: 18 },
       { header: 'Tỷ giá báo', field: 'CurrencyRateQuote', width: 12, isNumber: true },
       { header: 'Thành tiền quy đổi báo giá (VNĐ)', field: 'TotalPriceExchangeQuote', width: 25, isNumber: true },
+      { header: 'Ghi chú báo giá(Pur)', field: 'NoteQuote', width: 20 },
+      { header: 'Ghi chú báo giá (kỹ thuật)', field: 'NoteRequest', width: 20 },
       { header: 'Đơn giá Pur mua', field: 'UnitPricePurchase', width: 18, isNumber: true },
       { header: 'Thành tiền Pur mua', field: 'TotalPricePurchase', width: 18, isNumber: true },
       { header: 'Loại tiền Pur mua', field: 'CurrencyPurchase', width: 18 },
@@ -6987,5 +7110,142 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   }
   //#endregion
 
+  //#region yêu cầu/hủy yc báo giá lại 
+  requestPriceAgain(): void {
+    const selectedRows = this.getSelectedPartListRows();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn vật tư cần yêu cầu báo giá');
+      return;
+    }
+
+    // Kiểm tra phiên bản đang sử dụng
+    if (this.type == 0 || (this.type == 1 && this.versionID == 0) || (this.type == 2 && this.versionPOID == 0)) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản để yêu cầu báo giá');
+      return;
+    }
+
+    // Lấy thông tin phiên bản từ dữ liệu đã lưu
+    let selectedVersion: any = null;
+    if (this.type == 1) {
+      selectedVersion = this.dataSolutionVersion.find((v: any) => v.ID === this.versionID);
+      if (!selectedVersion) {
+        this.notification.warning('Thông báo', 'Không tìm thấy phiên bản giải pháp đã chọn');
+        return;
+      }
+      // if (selectedVersion['StatusVersion'] == 2) {
+      //   this.notification.warning('Thông báo', `Phiên bản [${selectedVersion.Code}] đã bị PO. Bạn không thể yêu cầu báo giá!`);
+      //   return;
+      // }
+    } else {
+      selectedVersion = this.dataPOVersion.find((v: any) => v.ID === this.versionPOID);
+      if (!selectedVersion) {
+        this.notification.warning('Thông báo', 'Không tìm thấy phiên bản PO đã chọn');
+        return;
+      }
+      // if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
+      //   this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);
+      //   return;
+      // }
+    }
+
+    // Validate từng vật tư được chọn
+    const requestItems: any[] = [];
+    for (let row of selectedRows) {
+      if (!row.ID || row.ID <= 0) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn vật tư hợp lệ!');
+        return;
+      }
+      if (row.IsDeleted == true) {
+        this.notification.warning('Thông báo', `Không thể yêu cầu báo giá vì vật tư thứ tự [${row.TT}] đã bị xóa!`);
+        return;
+      }
+
+      const isLeaf = row.IsLeaf === true;
+      // Validation chỉ áp dụng cho node lá
+      if (isLeaf) {
+        if (row.IsNewCode == true && (row.IsApprovedTBPNewCode ?? false) == false) {
+          this.notification.warning('Thông báo', `Vật tư Stt [${row.TT}] chưa được TBP duyệt mới.\nVui lòng kiểm tra lại!`);
+          return;
+        }
+
+        // Validate các trường bắt buộc
+        if (!row.ProductCode || row.ProductCode.trim() === '') {
+          this.notification.warning('Thông báo', `[Mã thiết bị] có số thứ tự [${row.TT}] không được trống!\nVui lòng kiểm tra lại!`);
+          return;
+        }
+        if (!row.GroupMaterial || row.GroupMaterial.trim() === '') {
+          this.notification.warning('Thông báo', `[Tên vật tư] có số thứ tự [${row.TT}] không được trống!\nVui lòng kiểm tra lại!`);
+          return;
+        }
+        if (!row.Manufacturer || row.Manufacturer.trim() === '') {
+          this.notification.warning('Thông báo', `[Hãng SX] có số thứ tự [${row.TT}] không được trống!\nVui lòng kiểm tra lại!`);
+          return;
+        }
+        if (!row.QtyMin || row.QtyMin <= 0) {
+          this.notification.warning('Thông báo', `[Số lượng / 1 máy] có số thứ tự [${row.TT}] phải lớn hơn 0!\nVui lòng kiểm tra lại!`);
+          return;
+        }
+        if (!row.QtyFull || row.QtyFull <= 0) {
+          this.notification.warning('Thông báo', `[Số lượng tổng] có số thứ tự [${row.TT}] phải lớn hơn 0!\nVui lòng kiểm tra lại!`);
+          return;
+        }
+        // Kiểm tra từng StatusRequest để đưa ra thông báo rõ ràng nhất
+        if (row.StatusRequest === 1) {
+          this.notification.warning('Thông báo', `Vật tư số thứ tự [${row.TT}] đang yêu cầu báo giá.\nVui lòng chờ báo giá!`);
+          return;
+        }
+        if (row.StatusRequest === 3) {
+          this.notification.warning('Thông báo', `Vật tư số thứ tự [${row.TT}] đã hoàn thành báo giá.\nKhông thể yêu cầu báo giá lại!`);
+          return;
+        }
+        if (row.StatusRequest === 4) {
+          this.notification.warning('Thông báo', `Vật tư số thứ tự [${row.TT}] đang yêu cầu check lại trạng thái.\nKhông thể yêu cầu báo giá lại!`);
+          return;
+        }
+        if (row.StatusRequest === 5) {
+          this.notification.warning('Thông báo', `Vật tư số thứ tự [${row.TT}] đã bị từ chối báo giá.\nKhông thể yêu cầu báo giá lại!`);
+          return;
+        }
+        if (row.StatusRequest === 6) {
+          this.notification.warning('Thông báo', `Vật tư số thứ tự [${row.TT}] đã được yêu cầu báo giá lại.\nVui lòng chờ báo giá!`);
+          return;
+        }
+        if (row.StatusRequest !== 2 && row.StatusRequest !== 7) {
+          this.notification.warning('Thông báo', `Vật tư số thứ tự [${row.TT}] chưa được báo giá hợp lệ.\nHãy yêu cầu báo giá trước!`);
+          return;
+        }
+        if (row.IsApprovedPurchase == true) {
+          this.notification.warning('Thông báo', `Vật tư có số thứ tự [${row.TT}] đã được yêu cầu mua hàng!\nVui lòng kiểm tra lại!`);
+          return;
+        }
+        // if(!row.S)
+
+      }
+
+      requestItems.push({
+        ID: row.ID,
+        STT: row.STT,
+        ProductCode: row.ProductCode,
+        GroupMaterial: row.GroupMaterial,
+        Manufacturer: row.Manufacturer,
+        QtyMin: row.QtyMin,
+        QtyFull: row.QtyFull,
+        ParentID: row.ParentID,
+        IsNewCode: row.IsNewCode,
+        IsApprovedTBPNewCode: row.IsApprovedTBPNewCode ?? false,
+        StatusPriceRequest: row.StatusPriceRequest,
+        IsLeaf: isLeaf,
+        Note: '',
+        DatePriceQuote: row.DatePriceQuote || null,
+        DeadlinePriceRequest: null
+      });
+    }
+
+
+    this.deadlinePriceRequest = null;
+    this.noteData.content = '';
+    this.showPriceRequestModal(requestItems, true);
+  }
+  cancelPriceRequestAgain(): void { }
   //#endregion
 }

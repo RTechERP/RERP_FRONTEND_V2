@@ -1,14 +1,15 @@
 import {
-    Component,
-    OnInit,
-    OnDestroy,
-    AfterViewInit,
-    Input,
-    Optional,
-    Inject,
-    ViewChildren,
-    QueryList,
-    ElementRef
+  Component,
+  OnInit,
+  OnDestroy,
+  AfterViewInit,
+  Input,
+  Optional,
+  Inject,
+  ViewChildren,
+  QueryList,
+  ElementRef,
+  HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -25,12 +26,13 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HRRecruitmentExamService } from '../hr-recruitment-exam-service/hrrecruitment-exam.service';
 import { EditorModule } from 'primeng/editor';
 import Quill from 'quill';
 import { environment } from '../../../../../../environments/environment';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 
 @Component({
     selector: 'app-hrrecruitment-question-detail',
@@ -51,6 +53,7 @@ import { forkJoin } from 'rxjs';
         NzModalModule,
         NzSpinModule,
         NzSelectModule,
+        NzRadioModule,
         EditorModule,
     ],
 })
@@ -117,6 +120,8 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
     /** IDs đáp án cần xóa khi save */
     listAnswerIDDelete: number[] = [];
     answerCodes = ['A', 'B', 'C', 'D'];
+    
+    rightAnswerIndex: number = -1;
 
     @ViewChildren('answerInput', { read: ElementRef }) answerInputs!: QueryList<ElementRef>;
 
@@ -368,6 +373,7 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
                     imagePreviewUrl: null as string | null,
                     selectedImageFile: null as File | null,
                 }));
+                this.rightAnswerIndex = this.answers.findIndex(a => a.RightAnswer);
                 // Load ảnh đáp án qua blob
                 this.answers.forEach((ans, idx) => {
                     if (ans.ImageLink) {
@@ -389,44 +395,107 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
 
     //#region Ảnh/File câu hỏi - Multi-file
 
-    /** Mở file selector trình duyệt để thêm nhiều ảnh/file */
-    openFileSelectorQuestion(): void {
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.multiple = true;
-        fileInput.accept = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx';
-        fileInput.style.display = 'none';
-        fileInput.addEventListener('change', (event: Event) => {
-            const target = event.target as HTMLInputElement;
-            const files = target.files;
-            if (!files || files.length === 0) return;
-            Array.from(files).forEach((file) => {
-                // Kiểm tra trùng
-                const isDup = this.questionImages.some(f => f.FileNameOrigin === file.name && f.originFile?.size === file.size);
-                if (isDup) return;
-                const isImgFile = this.isImageFile(file);
-                const newItem = {
-                    uid: Math.random().toString(36).substring(2) + Date.now(),
-                    ID: 0,
-                    FileNameOrigin: file.name,
-                    ServerPath: '',
-                    Extension: file.name.split('.').pop() || '',
-                    originFile: file,
-                    previewUrl: null as string | null,
-                    isImage: isImgFile,
-                };
-                if (isImgFile) {
-                    const reader = new FileReader();
-                    reader.onload = () => { newItem.previewUrl = reader.result as string; };
-                    reader.readAsDataURL(file);
-                }
-                this.questionImages = [...this.questionImages, newItem];
-            });
-        });
-        document.body.appendChild(fileInput);
-        fileInput.click();
-        setTimeout(() => document.body.removeChild(fileInput), 100);
+  /** Mở file selector trình duyệt để thêm nhiều ảnh/file */
+  openFileSelectorQuestion(): void {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.accept = 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx';
+    fileInput.style.display = 'none';
+    fileInput.addEventListener('change', (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      const files = target.files;
+      if (!files || files.length === 0) return;
+      Array.from(files).forEach((file) => {
+        // Kiểm tra trùng
+        const isDup = this.questionImages.some(f => f.FileNameOrigin === file.name && f.originFile?.size === file.size);
+        if (isDup) return;
+        const isImgFile = this.isImageFile(file);
+        const newItem = {
+          uid: Math.random().toString(36).substring(2) + Date.now(),
+          ID: 0,
+          FileNameOrigin: file.name,
+          ServerPath: '',
+          Extension: file.name.split('.').pop() || '',
+          originFile: file,
+          previewUrl: null as string | null,
+          isImage: isImgFile,
+        };
+        if (isImgFile) {
+          const reader = new FileReader();
+          reader.onload = () => { newItem.previewUrl = reader.result as string; };
+          reader.readAsDataURL(file);
+        }
+        this.questionImages = [...this.questionImages, newItem];
+      });
+    });
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    setTimeout(() => document.body.removeChild(fileInput), 100);
+  }
+
+  /** Bắt sự kiện dán (Ctrl+V) ảnh toàn cục */
+  @HostListener('window:paste', ['$event'])
+  onPaste(event: ClipboardEvent): void {
+    // Không xử lý nếu người dùng đang focus vào ô nhập liệu (input, textarea, thẻ contenteditable của p-editor)
+    const activeElement = document.activeElement as HTMLElement;
+    const isInput = activeElement?.tagName === 'INPUT' || activeElement?.tagName === 'TEXTAREA';
+    const isContentEditable = activeElement?.isContentEditable || activeElement?.classList?.contains('ql-editor');
+    
+    if (isInput || isContentEditable) return;
+
+    const items = event.clipboardData?.items;
+    if (!items) return;
+
+    let hasImage = false;
+    for (let i = 0; i < items.length; i++) {
+       if (items[i].type.indexOf('image') !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            hasImage = true;
+            this.addPastedFileToQuestionImages(file);
+          }
+       }
     }
+    
+    // Ngăn chặn hành động paste mặc định của trình duyệt nếu đã lấy được ảnh
+    if (hasImage) {
+      event.preventDefault();
+      this.notification.success('Thành công', 'Đã dán ảnh đính kèm thành công!');
+    }
+  }
+
+  /** Xử lý file ảnh được dán từ clipboard */
+  private addPastedFileToQuestionImages(file: File): void {
+    // Đổi tên file để tránh trùng lặp "image.png" từ clipboard
+    let fileName = file.name || 'image.png';
+    // Đuôi mặc định thường là png khi paste
+    const extension = fileName.split('.').pop() || 'png';
+    const now = new Date();
+    const timeStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}${now.getSeconds().toString().padStart(2,'0')}`;
+    
+    fileName = `Pasted_Image_${timeStr}.${extension}`;
+
+    const isDup = this.questionImages.some(f => f.FileNameOrigin === fileName && f.originFile?.size === file.size);
+    if (isDup) return;
+
+    const newItem = {
+      uid: Math.random().toString(36).substring(2) + Date.now(),
+      ID: 0,
+      FileNameOrigin: fileName,
+      ServerPath: '',
+      Extension: extension,
+      originFile: file,
+      previewUrl: null as string | null,
+      isImage: true,
+    };
+    
+    const reader = new FileReader();
+    reader.onload = () => { newItem.previewUrl = reader.result as string; };
+    reader.readAsDataURL(file);
+    
+    this.questionImages = [...this.questionImages, newItem];
+  }
 
     /** Xóa ảnh/file khỏi danh sách */
     removeQuestionImage(index: number): void {
@@ -493,6 +562,14 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
                     lastInput.focus();
                 }
             }, 100);
+        }
+    }
+    
+    onRightAnswerChange(checked: boolean, index: number): void {
+        if (checked) {
+            this.answers.forEach((a, i) => {
+                a.RightAnswer = (i === index);
+            });
         }
     }
 
@@ -577,7 +654,7 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
             }
             const hasRightAnswer = this.answers.some(a => a.RightAnswer);
             if (!hasRightAnswer) {
-                this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 đáp án đúng!');
+                this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 đáp án đúng!');
                 return false;
             }
         } else if (questionType === 2) {
@@ -614,55 +691,68 @@ export class HRRecruitmentQuestionDetailComponent implements OnInit, AfterViewIn
     private save(closeAfterSave: boolean): void {
         this.isSaving = true;
 
-        // Chuẩn bị danh sách file cần upload
-        const filesToUpload: File[] = [];
-        const questionImageIndices: number[] = [];
-        const answerUploadTasks: { answerIdx: number }[] = [];
+    const questionFiles: File[] = [];
+    const questionImageIndices: number[] = [];
+    const answerFiles: File[] = [];
+    const answerUploadTasks: { answerIdx: number }[] = [];
 
-        // 1. Lọc ảnh câu hỏi mới
-        this.questionImages.forEach((img, i) => {
-            if (img.originFile && !img.ServerPath) {
-                filesToUpload.push(img.originFile);
-                questionImageIndices.push(i);
+    // 1. Lọc ảnh câu hỏi mới
+    this.questionImages.forEach((img, i) => {
+      if (img.originFile && !img.ServerPath) {
+        questionFiles.push(img.originFile);
+        questionImageIndices.push(i);
+      }
+    });
+
+    // 2. Lọc ảnh đáp án mới
+    this.answers.forEach((ans, i) => {
+      if (ans.selectedImageFile) {
+        answerFiles.push(ans.selectedImageFile);
+        answerUploadTasks.push({ answerIdx: i });
+      }
+    });
+
+    // Sinh subPath: "Phòng ban/QuestionFile" hoặc "Phòng ban/AnswersFile"
+    const subPathParts = [];
+    if (this.departmentName) subPathParts.push(this.departmentName);
+    const basePath = subPathParts.join('/');
+
+    const subPathQuestion = basePath ? `${basePath}/QuestionFile` : 'QuestionFile';
+    const subPathAnswer = basePath ? `${basePath}/AnswersFile` : 'AnswersFile';
+
+    const questionUpload$ = questionFiles.length > 0
+      ? this.examService.uploadMultipleFiles(questionFiles, subPathQuestion)
+      : of({ data: [] });
+
+    const answerUpload$ = answerFiles.length > 0
+      ? this.examService.uploadMultipleFiles(answerFiles, subPathAnswer)
+      : of({ data: [] });
+
+    if (questionFiles.length > 0 || answerFiles.length > 0) {
+      this.notification.info('Đang upload', 'Đang tải file lên...');
+      forkJoin({
+        questions: questionUpload$,
+        answers: answerUpload$
+      }).subscribe({
+        next: (results: any) => {
+          const uploadedQuestionFiles = results.questions?.data || [];
+          const uploadedAnswerFiles = results.answers?.data || [];
+
+          // 3. Cập nhật ServerPath cho ảnh câu hỏi
+          questionImageIndices.forEach((imgIdx, uploadIdx) => {
+            const fileRes = uploadedQuestionFiles[uploadIdx];
+            if (fileRes) {
+              this.questionImages[imgIdx].ServerPath = fileRes.FilePath || fileRes.filePath || '';
             }
-        });
+          });
 
-        // 2. Lọc ảnh đáp án mới
-        this.answers.forEach((ans, i) => {
-            if (ans.selectedImageFile) {
-                filesToUpload.push(ans.selectedImageFile);
-                answerUploadTasks.push({ answerIdx: i });
+          // 4. Cập nhật ImageLink cho đáp án
+          answerUploadTasks.forEach((task, uploadIdx) => {
+            const fileRes = uploadedAnswerFiles[uploadIdx];
+            if (fileRes) {
+              this.answers[task.answerIdx].ImageLink = fileRes.FilePath || fileRes.filePath || '';
             }
-        });
-
-        // Sinh subPath: "Phòng ban/RecruitmentQuestion"
-        const subPathParts = [];
-        if (this.departmentName) subPathParts.push(this.departmentName);
-        //subPathParts.push('RecruitmentQuestion');
-        const subPath = subPathParts.join('/');
-
-        if (filesToUpload.length > 0) {
-            this.notification.info('Đang upload', 'Đang tải file lên...');
-            this.examService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
-                next: (res: any) => {
-                    const uploadedFiles = res?.data || [];
-
-                    // 3. Cập nhật ServerPath cho ảnh câu hỏi
-                    questionImageIndices.forEach((imgIdx, uploadIdx) => {
-                        const fileRes = uploadedFiles[uploadIdx];
-                        if (fileRes) {
-                            this.questionImages[imgIdx].ServerPath = fileRes.FilePath || fileRes.filePath || '';
-                        }
-                    });
-
-                    // 4. Cập nhật ImageLink cho đáp án (phần sau trong mảng uploadedFiles)
-                    answerUploadTasks.forEach((task, index) => {
-                        const fileRes = uploadedFiles[questionImageIndices.length + index];
-                        if (fileRes) {
-                            this.answers[task.answerIdx].ImageLink = fileRes.FilePath || fileRes.filePath || '';
-                        }
-                    });
-
+          });
 
                     this.callSaveApi(closeAfterSave);
                 },

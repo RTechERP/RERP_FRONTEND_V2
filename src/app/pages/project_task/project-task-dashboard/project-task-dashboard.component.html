@@ -188,6 +188,65 @@
                 }
             </div>
         </div>
+    <!-- My Tasks Analytics -->
+    <div class="my-tasks-analytics mt-5">
+        <div class="analytics-header d-flex justify-content-between align-items-center flex-row">
+            <div>
+                <h3>Phân tích công việc của tôi</h3>
+                <p class="text-muted" style="font-size: 14px;">Thống kê chi tiết trạng thái công việc theo từng nhóm loại công việc bạn đang đảm nhiệm</p>
+            </div>
+            <button nz-button nzType="text" (click)="toggleTypeSidebar()" [pTooltip]="showTypeSidebar() ? 'Ẩn sidebar' : 'Hiện sidebar'" tooltipPosition="top">
+                <i nz-icon [nzType]="showTypeSidebar() ? 'menu-fold' : 'menu-unfold'"></i>
+            </button>
+        </div>
+
+        <div class="analytics-layout" [class.sidebar-hidden]="!showTypeSidebar()">
+            <!-- Main Chart Area -->
+            <div class="chart-container">
+                <div echarts [options]="typeStackedChartOptions()" class="status-chart" style="height: 500px;"></div>
+                
+                @if (!typeStackedChartOptions().series || typeStackedChartOptions().series.length === 0) {
+                <div class="empty-state">
+                    <i nz-icon nzType="bar-chart" nzTheme="outline"></i>
+                    <p>Không có dữ liệu hoàn thành để hiển thị</p>
+                </div>
+                }
+            </div>
+
+            <!-- Type Selection Sidebar -->
+            <div class="type-sidebar" [class.collapsed]="!showTypeSidebar()">
+                <div class="sidebar-header">
+                    <span class="title">Loại công việc</span>
+                    <span class="count-all">Tổng: {{ totalTasksInSidebar() }} CV</span>
+                </div>
+                
+                <div class="sidebar-search mb-3">
+                    <nz-input-group [nzPrefix]="prefixIconSearch" nzSize="small">
+                        <input type="text" nz-input placeholder="Tìm loại công việc..." [ngModel]="searchTypeText()" (ngModelChange)="searchTypeText.set($event)" />
+                    </nz-input-group>
+                    <ng-template #prefixIconSearch>
+                        <i nz-icon nzType="search"></i>
+                    </ng-template>
+                </div>
+
+                <div class="type-list scrollbar-custom">
+                    @for (type of filteredTypeSelections; track type.name) {
+                    <div class="type-item" [class.hidden]="!type.selected" (click)="toggleTypeSelection(type.name)">
+                        <div class="type-indicator" [style.backgroundColor]="type.color"></div>
+                        <div class="type-info">
+                            <span class="name">{{ type.name }}</span>
+                            <span class="count">{{ type.count }}</span>
+                        </div>
+                    </div>
+                    }
+                </div>
+
+                <div class="sidebar-footer mt-3 pt-3 border-top d-flex justify-content-between">
+                    <button nz-button nzType="link" nzSize="small" (click)="toggleAllTypes(true)">Tất cả</button>
+                    <button nz-button nzType="link" nzSize="small" (click)="toggleAllTypes(false)" nzDanger>Bỏ chọn</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Loading Overlay -->
@@ -208,9 +267,13 @@
     <div class="py-2">
         <p>Bạn có chắc muốn <strong class="text-success">duyệt</strong> công việc này?</p>
         <div class="mt-3">
+            <label class="d-block mb-1">Đánh giá hoàn thành <span class="text-danger">*</span></label>
+            <nz-rate [(ngModel)]="approveCompletionRating" [nzAllowClear]="false"></nz-rate>
+            <span class="ms-2 fw-bold" style="color: #faad14;">{{ approveCompletionRating }} sao</span>
+        </div>
+        <div class="mt-3">
             <label class="d-block mb-1">Nhận xét (không bắt buộc)</label>
-            <textarea nz-input [(ngModel)]="approveReviewText" rows="3"
-                placeholder="Nhập nhận xét đánh giá..."
+            <textarea nz-input [(ngModel)]="approveReviewText" rows="3" placeholder="Nhập nhận xét đánh giá..."
                 style="width: 100%; border-color: #f0f0f0;"></textarea>
         </div>
     </div>
@@ -222,8 +285,7 @@
         <div class="mt-3">
             <label class="d-block mb-1">Lý do từ chối <span class="text-danger">*</span></label>
             <textarea nz-input [(ngModel)]="rejectReviewText" rows="3" placeholder="Nhập lý do từ chối..."
-                [style.border-color]="rejectReviewError ? '#ff4d4f' : '#f0f0f0'"
-                style="width: 100%;"></textarea>
+                [style.border-color]="rejectReviewError ? '#ff4d4f' : '#f0f0f0'" style="width: 100%;"></textarea>
             @if (rejectReviewError) {
             <div class="text-danger mt-1" style="font-size: 12px;">Vui lòng nhập lý do từ chối</div>
             }

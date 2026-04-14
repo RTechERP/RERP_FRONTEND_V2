@@ -422,12 +422,16 @@ export class RequestInvoiceDetailComponent implements OnInit {
       IsUrgency: this.formData.isUrgency,
       IsCustomsDeclared: this.formData.isCustomsDeclared,
       DealineUrgency: this.formData.deadline,
+      UpdatedDate: this.toLocalISOString(new Date()),
     };
 
     const requestInvoiceDetails = this.tb_DataTable.getData().map((item) => ({
       ...item,
       ProductSaleID: item.ProductSaleID === '' ? null : item.ProductSaleID,
       ProjectID: item.ProjectID === '' ? null : item.ProjectID,
+      InvoiceDate: item.InvoiceDate || null,
+      ExportDate: item.ExportDate || null,
+      UpdatedDate: this.toLocalISOString(new Date()),
     }));
 
     const payload = {
@@ -579,10 +583,10 @@ export class RequestInvoiceDetailComponent implements OnInit {
       this.requestInvoiceService.getRequestInvoiceById(RIID).subscribe((data: any) => {
         const requestInvoice = data;
 
-        const createdDate = new Date(requestInvoice.CreatedDate);
+        const createdDate = new Date(requestInvoice.data.CreatedDate);
         const year = createdDate.getFullYear().toString();
         const month = ('0' + (createdDate.getMonth() + 1)).slice(-2);
-        const code = requestInvoice.Code || '';
+        const code = requestInvoice.data.Code || '';
 
         const sanitize = (s: string) =>
           s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
@@ -609,7 +613,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
                 this.notification.warning('Thông báo', `${totalUploaded}/${totalRequested} file upload thành công, ${totalRequested - totalUploaded} file thất bại.`);
               }
 
-                // Cập nhật lại danh sách file với ServerPath trả về từ server
+              // Cập nhật lại danh sách file với ServerPath trả về từ server
               this.files = [
                 ...this.files.filter((f: any) => !f.file),
                 ...uploadedFiles.map((f: any) => ({
@@ -678,7 +682,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
             NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
             `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`,
             {
-                nzStyle: { whiteSpace: 'pre-line' }
+              nzStyle: { whiteSpace: 'pre-line' }
             }
           );
           return;
@@ -688,6 +692,12 @@ export class RequestInvoiceDetailComponent implements OnInit {
       // this.fileInput.nativeElement.value = '';
     }
   }
+  // Trả về chuỗi ISO 8601 theo giờ local (UTC+7) thay vì UTC
+  toLocalISOString(d: Date): string {
+    const pad = (n: number) => n < 10 ? '0' + n : n;
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;

@@ -31,6 +31,7 @@
                     <th nzWidth="150px">Mã</th>
                     <th>Tên loại task</th>
                     <th nzWidth="180px">Phòng ban</th>
+                    <th nzWidth="100px" nzAlign="center">Màu sắc</th>
                     <th nzWidth="140px" nzAlign="center">Ngày tạo</th>
                     <th nzWidth="140px" nzAlign="center">Cập nhật</th>
                     <th nzWidth="100px" nzAlign="center">Thao tác</th>
@@ -68,6 +69,13 @@
                         <span class="dept-text">{{ getDepartmentName(item.DepartmentID) }}</span>
                     </td>
 
+                    <!-- Màu sắc -->
+                    <td nzAlign="center">
+                        <nz-tag [nzColor]="item.Color || '#1890ff'" class="color-tag">
+                            {{ item.Color || '#1890ff' }}
+                        </nz-tag>
+                    </td>
+
                     <!-- Ngày tạo -->
                     <td nzAlign="center">
                         <span class="date-text">{{ formatDate(item.CreatedDate) }}</span>
@@ -95,7 +103,7 @@
 
                 <!-- Empty state -->
                 <tr *ngIf="!isLoading && dataList.length === 0">
-                    <td colspan="5" nzAlign="center" class="empty-state">
+                    <td colspan="8" nzAlign="center" class="empty-state">
                         <i class="fa-solid fa-inbox fa-2x text-muted mb-2 d-block"></i>
                         <span class="text-muted">Chưa có loại task nào</span>
                     </td>
@@ -117,8 +125,9 @@
                     <i class="fa-solid fa-tag me-2"></i>
                     {{ form.get('ID')?.value > 0 ? 'CẬP NHẬT LOẠI TASK' : 'THÊM MỚI LOẠI TASK' }}
                 </h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
+                <button type="button" class="btn-close-custom" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <div class="modal-body">
                 <form nz-form [formGroup]="form" (ngSubmit)="onSubmit()" nzLayout="vertical">
@@ -145,6 +154,15 @@
                                 <nz-option *ngFor="let dept of departmentList()" [nzLabel]="dept.Name"
                                     [nzValue]="dept.ID"></nz-option>
                             </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                    <nz-form-item>
+                        <nz-form-label>Màu sắc hiển thị</nz-form-label>
+                        <nz-form-control>
+                            <div class="color-picker-container">
+                                <input type="color" formControlName="Color" class="color-input" />
+                                <span class="color-code">{{ form.get('Color')?.value }}</span>
+                            </div>
                         </nz-form-control>
                     </nz-form-item>
                 </form>

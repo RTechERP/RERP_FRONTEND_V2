@@ -25,6 +25,21 @@ export class ListProductProjectService {
       params
     );
   }
+  getDataCustomer(
+    projectCode: string,
+    projectID: number,
+    warehousecode: string
+  ): Observable<any> {
+    const params: any = {
+      projectId: projectID,
+      projectCode: projectCode,
+      WarehouseCode: warehousecode,
+    };
+    return this.http.post(
+      environment.host + `api/BillExport/get-product-project-customer`,
+      params
+    );
+  }
   getProject(): Observable<any> {
     return this.http.get(environment.host + `api/BillExport/get-all-project`);
   }

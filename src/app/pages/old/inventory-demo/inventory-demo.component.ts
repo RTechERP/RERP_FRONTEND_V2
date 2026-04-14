@@ -173,7 +173,6 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     }
     onKeywordChange(value: string): void {
         this.keyWord = value;
-        this.reloadTableData();
     }
 
     onGroupChange(groupID: number): void {

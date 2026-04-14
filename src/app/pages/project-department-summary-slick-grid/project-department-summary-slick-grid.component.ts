@@ -251,7 +251,51 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
       this.showSearchBar = !this.isMobile;
     }
   }
+  openFolder(type: 'online' | 'noi_bo') {
+    const selectedIDs = this.getSelectedIds();
+    const projectCode = this.getSelectedRows().map(x => x.ProjectCode).join(',');
+    if (selectedIDs.length == 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn dự án!');
+      return;
+    }
 
+    const projectId = selectedIDs[0];
+    let selectedProjectTypeIds: number[] = [];
+
+    this.datasetTypeLink.forEach((row: any) => {
+      if (row.Selected === true && row.ID) {
+        selectedProjectTypeIds.push(row.ID);
+      }
+    });
+
+    if (selectedProjectTypeIds.length === 0) {
+      this.notification.error('Thông báo', `Dự án ${projectCode} chưa có kiểu dự án nên chưa có thư mục trên server!`);
+      return;
+    }
+
+    this.projectService.createProjectTree(projectId, selectedProjectTypeIds).subscribe({
+      next: (response: any) => {
+        if (response.status == 1 && response.data) {
+          const textToCopy = type === 'online' ? response.data.urlOnl : response.data.url;
+          if (textToCopy) {
+            navigator.clipboard.writeText(textToCopy).then(() => {
+              this.notification.success('Thông báo', `Đã copy đường dẫn ${type === 'online' ? 'Online' : 'Nội bộ'} vào clipboard!`);
+            }).catch(err => {
+              this.notification.error('Lỗi', 'Không thể copy vào clipboard: ' + err);
+            });
+          } else {
+            this.notification.error('Thông báo', 'Đường dẫn trống!');
+          }
+        } else {
+          this.notification.error('Thông báo', response.message || 'Không thể tạo cây thư mục dự án!');
+        }
+      },
+      error: (error) => {
+        this.notification.error('Thông báo', error.error?.message || 'Lỗi khi tạo cây thư mục dự án!');
+        console.error('Lỗi:', error);
+      }
+    });
+  }
   private initMenuBar(): void {
     this.menuBars = [
       {
@@ -263,6 +307,16 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         label: 'Ds báo cáo công việc',
         icon: PrimeIcons.LIST,
         command: () => this.openProjectWorkReportModal(),
+      },
+      {
+        label: 'Online',
+        icon: PrimeIcons.SITEMAP,
+        command: () => this.openFolder('online'),
+      },
+      {
+        label: 'Nội bộ',
+        icon: PrimeIcons.SITEMAP,
+        command: () => this.openFolder('noi_bo'),
       },
       {
         label: 'Hạng mục công việc',
@@ -617,6 +671,18 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
         },
       },
       {
+        id: 'UpdatedDate',
+        name: 'Ngày cập nhật',
+        field: 'UpdatedDate',
+        minWidth: 100,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        cssClass: 'text-center',
+        filter: { model: Filters['compoundDate'] }
+      },
+      {
         id: 'PlanDateStart',
         name: 'Dự kiến bắt đầu',
         field: 'PlanDateStart',
@@ -764,18 +830,7 @@ export class ProjectDepartmentSummarySlickGridComponent implements OnInit, After
           } as MultipleSelectOption
         }
       },
-      {
-        id: 'UpdatedDate',
-        name: 'Ngày cập nhật',
-        field: 'UpdatedDate',
-        minWidth: 100,
-        sortable: true,
-        filterable: true,
-        formatter: Formatters.date,
-        params: { dateFormat: 'DD/MM/YYYY' },
-        cssClass: 'text-center',
-        filter: { model: Filters['compoundDate'] }
-      },
+
 
     ].filter(col => col !== null && col !== undefined) as Column[];
 

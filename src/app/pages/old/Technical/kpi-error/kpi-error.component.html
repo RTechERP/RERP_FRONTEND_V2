@@ -47,7 +47,7 @@
 
         <!-- Content - SlickGrid -->
         <div class="card-body p-0 flex-grow-1 grid-container" style="min-height: 0; overflow: hidden;">
-            <angular-slickgrid gridId="gridKPIError" [columns]="columnDefinitions" [options]="gridOptions"
+            <angular-slickgrid [gridId]="gridId" [columns]="columnDefinitions" [options]="gridOptions"
                 [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
                 (onClick)="onRowClick($event.detail.eventData, $event.detail.args)">
             </angular-slickgrid>

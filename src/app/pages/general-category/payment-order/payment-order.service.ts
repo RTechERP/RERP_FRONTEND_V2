@@ -35,9 +35,16 @@ export class PaymentOrderService {
     get(data: any): Observable<any> {
         return this.http.post<any>(this.url, data);
     }
+    getSpecial(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/special`, data);
+    }
 
     getDetail(id: number): Observable<any> {
         return this.http.get<any>(this.url + `/${id}`);
+    }
+
+    getLogNew(paymentOrderId: number): Observable<any> {
+        return this.http.get<any>(`${environment.host}api/paymentorderlog/get-data-new`, { params: { paymentOrderId } });
     }
 
     save(payment: any): Observable<any> {
@@ -159,7 +166,7 @@ export class PaymentOrderService {
         } else {
             let temp = integerPart;
             let i = 0;
-            const units = ['', ' nghìn', ' triệu', ' tỷ'];
+            const units = ['', ' nghìn', ' triệu', ' tỷ', ' nghìn tỷ', ' triệu tỷ', ' tỷ tỷ'];
             let text = '';
 
             while (temp > 0) {

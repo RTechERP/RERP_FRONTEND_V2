@@ -86,9 +86,9 @@
                             <nz-form-label class="fs-12" [nzSpan]="24">Team</nz-form-label>
                             <nz-form-control [nzSpan]="24">
                                 <nz-tree-select name="teamId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                                    [nzDropdownMatchSelectWidth]="false" [nzDropdownStyle]="{ 'max-width': '300px' }"
-                                    nzPlaceHolder="Chọn Team" [(ngModel)]="filters.teamId" nzVirtualHeight="300px"
-                                    [nzNodes]="filterTeamData" [nzDefaultExpandAll]="true"
+                                    [nzDropdownMatchSelectWidth]="false" nzPlaceHolder="Chọn Team"
+                                    [(ngModel)]="filters.teamId" [nzNodes]="filterTeamData" [nzDefaultExpandAll]="true"
+                                    [nzDisabled]="isTeamFilterDisabled"
                                     (ngModelChange)="onTeamChange($event)">
                                 </nz-tree-select>
                             </nz-form-control>

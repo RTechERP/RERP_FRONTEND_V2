@@ -72,8 +72,8 @@
         <nz-row [nzGutter]="16" style="margin-top:8px;">
             <!-- Nội dung câu hỏi - PrimeNG Editor -->
             <nz-col [nzSpan]="16">
-                <div class="editor-label">
-                    Nội dung câu hỏi <span class="text-danger">(*)</span>
+                <div class="editor-label required-label">
+                    Nội dung câu hỏi
                 </div>
                 <p-editor [(ngModel)]="questionText" name="questionText"
                     [style]="{'height': '180px', 'margin-bottom': '10px'}" [modules]="editorModules">
@@ -127,7 +127,7 @@
                 <div class="file-attachment-list">
                     <div *ngIf="questionImages.length === 0" class="file-attachment-empty">
                         <nz-icon nzType="paper-clip" style="font-size:30px;color:#ccc;"></nz-icon>
-                        <p style="color:#aaa;margin:4px 0 0;">Chưa có ảnh/file đính kèm</p>
+                        <p style="color:#aaa;margin:4px 0 0;">Thả tệp hoặc click thêm file để tải lên.</p>
                     </div>
 
                     <div *ngFor="let img of questionImages; let i = index" class="file-attachment-item">
@@ -201,7 +201,7 @@
                                     (keydown.tab)="onAnswerTab($event, i)"></textarea>
                             </td>
                             <td class="text-center">
-                                <label nz-checkbox [(ngModel)]="answer.RightAnswer" [name]="'rightAnswer_' + i"></label>
+                                <label nz-checkbox [(ngModel)]="answer.RightAnswer" (ngModelChange)="onRightAnswerChange($event, i)" [name]="'rightAnswer_' + i"></label>
                             </td>
                             <td class="text-center">
                                 <div class="answer-image-cell">

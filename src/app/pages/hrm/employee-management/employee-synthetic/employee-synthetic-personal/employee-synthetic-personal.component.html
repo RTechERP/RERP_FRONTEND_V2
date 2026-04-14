@@ -337,7 +337,7 @@
                     <label>Mật khẩu xác nhận</label>
                     <nz-input-group [nzSuffix]="suffixTemplate" nzSize="large" [class.input-error]="errorMessage">
                         <input [type]="passwordVisible ? 'text' : 'password'" nz-input placeholder="••••••••"
-                            [(ngModel)]="reAuthPassword" (keyup.enter)="handleReAuth()" autocomplete="off"
+                            [(ngModel)]="reAuthPassword" (keyup.enter)="handleReAuth()" autocomplete="new-password"
                             name="no-autocomplete-password" />
                     </nz-input-group>
                     <ng-template #suffixTemplate>

@@ -1,0 +1,524 @@
+<div class="modal-content">
+    <div class="modal-header bg-success p-1">
+        <p class="modal-title text-dark text-uppercase fw-bold m-0">Đề nghị thanh toán</p>
+        <button type="button" class="btn-close" (click)="activeModal.dismiss()"></button>
+    </div>
+
+    <div class="modal-body p-1" style="height:92vh;overflow-y:auto;">
+        <form [formGroup]="validateForm" id="frm_paymentorder_old">
+
+            <!-- Row 1: Loại đề nghị | Loại nội dung | Ngày | Người đề nghị | Bộ phận -->
+            <div class="row m-0">
+                <div class="form-group col-md-2 m-0 p-1">
+                    <label class="m-0">Loại đề nghị <span class="text-danger">(*)</span></label>
+                    <select class="form-control form-control-sm p-0" formControlName="TypeOrder">
+                        <option [ngValue]="null">--Chọn loại--</option>
+                        <option [ngValue]="1">Đề nghị tạm ứng</option>
+                        <option [ngValue]="2">Đề nghị thanh toán / Quyết toán</option>
+                        <option [ngValue]="3">Đề nghị thu tiền</option>
+                    </select>
+                </div>
+
+                <div class="form-group col-md-4 m-0 p-1">
+                    <label class="m-0">Loại nội dung đề nghị <span class="text-danger">(*)</span></label>
+                    <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn loại--"
+                        formControlName="PaymentOrderTypeID" nzDropdownClassName="select-dropdown">
+                        @for (item of paymentOrderTypes; track item) {
+                        <nz-option [nzLabel]="item.TypeName" [nzValue]="item.ID"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <div class="form-group col-md-2 m-0 p-1">
+                    <label class="m-0">Ngày đề nghị <span class="text-danger">(*)</span></label>
+                    <nz-date-picker class="w-100" formControlName="DateOrder" nzFormat="dd/MM/yyyy" nzSize="small">
+                    </nz-date-picker>
+                </div>
+
+                <div class="form-group col-md-2 m-0 p-1">
+                    <label class="m-0">Người đề nghị</label>
+                    <input type="text" class="form-control form-control-sm p-0" formControlName="FullName" />
+                </div>
+
+                <div class="form-group col-md-2 m-0 p-1">
+                    <label class="m-0">Bộ phận</label>
+                    <input type="text" class="form-control form-control-sm p-0" formControlName="DepartmentName" />
+                </div>
+            </div>
+
+            <!-- Row 2: TBP duyệt | NCC | PO NCC | Dự án | Deadline -->
+            <div class="row m-0">
+                <div class="form-group col-md-2 m-0 p-1">
+                    <label class="m-0">TBP duyệt <span class="text-danger">(*)</span></label>
+                    <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn TBP duyệt--"
+                        formControlName="ApprovedTBPID">
+                        @for (item of approvedTBPs; track item) {
+                        <nz-option [nzLabel]="item.FullName" [nzValue]="item.EmployeeID"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <div class="form-group col-md-4 m-0 p-1">
+                    <label class="m-0">Nhà cung cấp</label>
+                    <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                        nzPlaceHolder="--Chọn nhà cung cấp--" formControlName="SupplierSaleID"
+                        nzDropdownClassName="select-dropdown">
+                        @for (item of supplierSales; track item) {
+                        <nz-option [nzLabel]="item.MaSoThue + ' - ' + item.NameNCC" [nzValue]="item.ID"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <div class="form-group col-md-2 m-0 p-1">
+                    <label class="m-0">PO NCC</label>
+                    <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn PO--"
+                        formControlName="PONCCID" nzDropdownClassName="select-dropdown">
+                        @for (item of poNCCs; track item) {
+                        <nz-option [nzLabel]="item.BillCode" [nzValue]="item.ID"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <div class="form-group col-md-2 m-0 p-1">
+                    <label class="m-0">Dự án</label>
+                    <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn dự án--"
+                        formControlName="ProjectID" nzDropdownClassName="select-dropdown">
+                        @for (item of projects; track item) {
+                        <nz-option [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"
+                            [nzValue]="item.ID"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <div class="form-group col-md-2 m-0 p-1">
+                    <label class="m-0">
+                        Deadline thanh toán
+                        <span class="text-danger" *ngIf="paymentOrder.IsUrgent"> (*)</span>
+                    </label>
+                    <div class="d-flex align-items-center gap-1">
+                        <div class="input-group-text py-0 px-1" style="height:31px;">
+                            <input type="checkbox" formControlName="IsUrgent" title="Thanh toán gấp" />
+                        </div>
+                        <nz-date-picker nzAllowClear="true" class="flex-grow-1" formControlName="DeadlinePayment"
+                            nzSize="small" [nzShowTime]="{ nzFormat: 'HH:mm' }" nzFormat="dd/MM/yyyy HH:mm">
+                        </nz-date-picker>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3: Lý do | Thông tin người nhận | File upload -->
+            <div class="row m-0">
+                <div class="form-group col-md-4 m-0 p-1">
+                    <label class="m-0">Lý do <span class="text-danger">(*)</span></label>
+                    <textarea class="form-control form-control-sm" rows="4" formControlName="ReasonOrder"></textarea>
+                </div>
+
+                <div class="form-group col-md-4 m-0 p-1">
+                    <label class="m-0">Thông tin người nhận tiền <span class="text-danger">(*)</span></label>
+                    <textarea class="form-control form-control-sm" rows="4" formControlName="ReceiverInfo"></textarea>
+                </div>
+
+                <div class="form-group col-md-4 m-0 p-1">
+                    <label class="m-0 d-flex align-items-center gap-1">
+                        File đính kèm
+                        <label class="btn btn-outline-secondary btn-sm py-0 mb-0">
+                            <nz-icon nzType="plus" nzTheme="outline"></nz-icon> Chọn file
+                            <input type="file" hidden multiple (change)="handleChangeFile($event)" />
+                        </label>
+                    </label>
+                    <div class="border rounded p-1" style="min-height:92px;max-height:92px;overflow-y:auto;">
+                        <ul class="list-unstyled m-0">
+                            @for (file of dataFiles; track file) {
+                            <li class="d-flex align-items-center gap-1">
+                                <button type="button" class="btn btn-link btn-sm p-0 text-danger"
+                                    (click)="deleteFile(file)" title="Xóa">
+                                    <nz-icon nzType="delete" nzTheme="outline"></nz-icon>
+                                </button>
+                                <button type="button" class="btn btn-link btn-sm p-0 text-primary"
+                                    (click)="openFilePreview(file)" title="Xem file" *ngIf="file.ServerPath">
+                                    <nz-icon nzType="eye" nzTheme="outline"></nz-icon>
+                                </button>
+                                <small class="text-truncate" style="max-width:500px;" [title]="file.FileName">
+                                    {{ file.FileName }}
+                                </small>
+                            </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3a: Điểm đi / Điểm đến (chỉ hiện khi PaymentOrderTypeID = 22) -->
+            <div class="row m-0" *ngIf="validateForm.get('PaymentOrderTypeID')?.value == 22">
+                <div class="form-group col-md-6 m-0 p-1">
+                    <label class="m-0">Điểm đi <span class="text-danger">(*)</span></label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text py-0 px-1 h-auto">
+                                <input type="checkbox" formControlName="IsBill" id="isbill_old" />
+                                <label class="m-0 ms-1" for="isbill_old" style="font-size:12px;">Có hóa đơn?</label>
+                            </div>
+                        </div>
+                        <input type="text" class="form-control form-control-sm" formControlName="StartLocation"
+                            placeholder="Nhập điểm đi" />
+                    </div>
+                </div>
+                <div class="form-group col-md-6 m-0 p-1">
+                    <label class="m-0">Điểm đến <span class="text-danger">(*)</span></label>
+                    <input type="text" class="form-control form-control-sm" formControlName="EndLocation"
+                        placeholder="Nhập điểm đến" />
+                </div>
+            </div>
+
+            <!-- Row 4: Hình thức | Thời gian thanh toán | Hình thức CK -->
+            <div class="row m-0">
+                <div class="form-group col-md-4 m-0 p-1">
+                    <label class="m-0">Hình thức thanh toán</label>
+                    <div class="form-control form-control-sm d-flex gap-3" style="border-color:transparent !important;">
+                        <div class="form-check form-check-inline m-0">
+                            <input class="form-check-input" type="radio" formControlName="TypePayment" [value]="1"
+                                id="tp_ck_old" />
+                            <label class="form-check-label" for="tp_ck_old">Chuyển khoản</label>
+                        </div>
+                        <div class="form-check form-check-inline m-0">
+                            <input class="form-check-input" type="radio" formControlName="TypePayment" [value]="2"
+                                id="tp_tm_old" />
+                            <label class="form-check-label" for="tp_tm_old">Tiền mặt</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group col-md-4 m-0 p-1" *ngIf="paymentOrder.TypeOrder != 2">
+                    <label class="m-0">Thời gian thanh quyết toán <span class="text-danger">(*)</span></label>
+                    <nz-date-picker class="w-100" formControlName="DatePayment" nzSize="small" nzFormat="dd/MM/yyyy">
+                    </nz-date-picker>
+                </div>
+
+                <div class="form-group col-md-4 m-0 p-1">
+                    <label class="m-0">
+                        Hình thức chuyển khoản
+                        <span class="text-danger" *ngIf="paymentOrder.TypePayment == 1"> (*)</span>
+                    </label>
+                    <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn hình thức--"
+                        formControlName="TypeBankTransfer">
+                        @for (item of typeBankTransfers; track item) {
+                        <nz-option [nzLabel]="item.Text" [nzValue]="item.ID"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+            </div>
+
+            <!-- Row 5: Số TK | Ngân hàng | Nội dung CK (chỉ khi CK) -->
+            <div class="row m-0" *ngIf="paymentOrder.TypePayment == 1">
+                <div class="form-group col-md-4 m-0 p-1">
+                    <label class="m-0">Số tài khoản <span class="text-danger">(*)</span></label>
+                    <input type="text" class="form-control form-control-sm" formControlName="AccountNumber" />
+                </div>
+                <div class="form-group col-md-4 m-0 p-1">
+                    <label class="m-0">Ngân hàng <span class="text-danger">(*)</span></label>
+                    <input type="text" class="form-control form-control-sm" formControlName="Bank" />
+                </div>
+                <div class="form-group col-md-4 m-0 p-1">
+                    <label class="m-0">Nội dung chuyển khoản <span class="text-danger">(*)</span></label>
+                    <input type="text" class="form-control form-control-sm" formControlName="ContentBankTransfer" />
+                </div>
+            </div>
+
+            <!-- Row 6: Label + Loại tiền -->
+            <div class="row m-0">
+                <div class="form-group col-sm-10 m-0 p-1 d-flex align-items-end">
+                    <label class="m-0">Số tiền đề nghị được ghi theo bảng kê dưới đây:</label>
+                </div>
+                <div class="form-group col-sm-2 m-0 p-1">
+                    <label class="m-0">Loại tiền <span class="text-danger">(*)</span></label>
+                    <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Loại tiền--"
+                        formControlName="Unit">
+                        @for (item of units; track item) {
+                        <nz-option [nzLabel]="item.text" [nzValue]="item.id"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+            </div>
+        </form>
+
+        <!-- ==================== BẢNG CHI TIẾT ==================== -->
+        <div class="table-responsive" style="height:50vh;">
+
+            <!-- TYPE 1, 3: bảng đơn giản -->
+            <table class="table table-hover table-bordered table-sm m-0" *ngIf="paymentOrder.TypeOrder != 2">
+                <thead>
+                    <tr class="sticky-top-table">
+                        <th class="text-center" style="min-width:60px;">
+                            <button class="btn btn-primary btn-sm" type="button" (click)="addRow()">
+                                <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+                            </button>
+                        </th>
+                        <th style="min-width:50px;">STT</th>
+                        <th style="min-width:200px;">Nội dung thanh toán <span class="text-danger">(*)</span></th>
+                        <th style="min-width:70px;">ĐVT</th>
+                        <th style="min-width:90px;">Số lượng</th>
+                        <th style="min-width:120px;">Đơn giá</th>
+                        <th style="min-width:130px;">Thành tiền <span class="text-danger">(*)</span></th>
+                        <th style="min-width:100px;">% Thanh toán</th>
+                        <th style="min-width:130px;">Tổng tiền TT</th>
+                        <!-- <th style="min-width:150px;">
+              Tổng tiền có HĐ
+              <span class="text-danger" *ngIf="validateForm.get('IsBill')?.value"> (*)</span>
+              <nz-icon nzType="info-circle" nzTheme="outline" nz-tooltip [nzTooltipTitle]="tooltipContent"
+                nzTooltipPlacement="top" style="cursor:help;margin-left:4px;color:#1890ff;font-size:16px;">
+              </nz-icon> 
+            </th>-->
+                        <th style="min-width:180px;">Ghi chú / Chứng từ kèm theo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (row of dataset; track row._id; let i = $index) {
+                    <tr tabindex="0">
+                        <td class="text-center text-nowrap">
+                            <button class="btn btn-danger btn-sm" type="button" (click)="deleteRow(i)" title="Xóa dòng">
+                                <nz-icon nzType="delete" nzTheme="outline"></nz-icon>
+                            </button>
+                        </td>
+                        <td class="text-center">{{ row.Stt }}</td>
+                        <td>
+                            <textarea class="tbl-input" [(ngModel)]="row.ContentPayment" rows="2"></textarea>
+                        </td>
+                        <td>
+                            <textarea class="tbl-input" [(ngModel)]="row.Unit" rows="2"></textarea>
+                        </td>
+                        <td>
+                            <input class="tbl-input tbl-num" [value]="row.Quantity | number:'1.2-2'"
+                                appCurrencyFormatRealtime
+                                (blur)="row.Quantity = parseNum($any($event.target).value); calcTotalMoney(row)"
+                                type="text" />
+                        </td>
+                        <td>
+                            <input class="tbl-input tbl-num" [value]="row.UnitPrice | number:'1.2-2'"
+                                appCurrencyFormatRealtime
+                                (blur)="row.UnitPrice = parseNum($any($event.target).value); calcTotalMoney(row)"
+                                type="text" />
+                        </td>
+                        <td>
+                            <input class="tbl-input tbl-num" [value]="row.TotalMoney | number:'1.2-2'"
+                                appCurrencyFormatRealtime
+                                (blur)="row.TotalMoney = parseNum($any($event.target).value); calcTotalPayment(row)"
+                                type="text" />
+                        </td>
+                        <td>
+                            <input class="tbl-input tbl-num" [value]="row.PaymentPercentage" appCurrencyFormatRealtime
+                                (blur)="row.PaymentPercentage = parseNum($any($event.target).value); calcTotalPayment(row)"
+                                type="text" max="100" *ngIf="!isRomanNumeral(row.Stt)" />
+                        </td>
+                        <td class="text-end text-nowrap fw-bold">{{ (row.TotalMoney * ((row.PaymentPercentage || 0) /
+                            100)) | number:'1.2-2' }}</td>
+                        <!-- <td>
+              <input class="tbl-input tbl-num" [value]="row.TotalMoneyWithInvoice | number:'1.2-2'" appCurrencyFormatRealtime
+                (blur)="row.TotalMoneyWithInvoice = parseNum($any($event.target).value)" type="text"
+                [style.background]="validateForm.get('IsBill')?.value && (row.TotalMoneyWithInvoice === null || row.TotalMoneyWithInvoice === undefined || row.TotalMoneyWithInvoice === '') ? '#fff3cd' : ''" />
+            </td> -->
+                        <td>
+                            <textarea class="tbl-input" [(ngModel)]="row.Note" rows="2"></textarea>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="10" class="fw-bold">
+                            Số tiền bằng chữ: <span>{{ totalMoneyText }}</span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <!-- TYPE 2: bảng quyết toán (I / II / III) -->
+            <table class="table table-hover table-bordered table-sm m-0" *ngIf="paymentOrder.TypeOrder == 2">
+                <thead>
+                    <tr class="sticky-top-table">
+                        <th class="text-center" style="min-width:60px;">
+                            <button class="btn btn-primary btn-sm" type="button" (click)="addDetailRow()">
+                                <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+                            </button>
+                        </th>
+                        <th style="min-width:50px;">STT</th>
+                        <th style="min-width:200px;">Nội dung thanh toán <span class="text-danger">(*)</span></th>
+                        <th style="min-width:70px;">ĐVT</th>
+                        <th style="min-width:90px;">Số lượng</th>
+                        <th style="min-width:120px;">Đơn giá</th>
+                        <th style="min-width:130px;">Thành tiền <span class="text-danger">(*)</span></th>
+                        <th style="min-width:100px;">% Thanh toán</th>
+                        <th style="min-width:130px;">Tổng tiền TT</th>
+                        <!-- <th style="min-width:150px;">
+              Tổng tiền có hóa đơn
+              <span class="text-danger" *ngIf="validateForm.get('IsBill')?.value"> (*)</span>
+              <nz-icon nzType="info-circle" nzTheme="outline" nz-tooltip [nzTooltipTitle]="tooltipContent"
+                nzTooltipPlacement="top" style="cursor:help;margin-left:4px;color:#1890ff;font-size:16px;">
+              </nz-icon>
+            </th> -->
+                        <th style="min-width:180px;">Ghi chú / Chứng từ kèm theo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Row I: Số tiền tạm ứng (editable TotalMoney) -->
+                    <tr class="table-light">
+                        <td></td>
+                        <td class="fw-bold">I</td>
+                        <td class="fw-bold">Số tiền tạm ứng</td>
+                        <td><textarea class="tbl-input" [(ngModel)]="t2RowI.Unit" rows="2"></textarea></td>
+                        <td><input class="tbl-input tbl-num" [value]="t2RowI.Quantity | number:'1.2-2'"
+                                appCurrencyFormatRealtime
+                                (blur)="t2RowI.Quantity = parseNum($any($event.target).value); t2RowI.TotalMoney = (t2RowI.Quantity||0) * (t2RowI.UnitPrice||0)"
+                                type="text" /></td>
+                        <td><input class="tbl-input tbl-num" [value]="t2RowI.UnitPrice | number:'1.2-2'"
+                                appCurrencyFormatRealtime
+                                (blur)="t2RowI.UnitPrice = parseNum($any($event.target).value); t2RowI.TotalMoney = (t2RowI.Quantity||0) * (t2RowI.UnitPrice||0)"
+                                type="text" /></td>
+                        <td>
+                            <input class="tbl-input tbl-num fw-bold" [value]="t2RowI.TotalMoney | number:'1.2-2'"
+                                appCurrencyFormatRealtime
+                                (blur)="t2RowI.TotalMoney = parseNum($any($event.target).value)" type="text" />
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td><textarea class="tbl-input" [(ngModel)]="t2RowI.Note" rows="2"></textarea></td>
+                    </tr>
+
+                    <!-- Row II header: Số tiền thanh toán (calculated) -->
+                    <tr class="table-light">
+                        <td></td>
+                        <td class="fw-bold">II</td>
+                        <td class="fw-bold">Số tiền thanh toán</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-end fw-bold">{{ totalIIThanhTien | number:'1.2-2' }}</td>
+                        <td></td>
+                        <!-- <td>
+              <input class="tbl-input tbl-num fw-bold" [value]="t2RowII.TotalMoneyWithInvoice | number:'1.2-2'" appCurrencyFormatRealtime
+                (blur)="t2RowII.TotalMoneyWithInvoice = parseNum($any($event.target).value)" type="text"
+                [style.background]="validateForm.get('IsBill')?.value && (t2RowII.TotalMoneyWithInvoice === null || t2RowII.TotalMoneyWithInvoice === undefined || t2RowII.TotalMoneyWithInvoice === '') ? '#fff3cd' : ''" />
+            </td> -->
+                        <td class="text-end text-nowrap fw-bold">{{ totalII | number:'1.2-2' }}</td>
+                        <td></td>
+                    </tr>
+
+                    <!-- Sub-rows under II (editable, add/delete) -->
+                    @for (row of t2DetailRows; track row._id; let i = $index) {
+                    <tr tabindex="0">
+                        <td class="text-center">
+                            <button class="btn btn-danger btn-sm" type="button" (click)="deleteDetailRow(row)">
+                                <nz-icon nzType="delete" nzTheme="outline"></nz-icon>
+                            </button>
+                        </td>
+                        <td class="text-center">{{ i + 1 }}</td>
+                        <td>
+                            <textarea class="tbl-input" [(ngModel)]="row.ContentPayment" rows="2"></textarea>
+                        </td>
+                        <td>
+                            <textarea class="tbl-input" [(ngModel)]="row.Unit" rows="2"></textarea>
+                        </td>
+                        <td>
+                            <input class="tbl-input tbl-num" [value]="row.Quantity | number:'1.2-2'"
+                                appCurrencyFormatRealtime
+                                (blur)="row.Quantity = parseNum($any($event.target).value); calcTotalMoney(row)"
+                                type="text" />
+                        </td>
+                        <td>
+                            <input class="tbl-input tbl-num" [value]="row.UnitPrice | number:'1.2-2'"
+                                appCurrencyFormatRealtime
+                                (blur)="row.UnitPrice = parseNum($any($event.target).value); calcTotalMoney(row)"
+                                type="text" />
+                        </td>
+                        <td>
+                            <input class="tbl-input tbl-num" [value]="row.TotalMoney | number:'1.2-2'"
+                                appCurrencyFormatRealtime
+                                (blur)="row.TotalMoney = parseNum($any($event.target).value); calcTotalPayment(row)"
+                                type="text" />
+                        </td>
+                        <td>
+                            <input class="tbl-input tbl-num" [value]="row.PaymentPercentage" appCurrencyFormatRealtime
+                                (blur)="row.PaymentPercentage = parseNum($any($event.target).value); calcTotalPayment(row)"
+                                type="text" max="100" />
+                        </td>
+                        <td class="text-end text-nowrap fw-bold">{{ (row.TotalMoney * ((row.PaymentPercentage || 0) /
+                            100)) | number:'1.2-2' }}</td>
+                        <td>
+                            <textarea class="tbl-input" [(ngModel)]="row.Note" rows="2"></textarea>
+                        </td>
+                    </tr>
+                    }
+
+                    <!-- Row III: Chênh lệch (calculated) -->
+                    <tr class="table-light">
+                        <td></td>
+                        <td class="fw-bold">III</td>
+                        <td class="fw-bold">Chênh lệch</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-end fw-bold">{{ totalDiff | number:'1.2-2' }}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+
+                    <!-- III.1: Tạm ứng chi không hết (I - II) -->
+                    <tr>
+                        <td></td>
+                        <td>1</td>
+                        <td>Tạm ứng chi không hết (I-II)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-end">{{ diff1 | number:'1.2-2' }}</td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <textarea class="tbl-input" [(ngModel)]="t2RowDiff1.Note" rows="2"></textarea>
+                        </td>
+                    </tr>
+
+                    <!-- III.2: Số chi quá tạm ứng (II - I) -->
+                    <tr>
+                        <td></td>
+                        <td>2</td>
+                        <td>Số chi quá tạm ứng (II-I)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-end">{{ diff2 | number:'1.2-2' }}</td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <textarea class="tbl-input" [(ngModel)]="t2RowDiff2.Note" rows="2"></textarea>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="10" class="fw-bold">
+                            Số tiền bằng chữ: <span>{{ totalMoneyText }}</span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+
+        </div><!-- end table-responsive -->
+    </div><!-- end modal-body -->
+
+    <div class="modal-footer bg-light p-1">
+        <button type="button" class="btn btn-success btn-sm" (click)="submitForm()" [disabled]="isSubmit">
+            <nz-icon nzType="save" nzTheme="outline"></nz-icon> Lưu
+        </button>
+        <button type="button" class="btn btn-danger btn-sm" (click)="activeModal.dismiss()">Đóng</button>
+    </div>
+</div>
+
+<ng-template #tooltipContent>
+    <div style="max-width:300px; font-size:14px; line-height:1.5;">
+        Chỉ tính hóa đơn điện tử xuất về công ty,<br />
+        không tính bill viết tay,<br />
+        hóa đơn xuất tên cá nhân.<br />
+        Nếu không có hóa đơn thì điền = 0.
+    </div>
+</ng-template>

@@ -83,26 +83,26 @@ export class ProjectTaskProjectComponent implements OnInit {
   cols: any[] = [
     { field: 'Code', header: 'Mã CV', width: '200px', minWidth: '200px', filterable: true },
     { field: 'Mission', header: 'Tên công việc', width: '300px', filterable: true },
-    { field: 'DisplayStatus', header: 'Trạng thái', width: '150px' },
-    { field: 'FullName', header: 'Người thực hiện', width: '150px', filterable: true },
-    { field: 'IsAdditional', header: 'Phát sinh', width: '100px' },
-    { field: 'TaskComplexity', header: 'Phức tạp', width: '100px' },
-    { field: 'PercentOverTime', header: '% Quá hạn', width: '150px' },
+    { field: 'DisplayStatus', header: 'Trạng thái', width: '150px',align: 'center' },
+    { field: 'FullName', header: 'Người giao việc', width: '150px', filterable: true },
     { field: 'PlanStartDateObj', header: 'Ngày BĐ dự kiến', width: '150px', isDate: true },
     { field: 'PlanEndDateObj', header: 'Ngày KT dự kiến', width: '150px', isDate: true },
     { field: 'StartDateObj', header: 'Ngày BĐ thực tế', width: '150px', isDate: true },
-    { field: 'DueDateObj', header: 'Ngày KT thực tế', width: '150px', isDate: true }
+    { field: 'DueDateObj', header: 'Ngày KT thực tế', width: '150px', isDate: true },
+    { field: 'IsAdditional', header: 'Phát sinh', width: '100px', align: 'center' },
+    { field: 'TaskComplexity', header: 'Phức tạp', width: '100px', align: 'center' },
+    { field: 'PercentOverTime', header: '% Quá hạn', width: '150px', align: 'center' }
   ];
 
   statusOptions = [
-    { label: 'Chưa làm', value: 1 },
-    { label: 'Đang làm', value: 2 },
-    { label: 'Đang làm quá hạn', value: 21 },
-    { label: 'Hoàn thành', value: 3 },
-    { label: 'Hoàn thành quá hạn', value: 31 },
-    { label: 'Đã duyệt', value: 32 },
-    { label: 'Đã hủy duyệt', value: 33 },
-    { label: 'Pending', value: 4 }
+    { label: 'Chưa làm', value: 0 },
+    { label: 'Đang làm', value: 1 },
+    { label: 'Đang làm quá hạn', value: 11 },
+    { label: 'Hoàn thành', value: 2 },
+    { label: 'Hoàn thành quá hạn', value: 21 },
+    { label: 'Đã duyệt', value: 22 },
+    { label: 'Đã hủy duyệt', value: 23 },
+    { label: 'Pending', value: 3 }
   ];
 
   // ===== Column filters =====
@@ -277,7 +277,7 @@ export class ProjectTaskProjectComponent implements OnInit {
         // Hàng công việc: map labels
         row.DisplayStatusLabel = this.getDisplayStatus(data).label;
         row.IsAdditionalLabel = data.IsAdditional ? 'Có' : '-';
-        row.PercentLabel = data.PercentOverTime !== null ? (data.PercentOverTime * 100) + '%' : '-';
+        row.PercentLabel = data.PercentOverTime !== null ? (data.PercentOverTime * 100).toFixed(0) + '%' : '-';
       }
 
       result.push(row);
@@ -299,7 +299,7 @@ export class ProjectTaskProjectComponent implements OnInit {
       { header: 'Mã CV / Dự án', field: 'Code' },
       { header: 'Tên công việc', field: 'Mission' },
       { header: 'Trạng thái', field: 'DisplayStatusLabel' },
-      { header: 'Người thực hiện', field: 'FullName' },
+      { header: 'Người giao việc', field: 'FullName' },
       { header: 'Phát sinh', field: 'IsAdditionalLabel' },
       { header: 'Phức tạp', field: 'TaskComplexity' },
       { header: 'Quá hạn (%)', field: 'PercentLabel' },
@@ -518,37 +518,42 @@ export class ProjectTaskProjectComponent implements OnInit {
   // ===== TRẠNG THÁI GỘP (Status + ReviewStatus + Quá hạn) =====
   computeDisplayStatus(task: any): number {
     const isOverdue = this.isTaskOverdue(task);
-    if (task.Status === 3 && task.ReviewStatus === 2) return 32;
-    if (task.Status === 3 && task.ReviewStatus === 3) return 33;
-    if (task.Status === 3 && isOverdue) return 31;
-    if (task.Status === 3) return 3;
+    if (task.Status === 2 && task.ReviewStatus === 2) return 22;
+    if (task.Status === 2 && task.ReviewStatus === 3) return 23;
     if (task.Status === 2 && isOverdue) return 21;
     if (task.Status === 2) return 2;
-    if (task.Status === 4) return 4;
-    return 1;
+    if (task.Status === 1 && isOverdue) return 11;
+    if (task.Status === 1) return 1;
+    if (task.Status === 3) return 3;
+    return 0;
   }
 
   private isTaskOverdue(task: any): boolean {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
+
     const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
+    if (planEnd) planEnd.setHours(0, 0, 0, 0);
+
     const dueDate = task.DueDate ? new Date(task.DueDate) : (task.ActualEndDate ? new Date(task.ActualEndDate) : null);
+    if (dueDate) dueDate.setHours(0, 0, 0, 0);
+
     if (dueDate && planEnd && dueDate > planEnd) return true;
-    if (!dueDate && planEnd && planEnd < now && task.Status !== 4) return true;
+    if (!dueDate && planEnd && planEnd < now && task.Status !== 3) return true;
     return false;
   }
 
   getDisplayStatus(task: any): { label: string; severity: 'info' | 'success' | 'danger' | 'warn' | 'secondary' | 'contrast' | undefined } {
     const ds = task.DisplayStatus ?? task.Status;
     switch (ds) {
-      case 1: return { label: 'Chưa làm', severity: 'secondary' };
-      case 2: return { label: 'Đang làm', severity: 'info' };
-      case 21: return { label: 'Đang làm quá hạn', severity: 'danger' };
-      case 3: return { label: 'Hoàn thành', severity: 'success' };
-      case 31: return { label: 'Hoàn thành quá hạn', severity: 'warn' };
-      case 32: return { label: 'Đã duyệt', severity: 'success' };
-      case 33: return { label: 'Đã hủy duyệt', severity: 'danger' };
-      case 4: return { label: 'Pending', severity: 'warn' };
+      case 0: return { label: 'Chưa làm', severity: 'secondary' };
+      case 1: return { label: 'Đang làm', severity: 'info' };
+      case 11: return { label: 'Đang làm quá hạn', severity: 'danger' };
+      case 2: return { label: 'Hoàn thành', severity: 'success' };
+      case 21: return { label: 'Hoàn thành quá hạn', severity: 'warn' };
+      case 22: return { label: 'Đã duyệt', severity: 'success' };
+      case 23: return { label: 'Đã hủy duyệt', severity: 'danger' };
+      case 3: return { label: 'Pending', severity: 'warn' };
       default: return { label: 'Chưa xác định', severity: 'secondary' };
     }
   }

@@ -7,6 +7,7 @@ import {
   ElementRef,
   inject,
   ChangeDetectorRef,
+  Optional,
 } from '@angular/core';
 import {
   AngularSlickgridModule,
@@ -52,6 +53,7 @@ import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { PonccSummaryDetailComponent } from './poncc-summary-detail/poncc-summary-detail.component';
 import { DateTime } from 'luxon';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
 @Component({
   selector: 'app-poncc-summary',
   standalone: true,
@@ -78,7 +80,7 @@ import { DateTime } from 'luxon';
 export class PonccSummaryComponent implements OnInit, AfterViewInit {
   //#region Khai báo biến
   constructor(
-    public activeModal: NgbActiveModal,
+    @Optional() public activeModal: NgbActiveModal,
     private projectService: ProjectService,
     private ponccService: PONCCService,
     private notify: NzNotificationService,
@@ -86,7 +88,8 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private ngbModal: NgbModal,
     private modal: NzModalService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private tabService: TabServiceService
   ) { }
 
   ponccSummaryMenu: MenuItem[] = [];
@@ -130,8 +133,8 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
       this.cdr.detectChanges();
       setTimeout(() => {
         this.onSearch();
-      }, 100);
-    }, 200);
+      }, 200);
+    }, 400);
   }
   //#endregion
 
@@ -270,6 +273,14 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
     this.onSearch();
   }
 
+  close(): void {
+    if (this.activeModal) {
+      this.activeModal.close();
+    } else {
+      this.tabService.closeTabByKey('poncc-summary');
+    }
+  }
+
   //#endregion
 
   //#region Các hàm xử lý cho bảng
@@ -284,7 +295,9 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
     }
 
     setTimeout(() => {
-      angularGrid.resizerService.resizeGrid();
+      try {
+        angularGrid.resizerService.resizeGrid();
+      } catch (e) { /* stylesheet chưa sẵn sàng, bỏ qua */ }
       this.updateMasterFooterRow();
       this.applyDistinctFilters();
     }, 100);
@@ -419,7 +432,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -459,7 +476,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -471,7 +492,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 200,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -483,7 +508,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -495,7 +524,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 200,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -507,7 +540,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -519,7 +556,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -531,7 +572,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 200,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -543,7 +588,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -567,7 +616,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -745,7 +798,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 150,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -957,7 +1014,12 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         formatter: Formatters.checkmarkMaterial,
         type: FieldType.boolean,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect']
+
+        },
+
+
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -985,7 +1047,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -1072,12 +1138,27 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
       },
     ];
+
+    // Đảm bảo tất cả filter multipleSelect có collection không rỗng khi khởi tạo.
+    // applyDistinctFilters() sẽ ghi đè với dữ liệu thực sau khi load xong.
+    this.columnDefinitionsMaster.forEach((col: any) => {
+      if (
+        col.filter?.model === Filters['multipleSelect'] &&
+        (!col.filter.collection || col.filter.collection.length === 0)
+      ) {
+        col.filter.collection = [{ value: '', label: '' }];
+      }
+    });
   }
 
   initGridOptions() {

@@ -1,0 +1,111 @@
+<div class="file-preview-root">
+
+  <!-- ===== HEADER ===== -->
+  <div class="fp-header">
+    <nz-icon [nzType]="fileIcon" nzTheme="outline" class="me-2 text-primary"></nz-icon>
+    <span class="fp-title" [title]="fileName">{{ fileName }}</span>
+
+    <div class="fp-toolbar">
+      <!-- Zoom -->
+      <button class="btn btn-sm btn-outline-secondary fp-btn"
+        (click)="zoomOut()" [disabled]="zoom <= 0.2" title="Thu nhỏ (Shift + Scroll xuống)">
+        <nz-icon nzType="zoom-out" nzTheme="outline"></nz-icon>
+      </button>
+      <span class="fp-zoom-label">{{ zoomPct }}%</span>
+      <button class="btn btn-sm btn-outline-secondary fp-btn"
+        (click)="zoomIn()" [disabled]="zoom >= 4" title="Phóng to (Shift + Scroll lên)">
+        <nz-icon nzType="zoom-in" nzTheme="outline"></nz-icon>
+      </button>
+      <button class="btn btn-sm btn-outline-secondary fp-btn"
+        (click)="zoomReset()" title="Reset zoom">
+        <nz-icon nzType="fullscreen-exit" nzTheme="outline"></nz-icon>
+      </button>
+
+      <!-- Download -->
+      <a [href]="downloadUrl" [download]="fileName"
+        class="btn btn-sm btn-outline-primary fp-btn" title="Tải xuống">
+        <nz-icon nzType="download" nzTheme="outline"></nz-icon>
+      </a>
+
+      <!-- Close -->
+      <button type="button" class="btn-close fp-close" (click)="close()"></button>
+    </div>
+  </div>
+
+  <!-- ===== BODY ===== -->
+  <div class="fp-body">
+
+    <!-- Loading spinner -->
+    <div *ngIf="isLoading" class="fp-loading">
+      <div class="spinner-border text-primary" style="width:3rem;height:3rem;"></div>
+      <span class="mt-2 text-muted small">Đang tải file...</span>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="!isLoading && errorMsg" class="fp-placeholder">
+      <nz-icon nzType="warning" nzTheme="outline" class="text-danger" style="font-size:48px;"></nz-icon>
+      <p class="mt-2 text-danger">{{ errorMsg }}</p>
+      <a [href]="downloadUrl" [download]="fileName" class="btn btn-primary btn-sm">
+        <nz-icon nzType="download" nzTheme="outline"></nz-icon> Tải xuống
+      </a>
+    </div>
+
+    <!-- ---- IMAGE ---- -->
+    <div *ngIf="!isLoading && !errorMsg && fileType === 'image'" class="fp-scroll fp-center">
+      <div [style.transform]="'scale(' + zoom + ')'"
+           style="transform-origin: top center; display: inline-block;">
+        <img *ngIf="imageUrl" [src]="imageUrl" class="fp-image" alt="{{ fileName }}" />
+      </div>
+    </div>
+
+    <!-- ---- PDF ---- -->
+    <div *ngIf="!isLoading && !errorMsg && fileType === 'pdf'" class="fp-scroll">
+      <iframe *ngIf="pdfUrl" [src]="pdfUrl" class="fp-pdf"
+        [style.transform]="'scale(' + zoom + ')'"
+        [style.transform-origin]="'top left'"
+        [style.width]="scaledWidth"
+        [style.height]="scaledHeight"
+        frameborder="0">
+      </iframe>
+    </div>
+
+    <!-- ---- EXCEL ---- -->
+    <ng-container *ngIf="!isLoading && !errorMsg && fileType === 'excel'">
+      <!-- Sheet tabs -->
+      <div *ngIf="excelSheetNames.length > 1" class="fp-sheet-tabs">
+        @for (name of excelSheetNames; track $index) {
+          <button class="fp-sheet-tab"
+            [class.active]="activeSheet === $index"
+            (click)="renderSheet($index)">{{ name }}</button>
+        }
+      </div>
+      <!-- Table -->
+      <div class="fp-scroll">
+        <div [ngStyle]="scaleStyle" class="fp-excel-wrap">
+          <div *ngIf="excelHtml" [innerHTML]="excelHtml"></div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ---- WORD ---- -->
+    <div *ngIf="!isLoading && !errorMsg && fileType === 'word'" class="fp-scroll fp-center">
+      <div [style.transform]="'scale(' + zoom + ')'"
+           style="transform-origin: top center; display: inline-block; width: 100%;">
+        <div #docxContainer class="fp-docx-wrap"></div>
+      </div>
+    </div>
+
+    <!-- ---- OTHER ---- -->
+    <div *ngIf="!isLoading && !errorMsg && fileType === 'other'" class="fp-placeholder">
+      <nz-icon [nzType]="fileIcon" nzTheme="outline" style="font-size:72px;" class="text-secondary"></nz-icon>
+      <p class="mt-3 text-muted">
+        Không hỗ trợ xem trực tiếp định dạng
+        <strong>{{ fileName.split('.').pop()?.toUpperCase() }}</strong>.
+      </p>
+      <a [href]="downloadUrl" [download]="fileName" class="btn btn-primary">
+        <nz-icon nzType="download" nzTheme="outline"></nz-icon> Tải xuống để xem
+      </a>
+    </div>
+
+  </div><!-- /fp-body -->
+</div>

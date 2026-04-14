@@ -16,6 +16,10 @@ export class AssetsManagementService {
     const url = `${environment.host}api/Assets/save-data`;
     return this.httpclient.post<any>(url, assets);
   }
+  checkAssetExist(assets: any[]): Observable<any> {
+    const url = `${environment.host}api/Assets/check-asset-exist`;
+    return this.httpclient.post<any>(url, assets);
+  }
   getAssetAllocationDetail(id: number): Observable<any> {
     const url = `${environment.host}api/Assets/get-allocation-detail?id=${id}`;
     return this.httpclient.get<any>(url);

@@ -102,6 +102,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     };
 
     imageUrl: string = '';
+    isImageVisible: boolean = false;
 
     // Tab 2 State
     departmentId_T2: any = null;
@@ -123,7 +124,18 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     datasetEmployee: any[] = [];
     colDefEmployee: Column[] = [];
     imageUrlEmployee: string = '';
+    isImageEmployeeVisible: boolean = false;
     selectedWeekLabel: string = 'Chi tiết';
+
+    closeImage() {
+        this.isImageVisible = false;
+        setTimeout(() => this.gridFile?.resizerService?.resizeGrid(), 100);
+    }
+
+    closeEmployeeImage() {
+        this.isImageEmployeeVisible = false;
+        setTimeout(() => this.gridEmployee?.resizerService?.resizeGrid(), 100);
+    }
 
     constructor(
         private service: SummaryKpiErrorEmployeeService,
@@ -161,6 +173,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     initColumns() {
         // TH1: Lỗi họp phòng KT & KPI
         this.colDefTH1 = [
+            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 150, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'Code', name: 'Mã lỗi vi phạm', field: 'Code', sortable: true, filterable: true, minWidth: 70, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Content', name: 'Nội dung lỗi vi phạm', field: 'Content', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 150, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
@@ -170,12 +183,12 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
             { id: 'Coefficient', name: 'Hệ số', field: 'Coefficient', sortable: true, filterable: true, minWidth: 70, formatter: this.coefficientFormatter, filter: { model: Filters['compoundInputNumber'] } },
             { id: 'TotalMoney', name: 'Tiền phạt', field: 'TotalMoney', sortable: true, filterable: true, minWidth: 100, formatter: this.moneyFormatter.bind(this), filter: { model: Filters['compoundInputNumber'] } },
             { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, filterable: true, minWidth: 200, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
-            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 150, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'ErrorDateText', name: 'Ngày vi phạm', field: 'ErrorDateText', sortable: true, filterable: true, minWidth: 150, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
         ];
 
         // TH2: Lỗi đánh giá riêng KPI
         this.colDefTH2 = [
+            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 120, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'Code', name: 'Mã lỗi vi phạm', field: 'Code', sortable: true, filterable: true, minWidth: 70, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Content', name: 'Nội dung lỗi vi phạm', field: 'Content', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
@@ -183,11 +196,11 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
             { id: 'UnitName', name: 'Đơn vị', field: 'UnitName', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
             { id: 'ErrorDateText', name: 'Ngày vi phạm', field: 'ErrorDateText', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
-            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 120, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
         ];
 
         // TH3: Điểm cộng
         this.colDefTH3 = [
+            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
             { id: 'Code', name: 'Mã điểm cộng', field: 'Code', sortable: true, filterable: true, minWidth: 70, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Content', name: 'Nội dung điểm cộng', field: 'Content', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 250, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
@@ -195,7 +208,6 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
             { id: 'UnitName', name: 'Đơn vị', field: 'UnitName', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Note', name: 'Ghi chú', field: 'Note', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
             { id: 'ErrorDateText', name: 'Ngày', field: 'ErrorDateText', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, editor: { model: ReadOnlyLongTextEditor, required: false, alwaysSaveOnEnterKey: false, minLength: 5, maxLength: 1000 } },
-            { id: 'FullName', name: 'Nhân viên', field: 'FullName', sortable: true, filterable: true, minWidth: 80, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption } },
         ];
 
         // File Grid 
@@ -370,6 +382,11 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
                 if (item) {
                     const url = this.getImageUrl(item);
                     this.imageUrl = url;
+                    const wasVisible = this.isImageVisible;
+                    this.isImageVisible = !!url; // Only show if valid URL
+                    if (wasVisible !== this.isImageVisible) {
+                        setTimeout(() => this.gridFile?.resizerService?.resizeGrid(), 100);
+                    }
                 }
             }
         });
@@ -527,6 +544,11 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
                 if (item) {
                     const url = this.getImageUrl(item);
                     this.imageUrlEmployee = url;
+                    const wasVisible = this.isImageEmployeeVisible;
+                    this.isImageEmployeeVisible = !!url; // Only show if valid URL
+                    if (wasVisible !== this.isImageEmployeeVisible) {
+                        setTimeout(() => this.gridEmployee?.resizerService?.resizeGrid(), 100);
+                    }
                 }
             }
         });
@@ -574,14 +596,47 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     }
 
     private writeSheet(ws: ExcelJS.Worksheet, cols: Column[], data: any[]) {
-        const headers = cols.filter(c => !c.hidden).map(c => c.name || '');
-        ws.addRow(headers).font = { bold: true };
+        const visibleCols = cols.filter(c => !c.hidden);
+        const headers = visibleCols.map(c => c.name || '');
+        const headerRow = ws.addRow(headers);
+        headerRow.font = { bold: true };
 
         data.forEach(item => {
-            const row = cols.filter(c => !c.hidden).map(c => item[c.field] || '');
-            ws.addRow(row);
+            const rowData = visibleCols.map(c => {
+                const val = item[c.field];
+                return val !== undefined && val !== null ? val : '';
+            });
+            const row = ws.addRow(rowData);
+
+            visibleCols.forEach((col, index) => {
+                const cell = row.getCell(index + 1);
+                
+                if (col.field === 'Content' || col.field === 'Note') {
+                    cell.alignment = { wrapText: true, vertical: 'top' };
+                } else {
+                    cell.alignment = { vertical: 'middle' };
+                }
+
+                if ((col.field === 'TotalMoney' || col.field === 'Monney') && item[col.field]) {
+                    const num = Number(item[col.field]);
+                    if (!isNaN(num)) {
+                        cell.value = num;
+                        cell.numFmt = '#,##0';
+                    }
+                }
+            });
         });
-        ws.columns.forEach(c => { c.width = 20; });
+
+        ws.columns.forEach((c, i) => { 
+            const field = visibleCols[i]?.field;
+            if (field === 'Content' || field === 'Note') {
+                c.width = 40;
+            } else if (field === 'FullName') {
+                c.width = 25;
+            } else {
+                c.width = 15;
+            }
+        });
     }
 
     private saveFile(buffer: any, fileName: string) {

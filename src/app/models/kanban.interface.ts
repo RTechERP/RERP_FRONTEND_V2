@@ -42,6 +42,7 @@ export interface IProject {
 export interface IProjectTask {
     ID: number;
     ProjectID?: number;
+    UserID?: number;
     Mission?: string;
     Description?: string;
     EmployeeIDRequest?: number;
@@ -59,7 +60,11 @@ export interface IProjectTask {
     TaskComplexity?: number;
     IsAdditional?: boolean;
     TypeProjectItem?: number;
+    ProjectTaskTypeID?: number;
+    ProjectTaskResult?: string;
     PercentOverTime?: number;
+    Deadline?: Date;
+    DescriptionSolution?: string;
     CreatedBy?: string;
     CreatedDate?: Date;
     UpdatedBy?: string;
@@ -67,6 +72,7 @@ export interface IProjectTask {
     IsPersonalProject?: boolean | null;
     Files?: number[]; // IDs of file attachments
     Links?: number[]; // IDs of link attachments
+    CompletionRating?: number | null;
     // Client-side additions if needed
     tasks?: IProjectTask[];
     checklists?: IProjectTaskChecklist[];
@@ -135,5 +141,31 @@ export interface IProjectSubtask {
     OrderIndex?: number;
     CreatedBy?: string;
     CreatedDate?: Date;
+    IsDeleted?: boolean;
+}
+
+export interface IProjectTaskEmailBand {
+    ID: number;
+    EmployeeID?: number;
+    EmployeeEmail?: string;
+    IsActive?: boolean;
+    CreatedDate?: Date;
+    CreatedBy?: string;
+    UpdatedDate?: Date;
+    UpdatedBy?: string;
+    IsDeleted?: boolean;
+}
+
+export interface IProjectTaskSetting {
+    ID: number;
+    EmployeeID?: number;
+    EmployeeEmail?: string;
+    SendMailCreateProjectTask?: boolean;
+    SendFinishProjectTask?: boolean;
+    SendApproveProjectTask?: boolean;
+    CreatedDate?: Date;
+    CreatedBy?: string;
+    UpdatedDate?: Date;
+    UpdatedBy?: string;
     IsDeleted?: boolean;
 }

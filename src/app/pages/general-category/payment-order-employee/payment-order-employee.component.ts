@@ -17,6 +17,7 @@ import { Select } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { SplitterModule } from 'primeng/splitter';
+import { CardModule } from 'primeng/card';
 import { CustomTable } from '../../../shared/custom-table';
 
 import { PaymentOrderService } from '../payment-order/payment-order.service';
@@ -46,13 +47,13 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { environment } from '../../../../environments/environment';
 import pdfMake from 'pdfmake/build/pdfmake';
 import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
 import { PaymentOrderLogComponent } from '../payment-order/payment-order-log/payment-order-log.component';
+import { PaymentOrderDetailOldComponent } from '../payment-order-detail-old/payment-order-detail-old.component';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -79,6 +80,7 @@ import { PaymentOrderLogComponent } from '../payment-order/payment-order-log/pay
         InputTextModule,
         ButtonModule,
         SplitterModule,
+        CardModule,
         CustomTable,
         NzButtonModule,
         NzFormModule,
@@ -87,7 +89,6 @@ import { PaymentOrderLogComponent } from '../payment-order/payment-order-log/pay
         NzDatePickerModule,
         NzCardModule,
         NzModalModule,
-        NzSplitterModule,
         NzDividerModule,
         NzIconModule,
     ],
@@ -147,6 +148,9 @@ export class PaymentOrderEmployeeComponent implements OnInit {
     columnDefFiles: ColumnDef[] = [];
     datasetFiles: any[] = [];
     datasetFileBankslip: any[] = [];
+
+    columnDefLog: ColumnDef[] = [];
+    datasetLog: any[] = [];
 
     fileContextItems: MenuItem[] = [];
     selectedRowFile: any;
@@ -233,12 +237,24 @@ export class PaymentOrderEmployeeComponent implements OnInit {
     }
 
     initColumns() {
-        const fmtDate = (val: any) =>
-            val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
-        const fmtDateTime = (val: any) =>
-            val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy HH:mm') : '';
-        const fmtTime = (val: any) =>
-            val ? DateTime.fromISO(val).toFormat('HH:mm') : '';
+        const fmtDate = (val: any) => {
+            if (!val) return '';
+            let dt = DateTime.fromISO(val);
+            if (!dt.isValid) dt = DateTime.fromJSDate(new Date(val));
+            return dt.isValid ? dt.toFormat('dd/MM/yyyy') : '';
+        };
+        const fmtDateTime = (val: any) => {
+            if (!val) return '';
+            let dt = DateTime.fromISO(val);
+            if (!dt.isValid) dt = DateTime.fromJSDate(new Date(val));
+            return dt.isValid ? dt.toFormat('dd/MM/yyyy HH:mm') : '';
+        };
+        const fmtTime = (val: any) => {
+            if (!val) return '';
+            let dt = DateTime.fromISO(val);
+            if (!dt.isValid) dt = DateTime.fromJSDate(new Date(val));
+            return dt.isValid ? dt.toFormat('HH:mm') : '';
+        };
         const fmtMoney = (val: any) =>
             val != null ? val.toLocaleString('vi-VN') : '';
         const fmtBool = (val: any) => (val ? '✓' : '');
@@ -367,60 +383,65 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 width: '160px',
             },
             // --- NV đăng ký ---
-            { field: 'FullNameEmployee', header: 'Họ tên', width: '140px' },
+            { field: 'FullNameEmployee', header: 'Họ tên', width: '140px', visible: false },
             {
                 field: 'DateApprovedEmployee',
                 header: 'Ngày',
                 width: '100px',
                 format: fmtDateTime,
                 cssClass: 'text-center',
+                visible: false,
             },
             // --- TBP ---
-            { field: 'FullNameTBP', header: 'Họ tên', width: '140px' },
+            { field: 'FullNameTBP', header: 'Họ tên', width: '140px', visible: false },
             {
                 field: 'DateApprovedTBP',
                 header: 'Ngày',
                 width: '100px',
                 format: fmtDateTime,
                 cssClass: 'text-center',
+                visible: false,
             },
             // --- Nhân sự ---
-            { field: 'FullNameHR', header: 'Họ tên', width: '140px' },
+            { field: 'FullNameHR', header: 'Họ tên', width: '140px', visible: false },
             {
                 field: 'DateApprovedHR',
                 header: 'Ngày',
                 width: '100px',
                 format: fmtDateTime,
                 cssClass: 'text-center',
+                visible: false,
             },
             // --- Kế toán ---
-            { field: 'FullNameKT', header: 'Họ tên', width: '140px' },
+            { field: 'FullNameKT', header: 'Họ tên', width: '140px', visible: false },
             {
                 field: 'DateApprovedKT',
                 header: 'Ngày',
                 width: '100px',
                 format: fmtDateTime,
                 cssClass: 'text-center',
+                visible: false,
             },
             // --- BGĐ ---
-            { field: 'FullNameBGD', header: 'Họ tên', width: '140px' },
+            { field: 'FullNameBGD', header: 'Họ tên', width: '140px', visible: false },
             {
                 field: 'DateApprovedBGD',
                 header: 'Ngày',
                 width: '100px',
                 format: fmtDateTime,
                 cssClass: 'text-center',
+                visible: false,
             },
         ];
 
         this.headerGroups = [
             [
                 { header: 'Thông tin chung', colspan: 33 },
-                { header: 'NV đăng ký', colspan: 2 },
-                { header: 'TBP', colspan: 2 },
-                { header: 'Nhân sự', colspan: 2 },
-                { header: 'Kế toán', colspan: 2 },
-                { header: 'BGĐ', colspan: 2 },
+                { header: 'NV đăng ký', colspan: 2, visible: false },
+                { header: 'TBP', colspan: 2, visible: false },
+                { header: 'Nhân sự', colspan: 2, visible: false },
+                { header: 'Kế toán', colspan: 2, visible: false },
+                { header: 'BGĐ', colspan: 2, visible: false },
             ],
         ];
 
@@ -593,6 +614,35 @@ export class PaymentOrderEmployeeComponent implements OnInit {
             },
         ];
 
+        const logRowStyle = (row: any) => {
+            if (row.IsApproved === 1) return { 'background-color': '#dcfce7', 'color': '#14532d' };
+            if (row.IsApproved === 2) return { 'background-color': '#fee2e2', 'color': '#7f1d1d' };
+            return { 'background-color': '#fef9c3', 'color': '#713f12' };
+        };
+
+        this.columnDefLog = [
+            { field: 'Step', header: 'Bước', width: '60px', cssClass: 'text-center', cellStyle: logRowStyle },
+            { field: 'StepName', header: 'Tên bước', width: '180px', cellStyle: logRowStyle },
+            {
+                field: 'IsApprovedText', header: 'Trạng thái', width: '110px',
+                cellStyle: logRowStyle,
+            },
+            { field: 'FullNameDefault', header: 'Người phụ trách', width: '150px', cellStyle: logRowStyle },
+            { field: 'FullName', header: 'Người thực hiện', width: '150px', cellStyle: logRowStyle },
+            {
+                field: 'DateApproved', header: 'Ngày duyệt', width: '140px',
+                cellStyle: logRowStyle,
+                format: (val: any) => {
+                    if (!val) return '';
+                    const d = new Date(val);
+                    return isNaN(d.getTime()) ? '' : d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                },
+            },
+            { field: 'ReasonCancel', header: 'Lý do hủy', width: '200px', cellStyle: logRowStyle },
+            { field: 'ReasonRequestAppendFileHR', header: 'Ghi chú HR', width: '200px', cellStyle: logRowStyle },
+            { field: 'ReasonRequestAppendFileAC', header: 'Ghi chú kế toán', width: '200px', cellStyle: logRowStyle },
+        ];
+
     }
 
     initFileContextMenu() {
@@ -650,11 +700,15 @@ export class PaymentOrderEmployeeComponent implements OnInit {
     }
     onCopy() {
         if (!this.selectedItem) return;
-        let item = this.selectedItem; // data object
+        let item = { ...this.selectedItem }; // data object
         item.DateOrder = new Date();
         item.FullName = this.appUserService.currentUser?.FullName || '';
         item.DepartmentName = this.appUserService.currentUser?.DepartmentName || '';
         item.Code = '';
+        item.ReasonCancel = '';
+        item.AccountingNote = '';
+        item.HRNote = '';
+        item.Note = '';
         item = item as PaymentOrder;
         this.initModal(item, true);
     }
@@ -898,7 +952,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
             typeOrder: 0,
             employeeID: emp,
         };
-        this.paymentService.get(p).subscribe({
+        this.paymentService.getSpecial(p).subscribe({
             next: (response: any) => {
                 this.datasetSpecial = (response.data || []).map((x: any) => ({
                     ...x,
@@ -935,6 +989,19 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                     err?.error?.message || `${err.error}\n${err.message}`,
                 );
                 this.isLoadingDetail = false;
+                this.cdr.markForCheck();
+            },
+        });
+    }
+
+    loadLog(paymentOrderId: number) {
+        this.paymentService.getLogNew(paymentOrderId).subscribe({
+            next: (response: any) => {
+                this.datasetLog = (response.data || []).map((item: any) => ({ ...item, id: item.ID }));
+                this.cdr.markForCheck();
+            },
+            error: () => {
+                this.datasetLog = [];
                 this.cdr.markForCheck();
             },
         });
@@ -1007,7 +1074,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
         paymentOrder.IsSpecialOrder = this.activeTab == '1';
 
         if (!paymentOrder.IsSpecialOrder) {
-            const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
+            const modalRef = this.modalService.open(PaymentOrderDetailOldComponent, {
                 centered: true,
                 size: 'xl',
                 backdrop: 'static',
@@ -1053,10 +1120,20 @@ export class PaymentOrderEmployeeComponent implements OnInit {
 
     onRowSelect(event: any) {
         this.selectedItem = event;
+        this.activeDetailTab = '0';
+        this.datasetLog = [];
         if (this.selectedItem && this.selectedItem.ID) {
             this.loadDetail(this.selectedItem.ID);
         }
         this.cdr.markForCheck();
+    }
+
+    onDetailTabChange(value: string | number | undefined) {
+        const v = String(value ?? '');
+        this.activeDetailTab = v;
+        if (v === '1' && this.selectedItem?.ID) {
+            this.loadLog(this.selectedItem.ID);
+        }
     }
 
     tabValueChange(event: any) {

@@ -320,14 +320,14 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
       Note: "",
       IsDeleted: true
     }));
-    const assetManagements = rows.map(item => ({
-      ID: item.AssetManagementID,
-      IsAllocation: true,
-      StatusID: 1,
-      Status: "Chưa sử dụng",
-      EmployeeID: this.dataInput.EmployeeRecoveryID,
+    // const assetManagements = rows.map(item => ({
+    //   ID: item.AssetManagementID,
+    //   IsAllocation: true,
+    //   StatusID: 1,
+    //   Status: "Chưa sử dụng",
+    //   EmployeeID: this.dataInput.EmployeeRecoveryID,
 
-    }));
+    // }));
     const payloadRecovery = {
       tSAssetRecovery: {
         ID: this.dataInput.ID || 0,
@@ -340,7 +340,7 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
         IsApproveAccountant: false,
         IsApprovedPersonalProperty: false
       },
-      tSAssetManagements: assetManagements,
+      //   tSAssetManagements: assetManagements,
       TSAssetRecoveryDetails: [
         ...detailPayload,
         ...deletedDetailPayload

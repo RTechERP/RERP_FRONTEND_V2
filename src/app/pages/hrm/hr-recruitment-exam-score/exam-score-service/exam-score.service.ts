@@ -52,4 +52,11 @@ export class ExamScoreService {
   getCandidateScoreMatrix(hiringRequestID: number): Observable<any> {
     return this.http.get<any>(this.apiUrl + `get-candidate-score-matrix?hiringRequestID=${hiringRequestID}`);
   }
+
+  /**
+   * Đánh giá kết quả ứng viên (Đạt/Không đạt)
+   */
+  evaluateCandidateResult(data: { HRRecruitmentCandidateID: number, Status: number }): Observable<any> {
+    return this.http.post<any>(this.apiUrl + 'evaluate-candidate-result', data);
+  }
 }

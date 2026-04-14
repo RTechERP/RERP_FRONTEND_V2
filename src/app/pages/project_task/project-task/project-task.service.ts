@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { IAPIResponse } from '../../../models/kanban.interface';
+import { IAPIResponse, IProjectTaskEmailBand, IProjectTaskSetting } from '../../../models/kanban.interface';
 import * as ExcelJS from 'exceljs';
 import { Table } from 'primeng/table';
 import { DateTime } from 'luxon';
@@ -49,6 +49,34 @@ export interface ProjectTaskItem {
     PercentOverTime?: number | null;
     AsigneeEmployeeID?: number | null;
     AsigneeEmployeeFullName?: string | null;
+    ProjectTaskColor?: string | null;
+    CompletionRating?: number | null;
+    ReviewCompletionRating?: number | null;
+    TotalActualHours?: number | null;
+    IsCheck?: boolean | null;
+    Deadline?: string | Date | null;
+    ProjectTaskTypeID?: number | null;
+    TypeProjectItem?: number | null;
+
+    // Additional fields from sample JSON
+    STT?: number | null;
+    UserID?: number | null;
+    Note?: string | null;
+    TotalDayPlan?: number | null;
+    PercentItem?: number | null;
+    TotalDayActual?: number | null;
+    ItemLate?: boolean | number | null;
+    TimeSpan?: any | null;
+    PercentageActual?: number | null;
+    UpdatedDateActual?: string | Date | null;
+    IsUpdateLate?: boolean | null;
+    ReasonLate?: string | null;
+    UpdatedDateReasonLate?: string | Date | null;
+    IsApprovedLate?: number | null;
+    EmployeeRequestID?: number | null;
+    EmployeeRequestName?: string | null;
+    Location?: string | null;
+    EmployeeCreateID?: number | null;
 }
 
 export interface ProjectTaskResponse {
@@ -180,5 +208,28 @@ export class ProjectTaskService {
         a.download = `${fileName}_${DateTime.now().toFormat('ddMMyyyy')}.xlsx`;
         a.click();
         window.URL.revokeObjectURL(url);
+    }
+
+    getEmailBandData(): Observable<IAPIResponse<IProjectTaskSetting>> {
+        return this.http.get<IAPIResponse<IProjectTaskSetting>>(`${this.apiUrl}/email-band`);
+    }
+
+    saveEmailBandData(
+        sendMailCreate: boolean,
+        sendFinish: boolean,
+        sendApprove: boolean
+    ): Observable<IAPIResponse<IProjectTaskSetting>> {
+        const params = new HttpParams()
+            .set('SendMailCreateProjectTask', sendMailCreate.toString())
+            .set('SendFinishProjectTask', sendFinish.toString())
+            .set('SendApproveProjectTask', sendApprove.toString());
+        return this.http.post<IAPIResponse<IProjectTaskSetting>>(`${this.apiUrl}/email-band`, {}, { params });
+    }
+
+    saveAttendance(projectTaskID: number, isCheck: boolean): Observable<IAPIResponse<any>> {
+        const params = new HttpParams()
+            .set('projectTaskID', projectTaskID.toString())
+            .set('isCheck', isCheck.toString());
+        return this.http.post<IAPIResponse<any>>(`${this.apiUrl}/attendance`, {}, { params });
     }
 }

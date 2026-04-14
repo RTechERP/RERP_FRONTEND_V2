@@ -215,7 +215,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             }
         });
 
-        
+
     }
     getQuantityApprove() {
         return this.approveTpService.getQuantityApprove().pipe(
@@ -361,7 +361,6 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         return this.menuService.getCompMenus('').pipe(
             tap(menus => {
                 // this.menuComps = menus;
-
                 this.menus = menus;
                 // console.log('this.menus:', this.menus);
 
@@ -372,10 +371,20 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                     (item: any) => (item.isPermission || false) === false
                 );
                 // console.log('hasMenuApprovePermission', this.hasMenuApprovePermission);
-
                 var pesons = this.menus.find((x) => x.key == 'person');
+                var tasks = this.menus.find((x) => x.key == 'M03');// Công việc
                 this.menuPersons = pesons.children.filter((x: any) => menuPersonCodes.includes(x.key));
-                this.menuWeekplans = pesons.children.find((x: any) => x.key == 'planweek');
+                const menuWeekplans = pesons.children.find((x: any) => x.key === 'planweek');
+                const menuProjectTask = tasks.children.find((x: any) => x.key === 'M10005');
+
+                if (menuWeekplans && menuProjectTask) {
+                    menuWeekplans.children = menuWeekplans.children || [];
+
+                    menuProjectTask.children.forEach((item: any) => {
+                        menuWeekplans.children.push({ ...item });
+                    });
+                }
+                this.menuWeekplans = menuWeekplans;
                 this.menuQickAcesss = this.menus.find((x) => x.key == 'M4');
             }),
             catchError((err) => {

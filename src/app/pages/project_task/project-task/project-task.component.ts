@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, TemplateRef, ChangeDetectorRef, signal, computed, ElementRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -6,6 +7,9 @@ import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzRateModule } from 'ng-zorro-antd/rate';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { forkJoin } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -23,7 +27,7 @@ import { PrimeNG } from 'primeng/config';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { ContextMenuModule } from 'primeng/contextmenu';
 import { MenuItem } from 'primeng/api';
-
+import { AppUserService } from '../../../services/app-user.service';
 import { ProjectTaskService, ProjectTaskItem } from './project-task.service';
 
 type TabType = 'all' | 'assigned' | 'related' | 'myApproval';
@@ -38,6 +42,9 @@ type TabType = 'all' | 'assigned' | 'related' | 'myApproval';
     NzModalModule,
     NzInputModule,
     NzToolTipModule,
+    NzRateModule,
+    NzSwitchModule,
+    NzDrawerModule,
 
     ButtonModule,
     TableModule,
@@ -59,12 +66,17 @@ export class ProjectTaskComponent implements OnInit {
 
   // Approval modal state
   approveReviewText: string = '';
+  approveCompletionRating: number = 5;
   rejectReviewText: string = '';
   rejectReviewError: boolean = false;
   isApproving: boolean = false;
   isOpeningDetail: boolean = false; // Guard against spam-click opening multiple modals
   selectedTaskForCopy: ProjectTaskItem | null = null;
   contextMenuItems: MenuItem[] = [];
+
+  // Mobile drawer state
+  isMobileMenuOpen: boolean = false;
+
 
   // RemoveSort state
   initialTasks: ProjectTaskItem[] = [];  // lưu thứ tự gốc (ID giảm dần)
@@ -86,8 +98,18 @@ export class ProjectTaskComponent implements OnInit {
     private primeNG: PrimeNG,
     private filterService: FilterService,
     private ngbModal: NgbModal,
-    private el: ElementRef
+    private el: ElementRef,
+    private appUserService: AppUserService,
+    private router: Router
   ) { }
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+  }
 
   // Data signals
   allTasks = signal<ProjectTaskItem[]>([]);
@@ -99,19 +121,26 @@ export class ProjectTaskComponent implements OnInit {
   totalRecords = signal<number>(0);
 
   statusOptions = [
-    { label: 'Chưa làm', value: 1 },
-    { label: 'Đang làm', value: 2 },
-    { label: 'Đang làm quá hạn', value: 21 },
-    { label: 'Hoàn thành', value: 3 },
-    { label: 'Hoàn thành quá hạn', value: 31 },
-    { label: 'Đã duyệt', value: 32 },
-    { label: 'Đã hủy duyệt', value: 33 },
-    { label: 'Pending', value: 4 }
+    { label: 'Chưa làm', value: 0 },
+    { label: 'Đang làm', value: 1 },
+    { label: 'Đang làm quá hạn', value: 11 },
+    { label: 'Hoàn thành', value: 2 },
+    { label: 'Hoàn thành quá hạn', value: 21 },
+    { label: 'Đã duyệt', value: 22 },
+    { label: 'Đã hủy duyệt', value: 23 },
+    { label: 'Pending', value: 3 }
   ];
 
-  // Computed: only tasks eligible for approval (Status=3, not yet reviewed)
+  // MultiSelect filter options (built from loaded data)
+  projectOptions: { label: string, value: string }[] = [];
+  assignerOptions: { label: string, value: string }[] = [];
+  assigneeOptions: { label: string, value: string }[] = [];
+  deptAssignerOptions: { label: string, value: string }[] = [];
+  deptAssigneeOptions: { label: string, value: string }[] = [];
+
+  // Computed: only tasks eligible for approval (Status=2, not yet reviewed)
   pendingTasks = computed(() => this.filteredTasks().filter(t =>
-    t.Status === 3 && t.IsApproved !== 2 && t.IsApproved !== 3
+    t.Status === 2 && t.IsApproved !== 2 && t.IsApproved !== 3
   ));
 
   // Computed: are all pending tasks selected?
@@ -235,8 +264,13 @@ export class ProjectTaskComponent implements OnInit {
   ngOnInit() {
     this.setVietnameseLocale();
     this.registerCustomFilters();
+    this.currentUserId.set(this.appUserService.employeeID || 0);
     this.loadTasks();
     this.loadTaskTypes();
+  }
+
+  goToSettings(): void {
+    this.router.navigate(['/project-task-setting']);
   }
 
   loadTaskTypes(): void {
@@ -276,6 +310,48 @@ export class ProjectTaskComponent implements OnInit {
         return true;
       }
       return !!value === filter;
+    });
+
+    this.filterService.register('isCheck', (value: any, filter: any): boolean => {
+      if (filter === undefined || filter === null || filter === '') {
+        return true;
+      }
+      if (filter === true) {
+        return !!value;
+      }
+      return !value; // This covers false, null, and undefined
+    });
+
+    this.filterService.register('actualRatio', (value: any, filter: any): boolean => {
+      if (filter === undefined || filter === null || filter.trim() === '') {
+        return true;
+      }
+      if (value === undefined || value === null) {
+        return false;
+      }
+
+      const numValue = Number(value);
+      if (filter === 'under') {
+        return numValue <= 100;
+      }
+      if (filter === 'over') {
+        return numValue > 100;
+      }
+      return true;
+    });
+
+    this.filterService.register('actualHours', (value: any, filter: any): boolean => {
+      if (filter === undefined || filter === null || filter.trim() === '') {
+        return true;
+      }
+      const numValue = value ? Number(value) : 0;
+      if (filter === 'hasHours') {
+        return numValue > 0;
+      }
+      if (filter === 'noHours') {
+        return numValue === 0;
+      }
+      return true;
     });
   }
 
@@ -359,6 +435,9 @@ export class ProjectTaskComponent implements OnInit {
           .map((t: any) => ({
             ...t,
             ProjectFullName: `${t.ProjectCode || ''} - ${t.ProjectName || ''}`,
+            ProjectSearchText: `${t.ProjectCode || ''} ${t.ProjectName || ''}`,
+            TaskSearchText: `${t.Code || ''} ${t.Mission || ''}`,
+            ParentSearchText: `${t.ParentCode || ''} ${t.ParentTitle || ''}`,
             DisplayStatus: this.computeDisplayStatus(t),
             // Use ParentCode from API instead of manual lookup
             ParentCode: (t.ParentCode || '').trim(),
@@ -366,7 +445,9 @@ export class ProjectTaskComponent implements OnInit {
             PlanStartDate: t.PlanStartDate ? new Date(t.PlanStartDate) : null,
             PlanEndDate: t.PlanEndDate ? new Date(t.PlanEndDate) : null,
             ActualStartDate: t.ActualStartDate ? new Date(t.ActualStartDate) : null,
-            ActualEndDate: t.ActualEndDate ? new Date(t.ActualEndDate) : null
+            ActualEndDate: t.ActualEndDate ? new Date(t.ActualEndDate) : null,
+            Deadline: t.Deadline ? new Date(t.Deadline) : null,
+            ActualPlannedRatio: this.calculateActualPlannedRatio(t)
           }));
 
         this.allTasks.set(tasks);
@@ -374,6 +455,7 @@ export class ProjectTaskComponent implements OnInit {
         this.isSorted = null;
         this.currentUserId.set(response.UserID || 0);
         this.totalRecords.set(tasks.length);
+        this.buildFilterOptions(tasks);
         this.loading.set(false);
       },
       error: (err) => {
@@ -382,6 +464,43 @@ export class ProjectTaskComponent implements OnInit {
         this.message.error('Không thể tải danh sách công việc');
       }
     });
+  }
+
+  private buildFilterOptions(tasks: any[]): void {
+    // Dự án: chỉ hiện mã
+    const projectSet = new Set<string>();
+    tasks.forEach(t => { if (t.ProjectCode) projectSet.add(t.ProjectCode); });
+    this.projectOptions = Array.from(projectSet)
+      .sort()
+      .map(code => ({ label: code, value: code }));
+
+    // Người giao việc
+    const assignerSet = new Set<string>();
+    tasks.forEach(t => { if (t.FullName) assignerSet.add(t.FullName); });
+    this.assignerOptions = Array.from(assignerSet)
+      .sort()
+      .map(name => ({ label: name, value: name }));
+
+    // Người nhận việc
+    const assigneeSet = new Set<string>();
+    tasks.forEach(t => { if (t.AsigneeEmployeeFullName) assigneeSet.add(t.AsigneeEmployeeFullName); });
+    this.assigneeOptions = Array.from(assigneeSet)
+      .sort()
+      .map(name => ({ label: name, value: name }));
+
+    // Phòng ban giao
+    const deptAssignerSet = new Set<string>();
+    tasks.forEach(t => { if (t.DepartmentAssignerName) deptAssignerSet.add(t.DepartmentAssignerName); });
+    this.deptAssignerOptions = Array.from(deptAssignerSet)
+      .sort()
+      .map(name => ({ label: name, value: name }));
+
+    // Phòng ban nhận
+    const deptAssigneeSet = new Set<string>();
+    tasks.forEach(t => { if (t.DepartmentAssigneeName) deptAssigneeSet.add(t.DepartmentAssigneeName); });
+    this.deptAssigneeOptions = Array.from(deptAssigneeSet)
+      .sort()
+      .map(name => ({ label: name, value: name }));
   }
 
   setActiveTab(tab: TabType): void {
@@ -398,61 +517,89 @@ export class ProjectTaskComponent implements OnInit {
 
   // ========== TRẠNG THÁI GỘP (Status + ReviewStatus + Quá hạn) ==========
   // Mã trạng thái mới:
-  // 1  = Chưa làm
-  // 2  = Đang làm
-  // 21 = Đang làm quá hạn
-  // 3  = Hoàn thành
-  // 31 = Hoàn thành quá hạn
-  // 32 = Đã duyệt (Hoàn thành + IsApproved=2)
-  // 33 = Đã hủy duyệt (Hoàn thành + IsApproved=3)
-  // 4  = Pending
+  // 0  = Chưa làm
+  // 1  = Đang làm
+  // 11 = Đang làm quá hạn
+  // 2  = Hoàn thành
+  // 21 = Hoàn thành quá hạn
+  // 22 = Đã duyệt (Hoàn thành + IsApproved=2)
+  // 23 = Đã hủy duyệt (Hoàn thành + IsApproved=3)
+  // 3  = Pending
 
   computeDisplayStatus(task: any): number {
     const isOverdue = this.isTaskOverdue(task);
 
     // Hoàn thành + đã duyệt
-    if (task.Status === 3 && task.IsApproved === 2) return 32;
+    if (task.Status === 2 && task.IsApproved === 2) return 22;
     // Hoàn thành + hủy duyệt
-    if (task.Status === 3 && task.IsApproved === 3) return 33;
+    if (task.Status === 2 && task.IsApproved === 3) return 23;
     // Hoàn thành + quá hạn (chưa duyệt/hủy)
-    if (task.Status === 3 && isOverdue) return 31;
-    // Hoàn thành bình thường
-    if (task.Status === 3) return 3;
-    // Đang làm + quá hạn
     if (task.Status === 2 && isOverdue) return 21;
-    // Đang làm
+    // Hoàn thành bình thường
     if (task.Status === 2) return 2;
+    // Đang làm + quá hạn
+    if (task.Status === 1 && isOverdue) return 11;
+    // Đang làm
+    if (task.Status === 1) return 1;
     // Pending
-    if (task.Status === 4) return 4;
+    if (task.Status === 3) return 3;
     // Chưa làm
-    return 1;
+    return 0;
   }
 
   // Kiểm tra quá hạn
   private isTaskOverdue(task: any): boolean {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
+
     const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
+    if (planEnd) planEnd.setHours(0, 0, 0, 0);
+
     const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
+    if (dueDate) dueDate.setHours(0, 0, 0, 0);
 
     // Ngày KT thực tế > Ngày KT dự kiến → Quá hạn
     if (dueDate && planEnd && dueDate > planEnd) return true;
+    
     // Ngày KT thực tế null, Ngày KT dự kiến < hôm nay, status khác Pending → Quá hạn
-    if (!dueDate && planEnd && planEnd < now && task.Status !== 4) return true;
+    if (!dueDate && planEnd && planEnd < now && task.Status !== 3) return true;
+    
     return false;
+  }
+
+  // Tính tỷ lệ % thời gian thực tế / kế hoạch
+  calculateActualPlannedRatio(task: any): number {
+    if (!task.TotalActualHours || !task.PlanStartDate || !task.PlanEndDate) {
+      return 0;
+    }
+
+    const start = new Date(task.PlanStartDate);
+    const end = new Date(task.PlanEndDate);
+
+    // Đặt giờ về 0 để tính số ngày trọn vẹn
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    const diffMs = end.getTime() - start.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+
+    if (diffDays <= 0) return 0;
+
+    const plannedHours = diffDays * 8;
+    return (task.TotalActualHours / plannedHours) * 100;
   }
 
   getDisplayStatus(task: any): { label: string; severity: 'info' | 'success' | 'danger' | 'warn' | 'secondary' | 'contrast' | undefined } {
     const ds = task.DisplayStatus ?? task.Status;
     switch (ds) {
-      case 1: return { label: 'Chưa làm', severity: 'secondary' };
-      case 2: return { label: 'Đang làm', severity: 'info' };
-      case 21: return { label: 'Đang làm quá hạn', severity: 'danger' };
-      case 3: return { label: 'Hoàn thành', severity: 'success' };
-      case 31: return { label: 'Hoàn thành quá hạn', severity: 'warn' };
-      case 32: return { label: 'Đã duyệt', severity: 'success' };
-      case 33: return { label: 'Đã hủy duyệt', severity: 'danger' };
-      case 4: return { label: 'Pending', severity: 'warn' };
+      case 0: return { label: 'Chưa làm', severity: 'secondary' };
+      case 1: return { label: 'Đang làm', severity: 'info' };
+      case 11: return { label: 'Đang làm quá hạn', severity: 'danger' };
+      case 2: return { label: 'Hoàn thành', severity: 'success' };
+      case 21: return { label: 'Hoàn thành quá hạn', severity: 'warn' };
+      case 22: return { label: 'Đã duyệt', severity: 'success' };
+      case 23: return { label: 'Đã hủy duyệt', severity: 'danger' };
+      case 3: return { label: 'Pending', severity: 'warn' };
       default: return { label: 'Chưa xác định', severity: 'secondary' };
     }
   }
@@ -462,7 +609,7 @@ export class ProjectTaskComponent implements OnInit {
     if (this.activeTab() !== 'myApproval') return false;
     const ds = task.DisplayStatus;
     // Hiển thị khi Hoàn thành hoặc Hoàn thành quá hạn (chưa duyệt/hủy)
-    return ds === 3 || ds === 31;
+    return ds === 2 || ds === 21;
   }
   // Default date helpers
   private formatDateForInput(d: Date): string {
@@ -502,6 +649,7 @@ export class ProjectTaskComponent implements OnInit {
   // Duyệt đơn lẻ
   approveTask(task: ProjectTaskItem): void {
     this.approveReviewText = '';
+    this.approveCompletionRating = 5;
     this.modal.create({
       nzTitle: 'Xác nhận duyệt công việc',
       nzContent: this.approveModalTpl,
@@ -509,14 +657,17 @@ export class ProjectTaskComponent implements OnInit {
       nzCancelText: 'Hủy',
       nzOkDanger: false,
       nzOnOk: () => {
+        if (!this.approveCompletionRating || this.approveCompletionRating < 1) {
+          this.message.error('Vui lòng đánh giá tối thiểu 1 sao');
+          return;
+        }
         this.isApproving = true;
         return new Promise<void>((resolve, reject) => {
-          this.kanbanService.approveTask([task.ID], true, this.approveReviewText).subscribe({
+          this.kanbanService.approveTask([task.ID], true, this.approveReviewText, this.approveCompletionRating).subscribe({
             next: () => {
-              task.IsApproved = 2;
-              task.DisplayStatus = this.computeDisplayStatus(task);
               this.message.success(`Đã duyệt công việc "${task.Mission}"`);
               this.isApproving = false;
+              this.loadTasks();
               resolve();
             },
             error: () => {
@@ -550,10 +701,9 @@ export class ProjectTaskComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask([task.ID], false, this.rejectReviewText).subscribe({
             next: () => {
-              task.IsApproved = 3;
-              task.DisplayStatus = this.computeDisplayStatus(task);
               this.message.warning(`Đã từ chối công việc "${task.Mission}"`);
               this.isApproving = false;
+              this.loadTasks();
               resolve();
             },
             error: () => {
@@ -575,6 +725,7 @@ export class ProjectTaskComponent implements OnInit {
       return;
     }
     this.approveReviewText = '';
+    this.approveCompletionRating = 5;
     this.modal.create({
       nzTitle: `Duyệt ${selected.length} công việc`,
       nzContent: this.approveModalTpl,
@@ -582,18 +733,19 @@ export class ProjectTaskComponent implements OnInit {
       nzCancelText: 'Hủy',
       nzOkDanger: false,
       nzOnOk: () => {
+        if (!this.approveCompletionRating || this.approveCompletionRating < 1) {
+          this.message.error('Vui lòng đánh giá tối thiểu 1 sao');
+          return;
+        }
         const ids = selected.map(t => t.ID);
         this.isApproving = true;
         return new Promise<void>((resolve, reject) => {
-          this.kanbanService.approveTask(ids, true, this.approveReviewText).subscribe({
+          this.kanbanService.approveTask(ids, true, this.approveReviewText, this.approveCompletionRating).subscribe({
             next: () => {
-              selected.forEach(t => {
-                t.IsApproved = 2;
-                t.DisplayStatus = this.computeDisplayStatus(t);
-              });
               this.selectedTasks.set([]);
               this.message.success(`Đã duyệt ${selected.length} công việc`);
               this.isApproving = false;
+              this.loadTasks();
               resolve();
             },
             error: () => {
@@ -633,13 +785,10 @@ export class ProjectTaskComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask(ids, false, this.rejectReviewText).subscribe({
             next: () => {
-              selected.forEach(t => {
-                t.IsApproved = 3;
-                t.DisplayStatus = this.computeDisplayStatus(t);
-              });
               this.selectedTasks.set([]);
               this.message.warning(`Đã từ chối ${selected.length} công việc`);
               this.isApproving = false;
+              this.loadTasks();
               resolve();
             },
             error: () => {
@@ -663,6 +812,24 @@ export class ProjectTaskComponent implements OnInit {
     }
   }
 
+  toggleAttendance(task: ProjectTaskItem): void {
+    if (this.activeTab() !== 'assigned') return;
+    const newStatus = !task.IsCheck;
+    this.projectTaskService.saveAttendance(task.ID, newStatus).subscribe({
+      next: (res) => {
+        if (res.status === 200 || res.status === 1) {
+          this.message.success(`${newStatus ? 'Đã điểm danh' : 'Đã hủy điểm danh'} thành công`);
+          this.loadTasks();
+        } else {
+          this.message.error(res.message || 'Lỗi khi cập nhật trạng thái điểm danh');
+        }
+      },
+      error: () => {
+        this.message.error('Lỗi khi gửi yêu cầu điểm danh');
+      }
+    });
+  }
+
   // ========== EXPORT EXCEL ==========
   async exportToExcel() {
     const getStatusExcelStyle = (task: any) => {
@@ -671,14 +838,14 @@ export class ProjectTaskComponent implements OnInit {
       let fontColor = '000000'; // Default black
 
       switch (ds) {
-        case 1: color = '6C757D'; fontColor = 'FFFFFF'; break; // Grey
-        case 2: color = '17A2B8'; fontColor = 'FFFFFF'; break; // Blue
-        case 21: color = 'DC3545'; fontColor = 'FFFFFF'; break; // Red
-        case 3: color = '28A745'; fontColor = 'FFFFFF'; break; // Green
-        case 31: color = 'FFC107'; fontColor = '000000'; break; // Orange/Yellow
-        case 32: color = '28A745'; fontColor = 'FFFFFF'; break; // Green
-        case 33: color = 'DC3545'; fontColor = 'FFFFFF'; break; // Red
-        case 4: color = 'FFC107'; fontColor = '000000'; break; // Orange/Yellow
+        case 0: color = '6C757D'; fontColor = 'FFFFFF'; break; // Grey
+        case 1: color = '17A2B8'; fontColor = 'FFFFFF'; break; // Blue
+        case 11: color = 'DC3545'; fontColor = 'FFFFFF'; break; // Red
+        case 2: color = '28A745'; fontColor = 'FFFFFF'; break; // Green
+        case 21: color = 'FFC107'; fontColor = '000000'; break; // Orange/Yellow
+        case 22: color = '28A745'; fontColor = 'FFFFFF'; break; // Green
+        case 23: color = 'DC3545'; fontColor = 'FFFFFF'; break; // Red
+        case 3: color = 'FFC107'; fontColor = '000000'; break; // Orange/Yellow
       }
 
       return {
@@ -705,15 +872,31 @@ export class ProjectTaskComponent implements OnInit {
         map: (val: any) => val ? 'Cá nhân' : 'Dự án'
       },
       { header: 'Loại công việc', field: 'ProjectTaskTypeName' },
+      { header: 'Điểm danh', field: 'IsCheck', type: 'boolean' },
       { header: 'Phát sinh', field: 'IsAdditional', type: 'boolean' },
       { header: 'Phức tạp', field: 'TaskComplexity' },
-      { header: '% Quá hạn', field: 'PercentOverTime' },
+      { header: 'Thời gian thực tế', field: 'TotalActualHours' },
+      { 
+        header: '% TG thực tế/KH', 
+        field: 'ActualPlannedRatioValue', // Use a separate field for raw value
+        cellStyle: (item: any) => {
+          if (item.ActualPlannedRatio > 100) {
+            return { font: { color: { argb: 'FFFF4D4F' }, bold: true } };
+          }
+          return {};
+        }
+      },
+      { 
+        header: '% Quá hạn', 
+        field: 'PercentOverTimeValue' // Use a separate field for raw value
+      },
       { header: 'Ngày BĐ dự kiến', field: 'PlanStartDate', type: 'date' },
       { header: 'Ngày KT dự kiến', field: 'PlanEndDate', type: 'date' },
       { header: 'Ngày BĐ thực tế', field: 'ActualStartDate', type: 'date' },
       { header: 'Ngày KT thực tế', field: 'ActualEndDate', type: 'date' },
       { header: 'Phòng ban giao', field: 'DepartmentAssignerName' },
-      { header: 'Phòng ban nhận', field: 'DepartmentAssigneeName' }
+      { header: 'Phòng ban nhận', field: 'DepartmentAssigneeName' },
+      { header: 'Đánh giá (Review)', field: 'ReviewCompletionRating' }
     ];
 
     // Lấy dữ liệu hiện tại từ Table (bao gồm cả Sort và Filter)
@@ -723,7 +906,9 @@ export class ProjectTaskComponent implements OnInit {
     const dataForExport = currentTableData.map((t: any) => {
       const mappedTask = {
         ...t,
-        DisplayStatusLabel: this.getDisplayStatus(t).label
+        DisplayStatusLabel: this.getDisplayStatus(t).label,
+        ActualPlannedRatioValue: t.ActualPlannedRatio != null ? Math.round(t.ActualPlannedRatio) : 0,
+        PercentOverTimeValue: t.PercentOverTime != null ? Math.round(t.PercentOverTime * 100) : 0
       };
 
       // Áp dụng custom map cho các cột nếu có
@@ -860,7 +1045,7 @@ export class ProjectTaskComponent implements OnInit {
             ...fullTask,
             ID: undefined,
             Code: undefined,
-            Status: 1,
+            Status: 0,
             IsApproved: 0,
             ActualStartDate: undefined,
             ActualEndDate: undefined,
@@ -992,31 +1177,64 @@ export class ProjectTaskComponent implements OnInit {
     this.totalRecords.set(event.filteredValue.length);
   }
 
-  // Right-click context menu for cell copy
-  onCellContextMenu(event: MouseEvent, cm: any): void {
+  // Right-click context menu for cell actions
+  onCellContextMenu(event: MouseEvent, cm: any, task: ProjectTaskItem): void {
     const target = event.target as HTMLElement;
     const cell = target.closest('td');
     if (cell) {
       const text = (cell.innerText || '').trim();
+
+      this.contextMenuItems = [];
+
+      // Copy option (if text exists)
       if (text && text !== '-') {
-        this.contextMenuItems = [
-          {
-            label: `Copy: ${text.length > 30 ? text.substring(0, 30) + '...' : text}`,
-            icon: 'pi pi-copy',
-            command: () => {
-              navigator.clipboard.writeText(text).then(() => {
-                this.message.success('Đã copy vào clipboard');
-              }).catch(err => {
-                console.error('Copy failed:', err);
-                this.message.error('Không thể copy nội dung');
-              });
-            }
+        this.contextMenuItems.push({
+          label: `Copy nội dung`,
+          icon: 'pi pi-copy',
+          command: () => {
+            navigator.clipboard.writeText(text).then(() => {
+              this.message.success('Đã copy vào clipboard');
+            }).catch(err => {
+              console.error('Copy failed:', err);
+              this.message.error('Không thể copy nội dung');
+            });
           }
-        ];
+        });
+      }
+
+      // Attendance option
+      if (this.activeTab() === 'assigned') {
+        this.contextMenuItems.push({
+          label: `Điểm danh công việc`,
+          icon: 'pi pi-user-edit',
+          command: () => {
+            this.saveAttendance(task);
+          }
+        });
+      }
+
+      if (this.contextMenuItems.length > 0) {
         cm.show(event);
       }
     }
     event.preventDefault();
     event.stopPropagation();
+  }
+
+  saveAttendance(task: ProjectTaskItem) {
+    if (this.activeTab() !== 'assigned') return;
+    this.projectTaskService.saveAttendance(task.ID, true).subscribe({
+      next: (res) => {
+        if (res.status === 200 || res.status === 1) {
+          this.message.success('Điểm danh công việc thành công');
+          this.loadTasks();
+        } else {
+          this.message.error(res.message || 'Lỗi khi điểm danh công việc');
+        }
+      },
+      error: () => {
+        this.message.error('Lỗi khi gửi yêu cầu điểm danh');
+      }
+    });
   }
 }

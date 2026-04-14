@@ -13,30 +13,41 @@
         <div class="col-md-4 p-0 border-right h-100 overflow-auto">
             <p-table [value]="uniqueHiringRequests" selectionMode="single" [(selection)]="selectedHiringRequest"
                 dataKey="HiringRequestID" (onRowSelect)="onHiringRequestSelect($event)"
-                styleClass="p-datatable-sm p-datatable-gridlines" [loading]="loading">
+                styleClass="p-datatable-sm p-datatable-gridlines" [loading]="loading"
+                [(contextMenuSelection)]="selectedRow" [contextMenu]="cm" (onRowContextMenu)="onRowContextMenu($event)">
                 <ng-template pTemplate="header">
                     <tr>
-                        <th style="width: 100px">Trạng thái</th>
-                        <th>Vị trí</th>
-                        <!-- <th>Mã YCTD</th> -->
+                        <th style="width: 100px" pSortableColumn="IsActiveExam">Trạng thái<p-sortIcon
+                                field="IsActiveExam"></p-sortIcon></th>
+                        <th pSortableColumn="PositionName">Vị trí<p-sortIcon field="PositionName"></p-sortIcon></th>
+                        <th pSortableColumn="CreatedDate">Ngày tạo<p-sortIcon field="CreatedDate"></p-sortIcon></th>
                     </tr>
                     <tr>
                         <th></th>
                         <th><p-columnFilter type="text" field="PositionName" display="row" filterOn="input"
                                 matchMode="contains"></p-columnFilter>
                         </th>
-                        <!-- <th><p-columnFilter type="text" field="HiringRequestCode" display="row"></p-columnFilter></th> -->
+                        <th><p-columnFilter type="date" field="CreatedDate" display="row"></p-columnFilter></th>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-item>
-                    <tr [pSelectableRow]="item">
+                    <tr [pSelectableRow]="item" [pContextMenuRow]="item">
                         <td class="text-center">
                             <span [class]="item.IsActiveExam ? 'status-active' : 'status-inactive'">
                                 {{item.IsActiveExam ? 'Hoạt động' : 'Khóa'}}
                             </span>
                         </td>
                         <td>{{item.PositionName}}</td>
+                        <td>{{item.CreatedDate | date:'dd/MM/yyyy'}}</td>
                         <!-- <td class="font-weight-bold">{{item.HiringRequestCode}}</td> -->
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="3" class="text-center p-4">
+                            {{ selectedHiringRequest ? 'Không tìm thấy yêu cầu tuyển dụng nào.' : 'Vui lòng thêm yêu cầu
+                            tuyển dụng.' }}
+                        </td>
                     </tr>
                 </ng-template>
             </p-table>
@@ -46,8 +57,7 @@
         <div class="col-md-8 p-0 h-100 overflow-auto">
             <p-table #dtRight [value]="filteredExams" [(selection)]="selectedItems" dataKey="ID" [loading]="loading"
                 styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true" scrollHeight="flex"
-                [resizableColumns]="true" columnResizeMode="expand" (onSelectionChange)="onSelectionChange($event)"
-                [contextMenu]="cm" (onRowContextMenu)="onRowContextMenu($event)">
+                [resizableColumns]="true" columnResizeMode="expand" (onSelectionChange)="onSelectionChange($event)">
                 <ng-template pTemplate="header">
                     <tr>
                         <!-- <th style="width: 3rem">
@@ -62,7 +72,7 @@
                 </ng-template>
 
                 <ng-template pTemplate="body" let-item>
-                    <tr [pContextMenuRow]="item">
+                    <tr>
                         <!-- <td>
                             <p-tableCheckbox [value]="item"></p-tableCheckbox>
                         </td> -->
@@ -90,4 +100,4 @@
     </div>
 </div>
 
-<p-contextMenu #cm [model]="contextMenuItems"></p-contextMenu>
+<p-contextMenu #cm [model]="contextMenuItems" [appendTo]="'body'"></p-contextMenu>

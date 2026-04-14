@@ -113,30 +113,258 @@
             [class.without-search-bar]="!shouldShowSearchBar">
             <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
                 <nz-splitter nzLayout="vertical" style="height: 100%; flex: 1;">
-                    <!-- Bảng Master (ở trên) - 60% -->
+                    <!-- Bảng Master -->
                     <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="60%">
-                        <div class="grid-container" id="demo-container" style="height: 100%;">
-                            <angular-slickgrid gridId="grvAssetManagement" [columns]="columnDefinitions"
-                                [options]="gridOptions" [dataset]="dataset"
-                                (onAngularGridCreated)="angularGridReady($event.detail)"
-                                (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                                (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
-                            </angular-slickgrid>
+                        <div class="table-container" style="height: 100%;">
+                            <p-table #dt [value]="dataset" sortMode="multiple" dataKey="ID"
+                                [globalFilterFields]="['TSCodeNCC', 'TSAssetName', 'AssetCode', 'AssetType', 'Status']"
+                                selectionMode="multiple" [(selection)]="selectedRows" [selectionPageOnly]="true"
+                                (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect()"
+                                [scrollable]="true" scrollHeight="flex" [paginator]="true" [rows]="50"
+                                [rowsPerPageOptions]="[50, 100, 200, 500]" paginatorDropdownAppendTo="body"
+                                styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped">
+
+                                <ng-template pTemplate="header">
+                                    <tr>
+                                        <th style="width: 50px; min-width: 50px; max-width: 50px; text-align: center;">
+                                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                                        </th>
+                                        <th style="width: 50px; min-width: 50px; max-width: 50px; text-align: center;">
+                                            STT</th>
+                                        <th pSortableColumn="TSCodeNCC"
+                                            style="width: 80px; min-width: 80px; max-width: 80px; text-align: center;">
+                                            Mã tài sản <p-sortIcon field="TSCodeNCC"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="TSAssetName"
+                                            style="width: 200px; min-width: 200px; max-width: 200px; text-align: center;">
+                                            Tên tài sản <p-sortIcon field="TSAssetName"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="AssetCode"
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                            Mã loại <p-sortIcon field="AssetCode"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="AssetType"
+                                            style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
+                                            Tên loại <p-sortIcon field="AssetType"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="Status"
+                                            style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
+                                            Tình trạng <p-sortIcon field="Status"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="SpecificationsAsset"
+                                            style="width: 200px; min-width: 200px; max-width: 200px; text-align: center;">
+                                            Mô tả chi tiết <p-sortIcon field="SpecificationsAsset"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="UnitName"
+                                            style="width: 100px; min-width: 100px; max-width: 100px; text-align: center;">
+                                            Đơn vị <p-sortIcon field="UnitName"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="DepartmentName"
+                                            style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
+                                            Phòng ban <p-sortIcon field="DepartmentName"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="FullName"
+                                            style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
+                                            Người quản lý <p-sortIcon field="FullName"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="DateBuy"
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                            Thời gian mua <p-sortIcon field="DateBuy"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="DateEffect"
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                            Ngày hiệu lực <p-sortIcon field="DateEffect"></p-sortIcon>
+                                        </th>
+                                        <th
+                                            style="width: 250px; min-width: 250px; max-width: 250px; text-align: center;">
+                                            Ghi chú</th>
+                                    </tr>
+                                    <tr>
+                                        <th style="width: 50px; min-width: 50px; max-width: 50px;"></th>
+                                        <th style="width: 50px; min-width: 50px; max-width: 50px;"></th>
+                                        <th style="width: 80px; min-width: 80px; max-width: 80px;">
+                                            <p-columnFilter field="TSCodeNCC" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 200px; min-width: 200px; max-width: 200px;">
+                                            <p-columnFilter field="TSAssetName" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 120px; min-width: 120px; max-width: 120px;">
+                                            <p-columnFilter field="AssetCode" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 150px; min-width: 150px; max-width: 150px;">
+                                            <p-columnFilter field="AssetType" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 150px; min-width: 150px; max-width: 150px;">
+                                            <p-columnFilter field="Status" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 200px; min-width: 200px; max-width: 200px;">
+                                            <p-columnFilter field="SpecificationsAsset" matchMode="contains"
+                                                [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 100px; min-width: 100px; max-width: 100px;"></th>
+                                        <th style="width: 150px; min-width: 150px; max-width: 150px;">
+                                            <p-columnFilter field="DepartmentName" matchMode="contains"
+                                                [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 150px; min-width: 150px; max-width: 150px;">
+                                            <p-columnFilter field="FullName" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 120px; min-width: 120px; max-width: 120px;"></th>
+                                        <th style="width: 120px; min-width: 120px; max-width: 120px;"></th>
+                                        <th style="width: 250px; min-width: 250px; max-width: 250px;">
+                                            <p-columnFilter field="Note" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                    </tr>
+                                </ng-template>
+
+                                <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
+                                    <tr [pSelectableRow]="row">
+                                        <td style="width: 50px; min-width: 50px; max-width: 50px; text-align: center;">
+                                            <p-tableCheckbox [value]="row"></p-tableCheckbox>
+                                        </td>
+                                        <td style="width: 50px; min-width: 50px; max-width: 50px; text-align: center;">
+                                            {{ rowIndex + 1 }}</td>
+                                        <td style="width: 80px; min-width: 80px; max-width: 80px;" class="text-wrap">{{
+                                            row.TSCodeNCC }}</td>
+                                        <td style="width: 200px; min-width: 200px; max-width: 200px;" class="text-wrap">
+                                            {{ row.TSAssetName }}</td>
+                                        <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
+                                            {{ row.AssetCode }}</td>
+                                        <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
+                                            {{ row.AssetType }}</td>
+                                        <td
+                                            style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
+                                            <span class="badge" [style.background]="row.statusColor"
+                                                style="display: block; width: 100%; white-space: normal; padding: 6px;">
+                                                {{ row.Status }}
+                                            </span>
+                                        </td>
+                                        <td style="width: 200px; min-width: 200px; max-width: 200px;" class="text-wrap">
+                                            {{ row.SpecificationsAsset }}</td>
+                                        <td style="width: 100px; min-width: 100px; max-width: 100px;" class="text-wrap">
+                                            {{ row.UnitName }}</td>
+                                        <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
+                                            {{ row.Name }}</td>
+                                        <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
+                                            {{ row.FullName }}</td>
+                                        <td
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                            {{ row.DateBuy | date: 'dd/MM/yyyy' }}</td>
+                                        <td
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                            {{ row.DateEffect | date: 'dd/MM/yyyy' }}</td>
+                                        <td style="width: 250px; min-width: 250px; max-width: 250px;" class="text-wrap">
+                                            {{ row.Note }}</td>
+                                    </tr>
+                                </ng-template>
+
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td colspan="14" class="text-center p-3 text-muted">Không tìm thấy dữ liệu tài
+                                            sản.</td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
                         </div>
                     </nz-splitter-panel>
 
-                    <!-- Bảng Detail (ở dưới) - 40% -->
+                    <!-- Bảng Detail -->
                     <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="40%">
                         <div style="height: 100%; display: flex; flex-direction: column;">
                             <nz-tabset
                                 style="padding-left: 10px; flex: 1; display: flex; flex-direction: column; min-height: 0;">
                                 <nz-tab [nzTitle]="detailTabTitle" style="height: 100%;">
-                                    <div id="grid-container-detail" style="height: 100%; width: 100%;">
-                                        <angular-slickgrid gridId="grvAssetDetail" [columns]="columnDefinitionsDetail"
-                                            [options]="gridOptionsDetail" [dataset]="datasetDetail"
-                                            (onAngularGridCreated)="angularGridDetailReady($event.detail)">
-                                        </angular-slickgrid>
-                                    </div>
+                                    <p-table #dtDetail [value]="datasetDetail" [scrollable]="true" scrollHeight="flex"
+                                        styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped">
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th style="width: 140px; text-align: center;">Trạng thái</th>
+                                                <th style="width: 100px; text-align: center;">Mã NV</th>
+                                                <th style="width: 180px; text-align: center;">Họ và tên</th>
+                                                <th style="width: 150px; text-align: center;">Phòng ban</th>
+                                                <th style="width: 150px; text-align: center;">Chức vụ</th>
+                                                <th style="width: 120px; text-align: center;">Ngày cập nhật</th>
+                                                <th style="width: 200px; text-align: center;">Ghi chú</th>
+                                            </tr>
+                                        </ng-template>
+                                        <ng-template pTemplate="body" let-detail>
+                                            <tr>
+                                                <td style="width: 140px; text-align: center;">
+                                                    <span class="badge" [style.background]="detail.statusColor"
+                                                        style="display: block; width: 100%; white-space: normal; padding: 6px; font-weight: normal;">
+                                                        {{ detail.Status }}
+                                                    </span>
+                                                </td>
+                                                <td style="width: 100px;" class="text-wrap">{{ detail.Code }}</td>
+                                                <td style="width: 180px;" class="text-wrap">{{ detail.FullName }}</td>
+                                                <td style="width: 150px;" class="text-wrap">{{ detail.dpmName }}</td>
+                                                <td style="width: 150px;" class="text-wrap">{{ detail.CVName }}</td>
+                                                <td style="width: 120px; text-align: center;">{{ detail.UpdatedDate |
+                                                    date: 'dd/MM/yyyy' }}</td>
+                                                <td style="width: 200px;" class="text-wrap">{{ detail.Note }}</td>
+                                            </tr>
+                                        </ng-template>
+                                        <ng-template pTemplate="emptymessage">
+                                            <tr>
+                                                <td colspan="7" class="text-center p-2 text-muted">Vui lòng chọn tài sản
+                                                    để xem lịch sử cấp phát.</td>
+                                            </tr>
+                                        </ng-template>
+                                    </p-table>
                                 </nz-tab>
                             </nz-tabset>
                         </div>

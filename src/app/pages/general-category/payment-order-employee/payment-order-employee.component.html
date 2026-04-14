@@ -1,195 +1,309 @@
-<header class="page-header">
-    <!-- <div class="header-main">
-    <div class="action-group">
-      <button nz-button nzType="primary" class="btn-modern" (click)="onCreate()">
-        <i class="fa-solid fa-circle-plus"></i> Thêm mới
-      </button>
-      <button nz-button class="btn-modern" (click)="onEdit()">
-        <i class="fa-solid fa-file-pen text-primary"></i> Sửa
-      </button>
-      <button nz-button nzDanger class="btn-modern" (click)="onDelete()">
-        <i class="fa-solid fa-trash"></i> Xóa
-      </button>
-      <nz-divider nzType="vertical"></nz-divider>
-      <button nz-button class="btn-modern" (click)="loadData()">
-        <i class="fa-solid fa-arrows-rotate"></i> Tải lại
-      </button>
-      <button nz-button nzType="text" (click)="isAdvandShow = !isAdvandShow"
-        [title]="isAdvandShow ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'">
-        <i [class]="isAdvandShow ? 'fa-solid fa-chevron-up' : 'fa-solid fa-filter'"></i>
-      </button>
-    </div>
-  </div> -->
-    <p-menubar [model]="menuBars">
+<p-card class="w-100">
+  <!-- Menubar -->
+  <ng-template pTemplate="header">
+    <div class="p-1">
+      <p-menubar [model]="menuBars" class="p-0 border-0" style="width: 100%">
         <ng-template pTemplate="item" let-item>
-            <a class="p-menuitem-link" [ngClass]="item.styleClass">
-                <i [class]="item.icon"></i>
-                <span class="p-menuitem-text">{{ item.label }}</span>
-            </a>
+          <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+          </a>
         </ng-template>
         <ng-template #end>
-            <div class="flex items-center gap-2">
-                <button nz-button nzType="text" (click)="isAdvandShow = !isAdvandShow"
-                    [title]="isAdvandShow ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'">
-                    <i [class]="
-              isAdvandShow ? 'fa-solid fa-chevron-up' : 'fa-solid fa-filter'
-            "></i>
-                </button>
-                <button nz-button nzType="text" *ngIf="isMobile" (click)="isShowModal = true; $event.stopPropagation()"
-                    title="Tìm kiếm">
-                    <i class="fa-solid fa-filter"></i>
-                </button>
-            </div>
+          <div style="margin-left: auto; display: flex; align-items: center; gap: 4px;">
+            <button nz-button nzType="text" (click)="isAdvandShow = !isAdvandShow"
+              [title]="isAdvandShow ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'">
+              <i [class]="isAdvandShow ? 'fa-solid fa-chevron-up' : 'fa-solid fa-filter'"></i>
+            </button>
+            <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile"
+              (click)="isShowModal = true; $event.stopPropagation()">
+              <i nz-icon nzType="search"></i>
+            </button>
+          </div>
         </ng-template>
-    </p-menubar>
-
-    <div class="filter-bar animate-fade-in" *ngIf="isAdvandShow">
-        <div class="filter-item">
-            <label>Từ ngày</label>
-            <nz-date-picker [(ngModel)]="param.dateStart" nzFormat="dd/MM/yyyy" nzSize="small"
-                class="w-100"></nz-date-picker>
-        </div>
-        <div class="filter-item">
-            <label>Đến ngày</label>
-            <nz-date-picker [(ngModel)]="param.dateEnd" nzFormat="dd/MM/yyyy" nzSize="small"
-                class="w-100"></nz-date-picker>
-        </div>
-        <div class="filter-item">
-            <label>Tình trạng</label>
-            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.step" nzSize="small"
-                class="w-100">
-                @for (item of steps; track item) {
-                <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
-                }
-            </nz-select>
-        </div>
-        <div class="filter-item">
-            <label>Trạng thái</label>
-            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.isApproved" nzSize="small"
-                class="w-100">
-                @for (item of isApproveds; track item) {
-                <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
-                }
-            </nz-select>
-        </div>
-        <div class="filter-item">
-            <label>Loại</label>
-            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.typeOrder" nzSize="small"
-                class="w-100">
-                @for (item of typeOrders; track item) {
-                <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
-                }
-            </nz-select>
-        </div>
-        <div class="filter-item">
-            <label>Nội dung</label>
-            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.paymentOrderTypeID"
-                nzSize="small" class="w-100">
-                @for (item of paymentOrderTypes; track item) {
-                <nz-option [nzLabel]="item.TypeName" [nzValue]="item.ID"></nz-option>
-                }
-            </nz-select>
-        </div>
-        <div class="filter-item">
-            <label>Từ khóa</label>
-            <nz-input-group [nzSuffix]="suffixIconSearch" nzSize="small">
-                <input type="text" nz-input placeholder="Tìm kiếm từ khóa..." [(ngModel)]="param.keyword"
-                    (keyup.enter)="loadData()" />
-            </nz-input-group>
-            <ng-template #suffixIconSearch>
-                <span nz-icon nzType="search" (click)="loadData()" class="cursor-pointer text-gray-400"></span>
-            </ng-template>
-        </div>
+      </p-menubar>
     </div>
-</header>
+  </ng-template>
 
-<main class="flex-1 overflow-hidden">
-    <nz-splitter nzLayout="vertical" style="height: 100% !important">
-        <!-- Top Panel: Main Tables -->
-        <nz-splitter-panel nzMin="20%" [nzDefaultSize]="'60%'">
-            <div class="tabs-container panel-shadow">
-                <p-tabs [(value)]="activeTab" (valueChange)="tabValueChange($event)">
-                    <p-tablist>
-                        <p-tab value="0">ĐỀ NGHỊ THANH TOÁN</p-tab>
-                        <p-tab value="1">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
-                    </p-tablist>
-                    <p-tabpanels>
-                        <p-tabpanel value="0">
-                            <div class="grid-wrapper" *ngIf="activeTab === '0'">
-                                <app-custom-table [columns]="columnDefs" [headerGroups]="headerGroups" [data]="dataset"
-                                    [loading]="isLoading" [selectionMode]="'single'" [scrollable]="true"
-                                    [scrollHeight]="'flex'" [virtualScroll]="true" [virtualScrollItemSize]="34"
-                                    [textWrap]="true" [resizable]="true" [resizeMode]="'expand'" [minWidth]="'5500px'"
-                                    (selectionChange)="onRowSelect($event)" (rowDblClick)="onPrint($event)" dataKey="ID"
-                                    [showFooter]="true" [contextMenuItems]="contextMenu"></app-custom-table>
-                            </div>
-                        </p-tabpanel>
-                        <p-tabpanel value="1">
-                            <div class="grid-wrapper" *ngIf="activeTab === '1'">
-                                <app-custom-table [columns]="columnDefsSpecial" [data]="datasetSpecial"
-                                    [loading]="isLoading" [selectionMode]="'single'" [scrollable]="true"
-                                    [scrollHeight]="'flex'" [virtualScroll]="true" [virtualScrollItemSize]="34"
-                                    [textWrap]="true" [resizable]="true" [resizeMode]="'expand'" [minWidth]="'2500px'"
-                                    (selectionChange)="onRowSelect($event)" (rowDblClick)="onPrint($event)" dataKey="ID"
-                                    [showFooter]="true" [contextMenuItems]="contextMenu"></app-custom-table>
-                            </div>
-                        </p-tabpanel>
-                    </p-tabpanels>
-                </p-tabs>
+  <!-- Card body content -->
+  <div style="display: flex; flex-direction: column; height: calc(100vh - 8rem);">
+
+    <!-- Filter bar: chỉ hiện trên desktop -->
+    <div class="border-top p-2" *ngIf="isAdvandShow && !isMobile">
+      <form nz-form nzLayout="inline" (keyup.enter)="loadData()">
+        <nz-form-item>
+          <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker [(ngModel)]="param.dateStart" nzFormat="dd/MM/yyyy" nzSize="small" name="dateStart"
+              style="width: 130px"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker [(ngModel)]="param.dateEnd" nzFormat="dd/MM/yyyy" nzSize="small" name="dateEnd"
+              style="width: 130px"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label class="fs-12">Tình trạng</nz-form-label>
+          <nz-form-control>
+            <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn"
+              [(ngModel)]="param.step" nzSize="small" name="step" style="width: 160px">
+              @for (item of steps; track item) {
+              <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label class="fs-12">Trạng thái</nz-form-label>
+          <nz-form-control>
+            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" nzDropdownClassName="select-dropdown"
+              [(ngModel)]="param.isApproved" nzSize="small" name="isApproved" style="width: 130px">
+              @for (item of isApproveds; track item) {
+              <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label class="fs-12">Loại</nz-form-label>
+          <nz-form-control>
+            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.typeOrder" nzSize="small"
+              name="typeOrder" style="width: 130px">
+              @for (item of typeOrders; track item) {
+              <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label class="fs-12">Nội dung</nz-form-label>
+          <nz-form-control>
+            <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn"
+              [(ngModel)]="param.paymentOrderTypeID" nzSize="small" name="paymentOrderTypeID" style="width: 160px">
+              @for (item of paymentOrderTypes; track item) {
+              <nz-option [nzLabel]="item.TypeName" [nzValue]="item.ID"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+          <nz-form-control>
+            <input nz-input placeholder="Tìm kiếm từ khóa..." [(ngModel)]="param.keyword" name="keyword" nzSize="small"
+              (keyup.enter)="loadData()" style="width: 200px" />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-control>
+            <button nz-button nzType="primary" nzSize="small" (click)="loadData()">
+              Tìm kiếm
+            </button>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </div>
+
+    <!-- Modal tìm kiếm cho mobile -->
+    <nz-modal [(nzVisible)]="isShowModal" nzTitle="Tìm kiếm" nzWidth="100vw" nzCentered
+      [nzBodyStyle]="{ padding: '0px 16px' }" (nzOnCancel)="isShowModal = false"
+      (nzOnOk)="loadData(); isShowModal = false" nzOkText="Tìm kiếm">
+      <ng-container *nzModalContent>
+        <form nz-form nzLayout="vertical" class="mt-2">
+          <div nz-row [nzGutter]="12">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>Từ ngày</nz-form-label>
+                <nz-form-control>
+                  <nz-date-picker [(ngModel)]="param.dateStart" nzFormat="dd/MM/yyyy" nzSize="small" name="dateStart_m"
+                    class="w-100"></nz-date-picker>
+                </nz-form-control>
+              </nz-form-item>
             </div>
-        </nz-splitter-panel>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>Đến ngày</nz-form-label>
+                <nz-form-control>
+                  <nz-date-picker [(ngModel)]="param.dateEnd" nzFormat="dd/MM/yyyy" nzSize="small" name="dateEnd_m"
+                    class="w-100"></nz-date-picker>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Tình trạng</nz-form-label>
+                <nz-form-control>
+                  <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.step" nzSize="small"
+                    name="step_m" class="w-100">
+                    @for (item of steps; track item) {
+                    <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Trạng thái</nz-form-label>
+                <nz-form-control>
+                  <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.isApproved"
+                    nzSize="small" name="isApproved_m" class="w-100">
+                    @for (item of isApproveds; track item) {
+                    <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Loại</nz-form-label>
+                <nz-form-control>
+                  <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn"
+                    [(ngModel)]="param.typeOrder" nzSize="small" name="typeOrder_m" class="w-100">
+                    @for (item of typeOrders; track item) {
+                    <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Nội dung</nz-form-label>
+                <nz-form-control>
+                  <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn"
+                    [(ngModel)]="param.paymentOrderTypeID" nzSize="small" name="paymentOrderTypeID_m" class="w-100">
+                    @for (item of paymentOrderTypes; track item) {
+                    <nz-option [nzLabel]="item.TypeName" [nzValue]="item.ID"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Từ khóa</nz-form-label>
+                <nz-form-control>
+                  <input nz-input placeholder="Tìm kiếm từ khóa..." [(ngModel)]="param.keyword" name="keyword_m"
+                    nzSize="small" (keyup.enter)="loadData(); isShowModal = false" class="w-100" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+        </form>
+      </ng-container>
+    </nz-modal>
 
-        <!-- Bottom Panel: Details & Files -->
-        <nz-splitter-panel style="display: flex; flex-direction: column">
-            <nz-splitter nzLayout="horizontal" style="height: 100%">
-                <!-- Details Table -->
-                <nz-splitter-panel [nzDefaultSize]="'65%'" style="display: flex; flex-direction: column">
-                    <div class="grid-wrapper panel-shadow">
-                        <app-custom-table [columns]="
-                activeTab === '0' ? columnDefDetails : columnDefDetailsSpecial
-              " [data]="activeTab === '0' ? datasetDetails : datasetSpecialDetail" [scrollable]="true"
-                            [scrollHeight]="'flex'" [virtualScroll]="true" [virtualScrollItemSize]="34" dataKey="ID"
-                            [textWrap]="true" [resizeMode]="'expand'" [minWidth]="'80rem'"
-                            [loading]="isLoadingDetail"></app-custom-table>
-                    </div>
-                </nz-splitter-panel>
+    <!-- Splitter -->
+    <p-splitter layout="vertical" [panelSizes]="[60, 40]" [minSizes]="[20, 20]" style="flex: 1; min-height: 0;">
 
-                <!-- Files Tabs -->
-                <nz-splitter-panel style="display: flex; flex-direction: column">
-                    <div class="tabs-container panel-shadow">
-                        <p-tabs [(value)]="activeFileTab">
-                            <p-tablist>
-                                <p-tab value="0">File đính kèm</p-tab>
-                                <p-tab value="1">File bankslip</p-tab>
-                            </p-tablist>
-                            <p-tabpanels>
-                                <p-tabpanel value="0">
-                                    <div class="grid-wrapper" *ngIf="activeFileTab === '0'">
-                                        <app-custom-table [columns]="columnDefFiles" [data]="datasetFiles"
-                                            [scrollable]="true" [scrollHeight]="'flex'" [virtualScroll]="true"
-                                            [virtualScrollItemSize]="34" [contextMenuItems]="fileContextItems"
-                                            (cellAction)="onCellActionFile($event)"
-                                            [(selectedContextRow)]="selectedRowFile"
-                                            (selectionChange)="onRowSelectFile($event)" dataKey="ID"
-                                            [loading]="isLoadingDetail"></app-custom-table>
-                                    </div>
-                                </p-tabpanel>
-                                <p-tabpanel value="1">
-                                    <div class="grid-wrapper" *ngIf="activeFileTab === '1'">
-                                        <app-custom-table [columns]="columnDefFiles" [data]="datasetFileBankslip"
-                                            [scrollable]="true" [scrollHeight]="'flex'" [virtualScroll]="true"
-                                            [virtualScrollItemSize]="34" [contextMenuItems]="fileContextItems"
-                                            (cellAction)="onCellActionFile($event)"
-                                            [(selectedContextRow)]="selectedRowFile"
-                                            (selectionChange)="onRowSelectFile($event)" dataKey="ID"
-                                            [loading]="isLoadingDetail"></app-custom-table>
-                                    </div>
-                                </p-tabpanel>
-                            </p-tabpanels>
-                        </p-tabs>
+      <!-- Top Panel: Main Tables -->
+      <ng-template pTemplate="panel">
+        <div class="tabs-container panel-shadow h-full">
+          <p-tabs [(value)]="activeTab" (valueChange)="tabValueChange($event)">
+            <p-tablist>
+              <p-tab value="0">ĐỀ NGHỊ THANH TOÁN</p-tab>
+              <p-tab value="1">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
+            </p-tablist>
+            <p-tabpanels>
+              <p-tabpanel value="0">
+                <div class="grid-wrapper" *ngIf="activeTab === '0'">
+                  <app-custom-table [columns]="columnDefs" [headerGroups]="headerGroups" [data]="dataset"
+                    [loading]="isLoading" [selectionMode]="'single'" [scrollable]="true" [scrollHeight]="'flex'"
+                    [virtualScroll]="true" [virtualScrollItemSize]="34" [textWrap]="true" [resizable]="true"
+                    [resizeMode]="'expand'" [minWidth]="'5500px'" (selectionChange)="onRowSelect($event)"
+                    (rowDblClick)="onPrint($event)" dataKey="ID" [showFooter]="true"
+                    [contextMenuItems]="contextMenu"></app-custom-table>
+                </div>
+              </p-tabpanel>
+              <p-tabpanel value="1">
+                <div class="grid-wrapper" *ngIf="activeTab === '1'">
+                  <app-custom-table [columns]="columnDefsSpecial" [data]="datasetSpecial" [loading]="isLoading"
+                    [selectionMode]="'single'" [scrollable]="true" [scrollHeight]="'flex'" [virtualScroll]="true"
+                    [virtualScrollItemSize]="34" [textWrap]="true" [resizable]="true" [resizeMode]="'expand'"
+                    [minWidth]="'2500px'" (selectionChange)="onRowSelect($event)" (rowDblClick)="onPrint($event)"
+                    dataKey="ID" [showFooter]="true" [contextMenuItems]="contextMenu"></app-custom-table>
+                </div>
+              </p-tabpanel>
+            </p-tabpanels>
+          </p-tabs>
+        </div>
+      </ng-template>
+
+      <!-- Bottom Panel: Details & Files -->
+      <ng-template pTemplate="panel">
+        <p-splitter [panelSizes]="[65, 35]" [minSizes]="[20, 20]" style="height: 100%;">
+
+          <!-- Details + Approval Log Tabs -->
+          <ng-template pTemplate="panel">
+            <div class="tabs-container panel-shadow h-100" style="display:flex;flex-direction:column;">
+              <p-tabs [(value)]="activeDetailTab" (valueChange)="onDetailTabChange($event)"
+                style="height:100%;display:flex;flex-direction:column;">
+                <p-tablist>
+                  <p-tab value="0">Chi tiết</p-tab>
+                  <p-tab value="1">Bước duyệt</p-tab>
+                </p-tablist>
+                <p-tabpanels style="flex:1;min-height:0;">
+                  <p-tabpanel value="0" style="height:100%;padding:0;">
+                    <div class="grid-wrapper" style="height:100%;">
+                      <app-custom-table [columns]="activeTab === '0' ? columnDefDetails : columnDefDetailsSpecial"
+                        [data]="activeTab === '0' ? datasetDetails : datasetSpecialDetail" [scrollable]="true"
+                        [scrollHeight]="'flex'" [virtualScroll]="true" [virtualScrollItemSize]="34" dataKey="ID"
+                        [textWrap]="true" [resizeMode]="'expand'" [minWidth]="'80rem'"
+                        [loading]="isLoadingDetail"></app-custom-table>
                     </div>
-                </nz-splitter-panel>
-            </nz-splitter>
-        </nz-splitter-panel>
-    </nz-splitter>
-</main>
+                  </p-tabpanel>
+                  <p-tabpanel value="1" style="height:100%;padding:0;">
+                    <div class="grid-wrapper" style="height:100%;">
+                      <app-custom-table [columns]="columnDefLog" [data]="datasetLog" [scrollable]="true"
+                        [scrollHeight]="'flex'" [virtualScroll]="true" [virtualScrollItemSize]="34"
+                        [loading]="isLoadingDetail"></app-custom-table>
+                    </div>
+                  </p-tabpanel>
+                </p-tabpanels>
+              </p-tabs>
+            </div>
+          </ng-template>
+
+          <!-- Files Tabs -->
+          <ng-template pTemplate="panel">
+            <div class="tabs-container panel-shadow h-100">
+              <p-tabs [(value)]="activeFileTab">
+                <p-tablist>
+                  <p-tab value="0">File đính kèm</p-tab>
+                  <p-tab value="1">File bankslip</p-tab>
+                </p-tablist>
+                <p-tabpanels>
+                  <p-tabpanel value="0">
+                    <div class="grid-wrapper" *ngIf="activeFileTab === '0'">
+                      <app-custom-table [columns]="columnDefFiles" [data]="datasetFiles" [scrollable]="true"
+                        [scrollHeight]="'flex'" [virtualScroll]="true" [virtualScrollItemSize]="34"
+                        [contextMenuItems]="fileContextItems" (cellAction)="onCellActionFile($event)"
+                        [(selectedContextRow)]="selectedRowFile" (selectionChange)="onRowSelectFile($event)"
+                        dataKey="ID" [loading]="isLoadingDetail"></app-custom-table>
+                    </div>
+                  </p-tabpanel>
+                  <p-tabpanel value="1">
+                    <div class="grid-wrapper" *ngIf="activeFileTab === '1'">
+                      <app-custom-table [columns]="columnDefFiles" [data]="datasetFileBankslip" [scrollable]="true"
+                        [scrollHeight]="'flex'" [virtualScroll]="true" [virtualScrollItemSize]="34"
+                        [contextMenuItems]="fileContextItems" (cellAction)="onCellActionFile($event)"
+                        [(selectedContextRow)]="selectedRowFile" (selectionChange)="onRowSelectFile($event)"
+                        dataKey="ID" [loading]="isLoadingDetail"></app-custom-table>
+                    </div>
+                  </p-tabpanel>
+                </p-tabpanels>
+              </p-tabs>
+            </div>
+          </ng-template>
+
+        </p-splitter>
+      </ng-template>
+
+    </p-splitter>
+  </div>
+
+</p-card>

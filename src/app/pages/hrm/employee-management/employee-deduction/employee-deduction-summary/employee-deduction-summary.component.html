@@ -134,21 +134,16 @@
           <ng-template pTemplate="header">
             <tr>
               <th rowspan="2" style="width: 200px">Nhân viên</th>
-              <th colspan="2" class="text-center bg-late">Đi muộn/Về sớm</th>
-              <th colspan="2" class="text-center bg-forgot">Quên chấm công</th>
-              <th colspan="2" class="text-center bg-leave">Đăng ký nghỉ</th>
-              <th colspan="2" class="text-center bg-other">Khác</th>
+              <ng-container *ngFor="let type of dynamicDeductionTypes">
+                <th colspan="2" class="text-center">{{ type.DeductionTypeName }}</th>
+              </ng-container>
               <th colspan="2" class="text-center bg-total">Tổng cộng</th>
             </tr>
             <tr>
-              <th class="text-center">Số lần</th>
-              <th class="text-center">Thành tiền</th>
-              <th class="text-center">Số lần</th>
-              <th class="text-center">Thành tiền</th>
-              <th class="text-center">Số lần</th>
-              <th class="text-center">Thành tiền</th>
-              <th class="text-center">Số lần</th>
-              <th class="text-center">Thành tiền</th>
+              <ng-container *ngFor="let type of dynamicDeductionTypes">
+                <th class="text-center">Số lần</th>
+                <th class="text-center">Thành tiền</th>
+              </ng-container>
               <th class="text-center">Số lần</th>
               <th class="text-center">Thành tiền</th>
             </tr>
@@ -156,7 +151,7 @@
 
           <ng-template pTemplate="groupheader" let-summary>
             <tr pRowGroupHeader class="department-header">
-              <td colspan="11">
+              <td [attr.colspan]="3 + dynamicDeductionTypes.length * 2">
                 <i class="fa-solid fa-folder-open text-primary me-2"></i>
                 <strong>{{ summary.DepartmentName }}</strong>
               </td>
@@ -171,14 +166,10 @@
                   {{ s.FullName }}
                 </div>
               </td>
-              <td class="text-center">{{ s.Count1 }}</td>
-              <td class="text-right ">{{ formatCurrency(s.Amount1) }}</td>
-              <td class="text-center">{{ s.Count2 }}</td>
-              <td class="text-right ">{{ formatCurrency(s.Amount2) }}</td>
-              <td class="text-center">{{ s.Count3 }}</td>
-              <td class="text-right ">{{ formatCurrency(s.Amount3) }}</td>
-              <td class="text-center">{{ s.Count4 }}</td>
-              <td class="text-right ">{{ formatCurrency(s.Amount4) }}</td>
+              <ng-container *ngFor="let type of dynamicDeductionTypes">
+                <td class="text-center">{{ s['Count_' + type.ID] || 0 }}</td>
+                <td class="text-right">{{ formatCurrency(s['Amount_' + type.ID] || 0) }}</td>
+              </ng-container>
               <td class="text-center font-bold">{{ s.TotalCount }}</td>
               <td class="text-right font-bold ">{{ formatCurrency(s.TotalAmount) }}</td>
             </tr>
@@ -187,14 +178,10 @@
           <ng-template pTemplate="footer">
             <tr *ngIf="summaries.length > 0">
               <td class="font-bold text-center bg-light">Tổng cộng</td>
-              <td class="text-center font-bold bg-light">{{ getTotal('Count1') }}</td>
-              <td class="text-right font-bold bg-light text-late">{{ formatCurrency(getTotal('Amount1')) }}</td>
-              <td class="text-center font-bold bg-light">{{ getTotal('Count2') }}</td>
-              <td class="text-right font-bold bg-light text-forgot">{{ formatCurrency(getTotal('Amount2')) }}</td>
-              <td class="text-center font-bold bg-light">{{ getTotal('Count3') }}</td>
-              <td class="text-right font-bold bg-light text-leave">{{ formatCurrency(getTotal('Amount3')) }}</td>
-              <td class="text-center font-bold bg-light">{{ getTotal('Count4') }}</td>
-              <td class="text-right font-bold bg-light text-other">{{ formatCurrency(getTotal('Amount4')) }}</td>
+              <ng-container *ngFor="let type of dynamicDeductionTypes">
+                <td class="text-center font-bold bg-light">{{ getTotal('Count_' + type.ID) }}</td>
+                <td class="text-right font-bold bg-light">{{ formatCurrency(getTotal('Amount_' + type.ID)) }}</td>
+              </ng-container>
               <td class="text-center font-bold bg-light bg-total">{{ getTotal('TotalCount') }}</td>
               <td class="text-right font-bold bg-light text-total">{{ formatCurrency(getTotal('TotalAmount')) }}</td>
             </tr>

@@ -1,0 +1,88 @@
+.personal-info-container {
+    padding: 24px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100%;
+    font-size: 12px;
+}
+
+.personal-info-container ::ng-deep .ant-descriptions-item-label {
+    font-size: 12px;
+    width: 140px;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.personal-info-container ::ng-deep .ant-descriptions-item-content {
+    font-size: 12px;
+    color: #1e293b;
+}
+
+.profile-sidebar-card {
+    height: 100%;
+}
+
+.avatar-wrapper {
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: center;
+}
+
+.profile-header h2 {
+    font-weight: 600;
+    color: #1a1a1a;
+    font-size: 18px;
+}
+
+.profile-header p {
+    font-size: 12px;
+}
+
+.quick-contact {
+    margin-top: 24px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    color: #595959;
+    font-size: 12px;
+}
+
+.contact-item span[nz-icon] {
+    font-size: 16px;
+    color: #1677ff;
+}
+
+.card-title-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background-color: #e6f4ff;
+    color: #1677ff;
+    border-radius: 8px;
+    margin-right: 12px;
+    font-size: 16px;
+}
+
+.profile-details-card ::ng-deep .ant-card-head {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.profile-details-card ::ng-deep .ant-card-head-title {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+}
+
+.text-center {
+    text-align: center;
+}

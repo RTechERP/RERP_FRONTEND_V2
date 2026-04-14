@@ -57,6 +57,7 @@ import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { CustomerDetailComponent } from '../../../../crm/customers/customer-detail/customer-detail.component';
 
 import { PlanWeekSharkTeamService } from '../../plan-week-shark-team/plan-week-shark-team-services/plan-week-shark-team.service';
 
@@ -110,6 +111,7 @@ export class PlanWeekSharkTeamDetailComponent implements OnInit, AfterViewInit {
 
   constructor(
     public activeModal: NgbActiveModal,
+    private modalService: NgbModal,
     private planWeekService: PlanWeekSharkTeamService,
     private modal: NzModalService,
     private notification: NzNotificationService
@@ -140,6 +142,23 @@ export class PlanWeekSharkTeamDetailComponent implements OnInit, AfterViewInit {
 
   closeModal() {
     this.activeModal.close({ success: false, reloadData: false });
+  }
+
+  openCustomerModal(): void {
+    const modalRef = this.modalService.open(CustomerDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    modalRef.result.then(
+      (result) => {
+        if (result && result.success) {
+          this.loadCustomers();
+        }
+      },
+      (reason) => {}
+    );
   }
 
   increaseWeek(): void {
@@ -283,6 +302,17 @@ export class PlanWeekSharkTeamDetailComponent implements OnInit, AfterViewInit {
     for (const day of this.mainData) {
       for (const task of day.tasks) {
         if (task._dirty === true) {
+          if (!task.IsDeleted) {
+            const isCompletelyEmptyAndNew = task.ID === 0 && !task.ContentPlan?.trim() && !task.Problem?.trim() && (!task.CustomerID || task.CustomerID === 0);
+            if (isCompletelyEmptyAndNew) {
+              continue;
+            }
+            if (!task.CustomerID || task.CustomerID === 0) {
+              this.notification.error('Lỗi', `Vui lòng chọn khách hàng cho công việc ngày ${this.formatDate(day.DatePlan)}`);
+              return;
+            }
+          }
+
           DATA.push({
             ID: task.ID || 0,
             DatePlan: this.toLocalISOString(day.DatePlan),

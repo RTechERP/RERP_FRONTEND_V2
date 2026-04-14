@@ -1,0 +1,111 @@
+<div class="modal-header bg-primary py-2">
+    <h6 class="modal-title text-uppercase text-white">
+        {{ dataInput ? 'Sửa khai báo phạt/thưởng' : 'Thêm mới phạt/thưởng' }}
+    </h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="closeForm()"></button>
+</div>
+
+<div class="modal-body fs-12">
+    <nz-spin [nzSpinning]="isLoading">
+        <form nz-form [formGroup]="form" nzLayout="vertical">
+            <nz-row [nzGutter]="16">
+                <!-- Đợt chấm điểm (Mapped to FiveSRatingTicketID) -->
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired style="font-size: 12px;">Đợt chấm điểm</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn đợt chấm điểm!">
+                            <nz-select formControlName="FiveSRatingTicketID" nzPlaceHolder="Chọn đợt chấm"
+                                nzSize="small" nzShowSearch class="w-100">
+                                <nz-option *ngFor="let item of lstTickets" [nzValue]="item.ID"
+                                    [nzLabel]="item.SessionCode"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+
+                <!-- Phòng ban -->
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired style="font-size: 12px;">Phòng ban</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn phòng ban!">
+                            <nz-select formControlName="DepartmentID" nzPlaceHolder="Chọn phòng ban" nzSize="small"
+                                nzShowSearch class="w-100">
+                                <nz-option *ngFor="let item of lstDepartments" [nzValue]="item.ID"
+                                    [nzLabel]="item.Name"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+
+                <!-- Lỗi -->
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired style="font-size: 12px;">Lỗi</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn lỗi!">
+                            <nz-select formControlName="FiveSErrorID" nzPlaceHolder="Chọn lỗi" nzSize="small"
+                                nzShowSearch class="w-100">
+                                <nz-option *ngFor="let item of lstErrors" [nzValue]="item.ID"
+                                    [nzLabel]="item.DetailError"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+
+                <!-- Loại -->
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired style="font-size: 12px;">Loại</nz-form-label>
+                        <nz-form-control>
+                            <nz-radio-group formControlName="Type" class="w-100 mt-1">
+                                <label nz-radio [nzValue]="1" class="text-success fw-bold">Thưởng (+)</label>
+                                <label nz-radio [nzValue]="2" class="text-danger fw-bold">Phạt (-)</label>
+                            </nz-radio-group>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+
+                <!-- Số điểm -->
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired style="font-size: 12px;">Số điểm</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập số điểm!">
+                            <nz-input-number formControlName="Point" [nzMin]="0" [nzStep]="1" nzSize="small"
+                                class="w-100"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+
+                <!-- Ngày ghi lỗi -->
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired style="font-size: 12px;">Ngày ghi lỗi</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn ngày!">
+                            <nz-date-picker formControlName="DateMinus" nzSize="small" nzFormat="dd/MM/yyyy"
+                                class="w-100"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+
+                <!-- Ghi chú -->
+                <nz-col [nzSpan]="24">
+                    <nz-form-item class="mb-0">
+                        <nz-form-label nzRequired style="font-size: 12px;">Ghi chú</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập ghi chú!">
+                            <textarea nz-input formControlName="Note" nzSize="small"
+                                [nzAutosize]="{ minRows: 2, maxRows: 4 }" placeholder="Nhập lý do"></textarea>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </form>
+    </nz-spin>
+</div>
+
+<div class="modal-footer fs-12 p-2">
+    <button nz-button type="button" nzType="default" (click)="closeForm()" [nzLoading]="isLoading">
+        Hủy
+    </button>
+    <button nz-button type="button" nzType="primary" (click)="onSubmit()" [nzLoading]="isLoading">
+        Lưu
+    </button>
+</div>

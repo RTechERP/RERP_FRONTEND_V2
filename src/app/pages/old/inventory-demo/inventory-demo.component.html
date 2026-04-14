@@ -58,8 +58,8 @@
                                 <nz-form-label class="fs-12">Từ khóa</nz-form-label>
                                 <nz-form-control>
                                     <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyWord"
-                                        (ngModelChange)="onKeywordChange($event)" nzSize="small" 
-                                        style="width: 200px;" name="filterTextFilter" />
+                                        (ngModelChange)="onKeywordChange($event)" (keydown.enter)="onSearch()"
+                                        nzSize="small" style="width: 200px;" name="filterTextFilter" />
                                 </nz-form-control>
                             </nz-form-item>
 

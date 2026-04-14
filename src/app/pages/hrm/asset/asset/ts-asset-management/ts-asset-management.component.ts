@@ -1,4 +1,4 @@
-import { inject, NgZone } from '@angular/core';
+import { ElementRef, inject, NgZone, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
@@ -22,40 +22,41 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import {
-    AngularGridInstance,
-    AngularSlickgridModule,
-    Column,
-    Filters,
-    Formatters,
-    GridOption,
-    OnClickEventArgs,
-    OnSelectedRowsChangedEventArgs
-} from 'angular-slickgrid';
-import { MultipleSelectOption } from '@slickgrid-universal/common';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { TsAssetLiquidationComponent } from './ts-asset-liquidation/ts-asset-liquidation.component';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
-import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { AssetStatusService } from '../ts-asset-status/ts-asset-status-service/ts-asset-status.service';
-import { AssetsManagementService } from './ts-asset-management-service/ts-asset-management.service';
-import { TsAssetManagementFormComponent } from './ts-asset-management-form/ts-asset-management-form.component';
-import { TsAssetManagementReportBorkenFormComponent } from './ts-asset-management-report-borken-form/ts-asset-management-report-borken-form.component';
-import { TsAssetManagementReportLossFormComponent } from './ts-asset-management-report-loss-form/ts-asset-management-report-loss-form.component';
-import { TsAssetManagementImportExcelComponent } from './ts-asset-management-import-excel/ts-asset-management-import-excel.component';
-import { TsAssetProposeLiquidationFormComponent } from './ts-asset-propose-liquidation-form/ts-asset-propose-liquidation-form.component';
-import { TsAssetRepairFormComponent } from './ts-asset-repair-form/ts-asset-repair-form.component';
-import { TsAssetReuseFormComponent } from './ts-asset-reuse-form/ts-asset-reuse-form.component';
+import { Table, TableModule } from 'primeng/table';
+import { ButtonModule as PButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
+import { CheckboxModule } from 'primeng/checkbox';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
-import { TsAssetSourceFormComponent } from '../ts-asset-source/ts-asset-source-form/ts-asset-source-form.component';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
-import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { Menubar } from 'primeng/menubar';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { MenubarModule } from 'primeng/menubar';
+import { AssetsManagementService } from './ts-asset-management-service/ts-asset-management.service';
+import { AssetStatusService } from '../ts-asset-status/ts-asset-status-service/ts-asset-status.service';
+import { NzModalService } from 'ng-zorro-antd/modal';
+
+// Missing modal component imports
+import { TsAssetManagementFormComponent } from './ts-asset-management-form/ts-asset-management-form.component';
+import { TsAssetManagementReportLossFormComponent } from './ts-asset-management-report-loss-form/ts-asset-management-report-loss-form.component';
+import { TsAssetRepairFormComponent } from './ts-asset-repair-form/ts-asset-repair-form.component';
+import { TsAssetReuseFormComponent } from './ts-asset-reuse-form/ts-asset-reuse-form.component';
+import { TsAssetManagementReportBorkenFormComponent } from './ts-asset-management-report-borken-form/ts-asset-management-report-borken-form.component';
+import { TsAssetProposeLiquidationFormComponent } from './ts-asset-propose-liquidation-form/ts-asset-propose-liquidation-form.component';
+import { TsAssetLiquidationComponent } from './ts-asset-liquidation/ts-asset-liquidation.component';
+import { TsAssetManagementImportExcelComponent } from './ts-asset-management-import-excel/ts-asset-management-import-excel.component';
+import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 @Component({
     standalone: true,
     imports: [
@@ -83,34 +84,43 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
         NzDropDownModule,
         NzSpinModule,
         NzFormModule,
-        Menubar,
-        AngularSlickgridModule
+        MenubarModule,
+        TableModule,
+        PButtonModule,
+        InputTextModule,
+        IconFieldModule,
+        InputIconModule,
+        MultiSelectModule,
+        CheckboxModule,
+        ConfirmDialogModule,
+        SelectModule
     ],
+    providers: [ConfirmationService],
     selector: 'app-ts-asset-management',
     templateUrl: './ts-asset-management.component.html',
     styleUrls: ['./ts-asset-management.component.css'],
 })
 export class TsAssetManagementComponent implements OnInit, AfterViewInit {
-    // SlickGrid instances
-    angularGrid!: AngularGridInstance;
-    angularGridDetail!: AngularGridInstance;
-    gridData: any;
-    gridDetailData: any;
-
-    // Column definitions
-    columnDefinitions: Column[] = [];
-    columnDefinitionsDetail: Column[] = [];
-
-    // Grid options
-    gridOptions: GridOption = {};
-    gridOptionsDetail: GridOption = {};
+    @ViewChild('dt') dtMaster: Table | undefined;
+    @ViewChild('dtDetail') dtDetail: Table | undefined;
 
     // Datasets
     dataset: any[] = [];
     datasetDetail: any[] = [];
 
     public detailTabTitle: string = 'Thông tin cấp phát biên bản:';
-    selectedRow: any = '';
+    selectedRows: any[] = [];
+
+    // Status Color Map for PrimeNG Badges
+    statusColorMap: { [key: number]: string } = {
+        1: '#d1d5db', // Chưa sử dụng (Gray)
+        2: '#3b82f6', // Đang sử dụng (Blue) - Cấp phát
+        3: '#ef4444', // Báo hỏng (Red)
+        4: '#f59e0b', // Đang sửa chữa (Orange)
+        5: '#10b981', // Đã sửa xong (Green)
+        6: '#8b5cf6', // Đã thanh lý (Purple)
+        7: '#6b7280'  // Thu hồi (Dark Gray)
+    };
     modalData: any = [];
     private ngbModal = inject(NgbModal);
     assetManagementDetail: any[] = [];
@@ -153,8 +163,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     ngOnInit() {
         this.initializeDates();
         this.initMenuBar();
-        this.initGrid();
-        this.initGridDetail();
+        this.getAssetmanagement();
     }
 
     /** Helper function to format date to yyyy-MM-dd for HTML date input */
@@ -281,20 +290,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     private updateIsMobile() {
         this.isMobile = window.innerWidth <= 768;
     }
-
     private onResize() {
-        const wasMobile = this.isMobile;
         this.updateIsMobile();
-
-        // SlickGrid tự động resize khi có autoResize enabled
-        if (wasMobile !== this.isMobile) {
-            if (this.angularGrid && this.angularGrid.resizerService) {
-                this.angularGrid.resizerService.resizeGrid();
-            }
-            if (this.angularGridDetail && this.angularGridDetail.resizerService) {
-                this.angularGridDetail.resizerService.resizeGrid();
-            }
-        }
     }
 
     getAssetmanagement() {
@@ -320,15 +317,12 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
                 this.assetData = response.data?.assets || [];
                 this.dataset = this.assetData.map((item, index) => ({
                     ...item,
-                    id: item.ID, // SlickGrid requires lowercase 'id' property
-                    STT: index + 1
+                    id: item.ID,
+                    STT: index + 1,
+                    statusColor: this.getStatusColor(item.StatusID || item.Status)
                 }));
                 console.log('this.dataset:', this.dataset);
 
-                // Apply distinct filters after data is loaded
-                setTimeout(() => {
-                    this.applyDistinctFilters();
-                }, 100);
                 this.isLoading = false;
             },
             error: (err) => {
@@ -410,744 +404,29 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     onFilterChange(): void {
         this.getAssetmanagement();
     }
-    initGrid() {
-        // Format date helper
-        const formatDate = (row: number, cell: number, value: any) => {
-            if (!value) return '';
-            try {
-                // Thử parse từ nhiều format
-                let dateValue = DateTime.fromISO(value);
-                if (!dateValue.isValid) {
-                    // Thử format yyyy-MM-dd
-                    dateValue = DateTime.fromFormat(value, 'yyyy-MM-dd');
-                }
-                if (!dateValue.isValid) {
-                    // Thử format khác
-                    dateValue = DateTime.fromFormat(value, 'dd/MM/yyyy');
-                }
-                return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
-            } catch (e) {
-                return value;
-            }
+    /** Lấy màu sắc dựa trên ID hoặc tên trạng thái */
+    getStatusColor(statusIdOrName: any): string {
+        const colorMap: Record<any, string> = {
+            1: '#9ca3af', // Chưa sử dụng (gray)
+            2: '#22c55e', // Đang sử dụng (green)
+            3: '#f97316', // Sửa chữa (orange)
+            4: '#ef4444', // Mất (red)
+            5: '#ef4444', // Hỏng (red)
+            6: '#3b82f6', // Thanh lý (blue)
+            7: '#a855f7', // Đề nghị thanh lý (purple)
+            'Chưa sử dụng': '#9ca3af',
+            'Đang sử dụng': '#22c55e',
+            'Sửa chữa': '#f97316',
+            'Mất': '#ef4444',
+            'Hỏng': '#ef4444',
+            'Thanh lý': '#3b82f6',
+            'Đề nghị thanh lý': '#a855f7'
         };
-
-        // Status formatter
-        const statusFormatter = (row: number, cell: number, value: any, columnDef: Column, dataContext: any) => {
-            const statusId: number = Number(dataContext.StatusID ?? dataContext.StatusId ?? dataContext.statusId ?? dataContext.statusID ?? 0);
-
-            const statusLabelMap: Record<number, string> = {
-                1: 'Chưa sử dụng',
-                2: 'Đã cấp phát',
-                3: 'Sữa chữa, Bảo dưỡng',
-                4: 'Mất',
-                5: 'Hỏng',
-                6: 'Thanh lý',
-                7: 'Đề nghị thanh lý',
-            };
-
-            const label = statusLabelMap[statusId] ?? value ?? '';
-
-            const statusColorMap: Record<number, string> = {
-                1: 'display: inline-block; width: 100px; text-align: center; background-color: #AAAAAA; color: #fff; border-radius: 5px; padding: 4px 8px;',
-                2: 'display: inline-block; width: 100px; text-align: center; background-color: #b4ecb4ff; color: #2cb55aff; border-radius: 5px; padding: 4px 8px;',
-                3: 'display: inline-block; width: 100px; text-align: center; background-color: #bcaa93ff; color: #c37031ff; border-radius: 5px; padding: 4px 8px;',
-                4: 'display: inline-block; width: 100px; text-align: center; background-color: #fbc4c4ff; color: #d40000ff; border-radius: 5px; padding: 4px 8px;',
-                5: 'display: inline-block; width: 100px; text-align: center; background-color: #cadfffff; color: #4147f2ff; border-radius: 5px; padding: 4px 8px;',
-                6: 'display: inline-block; width: 100px; text-align: center; background-color: #d4fbffff; color: #08aabfff; border-radius: 5px; padding: 4px 8px;',
-                7: 'display: inline-block; width: 100px; text-align: center; background-color: #fde3c1ff; color: #f79346ff; border-radius: 5px; padding: 4px 8px;',
-            };
-
-            const style = statusColorMap[statusId] || 'background-color: #e0e0e0; border-radius: 5px; padding: 4px 8px;';
-            return `<span style="${style}">${label}</span>`;
-        };
-
-        this.columnDefinitions = [
-            { id: 'Name', name: 'Name', field: 'Name', type: 'string', width: 70, sortable: true, filterable: true, excludeFromExport: true, hidden: true },
-            { id: 'STT', name: 'STT', field: 'STT', type: 'number', width: 50, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, cssClass: 'text-center', },
-            { id: 'UnitID', name: 'UnitID', field: 'UnitID', type: 'number', width: 70, sortable: true, excludeFromExport: true, hidden: true },
-            { id: 'TSAssetID', name: 'TSAssetID', field: 'TSAssetID', type: 'number', width: 70, sortable: true, excludeFromExport: true, hidden: true },
-            { id: 'SourceID', name: 'SourceID', field: 'SourceID', type: 'number', width: 70, sortable: true, excludeFromExport: true, hidden: true },
-            { id: 'DepartmentID', name: 'DepartmentID', field: 'DepartmentID', type: 'number', width: 70, sortable: true, excludeFromExport: true, hidden: true },
-            { id: 'ID', name: 'ID', field: 'ID', type: 'number', width: 70, sortable: true, excludeFromExport: true, hidden: true },
-            {
-                id: 'TSCodeNCC',
-                name: 'Mã tài sản',
-                field: 'TSCodeNCC',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'OfficeActiveStatusText',
-                name: 'Office Active',
-                field: 'OfficeActiveStatusText',
-                type: 'string',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'WindowActiveStatusText',
-                name: 'Windows Active',
-                field: 'WindowActiveStatusText',
-                type: 'string',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'TSAssetName',
-                name: 'Tên tài sản',
-                field: 'TSAssetName',
-                type: 'string',
-                width: 200,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] },
-                cssClass: 'cell-wrap',
-                formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
-                    if (!value) return '';
-                    return `
-            <span
-              title="${dataContext.TSAssetName}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
-            >
-              ${value}
-            </span>
-          `;
-                },
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
-            {
-                id: 'AssetCode',
-                name: 'Mã loại tài sản',
-                field: 'AssetCode',
-                type: 'string',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                },
-                cssClass: 'cell-wrap',
-            },
-            {
-                id: 'AssetType',
-                name: 'Tên loại tài sản',
-                field: 'AssetType',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'SourceCode',
-                name: 'Mã nguồn gốc',
-                field: 'SourceCode',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'SourceName',
-                name: 'Tên nguồn gốc',
-                field: 'SourceName',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'SupplierCode',
-                name: 'Mã nhà cung cấp',
-                field: 'SupplierCode',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'SupplierName',
-                name: 'Tên nhà cung cấp',
-                field: 'SupplierName',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'SpecificationsAsset',
-                name: 'Mô tả chi tiết',
-                field: 'SpecificationsAsset',
-                type: 'string',
-                width: 200,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] }
-                , cssClass: 'cell-wrap',
-                formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
-                    if (!value) return '';
-                    return `
-            <span
-              title="${dataContext.SpecificationsAsset}"
-              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
-            >
-              ${value}
-            </span>
-          `;
-                },
-                customTooltip: {
-                    useRegularTooltip: true,
-                    // useRegularTooltipFromCellTextOnly: true,
-                },
-            },
-            {
-                id: 'Seri',
-                name: ' Số Seri',
-                field: 'Seri',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'UnitName',
-                name: 'Đơn vị',
-                field: 'UnitName',
-                type: 'string',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'Quantity',
-                name: 'Số lượng ',
-                field: 'Quantity',
-                type: 'number',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'Status',
-                name: 'Tình trạng',
-                field: 'Status',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                formatter: statusFormatter,
-                cssClass: 'text-center',
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'Model',
-                name: 'Model',
-                field: 'Model',
-                type: 'string',
-                width: 200,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                },
-                hidden: true,
-            },
-            {
-                id: 'DepartmentCode',
-                name: 'Mã phòng ban',
-                field: 'DepartmentCode',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'DepartmentName',
-                name: 'Phòng ban',
-                field: 'Name',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'EmployeeCode',
-                name: 'Mã nhân viên',
-                field: 'EmployeeCode',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                }
-            },
-            {
-                id: 'FullName',
-                name: 'Người quản lý',
-                field: 'FullName',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: {
-                        filter: true,
-                        autoAdjustDropWidthByTextSize: true,
-                    } as MultipleSelectOption
-                },
-                cssClass: 'cell-wrap',
-            },
-            {
-                id: 'DateBuy',
-                name: 'Thời gian ghi tăng',
-                field: 'DateBuy',
-                type: 'date',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: formatDate,
-                filter: { model: Filters['compoundDate'] },
-                cssClass: 'text-center',
-            },
-            {
-                id: 'Insurance',
-                name: 'Bảo hành (tháng)',
-                field: 'Insurance',
-                type: 'number',
-                width: 130,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputNumber'] }
-            },
-            {
-                id: 'DateEffect',
-                name: 'Ngày hiệu lực',
-                field: 'DateEffect',
-                type: 'date',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: formatDate,
-                filter: { model: Filters['compoundDate'] },
-                cssClass: 'text-center',
-            },
-
-
-
-            // { 
-            //   id: 'Status', 
-            //   name: 'Trạng thái', 
-            //     field: 'Status',
-            //   type: 'string', 
-            //   width: 150, 
-            //   sortable: true, 
-            //   filterable: true,
-            //   formatter: statusFormatter,
-            //   cssClass: 'text-center',
-            //   filter: { model: Filters['compoundInputText'] }
-            // },
-
-
-            // { 
-            //   id: 'IsAllocation', 
-            //   name: 'Cấp Phát', 
-            //     field: 'IsAllocation',
-            //   type: 'boolean', 
-            //   width: 100, 
-            //   sortable: true, 
-            //   filterable: true,
-            //   formatter: Formatters.checkmarkMaterial
-            // },
-            // { 
-            //   id: 'OfficeActiveStatus', 
-            //   name: 'OfficeActiveStatus', 
-            //     field: 'OfficeActiveStatus',
-            //   type: 'number', 
-            //   width: 100, 
-            //   sortable: true,
-            //   excludeFromExport: true,
-            //   hidden: true,
-
-            // },
-            // { 
-            //   id: 'WindowActiveStatus', 
-            //   name: 'WindowActiveStatus', 
-            //     field: 'WindowActiveStatus',
-            //   type: 'number', 
-            //   width: 100, 
-            //   sortable: true,
-            //   excludeFromExport: true,
-            //   hidden: true,
-            // },
-            // { 
-            //   id: 'PositionName', 
-            //   name: 'Vị trí', 
-            //     field: 'PositionName',
-            //   type: 'string', 
-            //   width: 150, 
-            //   sortable: true, 
-            //   filterable: true,
-            //   filter: { model: Filters['compoundInputText'] },
-            //   excludeFromExport: true
-            // },
-            {
-                id: 'Note',
-                name: 'Ghi chú',
-                field: 'Note',
-                type: 'string',
-                width: 200,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] }
-                , cssClass: 'cell-wrap',
-            },
-        ];
-
-        this.gridOptions = {
-            autoResize: {
-                container: '#demo-container',
-                calculateAvailableSizeBy: 'container'
-            },
-            enableAutoResize: true,
-            gridWidth: '100%',
-            forceFitColumns: false,
-            enableRowSelection: true,
-            rowSelectionOptions: {
-                selectActiveRow: false
-            },
-            checkboxSelector: {
-                hideInFilterHeaderRow: false,
-                hideInColumnTitleRow: true,
-                applySelectOnAllPages: true
-            },
-            enableCheckboxSelector: true,
-            enableCellNavigation: true,
-            enableFiltering: true,
-            autoFitColumnsOnFirstLoad: false,
-            enableAutoSizeColumns: false,
-            createPreHeaderPanel: false,
-            showPreHeaderPanel: false,
-            frozenColumn: 11
-        };
-
-        this.getAssetmanagement();
-    }
-    initGridDetail() {
-        // Format date helper for detail
-        const formatDateDetail = (row: number, cell: number, value: any) => {
-            if (!value) return '';
-            try {
-                // Thử parse từ nhiều format
-                let dateValue = DateTime.fromISO(value);
-                if (!dateValue.isValid) {
-                    // Thử format yyyy-MM-dd
-                    dateValue = DateTime.fromFormat(value, 'yyyy-MM-dd');
-                }
-                if (!dateValue.isValid) {
-                    // Thử format khác
-                    dateValue = DateTime.fromFormat(value, 'dd/MM/yyyy');
-                }
-                return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
-            } catch (e) {
-                return value;
-            }
-        };
-
-        // Detail status formatter
-        const detailStatusFormatter = (row: number, cell: number, value: any) => {
-            const statusColorMap: Record<string, string> = {
-                'Chưa sử dụng': 'display: inline-block; width: 140px; text-align: center; background-color: #AAAAAA; color: #fff; border-radius: 5px; padding: 4px 8px;',
-                'Đang sử dụng': 'display: inline-block; width: 140px; text-align: center; background-color: #b4ecb4ff; color: #2cb55aff; border-radius: 5px; padding: 4px 8px;',
-                'Đã thu hồi': 'display: inline-block; width: 140px; text-align: center; background-color: #FFCCCC; color: #000000; border-radius: 5px; padding: 4px 8px;',
-                'Mất': 'display: inline-block; width: 140px; text-align: center; background-color: #fbc4c4ff; color: #d40000ff; border-radius: 5px; padding: 4px 8px;',
-                'Hỏng': 'display: inline-block; width: 140px; text-align: center; background-color: #cadfffff; color: #4147f2ff; border-radius: 5px; padding: 4px 8px;',
-                'Đã thanh lý': 'display: inline-block; width: 140px; text-align: center; background-color: #d4fbffff; color: #08aabfff; border-radius: 5px; padding: 4px 8px;',
-                'Đề nghị thanh lí': 'display: inline-block; width: 140px; text-align: center; background-color: #fde3c1ff; color: #f79346ff; border-radius: 5px; padding: 4px 8px;',
-                'Sữa chữa, Bảo dưỡng': 'display: inline-block; width: 140px; text-align: center; background-color: #bcaa93ff; color: #c37031ff; border-radius: 5px; padding: 4px 8px;',
-            };
-
-            const style = statusColorMap[value] || 'display: inline-block; width: 140px; text-align: center; background-color: #e0e0e0; border-radius: 5px; padding: 4px 8px;';
-            return `<span style="${style}">${value || ''}</span>`;
-        };
-
-        this.columnDefinitionsDetail = [
-            {
-                id: 'Status',
-                name: 'Trạng thái',
-                field: 'Status',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                formatter: detailStatusFormatter,
-                cssClass: 'text-center',
-                filter: { model: Filters['compoundInputText'] }
-            },
-            {
-                id: 'Code',
-                name: 'Mã NV',
-                field: 'Code',
-                type: 'string',
-                width: 100,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] }
-            },
-            {
-                id: 'FullName',
-                name: 'Họ và tên',
-                field: 'FullName',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] }
-            },
-            {
-                id: 'dpmName',
-                name: 'Phòng ban',
-                field: 'dpmName',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] }
-            },
-            {
-                id: 'CVName',
-                name: 'Chức vụ',
-                field: 'CVName',
-                type: 'string',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] }
-            },
-            {
-                id: 'UpdatedDate',
-                name: 'Ngày cập nhật',
-                field: 'UpdatedDate',
-                type: 'date',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: formatDateDetail,
-                filter: { model: Filters['compoundDate'] },
-                hidden: true,
-            },
-            {
-                id: 'CreatedDate',
-                name: 'Ngày',
-                field: 'CreatedDate',
-                type: 'date',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: formatDateDetail,
-                filter: { model: Filters['compoundDate'] }
-            },
-            {
-                id: 'Note',
-                name: 'Ghi chú',
-                field: 'Note',
-                type: 'string',
-                width: 300,
-                sortable: true,
-                filterable: true,
-                filter: { model: Filters['compoundInputText'] }
-            },
-        ];
-
-        this.gridOptionsDetail = {
-            autoResize: {
-                container: '#grid-container-detail',
-                calculateAvailableSizeBy: 'container'
-            },
-            enableAutoResize: true,
-            forceFitColumns: true,
-            enableRowSelection: true,
-            enableCellNavigation: true,
-            enableFiltering: true,
-            autoFitColumnsOnFirstLoad: false,
-            enableAutoSizeColumns: false
-        };
-
-
+        return colorMap[statusIdOrName] || '#6b7280';
     }
 
-    // SlickGrid event handlers
-    angularGridReady(angularGrid: AngularGridInstance) {
-        this.angularGrid = angularGrid;
-        this.gridData = angularGrid?.slickGrid || {};
-    }
-
-    angularGridDetailReady(angularGrid: AngularGridInstance) {
-        this.angularGridDetail = angularGrid;
-        this.gridDetailData = angularGrid?.slickGrid || {};
-    }
-
-    handleRowSelection(e: any, args: OnSelectedRowsChangedEventArgs) {
-        if (args && args.rows && args.rows.length > 0) {
-            const selectedRow = this.gridData.getDataItem(args.rows[0]);
-            this.selectedRow = selectedRow;
-        }
-    }
-
-    onCellClicked(e: any, args: OnClickEventArgs) {
-        const item = args.grid.getDataItem(args.row);
+    onRowSelect(event: any) {
+        const item = event.data;
         if (item) {
             this.detailTabTitle = `Thông tin sử dụng tài sản: ${item['TSCodeNCC']}`;
             const ID = item['ID'];
@@ -1158,7 +437,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
                         this.assetManagementDetail = respon.data.assetsAllocation;
                         this.datasetDetail = this.assetManagementDetail.map((item, index) => ({
                             ...item,
-                            id: item.ID || index // SlickGrid requires lowercase 'id' property
+                            id: item.ID || index,
+                            statusColor: this.getStatusColor(item.StatusID || item.Status)
                         }));
                     },
                     error: (err) => {
@@ -1169,11 +449,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         }
     }
 
-    private getSingleSelectedAsset(actionText: string): any | null {
-        const selected = this.angularGrid?.gridService?.getSelectedRows() || [];
-        const selectedData = selected.map((index: number) => this.gridData.getDataItem(index));
+    onRowUnselect() {
+        if (this.selectedRows.length === 0) {
+            this.datasetDetail = [];
+            this.detailTabTitle = 'Thông tin cấp phát biên bản:';
+        }
+    }
 
-        if (selectedData.length === 0) {
+    private getSingleSelectedAsset(actionText: string): any | null {
+        if (!this.selectedRows || this.selectedRows.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
                 `Vui lòng chọn một tài sản để ${actionText}!`
@@ -1181,40 +465,29 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             return null;
         }
 
-        if (selectedData.length > 1) {
-            const codes = selectedData.map((x: any) => x.TSAssetCode).join(', ');
+        if (this.selectedRows.length > 1) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
-                `Chỉ được chọn 1 tài sản để ${actionText}. Đang chọn: ${codes}`
+                `Vui lòng chỉ chọn một tài sản để ${actionText}!`
             );
             return null;
         }
 
-        return { ...selectedData[0] }; // clone cho chắc
+        return { ...this.selectedRows[0] };
     }
 
     getSelectedIds(): number[] {
-        if (this.angularGrid && this.angularGrid.gridService) {
-            const selectedRows = this.angularGrid.gridService.getSelectedRows();
-            return selectedRows.map((index: number) => {
-                const item = this.gridData.getDataItem(index);
-                return item.ID;
-            });
-        }
-        return [];
+        return this.selectedRows ? this.selectedRows.map((x: any) => x.ID) : [];
     }
 
     onDeleteAsset() {
-        const selectedRows = this.angularGrid?.gridService?.getSelectedRows() || [];
-        const selectedRowData = selectedRows.map((index: number) => this.gridData.getDataItem(index));
-
-        if (selectedRowData.length === 0) {
+        if (!this.selectedRows || this.selectedRows.length === 0) {
             this.notification.warning('Cảnh báo', 'Chưa chọn tài sản để xóa');
             return;
         }
 
         // Kiểm tra tài sản đang sử dụng
-        const assetsInUse = selectedRowData.filter((x: any) =>
+        const assetsInUse = this.selectedRows.filter((x: any) =>
             x.Status === 'Đang sử dụng' || x.StatusID === 2
         );
 
@@ -1227,8 +500,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        const selectedIds = selectedRowData.map((x: any) => x.ID);
-        const selectedCodes = selectedRowData.map((x: any) => x.TSCodeNCC);
+        const selectedIds = this.selectedRows.map((x: any) => x.ID);
+        const selectedCodes = this.selectedRows.map((x: any) => x.TSCodeNCC);
         const codesText = selectedCodes.join(', ');
 
         this.modal.confirm({
@@ -1541,19 +814,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     }
     onDisposeAsset() { }
     async exportToExcelAdvanced() {
-        if (!this.angularGrid || !this.angularGrid.dataView) return;
-
-        // Lấy dữ liệu đã được filter từ grid (dataView) - đã được filter và sort
-        const selectedData: any[] = [];
-        const dataLength = this.angularGrid.dataView.getLength();
-        for (let i = 0; i < dataLength; i++) {
-            const item = this.angularGrid.dataView.getItem(i);
-            if (item) {
-                selectedData.push(item);
-            }
-        }
-
-        console.log('selectedData (filtered):', selectedData);
+        const selectedData = this.dataset;
 
         if (!selectedData || selectedData.length === 0) {
             this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
@@ -1563,28 +824,25 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Danh sách tài sản');
 
-        let columns = this.columnDefinitions.filter(
-            (col: Column) =>
-                col.excludeFromExport !== true && col.field && col.field.trim() !== ''
-        );
+        const exportColumns = [
+            { header: 'STT', key: 'STT', width: 10, field: 'STT' },
+            { header: 'Mã tài sản', key: 'TSCodeNCC', width: 20, field: 'TSCodeNCC' },
+            { header: 'Tên tài sản', key: 'TSAssetName', width: 30, field: 'TSAssetName' },
+            { header: 'Mã loại', key: 'AssetCode', width: 15, field: 'AssetCode' },
+            { header: 'Tên loại', key: 'AssetType', width: 20, field: 'AssetType' },
+            { header: 'Tình trạng', key: 'Status', width: 20, field: 'Status' },
+            { header: 'Người quản lý', key: 'FullName', width: 20, field: 'FullName' },
+            { header: 'Phòng ban', key: 'Name', width: 20, field: 'Name' },
+            { header: 'Thời gian mua', key: 'DateBuy', width: 15, field: 'DateBuy' },
+            { header: 'Ngày hiệu lực', key: 'DateEffect', width: 15, field: 'DateEffect' },
+            { header: 'Model', key: 'Model', width: 20, field: 'Model' },
+            { header: 'Số Seri', key: 'Seri', width: 15, field: 'Seri' },
+            { header: 'Ghi chú', key: 'Note', width: 30, field: 'Note' }
+        ];
 
-        // Đảm bảo cột Model luôn được xuất ra
-        const hasModelColumn = columns.some((col: Column) => col.field === 'Model');
-        if (!hasModelColumn) {
-            const modelColumn = this.columnDefinitions.find((col: Column) => col.field === 'Model');
-            if (modelColumn) {
-                columns.push(modelColumn);
-            }
-        }
+        worksheet.columns = exportColumns.map(c => ({ header: c.header, key: c.key, width: c.width }));
 
-        console.log(
-            'columns:',
-            columns.map((c) => c.field)
-        );
-
-        const headerRow = worksheet.addRow(
-            columns.map((col: Column) => col.name || col.field)
-        );
+        const headerRow = worksheet.getRow(1);
         headerRow.font = { bold: true };
         headerRow.fill = {
             type: 'pattern',
@@ -1592,28 +850,18 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             fgColor: { argb: 'FFE0E0E0' },
         };
 
-        selectedData.forEach((row: any) => {
-            const rowData = columns.map((col: Column) => {
-                const value = row[col.field!];
-                switch (col.field) {
-                    case 'IsAllocation':
-                        return value ? 'Có' : 'Không';
-                    case 'CreatedDate':
-                    case 'UpdatedDate':
-                    case 'DateBuy':
-                    case 'DateEffect':
-                        return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-                    case 'Status':
-                        return value || '';
-                    default:
-                        return value !== null && value !== undefined ? value : '';
+        selectedData.forEach((row: any, index: number) => {
+            const rowValue: any = { ...row };
+            rowValue.STT = index + 1;
+
+            // Format dates
+            ['DateBuy', 'DateEffect'].forEach(field => {
+                if (row[field]) {
+                    rowValue[field] = DateTime.fromISO(row[field]).toFormat('dd/MM/yyyy');
                 }
             });
-            worksheet.addRow(rowData);
-        });
 
-        worksheet.columns.forEach((col) => {
-            col.width = 20;
+            worksheet.addRow(rowValue);
         });
 
         worksheet.eachRow((row, rowNumber) => {
@@ -1637,8 +885,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
 
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `danh-sach-tai-san-${new Date().toISOString().split('T')[0]
-            }.xlsx`;
+        link.download = `danh-sach-tai-san-${new Date().toISOString().split('T')[0]}.xlsx`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1658,64 +905,5 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         });
     }
 
-    // Apply distinct filters for multiple columns after data is loaded
-    private applyDistinctFilters(): void {
-        const fieldsToFilter = [
-            'TSCodeNCC', 'OfficeActiveStatusText', 'WindowActiveStatusText', 'TSAssetName',
-            'AssetCode', 'AssetType', 'SourceCode', 'SourceName', 'SupplierCode', 'SupplierName',
-            'Seri', 'UnitName', 'Quantity', 'Status', 'Model', 'DepartmentCode', 'Name',
-            'EmployeeCode', 'FullName'
-        ];
-        this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, fieldsToFilter);
-    }
-
-    private applyDistinctFiltersToGrid(
-        angularGrid: AngularGridInstance | undefined,
-        columnDefs: Column[],
-        fieldsToFilter: string[]
-    ): void {
-        if (!angularGrid?.slickGrid || !angularGrid?.dataView) return;
-
-        const data = angularGrid.dataView.getItems();
-        if (!data || data.length === 0) return;
-
-        const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
-            const map = new Map<string, string>();
-            dataArray.forEach((row: any) => {
-                const value = String(row?.[field] ?? '');
-                if (value && !map.has(value)) {
-                    map.set(value, value);
-                }
-            });
-            return Array.from(map.entries())
-                .map(([value, label]) => ({ value, label }))
-                .sort((a, b) => a.label.localeCompare(b.label));
-        };
-
-        const columns = angularGrid.slickGrid.getColumns();
-        if (!columns) return;
-
-        // Update runtime columns
-        columns.forEach((column: any) => {
-            if (column?.filter && column.filter.model === Filters['multipleSelect']) {
-                const field = column.field;
-                if (!field || !fieldsToFilter.includes(field)) return;
-                column.filter.collection = getUniqueValues(data, field);
-            }
-        });
-
-        // Update column definitions (so when grid re-renders, it keeps the collections)
-        columnDefs.forEach((colDef: any) => {
-            if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
-                const field = colDef.field;
-                if (!field || !fieldsToFilter.includes(field)) return;
-                colDef.filter.collection = getUniqueValues(data, field);
-            }
-        });
-
-        angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
-        angularGrid.slickGrid.invalidate();
-        angularGrid.slickGrid.render();
-    }
 
 }

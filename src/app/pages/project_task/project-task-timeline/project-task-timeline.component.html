@@ -89,7 +89,7 @@
                             </td>
                             <td *ngIf="rowIndex === 0" rowspan="2" class="sticky-col col-job">
                                 <div class="task-info">
-                                    <a class="task-code-link" (click)="openTaskDetail(task); $event.stopPropagation()">{{ task.Code }}</a>
+                                    <a class="task-code-link" (click)="openTaskDetail(task); $event.stopPropagation()">{{ task.Code || 'N/A' }}</a>
                                     <div class="task-title text-wrap">{{ task.Title }}</div>
                                 </div>
                             </td>
@@ -97,7 +97,7 @@
                                 @if (task.ParentCode) {
                                 <span class="task-code-link" (click)="openTaskDetail(task.ParentID)" nz-tooltip
                                     [nzTooltipTitle]="task.ParentTitle">
-                                    {{ task.ParentCode }}
+                                    {{ task.ParentCode || 'N/A' }}
                                 </span>
                                 } @else {
                                 -

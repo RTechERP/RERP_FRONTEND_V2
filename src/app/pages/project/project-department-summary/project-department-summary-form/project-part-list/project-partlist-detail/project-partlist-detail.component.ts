@@ -20,6 +20,7 @@ import { CurrencyService } from '../../../../../general-category/currency-list/c
 import { DateTime } from 'luxon';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 import { AuthService } from '../../../../../../auth/auth.service';
+import { AppUserService } from '../../../../../../services/app-user.service';
 
 @Component({
   selector: 'app-project-partlist-detail',
@@ -76,6 +77,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
 
   currentUser: any;
   isDisabled: boolean = false;
+  isDisabled2: boolean = false;
   disableReason: string = ''; // Lý do không thể sửa vật tư
   disableMainReason: string = ''; // Lý do chính không thể sửa
   currentIsApprovedTBP: boolean = false; // Lưu trữ giá trị IsApprovedTBP hiện tại
@@ -97,7 +99,8 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     private currencyService: CurrencyService,
     private notification: NzNotificationService,
     private authService: AuthService,
-    private modal: NzModalService
+    private modal: NzModalService,
+    public appUserService: AppUserService
   ) {
     this.formGroup = this.fb.group({
       // Tab 1: Thông tin chung
@@ -344,52 +347,105 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
 
     // Cập nhật validators dựa trên loại node
     this.updateValidatorsBasedOnNodeType();
-
     // Cập nhật trạng thái của các trường qty
     this.currentIsApprovedTBP = data.IsApprovedTBP || false;
-    this.updateQtyFieldsState(data.IsProblem || false, this.currentIsApprovedTBP);
-
-    // Logic disable button Save theo WinForm: !(IsApprovedTBP == true || IsApprovedTBPNewCode == true)
-    const isApprovedTBP = data.IsApprovedTBP === true || data.IsApprovedTBP === 1;
-    const isApprovedTBPNewCode = data.IsApprovedTBPNewCode === true || data.IsApprovedTBPNewCode === 1;
-    // Chuẩn hóa IsCheckPrice về boolean
+    // this.updateQtyFieldsState(data.IsProblem || false, this.currentIsApprovedTBP); // Thay bằng applyFormDisabledState ở cuối
+    // Logic xác định các trạng thái phê duyệt độc lập
     const IsCheckPrice = data.IsCheckPrice === true || data.IsCheckPrice === 1 || data.IsCheckPrice === '1';
-    const StatusRequest = data.StatusRequest;
     const StatusPriceRequest = data.StatusPriceRequest;
+    const isPriceRequested = IsCheckPrice == true && StatusPriceRequest > 0;
+    const isTBPApprovedStandard = data.IsApprovedTBP === true || data.IsApprovedTBP === 1;
+    const isTBPApprovedNewCode = data.IsApprovedTBPNewCode === true || data.IsApprovedTBPNewCode === 1;
 
-    // Reset disable reason
+
+    // Reset logic disable
+    this.isDisabled = isPriceRequested || isTBPApprovedStandard;
+    this.isDisabled2 = isTBPApprovedNewCode;
+    this.disableMainReason = '';
     this.disableReason = '';
 
-    // Kiểm tra các điều kiện disable và set message tương ứng
-    if (isApprovedTBP) {
-      this.isDisabled = true;
-      this.disableMainReason = 'vật tư đã được duyệt TBP';
-      this.disableReason = 'vật tư đã được duyệt TBP (Lưu ý: Bạn vẫn có thể cập nhật mã đặc biệt)';
-    } else if (isApprovedTBPNewCode) {
-      this.isDisabled = true;
-      this.disableMainReason = 'vật tư đã được duyệt mã mới';
-      this.disableReason = 'vật tư đã được duyệt mã mới (Lưu ý: Bạn vẫn có thể cập nhật mã đặc biệt)';
-    } else if (IsCheckPrice == true && StatusPriceRequest > 0) {
-      this.isDisabled = true;
-      this.disableMainReason = 'vật tư đã được yêu cầu báo giá';
-      this.disableReason = 'vật tư đã được yêu cầu báo giá (Lưu ý: Bạn vẫn có thể cập nhật mã đặc biệt)';
-    } else {
-      this.isDisabled = false;
-      this.disableMainReason = '';
-      this.disableReason = '';
+    // Thiết lập thông báo theo THỨ TỰ ƯU TIÊN: Yêu cầu báo giá > TBP Duyệt > Duyệt mới
+    if (isPriceRequested && !this.appUserService.isAdmin) {
+      this.disableMainReason = 'Vật tư đã được yêu cầu báo giá';
+      this.disableReason = 'Vật tư đã được yêu cầu báo giá (Lưu ý: Bạn vẫn có thể cập nhật mã đặc biệt)';
+    } else if (isTBPApprovedStandard && !this.appUserService.isAdmin) {
+      this.disableMainReason = 'Vật tư đã được duyệt TBP';
+      this.disableReason = 'Vật tư đã được duyệt TBP (Lưu ý: Bạn vẫn có thể cập nhật mã đặc biệt)';
+    } else if (isTBPApprovedNewCode && !this.appUserService.isAdmin) {
+      this.disableMainReason = 'Vật tư đã được duyệt mã mới';
+      this.disableReason = 'Vật tư đã được duyệt mã mới (Lưu ý: Bạn vẫn có thể cập nhật mã đặc biệt, SL, Ghi chú)';
     }
 
-    // Hiển thị thông báo nếu vật tư không thể sửa
-    if (this.isDisabled && this.disableMainReason) {
+    // Hiển thị thông báo nếu vật tư không thể sửa (check cả isDisabled và isDisabled2)
+    if ((this.isDisabled || this.isDisabled2) && this.disableMainReason) {
       setTimeout(() => {
-        // Sử dụng HTML để hiển thị phần lưu ý với chữ nhỏ
-        const message = `Vật tư không thể sửa vì ${this.disableMainReason}.`;
-        const note = 'Lưu ý: Bạn vẫn có thể cập nhật mã đặc biệt';
-        const htmlMessage = `${message}<br/><span style="font-size: 0.75rem; color: #666; display: block; margin-top: 4px;">${note}</span>`;
+        // Lấy phần lưu ý từ disableReason (phần trong ngoặc đơn) if any
+        let note = 'Lưu ý: Bạn vẫn có thể cập nhật mã đặc biệt';
+        if (this.disableReason.includes('(')) {
+          const start = this.disableReason.indexOf('(') + 1;
+          const end = this.disableReason.lastIndexOf(')');
+          if (start > 0 && end > start) {
+            note = this.disableReason.substring(start, end);
+          }
+        }
+        const htmlMessage = `${this.disableReason.split(' (')[0]}<br/><span style="font-size: 0.75rem; color: #666; display: block; margin-top: 4px;">${note}</span>`;
 
         // Tạo notification với HTML content (ng-zorro hỗ trợ HTML trong message)
         this.notification.warning(NOTIFICATION_TITLE.warning, htmlMessage);
       }, 300);
+    }
+
+    // Áp dụng trạng thái disabled cho form controls (Reactive Forms logic)
+    this.applyFormDisabledState(data);
+  }
+
+  // Method central để quản lý trạng thái disabled của các form controls
+  applyFormDisabledState(data?: any): void {
+    const controls = this.formGroup.controls;
+    const isAdmin = this.appUserService.isAdmin ?? false;
+    const isLocked = (this.isDisabled || this.isDisabled2) && !isAdmin;
+
+    // 1. Các trường luôn bị khóa nếu đã duyệt bất kỳ cấp nào
+    const fixedFields = [
+      'projectId', 'versionId', 'tt', 'productCode', 'isDeleted',
+      'productName', 'maker', 'unit', 'technicalInfo',
+      'employeeId', 'isProblem', 'reasonProblem'
+    ];
+
+    fixedFields.forEach(key => {
+      if (isLocked) {
+        controls[key]?.disable({ emitEvent: false });
+      } else {
+        controls[key]?.enable({ emitEvent: false });
+      }
+    });
+
+    // 2. specialCode: Luôn cho phép sửa mã đặc biệt theo logic WinForm
+    controls['specialCode']?.enable({ emitEvent: false });
+
+    // 3. qtyMin, qtyFull, note:
+    // - Luôn cho phép (Enable) nếu là: Admin HOẶC chưa bị khóa bất kỳ cấp nào
+    // - Khóa cứng (Disable) nếu: đã Duyệt TBP HOẶC đã Yêu cầu báo giá (isDisabled)
+    // - Cho phép (Enable) nếu: đã Duyệt mới (isDisabled2)
+    if (isAdmin) {
+      controls['qtyMin']?.enable({ emitEvent: false });
+      controls['qtyFull']?.enable({ emitEvent: false });
+      controls['note']?.enable({ emitEvent: false });
+    } else if (this.isDisabled) {
+      // Trường hợp Duyệt TBP hoặc Yêu cầu báo giá: Khóa tuyệt đối SL/Ghi chú (theo yêu cầu mới nhất)
+      controls['qtyMin']?.disable({ emitEvent: false });
+      controls['qtyFull']?.disable({ emitEvent: false });
+      controls['note']?.disable({ emitEvent: false });
+    } else if (this.isDisabled2) {
+      // Trường hợp Duyệt mới (không bị trùng Duyệt TBP) hoặc Hàng phát sinh
+      controls['qtyMin']?.enable({ emitEvent: false });
+      controls['qtyFull']?.enable({ emitEvent: false });
+      controls['note']?.enable({ emitEvent: false });
+    } else {
+      // Mặc định cho phép nếu chưa duyệt
+      controls['qtyMin']?.enable({ emitEvent: false });
+      controls['qtyFull']?.enable({ emitEvent: false });
+      controls['note']?.enable({ emitEvent: false });
     }
   }
 
@@ -534,7 +590,6 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   }
 
   getUnitCount(): void {
-    debugger;
     this.projectPartListService.getUnitCount().subscribe({
       next: (response: any) => {
         // Handle response structure - check if it's wrapped in data property

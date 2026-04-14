@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ViewChild, OnChanges, SimpleChanges, inject, HostListener, HostBinding, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, OnChanges, SimpleChanges, inject, HostListener, HostBinding, ElementRef, ChangeDetectionStrategy, ChangeDetectorRef, NgZone, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule, Table } from 'primeng/table';
@@ -20,6 +20,9 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { TabsModule } from 'primeng/tabs';
 import { MenuItem, FilterService } from 'primeng/api';
 import { ColumnDef, EditLookupConfig } from './column-def.model';
+import { TableLayoutService } from './table-layout.service';
+import { UserService } from '../../services/user.service';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 @Component({
     selector: 'app-custom-table',
@@ -28,34 +31,47 @@ import { ColumnDef, EditLookupConfig } from './column-def.model';
         CommonModule, FormsModule, TableModule, InputTextModule,
         SelectModule, MultiSelectModule, ButtonModule, IconFieldModule, InputIconModule,
         ContextMenuModule, PopoverModule, DatePickerModule, TextareaModule, CheckboxModule,
-        TabsModule, ProgressBarModule, TagModule, DialogModule, OrderListModule
+        TabsModule, ProgressBarModule, TagModule, DialogModule, OrderListModule,
+        ScrollingModule
     ],
     templateUrl: './custom-table.html',
-    styleUrl: './custom-table.css'
+    styleUrl: './custom-table.css',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CustomTable implements OnChanges {
+export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     @ViewChild('dt') dt!: Table;
     @ViewChild('cm') cm!: ContextMenu;
     @ViewChild('hcm') hcm!: ContextMenu;
     @ViewChild('lookupPanel') lookupPanel!: Popover;
 
     private el = inject(ElementRef);
+    private cdr = inject(ChangeDetectorRef);
+    private zone = inject(NgZone);
     private filterService = inject(FilterService);
+    private tableLayoutService = inject(TableLayoutService);
+    private userService = inject(UserService);
     @HostBinding('attr.tabindex') tabindex = '0';
 
     constructor() {
-        this.filterService.register('dateRange', (value: any, filter: Date[]) => {
-            if (!filter || !filter[0]) return true;
-            if (value == null) return false;
-            const date = new Date(value);
-            date.setHours(0, 0, 0, 0);
-            const start = new Date(filter[0]);
-            start.setHours(0, 0, 0, 0);
-            if (!filter[1]) return date.getTime() >= start.getTime();
-            const end = new Date(filter[1]);
-            end.setHours(23, 59, 59, 999);
-            return date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
+        this.filterService.register('dateIs', (value: any, filter: any) => {
+            if (filter === undefined || filter === null) return true;
+            if (value === undefined || value === null) return false;
+
+            const vDate = new Date(value);
+            if (isNaN(vDate.getTime())) return false; // Không phải là ngày hợp lệ
+
+            const fDate = new Date(filter);
+
+            return vDate.getDate() === fDate.getDate() &&
+                vDate.getMonth() === fDate.getMonth() &&
+                vDate.getFullYear() === fDate.getFullYear();
         });
+    }
+
+    @Input() minWidth: string = '50rem';
+
+    get tableStyleObj(): { [key: string]: string | null } {
+        return { 'min-width': this.minWidth, 'width': this.resizeMode === 'expand' ? null : '100%' };
     }
 
     // --- Highlighting State ---
@@ -83,7 +99,7 @@ export class CustomTable implements OnChanges {
     /** Cache of last-loaded data per field (for formatValue when using loadData) */
     private lookupDataCache: { [field: string]: any[] } = {};
 
-    // --- Cell Value Cache (performance: avoid re-calling format() on every CD cycle) ---
+    // --- Cell Value Cache (avoid re-calling formatValue + getHighlightedText per CD cycle) ---
     private cellValueCache = new Map<string, string>();
 
     // --- Cell Focus State ---
@@ -95,8 +111,8 @@ export class CustomTable implements OnChanges {
     private _data: any[] = [];
 
     @Input() set data(val: any[]) {
-        this._originalData = val ?? [];
-        this._data = val ?? [];
+        this._originalData = val ? [...val] : [];
+        this._data = val ? [...val] : [];
         this.cellValueCache.clear();
         this.scheduleBuildFilterOptionsCache();
     }
@@ -109,7 +125,6 @@ export class CustomTable implements OnChanges {
 
     // --- Caption ---
     @Input() title: string = '';
-    @Input() minWidth: string = '50rem';
     @Input() showGlobalFilter: boolean = false;
     @Input() globalFilterFields: string[] = [];
 
@@ -121,19 +136,19 @@ export class CustomTable implements OnChanges {
     }
 
     // --- Layout ---
-    @Input() height: string = '';
-    @HostBinding('style.height') get hostHeight() { return this.height || null; }
-    @HostBinding('style.display') get hostDisplay() { return this.height ? 'flex' : null; }
-    @HostBinding('style.flexDirection') get hostFlexDir() { return this.height ? 'column' : null; }
-    @HostBinding('style.minHeight') get hostMinHeight() { return this.height ? '0' : null; }
-    @HostBinding('style.overflow') get hostOverflow() { return this.height ? 'hidden' : null; }
+    @Input() height: string = '100%';
+    @HostBinding('style.height') get hostHeight() { return this.height; }
     @Input() resizable: boolean = true;
     @Input() resizeMode: string = 'expand';
     @Input() showGridlines: boolean = true;
     @Input() fontSize: string = '10px';
     @HostBinding('style.--table-font-size') get tableFontSizeVar() { return this.fontSize; }
-    @HostBinding('style.--virtual-row-height') get virtualRowHeightVar() { return this.virtualScroll ? this.virtualScrollItemSize + 'px' : null; }
-    @HostBinding('class.vs-active') get vsActiveClass() { return this.virtualScroll; }
+    @HostBinding('style.--virtual-row-height') get virtualRowHeightVar() { return this.isVirtualScroll ? this.virtualScrollItemSize + 'px' : null; }
+    @HostBinding('class.vs-active') get vsActiveClass() { return this.isVirtualScroll; }
+    /** 'auto' = columns size to content; 'fixed' = use the widths set in column definitions */
+    @Input() columnLayout: 'auto' | 'fixed' = 'auto';
+    _columnLayout: 'auto' | 'fixed' = 'auto';
+    @HostBinding('style.--table-col-layout') get colLayoutVar() { return this._columnLayout; }
     @Input() showColumnFilter: boolean = true;
     /** 'row' = filter inputs below header (default), 'menu' = filter icon in header opens popup */
     @Input() filterDisplay: 'row' | 'menu' = 'row';
@@ -142,11 +157,44 @@ export class CustomTable implements OnChanges {
 
     // --- Scrollable ---
     @Input() scrollable: boolean = false;
-    @Input() scrollHeight: string = '400px';
+    @Input() scrollHeight: string = 'flex';
 
     // --- Virtual Scrolling ---
     @Input() virtualScroll: boolean = false;
     @Input() virtualScrollItemSize: number = 46;
+    /**
+     * Auto-enable PrimeNG virtual scroll when row count exceeds this value (0 = never auto).
+     * Note: with [virtualScroll]="false", auto still applies if threshold is exceeded — use 0 to disable.
+     */
+    @Input() lazyRenderThreshold: number = 100;
+    /** Passed to p-table → Scroller (e.g. { numToleratedItems: 24 }). Merged with sensible defaults when virtual scroll is on. */
+    @Input() virtualScrollOptions: Record<string, unknown> | null = null;
+
+    /** Resolved: true if virtualScroll is on OR data exceeds threshold */
+    get isVirtualScroll(): boolean {
+        return this.virtualScroll || (this.lazyRenderThreshold > 0 && this._data.length > this.lazyRenderThreshold);
+    }
+
+    /** Extra rows rendered above/below viewport — reduces blank area when scrolling fast */
+    get mergedVirtualScrollOptions(): Record<string, unknown> | undefined {
+        if (!this.isVirtualScroll) {
+            return undefined;
+        }
+        return {
+            numToleratedItems: 24,
+            ...(this.virtualScrollOptions ?? {})
+        };
+    }
+
+    /** Resolved: scrollable must be true when virtual scroll is active */
+    get isScrollable(): boolean {
+        return this.scrollable || this.isVirtualScroll;
+    }
+
+    /** Resolved scroll height */
+    get resolvedScrollHeight(): string {
+        return this.isScrollable ? (this.scrollHeight || 'flex') : '';
+    }
 
     // --- Row Grouping ---
     @Input() rowGroupMode: 'subheader' | 'rowspan' | undefined = undefined;
@@ -154,6 +202,8 @@ export class CustomTable implements OnChanges {
     @Input() rowGroupShowFooter: boolean = false;
     @Input() expandableRowGroups: boolean = false;
     expandedRowKeys: { [key: string]: boolean } = {};
+    /** Field used as the key for cell rowspan merging. Consecutive rows with the same value will be merged for columns marked rowSpan=true */
+    @Input() rowSpanBy: string = '';
 
     // --- Pagination ---
     @Input() paginator: boolean = false;
@@ -190,12 +240,6 @@ export class CustomTable implements OnChanges {
     // --- Header Cell Action (fired for headerClickable columns, e.g. upload button in header) ---
     @Output() headerCellAction = new EventEmitter<{ field: string }>();
 
-    @Output() rowDblClick = new EventEmitter<any>();
-
-    onRowDblClick(rowData: any) {
-        this.rowDblClick.emit(rowData);
-    }
-
     onHeaderCellClick(event: Event, col: ColumnDef) {
         event.stopPropagation();
         if (col.headerClickable) {
@@ -221,32 +265,64 @@ export class CustomTable implements OnChanges {
     chooserColumns: ColumnDef[] = [];
     @Output() rowClick = new EventEmitter<any>();
     @Output() rowDoubleClick = new EventEmitter<any>();
+    @Output() rowDblClick = new EventEmitter<any>();
     clickedRowKey: any = null;
 
     onRowClick(rowData: any) {
-        if (this.clickSelectRow) {
-            const newKey = this.dataKey ? rowData[this.dataKey] : rowData;
-            if (this.clickedRowKey !== newKey) {
-                const focusedKey = this.focusedCell
-                    ? (this.dataKey ? this.focusedCell.rowData[this.dataKey] : this.focusedCell.rowData)
-                    : null;
-                if (focusedKey !== newKey) {
-                    this.focusedCell = null;
-                }
+        if (!this.clickSelectRow) return;
+        const newKey = this.dataKey ? rowData[this.dataKey] : rowData;
+        if (this.clickedRowKey !== newKey) {
+            // Only clear focusedCell if it belongs to the OLD row.
+            // If onCellClick already set focusedCell to the new row, keep it.
+            const focusedKey = this.focusedCell
+                ? (this.dataKey ? this.focusedCell.rowData[this.dataKey] : this.focusedCell.rowData)
+                : null;
+            if (focusedKey !== newKey) {
+                this.focusedCell = null;
             }
-            this.clickedRowKey = newKey;
         }
+        this.clickedRowKey = newKey;
         this.rowClick.emit(rowData);
-    }
-
-    onRowDoubleClick(rowData: any) {
-        this.rowDoubleClick.emit(rowData);
     }
 
     isRowClicked(rowData: any): boolean {
         if (!this.clickSelectRow) return false;
         const key = this.dataKey ? rowData[this.dataKey] : rowData;
         return this.clickedRowKey === key;
+    }
+
+    onRowDoubleClick(rowData: any) {
+        this.rowDoubleClick.emit(rowData);
+    }
+
+    onRowDblClick(rowData: any) {
+        this.rowDblClick.emit(rowData);
+    }
+
+    // --- RowSpan helpers ---
+    private getDisplayedData(): any[] {
+        return (this.dt?.filteredValue as any[]) || this.data;
+    }
+
+    /** Returns false for cells that should be hidden because the row above spans over them */
+    showRowSpanCell(rowIndex: number, col: ColumnDef): boolean {
+        if (!col.rowSpan || !this.rowSpanBy) return true;
+        if (rowIndex === 0) return true;
+        const data = this.getDisplayedData();
+        return data[rowIndex]?.[this.rowSpanBy] !== data[rowIndex - 1]?.[this.rowSpanBy];
+    }
+
+    /** Returns span count for the first row of a group, null for subsequent rows */
+    getRowSpanCount(rowIndex: number): number | null {
+        if (!this.rowSpanBy) return null;
+        const data = this.getDisplayedData();
+        const key = data[rowIndex]?.[this.rowSpanBy];
+        if (rowIndex > 0 && data[rowIndex - 1]?.[this.rowSpanBy] === key) return null;
+        let count = 1;
+        while (rowIndex + count < data.length && data[rowIndex + count]?.[this.rowSpanBy] === key) {
+            count++;
+        }
+        return count > 1 ? count : null;
     }
 
     // --- Footer ---
@@ -285,6 +361,16 @@ export class CustomTable implements OnChanges {
         return (cls + (col.filterType === 'numeric' ? ' text-right' : '')).trim();
     }
 
+    /** Build the CSS class string for a body <td>. Returns a single pre-built string
+     *  so Angular doesn't diff a new array on every CD cycle. */
+    getTdClass(col: ColumnDef, rowData: any): string {
+        let cls = this.autoAlignCache[col.field] || '';
+        if (col.cellClass) cls += ' ' + col.cellClass(rowData);
+        if (col.frozen) cls += col.alignFrozen === 'right' ? ' frozen-right' : ' frozen-left';
+        if (this.focusedCell && this.focusedCell.rowData === rowData && this.focusedCell.colField === col.field) cls += ' focused-cell';
+        return cls;
+    }
+
     // --- Cell Editing ---
     @Input() editMode: 'cell' | 'row' | undefined = undefined;
 
@@ -295,26 +381,88 @@ export class CustomTable implements OnChanges {
     // --- State Persistence ---
     @Input() stateKey: string | undefined = undefined;
     @Input() stateStorage: 'session' | 'local' = 'local';
+    @Input() tableId: string = '';
 
     // --- Header Context Menu ---
     headerMenuItems: MenuItem[] = [];
     activeSortField: string | null = null;
     private _allColumns: ColumnDef[] = [];
     private _hiddenFields: Set<string> = new Set();
+    private _snapshotTaken = false;
+    private _originalColumnsOrder: string[] = [];
+    private _originalWidths: { [field: string]: string } = {};
+    private _layoutModified = false;
 
     // --- Filter Options Cache ---
     filterOptionsCache: { [field: string]: { label: string; value: any }[] } = {};
     private _cacheScheduleId: any = null;
 
+    // --- Pre-computed auto-align class per column (avoid per-cell recalc) ---
+    autoAlignCache: { [field: string]: string } = {};
+
+    private scrollUnlisten: (() => void) | null = null;
+    private _viewInitialized = false;
+
     ngOnChanges(changes: SimpleChanges): void {
+        if (changes['columnLayout']) {
+            this._columnLayout = this.columnLayout;
+        }
+        if (changes['data'] || changes['columns']) {
+            this.scheduleBuildFilterOptionsCache();
+        }
         if (changes['columns'] && this.columns) {
             this._allColumns = [...this.columns];
-            this.scheduleBuildFilterOptionsCache();
+            this.rebuildAutoAlignCache();
+            if (this._viewInitialized) {
+                setTimeout(() => this.recalcFrozenPositions());
+            }
+            if (!this._snapshotTaken && this.tableId) {
+                this._snapshotTaken = true;
+                this._originalColumnsOrder = this._allColumns.map(c => c.field);
+                this._originalWidths = {};
+                this._allColumns.forEach(c => { if (c.width) this._originalWidths[c.field] = c.width; });
+                this.loadTableLayout();
+            } else {
+                this.columns = this.visibleColumns;
+            }
+        }
+    }
+
+    ngAfterViewInit(): void {
+        this._viewInitialized = true;
+        // Patch: run scroll events outside Angular zone so scrolling doesn't trigger CD
+        this.zone.runOutsideAngular(() => {
+            const scrollable = this.el.nativeElement.querySelector('.p-datatable-scrollable-body, .p-scroller');
+            if (scrollable) {
+                const handler = () => { }; // passive listener to prevent zone.js patching
+                scrollable.addEventListener('scroll', handler, { passive: true });
+                this.scrollUnlisten = () => scrollable.removeEventListener('scroll', handler);
+            }
+        });
+        // Fix frozen header positions:
+        // Run after PrimeNG's updateStickyPosition microtask (Promise.resolve) using configured col widths
+        setTimeout(() => this.recalcFrozenPositions());
+        // Also run after DOM layout completes for auto-width columns
+        setTimeout(() => this.recalcFrozenPositions(), 200);
+    }
+
+    ngOnDestroy(): void {
+        this.scrollUnlisten?.();
+    }
+
+    private rebuildAutoAlignCache() {
+        this.autoAlignCache = {};
+        for (const col of this.columns) {
+            this.autoAlignCache[col.field] = this.getAutoAlignClass(col.cssClass, col);
         }
     }
 
     get visibleColumns(): ColumnDef[] {
-        return this._allColumns.filter(c => !this._hiddenFields.has(c.field));
+        return this._allColumns.filter(c => c.visible !== false && !this._hiddenFields.has(c.field));
+    }
+
+    get isLayoutModified(): boolean {
+        return this._layoutModified;
     }
 
     // --- Filter Options (auto-populated from data, or lazy-loaded) ---
@@ -323,34 +471,48 @@ export class CustomTable implements OnChanges {
         this._cacheScheduleId = setTimeout(() => {
             this._cacheScheduleId = null;
             this.buildFilterOptionsCache();
+            this.cdr.markForCheck();
         }, 0);
     }
 
     buildFilterOptionsCache() {
-        this.filterOptionsCache = {};
+        // Only pre-build static options (filterOptions / filterLoadOptions).
+        // Data-derived options for dropdown/multiselect are built lazily in
+        // getFilterOptions() to avoid blocking the main thread on large datasets.
         if (!this.columns?.length) return;
         for (const col of this.columns) {
             if (col.filterLoadOptions) {
                 Promise.resolve(col.filterLoadOptions()).then(opts => {
                     this.filterOptionsCache[col.field] = opts;
+                    this.cdr.markForCheck();
                 });
             } else if (col.filterOptions) {
                 this.filterOptionsCache[col.field] = col.filterOptions;
-            } else if ((col.filterMode === 'dropdown' || col.filterMode === 'multiselect') && this._data?.length) {
-                const unique = [...new Set(this._data.map(d => d[col.field]).filter(v => v != null))];
-                this.filterOptionsCache[col.field] = unique.map(v => ({ label: String(v), value: v }));
+            }
+            // Data-derived options: clear stale cache so getFilterOptions() rebuilds on next access.
+            else if (col.filterMode === 'dropdown' || col.filterMode === 'multiselect') {
+                delete this.filterOptionsCache[col.field];
             }
         }
     }
 
     getFilterOptions(col: ColumnDef): { label: string; value: any }[] {
-        return this.filterOptionsCache[col.field] || [];
+        if (this.filterOptionsCache[col.field] !== undefined) {
+            return this.filterOptionsCache[col.field];
+        }
+        // Lazy build from data on first access (e.g. when user opens the filter panel).
+        if ((col.filterMode === 'dropdown' || col.filterMode === 'multiselect') && this._data?.length) {
+            const unique = [...new Set(this._data.map(d => d[col.field]).filter(v => v != null))];
+            this.filterOptionsCache[col.field] = unique.map(v => ({ label: String(v), value: v }));
+            return this.filterOptionsCache[col.field];
+        }
+        return [];
     }
+
 
     // --- TrackBy ---
     trackByField(_: number, col: ColumnDef): string { return col.field; }
     trackByIndex(i: number): number { return i; }
-
 
     onGlobalFilter(event: Event) {
         this.globalFilterValue = (event.target as HTMLInputElement).value;
@@ -366,12 +528,10 @@ export class CustomTable implements OnChanges {
         return str.replace(regex, '<mark>$1</mark>');
     }
 
-    /** Memoized cell value: gọi formatValue + getHighlightedText đúng 1 lần/cell, cache lại cho các CD cycle tiếp theo */
+    /** Memoized cell value: formatValue + getHighlightedText once per cell, cached across CD cycles */
     getCellValue(col: ColumnDef, rowData: any): string {
         const rowKey = this.dataKey ? rowData[this.dataKey] : null;
-        const cacheKey = rowKey != null
-            ? `${col.field}__${rowKey}__${this.globalFilterValue}`
-            : null;
+        const cacheKey = rowKey != null ? `${col.field}__${rowKey}__${this.globalFilterValue}` : null;
         if (cacheKey) {
             const cached = this.cellValueCache.get(cacheKey);
             if (cached !== undefined) return cached;
@@ -420,8 +580,8 @@ export class CustomTable implements OnChanges {
 
     getDefaultMatchMode(filterType: string = 'text'): string {
         if (filterType === 'numeric') return 'equals';
-        if (filterType === 'date') return 'dateIs';
-        return 'startsWith';
+        if (filterType === 'date' || filterType === 'datetime' || filterType === 'time') return 'dateIs';
+        return 'contains';
     }
 
     getMatchMode(field: string, filterType: string = 'text'): string {
@@ -441,7 +601,7 @@ export class CustomTable implements OnChanges {
                 { label: 'Greater Than', value: 'gt' },
                 { label: 'Greater Than or Equal To', value: 'gte' }
             ];
-        } else if (filterType === 'date') {
+        } else if (filterType === 'date' || filterType === 'datetime' || filterType === 'time') {
             return [
                 { label: 'Is', value: 'dateIs' },
                 { label: 'Is Not', value: 'dateIsNot' },
@@ -471,14 +631,34 @@ export class CustomTable implements OnChanges {
         filterCallback(null);
     }
 
+    // =============================================
+    // DateTime Filter
+    // =============================================
+    toggleDateFilterMode(field: string, filterCallback: Function) {
+        this.dateFilterMode[field] = this.dateFilterMode[field] === 'range' ? 'single' : 'range';
+        this.dateRangeFilter[field] = [];
+        this.dateSingleFilter[field] = null;
+        filterCallback(null);
+    }
 
+    onDateRangeChange(field: string, value: Date[], filterCallback: Function) {
+        this.dateRangeFilter[field] = value;
+        if (value && value.length >= 2 && value[0] && value[1]) {
+            filterCallback(value);
+        } else if (!value || value.length === 0) {
+            filterCallback(null);
+        }
+    }
 
     getFilteredOptions(col: ColumnDef): { label: string; value: any }[] {
-
         const options = this.getFilterOptions(col);
         const term = (this.excelFilterSearchText[col.field] || '').toLowerCase();
         if (!term) return options;
         return options.filter(o => o.label.toLowerCase().includes(term));
+    }
+
+    trackByValue(_index: number, opt: { label: string; value: any }): any {
+        return opt.value;
     }
 
     onSelectionChange(selection: any) {
@@ -505,6 +685,7 @@ export class CustomTable implements OnChanges {
             this.contextMenuItems.forEach(item => (item as any).data = event.data);
         }
         this.selectedContextRowChange.emit(event.data);
+        this.contextMenuSelectionChange.emit(event.data);
         if (this.selectionMode) {
             if (Array.isArray(this.selection)) {
                 if (!this.selection.includes(event.data)) {
@@ -583,6 +764,7 @@ export class CustomTable implements OnChanges {
                 this.lookupDataCache[col.field] = result; // cache for formatValue
             } finally {
                 this.lookupLoading = false;
+                this.cdr.markForCheck();
             }
         } else {
             this.lookupFilteredData = cfg.data || [];
@@ -610,6 +792,7 @@ export class CustomTable implements OnChanges {
                     this.lookupFilteredData = this.applyLookupColFilters(cfg, result);
                 } finally {
                     this.lookupLoading = false;
+                    this.cdr.markForCheck();
                 }
             }, 300);
             return;
@@ -724,7 +907,7 @@ export class CustomTable implements OnChanges {
             { label: 'Cột nâng cao', icon: 'pi pi-list', command: () => this.openColumnChooser() },
             {
                 label: 'Hiện/Ẩn cột', icon: 'pi pi-eye',
-                items: this._allColumns.map(c => ({
+                items: this._allColumns.filter(c => c.visible !== false).map(c => ({
                     label: c.header,
                     icon: this._hiddenFields.has(c.field) ? 'pi pi-square' : 'pi pi-check-square',
                     command: () => this.toggleColumnVisible(c.field)
@@ -737,8 +920,27 @@ export class CustomTable implements OnChanges {
         this.headerMenuItems.push(
             { label: 'Tự động co cột', icon: 'pi pi-arrows-h', command: () => this.autoFitColumn(field) },
             { label: 'Tự động co tất cả cột', icon: 'pi pi-arrows-alt', command: () => this.autoFitAllColumns() },
+            {
+                label: this._columnLayout === 'auto' ? 'Dùng chiều rộng cài sẵn' : 'Fit theo nội dung',
+                icon: this._columnLayout === 'auto' ? 'pi pi-lock' : 'pi pi-unlock',
+                command: () => {
+                    this._columnLayout = this._columnLayout === 'auto' ? 'fixed' : 'auto';
+                    this.cdr.markForCheck();
+                }
+            },
             { separator: true }
         );
+
+        // --- Layout Persistence ---
+        if (this.tableId) {
+            this.headerMenuItems.push(
+                { label: 'Lưu layout lên server', icon: 'pi pi-cloud-upload', command: () => this.saveTableLayoutToBackend() },
+                ...(this._layoutModified
+                    ? [{ label: 'Khôi phục layout mặc định', icon: 'pi pi-refresh', command: () => this.resetTableLayout() }]
+                    : []),
+                { separator: true }
+            );
+        }
 
         // --- Filter & Search Toggles ---
         this.headerMenuItems.push(
@@ -805,6 +1007,7 @@ export class CustomTable implements OnChanges {
             this._hiddenFields.add(field);
         }
         this.columns = this.visibleColumns;
+        this.saveTableLayout();
     }
 
     autoFitColumn(field: string) {
@@ -825,7 +1028,13 @@ export class CustomTable implements OnChanges {
     onColResize() {
         // After resize, recalculate sticky left offsets for frozen columns.
         // PrimeNG doesn't re-run initFrozenColumns on resize in v21.
-        setTimeout(() => this.recalcFrozenPositions());
+        setTimeout(() => {
+            this.recalcFrozenPositions();
+            if (this.tableId) {
+                this.syncColumnWidthsFromDOM();
+                this.saveTableLayout();
+            }
+        });
     }
 
     private recalcFrozenPositions() {
@@ -840,10 +1049,32 @@ export class CustomTable implements OnChanges {
                 );
                 cells.forEach(cell => {
                     cell.style.left = offset + 'px';
-                    offset += cell.offsetWidth;
+                    // Prefer configured width from inline style (set via [style.width] binding on <th>)
+                    // to avoid depending on DOM layout (offsetWidth may be 0 before layout completes).
+                    // Fall back to offsetWidth; enforce min 30px so empty columns still contribute correct offset.
+                    const configW = this.parseCellWidthPx(cell);
+                    offset += configW ?? Math.max(cell.offsetWidth, 30);
                 });
             });
         });
+    }
+
+    /** Parse cell's inline style width/minWidth to px. Returns null if not determinable. */
+    private parseCellWidthPx(cell: HTMLElement): number | null {
+        for (const prop of ['width', 'minWidth'] as const) {
+            const val: string = (cell.style as any)[prop];
+            if (!val) continue;
+            if (val.endsWith('px')) {
+                const n = parseFloat(val);
+                if (n > 0) return n;
+            }
+            if (val.endsWith('rem')) {
+                const base = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+                const n = parseFloat(val) * base;
+                if (n > 0) return n;
+            }
+        }
+        return null;
     }
 
     onCellEditComplete(_event: any) {
@@ -882,6 +1113,7 @@ export class CustomTable implements OnChanges {
 
     applyColumnChooser() {
         this._syncChooserToColumns();
+        this.saveTableLayout();
         this.showColumnChooser = false;
     }
 
@@ -921,25 +1153,6 @@ export class CustomTable implements OnChanges {
         return this.focusedCell?.rowData === rowData && this.focusedCell?.colField === colField;
     }
 
-    // =============================================
-    // DateTime Filter
-    // =============================================
-    toggleDateFilterMode(field: string, filterCallback: Function) {
-        this.dateFilterMode[field] = this.dateFilterMode[field] === 'range' ? 'single' : 'range';
-        this.dateRangeFilter[field] = [];
-        this.dateSingleFilter[field] = null;
-        filterCallback(null);
-    }
-
-    onDateRangeChange(field: string, value: Date[], filterCallback: Function) {
-        this.dateRangeFilter[field] = value;
-        if (value && value.length >= 2 && value[0] && value[1]) {
-            filterCallback(value);
-        } else if (!value || value.length === 0) {
-            filterCallback(null);
-        }
-    }
-
     @HostListener('keydown', ['$event'])
     onKeydown(event: KeyboardEvent) {
         if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
@@ -959,5 +1172,97 @@ export class CustomTable implements OnChanges {
                 }
             }
         }
+    }
+
+    // =============================================
+    // Table Layout Persistence
+    // =============================================
+
+    private loadTableLayout(): void {
+        if (!this.tableId) return;
+        const saved = this.tableLayoutService.load(this.tableId);
+        if (!saved) { this._layoutModified = false; return; }
+
+        // Apply hidden fields
+        this._hiddenFields = new Set(saved.hiddenFields || []);
+
+        // Apply column order to _allColumns
+        if (saved.columnOrder?.length) {
+            this._allColumns.sort((a, b) => {
+                const ai = saved.columnOrder.indexOf(a.field);
+                const bi = saved.columnOrder.indexOf(b.field);
+                return (ai === -1 ? 9999 : ai) - (bi === -1 ? 9999 : bi);
+            });
+        }
+
+        // Apply saved widths to ColumnDef objects
+        if (saved.widths) {
+            this._allColumns.forEach(c => {
+                if (saved.widths[c.field]) c.width = saved.widths[c.field];
+            });
+        }
+
+        this.columns = this.visibleColumns;
+        this._layoutModified = true;
+        this.cdr.markForCheck();
+    }
+
+    private syncColumnWidthsFromDOM(): void {
+        const ths = this.el.nativeElement.querySelectorAll('th[data-field]') as NodeListOf<HTMLElement>;
+        ths.forEach((th: HTMLElement) => {
+            const field = th.getAttribute('data-field');
+            const col = this._allColumns.find(c => c.field === field);
+            if (col && th.style.width) col.width = th.style.width;
+        });
+    }
+
+    private saveTableLayout(): void {
+        if (!this.tableId) return;
+        const widths: { [field: string]: string } = {};
+        this._allColumns.forEach(c => { if (c.width) widths[c.field] = c.width; });
+        this.tableLayoutService.save(this.tableId, {
+            hiddenFields: Array.from(this._hiddenFields),
+            columnOrder: this._allColumns.map(c => c.field),
+            widths
+        });
+        this._layoutModified = true;
+    }
+
+    saveTableLayoutToBackend(): void {
+        if (!this.tableId) return;
+        const widths: { [field: string]: string } = {};
+        this._allColumns.forEach(c => { if (c.width) widths[c.field] = c.width; });
+        const state = {
+            hiddenFields: Array.from(this._hiddenFields),
+            columnOrder: this._allColumns.map(c => c.field),
+            widths
+        };
+        this.tableLayoutService.saveToBackend(this.tableId, state).subscribe();
+    }
+
+    resetTableLayout(): void {
+        if (!this.tableId) return;
+        this.tableLayoutService.reset(this.tableId);
+        this._layoutModified = false;
+
+        // Restore hidden fields (empty = all visible)
+        this._hiddenFields = new Set();
+
+        // Restore column order
+        if (this._originalColumnsOrder.length) {
+            this._allColumns.sort((a, b) => {
+                const ai = this._originalColumnsOrder.indexOf(a.field);
+                const bi = this._originalColumnsOrder.indexOf(b.field);
+                return (ai === -1 ? 9999 : ai) - (bi === -1 ? 9999 : bi);
+            });
+        }
+
+        // Restore widths
+        this._allColumns.forEach(c => {
+            c.width = this._originalWidths[c.field] ?? undefined;
+        });
+
+        this.columns = this.visibleColumns;
+        this.cdr.markForCheck();
     }
 }

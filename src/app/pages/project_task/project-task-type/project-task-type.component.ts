@@ -99,6 +99,7 @@ export class ProjectTaskTypeComponent implements OnInit {
       Code: ['', [Validators.required, Validators.maxLength(50)]],
       TypeName: ['', [Validators.required, Validators.maxLength(255)]],
       DepartmentID: [null],
+      Color: ['#1890ff'],
       IsDeleted: [false],
     });
   }
@@ -141,7 +142,7 @@ export class ProjectTaskTypeComponent implements OnInit {
   }
 
   openAddModal(): void {
-    this.form.reset({ ID: 0, Code: '', TypeName: '', DepartmentID: null, IsDeleted: false });
+    this.form.reset({ ID: 0, Code: '', TypeName: '', DepartmentID: null, Color: '#1890ff', IsDeleted: false });
     this.showModal();
   }
 
@@ -152,6 +153,7 @@ export class ProjectTaskTypeComponent implements OnInit {
       Code: row.Code,
       TypeName: row.TypeName,
       DepartmentID: row.DepartmentID,
+      Color: row.Color || '#1890ff',
       IsDeleted: row.IsDeleted ?? false,
     });
     this.showModal();

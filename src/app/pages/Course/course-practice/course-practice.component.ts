@@ -190,7 +190,6 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
         return (a.NameDepartment || '')
           .localeCompare(b.NameDepartment || '');
       });
-    console.log('categoryData', this.categoryData);
   }
   getDataCategory() {
     this.courseService.getDataCategory(0).subscribe(
@@ -220,7 +219,6 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
           'Thông báo',
           'Có lỗi xảy ra khi tải danh sách danh mục!',
         );
-        console.error('Error loading categories:', error);
         this.categoryData = [];
         if (this.categoryTable) {
           this.categoryTable.replaceData(this.categoryData);
@@ -234,17 +232,11 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         if (response && response.status === 1) {
           this.courseExamData = response.data || [];
-          console.log('CourseExams loaded:', this.courseExamData);
         } else {
-          console.warn(
-            'Không thể tải danh sách CourseExam:',
-            response?.message,
-          );
           this.courseExamData = [];
         }
       },
       error: (error) => {
-        console.error('Error loading CourseExams:', error);
         this.courseExamData = [];
       },
     });
@@ -272,7 +264,6 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
                 course.LessonCount || 5 + Math.floor(Math.random() * 15),
             }),
           );
-          console.log('this.courseData', this.courseData);
         } else {
           this.notification.warning(
             'Thông báo',
@@ -286,7 +277,6 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
           'Thông báo',
           'Có lỗi xảy ra khi tải danh sách khóa học!',
         );
-        console.error('Error loading courses:', error);
         this.courseData = [];
       },
     );
@@ -297,17 +287,11 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         if (response && response.status === 1) {
           this.courseLessonData = response.data || [];
-          console.log('courseLessonData loaded:', this.courseLessonData);
         } else {
-          console.warn(
-            'Không thể tải danh sách courseLessonData:',
-            response?.message,
-          );
           this.courseLessonData = [];
         }
       },
       error: (error) => {
-        console.error('Error loading courseLessonData:', error);
         this.courseLessonData = [];
       },
     });
@@ -415,7 +399,6 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
           'Thông báo',
           'Có lỗi xảy ra khi tải danh sách bài học!',
         );
-        console.error('Error loading lessons:', error);
         this.lessonData = [];
       },
     );
@@ -467,7 +450,6 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
   currentLessonExam: CourseExam | null = null;
 
   onOpenLessonExamResult(event: { lessonID: number; exam: CourseExam }): void {
-    console.log('Open lesson exam result:', event);
     this.selectedLessonID = event.lessonID;
     this.currentLessonExam = event.exam;
 

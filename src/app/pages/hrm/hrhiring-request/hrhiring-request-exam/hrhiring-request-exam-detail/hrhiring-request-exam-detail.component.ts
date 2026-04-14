@@ -215,14 +215,24 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
 
   onSave(isAddNew: boolean = false): void {
     if (!this.selectedHiringRequestId) {
-      this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Vui lòng chọn Yêu cầu tuyển dụng' });
+      this.notification.create(
+        'error',
+        'Lỗi',
+        'Vui lòng chọn Yêu cầu tuyển dụng',
+        { nzStyle: { whiteSpace: 'pre-line' } }
+      );
       return;
     }
 
-    if (!this.selectedExams || this.selectedExams.length === 0) {
-      this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Vui lòng chọn ít nhất 1 bài thi' });
-      return;
-    }
+    // if (!this.selectedExams || this.selectedExams.length === 0) {
+    //   this.notification.create(
+    //     'error',
+    //     'Lỗi',
+    //     'Vui lòng chọn ít nhất 1 bài thi',
+    //     { nzStyle: { whiteSpace: 'pre-line' } }
+    //   );
+    //   return;
+    // }
 
     this.loading = true;
     const currentExamIds = this.selectedExams.map(exam => exam.ID || exam.ExamID || exam.Id);
@@ -241,7 +251,12 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
       next: (res) => {
         this.loading = false;
         if (res.status === 1) {
-          this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Lưu thiết lập bài thi thành công' });
+          this.notification.create(
+            'success',
+            'Thành công',
+            'Lưu thiết lập bài thi thành công',
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
           if (isAddNew) {
             this.resetForm();
             this.selectedExams = [];
@@ -250,7 +265,12 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
             this.activeModal.close({ success: true });
           }
         } else {
-          this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: res.message || 'Lưu thất bại' });
+          this.notification.create(
+            'error',
+            'Lỗi',
+            res.message || 'Lưu thất bại',
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
         }
       },
       error: (err: any) => {

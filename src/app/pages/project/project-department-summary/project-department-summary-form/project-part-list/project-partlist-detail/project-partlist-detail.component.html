@@ -25,7 +25,8 @@
                       ? 'Vui lòng chọn dự án!'
                       : undefined
                   ">
-                    <nz-select formControlName="projectId" class="fs-12 w-100" nzShowSearch nzAllowClear
+                    <nz-select [disabled]="(isDisabled || isDisabled2) && !appUserService.isAdmin"
+                      formControlName="projectId" class="fs-12 w-100" nzShowSearch nzAllowClear
                       nzPlaceHolder="Chọn dự án">
                       @for (item of projects; track $index) {
                       <nz-option [nzValue]="item.ID" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName">
@@ -47,7 +48,8 @@
                       ? 'Vui lòng chọn phiên bản!'
                       : undefined
                   ">
-                    <nz-select formControlName="versionId" class="fs-12 w-100" nzShowSearch nzAllowClear
+                    <nz-select [disabled]="(isDisabled || isDisabled2) && !appUserService.isAdmin"
+                      formControlName="versionId" class="fs-12 w-100" nzShowSearch nzAllowClear
                       nzPlaceHolder="Chọn phiên bản">
                       @for (item of versions; track $index) {
                       <nz-option [nzValue]="item.ID"
@@ -65,7 +67,8 @@
                     <span class="text-danger ps-1 me-1">*</span>
                   </nz-form-label>
                   <nz-form-control [nzErrorTip]="getFieldError('tt')">
-                    <input formControlName="tt" nz-input class="fs-12" placeholder="Nhập TT (VD: 1, 1.1)" />
+                    <input [disabled]="(isDisabled || isDisabled2) && !appUserService.isAdmin" formControlName="tt"
+                      nz-input class="fs-12" placeholder="Nhập TT (VD: 1, 1.1)" />
                   </nz-form-control>
                 </nz-form-item>
               </div>
@@ -85,7 +88,8 @@
                       ? 'Vui lòng nhập mã thiết bị!'
                       : undefined
                   )">
-                    <input formControlName="productCode" nz-input class="fs-12" placeholder="Nhập mã thiết bị" />
+                    <input [disabled]="(isDisabled || isDisabled2) && !appUserService.isAdmin"
+                      formControlName="productCode" nz-input class="fs-12" placeholder="Nhập mã thiết bị" />
                   </nz-form-control>
                 </nz-form-item>
               </div>
@@ -111,7 +115,8 @@
                     Đã xóa
                   </nz-form-label>
                   <nz-form-control>
-                    <label class="mb-0 fs-12 justify-content" nz-checkbox formControlName="isDeleted">Đã xóa</label>
+                    <label [disabled]="(isDisabled || isDisabled2) && !appUserService.isAdmin"
+                      class="mb-0 fs-12 justify-content" nz-checkbox formControlName="isDeleted">Đã xóa</label>
                   </nz-form-control>
                 </nz-form-item>
               </div>
@@ -123,7 +128,8 @@
                 <nz-form-item>
                   <nz-form-label class="fs-12">Tên thiết bị</nz-form-label>
                   <nz-form-control>
-                    <input formControlName="productName" nz-input class="fs-12" placeholder="Nhập tên thiết bị"
+                    <input [disabled]="(isDisabled || isDisabled2) && !appUserService.isAdmin"
+                      formControlName="productName" nz-input class="fs-12" placeholder="Nhập tên thiết bị"
                       [nzAutocomplete]="productNameAuto" />
                     <nz-autocomplete #productNameAuto [nzDataSource]="productNameOptions"
                       (selectionChange)="formGroup.patchValue({ productName: $event.nzValue })">
@@ -136,8 +142,8 @@
                   <nz-form-label class="fs-12">Hãng SX <span class="text-danger ps-1 me-1"
                       *ngIf="!isParentNode">*</span></nz-form-label>
                   <nz-form-control [nzErrorTip]="isParentNode ? undefined : getFieldError('maker')">
-                    <input formControlName="maker" nz-input class="fs-12" placeholder="Nhập hãng sản xuất"
-                      [nzAutocomplete]="makerAuto" />
+                    <input [disabled]="(isDisabled || isDisabled2) && !appUserService.isAdmin" formControlName="maker"
+                      nz-input class="fs-12" placeholder="Nhập hãng sản xuất" [nzAutocomplete]="makerAuto" />
                     <nz-autocomplete #makerAuto [nzDataSource]="makerOptions"
                       (selectionChange)="formGroup.patchValue({ maker: $event.nzValue })">
                     </nz-autocomplete>
@@ -149,8 +155,8 @@
                   <nz-form-label class="fs-12">Đơn vị <span class="text-danger ps-1 me-1"
                       *ngIf="!isParentNode">*</span></nz-form-label>
                   <nz-form-control [nzErrorTip]="isParentNode ? undefined : getFieldError('unit')">
-                    <nz-select formControlName="unit" class="fs-12 w-100" nzShowSearch nzAllowClear
-                      nzPlaceHolder="Chọn đơn vị">
+                    <nz-select [disabled]="(isDisabled || isDisabled2) && !appUserService.isAdmin"
+                      formControlName="unit" class="fs-12 w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn đơn vị">
                       @for (item of unitData; track $index) {
                       <nz-option [nzValue]="item.UnitName"
                         [nzLabel]="item.UnitName + ' - ' + item.UnitCode"></nz-option>
@@ -167,7 +173,8 @@
                 <nz-form-item>
                   <nz-form-label class="fs-12">Thông tin kỹ thuật</nz-form-label>
                   <nz-form-control>
-                    <textarea formControlName="technicalInfo" rows="3" nz-input class="fs-12"
+                    <textarea [disabled]="(isDisabled || isDisabled2) && !appUserService.isAdmin"
+                      formControlName="technicalInfo" rows="3" nz-input class="fs-12"
                       placeholder="Nhập thông tin kỹ thuật"></textarea>
                   </nz-form-control>
                 </nz-form-item>
@@ -180,8 +187,8 @@
                 <nz-form-item>
                   <nz-form-label class="fs-12">Số lượng/1 máy </nz-form-label>
                   <nz-form-control [nzErrorTip]="getFieldError('qtyMin')">
-                    <nz-input-number formControlName="qtyMin" class="fs-12 w-100" [nzMin]="0" [nzStep]="1"
-                      [nzPrecision]="0" placeholder="0">
+                    <nz-input-number [nzDisabled]="isDisabled && !appUserService.isAdmin" formControlName="qtyMin"
+                      class="fs-12 w-100" [nzMin]="0" [nzStep]="1" [nzPrecision]="0" placeholder="0">
                     </nz-input-number>
                   </nz-form-control>
                 </nz-form-item>
@@ -190,8 +197,8 @@
                 <nz-form-item>
                   <nz-form-label class="fs-12">Số lượng tổng</nz-form-label>
                   <nz-form-control [nzErrorTip]="getFieldError('qtyFull')">
-                    <nz-input-number formControlName="qtyFull" class="fs-12 w-100" [nzMin]="0" [nzStep]="1"
-                      [nzPrecision]="0" placeholder="0">
+                    <nz-input-number [nzDisabled]="isDisabled && !appUserService.isAdmin" formControlName="qtyFull"
+                      class="fs-12 w-100" [nzMin]="0" [nzStep]="1" [nzPrecision]="0" placeholder="0">
                     </nz-input-number>
                   </nz-form-control>
                 </nz-form-item>
@@ -200,7 +207,8 @@
                 <nz-form-item>
                   <nz-form-label class="fs-12">NV phụ trách</nz-form-label>
                   <nz-form-control>
-                    <nz-select formControlName="employeeId" class="fs-12 w-100" nzShowSearch nzAllowClear
+                    <nz-select [disabled]="(isDisabled || isDisabled2) && !appUserService.isAdmin"
+                      formControlName="employeeId" class="fs-12 w-100" nzShowSearch nzAllowClear
                       nzPlaceHolder="Chọn nhân viên">
                       @for (parent of employees; track $index) {
                       <nz-option-group [nzLabel]="parent.label">
@@ -225,7 +233,8 @@
                   Hàng phát sinh
                 </nz-form-label> -->
                   <nz-form-control>
-                    <label class="mb-0 fs-12 justify-content" nz-checkbox formControlName="isProblem">Hàng phát
+                    <label [disabled]="(isDisabled || isDisabled2) && !appUserService.isAdmin"
+                      class="mb-0 fs-12 justify-content" nz-checkbox formControlName="isProblem">Hàng phát
                       sinh</label>
                   </nz-form-control>
                 </nz-form-item>
@@ -239,6 +248,7 @@
                   <nz-form-label class="fs-12">Lý do phát sinh</nz-form-label>
                   <nz-form-control>
                     <textarea formControlName="reasonProblem" rows="2" nz-input class="fs-12"
+                      [disabled]="(isDisabled || isDisabled2) && !appUserService.isAdmin"
                       placeholder="Nhập lý do phát sinh"></textarea>
                   </nz-form-control>
                 </nz-form-item>
@@ -251,8 +261,8 @@
                 <nz-form-item>
                   <nz-form-label class="fs-12">Ghi chú</nz-form-label>
                   <nz-form-control>
-                    <textarea formControlName="note" rows="3" nz-input class="fs-12"
-                      placeholder="Nhập ghi chú"></textarea>
+                    <textarea [disabled]="isDisabled && !appUserService.isAdmin" formControlName="note" rows="3"
+                      nz-input class="fs-12" placeholder="Nhập ghi chú"></textarea>
                   </nz-form-control>
                 </nz-form-item>
               </div>
@@ -520,7 +530,7 @@
       Đóng
     </button>
     <!-- <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()" *ngIf="!isDisabled"> -->
-    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()" [disabled]="isDisabled">
+    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()">
       Lưu
     </button>
   </div>

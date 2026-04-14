@@ -60,6 +60,7 @@ import { TbProductRtcImportExcelComponent } from '../../tb-product-rtc/tb-produc
 })
 export class KpiErrorComponent implements OnInit, AfterViewInit {
     // SlickGrid properties
+    gridId: string = 'gridKPIError_' + Math.random().toString(36).substring(2, 10);
     angularGrid!: AngularGridInstance;
     columnDefinitions: Column[] = [];
     gridOptions: GridOption = {};

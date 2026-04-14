@@ -1,3 +1,7 @@
+:host {
+    font-size: 12px !important;
+}
+
 .card {
     height: 100%;
 }
@@ -24,28 +28,43 @@ nz-form-label {
     height: 100%;
 }
 
-/* Custom tab title styling */
-/* .custom-tab-title {
-    padding: 8px 16px;
-    font-weight: 500;
-    font-size: 14px;
-    color: #1890ff;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-}
-
-:host ::ng-deep .ant-tabs-tab-active .custom-tab-title {
-    color: #1890ff;
-    background-color: #e6f7ff;
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
+    padding: 4px !important;
+    padding-left: 12px !important;
+    font-size: 12px !important;
     font-weight: 600;
 }
 
-:host ::ng-deep .ant-tabs-tab:hover .custom-tab-title {
-    color: #40a9ff;
-    background-color: #f0f8ff;
-} */
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
+/* PrimeNG Table Customization */
+:host ::ng-deep .custom-table .p-datatable-thead>tr>th {
+    background-color: #f8f9fa;
+    color: #333;
+    font-weight: 600;
+    font-size: 12px !important;
+    padding: 0.5rem !important;
+    user-select: text !important;
+    /* Cho phép bôi đen copy tiêu đề */
+}
 
-  padding: 4px !important;
-  padding-left: 12px !important;
+:host ::ng-deep .custom-table .p-datatable-tbody>tr>td {
+    font-size: 12px !important;
+    padding: 0.4rem 0.5rem !important;
+    /* user-select: text !important; */
+    /* Bỏ comment nếu muốn cho phép bôi đen toàn bộ data */
+}
+
+/* Hiệu ứng hover cho mã biên bản dạng link */
+.text-primary.cursor-pointer:hover {
+    text-decoration: underline !important;
+    color: #2f924d !important;
+}
+
+:host ::ng-deep .p-button.p-button-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 12px;
+}
+
+:host ::ng-deep .p-checkbox .p-checkbox-box {
+    width: 16px;
+    height: 16px;
 }

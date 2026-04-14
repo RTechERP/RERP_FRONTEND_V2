@@ -31,11 +31,31 @@
           </nz-select>
         </div>
 
+        <div nz-col>
+          <button nz-button nzType="default" nzSize="small" (click)="refreshData()" nzToolTipTitle="Làm mới dữ liệu"
+            nz-tooltip>
+            <i class="fa-solid fa-rotate fa-lg text-info"></i>
+          </button>
+        </div>
+
         <div nz-col [nzFlex]="'auto'"></div>
 
-        <!-- View Mode Selector (Moved to Right) -->
+        <!-- Matrix Status Filters -->
+        <div nz-col *ngIf="viewMode === 'matrix'">
+          <div class="d-flex align-items-center" style="gap: 8px;">
+            <button nz-button nzSize="small" [nzType]="filterPassed ? 'primary' : 'default'"
+              [class.bg-success]="filterPassed" (click)="toggleStatusFilter('passed')">
+              <i nz-icon nzType="check-circle" class="mr-1"></i> Đạt
+            </button>
+            <button nz-button nzSize="small" [nzType]="filterFailed ? 'primary' : 'default'" [nzDanger]="filterFailed"
+              (click)="toggleStatusFilter('failed')">
+              <i nz-icon nzType="close-circle" class="mr-1"></i> Không đạt
+            </button>
+          </div>
+        </div>
+
+        <!-- View Mode Selector -->
         <div nz-col *ngIf="!fromList">
-          <span class="mr-2">Chế độ xem:</span>
           <nz-select [(ngModel)]="viewMode" (ngModelChange)="onViewModeChange()" nzSize="small" style="width: 170px;">
             <nz-option nzValue="single" nzLabel="Xem theo đề" [nzCustomContent]="true">
               <i class="fa-solid fa-list mr-2 text-muted"></i> Xem theo đề
@@ -48,25 +68,30 @@
       </div>
     </div>
 
-    <!-- Toolbar -->
-    <div class="card-header bg-white p-1">
-      <p-menubar [model]="menuBars"></p-menubar>
-    </div>
-
     <!-- ==================== SINGLE VIEW ==================== -->
-    <div class="card-body p-0" style="overflow: hidden; height: calc(100vh - 170px);" *ngIf="viewMode === 'single'">
+    <div class="card-body p-0" style="overflow: hidden; height: calc(100vh - 160px);" *ngIf="viewMode === 'single'">
       <nz-spin [nzSpinning]="isLoading">
         <p-table [value]="(stateService.scores$ | async) || []" [scrollable]="true" scrollHeight="100%"
           styleClass="p-datatable-sm p-datatable-gridlines w-100">
           <ng-template pTemplate="header">
             <tr>
               <th style="width: 60px; text-align: center;">STT</th>
-              <th style="width: 140px;">Mã ứng viên</th>
-              <th>Họ tên ứng viên</th>
-              <th style="width: 120px; text-align: center;">Điểm số</th>
-              <th style="width: 110px; text-align: center;">Tỉ lệ (%)</th>
+              <th style="width: 140px;" pSortableColumn="CandidateCode">
+                Mã ứng viên <p-sortIcon field="CandidateCode"></p-sortIcon>
+              </th>
+              <th pSortableColumn="CandidateName">
+                Họ tên ứng viên <p-sortIcon field="CandidateName"></p-sortIcon>
+              </th>
+              <th style="width: 120px; text-align: center;" pSortableColumn="TotalScore">
+                Điểm số <p-sortIcon field="TotalScore"></p-sortIcon>
+              </th>
+              <th style="width: 110px; text-align: center;" pSortableColumn="PercentageCorrect">
+                Tỉ lệ (%) <p-sortIcon field="PercentageCorrect"></p-sortIcon>
+              </th>
               <th style="width: 160px;">Trạng thái</th>
-              <th style="width: 160px;">Ngày nộp bài</th>
+              <th style="width: 160px;" pSortableColumn="SubmittedDate">
+                Ngày nộp bài <p-sortIcon field="SubmittedDate"></p-sortIcon>
+              </th>
               <th style="width: 120px; text-align: center;">Thao tác</th>
             </tr>
             <tr>
@@ -125,24 +150,32 @@
     </div>
 
     <!-- ==================== MATRIX VIEW ==================== -->
-    <div class="card-body p-0" style="overflow: hidden; height: calc(100vh - 170px);" *ngIf="viewMode === 'matrix'">
+    <div class="card-body p-0" style="overflow: hidden; height: calc(100vh - 160px);" *ngIf="viewMode === 'matrix'">
       <nz-spin [nzSpinning]="isLoading">
         <p-table [value]="matrixData" [scrollable]="true" scrollHeight="100%"
           styleClass="p-datatable-sm p-datatable-gridlines w-100">
           <ng-template pTemplate="header">
             <tr>
+              <th style="width: 180px; text-align: center;">Đánh giá</th>
               <th style="width: 60px; text-align: center;">STT</th>
-              <th style="width: 130px;">Mã UV</th>
-              <th style="min-width: 180px;">Họ tên ứng viên</th>
+              <th style="width: 130px;" pSortableColumn="CandidateCode">
+                Mã UV <p-sortIcon field="CandidateCode"></p-sortIcon>
+              </th>
+              <th style="min-width: 180px;" pSortableColumn="CandidateName">
+                Họ tên ứng viên <p-sortIcon field="CandidateName"></p-sortIcon>
+              </th>
               <!-- Dynamic exam columns with ACTUAL exam names -->
               <th *ngFor="let exam of examColumns" style="width: 150px; text-align: center;"
                 [nzTooltipTitle]="'Loại: ' + (exam.ExamType === 1 ? 'Trắc nghiệm' : exam.ExamType === 2 ? 'Tự luận' : 'Trắc nghiệm & Tự luận')"
                 nz-tooltip>
                 {{exam.NameExam}}
               </th>
-              <th style="width: 130px; text-align: center;">Tổng điểm</th>
+              <th style="width: 130px; text-align: center;" pSortableColumn="totalScore">
+                Tổng điểm <p-sortIcon field="totalScore"></p-sortIcon>
+              </th>
             </tr>
             <tr>
+              <th></th>
               <th></th>
               <th>
                 <p-columnFilter type="text" field="CandidateCode" placeholder="Tìm mã..." filterOn="input"
@@ -158,7 +191,22 @@
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
-            <tr>
+            <tr
+              [ngStyle]="{'background-color': row.CandidateStatus === 5 ? '#d4edda' : (row.CandidateStatus === 4 ? '#e9ecef' : 'inherit')}">
+              <!-- Action column -->
+              <td pFrozenColumn [frozen]="true" alignFrozen="left" style="text-align: center;">
+                <div class="d-flex justify-content-center flex-nowrap" style="gap: 8px;">
+                  <button nz-button nzSize="small" [nzType]="row.CandidateStatus === 5 ? 'primary' : 'default'"
+                    [class.bg-success]="row.CandidateStatus === 5" [class.border-success]="row.CandidateStatus === 5"
+                    (click)="evaluateCandidate(row, 5)">
+                    Đạt
+                  </button>
+                  <button nz-button nzSize="small" [nzType]="row.CandidateStatus === 4 ? 'primary' : 'default'"
+                    [nzDanger]="row.CandidateStatus === 4" (click)="evaluateCandidate(row, 4)">
+                    Không đạt
+                  </button>
+                </div>
+              </td>
               <td style="text-align: center;">{{rowIndex + 1}}</td>
               <td class="font-weight-bold">{{row.CandidateCode}}</td>
               <td>{{row.CandidateName}}</td>
@@ -194,13 +242,27 @@
           </ng-template>
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td [attr.colspan]="3 + examColumns.length + 1" class="text-center p-4">
+              <td [attr.colspan]="4 + examColumns.length + 1" class="text-center p-4">
                 Không có dữ liệu hiển thị.
               </td>
             </tr>
           </ng-template>
         </p-table>
       </nz-spin>
+    </div>
+
+    <!-- Fixed Footer Count -->
+    <div class="card-footer bg-light border-top px-3 py-2" *ngIf="!isLoading">
+      <!-- Matrix View Count -->
+      <div *ngIf="viewMode === 'matrix' && matrixData.length > 0" class="font-weight-500">
+        <i nz-icon nzType="info-circle" class="mr-2 text-info"></i>
+        Tổng cộng: <span class="text-primary font-weight-bold">{{matrixData.length}}</span> ứng viên
+      </div>
+      <!-- Single View Count -->
+      <div *ngIf="viewMode === 'single' && ((stateService.scores$ | async) || []).length > 0" class="font-weight-500">
+        <i nz-icon nzType="info-circle" class="mr-2 text-info"></i>
+        Tổng cộng: <span class="text-primary font-weight-bold">{{((stateService.scores$ | async) || []).length}}</span> ứng viên
+      </div>
     </div>
   </div>
 </ng-container>

@@ -50,7 +50,8 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { ProjectService } from '../project/project-service/project.service';
 import { ProjectWorkerService } from '../project/project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
@@ -178,6 +179,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   type: number = 0;
   keyword: string = '';
   searchKeyword: string = '';
+  private searchSubject = new Subject<string>();
   isDeleted: number = 0;
   isApprovedTBP: number = -1;
   isApprovedPurchase: number = -1;
@@ -326,6 +328,15 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     this.isDeleted = 0;
     this.isApprovedTBP = -1;
     this.isApprovedPurchase = -1;
+
+    // Setup debounce for keyword search
+    const searchSub = this.searchSubject.pipe(
+      debounceTime(2000),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.searchDataProjectWorker();
+    });
+    this.subscriptions.push(searchSub);
 
     // Initialize grids in ngOnInit to ensure options are ready before grid renders
     this.initializeGrids();
@@ -1404,7 +1415,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       },
       { id: 'DateExpectedQuote', field: 'DateExpectedQuote', name: 'Ngày về dự kiến', width: 110, columnGroup: 'Yêu cầu báo giá', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
       {
-        id: 'NoteQuote', field: 'NoteQuote', name: 'Ghi chú báo giá', width: 200, columnGroup: 'Yêu cầu báo giá', filterable: true, filter: { model: Filters['compoundInputText'] },
+        id: 'NoteQuote', field: 'NoteQuote', name: 'Ghi chú báo giá (Pur)', width: 200, columnGroup: 'Yêu cầu báo giá', filterable: true, filter: { model: Filters['compoundInputText'] },
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
           if (!value) return '';
           return `
@@ -1430,6 +1441,32 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         },
       },
 
+      {
+        id: 'NoteRequest', field: 'NoteRequest', name: 'Ghi chú báo giá (kỹ thuật)', width: 200, columnGroup: 'Yêu cầu báo giá', filterable: true, filter: { model: Filters['compoundInputText'] },
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.NoteRequest}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
       // ==================== NHÓM: Yêu cầu mua hàng ====================
       {
         id: 'IsApprovedPurchase', field: 'IsApprovedPurchase', name: 'Yêu cầu mua', width: 90, columnGroup: 'Yêu cầu mua hàng',
@@ -1539,8 +1576,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         filterable: true, filter: { model: Filters['compoundDate'] }
       },
       { id: 'RequestDatePurchase', field: 'RequestDatePurchase', name: 'Ngày bắt đầu đặt hàng', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
-      { id: 'ExpectedDatePurchase', field: 'ExpectedDatePurchase', name: 'Ngày dự kiến đặt hàng', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
-      { id: 'ExpectedArrivalDate', field: 'ExpectedArrivalDate', name: 'Ngày dự kiến hàng về', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
+      { id: 'ExpectedDatePurchase', field: 'ExpectedDatePurchase', name: 'Ngày dự kiến hàng về', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
+      // { id: 'ExpectedArrivalDate', field: 'ExpectedArrivalDate', name: 'Ngày dự kiến hàng về', width: 140, columnGroup: 'Yêu cầu mua hàng', formatter: dateFormatter, cssClass: 'text-center', filterable: true, filter: { model: Filters['compoundDate'] } },
       {
         id: 'BillCodePurchase', field: 'BillCodePurchase', name: 'Mã đặt hàng', width: 120, columnGroup: 'Yêu cầu mua hàng',
         filterable: true,
@@ -3999,6 +4036,11 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     }
   }
 
+  onKeywordChange(value: string): void {
+    this.keyword = value;
+    this.searchSubject.next(value);
+  }
+
   searchDataProjectWorker(): void {
     console.log('[SEARCH] searchDataProjectWorker called');
     console.log('[SEARCH] versionID:', this.versionID, '| versionPOID:', this.versionPOID, '| type:', this.type);
@@ -5685,7 +5727,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       { header: 'Loại tiền Pur báo', field: 'CurrencyQuote', width: 18 },
       { header: 'Tỷ giá báo', field: 'CurrencyRateQuote', width: 12, isNumber: true },
       { header: 'Thành tiền quy đổi báo giá (VNĐ)', field: 'TotalPriceExchangeQuote', width: 25, isNumber: true },
-      { header: 'Ghi chú báo giá', field: 'NoteQuote', width: 20 },
+      { header: 'Ghi chú báo giá(Pur)', field: 'NoteQuote', width: 20 },
+      { header: 'Ghi chú báo giá (kỹ thuật)', field: 'NoteRequest', width: 20 },
       { header: 'Đơn giá Pur mua', field: 'UnitPricePurchase', width: 18, isNumber: true },
       { header: 'Thành tiền Pur mua', field: 'TotalPricePurchase', width: 18, isNumber: true },
       { header: 'Loại tiền Pur mua', field: 'CurrencyPurchase', width: 18 },

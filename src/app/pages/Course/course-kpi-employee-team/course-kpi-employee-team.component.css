@@ -1,0 +1,24 @@
+.ant-splitter {
+    height: 84vh !important;
+}
+
+:host ::ng-deep .ant-spin-container {
+    height: 100% !important;
+}
+
+
+.grid-container-employee {
+    height: 100%;
+    width: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+    height: 100% !important;
+    width: 100%;
+    display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
+}

@@ -69,7 +69,6 @@ import { debounceTime } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { DateTime } from 'luxon';
 import { ProjectPartListSlickGridComponent } from '../project-part-list-slick-grid/project-part-list-slick-grid.component';
-import { FolderPathModalComponent } from './folder-path-modal.component';
 
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -105,7 +104,6 @@ import { TabServiceService } from '../../layouts/tab-service.service';
         CommonModule,
         HasPermissionDirective,
         Menubar,
-        FolderPathModalComponent,
     ],
     templateUrl: './project-slick-grid2.component.html',
     styleUrls: ['./project-slick-grid2.component.css']
@@ -546,9 +544,14 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 command: () => this.deletedProjects(),
             },
             {
-                label: 'Cây thư mục',
+                label: 'Online',
                 icon: PrimeIcons.SITEMAP,
-                command: () => this.openFolder(),
+                command: () => this.openFolder('online'),
+            },
+            {
+                label: 'Nội bộ',
+                icon: PrimeIcons.SITEMAP,
+                command: () => this.openFolder('noi_bo'),
             },
             {
                 label: 'Ds báo cáo công việc',
@@ -2606,9 +2609,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     //#endregion
 
     //#region Modal openers
-    openFolder() {
+    openFolder(type: 'online' | 'noi_bo') {
         const selectedIDs = this.getSelectedIds();
-
         if (selectedIDs.length == 0) {
             this.notification.error('Thông báo', 'Vui lòng chọn dự án!');
             return;
@@ -2631,20 +2633,16 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         this.projectService.createProjectTree(projectId, selectedProjectTypeIds).subscribe({
             next: (response: any) => {
                 if (response.status == 1 && response.data) {
-                    const url = response.data.url || '';
-                    const urlOnl = response.data.urlOnl || '';
-
-                    const modalRef = this.modal.create({
-                        nzTitle: 'Đường dẫn hệ thống',
-                        nzContent: FolderPathModalComponent,
-                        nzWidth: 700,
-                        nzOkText: 'Đóng',
-                        nzOnOk: () => true,
-                        nzData: {
-                            url: url,
-                            urlOnl: urlOnl
-                        }
-                    });
+                    const textToCopy = type === 'online' ? response.data.urlOnl : response.data.url;
+                    if (textToCopy) {
+                        navigator.clipboard.writeText(textToCopy).then(() => {
+                            this.notification.success('Thông báo', `Đã copy đường dẫn ${type === 'online' ? 'Online' : 'Nội bộ'} vào clipboard!`);
+                        }).catch(err => {
+                            this.notification.error('Lỗi', 'Không thể copy vào clipboard: ' + err);
+                        });
+                    } else {
+                        this.notification.error('Thông báo', 'Đường dẫn trống!');
+                    }
                 } else {
                     this.notification.error('Thông báo', response.message || 'Không thể tạo cây thư mục dự án!');
                 }

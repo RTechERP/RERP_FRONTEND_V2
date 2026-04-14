@@ -133,7 +133,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             {
                 label: 'Tải lại',
                 icon: 'fa-solid fa-rotate fa-lg text-primary',
-                visible: this.permissionService.hasPermission('N1,N2'),
+
                 command: () => {
                     this.loadData();
                 },
@@ -141,7 +141,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             {
                 label: 'Xem phiếu',
                 icon: 'fa-solid fa-file-lines fa-lg text-success',
-                visible: this.permissionService.hasPermission('N1,N2'),
+
                 command: () => {
                     this.viewApplicationForm();
                 },
@@ -149,7 +149,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             {
                 label: 'In phiếu',
                 icon: 'fa-solid fa-print fa-lg text-info',
-                visible: this.permissionService.hasPermission('N1,N2'),
+
                 command: () => {
                     this.printApplicationForm();
                 },
@@ -783,7 +783,6 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                         },
                         {
                             stack: [
-                                { text: 'CÔNG TY CỔ PHẦN RTC TECHNOLOGY VIỆT NAM', bold: true, alignment: 'center', fontSize: 13, margin: [0, 5, 0, 5] },
                                 { text: 'PHIẾU THÔNG TIN ỨNG VIÊN', bold: true, alignment: 'center', fontSize: 18, margin: [0, 0, 0, 2] },
                                 { text: 'Application Form', italic: true, alignment: 'center', fontSize: 12 },
                                 { text: '(BM03-RTC.HR-QT01)', alignment: 'center', fontSize: 9 }
@@ -805,8 +804,8 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                     ], margin: [0, 0, 0, 15]
                 },
                 // === INTRO ===
-                { text: 'Cảm ơn bạn đã quan tâm đến thông tin tuyển dụng của RTC. Để giúp chúng tôi nắm rõ hơn các thông tin về bạn, xin bạn vui lòng điền đầy đủ các thông tin vào chỗ trống dưới đây bằng tiếng Việt hoặc tiếng Anh.', fontSize: 11 },
-                { text: 'Thank you for your choosing our company. Application form is an important part in our recruitment process of RTC. Please fill in it clearly in Vietnamese or English.', fontSize: 10, italic: true, margin: [0, 2, 0, 10] },
+                { text: 'Cảm ơn bạn đã quan tâm đến thông tin tuyển dụng của RTC. Để giúp chúng tôi nắm rõ hơn các thông tin về bạn, xin bạn vui lòng điền đầy đủ các thông tin vào chỗ trống dưới đây bằng tiếng Việt hoặc tiếng Anh.', fontSize: 11, leadingIndent: 20 },
+                { text: 'Thank you for your choosing our company. Application form is an important part in our recruitment process of RTC. Please fill in it clearly in Vietnamese or English.', fontSize: 10, italic: true, margin: [0, 2, 0, 10], leadingIndent: 20 },
                 // === POSITION ===
                 { text: 'Vị trí dự tuyển tại RTC/ Your desired position in RTC', bold: true, italics: true, fontSize: 11, margin: [0, 5, 0, 2] },
                 {
@@ -816,53 +815,64 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                     ], margin: [0, 0, 0, 10]
                 },
                 // === I. PERSONAL DETAILS ===
-                { text: 'I. Thông tin cá nhân/Personal details', bold: true, margin: [0, 5, 0, 5] },
                 {
-                    table: {
-                        // Rộng hơn cho cột tiêu đề (Họ tên, Giới tính, Ngày sinh, ...)
-                        widths: ['30%', '31%', '19%', '20%'], body: [
-                            [{ text: 'Họ và tên/Full Name', bold: true }, { text: ': ' + dot(mf.FullName, 50), colSpan: 3 }, {}, {}],
-                            [
-                                { text: 'Giới tính/Gender' },
-                                {
-                                    text:
-                                        ': ' +
-                                        (Number(mf.Gender) === 1 ? '[x]' : '[ ]') +
-                                        ' Nam/Male   ' +
-                                        (Number(mf.Gender) === 2 ? '[x]' : '[ ]') +
-                                        ' Nữ/Female',
-                                    colSpan: 3
-                                },
-                                {},
-                                {}
-                            ],
-                            [
-                                { text: 'Ngày sinh/Date of birth', fontSize: 10 },
-                                { text: ': ' + dot(fmtDate(mf.DateOfBirth), 15), colSpan: 3 },
-                                {},
-                                {}
-                            ],
-                            [{ text: 'Nơi sinh/Place of birth' }, { text: ': ' + dot(mf.PlaceOfBirth, 40), colSpan: 3 }, {}, {}],
-                            [{ text: 'Dân tộc/Ethnic' }, { text: ': ' + dot(mf.Ethnic, 20) }, { text: 'Tôn giáo/Religion', fontSize: 10 }, { text: ': ' + dot(mf.Religion, 20) }],
-                            [{ text: 'Thường trú/Permanent residence' }, { text: ': ' + dot(mf.PermanentResidence, 40), colSpan: 3 }, {}, {}],
-                            [{ text: 'Nơi ở hiện nay/Current address' }, { text: ': ' + dot(mf.CurrentAddress, 40), colSpan: 3 }, {}, {}],
-                            [{ text: 'Số CMND/CCCD/ID', italics: true }, { text: ': ' + dot(mf.NumberCCCD, 20) }, { text: 'ĐTCĐ/Tel #' }, { text: ': ' + dot(mf.Tel, 20) }],
-                            [{ text: 'Ngày cấp/Issued on', italics: true }, { text: ': ' + dot(fmtDate(mf.IssuedOn), 15) }, { text: 'Di động/Mobile' }, { text: ': ' + dot(mf.Mobile, 20) }],
-                            [{ text: 'Nơi cấp/Issued by', italics: true }, { text: ': ' + dot(mf.IssuedBy, 20) }, { text: 'Email' }, { text: ': ' + dot(mf.Email, 25) }],
-                            [{ text: 'Sở thích cá nhân/Hobbies', italics: true }, { text: ': ' + dot(mf.Hobbies, 40), colSpan: 3 }, {}, {}],
-                            [{ text: 'Chiều cao/Height', italics: true }, { text: ': ' + (mf.Height ? mf.Height + ' cm' : '..........') }, { text: 'Cân nặng/Weight', italics: true }, { text: ': ' + (mf.Weight ? mf.Weight + ' kg' : '..........') }],
-                            [{ text: 'Tình trạng hôn nhân/Marital status', fontSize: 10 }, { text: ': ' + (mf.MaritalStatus === 1 ? '[x]' : '[ ]') + ' Độc thân/Single   ' + (mf.MaritalStatus === 2 ? '[x]' : '[ ]') + ' Đã lập gia đình/Married   ' + (mf.MaritalStatus === 3 ? '[x]' : '[ ]') + ' Ly hôn/Divorced', colSpan: 3, fontSize: 10 }, {}, {}],
-                            [{ text: 'Có bị thương tật và ốm nặng\n/Injuries or serious ills:', fontSize: 10 }, { text: ': ' + (mf.InjuriesOrSeriousIll ? '[x]' : '[ ]') + ' Có/Yes   ' + (!mf.InjuriesOrSeriousIll ? '[x]' : '[ ]') + ' Không/No', fontSize: 10 }, { text: 'Khi nào/If yes-specify:', fontSize: 10 }, { text: dot(mf.IfYesSpecify, 15), fontSize: 10 }],
-                            [{ text: 'Hiện tại có mang thai không (nữ)/Currently pregnant:', fontSize: 10 }, { text: ': ' + (mf.CurrentlyPregnant ? '[x]' : '[ ]') + ' Có/Yes   ' + (!mf.CurrentlyPregnant ? '[x]' : '[ ]') + ' Không/No', fontSize: 10, colSpan: 3 }, {}, {}],
-                            [{ text: 'Bạn có dự kiến mang thai trong 06 tháng tới? (nữ):', fontSize: 10 }, { text: ': ' + (mf.IsPlanPregnant ? '[x]' : '[ ]') + ' Có/Yes   ' + (!mf.IsPlanPregnant ? '[x]' : '[ ]') + ' Không/No', fontSize: 10, colSpan: 3 }, {}, {}]
-                        ]
-                    },
-                    // Hide the divider between label & value column
-                    layout: makeTableLayout({ hideVLineIndex: 1, paddingLR: 3 }),
-                    margin: [0, 0, 0, 10]
+
+                    stack: [
+                        { text: 'I. Thông tin cá nhân/Personal details', bold: true, margin: [0, 5, 0, 5] },
+                        {
+                            table: {
+                                widths: ['30%', '31%', '19%', '20%'], body: [
+                                    [{ text: 'Họ và tên/Full Name', bold: true }, { text: ': ' + dot(mf.FullName, 50), colSpan: 3 }, {}, {}],
+                                    [
+                                        { text: 'Giới tính/Gender' },
+                                        {
+                                            text:
+                                                ': ' +
+                                                (Number(mf.Gender) === 1 ? '[x]' : '[ ]') +
+                                                ' Nam/Male   ' +
+                                                (Number(mf.Gender) === 2 ? '[x]' : '[ ]') +
+                                                ' Nữ/Female',
+                                            colSpan: 3
+                                        },
+                                        {},
+                                        {}
+                                    ],
+                                    [
+                                        { text: 'Ngày sinh/Date of birth', fontSize: 10 },
+                                        { text: ': ' + dot(fmtDate(mf.DateOfBirth), 15), colSpan: 3 },
+                                        {},
+                                        {}
+                                    ],
+                                    [{ text: 'Nơi sinh/Place of birth' }, { text: ': ' + dot(mf.PlaceOfBirth, 40), colSpan: 3 }, {}, {}],
+                                    [{ text: 'Dân tộc/Ethnic' }, { text: ': ' + dot(mf.Ethnic, 20) }, { text: 'Tôn giáo/Religion', fontSize: 10 }, { text: ': ' + dot(mf.Religion, 20) }],
+                                    [{ text: 'Thường trú/Permanent residence' }, { text: ': ' + dot(mf.PermanentResidence, 40), colSpan: 3 }, {}, {}],
+                                    [{ text: 'Nơi ở hiện nay/Current address' }, { text: ': ' + dot(mf.CurrentAddress, 40), colSpan: 3 }, {}, {}],
+                                    [{ text: 'Số CMND/CCCD/ID', italics: true }, { text: ': ' + dot(mf.NumberCCCD, 20) }, { text: 'ĐTCĐ/Tel #' }, { text: ': ' + dot(mf.Tel, 20) }],
+                                    [{ text: 'Ngày cấp/Issued on', italics: true }, { text: ': ' + dot(fmtDate(mf.IssuedOn), 15) }, { text: 'Di động/Mobile' }, { text: ': ' + dot(mf.Mobile, 20) }],
+                                    [{ text: 'Nơi cấp/Issued by', italics: true }, { text: ': ' + dot(mf.IssuedBy, 20) }, { text: 'Email' }, { text: ': ' + dot(mf.Email, 25) }],
+                                    [{ text: 'Sở thích cá nhân/Hobbies', italics: true }, { text: ': ' + dot(mf.Hobbies, 40), colSpan: 3 }, {}, {}],
+                                    [{ text: 'Chiều cao/Height', italics: true }, { text: ': ' + (mf.Height ? mf.Height + ' cm' : '..........') }, { text: 'Cân nặng/Weight', italics: true }, { text: ': ' + (mf.Weight ? mf.Weight + ' kg' : '..........') }],
+                                    [{ text: 'Tình trạng hôn nhân/Marital status', fontSize: 10 }, { text: ': ' + (mf.MaritalStatus === 1 ? '[x]' : '[ ]') + ' Độc thân/Single   ' + (mf.MaritalStatus === 2 ? '[x]' : '[ ]') + ' Đã lập gia đình/Married   ' + (mf.MaritalStatus === 3 ? '[x]' : '[ ]') + ' Ly hôn/Divorced', colSpan: 3, fontSize: 10 }, {}, {}],
+                                    [{ text: 'Có bị thương tật và ốm nặng\n/Injuries or serious ills:', fontSize: 10 }, { text: ': ' + (mf.InjuriesOrSeriousIll ? '[x]' : '[ ]') + ' Có/Yes   ' + (!mf.InjuriesOrSeriousIll ? '[x]' : '[ ]') + ' Không/No', fontSize: 10 }, { text: 'Khi nào/If yes-specify:', fontSize: 10 }, { text: dot(mf.IfYesSpecify, 15), fontSize: 10 }],
+                                    [{ text: 'Hiện tại có mang thai không (nữ)/Currently pregnant:', fontSize: 10 }, { text: ': ' + (mf.CurrentlyPregnant ? '[x]' : '[ ]') + ' Có/Yes   ' + (!mf.CurrentlyPregnant ? '[x]' : '[ ]') + ' Không/No', fontSize: 10, colSpan: 3 }, {}, {}],
+                                    [{ text: 'Bạn có dự kiến mang thai trong 06 tháng tới? (nữ):', fontSize: 10 }, { text: ': ' + (mf.IsPlanPregnant ? '[x]' : '[ ]') + ' Có/Yes   ' + (!mf.IsPlanPregnant ? '[x]' : '[ ]') + ' Không/No', fontSize: 10, colSpan: 3 }, {}, {}],
+                                    [{ text: 'Kinh nghiệm làm việc/Work experience level:', fontSize: 10, bold: true }, {
+                                        text: ': ' +
+                                            (mf.WorkExperienceLevel === 1 ? '[x]' : '[ ]') + ' Chưa có kinh nghiệm   ' +
+                                            (mf.WorkExperienceLevel === 2 ? '[x]' : '[ ]') + ' Dưới 2 năm   ' +
+                                            (mf.WorkExperienceLevel === 3 ? '[x]' : '[ ]') + ' 2 – 5 năm   ' +
+                                            (mf.WorkExperienceLevel === 4 ? '[x]' : '[ ]') + ' Trên 5 năm',
+                                        fontSize: 10, colSpan: 3
+                                    }, {}, {}]
+                                ]
+                            },
+                            layout: makeTableLayout({ hideVLineIndex: 1, paddingLR: 3 }),
+                            margin: [0, 0, 0, 10]
+                        }
+                    ]
                 },
                 // === EMERGENCY CONTACTS ===
-                { text: 'Người liên hệ khẩn khi cần/Emergency contact (Tối thiểu hai (2) người thân. Trong đó có một người thân là bố hoặc mẹ. Nếu đã lập gia đình thì cung cấp thông tin vợ hoặc chồng) / (At least two (2) relatives. One of whom must be a father or mother. If married, provide information about your spouse.)', fontSize: 10, italic: true, margin: [0, 5, 0, 5] },
+                { unbreakable: true, text: 'Người liên hệ khẩn khi cần/Emergency contact (Tối thiểu hai (2) người thân. Trong đó có một người thân là bố hoặc mẹ. Nếu đã lập gia đình thì cung cấp thông tin vợ hoặc chồng) / (At least two (2) relatives. One of whom must be a father or mother. If married, provide information about your spouse.)', fontSize: 10, italic: true, margin: [0, 5, 0, 5] },
                 ...(emergencyContacts.length > 0 ? emergencyContacts : [{}, {}]).map((c: any, i: number) => ({
                     stack: [
                         { text: 'Họ và tên người liên hệ khẩn cấp ' + (i + 1) + (i === 0 ? ' (Là bố hoặc mẹ)' : '') + ' / Full name of emergency contact person ' + (i + 1) + (i === 0 ? ' (Father or Mother)' : '') + ':', fontSize: 10, bold: true, italics: true, margin: [0, 5, 0, 2] },
@@ -880,25 +890,30 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                     ]
                 })),
                 // === II. EDUCATION ===
-                { text: 'II. Trình độ học vấn/Education', bold: true, italics: true, margin: [0, 10, 0, 5] },
                 {
-                    table: {
-                        widths: ['35%', '25%', '20%', '20%'], body: [
-                            [
-                                { stack: [{ text: 'Tên trường đào tạo', bold: true, alignment: 'center' }, { text: '/Name of School or University', italic: true, alignment: 'center', fontSize: 10 }] },
-                                { stack: [{ text: 'Ngành học', bold: true, alignment: 'center' }, { text: '/ Major', italic: true, alignment: 'center', fontSize: 10 }] },
-                                { stack: [{ text: 'Thời gian', bold: true, alignment: 'center' }, { text: '/Graduated time', italic: true, alignment: 'center', fontSize: 10 }] },
-                                { stack: [{ text: 'Xếp loại', bold: true, alignment: 'center' }, { text: 'Qualification level', italic: true, alignment: 'center', fontSize: 10 }] }
-                            ],
-                            ...(educations.length > 0 ? educations : [{}, {}, {}]).map((e: any) => [
-                                { text: e.NameOfSchool || ' ', minHeight: 15 },
-                                { text: e.Major || ' ' },
-                                { text: e.GraduatedTime || ' ', alignment: 'center' },
-                                { text: qualText(e.QualificationLevel), alignment: 'center' }
-                            ])
-                        ]
-                    },
-                    layout: makeTableLayout()
+                    unbreakable: true,
+                    stack: [
+                        { text: 'II. Trình độ học vấn/Education', bold: true, italics: true, margin: [0, 10, 0, 5] },
+                        {
+                            table: {
+                                widths: ['35%', '25%', '20%', '20%'], body: [
+                                    [
+                                        { stack: [{ text: 'Tên trường đào tạo', bold: true, alignment: 'center' }, { text: '/Name of School or University', italic: true, alignment: 'center', fontSize: 10 }] },
+                                        { stack: [{ text: 'Ngành học', bold: true, alignment: 'center' }, { text: '/ Major', italic: true, alignment: 'center', fontSize: 10 }] },
+                                        { stack: [{ text: 'Thời gian', bold: true, alignment: 'center' }, { text: '/Graduated time', italic: true, alignment: 'center', fontSize: 10 }] },
+                                        { stack: [{ text: 'Xếp loại', bold: true, alignment: 'center' }, { text: 'Qualification level', italic: true, alignment: 'center', fontSize: 10 }] }
+                                    ],
+                                    ...(educations.length > 0 ? educations : [{}, {}, {}]).map((e: any) => [
+                                        { text: e.NameOfSchool || ' ', minHeight: 15 },
+                                        { text: e.Major || ' ' },
+                                        { text: e.GraduatedTime || ' ', alignment: 'center' },
+                                        { text: qualText(e.QualificationLevel), alignment: 'center' }
+                                    ])
+                                ]
+                            },
+                            layout: makeTableLayout()
+                        }
+                    ]
                 },
                 // === FOREIGN LANGUAGES ===
                 { text: 'Trình độ ngoại ngữ/Foreign language skills', bold: true, italics: true, margin: [0, 10, 0, 5] },
@@ -982,15 +997,59 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                 { text: mf.OtherActivities || '...................................................................................................................' },
                 // === III. WORK EXPERIENCE ===
                 {
+                    unbreakable: true,
                     stack: [
-                        { text: 'III. Quá trình công tác (Kể cả bán thời gian) Working experiences (part-time and full-time)', bold: true, italics: true }
-                    ], margin: [0, 0, 0, 5]
+                        { text: 'III. Quá trình công tác (Kể cả bán thời gian) Working experiences (part-time and full-time)', bold: true, italics: true, margin: [0, 10, 0, 5] },
+                        // Wrap the first experience entry if it exists to keep it with the header
+                        ...(workExps.length > 0 ? [
+                            {
+                                table: {
+                                    widths: ['28%', '20%', '25%', '27%'], body: [
+                                        [
+                                            { text: 'Tên Công ty (1)', bold: true, alignment: 'center' },
+                                            { text: 'Chức danh/Vị trí', bold: true, alignment: 'center' },
+                                            { text: 'Thời gian công tác', bold: true, alignment: 'center' },
+                                            { stack: [{ text: 'Cấp trên trực tiếp', bold: true, alignment: 'center' }, { text: '(Họ tên, chức danh, điện thoại)', italic: true, alignment: 'center', fontSize: 8 }] }
+                                        ],
+                                        [
+                                            { text: workExps[0].CompanyName || ' ', minHeight: 25 },
+                                            { text: workExps[0].PositionName || ' ' },
+                                            { text: 'Từ: ' + dot(fmtDate(workExps[0].DateStart), 10) + '\nĐến: ' + dot(fmtDate(workExps[0].DateEnd), 10), fontSize: 10, alignment: 'center' },
+                                            { text: (workExps[0].Leader || ' ') + (workExps[0].LeaderTel ? ' - ' + workExps[0].LeaderTel : ''), fontSize: 10 }
+                                        ],
+                                        [
+                                            {
+                                                colSpan: 3, stack: [
+                                                    { text: 'Nhiệm vụ, trách nhiệm:', margin: [0, 2, 0, 2] },
+                                                    { text: workExps[0].Mission || ' ', minHeight: 30 },
+                                                    { text: 'Thành tích đạt được:', margin: [0, 2, 0, 2] },
+                                                    { text: workExps[0].Achievement || ' ', minHeight: 30 }
+                                                ]
+                                            }, {}, {},
+                                            {
+                                                stack: [
+                                                    { text: 'Mức lương:' },
+                                                    { text: dot(fmtCur(workExps[0].Salary), 15), margin: [0, 0, 0, 5] },
+                                                    { text: (workExps[0].WorkingStatus === 1 ? '[x]' : '[ ]') + ' Hiện còn làm' },
+                                                    { text: (workExps[0].WorkingStatus === 2 ? '[x]' : '[ ]') + ' Đã nghỉ. Lý do nghỉ việc:' },
+                                                    { text: dot(workExps[0].ReasonQuit, 15), italic: true }
+                                                ]
+                                            }
+                                        ]
+                                    ]
+                                },
+                                layout: makeTableLayout(),
+                                margin: [0, 5, 0, 10]
+                            }
+                        ] : [])
+                    ]
                 },
-                ...(workExps.length > 0 ? workExps : [{}, {}, {}]).map((w: any, i: number) => ({
+                // map the remaining experiences (from index 1 onwards)
+                ...(workExps.length > 1 ? workExps.slice(1) : (workExps.length === 0 ? [{}, {}] : [])).map((w: any, i: number) => ({
                     table: {
                         widths: ['28%', '20%', '25%', '27%'], body: [
                             [
-                                { text: 'Tên Công ty (' + (i + 1) + ')', bold: true, alignment: 'center' },
+                                { text: 'Tên Công ty (' + (workExps.length > 0 ? i + 2 : i + 2) + ')', bold: true, alignment: 'center' },
                                 { text: 'Chức danh/Vị trí', bold: true, alignment: 'center' },
                                 { text: 'Thời gian công tác', bold: true, alignment: 'center' },
                                 { stack: [{ text: 'Cấp trên trực tiếp', bold: true, alignment: 'center' }, { text: '(Họ tên, chức danh, điện thoại)', italic: true, alignment: 'center', fontSize: 8 }] }
@@ -1026,87 +1085,120 @@ export class HRRecruitmentApplicationComponent implements OnInit {
                     margin: [0, 5, 0, 10]
                 })),
                 // === IV ===
-                { text: 'IV. Đặc điểm cá nhân và kinh nghiệm phù hợp với vị trí dự tuyển/ How your experiences or characters can be suitable with applied position?', bold: true, margin: [0, 10, 0, 2] },
-                { text: mf.Experiences || '...................................................................................................................' },
-                // === V ===
-                { text: 'V. Thông tin tuyển dụng mà bạn biết được qua/Select channel you get our recruitment info', bold: true, italics: true, margin: [0, 10, 0, 5] },
                 {
-                    table: {
-                        widths: ['50%', '50%'], body: [
-                            [markCheck(recInfo.JobWebsites) + ' Website việc làm/Jobs websites', markCheck(recInfo.Headhunters) + ' Công ty giới thiệu việc làm/Headhunters'],
-                            [markCheck(recInfo.Newspapers) + ' Báo giấy/Newspapers', markCheck(recInfo.Relatives) + ' Người thân, quen/Relatives'],
-                            [markCheck(recInfo.SocialNetwork) + ' Mạng xã hội/Social networks (Facebook, Zalo, ...)', markCheck(recInfo.Others) + ' Khác/Others']
-                        ]
-                    },
-                    layout: makeTableLayout()
+                    unbreakable: true,
+                    stack: [
+                        { text: 'IV. Đặc điểm cá nhân và kinh nghiệm phù hợp với vị trí dự tuyển/ How your experiences or characters can be suitable with applied position?', bold: true, margin: [0, 10, 0, 2] },
+                        { text: mf.Experiences || '...................................................................................................................' }
+                    ]
+                },
+                // === V ===
+                {
+                    unbreakable: true,
+                    stack: [
+                        { text: 'V. Thông tin tuyển dụng mà bạn biết được qua/Select channel you get our recruitment info', bold: true, italics: true, margin: [0, 10, 0, 5] },
+                        {
+                            table: {
+                                widths: ['50%', '50%'], body: [
+                                    [markCheck(recInfo.JobWebsites) + ' Website việc làm/Jobs websites', markCheck(recInfo.Headhunters) + ' Công ty giới thiệu việc làm/Headhunters'],
+                                    [markCheck(recInfo.Newspapers) + ' Báo giấy/Newspapers', markCheck(recInfo.Relatives) + ' Người thân, quen/Relatives'],
+                                    [markCheck(recInfo.SocialNetwork) + ' Mạng xã hội/Social networks (Facebook, Zalo, ...)', markCheck(recInfo.Others) + ' Khác/Others']
+                                ]
+                            },
+                            layout: makeTableLayout()
+                        }
+                    ]
                 },
                 // === VI ===
-                { text: 'VI. Lý do nộp đơn dự tuyển vào Công ty chúng tôi/The main reasons for your application', bold: true, italics: true, margin: [0, 10, 0, 2], pageBreak: 'before' },
-                { text: mf.ReasonApplication || '...................................................................................................................' },
-                // === IX, X ===
-                { text: 'IX. Mức lương tối thiểu mong muốn/Your accepted salary ', bold: true, margin: [0, 10, 0, 2] },
-                { text: dot(mf.AcceptedSalary ? fmtCur(mf.AcceptedSalary) + 'đ' : null, 50) || '...................................................................................................................' },
-                { text: 'X. Ngày có thể bắt đầu làm việc/Date for start ', bold: true, margin: [0, 5, 0, 10] },
-                { text: dot(mf.DateOfStart ? fmtDate(mf.DateOfStart) : null, 50) || '...................................................................................................................' },
-                // === XI ===
-                { text: 'XI. Anh/chị vui lòng trả lời các câu hỏi sau:', bold: true, margin: [0, 5, 0, 5] },
                 {
-                    table: {
-                        widths: ['50%', '50%'],
-                        body: [
-                            [
-                                { text: '1. Anh/chi có người thân hay bạn bè đang làm việc tại RTC không? Nếu có xin vui lòng cho biết họ tên, chức vụ, phòng ban.' },
-                                {
-                                    stack: [
+                    unbreakable: true,
+                    stack: [
+                        { text: 'VI. Lý do nộp đơn dự tuyển vào Công ty chúng tôi/The main reasons for your application', bold: true, italics: true, margin: [0, 10, 0, 2] },
+                        { text: mf.ReasonApplication || '...................................................................................................................' }
+                    ]
+                },
+                // === IX, X ===
+                {
+                    unbreakable: true,
+                    stack: [
+                        {
+                            text: [
+                                { text: 'IX. Mức lương tối thiểu mong muốn/Your accepted salary: ', bold: true },
+                                dot(mf.AcceptedSalary ? fmtCur(mf.AcceptedSalary) + 'đ' : null, 50) || '................................................................................'
+                            ], margin: [0, 10, 0, 2]
+                        },
+                        {
+                            text: [
+                                { text: 'X. Ngày có thể bắt đầu làm việc/Date for start: ', bold: true },
+                                dot(mf.DateOfStart ? fmtDate(mf.DateOfStart) : null, 50) || '................................................................................'
+                            ], margin: [0, 5, 0, 10]
+                        }
+                    ]
+                },
+                // === XI ===
+                {
+                    unbreakable: true,
+                    stack: [
+                        { text: 'XI. Anh/chị vui lòng trả lời các câu hỏi sau:', bold: true, margin: [0, 5, 0, 5] },
+                        {
+                            table: {
+                                widths: ['50%', '50%'],
+                                body: [
+                                    [
+                                        { text: '1. Anh/chi có người thân hay bạn bè đang làm việc tại RTC không? Nếu có xin vui lòng cho biết họ tên, chức vụ, phòng ban.' },
                                         {
-                                            text:
-                                                (mf.HasRelativeOrFriendInCompany ? '[ ] Không   [x] Có' : '[x] Không   [ ] Có')
-                                        },
+                                            stack: [
+                                                {
+                                                    text:
+                                                        (mf.HasRelativeOrFriendInCompany ? '[ ] Không   [x] Có' : '[x] Không   [ ] Có')
+                                                },
+                                                {
+                                                    text: mf.RelativeInfo || '...............................................................................',
+                                                    margin: [0, 5]
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    [
+                                        { text: '2. Anh/Chị đã từng đóng Bảo hiểm Xã hội trước đây chưa?' },
                                         {
-                                            text: mf.RelativeInfo || '...............................................................................',
-                                            margin: [0, 5]
+                                            stack: [
+                                                {
+                                                    text:
+                                                        (mf.HasSocialInsurance ? '[ ] Không   [x] Có' : '[x] Không   [ ] Có')
+                                                },
+                                                { text: 'Nếu đã có sổ BHXH vui lòng ghi rõ số sổ', italic: true, fontSize: 10 },
+                                                {
+                                                    text: mf.BHXH || '...............................................................................',
+                                                    margin: [0, 5]
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    [
+                                        { text: '3. Anh/Chị đã có mã số thuế cá nhân chưa?' },
+                                        {
+                                            stack: [
+                                                {
+                                                    text:
+                                                        (mf.HasTaxCode ? '[ ] Không   [x] Có' : '[x] Không   [ ] Có')
+                                                },
+                                                { text: 'Nếu có vui lòng ghi rõ số mã số thuế', italic: true, fontSize: 10 },
+                                                {
+                                                    text: mf.TaxCode || '...............................................................................',
+                                                    margin: [0, 5]
+                                                }
+                                            ]
                                         }
                                     ]
-                                }
-                            ],
-                            [
-                                { text: '2. Anh/Chị đã từng đóng Bảo hiểm Xã hội trước đây chưa?' },
-                                {
-                                    stack: [
-                                        {
-                                            text:
-                                                (mf.HasSocialInsurance ? '[ ] Không   [x] Có' : '[x] Không   [ ] Có')
-                                        },
-                                        { text: 'Nếu đã có sổ BHXH vui lòng ghi rõ số sổ', italic: true, fontSize: 10 },
-                                        {
-                                            text: mf.BHXH || '...............................................................................',
-                                            margin: [0, 5]
-                                        }
-                                    ]
-                                }
-                            ],
-                            [
-                                { text: '3. Anh/Chị đã có mã số thuế cá nhân chưa?' },
-                                {
-                                    stack: [
-                                        {
-                                            text:
-                                                (mf.HasTaxCode ? '[ ] Không   [x] Có' : '[x] Không   [ ] Có')
-                                        },
-                                        { text: 'Nếu có vui lòng ghi rõ số mã số thuế', italic: true, fontSize: 10 },
-                                        {
-                                            text: mf.TaxCode || '...............................................................................',
-                                            margin: [0, 5]
-                                        }
-                                    ]
-                                }
-                            ]
-                        ]
-                    },
-                    layout: makeTableLayout()
+                                ]
+                            },
+                            layout: makeTableLayout()
+                        }
+                    ]
                 },
                 // === FOOTER ===
-                { text: 'Tôi cam đoan tất cả các thông tin trên đây là đúng. Tôi không che giấu thông tin nào. Tôi đồng ý nếu tôi cung cấp bất kỳ thông tin sai lệch nào Công ty có quyền chấm dứt Hợp đồng lao động với tôi ngay lập tức mà không cần thông báo hoặc bồi thường.', alignment: 'center', margin: [0, 20, 0, 10] },
+                { text: 'Tôi cam đoan tất cả các thông tin trên đây là đúng. Tôi không che giấu thông tin nào. Tôi đồng ý nếu tôi cung cấp bất kỳ thông tin sai lệch nào Công ty có quyền chấm dứt Hợp đồng lao động với tôi ngay lập tức mà không cần thông báo hoặc bồi thường.', alignment: 'left', margin: [0, 20, 0, 10], leadingIndent: 20 },
                 {
                     stack: [
                         {

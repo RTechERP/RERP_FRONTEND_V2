@@ -7,6 +7,8 @@ import {
   OnDestroy,
   ElementRef,
   ChangeDetectorRef,
+  Optional,
+  Inject,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
@@ -39,7 +41,6 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { SupplierSaleService } from '../supplier-sale/supplier-sale.service';
 import { NzSpinComponent } from 'ng-zorro-antd/spin';
 import { PonccDetailComponent } from '../poncc/poncc-detail/poncc-detail.component';
-import { PonccSummaryComponent } from '../poncc/poncc-summary/poncc-summary.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { BillImportDetailComponent } from '../../old/Sale/BillImport/Modal/bill-import-detail/bill-import-detail.component';
@@ -58,6 +59,7 @@ import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { BillImportDetailNewComponent } from '../../old/Sale/BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
+import { PonccSummaryComponent } from '../poncc/poncc-summary/poncc-summary.component';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -137,6 +139,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
   language: string = 'vi';
   dataPrint: any;
   tabs: PoTab[] = [];
+  isPriceRequest: boolean = false;
 
   // PrimeNG MenuBar
   menuItems: MenuItem[] = [];
@@ -190,12 +193,26 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     private modalService: NgbModal,
     private cdr: ChangeDetectorRef,
     public appUserService: AppUserService,
-    private tabService: TabServiceService
+    private tabService: TabServiceService,
+    @Optional() @Inject('tabData') public tabData?: any
   ) {
     this.employeeId = this.appUserService.employeeID || 0;
   }
 
   ngOnInit(): void {
+    if (this.tabData) {
+      if (this.tabData.dateStart) {
+        this.dateStart = new Date(this.tabData.dateStart);
+      }
+      if (this.tabData.dateEnd) {
+        this.dateEnd = new Date(this.tabData.dateEnd);
+      }
+      if (this.tabData.employeeId !== undefined && this.tabData.employeeId !== null) {
+        this.employeeId = this.tabData.employeeId;
+      }
+      this.isPriceRequest = this.tabData.isPriceRequest || false;
+    }
+
     this.loadLookups();
     this.initGridColumns();
     this.initGridOptions();
@@ -1389,11 +1406,18 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private toLocalISOString(date: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${String(date.getMilliseconds()).padStart(3, '0')}`;
+  }
+
   onSearch(): void {
     this.isLoading = true;
+    const start = new Date(this.dateStart); start.setHours(0, 0, 0, 0);
+    const end = new Date(this.dateEnd); end.setHours(23, 59, 59, 999);
     const filter = {
-      DateStart: new Date(this.dateStart.setHours(0, 0, 0, 0)).toISOString(),
-      DateEnd: new Date(this.dateEnd.setHours(23, 59, 59, 999)).toISOString(),
+      DateStart: this.toLocalISOString(start),
+      DateEnd: this.toLocalISOString(end),
       Status: this.status,
       SupplierID: this.supplierId || 0,
       EmployeeID: this.employeeId || 0,
@@ -2788,6 +2812,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
   onMasterDblClick(event: any): void {
+    if (this.isPriceRequest) return;
     clearTimeout(this.clickTimer);
     const args = event?.args;
     const row = args?.row;
@@ -2805,12 +2830,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onOpenSummary() {
-    const modalRef = this.modalService.open(PonccSummaryComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-      windowClass: 'full-screen-modal',
+    this.tabService.openTabComp({
+      comp: PonccSummaryComponent,
+      title: 'Tổng hợp PONCC',
+      key: 'poncc-summary',
+      data: {}
     });
   }
 
@@ -3877,6 +3901,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         ],
       },
       {
+        label: 'Yc nhập kho vtth',
+        icon: 'fa-solid fa-warehouse fa-lg text-primary',
+        command: () => this.onImportWareHouseConsumer(),
+      },
+      {
         label: 'Tổng hợp',
         icon: 'fa-solid fa-chart-pie fa-lg text-info',
         command: () => this.onOpenSummary(),
@@ -3887,7 +3916,123 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         command: () => this.onOpenPaymentOrder(),
       },
     ];
+
+    if (this.isPriceRequest) {
+      this.menuItems = [];
+    }
+
   }
+
+  //#region Yêu cầu nhập kho riêng loại vạt tư
+  onImportWareHouseConsumer() {
+    const selectedRows = this.getSelectedMasterRows();
+
+    // Validate selection
+    if (!selectedRows || selectedRows.length <= 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn PO!'
+      );
+      return;
+    }
+
+    // Validate status - chỉ cho phép status 0 hoặc 5
+    for (const po of selectedRows) {
+      const id = po.ID || 0;
+      if (id <= 0) continue;
+
+      const status = po.Status || 0;
+      const statusText = po.StatusText || '';
+      const code = po.POCode || '';
+
+      if (status !== 0 && status !== 5) {
+        this.modal.warning({
+          nzTitle: 'Thông báo',
+          nzContent: `PO [${code}] đã ${statusText}.\nBạn không thể yêu cầu nhập kho!`,
+          nzOkText: 'Đóng',
+        });
+        return;
+      }
+    }
+
+    this.modal.confirm({
+      nzTitle: `Xác nhận yêu cầu nhập kho`,
+      nzContent: `Bạn có chắc muốn yêu cầu nhập kho danh sách PO đã chọn không?`,
+      nzOkText: 'OK',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        if (this.lastMasterId) {
+          const currentSelectedDetails = this.getSelectedDetailRowsConsumer();
+          if (currentSelectedDetails.length > 0) {
+            this.masterDetailsMap.set(
+              this.lastMasterId,
+              currentSelectedDetails
+            );
+          } else {
+            this.notification.warning(
+              NOTIFICATION_TITLE.warning,
+              'Không có sản phẩm được tạo từ loại vật tư tiêu hao để chuyển kho!'
+            );
+            return;
+          }
+        }
+
+        const ids = selectedRows.map((x) => x.ID).join(',');
+        const idString = Array.from(this.masterDetailsMap.values())
+          .flat()
+          .map((x) => x.ID)
+          .filter((id) => id != null)
+          .join(',');
+
+        this.srv.getPonccDetail(ids, 6, idString).subscribe((res) => {
+          let dataSale = res.data.dataSale || [];
+          let dataDemo = res.data.dataDemo || [];
+          let listSaleDetail = res.data.listSaleDetail || [];
+          let listDemoDetail = res.data.listDemoDetail || [];
+          let listDemoPonccId = res.data.listDemoPonccId || [];
+          let listSalePonccId = res.data.listSalePonccId || [];
+
+          if (dataSale.length > 0) {
+            this.openBillImportModalSequentially(
+              dataSale,
+              listSaleDetail,
+              listSalePonccId,
+              6,
+              0,
+              0
+            );
+          }
+
+          if (dataDemo.length > 0) {
+            this.openBillImportModalSequentially(
+              dataDemo,
+              listDemoDetail,
+              listDemoPonccId,
+              6,
+              0,
+              1
+            );
+          }
+        });
+      },
+    });
+  }
+
+  private getSelectedDetailRowsConsumer(): any[] {
+    const grid = this.angularGridDetail;
+    if (!grid) return [];
+
+    const selectedIndexes = grid.slickGrid.getSelectedRows();
+    if (!selectedIndexes?.length) return [];
+
+    return selectedIndexes.reduce((acc: any[], index: number) => {
+      const item = grid.dataView.getItem(index);
+      if (item?.ProjectPartlistPurchaseRequestTypeID === 8) acc.push(item);
+      return acc;
+    }, []);
+  }
+  //#endregion
 }
 
 interface PoTab {

@@ -112,6 +112,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     Note: '',
     IsFix: false
   };
+  isSaving: boolean = false;
   //list lấy dữ liệu đơn vị productsale
   listUnitCount: any[] = [];
 
@@ -324,8 +325,10 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
         }
       }];
 
+      this.isSaving = true;
       this.productsaleService.saveDataProductSale(payload).subscribe({
         next: (res) => {
+          this.isSaving = false;
           if (res.status === 1) {
             this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
             this.activeModal.dismiss(true);
@@ -335,6 +338,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
+          this.isSaving = false;
           this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi cập nhật!');
           console.error(err);
         }
@@ -365,8 +369,10 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
         }
       }];
       console.log("payload", payload);
+      this.isSaving = true;
       this.productsaleService.saveDataProductSale(payload).subscribe({
         next: (res) => {
+          this.isSaving = false;
           if (res.status === 1) {
             this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
             this.activeModal.dismiss(true);
@@ -375,6 +381,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
+          this.isSaving = false;
           this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi thêm mới!');
           console.error(err);
         }

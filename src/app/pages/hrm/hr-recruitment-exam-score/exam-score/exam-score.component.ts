@@ -12,6 +12,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { TableModule } from 'primeng/table';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -42,6 +43,7 @@ import { TabServiceService } from '../../../../layouts/tab-service.service';
     NzRadioModule,
     NzTagModule,
     NzToolTipModule,
+    NzSwitchModule,
     TableModule,
     Menubar
   ],
@@ -62,7 +64,11 @@ export class ExamScoreComponent implements OnInit {
   // Matrix View
   viewMode: 'single' | 'matrix' = 'single';
   examColumns: any[] = [];    // [{ ID, NameExam, ExamType }]
-  matrixData: any[] = [];     // Pivoted rows for the matrix table
+  matrixData: any[] = [];     // Filtered rows for display
+  originalMatrixData: any[] = []; // Raw pivoted data from backend
+
+  filterPassed: boolean = false;
+  filterFailed: boolean = false;
 
   menuBars: MenuItem[] = [];
 
@@ -73,6 +79,7 @@ export class ExamScoreComponent implements OnInit {
     @Inject(AppUserService) private appUserService: AppUserService,
     @Inject(PermissionService) private permissionService: PermissionService,
     @Inject(NzNotificationService) private notification: NzNotificationService,
+    @Inject(NzModalService) private modal: NzModalService,
     @Inject(TabServiceService) private tabService: TabServiceService,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
@@ -206,7 +213,8 @@ export class ExamScoreComponent implements OnInit {
       next: ({ exams, matrix }) => {
         this.examColumns = exams.data || [];
         const flatData = matrix.data || [];
-        this.matrixData = this.pivotMatrixData(flatData);
+        this.originalMatrixData = this.pivotMatrixData(flatData);
+        this.applyStatusFilters();
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -231,6 +239,7 @@ export class ExamScoreComponent implements OnInit {
           CandidateID: row.CandidateID,
           CandidateName: row.CandidateName,
           CandidateCode: row.CandidateCode,
+          CandidateStatus: row.CandidateStatus,
           examScores: {},
           totalScore: 0,
           totalMax: 0
@@ -251,6 +260,38 @@ export class ExamScoreComponent implements OnInit {
     }
 
     return Array.from(candidateMap.values());
+  }
+
+  toggleStatusFilter(type: string): void {
+    if (type === 'passed') {
+      this.filterPassed = !this.filterPassed;
+      if (this.filterPassed) this.filterFailed = false; // Mutually exclusive for better UX, or keep both? 
+    } else if (type === 'failed') {
+      this.filterFailed = !this.filterFailed;
+      if (this.filterFailed) this.filterPassed = false;
+    }
+    this.applyStatusFilters();
+  }
+
+  applyStatusFilters(): void {
+    if (!this.filterPassed && !this.filterFailed) {
+      this.matrixData = [...this.originalMatrixData];
+    } else {
+      this.matrixData = this.originalMatrixData.filter(row => {
+        if (this.filterPassed) return row.CandidateStatus === 5;
+        if (this.filterFailed) return row.CandidateStatus === 4;
+        return true;
+      });
+    }
+    this.cdr.detectChanges();
+  }
+
+  refreshData(): void {
+    if (this.viewMode === 'single') {
+      this.loadCandidateScores();
+    } else {
+      this.loadMatrixData();
+    }
   }
 
   // =========== EVENT HANDLERS ===========
@@ -323,5 +364,41 @@ export class ExamScoreComponent implements OnInit {
     };
 
     this.openGradingDialog(rowData);
+  }
+
+  // =========== EVALUATE CANDIDATE ===========
+  
+  evaluateCandidate(candidate: any, status: number) {
+    const statusText = status === 5 ? 'Đạt' : 'Không đạt';
+    this.modal.confirm({
+      nzTitle: `Xác nhận đánh giá ứng viên: ${statusText}?`,
+      nzContent: `Bạn có chắc chắn muốn đánh giá ứng viên <b>${candidate.CandidateName}</b> là <b>${statusText}</b> không?`,
+      nzOkText: 'Đồng ý',
+      nzOkType: status === 5 ? 'primary' : 'primary',
+      nzOkDanger: status === 4,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.isLoading = true;
+        this.examScoreService.evaluateCandidateResult({
+          HRRecruitmentCandidateID: candidate.CandidateID,
+          Status: status
+        }).subscribe({
+          next: (res: any) => {
+            this.isLoading = false;
+            this.notification.success('Thành công', res.message || 'Đã cập nhật trạng thái ứng viên.');
+            // Reload the view to sync data (assuming matrix view)
+            if (this.viewMode === 'matrix') {
+              this.loadMatrixData();
+            } else {
+              this.loadCandidateScores();
+            }
+          },
+          error: (err) => {
+            this.isLoading = false;
+            this.notification.error('Thất bại', err.error?.message || 'Có lỗi xảy ra khi cập nhật trạng thái ứng viên.');
+          }
+        });
+      }
+    });
   }
 }

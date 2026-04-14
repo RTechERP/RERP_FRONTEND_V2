@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ViewChild, OnChanges, SimpleChanges, inject, HostListener, HostBinding, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, OnChanges, OnInit, SimpleChanges, inject, HostListener, HostBinding, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TreeTableModule, TreeTable } from 'primeng/treetable';
@@ -22,6 +22,8 @@ import { TabsModule } from 'primeng/tabs';
 import { MenuItem, TreeNode } from 'primeng/api';
 import { TreeColumnDef } from './tree-column-def.model';
 import { EditLookupConfig } from '../custom-table/column-def.model';
+import { TableLayoutService } from '../custom-table/table-layout.service';
+import { UserService } from '../../services/user.service';
 
 @Component({
     selector: 'app-custom-tree-table',
@@ -36,13 +38,15 @@ import { EditLookupConfig } from '../custom-table/column-def.model';
     templateUrl: './custom-tree-table.html',
     styleUrl: './custom-tree-table.css'
 })
-export class CustomTreeTable implements OnChanges {
+export class CustomTreeTable implements OnChanges, OnInit {
     @ViewChild('tt') tt!: TreeTable;
     @ViewChild('cm') cm!: ContextMenu;
     @ViewChild('hcm') hcm!: ContextMenu;
     @ViewChild('lookupPanel') lookupPanel!: Popover;
 
     private el = inject(ElementRef);
+    private tableLayoutService = inject(TableLayoutService);
+    private userService = inject(UserService);
     @HostBinding('attr.tabindex') tabindex = '0';
 
     // --- Highlighting State ---
@@ -162,6 +166,12 @@ export class CustomTreeTable implements OnChanges {
     @Input() exportable: boolean = false;
     @Input() exportFilename: string = 'download';
 
+    // --- Table Layout Persistence ---
+    @Input() tableId: string = '';
+    private _snapshotTaken = false;
+    private _originalColumnsOrder: string[] = [];
+    private _layoutModified = false;
+
     // --- Footer ---
     @Input() showFooter: boolean = false;
 
@@ -212,6 +222,14 @@ export class CustomTreeTable implements OnChanges {
         }
         if (changes['columns'] && this.columns) {
             this._allColumns = [...this.columns];
+        }
+    }
+
+    ngOnInit(): void {
+        if (this.tableId && !this._snapshotTaken) {
+            this._snapshotTaken = true;
+            this._originalColumnsOrder = this.columns.map(c => c.field);
+            this.loadTreeTableLayout();
         }
     }
 
@@ -437,6 +455,9 @@ export class CustomTreeTable implements OnChanges {
             const opt = col.editOptions.find(o => o.value === val);
             if (opt) return opt.label;
         }
+        if (col.editType === 'multiselect' && col.editOptions && Array.isArray(val)) {
+            return val.map(v => col.editOptions!.find(o => o.value === v)?.label || v).join(', ');
+        }
         if (col.editType === 'table-lookup' && col.editLookupConfig) {
             const cfg = col.editLookupConfig;
             const source = cfg.data || this.lookupDataCache[col.field] || [];
@@ -484,7 +505,7 @@ export class CustomTreeTable implements OnChanges {
             this.lookupLoading = true;
             this.lookupFilteredData = [];
             try {
-                const result = await Promise.resolve(cfg.loadData(''));
+                const result = await Promise.resolve(cfg.loadData('', rowData));
                 this.lookupFilteredData = result;
                 this.lookupDataCache[col.field] = result;
             } finally {
@@ -509,7 +530,7 @@ export class CustomTreeTable implements OnChanges {
             this.lookupDebounceTimer = setTimeout(async () => {
                 this.lookupLoading = true;
                 try {
-                    const result = await Promise.resolve(cfg.loadData!(this.lookupSearchText));
+                    const result = await Promise.resolve(cfg.loadData!(this.lookupSearchText, this.activeLookupRowData));
                     this.lookupFilteredData = this.applyLookupColFilters(cfg, result);
                 } finally {
                     this.lookupLoading = false;
@@ -782,6 +803,7 @@ export class CustomTreeTable implements OnChanges {
             this._hiddenFields.add(field);
         }
         this.columns = this.visibleColumns;
+        this.saveTreeTableLayout();
     }
 
     autoFitColumn(field: string) {
@@ -861,5 +883,56 @@ export class CustomTreeTable implements OnChanges {
                 }
             }
         }
+    }
+
+    // =============================================
+    // Tree Table Layout Persistence
+    // =============================================
+
+    private loadTreeTableLayout(): void {
+        if (!this.tableId) return;
+        const saved = this.tableLayoutService.load(this.tableId);
+        if (!saved) { this._layoutModified = false; return; }
+
+        // Apply hidden fields via _hiddenFields set (consistent with visibleColumns getter)
+        this._hiddenFields = new Set(saved.hiddenFields || []);
+
+        // Apply column order to _allColumns
+        if (saved.columnOrder?.length) {
+            this._allColumns.sort((a, b) => {
+                const ai = saved.columnOrder.indexOf(a.field);
+                const bi = saved.columnOrder.indexOf(b.field);
+                return (ai === -1 ? 9999 : ai) - (bi === -1 ? 9999 : bi);
+            });
+        }
+
+        this.columns = this.visibleColumns;
+        this._layoutModified = true;
+    }
+
+    private saveTreeTableLayout(): void {
+        if (!this.tableId) return;
+        const hidden = Array.from(this._hiddenFields);
+        this.tableLayoutService.save(this.tableId, {
+            hiddenFields: hidden,
+            columnOrder: this._allColumns.map(c => c.field),
+            widths: {}
+        });
+        this._layoutModified = true;
+    }
+
+    resetTreeTableLayout(): void {
+        if (!this.tableId) return;
+        this.tableLayoutService.reset(this.tableId);
+        this._layoutModified = false;
+        this._hiddenFields = new Set();
+        if (this._originalColumnsOrder.length) {
+            this._allColumns.sort((a, b) => {
+                const ai = this._originalColumnsOrder.indexOf(a.field);
+                const bi = this._originalColumnsOrder.indexOf(b.field);
+                return (ai === -1 ? 9999 : ai) - (bi === -1 ? 9999 : bi);
+            });
+        }
+        this.columns = this.visibleColumns;
     }
 }

@@ -110,6 +110,8 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
   hrHiringRequestList: any[] = [];
   hrHiringRequestRaw: any[] = [];  // raw data để tra cứu
   employeeChucVuHDList: any[] = [];
+  employees: any[] = [];
+  groupedEmployees: any[] = [];
   fileList: any[] = [];
   dataFiles: any[] = [];
 
@@ -123,9 +125,9 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
   showPassword = true;
   isSaving = false;
   genderList: any[] = [
-    { ID: 0, GenderName: 'Nam' },
-    { ID: 1, GenderName: 'Nữ' },
-    { ID: 2, GenderName: 'Khác' },
+    { ID: 0, GenderName: 'Chọn giới tính' },
+    { ID: 1, GenderName: 'Nam' },
+    { ID: 2, GenderName: 'Nữ' },
   ];
 
   statusList: any[] = [
@@ -149,10 +151,10 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
   validateForm = this.fb.group({
     ID: this.fb.control(0),
     STT: this.fb.control({ value: '', disabled: true }),
-    DateApply: this.fb.control<Date | null>(new Date(), [Validators.required]),
-    Gender: this.fb.control(2),
+    DateApply: this.fb.control<string | null>(new Date().toISOString().slice(0, 10), [Validators.required]),
+    Gender: this.fb.control(0),
     FullName: this.fb.control('', [Validators.required]),
-    DateOfBirth: this.fb.control<Date | null>(new Date()),
+    DateOfBirth: this.fb.control<string | null>(new Date().toISOString().slice(0, 10)),
     UserName: this.fb.control('', [
       Validators.required,
       Validators.minLength(4),
@@ -179,12 +181,13 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
       Validators.required,
       Validators.email,
     ]),
-    DateInterview: this.fb.control<Date | null>(null),
+    DateInterview: this.fb.control<string | null>(null),
     DateInterviewHour: this.fb.control('08'),
     DateInterviewMinute: this.fb.control('00'),
-    DeadlineFeedbackMail: this.fb.control<Date | null>(null),
+    DeadlineFeedbackMail: this.fb.control<string | null>(null),
     DeadlineFeedbackHour: this.fb.control('17'),
     DeadlineFeedbackMinute: this.fb.control('00'),
+    InterviewerID: this.fb.control<number | null>(null),
   });
 
   private defaultDateInterview(): Date {
@@ -202,6 +205,14 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
   }
 
+  private formatDateForInput(date: any): string {
+    if (!date) return '';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
   constructor(
     public activeModal: NgbActiveModal,
     private notification: NzNotificationService,
@@ -216,7 +227,21 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
     this.initAngularGrid();
     this.getPositionContract();
     this.getHrHiringRequest();
+    this.getEmployees();
     this.loadForm();
+    if (!this.hrRecruitmentCandidate?.ID) {
+      this.getNextUserName();
+    }
+  }
+
+  getNextUserName() {
+    this.hrRecruitmentCandidateService.getUsernameCandidate().subscribe({
+      next: (res: any) => {
+        if (res.status === 1) {
+          this.validateForm.patchValue({ UserName: res.data });
+        }
+      }
+    });
   }
 
   ngOnChanges(): void {
@@ -254,6 +279,42 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
       },
     });
   }
+  
+  getEmployees() {
+    this.hrRecruitmentCandidateService.getEmployees().subscribe({
+      next: (response: any) => {
+        if (response?.status === 1) {
+          this.employees = response.data || [];
+          this.groupDropdownEmployees(this.employees);
+        }
+      },
+      error: (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } });
+      },
+    });
+  }
+
+  private groupDropdownEmployees(employees: any[]): void {
+    if (!employees || employees.length === 0) {
+      this.groupedEmployees = [];
+      return;
+    }
+
+    const groups: any[] = [];
+    const map = new Map();
+
+    for (const emp of employees) {
+      const deptName = emp.DepartmentName || 'Khác';
+      if (!map.has(deptName)) {
+        const newGroup = { DepartmentName: deptName, items: [] };
+        groups.push(newGroup);
+        map.set(deptName, newGroup);
+      }
+      map.get(deptName).items.push(emp);
+    }
+    this.groupedEmployees = groups;
+  }
 
   onHiringRequestChange(selectedId: number | null) {
     if (!selectedId) {
@@ -273,14 +334,14 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
     this.validateForm.patchValue({
       ID: data.ID ?? 0,
       STT: data.STT ?? this.stt ?? 1,
-      DateApply: data.DateApply ? new Date(data.DateApply) : new Date(),
+      DateApply: this.formatDateForInput(data.DateApply ?? new Date()),
 
-      Gender: data.Gender ?? 2,
+      Gender: data.Gender ?? 0,
       FullName: data.FullName ?? '',
-      DateOfBirth: data.DateOfBirth ? new Date(data.DateOfBirth) : new Date(),
+      DateOfBirth: this.formatDateForInput(data.DateOfBirth ?? new Date()),
 
       UserName: data.UserName ?? '',
-      Password: data.Password ?? '',
+      Password: data.Password ?? (data.ID ? '' : '1'),
       HrHiringRequestID: data.HrHiringRequestID ?? null,
       PositionName: data.PositionName || '',
       Status: data.Status ?? 0,
@@ -292,12 +353,13 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
       PhoneNumber: data.PhoneNumber ?? '',
       Address: data.Address ?? '',
       Email: data.Email ?? '',
-      DateInterview: data.DateInterview ? new Date(data.DateInterview) : this.defaultDateInterview(),
+      DateInterview: this.formatDateForInput(data.DateInterview ? new Date(data.DateInterview) : this.defaultDateInterview()),
       DateInterviewHour: data.DateInterview ? String(new Date(data.DateInterview).getHours()).padStart(2, '0') : '08',
       DateInterviewMinute: data.DateInterview ? String(new Date(data.DateInterview).getMinutes()).padStart(2, '0') : '00',
-      DeadlineFeedbackMail: data.DeadlineFeedbackMail ? new Date(data.DeadlineFeedbackMail) : this.defaultDateDeadline(),
+      DeadlineFeedbackMail: this.formatDateForInput(data.DeadlineFeedbackMail ? new Date(data.DeadlineFeedbackMail) : this.defaultDateDeadline()),
       DeadlineFeedbackHour: data.DeadlineFeedbackMail ? String(new Date(data.DeadlineFeedbackMail).getHours()).padStart(2, '0') : '08',
       DeadlineFeedbackMinute: data.DeadlineFeedbackMail ? String(new Date(data.DeadlineFeedbackMail).getMinutes()).padStart(2, '0') : '00',
+      InterviewerID: data.InterviewerID ?? null,
     });
 
     this.validateForm.get('PositionName')?.disable();

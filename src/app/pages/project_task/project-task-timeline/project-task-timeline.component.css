@@ -311,32 +311,27 @@ thead .sticky-col {
     color: #475569;
 }
 
-.status-tag[data-status="1"] {
-    background: #e2e8f0;
-    color: #64748b;
+.status-tag[data-status="0"] {
+    background: #f1f5f9;
+    color: #475569;
 }
 
-/* Chưa làm */
+.status-tag[data-status="1"] {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
 .status-tag[data-status="2"] {
     background: #dcfce7;
     color: #15803d;
 }
 
-/* Đang làm */
 .status-tag[data-status="3"] {
-    background: #e0f2fe;
-    color: #0369a1;
+    background: #fffbe6;
+    color: #b45309;
 }
-
-/* Hoàn thành */
 
 .status-tag[data-status="4"] {
-    background: #fffbe6;
-    color: #faad14;
-}
-
-/* Tạm dừng / Pending */
-.status-tag[data-status="5"] {
     background: #fff1f2;
     color: #e11d48;
 }

@@ -4,8 +4,26 @@
     overflow: hidden;
 }
 
+
 :host:focus {
     outline: none;
+}
+
+/* Fill flex host: p-table element and its inner .p-datatable div must both stretch */
+:host ::ng-deep p-table {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep p-table>.p-datatable {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 /* Support scrollHeight="flex": let p-datatable fill the flex host */
@@ -39,7 +57,7 @@
     font-size: var(--table-font-size, 12px) !important;
 }
 
-:host ::ng-deep .global-search-input { 
+:host ::ng-deep .global-search-input {
     height: 3vh !important;
     width: 100% !important;
     font-size: var(--table-font-size, 16px) !important;
@@ -49,25 +67,31 @@
 :host ::ng-deep .p-datatable-thead>tr>th {
     text-align: center;
     vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 :host ::ng-deep .header-content-wrapper {
     display: flex !important;
     align-items: center !important;
     width: 100% !important;
-    min-height: 24px !important;
+    height: 24px !important;
+    overflow: hidden !important;
 }
 
 :host ::ng-deep .header-spacer {
     flex: 1 !important;
+    min-width: 0 !important;
 }
 
 :host ::ng-deep .header-text {
     flex: 0 1 auto !important;
     text-align: center !important;
     padding: 0 4px !important;
-    white-space: pre-wrap !important;
-    word-break: break-word !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    word-break: normal !important;
 }
 
 :host ::ng-deep .header-icons {
@@ -80,7 +104,7 @@
 
 
 /* Filter row compact height */
-:host ::ng-deep .p-datatable-thead > tr.filter-header-row > th {
+:host ::ng-deep .p-datatable-thead>tr.filter-header-row>th {
     padding: 2px 4px !important;
 }
 
@@ -106,7 +130,7 @@
     padding-bottom: 0 !important;
     line-height: 22px !important;
     font-size: var(--table-font-size, 11px);
-}   
+}
 
 :host ::ng-deep .filter-header-row .p-select .p-select-dropdown {
     width: 24px !important;
@@ -132,7 +156,12 @@
 }
 
 :host ::ng-deep .p-datatable-scrollable .p-datatable-table {
-    table-layout: fixed;
+    table-layout: var(--table-col-layout, auto);
+}
+
+/* Columns are sized by content (header + data) */
+:host ::ng-deep .p-datatable-tbody>tr>td {
+    overflow: hidden;
 }
 
 /* Better visual feedback for resizing */
@@ -163,16 +192,16 @@
 /* Frozen columns are resizable (resizeMode="expand" avoids the blank-gap issue of "fit" mode) */
 
 /* Prevent frozen columns from collapsing in expand resize mode */
-:host ::ng-deep .p-datatable .p-datatable-thead > tr > th.p-datatable-frozen-column,
-:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td.p-datatable-frozen-column {
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th.p-datatable-frozen-column,
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td.p-datatable-frozen-column {
     min-width: 40px;
 }
 
 /* Fix 2: Gridlines mode — add right border to ALL frozen columns so the separator
    is always visible. PrimeNG's gridlines only add border-right to :last-child. */
-:host ::ng-deep .p-datatable-gridlines .p-datatable-thead > tr > th.p-datatable-frozen-column,
-:host ::ng-deep .p-datatable-gridlines .p-datatable-tbody > tr > td.p-datatable-frozen-column,
-:host ::ng-deep .p-datatable-gridlines .p-datatable-tfoot > tr > td.p-datatable-frozen-column {
+:host ::ng-deep .p-datatable-gridlines .p-datatable-thead>tr>th.p-datatable-frozen-column,
+:host ::ng-deep .p-datatable-gridlines .p-datatable-tbody>tr>td.p-datatable-frozen-column,
+:host ::ng-deep .p-datatable-gridlines .p-datatable-tfoot>tr>td.p-datatable-frozen-column {
     border-inline-end-width: 1px;
 }
 
@@ -188,11 +217,51 @@
 }
 
 /* Ensure frozen cells have an opaque background so scrolling text doesn't bleed through */
-:host ::ng-deep .p-datatable .p-datatable-thead > tr > th.p-frozen-column {
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th.p-frozen-column {
     background-color: var(--p-surface-50, #f8fafc) !important;
 }
-:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td.p-frozen-column,
-:host ::ng-deep .p-datatable .p-datatable-tfoot > tr > td.p-frozen-column {
+
+/* Frozen header cells (incl. filter row) must always render above scrolling non-frozen cells.
+   Non-frozen cells with datetime filters have position:relative children which can create
+   stacking contexts that overlap frozen columns when scrolling horizontally. */
+:host ::ng-deep .p-datatable-thead>tr>th.p-datatable-frozen-column {
+    z-index: 3 !important;
+}
+
+/* Non-frozen filter-row cells: prevent p-datepicker's internal position:relative wrapper
+   from creating a stacking context that paints over frozen columns on horizontal scroll.
+   We reset position/z-index on the datepicker container so it stays in normal flow. */
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) p-datepicker,
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) .p-datepicker {
+    position: static !important;
+    z-index: auto !important;
+}
+
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) p-datepicker .p-datepicker-input-icon-container,
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) p-datepicker .p-inputtext {
+    position: relative;
+    z-index: auto !important;
+}
+
+/* Also prevent the p-columnFilter wrapper (which may have position:relative) from elevating */
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) p-columnfilter {
+    position: static !important;
+    z-index: auto !important;
+}
+
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) .p-column-filter {
+    position: static !important;
+    z-index: auto !important;
+}
+
+/* Reset the datetime-filter wrapper div (position:relative set inline) in non-frozen columns
+   so it does not create an elevated stacking context that overlaps frozen cells. */
+:host ::ng-deep .filter-header-row th:not(.p-datatable-frozen-column) {
+    z-index: 0 !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td.p-frozen-column,
+:host ::ng-deep .p-datatable .p-datatable-tfoot>tr>td.p-frozen-column {
     background-color: var(--p-surface-0, #ffffff) !important;
 }
 
@@ -240,7 +309,7 @@
 }
 
 /* Click-to-select row highlight */
-:host ::ng-deep .p-datatable-tbody > tr.row-click-selected > td {
+:host ::ng-deep .p-datatable-tbody>tr.row-click-selected>td {
     background: var(--p-primary-50, rgba(59, 130, 246, 0.08)) !important;
     border-color: var(--p-primary-100, rgba(59, 130, 246, 0.2));
 }
@@ -327,7 +396,9 @@
 
 .lookup-row-selected td {
     color: var(--p-primary-700, #1d4ed8);
-}.lookup-row-selected td {
+}
+
+.lookup-row-selected td {
     color: var(--p-primary-700, #1d4ed8);
 }
 
@@ -356,12 +427,15 @@
 }
 
 .filter-list-container {
-    max-height: 200px;
-    overflow-y: auto;
     border: 1px solid var(--p-surface-200);
     border-radius: 4px;
     margin-top: 5px;
     background: #fff;
+    overflow: hidden;
+}
+
+.filter-virtual-viewport {
+    height: 180px;
 }
 
 .filter-list-item {
@@ -413,48 +487,38 @@
 :host ::ng-deep .focused-cell {
     box-shadow: inset 0 0 0 2px var(--p-primary-color, #3b82f6) !important;
 }
+
 /* ── Multiselect overlay font size ── */
 ::ng-deep .p-multiselect-overlay .p-select-overlay {
-  font-size: 12px !important;
+    font-size: 12px !important;
 }
-::ng-deep .p-multiselect-filter .p-inputtext{
-  padding: 3px 15px 3px 5px;
-  font-size: 12px;
+
+::ng-deep .p-multiselect-filter .p-inputtext {
+    padding: 3px 15px 3px 5px;
+    font-size: 12px;
 }
-::ng-deep .p-select-list-container{
-  font-size: 12px;
+
+::ng-deep .p-select-list-container {
+    font-size: 12px;
 
 }
-::ng-deep .p-multiselect-list{
-  font-size: 12px;
 
-}
-/* ── Table header context menu: submenu scrollable khi nhiều cột ── */
-::ng-deep .tbl-header-cm .p-contextmenu-submenu,
-.tbl-header-cm .p-submenu-list {
-  max-height: var(--tbl-submenu-max-height, 240px) !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-}
-::ng-deep .p-datepicker-input .p-inputtext .p-filled{
-    padding: 0 20px 0 12px;
+::ng-deep .p-multiselect-list {
+    font-size: 12px;
+
 }
 
 /* ── Virtual Scroll: fixed row height ──
-   When virtualScroll is on, PrimeNG/CDK assumes every row has the exact same height
-   (virtualScrollItemSize). Variable row heights from text wrapping cause the scroller
-   to mis-calculate total content height → scroll jumps back near the last rows.
-   We use the .vs-active class (set via HostBinding) so selectors work regardless
-   of PrimeNG's internal DOM structure. */
-:host.vs-active ::ng-deep .p-datatable-tbody > tr {
+   When virtualScroll is on (or auto-enabled via lazyRenderThreshold),
+   PrimeNG/CDK needs every row to have the exact same height. */
+:host.vs-active ::ng-deep .p-datatable-tbody>tr {
     height: var(--virtual-row-height) !important;
     max-height: var(--virtual-row-height) !important;
-    min-height: var(--virtual-row-height) !important;
     overflow: hidden !important;
     box-sizing: border-box !important;
 }
 
-:host.vs-active ::ng-deep .p-datatable-tbody > tr > td {
+:host.vs-active ::ng-deep .p-datatable-tbody>tr>td {
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
@@ -463,12 +527,19 @@
     padding-bottom: 2px !important;
 }
 
-/* Override wrap-text class inside virtual scroll to prevent variable heights */
-:host.vs-active ::ng-deep .p-datatable-tbody > tr > td .wrap-text,
-:host.vs-active ::ng-deep .p-datatable-tbody > tr > td .truncate-text {
+/* Override wrap-text inside virtual scroll to prevent variable heights */
+:host.vs-active ::ng-deep .p-datatable-tbody>tr>td .wrap-text,
+:host.vs-active ::ng-deep .p-datatable-tbody>tr>td .truncate-text {
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     display: block !important;
-    line-height: calc(var(--virtual-row-height) - 6px) !important;
+}
+
+/* ── Table header context menu: submenu scrollable khi nhiều cột ── */
+::ng-deep .tbl-header-cm .p-contextmenu-submenu,
+.tbl-header-cm .p-submenu-list {
+    max-height: var(--tbl-submenu-max-height, 240px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
 }

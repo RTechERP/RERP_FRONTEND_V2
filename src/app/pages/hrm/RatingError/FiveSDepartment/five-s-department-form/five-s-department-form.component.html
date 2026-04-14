@@ -1,0 +1,58 @@
+<div class="modal-header bg-primary py-2">
+    <h6 class="modal-title text-uppercase text-white">
+        {{ title }}
+    </h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+<div class="modal-body fs-12 p-3">
+    <nz-spin [nzSpinning]="isLoading">
+        <form nz-form [formGroup]="form" nzLayout="vertical">
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired>Số thứ tự</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập STT">
+                            <nz-input-number formControlName="STT" [nzMin]="1" style="width: 100%"
+                                nzSize="small"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="16">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired>Mã phòng ban</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập mã phòng ban">
+                            <input nz-input formControlName="Code" placeholder="Nhập mã phòng ban" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="24">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired>Tên phòng ban</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập tên phòng ban">
+                            <input nz-input formControlName="Name" placeholder="Nhập tên phòng ban" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="24">
+                    <nz-form-item class="mb-0">
+                        <nz-form-label>Mô tả</nz-form-label>
+                        <nz-form-control>
+                            <textarea nz-input formControlName="Description" placeholder="Nhập mô tả..."
+                                [nzAutosize]="{ minRows: 3, maxRows: 5 }" nzSize="small"></textarea>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </form>
+    </nz-spin>
+</div>
+<div class="modal-footer fs-12 p-2">
+    <button nz-button type="button" nzDanger nzType="default" (click)="onCancel()" [nzLoading]="isLoading">Đóng</button>
+    <button nz-button type="button" nzType="primary" (click)="onSubmit()" [nzLoading]="isLoading">Lưu dữ liệu</button>
+</div>

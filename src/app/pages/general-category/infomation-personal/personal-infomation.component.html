@@ -1,0 +1,98 @@
+<div class="personal-info-container">
+    <nz-spin [nzSpinning]="isLoading">
+        <div *ngIf="employee" class="profile-layout">
+            <div nz-row [nzGutter]="24">
+                <!-- Left Column: Avatar & Summary -->
+                <div nz-col [nzXs]="24" [nzLg]="8">
+                    <nz-card class="profile-sidebar-card shadow-sm border-0">
+                        <div class="profile-header text-center">
+                            <div class="avatar-wrapper">
+                                <nz-avatar [nzSize]="120" [nzSrc]="getAvatarUrl()" nzIcon="user"></nz-avatar>
+                            </div>
+                            <h2 class="mt-3 mb-0">{{ employee.FullName }}</h2>
+                            <p class="text-muted mb-2">{{ employee.Code }}</p>
+                            <nz-tag nzColor="blue">{{ employee.ChucVu || employee.Position }}</nz-tag>
+                            <div class="mt-2 text-center">
+                                <nz-tag nzColor="green">{{ employee.DepartmentName }}</nz-tag>
+                            </div>
+                        </div>
+
+                        <nz-divider></nz-divider>
+
+                        <div class="quick-contact">
+                            <div class="contact-item">
+                                <span nz-icon nzType="phone" nzTheme="outline"></span>
+                                <span>{{ employee.SDTCaNhan }}</span>
+                            </div>
+                            <div class="contact-item">
+                                <span nz-icon nzType="mail" nzTheme="outline"></span>
+                                <span>{{ employee.EmailCaNhan }}</span>
+                            </div>
+                            <div class="contact-item">
+                                <span nz-icon nzType="environment" nzTheme="outline"></span>
+                                <span>{{ employee.DcThuongTru }}</span>
+                            </div>
+                        </div>
+                    </nz-card>
+                </div>
+
+                <!-- Right Column: Detailed Info -->
+                <div nz-col [nzXs]="24" [nzLg]="16">
+                    <nz-card class="profile-details-card shadow-sm border-0 mb-4" [nzTitle]="generalTitle">
+                        <ng-template #generalTitle>
+                            <span class="card-title-icon"><span nz-icon nzType="user" nzTheme="outline"></span></span>
+                            Thông tin cá nhân
+                        </ng-template>
+
+                        <nz-descriptions [nzColumn]="{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }"
+                            nzLayout="horizontal">
+                            <nz-descriptions-item nzTitle="Ngày sinh">{{ employee.BirthOfDate | date:'dd/MM/yyyy'
+                                }}</nz-descriptions-item>
+                            <nz-descriptions-item nzTitle="Giới tính">{{ employee.GioiTinhText }}</nz-descriptions-item>
+                            <nz-descriptions-item nzTitle="Dân tộc">{{ employee.DanToc }}</nz-descriptions-item>
+                            <nz-descriptions-item nzTitle="Tôn giáo">{{ employee.TonGiao }}</nz-descriptions-item>
+                            <nz-descriptions-item nzTitle="Số CMND/CCCD">{{ employee.CMTND }}</nz-descriptions-item>
+                            <nz-descriptions-item nzTitle="Ngày cấp">{{ employee.NgayCap | date:'dd/MM/yyyy'
+                                }}</nz-descriptions-item>
+                            <nz-descriptions-item nzTitle="Đ/c thường trú" [nzSpan]="2">{{ employee.DcThuongTru
+                                }}</nz-descriptions-item>
+                            <nz-descriptions-item nzTitle="Đ/c tạm trú" [nzSpan]="2">{{ employee.DcTamTru
+                                }}</nz-descriptions-item>
+                        </nz-descriptions>
+                    </nz-card>
+
+                    <nz-card class="profile-details-card shadow-sm border-0 mb-4" [nzTitle]="workTitle">
+                        <ng-template #workTitle>
+                            <span class="card-title-icon"><span nz-icon nzType="idcard" nzTheme="outline"></span></span>
+                            Thông tin công việc
+                        </ng-template>
+
+                        <nz-descriptions [nzColumn]="{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }"
+                            nzLayout="horizontal">
+                            <nz-descriptions-item nzTitle="Ngày vào">{{ employee.StartWorking | date:'dd/MM/yyyy'
+                                }}</nz-descriptions-item>
+                            <nz-descriptions-item nzTitle="Loại hợp đồng">{{ employee.LoaiHDLD }}</nz-descriptions-item>
+                            <nz-descriptions-item nzTitle="Số tài khoản">{{ employee.BankAccount
+                                }}</nz-descriptions-item>
+                            <nz-descriptions-item nzTitle="Mã số thuế">{{ employee.MST }}</nz-descriptions-item>
+                        </nz-descriptions>
+                    </nz-card>
+
+                    <nz-card class="profile-details-card shadow-sm border-0" [nzTitle]="eduTitle">
+                        <ng-template #eduTitle>
+                            <span class="card-title-icon"><span nz-icon nzType="read" nzTheme="outline"></span></span>
+                            Học vấn & Bằng cấp
+                        </ng-template>
+
+                        <nz-descriptions [nzColumn]="1" nzLayout="horizontal">
+                            <nz-descriptions-item nzTitle="Trình độ">{{ employee.Qualifications
+                                }}</nz-descriptions-item>
+                            <nz-descriptions-item nzTitle="Chuyên ngành">{{ employee.Major }}</nz-descriptions-item>
+                            <nz-descriptions-item nzTitle="Trường">{{ employee.SchoolName }}</nz-descriptions-item>
+                        </nz-descriptions>
+                    </nz-card>
+                </div>
+            </div>
+        </div>
+    </nz-spin>
+</div>

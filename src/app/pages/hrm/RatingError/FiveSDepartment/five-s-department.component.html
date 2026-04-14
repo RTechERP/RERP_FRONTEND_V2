@@ -1,0 +1,63 @@
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command() : null">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text" style="font-size: 12px;">{{ item.label }}</span>
+        </a>
+    </ng-template>
+</p-menubar>
+
+<ng-container class="w-100">
+    <div class="card border-0 rounded-0" style="height: 85vh !important;">
+        <div class="card-body p-0 d-flex flex-column" style="height: 100%;">
+            <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..." style="flex: 1; display: flex; flex-direction: column;">
+                <div class="grid-container" id="grid-container-five-s-department" style="height: 100%; flex: 1;">
+                    <p-table [value]="dataset" selectionMode="single" [(selection)]="selectedRow"
+                        (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
+                        [scrollable]="true" scrollHeight="flex" 
+                        styleClass="p-datatable-sm p-datatable-gridlines" dataKey="ID">
+                        <ng-template pTemplate="header">
+                            <tr style="font-size: 12px;">
+                                <th style="width: 60px; text-align: center" pSortableColumn="STT">STT <p-sortIcon field="STT"></p-sortIcon></th>
+                                <th style="width: 150px;" pSortableColumn="Code">Mã phòng ban <p-sortIcon field="Code"></p-sortIcon></th>
+                                <th style="width: 250px;" pSortableColumn="Name">Tên phòng ban <p-sortIcon field="Name"></p-sortIcon></th>
+                                <th style="width: 300px;">Mô tả</th>
+                                <th style="width: 150px;">Người tạo</th>
+                                <th style="width: 120px; text-align: center">Ngày tạo</th>
+                                <th style="width: 150px;">Người cập nhật</th>
+                                <th style="width: 120px; text-align: center">Ngày cập nhật</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                            <tr [pSelectableRow]="item" style="font-size: 12px;">
+                                <td style="text-align: center">{{ item.STT || rowIndex + 1 }}</td>
+                                <td>{{ item.Code }}</td>
+                                <td class="cell-wrap" [pTooltip]="item.Name" tooltipPosition="top">
+                                    <span style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width: 230px;">
+                                        {{ item.Name }}
+                                    </span>
+                                </td>
+                                <td class="cell-wrap" [pTooltip]="item.Description" tooltipPosition="top">
+                                    <span style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width: 280px;">
+                                        {{ item.Description }}
+                                    </span>
+                                </td>
+                                <td>{{ item.CreatedBy }}</td>
+                                <td style="text-align: center">{{ formatDate(item.CreatedDate) }}</td>
+                                <td>{{ item.UpdatedBy }}</td>
+                                <td style="text-align: center">{{ formatDate(item.UpdatedDate) }}</td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+                                    Không có dữ liệu.
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </nz-spin>
+        </div>
+    </div>
+</ng-container>

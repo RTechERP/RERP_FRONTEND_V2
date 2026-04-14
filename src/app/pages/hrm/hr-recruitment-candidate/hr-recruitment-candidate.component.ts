@@ -317,13 +317,27 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         this.angularGrid = angularGrid;
 
         if (angularGrid && angularGrid.dataView) {
+            const previousMetadata = angularGrid.dataView.getItemMetadata;
+            angularGrid.dataView.getItemMetadata = (rowNumber: number) => {
+                const item = angularGrid.dataView.getItem(rowNumber);
+                let metadata = previousMetadata ? previousMetadata.call(angularGrid.dataView, rowNumber) : null;
+
+                if (item && item.Status === 1) {
+                    if (!metadata) metadata = { cssClasses: '' };
+                    metadata.cssClasses = (metadata.cssClasses || '') + ' highlight-status-1';
+                }
+                return metadata;
+            };
+
             angularGrid.dataView.onRowCountChanged.subscribe(() => {
                 this.updateMasterFooterRow();
             });
         }
 
         setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
+            if (angularGrid && angularGrid.resizerService) {
+                angularGrid.resizerService.resizeGrid();
+            }
             this.updateMasterFooterRow();
             this.applyDistinctFilters();
         }, 100);
@@ -470,18 +484,28 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 excelExportOptions: { width: 25 },
             },
             {
-                id: 'DateApply',
-                field: 'DateApply',
-                name: 'Ngày ứng tuyển',
+                id: 'DateInterview',
+                field: 'DateInterview',
+                name: 'Ngày phỏng vấn',
                 minWidth: 150,
                 sortable: true,
                 filterable: true,
                 formatter: Formatters.date,
                 exportCustomFormatter: Formatters.date,
                 type: 'date',
-                params: { dateFormat: 'DD/MM/YYYY' },
+                params: { dateFormat: 'DD/MM/YYYY HH:mm' },
                 filter: { model: Filters['compoundDate'] },
                 excelExportOptions: { width: 16 },
+            },
+            {
+                id: 'InterviewerFullName',
+                field: 'InterviewerFullName',
+                name: 'Người phỏng vấn',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+                excelExportOptions: { width: 18 },
             },
             {
                 id: 'UserName',
@@ -560,16 +584,16 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 excelExportOptions: { width: 40 },
             },
             {
-                id: 'DateInterview',
-                field: 'DateInterview',
-                name: 'Ngày phỏng vấn',
+                id: 'DateApply',
+                field: 'DateApply',
+                name: 'Ngày ứng tuyển',
                 minWidth: 150,
                 sortable: true,
                 filterable: true,
                 formatter: Formatters.date,
                 exportCustomFormatter: Formatters.date,
                 type: 'date',
-                params: { dateFormat: 'DD/MM/YYYY HH:mm' },
+                params: { dateFormat: 'DD/MM/YYYY' },
                 filter: { model: Filters['compoundDate'] },
                 excelExportOptions: { width: 16 },
             },
@@ -799,8 +823,9 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             //this.angularGrid.slickGrid.setFooterRowVisibility(true);
 
             // Set footer values cho từng column
-            const columns = this.angularGrid.slickGrid.getColumns();
+            const columns = this.angularGrid.slickGrid.getColumns() || [];
             columns.forEach((col: any) => {
+                if (!col || !col.id) return;
                 const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(
                     col.id
                 );

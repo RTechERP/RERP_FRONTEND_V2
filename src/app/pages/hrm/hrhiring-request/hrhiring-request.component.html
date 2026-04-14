@@ -152,6 +152,11 @@
                                                 SL <p-sortIcon field="QuantityHiring" />
                                             </div>
                                         </th>
+                                        <th pSortableColumn="HiringDeadline" style="width: 140px; text-align: center;">
+                                            <div class="flex items-center justify-content-center gap-2">
+                                                Deadline tuyển dụng <p-sortIcon field="HiringDeadline" />
+                                            </div>
+                                        </th>
                                         <th style="width: 110px; text-align: center;">Độ tuổi</th>
                                         <th pSortableColumn="Gender" style="width: 90px; text-align: center;">
                                             <div class="flex items-center justify-content-center gap-2">
@@ -197,6 +202,11 @@
                                                 filterOn="enter"></p-columnFilter>
                                         </th>
                                         <th style="text-align: center; padding: 0 !important;">
+                                            <p-columnFilter [style]="{ width: '100%' }" type="text"
+                                                field="HiringDeadline" matchMode="contains" [showMenu]="false"
+                                                filterOn="enter"></p-columnFilter>
+                                        </th>
+                                        <th style="text-align: center; padding: 0 !important;">
                                             <p-columnFilter [style]="{ width: '100%' }" type="text" field="AgeStart"
                                                 matchMode="contains" [showMenu]="false"
                                                 filterOn="enter"></p-columnFilter>
@@ -236,7 +246,7 @@
 
                                 <ng-template pTemplate="groupheader" let-row>
                                     <tr (click)="toggleGroup(row.DepartmentName)" style="cursor: pointer;">
-                                        <td colspan="13"
+                                        <td colspan="14"
                                             style="padding: 2px 8px !important; background-color: #f8f9fa;">
                                             <span class="p-row-toggler p-link mr-2" style="font-size: 10px;">
                                                 <i
@@ -263,6 +273,7 @@
                                         <td>{{ row.DepartmentName }}</td>
                                         <td>{{ row.PositionName || row.EmployeeChucVuHDName }}</td>
                                         <td style="text-align: center;">{{ row.QuantityHiring }}</td>
+                                        <td style="text-align: center;">{{ fmtDate(row.HiringDeadline) }}</td>
                                         <td style="text-align: center;">{{ formatAgeRange(row) }}</td>
                                         <td style="text-align: center;">{{ row.Gender }}</td>
                                         <td style="text-align: right;">{{ formatSalaryRange(row) }}</td>
@@ -289,7 +300,7 @@
 
                                 <ng-template pTemplate="emptymessage">
                                     <tr>
-                                        <td colspan="13" style="text-align: center; padding: 20px; color: #999;">
+                                        <td colspan="14" style="text-align: center; padding: 20px; color: #999;">
                                             Không có dữ liệu. Vui lòng chọn khoảng thời gian và nhấn Tìm kiếm.
                                         </td>
                                     </tr>

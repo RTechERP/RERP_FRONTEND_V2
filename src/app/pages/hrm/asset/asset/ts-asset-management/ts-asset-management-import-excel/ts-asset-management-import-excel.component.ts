@@ -245,8 +245,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-      // Bỏ validation file extension - chấp nhận mọi file
-      console.log('File đã chọn:', file.name); // Log để kiểm tra
       this.filePath = file.name;
       this.excelSheets = [];
       this.selectedSheet = '';
@@ -256,7 +254,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     
       this.displayProgress = 0;
       this.displayText = 'Đang đọc file...';
-      console.log('Progress bar state set to: Đang đọc file...'); 
       const reader = new FileReader();
       reader.onprogress = (event) => {
         if (event.lengthComputable) {
@@ -271,12 +268,9 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         try {
           const workbook = new ExcelJS.Workbook();
           await workbook.xlsx.load(data);
-          console.log('Workbook đã được tải bởi ExcelJS.'); // Log
           this.excelSheets = workbook.worksheets.map(sheet => sheet.name);
-          console.log('Danh sách sheets tìm thấy:', this.excelSheets); // Log
           if (this.excelSheets.length > 0) {
             this.selectedSheet = this.excelSheets[0];
-            console.log('Sheet mặc định được chọn:', this.selectedSheet); // Log
             await this.readExcelData(workbook, this.selectedSheet);
             const elapsedTime = Date.now() - startTime;
             const minDisplayTime = 500; // Thời gian hiển thị tối thiểu cho trạng thái tải (500ms)
@@ -289,7 +283,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
                 } else {
                   this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
                 }
-                console.log('Dữ liệu đã được đọc và bảng Excel preview đã được cập nhật (sau delay).');
               }, minDisplayTime - elapsedTime);
             } else {
               // Nếu quá trình xử lý đã đủ lâu, cập nhật ngay lập tức
@@ -299,15 +292,12 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
               } else {
                 this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
               }
-              console.log('Dữ liệu đã được đọc và bảng Excel preview đã được cập nhật.');
             }
           } else {
-            console.warn('File Excel không chứa bất kỳ sheet nào.'); // Log
             this.notification.warning(NOTIFICATION_TITLE.warning, 'File Excel không có sheet nào!');
             this.resetExcelImportState();
           }
         } catch (error) {
-          console.error('Lỗi khi đọc tệp Excel trong FileReader.onload:', error); // Log chi tiết lỗi
           this.notification.error('Thông báo', 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
           this.resetExcelImportState(); // Reset trạng thái khi có lỗi
         }
@@ -357,7 +347,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   }
 
   async readExcelData(workbook: ExcelJS.Workbook, sheetName: string) {
-    console.log(`Bắt đầu đọc dữ liệu từ sheet: "${sheetName}"`);
     try {
       const worksheet = workbook.getWorksheet(sheetName);
       if (!worksheet) throw new Error(`Sheet "${sheetName}" không tồn tại.`);
@@ -373,9 +362,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         const fieldName = this.getFieldFromHeader(headerText);
         headerToFieldMap.set(colNumber, fieldName);
       });
-
-      console.log('Headers từ Excel:', headers);
-      console.log('Mapping:', Array.from(headerToFieldMap.entries()));
 
       // Tạo columns cho Tabulator dựa trên header
       const columns: ColumnDefinition[] = headers.map((header, index) => {
@@ -498,17 +484,13 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       } else {
         this.drawtable();
       }
-
-      console.log(`Đã load ${validRecords} bản ghi hợp lệ.`);
     } catch (error) {
-      console.error('Lỗi khi đọc dữ liệu từ sheet:', error);
       this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet!');
       this.resetExcelImportState();
     }
   }
 
   onSheetChange() {
-    console.log('Sheet đã thay đổi thành:', this.selectedSheet);
     if (this.filePath) {
       const fileInput = document.getElementById('fileInput') as HTMLInputElement;
       if (fileInput.files && fileInput.files.length > 0) {
@@ -523,9 +505,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
             // Sau khi thay đổi sheet và đọc dữ liệu, đặt lại thanh tiến trình
             this.displayProgress = 0;
             // displayText được cập nhật trong readExcelData
-            console.log('Dữ liệu đã được đọc lại sau khi thay đổi sheet.'); // Log
           } catch (error) {
-            console.error('Lỗi khi đọc tệp Excel khi thay đổi sheet:', error);
             this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet đã chọn!');
             this.resetExcelImportState(); // Reset trạng thái khi có lỗi
           }
@@ -547,13 +527,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       );
   
       let apiCode = res?.data ?? '';
-      
-      console.log('🔍 API getAssetCode response:', {
-        date: iso,
-        apiCode: apiCode,
-        maxSTT: res?.maxSTT,
-        cachedCode: this.usedCodesCache.get(iso)
-      });
   
       // Kiểm tra xem có code đã dùng trong cache không
       const cachedCode = this.usedCodesCache.get(iso);
@@ -565,11 +538,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         if (cachedNumber >= apiNumber) {
           // Cache có code cao hơn → dùng code tiếp theo từ cache
           const nextCode = this.incrementCode(cachedCode);
-          console.log('⚠️ Cache có code cao hơn API. Dùng code từ cache:', {
-            apiCode,
-            cachedCode,
-            nextCode
-          });
           apiCode = nextCode;
         }
       }
@@ -579,7 +547,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         maxSTT: res?.maxSTT ?? 0
       };
     } catch (e) {
-      console.error('Lỗi khi lấy mã tài sản (code + maxSTT):', e);
       return { code: '', maxSTT: 0 };
     }
   }
@@ -676,10 +643,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   
     // 2) Lấy code + maxSTT từ group đầu tiên
     const [firstIsoDate, firstRows] = groupEntries[0];
-    
-    console.log('📅 Đang lấy code cho ngày:', firstIsoDate);
     const { code: firstBaseCode, maxSTT } = await this.getAssetCodeInfo(firstIsoDate);
-    console.log('✅ Code nhận được từ API:', firstBaseCode, '| maxSTT:', maxSTT);
   
     if (!firstBaseCode) {
       this.notification.error('Thông báo', 'Không lấy được mã tài sản từ server.');
@@ -694,8 +658,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         const code = this.buildAssetCode(baseCode, groupOffset + idx);
   
         currentSTT += 1; // STT: maxSTT + 1, +2, ...
-  
-        console.log(`Bản ghi: Code=${code}, STT=${currentSTT}, BaseCode=${baseCode}, Offset=${groupOffset + idx}`);
   
         // Xử lý trạng thái
         let statusID = 1;
@@ -799,7 +761,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       const baseCode = await this.generateTSAssetCode(isoDate); // chỉ lấy code, kệ maxSTT
   
       if (!baseCode) {
-        console.warn('Không lấy được mã tài sản cho ngày', isoDate);
         continue;
       }
   
@@ -823,19 +784,13 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       }
     });
     
-    console.log('💾 Cache sau khi xử lý:', Object.fromEntries(this.usedCodesCache));
-  
     const payload = { tSAssetManagements };
   
     this.displayProgress = 30;
     this.displayText = `Đang gửi ${totalAssetsToSave} bản ghi...`;
-    console.log('Payload import excel', payload);
   
     this.assetsManagementService.saveDataAsset(payload).subscribe({
       next: (response: any) => {
-        console.log('=== Response từ API saveDataAsset ===', response);
-        console.log('response.status:', response?.status);
-        console.log('response.data:', response?.data);
         
         // Đếm số bản ghi có ID trong response (đã lưu thành công)
         let successCount = 0;
@@ -848,36 +803,20 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
           const assetData = response.data;
           
           if (assetData && assetData.tSAssetManagements && Array.isArray(assetData.tSAssetManagements)) {
-            console.log('Tìm thấy tSAssetManagements array:', assetData.tSAssetManagements);
-            console.log('Số phần tử:', assetData.tSAssetManagements.length);
             
             // Đếm số bản ghi có ID > 0 (đã được lưu vào DB)
             const itemsWithId = assetData.tSAssetManagements.filter((item: any) => {
               const hasValidId = item && item.ID && item.ID > 0;
-              if (!hasValidId) {
-                console.warn('Item không có ID hợp lệ:', item);
-              }
               return hasValidId;
             });
             
             successCount = itemsWithId.length;
             errorCount = totalAssetsToSave - successCount;
-            
-            console.log('Số bản ghi có ID > 0:', successCount);
-            console.log('Chi tiết các ID:', itemsWithId.map((item: any) => item.ID));
-            console.log(`✅ Tổng kết: ${successCount}/${totalAssetsToSave} thành công, ${errorCount} thất bại`);
           } else {
-            // Nếu API trả về status = 1 nhưng không có array chi tiết
-            // Có thể backend chưa trả về data đầy đủ, coi như tất cả thành công
-            console.warn('⚠️ API trả về status = 1 nhưng không có tSAssetManagements array');
-            console.log('Cấu trúc response.data:', assetData ? Object.keys(assetData) : 'null');
-            console.log('Coi như tất cả bản ghi đã lưu thành công');
             successCount = totalAssetsToSave;
             errorCount = 0;
           }
         } else {
-          // Nếu status !== 1, coi như thất bại
-          console.error('❌ API trả về status !== 1:', response?.status);
           successCount = 0;
           errorCount = totalAssetsToSave;
         }
@@ -915,15 +854,12 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   
         // Refresh table nếu có ít nhất 1 bản ghi thành công
         if (successCount > 0 && this.table) {
-          console.log('Refreshing table after successful import...');
           this.table.replaceData();
         }
         
         this.closeExcelModal();
       },
       error: (err: any) => {
-        console.error('Lỗi API khi lưu danh sách tài sản:', err);
-  
         const backendMsg =
           err?.error?.message ||
           err?.error?.title ||
@@ -944,8 +880,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   
 
   showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
-    console.log('--- Hiển thị tóm tắt kết quả lưu ---');
-    console.log(`Tổng sản phẩm: ${totalProducts}, Thành công: ${successCount}, Thất bại: ${errorCount}`);
 
     if (errorCount === 0) {
       this.notification.success(NOTIFICATION_TITLE.success, `Đã lưu ${successCount} sản phẩm thành công`);
@@ -993,15 +927,12 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   private loadUnit() {
     this.unitService.getUnit().subscribe((res: any) => {
       this.listUnitCount = res.data;
-      console.log(this.listUnitCount);
     });
     this.soucerService.getAssets().subscribe((response: any) => {
       this.listSourceAsset = response.data;
-      console.log(this.listSourceAsset);
     });
     this.typeAssetsService.getTypeAssets().subscribe((resppon: any) => {
       this.listTypeAsset = resppon.data;
-      console.log(this.listTypeAsset);
     });
     const request = {
       status: 0,
@@ -1016,7 +947,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         this.listMaker = res.data || [];
       },
       error: (err: any) => {
-        console.error('Lỗi khi lấy danh sách hãng:', err);
       }
     });
   }
@@ -1034,7 +964,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     if (this.tableExcel) {
       this.tableExcel.replaceData([]); // Xóa dữ liệu trong Tabulator preview
     }
-    console.log('Trạng thái nhập Excel đã được reset.'); // Log
   }
   closeExcelModal() {
     this.modalService.dismissAll(true);

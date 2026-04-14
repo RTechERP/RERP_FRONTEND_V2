@@ -25,3 +25,8 @@
 ::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
   border-right: 1px solid #ddd !important;
 }
+
+::ng-deep .highlight-status-1 .slick-cell {
+  background-color: #bff2aa !important;
+  font-weight: 500;
+}

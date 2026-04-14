@@ -1298,6 +1298,10 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     const masterPayload = {
       ID: selectedMaster.ID,
       Code: selectedMaster.Code,
+      AllocationID: selectedMaster.AllocationID,
+      EmployeeAllocationName: selectedMaster.EmployeeAllocationName,
+      DepartmentAllocation: selectedMaster.DepartmentAllocation,
+      PosittionAllocation: selectedMaster.PosittionAllocation,
       DateAllocation: selectedMaster.DateAllocation,
       EmployeeName: selectedMaster.EmployeeName,
       Department: selectedMaster.Department,

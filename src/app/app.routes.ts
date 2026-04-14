@@ -323,6 +323,7 @@ import { CommercialPriceRequestComponent } from './pages/purchase/project-partli
 import { PinResetComponent } from './auth/pin-pass-word/pin-reset/pin-reset.component';
 import { ChangePasswordComponent } from './auth/change-password/change-password.component';
 
+
 import { PurchaseQuoteSummaryMainComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary-main/purchase-quote-summary-main.component';
 import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
 import { ProjectPrimeNg2Component } from './pages/project/project-prime-ng2/project-prime-ng2.component';

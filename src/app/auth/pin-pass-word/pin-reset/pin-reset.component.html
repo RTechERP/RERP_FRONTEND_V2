@@ -1,0 +1,113 @@
+<div class="pin-reset-container">
+  <div class="glass-card">
+    <!-- Steps Indicator -->
+    <div class="steps-indicator">
+      <div class="step-dot" [class.active]="step === 1"></div>
+      <div class="step-dot" [class.active]="step === 2 && !isTokenVerified"></div>
+      <div class="step-dot" [class.active]="step === 2 && isTokenVerified"></div>
+    </div>
+
+    <!-- Header Section -->
+    <div class="header">
+      <div class="icon-box">
+        <span nz-icon [nzType]="isTokenVerified ? 'check-circle' : (step === 1 ? 'send' : 'safety-certificate')" nzTheme="twotone" [nzTwotoneColor]="isTokenVerified ? '#52c41a' : '#764ba2'"></span>
+      </div>
+      <h1 class="title">
+        {{ isTokenVerified ? 'Thiết lập PIN mới' : (step === 1 ? 'Nhận mã OTP' : 'Xác thực OTP') }}
+      </h1>
+      <p class="subtitle">
+        {{ step === 1 
+          ? 'Hệ thống sẽ gửi mã OTP bảo mật đến email đã đăng ký của bạn.' 
+          : (isTokenVerified ? 'Tuyệt vời! Bạn có thể đặt mã PIN 6 số ngay bây giờ.' : 'Vui lòng kiểm tra email và nhập mã OTP 6 số.') 
+        }}
+      </p>
+    </div>
+
+    <!-- MAIN FORM BODY -->
+    <div class="form-body">
+      
+      <!-- STEP 1: INITIAL REQUEST -->
+      <div *ngIf="step === 1" class="fade-up">
+        <div class="alert-info">
+          <span nz-icon nzType="info-circle" nzTheme="fill"></span>
+          <p>Mã Token có hiệu lực trong 10 phút. Nếu không nhận được, hãy kiểm tra thư mục Spam.</p>
+        </div>
+        
+        <div style="margin-top: 32px;">
+          <button nz-button nzType="primary" nzBlock class="btn-primary" [nzLoading]="loading" (click)="onRequest()">
+            Gửi yêu cầu tới Email <span nz-icon nzType="arrow-right"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: TOKEN VERIFICATION -->
+      <div *ngIf="step === 2 && !isTokenVerified" class="fade-up">
+        <div class="input-group">
+          <span class="input-label">Mã xác thực (OTP 6 số)</span>
+          <nz-input-group [nzPrefix]="prefixToken" nzSize="large" class="premium-input-group">
+            <input nz-input [(ngModel)]="token" placeholder="Nhập 6 số từ email" class="premium-input token-input" maxlength="6" />
+          </nz-input-group>
+          <ng-template #prefixToken><span nz-icon nzType="safety-certificate"></span></ng-template>
+        </div>
+
+        <div style="margin-top: 24px;">
+          <button nz-button nzType="primary" nzBlock class="btn-primary" [nzLoading]="loading" (click)="onVerifyToken()">
+            Xác thực Token ngay <span nz-icon nzType="check"></span>
+          </button>
+        </div>
+
+        <div class="resend-box" style="margin-top: 20px;">
+          <span>Bạn chưa nhận được mã?</span>
+          <button nz-button nzType="link" [disabled]="countdown > 0" (click)="onResend()" style="padding:0; font-weight:700; height:auto; font-size:11px;">
+            {{ countdown > 0 ? 'Gửi lại sau (' + countdown + 's)' : 'Gửi lại ngay' }}
+          </button>
+        </div>
+
+        <button nz-button nzType="text" nzBlock class="btn-ghost" (click)="step = 1">
+          <span nz-icon nzType="arrow-left"></span> Thay đổi phương thức
+        </button>
+      </div>
+
+      <!-- STEP 3: NEW PIN SETTING -->
+      <div *ngIf="step === 2 && isTokenVerified" class="fade-up">
+        <div class="input-group">
+          <span class="input-label">Mã PIN mới (6 chữ số)</span>
+          <nz-input-group [nzPrefix]="prefixPin" [nzSuffix]="suffixPin" nzSize="large" class="premium-input-group">
+            <input [type]="pinVisible ? 'text' : 'password'" nz-input [(ngModel)]="newPin" maxlength="6" placeholder="••••••" class="premium-input pin-input" />
+          </nz-input-group>
+          <ng-template #prefixPin><span nz-icon nzType="lock"></span></ng-template>
+          <ng-template #suffixPin>
+            <span nz-icon [nzType]="pinVisible ? 'eye-invisible' : 'eye'" (click)="pinVisible = !pinVisible" class="password-toggle"></span>
+          </ng-template>
+        </div>
+
+        <div class="input-group" style="margin-top: 16px;">
+          <span class="input-label">Xác nhận mã PIN</span>
+          <nz-input-group [nzPrefix]="prefixConfirm" [nzSuffix]="suffixConfirm" nzSize="large" class="premium-input-group">
+            <input [type]="confirmPinVisible ? 'text' : 'password'" nz-input [(ngModel)]="confirmPin" maxlength="6" placeholder="••••••" class="premium-input pin-input" (keyup.enter)="onReset()" />
+          </nz-input-group>
+          <ng-template #prefixConfirm><span nz-icon nzType="check-circle" [nzTwotoneColor]="confirmPin && newPin === confirmPin ? '#52c41a' : '#d9d9d9'"></span></ng-template>
+          <ng-template #suffixConfirm>
+            <span nz-icon [nzType]="confirmPinVisible ? 'eye-invisible' : 'eye'" (click)="confirmPinVisible = !confirmPinVisible" class="password-toggle"></span>
+          </ng-template>
+        </div>
+
+        <div style="margin-top: 32px;">
+          <button nz-button nzType="primary" nzBlock class="btn-primary" [nzLoading]="loading" (click)="onReset()">
+            Cập nhật mã PIN mới
+          </button>
+          <button nz-button nzType="text" nzBlock class="btn-ghost" (click)="isTokenVerified = false">
+            Chọn Token khác
+          </button>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="footer">
+        <a (click)="onCancel()" class="link-back">
+          <span nz-icon nzType="rollback"></span> Quay lại trang đăng nhập
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

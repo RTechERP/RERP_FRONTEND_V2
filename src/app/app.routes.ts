@@ -309,6 +309,7 @@ import { ProjectTaskTimelineComponent } from './pages/project_task/project-task-
 import { ProjectTaskStatusComponent } from './pages/project_task/project-task-status/project-task-status.component'
 import { ProjectTaskTypeComponent } from './pages/project_task/project-task-type/project-task-type.component'
 import { ProjectTaskProjectComponent } from './pages/project_task/project-task-project/project-task-project.component'
+import { TestExamComponent } from './pages/Course/test-exam/test-exam.component';
 export const routes: Routes = [
     {
         path: '',
@@ -1098,6 +1099,7 @@ export const routes: Routes = [
             { path: 'course-practice', component: CoursePracticeComponent, canActivate: [authGuard] },
             { path: 'course-exam', component: CourseExamComponent, canActivate: [authGuard] },
             { path: 'course-exam-practice', component: CourseExamPracticeComponent, canActivate: [authGuard] },
+            { path: 'test-exam', component: TestExamComponent, canActivate: [authGuard] },
             { path: 'summary-of-exam-results', component: SummaryOfExamResultsComponent, canActivate: [authGuard] },
             { path: 'exam-result-quarterly', component: ExamResultQuarterlyComponent, canActivate: [authGuard] },
 

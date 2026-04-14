@@ -1,0 +1,396 @@
+<div class="test-exam-container" #examContainer>
+  <!-- Loading State -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <nz-spin
+      nzSimple
+      nzSize="large"
+      nzTip="Đang tải dữ liệu bài thi..."
+    ></nz-spin>
+  </div>
+
+  <!-- Start Screen -->
+  <div *ngIf="!examStarted && !examSubmitted" class="screen start-screen">
+    <nz-card nzTitle="Thông tin Bài thi trực tuyến" class="info-card">
+      <div class="info-content">
+        <h1 class="info-title">Hướng dẫn làm bài thi</h1>
+        <p>Bắt đầu bài thi này, bạn cần tuân thủ các quy định sau:</p>
+        <ul class="info-list">
+          <li>
+            <strong>1:</strong> Bài thi yêu cầu chế độ toàn màn hình xuyên suốt
+            quá trình làm bài.
+          </li>
+          <li>
+            <strong>2:</strong> Bất kỳ hành động chuyển tab, thu nhỏ hoặc chuyển
+            đổi sang cửa sổ khác sẽ bị coi là gian lận.
+          </li>
+          <li>
+            <strong>3:</strong> Nếu phát hiện vi phạm, bài thi sẽ bị
+            <strong>tự động nộp ngay lập tức</strong>.
+          </li>
+        </ul>
+        <div class="exam-selectors">
+          <div class="selector-row">
+            <div class="selector-item">
+              <label>Năm (Year):</label>
+              <nz-input-number
+                [(ngModel)]="selectedYear"
+                [nzMin]="2000"
+                [nzMax]="2100"
+                [nzStep]="1"
+                class="full-width"
+              ></nz-input-number>
+            </div>
+            <div class="selector-item">
+              <label>Quý (Season):</label>
+              <nz-input-number
+                [(ngModel)]="selectedSeason"
+                [nzMin]="1"
+                [nzMax]="4"
+                [nzStep]="1"
+                class="full-width"
+              ></nz-input-number>
+            </div>
+          </div>
+          <div class="selector-row">
+            <div class="selector-item full-width">
+              <label>Loại đề thi (Exam Type):</label>
+              <nz-select [(ngModel)]="selectedExamType" class="full-width">
+                <nz-option
+                  *ngFor="let type of examTypes"
+                  [nzValue]="type.value"
+                  [nzLabel]="type.text"
+                ></nz-option>
+              </nz-select>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-actions">
+          <button
+            nz-button
+            nzType="primary"
+            nzSize="large"
+            (click)="startExam()"
+            [nzLoading]="isLoading"
+          >
+            Bắt đầu làm bài
+          </button>
+        </div>
+      </div>
+    </nz-card>
+  </div>
+
+  <!-- Exam Screen -->
+  <div
+    *ngIf="examStarted && !examSubmitted"
+    class="screen exam-screen"
+    [class.sidebar-hidden]="!isSidebarVisible"
+  >
+    <div class="layout-container">
+      <!-- Main Content (Left) -->
+      <div class="main-content">
+        <!-- Combined Progress & Timer Bar -->
+        <div class="progress-section">
+          <div class="progress-left">
+            <nz-progress
+              [nzPercent]="
+                questions.length > 0
+                  ? ((currentIndex + 1) / questions.length) * 100
+                  : 0
+              "
+              [nzShowInfo]="false"
+              nzStatus="active"
+            ></nz-progress>
+            <div class="progress-text">
+              Câu hỏi {{ currentIndex + 1 }} / {{ questions.length }}
+            </div>
+          </div>
+
+          <div class="header-tools">
+            <div class="timer-display" [class.warning]="remainingSeconds < 60">
+              <i nz-icon nzType="clock-circle"></i>
+              <span>{{ formattedTime }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Content -->
+        <div class="content-wrapper">
+          <div class="question-card" *ngIf="currentQuestion">
+            <div class="question-header">
+              <h3 class="question-text">
+                {{ currentIndex + 1 }}. {{ currentQuestion.QuestionText }}
+              </h3>
+              <div
+                *ngIf="currentQuestion.Image"
+                class="question-image-container"
+                (click)="onShowPreview(currentQuestion.Image, $event)"
+              >
+                <img
+                  [src]="
+                    currentQuestion.Image.startsWith('http')
+                      ? currentQuestion.Image
+                      : imageBaseUrl + currentQuestion.Image
+                  "
+                  alt="Question Image"
+                  class="question-thumbnail"
+                />
+                <div class="hover-hint">
+                  <i nz-icon nzType="zoom-in"></i> Nhấn để xem ảnh lớn
+                </div>
+              </div>
+            </div>
+
+            <div class="answer-grid">
+              <div
+                *ngFor="
+                  let answer of currentQuestion.ExamAnswers;
+                  let i = index
+                "
+                class="answer-option"
+                [class.selected]="answer.selected"
+                tabindex="0"
+                (click)="onSelectAnswer(answer.ID)"
+                (keydown.enter)="onSelectAnswer(answer.ID)"
+                (keydown.space)="
+                  onSelectAnswer(answer.ID); $event.preventDefault()
+                "
+              >
+                <div class="option-label">
+                  {{ i === 0 ? "A" : i === 1 ? "B" : i === 2 ? "C" : "D" }}
+                </div>
+                <div class="option-content">
+                  <div class="option-text">{{ answer.AnswerText }}</div>
+                  <div
+                    *ngIf="answer.Image"
+                    class="option-image-container"
+                    (click)="onShowPreview(answer.Image, $event)"
+                  >
+                    <img
+                      [src]="
+                        answer.Image.startsWith('http')
+                          ? answer.Image
+                          : imageBaseUrl + answer.Image
+                      "
+                      alt="Answer Image"
+                      class="option-thumbnail"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Footer -->
+        <div class="navigation-footer">
+          <div class="footer-left">
+            <button
+              nz-button
+              nzType="primary"
+              nzDanger
+              nzGhost
+              (click)="submitExamManual()"
+              [nzLoading]="isLoading"
+            >
+              Nộp bài <i nz-icon nzType="send"></i>
+            </button>
+          </div>
+
+          <div class="footer-right">
+            <button
+              nz-button
+              nzType="default"
+              (click)="onPrevious()"
+              [disabled]="currentIndex === 0"
+            >
+              <i nz-icon nzType="left"></i> Câu trước
+            </button>
+
+            <button
+              nz-button
+              nzType="primary"
+              (click)="onNext()"
+              [disabled]="currentIndex === questions.length - 1"
+            >
+              Câu sau <i nz-icon nzType="right"></i>
+            </button>
+
+            <button
+              nz-button
+              nzType="default"
+              (click)="toggleSidebar()"
+              title="Toggle Sidebar"
+            >
+              <i
+                nz-icon
+                [nzType]="isSidebarVisible ? 'menu-unfold' : 'menu-fold'"
+              ></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Sidebar (Right) -->
+      <div class="sidebar-container" *ngIf="isSidebarVisible">
+        <nz-card nzTitle="Danh sách câu hỏi" class="sidebar-card">
+          <div class="question-grid">
+            <div
+              *ngFor="let q of questions; let idx = index"
+              class="question-bubble"
+              [class.current]="currentIndex === idx"
+              [class.answered]="isAnswered(idx)"
+              (click)="goToQuestion(idx)"
+            >
+              {{ idx + 1 }}
+            </div>
+          </div>
+
+          <div class="sidebar-legend">
+            <div class="legend-item">
+              <span class="legend-dot current"></span> Hiện tại
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot answered"></span> Đã chọn
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot idle"></span> Chưa chọn
+            </div>
+          </div>
+        </nz-card>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Screen -->
+  <div *ngIf="examSubmitted" class="screen result-screen">
+    <nz-card class="result-card">
+      <div class="result-icon">
+        <i
+          nz-icon
+          nzType="check-circle"
+          nzTheme="outline"
+          *ngIf="!violationReason"
+          style="color: #52c41a"
+        ></i>
+        <i
+          nz-icon
+          nzType="close-circle"
+          nzTheme="outline"
+          *ngIf="violationReason"
+          style="color: #f5222d"
+        ></i>
+      </div>
+      <h2 class="result-title">
+        {{ violationReason ? "Kết quả: Vi phạm" : "Bài thi đã kết thúc" }}
+      </h2>
+      <p class="result-message">{{ statusText }}</p>
+
+      <div class="result-stats" *ngIf="violationReason">
+        <div class="stat-item">
+          <span class="stat-label">Lý do vi phạm:</span>
+          <span class="stat-value" style="color: #f5222d">{{
+            violationReason
+          }}</span>
+        </div>
+      </div>
+
+      <div class="result-stats-detailed" *ngIf="examResultStats">
+        <div class="stat-grid">
+          <div class="stat-box">
+            <span class="stat-val">{{ examResultStats.TotalChoosen }}</span>
+            <span class="stat-lbl">Câu đã chọn</span>
+          </div>
+          <div class="stat-box success">
+            <span class="stat-val">{{ examResultStats.TotalCorrect }}</span>
+            <span class="stat-lbl">Câu đúng</span>
+          </div>
+          <div class="stat-box danger">
+            <span class="stat-val">{{ examResultStats.TotalInCorrect }}</span>
+            <span class="stat-lbl">Câu sai</span>
+          </div>
+        </div>
+        <div class="total-score">
+          TỔNG ĐIỂM: <span>{{ examResultStats.TotalMarks }}</span> /
+          {{ questions.length }}
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button
+          nz-button
+          nzType="default"
+          (click)="
+            examStarted = false;
+            examSubmitted = false;
+            warningCount = 0;
+            violationReason = ''
+          "
+        >
+          Thoát
+        </button>
+      </div>
+    </nz-card>
+  </div>
+
+  <!-- Debug Bypass -->
+  <div class="debug-controls" *ngIf="false">
+    <button (click)="enableDebug()">Debug On</button>
+  </div>
+
+  <!-- Custom Fullscreen-Compatible Image Preview -->
+  <div class="custom-lightbox" *ngIf="previewImage" (click)="onClosePreview()">
+    <div class="lightbox-content" (click)="$event.stopPropagation()">
+      <img [src]="previewImage" alt="Preview" class="lightbox-image" />
+      <button class="close-btn" (click)="onClosePreview()">
+        <i nz-icon nzType="close"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Custom Submission Confirmation Modal -->
+  <div
+    class="custom-modal-overlay"
+    *ngIf="showSubmitModal"
+    (click)="showSubmitModal = false"
+  >
+    <div class="custom-modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="header-icon">
+          <i nz-icon nzType="question-circle" nzTheme="outline"></i>
+        </div>
+        <h3>Xác nhận nộp bài</h3>
+      </div>
+
+      <div class="modal-body">
+        <p>Bạn có chắc chắn muốn kết thúc bài thi này không?</p>
+        <div class="progress-info" *ngIf="questions.length > 0">
+          <div class="info-row">
+            <span class="label">Đã hoàn thành:</span>
+            <span class="value"
+              >{{ questions.length - unansweredCount }}/{{
+                questions.length
+              }}</span
+            >
+          </div>
+          <div class="info-row warning" *ngIf="unansweredCount > 0">
+            <i nz-icon nzType="warning" nzTheme="fill"></i>
+            <span
+              >Bạn còn <strong>{{ unansweredCount }}</strong> câu hỏi chưa trả
+              lời!</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button nz-button nzType="default" (click)="showSubmitModal = false">
+          Tiếp tục làm bài
+        </button>
+        <button nz-button nzType="primary" nzDanger (click)="confirmSubmit()">
+          Nộp bài ngay
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

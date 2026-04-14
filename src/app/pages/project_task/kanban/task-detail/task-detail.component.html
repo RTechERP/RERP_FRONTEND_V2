@@ -311,7 +311,7 @@
                                 <div class="date-col">
                                     <label class="form-label">Ngày KT thực tế</label>
                                     <input type="date" [(ngModel)]="endDateStr" [disabled]="isReadOnly"
-                                        [min]="minActualEndDate"
+                                        [min]="startDateStr"
                                         [style.border-color]="dateValidationError && dateValidationError.includes('thuc te') ? '#ff4d4f' : '#d9d9d9'"
                                         style="width:100%;padding:4px 8px;font-size:12px;border:1px solid;border-radius:4px;box-sizing:border-box;text-align:center;" />
                                 </div>

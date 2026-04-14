@@ -154,17 +154,13 @@ export class TaskDetailComponent implements OnInit {
             }
         }
 
-        // Ràng buộc mới: Ngày kết thúc thực tế >= (hôm nay - 1)
-        if (this.endDate && this.isUpdateMode) {
-            const yesterday = new Date();
-            yesterday.setHours(0, 0, 0, 0);
-            yesterday.setDate(yesterday.getDate() - 1);
 
-            const selectedEndDate = new Date(this.endDate);
-            selectedEndDate.setHours(0, 0, 0, 0);
-
-            if (selectedEndDate < yesterday) {
-                this.dateValidationError = 'Ngày KT thực tế phải từ ngày hôm qua trở đi';
+        // Ràng buộc: Ngày kết thúc thực tế >= Ngày bắt đầu thực tế
+        if (this.startDate && this.endDate) {
+            const s = new Date(this.startDate).setHours(0, 0, 0, 0);
+            const e = new Date(this.endDate).setHours(0, 0, 0, 0);
+            if (e < s) {
+                this.dateValidationError = 'Ngày KT thực tế không được trước Ngày BĐ thực tế';
             }
         }
 
@@ -931,14 +927,7 @@ export class TaskDetailComponent implements OnInit {
         if (!endValue) {
             return false;
         }
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
         const e = new Date(endValue).setHours(0, 0, 0, 0);
-
-        if (e < today.getTime()) {
-            return true;
-        }
-
         if (this.startDate) {
             const s = new Date(this.startDate).setHours(0, 0, 0, 0);
             return e < s;

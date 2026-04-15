@@ -21,8 +21,8 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { ProjectRequestServiceService } from '../project-request/project-request-service/project-request-service.service';
-import { ProjectService } from '../project/project-service/project.service';
-import { ProjectWorkerService } from '../project/project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
+import { ProjectService } from '../project-service/project.service';
+import { ProjectWorkerService } from '../project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
 import { Tabulator } from 'tabulator-tables';
 
 @Component({

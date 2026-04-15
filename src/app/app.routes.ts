@@ -188,8 +188,8 @@ import { BillImportQcComponent } from './pages/old/Sale/bill-import-qc/bill-impo
 import { OrgChartRtcManagementComponent } from './pages/hrm/org-chart-rtc/org-chart-rtc-management/org-chart-rtc-management.component';
 import { TaxCompanyComponent } from './pages/accounting/tax-company/tax-company.component';
 import { SummaryProjectJoinComponent } from './pages/person/summary-project-join/summary-project-join.component';
-import { ProjectSlickGrid2Component } from './pages/project-slick-grid2/project-slick-grid2.component';
-import { ProjectPartListSlickGridComponent } from './pages/project-part-list-slick-grid/project-part-list-slick-grid.component';
+import { ProjectSlickGrid2Component } from './pages/project/project-slick-grid2/project-slick-grid2.component';
+import { ProjectPartListSlickGridComponent } from './pages/project/project-part-list-slick-grid/project-part-list-slick-grid.component';
 import { InventoryNewComponent } from './pages/old/Sale/Inventory/inventory-new/inventory-new.component';
 import { BillImportTechnicalNewComponent } from './pages/old/bill-import-technical/bill-import-technical-new/bill-import-technical-new.component';
 import { InventoryDemoNewComponent } from './pages/old/inventory-demo/inventory-demo-new/inventory-demo-new.component';
@@ -203,8 +203,8 @@ import { ChiTietSanPhamSaleComponent } from './pages/old/Sale/chi-tiet-san-pham-
 import { PokhSlickgridComponent } from './pages/old/pokh-slickgrid/pokh-slickgrid.component';
 import { BillImportNewComponent } from './pages/old/Sale/BillImport/bill-import-new/bill-import-new.component';
 import { BillExportNewComponent } from './pages/old/Sale/BillExport/bill-export-new/bill-export-new.component';
-import { ProjectDepartmentSummarySlickGridComponent } from './pages/project-department-summary-slick-grid/project-department-summary-slick-grid.component';
-import { ProjectAgvSummarySlickGirdComponent } from './pages/project-agv-summary-slick-gird/project-agv-summary-slick-gird.component'; import { CrmComponent } from './pages/crm/crm.component';
+import { ProjectDepartmentSummarySlickGridComponent } from './pages/project/project-department-summary-slick-grid/project-department-summary-slick-grid.component';
+import { ProjectAgvSummarySlickGirdComponent } from './pages/project/project-agv-summary-slick-gird/project-agv-summary-slick-gird.component'; import { CrmComponent } from './pages/crm/crm.component';
 import { GeneralCategoryComponent } from './pages/general-category/general-category.component';
 import { SystemsComponent } from './pages/systems/systems.component';
 import { WarehouseComponent } from './pages/warehouse/warehouse.component';
@@ -216,7 +216,7 @@ import { ApproveComponent } from './pages/approve/approve.component';
 import { RequestInvoiceSlickgridComponent } from './pages/old/request-invoice-slickgrid/request-invoice-slickgrid.component';
 import { PriceHistoryPartlistSlickGridComponent } from './pages/price-history-partlist-slick-grid/price-history-partlist-slick-grid.component';
 import { SynthesisOfGeneratedMaterialsSlickGridComponent } from './pages/synthesis-of-generated-materials-slick-grid/synthesis-of-generated-materials-slick-grid.component';
-import { ProjectSurveySlickGridComponent } from './pages/project-survey-slick-grid/project-survey-slick-grid.component';
+import { ProjectSurveySlickGridComponent } from './pages/project/project-survey-slick-grid/project-survey-slick-grid.component';
 import { RequestInvoiceSummarySlickgridComponent } from './pages/old/request-invoice-summary-slickgrid/request-invoice-summary-slickgrid.component';
 import { NewsletterComponent } from './pages/old/newsletter/newsletter/newsletter.component';
 import { NewsletterTypeComponent } from './pages/old/newsletter/newsletter/newsletter-type/newsletter-type.component';
@@ -309,17 +309,18 @@ import { FiveSErrorComponent } from './pages/hrm/RatingError/FiveSError/five-s-e
 import { FiveSRuleErrorComponent } from './pages/hrm/RatingError/FiveSRuleError/five-s-rule-error.component';
 import { FiveSRatingComponent } from './pages/hrm/RatingError/FiveSRating/five-s-rating.component';
 // import { CustomerSlickgridComponent } from './pages/crm/customers/customer-slickgrid/customer-slickgrid.component';
+
 import { ProjectTaskComponent } from './pages/project_task/project-task/project-task.component'
 import { ProjectTaskDashboardComponent } from './pages/project_task/project-task-dashboard/project-task-dashboard.component'
 import { ProjectTaskTimelineComponent } from './pages/project_task/project-task-timeline/project-task-timeline.component'
 import { ProjectTaskStatusComponent } from './pages/project_task/project-task-status/project-task-status.component'
 import { ProjectTaskTypeComponent } from './pages/project_task/project-task-type/project-task-type.component'
 import { ProjectTaskProjectComponent } from './pages/project_task/project-task-project/project-task-project.component'
-import { FiveSRatingDetailComponent } from './pages/hrm/RatingError/five-s-rating-detail/five-s-rating-detail.component'
-import { FiveSMinusComponent } from './pages/hrm/RatingError/five-s-minus/five-s-minus.component'
 import { ProjectTaskTimeLineTotalComponent } from './pages/project_task/project-task-time-line-total/project-task-time-line-total.component'
 import { ProjectTaskStatusChartComponent } from './pages/project_task/project-task-status-chart/project-task-status-chart.component'
-import { ProjectTaskSettingComponent } from './pages/project_task/project-task-setting/project-task-setting.component'
+import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
+import { FiveSRatingDetailComponent } from './pages/hrm/RatingError/five-s-rating-detail/five-s-rating-detail.component'
+import { FiveSMinusComponent } from './pages/hrm/RatingError/five-s-minus/five-s-minus.component'
 import { PurchaseQuoteSummaryComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary.component';
 import { CommercialPriceRequestComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/commercial-price-request/commercial-price-request.component';
 import { PinResetComponent } from './auth/pin-pass-word/pin-reset/pin-reset.component';
@@ -327,10 +328,10 @@ import { ChangePasswordComponent } from './auth/change-password/change-password.
 
 
 import { PurchaseQuoteSummaryMainComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary-main/purchase-quote-summary-main.component';
-import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
 import { ListProductProjectCustomerComponent } from './pages/old/Sale/list-product-project-customer/list-product-project-customer.component';
 import { ProjectTechnologyFormComponent } from './pages/project/project-application-types/project-technology-form/project-technology-form.component';
 import { ProjectApplicationTypesComponent } from './pages/project/project-application-types/project-application-types.component';
+import { ProjectTaskSettingComponent } from './pages/project_task/project-task-setting/project-task-setting.component';
 export const routes: Routes = [
     {
         path: 'file-preview',
@@ -681,7 +682,6 @@ export const routes: Routes = [
 
             //Dự án
             { path: 'project', component: ProjectSlickGrid2Component, canActivate: [authGuard] },
-            { path: 'project-slick-grid2', component: ProjectComponent, canActivate: [authGuard] },
             { path: 'project-workpropress', component: ProjectWorkPropressComponent, canActivate: [authGuard] },
             { path: 'project-worktimeline', component: ProjectWorkTimelineComponent, canActivate: [authGuard] },
             { path: 'project-survey', component: ProjectSurveySlickGridComponent, canActivate: [authGuard] },

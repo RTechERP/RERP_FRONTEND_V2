@@ -12,14 +12,14 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
-import { ProjectService } from '../project/project-service/project.service';
-import { ProjectWorkerService } from '../project/project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { ProjectService } from '../project-service/project.service';
+import { ProjectWorkerService } from '../project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
 import { ProjectRequestServiceService } from './project-request-service/project-request-service.service';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { ProjectSolutionDetailComponent } from '../project/project-department-summary/project-department-summary-form/project-solution-detail/project-solution-detail.component';
+import { ProjectSolutionDetailComponent } from '../project-department-summary/project-department-summary-form/project-solution-detail/project-solution-detail.component';
 import { ProjectRequestDetailComponent } from '../project-request-detail/project-request-detail.component';
-import { HasPermissionDirective } from '../../directives/has-permission.directive';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 @Component({
   selector: 'app-project-request',
   standalone: true,

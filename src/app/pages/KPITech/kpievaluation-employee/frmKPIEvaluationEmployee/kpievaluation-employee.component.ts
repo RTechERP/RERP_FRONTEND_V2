@@ -33,7 +33,6 @@ import { KPIService } from '../../kpi-service/kpi.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { AuthService } from '../../../../auth/auth.service';
 import { HostListener } from '@angular/core';
-import { ProjectPartListSlickGridComponent } from '../../../project-part-list-slick-grid/project-part-list-slick-grid.component';
 import { KPIEvaluationFactorScoringDetailsComponent } from '../../kpievaluation-factor-scoring-details/kpievaluation-factor-scoring-details.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 

@@ -42,11 +42,7 @@
                 <nz-form-item>
                   <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
                     <div class="d-flex">
-                      Lĩnh vực khác hàng <span class="text-danger ps-1">*</span>
-                      <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzSize="small" title="Thêm khách hàng"
-                        nzType="text" (click)="openAddCustomer()">
-                        <i class="fas fa-plus"></i>
-                      </button>
+                      Lĩnh vực khách hàng
                     </div>
                   </nz-form-label>
                   <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('customerIndustryId')">
@@ -205,7 +201,7 @@
                 </nz-form-item>
                 <nz-form-item>
                   <nz-form-label class="fs-12" [nzSpan]="24">
-                    Lĩnh vực End User <span class="text-danger ps-1">*</span>
+                    Lĩnh vực End User
                   </nz-form-label>
                   <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('endUserIndustryId')">
                     <nz-select formControlName="endUserIndustryId" class="w-100" nzShowSearch nzAllowClear

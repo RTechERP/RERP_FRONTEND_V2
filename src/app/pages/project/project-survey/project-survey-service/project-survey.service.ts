@@ -114,7 +114,7 @@ export class ProjectSurveyService {
   }
     // Mở thư mục khảo sát dự án
     openSurveyFolder(projectId: number): Observable<any> {
-      return this.http.get<any>(this.apiProjectSurvey + `open-survey/${projectId}`);
+      return this.http.get<any>(this.apiProjectSurvey + `open-folder/${projectId}`);
     }
 
   // Download file

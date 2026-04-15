@@ -34,13 +34,13 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
-import { HasPermissionDirective } from '../../directives/has-permission.directive';
-import { ProjectService } from '../project/project-service/project.service';
-import { ProjectWorkerService } from '../project/project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
-import { ProjectSolutionDetailComponent } from '../project/project-department-summary/project-department-summary-form/project-solution-detail/project-solution-detail.component';
-import { ProjectSolutionVersionDetailComponent } from '../project/project-department-summary/project-department-summary-form/project-solution-version-detail/project-solution-version-detail.component';
-import { ProjectWorkerDetailComponent } from '../project/project-department-summary/project-department-summary-form/project-worker-detail/project-worker-detail.component';
-import { ImportExcelProjectWorkerComponent } from '../project/project-department-summary/project-department-summary-form/import-excel-project-worker/import-excel-project-worker.component';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { ProjectService } from '../project-service/project.service';
+import { ProjectWorkerService } from '../project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
+import { ProjectSolutionDetailComponent } from '../project-department-summary/project-department-summary-form/project-solution-detail/project-solution-detail.component';
+import { ProjectSolutionVersionDetailComponent } from '../project-department-summary/project-department-summary-form/project-solution-version-detail/project-solution-version-detail.component';
+import { ProjectWorkerDetailComponent } from '../project-department-summary/project-department-summary-form/project-worker-detail/project-worker-detail.component';
+import { ImportExcelProjectWorkerComponent } from '../project-department-summary/project-department-summary-form/import-excel-project-worker/import-excel-project-worker.component';
 @Component({
   selector: 'app-project-woker-slick-grid',
   templateUrl: './project-woker-slick-grid.component.html',

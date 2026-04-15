@@ -22,3 +22,78 @@
 ::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
   border-right: 1px solid #ddd !important;
 }
+
+/* Dropdown multipleSelect */
+:host ::ng-deep .ms-drop.bottom {
+  width: 300px !important;
+  min-width: unset !important;
+  max-width: 300px !important;
+  overflow: hidden !important;
+}
+
+/* Ô tìm kiếm */
+:host ::ng-deep .ms-drop.bottom .ms-search {
+  padding: 8px !important;
+  border-bottom: 1px solid #e8e8e8 !important;
+}
+
+:host ::ng-deep .ms-drop.bottom .ms-search input {
+  width: 100% !important;
+  padding: 6px 8px !important;
+  border: 1px solid #d9d9d9 !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+}
+
+/* Danh sách options */
+:host ::ng-deep .ms-drop.bottom .ms-list {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+:host ::ng-deep .ms-drop.bottom .ms-list li {
+  padding: 0 !important;
+  border-bottom: none !important;
+  overflow: hidden !important;
+}
+
+/* Label và checkbox */
+:host ::ng-deep .ms-drop.bottom .ms-list li label {
+  display: flex !important;
+  align-items: center !important;
+  padding: 6px 10px !important;
+  width: 100% !important;
+  cursor: pointer !important;
+  overflow: hidden !important;
+}
+
+/* Text của option - ellipsis cho text dài (min-width: 0 là key để flex child shrink được) */
+:host ::ng-deep .ms-drop.bottom .ms-list li label span {
+  flex: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+/* Checkbox container */
+:host ::ng-deep .ms-drop.bottom .ms-list li label .icon-checkbox-container {
+  margin-right: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Select All */
+:host ::ng-deep .ms-drop.bottom .ms-select-all {
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  background-color: #fafafa !important;
+}
+
+:host ::ng-deep .ms-drop.bottom .ms-select-all label {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  cursor: pointer !important;
+}

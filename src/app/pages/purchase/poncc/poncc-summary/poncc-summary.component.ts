@@ -3,6 +3,7 @@ import {
   Component,
   AfterViewInit,
   OnInit,
+  OnDestroy,
   ViewChild,
   ElementRef,
   inject,
@@ -77,7 +78,7 @@ import { TabServiceService } from '../../../../layouts/tab-service.service';
   templateUrl: './poncc-summary.component.html',
   styleUrl: './poncc-summary.component.css',
 })
-export class PonccSummaryComponent implements OnInit, AfterViewInit {
+export class PonccSummaryComponent implements OnInit, AfterViewInit, OnDestroy {
   //#region Khai báo biến
   constructor(
     @Optional() public activeModal: NgbActiveModal,
@@ -91,6 +92,8 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
     private appUserService: AppUserService,
     private tabService: TabServiceService
   ) { }
+
+  private dropdownFixListener!: EventListener;
 
   ponccSummaryMenu: MenuItem[] = [];
   shouldShowSearchBar: boolean = true;
@@ -129,12 +132,38 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.setupDropdownOverflowFix();
     setTimeout(() => {
       this.cdr.detectChanges();
       setTimeout(() => {
         this.onSearch();
       }, 200);
     }, 400);
+  }
+
+  ngOnDestroy(): void {
+    if (this.dropdownFixListener) {
+      document.removeEventListener('click', this.dropdownFixListener);
+    }
+  }
+
+  private setupDropdownOverflowFix(): void {
+    this.dropdownFixListener = () => {
+      setTimeout(() => {
+        document.querySelectorAll<HTMLElement>('.ms-drop').forEach((drop) => {
+          if (drop.style.display === 'none') return;
+          const rect = drop.getBoundingClientRect();
+          if (rect.right > window.innerWidth - 5) {
+            const newLeft = Math.max(5, drop.offsetLeft - (rect.right - window.innerWidth + 10));
+            drop.style.left = `${newLeft}px`;
+          }
+          if (rect.left < 5) {
+            drop.style.left = '5px';
+          }
+        });
+      }, 10);
+    };
+    document.addEventListener('click', this.dropdownFixListener);
   }
   //#endregion
 
@@ -239,8 +268,15 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         console.log(this.summaryData);
         this.isLoading = false;
 
-        // Update footer row with count
+        // Refresh grid để căn cột đúng sau khi load data
         setTimeout(() => {
+          if (this.angularGridMaster?.slickGrid) {
+            this.angularGridMaster.slickGrid.invalidate();
+            this.angularGridMaster.slickGrid.render();
+          }
+          if (this.angularGridMaster?.resizerService) {
+            this.angularGridMaster.resizerService.resizeGrid();
+          }
           this.applyDistinctFilters();
           this.updateMasterFooterRow();
         }, 100);

@@ -2,6 +2,53 @@
   font-size: 0.75rem;
 }
 
+/* ===== Global 12px font for all PrimeNG tables in this component ===== */
+:host ::ng-deep .p-datatable {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  font-size: 12px !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  font-size: 12px !important;
+  padding: 6px 4px !important;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.fw-500 {
+  font-weight: 500;
+}
+
+:host ::ng-deep .p-datatable .p-column-filter input,
+:host ::ng-deep .p-datatable .p-column-filter .p-select,
+:host ::ng-deep .p-datatable .p-column-filter .p-select .p-select-label {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .p-paginator {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .p-paginator .p-paginator-current,
+:host ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page,
+:host ::ng-deep .p-paginator .p-select .p-select-label {
+  font-size: 12px !important;
+}
+
+/* ===================================================================== */
+
 .reset {
   all: revert;
 }
@@ -154,7 +201,7 @@
   box-sizing: border-box;
 }
 
-:host ::ng-deep .slick-multiselect-dropdown .ms-drop ul>li label {
+:host ::ng-deep .slick-multiselect-dropdown .ms-drop ul > li label {
   display: block;
   max-width: 100px;
   overflow: hidden;
@@ -162,7 +209,7 @@
   white-space: nowrap;
 }
 
-:host ::ng-deep .slick-multiselect-dropdown .ms-drop ul>li label span {
+:host ::ng-deep .slick-multiselect-dropdown .ms-drop ul > li label span {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -239,7 +286,6 @@
   cursor: pointer !important;
 }
 
-
 /* Hide time picker in date filters */
 :host ::ng-deep .vc-time {
   display: none !important;
@@ -275,19 +321,19 @@
 }
 
 :host ::ng-deep .slick-group-toggle.collapsed::before {
-  content: '▶';
+  content: "▶";
   font-size: 8px;
   color: #666;
 }
 
 :host ::ng-deep .slick-group-toggle.expanded::before {
-  content: '▼';
+  content: "▼";
   font-size: 8px;
   color: #666;
 }
 
 :host ::ng-deep .slick-group-toggle:not(.collapsed):not(.expanded)::before {
-  content: '';
+  content: "";
   display: inline-block;
   width: 9px;
   height: 9px;
@@ -295,7 +341,7 @@
 
 /* Folder icons */
 :host ::ng-deep .mdi {
-  font-family: 'Material Design Icons' !important;
+  font-family: "Material Design Icons" !important;
   font-style: normal;
   font-weight: normal;
   font-size: 16px;
@@ -346,6 +392,15 @@
   width: 100%;
 }
 
+:host ::ng-deep .ant-spin-nested-loading,
+:host ::ng-deep .ant-spin-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 angular-slickgrid,
 .angular-slickgrid-container {
   height: 100% !important;
@@ -369,41 +424,125 @@ angular-slickgrid,
 }
 
 :host ::ng-deep .ctx-icon-priority {
-  background-image: url('/assets/icon/priority_level_16.png');
+  background-image: url("/assets/icon/priority_level_16.png");
 }
 
 :host ::ng-deep .ctx-icon-participants {
-  background-image: url('/assets/icon/participants_16.png');
+  background-image: url("/assets/icon/participants_16.png");
 }
 
 :host ::ng-deep .ctx-icon-compare {
-  background-image: url('/assets/icon/compare_project_16.png');
+  background-image: url("/assets/icon/compare_project_16.png");
 }
 
 :host ::ng-deep .ctx-icon-additional {
-  background-image: url('/assets/icon/additional_goods_16.png');
+  background-image: url("/assets/icon/additional_goods_16.png");
 }
 
 :host ::ng-deep .ctx-icon-solution {
-  background-image: url('/assets/icon/solution_16.png');
+  background-image: url("/assets/icon/solution_16.png");
 }
 
 :host ::ng-deep .ctx-icon-leader {
-  background-image: url('/assets/icon/update_leader_16.png');
+  background-image: url("/assets/icon/update_leader_16.png");
 }
 
 :host ::ng-deep .ctx-icon-history {
-  background-image: url('/assets/icon/problem_history_16.png');
+  background-image: url("/assets/icon/problem_history_16.png");
 }
 
 :host ::ng-deep .ctx-icon-status {
-  background-image: url('/assets/icon/project_status_16.png');
+  background-image: url("/assets/icon/project_status_16.png");
 }
 
 :host ::ng-deep .ctx-icon-update {
-  background-image: url('/assets/icon/update_status_16.png');
+  background-image: url("/assets/icon/update_status_16.png");
 }
 
 :host ::ng-deep .ctx-icon-sync {
-  background-image: url('/assets/icon/update_status2_16.png');
+  background-image: url("/assets/icon/update_status2_16.png");
+}
+
+/* Status column filter: p-select fits the column */
+:host ::ng-deep .status-filter-select {
+  width: 100% !important;
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .status-filter-select .p-select-label {
+  font-size: 12px !important;
+  padding: 2px 6px !important;
+}
+
+/* Remove row button: appears on row hover */
+.remove-row-btn {
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.remove-row-btn:hover {
+  opacity: 1;
+}
+
+:host ::ng-deep .p-column-filter {
+  width: 100%;
+  min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter-element {
+  width: 100%;
+  min-width: 0;
+}
+
+:host ::ng-deep .p-datatable-inline-filter {
+  justify-content: space-between !important;
+}
+
+:host ::ng-deep .p-component .p-inputtext .ng-star-inserted {
+  width: 100% !important;
+}
+
+::host
+  ::ng-deep
+  p-virtualscroller
+  p-virtualscroller-inline
+  ng-star-inserted:host::ng-deep
+  .p-fluid {
+  width: 100% !important;
+}
+
+:host::ng-deep .p-component .p-inputtext {
+  width: 100% !important;
+}
+
+.table-container,
+.grid-container-projects,
+.grid-container-workreport,
+.grid-container-typelink {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+:host ::ng-deep nz-splitter-panel {
+  min-width: 0 !important;
+  height: 100% !important;
+}
+
+:host ::ng-deep .p-datatable-scrollable-body {
+  /* Đã xóa height 100% để tránh lỗi ẩn thanh scroll ngang do tràn height (cộng dồn header bảng) */
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+}
+
+:host ::ng-deep .p-datatable-wrapper {
+  overflow: auto !important;
+}
+
+:host ::ng-deep .p-datatable table {
+  width: max-content !important;
 }

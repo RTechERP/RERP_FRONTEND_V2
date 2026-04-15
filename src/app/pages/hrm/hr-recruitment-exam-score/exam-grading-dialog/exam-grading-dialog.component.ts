@@ -129,6 +129,30 @@ export class ExamGradingDialogComponent implements OnInit {
             });
           }
 
+          // 4. File đánh giá của Giám khảo (Jury Evaluation Files)
+          d.evaluationFiles = [];
+          if (d.EvaluationFiles) {
+            try {
+              const juryFiles = JSON.parse(d.EvaluationFiles);
+              d.evaluationFiles = juryFiles.map((f: any) => ({
+                ID: f.ID,
+                FileNameOrigin: f.FileNameOrigin,
+                ServerPath: f.ServerPath,
+                Extension: f.Extension,
+                IsDeleted: false,
+                isImage: this.isImageExtension(f.Extension),
+                blobUrl: null
+              }));
+              
+              // Load blob URL cho từng file đánh giá
+              d.evaluationFiles.forEach((f: any) => {
+                this.loadEvaluationBlobUrl(f);
+              });
+            } catch (e) {
+              d.evaluationFiles = [];
+            }
+          }
+
           return d;
         });
 
@@ -160,6 +184,19 @@ export class ExamGradingDialogComponent implements OnInit {
   private loadBlobUrl(fileObj: any) {
     if (!fileObj.path) return;
     this.hrExamService.downloadFile(fileObj.path).subscribe({
+      next: (blob: Blob) => {
+        fileObj.blobUrl = URL.createObjectURL(blob);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        fileObj.blobUrl = null;
+      }
+    });
+  }
+
+  private loadEvaluationBlobUrl(fileObj: any) {
+    if (!fileObj.ServerPath) return;
+    this.hrExamService.downloadFile(fileObj.ServerPath).subscribe({
       next: (blob: Blob) => {
         fileObj.blobUrl = URL.createObjectURL(blob);
         this.cdr.detectChanges();
@@ -216,7 +253,7 @@ export class ExamGradingDialogComponent implements OnInit {
     }
   }
 
-  saveScore(item: any) {
+  saveScore(item: any, silent: boolean = false) {
     if (item.Score === null || item.Score === undefined) {
       this.notification.warning('Cảnh báo', 'Vui lòng nhập điểm');
       return;
@@ -228,12 +265,35 @@ export class ExamGradingDialogComponent implements OnInit {
 
     this.examScoreService.gradeEssayAnswer({
       ExamResultDetailID: item.DetailID,
-      Score: item.Score
+      Score: item.Score,
+      EvaluationFiles: item.evaluationFiles
     }).subscribe({
       next: (res: any) => {
-        this.notification.success('Thành công', 'Đã lưu điểm câu hỏi');
+        if (!silent) {
+          this.notification.success('Thành công', 'Đã lưu điểm và file đánh giá');
+        }
         item.IsGraded = true;
         this.hasSavedChanges = true;
+
+        // Đồng bộ lại danh sách file (để có ID từ database)
+        if (res.data && Array.isArray(res.data)) {
+          item.evaluationFiles = res.data.map((f: any) => ({
+            ID: f.id || f.ID,
+            RecruitmentExamResultDetailID: f.recruitmentExamResultDetailID || f.RecruitmentExamResultDetailID,
+            FileNameOrigin: f.fileNameOrigin || f.FileNameOrigin,
+            ServerPath: f.serverPath || f.ServerPath,
+            Extension: f.extension || f.Extension,
+            IsDeleted: false,
+            isImage: this.isImageExtension(f.extension || f.Extension),
+            blobUrl: item.evaluationFiles.find((ef: any) => ef.ServerPath === (f.serverPath || f.ServerPath))?.blobUrl || null
+          }));
+
+          // Load blob URL cho những file chưa có
+          item.evaluationFiles.forEach((f: any) => {
+            if (!f.blobUrl) this.loadEvaluationBlobUrl(f);
+          });
+        }
+
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -265,7 +325,8 @@ export class ExamGradingDialogComponent implements OnInit {
           // Save all essay scores first using forkJoin
           const saveObservables = essayItems.map(item => this.examScoreService.gradeEssayAnswer({
             ExamResultDetailID: item.DetailID,
-            Score: item.Score
+            Score: item.Score,
+            EvaluationFiles: item.evaluationFiles
           }));
 
           forkJoin(saveObservables).subscribe({
@@ -301,6 +362,82 @@ export class ExamGradingDialogComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // Logic upload file đánh giá của giám khảo
+  onFileSelectedEvaluation(event: any, item: any) {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      this.uploadEvaluationFiles(files, item);
+      // Reset input để có thể chọn lại cùng file nếu cần
+      event.target.value = '';
+    }
+  }
+
+  uploadEvaluationFiles(files: FileList, item: any) {
+    this.isLoading = true;
+    const now = new Date();
+    const yyyyMMdd = now.getFullYear() + 
+                     ('0' + (now.getMonth() + 1)).slice(-2) + 
+                     ('0' + now.getDate()).slice(-2);
+    
+    // Tạo subPath: /ExamEvaluationFile/{ExamName}/{yyyyMMdd}
+    // Lấy ExamName từ item đầu tiên hoặc từ context (item.ExamName có sẵn từ SP if updated)
+    const examName = item.ExamName || 'General';
+    const subPath = `ExamEvaluationFile/${examName}/${yyyyMMdd}`;
+
+    const fileArray = Array.from(files);
+    this.hrExamService.uploadMultipleFiles(fileArray, subPath).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        if (res.status === 1 && res.data) {
+          // res.data là mảng các file đã upload thành công
+          const uploadedFiles = Array.isArray(res.data) ? res.data : [res.data];
+          
+          uploadedFiles.forEach((f: any) => {
+            const serverPath = f.filePath || f.FilePath;
+            const extension = f.extension || (serverPath ? serverPath.split('.').pop() : '');
+            const newFile = {
+              ID: 0,
+              RecruitmentExamResultDetailID: item.DetailID,
+              FileNameOrigin: f.originalFileName || f.OriginalFileName,
+              ServerPath: serverPath,
+              Extension: extension,
+              IsDeleted: false,
+              isImage: this.isImageExtension(extension),
+              blobUrl: null
+            };
+            item.evaluationFiles.push(newFile);
+            this.loadEvaluationBlobUrl(newFile);
+          });
+          
+          this.notification.success('Thành công', `Đã tải lên ${uploadedFiles.length} file đánh giá (Bấm Lưu điểm để hoàn tất)`);
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.notification.error('Lỗi', 'Không thể upload file: ' + (err.error?.message || err.message));
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  removeEvaluationFile(file: any, item: any) {
+    if (file.ID > 0) {
+      file.IsDeleted = true;
+    } else {
+      const index = item.evaluationFiles.indexOf(file);
+      if (index > -1) {
+        item.evaluationFiles.splice(index, 1);
+      }
+    }
+    
+    this.cdr.detectChanges();
+  }
+
+  getVisibleEvaluationFiles(item: any) {
+    return (item.evaluationFiles || []).filter((f: any) => !f.IsDeleted);
   }
 
   onClose() {

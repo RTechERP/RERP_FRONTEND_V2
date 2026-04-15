@@ -79,10 +79,29 @@ export class MainLayoutCandidateComponent implements OnInit {
         return this.examList[0].IsFormComplete === 1 || this.examList[0].IsFormComplete === true;
     }
 
-    /** Kiểm tra xem tất cả bài thi có bị khóa không */
+    /** Kiểm tra xem tất cả bài thi có bị khóa hoặc không thể làm tiếp không */
     get allExamsDisabled(): boolean {
         if (!this.isFormComplete) return true;
-        return this.examList.length > 0 && this.examList.every(e => e.IsDisabled === 1);
+        if (!this.examList || this.examList.length === 0) return true;
+
+        // Nút chính sẽ bị vô hiệu hóa nếu TẤT CẢ các bài thi đều thuộc một trong các trạng thái:
+        // 1. Bị disable (IsDisabled)
+        // 2. Đang bị khóa (IsExamActive = 0/false)
+        // 3. Đã nộp bài/Hoàn thành (StatusResult = 1 hoặc 2)
+        return this.examList.every(e =>
+            e.IsDisabled === 1 ||
+            e.IsDisabled === true ||
+            e.IsExamActive === 0 ||
+            e.IsExamActive === false ||
+            e.StatusResult === 1 ||
+            e.StatusResult === 2
+        );
+    }
+
+    /** Kiểm tra xem có phải TẤT CẢ bài thi đều đang bị khóa bởi Admin/Hệ thống không */
+    get isAllExamsLockedByAdmin(): boolean {
+        if (!this.examList || this.examList.length === 0) return false;
+        return this.examList.every(e => e.IsExamActive === 0 || e.IsExamActive === false);
     }
 
     /** Mở modal chọn bài thi fullscreen */
@@ -93,7 +112,7 @@ export class MainLayoutCandidateComponent implements OnInit {
         }
 
         if (this.allExamsDisabled) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn đã hoàn thành tất cả các bài thi hoặc bài thi đang bị khóa!');
+            //this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn đã hoàn thành tất cả các bài thi hoặc bài thi đang bị khóa!');
             return;
         }
 

@@ -1,4 +1,4 @@
-import {
+﻿import {
     Component,
     EventEmitter,
     Input,
@@ -864,6 +864,42 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 id: 'CurrentState',
                 name: 'Hiện trạng',
                 field: 'CurrentState',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                // filter: {
+                //   model: Filters['multipleSelect'],
+                //   collection: [],
+                //   collectionOptions: { addBlankEntry: true },
+                //   filterOptions: {
+                //     filter: true,
+                //     autoAdjustDropWidthByTextSize: true,
+                //   } as MultipleSelectOption
+                // },
+                cssClass: 'cell-wrap'
+            },
+            {
+                id: 'ApplicationTypeNames',
+                name: 'Kiểu ứng dụng',
+                field: 'ApplicationTypeNames',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                // filter: {
+                //   model: Filters['multipleSelect'],
+                //   collection: [],
+                //   collectionOptions: { addBlankEntry: true },
+                //   filterOptions: {
+                //     filter: true,
+                //     autoAdjustDropWidthByTextSize: true,
+                //   } as MultipleSelectOption
+                // },
+                cssClass: 'cell-wrap'
+            },
+            {
+                id: 'TechnologyNames',
+                name: 'Công nghệ',
+                field: 'TechnologyNames',
                 width: 200,
                 sortable: true,
                 filterable: true,

@@ -18,9 +18,9 @@ import * as ExcelJS from 'exceljs';
 import { Table, TableModule } from 'primeng/table';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { InputTextModule } from 'primeng/inputtext';
-import { ProjectService } from '../project/project-service/project.service';
-import { ProjectChangeComponent } from '../project/project-change/project-change.component';
-import { EmployeeService } from '../hrm/employee/employee-service/employee.service';
+import { ProjectService } from '../project-service/project.service';
+import { ProjectChangeComponent } from '../project-change/project-change.component';
+import { EmployeeService } from '../../hrm/employee/employee-service/employee.service';
 
 @Component({
   selector: 'app-project-report-slick-grid',

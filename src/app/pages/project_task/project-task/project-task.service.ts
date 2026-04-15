@@ -35,7 +35,8 @@ export interface ProjectTaskItem {
     SecondEmployeeID: number | null;
     SecondEmployeeFullName: string | null;
     SecondEmployeeType: number | null; // 1: assignee, 2: related
-    IsApproved: number | null; // 0/null: chưa duyệt, 1: Chờ duyệt, 2: Đã duyệt, 3: Từ chối
+    IsApproved: number | null; // Old field (kept for compatibility)
+    ApprovalStatus?: boolean | null; // New field: null=chưa duyệt, true=đã duyệt, false=từ chối
     ReviewDescription: string | null;
     DisplayStatus?: number; // Computed: same as Status, or 5 = Quá hạn
     DepartmentAssignerID?: number | null;

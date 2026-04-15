@@ -29,6 +29,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { KanbanService } from '../kanban.service';
 import { WorkItemServiceService } from '../../../project/work-item/work-item-service/work-item-service.service';
 import { environment } from '../../../../../environments/environment';
@@ -64,6 +65,7 @@ import { AddRelatedPeopleComponent } from '../add-related-people/add-related-peo
         NzTagModule,
         NzGridModule,
         NzDrawerModule,
+        NzAlertModule,
         AddRelatedPeopleComponent,
         DragDropModule
     ],
@@ -415,6 +417,10 @@ export class TaskDetailComponent implements OnInit {
         // Nếu đã duyệt hoặc từ chối (ReviewStatus >= 2), thì chỉ xem
         if (this.reviewStatus !== undefined && this.reviewStatus >= 2) return true;
 
+        // Bổ sung kiểm tra ApprovalStatus trực tiếp để đảm bảo
+        const activeTask = this.nzModalData?.task || this.task;
+        if (activeTask?.ApprovalStatus === true || activeTask?.ApprovalStatus === false) return true;
+
         const currentEmployeeId = this.appUserService.employeeID;
         const currentAccountUserId = this.appUserService.id;
         if (currentEmployeeId === undefined || currentEmployeeId === null) return true;
@@ -423,7 +429,6 @@ export class TaskDetailComponent implements OnInit {
         const isOriginalAssignee = this.originalAssigneeIds.includes(currentEmployeeId);
 
         // Nếu danh sách người thực hiện trống, người có UserID trùng với Task sẽ có quyền sửa
-        const activeTask = this.nzModalData?.task || this.task;
         const isFallbackUser = (this.originalAssigneeIds.length === 0) && (activeTask?.UserID === currentAccountUserId);
 
         // Nếu không phải người giao, không phải người thực hiện ban đầu, và không phải người chịu trách nhiệm fallback -> Chỉ xem
@@ -878,6 +883,7 @@ export class TaskDetailComponent implements OnInit {
 
     // Toggle assignee in Tab 3 (multiple selection)
     toggleAssignee(employee: any, checked: boolean): void {
+        if (this.isReadOnly) return;
         if (checked) {
             if (!this.assigneeIds.includes(employee.ID)) {
                 this.assigneeIds = [...this.assigneeIds, employee.ID];
@@ -891,6 +897,7 @@ export class TaskDetailComponent implements OnInit {
 
     // Toggle related person in Tab 4 (multiple selection)
     toggleRelatedPerson(employee: any, checked: boolean): void {
+        if (this.isReadOnly) return;
         if (checked) {
             if (!this.relatedPeopleIds.includes(employee.ID)) {
                 this.relatedPeopleIds = [...this.relatedPeopleIds, employee.ID];
@@ -1537,7 +1544,8 @@ export class TaskDetailComponent implements OnInit {
             this.title = activeTask.Mission || '';
             this.description = activeTask.Description || '';
             this.isPersonalProject = activeTask.IsPersonalProject || false;
-            this.reviewStatus = activeTask.IsApproved;
+            // Ánh xạ trạng thái duyệt: null -> 0, true -> 2, false -> 3
+            this.reviewStatus = activeTask.ApprovalStatus === true ? 2 : (activeTask.ApprovalStatus === false ? 3 : 0);
 
             if (activeTask.ActualStartDate) {
                 this.startDate = new Date(activeTask.ActualStartDate);
@@ -1735,6 +1743,7 @@ export class TaskDetailComponent implements OnInit {
     }
 
     toggleChecklist(item: IProjectTaskChecklist) {
+        if (this.isReadOnly) return;
         // Update in memory only — deferred to Save
         // (ngModel already updated item.IsDone before this is called)
         this.pendingChecklistOps.push({ type: 'toggle', item: { ...item } });
@@ -1892,10 +1901,6 @@ export class TaskDetailComponent implements OnInit {
     }
 
     deleteAdditionalAction(item: IProjectTaskAdditional): void {
-        if (this.taskStatus === 3) {
-            this.message.warning('Không thể xóa nội dung phát sinh khi đang ở trạng thái Pending');
-            return;
-        }
         this.additionals = this.additionals.filter(a => a.ID !== item.ID);
         if (item.ID < 0) {
             this.pendingAdditionalOps = this.pendingAdditionalOps.filter(
@@ -2126,8 +2131,8 @@ export class TaskDetailComponent implements OnInit {
         this.isAddingChildTask = true;
         this.newChildTask = {
             Mission: '',
-            PlanStartDate: this.startDate || this.planStartDate ? this.toDateInputString(this.startDate || this.planStartDate!) : '',
-            PlanEndDate: this.endDate || this.planEndDate ? this.toDateInputString(this.endDate || this.planEndDate!) : '',
+            PlanStartDate: this.planStartDate || this.startDate ? this.toDateInputString(this.planStartDate || this.startDate!) : '',
+            PlanEndDate: this.planEndDate || this.endDate ? this.toDateInputString(this.planEndDate || this.endDate!) : '',
             EmployeeAssigneeID: this.assigneeIds.length > 0 ? this.assigneeIds[0] : null,
             EmployeeIDRequest: this.assignerId,
             TaskComplexity: this.taskComplexity || 1,
@@ -2155,11 +2160,21 @@ export class TaskDetailComponent implements OnInit {
             return;
         }
 
+        if (this.newChildTask.PlanStartDate && this.newChildTask.PlanEndDate) {
+            const start = new Date(this.newChildTask.PlanStartDate).setHours(0, 0, 0, 0);
+            const end = new Date(this.newChildTask.PlanEndDate).setHours(0, 0, 0, 0);
+            if (start > end) {
+                this.message.error('Ngày bắt đầu dự kiến không được sau ngày kết thúc dự kiến');
+                return;
+            }
+        }
+
         const tempId = this._tempChildTaskIdCounter--;
         const newTask = {
             ...this.newChildTask,
             ID: tempId,
             FullName: this.employees.find(e => e.ID === this.newChildTask.EmployeeAssigneeID)?.FullName,
+            EmployeeRequestFullName: this.employees.find(e => e.ID === this.newChildTask.EmployeeIDRequest)?.FullName,
             EmployeeRequestName: this.employees.find(e => e.ID === this.newChildTask.EmployeeIDRequest)?.FullName,
             IsDeletedFromParent: false
         };
@@ -2293,6 +2308,15 @@ export class TaskDetailComponent implements OnInit {
                 return;
             }
         }
+        
+        // Validate Child Tasks edited in table
+        const childTaskError = this.validateChildTasks();
+        if (childTaskError) {
+            this.message.error(childTaskError);
+            // Switch to Child Tasks tab: Index 4 if Bug (type 2), else 3
+            this.activeMainTabIndex = (this.selectedTaskTypeId === 2) ? 4 : 3;
+            return;
+        }
 
         if (!this.selectedTaskTypeId) {
             this.message.error('Vui lòng chọn loại công việc');
@@ -2351,7 +2375,8 @@ export class TaskDetailComponent implements OnInit {
                     Files: this.fileAttachmentIds,
                     Links: this.linkAttachmentIds,
                     Deadline: this.formatDateForApi(this.deadline),
-                    DescriptionSolution: this.selectedTaskTypeId == 2 ? this.descriptionSolution : ''
+                    DescriptionSolution: this.selectedTaskTypeId == 2 ? this.descriptionSolution : '',
+                    ApprovalStatus: activeTask.ApprovalStatus // Preserve status
                 };
                 console.log('descriptionSolution', this.descriptionSolution);
                 console.log('selectedTaskTypeId', this.selectedTaskTypeId);
@@ -2374,6 +2399,31 @@ export class TaskDetailComponent implements OnInit {
                 console.error('Error saving task', err);
             }
         });
+    }
+
+    private validateChildTasks(): string | null {
+        // Only validate child tasks that are not yet saved (ID < 0) and not deleted
+        const unsavedTasks = this.childTasks.filter(item => item.ID < 0 && !item.IsDeletedFromParent);
+        
+        for (const item of unsavedTasks) {
+            if (!item.Mission?.trim()) {
+                return 'Vui lòng nhập nội dung cho tất cả các công việc con';
+            }
+            if (!item.ProjectTaskTypeID) {
+                return `Công việc con "${item.Mission}" chưa chọn loại công việc`;
+            }
+            if (!item.TypeProjectItem) {
+                return `Công việc con "${item.Mission}" chưa chọn loại hạng mục`;
+            }
+            if (item.PlanStartDate && item.PlanEndDate) {
+                const start = new Date(item.PlanStartDate).setHours(0, 0, 0, 0);
+                const end = new Date(item.PlanEndDate).setHours(0, 0, 0, 0);
+                if (start > end) {
+                    return `Công việc con "${item.Mission}": Ngày bắt đầu không được sau ngày kết thúc`;
+                }
+            }
+        }
+        return null;
     }
 
     close(): void {
@@ -2487,7 +2537,8 @@ export class TaskDetailComponent implements OnInit {
                     Links: this.linkAttachmentIds,
                     ParentID: this.parentTaskId,
                     Deadline: this.formatDateForApi(this.deadline),
-                    DescriptionSolution: this.selectedTaskTypeId == 2 ? this.descriptionSolution : undefined
+                    DescriptionSolution: this.selectedTaskTypeId == 2 ? this.descriptionSolution : undefined,
+                    ApprovalStatus: null // New task starts as null
                 };
 
                 return this.kanbanService.saveTask(taskData);
@@ -2596,6 +2647,7 @@ export class TaskDetailComponent implements OnInit {
             ProjectTaskResult: this.projectTaskResult,
             Deadline: this.formatDateForApi(this.deadline),
             DescriptionSolution: this.selectedTaskTypeId == 2 ? this.descriptionSolution : undefined,
+            ApprovalStatus: activeTask.ApprovalStatus,
             // Merge with any additional data passed in
             ...data
         };

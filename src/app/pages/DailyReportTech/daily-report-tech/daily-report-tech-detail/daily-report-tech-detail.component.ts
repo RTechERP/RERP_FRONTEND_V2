@@ -732,15 +732,7 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
           label: 'Báo cáo',
           type: 'primary',
           onClick: async () => {
-            // Copy vào clipboard trước khi submit
-            const copySuccess = await this.copyToClipboard(summaryContent);
-            if (copySuccess) {
-              this.notification.success('Thông báo', 'Đã copy nội dung báo cáo vào clipboard!');
-            } else {
-              this.notification.warning('Thông báo', 'Không thể copy vào clipboard. Vui lòng copy thủ công.');
-            }
-
-            this.submitDailyReport();
+            this.submitDailyReport(summaryContent);
             modal.destroy();
           }
         }
@@ -1244,7 +1236,7 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
   }
 
   // Submit báo cáo (gọi API)
-  submitDailyReport(): void {
+  submitDailyReport(summaryContent?: string): void {
     if (this.saving) {
       return;
     }
@@ -1272,6 +1264,17 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
         this.saving = false;
         if (response && response.status === 1) {
           this.notification.success('Thông báo', response.message || 'Báo cáo đã được lưu thành công!');
+
+          // Copy vào clipboard sau khi lưu thành công
+          if (summaryContent) {
+            this.copyToClipboard(summaryContent).then(copySuccess => {
+              if (copySuccess) {
+                this.notification.success('Thông báo', 'Đã copy nội dung báo cáo vào clipboard!');
+              } else {
+                this.notification.warning('Thông báo', 'Không thể copy vào clipboard. Vui lòng copy thủ công.');
+              }
+            });
+          }
 
           // Gửi email sau khi lưu thành công
           this.sendEmailAfterSave();

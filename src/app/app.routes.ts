@@ -281,7 +281,6 @@ import { CoursePracticeComponent } from './pages/Course/course-practice/course-p
 import { CourseExamComponent } from './pages/Course/course-exam/course-exam.component';
 import { CourseExamPracticeComponent } from './pages/Course/course-exam-practice/course-exam-practice.component';
 import { CourseKpiEmployeeTeamComponent } from './pages/Course/course-kpi-employee-team/course-kpi-employee-team.component';
-import { CommercialPriceRequestComponent } from './pages/commercial-price-request/commercial-price-request.component';
 import { KpiSyntheticYearsComponent } from './pages/old/Technical/kpi-synthetic-years/kpi-synthetic-years.component';
 import { SummaryKpiEmployeePointComponent } from './pages/old/Technical/summary-kpi-employee-point/summary-kpi-employee-point.component';
 import { FollowProjectBaseSlickgridComponent } from './pages/old/VisionBase/kho-base/follow-project-base-slickgrid/follow-project-base-slickgrid.component';
@@ -329,7 +328,6 @@ import { ChangePasswordComponent } from './auth/change-password/change-password.
 
 import { PurchaseQuoteSummaryMainComponent } from './pages/purchase/project-partlist-purchase-request/purchase-quote-summary/purchase-quote-summary-main/purchase-quote-summary-main.component';
 import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
-import { ProjectPrimeNg2Component } from './pages/project/project-prime-ng2/project-prime-ng2.component';
 import { ListProductProjectCustomerComponent } from './pages/old/Sale/list-product-project-customer/list-product-project-customer.component';
 import { ProjectTechnologyFormComponent } from './pages/project/project-application-types/project-technology-form/project-technology-form.component';
 import { ProjectApplicationTypesComponent } from './pages/project/project-application-types/project-application-types.component';
@@ -1168,7 +1166,6 @@ export const routes: Routes = [
             { path: 'daily-report-bod', component: DailyReportThrComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-candidate', component: HRRecruitmentCandidateComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-exam', component: HRRecruitmentExamComponent, canActivate: [authGuard] },
-            { path: 'project-prime-ng2', component: ProjectPrimeNg2Component, canActivate: [authGuard] },
             { path: 'hr-recruitment-application', component: HRRecruitmentApplicationComponent, canActivate: [authGuard] },
             { path: 'history-borrow-sale-personal', component: HistoryBorrowSalePersonalComponent, canActivate: [authGuard] },
             { path: 'history-product-rtc-personal', component: HistoryProductRtcPersonalComponent, canActivate: [authGuard] },

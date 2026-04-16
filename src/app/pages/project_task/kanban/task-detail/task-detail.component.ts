@@ -290,8 +290,8 @@ export class TaskDetailComponent implements OnInit {
         if (status === 2 && this.checklists.length > 0 && this.completedChecklists < this.checklists.length) {
             this.message.error('Vui lòng hoàn thành tất cả checklist trước khi đặt trạng thái Hoàn thành');
 
-            // Chuyển sang tab Checklist (Bug: index 4, Khác: index 3)
-            this.activeMainTabIndex = (this.selectedTaskTypeId == 2) ? 4 : 3;
+            // Chuyển sang tab Checklist (Bug: index 5, Khác: index 4)
+            this.activeMainTabIndex = (this.selectedTaskTypeId == 2) ? 5 : 4;
 
             // Revert lại trạng thái cũ bằng setTimeout để tránh xung đột vòng lặp ngModelChange
             setTimeout(() => {

@@ -89,7 +89,7 @@
                         class="complexity-input" [nzDisabled]="isReadOnly"></nz-input-number>
                 </div>
                 <div class="d-flex align-items-center gap-1">
-                    <span class="text-muted small">Loại hạng mục <span class="text-danger">*</span>:</span>
+                    <span class="text-muted small">Loại hạng mục <span class="text-danger">*</span></span>
                     <nz-select [(ngModel)]="selectedTypeProjectItemId" nzBorderless nzSize="small"
                         class="task-type-select" nzPlaceHolder="Chọn hạng mục" [nzDisabled]="isReadOnly"
                         style="min-width: 120px;">
@@ -99,7 +99,7 @@
                     </nz-select>
                 </div>
                 <div class="d-flex align-items-center gap-1">
-                    <span class="text-muted small">Loại CV <span class="text-danger">*</span>:</span>
+                    <span class="text-muted small">Loại CV <span class="text-danger">*</span></span>
                     <nz-select [(ngModel)]="selectedTaskTypeId" nzBorderless nzSize="small" class="task-type-select"
                         nzPlaceHolder="Loại công việc" [nzDisabled]="isReadOnly"
                         [nzCustomTemplate]="taskTypeSelectedTpl">
@@ -578,7 +578,7 @@
                                         <div
                                             [title]="item.FullName || item.AssigneeName || item.EmployeeAssigneeID || '-'">
                                             TH: {{item.FullName || item.AssigneeName || item.EmployeeAssigneeID ||
-                                                '-'}}</div>
+                                            '-'}}</div>
                                         <div
                                             [title]="item.EmployeeRequestFullName || item.EmployeeRequestName || item.EmployeeIDRequest || '-'">
                                             Giao:
@@ -1097,7 +1097,7 @@
                         </label>
 
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="drawer-label mb-0">Độ phức tạp:</span>
+                            <span class="drawer-label mb-0">Độ phức tạp</span>
                             <nz-input-number [(ngModel)]="taskComplexity" [nzMin]="1" [nzMax]="5" [nzStep]="1"
                                 class="complexity-input-drawer" [nzDisabled]="isReadOnly"></nz-input-number>
                         </div>

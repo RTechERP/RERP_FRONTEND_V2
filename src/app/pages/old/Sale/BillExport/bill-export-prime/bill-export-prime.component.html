@@ -128,11 +128,11 @@
         <p-splitter layout="vertical" [panelSizes]="[60, 40]" [minSizes]="[10, 10]" style="flex: 1; min-height: 0">
             <!-- Master Grid Panel -->
             <ng-template pTemplate>
-                <app-custom-table [data]="datasetMaster" [columns]="columnsMaster" [loading]="isLoading"
+                <app-custom-table [data]="datasetMaster" [columns]="columnsMaster" [loading]="isLoadTable"
                     [scrollable]="true" scrollHeight="flex" selectionMode="multiple" [(selection)]="selectedMasterRows"
                     [clickSelectRow]="true" (rowClick)="onRowClick($event)" dataKey="id" [showGlobalFilter]="false"
                     [resizeMode]="'expand'" filterDisplay="row" [showGridlines]="true" [stripedRows]="true"
-                    [showFooter]="true" [lazyRenderThreshold]="100" [virtualScrollItemSize]="34">
+                    [showFooter]="true" [virtualScroll]="true" [lazyRenderThreshold]="100" [virtualScrollItemSize]="34">
                 </app-custom-table>
             </ng-template>
 
@@ -140,8 +140,8 @@
             <ng-template pTemplate>
                 <app-custom-table [data]="datasetDetail" [columns]="columnsDetail" [loading]="isDetailLoad"
                     [scrollable]="true" scrollHeight="flex" [showGlobalFilter]="false" filterDisplay="row"
-                    [showGridlines]="true" [stripedRows]="true" [showFooter]="true" [lazyRenderThreshold]="100"
-                    [virtualScrollItemSize]="34">
+                    [showGridlines]="true" [stripedRows]="true" [showFooter]="true" [virtualScroll]="true"
+                    [lazyRenderThreshold]="100" [virtualScrollItemSize]="34">
                 </app-custom-table>
             </ng-template>
         </p-splitter>

@@ -12,7 +12,7 @@ export interface DashboardStats {
   approved: number;         // 22
   rejected: number;         // 23
   pending: number;          // 3
-  pendingApproval: number;  // (Status 2 + IsApproved 1)
+  pendingApproval: number;  // (Status 2 + ApprovalStatus null)
   typeStats: { name: string, count: number, color: string }[];
 }
 
@@ -139,7 +139,7 @@ export class ProjectTaskDashboardService {
             approved: statusCounts[22],
             rejected: statusCounts[23],
             pending: statusCounts[3],
-            pendingApproval: tasks.filter(t => t.IsApproved === 1 && t.Status === 2 && t.EmployeeIDRequest === currentUserId).length,
+            pendingApproval: tasks.filter(t => t.ApprovalStatus === null && t.Status === 2 && t.EmployeeIDRequest === currentUserId).length,
             typeStats
         };
     }
@@ -215,8 +215,8 @@ export class ProjectTaskDashboardService {
 
         if (status === 1 && isOverdue) return 11;
         if (status === 2) {
-            if (task.IsApproved === 2) return 22;
-            if (task.IsApproved === 3) return 23;
+            if (task.ApprovalStatus === true) return 22;
+            if (task.ApprovalStatus === false) return 23;
             if (isOverdue) return 21;
             return 2;
         }

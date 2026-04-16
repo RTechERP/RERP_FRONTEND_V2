@@ -356,7 +356,10 @@ export class ProjectTaskTimelineComponent implements OnInit {
     this.projectTaskService.getTaskById(taskID).subscribe({
       next: (res) => {
         if (res.status === 200 || res.status === 1) {
-          const fullTaskData = res.data;
+          const fullTaskData = { ...res.data };
+          if (typeof task === 'object' && task !== null) {
+            fullTaskData.ApprovalStatus = task.ApprovalStatus;
+          }
 
           const modalRef = this.modal.create({
             nzTitle: 'CHI TIỂT CÔNG VIỆC',

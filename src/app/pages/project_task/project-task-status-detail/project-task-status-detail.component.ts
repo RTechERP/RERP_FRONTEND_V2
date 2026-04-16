@@ -146,7 +146,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
           // Status filter
           let matchesStatus = false;
           if (this.statusId === 0) {
-              matchesStatus = (t.Status === 2 && t.IsApproved === 1);
+              matchesStatus = (t.Status === 2 && t.ApprovalStatus === null);
           } else {
               matchesStatus = (t.DisplayStatus === this.statusId);
           }
@@ -188,8 +188,8 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
 
   computeDisplayStatus(task: any): number {
     const isOverdue = this.isTaskOverdue(task);
-    if (task.Status === 2 && task.IsApproved === 2) return 22;
-    if (task.Status === 2 && task.IsApproved === 3) return 23;
+    if (task.Status === 2 && task.ApprovalStatus === true) return 22;
+    if (task.Status === 2 && task.ApprovalStatus === false) return 23;
     if (task.Status === 2 && isOverdue) return 21;
     if (task.Status === 2) return 2;
     if (task.Status === 1 && isOverdue) return 11;
@@ -228,14 +228,20 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
     }
   }
 
-  openTaskDetail(taskID: number) {
+  openTaskDetail(taskData: any) {
+    const taskID = typeof taskData === 'number' ? taskData : taskData?.ID;
     this.kanbanService.getTaskById(taskID).subscribe({
       next: (res) => {
         if (res.status === 200 || res.status === 1) {
+          const fullTaskData = { ...res.data };
+          if (typeof taskData === 'object' && taskData !== null) {
+            fullTaskData.ApprovalStatus = taskData.ApprovalStatus;
+          }
+
           const modalRef = this.modal.create({
             nzTitle: 'CHI TIẾT CÔNG VIỆC',
             nzContent: TaskDetailComponent,
-            nzData: { task: res.data },
+            nzData: { task: fullTaskData },
             nzFooter: null,
             nzWidth: '100vw',
             nzBodyStyle: { padding: '0', height: '80vh', overflow: 'hidden' },
@@ -254,8 +260,8 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
 
   showApprovalButtons(task: any): boolean {
     const ds = task.DisplayStatus;
-    // Hiển thị khi Hoàn thành hoặc Hoàn thành quá hạn (IsApproved=1)
-    return (ds === 2 || ds === 21) && task.IsApproved === 1;
+    // Hiển thị khi Hoàn thành hoặc Hoàn thành quá hạn (chưa duyệt/hủy)
+    return (ds === 2 || ds === 21) && task.ApprovalStatus === null;
   }
 
   approveTask(task: ProjectTaskItem): void {
@@ -275,7 +281,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask([task.ID], true, this.approveReviewText, this.approveCompletionRating).subscribe({
             next: () => {
-              task.IsApproved = 2;
+              task.ApprovalStatus = true;
               task.CompletionRating = this.approveCompletionRating;
               this.message.success(`Đã duyệt công việc "${task.Mission}"`);
               this.isApproving = false;
@@ -312,7 +318,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
         return new Promise<void>((resolve, reject) => {
           this.kanbanService.approveTask([task.ID], false, this.rejectReviewText).subscribe({
             next: () => {
-              task.IsApproved = 3;
+              task.ApprovalStatus = false;
               this.message.warning(`Đã từ chối công việc "${task.Mission}"`);
               this.isApproving = false;
               this.loadData();

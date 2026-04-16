@@ -186,7 +186,7 @@
                                             <div class="task-info">
                                                 <div class="d-flex align-items-center gap-1 text-nowrap w-100 overflow-hidden">
                                                     <a class="task-code-link"
-                                                        (click)="openTaskDetail(task.ProjectTaskID); $event.stopPropagation()">
+                                                        (click)="openTaskDetail(task); $event.stopPropagation()">
                                                         {{ task.ProjectTaskCode || 'N/A' }}
                                                     </a>
                                                     <span *ngIf="task.ProjectTaskParentCode" class="text-muted d-inline-block text-truncate" nz-tooltip [nzTooltipTitle]="task.ProjectTaskParentTitle" style="max-width: 130px;">

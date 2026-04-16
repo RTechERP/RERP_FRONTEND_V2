@@ -332,6 +332,8 @@ import { ListProductProjectCustomerComponent } from './pages/old/Sale/list-produ
 import { ProjectTechnologyFormComponent } from './pages/project/project-application-types/project-technology-form/project-technology-form.component';
 import { ProjectApplicationTypesComponent } from './pages/project/project-application-types/project-application-types.component';
 import { ProjectTaskSettingComponent } from './pages/project_task/project-task-setting/project-task-setting.component';
+import { BillImportPrimeComponent } from './pages/old/Sale/BillImport/bill-import-prime/bill-import-prime.component';
+import { BillExportPrimeComponent } from './pages/old/Sale/BillExport/bill-export-prime/bill-export-prime.component';
 export const routes: Routes = [
     {
         path: 'file-preview',
@@ -929,7 +931,9 @@ export const routes: Routes = [
             //Kho sale hn
             { path: 'inventory-hn', component: InventoryNewComponent, canActivate: [authGuard] },
             { path: 'bill-import-hn', component: BillImportNewComponent, canActivate: [authGuard] },
+            // { path: 'bill-import-hn', component: BillImportPrimeComponent, canActivate: [authGuard] },
             { path: 'bill-export-hn', component: BillExportNewComponent, canActivate: [authGuard] },
+            // { path: 'bill-export-hn', component: BillExportPrimeComponent, canActivate: [authGuard] },
             { path: 'history-import-export-hn', component: HistoryImportExportNewComponent, canActivate: [authGuard] },
             { path: 'history-borrow-hn', component: HistoryBorrowSaleNewComponent, canActivate: [authGuard] },
             { path: 'report-import-export-hn', component: ReportImportExportNewComponent, canActivate: [authGuard] },

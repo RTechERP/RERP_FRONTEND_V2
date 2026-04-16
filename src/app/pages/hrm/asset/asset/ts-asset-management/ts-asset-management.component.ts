@@ -825,18 +825,30 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         const worksheet = workbook.addWorksheet('Danh sách tài sản');
 
         const exportColumns = [
-            { header: 'STT', key: 'STT', width: 10, field: 'STT' },
+            { header: 'STT', key: 'STT', width: 8, field: 'STT' },
             { header: 'Mã tài sản', key: 'TSCodeNCC', width: 20, field: 'TSCodeNCC' },
+            { header: 'Office Active', key: 'OfficeActiveStatusText', width: 15, field: 'OfficeActiveStatusText' },
+            { header: 'Windows Active', key: 'WindowActiveStatusText', width: 15, field: 'WindowActiveStatusText' },
             { header: 'Tên tài sản', key: 'TSAssetName', width: 30, field: 'TSAssetName' },
             { header: 'Mã loại', key: 'AssetCode', width: 15, field: 'AssetCode' },
             { header: 'Tên loại', key: 'AssetType', width: 20, field: 'AssetType' },
-            { header: 'Tình trạng', key: 'Status', width: 20, field: 'Status' },
-            { header: 'Người quản lý', key: 'FullName', width: 20, field: 'FullName' },
-            { header: 'Phòng ban', key: 'Name', width: 20, field: 'Name' },
-            { header: 'Thời gian mua', key: 'DateBuy', width: 15, field: 'DateBuy' },
-            { header: 'Ngày hiệu lực', key: 'DateEffect', width: 15, field: 'DateEffect' },
-            { header: 'Model', key: 'Model', width: 20, field: 'Model' },
+            { header: 'Mã nguồn gốc', key: 'SourceCode', width: 15, field: 'SourceCode' },
+            { header: 'Tên nguồn gốc', key: 'SourceName', width: 20, field: 'SourceName' },
+            { header: 'Mã NCC', key: 'SupplierCode', width: 15, field: 'SupplierCode' },
+            { header: 'Tên NCC', key: 'SupplierName', width: 20, field: 'SupplierName' },
             { header: 'Số Seri', key: 'Seri', width: 15, field: 'Seri' },
+            { header: 'Model', key: 'Model', width: 20, field: 'Model' },
+            { header: 'Số lượng', key: 'Quantity', width: 10, field: 'Quantity' },
+            { header: 'Tình trạng', key: 'Status', width: 18, field: 'Status' },
+            { header: 'Mô tả chi tiết', key: 'SpecificationsAsset', width: 30, field: 'SpecificationsAsset' },
+            { header: 'Đơn vị', key: 'UnitName', width: 10, field: 'UnitName' },
+            { header: 'Mã phòng ban', key: 'DepartmentCode', width: 15, field: 'DepartmentCode' },
+            { header: 'Phòng ban', key: 'DepartmentName', width: 20, field: 'DepartmentName' },
+            { header: 'Mã nhân viên', key: 'EmployeeCode', width: 15, field: 'EmployeeCode' },
+            { header: 'Người quản lý', key: 'FullName', width: 20, field: 'FullName' },
+            { header: 'Thời gian mua', key: 'DateBuy', width: 15, field: 'DateBuy' },
+            { header: 'Bảo hành (tháng)', key: 'Insurance', width: 15, field: 'Insurance' },
+            { header: 'Ngày hiệu lực', key: 'DateEffect', width: 15, field: 'DateEffect' },
             { header: 'Ghi chú', key: 'Note', width: 30, field: 'Note' }
         ];
 
@@ -865,7 +877,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         });
 
         worksheet.eachRow((row, rowNumber) => {
-            row.eachCell((cell) => {
+            row.eachCell({ includeEmpty: true }, (cell) => {
                 cell.border = {
                     top: { style: 'thin' },
                     left: { style: 'thin' },

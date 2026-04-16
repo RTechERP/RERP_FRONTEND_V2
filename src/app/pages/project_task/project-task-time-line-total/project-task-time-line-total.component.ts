@@ -468,17 +468,23 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
   // ===== MỞ CHI TIẾT =====
 
-  openTaskDetail(taskId: number): void {
+  openTaskDetail(task: any): void {
+    const taskId = typeof task === 'number' ? task : task?.ProjectTaskID;
     if (this.isOpeningDetail || !taskId) return;
     this.isOpeningDetail = true;
 
     this.projectTaskService.getTaskById(taskId).subscribe({
       next: (res) => {
         if (res.status === 200 || res.status === 1) {
+          const fullTaskData = { ...res.data };
+          if (typeof task === 'object' && task !== null) {
+            fullTaskData.ApprovalStatus = task.ApprovalStatus;
+          }
+
           const modalRef = this.modal.create({
             nzTitle: 'CHI TIẾT CÔNG VIỆC',
             nzContent: TaskDetailComponent,
-            nzData: { task: res.data },
+            nzData: { task: fullTaskData },
             nzFooter: null,
             nzWidth: '100vw',
             nzBodyStyle: { padding: '0', height: '80vh', overflow: 'hidden' },

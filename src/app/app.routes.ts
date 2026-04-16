@@ -332,6 +332,7 @@ import { ListProductProjectCustomerComponent } from './pages/old/Sale/list-produ
 import { ProjectTechnologyFormComponent } from './pages/project/project-application-types/project-technology-form/project-technology-form.component';
 import { ProjectApplicationTypesComponent } from './pages/project/project-application-types/project-application-types.component';
 import { ProjectTaskSettingComponent } from './pages/project_task/project-task-setting/project-task-setting.component';
+import { ProjectDeptSummaryPrimeNg2Component } from './pages/project/project-dept-summary-prime-ng2/project-dept-summary-prime-ng2.component';
 import { BillImportPrimeComponent } from './pages/old/Sale/BillImport/bill-import-prime/bill-import-prime.component';
 import { BillExportPrimeComponent } from './pages/old/Sale/BillExport/bill-export-prime/bill-export-prime.component';
 export const routes: Routes = [
@@ -705,7 +706,7 @@ export const routes: Routes = [
 
             { path: 'project-agv-summary', component: ProjectAgvSummarySlickGirdComponent, canActivate: [authGuard] },
             { path: 'project-agv-summary-slick-grid', component: ProjectAgvSummaryComponent, canActivate: [authGuard] },
-            { path: 'project-dept-summary', component: ProjectDepartmentSummarySlickGridComponent, canActivate: [authGuard] },
+            { path: 'project-dept-summary', component: ProjectDeptSummaryPrimeNg2Component, canActivate: [authGuard] },
             { path: 'project-dept-summary-slick-grid', component: ProjectDepartmentSummaryComponent, canActivate: [authGuard] },
             { path: 'price-history-partlist-slick-grid', component: PriceHistoryPartlistComponent, canActivate: [authGuard] },
             { path: 'price-history-partlist', component: PriceHistoryPartlistSlickGridComponent, canActivate: [authGuard] },

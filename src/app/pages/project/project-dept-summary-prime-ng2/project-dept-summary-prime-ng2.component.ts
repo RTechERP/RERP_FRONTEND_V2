@@ -56,6 +56,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { MenubarModule } from 'primeng/menubar';
 import { ContextMenuModule } from 'primeng/contextmenu';
@@ -65,8 +66,9 @@ import { ProjectReportSlickGridComponent } from '../project-report-slick-grid/pr
 import { ProjectWokerSlickGridComponent } from '../project-woker-slick-grid/project-woker-slick-grid.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 
+
 @Component({
-  selector: 'app-project-prime-ng2',
+  selector: 'app-project-dept-summary-prime-ng2',
   standalone: true,
   imports: [
     NzCardModule,
@@ -99,12 +101,12 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
     NzModalModule,
     NzNotificationModule,
     NgbModalModule,
-    RouterModule,
+    RouterModule
   ],
-  templateUrl: './project-slick-grid2.component.html',
-  styleUrls: ['./project-slick-grid2.component.css']
+  templateUrl: './project-dept-summary-prime-ng2.component.html',
+  styleUrl: './project-dept-summary-prime-ng2.component.css'
 })
-export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDestroy {
+export class ProjectDeptSummaryPrimeNg2Component implements OnInit, AfterViewInit, OnDestroy {
 
   private searchSubject = new Subject<string>();
   showSearchBar: boolean = true;
@@ -197,6 +199,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   pmId: any;
   businessFieldId: any;
   technicalId: any;
+  employeeId: any;
   customerId: any;
   keyword: string = '';
   projectId: any = 0;
@@ -210,6 +213,12 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   dateEnd: string = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0 })
     .toFormat('yyyy-MM-dd');
+
+  departmentID: any = 2;
+  userTeamID: any = 0;
+  userID: any = 0;
+  departments: any[] = [];
+  teams: any[] = [];
   //#endregion
 
   // Helper function to escape HTML special characters for title attributes
@@ -235,9 +244,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     this.getBusinessFields();
     this.getCustomers();
     this.getPms();
-    this.getUsers();
+    //this.getUsers();
     this.getCurrentUser();
     this.setDefautSearch();
+    this.getDepartment();
+    this.getUserTeam();
 
     this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
@@ -271,22 +282,9 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     const hasPermission = this.permissionService.hasPermission('N1,N13,N27');
     const allItems: MenuItem[] = [
       {
-        label: 'Thêm',
-        icon: 'fa-solid fa-plus fa-lg text-success',
-        visible: hasPermission,
-        command: () => this.updateProject(0),
-      },
-      {
-        label: 'Sửa',
-        icon: 'fa-solid fa-pen-to-square fa-lg text-warning',
-        visible: hasPermission,
-        command: () => this.updateProject(1),
-      },
-      {
-        label: 'Xóa',
-        icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: hasPermission,
-        command: () => this.deletedProjects(),
+        label: 'Ds báo cáo CV',
+        icon: 'fa-solid fa-list fa-lg text-warning',
+        command: () => this.openProjectWorkReportModal(),
       },
       {
         label: 'Online',
@@ -299,17 +297,12 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         command: () => this.openFolder('noi_bo'),
       },
       {
-        label: 'Ds báo cáo CV',
-        icon: 'fa-solid fa-list fa-lg text-warning',
-        command: () => this.openProjectWorkReportModal(),
-      },
-      {
         label: 'Hạng mục CV',
         icon: 'fa-solid fa-briefcase fa-lg text-success',
         command: () => this.openWorkItemModal(),
       },
       {
-        label: 'Nhân công',
+        label: 'Nhân công dự án',
         icon: 'fa-solid fa-users fa-lg text-primary',
         command: () => this.openProjectWorkerModal(),
       },
@@ -349,6 +342,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       // Define columns
       const cols = [
         { header: 'Trạng thái', key: 'ProjectStatusName', width: 15 },
+        { header: 'Ưu tiên', key: 'PriotityText', width: 12 },
+        { header: 'Ưu tiên cá nhân', key: 'PersonalPriotity', width: 15 },
         { header: 'Mã dự án', key: 'ProjectCode', width: 15 },
         { header: 'End User', key: 'EndUserName', width: 25 },
         { header: 'Tên dự án', key: 'ProjectName', width: 40 },
@@ -356,8 +351,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         { header: 'Kỹ thuật', key: 'FullNameTech', width: 20 },
         { header: 'PM', key: 'FullNamePM', width: 20 },
         { header: 'Tình hình hiện tại', key: 'CurrentSituation', width: 40 },
-        { header: 'Ưu tiên', key: 'PriotityText', width: 12 },
-        { header: 'Ưu tiên cá nhân', key: 'PersonalPriotity', width: 15 },
       ];
 
       worksheet.columns = cols;
@@ -471,11 +464,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         command: () => this.openProjectTypeLinkDetail()
       },
       {
-        label: 'Lịch sử phát sinh',
-        icon: 'pi pi-history',
-        command: () => this.openProjectHistoryProblemModal()
-      },
-      {
         label: 'Trạng thái dự án',
         icon: 'pi pi-cog',
         visible: this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']),
@@ -487,12 +475,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         visible: this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']),
         command: () => this.openUpdateCurrentSituation()
       },
-      {
-        label: 'Cập nhật trạng thái',
-        icon: 'pi pi-sync',
-        visible: this.permissionService.hasAnyPermission(['N1', 'N13', 'N27']),
-        items: [] // Will be populated dynamically
-      }
     ];
   }
 
@@ -554,7 +536,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     } else if (itemLate === 2) {
       return { 'background-color': 'orange', 'color': 'white' };
     } else if (totalDayExpridSoon <= 3 && !hasEndDate) {
-      return { 'background-color': 'red' };
+      return { 'background-color': 'mistyrose' };
     }
 
     return {};
@@ -790,6 +772,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       return {
         ...item,
         id: item.ID,
+        _uid: `${item.ID}_${index}`, // unique key tránh trùng khi 2 dòng có cùng ID
         STT: index + 1,
         ProjectStatusName: statusName,
         ProjectStatusColor: statusColor
@@ -837,20 +820,47 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
 
   searchProjects() {
     this.isLoading = true;
-    const ajaxParams = this.getProjectAjaxParams();
+    const dateStart = DateTime.fromJSDate(
+      new Date(this.dateStart)
+    );
+    const dateEnd = DateTime.fromJSDate(new Date(this.dateEnd));
+    let projectTypeStr = '';
+    if (this.projectTypeIds?.length > 0) {
+      projectTypeStr = this.projectTypeIds.join(',');
+    }
+    let projectStatusStr = '';
+    if (this.projecStatusIds?.length > 0) {
+      projectStatusStr = this.projecStatusIds.join(',');
+    }
+
+    let userId =
+      this.users
+        .flatMap((x: any) => x.options)
+        .find((x: any) => x.item.ID === this.employeeId)
+        ?.item.UserID || 0;
+
     this.projectService
-      .getProjectsPagination(ajaxParams, 1, 999999)
+      .getProjectSummary(
+        dateStart,
+        dateEnd,
+        this.departmentID,
+        userId,
+        projectTypeStr,
+        this.keyword.trim() || '',
+        this.userTeamID
+      )
       .subscribe({
-        next: (res) => {
-          if (res?.data) {
-            const projects = res.data.project || [];
+        next: (res: any) => {
+          if (res.status === 1) {
+            const projects = res.data || [];
             this.dataset = this.enrichProjects(projects);
+            this.isLoading = false;
           } else {
             this.dataset = [];
+            this.isLoading = false;
           }
-          this.isLoading = false;
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Error loading project data:', err);
           this.notification.error('Lỗi', 'Không thể tải dữ liệu dự án');
           this.isLoading = false;
@@ -888,10 +898,6 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       },
     });
   }
-
-
-
-
 
   getProjectTypeLinks() {
     if (!this.projectId || this.projectId === 0) {
@@ -1028,6 +1034,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     this.businessFieldId = 0;
     this.technicalId = 0;
     this.customerId = 0;
+    this.employeeId = 0;
     this.keyword = '';
     this.savedPage = 0;
   }
@@ -1044,9 +1051,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
 
   //#region Context menu actions
   setPersionalPriority(priority: number) {
-    const selectedIDs = this.getSelectedIds();
-
-    if (selectedIDs.length <= 0) {
+    if (!this.projectId || this.projectId === 0) {
       this.notification.error('Thông báo', 'Vui lòng chọn dự án!');
       return;
     }
@@ -1054,17 +1059,16 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     const dataSave = {
       ID: 0,
       UserID: this.currentUser?.EmployeeID ?? 0,
-      ProjectID: selectedIDs[0],
+      ProjectID: this.projectId,
       Priotity: priority,
     };
 
     this.projectService.saveProjectPersonalPriority(dataSave).subscribe({
       next: (response: any) => {
-        if (response.data == true) {
+        if (response.status === 1) {
           this.notification.success(
-            '',
-            this.createdText('Đã đổi độ ưu tiên cá nhân!'),
-            { nzStyle: { fontSize: '0.75rem' } }
+            'Thông báo',
+            'Đã đổi độ ưu tiên cá nhân!'
           );
           this.searchProjects();
         }
@@ -1423,10 +1427,10 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   }
 
   openProjectEmployee() {
-    const selectedIDs = this.getSelectedIds();
-
-    if (selectedIDs.length != 1) {
-      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+    if (!this.projectId || this.projectId === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
       return;
     }
 
@@ -1437,7 +1441,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       keyboard: false,
     });
 
-    modalRef.componentInstance.projectId = selectedIDs[0] ?? 0;
+    modalRef.componentInstance.projectId = this.projectId;
 
     modalRef.result.catch((reason) => {
       if (reason == true) {
@@ -1602,4 +1606,72 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       this.currentUser = res.data;
     });
   }
+
+  getUserTeam() {
+    this.teams = [];
+    if (this.departmentID > 0) {
+      this.projectService
+        .getUserTeam(this.departmentID)
+        .subscribe({
+          next: (response: any) => {
+            this.teams = response.data || [];
+          },
+          error: (error) => {
+            console.error('Lỗi:', error);
+          },
+        });
+    } else {
+      this.userTeamID = 0;
+      this.users = [];
+    }
+  }
+
+  getEmployeesByTeam() {
+    this.users = [];
+    if (this.userTeamID > 0) {
+      this.projectService
+        .getEmployeeByUserTeam(this.userTeamID)
+        .subscribe({
+          next: (response: any) => {
+            const employees = response.data || [];
+            if (employees.length > 0 && employees[0].DepartmentName) {
+              this.users = this.projectService.createdDataGroup(
+                employees,
+                'DepartmentName'
+              );
+              console.log(this.users);
+            } else {
+              this.users = [
+                {
+                  label: 'Nhân viên',
+                  options: employees.map((item: any) => ({ item: item })),
+                },
+              ];
+            }
+          },
+          error: (error) => {
+            console.error('Lỗi:', error);
+            this.users = [];
+          },
+        });
+    } else {
+      this.users = [];
+      this.userID = 0;
+    }
+  }
+
+  //#region Hàm xử lý bổ sung
+  getDepartment() {
+    this.projectService.getDepartment().subscribe({
+      next: (response: any) => {
+        this.departments = response.data || [];
+      },
+      error: (error: any) => {
+        console.error('Lỗi:', error);
+      },
+    });
+  }
+
+
+  //#endregion
 }

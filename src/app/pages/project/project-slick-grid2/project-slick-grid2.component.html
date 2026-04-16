@@ -377,10 +377,10 @@
               <nz-splitter-panel [nzCollapsible]="true" [nzResizable]="true" [nzSize]="sizeTbMaster">
                 <div class="table-container" style="height: 100%">
                   <p-table #dtProjects [value]="dataset" selectionMode="single" [(selection)]="selectedRow" dataKey="ID"
-                    [scrollable]="true" scrollHeight="flex" [paginator]="false" [resizableColumns]="true"
-                    columnResizeMode="expand" styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
-                    [contextMenu]="cm" (onRowContextMenu)="onRowContextMenu($event)"
-                    (onFilter)="handleTableFilter($event)" [virtualScroll]="true" [virtualScrollItemSize]="50">
+                    [scrollable]="true" scrollHeight="flex" [paginator]="true" [rows]="50"
+                    [rowsPerPageOptions]="[50, 100, 200]" [resizableColumns]="true" columnResizeMode="expand"
+                    styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped" [contextMenu]="cm"
+                    (onRowContextMenu)="onRowContextMenu($event)" (onFilter)="handleTableFilter($event)">
 
                     <ng-template pTemplate="header">
                       <tr>

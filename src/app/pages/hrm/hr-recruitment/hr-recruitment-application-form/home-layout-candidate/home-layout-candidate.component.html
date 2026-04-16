@@ -155,7 +155,7 @@
                             </nz-form-label>
                             <nz-form-control nzErrorTip="Vui lòng nhập thường trú!">
                                 <textarea nz-input formControlName="PermanentResidence"
-                                    [nzAutosize]="{ minRows: 2, maxRows: 4 }"></textarea>
+                                    [nzAutosize]="{ minRows: 2 }"></textarea>
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -167,7 +167,7 @@
                             </nz-form-label>
                             <nz-form-control nzErrorTip="Vui lòng nhập nơi ở!">
                                 <textarea nz-input formControlName="CurrentAddress"
-                                    [nzAutosize]="{ minRows: 2, maxRows: 4 }"></textarea>
+                                    [nzAutosize]="{ minRows: 2}"></textarea>
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -242,8 +242,7 @@
                     <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24">
                         <div class="contact-field">
                             <label>Sở thích cá nhân/<i>Hobbies</i></label>
-                            <textarea nz-input formControlName="Hobbies"
-                                [nzAutosize]="{ minRows: 2, maxRows: 6 }"></textarea>
+                            <textarea nz-input formControlName="Hobbies" [nzAutosize]="{ minRows: 2}"></textarea>
                         </div>
                     </nz-col>
                     <!-- Chiều cao -->
@@ -310,6 +309,31 @@
                                 <label nz-radio [nzValue]="true">Có/<i>Yes</i></label>
                                 <label nz-radio [nzValue]="false" class="ms-3">Không/<i>No</i></label>
                             </nz-radio-group>
+                        </div>
+                    </nz-col>
+                    <!-- Kinh nghiệm làm việc -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24">
+                        <div class="contact-field">
+                            <label class="fw-bold">Bạn có bao nhiêu năm kinh nghiệm làm việc?/ <i>How many years of work
+                                    experience do you have?</i> <span class="text-danger">(*)</span></label>
+                            <div [class.error-container]="form.get('WorkExperienceLevel')?.invalid && form.get('WorkExperienceLevel')?.dirty">
+                                <nz-radio-group formControlName="WorkExperienceLevel" class="w-100 mt-2 ms-3">
+                                    <nz-row [nzGutter]="[12, 8]">
+                                        <nz-col [nzXs]="24" [nzMd]="12">
+                                            <label nz-radio [nzValue]="1">Chưa có kinh nghiệm/<i>No experience</i></label>
+                                        </nz-col>
+                                        <nz-col [nzXs]="24" [nzMd]="12">
+                                            <label nz-radio [nzValue]="2">Dưới 2 năm/<i>Less than 2 years</i></label>
+                                        </nz-col>
+                                        <nz-col [nzXs]="24" [nzMd]="12">
+                                            <label nz-radio [nzValue]="3">Từ 2 – 5 năm/<i>2 – 5 years</i></label>
+                                        </nz-col>
+                                        <nz-col [nzXs]="24" [nzMd]="12">
+                                            <label nz-radio [nzValue]="4">Trên 5 năm/<i>More than 5 years</i></label>
+                                        </nz-col>
+                                    </nz-row>
+                                </nz-radio-group>
+                            </div>
                         </div>
                     </nz-col>
                 </nz-row>
@@ -571,13 +595,13 @@
             <div class="mt-3">
                 <p class="fw-bold mb-1">Các hoạt động, thành tích xã hội khác/ <i>Other activities,
                         achievements:</i></p>
-                <textarea nz-input formControlName="OtherActivities" rows="3"
+                <textarea nz-input formControlName="OtherActivities" nzAutosize
                     placeholder="Nhập các hoạt động, thành tích xã hội khác..."></textarea>
             </div>
 
             <!-- ===== III. QUÁ TRÌNH CÔNG TÁC ===== -->
             <h5 class="section-title mt-4">III. Quá trình công tác <span class="text-muted fs-11">(Kể cả bán thời
-                    gian)</span> <i>Working experiences (part-time and full-time)</i></h5>
+                    gian)</span> <i>Working experiences (part-time and full-time)</i> <span class="text-danger" *ngIf="form.get('WorkExperienceLevel')?.value > 1">(*)</span></h5>
 
             <div formArrayName="workExperiences">
                 @for (work of workExperiences.controls; track $index) {
@@ -642,7 +666,7 @@
                         <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12">
                             <div class="contact-field">
                                 <label>Nhiệm vụ, trách nhiệm/<i>Mission</i></label>
-                                <textarea nz-input formControlName="Mission" rows="2"
+                                <textarea nz-input formControlName="Mission" nzAutosize
                                     placeholder="Nhập nhiệm vụ, trách nhiệm..."></textarea>
                             </div>
                         </nz-col>
@@ -655,7 +679,7 @@
                         <nz-col [nzXs]="24">
                             <div class="contact-field">
                                 <label>Thành tích đạt được/<i>Achievement</i></label>
-                                <textarea nz-input formControlName="Achievement" rows="2"
+                                <textarea nz-input formControlName="Achievement" nzAutosize
                                     placeholder="Nhập thành tích đạt được..."></textarea>
                             </div>
                         </nz-col>
@@ -672,7 +696,7 @@
             <h5 class="section-title mt-4">IV. Đặc điểm cá nhân và kinh nghiệm phù hợp với vị trí dự tuyển/ <i>How
                     your experiences or characters can be suitable with applied position?</i> <span
                     class="text-danger">(*)</span></h5>
-            <textarea nz-input formControlName="Experiences" rows="4"
+            <textarea nz-input formControlName="Experiences" nzAutosize
                 placeholder="Nhập đặc điểm cá nhân và kinh nghiệm phù hợp..."
                 [nzStatus]="(form.get('Experiences')?.invalid && form.get('Experiences')?.dirty) ? 'error' : ''"></textarea>
 
@@ -707,7 +731,7 @@
             <!-- ===== VI. LÝ DO NỘP ĐƠN ===== -->
             <h5 class="section-title mt-4">VI. Lý do nộp đơn dự tuyển vào Công ty chúng tôi/<i>The main reasons for
                     your application</i> <span class="text-danger">(*)</span></h5>
-            <textarea nz-input formControlName="ReasonApplication" rows="3" placeholder="Nhập lý do ứng tuyển..."
+            <textarea nz-input formControlName="ReasonApplication" nzAutosize placeholder="Nhập lý do ứng tuyển..."
                 [nzStatus]="(form.get('ReasonApplication')?.invalid && form.get('ReasonApplication')?.dirty) ? 'error' : ''"></textarea>
 
             <!-- ===== IX. MỨC LƯƠNG ===== -->

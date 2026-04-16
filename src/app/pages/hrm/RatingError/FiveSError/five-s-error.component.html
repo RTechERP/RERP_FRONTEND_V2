@@ -1,0 +1,131 @@
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command() : null">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text" style="font-size: 12px;">{{ item.label }}</span>
+        </a>
+    </ng-template>
+</p-menubar>
+
+<ng-container class="w-100">
+    <div class="card border-0 rounded-0" style="height: 85vh !important;">
+        <div class="card-body p-0 d-flex flex-column" style="height: 100%;">
+            <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..."
+                style="flex: 1; display: flex; flex-direction: column;">
+                <nz-splitter nzLayout="vertical" style="height: 100%; flex: 1;">
+                    <!-- Bảng Master (ở trên) - 60% -->
+                    <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="true" nzSize="60%">
+                        <div class="grid-container" id="grid-container-five-s-error" style="height: 100%;">
+                            <p-table [value]="dataset" selectionMode="single" [(selection)]="selectedRow"
+                                (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)"
+                                rowGroupMode="subheader" groupRowsBy="TypeError" sortField="TypeError"
+                                [sortMode]="'single'" [scrollable]="true" scrollHeight="flex"
+                                styleClass="p-datatable-sm p-datatable-gridlines" dataKey="ID">
+                                <ng-template pTemplate="header">
+                                    <tr style="font-size: 12px;">
+                                        <th style="width: 30px; text-align: center">STT</th>
+                                        <th>Nội dung lỗi</th>
+
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="groupheader" let-item>
+                                    <tr pRowGroupHeader>
+                                        <td colspan="2" style="padding: 4px 8px !important; background-color: #f8f9fa;">
+                                            <span class="fw-bold" style="font-size: 12px; color: #1f2937;">
+                                                Loại lỗi: {{ getTypeErrorName(item.TypeError) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                                    <tr [pSelectableRow]="item" style="font-size: 12px;">
+                                        <td style="text-align: center">{{ item.STT || rowIndex + 1 }}</td>
+                                        <td class="cell-wrap" [pTooltip]="item.DetailError" tooltipPosition="top">
+                                            {{ item.DetailError }}
+                                        </td>
+
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td colspan="4"
+                                            style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+                                            Không có dữ liệu.
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </div>
+                    </nz-splitter-panel>
+
+                    <!-- Bảng Detail (ở dưới) - 40% -->
+                    <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="true" nzSize="40%">
+                        <div style="height: 100%; width: 100%; display: flex; flex-direction: column;">
+                            <div class="d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
+                                <span class="fs-12 fw-bold" style="font-size: 12px;">{{ detailTabTitle }}</span>
+                            </div>
+                            <div class="grid-container" id="grid-container-detail-error"
+                                style="flex: 1; min-height: 200px; width: 100%;">
+                                <p-table [value]="datasetDetail" [scrollable]="true" scrollHeight="flex"
+                                    styleClass="p-datatable-sm p-datatable-gridlines" dataKey="id">
+                                    <ng-template pTemplate="header">
+                                        <tr style="font-size: 12px;">
+                                            <th style="width: 120px;">Tên quy tắc</th>
+                                            <th style="width:   80px; text-align: center">Mức độ</th>
+                                            <th style="width: 80px; text-align: center">Loại điểm</th>
+                                            <th style="width: 80px; text-align: center">Điểm</th>
+                                            <th style="width: 80px; text-align: center">Điểm cộng</th>
+                                            <th style="width: 80px; text-align: center">Điểm trừ</th>
+                                            <th style="width: 300px; text-align: center">Mô tả</th>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="body" let-item>
+                                        <tr style="font-size: 12px;">
+                                            <td class="cell-wrap" [pTooltip]="item.Name" tooltipPosition="top">
+                                                {{ item.Name }}
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <ng-container [ngSwitch]="item.RatingLevels">
+                                                    <span *ngSwitchCase="'Rất tốt'"
+                                                        style="display: inline-block; min-width: 80px; text-align: center; background-color: #b4ecb4; color: #2cb55a; border-radius: 5px; padding: 4px 8px;">Rất
+                                                        tốt</span>
+                                                    <span *ngSwitchCase="'Tốt'"
+                                                        style="display: inline-block; min-width: 80px; text-align: center; background-color: #fde3c1; color: #f79346; border-radius: 5px; padding: 4px 8px;">Tốt</span>
+                                                    <span *ngSwitchCase="'Kém'"
+                                                        style="display: inline-block; min-width: 80px; text-align: center; background-color: #fbc4c4; color: #d40000; border-radius: 5px; padding: 4px 8px;">Kém</span>
+                                                    <span *ngSwitchDefault
+                                                        style="display: inline-block; min-width: 80px; text-align: center; background-color: #e0e0e0; border-radius: 5px; padding: 4px 8px;">{{
+                                                        item.RatingLevels }}</span>
+                                                </ng-container>
+                                            </td>
+                                            <td style="text-align: center;">
+                                                <span *ngIf="item.TypePoint === 1"
+                                                    style="color: #2cb55a; font-weight: bold;">Điểm cộng</span>
+                                                <span *ngIf="item.TypePoint === 2"
+                                                    style="color: #d40000; font-weight: bold;">Điểm trừ</span>
+                                                <span *ngIf="item.TypePoint !== 1 && item.TypePoint !== 2">{{
+                                                    item.TypePoint }}</span>
+                                            </td>
+                                            <td style="text-align: center">{{ item.Point }}</td>
+                                            <td style="text-align: center">{{ item.BonusPoint }}</td>
+                                            <td style="text-align: center">{{ item.MinusPoint }}</td>
+                                            <td style="text-align: left">{{ item.Description }}</td>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="emptymessage">
+                                        <tr>
+                                            <td colspan="8"
+                                                style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+                                                Không có dữ liệu chi tiết.
+                                            </td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
+                            </div>
+                        </div>
+                    </nz-splitter-panel>
+                </nz-splitter>
+            </nz-spin>
+        </div>
+    </div>
+</ng-container>

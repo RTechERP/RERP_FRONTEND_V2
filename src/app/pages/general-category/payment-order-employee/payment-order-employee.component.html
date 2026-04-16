@@ -26,7 +26,7 @@
   </ng-template>
 
   <!-- Card body content -->
-  <div style="display: flex; flex-direction: column; height: calc(100vh - 8rem);">
+  <div style="display: flex; flex-direction: column; height: calc(100vh - 6rem);">
 
     <!-- Filter bar: chỉ hiện trên desktop -->
     <div class="border-top p-2" *ngIf="isAdvandShow && !isMobile">
@@ -135,8 +135,8 @@
               <nz-form-item>
                 <nz-form-label>Tình trạng</nz-form-label>
                 <nz-form-control>
-                  <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.step" nzSize="small"
-                    name="step_m" class="w-100">
+                  <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn"
+                    [(ngModel)]="param.step" nzSize="small" name="step_m" class="w-100">
                     @for (item of steps; track item) {
                     <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
                     }
@@ -148,8 +148,8 @@
               <nz-form-item>
                 <nz-form-label>Trạng thái</nz-form-label>
                 <nz-form-control>
-                  <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn" [(ngModel)]="param.isApproved"
-                    nzSize="small" name="isApproved_m" class="w-100">
+                  <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzPlaceHolder="Chọn"
+                    [(ngModel)]="param.isApproved" nzSize="small" name="isApproved_m" class="w-100">
                     @for (item of isApproveds; track item) {
                     <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
                     }
@@ -211,11 +211,11 @@
             <p-tabpanels>
               <p-tabpanel value="0">
                 <div class="grid-wrapper" *ngIf="activeTab === '0'">
-                  <app-custom-table [columns]="columnDefs" [headerGroups]="headerGroups" [data]="dataset"
-                    [loading]="isLoading" [selectionMode]="'single'" [scrollable]="true" [scrollHeight]="'flex'"
-                    [virtualScroll]="true" [virtualScrollItemSize]="34" [textWrap]="true" [resizable]="true"
-                    [resizeMode]="'expand'" [minWidth]="'5500px'" (selectionChange)="onRowSelect($event)"
-                    (rowDblClick)="onPrint($event)" dataKey="ID" [showFooter]="true"
+                  <app-custom-table [columns]="columnDefs" [data]="dataset" [loading]="isLoading"
+                    [selectionMode]="'single'" [scrollable]="true" [scrollHeight]="'flex'" [virtualScroll]="true"
+                    [virtualScrollItemSize]="34" [textWrap]="true" [resizable]="true" [resizeMode]="'expand'"
+                    [minWidth]="'5500px'" (selectionChange)="onRowSelect($event)" (rowDblClick)="onPrint($event)"
+                    dataKey="ID" [showFooter]="true" [showColumnFilter]="true"
                     [contextMenuItems]="contextMenu"></app-custom-table>
                 </div>
               </p-tabpanel>
@@ -225,7 +225,8 @@
                     [selectionMode]="'single'" [scrollable]="true" [scrollHeight]="'flex'" [virtualScroll]="true"
                     [virtualScrollItemSize]="34" [textWrap]="true" [resizable]="true" [resizeMode]="'expand'"
                     [minWidth]="'2500px'" (selectionChange)="onRowSelect($event)" (rowDblClick)="onPrint($event)"
-                    dataKey="ID" [showFooter]="true" [contextMenuItems]="contextMenu"></app-custom-table>
+                    dataKey="ID" [showFooter]="true" [showColumnFilter]="true" [showCaption]="false"
+                    [contextMenuItems]="contextMenu"></app-custom-table>
                 </div>
               </p-tabpanel>
             </p-tabpanels>
@@ -252,15 +253,15 @@
                       <app-custom-table [columns]="activeTab === '0' ? columnDefDetails : columnDefDetailsSpecial"
                         [data]="activeTab === '0' ? datasetDetails : datasetSpecialDetail" [scrollable]="true"
                         [scrollHeight]="'flex'" [virtualScroll]="true" [virtualScrollItemSize]="34" dataKey="ID"
-                        [textWrap]="true" [resizeMode]="'expand'" [minWidth]="'80rem'"
-                        [loading]="isLoadingDetail"></app-custom-table>
+                        [textWrap]="true" [resizeMode]="'expand'" [minWidth]="'80rem'" [showColumnFilter]="false"
+                        [showCaption]="false" [loading]="isLoadingDetail"></app-custom-table>
                     </div>
                   </p-tabpanel>
                   <p-tabpanel value="1" style="height:100%;padding:0;">
                     <div class="grid-wrapper" style="height:100%;">
                       <app-custom-table [columns]="columnDefLog" [data]="datasetLog" [scrollable]="true"
                         [scrollHeight]="'flex'" [virtualScroll]="true" [virtualScrollItemSize]="34"
-                        [loading]="isLoadingDetail"></app-custom-table>
+                        [showColumnFilter]="false" [showCaption]="false" [loading]="isLoadingDetail"></app-custom-table>
                     </div>
                   </p-tabpanel>
                 </p-tabpanels>
@@ -283,7 +284,7 @@
                         [scrollHeight]="'flex'" [virtualScroll]="true" [virtualScrollItemSize]="34"
                         [contextMenuItems]="fileContextItems" (cellAction)="onCellActionFile($event)"
                         [(selectedContextRow)]="selectedRowFile" (selectionChange)="onRowSelectFile($event)"
-                        dataKey="ID" [loading]="isLoadingDetail"></app-custom-table>
+                        dataKey="ID" [loading]="isLoadingDetail" [showColumnFilter]="false"></app-custom-table>
                     </div>
                   </p-tabpanel>
                   <p-tabpanel value="1">
@@ -292,7 +293,7 @@
                         [scrollHeight]="'flex'" [virtualScroll]="true" [virtualScrollItemSize]="34"
                         [contextMenuItems]="fileContextItems" (cellAction)="onCellActionFile($event)"
                         [(selectedContextRow)]="selectedRowFile" (selectionChange)="onRowSelectFile($event)"
-                        dataKey="ID" [loading]="isLoadingDetail"></app-custom-table>
+                        dataKey="ID" [loading]="isLoadingDetail" [showColumnFilter]="false"></app-custom-table>
                     </div>
                   </p-tabpanel>
                 </p-tabpanels>

@@ -1,10 +1,12 @@
 import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -15,10 +17,13 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
 import { EmployeeSyntheticService } from '../employee-synthetic.service';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { AuthService } from '../../../../../auth/auth.service';
 import { Router } from '@angular/router';
+import { PinAuthService } from '../../../../../auth/pin-pass-word/pin-auth.service';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
+import { PinResetTabComponent } from '../../pin-reset-tab/pin-reset-tab.component';
 
 @Component({
   selector: 'app-employee-synthetic-personal',
@@ -52,9 +57,9 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
 
   searchForm!: FormGroup;
   isLoadTable = false;
-  selectedTabIndex = 3; // Default to Payroll tab (index 3)
+  selectedTabIndex = 3; // Mặc định ở tab Bảng lương (index 3)
 
-  // Data storage
+  // Lưu trữ dữ liệu
   summaryData: any[] = [];
   fingerprintData: any = null;
   timekeepingData: any = null;
@@ -62,22 +67,29 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
   payrollData: any[] = [];
   totalWorkdayStandard: number = 0;
 
-  // Re-authentication members
+  // Trạng thái xác thực lại
   showReAuthModal = false;
-  reAuthPassword = '';
-  isVerifying = false;
+  pinMode: 'VERIFY' | 'CREATE' | 'FORGOT' | 'RESET' = 'VERIFY';
+  reAuthPin = '';
+  reAuthConfirmPin = '';
   errorMessage = '';
+  isVerifying = false;
   showErrorPopup = false;
-  failedAttempts = 0;
-  passwordVisible = false;
+  hasPin = false;
+  retryCount = 0;
   private pendingTabIndex = -1;
+  private previousTabIndex = 0;
+  private dataSavedSub?: Subscription;
 
   constructor(
     private fb: FormBuilder,
     private notification: NzNotificationService,
     private syntheticService: EmployeeSyntheticService,
     public authService: AuthService,
-    private router: Router
+    public pinAuthService: PinAuthService,
+    private router: Router,
+    private message: NzMessageService,
+    private tabService: TabServiceService
   ) { }
 
   ngOnInit() {
@@ -87,23 +99,39 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
     const url = this.router.url;
     if (url.includes('person-summary-payroll')) {
       this.selectedTabIndex = 3;
+      this.previousTabIndex = 3;
     } else {
       this.selectedTabIndex = 0;
+      this.previousTabIndex = 0;
     }
 
-    // Trigger re-auth if starting on payroll tab
-    if (this.selectedTabIndex === 3 && !this.authService.isReAuthenticated()) {
-      this.showReAuthModal = true;
+    // Kích hoạt xác thực lại nếu bắt đầu ở tab bảng lương
+    if (this.selectedTabIndex === 3 && !this.pinAuthService.isAuthenticated()) {
+      setTimeout(() => this.checkAndOpenPinModal(), 500);
     }
+
+    // Lắng nghe sự kiện reset PIN thành công để hiển thị lại modal
+    this.dataSavedSub = this.tabService.dataSaved$.subscribe(key => {
+      if (key === 'PIN_RESET_SUCCESS') {
+        // Reset retry count khi đã đặt lại PIN thành công
+        this.retryCount = 0;
+        this.showErrorPopup = false;
+
+        // Nếu đang ở tab Bảng lương thì hiện modal
+        if (this.selectedTabIndex === 3) {
+          this.checkAndOpenPinModal();
+        }
+      }
+    });
   }
 
   ngAfterViewInit(): void {
-    // Initialize all tables first (since we use [hidden] instead of *ngIf)
+    // Khởi tạo tất cả các bảng trước (vì chúng ta sử dụng [hidden] thay vì *ngIf)
     setTimeout(() => {
       this.initializeTables();
-      // Initialize table for the default selected tab
+      // Khởi tạo bảng cho tab mặc định được chọn
       this.initializeTableForTab(this.selectedTabIndex);
-      // Load data
+      // Tải dữ liệu
       setTimeout(() => {
         this.loadData();
       }, 100);
@@ -111,8 +139,12 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
   }
 
   ngOnDestroy(): void {
-    // Reset re-authentication status when navigating away
-    this.authService.setReAuthenticated(false);
+    // Xóa trạng thái xác thực PIN khi tắt tab để lần sau mở lại phải nhập lại (theo yêu cầu)
+    this.pinAuthService.setAuthenticated(false);
+
+    if (this.dataSavedSub) {
+      this.dataSavedSub.unsubscribe();
+    }
   }
 
   private initializeForm(): void {
@@ -128,14 +160,13 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
     this.initializeFingerprintTable();
     this.initializeTimekeepingTable();
   }
-
   private initializeTableForTab(tabIndex: number): void {
     switch (tabIndex) {
       case 0: // TỔNG HỢP
         if (!this.summaryTabulator && this.tbSummaryRef?.nativeElement) {
           this.initializeSummaryTable();
         } else if (this.summaryTabulator) {
-          // Redraw table if already initialized
+          // Vẽ lại bảng nếu đã được khởi tạo
           setTimeout(() => {
             this.summaryTabulator.redraw(true);
           }, 50);
@@ -160,34 +191,33 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         }
         break;
       case 3: // BẢNG LƯƠNG
-        // Payroll table is HTML table, no initialization needed
+        // Bảng lương là bảng HTML, không cần khởi tạo
         break;
     }
   }
-
   onTabChange(index: number): void {
-    // Intercept Payroll tab to check for re-authentication
-    if (index === 3 && !this.authService.isReAuthenticated()) {
+    // Chặn tab Bảng lương để kiểm tra xác thực mã PIN
+    if (index === 3 && !this.pinAuthService.isAuthenticated()) {
       this.pendingTabIndex = index;
-      this.showReAuthModal = true;
-      this.reAuthPassword = '';
-      this.errorMessage = '';
 
-      // Delay resetting the index to visual stay on the current tab
-      const currentTab = this.selectedTabIndex;
+      // Giữ UI ở tab trước đó cho đến khi xác thực thành công
+      // Sử dụng setTimeout để cho phép nz-tabset hoàn tất cập nhật trạng thái nội bộ trước khi chúng ta ép nó quay lại
       setTimeout(() => {
-        this.selectedTabIndex = currentTab;
+        this.selectedTabIndex = this.previousTabIndex;
       }, 0);
+
+      this.checkAndOpenPinModal();
       return;
     }
 
+    this.previousTabIndex = this.selectedTabIndex;
     this.selectedTabIndex = index;
-    // Wait for DOM to render the tab content, then initialize table
+    // Chờ DOM render nội dung tab, sau đó khởi tạo bảng
     setTimeout(() => {
       this.initializeTableForTab(index);
-      // Redraw and resize table when tab is shown
+      // Vẽ lại và thay đổi kích thước bảng khi tab được hiển thị
       this.redrawTableForTab(index);
-      // Reload data if already loaded
+      // Tải lại dữ liệu nếu đã được tải
       if (this.summaryData.length > 0 || this.fingerprintData || this.timekeepingData || this.payrollData) {
         setTimeout(() => {
           this.loadDataForCurrentTab();
@@ -218,16 +248,20 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
           }
           break;
         case 3: // BẢNG LƯƠNG
-          // Payroll table is HTML table, no redraw needed
+          // Bảng lương là bảng HTML, không cần vẽ lại
           break;
       }
     }, 100);
   }
-
   private loadDataForCurrentTab(): void {
     const formValue = this.searchForm.value;
     const year = formValue.year || new Date().getFullYear();
     const month = formValue.month || new Date().getMonth() + 1;
+
+    if (!this.pinAuthService.isAuthenticated()) {
+      this.checkAndOpenPinModal();
+      return;
+    }
 
     this.syntheticService.getPersonalSyntheticByMonth(year, month).subscribe({
       next: (res: any) => {
@@ -237,15 +271,15 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
           switch (this.selectedTabIndex) {
             case 0: // TỔNG HỢP
               if (data.listSummary) {
-                // Handle both array and nested array structure
+                // Xử lý cả cấu trúc mảng và mảng lồng nhau
                 let summaryArray: any[] = [];
                 if (Array.isArray(data.listSummary)) {
-                  // Check if it's a nested array (array of arrays)
+                  // Kiểm tra nếu là mảng lồng nhau (mảng của các mảng)
                   if (data.listSummary.length > 0 && Array.isArray(data.listSummary[0])) {
-                    // Flatten nested array
+                    // Làm phẳng mảng lồng nhau
                     summaryArray = (data.listSummary as any[]).flat();
                   } else {
-                    // Regular array
+                    // Mảng thông thường
                     summaryArray = data.listSummary;
                   }
                 }
@@ -270,7 +304,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
               }
               break;
             case 3: // BẢNG LƯƠNG
-              if (data.payroll && this.authService.isReAuthenticated()) {
+              if (data.payroll && this.pinAuthService.isAuthenticated()) {
                 // Handle both array and object cases
                 if (Array.isArray(data.payroll)) {
                   this.payrollData = data.payroll;
@@ -295,7 +329,14 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu: ' + error.message);
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[error.status] || 'error',
+          NOTIFICATION_TITLE_MAP[error.status as RESPONSE_STATUS] || 'Lỗi',
+          error?.error?.message || `${error.error}\n${error.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
@@ -595,7 +636,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
     if (!this.tbTimekeepingRef?.nativeElement) {
       return;
     }
-    // Timekeeping table will be dynamically generated based on days in month
+    // Bảng chấm công sẽ được tạo động dựa trên số ngày trong tháng
     this.timekeepingTabulator = new Tabulator(this.tbTimekeepingRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitColumns',
@@ -674,15 +715,29 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
 
     this.syntheticService.confirmPayroll(payroll.ID, true).subscribe({
       next: (res: any) => {
-        if (res && res.status === 1) {
+        if (res && res.status === RESPONSE_STATUS.SUCCESS) {
           this.notification.success(NOTIFICATION_TITLE.success, 'Xác nhận bảng lương thành công');
           this.loadData();
         } else {
-          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Có lỗi xảy ra');
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[res.status] || 'error',
+            NOTIFICATION_TITLE_MAP[res.status as RESPONSE_STATUS] || 'Lỗi',
+            res?.message || 'Có lỗi xảy ra',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
         }
       },
       error: (err: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi: ' + (err?.error?.message || err.message));
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
@@ -706,15 +761,29 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
 
     this.syntheticService.confirmPayroll(payroll.ID, false).subscribe({
       next: (res: any) => {
-        if (res && res.status === 1) {
+        if (res && res.status === RESPONSE_STATUS.SUCCESS) {
           this.notification.success(NOTIFICATION_TITLE.success, 'Hủy xác nhận bảng lương thành công');
           this.loadData();
         } else {
-          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Có lỗi xảy ra');
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[res.status] || 'error',
+            NOTIFICATION_TITLE_MAP[res.status as RESPONSE_STATUS] || 'Lỗi',
+            res?.message || 'Có lỗi xảy ra',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
         }
       },
       error: (err: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi: ' + (err?.error?.message || err.message));
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
       }
     });
   }
@@ -728,9 +797,9 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
     const year = formValue.year || new Date().getFullYear();
     const month = formValue.month || new Date().getMonth() + 1;
 
-    // Prevent loading payroll data if not re-authenticated
-    if (this.selectedTabIndex === 3 && !this.authService.isReAuthenticated()) {
-      this.showReAuthModal = true;
+    // Xác thực mã PIN nghiêm ngặt cho BẤT KỲ hoạt động tải dữ liệu nào trong component này
+    if (!this.pinAuthService.isAuthenticated()) {
+      this.checkAndOpenPinModal();
       return;
     }
 
@@ -739,20 +808,20 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
     this.syntheticService.getPersonalSyntheticByMonth(year, month).subscribe({
       next: (res: any) => {
         if (res && res.status === 1 && res.data) {
-          // API returns: { listSummary, fingers, payroll, listChamcong }
+          // API trả về: { listSummary, fingers, payroll, listChamcong }
           const data = res.data;
 
-          // Load summary data
+          // Tải dữ liệu tổng hợp
           if (data.listSummary) {
-            // Handle both array and nested array structure
+            // Xử lý cả cấu trúc mảng và mảng lồng nhau
             let summaryArray: any[] = [];
             if (Array.isArray(data.listSummary)) {
-              // Check if it's a nested array (array of arrays)
+              // Kiểm tra xem đó có phải là mảng lồng nhau (mảng của các mảng) không
               if (data.listSummary.length > 0 && Array.isArray(data.listSummary[0])) {
-                // Flatten nested array
+                // Làm phẳng mảng lồng nhau
                 summaryArray = (data.listSummary as any[]).flat();
               } else {
-                // Regular array
+                // Mảng thông thường
                 summaryArray = data.listSummary;
               }
             }
@@ -762,7 +831,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
             }
           }
 
-          // Load fingerprint data
+          // Tải dữ liệu vân tay
           if (data.fingers) {
             this.fingerprintData = data.fingers;
             if (this.fingerprintTabulator && data.fingers.details && Array.isArray(data.fingers.details)) {
@@ -770,25 +839,25 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
             }
           }
 
-          // Load timekeeping data
+          // Tải dữ liệu chấm công
           if (data.listChamcong) {
             this.timekeepingData = data.listChamcong;
             this.loadTimekeepingTable(data.listChamcong);
           }
 
-          // Load payroll data - only if re-authenticated
-          if (data.payroll && this.authService.isReAuthenticated()) {
-            // Handle both array and object cases
+          // Tải dữ liệu bảng lương - chỉ khi đã xác thực qua PIN
+          if (data.payroll && this.pinAuthService.isAuthenticated()) {
+            // Xử lý cả trường hợp mảng và đối tượng
             if (Array.isArray(data.payroll)) {
               this.payrollData = data.payroll;
-              // Get total workday standard from first item if array
+              // Lấy định mức công chuẩn từ mục đầu tiên nếu là mảng
               if (data.payroll.length > 0 && data.payroll[0].TotalWorkday) {
                 this.totalWorkdayStandard = Number(data.payroll[0].TotalWorkday) || 0;
               }
             } else {
-              // Payroll is a single object
+              // Bảng lương là một đối tượng đơn lẻ
               this.payrollData = [data.payroll];
-              // Get total workday standard from payroll
+              // Lấy định mức công chuẩn từ bảng lương
               if (data.payroll.TotalWorkday) {
                 this.totalWorkdayStandard = Number(data.payroll.TotalWorkday) || 0;
               }
@@ -803,7 +872,14 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
         this.isLoadTable = false;
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải dữ liệu: ' + error.message);
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[error.status] || 'error',
+          NOTIFICATION_TITLE_MAP[error.status as RESPONSE_STATUS] || 'Lỗi',
+          error?.error?.message || `${error.error}\n${error.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
         this.clearAllTables();
         this.isLoadTable = false;
       }
@@ -815,7 +891,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
       return;
     }
 
-    // Build columns dynamically based on header data
+    // Xây dựng cột động dựa trên dữ liệu tiêu đề (header)
     const columns: any[] = [
       {
         title: 'Họ tên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center',
@@ -839,7 +915,7 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
           formatter: (cell: any) => {
             const value = cell.getValue();
             let displayValue = '';
-            // Extract text part if value contains ";" separator (format: "Text;Status")
+            // Tách phần văn bản nếu giá trị chứa dấu phân cách ";" (định dạng: "Văn bản;Trạng thái")
             if (value && typeof value === 'string' && value.includes(';')) {
               displayValue = value.split(';')[0] || '';
             } else {
@@ -865,12 +941,12 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
 
     this.timekeepingTabulator.setColumns(columns);
 
-    // Set data after setting columns
+    // Thiết lập dữ liệu sau khi thiết lập cột
     if (data.data) {
       const rowData = Array.isArray(data.data) ? data.data : [data.data];
       this.timekeepingTabulator.setData(rowData);
 
-      // Extract summary data (assuming it's the first record for personal view)
+      // Trích xuất dữ liệu tổng hợp (giả sử đây là bản ghi đầu tiên cho chế độ xem cá nhân)
       if (rowData.length > 0) {
         this.timekeepingSummary = rowData[0];
       } else {
@@ -921,82 +997,136 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
     }
   }
 
-  // --- Re-authentication Handlers ---
-  handleReAuth(): void {
-    if (!this.reAuthPassword) {
-      this.errorMessage = 'Vui lòng nhập mật khẩu';
-      return;
-    }
+  // --- PIN RE-AUTHENTICATION METHODS ---
+
+  checkAndOpenPinModal(): void {
+    if (this.showReAuthModal || this.isVerifying) return;
 
     this.isVerifying = true;
-    this.errorMessage = '';
-
-    this.authService.verifyPassword(this.reAuthPassword).subscribe({
+    this.pinAuthService.checkPinStatus().subscribe({
       next: (res) => {
         this.isVerifying = false;
-        if (res && (res.status === 1 || res.access_token)) {
-          this.authService.setReAuthenticated(true);
-          this.showReAuthModal = false;
-          this.failedAttempts = 0;
-
-          if (this.pendingTabIndex !== -1) {
-            this.selectedTabIndex = this.pendingTabIndex;
-            this.pendingTabIndex = -1;
-            // Initialize table for the tab
-            setTimeout(() => {
-              this.initializeTableForTab(this.selectedTabIndex);
-              this.redrawTableForTab(this.selectedTabIndex);
-            }, 150);
-          }
-          // Load data from API after successful verification
-          this.loadData();
-        } else {
-          this.reAuthPassword = ''; // Clear password on failure
-          this.handleReAuthError(res?.message || 'Mật khẩu không chính xác. Vui lòng thử lại.');
-        }
+        this.hasPin = res.status === RESPONSE_STATUS.SUCCESS && res.data?.hasPin;
+        this.pinMode = this.hasPin ? 'VERIFY' : 'CREATE';
+        this.reAuthPin = '';
+        this.reAuthConfirmPin = '';
+        this.errorMessage = '';
+        this.showReAuthModal = true;
       },
-      error: (err) => {
+      error: () => {
         this.isVerifying = false;
-        this.reAuthPassword = ''; // Clear password on error
-        this.handleReAuthError(err?.error?.message || 'Lỗi xác thực. Vui lòng thử lại.');
-      },
+        this.pinMode = 'VERIFY';
+        this.showReAuthModal = true;
+      }
     });
   }
 
-  private handleReAuthError(message: string): void {
-    this.failedAttempts++;
+  handleReAuth(): void {
+    if (this.pinMode === 'VERIFY') {
+      if (!this.reAuthPin || this.reAuthPin.length !== 6) {
+        this.errorMessage = 'Vui lòng nhập mã PIN 6 số';
+        return;
+      }
 
-    if (this.failedAttempts >= 3) {
-      this.showReAuthModal = false;
-      this.errorMessage = 'Cảnh báo bảo mật: Bạn đã nhập sai mật khẩu quá 3 lần. Hệ thống sẽ tự động đăng xuất để bảo vệ thông tin cá nhân của bạn.';
-      this.showErrorPopup = true;
-    } else {
-      this.errorMessage = `${message} (Còn ${3 - this.failedAttempts} lần thử)`;
+      this.isVerifying = true;
+      this.pinAuthService.verifyPin(this.reAuthPin).subscribe({
+        next: (res) => {
+          this.isVerifying = false;
+          if (res.status === RESPONSE_STATUS.SUCCESS && res.data?.verified) {
+            this.pinAuthService.setAuthenticated(true);
+            this.showReAuthModal = false;
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xác thực thành công');
+
+            if (this.pendingTabIndex !== -1) {
+              this.selectedTabIndex = this.pendingTabIndex;
+              this.pendingTabIndex = -1;
+              this.initializeTableForTab(this.selectedTabIndex);
+            }
+            this.loadData();
+          } else {
+            this.retryCount++;
+            this.reAuthPin = '';
+            if (this.retryCount >= 3) {
+              this.showReAuthModal = false;
+              this.errorMessage = 'Bạn đã nhập sai mã PIN quá 3 lần. Vui lòng liên hệ HR hoặc thử lại sau.';
+              this.showErrorPopup = true;
+            } else {
+              this.errorMessage = `Mã PIN không chính xác. Bạn còn ${3 - this.retryCount} lần thử.`;
+            }
+          }
+        },
+        error: (err) => {
+          this.isVerifying = false;
+          this.errorMessage = err.error?.message || 'Có lỗi xảy ra khi xác thực';
+        }
+      });
+    } else if (this.pinMode === 'CREATE') {
+      if (!this.reAuthPin || this.reAuthPin.length !== 6 || this.reAuthPin !== this.reAuthConfirmPin) {
+        this.errorMessage = 'Mã PIN không khớp hoặc không đủ 6 số';
+        return;
+      }
+
+      this.isVerifying = true;
+      this.pinAuthService.setPin(this.reAuthPin, this.reAuthConfirmPin).subscribe({
+        next: (res) => {
+          this.isVerifying = false;
+          if (res.status === RESPONSE_STATUS.SUCCESS) {
+            this.pinAuthService.setAuthenticated(true);
+            this.showReAuthModal = false;
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thiết lập mã PIN thành công');
+
+            if (this.pendingTabIndex !== -1) {
+              this.selectedTabIndex = this.pendingTabIndex;
+              this.pendingTabIndex = -1;
+              this.initializeTableForTab(this.selectedTabIndex);
+            }
+            this.loadData();
+          } else {
+            this.errorMessage = res.message || 'Không thể thiết lập mã PIN';
+          }
+        },
+        error: (err) => {
+          this.isVerifying = false;
+          this.errorMessage = err.error?.message || 'Có lỗi xảy ra khi thiết lập';
+        }
+      });
     }
   }
 
   cancelReAuth(): void {
     this.showReAuthModal = false;
-    this.reAuthPassword = '';
-    this.errorMessage = '';
     this.pendingTabIndex = -1;
+    this.reAuthPin = '';
+    this.reAuthConfirmPin = '';
+    this.errorMessage = '';
 
-    // If cancel on the dedicated payroll route, go back or to summary
-    const url = this.router.url;
-    if (url.includes('person-summary-payroll')) {
-      this.router.navigate(['/home']);
-    } else {
+    // Nếu đang ở tab Bảng lương nhưng đã hủy xác thực lại, hãy quay lại tab trước đó hoặc tab mặc định
+    if (this.selectedTabIndex === 3 && !this.pinAuthService.isAuthenticated()) {
+      this.selectedTabIndex = this.previousTabIndex === 3 ? 0 : this.previousTabIndex;
+      this.previousTabIndex = this.selectedTabIndex;
+      this.initializeTableForTab(this.selectedTabIndex);
+    }
+  }
+
+  switchToForgotMode(): void {
+    this.showReAuthModal = false;
+    this.tabService.openTabComp({
+      comp: PinResetTabComponent,
+      title: 'Quên mã PIN',
+      key: 'pin-reset-personal',
+      data: {}
+    });
+  }
+
+  closeErrorPopup(): void {
+    this.showErrorPopup = false;
+    this.retryCount = 0;
+    if (this.selectedTabIndex === 3) {
       this.selectedTabIndex = 0;
       this.initializeTableForTab(0);
       this.loadData();
     }
   }
 
-  closeErrorPopup(): void {
-    this.showErrorPopup = false;
-    this.authService.logout();
-    // Use the base path for login
-    this.router.navigate(['/login']);
-  }
 }
 

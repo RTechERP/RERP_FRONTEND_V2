@@ -76,7 +76,7 @@ import { MenuEventService } from '../../systems/menus/menu-service/menu-event.se
 import { ProductSaleComponent } from '../Sale/ProductSale/product-sale.component';
 import { TabulatorPopupService } from '../../../shared/components/tabulator-popup';
 import { ProjectDetailComponent } from '../../project/project-detail/project-detail.component';
-import { ProjectPartListSlickGridComponent } from '../../project-part-list-slick-grid/project-part-list-slick-grid.component';
+import { ProjectPartListSlickGridComponent } from '../../project/project-part-list-slick-grid/project-part-list-slick-grid.component';
 @Component({
   selector: 'app-pokh',
   imports: [

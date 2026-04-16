@@ -1,0 +1,21 @@
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text" style="font-size: 12px; margin-left: 5px;">{{ item.label }}</span>
+        </a>
+    </ng-template>
+</p-menubar>
+
+<div class="card border-0 rounded-0" style="height: calc(100vh - 100px);">
+    <div class="card-body p-0 d-flex flex-column">
+        <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..." style="flex: 1;">
+            <div id="grid-container-five-s-rule-error" class="grid-container" style="height: 100%;">
+                <angular-slickgrid gridId="gridFiveSRuleError" [columns]="columnDefinitions" [options]="gridOptions"
+                    [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+                    (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
+                </angular-slickgrid>
+            </div>
+        </nz-spin>
+    </div>
+</div>

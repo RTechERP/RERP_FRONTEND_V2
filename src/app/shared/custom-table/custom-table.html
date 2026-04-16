@@ -1,27 +1,60 @@
 <p-contextMenu #cm [model]="contextMenuItems" appendTo="body"></p-contextMenu>
 <p-contextMenu #hcm [model]="headerMenuItems" styleClass="tbl-header-cm" appendTo="body"></p-contextMenu>
 
-<p-table #dt [value]="data" [columns]="columns" [tableStyle]="tableStyleObj" [resizableColumns]="resizable"
-    [columnResizeMode]="resizeMode" [showGridlines]="showGridlines" styleClass="p-datatable-gridlines p-datatable-sm"
-    [globalFilterFields]="actualGlobalFilterFields" [scrollable]="isScrollable" [scrollHeight]="resolvedScrollHeight"
-    [paginator]="paginator" [rows]="rows" [rowsPerPageOptions]="rowsPerPageOptions" [rowGroupMode]="rowGroupMode"
-    [groupRowsBy]="groupRowsBy" [sortMode]="sortMode" [selectionMode]="selectionMode" [(selection)]="selection"
+<!-- ====================================== -->
+<!-- Card View                              -->
+<!-- ====================================== -->
+<div *ngIf="isCardView" class="card-view-container">
+    <div *ngFor="let rowData of data; let i = index; trackBy: trackByIndex" class="card-item"
+        [ngClass]="rowClass ? rowClass(rowData) : null"
+        [class.card-item-selected]="clickSelectRow && clickedRowKey === (dataKey ? rowData[dataKey] : rowData)"
+        (click)="onRowClick(rowData)" (dblclick)="onRowDblClick(rowData)">
+        <ng-container *ngFor="let col of columns; trackBy: trackByField">
+            <div class="card-field" *ngIf="col.editType !== 'progressbar' && col.editType !== 'badge'">
+                <span class="card-field-label">{{ col.header }}</span>
+                <span class="card-field-value" [ngClass]="autoAlignCache[col.field]">
+                    {{ getCardValue(col, rowData) }}
+                </span>
+            </div>
+            <div class="card-field" *ngIf="col.editType === 'badge'">
+                <span class="card-field-label">{{ col.header }}</span>
+                <p-tag [value]="formatValue(col, rowData)"
+                    [severity]="col.badgeSeverity ? col.badgeSeverity(rowData) : undefined">
+                </p-tag>
+            </div>
+        </ng-container>
+    </div>
+    <div *ngIf="!data?.length" class="card-empty">Không có dữ liệu.</div>
+</div>
+
+<p-table #dt *ngIf="isGridView" [value]="data" [columns]="columns" [tableStyle]="tableStyleObj"
+    [resizableColumns]="resizable" [columnResizeMode]="effectiveResizeMode" [showGridlines]="showGridlines"
+    styleClass="p-datatable-gridlines p-datatable-sm" [globalFilterFields]="actualGlobalFilterFields"
+    [scrollable]="isScrollable" [scrollHeight]="resolvedScrollHeight" [paginator]="paginator" [rows]="rows"
+    [rowsPerPageOptions]="rowsPerPageOptions" [rowGroupMode]="rowGroupMode" [groupRowsBy]="groupRowsBy"
+    [sortMode]="sortMode" [selectionMode]="selectionMode" [(selection)]="selection"
     (selectionChange)="onSelectionChange($event)" [dataKey]="dataKey" [loading]="loading"
     [contextMenu]="contextMenuItems.length > 0 ? cm : null" [(contextMenuSelection)]="selectedContextRow"
     (onContextMenuSelect)="onContextMenuSelect($event)" [rowHover]="true" [stripedRows]="stripedRows"
     [reorderableColumns]="reorderableColumns" (onRowReorder)="onRowReorder($event)" (onColResize)="onColResize()"
     [virtualScroll]="isVirtualScroll" [virtualScrollItemSize]="virtualScrollItemSize"
-    [virtualScrollOptions]="mergedVirtualScrollOptions" [stateKey]="stateKey"
-    [stateStorage]="stateStorage" [expandedRowKeys]="expandable ? expandedRows : expandedRowKeys"
-    [rowExpandMode]="rowExpandMode" [editMode]="editMode || 'cell'" [exportFilename]="exportFilename"
-    [filterDelay]="300">
+    [virtualScrollOptions]="mergedVirtualScrollOptions" [stateKey]="stateKey" [stateStorage]="stateStorage"
+    [expandedRowKeys]="expandable ? expandedRows : expandedRowKeys" [rowExpandMode]="rowExpandMode"
+    [editMode]="editMode || 'cell'" [exportFilename]="exportFilename" [filterDelay]="300">
 
-    <!-- Caption with Global Search + Export -->
+    <!-- Caption with Global Search + Export + View Toggle -->
     <ng-template pTemplate="caption">
-        <div *ngIf="title || showGlobalFilter || exportable" class="flex align-items-center gap-2"
+        <div *ngIf="showCaption && (title || showGlobalFilter || exportable)" class="flex align-items-center gap-2"
             [class.justify-content-between]="!!title" [class.justify-content-end]="!title">
             <h4 class="m-0" *ngIf="title">{{ title }}</h4>
             <div class="flex gap-1 align-items-center">
+                <!-- View mode toggle -->
+                <p-button icon="pi pi-id-card" [text]="true" size="small"
+                    [severity]="isCardView ? 'primary' : 'secondary'" title="Card View" (click)="setViewMode('card')">
+                </p-button>
+                <p-button icon="pi pi-table" [text]="true" size="small"
+                    [severity]="isGridView ? 'primary' : 'secondary'" title="Grid View" (click)="setViewMode('grid')">
+                </p-button>
                 <p-button *ngIf="exportable" icon="pi pi-download" severity="success" [text]="true" size="small"
                     (click)="exportCSV()">
                 </p-button>
@@ -42,13 +75,13 @@
             <tr *ngFor="let groupRow of headerGroups">
                 <!-- Empty cells for control columns if needed -->
                 <ng-container *ngIf="reorderableRows">
-                    <th [attr.rowspan]="1" style="width: 3rem"></th>
+                    <th [attr.rowspan]="1" style="width: 3rem; min-width: 3rem; max-width: 3rem"></th>
                 </ng-container>
                 <ng-container *ngIf="expandable">
-                    <th [attr.rowspan]="1" style="width: 4rem"></th>
+                    <th [attr.rowspan]="1" style="width: 4rem; min-width: 4rem; max-width: 4rem"></th>
                 </ng-container>
                 <ng-container *ngIf="selectionMode === 'multiple'">
-                    <th [attr.rowspan]="1" style="width: 3rem"></th>
+                    <th [attr.rowspan]="1" style="width: 3rem; min-width: 3rem; max-width: 3rem"></th>
                 </ng-container>
 
                 <ng-container *ngFor="let h of groupRow">
@@ -66,17 +99,19 @@
             <!-- Expand toggle header -->
             <th *ngIf="expandable" style="width: 4rem"></th>
             <!-- Checkbox header for multiple selection -->
-            <th *ngIf="selectionMode === 'multiple'" style="width: 3rem" pFrozenColumn [frozen]="true"
-                class="frozen-left">
+            <th *ngIf="selectionMode === 'multiple'" style="width: 3rem; min-width: 3rem; max-width: 3rem" pFrozenColumn
+                [frozen]="true" class="frozen-left">
                 <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
             </th>
             <th *ngFor="let col of columns; trackBy: trackByField" [attr.data-field]="col.field" pResizableColumn
-                [pSortableColumn]="col.field" [pSortableColumnDisabled]="!col.sortable || !!col.headerFormat"
-                pFrozenColumn [frozen]="col.frozen || false" [alignFrozen]="col.alignFrozen || 'left'"
-                [style.width]="col.width || null" [style.min-width]="col.width || '60px'" pReorderableColumn
+                [pResizableColumnDisabled]="!resizable || isResizeDisabled(col)" [pSortableColumn]="col.field"
+                [pSortableColumnDisabled]="!col.sortable || !!col.headerFormat" pFrozenColumn
+                [frozen]="col.frozen || false" [alignFrozen]="col.alignFrozen || 'left'"
+                [style.width]="col.width || '150px'" [style.min-width]="getColMinWidth(col) || '40px'"
+                [style.max-width]="getColMaxWidth(col) || null" pReorderableColumn
                 [pReorderableColumnDisabled]="!reorderableColumns"
                 [ngClass]="[col.cssClass || '', col.frozen ? (col.alignFrozen === 'right' ? 'frozen-right' : 'frozen-left') : '']"
-                (contextmenu)="onHeaderContextMenu($event, col.field)">
+                (contextmenu)="onHeaderContextMenu($event, col.field)" (dblclick)="onHeaderDblClick($event, col.field)">
                 <!-- Custom header HTML (e.g., upload icon button) -->
                 <ng-container *ngIf="col.headerFormat; else defaultHeaderContent">
                     <div [innerHTML]="col.headerFormat()"
@@ -125,10 +160,11 @@
                                                     <p-tabpanels>
                                                         <p-tabpanel value="0">
                                                             <div class="flex flex-column gap-2 p-1">
-                                                                <p-iconfield>
+                                                                <p-iconfield class="w-full">
                                                                     <p-inputicon styleClass="pi pi-search" />
                                                                     <input pInputText type="text"
-                                                                        [(ngModel)]="excelFilterSearchText[col.field]"
+                                                                        [ngModel]="excelFilterSearchText[col.field]"
+                                                                        (ngModelChange)="excelFilterSearchText[col.field] = $event"
                                                                         placeholder="Tìm kiếm..."
                                                                         class="p-inputtext-sm w-full"
                                                                         (click)="$event.stopPropagation()" />
@@ -346,7 +382,7 @@
         <tr *ngIf="!expandableRowGroups || isGroupExpanded(rowData[groupRowsBy])" [pSelectableRow]="rowData"
             [pSelectableRowIndex]="rowIndex" [pSelectableRowDisabled]="clickSelectRow"
             [pContextMenuRow]="contextMenuItems.length > 0 ? rowData : null" [pReorderableRow]="rowIndex"
-            [ngClass]="rowClass ? rowClass(rowData) : null"
+            [ngClass]="getRowClass(rowData)"
             [class.row-click-selected]="clickSelectRow && clickedRowKey === (dataKey ? rowData[dataKey] : rowData)"
             (click)="onRowClick(rowData)" (dblclick)="onRowDblClick(rowData)">
             <!-- Drag handle for row reorder -->
@@ -363,7 +399,7 @@
             <td *ngIf="selectionMode === 'multiple'" pFrozenColumn [frozen]="true" class="frozen-left">
                 <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
             </td>
-            <!-- Data columns -->
+            <!-- Data columns (computed value support) -->
             <ng-container *ngFor="let col of columns; trackBy: trackByField">
                 <td *ngIf="showRowSpanCell(rowIndex, col)"
                     [attr.rowspan]="col.rowSpan && rowSpanBy ? getRowSpanCount(rowIndex) : null" pFrozenColumn
@@ -371,6 +407,7 @@
                     [pEditableColumn]="col.editable && editMode && col.editType !== 'table-lookup' && col.editType !== 'progressbar' && col.editType !== 'badge' ? rowData : null"
                     [pEditableColumnField]="col.editable && editMode && col.editType !== 'table-lookup' && col.editType !== 'progressbar' && col.editType !== 'badge' ? col.field : ''"
                     [ngClass]="getTdClass(col, rowData)" [ngStyle]="col.cellStyle ? col.cellStyle(rowData) : null"
+                    [style.min-width]="getColMinWidth(col)" [style.max-width]="getColMaxWidth(col)"
                     (click)="onCellClick($event, col, rowData)">
 
                     <!-- Table Lookup: click cell to open popup directly -->
@@ -429,6 +466,15 @@
                 </td>
             </ng-container>
         </tr>
+        <!-- Preview Row: sub-row showing a long-text field below the main row -->
+        <tr *ngIf="showPreviewRow && previewField && rowData[previewField]" class="preview-row">
+            <td [attr.colspan]="totalColspan" class="preview-cell">
+                <div class="preview-content">
+                    <i class="pi pi-align-left preview-icon"></i>
+                    <span>{{ rowData[previewField] }}</span>
+                </div>
+            </td>
+        </tr>
     </ng-template>
 
     <!-- Visual Renderer Template Fragment -->
@@ -443,10 +489,31 @@
                 [severity]="col.badgeSeverity ? col.badgeSeverity(rowData) : undefined">
             </p-tag>
 
+            <!-- Data Bar: horizontal bar proportional to value -->
+            <ng-container *ngSwitchCase="'databar'">
+                <div class="databar-cell">
+                    <div class="databar-track">
+                        <div class="databar-fill" [style.width]="getDataBarWidth(col, rowData) + '%'"
+                            [style.background]="col.dataBarColor || null">
+                        </div>
+                    </div>
+                    <span *ngIf="col.dataBarShowLabel !== false" class="databar-label">
+                        {{ formatValue(col, rowData) }}
+                    </span>
+                </div>
+            </ng-container>
+
+            <!-- Icon Set: icon based on value threshold rules -->
+            <ng-container *ngSwitchCase="'iconset'">
+                <div class="iconset-cell">
+                    <i [class]="getIconSetIcon(col, rowData)" [style.color]="getIconSetColor(col, rowData)"></i>
+                    <span class="iconset-label">{{ formatValue(col, rowData) }}</span>
+                </div>
+            </ng-container>
+
             <!-- Default Text -->
-            <div *ngSwitchDefault
-                [class]="(col.textWrap !== undefined ? col.textWrap : (col.editType === 'textarea' ? true : textWrap)) ? 'wrap-text' : 'truncate-text'"
-                [title]="rowData[col.field]" [innerHTML]="getCellValue(col, rowData)">
+            <div *ngSwitchDefault [class]="colWrapClassCache[col.field]" [title]="getCellValue(col, rowData)"
+                [innerHTML]="getCellValue(col, rowData)">
             </div>
         </ng-container>
     </ng-template>
@@ -484,12 +551,22 @@
     </ng-template>
 
     <!-- Group Footer -->
-    <ng-template pTemplate="groupfooter" let-rowData *ngIf="rowGroupMode === 'subheader' && rowGroupShowFooter">
-        <tr>
-            <td [attr.colspan]="columns.length + (selectionMode === 'multiple' ? 1 : 0)"
-                class="text-right font-bold pr-3">
-                End of {{ rowData[groupRowsBy] }} Group
-            </td>
+    <ng-template pTemplate="groupfooter" let-rowData
+        *ngIf="rowGroupMode === 'subheader' && (rowGroupShowFooter || groupSummary)">
+        <tr class="group-summary-row">
+            <td *ngIf="reorderableRows"></td>
+            <td *ngIf="expandable"></td>
+            <td *ngIf="selectionMode === 'multiple'" pFrozenColumn [frozen]="true"></td>
+            <ng-container *ngFor="let col of columns; let colFirst = first; trackBy: trackByField">
+                <td pFrozenColumn [frozen]="col.frozen || false" [alignFrozen]="col.alignFrozen || 'left'"
+                    [ngClass]="getAutoAlignClass(col.footerClass || col.cssClass, col)"
+                    class="font-semibold group-summary-cell">
+                    <span *ngIf="groupSummary">{{ getGroupSummaryValue(col, rowData) }}</span>
+                    <span *ngIf="rowGroupShowFooter && !groupSummary && colFirst" class="text-500 text-sm">
+                        End of {{ rowData[groupRowsBy] }}
+                    </span>
+                </td>
+            </ng-container>
         </tr>
     </ng-template>
 

@@ -36,10 +36,23 @@
 .search-bar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 12px;
-    padding: 8px 16px;
+    padding: 0 16px;
     border-bottom: 1px solid #e8e8e8;
     background: #fafafa;
+    min-height: 40px;
+}
+
+.search-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.search-right {
+    display: flex;
+    align-items: center;
 }
 
 .search-field {
@@ -306,7 +319,7 @@
 
 .task-description {
     color: #595959;
-    font-size: 13px;
+    font-size: 11px;
     word-break: break-word;
     white-space: normal;
 }
@@ -314,7 +327,7 @@
 /* Date Text */
 .date-text {
     color: #262626;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 400;
     white-space: nowrap;
 }
@@ -336,10 +349,10 @@
 /* Status Filter */
 .status-filter {
     width: 100%;
-    padding: 4px 6px;
+    padding: 2px 4px;
     border: 1px solid #d9d9d9;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 11px;
     background: #fff;
     cursor: pointer;
     margin: 0 auto;
@@ -365,6 +378,17 @@
     flex-direction: column;
     align-items: center;
     gap: 4px;
+}
+
+:host ::ng-deep .status-cell .p-tag {
+    white-space: pre-line;
+    text-align: center;
+    line-height: 1.2;
+    padding: 2px 4px;
+}
+
+:host ::ng-deep .status-cell .p-tag-value {
+    display: inline-block;
 }
 
 .table-footer-total {
@@ -427,9 +451,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 4px 12px;
+    padding: 2px 8px;
     border-radius: 12px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
 }
@@ -484,20 +508,37 @@
 
 /* PrimeNG Table Overrides */
 :host ::ng-deep .p-datatable {
-    font-size: 14px;
+    font-size: 12px;
 }
 
 :host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
     background: #fafafa;
     font-weight: 500;
     color: #262626;
-    padding: 1px 5px;
+    padding: 4px 2px;
     border-color: #e8e8e8;
     text-align: center;
+    white-space: normal;
+    vertical-align: middle;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th div {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+:host ::ng-deep .p-sortable-column-icon {
+    font-size: 10px !important;
+    margin-left: 4px !important;
 }
 
 :host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
-    padding: 1px 5px;
+    padding: 2px 4px;
     border-color: #f0f0f0;
     color: #595959;
 }
@@ -516,6 +557,7 @@
 
 :host ::ng-deep .p-datatable .p-sortable-column .p-sortable-column-icon {
     color: #8c8c8c;
+    vertical-align: middle;
 }
 
 :host ::ng-deep .p-datatable .p-column-resizer {
@@ -523,8 +565,8 @@
 }
 
 :host ::ng-deep .p-inputtext {
-    padding: 4px 6px;
-    font-size: 12px;
+    padding: 2px 4px;
+    font-size: 11px;
     min-width: 0;
 }
 
@@ -566,14 +608,76 @@
 }
 
 /* Compact column for dates */
-.col-date {
-    padding-left: 4px !important;
-    padding-right: 4px !important;
-    text-align: center !important;
+/* Compact Paginator */
+:host ::ng-deep .compact-paginator {
+    padding: 0 !important;
+    height: 32px;
 }
 
-.col-date .date-text {
-    font-size: 14px;
+:host ::ng-deep .compact-paginator .p-paginator-pages .p-paginator-page,
+:host ::ng-deep .compact-paginator .p-paginator-first,
+:host ::ng-deep .compact-paginator .p-paginator-prev,
+:host ::ng-deep .compact-paginator .p-paginator-next,
+:host ::ng-deep .compact-paginator .p-paginator-last {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    font-size: 11px;
+    margin: 0 1px;
+}
+
+:host ::ng-deep .compact-paginator .p-dropdown {
+    height: 24px;
+    min-width: 60px;
+    margin: 0 8px;
+}
+
+:host ::ng-deep .compact-paginator .p-dropdown .p-dropdown-label {
+    padding: 2px 4px;
+    font-size: 11px;
+    line-height: normal;
+    display: flex;
+    align-items: center;
+}
+
+:host ::ng-deep .compact-paginator .p-paginator-current {
+    font-size: 11px;
+    height: 24px;
+    padding: 0 8px;
+    color: #8c8c8c;
+}
+
+:host ::ng-deep .compact-paginator .p-link {
+    width: 24px;
+    height: 24px;
+}
+
+/* Mobile Paginator in Drawer */
+.drawer-pagination {
+    background: #fff;
+    border-radius: 6px;
+    border: 1px solid #e8e8e8;
+    overflow: hidden;
+}
+
+:host ::ng-deep .mobile-paginator {
+    padding: 4px 8px !important;
+}
+
+:host ::ng-deep .mobile-paginator .p-paginator-current {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1890ff;
+}
+
+:host ::ng-deep .mobile-paginator .p-paginator-pages .p-paginator-page {
+    width: 32px;
+    height: 32px;
+    margin: 0 4px;
+}
+
+:host ::ng-deep .mobile-paginator .p-dropdown {
+    height: 32px;
 }
 
 /* Hide filter menu icon for date columns to save space if needed - currently disabled to show icons */
@@ -733,7 +837,9 @@
 
 /* Base Responsive */
 @media (max-width: 768px) {
-    .main-header, .main-search {
+
+    .main-header,
+    .main-search {
         display: none !important;
     }
 
@@ -749,10 +855,21 @@
         padding: 8px;
     }
 
-    .w-100 { width: 100%; }
-    .flex-1 { flex: 1; }
-    .mb-2 { margin-bottom: 8px; }
-    .mt-2 { margin-top: 8px; }
+    .w-100 {
+        width: 100%;
+    }
+
+    .flex-1 {
+        flex: 1;
+    }
+
+    .mb-2 {
+        margin-bottom: 8px;
+    }
+
+    .mt-2 {
+        margin-top: 8px;
+    }
 }
 
 /* Row selected for copy */
@@ -802,6 +919,7 @@
     height: 95% !important;
     width: 100% !important;
 }
+
 /* MultiSelect Status Filter */
 .status-filter-multi ::ng-deep .p-multiselect {
     background: #ffffff !important;
@@ -872,5 +990,11 @@
 
 /* Custom switch colors if needed to match theme */
 :host ::ng-deep .ant-switch-checked {
-    background-color: #52c41a !important; /* Green */
+    background-color: #52c41a !important;
+    /* Green */
+}
+
+:host ::ng-deep .p-select-label {
+    padding: 2px !important;
+
 }

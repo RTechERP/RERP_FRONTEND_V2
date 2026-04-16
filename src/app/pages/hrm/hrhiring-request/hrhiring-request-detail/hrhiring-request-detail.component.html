@@ -10,15 +10,13 @@
             <legend class="reset fs-12 p-0">THÔNG TIN YÊU CẦU TUYỂN DỤNG</legend>
             <form nz-form nzLayout="vertical" [formGroup]="form">
                 <nz-row [nzGutter]="8">
-                    <div nz-col [nzSpan]="11">
-                        <!-- Tăng từ 8 lên 9 -->
+                    <div nz-col [nzSpan]="12">
                         <nz-form-item class="m-0">
-                            <!-- Phòng ban - ĐÃ CÓ * -->
                             <label class="fs-12 p-0">
                                 Phòng ban/Bộ phận <span class="text-danger fs-12">(*)</span>
                             </label>
                             <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn phòng ban!">
-                                <nz-select name="DepartmentID" class="w-100" nzShowSearch nzAllowClear
+                                <nz-select name="DepartmentID" class="w-100 fs-12" nzShowSearch nzAllowClear
                                     nzPlaceHolder="Chọn phòng ban" formControlName="DepartmentID">
                                     @for (d of departmentList; track $index) {
                                     <nz-option [nzValue]="d.ID" [nzLabel]="d.Name">
@@ -29,28 +27,56 @@
                             </nz-form-control>
                         </nz-form-item>
                     </div>
-                    <div nz-col [nzSpan]="9">
-                        <!-- Tăng từ 8 lên 9 -->
+                    <div nz-col [nzSpan]="12">
                         <nz-form-item class="m-0">
-                            <!-- Vị trí tuyển dụng - THÊM * -->
+                            <label class="fs-12 p-0">
+                                Người yêu cầu <span class="text-danger fs-12">(*)</span>
+                            </label>
+                            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn người yêu cầu!">
+                                <nz-select name="EmployeeRequestID" class="w-100 fs-12" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn người yêu cầu" formControlName="EmployeeRequestID"
+                                    [nzDisabled]="!canSelectEmployee">
+                                    @for (e of employeeList; track $index) {
+                                    <nz-option [nzValue]="e.ID" [nzLabel]="e.FullName">
+                                        {{ e.FullName }}
+                                    </nz-option>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                </nz-row>
+
+                <nz-row [nzGutter]="8" class="mt-2">
+                    <div nz-col [nzSpan]="10">
+                        <nz-form-item class="m-0">
                             <label class="fs-12 p-0">
                                 Vị trí tuyển dụng <span class="text-danger fs-12">(*)</span>
                             </label>
                             <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập vị trí tuyển dụng!">
-                                <input nz-input placeholder="Nhập vị trí" formControlName="PositionName" />
+                                <input nz-input class="fs-12" placeholder="Nhập vị trí"
+                                    formControlName="PositionName" />
                             </nz-form-control>
                         </nz-form-item>
                     </div>
-                    <div nz-col [nzSpan]="4">
-                        <!-- Giảm từ 8 xuống 6 -->
+                    <div nz-col [nzSpan]="8">
                         <nz-form-item class="m-0">
-                            <!-- Số lượng - THÊM * -->
+                            <label class="fs-12 p-0">
+                                Hạn tuyển dụng <span class="text-danger fs-12">(*)</span>
+                            </label>
+                            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn hạn tuyển dụng!">
+                                <input nz-input type="date" class="w-100 fs-12" formControlName="HiringDeadline" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                    <div nz-col [nzSpan]="6">
+                        <nz-form-item class="m-0">
                             <label class="fs-12 p-0">
                                 Số lượng <span class="text-danger fs-12">(*)</span>
                             </label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-input-number class="w-100" formControlName="QuantityHiring" [nzMin]="1" [nzMax]="50"
-                                    nzPlaceHolder="1"></nz-input-number>
+                                <nz-input-number class="w-100 fs-12" formControlName="QuantityHiring" [nzMin]="1"
+                                    [nzMax]="50" nzPlaceHolder="1"></nz-input-number>
                             </nz-form-control>
                         </nz-form-item>
                     </div>

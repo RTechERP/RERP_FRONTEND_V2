@@ -22,6 +22,15 @@ export interface ColumnDef {
     header: string;
     /** Column width, e.g. '25%' or '200px' */
     width?: string;
+    /** Minimum column width. Number = px; string = CSS value. Example: 60 or '4rem' */
+    minWidth?: string | number;
+    /** Maximum column width. Number = px; string = CSS value. Example: 300 or '20rem' */
+    maxWidth?: string | number;
+    /** Lock this column's width: disables drag-resize for this column.
+     *  Useful for fixed-size columns (STT, checkbox action) when columnAutoWidth is on. */
+    fixedWidth?: boolean;
+    /** Allow user to drag-resize this column. Default: true. Set false to lock resize. */
+    allowResize?: boolean;
     /** PrimeNG filter type: 'text' | 'numeric' | 'date'. Default: 'text' */
     filterType?: string;
     /** Filter UI mode: 'input' | 'dropdown' | 'multiselect'. Default: 'input' */
@@ -63,7 +72,7 @@ export interface ColumnDef {
     /** Edit input type: 'text' (default) | 'number' | 'date' | 'lookup' | 'table-lookup' | 'textarea' | 'progressbar' | 'badge'.
      *  'date' shows a date picker. 'lookup' shows a searchable dropdown. 'table-lookup' shows a popup table.
      *  'progressbar' and 'badge' are read-only visual types. */
-    editType?: 'text' | 'number' | 'date' | 'lookup' | 'table-lookup' | 'textarea' | 'progressbar' | 'badge';
+    editType?: 'text' | 'number' | 'date' | 'lookup' | 'table-lookup' | 'textarea' | 'progressbar' | 'badge' | 'databar' | 'iconset';
     /** Dynamic severity for badge type based on row data. */
     badgeSeverity?: (rowData: any) => 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' | undefined;
     /** Date format for date picker (PrimeNG format). Default: 'dd/mm/yy'.
@@ -104,4 +113,22 @@ export interface ColumnDef {
     excludeFromExport?: boolean;
     id?: string;
     name?: string;
+    /** Computed/unbound column: function to derive cell value from rowData instead of rowData[field].
+     *  Example: (row) => row.qty * row.price */
+    computed?: (rowData: any) => any;
+    /** For 'databar' editType: minimum value for bar scale (default: 0) */
+    dataBarMin?: number;
+    /** For 'databar' editType: maximum value for bar scale. Auto-computed from data if omitted. */
+    dataBarMax?: number;
+    /** For 'databar' editType: fill color. Default: primary color */
+    dataBarColor?: string;
+    /** For 'databar' editType: show numeric label on top of bar. Default: true */
+    dataBarShowLabel?: boolean;
+    /** For 'iconset' editType: rules mapping value thresholds to icons/colors.
+     *  Each rule: { threshold: number; icon: string; color: string }
+     *  Rules are evaluated in order; first matching threshold (value >= threshold) wins.
+     *  Example: [{ threshold: 80, icon: 'pi pi-arrow-up', color: 'green' }, { threshold: 50, icon: 'pi pi-minus', color: 'orange' }, { threshold: 0, icon: 'pi pi-arrow-down', color: 'red' }] */
+    iconSetRules?: Array<{ threshold: number; icon: string; color: string }>;
+    /** For 'iconset' editType: default icon when no rule matches */
+    iconSetDefault?: string;
 }

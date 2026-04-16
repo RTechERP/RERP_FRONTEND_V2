@@ -23,6 +23,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { HrhiringRequestService } from '../hrhiring-request-service/hrhiring-request.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../app.config';
+import { AppUserService } from '../../../../services/app-user.service';
 
 @Component({
   selector: 'app-hrhiring-request-detail',
@@ -56,6 +57,8 @@ export class HrhiringRequestDetailComponent implements OnInit {
   departmentList: any[] = [];
   positionList: any[] = [];
   educationList: any[] = [];
+  employeeList: any[] = [];
+  canSelectEmployee: boolean = false;
 
   // Education options - giữ nguyên value số
   educationOptions = [
@@ -93,10 +96,13 @@ export class HrhiringRequestDetailComponent implements OnInit {
     private fb: FormBuilder,
     private service: HrhiringRequestService,
     private notification: NzNotificationService,
+    private notificationService: NzNotificationService,
+    private appUserService: AppUserService,
     public activeModal: NgbActiveModal
   ) { }
 
   ngOnInit(): void {
+    this.canSelectEmployee = this.appUserService.hasPermission('N1') || this.appUserService.hasPermission('N2');
     this.initForm();
     this.loadMasterData();
     this.loadData();
@@ -106,6 +112,8 @@ export class HrhiringRequestDetailComponent implements OnInit {
     this.form = this.fb.group({
       // Basic info - TẤT CẢ REQUIRED
       DepartmentID: [null, Validators.required],
+      EmployeeRequestID: [this.appUserService.employeeID, Validators.required],
+      HiringDeadline: [new Date().toISOString().slice(0, 10), [Validators.required]],
       PositionName: ['', Validators.required],
       QuantityHiring: [
         1,
@@ -223,6 +231,37 @@ export class HrhiringRequestDetailComponent implements OnInit {
         );
       },
     });
+
+    // Load employees if has permission
+    if (this.canSelectEmployee) {
+      this.service.getEmployees().subscribe({
+        next: (response: any) => {
+          if (response?.status === 1 && Array.isArray(response.data)) {
+            this.employeeList = response.data;
+          } else if (Array.isArray(response)) {
+            this.employeeList = response;
+          } else {
+            this.employeeList = [];
+          }
+        },
+        error: (err: any) => {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
+        },
+      });
+    } else {
+      // Nếu không có quyền, chỉ cần thêm user hiện tại vào danh sách để hiển thị
+      this.employeeList = [
+        {
+          ID: this.appUserService.employeeID,
+          FullName: this.appUserService.fullName,
+        },
+      ];
+    }
   }
 
   private loadData(): void {
@@ -232,6 +271,8 @@ export class HrhiringRequestDetailComponent implements OnInit {
       // Load basic fields
       this.form.patchValue({
         DepartmentID: this.data.DepartmentID,
+        EmployeeRequestID: this.data.EmployeeRequestID,
+        HiringDeadline: this.data.HiringDeadline ? this.data.HiringDeadline.toString().slice(0, 10) : null,
         PositionName: this.data.PositionName || '',
         QuantityHiring: this.data.QuantityHiring || 1,
         SalaryMin: this.data.SalaryMin || 0,
@@ -898,6 +939,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
     const hiringRequestData = {
       ID: this.data?.ID || 0,
       DepartmentID: formData.DepartmentID || 0,
+      EmployeeRequestID: formData.EmployeeRequestID || this.appUserService.employeeID,
       PositionName: formData.PositionName || '',
       QuantityHiring: formData.QuantityHiring || 1,
       SalaryMin: formData.SalaryMin || null,
@@ -909,6 +951,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
       JobDescription: formData.JobDescription || '',
       Note: formData.Note || '',
       DateRequest: new Date().toISOString(),
+      HiringDeadline: formData.HiringDeadline || null,
     };
 
     const payload = {
@@ -968,6 +1011,16 @@ export class HrhiringRequestDetailComponent implements OnInit {
     // 1. Check basic required fields
     if (!this.form.get('DepartmentID')?.value) {
       errors.push('• Vui lòng chọn phòng ban/bộ phận');
+      isValid = false;
+    }
+
+    if (!this.form.get('EmployeeRequestID')?.value) {
+      errors.push('• Vui lòng chọn người yêu cầu');
+      isValid = false;
+    }
+
+    if (!this.form.get('HiringDeadline')?.value) {
+      errors.push('• Vui lòng chọn hạn tuyển dụng');
       isValid = false;
     }
 

@@ -25,6 +25,7 @@ import { ProjectComponent } from '../../pages/project/project.component';
 import { TbProductRtcComponent } from '../../pages/old/tb-product-rtc/tb-product-rtc.component';
 import { CustomerComponent } from '../../pages/crm/customers/customer/customer.component';
 // import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
+import { ChangePasswordComponent } from '../../auth/change-password/change-password.component';
 
 // import { menus } from '../../pages/old/menus/menus.component';
 import {
@@ -55,6 +56,7 @@ import { UpdateVersionDetailComponent } from '../../pages/systems/update-version
 import { take, filter, tap, catchError } from 'rxjs/operators';
 import { Subscription, forkJoin, of } from 'rxjs';
 import { TabServiceService, TabCompPayload } from '../tab-service.service';
+import { PersonalInfomationComponent } from '../../pages/general-category/infomation-personal/personal-infomation.component';
 
 type TabItem = {
     title: string;
@@ -285,6 +287,15 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
             }
         });
 
+        // Subscribe to TabService for opening route-based tabs
+        this.tabService.tabRequest$.subscribe(payload => {
+            this.newTab(payload.route, payload.title, payload.queryParams);
+        });
+
+        // Handle direct navigation to personal information
+        if (this.router.url.includes('personal-information')) {
+            this.newTabComp(PersonalInfomationComponent, 'Thông tin cá nhân', 'personal-information');
+        }
     }
 
     getCompMenus() {
@@ -882,11 +893,6 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         // this.dynamicTabs = [];
 
 
-        if (this.dynamicTabs.length) {
-            for (let i = 0; i < this.dynamicTabs.length; i++) {
-                this.closeTab(i);
-            }
-        }
 
         this.isCollapsed = true;
 

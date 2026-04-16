@@ -65,6 +65,10 @@ export class AuthService {
         });
     }
 
+    changePassword(param: any): Observable<any> {
+        return this.http.post(this.apiUrl + 'change-password', param);
+    }
+
     loginCandidate(credentials: any): Observable<any> {
         return this.http.post(environment.host + 'api/HRRecruitmentApplicationForm/login-candidate', credentials).pipe(
             tap((response: any) => {
@@ -225,5 +229,9 @@ export class AuthService {
 
     isReAuthenticated(): boolean {
         return sessionStorage.getItem('is_reauthenticated') === 'true';
+    }
+
+    isAutoLoginEnabled(): boolean {
+        return localStorage.getItem('auto_login') === 'true';
     }
 }

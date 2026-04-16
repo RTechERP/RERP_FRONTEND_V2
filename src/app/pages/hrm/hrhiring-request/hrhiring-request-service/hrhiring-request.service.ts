@@ -329,6 +329,10 @@ export class HrhiringRequestService {
     return this.http.get<any>(this.apiUrl + 'get-employee-chuc-vu-hd');
   }
 
+  getEmployees(): Observable<any> {
+    return this.http.get<any>(environment.host + 'api/Employee/employees');
+  }
+
   deleteHiringRequest(id: number): Observable<any> {
     const deleteData = {
       HiringRequests: {

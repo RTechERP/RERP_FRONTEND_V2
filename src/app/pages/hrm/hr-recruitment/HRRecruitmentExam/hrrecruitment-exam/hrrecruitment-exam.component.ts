@@ -149,7 +149,7 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
         const specialAdminIds = [54, 1, 2, 3, 400, 401, 402, 403];
 
         // Determine admin status
-        this.isAdmin = this.appUserService.isAdmin || specialAdminIds.includes(this.appUserService.employeeID || 0);
+        this.isAdmin = this.appUserService.isAdmin || specialAdminIds.includes(this.appUserService.employeeID || (this.appUserService.departmentID == 6) ? 1 : 0);
         // Auto-fill department if not admin
         if (!this.isAdmin) {
             this.departmentId = this.appUserService.departmentID || null;

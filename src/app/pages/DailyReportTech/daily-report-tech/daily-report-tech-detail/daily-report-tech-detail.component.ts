@@ -732,7 +732,11 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
           label: 'Báo cáo',
           type: 'primary',
           onClick: async () => {
-            this.submitDailyReport(summaryContent);
+            // 1. Thực hiện copy ngay lập tức (để ăn theo User Gesture của nút click)
+            const copyStatus = await this.copyToClipboard(summaryContent);
+            
+            // 2. Gọi hàm lưu và truyền kết quả copy vào
+            this.submitDailyReport(summaryContent, copyStatus);
             modal.destroy();
           }
         }
@@ -1162,11 +1166,11 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
       if (report.PercentComplete === 0) {
         return { isValid: false, message: `${prefixText}% Hoàn thành phải lớn hơn 0!` };
       }
-      
+
       if (report.PercentComplete < 0 || report.PercentComplete > 100) {
         return { isValid: false, message: `${prefixText}% Hoàn thành phải từ 0 đến 100!` };
       }
-      
+
 
       if (report.PercentComplete === 0) {
         return { isValid: false, message: `${prefixText}% Hoàn thành phải lớn hơn 0!` };
@@ -1236,7 +1240,7 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
   }
 
   // Submit báo cáo (gọi API)
-  submitDailyReport(summaryContent?: string): void {
+  submitDailyReport(summaryContent: string, alreadyCopiedStatus: boolean = false): void {
     if (this.saving) {
       return;
     }
@@ -1265,8 +1269,11 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
         if (response && response.status === 1) {
           this.notification.success('Thông báo', response.message || 'Báo cáo đã được lưu thành công!');
 
-          // Copy vào clipboard sau khi lưu thành công
-          if (summaryContent) {
+          // Hiển thị thông báo đã copy (nếu việc copy ở bước click trước đó thành công)
+          if (alreadyCopiedStatus) {
+            this.notification.success('Thông báo', 'Đã copy nội dung báo cáo vào clipboard!');
+          } else if (summaryContent) {
+            // Nếu bước click chưa kịp copy hoặc copy fail, thử lại lần cuối (dành cho Desktop)
             this.copyToClipboard(summaryContent).then(copySuccess => {
               if (copySuccess) {
                 this.notification.success('Thông báo', 'Đã copy nội dung báo cáo vào clipboard!');
@@ -1361,7 +1368,7 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Không có dữ liệu để lưu! Vui lòng chọn ít nhất một dự án và hạng mục công việc.');
       return;
     }
-    
+
 
     // Bước 3: Validate dữ liệu flat (validateFlatData)
     const flatValidation = this.validateFlatData(reports);

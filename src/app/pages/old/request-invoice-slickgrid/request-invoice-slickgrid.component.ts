@@ -249,9 +249,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         setTimeout(() => {
             if (tabIndex === 0 && this.angularGridFile?.resizerService) {
                 this.angularGridFile.resizerService.resizeGrid();
+                this.angularGridFile.slickGrid?.invalidate();
             }
             if (tabIndex === 1 && this.angularGridPOFile?.resizerService) {
                 this.angularGridPOFile.resizerService.resizeGrid();
+                this.angularGridPOFile.slickGrid?.invalidate();
+                this.angularGridPOFile.slickGrid?.render();
             }
         }, 150);
     }
@@ -798,6 +801,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     loadDetailData(id: number): void {
         this.isLoadingDetail = true;
         this.isLoadingFile = true;
+        this.POFiles = [];
+        this.datasetPOFile = [];
+        if (this.angularGridPOFile && this.angularGridPOFile.dataView) {
+            this.angularGridPOFile.dataView.setItems([]);
+        }
+
         this.RequestInvoiceSlickgridService.getDetail(id).subscribe({
             next: (response) => {
                 if (response.status === 1) {
@@ -865,10 +874,17 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 if (response.status === 1) {
                     this.POFiles = response.data;
                     this.selectedPOFile = null;
-                    this.datasetPOFile = this.POFiles.map((item: any, index: number) => ({
+                    this.datasetPOFile = [...this.POFiles.map((item: any, index: number) => ({
                         ...item,
                         id: item.ID || `pofile_${index}`
-                    }));
+                    }))];
+
+                    // Ép Grid cập nhật thủ công DataView nếu grid đã được khởi tạo
+                    if (this.angularGridPOFile && this.angularGridPOFile.dataView) {
+                        this.angularGridPOFile.dataView.setItems(this.datasetPOFile);
+                        this.angularGridPOFile.slickGrid.invalidate();
+                        this.angularGridPOFile.slickGrid.render();
+                    }
                 } else {
                     this.notification.create(
                         NOTIFICATION_TYPE_MAP[response.status] || 'error',

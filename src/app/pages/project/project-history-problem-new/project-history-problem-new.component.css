@@ -1,0 +1,114 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.project-history-problem-page {
+  background: #fff;
+}
+
+:h.card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.card-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-context-menu {
+  position: fixed;
+  z-index: 10000;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  box-shadow: 0 3px 6px -4px rgba(0, 0, 0, .12), 0 6px 16px 0 rgba(0, 0, 0, .08);
+  padding: 4px 0;
+  min-width: 140px;
+}
+
+.context-menu-item {
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+  transition: background 0.15s;
+}
+
+.context-menu-item:hover {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.link-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+::ng-deep .link-tabs .p-tabpanels {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+}
+
+::ng-deep .link-tabs .p-tabpanel {
+  height: 100%;
+  padding: 0;
+}
+
+/* Constrain nz-table in lower section to respect flex layout */
+::ng-deep .ant-table-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .ant-table-wrapper .ant-spin-nested-loading,
+::ng-deep .ant-table-wrapper .ant-spin-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .ant-table-wrapper .ant-table {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .ant-table-wrapper .ant-table-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .ant-table-wrapper .ant-table-body {
+  flex: 1;
+  min-height: 0;
+}
+
+::ng-deep .ant-table-placeholder .ant-empty {
+  margin: 8px 0;
+}
+
+::ng-deep .ant-table-placeholder .ant-empty .ant-empty-image svg {
+  width: 40px;
+  height: 26px;
+}

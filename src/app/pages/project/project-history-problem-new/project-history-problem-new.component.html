@@ -1,0 +1,231 @@
+<div class="project-history-problem-page" [style.height]="isModalMode ? '100vh' : 'calc(100vh - 40px - 1rem)'"
+  style="display: flex; flex-direction: column; overflow: hidden;">
+  <!-- Header -->
+  <div *ngIf="isModalMode" class="bg-primary align-items-center ps-2 pe-2"
+    style="flex-shrink: 0; display: flex; justify-content: space-between; padding: 0.5rem;">
+    <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem;">
+      Lịch sử phát sinh dự án {{projectCode}} (Mới)
+    </h6>
+    <button type="button" class="btn-close" (click)="onCloseModal()" aria-label="Close"></button>
+  </div>
+
+  <p-menubar [model]="menuBars" class="p-1">
+    <ng-template pTemplate="item" let-item>
+      <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command($event) : null">
+        <i [class]="item.icon"></i>
+        <span class="p-menuitem-text">{{ item.label }}</span>
+      </a>
+    </ng-template>
+  </p-menubar>
+
+  <!-- Body: Bảng chính (trên) + ảnh preview (dưới) -->
+  <div style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+
+    <!-- Phần trên: Bảng chính - chiếm 60% -->
+    <div [style.flex]="isModalMode ? '6' : '6'"
+      style="min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
+      <app-custom-table style="height: 100%" [columns]="columns" [data]="dataHistory" [loading]="isLoadHistory"
+        dataKey="ID" [paginator]="false" [scrollable]="true" scrollHeight="flex" [lazyRenderThreshold]="0"
+        [virtualScroll]="false" selectionMode="multiple" [(selection)]="selectedHistoryRows" [clickSelectRow]="true"
+        (rowClick)="onRowClickForPreview($event)">
+      </app-custom-table>
+    </div>
+
+    <!-- Thanh chia -->
+    <div style="flex-shrink: 0; height: 3px; background: #d9d9d9; cursor: row-resize;"></div>
+
+    <!-- Phần dưới: Link liên quan + ảnh đính kèm - chiếm 40% -->
+    <div [style.flex]="isModalMode ? '4' : '4'"
+      style="min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding: 6px 8px;">
+      <h6 class="text-secondary mb-1" style="flex-shrink: 0; font-size: 13px;">
+        <i class="fa-solid fa-circle-info me-2"></i>Chi tiết dòng
+        <span *ngIf="previewRow" class="text-muted" style="font-size: 11px;">
+          — Dòng: {{ previewRow.STT || previewRow.ID }}
+        </span>
+      </h6>
+
+      <div style="flex: 1; min-height: 0; display: flex; gap: 6px; overflow: hidden;">
+
+        <!-- Bên trái: 3 bảng link liên quan -->
+        <div style="flex: 1; height: 100%; overflow: hidden; display: flex; flex-direction: column;">
+          <p-tabs [(value)]="activeLinkTab" class="link-tabs">
+            <p-tablist>
+              <p-tab value="0" class="p-2">Hạng mục công việc</p-tab>
+              <p-tab value="1" class="p-2">Nhân công</p-tab>
+              <p-tab value="2" class="p-2">Vật tư dự án</p-tab>
+            </p-tablist>
+
+            <p-tabpanels>
+              <p-tabpanel value="0" style="height: 100%; padding: 0;">
+                <nz-table #itemTable [nzData]="linkedProjectItems" nzSize="small" [nzShowPagination]="false" nzBordered
+                  [nzFrontPagination]="false" [nzScroll]="{ y: '15vh' }" style="flex: 1; min-height: 0;">
+                  <thead>
+                    <tr>
+                      <th nzWidth="50px" class="text-center py-1">STT</th>
+                      <th nzWidth="150px" class="py-1">Mã</th>
+                      <th class="py-1">Nhiệm vụ</th>
+                      <th nzWidth="90px" class="py-1">Trạng thái</th>
+                      <th nzWidth="100px" class="text-center py-1">Kế hoạch BĐ</th>
+                      <th nzWidth="100px" class="text-center py-1">Kế hoạch KT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of linkedProjectItems; let i = index" style="font-size: 12px;">
+                      <td class="text-center py-1">{{ item.STT || (i + 1) }}</td>
+                      <td class="py-1 text-truncate" style="max-width: 80px;" [title]="item.Code">{{ item.Code }}</td>
+                      <td class="py-1 text-truncate" style="max-width: 200px;" [title]="item.Mission">{{ item.Mission }}
+                      </td>
+                      <td class="py-1">
+                        <span *ngIf="item.Status === 1">Chưa làm</span>
+                        <span *ngIf="item.Status === 2">Đang làm</span>
+                        <span *ngIf="item.Status === 3">Hoàn thành</span>
+                        <span *ngIf="!item.Status">—</span>
+                      </td>
+                      <td class="text-center py-1">{{ item.PlanStartDate ? (item.PlanStartDate | date:'dd/MM/yyyy') : ''
+                        }}</td>
+                      <td class="text-center py-1">{{ item.PlanEndDate ? (item.PlanEndDate | date:'dd/MM/yyyy') : '' }}
+                      </td>
+                    </tr>
+                    <tr *ngIf="linkedProjectItems.length === 0">
+                      <td colspan="6" class="text-center text-muted py-2" style="font-size: 12px;">
+                        <span *ngIf="!previewRow">Click vào một dòng để xem hạng mục công việc liên quan</span>
+                        <span *ngIf="previewRow">Không có hạng mục công việc liên quan</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </nz-table>
+              </p-tabpanel>
+
+              <p-tabpanel value="1" style="height: 100%; padding: 0;">
+                <nz-table #workerTable [nzData]="linkedWorkerVersions" nzSize="small" [nzShowPagination]="false"
+                  nzBordered [nzFrontPagination]="false" [nzScroll]="{ y: '15vh' }" style="flex: 1; min-height: 0;">
+                  <thead>
+                    <tr>
+                      <th nzWidth="50px" class="text-center py-1">STT</th>
+                      <th nzWidth="140px" class="py-1">Mã</th>
+                      <th class="py-1">Mô tả</th>
+                      <th nzWidth="90px" class="py-1">Loại</th>
+                      <th nzWidth="150px" class="py-1">Người duyệt</th>
+                      <th nzWidth="80px" class="text-center py-1">Hiệu lực</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of linkedWorkerVersions; let i = index" style="font-size: 12px;">
+                      <td class="text-center py-1">{{ item.STT || (i + 1) }}</td>
+                      <td class="py-1 text-truncate" style="max-width: 100px;" [title]="item.Code">{{ item.Code }}</td>
+                      <td class="py-1 text-truncate" style="max-width: 220px;" [title]="item.DescriptionVersion">{{
+                        item.DescriptionVersion }}</td>
+                      <td class="py-1">{{ item.StatusVersionText || (item.StatusVersion === 1 ? 'Giải pháp' :
+                        item.StatusVersion === 2 ? 'PO' : '—') }}</td>
+                      <td class="py-1 text-truncate" style="max-width: 140px;"
+                        [title]="item.ApprovedByName || item.ApprovedName || item.ApproverName || item.ApprovedBy || item.UpdatedBy || item.ApprovedID || '—'">
+                        {{ item.ApprovedByName || item.ApprovedName || item.ApproverName || item.ApprovedBy ||
+                        item.UpdatedBy || item.ApprovedID || '—' }}
+                      </td>
+                      <td class="text-center py-1">{{ item.IsActive ? 'Có' : 'Không' }}</td>
+                    </tr>
+                    <tr *ngIf="linkedWorkerVersions.length === 0">
+                      <td colspan="6" class="text-center text-muted py-2" style="font-size: 12px;">
+                        <span *ngIf="!previewRow">Click vào một dòng để xem nhân công liên kết</span>
+                        <span *ngIf="previewRow">Không có nhân công liên kết</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </nz-table>
+              </p-tabpanel>
+
+              <p-tabpanel value="2" style="height: 100%; padding: 0;">
+                <nz-table #partlistTable [nzData]="linkedPartListVersions" nzSize="small" [nzShowPagination]="false"
+                  nzBordered [nzFrontPagination]="false" [nzScroll]="{ y: '15vh' }" style="flex: 1; min-height: 0;">
+                  <thead>
+                    <tr>
+                      <th nzWidth="50px" class="text-center py-1">STT</th>
+                      <th nzWidth="140px" class="py-1">Mã</th>
+                      <th class="py-1">Mô tả</th>
+                      <th nzWidth="90px" class="py-1">Loại</th>
+                      <th nzWidth="150px" class="py-1">Người duyệt</th>
+                      <th nzWidth="90px" class="text-center py-1">Duyệt</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of linkedPartListVersions; let i = index" style="font-size: 12px;">
+                      <td class="text-center py-1">{{ item.STT || (i + 1) }}</td>
+                      <td class="py-1 text-truncate" style="max-width: 100px;" [title]="item.Code">{{ item.Code }}</td>
+                      <td class="py-1 text-truncate" style="max-width: 220px;" [title]="item.DescriptionVersion">{{
+                        item.DescriptionVersion }}</td>
+                      <td class="py-1">{{ item.StatusVersionText || (item.StatusVersion === 1 ? 'Giải pháp' :
+                        item.StatusVersion === 2 ? 'PO' : '—') }}</td>
+                      <td class="py-1 text-truncate" style="max-width: 140px;"
+                        [title]="item.ApprovedByName || item.ApprovedName || item.ApproverName || item.ApprovedTBPName || item.ApprovedBy || item.ApprovedID || item.ApprovedTBPID || '—'">
+                        {{ item.ApprovedByName || item.ApprovedName || item.ApproverName || item.ApprovedTBPName ||
+                        item.ApprovedBy || item.ApprovedID || item.ApprovedTBPID || '—' }}
+                      </td>
+                      <td class="text-center py-1">{{ item.IsApproved ? 'Đã duyệt' : 'Chưa duyệt' }}</td>
+                    </tr>
+                    <tr *ngIf="linkedPartListVersions.length === 0">
+                      <td colspan="6" class="text-center text-muted py-2" style="font-size: 12px;">
+                        <span *ngIf="!previewRow">Click vào một dòng để xem vật tư dự án liên kết</span>
+                        <span *ngIf="previewRow">Không có vật tư dự án liên kết</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </nz-table>
+              </p-tabpanel>
+            </p-tabpanels>
+          </p-tabs>
+        </div>
+
+        <!-- Bên phải: ảnh đính kèm (danh sách dọc, full chiều cao) -->
+        <div
+          style="width: 320px; min-width: 280px; height: 100%; overflow: hidden; display: flex; flex-direction: column;">
+          <div class="d-flex align-items-center mb-1" style="flex-shrink: 0;">
+            <span style="font-size: 12px; font-weight: 600; color: #555;">
+              <i class="fa-solid fa-images me-1"></i>Ảnh đính kèm
+            </span>
+          </div>
+          <nz-table #imgTable [nzData]="previewImages" nzSize="small" [nzShowPagination]="false" nzBordered
+            [nzFrontPagination]="false" [nzScroll]="{ y: '19vh' }" style="flex: 1; min-height: 0;">
+            <thead>
+              <tr>
+                <th nzWidth="50px" class="text-center py-1">STT</th>
+                <th class="py-1">Tên ảnh</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let img of previewImages; let i = index" style="font-size: 12px; cursor: pointer;"
+                [class.table-active]="selectedPreviewImage === img" (click)="selectedPreviewImage = img"
+                (dblclick)="openImageInNewTab(img)" (contextmenu)="onImageContextMenu($event, img)">
+                <td class="text-center py-1">{{ i + 1 }}</td>
+                <td class="text-truncate py-1" style="max-width: 200px;" [title]="img.FileName">
+                  {{ img.FileName }}
+                </td>
+              </tr>
+              <tr *ngIf="previewImages.length === 0">
+                <td colspan="2" class="text-center text-muted py-1" style="font-size: 11px;">
+                  <span *ngIf="!previewRow">Click dòng để xem ảnh</span>
+                  <span *ngIf="previewRow">Không có ảnh</span>
+                </td>
+              </tr>
+            </tbody>
+          </nz-table>
+        </div>
+
+        <!-- Context menu chuột phải -->
+        <div *ngIf="contextMenuVisible" class="custom-context-menu" [style.top.px]="contextMenuY"
+          [style.left.px]="contextMenuX" (mouseleave)="contextMenuVisible = false">
+          <div class="context-menu-item" (click)="openImageInNewTab(contextMenuImage); contextMenuVisible = false">
+            <i class="fa-solid fa-up-right-from-square me-2"></i>Xem ảnh
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Footer -->
+  <div *ngIf="isModalMode" class="modal-footer bg-whitesmoke p-2 d-flex justify-content-end gap-2"
+    style="flex-shrink: 0;">
+    <button nz-button nzType="default" nzDanger (click)="onCloseModal()">
+      Đóng
+    </button>
+  </div>
+</div>

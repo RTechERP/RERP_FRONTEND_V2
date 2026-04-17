@@ -211,6 +211,10 @@ export class PaymentOrderService {
     getPaymentOrderByTeam(data: any): Observable<any> {
         return this.http.post<any>(`${this.url}/get-payment-order-team`, data);
     }
+    getCurrencyConfig(): Observable<CurrencyConfig> {
+        return this.http.get<any>(`${this.url}/get-currency-config`);
+    }
+
 }
 
 
@@ -228,5 +232,6 @@ export const CURRENCY_CONFIGS: CurrencyConfig[] = [
     { id: 'jpy', text: 'JPY', unit: 'yên', subUnit: 'sen' },
     { id: 'sgd', text: 'SGD', unit: 'đô', subUnit: 'cent' },
     { id: 'cny', text: 'CNY', unit: 'nhân dân tệ', subUnit: '' },
-    { id: 'inr', text: 'INR', unit: 'rupee', subUnit: 'paise' }
+    { id: 'inr', text: 'INR', unit: 'rupee', subUnit: 'paise' },
+    { id: 'myr', text: 'MYR', unit: 'ringgit', subUnit: 'sen' },
 ];

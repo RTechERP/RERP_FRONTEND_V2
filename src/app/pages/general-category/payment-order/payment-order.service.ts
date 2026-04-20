@@ -35,12 +35,19 @@ export class PaymentOrderService {
     get(data: any): Observable<any> {
         return this.http.post<any>(this.url, data);
     }
+    getPaging(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/paging`, data);
+    }
     getSpecial(data: any): Observable<any> {
         return this.http.post<any>(`${this.url}/special`, data);
     }
 
     getDetail(id: number): Observable<any> {
         return this.http.get<any>(this.url + `/${id}`);
+    }
+
+    deleteMulti(ids: number[]): Observable<any> {
+        return this.http.post<any>(`${this.url}/delete-multi`, ids);
     }
 
     getLogNew(paymentOrderId: number): Observable<any> {
@@ -104,6 +111,10 @@ export class PaymentOrderService {
 
     appovedKHReceive(data: any): Observable<any> {
         return this.http.post<any>(`${this.url}/appoved-khreceive`, data);
+    }
+
+    approved(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/approved`, data);
     }
 
     uploadFiles(file: any): Observable<any> {

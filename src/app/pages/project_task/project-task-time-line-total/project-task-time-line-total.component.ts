@@ -92,13 +92,23 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
   ngOnInit() {
     this.departmentId = this.appUserService.departmentID || 0;
+    this.teamId = this.appUserService.currentUser?.TeamOfUser || 0;
     this.userId = this.appUserService.id || 0;
+
     this.loadDepartments();
-    this.loadEmployees();
+    this.loadProjects();
+
     if (this.departmentId > 0) {
       this.loadTeamsByDepartment(this.departmentId);
     }
-    this.loadProjects();
+
+    // Nếu đã có teamId thì load nhân viên theo team, ngược lại load theo phòng ban
+    if (this.teamId > 0) {
+      this.loadEmployeesByTeam(this.teamId);
+    } else {
+      this.loadEmployees();
+    }
+
     this.loadTimeline();
   }
 

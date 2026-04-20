@@ -58,15 +58,15 @@
                             <input type="text" class="filter-input" [(ngModel)]="filterKeyword" (keyup)="applyFilters()"
                                 placeholder="Tìm mã/tên...">
                         </th>
-                        <th rowspan="2" class="col-status">
+                        <th rowspan="2" class="sticky-col col-status">
                             Trạng Thái
                             <p-multiSelect [options]="statusOptions" [(ngModel)]="selectedStatuses" placeholder="Tất cả"
                                 [showHeader]="false" [filter]="false" (onChange)="applyFilters()"
                                 styleClass="timeline-status-multi" [maxSelectedLabels]="1"
                                 selectedItemsLabel="{0} trạng thái" appendTo="body" />
                         </th>
-                        <th rowspan="2" class="col-time">Thời gian (h)</th>
-                        <th rowspan="2" class="col-type">Loại</th>
+                        <th rowspan="2" class="sticky-col col-time">Thời gian (h)</th>
+                        <th rowspan="2" class="sticky-col col-type">Loại</th>
                         <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday" class="date-header">
                             {{ col.dayName }}
                         </th>
@@ -84,12 +84,12 @@
                                 <tr [class.row-actual]="ri === 1">
                                     <!-- STT: chỉ ở dòng đầu tiên của dự án -->
                                     <td *ngIf="ti === 0 && ri === 0" [attr.rowspan]="group.tasks.length * 2"
-                                        class="sticky-col col-stt text-center cell-group">
+                                        class="sticky-col col-stt text-center cell-group cell-group-end">
                                         {{ gi + 1 }}
                                     </td>
                                     <!-- Dự án: chỉ ở dòng đầu tiên của dự án -->
                                     <td *ngIf="ti === 0 && ri === 0" [attr.rowspan]="group.tasks.length * 2"
-                                        class="sticky-col col-proj cell-group">
+                                        class="sticky-col col-proj cell-group cell-group-end">
                                         <div class="project-info">
                                             <span class="fw-bold">{{ group.ProjectCode }}</span>
                                             <div class="project-name text-wrap">{{ group.ProjectName }}</div>
@@ -98,6 +98,7 @@
 
                                     <!-- Công việc: span 2 dòng (Dự kiến + Thực tế) -->
                                     <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-job"
+                                        [class.cell-group-end]="ti === group.tasks.length - 1"
                                         (contextmenu)="onContextMenu($event, cm, task)">
                                         <div class="task-info">
                                             <div class="d-flex align-items-center gap-1 text-nowrap w-100 overflow-hidden">
@@ -122,24 +123,28 @@
                                     </td>
 
                                     <!-- Trạng thái: span 2 dòng -->
-                                    <td *ngIf="ri === 0" rowspan="2" class="col-status text-center">
+                                    <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-status text-center"
+                                        [class.cell-group-end]="ti === group.tasks.length - 1">
                                         <span class="status-tag" [attr.data-status]="task.Status">
                                             {{ getStatusName(task.Status) }}
                                         </span>
                                     </td>
 
                                     <!-- Thời gian -->
-                                    <td class="col-time text-center fw-bold">
+                                    <td class="sticky-col col-time text-center fw-bold"
+                                        [class.cell-group-end]="ri === 1 && ti === group.tasks.length - 1">
                                         {{ calculateRowTime(row) }}
                                     </td>
 
                                     <!-- Loại -->
-                                    <td class="col-type text-center">
+                                    <td class="sticky-col col-type text-center"
+                                        [class.cell-group-end]="ri === 1 && ti === group.tasks.length - 1">
                                         {{ row.TypeDate === 1 ? 'Dự kiến' : 'Thực tế' }}
                                     </td>
 
                                     <!-- Các ô ngày -->
                                     <td *ngFor="let col of dateColumns" class="gantt-cell"
+                                        [class.cell-group-end]="ri === 1 && ti === group.tasks.length - 1"
                                         [class.sunday]="col.isSunday" [class.today-col]="col.isToday"
                                         [class.filled-planned]="row.TypeDate === 1 && getValue(row, col.dateStr) >= 1"
                                         [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">

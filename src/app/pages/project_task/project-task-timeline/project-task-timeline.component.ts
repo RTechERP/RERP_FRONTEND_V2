@@ -84,6 +84,8 @@ export class ProjectTaskTimelineComponent implements OnInit {
   ];
 
   ngOnInit() {
+    this.selectedDepartment = this.appUserService.departmentID || 0;
+    this.selectedTeam = this.appUserService.currentUser?.TeamOfUser || 0;
     this.selectedEmployee = this.appUserService.id || 0;
     this.loadDropdownData();
     this.loadTimeline();
@@ -115,22 +117,14 @@ export class ProjectTaskTimelineComponent implements OnInit {
 
   getDefaultDateStart(): string {
     const now = new Date();
-    const day = now.getDay();
-    const diffToMonday = day === 0 ? -6 : 1 - day;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + diffToMonday);
-    return this.formatDateForInput(monday);
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    return this.formatDateForInput(firstDay);
   }
 
   getDefaultDateEnd(): string {
     const now = new Date();
-    const day = now.getDay();
-    const diffToMonday = day === 0 ? -6 : 1 - day;
-    const monday = new Date(now);
-    monday.setDate(now.getDate() + diffToMonday);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    return this.formatDateForInput(sunday);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return this.formatDateForInput(lastDay);
   }
 
   loadTimeline() {

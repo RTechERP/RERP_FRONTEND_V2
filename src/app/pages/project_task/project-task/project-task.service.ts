@@ -21,6 +21,7 @@ export interface ProjectTaskItem {
     PlanStartDate: string | Date | null;
     PlanEndDate: string | Date | null;
     Priority: number | null;
+    EstimatedTime?: number | null;
     Status: number | null;
     Code: string | null;
     OrderIndex: number | null;
@@ -93,11 +94,12 @@ export class ProjectTaskService {
 
     constructor(private http: HttpClient) { }
 
-    getProjectTasks(dateStart: string, dateEnd: string, status: number = 0): Observable<ProjectTaskResponse> {
+    getProjectTasks(dateStart: string, dateEnd: string, status: number = 0, viewNumber: number = 1): Observable<ProjectTaskResponse> {
         const params = new HttpParams()
             .set('dateStart', dateStart)
             .set('dateEnd', dateEnd)
-            .set('status', status.toString());
+            .set('status', status.toString())
+            .set('viewNumber', viewNumber.toString());
         return this.http.get<IAPIResponse<ProjectTaskResponse>>(`${this.apiUrl}`, { params }).pipe(
             map(response => response.data as ProjectTaskResponse)
         );
@@ -232,5 +234,9 @@ export class ProjectTaskService {
             .set('projectTaskID', projectTaskID.toString())
             .set('isCheck', isCheck.toString());
         return this.http.post<IAPIResponse<any>>(`${this.apiUrl}/attendance`, {}, { params });
+    }
+
+    getNumberOverdue(): Observable<IAPIResponse<any>> {
+        return this.http.get<IAPIResponse<any>>(`${this.apiUrl}/number-overdue`);
     }
 }

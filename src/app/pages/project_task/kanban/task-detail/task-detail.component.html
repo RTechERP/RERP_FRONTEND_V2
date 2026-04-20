@@ -76,33 +76,30 @@
 
         <!-- Status Selector (Expandable on Mobile) -->
         <div nz-col [nzXs]="24" [nzLg]="14">
-            <div class="status-selector align-items-center justify-content-lg-end justify-content-start gap-3 flex-wrap mt-2 mt-lg-0"
+            <div class="status-selector align-items-center justify-content-lg-end justify-content-start gap-2 flex-wrap mt-2 mt-lg-0"
                 [ngClass]="{'d-none d-lg-flex': !showMobileSettings, 'd-flex': showMobileSettings}">
                 <label nz-checkbox [(ngModel)]="isPersonalProject" (ngModelChange)="onPersonalProjectChange($event)"
-                    [nzDisabled]="isReadOnly">
-                    Việc cá nhân
+                    [nzDisabled]="isReadOnly" class="mb-0 text-nowrap">
+                    Cá nhân
                 </label>
-                <!-- Độ phức tạp -->
-                <div class="d-flex align-items-center gap-1">
-                    <span class="text-muted small">Độ phức tạp:</span>
-                    <nz-input-number [(ngModel)]="taskComplexity" [nzMin]="1" [nzMax]="5" [nzStep]="1"
-                        class="complexity-input" [nzDisabled]="isReadOnly"></nz-input-number>
-                </div>
-                <div class="d-flex align-items-center gap-1">
-                    <span class="text-muted small">Loại hạng mục <span class="text-danger">*</span></span>
+
+                <!-- Loại hạng mục -->
+                <div class="d-flex align-items-center gap-1 text-nowrap">
+                    <span class="text-muted small">Hạng mục</span>
                     <nz-select [(ngModel)]="selectedTypeProjectItemId" nzBorderless nzSize="small"
-                        class="task-type-select" nzPlaceHolder="Chọn hạng mục" [nzDisabled]="isReadOnly"
-                        style="min-width: 120px;">
+                        class="task-type-select" nzPlaceHolder="Chọn" [nzDisabled]="isReadOnly" style="width: 100px;">
                         @for (item of typeProjectItems; track item.ID) {
                         <nz-option [nzValue]="item.ID" [nzLabel]="item.ProjectTypeName"></nz-option>
                         }
                     </nz-select>
                 </div>
-                <div class="d-flex align-items-center gap-1">
+
+                <!-- Loại CV -->
+                <div class="d-flex align-items-center gap-1 text-nowrap">
                     <span class="text-muted small">Loại CV <span class="text-danger">*</span></span>
                     <nz-select [(ngModel)]="selectedTaskTypeId" nzBorderless nzSize="small" class="task-type-select"
-                        nzPlaceHolder="Loại công việc" [nzDisabled]="isReadOnly"
-                        [nzCustomTemplate]="taskTypeSelectedTpl">
+                        nzPlaceHolder="Chọn" [nzDisabled]="isReadOnly" [nzCustomTemplate]="taskTypeSelectedTpl"
+                        style="max-width: 120px;">
                         @for (t of taskTypeList; track t.ID) {
                         <nz-option [nzValue]="t.ID" nzCustomContent [nzLabel]="t.TypeName">
                             <span class="status-dot" [style.background]="t.Color || '#1890ff'"></span>
@@ -114,10 +111,46 @@
                 <ng-template #taskTypeSelectedTpl let-selected>
                     <span class="status-dot"
                         [style.background]="getTaskTypeInfo(selected.nzValue).Color || '#1890ff'"></span>
-                    {{ selected.nzLabel }}
+                    <span class="text-truncate d-inline-block" style="max-width: 70px; vertical-align: bottom;">{{
+                        selected.nzLabel }}</span>
                 </ng-template>
+
+                <!-- Độ phức tạp -->
+                <div class="d-flex align-items-center gap-1 text-nowrap">
+                    <span class="text-muted small">Độ khó</span>
+                    <nz-input-number [(ngModel)]="taskComplexity" [nzMin]="1" [nzMax]="5" [nzStep]="1"
+                        class="complexity-input" [nzDisabled]="isReadOnly" style="width: 45px;"></nz-input-number>
+                </div>
+
+                <!-- Độ ưu tiên -->
+                <div class="d-flex align-items-center gap-1 text-nowrap">
+                    <span class="text-muted small">Ưu tiên</span>
+                    <nz-select [(ngModel)]="priority" nzBorderless nzSize="small" class="task-type-select"
+                        [nzDisabled]="isReadOnly" [nzCustomTemplate]="prioritySelectedTpl" style="width: 110px;">
+                        @for (p of priorityList; track p.value) {
+                        <nz-option [nzValue]="p.value" nzCustomContent [nzLabel]="p.label">
+                            <span class="status-dot" [style.background]="p.color"></span>
+                            {{ p.label }}
+                        </nz-option>
+                        }
+                    </nz-select>
+                </div>
+                <ng-template #prioritySelectedTpl let-selected>
+                    <span class="status-dot" [style.background]="getPriorityInfo(selected.nzValue).color"></span>
+                    <span class="d-inline-block" style="vertical-align: bottom;">{{ selected.nzLabel }}</span>
+                </ng-template>
+
+                <!-- Thời gian dự kiến -->
+                <div class="d-flex align-items-center gap-1 text-nowrap">
+                    <span class="text-muted small">TG(h)</span>
+                    <nz-input-number [(ngModel)]="estimatedTimeHours" [nzMin]="0" [nzMax]="1000" [nzStep]="0.5"
+                        class="complexity-input" [nzDisabled]="isReadOnly" style="width: 55px;"></nz-input-number>
+                </div>
+
+                <!-- Trạng thái -->
                 <nz-select [(ngModel)]="taskStatus" (ngModelChange)="onStatusChange($event)" nzBorderless nzSize="small"
-                    class="status-select" [nzCustomTemplate]="statusSelectedTpl" [nzDisabled]="isReadOnly">
+                    class="status-select" [nzCustomTemplate]="statusSelectedTpl" [nzDisabled]="isReadOnly"
+                    style="max-width: 120px;">
                     @for (s of statusList; track s.value) {
                     <nz-option [nzValue]="s.value" nzCustomContent [nzLabel]="s.label">
                         <span class="status-dot" [style.background]="s.color"></span>
@@ -127,7 +160,8 @@
                 </nz-select>
                 <ng-template #statusSelectedTpl let-selected>
                     <span class="status-dot" [style.background]="getStatusInfo(selected.nzValue).color"></span>
-                    {{ selected.nzLabel }}
+                    <span class="text-truncate d-inline-block" style="max-width: 70px; vertical-align: bottom;">{{
+                        selected.nzLabel }}</span>
                 </ng-template>
 
                 <!-- Custom Templates for Project and Parent Task -->
@@ -1093,7 +1127,7 @@
                     <div class="d-flex flex-column gap-3">
                         <label nz-checkbox [(ngModel)]="isPersonalProject"
                             (ngModelChange)="onPersonalProjectChange($event)" [nzDisabled]="isReadOnly">
-                            Việc cá nhân
+                            Cá nhân
                         </label>
 
                         <div class="d-flex justify-content-between align-items-center">

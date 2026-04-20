@@ -49,6 +49,7 @@ interface LiXi {
     icon: string;
 }
 import { HistoryBorrowSaleService } from '../../../pages/old/Sale/HistoryBorrowSale/history-borrow-sale-service/history-borrow-sale.service';
+import { ProjectTaskService } from '../../../pages/project_task/project-task/project-task.service';
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -114,6 +115,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     quantityBorrowExpried: any = {};
     quantityBorrowSale: any = {};
     quantityBorrowExpriedSale: any = {};
+    quantityOverdueProjectTask: number = 0;
     hasBorrowSale: boolean = true;
     hasBorrowDemo: boolean = true;
 
@@ -165,6 +167,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         private updateVersionService: UpdateVersionService,
         private nzModal: NzModalService,
         public notifService: NotificationService,
+        private projectTaskService: ProjectTaskService,
     ) { }
 
     get notifItems(): NotifyItem[] { return this.notifService.items; }
@@ -201,6 +204,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             this.getQuantityApprove(),
             this.getQuantityBorrow(),
             this.getQuantityBorrowSale(),
+            this.getQuantityOverdueProjectTask(),
             this.loadNewsletters()
         ]).subscribe({
             next: () => {
@@ -324,6 +328,19 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                     err?.error?.message || `${err.error}\n${err.message}`,
                     { nzStyle: { whiteSpace: 'pre-line' } }
                 );
+                return of(null);
+            })
+        );
+    }
+
+    getQuantityOverdueProjectTask() {
+        return this.projectTaskService.getNumberOverdue().pipe(
+            tap((res: any) => {
+                if (res.status === 1 && res.data?.result?.length > 0) {
+                    this.quantityOverdueProjectTask = res.data.result[0][''] || 0;
+                }
+            }),
+            catchError((err: any) => {
                 return of(null);
             })
         );
@@ -472,6 +489,10 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
     onPickHistoryProductSale() {
         this.newTab('summary-asset-persional', '', { activeTab: 1 });
+    }
+
+    onPickProjectTaskOverdue() {
+        this.newTab('project-task', 'Công việc');
     }
 
 

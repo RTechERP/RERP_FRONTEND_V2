@@ -14,21 +14,17 @@
     <div class="header-section main-header">
         <!-- Tabs -->
         <div class="tabs-container">
-            <div class="tab" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all')">
-                Tổng công việc
-                <span class="badge" [class.highlight]="allTasksCount() > 0">{{ allTasksCount() }}</span>
-            </div>
             <div class="tab" [class.active]="activeTab() === 'assigned'" (click)="setActiveTab('assigned')">
                 Việc giao cho tôi
-                <span class="badge" [class.highlight]="assignedTasksCount() > 0">{{ assignedTasksCount() }}</span>
-            </div>
-            <div class="tab" [class.active]="activeTab() === 'myApproval'" (click)="setActiveTab('myApproval')">
-                Việc tôi giao
-                <span class="badge" [class.highlight]="myApprovalTasksCount() > 0">{{ myApprovalTasksCount() }}</span>
             </div>
             <div class="tab" [class.active]="activeTab() === 'related'" (click)="setActiveTab('related')">
                 Việc liên quan đến tôi
-                <span class="badge" [class.highlight]="relatedTasksCount() > 0">{{ relatedTasksCount() }}</span>
+            </div>
+            <div class="tab" [class.active]="activeTab() === 'myApproval'" (click)="setActiveTab('myApproval')">
+                Việc tôi giao
+            </div>
+            <div class="tab" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all')">
+                Tổng công việc
             </div>
         </div>
 
@@ -118,21 +114,17 @@
                 <div class="drawer-group">
                     <div class="drawer-group-title">PHÂN LOẠI</div>
                     <div class="drawer-tabs">
-                        <div class="drawer-tab" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all'); closeMobileMenu()">
-                            <span>Tổng công việc</span>
-                            <span class="badge">{{ allTasksCount() }}</span>
-                        </div>
                         <div class="drawer-tab" [class.active]="activeTab() === 'assigned'" (click)="setActiveTab('assigned'); closeMobileMenu()">
                             <span>Việc giao cho tôi</span>
-                            <span class="badge">{{ assignedTasksCount() }}</span>
+                        </div>
+                        <div class="drawer-tab" [class.active]="activeTab() === 'related'" (click)="setActiveTab('related'); closeMobileMenu()">
+                            <span>Việc liên quan đến tôi</span>
                         </div>
                         <div class="drawer-tab" [class.active]="activeTab() === 'myApproval'" (click)="setActiveTab('myApproval'); closeMobileMenu()">
                             <span>Việc tôi giao</span>
-                            <span class="badge">{{ myApprovalTasksCount() }}</span>
                         </div>
-                        <div class="drawer-tab" [class.active]="activeTab() === 'related'" (click)="setActiveTab('related'); closeMobileMenu()">
-                            <span>Việc liên quan</span>
-                            <span class="badge">{{ relatedTasksCount() }}</span>
+                        <div class="drawer-tab" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all'); closeMobileMenu()">
+                            <span>Tổng công việc</span>
                         </div>
                     </div>
                 </div>
@@ -241,8 +233,8 @@
                             style="cursor: pointer; width: 16px; height: 16px;">
                     </th>
                     }
-                    <th style="width: 80px; text-align: center">
-                        Trạng thái
+                    <th pResizableColumn pSortableColumn="DisplayStatus" style="width: 80px; text-align: center">
+                        <div>Trạng thái <p-sortIcon field="DisplayStatus" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="Mission" style="min-width: 200px">
                         <div>Công việc <p-sortIcon field="Mission" /></div>
@@ -263,6 +255,12 @@
 
                     <th pResizableColumn pSortableColumn="IsPersonalProject" style="width: 80px">
                         <div>Loại</div><div>dự án <p-sortIcon field="IsPersonalProject" /></div>
+                    </th>
+                    <th pResizableColumn pSortableColumn="Priority" style="width: 80px; text-align: center;">
+                        <div>Ưu tiên <p-sortIcon field="Priority" /></div>
+                    </th>
+                    <th pResizableColumn pSortableColumn="EstimatedTime" style="width: 85px; text-align: center;">
+                        <div>TG dự</div><div>kiến (h) <p-sortIcon field="EstimatedTime" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="ProjectTaskTypeName" style="width: 95px">
                         <div>Loại</div><div>công việc <p-sortIcon field="ProjectTaskTypeName" /></div>
@@ -320,7 +318,9 @@
                         <div>Đánh giá</div><div>(Review) <p-sortIcon field="ReviewCompletionRating" /></div>
                     </th>
                     }
-
+                    <th pResizableColumn pSortableColumn="CreatedDate" class="col-date" style="width: 90px; text-align: center;">
+                        <div>Ngày tạo <p-sortIcon field="CreatedDate" /></div>
+                    </th>
                 </tr>
                 <tr>
                     @if (activeTab() === 'myApproval') {
@@ -390,6 +390,23 @@
                                 </select>
                             </ng-template>
                         </p-columnFilter>
+                    </th>
+                    <th style="text-align: center;">
+                        <p-columnFilter field="Priority" matchMode="equals" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <select class="status-filter"
+                                    (change)="filter($any($event.target).value === '' ? null : +$any($event.target).value)">
+                                    <option value="">Tất cả</option>
+                                    <option value="4">Khẩn cấp</option>
+                                    <option value="3">Cao</option>
+                                    <option value="2">Trung bình</option>
+                                    <option value="1">Thấp</option>
+                                </select>
+                            </ng-template>
+                        </p-columnFilter>
+                    </th>
+                    <th>
+                        <p-columnFilter type="text" field="EstimatedTime" matchMode="equals" placeholder="Tìm..."></p-columnFilter>
                     </th>
                     <th>
                         <p-columnFilter field="ProjectTaskTypeID" matchMode="equals" [showMenu]="false">
@@ -552,7 +569,9 @@
                         </p-columnFilter>
                     </th>
                     }
-
+                    <th class="col-date">
+                        <p-columnFilter type="date" field="CreatedDate" placeholder="Tìm kiếm..." />
+                    </th>
                 </tr>
             </ng-template>
 
@@ -622,6 +641,14 @@
 
                     <td style="text-align: center;">
                         <span class="text-wrap">{{ task.IsPersonalProject ? 'Cá nhân' : 'Dự án' }}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        <span nz-icon nzType="flag" nzTheme="fill" [style.color]="getPriorityColor(task.Priority)"
+                            [title]="task.Priority === 4 ? 'Khẩn cấp' : (task.Priority === 3 ? 'Cao' : (task.Priority === 2 ? 'Trung bình' : 'Thấp'))"
+                            style="font-size: 16px;"></span>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="fw-bold">{{ task.EstimatedTime || '-' }}</span>
                     </td>
                     <td style="text-align: center;">
                         <p-tag [value]="task.ProjectTaskTypeName || '-'"
@@ -720,13 +747,15 @@
                         }
                     </td>
                     }
-
+                    <td style="text-align: center;">
+                        <span class="date-text">{{ task.CreatedDate | date:'dd/MM/yyyy' }}</span>
+                    </td>
                 </tr>
             </ng-template>
 
             <ng-template pTemplate="footer">
                 <tr>
-                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 20 : (activeTab() === 'assigned' ? 19 : (activeTab() === 'related' ? 19 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0)"
+                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 20 : (activeTab() === 'assigned' ? 19 : (activeTab() === 'related' ? 19 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0) + 3"
                         class="table-footer-total">
                         Tổng cộng: <span class="total-count">{{ totalRecords() }}</span> công việc
                     </td>
@@ -735,7 +764,7 @@
 
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 20 : (activeTab() === 'assigned' ? 19 : (activeTab() === 'related' ? 19 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0)"
+                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 20 : (activeTab() === 'assigned' ? 19 : (activeTab() === 'related' ? 19 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0) + 3"
                         class="empty-message">
                         <div class="empty-state">
                             <span nz-icon nzType="inbox" nzTheme="outline" class="empty-icon"></span>
@@ -747,7 +776,7 @@
 
             <ng-template pTemplate="loadingbody">
                 <tr>
-                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 20 : (activeTab() === 'assigned' ? 19 : (activeTab() === 'related' ? 19 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0)"
+                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 20 : (activeTab() === 'assigned' ? 19 : (activeTab() === 'related' ? 19 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0) + 3"
                         class="text-center">
                         <span nz-icon nzType="loading" nzTheme="outline"></span> Đang tải...
                     </td>

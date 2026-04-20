@@ -1,4 +1,5 @@
 <div class="timeline-container">
+    <p-contextMenu #cm [model]="contextMenuItems" appendTo="body" />
     <div class="timeline-header">
         <h2 class="title">KẾ HOẠCH CÔNG VIỆC</h2>
 
@@ -47,29 +48,24 @@
                 <thead>
                     <tr>
                         <th rowspan="2" class="sticky-col col-stt">STT</th>
+                        <th rowspan="2" class="sticky-col col-proj">
+                            Dự án
+                            <input type="text" class="filter-input" [(ngModel)]="filterProjectKeyword"
+                                (keyup)="applyFilters()" placeholder="Tìm dự án...">
+                        </th>
                         <th rowspan="2" class="sticky-col col-job">
                             Công việc
                             <input type="text" class="filter-input" [(ngModel)]="filterKeyword" (keyup)="applyFilters()"
                                 placeholder="Tìm mã/tên...">
                         </th>
-                        <th rowspan="2" class="col-parent">
-                            Mã CV Cha
-                            <input type="text" class="filter-input" [(ngModel)]="filterParentCode"
-                                (keyup)="applyFilters()" placeholder="Tìm kiếm...">
-                        </th>
-                        <th rowspan="2" class="col-proj">
-                            Dự án
-                            <input type="text" class="filter-input" [(ngModel)]="filterProjectKeyword"
-                                (keyup)="applyFilters()" placeholder="Tìm dự án...">
-                        </th>
                         <th rowspan="2" class="col-status">
                             Trạng Thái
-                            <p-multiSelect [options]="statusOptions" [(ngModel)]="selectedStatuses"
-                                placeholder="Tất cả" [showHeader]="false" [filter]="false"
-                                (onChange)="applyFilters()" styleClass="timeline-status-multi"
-                                [maxSelectedLabels]="1" selectedItemsLabel="{0} trạng thái"
-                                appendTo="body" />
+                            <p-multiSelect [options]="statusOptions" [(ngModel)]="selectedStatuses" placeholder="Tất cả"
+                                [showHeader]="false" [filter]="false" (onChange)="applyFilters()"
+                                styleClass="timeline-status-multi" [maxSelectedLabels]="1"
+                                selectedItemsLabel="{0} trạng thái" appendTo="body" />
                         </th>
+                        <th rowspan="2" class="col-time">Thời gian (h)</th>
                         <th rowspan="2" class="col-type">Loại</th>
                         <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday" class="date-header">
                             {{ col.dayName }}
@@ -82,51 +78,89 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <ng-container *ngFor="let task of filteredTasks(); let i = index">
-                        <tr *ngFor="let row of task.rows; let rowIndex = index" [class.row-actual]="rowIndex === 1">
-                            <!-- Task Details (Spans 2 rows) -->
-                            <td *ngIf="rowIndex === 0" rowspan="2" class="sticky-col col-stt text-center">{{ i + 1 }}
-                            </td>
-                            <td *ngIf="rowIndex === 0" rowspan="2" class="sticky-col col-job">
-                                <div class="task-info">
-                                    <a class="task-code-link" (click)="openTaskDetail(task); $event.stopPropagation()">{{ task.Code || 'N/A' }}</a>
-                                    <div class="task-title text-wrap">{{ task.Title }}</div>
-                                </div>
-                            </td>
-                            <td *ngIf="rowIndex === 0" rowspan="2" class="col-parent text-center">
-                                @if (task.ParentCode) {
-                                <span class="task-code-link" (click)="openTaskDetail(task.ParentID)" nz-tooltip
-                                    [nzTooltipTitle]="task.ParentTitle">
-                                    {{ task.ParentCode || 'N/A' }}
-                                </span>
-                                } @else {
-                                -
-                                }
-                            </td>
-                            <td *ngIf="rowIndex === 0" rowspan="2" class="col-proj">
-                                <div class="project-info">
-                                    <span class="fw-bold">{{ task.ProjectCode }}</span>
-                                    <div class="project-name text-wrap">{{ task.ProjectName }}</div>
-                                </div>
-                            </td>
-                            <td *ngIf="rowIndex === 0" rowspan="2" class="col-status text-center">
-                                <span class="status-tag" [attr.data-status]="task.DisplayStatus">
-                                    {{ task.StatusName }}
-                                </span>
-                            </td>
+                    <ng-container *ngFor="let group of filteredTasks(); let gi = index">
+                        <ng-container *ngFor="let task of group.tasks; let ti = index">
+                            <ng-container *ngFor="let row of task.rows; let ri = index">
+                                <tr [class.row-actual]="ri === 1">
+                                    <!-- STT: chỉ ở dòng đầu tiên của dự án -->
+                                    <td *ngIf="ti === 0 && ri === 0" [attr.rowspan]="group.tasks.length * 2"
+                                        class="sticky-col col-stt text-center cell-group">
+                                        {{ gi + 1 }}
+                                    </td>
+                                    <!-- Dự án: chỉ ở dòng đầu tiên của dự án -->
+                                    <td *ngIf="ti === 0 && ri === 0" [attr.rowspan]="group.tasks.length * 2"
+                                        class="sticky-col col-proj cell-group">
+                                        <div class="project-info">
+                                            <span class="fw-bold">{{ group.ProjectCode }}</span>
+                                            <div class="project-name text-wrap">{{ group.ProjectName }}</div>
+                                        </div>
+                                    </td>
 
-                            <!-- Type and Gantt Cells -->
-                            <td class="col-type text-center">{{ row.TypeDate === 1 ? 'Dự kiến' : 'Thực tế' }}</td>
+                                    <!-- Công việc: span 2 dòng (Dự kiến + Thực tế) -->
+                                    <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-job"
+                                        (contextmenu)="onContextMenu($event, cm, task)">
+                                        <div class="task-info">
+                                            <div class="d-flex align-items-center gap-1 text-nowrap w-100 overflow-hidden">
+                                                <a class="task-code-link"
+                                                    (click)="openTaskDetail(task); $event.stopPropagation()">
+                                                    {{ task.ProjectTaskCode || 'N/A' }}
+                                                </a>
+                                                <span *ngIf="task.ProjectTaskParentCode"
+                                                    class="text-muted d-inline-block text-truncate" nz-tooltip
+                                                    [nzTooltipTitle]="task.ProjectTaskParentTitle"
+                                                    style="max-width: 130px;">
+                                                    - <a class="task-code-link"
+                                                        (click)="openTaskDetail(task.ProjectTaskParentID); $event.stopPropagation()">{{
+                                                        task.ProjectTaskParentCode || 'N/A' }}</a>
+                                                </span>
+                                            </div>
+                                            <div class="task-title text-wrap mt-1 clickable-title"
+                                                (click)="openTaskDetail(task); $event.stopPropagation()">
+                                                {{ task.ProjectTaskTitle }}
+                                            </div>
+                                        </div>
+                                    </td>
 
-                            <td *ngFor="let col of dateColumns" class="gantt-cell" [class.sunday]="col.isSunday"
-                                [class.filled-planned]="row.TypeDate === 1 && getValue(row, col.dateStr) > 0"
-                                [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0"
-                                [nz-tooltip]="getValue(row, col.dateStr) > 0 ? (row.TypeDate === 1 ? 'Kế hoạch: Có' : 'Thực tế: Có') : null">
-                            </td>
-                        </tr>
+                                    <!-- Trạng thái: span 2 dòng -->
+                                    <td *ngIf="ri === 0" rowspan="2" class="col-status text-center">
+                                        <span class="status-tag" [attr.data-status]="task.Status">
+                                            {{ getStatusName(task.Status) }}
+                                        </span>
+                                    </td>
+
+                                    <!-- Thời gian -->
+                                    <td class="col-time text-center fw-bold">
+                                        {{ calculateRowTime(row) }}
+                                    </td>
+
+                                    <!-- Loại -->
+                                    <td class="col-type text-center">
+                                        {{ row.TypeDate === 1 ? 'Dự kiến' : 'Thực tế' }}
+                                    </td>
+
+                                    <!-- Các ô ngày -->
+                                    <td *ngFor="let col of dateColumns" class="gantt-cell"
+                                        [class.sunday]="col.isSunday" [class.today-col]="col.isToday"
+                                        [class.filled-planned]="row.TypeDate === 1 && getValue(row, col.dateStr) >= 1"
+                                        [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
+                                        <!-- Dự kiến: >= 2 hiển thị icon check -->
+                                        <ng-container *ngIf="row.TypeDate === 1 && getValue(row, col.dateStr) >= 2">
+                                            <span nz-icon nzType="check" nzTheme="outline"
+                                                class="check-icon"></span>
+                                        </ng-container>
+                                        <!-- Thực tế: > 0 hiển thị số giờ -->
+                                        <ng-container *ngIf="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
+                                            <span class="actual-hours">
+                                                {{ getValue(row, col.dateStr) }}
+                                            </span>
+                                        </ng-container>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </ng-container>
                     </ng-container>
 
-                    <!-- Empty state -->
+                    <!-- Trống -->
                     <tr *ngIf="filteredTasks().length === 0 && !loading()">
                         <td [attr.colspan]="8 + dateColumns.length" class="empty-cell">
                             Không có dữ liệu cho khoảng thời gian này
@@ -136,7 +170,7 @@
                 <tfoot>
                     <tr>
                         <td [attr.colspan]="6 + dateColumns.length" class="table-footer-total">
-                            Tổng số công việc: <span class="total-count">{{ filteredTasks().length }}</span>
+                            Tổng số công việc: <span class="total-count">{{ totalTaskCount() }}</span>
                         </td>
                     </tr>
                 </tfoot>

@@ -92,6 +92,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
   ngOnInit() {
     this.departmentId = this.appUserService.departmentID || 0;
+    this.userId = this.appUserService.id || 0;
     this.loadDepartments();
     this.loadEmployees();
     if (this.departmentId > 0) {
@@ -161,6 +162,19 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     });
   }
 
+  loadEmployeesByTeam(teamId: number): void {
+    this.projectService.getEmployeeByUserTeam(teamId).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 1 && res.data) {
+          this.userList = Array.isArray(res.data) ? res.data : [];
+        } else {
+          this.userList = [];
+        }
+      },
+      error: () => { this.userList = []; }
+    });
+  }
+
   loadProjects(): void {
     this.projectService.getProjectModal().subscribe({
       next: (res: any) => {
@@ -187,6 +201,11 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
   onTeamChange(): void {
     this.userId = 0;
+    if (this.teamId > 0) {
+      this.loadEmployeesByTeam(this.teamId);
+    } else {
+      this.loadEmployees();
+    }
     this.loadTimeline();
   }
 
@@ -195,7 +214,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     this.dateEnd = this.getDefaultDateEnd();
     this.departmentId = this.appUserService.departmentID || 0;
     this.teamId = 0;
-    this.userId = 0;
+    this.userId = this.appUserService.id || 0;
     this.projectId = 0;
     this.filterFullName = '';
     this.filterTaskKeyword = '';
@@ -418,13 +437,15 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   calculateRowTime(row: any): number {
     let total = 0;
     if (row.TypeDate === 1) {
-      // Loại 1 (Dự kiến): (PlanEndDate - PlanStartDate + 1) * 8
-      if (row.PlanStartDate && row.PlanEndDate) {
+      // Loại 1 (Dự kiến): Ưu tiên SumTotalHour, nếu không có thì tính (PlanEndDate - PlanStartDate + 1) * 8
+      if (row.SumTotalHour > 0) {
+        total = row.SumTotalHour;
+      } else if (row.PlanStartDate && row.PlanEndDate) {
         const start = new Date(row.PlanStartDate);
         const end = new Date(row.PlanEndDate);
         start.setHours(0, 0, 0, 0);
         end.setHours(0, 0, 0, 0);
-        
+
         const diffTime = Math.abs(end.getTime() - start.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
         total = diffDays > 0 ? diffDays * 8 : 0;

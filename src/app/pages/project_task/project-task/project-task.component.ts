@@ -117,9 +117,26 @@ export class ProjectTaskComponent implements OnInit {
   allTasks = signal<ProjectTaskItem[]>([]);
   currentUserId = signal<number>(0);
   loading = signal(true);
-  activeTab = signal<TabType>('all');
+  activeTab = signal<TabType>('assigned');
   selectedTasks = signal<ProjectTaskItem[]>([]);
   taskTypes = signal<{ ID: number; TypeName: string }[]>([]);
+  
+  // Cache data per tab
+  cachedTasks: Record<TabType, ProjectTaskItem[] | null> = {
+    assigned: null,
+    myApproval: null,
+    related: null,
+    all: null
+  };
+
+  get viewNumberMap(): Record<TabType, number> {
+    return {
+      assigned: 1,
+      related: 2,
+      myApproval: 3,
+      all: -1
+    };
+  }
   
   // Pagination & Lazy Load signals
   first = signal(0);
@@ -129,35 +146,9 @@ export class ProjectTaskComponent implements OnInit {
   // Computed: total count of tasks after Tab filter AND Column filters
   totalRecords = computed(() => this.columnFilteredTasks().length);
 
-  // 1. Tasks filtered by Tab (Optimized: Removed uniqueById)
-  tabFilteredTasks = computed(() => {
-    const tasks = this.allTasks();
-    const userId = this.currentUserId();
-    const tab = this.activeTab();
-
-    switch (tab) {
-      case 'all':
-        return tasks;
-      case 'assigned':
-        return tasks.filter(t =>
-          t.SecondEmployeeID === userId && t.SecondEmployeeType === 1
-        );
-      case 'related':
-        return tasks.filter(t =>
-          t.SecondEmployeeID === userId && t.SecondEmployeeType === 2
-        );
-      case 'myApproval':
-        return tasks.filter(t =>
-          t.EmployeeIDRequest === userId
-        );
-      default:
-        return tasks;
-    }
-  });
-
   // 2. Tasks filtered by Columns (PrimeNG Filters)
   columnFilteredTasks = computed(() => {
-    let tasks = this.tabFilteredTasks();
+    let tasks = this.allTasks();
     const event = this.lastLazyLoadEvent();
 
     if (event?.filters) {
@@ -181,26 +172,64 @@ export class ProjectTaskComponent implements OnInit {
   sortedTasks = computed(() => {
     const tasks = [...this.columnFilteredTasks()];
     const event = this.lastLazyLoadEvent();
+    const field = event?.sortField;
+    const order = event?.sortOrder || 1;
 
-    if (event?.sortField) {
-      const field = event.sortField;
-      const order = event.sortOrder || 1;
+    // Mapping trọng số sắp xếp trạng thái: Quá hạn lên trước -> Chưa làm -> Đang làm -> Hoàn thành...
+    const statusWeight: Record<number, number> = {
+      10: 1, // Chưa làm quá hạn
+      0: 2,  // Chưa làm
+      11: 3, // Đang làm quá hạn
+      1: 4,  // Đang làm
+      3: 5,  // Pending
+      21: 6, // Hoàn thành quá hạn
+      2: 7,  // Hoàn thành
+      22: 8, // Đã duyệt
+      23: 9  // Đã hủy duyệt
+    };
 
-      tasks.sort((data1: any, data2: any) => {
+    tasks.sort((data1: any, data2: any) => {
+      // 1. Primary Sort (from user interaction)
+      if (field) {
         const value1 = data1[field];
         const value2 = data2[field];
-        let result: number;
+        let result: number = 0;
 
         if (value1 == null && value2 != null) result = -1;
         else if (value1 != null && value2 == null) result = 1;
         else if (value1 == null && value2 == null) result = 0;
-        else if (typeof value1 === 'string' && typeof value2 === 'string')
+        else if (value1 instanceof Date && value2 instanceof Date) {
+          result = value1.getTime() - value2.getTime();
+        } else if (typeof value1 === 'string' && typeof value2 === 'string') {
           result = value1.localeCompare(value2);
-        else result = value1 < value2 ? -1 : value1 > value2 ? 1 : 0;
+        } else {
+          result = value1 < value2 ? -1 : value1 > value2 ? 1 : 0;
+        }
 
-        return order * result;
-      });
-    }
+        if (result !== 0) return order * result;
+      }
+
+      // 2. Default Sort Level 1: Priority (DESC: 4 -> 1)
+      const p1 = data1.Priority ?? 0;
+      const p2 = data2.Priority ?? 0;
+      if (p1 !== p2) return p2 - p1;
+
+      // 3. Default Sort Level 2: Status Weight (ASC by custom weight)
+      const s1 = data1.DisplayStatus ?? 0;
+      const s2 = data2.DisplayStatus ?? 0;
+      const w1 = statusWeight[s1] ?? 99;
+      const w2 = statusWeight[s2] ?? 99;
+      if (w1 !== w2) return w1 - w2;
+
+      // 4. Default Sort Level 3: CreatedDate (DESC: Newest first)
+      const d1 = data1.CreatedDate instanceof Date ? data1.CreatedDate.getTime() : 0;
+      const d2 = data2.CreatedDate instanceof Date ? data2.CreatedDate.getTime() : 0;
+      if (d1 !== d2) return d2 - d1;
+
+      // 5. Tie-breaker: ID DESC
+      return (data2.ID || 0) - (data1.ID || 0);
+    });
+
     return tasks;
   });
 
@@ -214,6 +243,7 @@ export class ProjectTaskComponent implements OnInit {
 
   statusOptions = [
     { label: 'Chưa làm', value: 0 },
+    { label: 'Chưa làm quá hạn', value: 10 },
     { label: 'Đang làm', value: 1 },
     { label: 'Đang làm quá hạn', value: 11 },
     { label: 'Hoàn thành', value: 2 },
@@ -297,37 +327,7 @@ export class ProjectTaskComponent implements OnInit {
   }
 
   // Computed filtered tasks based on active tab
-  // Placeholder for filteredTasks to keep other computed signals working
   filteredTasks = computed(() => this.columnFilteredTasks());
-
-  // Badge counts for each tab (Optimized: Removed redundant uniqueById)
-  allTasksCount = computed(() => this.allTasks().length);
-
-  assignedTasksCount = computed(() => {
-    const userId = this.currentUserId();
-    return this.allTasks().filter(t =>
-      t.SecondEmployeeID &&
-      t.SecondEmployeeID === userId &&
-      t.SecondEmployeeType === 1
-    ).length;
-  });
-
-  relatedTasksCount = computed(() => {
-    const userId = this.currentUserId();
-    return this.allTasks().filter(t =>
-      t.SecondEmployeeID &&
-      t.SecondEmployeeID === userId &&
-      t.SecondEmployeeType === 2
-    ).length;
-  });
-
-  myApprovalTasksCount = computed(() => {
-    const userId = this.currentUserId();
-    return this.allTasks().filter(t =>
-      t.EmployeeIDRequest &&
-      t.EmployeeIDRequest === userId
-    ).length;
-  });
 
 
   ngOnInit() {
@@ -477,14 +477,27 @@ export class ProjectTaskComponent implements OnInit {
       return;
     }
 
+    // Reset cache per tab when searching
+    this.cachedTasks = {
+      assigned: null,
+      myApproval: null,
+      related: null,
+      all: null
+    };
+
+    // Load active tab
+    this.fetchDataForTab(this.activeTab());
+  }
+
+  fetchDataForTab(tab: TabType) {
     this.loading.set(true);
     const [start, end] = this.getFormattedDateRange();
-    this.projectTaskService.getProjectTasks(start, end, this.filterStatus).subscribe({
+    const viewNumber = this.viewNumberMap[tab];
+
+    this.projectTaskService.getProjectTasks(start, end, this.filterStatus, viewNumber).subscribe({
       next: (response) => {
         const rawTasks = response.ProjectTask || [];
         
-        // 2. Identify "Parents" (tasks that have others pointing to them as ParentID)
-
         // 2. Identify "Parents" (tasks that have others pointing to them as ParentID)
         const parentIdSet = new Set<number>();
         rawTasks.forEach(t => {
@@ -496,7 +509,6 @@ export class ProjectTaskComponent implements OnInit {
         // 3. Enrich with ParentCode and filter
         const tasks = rawTasks
           .filter((t: any) => {
-            // Logic: Hide if it's Root (no parent) AND it's a Parent (has children)
             const isRoot = !t.ParentID || t.ParentID === 0;
             const isParent = parentIdSet.has(t.ID);
             return !(isRoot && isParent);
@@ -508,26 +520,28 @@ export class ProjectTaskComponent implements OnInit {
             TaskSearchText: `${t.Code || ''} ${t.Mission || ''} ${t.ParentCode || ''} ${t.ParentTitle || ''}`,
             ParentSearchText: `${t.ParentCode || ''} ${t.ParentTitle || ''}`,
             DisplayStatus: this.computeDisplayStatus(t),
-            // Use ParentCode from API instead of manual lookup
             ParentCode: (t.ParentCode || '').trim(),
-            // Convert date strings to Date objects for PrimeNG date filtering
             PlanStartDate: t.PlanStartDate ? new Date(t.PlanStartDate) : null,
             PlanEndDate: t.PlanEndDate ? new Date(t.PlanEndDate) : null,
             ActualStartDate: t.ActualStartDate ? new Date(t.ActualStartDate) : null,
             ActualEndDate: t.ActualEndDate ? new Date(t.ActualEndDate) : null,
             Deadline: t.Deadline ? new Date(t.Deadline) : null,
+            CreatedDate: t.CreatedDate ? new Date(t.CreatedDate) : null,
             ActualPlannedRatio: this.calculateActualPlannedRatio(t)
           }));
 
-        // Deduplicate ONCE during loading
         const finalTasks = this.uniqueById(tasks);
 
-        this.allTasks.set(finalTasks);
-        this.initialTasks = [...finalTasks]; // lưu thứ tự gốc cho removesort
-        this.isSorted = null;
-        this.currentUserId.set(response.UserID || 0);
-        this.first.set(0); // Reset to first page on new search
-        this.buildFilterOptions(tasks);
+        this.cachedTasks[tab] = finalTasks;
+
+        if (this.activeTab() === tab) {
+          this.allTasks.set(finalTasks);
+          this.initialTasks = [...finalTasks];
+          this.isSorted = null;
+          this.currentUserId.set(response.UserID || 0);
+          this.first.set(0); 
+          this.buildFilterOptions(finalTasks);
+        }
         this.loading.set(false);
       },
       error: (err) => {
@@ -588,6 +602,19 @@ export class ProjectTaskComponent implements OnInit {
       // Sau khi reset, đảm bảo giữ nguyên số lượng bản ghi/trang người dùng đã chọn
       this.rows.set(currentRows);
     }
+
+    if (this.cachedTasks[tab] !== null) {
+      // Use cached tasks
+      const cached = this.cachedTasks[tab]!;
+      this.allTasks.set(cached);
+      this.initialTasks = [...cached];
+      this.buildFilterOptions(cached);
+    } else {
+      // Not cached yet, fetch from server 
+      if (this.dateStart && this.dateEnd) {
+        this.fetchDataForTab(tab);
+      }
+    }
   }
 
   // ========== TRẠNG THÁI GỘP (Status + ReviewStatus + Quá hạn) ==========
@@ -619,27 +646,22 @@ export class ProjectTaskComponent implements OnInit {
     // Pending
     if (task.Status === 3) return 3;
     // Chưa làm
+    if (task.Status === 0 && isOverdue) return 10;
     return 0;
   }
 
   // Kiểm tra quá hạn
   private isTaskOverdue(task: any): boolean {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-
     const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
-    if (planEnd) planEnd.setHours(0, 0, 0, 0);
+    if (!planEnd) return false;
 
-    const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
-    if (dueDate) dueDate.setHours(0, 0, 0, 0);
+    const actualEnd = task.ActualEndDate ? new Date(task.ActualEndDate) : new Date();
+    
+    // Nếu status là Pending (3) thì không tính quá hạn theo yêu cầu người dùng
+    if (task.Status === 3) return false;
 
-    // Ngày KT thực tế > Ngày KT dự kiến → Quá hạn
-    if (dueDate && planEnd && dueDate > planEnd) return true;
-    
-    // Ngày KT thực tế null, Ngày KT dự kiến < hôm nay, status khác Pending → Quá hạn
-    if (!dueDate && planEnd && planEnd < now && task.Status !== 3) return true;
-    
-    return false;
+    // (ActualEndDate || now) > PlanEndDate → Quá hạn
+    return actualEnd > planEnd;
   }
 
   // Tính tỷ lệ % thời gian thực tế / kế hoạch
@@ -668,6 +690,7 @@ export class ProjectTaskComponent implements OnInit {
     const ds = task.DisplayStatus ?? task.Status;
     switch (ds) {
       case 0: return { label: 'Chưa làm', severity: 'secondary' };
+      case 10: return { label: 'Chưa làm\nquá hạn', severity: 'danger' };
       case 1: return { label: 'Đang làm', severity: 'info' };
       case 11: return { label: 'Đang làm\nquá hạn', severity: 'danger' };
       case 2: return { label: 'Hoàn thành', severity: 'success' };
@@ -676,6 +699,16 @@ export class ProjectTaskComponent implements OnInit {
       case 23: return { label: 'Đã hủy duyệt', severity: 'danger' };
       case 3: return { label: 'Pending', severity: 'warn' };
       default: return { label: 'Chưa xác định', severity: 'secondary' };
+    }
+  }
+
+  getPriorityColor(priority: number | null): string {
+    switch (priority) {
+      case 4: return '#f5222d'; // Khẩn cấp (Đỏ)
+      case 3: return '#faad14'; // Cao (Vàng)
+      case 2: return '#1890ff'; // Trung bình (Xanh dương)
+      case 1:
+      default: return '#bfbfbf'; // Thấp / Mặc định (Xám)
     }
   }
 

@@ -455,8 +455,8 @@ export class DayOffPersonFormComponent implements OnInit {
         return dDateStr === tomorrowStr;
       });
 
-      if (hasTomorrow) {
-        this.notification.error(NOTIFICATION_TITLE.error, `Đã quá 19h, không thể đăng ký nghỉ cho ngày ${tomorrowStr}. Vui lòng liên hệ HR hoặc quản lý.`);
+      if (hasTomorrow && this.form.get('TypeIsReal')?.value == 2) {
+        this.notification.error(NOTIFICATION_TITLE.error, `Đã quá 19h, không thể đăng ký nghỉ cho ngày ${tomorrowStr}. Vui lòng kiểm tra lại.`);
         return false;
       }
     }

@@ -388,9 +388,14 @@ export class BillExportService {
     }
 
     // Get Bill Import by Bill Export ID (for transfer reference links)
-    getBillImportByBillExportID(billExportID: number): Observable<any> {
+  // getBillImportByBillExportID(billExportID: number, transferType: number): Observable<any> {
+  //   return this.http.get<any>(
+  //     environment.host + `api/billexport/by-billexport?billExportID=${billExportID}&transferType=${transferType}`
+  //   );
+  // }
+  getBillImportByBillExportID(billExportID: number, transferType: number): Observable<any> {
         return this.http.get<any>(
-            environment.host + `api/billexport/by-billexport/${billExportID}`
+      environment.host + `api/billexport/by-billexport?billExportID=${billExportID}`
         );
     }
 

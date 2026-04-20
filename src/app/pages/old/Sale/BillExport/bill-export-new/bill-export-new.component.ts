@@ -1,6 +1,6 @@
 
 
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, Inject, Optional, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, Inject, Optional, HostListener } from '@angular/core';
 import {
     AngularGridInstance,
     AngularSlickgridModule,
@@ -9,7 +9,6 @@ import {
     Filters,
     Formatters,
     GridOption,
-    MultipleSelectOption,
     OnEventArgs,
 } from 'angular-slickgrid';
 import { BillExportService } from './../bill-export-service/bill-export.service';
@@ -46,10 +45,6 @@ import { MenuItem } from 'primeng/api';
 import { BillExportDetailNewComponent } from '../bill-export-detail-new/bill-export-detail-new.component';
 import { ClipboardService } from '../../../../../services/clipboard.service';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { CustomTable } from '../../../../../shared/custom-table/custom-table';
-import { ColumnDef } from '../../../../../shared/custom-table/column-def.model';
-import { SplitterModule } from 'primeng/splitter';
-import { CardModule } from 'primeng/card';
 @Component({
     selector: 'app-bill-export-new',
     templateUrl: './bill-export-new.component.html',
@@ -72,13 +67,10 @@ import { CardModule } from 'primeng/card';
         NzSpinModule,
         NzModalModule,
         HasPermissionDirective,
-        MenubarModule,
-        CustomTable,
-        SplitterModule,
-        CardModule
+        MenubarModule
     ],
 })
-export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy {
+export class BillExportNewComponent implements OnInit, OnDestroy {
     // ========================================
     // Grid Instances & Properties
     // ========================================
@@ -91,13 +83,6 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     datasetMaster: any[] = [];
     datasetDetail: any[] = [];
 
-    // Column definitions (PrimeNG custom-table)
-    columnsMaster: ColumnDef[] = [];
-    columnsDetail: ColumnDef[] = [];
-
-    // Selection
-    selectedMasterRows: any[] = [];
-
     // ========================================
     // Component State
     // ========================================
@@ -106,9 +91,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     selectBillExport: any = null;
     data: any[] = [];
     isLoadTable: boolean = false;
-    isLoading: boolean = false;
     isDetailLoad: boolean = false;
-    isFilterBarVisible: boolean = true;
     isCheckmode: boolean = false;
     newBillExport: boolean = false;
     isModalOpening: boolean = false; // Flag để ngăn mở modal 2 lần
@@ -161,7 +144,6 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     // Để cleanup subscriptions
     private destroy$ = new Subject<void>();
     private isInitialized = false;
-    private filterPatchObserver: MutationObserver | null = null;
 
     isMobile: boolean = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
     isShowModal: boolean = false;
@@ -183,30 +165,27 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         private clipboardService: ClipboardService,
         private message: NzMessageService,
         @Optional() @Inject('tabData') private tabData: any,
-        private permissionService: PermissionService,
-        private elementRef: ElementRef
+        private permissionService: PermissionService
     ) { }
 
     ngOnInit() {
-        if (this.tabData) {
-            // Chạy trong component-tab: dùng tabData, không subscribe queryParams
-            // để tránh bị re-init mỗi lần bất kỳ tab nào thay đổi route
-            this.warehouseCode = this.tabData.warehouseCode ?? 'HN';
-            this.searchParams.warehousecode = this.warehouseCode;
-            this.initializeComponent();
-            return;
-        }
-
-        // Chạy trong router-outlet: react khi queryParams thay đổi
+        // Đọc wareHouseCode từ query params và reinit khi thay đổi
         this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-            const newWarehouseCode = params['warehouseCode'] ?? 'HN';
+            // const newWarehouseCode = params['warehouseCode'] || 'HN';
+            const newWarehouseCode =
+                params['warehouseCode']
+                ?? this.tabData?.warehouseCode
+                ?? 'HN';
 
+            // Nếu warehouseCode thay đổi và đã được init trước đó, cần destroy grid cũ và reinit
             if (this.isInitialized && this.warehouseCode !== newWarehouseCode) {
                 this.destroyGrids();
             }
 
             this.warehouseCode = newWarehouseCode;
             this.searchParams.warehousecode = this.warehouseCode;
+
+            // Init hoặc reinit
             this.initializeComponent();
         });
     }
@@ -215,14 +194,6 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         this.destroy$.next();
         this.destroy$.complete();
         this.destroyGrids();
-        if (this.filterPatchObserver) {
-            this.filterPatchObserver.disconnect();
-            this.filterPatchObserver = null;
-        }
-    }
-
-    ngAfterViewInit(): void {
-        setTimeout(() => this.patchSlickGridFilterInputs(), 600);
     }
 
     private initializeComponent() {
@@ -252,54 +223,6 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         // Clear datasets
         this.datasetMaster = [];
         this.datasetDetail = [];
-    }
-
-    /**
-     * Fix: SlickGrid filter inputs không nhận change khi Ctrl+X, Delete, Backspace trên text đang bôi đen.
-     */
-    private patchSlickGridFilterInputs(): void {
-        const container = this.elementRef.nativeElement as HTMLElement;
-
-        const applyPatch = (input: HTMLInputElement) => {
-            if (input.dataset['filterPatched']) return;
-            input.dataset['filterPatched'] = '1';
-
-            input.addEventListener('cut', () => {
-                setTimeout(() => input.dispatchEvent(new Event('input', { bubbles: true })), 10);
-            });
-
-            input.addEventListener('keydown', (e: KeyboardEvent) => {
-                if (e.key === 'Delete' || e.key === 'Backspace') {
-                    const hasSelection = (input.selectionStart ?? 0) !== (input.selectionEnd ?? 0);
-                    if (hasSelection) {
-                        setTimeout(
-                            () => input.dispatchEvent(new Event('input', { bubbles: true })),
-                            10
-                        );
-                    }
-                }
-            });
-        };
-
-        container
-            .querySelectorAll<HTMLInputElement>('.slick-headerrow-column input')
-            .forEach(applyPatch);
-
-        this.filterPatchObserver = new MutationObserver((mutations) => {
-            for (const mutation of mutations) {
-                for (const node of Array.from(mutation.addedNodes)) {
-                    if (node instanceof HTMLElement) {
-                        node.querySelectorAll<HTMLInputElement>(
-                            '.slick-headerrow-column input'
-                        ).forEach(applyPatch);
-                        if (node instanceof HTMLInputElement && node.closest('.slick-headerrow-column')) {
-                            applyPatch(node);
-                        }
-                    }
-                }
-            }
-        });
-        this.filterPatchObserver.observe(container, { childList: true, subtree: true });
     }
 
     // ========================================
@@ -486,15 +409,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 sortable: true,
                 filterable: true,
                 filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    collectionOptions: {
-                        addBlankEntry: true
-                    },
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInput'],
                 },
                 minWidth: 200,
             },
@@ -516,15 +431,7 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
                 sortable: true,
                 filterable: true,
                 filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    collectionOptions: {
-                        addBlankEntry: true
-                    },
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
+                    model: Filters['compoundInput'],
                 },
                 minWidth: 120,
             },
@@ -905,22 +812,6 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
         setTimeout(() => {
             this.updateDetailFooterRow();
         }, 100);
-    }
-
-    toggleFilterBar(): void {
-        this.isFilterBarVisible = !this.isFilterBarVisible;
-    }
-
-    onRowClick(rowData: any): void {
-        this.selectedRow = rowData;
-        this.id = rowData?.ID || 0;
-        if (this.id > 0) {
-            this.getBillExportDetail(this.id);
-            this.getBillExportByID(this.id);
-        } else {
-            this.datasetDetail = [];
-            this.selectBillExport = [];
-        }
     }
 
     onMasterCellClick(e: Event, args: OnEventArgs) {
@@ -1486,7 +1377,14 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     // ========================================
 
     getSelectedRows(): any[] {
-        return this.selectedMasterRows || [];
+        if (this.angularGridMaster?.slickGrid) {
+            const selectedRowIndexes = this.angularGridMaster.slickGrid.getSelectedRows();
+            if (selectedRowIndexes && selectedRowIndexes.length > 0) {
+                const dataView = this.angularGridMaster.dataView;
+                return selectedRowIndexes.map((index: number) => dataView?.getItem(index));
+            }
+        }
+        return [];
     }
 
     // updateTabDetailTitle() {
@@ -2343,7 +2241,13 @@ export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy 
     exportProgress = { current: 0, total: 0, fileName: '' };
     exportModalRef: any = null;
     async onExportExcel() {
-        const selectedRows = this.selectedMasterRows || [];
+        const angularGrid = this.angularGridMaster;
+        if (!angularGrid) return;
+
+        const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
+        const selectedRows = selectedRowIndexes
+            .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
+            .filter((item: any) => item);
 
         if (selectedRows.length <= 0) {
             this.notification.info('Thông báo', 'Vui lòng chọn phiếu cần xuất file!');

@@ -209,7 +209,14 @@ export class ProjectTaskComponent implements OnInit {
         if (result !== 0) return order * result;
       }
 
-      // 2. Default Sort Level 1: Priority (DESC: 4 -> 1)
+      // 2. Default Sort Level 0: Pending Approval priority for 'myApproval' tab
+      if (this.activeTab() === 'myApproval') {
+        const isPending1 = data1.Status === 2 && data1.ApprovalStatus === null;
+        const isPending2 = data2.Status === 2 && data2.ApprovalStatus === null;
+        if (isPending1 !== isPending2) return isPending1 ? -1 : 1;
+      }
+
+      // 3. Default Sort Level 1: Priority (DESC: 4 -> 1)
       const p1 = data1.Priority ?? 0;
       const p2 = data2.Priority ?? 0;
       if (p1 !== p2) return p2 - p1;

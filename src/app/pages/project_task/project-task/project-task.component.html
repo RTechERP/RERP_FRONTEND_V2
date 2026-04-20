@@ -17,11 +17,11 @@
             <div class="tab" [class.active]="activeTab() === 'assigned'" (click)="setActiveTab('assigned')">
                 Việc giao cho tôi
             </div>
-            <div class="tab" [class.active]="activeTab() === 'related'" (click)="setActiveTab('related')">
-                Việc liên quan đến tôi
-            </div>
             <div class="tab" [class.active]="activeTab() === 'myApproval'" (click)="setActiveTab('myApproval')">
                 Việc tôi giao
+            </div>
+            <div class="tab" [class.active]="activeTab() === 'related'" (click)="setActiveTab('related')">
+                Việc liên quan đến tôi
             </div>
             <div class="tab" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all')">
                 Tổng công việc
@@ -117,11 +117,11 @@
                         <div class="drawer-tab" [class.active]="activeTab() === 'assigned'" (click)="setActiveTab('assigned'); closeMobileMenu()">
                             <span>Việc giao cho tôi</span>
                         </div>
-                        <div class="drawer-tab" [class.active]="activeTab() === 'related'" (click)="setActiveTab('related'); closeMobileMenu()">
-                            <span>Việc liên quan đến tôi</span>
-                        </div>
                         <div class="drawer-tab" [class.active]="activeTab() === 'myApproval'" (click)="setActiveTab('myApproval'); closeMobileMenu()">
                             <span>Việc tôi giao</span>
+                        </div>
+                        <div class="drawer-tab" [class.active]="activeTab() === 'related'" (click)="setActiveTab('related'); closeMobileMenu()">
+                            <span>Việc liên quan đến tôi</span>
                         </div>
                         <div class="drawer-tab" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all'); closeMobileMenu()">
                             <span>Tổng công việc</span>

@@ -103,7 +103,7 @@ export const NOTIFICATION_TYPE_MAP: any = {
 export const ID_ADMIN_DEMO_LIST: number[] = [24, 1434, 88, 1534, 1700];
 export const USER_ALL_REPORT_TECH: number[] = [1, 23, 24, 78, 88, 1221, 1313, 1434, 1431, 53, 51, 1534, 1700];
 export const ID_ADMIN_SALE_LIST: number[] = [1, 2, 1293, 1177, 1313, 23, 1380, 1132, 11, 17, 1185, 1463, 1431, 1604, 15];
-export const EMPLOYEE_ID_LIST_DOWNLOAD_FILE_YCHXD_SUMMARY: number[] = [419, 416, 690, 16];
+export const EMPLOYEE_ID_LIST_DOWNLOAD_FILE_YCHXD_SUMMARY: number[] = [419, 416, 690, 16, 171];
 
 
 

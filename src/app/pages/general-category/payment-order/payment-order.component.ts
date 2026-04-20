@@ -2767,10 +2767,11 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     loadData() {
-
         // console.log('this.activeTabqqq:', this.activeTab);
-        this.loadDataNormal();
-        this.loadDataSpecial();
+        if (this.activeTab == '0')
+            this.loadDataNormal();
+        else
+            this.loadDataSpecial();
     }
 
     loadDataNormal() {
@@ -2837,7 +2838,7 @@ export class PaymentOrderComponent implements OnInit {
         //         this.param.approvedTBPID = 0;
         //         this.param.step = 0;
         //     }
-
+        this.isLoading = true;
         let emp = 0;
         if (this.isPermisstionDB && this.isApprove) {
             emp = this.param.employeeID;
@@ -2874,12 +2875,16 @@ export class PaymentOrderComponent implements OnInit {
                 // if (columnElement) {
                 //     columnElement.textContent = `${this.formatNumber(this.datasetSpecial.length, 0)}`;
                 // }
+                this.isLoading = false;
+
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
                     {
                         nzStyle: { whiteSpace: 'pre-line' }
                     });
+                this.isLoading = false;
+
             }
         })
     }
@@ -5231,9 +5236,10 @@ export class PaymentOrderComponent implements OnInit {
     tabValueChange(e: any) {
         // console.log('tabValueChange e:', e);
         this.activeTab = e;
+
         console.log('this.activeTab tabValueChange:', this.activeTab);
         this.getSteps();
-
+        this.loadData();
     }
 
     onUpdateTotalMoney() {

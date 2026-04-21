@@ -128,6 +128,7 @@ export class HrhiringRequestComponent
   searchValue: string = '';
   dateStart: any = DateTime.local().startOf('month').toISODate();
   dateEnd: any = DateTime.local().endOf('month').toISODate();
+  selectedIsCompletedFilter: number = 0; // 0.Chưa hoàn thành, 1.Hoàn thành, -1.Tất cả
 
   departmentList: any[] = [];
 
@@ -178,7 +179,8 @@ export class HrhiringRequestComponent
         params.findText,
         params.dateStart,
         params.dateEnd,
-        params.id
+        params.id,
+        params.isCompleted
       )
       .subscribe({
         next: (rows) => {
@@ -196,6 +198,10 @@ export class HrhiringRequestComponent
           );
         },
       });
+  }
+
+  onStatusFilterChange(): void {
+    this.loadHrHiringRequestData();
   }
 
   private toISODate(d: any): string {
@@ -234,6 +240,7 @@ export class HrhiringRequestComponent
       dateStart: this.toISODate(this.dateStart),
       dateEnd: this.toISODate(this.dateEnd),
       id: 0,
+      isCompleted: this.selectedIsCompletedFilter,
     };
   }
 
@@ -430,7 +437,7 @@ export class HrhiringRequestComponent
 
   // UI helpers
   get shouldShowSearchBar(): boolean {
-    return this.showSearchBar || !this.isMobile();
+    return this.showSearchBar;
   }
 
   isMobile(): boolean {

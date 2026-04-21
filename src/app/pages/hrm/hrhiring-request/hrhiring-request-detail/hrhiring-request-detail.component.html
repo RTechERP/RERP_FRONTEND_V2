@@ -256,8 +256,13 @@
                                                 <span class="text-danger fs-12">(*)</span>
                                             </label>
                                             <nz-form-control [nzSpan]="24">
-                                                <input nz-input placeholder="Nhập địa chỉ"
-                                                    formControlName="WorkAddress" />
+                                                <input nz-input placeholder="Nhập địa chỉ" formControlName="WorkAddress"
+                                                    [nzAutocomplete]="autoWorkAddress" />
+                                                <nz-autocomplete #autoWorkAddress>
+                                                    <nz-auto-option nzValue="VP Hà Nội">VP Hà Nội</nz-auto-option>
+                                                    <nz-auto-option nzValue="VP Bắc Ninh">VP Bắc Ninh</nz-auto-option>
+                                                    <nz-auto-option nzValue="VP HCM">VP HCM</nz-auto-option>
+                                                </nz-autocomplete>
                                             </nz-form-control>
                                         </nz-form-item>
                                     </div>

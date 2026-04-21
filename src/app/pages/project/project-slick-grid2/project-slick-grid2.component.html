@@ -147,7 +147,7 @@
           <button nz-button nzType="default" nzSize="small" (click)="setDefautSearch()">
             Đặt lại
           </button>
-          <button nz-button nzType="primary" nzSize="small" (click)="searchProjects()">
+          <button nz-button nzType="primary" nzSize="small" (click)="searchProjects(1, pageSize)">
             Tìm kiếm
           </button>
         </div>
@@ -215,8 +215,8 @@
                 <nz-form-label class="fs-12">Từ khóa</nz-form-label>
                 <nz-form-control>
                   <input nz-input nzSize="small" placeholder="Nhập từ khóa..." [(ngModel)]="keyword"
-                    [ngModelOptions]="{ standalone: true }" (keyup.enter)="searchProjects(); showSearchModal = false"
-                    style="width: 100%" />
+                    [ngModelOptions]="{ standalone: true }"
+                    (keyup.enter)="searchProjects(1, pageSize); showSearchModal = false" style="width: 100%" />
                 </nz-form-control>
               </nz-form-item>
               <nz-form-item>
@@ -315,7 +315,8 @@
             <div class="d-flex gap-1 justify-content-end">
               <button nz-button nzType="default" nzSize="small" (click)="setDefautSearch()">Đặt lại</button>
               <button nz-button nzType="default" nzSize="small" (click)="showSearchModal = false">Đóng</button>
-              <button nz-button nzType="primary" nzSize="small" (click)="searchProjects(); showSearchModal = false">Tìm
+              <button nz-button nzType="primary" nzSize="small"
+                (click)="searchProjects(1, pageSize); showSearchModal = false">Tìm
                 kiếm</button>
             </div>
           </ng-template>
@@ -344,10 +345,9 @@
               </nz-select>
 
               <input nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 220px" [(ngModel)]="keyword"
-                [ngModelOptions]="{ standalone: true }" (keyup.enter)="searchProjects()"
-                (ngModelChange)="onSearchChange($event)" />
+                [ngModelOptions]="{ standalone: true }" (keyup.enter)="searchProjects(1, pageSize)" />
 
-              <button nz-button nzType="primary" nzSize="small" (click)="searchProjects()">
+              <button nz-button nzType="primary" nzSize="small" (click)="searchProjects(1, pageSize)">
                 <nz-icon nzType="search" />
               </button>
 
@@ -377,10 +377,12 @@
               <nz-splitter-panel [nzCollapsible]="true" [nzResizable]="true" [nzSize]="sizeTbMaster">
                 <div class="table-container" style="height: 100%">
                   <p-table #dtProjects [value]="dataset" selectionMode="single" [(selection)]="selectedRow" dataKey="ID"
-                    [scrollable]="true" scrollHeight="flex" [paginator]="true" [rows]="50"
-                    [rowsPerPageOptions]="[50, 100, 200]" [resizableColumns]="true" columnResizeMode="expand"
+                    [scrollable]="true" scrollHeight="flex" [paginator]="true" [rows]="pageSize"
+                    [totalRecords]="totalRecords" [lazy]="true" (onLazyLoad)="loadProjectsLazy($event)"
+                    [rowsPerPageOptions]="[100, 200, 300,99999]" [resizableColumns]="true" columnResizeMode="expand"
                     styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped" [contextMenu]="cm"
-                    (onRowContextMenu)="onRowContextMenu($event)" (onFilter)="handleTableFilter($event)">
+                    [loading]="isLoading" (onRowContextMenu)="onRowContextMenu($event)"
+                    (onFilter)="handleTableFilter($event)">
 
                     <ng-template pTemplate="header">
                       <tr>
@@ -402,11 +404,6 @@
                           style="width: 6.5%; min-width: 6.5%; max-width: 6.5%">
                           End User <p-sortIcon field="EndUserName"></p-sortIcon>
                         </th>
-                        <th pSortableColumn="CustomerName" pResizableColumn
-                          style="width: 6.5%; min-width: 6.5%; max-width: 6.5%">
-                          Khách hàng
-                          <p-sortIcon field="CustomerName"></p-sortIcon>
-                        </th>
                         <th pSortableColumn="FullNameSale" pResizableColumn
                           style="width: 5.6%; min-width: 5.6%; max-width: 5.6%">
                           Người phụ trách (sale)
@@ -418,8 +415,18 @@
                           <p-sortIcon field="FullNameTech"></p-sortIcon>
                         </th>
                         <th pSortableColumn="FullNamePM" pResizableColumn
-                          style="width: 4.9%; min-width: 4.9%; max-width: 4.9%">
+                          style="width: 3.5%; min-width: 3.5%; max-width: 4.9%">
                           PM <p-sortIcon field="FullNamePM"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="PriotityText" pResizableColumn
+                          style="width: 3.3%; min-width: 3.3%; max-width: 4.9%">
+                          Mức ưu tiên
+                          <p-sortIcon field="PriotityText"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="PersonalPriotity" pResizableColumn
+                          style="width: 3%; min-width: 2.0%; max-width: 4.9%">
+                          Mức độ ưu tiên cá nhân
+                          <p-sortIcon field="PersonalPriotity"></p-sortIcon>
                         </th>
                         <th pSortableColumn="BussinessField" pResizableColumn
                           style="width: 5.2%; min-width: 5.2%; max-width: 5.2%">
@@ -427,29 +434,24 @@
                           <p-sortIcon field="BussinessField"></p-sortIcon>
                         </th>
                         <th pSortableColumn="CurrentState" pResizableColumn
-                          style="width: 8.2%; min-width: 8.2%; max-width: 8.2%">
+                          style="width: 6.0%; min-width: 3.2%; max-width: 8.2%">
                           Hiện trạng
                           <p-sortIcon field="CurrentState"></p-sortIcon>
                         </th>
+                        <th pSortableColumn="CustomerName" pResizableColumn
+                          style="width: 6.5%; min-width: 6.5%; max-width: 6.5%">
+                          Khách hàng
+                          <p-sortIcon field="CustomerName"></p-sortIcon>
+                        </th>
                         <th pSortableColumn="ApplicationTypeNames" pResizableColumn
-                          style="width: 8.2%; min-width: 8.2%; max-width: 8.2%">
+                          style="width: 6.2%; min-width: 4.2%; max-width: 8.2%">
                           Kiểu ứng dụng
                           <p-sortIcon field="CurrentState"></p-sortIcon>
                         </th>
                         <th pSortableColumn="TechnologyNames" pResizableColumn
-                          style="width: 8.2%; min-width: 8.2%; max-width: 8.2%">
+                          style="width: 6 .2%; min-width: 4.2%; max-width: 8.2%">
                           Công nghệ
                           <p-sortIcon field="CurrentState"></p-sortIcon>
-                        </th>
-                        <th pSortableColumn="PriotityText" pResizableColumn
-                          style="width: 3.3%; min-width: 3.3%; max-width: 3.3%">
-                          Mức ưu tiên
-                          <p-sortIcon field="PriotityText"></p-sortIcon>
-                        </th>
-                        <th pSortableColumn="PersonalPriotity" pResizableColumn
-                          style="width: 4.9%; min-width: 4.9%; max-width: 4.9%">
-                          Mức độ ưu tiên cá nhân
-                          <p-sortIcon field="PersonalPriotity"></p-sortIcon>
                         </th>
                         <th pSortableColumn="PO" pResizableColumn style="width: 3.9%; min-width: 3.9%; max-width: 3.9%">
                           PO <p-sortIcon field="PO"></p-sortIcon>
@@ -511,98 +513,110 @@
                         <th style="width: 4.9%; min-width: 4.9%; max-width: 4.9%">
                           <p-columnFilter field="ProjectCode" matchMode="contains" [showMenu]="false">
                             <ng-template pTemplate="filter" let-filter="filterCallback">
-                              <input pInputText type="text" (input)="filter($any($event.target).value)"
-                                class="w-full p-inputtext-sm" placeholder="Mã dự án..." />
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="Mã dự án..." />
                             </ng-template>
                           </p-columnFilter>
                         </th>
                         <th style="width: 8.2%; min-width: 8.2%; max-width: 8.2%">
                           <p-columnFilter field="ProjectName" matchMode="contains" [showMenu]="false">
                             <ng-template pTemplate="filter" let-filter="filterCallback">
-                              <input pInputText type="text" (input)="filter($any($event.target).value)"
-                                class="w-full p-inputtext-sm" placeholder="Tên dự án..." />
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="Tên dự án..." />
                             </ng-template>
                           </p-columnFilter>
                         </th>
                         <th style="width: 6.5%; min-width: 6.5%; max-width: 6.5%">
                           <p-columnFilter field="EndUserName" matchMode="contains" [showMenu]="false">
                             <ng-template pTemplate="filter" let-filter="filterCallback">
-                              <input pInputText type="text" (input)="filter($any($event.target).value)"
-                                class="w-full p-inputtext-sm" placeholder="End User..." />
-                            </ng-template>
-                          </p-columnFilter>
-                        </th>
-                        <th style="width: 6.5%; min-width: 6.5%; max-width: 6.5%">
-                          <p-columnFilter field="CustomerName" matchMode="contains" [showMenu]="false">
-                            <ng-template pTemplate="filter" let-filter="filterCallback">
-                              <input pInputText type="text" (input)="filter($any($event.target).value)"
-                                class="w-full p-inputtext-sm" placeholder="Khách hàng..." />
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="End User..." />
                             </ng-template>
                           </p-columnFilter>
                         </th>
                         <th style="width: 5.6%; min-width: 5.6%; max-width: 5.6%">
                           <p-columnFilter field="FullNameSale" matchMode="contains" [showMenu]="false">
                             <ng-template pTemplate="filter" let-filter="filterCallback">
-                              <input pInputText type="text" (input)="filter($any($event.target).value)"
-                                class="w-full p-inputtext-sm" placeholder="Kinh doanh..." />
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="Kinh doanh..." />
                             </ng-template>
                           </p-columnFilter>
                         </th>
                         <th style="width: 5.9%; min-width: 5.9%; max-width: 5.9%">
                           <p-columnFilter field="FullNameTech" matchMode="contains" [showMenu]="false">
                             <ng-template pTemplate="filter" let-filter="filterCallback">
-                              <input pInputText type="text" (input)="filter($any($event.target).value)"
-                                class="w-full p-inputtext-sm" placeholder="Kỹ thuật..." />
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="Kỹ thuật..." />
                             </ng-template>
                           </p-columnFilter>
                         </th>
                         <th style="width: 4.9%; min-width: 4.9%; max-width: 4.9%">
                           <p-columnFilter field="FullNamePM" matchMode="contains" [showMenu]="false">
                             <ng-template pTemplate="filter" let-filter="filterCallback">
-                              <input pInputText type="text" (input)="filter($any($event.target).value)"
-                                class="w-full p-inputtext-sm" placeholder="PM..." />
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="PM..." />
                             </ng-template>
                           </p-columnFilter>
                         </th>
+                        <th style="width: 3.3%; min-width: 3.3%; max-width: 3.3%"></th>
+                        <th style="width: 4.9%; min-width: 4.9%; max-width: 4.9%"></th>
                         <th style="width: 5.2%; min-width: 5.2%; max-width: 5.2%">
                           <p-columnFilter field="BussinessField" matchMode="contains" [showMenu]="false">
                             <ng-template pTemplate="filter" let-filter="filterCallback">
-                              <input pInputText type="text" (input)="filter($any($event.target).value)"
-                                class="w-full p-inputtext-sm" placeholder="Lĩnh vực..." />
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="Lĩnh vực..." />
                             </ng-template>
                           </p-columnFilter>
                         </th>
                         <th style="width: 8.2%; min-width: 8.2%; max-width: 8.2%">
                           <p-columnFilter field="CurrentState" matchMode="contains" [showMenu]="false">
                             <ng-template pTemplate="filter" let-filter="filterCallback">
-                              <input pInputText type="text" (input)="filter($any($event.target).value)"
-                                class="w-full p-inputtext-sm" placeholder="Hiện trạng..." />
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="Hiện trạng..." />
+                            </ng-template>
+                          </p-columnFilter>
+                        </th>
+                        <th style="width: 6.5%; min-width: 6.5%; max-width: 6.5%">
+                          <p-columnFilter field="CustomerName" matchMode="contains" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-filter="filterCallback">
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="Khách hàng..." />
                             </ng-template>
                           </p-columnFilter>
                         </th>
                         <th style="width: 8.2%; min-width: 8.2%; max-width: 8.2%">
                           <p-columnFilter field="ApplicationTypeNames" matchMode="contains" [showMenu]="false">
                             <ng-template pTemplate="filter" let-filter="filterCallback">
-                              <input pInputText type="text" (input)="filter($any($event.target).value)"
-                                class="w-full p-inputtext-sm" placeholder="Kiểu ứng dụng..." />
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="Kiểu ứng dụng..." />
                             </ng-template>
                           </p-columnFilter>
                         </th>
                         <th style="width: 8.2%; min-width: 8.2%; max-width: 8.2%">
                           <p-columnFilter field="TechnologyNames" matchMode="contains" [showMenu]="false">
                             <ng-template pTemplate="filter" let-filter="filterCallback">
-                              <input pInputText type="text" (input)="filter($any($event.target).value)"
-                                class="w-full p-inputtext-sm" placeholder="Công nghệ..." />
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="Công nghệ..." />
                             </ng-template>
                           </p-columnFilter>
                         </th>
-                        <th style="width: 3.3%; min-width: 3.3%; max-width: 3.3%"></th>
-                        <th style="width: 4.9%; min-width: 4.9%; max-width: 4.9%"></th>
                         <th style="width: 3.9%; min-width: 3.9%; max-width: 3.9%">
                           <p-columnFilter field="PO" matchMode="contains" [showMenu]="false">
                             <ng-template pTemplate="filter" let-filter="filterCallback">
-                              <input pInputText type="text" (input)="filter($any($event.target).value)"
-                                class="w-full p-inputtext-sm" placeholder="PO..." />
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="PO..." />
                             </ng-template>
                           </p-columnFilter>
                         </th>
@@ -628,10 +642,22 @@
                           <p-columnFilter type="date" field="UpdatedDate" class="w-full"></p-columnFilter>
                         </th>
                         <th style="width: 4.2%; min-width: 4.2%; max-width: 4.2%">
-                          <p-columnFilter type="text" field="CreatedBy" class="w-full"></p-columnFilter>
+                          <p-columnFilter field="CreatedBy" matchMode="contains" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-filter="filterCallback">
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="Người tạo..." />
+                            </ng-template>
+                          </p-columnFilter>
                         </th>
                         <th style="width: 4.2%; min-width: 4.2%; max-width: 4.2%">
-                          <p-columnFilter type="text" field="UpdatedBy" class="w-full"></p-columnFilter>
+                          <p-columnFilter field="UpdatedBy" matchMode="contains" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-filter="filterCallback">
+                              <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                                (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                                placeholder="Người sửa..." />
+                            </ng-template>
+                          </p-columnFilter>
                         </th>
                       </tr>
                     </ng-template>
@@ -668,13 +694,6 @@
                           {{ rowData.EndUserName }}
                         </td>
                         <td style="
-                            width: 200px;
-                            min-width: 200px;
-                            max-width: 200px;
-                          " title="{{ rowData.CustomerName }}" class="cell-wrap">
-                          {{ rowData.CustomerName }}
-                        </td>
-                        <td style="
                             width: 170px;
                             min-width: 170px;
                             max-width: 170px;
@@ -696,6 +715,20 @@
                           {{ rowData.FullNamePM }}
                         </td>
                         <td style="
+                            width: 100px;
+                            min-width: 100px;
+                            max-width: 100px;
+                          " class="text-end">
+                          {{ rowData.PriotityText }}
+                        </td>
+                        <td style="
+                            width: 150px;
+                            min-width: 150px;
+                            max-width: 150px;
+                          " class="text-end">
+                          {{ rowData.PersonalPriotity }}
+                        </td>
+                        <td style="
                             width: 160px;
                             min-width: 160px;
                             max-width: 160px;
@@ -710,6 +743,13 @@
                           {{ rowData.CurrentState }}
                         </td>
                         <td style="
+                            width: 200px;
+                            min-width: 200px;
+                            max-width: 200px;
+                          " title="{{ rowData.CustomerName }}" class="cell-wrap">
+                          {{ rowData.CustomerName }}
+                        </td>
+                        <td style="
                             width: 250px;
                             min-width: 250px;
                             max-width: 250px;
@@ -722,20 +762,6 @@
                             max-width: 250px;
                           " title="{{ rowData.TechnologyNames }}" class="cell-wrap">
                           {{ rowData.TechnologyNames }}
-                        </td>
-                        <td style="
-                            width: 100px;
-                            min-width: 100px;
-                            max-width: 100px;
-                          " class="text-end">
-                          {{ rowData.PriotityText }}
-                        </td>
-                        <td style="
-                            width: 150px;
-                            min-width: 150px;
-                            max-width: 150px;
-                          " class="text-end">
-                          {{ rowData.PersonalPriotity }}
                         </td>
                         <td style="
                             width: 120px;
@@ -1120,7 +1146,7 @@
     </nz-form-item>
     <div class="d-flex gap-1 justify-content-end mt-1">
       <button nz-button nzType="default" nzSize="small" (click)="setDefautSearch()">Đặt lại</button>
-      <button nz-button nzType="primary" nzSize="small" (click)="searchProjects()">Tìm kiếm</button>
+      <button nz-button nzType="primary" nzSize="small" (click)="searchProjects(1, pageSize)">Tìm kiếm</button>
     </div>
   </form>
 </ng-template>

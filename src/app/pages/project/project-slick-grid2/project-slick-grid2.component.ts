@@ -56,7 +56,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { NOTIFICATION_TITLE } from '../../../app.config';
-import { MenuItem, PrimeIcons } from 'primeng/api';
+import { FilterService, MenuItem, PrimeIcons } from 'primeng/api';
 import { MenubarModule } from 'primeng/menubar';
 import { ContextMenuModule } from 'primeng/contextmenu';
 import { TooltipModule } from 'primeng/tooltip';
@@ -150,10 +150,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     private authService: AuthService,
     private permissionService: PermissionService,
     private tabService: TabServiceService,
+    private filterService: FilterService,
   ) {
     this.searchSubject
       .subscribe(() => {
-        this.searchProjects();
+        this.searchProjects(1, this.pageSize);
       });
 
     this.filterSubject
@@ -203,6 +204,12 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
   projectCode: any = '';
   currentUser: any = null;
   savedPage: number = 1;
+
+  // Pagination properties
+  totalRecords: number = 0;
+  pageSize: number = 100;
+  currentPage: number = -1; // Initialize with -1 to trigger the first loadProjectsLazy
+  masterDataset: any[] = [];
   selectedStatusDate: Date | null = null;
   dateStart: string = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
@@ -758,6 +765,84 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     }
   }
 
+  loadProjectsLazy(event: any): void {
+    // PrimeNG TableLazyLoadEvent
+    const first = event.first ?? 0;
+    const rows = event.rows ?? 100;
+    const page = Math.floor(first / rows) + 1;
+
+    // Nếu thay đổi trang, số dòng mỗi trang HOẶC là lần nạp đầu tiên -> Gọi server
+    if (page !== this.currentPage || rows !== this.pageSize || this.currentPage === -1) {
+      this.currentPage = page;
+      this.pageSize = rows;
+      this.searchProjects(page, rows);
+    } else {
+      // Nếu chỉ thay đổi filter hoặc sort -> Lọc/Sắp xếp tại view (masterDataset)
+      this.applyLocalFilterAndSort(event);
+    }
+  }
+
+  private applyLocalFilterAndSort(event: any): void {
+    if (!this.masterDataset || this.masterDataset.length === 0) {
+      this.dataset = [];
+      return;
+    }
+
+    let filteredData = [...this.masterDataset];
+
+    // 1. Xử lý Filter
+    if (event.filters) {
+      filteredData = filteredData.filter(item => {
+        return Object.keys(event.filters).every(field => {
+          const filterConstraint = event.filters[field][0] || event.filters[field];
+          const filterValue = filterConstraint.value;
+          const filterMatchMode = filterConstraint.matchMode || 'contains';
+
+          if (filterValue === null || filterValue === undefined || filterValue === '') {
+            return true;
+          }
+
+          let itemValue = item[field];
+          
+          // Đặc thù cho cột trạng thái (ProjectStatusName) nếu dùng Dropdown/MultiSelect
+          if (field === 'ProjectStatusName' && Array.isArray(filterValue)) {
+            return filterValue.includes(itemValue);
+          }
+
+          if (itemValue === null || itemValue === undefined) return false;
+
+          const sItemValue = String(itemValue).toLowerCase();
+          const sFilterValue = String(filterValue).toLowerCase();
+
+          switch (filterMatchMode) {
+            case 'contains': return sItemValue.includes(sFilterValue);
+            case 'startsWith': return sItemValue.startsWith(sFilterValue);
+            case 'endsWith': return sItemValue.endsWith(sFilterValue);
+            case 'equals': return sItemValue === sFilterValue;
+            case 'notContains': return !sItemValue.includes(sFilterValue);
+            default: return sItemValue.includes(sFilterValue);
+          }
+        });
+      });
+    }
+
+    // 2. Xử lý Sort (Nếu cần sort trên view luôn)
+    if (event.sortField) {
+      const field = event.sortField;
+      const order = event.sortOrder || 1;
+      filteredData.sort((a, b) => {
+        const valA = a[field];
+        const valB = b[field];
+        if (valA == null) return 1;
+        if (valB == null) return -1;
+        const result = valA < valB ? -1 : valA > valB ? 1 : 0;
+        return result * order;
+      });
+    }
+
+    this.dataset = filteredData;
+  }
+
   private initFullStatusFilterOptions(): void {
     if (!this.projectStatuses || this.projectStatuses.length === 0) {
       this.fullStatusFilterOptions = [];
@@ -772,7 +857,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     this.statusFilterOptions = [...this.fullStatusFilterOptions];
   }
 
-  private enrichProjects(projects: any[]): any[] {
+  private enrichProjects(projects: any[], page: number = 1, size: number = 50): any[] {
     return projects.map((item: any, index: number) => {
       let statusName = item.ProjectStatusName || item.StatusName;
       let statusColor = item.ProjectStatusColor;
@@ -790,7 +875,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       return {
         ...item,
         id: item.ID,
-        STT: index + 1,
+        STT: (page - 1) * size + index + 1,
         ProjectStatusName: statusName,
         ProjectStatusColor: statusColor
       };
@@ -835,18 +920,37 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     };
   }
 
-  searchProjects() {
+  searchProjects(page: number = 1, size: number = 100) {
     this.isLoading = true;
+    this.currentPage = page;
+    this.pageSize = size;
+
     const ajaxParams = this.getProjectAjaxParams();
     this.projectService
-      .getProjectsPagination(ajaxParams, 1, 999999)
+      .getProjectsPagination(ajaxParams, page, size)
       .subscribe({
         next: (res) => {
           if (res?.data) {
             const projects = res.data.project || [];
-            this.dataset = this.enrichProjects(projects);
+            this.masterDataset = this.enrichProjects(projects, page, size);
+            
+            // Nếu đang có filter trên table thì áp dụng luôn cho đợt data mới này
+            if (this.dtProjects && this.dtProjects.filters) {
+              this.applyLocalFilterAndSort({
+                filters: this.dtProjects.filters,
+                sortField: this.dtProjects.sortField,
+                sortOrder: this.dtProjects.sortOrder
+              });
+            } else {
+              this.dataset = [...this.masterDataset];
+            }
+
+            const totalPage = res.data.totalPage || 1;
+            this.totalRecords = totalPage * size;
           } else {
+            this.masterDataset = [];
             this.dataset = [];
+            this.totalRecords = 0;
           }
           this.isLoading = false;
         },
@@ -992,8 +1096,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
           // Sync context menu after loading statuses
           this.updateContextMenuStatusItems();
 
-          // Sau khi có Status mới load Project để đảm bảo không bị trống text
-          this.searchProjects();
+          // searchProjects will be triggered by p-table onLazyLoad
+          // this.searchProjects();
         }
       },
       error: (error) => {
@@ -1121,7 +1225,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                     nzStyle: { fontSize: '0.75rem' },
                   });
                   modalRef.close();
-                  this.searchProjects();
+                  this.searchProjects(1, this.pageSize);
                 } else {
                   this.notification.error('Lỗi', response?.message || 'Không thể cập nhật trạng thái!', {
                     nzStyle: { fontSize: '0.75rem' },

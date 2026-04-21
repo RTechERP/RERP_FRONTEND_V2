@@ -178,12 +178,14 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit(): void {
         this.componentId = this.generateUUIDv4();
-
+        console.log(this.tabData);
         if (this.tabData) {
+            //debugger;
             // Chạy trong component-tab: dùng tabData, không subscribe queryParams
             this.warehouseCode = this.tabData.warehouseCode ?? 'HN';
-            this.warehouseId = this.tabData.warehouseId ?? 1;
+            this.warehouseId = this.tabData.warehouseID ?? 1;
             this.isWareHouseDP = this.warehouseCode.toUpperCase() === 'DP';
+            console.log(this.warehouseId)
             this.initGridColumns();
             this.initGridOptions();
             this.cdr.detectChanges();
@@ -197,7 +199,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         const sub = this.route.queryParams.subscribe((params) => {
             const newWarehouseCode = params['warehouseCode'] ?? 'HN';
             this.warehouseId = params['warehouseID'] ?? 1;
-
+            // console.log("Warehouseid", this.warehouseId);
             const paramsChanged = this.warehouseCode !== newWarehouseCode;
 
             this.warehouseCode = newWarehouseCode;
@@ -247,6 +249,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
             this.getLocation();
         });
         this.subscriptions.push(sub);
+        // console.log("Warehouseid", this.warehouseId);
     }
 
     ngAfterViewInit(): void {

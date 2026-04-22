@@ -216,7 +216,8 @@
             quantityBorrow > 0 ||
             quantityBorrowExpried > 0 ||
             quantityBorrowSale > 0 ||
-            quantityBorrowExpriedSale > 0
+            quantityBorrowExpriedSale > 0 ||
+            quantityOverdueProjectTask > 0
           ">
                     <div class="px-3 py-2 bg-light" style="
               background-color: #fff3cd !important;
@@ -239,7 +240,24 @@
                                 </ng-container>
                             </div>
                             <ng-container *ngIf="
-                  quantityApprove?.Count > 0 &&
+                  (quantityApprove?.Count > 0 || quantityBorrow > 0 || quantityBorrowExpried > 0 || quantityBorrowSale > 0 || quantityBorrowExpriedSale > 0) &&
+                  quantityOverdueProjectTask > 0
+                ">
+                                <br />
+                            </ng-container>
+                            <ng-container *ngIf="quantityOverdueProjectTask > 0">
+                                Bạn đang có
+                                <span class="text-danger fw-bold">{{ quantityOverdueProjectTask }}</span>
+                                công việc quá hạn!
+                                <span class="text-primary cursor-pointer fw-bold" style="
+                    color: #007bff !important;
+                    text-decoration: underline;
+                    cursor: pointer;
+                    font-weight: 600;
+                  " (click)="onPickProjectTaskOverdue()"> Bấm vào đây để xem</span>
+                            </ng-container>
+                            <ng-container *ngIf="
+                  (quantityApprove?.Count > 0 || quantityOverdueProjectTask > 0) &&
                   (quantityBorrow > 0 || quantityBorrowExpried > 0)
                 ">
                                 <br />

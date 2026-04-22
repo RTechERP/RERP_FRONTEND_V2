@@ -99,6 +99,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
 
     // ResizeObserver để detect khi tab được hiển thị lại
     private resizeObserver: ResizeObserver | null = null;
+    private filterPatchObserver: MutationObserver | null = null;
     private lastVisibleWidth: number = 0;
 
     // Column definitions
@@ -208,26 +209,27 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     ) { }
 
     ngOnInit(): void {
-        this.initGrids();
         this.initMenuBar();
 
+        if (this.tabData) {
+            // Chạy trong component-tab: dùng tabData, không subscribe queryParams
+            // để tránh bị re-init mỗi lần bất kỳ tab nào thay đổi route
+            this.wareHouseCode = this.tabData.warehouseCode ?? 'HN';
+            this.searchParams.warehousecode = this.wareHouseCode;
+            this.initGrids();
+            this.getProductGroup();
+            this.loadDataBillImport();
+            return;
+        }
+
+        // Chạy trong router-outlet: react khi queryParams thay đổi
+        this.initGrids();
         this.route.queryParams.subscribe(params => {
-            // this.wareHouseCode = params['warehouseCode'] || 'HN';
-
-            // console.log('params:', params);
-            // console.log('this.tabData:', this.tabData);
-
-            const newWarehouseCode =
-                params['warehouseCode']
-                ?? this.tabData?.warehouseCode
-                ?? 'HN';
-
-            // Check if warehouse code changed
+            const newWarehouseCode = params['warehouseCode'] ?? 'HN';
             const warehouseCodeChanged = this.wareHouseCode !== newWarehouseCode;
             this.wareHouseCode = newWarehouseCode;
             this.searchParams.warehousecode = this.wareHouseCode;
 
-            // Re-initialize grids if warehouse code changed
             if (warehouseCodeChanged) {
                 this.initGrids();
             }
@@ -238,15 +240,19 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     }
 
     ngAfterViewInit(): void {
-        // Sử dụng ResizeObserver để detect khi component được hiển thị lại (tab switch)
         this.setupResizeObserver();
+        // Fix: Ctrl+X / Delete / Backspace khi bôi đen không trigger filter trong SlickGrid
+        setTimeout(() => this.patchSlickGridFilterInputs(), 600);
     }
 
     ngOnDestroy(): void {
-        // Cleanup ResizeObserver khi component bị destroy
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;
+        }
+        if (this.filterPatchObserver) {
+            this.filterPatchObserver.disconnect();
+            this.filterPatchObserver = null;
         }
     }
 
@@ -277,6 +283,67 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         });
 
         this.resizeObserver.observe(element);
+    }
+
+    /**
+     * Fix: SlickGrid filter inputs không nhận change khi:
+     *  1. Ctrl+X (cut) trên text đang bôi đen
+     *  2. Delete / Backspace khi bôi đen toàn bộ text
+     * Nguyên nhân: SlickGrid lắng nghe `input`/`keyup` nhưng cut + delete-on-selection
+     * không luôn dispatch đúng thứ tự event → filter đọc giá trị cũ trước khi DOM cập nhật.
+     * Fix: sau mỗi sự kiện đó, setTimeout 0ms rồi re-dispatch `input` event.
+     */
+    private patchSlickGridFilterInputs(): void {
+        const container = this.elementRef.nativeElement as HTMLElement;
+
+        const applyPatch = (input: HTMLInputElement) => {
+            if (input.dataset['filterPatched']) return;
+            input.dataset['filterPatched'] = '1';
+
+            // Fix Ctrl+X: dispatch input event sau khi browser đã clear text
+            input.addEventListener('cut', () => {
+                setTimeout(() => input.dispatchEvent(new Event('input', { bubbles: true })), 10);
+            });
+
+            // Fix Delete / Backspace khi có text được bôi đen
+            input.addEventListener('keydown', (e: KeyboardEvent) => {
+                if (e.key === 'Delete' || e.key === 'Backspace') {
+                    const hasSelection =
+                        (input.selectionStart ?? 0) !== (input.selectionEnd ?? 0);
+                    if (hasSelection) {
+                        setTimeout(
+                            () => input.dispatchEvent(new Event('input', { bubbles: true })),
+                            10
+                        );
+                    }
+                }
+            });
+        };
+
+        // Áp dụng cho tất cả filter inputs hiện có
+        container
+            .querySelectorAll<HTMLInputElement>('.slick-headerrow-column input')
+            .forEach(applyPatch);
+
+        // Theo dõi các filter inputs được thêm động (sau khi grid re-init)
+        this.filterPatchObserver = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const node of Array.from(mutation.addedNodes)) {
+                    if (node instanceof HTMLElement) {
+                        node.querySelectorAll<HTMLInputElement>(
+                            '.slick-headerrow-column input'
+                        ).forEach(applyPatch);
+                        if (
+                            node instanceof HTMLInputElement &&
+                            node.closest('.slick-headerrow-column')
+                        ) {
+                            applyPatch(node);
+                        }
+                    }
+                }
+            }
+        });
+        this.filterPatchObserver.observe(container, { childList: true, subtree: true });
     }
 
     // =================================================================
@@ -1148,7 +1215,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 this.datasetDetail = res.data || [];
                 this.datasetDetail = this.datasetDetail.map((item: any, index: number) => ({
                     ...item,
-                    id: index + 1
+                    id: item.ID || (index + 1)
                 }));
                 this.isDetailLoad = false;
 

@@ -47,6 +47,8 @@ import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { Menubar } from 'primeng/menubar';
+import { TableModule } from 'primeng/table';
+import { InputTextModule } from 'primeng/inputtext';
 import { PermissionService } from '../../../../../services/permission.service';
 @Component({
   standalone: true,
@@ -74,7 +76,9 @@ import { PermissionService } from '../../../../../services/permission.service';
     AngularSlickgridModule,
     NzSpinModule,
     NzFormModule,
-    Menubar
+    Menubar,
+    TableModule,
+    InputTextModule
   ],
   selector: 'app-ts-asset-allocation',
   templateUrl: './ts-asset-allocation.component.html',
@@ -98,6 +102,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   // Datasets
   dataset: any[] = [];
   datasetDetail: any[] = [];
+  selectedRows: any[] = [];
 
   public detailTabTitle: string = 'Thông tin biên bản cấp phát:';
   gridId = this.generateUUIDv4();
@@ -120,8 +125,8 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   modalData: any = [];
   private ngbModal = inject(NgbModal);
   emPloyeeLists: any[] = [];
-  dateStart: Date = new Date();
-  dateEnd: Date = new Date();
+  dateStart: string = '';
+  dateEnd: string = '';
   employeeID: number | null = null;
   status: number[] = [];
   filterText: string = '';
@@ -137,12 +142,11 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   ];
   currentUser: any = null;
   isLoading: boolean = false;
-
   selectedApproval: number | null = null;
   menuBars: any[] = [];
 
   get shouldShowSearchBar(): boolean {
-    return this.showSearchBar;
+    return !this.isMobile() || this.showSearchBar;
   }
 
   isMobile(): boolean {
@@ -156,22 +160,21 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     this.showSearchBar = !this.showSearchBar;
   }
 
-  private getFirstDayOfMonth(): Date {
+  private getFirstDayOfMonth(): string {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
   }
 
-  private getLastDayOfMonth(): Date {
+  private getLastDayOfMonth(): string {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return `${last.getFullYear()}-${String(last.getMonth() + 1).padStart(2, '0')}-${String(last.getDate()).padStart(2, '0')}`;
   }
 
   ngOnInit() {
     this.dateStart = this.getFirstDayOfMonth();
     this.dateEnd = this.getLastDayOfMonth();
     this.initMenuBar();
-    this.initGrid();
-    this.initGridDetail();
   }
 
   initMenuBar(): void {
@@ -271,8 +274,8 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       statusString = this.selectedApproval === 1 ? '1' : '0';
     }
     const request = {
-      dateStart: this.dateStart ? DateTime.fromJSDate(this.dateStart).toISODate() : '2020-01-01',
-      dateEnd: this.dateEnd ? DateTime.fromJSDate(this.dateEnd).toISODate() : '2035-12-31',
+      dateStart: this.dateStart || '2020-01-01',
+      dateEnd: this.dateEnd || '2035-12-31',
       employeeID: this.employeeID || 0,
       status: statusString,
       filterText: this.filterText || '',
@@ -289,9 +292,6 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
           id: item.ID,
           STT: index + 1
         }));
-        setTimeout(() => {
-          this.applyDistinctFilters();
-        }, 100);
         this.isLoading = false;
       },
       error: (err) => {
@@ -633,11 +633,50 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       });
     }
   }
-
   handleRowSelection(e: any, args: OnSelectedRowsChangedEventArgs) {
     if (args && args.rows && args.rows.length > 0) {
       const selectedRow = this.gridData.getDataItem(args.rows[0]);
       this.selectedRow = selectedRow;
+    }
+  }
+
+  // PrimeNG event handlers
+  onMasterRowClick(row: any): void {
+    if (row) {
+      this.selectedRow = row;
+      this.detailTabTitle = `Thông tin biên bản cấp phát: ${row.Code}`;
+      const id = row.ID;
+      this.assetAllocationService.getAssetAllocationDetail(id).subscribe(res => {
+        const details = Array.isArray(res.data.assetsAllocationDetail)
+          ? res.data.assetsAllocationDetail
+          : [];
+        this.allocationDetailData = details;
+        this.datasetDetail = this.allocationDetailData.map((item, index) => ({
+          ...item,
+          id: item.ID || index,
+          STT: index + 1
+        }));
+      });
+    }
+  }
+
+  onMasterRowSelect(event: any): void {
+    if (event?.data) {
+      this.onMasterRowClick(event.data);
+    }
+  }
+
+  isChecked(value: any): boolean {
+    return ['true', true, 1, '1'].includes(value);
+  }
+
+  formatDateValue(value: any): string {
+    if (!value) return '';
+    try {
+      const dateValue = DateTime.fromISO(value);
+      return dateValue.isValid ? dateValue.toFormat('dd/MM/yyyy') : value;
+    } catch (e) {
+      return value;
     }
   }
 
@@ -668,8 +707,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     );
   }
   onEditAllocation() {
-    const selectedRows = this.angularGrid?.gridService?.getSelectedRows() || [];
-    const selectedData = selectedRows.map((index: number) => this.gridData.getDataItem(index));
+    const selectedData = this.selectedRows || [];
 
     if (!selectedData || selectedData.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn một biên bản để sửa!');
@@ -710,18 +748,10 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     );
   }
   getSelectedIds(): number[] {
-    if (this.angularGrid && this.angularGrid.gridService) {
-      const selectedRows = this.angularGrid.gridService.getSelectedRows();
-      return selectedRows.map((index: number) => {
-        const item = this.gridData.getDataItem(index);
-        return item.ID;
-      });
-    }
-    return [];
+    return (this.selectedRows || []).map((item: any) => item.ID);
   }
   onDeleteAllocation() {
-    const selectedIndexes = this.angularGrid?.gridService?.getSelectedRows() || [];
-    const selectedRows = selectedIndexes.map((index: number) => this.gridData.getDataItem(index));
+    const selectedRows = this.selectedRows || [];
 
     if (selectedRows.length === 0) {
       this.notification.warning('Cảnh báo', 'Chưa chọn biên bản để xóa!');
@@ -845,8 +875,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   }
 
   updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
-    const selectedIndexes = this.angularGrid?.gridService?.getSelectedRows() || [];
-    const selectedRows = selectedIndexes.map((index: number) => this.gridData.getDataItem(index)) as any[];
+    const selectedRows = (this.selectedRows || []) as any[];
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Thông báo', 'Chưa chọn biên bản để duyệt');
       return;

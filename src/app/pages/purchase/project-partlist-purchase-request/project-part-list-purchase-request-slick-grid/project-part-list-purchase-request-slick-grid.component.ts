@@ -785,7 +785,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       },
       // IsApprovedBGD - Trạng thái duyệt BGD (màu xanh/đỏ)
       {
-        id: 'IsApprovedBGDText',
+        id: 'IsApprovedBGD',
         field: 'IsApprovedBGD',
         name: 'TT Duyệt BGĐ',
         width: 120,
@@ -798,14 +798,12 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           return `<span style="color: ${color}; font-weight: bold;">${text}</span>`;
         },
         filter: {
-          collection: [
+          model: Filters['singleSelect'], collectionOptions: {
+            addBlankEntry: true
+          }, collection: [
             { value: true, label: 'Đã duyệt' },
             { value: false, label: 'Chưa duyệt' },
-          ],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true,
-          },
+          ]
         },
       },
       // ProductCode - Mã sản phẩm (click để mở lịch sử hỏi giá)
@@ -1313,16 +1311,16 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         hidden: typeId === 3,
         filter: {
-          model: Filters['compoundInputText'],
-          // model: Filters['multipleSelect'],
-          // collectionOptions: {
-          //   addBlankEntry: true
-          // },
-          // collection: [],
-          // filterOptions: {
-          //   filter: true,
+          // model: Filters['compoundInputText'],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          collection: [],
+          filterOptions: {
+            filter: true,
 
-          // } as MultipleSelectOption,
+          } as MultipleSelectOption,
         },
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';

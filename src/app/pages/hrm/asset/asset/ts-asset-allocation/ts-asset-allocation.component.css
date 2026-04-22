@@ -52,22 +52,6 @@
   overflow: hidden;
 }
 
-/* Wrapper cho các bảng Tabulator */
-.table-wrapper {
-  height: 100%;
-  width: 100%;
-  overflow: auto;
-}
-
-.tabulator {
-  font-size: 12px !important;
-  width: 100% !important;
-}
-
-.tabulator-cell {
-  padding: 0px;
-}
-
 .inner-content {
   padding: 0 !important;
 }
@@ -81,34 +65,10 @@ nz-splitter[nzDirection="vertical"] {
   height: 100%;
 }
 
-::ng-deep #grvAssetAllocation {
-  min-height: 55vh !important;
-  width: 100% !important;
-}
-
-::ng-deep #grvAllocationDetail {
-  width: 100% !important;
-}
-
-/* Ensure grid containers take full width */
-.grid-container {
-  width: 100% !important;
-}
-
-::ng-deep .slickgrid-container {
-  width: 100% !important;
-}
-
-::ng-deep .slick-viewport {
-  width: 100% !important;
-}
-
-::ng-deep .slick-header {
-  width: 100% !important;
-}
-
-::ng-deep .slick-headerrow {
-  width: 100% !important;
+.table-container {
+  width: 100%;
+  height: 100%;
+  background: white;
 }
 
 .card {
@@ -133,24 +93,123 @@ nz-splitter[nzDirection="vertical"] {
   overflow: hidden;
 }
 
-/* Search form positioning and z-index fixes */
-.filter-bar {
-  position: relative;
-  z-index: 10;
-  background: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
+/* Search Bar - Inline compact flex row */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e8e8e8;
+  background: #fafafa;
+  flex-wrap: wrap;
 }
 
-/* Ensure buttons stay above search form on desktop */
-.card-header {
-  position: relative;
-  z-index: 20;
-  background: white;
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-/* Mobile modal styles */
+.search-label {
+  font-size: 12px;
+  color: #595959;
+  white-space: nowrap;
+}
+
+.search-select {
+  min-width: 180px;
+  max-width: 250px;
+}
+
+.search-input-select {
+  height: 30px;
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background: #fff;
+  color: #595959;
+  min-width: 130px;
+  outline: none;
+  cursor: pointer;
+}
+
+.search-input-select:focus {
+  border-color: #1890ff;
+}
+
+.btn-search {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: #1890ff;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-search:hover {
+  background: #40a9ff;
+}
+
+.btn-reset {
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  color: #595959;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  height: 30px;
+}
+
+.btn-reset:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+/* PrimeNG Table styles */
+::ng-deep .p-component.p-inputtext {
+  font-size: 12px;
+  padding: 0;
+  width: 100% !important;
+}
+
+::ng-deep .p-datatable .p-datatable-thead>tr>th {
+  font-size: 12px;
+  padding: 6px 8px;
+  background: #fafafa;
+  font-weight: 600;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody>tr:hover {
+  background: #e6f7ff !important;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody>tr.p-highlight {
+  background: #bae7ff !important;
+  color: inherit;
+}
+
+/* Mobile styles */
 @media (max-width: 768px) {
-  .filter-bar.mobile-modal {
+  .search-bar.mobile-modal {
     position: fixed;
     top: 60px;
     left: 0;
@@ -163,6 +222,20 @@ nz-splitter[nzDirection="vertical"] {
     overflow-y: auto;
     margin: 16px;
     border-radius: 8px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-bar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .search-select {
+    min-width: 100% !important;
+    max-width: 100% !important;
   }
 
   .filter-backdrop {
@@ -181,10 +254,5 @@ nz-splitter[nzDirection="vertical"] {
 @media (min-width: 769px) {
   .filter-backdrop {
     display: none !important;
-  }
-
-  .filter-bar {
-    position: static !important;
-    z-index: 1 !important;
   }
 }

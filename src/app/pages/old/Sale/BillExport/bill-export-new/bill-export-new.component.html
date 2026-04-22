@@ -97,32 +97,33 @@
             [nzBodyStyle]="{ padding: '0px 16px' }" (nzOnCancel)="isShowModal = false"
             (nzOnOk)="onSearch(); isShowModal = false" nzOkText="Tìm kiếm">
             <ng-container *nzModalContent>
-                <form [id]="'form-bill-export-search-m-' + warehouseCode" nz-form nzLayout="vertical" class="mt-2" (keyup.enter)="onSearch()">
+                <form [id]="'form-bill-export-search-m-' + warehouseCode" nz-form nzLayout="vertical" class="mt-2"
+                    (keyup.enter)="onSearch()">
                     <div nz-row [nzGutter]="12">
                         <div nz-col [nzSpan]="12">
                             <nz-form-item>
                                 <nz-form-label>Từ ngày</nz-form-label>
                                 <nz-form-control>
-                                    <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateStart"
-                                        name="dateStart_m" [nzDisabled]="checked" (ngModelChange)="onDateStartChange($event)"
-                                        class="w-100">
+                                    <nz-date-picker [nzFormat]="dateFormat" nzSize="small"
+                                        [(ngModel)]="searchParams.dateStart" name="dateStart_m" [nzDisabled]="checked"
+                                        (ngModelChange)="onDateStartChange($event)" class="w-100">
                                     </nz-date-picker>
                                 </nz-form-control>
                             </nz-form-item>
                         </div>
-                        
+
                         <div nz-col [nzSpan]="12">
                             <nz-form-item>
                                 <nz-form-label>Đến ngày</nz-form-label>
                                 <nz-form-control>
-                                    <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateEnd"
-                                        name="dateEnd_m" [nzDisabled]="checked" (ngModelChange)="onDateEndChange($event)"
-                                        class="w-100">
+                                    <nz-date-picker [nzFormat]="dateFormat" nzSize="small"
+                                        [(ngModel)]="searchParams.dateEnd" name="dateEnd_m" [nzDisabled]="checked"
+                                        (ngModelChange)="onDateEndChange($event)" class="w-100">
                                     </nz-date-picker>
                                 </nz-form-control>
                             </nz-form-item>
                         </div>
-                        
+
                         <div nz-col [nzSpan]="24">
                             <nz-form-item>
                                 <nz-form-label>Lọc kho</nz-form-label>
@@ -130,20 +131,21 @@
                                     <nz-select [(ngModel)]="selectedKhoTypes" (ngModelChange)="onKhoTypeChange($event)"
                                         [nzMode]="'multiple'" [nzPlaceHolder]="'Chọn nhóm kho'" [nzMaxTagCount]="1"
                                         name="selectedKhoTypes_m" nzSize="small" class="w-100" nzAllowClear>
-                                        <nz-option *ngFor="let item of dataProductGroup" [nzLabel]="item.ProductGroupName"
-                                            [nzValue]="item.ID"></nz-option>
+                                        <nz-option *ngFor="let item of dataProductGroup"
+                                            [nzLabel]="item.ProductGroupName" [nzValue]="item.ID"></nz-option>
                                     </nz-select>
                                 </nz-form-control>
                             </nz-form-item>
                         </div>
-                        
+
                         <div nz-col [nzSpan]="24">
                             <nz-form-item>
                                 <nz-form-label>Lọc phiếu</nz-form-label>
                                 <nz-form-control>
-                                    <nz-select nzShowSearch nzAllowClear nzSize="small" [(ngModel)]="searchParams.status"
-                                        name="status_m" class="w-100">
-                                        <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
+                                    <nz-select nzShowSearch nzAllowClear nzSize="small"
+                                        [(ngModel)]="searchParams.status" name="status_m" class="w-100">
+                                        <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID"
+                                            [nzLabel]="item.Name">
                                             <div class="d-flex align-items-center">
                                                 <span class="me-2">{{ item.ID }}</span>
                                                 <span>{{ item.Name }}</span>
@@ -153,21 +155,22 @@
                                 </nz-form-control>
                             </nz-form-item>
                         </div>
-                        
+
                         <div nz-col [nzSpan]="24">
                             <nz-form-item>
                                 <nz-form-label>Từ khóa</nz-form-label>
                                 <nz-form-control>
-                                    <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword_m"
-                                        nzSize="small" (keyup.enter)="onSearch()" class="w-100" />
+                                    <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword"
+                                        name="keyword_m" nzSize="small" (keyup.enter)="onSearch()" class="w-100" />
                                 </nz-form-control>
                             </nz-form-item>
                         </div>
-                        
+
                         <div nz-col [nzSpan]="24">
                             <nz-form-item>
                                 <nz-form-control>
-                                    <label nz-checkbox [(ngModel)]="checked" name="checked_m" (ngModelChange)="onCheckboxChange()">Tìm
+                                    <label nz-checkbox [(ngModel)]="checked" name="checked_m"
+                                        (ngModelChange)="onCheckboxChange()">Tìm
                                         kiếm tất cả</label>
                                 </nz-form-control>
                             </nz-form-item>

@@ -412,6 +412,7 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
      *  so Angular doesn't diff a new array on every CD cycle. */
     getTdClass(col: ColumnDef, rowData: any): string {
         let cls = this.colBaseTdClass[col.field] || '';
+        if (col.editType === 'table-lookup' && col.editable && this.editMode) cls += ' table-lookup-td';
         if (col.cellClass) cls += ' ' + col.cellClass(rowData);
         if (this.focusedCell?.rowData === rowData && this.focusedCell?.colField === col.field) cls += ' focused-cell';
         return cls;

@@ -21,86 +21,51 @@
     <!-- Backdrop overlay cho mobile -->
     <div class="filter-backdrop" *ngIf="shouldShowSearchBar && isMobile()" (click)="ToggleSearchPanelNew()"></div>
 
-    <!-- Filter bar - inline layout -->
-    <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
-      <div class="filter-bar-header d-flex justify-content-between align-items-center mb-2" *ngIf="isMobile()">
+    <!-- Search Bar - Inline compact flex row -->
+    <div class="search-bar" *ngIf="shouldShowSearchBar" [class.mobile-modal]="isMobile()">
+      <div class="filter-bar-header" *ngIf="isMobile()">
         <span class="fw-bold" style="font-size: 12px;">Tìm kiếm</span>
         <button nz-button nzType="text" nzShape="circle" nzSize="small" nzDanger (click)="ToggleSearchPanelNew()">
           <nz-icon nzType="close" />
         </button>
       </div>
-      <form nz-form class="mobile-filter-form">
-        <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
-          <!-- Từ ngày -->
-          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
-            <nz-form-item class="mb-0">
-              <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
-              <nz-form-control>
-                <nz-date-picker [(ngModel)]="dateStart" (ngModelChange)="onDateRangeChange()" nzFormat="dd/MM/yyyy"
-                  nzSize="small" name="dateStart" class="w-100"></nz-date-picker>
-              </nz-form-control>
-            </nz-form-item>
-          </nz-col>
 
-          <!-- Đến ngày -->
-          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
-            <nz-form-item class="mb-0">
-              <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
-              <nz-form-control>
-                <nz-date-picker [(ngModel)]="dateEnd" (ngModelChange)="onDateRangeChange()" nzFormat="dd/MM/yyyy"
-                  nzSize="small" name="dateEnd" class="w-100"></nz-date-picker>
-              </nz-form-control>
-            </nz-form-item>
-          </nz-col>
-
-          <!-- Nhân viên -->
-          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="5">
-            <nz-form-item class="mb-0">
-              <nz-form-label class="fs-12" style="font-size: 12px;">Chọn nhân viên</nz-form-label>
-              <nz-form-control>
-                <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
-                  [(ngModel)]="employeeID" (ngModelChange)="onEmployeeChange()" name="employeeID">
-                  <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName"
-                    [nzValue]="emp.ID"></nz-option>
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
-          </nz-col>
-
-          <!-- Trạng thái duyệt -->
-          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
-            <nz-form-item class="mb-0">
-              <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái</nz-form-label>
-              <nz-form-control>
-                <nz-select class="w-100" [(ngModel)]="selectedApproval" (ngModelChange)="onApprovalChange()"
-                  name="isApprovedStatus" nzAllowClear nzSize="small" nzPlaceHolder="Tất cả...">
-                  <nz-option *ngFor="let item of statusData" [nzValue]="item.ID" [nzLabel]="item.Name"></nz-option>
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
-          </nz-col>
-
-          <!-- Từ khóa và nút tìm kiếm -->
-          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="6">
-            <nz-form-item class="mb-0">
-              <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
-              <nz-form-control>
-                <div class="d-flex gap-1">
-                  <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="filterText"
-                    (ngModelChange)="onKeywordChange($event)" (keyup.enter)="getAllocation()" nzSize="small"
-                    name="filterText" class="flex-grow-1" />
-                  <button nz-button nzType="primary" nzSize="small" style="width: 40px;" (click)="getAllocation()">
-                    <nz-icon nzType="search" />
-                  </button>
-                  <button nz-button nzType="default" nzSize="small" style="width: 40px;" (click)="resetSearch()">
-                    <nz-icon nzType="reload" />
-                  </button>
-                </div>
-              </nz-form-control>
-            </nz-form-item>
-          </nz-col>
-        </nz-row>
-      </form>
+      <div class="search-field">
+        <label class="search-label">Từ ngày</label>
+        <input type="date" [(ngModel)]="dateStart"
+          style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+      </div>
+      <div class="search-field">
+        <label class="search-label">Đến ngày</label>
+        <input type="date" [(ngModel)]="dateEnd"
+          style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+      </div>
+      <div class="search-field">
+        <label class="search-label">Nhân viên</label>
+        <nz-select class="search-select" nzShowSearch nzAllowClear nzSize="small" style="width: 200px;"
+          [(ngModel)]="employeeID" nzPlaceHolder="Chọn nhân viên...">
+          <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName"
+            [nzValue]="emp.ID"></nz-option>
+        </nz-select>
+      </div>
+      <div class="search-field">
+        <label class="search-label">Trạng thái</label>
+        <select [(ngModel)]="selectedApproval" class="search-input-select">
+          <option [ngValue]="null">Tất cả</option>
+          <option *ngFor="let item of statusData" [ngValue]="item.ID">{{ item.Name }}</option>
+        </select>
+      </div>
+      <div class="search-field">
+        <label class="search-label">Từ khóa</label>
+        <input nz-input placeholder="Nhập từ khóa..." nzSize="small" [(ngModel)]="filterText"
+          (keyup.enter)="getAllocation()" style="width: 160px; font-size: 12px;" />
+      </div>
+      <button class="btn-search" (click)="getAllocation()">
+        <nz-icon nzType="search" />
+      </button>
+      <button class="btn-reset" (click)="resetSearch()">
+        Đặt lại
+      </button>
     </div>
 
     <!-- Content với bảng -->
@@ -109,28 +74,153 @@
       style="height: calc(100vh - 150px); display: flex; flex-direction: column;">
       <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..." style="height: 100%;">
         <nz-splitter nzLayout="vertical" style="height: 100%; flex: 1;">
-          <!-- Bảng Master - Cấp phát (ở trên) - 60% -->
+          <!-- Bảng Master - Cấp phát (ở trên) - 55% -->
           <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="55%">
-            <div class="grid-container" [id]="gridId + '_container'" style="height: 100%;">
-              <angular-slickgrid [gridId]="gridId" [columns]="columnDefinitions" [options]="gridOptions"
-                [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
-                (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"
-                (onClick)="onCellClicked($event.detail.eventData, $event.detail.args)">
-              </angular-slickgrid>
+            <div class="table-container" style="height: 100%; overflow: auto;">
+              <p-table [value]="dataset" [scrollable]="true" scrollHeight="flex" [(selection)]="selectedRows"
+                dataKey="id" [rowHover]="true" selectionMode="multiple" (onRowSelect)="onMasterRowSelect($event)"
+                [tableStyle]="{'min-width': '80rem'}"
+                styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th style="width: 3rem"><p-tableHeaderCheckbox /></th>
+                    <th style="width: 60px">STT</th>
+                    <th style="width: 110px" pSortableColumn="IsApprovedPersonalProperty">Cá Nhân Duyệt <p-sortIcon
+                        field="IsApprovedPersonalProperty" /></th>
+                    <th style="width: 100px" pSortableColumn="Status">HR Duyệt <p-sortIcon field="Status" /></th>
+                    <th style="width: 100px" pSortableColumn="IsApproveAccountant">KT Duyệt <p-sortIcon
+                        field="IsApproveAccountant" /></th>
+                    <th style="width: 200px" pSortableColumn="Code">Mã <p-sortIcon field="Code" /></th>
+                    <th style="width: 140px" pSortableColumn="DateAllocation">Ngày cấp phát <p-sortIcon
+                        field="DateAllocation" /></th>
+                    <th style="width: 260px" pSortableColumn="EmployeeName">Cấp phát cho <p-sortIcon
+                        field="EmployeeName" /></th>
+                    <th style="width: 160px" pSortableColumn="Department">Phòng ban <p-sortIcon field="Department" />
+                    </th>
+                    <th style="width: 160px" pSortableColumn="Possition">Vị trí <p-sortIcon field="Possition" /></th>
+                    <th style="min-width: 300px" pSortableColumn="Note">Ghi chú <p-sortIcon field="Note" /></th>
+                  </tr>
+                  <tr>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th>
+                      <p-columnFilter field="Code" matchMode="contains" [showMenu]="false">
+                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                          <input type="text" pInputText [ngModel]="value" (input)="filter($any($event.target).value)"
+                            placeholder="Tìm mã..." class="p-column-filter"
+                            style="width: 100%; font-size: 12px; height: 26px;">
+                        </ng-template>
+                      </p-columnFilter>
+                    </th>
+                    <th></th>
+                    <th>
+                      <p-columnFilter field="EmployeeName" matchMode="contains" [showMenu]="false">
+                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                          <input type="text" pInputText [ngModel]="value" (input)="filter($any($event.target).value)"
+                            placeholder="Tìm nhân viên..." class="p-column-filter"
+                            style="width: 100%; font-size: 12px; height: 26px;">
+                        </ng-template>
+                      </p-columnFilter>
+                    </th>
+                    <th>
+                      <p-columnFilter field="Department" matchMode="contains" [showMenu]="false">
+                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                          <input type="text" pInputText [ngModel]="value" (input)="filter($any($event.target).value)"
+                            placeholder="Tìm phòng ban..." class="p-column-filter"
+                            style="width: 100%; font-size: 12px; height: 26px;">
+                        </ng-template>
+                      </p-columnFilter>
+                    </th>
+                    <th>
+                      <p-columnFilter field="Possition" matchMode="contains" [showMenu]="false">
+                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                          <input type="text" pInputText [ngModel]="value" (input)="filter($any($event.target).value)"
+                            placeholder="Tìm vị trí..." class="p-column-filter"
+                            style="width: 100%; font-size: 12px; height: 26px;">
+                        </ng-template>
+                      </p-columnFilter>
+                    </th>
+                    <th>
+                      <p-columnFilter field="Note" matchMode="contains" [showMenu]="false">
+                        <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                          <input type="text" pInputText [ngModel]="value" (input)="filter($any($event.target).value)"
+                            placeholder="Tìm ghi chú..." class="p-column-filter"
+                            style="width: 100%; font-size: 12px; height: 26px;">
+                        </ng-template>
+                      </p-columnFilter>
+                    </th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-row let-i="rowIndex">
+                  <tr [pSelectableRow]="row" (click)="onMasterRowClick(row)">
+                    <td><p-tableCheckbox [value]="row" /></td>
+                    <td class="text-center">{{ i + 1 }}</td>
+                    <td class="text-center"><input type="checkbox" [checked]="isChecked(row.IsApprovedPersonalProperty)"
+                        onclick="return false;" /></td>
+                    <td class="text-center"><input type="checkbox" [checked]="isChecked(row.Status)"
+                        onclick="return false;" /></td>
+                    <td class="text-center"><input type="checkbox" [checked]="isChecked(row.IsApproveAccountant)"
+                        onclick="return false;" /></td>
+                    <td>{{ row.Code }}</td>
+                    <td class="text-center">{{ formatDateValue(row.DateAllocation) }}</td>
+                    <td>{{ row.EmployeeName }}</td>
+                    <td>{{ row.Department }}</td>
+                    <td>{{ row.Possition }}</td>
+                    <td><span [title]="row.Note || ''">{{ row.Note }}</span></td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="11" class="text-center" style="padding: 20px;">Không có dữ liệu</td>
+                  </tr>
+                </ng-template>
+              </p-table>
             </div>
           </nz-splitter-panel>
 
-          <!-- Bảng Detail - Chi tiết cấp phát (ở dưới) - 40% -->
+          <!-- Bảng Detail - Chi tiết cấp phát (ở dưới) - 45% -->
           <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="45%">
             <div style="height: 100%; width: 100%; display: flex; flex-direction: column;">
               <nz-tabset
                 style="padding-left: 10px; flex: 1; display: flex; flex-direction: column; min-height: 0; width: 100%;">
                 <nz-tab [nzTitle]="detailTabTitle" style="height: 100%; width: 100%;">
-                  <div class="grid-container" [id]="gridIdDetail + '_container'" style="height: 100%; width: 100%;">
-                    <angular-slickgrid [gridId]="gridIdDetail" [columns]="columnDefinitionsDetail"
-                      [options]="gridOptionsDetail" [dataset]="datasetDetail"
-                      (onAngularGridCreated)="angularGridDetailReady($event.detail)">
-                    </angular-slickgrid>
+                  <div class="table-container" style="height: 100%; overflow: auto;">
+                    <p-table [value]="datasetDetail" [scrollable]="true" scrollHeight="flex"
+                      [tableStyle]="{'min-width': '50rem'}"
+                      styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped">
+                      <ng-template pTemplate="header">
+                        <tr>
+                          <th style="width: 60px">STT</th>
+                          <th style="width: 150px" pSortableColumn="TSCodeNCC">Mã tài sản <p-sortIcon
+                              field="TSCodeNCC" /></th>
+                          <th style="width: 100px" pSortableColumn="Quantity">Số lượng <p-sortIcon field="Quantity" />
+                          </th>
+                          <th style="width: 200px" pSortableColumn="TSAssetName">Tên tài sản <p-sortIcon
+                              field="TSAssetName" /></th>
+                          <th style="width: 100px" pSortableColumn="UnitName">Đơn vị <p-sortIcon field="UnitName" />
+                          </th>
+                          <th style="min-width: 200px" pSortableColumn="Note">Ghi chú <p-sortIcon field="Note" /></th>
+                        </tr>
+                      </ng-template>
+                      <ng-template pTemplate="body" let-row let-i="rowIndex">
+                        <tr>
+                          <td class="text-center">{{ i + 1 }}</td>
+                          <td>{{ row.TSCodeNCC }}</td>
+                          <td class="text-center">{{ row.Quantity }}</td>
+                          <td><span [title]="row.TSAssetName || ''">{{ row.TSAssetName }}</span></td>
+                          <td class="text-center">{{ row.UnitName }}</td>
+                          <td><span [title]="row.Note || ''">{{ row.Note }}</span></td>
+                        </tr>
+                      </ng-template>
+                      <ng-template pTemplate="emptymessage">
+                        <tr>
+                          <td colspan="6" class="text-center" style="padding: 20px;">Chọn biên bản để xem chi tiết</td>
+                        </tr>
+                      </ng-template>
+                    </p-table>
                   </div>
                 </nz-tab>
               </nz-tabset>

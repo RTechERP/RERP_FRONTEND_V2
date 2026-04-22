@@ -89,6 +89,15 @@ export class TaskDetailComponent implements OnInit {
         { value: 3, label: 'Pending', color: '#faad14', icon: 'clock-circle' }
     ];
 
+    priority: number = 1;
+    priorityList = [
+        { value: 4, label: 'Khẩn cấp', color: '#f5222d' },
+        { value: 3, label: 'Cao', color: '#faad14' },
+        { value: 2, label: 'Trung bình', color: '#1890ff' },
+        { value: 1, label: 'Bình thường', color: '#bfbfbf' }
+    ];
+    estimatedTimeHours: number | null = null;
+
     // Task Type
     selectedTaskTypeId?: number;
     selectedTypeProjectItemId?: number;
@@ -279,6 +288,10 @@ export class TaskDetailComponent implements OnInit {
         return this.taskTypeList.find(t => t.ID === typeId) || { ID: 0, TypeName: '', Color: '#1890ff' };
     }
 
+    getPriorityInfo(prio: number) {
+        return this.priorityList.find(p => p.value === prio) || this.priorityList[0];
+    }
+
     getTypeProjectItemName(id: number): string {
         return this.typeProjectItems.find(t => t.ID === id)?.ProjectTypeName || '';
     }
@@ -384,6 +397,7 @@ export class TaskDetailComponent implements OnInit {
     // Snapshot khi load task - dùng để diff khi Lưu (UPDATE mode)
     originalAssigneeIds: number[] = [];
     originalRelatedPeopleIds: number[] = [];
+    originalAssignerId?: number;
     employees: any[] = [];
     assigneeSearchText: string = '';
     relatedSearchText: string = '';
@@ -425,14 +439,14 @@ export class TaskDetailComponent implements OnInit {
         const currentAccountUserId = this.appUserService.id;
         if (currentEmployeeId === undefined || currentEmployeeId === null) return true;
 
-        const isAssigner = this.assignerId === currentEmployeeId;
+        const isOriginalAssigner = this.originalAssignerId === currentEmployeeId;
         const isOriginalAssignee = this.originalAssigneeIds.includes(currentEmployeeId);
 
         // Nếu danh sách người thực hiện trống, người có UserID trùng với Task sẽ có quyền sửa
         const isFallbackUser = (this.originalAssigneeIds.length === 0) && (activeTask?.UserID === currentAccountUserId);
 
         // Nếu không phải người giao, không phải người thực hiện ban đầu, và không phải người chịu trách nhiệm fallback -> Chỉ xem
-        return !isAssigner && !isOriginalAssignee && !isFallbackUser;
+        return !isOriginalAssigner && !isOriginalAssignee && !isFallbackUser;
     }
 
     // Computed property for assigner (for display)
@@ -546,10 +560,8 @@ export class TaskDetailComponent implements OnInit {
             next: (response: any) => {
                 this.typeProjectItems = response.data || [];
 
-                if (this.isCreateMode && this.typeProjectItems.length > 0 && !this.selectedTypeProjectItemId) {
-                    this.selectedTypeProjectItemId = this.typeProjectItems[0].ID;
-                }
-
+                // Không tự động select nếu tạo mới
+                
                 this.cdr.detectChanges();
                 console.log('Type project items loaded:', this.typeProjectItems.length, 'items');
             },
@@ -1566,9 +1578,12 @@ export class TaskDetailComponent implements OnInit {
             this.taskStatus = activeTask.Status ?? 0;
             this.previousStatus = this.taskStatus;
             this.assignerId = activeTask.EmployeeIDRequest;
+            this.originalAssignerId = activeTask.EmployeeIDRequest;
             // Ánh xạ mới: Loại công việc -> ProjectTaskTypeID, Loại hạng mục -> TypeProjectItem
             this.selectedTaskTypeId = activeTask.ProjectTaskTypeID ?? undefined;
             this.selectedTypeProjectItemId = activeTask.TypeProjectItem ?? undefined;
+            this.priority = activeTask.Priority ?? 1;
+            this.estimatedTimeHours = activeTask.EstimatedTime ?? null;
             this.projectTaskResult = activeTask.ProjectTaskResult || '';
             this.taskComplexity = activeTask.TaskComplexity ?? 1;
 
@@ -2291,6 +2306,10 @@ export class TaskDetailComponent implements OnInit {
             this.message.error(this.dateValidationError);
             return;
         }
+        if (this.estimatedTimeHours && this.estimatedTimeHours > 1000) {
+            this.message.error('Thời gian dự kiến không được quá 1000 giờ');
+            return;
+        }
 
         // Bắt buộc hoàn thành checklist (Status = 2)
         if (this.taskStatus === 2 && this.checklists.length > 0 && this.completedChecklists < this.checklists.length) {
@@ -2320,10 +2339,6 @@ export class TaskDetailComponent implements OnInit {
 
         if (!this.selectedTaskTypeId) {
             this.message.error('Vui lòng chọn loại công việc');
-            return;
-        }
-        if (!this.selectedTypeProjectItemId) {
-            this.message.error('Vui lòng chọn loại hạng mục công việc');
             return;
         }
 
@@ -2359,7 +2374,8 @@ export class TaskDetailComponent implements OnInit {
                     PlanEndDate: this.formatDateForApi(this.planEndDate),
                     ProjectID: this.selectedProjectId,
                     EmployeeIDRequest: this.assignerId,
-                    Priority: activeTask.Priority || 1,
+                    Priority: this.priority,
+                    EstimatedTime: (this.estimatedTimeHours === null || this.estimatedTimeHours === undefined || this.estimatedTimeHours as any === '') ? null : this.estimatedTimeHours,
                     Status: this.taskStatus,
                     IsPersonalProject: this.isPersonalProject,
                     IsAdditional: this.isAdditional,
@@ -2472,6 +2488,10 @@ export class TaskDetailComponent implements OnInit {
         }
         if (this.dateValidationError) {
             this.message.error(this.dateValidationError);
+            return;
+        }
+        if (this.estimatedTimeHours && this.estimatedTimeHours > 1000) {
+            this.message.error('Thời gian dự kiến không được quá 1000 giờ');
             return;
         }
 

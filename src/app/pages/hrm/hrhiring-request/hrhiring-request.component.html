@@ -8,10 +8,10 @@
     </ng-template>
 
     <ng-template #end>
-        <div class="flex items-center gap-2">
-            <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile()"
+        <div class="d-flex flex-nowrap align-items-center gap-2">
+            <button nz-button nzType="text" nzShape="circle"
                 (click)="ToggleSearchPanelNew($event); $event.stopPropagation()">
-                <nz-icon nzType="search" />
+                <nz-icon nzType="down" nzTheme="outline" />
             </button>
         </div>
     </ng-template>
@@ -36,7 +36,7 @@
             <div class="mobile-filter-form">
                 <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
                     <!-- Từ ngày -->
-                    <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="3" [nzXl]="4">
+                    <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="3" [nzXl]="3">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
                             <nz-form-control>
@@ -47,7 +47,7 @@
                     </nz-col>
 
                     <!-- Đến ngày -->
-                    <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="3" [nzXl]="4">
+                    <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="3" [nzXl]="3">
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
                             <nz-form-control>
@@ -68,6 +68,21 @@
                                     <nz-option *ngFor="let department of departmentList" [nzValue]="department.ID"
                                         [nzLabel]="department.Name">
                                     </nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                    <!-- Trạng thái -->
+                    <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="4" [nzXl]="4">
+                        <nz-form-item class="mb-0">
+                            <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái</nz-form-label>
+                            <nz-form-control>
+                                <nz-select name="selectedIsCompletedFilter" [(ngModel)]="selectedIsCompletedFilter"
+                                    (ngModelChange)="onStatusFilterChange()" nzSize="small" class="w-100">
+                                    <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+                                    <nz-option [nzValue]="0" nzLabel="Chưa hoàn thành"></nz-option>
+                                    <nz-option [nzValue]="1" nzLabel="Hoàn thành"></nz-option>
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
@@ -95,7 +110,8 @@
         </div>
 
         <!-- Content: bảng danh sách -->
-        <div class="card-body p-0 w-100 position-relative" style="height:84vh; padding: 0px !important;">
+        <div class="card-body p-0 w-100 position-relative" [class.with-search-bar]="shouldShowSearchBar"
+            [class.without-search-bar]="!shouldShowSearchBar">
 
             <!-- Loading spinner -->
             <div *ngIf="isLoadTable" style="
@@ -110,7 +126,7 @@
                 <!-- Panel trái -->
                 <nz-splitter-panel [nzSize]="showDetail ? '50%' : '100%'" [nzMin]="'25%'">
                     <nz-card class="h-100 card-custom" [nzBordered]="false">
-                        <div class="table-section" style="height:84vh">
+                        <div class="table-section h-100">
                             <p-table #dt2 [value]="hiringRequests" [paginator]="true" [rows]="50"
                                 [rowsPerPageOptions]="[20, 50, 100, 500, 1000]"
                                 currentPageReportTemplate="Hiện thị {first} đến {last} của {totalRecords} bản ghi"
@@ -166,12 +182,12 @@
                                         <th style="width: 130px; text-align: center;">Lương cơ bản</th>
                                         <th style="min-width: 160px; text-align: center;">Địa điểm làm việc</th>
                                         <th style="min-width: 200px; text-align: center;">YC Chuyên môn</th>
-                                        <th pSortableColumn="ApprovalStatus"
+                                        <!-- <th pSortableColumn="ApprovalStatus"
                                             style="min-width: 150px; text-align: center;">
                                             <div class="flex items-center justify-content-center gap-2">
                                                 Tình trạng <p-sortIcon field="ApprovalStatus" />
                                             </div>
-                                        </th>
+                                        </th> -->
                                         <th pSortableColumn="IsConpletedText" style="width: 140px; text-align: center;">
                                             <div class="flex items-center justify-content-center gap-2">
                                                 Trạng thái HT <p-sortIcon field="IsConpletedText" />
@@ -231,11 +247,11 @@
                                                 field="ProfessionalRequirement" matchMode="contains" [showMenu]="false"
                                                 filterOn="enter"></p-columnFilter>
                                         </th>
-                                        <th style="text-align: center; padding: 0 !important;">
+                                        <!-- <th style="text-align: center; padding: 0 !important;">
                                             <p-columnFilter [style]="{ width: '100%' }" type="text"
                                                 field="ApprovalStatus" matchMode="contains" [showMenu]="false"
                                                 filterOn="enter"></p-columnFilter>
-                                        </th>
+                                        </th> -->
                                         <th style="text-align: center; padding: 0 !important; width: 140px;">
                                             <p-columnFilter [style]="{ width: '100%' }" type="text"
                                                 field="IsConpletedText" matchMode="contains" [showMenu]="false"
@@ -279,15 +295,15 @@
                                         <td style="text-align: right;">{{ formatSalaryRange(row) }}</td>
                                         <td>{{ row.WorkAddress }}</td>
                                         <td>{{ row.ProfessionalRequirement }}</td>
-                                        <td style="text-align: center; vertical-align: top;">
-                                            <div *ngFor="let s of getApprovalStatusItems(row.ApprovalStatus)"
-                                                style="margin-bottom: 4px;">
-                                                <span class="badge" [style.background]="getApprovalBadgeColor(s)"
-                                                    style="display: block; white-space: normal; line-height: 1.4; padding: 6px;">
-                                                    {{ s }}
-                                                </span>
-                                            </div>
-                                        </td>
+                                        <!-- <td style="text-align: center; vertical-align: top;">
+                                                <div *ngFor="let s of getApprovalStatusItems(row.ApprovalStatus)"
+                                                    style="margin-bottom: 4px;">
+                                                    <span class="badge" [style.background]="getApprovalBadgeColor(s)"
+                                                        style="display: block; white-space: normal; line-height: 1.4; padding: 6px;">
+                                                        {{ s }}
+                                                    </span>
+                                                </div>
+                                            </td> -->
                                         <td style="text-align: center;">
                                             <span class="badge"
                                                 [style.background]="row.IsCompleted ? '#16a34a' : '#d1d5db'"

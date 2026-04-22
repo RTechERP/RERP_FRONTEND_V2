@@ -154,6 +154,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // ResizeObserver để detect khi tab được hiển thị lại
     private resizeObserver: ResizeObserver | null = null;
+    private filterPatchObserver: MutationObserver | null = null;
     private lastVisibleWidth: number = 0;
     //nhat them set location cho san pham
     locations: any[] = [];
@@ -177,35 +178,36 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit(): void {
         this.componentId = this.generateUUIDv4();
-        // Subscribe to queryParams để reload data khi params thay đổi
+        console.log(this.tabData);
+        if (this.tabData) {
+            //debugger;
+            // Chạy trong component-tab: dùng tabData, không subscribe queryParams
+            this.warehouseCode = this.tabData.warehouseCode ?? 'HN';
+            this.warehouseId = this.tabData.warehouseID ?? 1;
+            this.isWareHouseDP = this.warehouseCode.toUpperCase() === 'DP';
+            console.log(this.warehouseId)
+            this.initGridColumns();
+            this.initGridOptions();
+            this.cdr.detectChanges();
+            this.getProductGroup();
+            this.getDataProductGroupWareHouse(this.productGroupID);
+            this.getLocation();
+            return;
+        }
+
+        // Chạy trong router-outlet: react khi queryParams thay đổi
         const sub = this.route.queryParams.subscribe((params) => {
-            // const newWarehouseCode = params['warehouseCode'] || 'HN';
-
-
-            const newWarehouseCode =
-                params['warehouseCode']
-                ?? this.tabData?.warehouseCode
-                ?? 'HN';
-
-            this.warehouseId = params['warehouseID'] ?? this.tabData?.warehouseId ?? 1;
-
-            // Kiểm tra xem params có thay đổi không
+            const newWarehouseCode = params['warehouseCode'] ?? 'HN';
+            this.warehouseId = params['warehouseID'] ?? 1;
+            // console.log("Warehouseid", this.warehouseId);
             const paramsChanged = this.warehouseCode !== newWarehouseCode;
 
-            // Cập nhật warehouseCode TRƯỚC khi init grid options
             this.warehouseCode = newWarehouseCode;
-            this.isWareHouseDP = this.warehouseCode.toUpperCase() === 'DP' ? true : false;
-            console.log(this.isWareHouseDP);
-            // Init grid options với ID selector unique dựa trên warehouseCode
-            //this.initGridOptions();
+            this.isWareHouseDP = this.warehouseCode.toUpperCase() === 'DP';
 
-            // Nếu params thay đổi (và không phải lần đầu), reset và clear data trước
             if (paramsChanged && this.angularGridProductGroup) {
-                // Reset productGroupID
                 this.productGroupID = 0;
                 this.searchParam.Find = '';
-
-                // Clear existing data
                 this.datasetProductGroup = [];
                 this.datasetPGWarehouse = [];
                 this.datasetInventory = [];
@@ -213,8 +215,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.dataPGWareHouse = [];
                 this.dataInventory = [];
 
-                // Clear grid selections, filters và force refresh data
-                if (this.angularGridProductGroup && this.angularGridProductGroup.slickGrid) {
+                if (this.angularGridProductGroup?.slickGrid) {
                     this.angularGridProductGroup.slickGrid.setSelectedRows([]);
                     this.angularGridProductGroup.filterService?.clearFilters();
                     this.angularGridProductGroup.dataView?.setItems([], 'id');
@@ -222,7 +223,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.angularGridProductGroup.slickGrid.render();
                     this.angularGridProductGroup.slickGrid.scrollRowToTop(0);
                 }
-                if (this.angularGridPGWarehouse && this.angularGridPGWarehouse.slickGrid) {
+                if (this.angularGridPGWarehouse?.slickGrid) {
                     this.angularGridPGWarehouse.slickGrid.setSelectedRows([]);
                     this.angularGridPGWarehouse.filterService?.clearFilters();
                     this.angularGridPGWarehouse.dataView?.setItems([], 'id');
@@ -230,7 +231,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.angularGridPGWarehouse.slickGrid.render();
                     this.angularGridPGWarehouse.slickGrid.scrollRowToTop(0);
                 }
-                if (this.angularGridInventory && this.angularGridInventory.slickGrid) {
+                if (this.angularGridInventory?.slickGrid) {
                     this.angularGridInventory.slickGrid.setSelectedRows([]);
                     this.angularGridInventory.filterService?.clearFilters();
                     this.angularGridInventory.dataView?.setItems([], 'id');
@@ -238,32 +239,25 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.angularGridInventory.slickGrid.render();
                     this.angularGridInventory.slickGrid.scrollRowToTop(0);
                 }
-
-                // Re-initialize grids if warehouse code changed
             }
+
             this.initGridColumns();
             this.initGridOptions();
-
-            // Trigger change detection
             this.cdr.detectChanges();
-
-            //this.initGridColumns();
-
-            // Update parameters after clearing
-            this.warehouseCode = newWarehouseCode;
-
-            // Load data mỗi khi params thay đổi
             this.getProductGroup();
             this.getDataProductGroupWareHouse(this.productGroupID);
             this.getLocation();
         });
         this.subscriptions.push(sub);
+        // console.log("Warehouseid", this.warehouseId);
     }
 
     ngAfterViewInit(): void {
         // Data đã được load trong ngOnInit qua queryParams subscribe
         // Sử dụng ResizeObserver để detect khi component được hiển thị lại (tab switch)
         this.setupResizeObserver();
+        // Fix: Ctrl+X / Delete / Backspace khi bôi đen không trigger filter trong SlickGrid
+        setTimeout(() => this.patchSlickGridFilterInputs(), 600);
     }
 
     ngOnDestroy(): void {
@@ -273,6 +267,10 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;
+        }
+        if (this.filterPatchObserver) {
+            this.filterPatchObserver.disconnect();
+            this.filterPatchObserver = null;
         }
     }
 
@@ -303,6 +301,54 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         });
 
         this.resizeObserver.observe(element);
+    }
+
+    /**
+     * Fix: SlickGrid filter inputs không nhận change khi Ctrl+X, Delete, Backspace trên text đang bôi đen.
+     */
+    private patchSlickGridFilterInputs(): void {
+        const container = this.elementRef.nativeElement as HTMLElement;
+
+        const applyPatch = (input: HTMLInputElement) => {
+            if (input.dataset['filterPatched']) return;
+            input.dataset['filterPatched'] = '1';
+
+            input.addEventListener('cut', () => {
+                setTimeout(() => input.dispatchEvent(new Event('input', { bubbles: true })), 10);
+            });
+
+            input.addEventListener('keydown', (e: KeyboardEvent) => {
+                if (e.key === 'Delete' || e.key === 'Backspace') {
+                    const hasSelection = (input.selectionStart ?? 0) !== (input.selectionEnd ?? 0);
+                    if (hasSelection) {
+                        setTimeout(
+                            () => input.dispatchEvent(new Event('input', { bubbles: true })),
+                            10
+                        );
+                    }
+                }
+            });
+        };
+
+        container
+            .querySelectorAll<HTMLInputElement>('.slick-headerrow-column input')
+            .forEach(applyPatch);
+
+        this.filterPatchObserver = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const node of Array.from(mutation.addedNodes)) {
+                    if (node instanceof HTMLElement) {
+                        node.querySelectorAll<HTMLInputElement>(
+                            '.slick-headerrow-column input'
+                        ).forEach(applyPatch);
+                        if (node instanceof HTMLInputElement && node.closest('.slick-headerrow-column')) {
+                            applyPatch(node);
+                        }
+                    }
+                }
+            }
+        });
+        this.filterPatchObserver.observe(container, { childList: true, subtree: true });
     }
 
     //#region Grid Initialization

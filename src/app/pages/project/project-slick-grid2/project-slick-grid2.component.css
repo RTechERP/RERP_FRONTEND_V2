@@ -7,13 +7,13 @@
   font-size: 12px !important;
 }
 
-:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
   font-size: 12px !important;
   text-align: center !important;
   vertical-align: middle !important;
 }
 
-:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
   font-size: 12px !important;
   padding: 6px 4px !important;
 }
@@ -201,7 +201,7 @@
   box-sizing: border-box;
 }
 
-:host ::ng-deep .slick-multiselect-dropdown .ms-drop ul > li label {
+:host ::ng-deep .slick-multiselect-dropdown .ms-drop ul>li label {
   display: block;
   max-width: 100px;
   overflow: hidden;
@@ -209,7 +209,7 @@
   white-space: nowrap;
 }
 
-:host ::ng-deep .slick-multiselect-dropdown .ms-drop ul > li label span {
+:host ::ng-deep .slick-multiselect-dropdown .ms-drop ul>li label span {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -502,12 +502,7 @@ angular-slickgrid,
   width: 100% !important;
 }
 
-::host
-  ::ng-deep
-  p-virtualscroller
-  p-virtualscroller-inline
-  ng-star-inserted:host::ng-deep
-  .p-fluid {
+::host ::ng-deep p-virtualscroller p-virtualscroller-inline ng-star-inserted:host::ng-deep .p-fluid {
   width: 100% !important;
 }
 
@@ -545,4 +540,9 @@ angular-slickgrid,
 
 :host ::ng-deep .p-datatable table {
   width: max-content !important;
+}
+
+::ng-deep th {
+  white-space: normal !important;
+  word-break: break-word;
 }

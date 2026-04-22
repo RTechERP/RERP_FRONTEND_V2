@@ -383,7 +383,8 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                             // Nếu là dòng Header I, II, III thì ép ID cố định 1, 2, 3
                             _id: isHeader ? defaultId : (rid || defaultId),
                             ParentID: isHeader ? null : pid,
-                            PaymentPercentage: pct
+                            PaymentPercentage: pct,
+                            ...(this.isCopy ? { TotalPaymentAmount: 0 } : {}),
                         };
                     };
 

@@ -13,6 +13,9 @@ export interface EditLookupConfig {
     displayField?: string;
     /** Allow selecting multiple rows. Cell value becomes an array of valueField values. Default: false */
     multiSelect?: boolean;
+    /** Optional: callback to open add-new modal for this lookup. Receives current rowData.
+     *  When provided, a "+" button appears next to the lookup chevron on editable rows. */
+    addAction?: (rowData: any) => void;
 }
 
 export interface ColumnDef {

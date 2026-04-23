@@ -18,14 +18,14 @@
   height: 93vh !important;
 }
 
-.modal-header {
+/* .modal-header {
   border-top-left-radius: 0 !important;
   border-top-right-radius: 0 !important;
-}
+} */
 
-::ng-deep .full-screen-modal {
+/* ::ng-deep .full-screen-modal {
   height: auto !important;
-}
+} */
 
 .custom-fieldset {
   border: 1px solid #d9d9d9;

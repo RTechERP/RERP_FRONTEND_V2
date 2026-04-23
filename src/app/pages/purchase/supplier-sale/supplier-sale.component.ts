@@ -203,13 +203,6 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
     if (angularGrid && angularGrid.dataView) {
       angularGrid.dataView.onPagingInfoChanged.subscribe(() => {
         this.updateMasterFooterRow();
-        // Khi đổi trang: tự động chọn dòng đầu tiên và load detail
-        setTimeout(() => {
-          if (this.angularGrid?.slickGrid) {
-            this.angularGrid.slickGrid.setSelectedRows([0]);
-            this.onActiveRowChanged(0);
-          }
-        }, 50);
       });
     }
 

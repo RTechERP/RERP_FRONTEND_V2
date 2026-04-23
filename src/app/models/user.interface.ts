@@ -22,6 +22,7 @@ export interface IUser {
   IsBusinessCost: boolean;
   IsLeader: number;
   TeamOfUser: number;
+  TaxCompanyID: number;
   Permissions: string;
   Name: string;
   PasswordHash:string;

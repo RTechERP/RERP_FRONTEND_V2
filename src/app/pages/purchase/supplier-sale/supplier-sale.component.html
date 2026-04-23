@@ -57,6 +57,7 @@
               [dataset]="dataset"
               (onAngularGridCreated)="angularGridReady($event.detail)"
               (onClick)="onActiveRowChanged($event.detail.args?.row)"
+              (onPaginationChanged)="closeDetail()"
               (onDblClick)="onMasterDblClick($event.detail)"
             >
             </angular-slickgrid>

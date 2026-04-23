@@ -1730,37 +1730,51 @@ export class TaskDetailComponent implements OnInit {
         );
     }
 
+    isViewInit: boolean = false; // Cờ kiểm soát việc render UI nặng
+
     ngOnInit(): void {
         this.isFullPage = true;
+        this.isLoading = true; // Bật loading ngay lập tức để UI không bị trống
 
-        // Check if opened as a component tab via tabData
-        if (this.tabData) {
-            const id = this.tabData.id || this.tabData.ID;
-            this._tabKey = this.tabData._tabKey;
-            if (id) {
-                this.loadTaskById(id);
+        // Trì hoãn việc tải dữ liệu nặng và vẽ UI để nhường Main Thread cho việc vẽ UI chuyển tab trước
+        setTimeout(() => {
+            this.isViewInit = true; // Cho phép render template
+            
+            // Check if opened as a component tab via tabData
+            if (this.tabData) {
+                const id = this.tabData.id || this.tabData.ID;
+                this._tabKey = this.tabData._tabKey;
+                if (id) {
+                    this.loadTaskById(id);
+                    return;
+                }
+                if (this.tabData.task) {
+                    this.initializeWithTask(this.tabData.task);
+                    this.isLoading = false;
+                    this.cdr.detectChanges();
+                    return;
+                }
+                // IF it's a create-with-copy task from tabData or a blank create task
+                this.initializeWithTask(null);
+                this.isLoading = false;
+                this.cdr.detectChanges();
                 return;
             }
-            if (this.tabData.task) {
-                this.initializeWithTask(this.tabData.task);
-                return;
-            }
-            // IF it's a create-with-copy task from tabData or a blank create task
-            this.initializeWithTask(null);
-            return;
-        }
 
-        // Fallback to route params
-        this.route.params.subscribe(params => {
-            const id = params['id'];
-            if (id) {
-                this.loadTaskById(id);
-            } else {
-                const navTask = window.history.state?.task;
-                const activeTask = navTask || this.task || null;
-                this.initializeWithTask(activeTask);
-            }
-        });
+            // Fallback to route params
+            this.route.params.subscribe(params => {
+                const id = params['id'];
+                if (id) {
+                    this.loadTaskById(id);
+                } else {
+                    const navTask = window.history.state?.task;
+                    const activeTask = navTask || this.task || null;
+                    this.initializeWithTask(activeTask);
+                    this.isLoading = false;
+                    this.cdr.detectChanges();
+                }
+            });
+        }, 100); // Tăng lên 100ms để đảm bảo trình duyệt đã chuyển xong tab
     }
 
     private loadTaskById(id: any): void {
@@ -2587,8 +2601,8 @@ export class TaskDetailComponent implements OnInit {
                     AssignedToEmployeeID: this.assigneeIds.length > 0 ? this.assigneeIds[0] : undefined,
                     OrderIndex: activeTask.OrderIndex,
                     ParentID: this.parentTaskId,
-                    Employee: [], // Handle via syncEmployeesToApi to prevent backend Type bug
-                    EmployeeRelate: [],
+                    Employee: this.assigneeIds,
+                    EmployeeRelate: this.relatedPeopleIds,
 
                     Files: this.fileAttachmentIds,
                     Links: this.linkAttachmentIds,
@@ -2755,9 +2769,10 @@ export class TaskDetailComponent implements OnInit {
                     ProjectTaskResult: this.projectTaskResult,
                     IsAdditional: this.isAdditional,
                     TaskComplexity: this.taskComplexity,
+                    AssignedToEmployeeID: this.assigneeIds.length > 0 ? this.assigneeIds[0] : undefined,
                     EmployeeIDRequest: this.assignerId,
-                    Employee: [], // Handle via syncEmployeesToApi to prevent backend Type mapping issues
-                    EmployeeRelate: [],
+                    Employee: this.assigneeIds,
+                    EmployeeRelate: this.relatedPeopleIds,
                     Files: [...this.fileAttachmentIds, ...(newFileIds || [])],
                     Links: this.linkAttachmentIds,
                     ParentID: this.parentTaskId,

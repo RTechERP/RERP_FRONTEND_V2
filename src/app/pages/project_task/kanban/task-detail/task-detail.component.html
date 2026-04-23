@@ -2,7 +2,7 @@
     <div *ngIf="isLoading" class="loading-overlay">
         <nz-spin nzSimple nzSize="large" [nzTip]="'Đang tải dữ liệu...'"></nz-spin>
     </div>
-
+    <ng-container *ngIf="isViewInit">
     <!-- Status Alert for Approved/Rejected tasks -->
     <div *ngIf="isReadOnly && (reviewStatus === 2 || reviewStatus === 3)" class="px-3 pt-3">
         <nz-alert [nzType]="reviewStatus === 2 ? 'success' : 'error'"
@@ -1411,6 +1411,8 @@
             </div>
         </ng-container>
     </nz-drawer>
+
+    </ng-container>
 
 <!-- PDF Preview Modal Overlay -->
 @if (isPreviewVisible) {

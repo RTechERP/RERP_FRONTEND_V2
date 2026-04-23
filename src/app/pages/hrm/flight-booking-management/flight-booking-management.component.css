@@ -1,0 +1,189 @@
+:host ::ng-deep .p-menubar .p-menubar-root-list {
+    margin-left: -8px;
+}
+
+:host ::ng-deep .fs-12 {
+    font-size: 12px !important;
+}
+
+.date-input-sm {
+    height: 24px;
+    padding: 2px 4px;
+    font-size: 12px;
+}
+
+.btn-group {
+    display: flex;
+    align-items: center;
+}
+
+.filter-bar {
+    z-index: 10;
+}
+
+
+:host ::ng-deep .p-datatable {
+    font-size: 12px !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    background: #fafafa;
+    font-weight: 600;
+    color: #262626;
+    padding: 2px 4px !important;
+    border-color: #e8e8e8;
+    white-space: nowrap;
+    text-align: center;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    padding: 2px 4px !important;
+    border-color: #f0f0f0;
+    color: #595959;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+:host ::ng-deep .p-column-filter-row p-columnFilter input {
+    height: 22px !important;
+    font-size: 11px !important;
+    padding: 2px 6px !important;
+    width: 100% !important;
+    border: 1px solid #d9d9d9 !important;
+    border-radius: 4px !important;
+}
+
+:host ::ng-deep .p-column-filter-row p-columnFilter input:focus {
+    border-color: #40a9ff !important;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+    outline: 0 !important;
+}
+
+:host ::ng-deep .p-column-filter {
+    width: 100% !important;
+    display: block !important;
+}
+
+:host ::ng-deep .p-column-filter-element,
+:host ::ng-deep .p-datatable-inline-filter {
+    width: 100% !important;
+    display: block !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr:hover {
+    background: #f5f5f5 !important;
+}
+
+:host ::ng-deep .p-column-filter-menu-button,
+:host ::ng-deep .p-column-filter-clear-button {
+    width: 20px;
+    height: 20px;
+}
+
+:host ::ng-deep .p-sortable-column .p-sortable-column-icon {
+    width: 10px;
+    height: 10px;
+    color: #8c8c8c;
+}
+
+.action-buttons-cell button {
+    padding: 0;
+}
+
+.text-primary {
+    color: #1890ff;
+}
+
+.text-danger {
+    color: #ff4d4f;
+}
+
+.text-success {
+    color: #52c41a;
+}
+
+.text-info {
+    color: #0dcaf0;
+}
+
+.footer-summary {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+}
+
+.position-relative {
+    position: relative;
+}
+
+:host ::ng-deep .p-paginator {
+    padding: 0px 8px !important;
+    font-size: 12px !important;
+    justify-content: flex-end;
+    border: 1px solid #e8e8e8;
+    border-top: none;
+    background: #ffffff !important;
+}
+
+:host ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page,
+:host ::ng-deep .p-paginator .p-paginator-first,
+:host ::ng-deep .p-paginator .p-paginator-prev,
+:host ::ng-deep .p-paginator .p-paginator-next,
+:host ::ng-deep .p-paginator .p-paginator-last {
+    height: 24px !important;
+    min-width: 24px !important;
+    font-size: 12px !important;
+    margin: 0 1px;
+}
+
+:host ::ng-deep .p-paginator .p-dropdown {
+    height: 24px !important;
+    font-size: 12px !important;
+    display: flex;
+    align-items: center;
+}
+
+:host ::ng-deep .p-paginator .p-paginator-current {
+    font-size: 11px;
+    color: #8c8c8c;
+    height: 24px;
+    display: flex;
+    align-items: center;
+}
+
+:host ::ng-deep .nz-splitter {
+    border: 1px solid #e8e8e8;
+    background: #fff;
+}
+
+.table-container {
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .ant-tabs-nav {
+    margin-bottom: 0 !important;
+}
+
+:host ::ng-deep .ant-tabs-tab {
+    padding: 8px 16px !important;
+    font-size: 12px !important;
+}
+
+:host ::ng-deep .ant-tabs-content-holder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
+}
+
+:host ::ng-deep .ant-tag {
+    font-size: 11px;
+    line-height: 1.5;
+    padding: 0 8px;
+}
+
+:host ::ng-deep .ant-splitter {
+    height: 85vh !important;
+}

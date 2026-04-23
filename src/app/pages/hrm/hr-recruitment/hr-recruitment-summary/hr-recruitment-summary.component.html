@@ -1,0 +1,184 @@
+<div class="timeline-container w-100 h-100">
+  <div class="card border-0 rounded-0 sticky-header" style="background: transparent">
+    <!-- Filter bar -->
+    <div class="card-header bg-white p-2">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <h6 class="m-0 text-uppercase fw-bold">Tổng hợp ứng viên theo yêu cầu tuyển dụng</h6>
+      </div>
+
+      <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+        <!-- Từ ngày -->
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+          <div class="form-field-vertical">
+            <label>Từ ngày</label>
+            <input type="date" [ngModel]="dateStart | date: 'yyyy-MM-dd'"
+              (ngModelChange)="onDateChange('dateStart', $event)" name="dateStartInput"
+              style="width: 100%; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+          </div>
+        </nz-col>
+
+        <!-- Đến ngày -->
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+          <div class="form-field-vertical">
+            <label>Đến ngày</label>
+            <input type="date" [ngModel]="dateEnd | date: 'yyyy-MM-dd'"
+              (ngModelChange)="onDateChange('dateEnd', $event)" name="dateEndInput"
+              style="width: 100%; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+          </div>
+        </nz-col>
+
+        <!-- Phòng ban -->
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="5" [nzXl]="4">
+          <div class="form-field-vertical">
+            <label>Phòng ban</label>
+            <nz-select name="departmentID" [(ngModel)]="departmentID" (ngModelChange)="search()"
+              nzPlaceHolder="Tất cả phòng ban" nzSize="small" class="w-100" nzAllowClear nzShowSearch nzCustomContent>
+              <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID || dept.id"
+                [nzLabel]="dept.Name || dept.name">
+                <span style="white-space: normal; word-break: break-word; display: block;">
+                  {{ dept.Name || dept.name }}
+                </span>
+              </nz-option>
+            </nz-select>
+          </div>
+        </nz-col>
+
+        <!-- Trạng thái hoàn thành -->
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="3" [nzXl]="3">
+          <div class="form-field-vertical">
+            <label>Trạng thái</label>
+            <nz-select name="isComplete" [(ngModel)]="isComplete" (ngModelChange)="search()" nzSize="small"
+              class="w-100">
+              <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+              <nz-option [nzValue]="0" nzLabel="Chưa hoàn thành"></nz-option>
+              <nz-option [nzValue]="1" nzLabel="Hoàn thành"></nz-option>
+            </nz-select>
+          </div>
+        </nz-col>
+
+        <!-- Vị trí (Removed from header to sidebar) -->
+
+        <!-- Nút hành động -->
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="5" [nzXl]="4">
+          <div class="form-field-vertical">
+            <label>&nbsp;</label>
+            <div class="d-flex gap-2">
+              <button nz-button nzType="default" nzSize="small" (click)="resetSearch()" nz-tooltip
+                nzTooltipTitle="Đặt lại">
+                <span nz-icon nzType="reload"></span>
+              </button>
+              <button nz-button nzType="primary" nzSize="small" (click)="search()" [nzLoading]="isLoading">
+                <span nz-icon nzType="search" class="me-1" *ngIf="!isLoading"></span> Tìm kiếm
+              </button>
+              <button nz-button nzType="default" nzSize="small" (click)="exportExcel()" [nzLoading]="isExporting">
+                <i class="fa-solid fa-file-excel text-success me-1" *ngIf="!isExporting"></i> Xuất Excel
+              </button>
+            </div>
+          </div>
+        </nz-col>
+      </nz-row>
+    </div>
+
+    <!-- TABS -->
+    <div class="card-body p-0 w-100" style="padding: 0!important; background: transparent;">
+      <nz-tabset style="background: #fff; padding: 0 16px; margin-top: 8px;">
+        <nz-tab nzTitle="1. Ứng viên">
+          <!-- ===== BIỂU ĐỒ ===== -->
+          <div class="chart-content flex-layout" style="height: calc(100vh - 200px);">
+            <div class="chart-main-area">
+              <!-- Nút Toggle Sidebar -->
+              <button class="sidebar-toggle-btn" [class.is-collapsed]="!showSidebar"
+                (click)="showSidebar = !showSidebar">
+                <span nz-icon [nzType]="showSidebar ? 'double-right' : 'double-left'" nzTheme="outline"></span>
+              </button>
+
+              <div class="chart-container-wrapper" style="position: relative;">
+                <div echarts [options]="chartOptions" class="status-chart" (chartInit)="onChartInit($event)"></div>
+                <div class="overlay-spin" *ngIf="isLoading"
+                  style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.7); z-index: 10; display: flex; align-items: center; justify-content: center;">
+                  <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+                </div>
+              </div>
+
+              <!-- No Data Overlay -->
+              <div class="loading-overlay" *ngIf="positionOptions.length === 0">
+                <span nz-icon nzType="inbox" nzTheme="outline" style="font-size: 40px; color: #cbd5e1;"></span>
+                <p>Không có dữ liệu thống kê</p>
+              </div>
+            </div>
+
+            <!-- Sidebar chọn Vị trí -->
+            <div class="position-sidebar" [class.sidebar-hidden]="!showSidebar" *ngIf="positionOptions.length > 0">
+              <div class="sidebar-header">
+                <div class="filter-mode-control d-flex justify-content-between align-items-center mb-2">
+                  <span class="label-text">Chọn vị trí hiển thị:</span>
+                </div>
+                <nz-input-group [nzPrefix]="prefixIconSearch" nzSize="small">
+                  <input type="text" nz-input placeholder="Tìm vị trí..." [(ngModel)]="searchPositionText" />
+                </nz-input-group>
+                <ng-template #prefixIconSearch>
+                  <span nz-icon nzType="search"></span>
+                </ng-template>
+              </div>
+
+              <div class="sidebar-body">
+                <div class="position-list-container">
+                  <div class="position-item" *ngFor="let pos of getFilteredSelections()">
+                    <label nz-checkbox [(ngModel)]="pos.selected" (ngModelChange)="onFilterChange()">
+                      <span class="pos-name-text" nz-tooltip [nzTooltipTitle]="pos.label">{{ pos.label }}</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sidebar-footer d-flex justify-content-between">
+                <button nz-button nzType="link" nzSize="small" (click)="toggleAll(true)">
+                  Tất cả
+                </button>
+                <button nz-button nzType="link" nzSize="small" (click)="toggleAll(false)" nzDanger>
+                  Bỏ chọn
+                </button>
+              </div>
+            </div>
+          </div>
+        </nz-tab>
+        <nz-tab nzTitle="2. Nguồn tuyển dụng">
+          <div class="chart-content" style="height: calc(100vh - 200px); position: relative; background: #fff;">
+            <div echarts [options]="chartSourceOptions" class="w-100 h-100" (chartInit)="onSourceChartInit($event)">
+            </div>
+
+            <!-- Loading Overlay -->
+            <div class="overlay-spin" *ngIf="isSourceLoading"
+              style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.7); z-index: 10; display: flex; align-items: center; justify-content: center;">
+              <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+            </div>
+
+            <!-- No Data Message -->
+            <div class="loading-overlay" *ngIf="!isSourceLoading && (!chartSourceOptions?.series?.[0]?.data?.length)">
+              <span nz-icon nzType="inbox" nzTheme="outline" style="font-size: 40px; color: #cbd5e1;"></span>
+              <p>Không có dữ liệu nguồn tuyển dụng</p>
+            </div>
+          </div>
+        </nz-tab>
+        <nz-tab nzTitle="3. Nguồn ứng viên">
+          <div class="chart-content" style="height: calc(100vh - 200px); position: relative; background: #fff;">
+            <div echarts [options]="chartEducationOptions" class="w-100 h-100"
+              (chartInit)="onEducationChartInit($event)"></div>
+
+            <!-- Loading Overlay -->
+            <div class="overlay-spin" *ngIf="isEducationLoading"
+              style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.7); z-index: 10; display: flex; align-items: center; justify-content: center;">
+              <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+            </div>
+
+            <!-- No Data Message -->
+            <div class="loading-overlay"
+              *ngIf="!isEducationLoading && (!chartEducationOptions?.series?.[0]?.data?.length)">
+              <span nz-icon nzType="inbox" nzTheme="outline" style="font-size: 40px; color: #cbd5e1;"></span>
+              <p>Không có dữ liệu nguồn gốc học vấn</p>
+            </div>
+          </div>
+        </nz-tab>
+      </nz-tabset>
+    </div>
+  </div>

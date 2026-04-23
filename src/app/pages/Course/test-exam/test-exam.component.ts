@@ -130,7 +130,8 @@ export class TestExamComponent implements OnInit, OnDestroy {
       if (this.courseExamResultID > 0) {
         this.loadQuestions();
       } else {
-        this.initSampleData();
+        this.notification.error('Lỗi', 'Không thể tải danh sách câu hỏi.');
+        this.isLoading = false;
       }
     });
   }
@@ -140,78 +141,6 @@ export class TestExamComponent implements OnInit, OnDestroy {
     this.stopTimer();
     delete (window as any).enableExamDebug;
     delete (window as any).disableExamDebug;
-  }
-
-  initSampleData(): void {
-    const baseQuestions: TestQuestion[] = [
-      {
-        ID: 1,
-        QuestionText:
-          'Trong lập trình hướng đối tượng (OOP), bốn đặc tính cơ bản của một đối tượng là gì?',
-        Image:
-          'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=2670&auto=format&fit=crop',
-        ExamAnswers: [
-          { ID: 101, AnswerText: 'Trừu tượng, Đóng gói, Kế thừa, Đa hình' },
-          { ID: 102, AnswerText: 'Hàm, Biến, Lớp, Đối tượng' },
-          {
-            ID: 103,
-            AnswerText: 'Nhập, Xuất, Lưu trữ, Xử lý',
-            Image:
-              'https://images.unsplash.com/photo-1531403009284-440f080d1e12?q=80&w=2670&auto=format&fit=crop',
-          },
-          { ID: 104, AnswerText: 'Phát triển, Bảo trì, Khai thác, Phân tích' },
-        ],
-      },
-      {
-        ID: 2,
-        QuestionText:
-          'Hình ảnh nào sau đây minh họa tốt nhất cho khái niệm Đa hình (Polymorphism)?',
-        Image:
-          'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?q=80&w=2670&auto=format&fit=crop',
-        ExamAnswers: [
-          {
-            ID: 201,
-            AnswerText: 'Hình A: Một người biểu diễn nhiều vai trò',
-            Image:
-              'https://images.unsplash.com/photo-1506157786151-b8491531f063?q=80&w=2670&auto=format&fit=crop',
-          },
-          {
-            ID: 202,
-            AnswerText: 'Hình B: Một chiếc hộp đóng gói linh kiện',
-            Image:
-              'https://images.unsplash.com/photo-1549463010-2ef2c17b6598?q=80&w=2670&auto=format&fit=crop',
-          },
-          {
-            ID: 203,
-            AnswerText: 'Hình C: Cây gia đình thừa kế các thuộc tính',
-            Image:
-              'https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=2670&auto=format&fit=crop',
-          },
-          {
-            ID: 204,
-            AnswerText: 'Hình D: Một bản vẽ trừu tượng',
-            Image:
-              'https://images.unsplash.com/photo-1547891261-50ea8f0f0814?q=80&w=2670&auto=format&fit=crop',
-          },
-        ],
-      },
-    ];
-
-    this.questions = [];
-    for (let i = 1; i <= 50; i++) {
-      const template = baseQuestions[(i - 1) % baseQuestions.length];
-      const newQuestion: TestQuestion = {
-        ...template,
-        ID: i,
-        QuestionText: `Câu hỏi ${i}: ${template.QuestionText} (Phiên bản ${Math.ceil(i / 2)})`,
-        ExamAnswers: template.ExamAnswers.map((a) => ({
-          ...a,
-          ID: a.ID + i * 1000,
-          selected: false,
-        })),
-      };
-      this.questions.push(newQuestion);
-    }
   }
 
   loadQuestions(): void {
@@ -319,6 +248,7 @@ export class TestExamComponent implements OnInit, OnDestroy {
   }
 
   async startExam(): Promise<void> {
+    this.currentIndex = 0; // Reset question index to 1
     const empId = this.appUserService.employeeID || 0;
     const loginName = this.appUserService.loginName || '';
 
@@ -485,7 +415,6 @@ export class TestExamComponent implements OnInit, OnDestroy {
       `Phát hiện vi phạm`,
       `${reason}. Bài thi sẽ bị nộp tự động ngay lập tức.`,
       {
-        nzDuration: 5000,
         nzKey: notificationKey,
       },
     );
@@ -510,7 +439,6 @@ export class TestExamComponent implements OnInit, OnDestroy {
           this.notification.error(
             'Nộp bài tự động',
             'Hệ thống đã tự động nộp bài do vi phạm quy chế.',
-            { nzDuration: 0 },
           );
           if (document.fullscreenElement) document.exitFullscreen();
           this.getFinalResult();
@@ -692,5 +620,14 @@ export class TestExamComponent implements OnInit, OnDestroy {
   disableDebug(): void {
     this.examDebugMode = false;
     this.notification.info('Debug Mode', 'Debug mode is off');
+  }
+
+  resetExamState(): void {
+    this.examStarted = false;
+    this.examSubmitted = false;
+    this.currentIndex = 0;
+    this.warningCount = 0;
+    this.violationReason = '';
+    this.questions = [];
   }
 }

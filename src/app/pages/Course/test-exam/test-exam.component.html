@@ -320,12 +320,7 @@
         <button
           nz-button
           nzType="default"
-          (click)="
-            examStarted = false;
-            examSubmitted = false;
-            warningCount = 0;
-            violationReason = ''
-          "
+          (click)="resetExamState()"
         >
           Thoát
         </button>

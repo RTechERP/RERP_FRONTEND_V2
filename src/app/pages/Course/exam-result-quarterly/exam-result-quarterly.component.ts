@@ -1,4 +1,10 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -10,10 +16,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import {
-  TabulatorFull as Tabulator,
-  RowComponent,
-} from 'tabulator-tables';
+import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
@@ -43,7 +46,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     NzSpinModule,
   ],
   templateUrl: './exam-result-quarterly.component.html',
-  styleUrl: './exam-result-quarterly.component.css'
+  styleUrl: './exam-result-quarterly.component.css',
 })
 export class ExamResultQuarterlyComponent implements OnInit, AfterViewInit {
   @ViewChild('CourseTable') courseTableRef!: ElementRef;
@@ -64,6 +67,9 @@ export class ExamResultQuarterlyComponent implements OnInit, AfterViewInit {
     { ExamType: 3, Code: 'K1', Name: 'Phần mềm', NameDepartment: 'Kỹ thuật' },
     { ExamType: 4, Code: 'NQKT', Name: 'Nội quy', NameDepartment: 'Kỹ thuật' },
     { ExamType: 5, Code: 'AGV', Name: 'AGV', NameDepartment: 'AGV' },
+    { ExamType: 6, Code: 'T', Name: 'Tester', NameDepartment: 'Kỹ thuật' },
+    { ExamType: 7, Code: 'MB', Name: 'Mobile', NameDepartment: 'Kỹ thuật' },
+    { ExamType: 8, Code: 'BA', Name: 'BA', NameDepartment: 'Kỹ thuật' },
   ];
   selectedExamType: number = 0;
   selectedExamName: string = '';
@@ -77,11 +83,12 @@ export class ExamResultQuarterlyComponent implements OnInit, AfterViewInit {
     private examResultService: ExamResultQuarterlyService,
     private notification: NzNotificationService,
     private modal: NzModalService,
-  ) { }
+  ) {}
 
   ngOnInit(): void {
-    this.breakpointObserver.observe([Breakpoints.Handset])
-      .subscribe(result => {
+    this.breakpointObserver
+      .observe([Breakpoints.Handset])
+      .subscribe((result) => {
         this.splitterLayout = result.matches ? 'vertical' : 'horizontal';
       });
   }
@@ -146,100 +153,107 @@ export class ExamResultQuarterlyComponent implements OnInit, AfterViewInit {
     if (this.examResultTable) {
       this.examResultTable.setData(this.examResultData);
     } else {
-      this.examResultTable = new Tabulator(this.examResultTableRef.nativeElement, {
-        data: this.examResultData,
-        ...DEFAULT_TABLE_CONFIG,
-        layout: 'fitDataStretch',
-        height: '86vh',
-        selectableRows: true,
-        pagination: false,
-        rowHeader: {
-          headerSort: false,
-          resizable: false,
-          frozen: true,
-          headerHozAlign: 'center',
-          hozAlign: 'center',
-          formatter: 'rowSelection',
-          titleFormatter: 'rowSelection',
-          cellClick: (_e: UIEvent, cell: any) => {
-            cell.getRow().toggleSelect();
-          },
-          width: 40,
-        },
-        rowContextMenu: [
-          {
-            label: '<span class="text-danger"><i class="fa fa-trash"></i> Xóa nhân viên đã chọn</span>',
-            action: (e: UIEvent, row: RowComponent) => {
-              // Nếu dòng chưa được chọn thì chọn nó và giữ nguyên các dòng đã chọn trước đó
-              if (!row.isSelected()) {
-                row.select();
-              }
-              this.deleteSelected();
-            }
-          }
-        ],
-        columns: [
-          {
-            title: 'STT',
-            field: 'STT',
+      this.examResultTable = new Tabulator(
+        this.examResultTableRef.nativeElement,
+        {
+          data: this.examResultData,
+          ...DEFAULT_TABLE_CONFIG,
+          layout: 'fitDataStretch',
+          height: '86vh',
+          selectableRows: true,
+          pagination: false,
+          rowHeader: {
+            headerSort: false,
+            resizable: false,
+            frozen: true,
+            headerHozAlign: 'center',
             hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 60,
-          },
-          {
-            title: 'Tên thí sinh',
-            field: 'FullName',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            minWidth: 180,
-          },
-          {
-            title: 'Tổng số câu',
-            field: 'TotalQuestion',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 110,
-          },
-          {
-            title: 'Số câu làm',
-            field: 'TotalChoosen',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 110,
-          },
-          {
-            title: 'Số câu đúng',
-            field: 'TotalCorrect',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 110,
-          },
-          {
-            title: 'Số câu sai',
-            field: 'TotalInCorrect',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 110,
-          },
-          {
-            title: 'Điểm',
-            field: 'FinalMark',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 90,
-            formatter: (cell: any) => {
-              const value = cell.getValue();
-              return value != null ? parseFloat(value).toFixed(2) : '0.00';
+            formatter: 'rowSelection',
+            titleFormatter: 'rowSelection',
+            cellClick: (_e: UIEvent, cell: any) => {
+              cell.getRow().toggleSelect();
             },
+            width: 40,
           },
-        ],
-      });
+          rowContextMenu: [
+            {
+              label:
+                '<span class="text-danger"><i class="fa fa-trash"></i> Xóa nhân viên đã chọn</span>',
+              action: (e: UIEvent, row: RowComponent) => {
+                // Nếu dòng chưa được chọn thì chọn nó và giữ nguyên các dòng đã chọn trước đó
+                if (!row.isSelected()) {
+                  row.select();
+                }
+                this.deleteSelected();
+              },
+            },
+          ],
+          columns: [
+            {
+              title: 'STT',
+              field: 'STT',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              width: 60,
+            },
+            {
+              title: 'Tên thí sinh',
+              field: 'FullName',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              minWidth: 180,
+            },
+            {
+              title: 'Tổng số câu',
+              field: 'TotalQuestion',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              width: 110,
+            },
+            {
+              title: 'Số câu làm',
+              field: 'TotalChoosen',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              width: 110,
+            },
+            {
+              title: 'Số câu đúng',
+              field: 'TotalCorrect',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              width: 110,
+            },
+            {
+              title: 'Số câu sai',
+              field: 'TotalInCorrect',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              width: 110,
+            },
+            {
+              title: 'Điểm',
+              field: 'FinalMark',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              width: 90,
+              formatter: (cell: any) => {
+                const value = cell.getValue();
+                return value != null ? parseFloat(value).toFixed(2) : '0.00';
+              },
+            },
+          ],
+        },
+      );
 
       // Double click -> xem chi tiết
-      this.examResultTable.on('rowDblClick', (_e: UIEvent, row: RowComponent) => {
-        const rowData = row.getData();
-        this.openDetail(rowData);
-      });
+      this.examResultTable.on(
+        'rowDblClick',
+        (_e: UIEvent, row: RowComponent) => {
+          const rowData = row.getData();
+          this.openDetail(rowData);
+        },
+      );
     }
   }
 
@@ -248,34 +262,42 @@ export class ExamResultQuarterlyComponent implements OnInit, AfterViewInit {
     if (!this.selectedExamType) return;
 
     this.isExamResultLoading = true;
-    this.examResultService.getExamResult(this.yearValue, this.quarter, this.selectedExamType).subscribe({
-      next: (response: any) => {
-        this.isExamResultLoading = false;
-        if (response && response.status === 1 && response.data) {
-          this.examResultData = response.data.map((item: any, index: number) => ({
-            ...item,
-            STT: index + 1,
-            FinalMark: item.TotalQuestion > 0
-              ? Math.round((item.TotalCorrect / item.TotalQuestion) * 100) / 100
-              : 0,
-          }));
-        } else {
+    this.examResultService
+      .getExamResult(this.yearValue, this.quarter, this.selectedExamType)
+      .subscribe({
+        next: (response: any) => {
+          this.isExamResultLoading = false;
+          if (response && response.status === 1 && response.data) {
+            this.examResultData = response.data.map(
+              (item: any, index: number) => ({
+                ...item,
+                STT: index + 1,
+                FinalMark:
+                  item.TotalQuestion > 0
+                    ? Math.round(
+                        (item.TotalCorrect / item.TotalQuestion) * 100,
+                      ) / 100
+                    : 0,
+              }),
+            );
+          } else {
+            this.examResultData = [];
+          }
+          if (this.examResultTable) {
+            this.examResultTable.replaceData(this.examResultData);
+          }
+        },
+        error: (error: any) => {
+          this.isExamResultLoading = false;
+          const msg =
+            error?.error?.message || error?.message || 'Lỗi không xác định';
+          this.notification.error(NOTIFICATION_TITLE.error, msg);
           this.examResultData = [];
-        }
-        if (this.examResultTable) {
-          this.examResultTable.replaceData(this.examResultData);
-        }
-      },
-      error: (error: any) => {
-        this.isExamResultLoading = false;
-        const msg = error?.error?.message || error?.message || 'Lỗi không xác định';
-        this.notification.error(NOTIFICATION_TITLE.error, msg);
-        this.examResultData = [];
-        if (this.examResultTable) {
-          this.examResultTable.replaceData([]);
-        }
-      },
-    });
+          if (this.examResultTable) {
+            this.examResultTable.replaceData([]);
+          }
+        },
+      });
   }
 
   // ─── Mở modal chi tiết bài thi ───────────────────────────────────────────
@@ -289,7 +311,11 @@ export class ExamResultQuarterlyComponent implements OnInit, AfterViewInit {
       nzMaskClosable: false,
       nzClassName: 'full-screen-modal',
       nzStyle: { top: '0px', padding: '0px', margin: '0px' },
-      nzBodyStyle: { padding: '0px', height: 'calc(100vh - 55px)', overflow: 'hidden' },
+      nzBodyStyle: {
+        padding: '0px',
+        height: 'calc(100vh - 55px)',
+        overflow: 'hidden',
+      },
       nzData: {
         employeeID: rowData['EmployeeID'] ?? rowData['ID'] ?? 0,
         employeeName: rowData['FullName'] ?? '',
@@ -300,7 +326,8 @@ export class ExamResultQuarterlyComponent implements OnInit, AfterViewInit {
     });
 
     // Truyền @Input từ nzData vào component instance
-    const instance = modal.getContentComponent() as ExamResultDetailModalComponent;
+    const instance =
+      modal.getContentComponent() as ExamResultDetailModalComponent;
     instance.employeeID = rowData['EmployeeID'] ?? rowData['ID'] ?? 0;
     instance.employeeName = rowData['FullName'] ?? '';
     instance.yearValue = this.yearValue;
@@ -314,32 +341,40 @@ export class ExamResultQuarterlyComponent implements OnInit, AfterViewInit {
 
     const selectedRows: RowComponent[] = this.examResultTable.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên muốn xóa!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn nhân viên muốn xóa!',
+      );
       return;
     }
 
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc muốn xóa kết quả thi của nhân viên đã chọn không?',
+      nzContent:
+        'Bạn có chắc muốn xóa kết quả thi của nhân viên đã chọn không?',
       nzOkText: 'Có',
       nzCancelText: 'Không',
       nzOnOk: () => {
         const ids = selectedRows
-          .map(row => row.getData()['ID'])
-          .filter(id => id)
+          .map((row) => row.getData()['ID'])
+          .filter((id) => id)
           .join(',');
 
         if (!ids) return;
 
         this.examResultService.deleteExamResult(ids).subscribe({
           next: () => {
-            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công!');
+            this.notification.success(
+              NOTIFICATION_TITLE.success,
+              'Xóa thành công!',
+            );
             this.loadData();
           },
           error: (error: any) => {
-            const msg = error?.error?.message || error?.message || 'Xóa thất bại';
+            const msg =
+              error?.error?.message || error?.message || 'Xóa thất bại';
             this.notification.error(NOTIFICATION_TITLE.error, msg);
-          }
+          },
         });
       },
     });
@@ -348,13 +383,19 @@ export class ExamResultQuarterlyComponent implements OnInit, AfterViewInit {
   // ─── Xuất Excel ────────────────────────────────────────────────────────────
   async exportToExcel() {
     if (!this.examResultTable) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu để xuất!',
+      );
       return;
     }
 
     const data = this.examResultTable.getData();
     if (!data || data.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu để xuất!',
+      );
       return;
     }
 
@@ -362,24 +403,49 @@ export class ExamResultQuarterlyComponent implements OnInit, AfterViewInit {
     const worksheet = workbook.addWorksheet('Kết quả thi');
 
     // Tiêu đề
-    const headers = ['STT', 'Tên thí sinh', 'Tổng số câu', 'Số câu làm', 'Số câu đúng', 'Số câu sai', 'Điểm'];
-    const fields = ['STT', 'FullName', 'TotalQuestion', 'TotalChoosen', 'TotalCorrect', 'TotalInCorrect', 'FinalMark'];
+    const headers = [
+      'STT',
+      'Tên thí sinh',
+      'Tổng số câu',
+      'Số câu làm',
+      'Số câu đúng',
+      'Số câu sai',
+      'Điểm',
+    ];
+    const fields = [
+      'STT',
+      'FullName',
+      'TotalQuestion',
+      'TotalChoosen',
+      'TotalCorrect',
+      'TotalInCorrect',
+      'FinalMark',
+    ];
 
     const headerRow = worksheet.addRow(headers);
-    headerRow.eachCell(cell => {
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'D9D9D9' } };
+    headerRow.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'D9D9D9' },
+      };
       cell.font = { bold: true };
-      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      cell.alignment = {
+        vertical: 'middle',
+        horizontal: 'center',
+        wrapText: true,
+      };
     });
 
     data.forEach((row: any) => {
-      const rowData = fields.map(f => {
+      const rowData = fields.map((f) => {
         const val = row[f];
-        if (f === 'FinalMark') return val != null ? parseFloat(val).toFixed(2) : '0.00';
+        if (f === 'FinalMark')
+          return val != null ? parseFloat(val).toFixed(2) : '0.00';
         return val != null ? val : '';
       });
       const excelRow = worksheet.addRow(rowData);
-      excelRow.eachCell(cell => {
+      excelRow.eachCell((cell) => {
         cell.alignment = { vertical: 'middle', wrapText: true };
       });
     });
@@ -393,10 +459,15 @@ export class ExamResultQuarterlyComponent implements OnInit, AfterViewInit {
       col.width = maxLen;
     });
 
-    worksheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: headers.length } };
+    worksheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: headers.length },
+    };
 
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
 
     const examName = this.selectedExamName || 'KyThi';
     const link = document.createElement('a');

@@ -136,11 +136,15 @@
                     <nz-row [nzGutter]="24">
                         <nz-col [nzSpan]="18">
                             <nz-form-item>
-                                <nz-form-label for="videoUrlInput" class="fs-12 p-0">Đường dẫn video</nz-form-label>
+                                <nz-form-label for="videoUrlInput" class="fs-12 p-0">Đường dẫn video
+                                    <span style="color: red;">
+                                        (Chỉ hỗ trợ định dạng .mp4, .webm)
+                                    </span>
+                                </nz-form-label>
                                 <nz-form-control [nzSpan]="24">
                                     <div class="d-flex gap-2 align-items-center">
                                         <!-- Video File Selection -->
-                                        <nz-upload nzAccept="video/mp4,.mp4" [nzBeforeUpload]="beforeUploadVideo"
+                                        <nz-upload nzAccept=".mp4,.webm" [nzBeforeUpload]="beforeUploadVideo"
                                             [nzShowUploadList]="false" [nzMultiple]="false">
                                             <button nz-button>
                                                 <span nz-icon nzType="upload"></span>

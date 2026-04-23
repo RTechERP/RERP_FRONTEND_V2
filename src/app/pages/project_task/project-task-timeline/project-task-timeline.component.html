@@ -146,10 +146,10 @@
                                     <td *ngFor="let col of dateColumns" class="gantt-cell"
                                         [class.cell-group-end]="ri === 1 && ti === group.tasks.length - 1"
                                         [class.sunday]="col.isSunday" [class.today-col]="col.isToday"
-                                        [class.filled-planned]="row.TypeDate === 1 && getValue(row, col.dateStr) >= 1"
+                                        [class.filled-planned]="row.TypeDate === 1 && (getValue(row, col.dateStr) === 1 || getValue(row, col.dateStr) === 3)"
                                         [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
-                                        <!-- Dự kiến: >= 2 hiển thị icon check -->
-                                        <ng-container *ngIf="row.TypeDate === 1 && getValue(row, col.dateStr) >= 2">
+                                        <!-- Dự kiến: 2 hoặc 3 hiển thị icon check -->
+                                        <ng-container *ngIf="row.TypeDate === 1 && (getValue(row, col.dateStr) === 2 || getValue(row, col.dateStr) === 3)">
                                             <span nz-icon nzType="check" nzTheme="outline"
                                                 class="check-icon"></span>
                                         </ng-container>

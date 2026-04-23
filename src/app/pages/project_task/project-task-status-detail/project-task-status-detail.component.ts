@@ -15,9 +15,11 @@ import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzRateModule } from 'ng-zorro-antd/rate';
-import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 import { DateTime } from 'luxon';
 import { Table } from 'primeng/table';
+import { Router } from '@angular/router';
+import { TabServiceService } from '../../../layouts/tab-service.service';
+import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 
 @Component({
   selector: 'app-project-task-status-detail',
@@ -45,6 +47,8 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
+  private tabService = inject(TabServiceService);
 
   // Data passed from TabService
   private _data: any;
@@ -238,20 +242,12 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
             fullTaskData.ApprovalStatus = taskData.ApprovalStatus;
           }
 
-          const modalRef = this.modal.create({
-            nzTitle: 'CHI TIẾT CÔNG VIỆC',
-            nzContent: TaskDetailComponent,
-            nzData: { task: fullTaskData },
-            nzFooter: null,
-            nzWidth: '100vw',
-            nzBodyStyle: { padding: '0', height: '80vh', overflow: 'hidden' },
-            nzStyle: { borderRadius: '12px', top: '5vh' },
-            nzMaskClosable: false,
-            nzClosable: true
-          });
-          
-          modalRef.afterClose.subscribe(result => {
-             if (result) this.loadData();
+          const taskCode = fullTaskData.Code || `Task-${fullTaskData.ID}`;
+          this.tabService.openTabComp({
+            comp: TaskDetailComponent,
+            title: taskCode,
+            key: `project-task-detail-${fullTaskData.ID}`,
+            data: { id: fullTaskData.ID }
           });
         }
       }

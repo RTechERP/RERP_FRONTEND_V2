@@ -318,6 +318,7 @@ import { ProjectTaskTypeComponent } from './pages/project_task/project-task-type
 import { ProjectTaskProjectComponent } from './pages/project_task/project-task-project/project-task-project.component'
 import { ProjectTaskTimeLineTotalComponent } from './pages/project_task/project-task-time-line-total/project-task-time-line-total.component'
 import { ProjectTaskStatusChartComponent } from './pages/project_task/project-task-status-chart/project-task-status-chart.component'
+import { TaskDetailComponent } from './pages/project_task/kanban/task-detail/task-detail.component';
 import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
 import { FiveSRatingDetailComponent } from './pages/hrm/RatingError/five-s-rating-detail/five-s-rating-detail.component'
 import { FiveSMinusComponent } from './pages/hrm/RatingError/five-s-minus/five-s-minus.component'
@@ -1191,6 +1192,8 @@ export const routes: Routes = [
             { path: 'project-task-project', component: ProjectTaskProjectComponent, canActivate: [authGuard] },
             { path: 'project-task-status-chart', component: ProjectTaskStatusChartComponent, canActivate: [authGuard] },
             { path: 'project-task-timeline-total', component: ProjectTaskTimeLineTotalComponent, canActivate: [authGuard] },
+            { path: 'project-task-detail/:id', component: TaskDetailComponent, canActivate: [authGuard] },
+            { path: 'project-task-add', component: TaskDetailComponent, canActivate: [authGuard] },
             { path: 'purchase-quote-summary', component: PurchaseQuoteSummaryComponent, canActivate: [authGuard] },
             { path: 'commercial-price-request', component: CommercialPriceRequestComponent, canActivate: [authGuard] },
             { path: 'purchase-quote-summary-main', component: PurchaseQuoteSummaryMainComponent, canActivate: [authGuard] },

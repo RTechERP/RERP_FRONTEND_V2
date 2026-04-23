@@ -2252,9 +2252,9 @@ export class BillImportDetailNewComponent
                 STT: row.STT || index + 1,
                 TotalQty: row.TotalQty || 0,
                 CreatedDate: row.CreatedDate
-                    ? new Date(row.CreatedDate).toISOString()
-                    : new Date().toISOString(),
-                UpdatedDate: new Date().toISOString(),
+                    ? this.toLocalISOString(new Date(row.CreatedDate))
+                    : this.toLocalISOString(new Date()),
+                UpdatedDate: this.toLocalISOString(new Date()),
                 ProjectID: row.ProjectID || 0,
                 PONCCDetailID: row.PONCCDetailID || 0,
                 SerialNumber: row.SerialNumber || '',
@@ -2267,11 +2267,11 @@ export class BillImportDetailNewComponent
                 ReturnedStatus: row.ReturnedStatus || false,
                 InventoryProjectID: row.InventoryProjectID || 0,
                 DateSomeBill: row.DateSomeBill
-                    ? new Date(row.DateSomeBill).toISOString()
+                    ? this.toLocalISOString(new Date(row.DateSomeBill))
                     : null,
                 isDeleted: row.isDeleted || false,
                 DPO: row.DPO || 0,
-                DueDate: row.DueDate ? new Date(row.DueDate).toISOString() : null,
+                DueDate: row.DueDate ? this.toLocalISOString(new Date(row.DueDate)) : null,
                 TaxReduction: row.TaxReduction || 0,
                 COFormE: row.COFormE || 0,
                 IsNotKeep: row.IsNotKeep || false,
@@ -2299,6 +2299,23 @@ export class BillImportDetailNewComponent
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
+    }
+
+    // Trả về ISO string với offset múi giờ local, tránh lệch ngày khi dùng toISOString() (UTC)
+    private toLocalISOString(date: Date | string | null): string | null {
+        if (!date) return null;
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return null;
+        const tzo = -d.getTimezoneOffset();
+        const sign = tzo >= 0 ? '+' : '-';
+        const pad = (n: number) => String(Math.floor(Math.abs(n))).padStart(2, '0');
+        return d.getFullYear() + '-' +
+            pad(d.getMonth() + 1) + '-' +
+            pad(d.getDate()) + 'T' +
+            pad(d.getHours()) + ':' +
+            pad(d.getMinutes()) + ':' +
+            pad(d.getSeconds()) +
+            sign + pad(tzo / 60) + ':' + pad(tzo % 60);
     }
 
     async saveDataBillImport(): Promise<void> {
@@ -2674,7 +2691,7 @@ export class BillImportDetailNewComponent
             Status: doc.Status || 0,
             StatusPurchase: doc.DocumentStatusPur || 0,
             BillImportID: this.newBillImport.Id || 0,
-            UpdatedDate: new Date().toISOString(),
+            UpdatedDate: this.toLocalISOString(new Date()),
         }));
     }
 

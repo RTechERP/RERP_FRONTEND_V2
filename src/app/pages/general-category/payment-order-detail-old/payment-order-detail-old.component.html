@@ -58,7 +58,7 @@
                     </nz-select>
                 </div>
 
-                <div class="form-group col-md-4 m-0 p-1">
+                <div class="form-group col-md-2 m-0 p-1">
                     <label class="m-0">Nhà cung cấp</label>
                     <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small"
                         nzPlaceHolder="--Chọn nhà cung cấp--" formControlName="SupplierSaleID"
@@ -75,6 +75,16 @@
                         formControlName="PONCCID" nzDropdownClassName="select-dropdown">
                         @for (item of poNCCs; track item) {
                         <nz-option [nzLabel]="item.BillCode" [nzValue]="item.ID"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <div class="form-group col-md-2 m-0 p-1">
+                    <label class="m-0">Hợp đồng</label>
+                    <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn hợp đồng--"
+                        formControlName="RegisterContractID" nzDropdownClassName="select-dropdown">
+                        @for (item of registerContracts; track item) {
+                        <nz-option [nzLabel]="item.DocumentName" [nzValue]="item.ID"></nz-option>
                         }
                     </nz-select>
                 </div>

@@ -1201,7 +1201,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
       comp: TaskDetailComponent,
       title: taskCode,
       key: `project-task-detail-${taskId}`,
-      data: { id: taskId }
+      data: { id: taskId, ApprovalStatus: task?.ApprovalStatus ?? null }
     });
   }
 
@@ -1275,6 +1275,17 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
         });
       }
 
+      // Hủy duyệt option (Chỉ hiển thị khi tab là Việc tôi giao và task đã được duyệt)
+      if (this.activeTab() === 'myApproval' && task.ApprovalStatus === true) {
+        this.contextMenuItems.push({
+          label: `Hủy duyệt công việc`,
+          icon: 'pi pi-times-circle',
+          command: () => {
+            this.cancelApprove(task);
+          }
+        });
+      }
+
       if (this.contextMenuItems.length > 0) {
         cm.show(event);
       }
@@ -1296,6 +1307,33 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.message.error('Lỗi khi gửi yêu cầu điểm danh');
+      }
+    });
+  }
+
+  cancelApprove(task: ProjectTaskItem) {
+    if (!task || !task.ID) return;
+    this.modal.confirm({
+      nzTitle: 'Xác nhận hủy duyệt',
+      nzContent: 'Bạn có chắc chắn muốn hủy duyệt công việc này?',
+      nzOkText: 'Đồng ý',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.kanbanService.cancelApproveTask(task.ID).subscribe({
+          next: (res) => {
+            if (res.status === 200 || res.status === 1) {
+              this.message.success('Đã hủy duyệt công việc');
+              this.loadTasks();
+            } else {
+              this.message.error(res.message || 'Lỗi khi hủy duyệt công việc');
+            }
+          },
+          error: () => {
+            this.message.error('Lỗi hệ thống khi gửi yêu cầu hủy duyệt');
+          }
+        });
       }
     });
   }

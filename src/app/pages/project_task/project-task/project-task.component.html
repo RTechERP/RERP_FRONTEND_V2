@@ -300,9 +300,7 @@
                     <th pResizableColumn pSortableColumn="PercentOverTime" style="width: 70px; text-align: center">
                         <div>%</div><div>Quá hạn <p-sortIcon field="PercentOverTime" /></div>
                     </th>
-                    <th pResizableColumn pSortableColumn="CompletionRating" style="width: 120px; text-align: center">
-                        <div>Đánh giá <p-sortIcon field="CompletionRating" /></div>
-                    </th>
+
                     @if (activeTab() === 'all' || activeTab() === 'assigned') {
                     <th pResizableColumn pSortableColumn="DepartmentAssignerName" style="width: 120px">
                         <div>Phòng ban</div><div>giao <p-sortIcon field="DepartmentAssignerName" /></div>
@@ -513,21 +511,7 @@
                             </ng-template>
                         </p-columnFilter>
                     </th>
-                    <th style="text-align: center;">
-                        <p-columnFilter field="CompletionRating" matchMode="equals" [showMenu]="false">
-                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                <select class="status-filter"
-                                    (change)="filter($any($event.target).value === '' ? null : +$any($event.target).value)">
-                                    <option value="">Tất cả</option>
-                                    <option value="1">1 Sao</option>
-                                    <option value="2">2 Sao</option>
-                                    <option value="3">3 Sao</option>
-                                    <option value="4">4 Sao</option>
-                                    <option value="5">5 Sao</option>
-                                </select>
-                            </ng-template>
-                        </p-columnFilter>
-                    </th>
+
                     @if (activeTab() === 'all' || activeTab() === 'myApproval') {
                     <th>
                         <p-columnFilter field="DepartmentAssignerName" matchMode="in" [showMenu]="false">
@@ -714,17 +698,7 @@
                         <span class="text-muted">-</span>
                         }
                     </td>
-                    <td style="text-align: center;">
-                        @if (task.CompletionRating) {
-                        <div class="d-flex align-items-center justify-content-center gap-1">
-                            <nz-rate [ngModel]="task.CompletionRating" nzDisabled
-                                style="font-size: 14px;"></nz-rate>
-                            <span class="fw-bold" style="color: #faad14;">{{ task.CompletionRating }}</span>
-                        </div>
-                        } @else {
-                        <span class="text-muted">-</span>
-                        }
-                    </td>
+
                     @if (activeTab() === 'all' || activeTab() === 'myApproval') {
                     <td>
                         <span class="text-wrap">{{ task.DepartmentAssignerName || '-' }}</span>
@@ -755,7 +729,7 @@
 
             <ng-template pTemplate="footer">
                 <tr>
-                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 20 : (activeTab() === 'assigned' ? 19 : (activeTab() === 'related' ? 19 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0) + 3"
+                    <td [attr.colspan]="(activeTab() === 'all' ? 19 : (activeTab() === 'myApproval' ? 19 : (activeTab() === 'assigned' ? 18 : (activeTab() === 'related' ? 18 : 16)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0) + 3"
                         class="table-footer-total">
                         Tổng cộng: <span class="total-count">{{ totalRecords() }}</span> công việc
                     </td>
@@ -764,7 +738,7 @@
 
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 20 : (activeTab() === 'assigned' ? 19 : (activeTab() === 'related' ? 19 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0) + 3"
+                    <td [attr.colspan]="(activeTab() === 'all' ? 19 : (activeTab() === 'myApproval' ? 19 : (activeTab() === 'assigned' ? 18 : (activeTab() === 'related' ? 18 : 16)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0) + 3"
                         class="empty-message">
                         <div class="empty-state">
                             <span nz-icon nzType="inbox" nzTheme="outline" class="empty-icon"></span>
@@ -776,7 +750,7 @@
 
             <ng-template pTemplate="loadingbody">
                 <tr>
-                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 20 : (activeTab() === 'assigned' ? 19 : (activeTab() === 'related' ? 19 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0) + 3"
+                    <td [attr.colspan]="(activeTab() === 'all' ? 19 : (activeTab() === 'myApproval' ? 19 : (activeTab() === 'assigned' ? 18 : (activeTab() === 'related' ? 18 : 16)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0) + 3"
                         class="text-center">
                         <span nz-icon nzType="loading" nzTheme="outline"></span> Đang tải...
                     </td>

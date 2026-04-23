@@ -8,6 +8,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { TableModule } from 'primeng/table';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { ContextMenuModule } from 'primeng/contextmenu';
@@ -29,6 +30,7 @@ import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component
     NzButtonModule,
     NzToolTipModule,
     NzModalModule,
+    NzSelectModule,
     TableModule,
     MultiSelectModule,
     ContextMenuModule
@@ -77,14 +79,14 @@ export class ProjectTaskTimelineComponent implements OnInit {
   filterProjectKeyword = '';
   filterParentCode = '';
   selectedStatuses: number[] = [0, 1];
+  filterStatusColumn: number[] = [];
   contextMenuItems: MenuItem[] = [];
 
   statusOptions = [
     { label: 'Chưa làm', value: 0 },
     { label: 'Đang làm', value: 1 },
     { label: 'Hoàn thành', value: 2 },
-    { label: 'Pending', value: 3 },
-    { label: 'Quá hạn', value: 4 }
+    { label: 'Pending', value: 3 }
   ];
 
   ngOnInit() {
@@ -142,13 +144,22 @@ export class ProjectTaskTimelineComponent implements OnInit {
       const endDate = new Date(this.dateEnd);
       this.generateDateColumns(startDate, endDate);
 
+      // Build status string: "0,1" hoặc "-1" nếu chọn tất cả hoặc không chọn gì
+      let statusStr = '';
+      if (this.selectedStatuses.length === 0 || this.selectedStatuses.length === this.statusOptions.length) {
+        statusStr = '-1';
+      } else {
+        statusStr = this.selectedStatuses.join(',');
+      }
+
       this.timelineService.getTimelineByTeam({
         dateStart: this.dateStart,
         dateEnd: this.dateEnd,
         departmentID: this.selectedDepartment || undefined,
         teamID: this.selectedTeam || undefined,
         userID: this.selectedEmployee || this.appUserService.id || undefined,
-        projectID: undefined
+        projectID: undefined,
+        status: statusStr
       }).subscribe({
         next: (data) => {
           // Tiếp tục nhường luồng trước khi xử lý dữ liệu nặng để không làm đơ vòng quay loading
@@ -335,10 +346,10 @@ export class ProjectTaskTimelineComponent implements OnInit {
       })).filter((p: any) => p.tasks.length > 0);
     }
 
-    if (this.selectedStatuses && this.selectedStatuses.length > 0) {
+    if (this.filterStatusColumn && this.filterStatusColumn.length > 0) {
       projectGroups = projectGroups.map((p: any) => ({
         ...p,
-        tasks: p.tasks.filter((t: any) => this.selectedStatuses.includes(t.Status))
+        tasks: p.tasks.filter((t: any) => this.filterStatusColumn.includes(t.Status))
       })).filter((p: any) => p.tasks.length > 0);
     }
 
@@ -356,6 +367,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
     this.filterProjectKeyword = '';
     this.filterParentCode = '';
     this.selectedStatuses = [0, 1];
+    this.filterStatusColumn = [];
     this.loadTimeline();
   }
 

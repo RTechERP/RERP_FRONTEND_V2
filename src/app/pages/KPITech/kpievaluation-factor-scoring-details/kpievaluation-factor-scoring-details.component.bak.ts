@@ -7,7 +7,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzModalRef, NZ_MODAL_DATA, NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalRef, NZ_MODAL_DATA } from 'ng-zorro-antd/modal';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import {
@@ -118,7 +118,6 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
   // DI
   private notification = inject(NzNotificationService);
-  private modal = inject(NzModalService);
   private cdr = inject(ChangeDetectorRef);
   private modalRef = inject(NzModalRef, { optional: true });
   public activeModal = inject(NgbActiveModal);
@@ -129,7 +128,6 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
   // UI State
   gridsInitialized = false;
-  private isCloseAfterSave = false;
   selectedTabIndex = 0;
   logicalTabIndex = 0;
 
@@ -594,6 +592,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
   //#region Visibility and Permission Rules
   private applyVisibilityRules(): void {
+    debugger
     const isAdmin = this.typePoint === 4;
 
     // Logic Block 2: Cấu hình chung theo typePoint và status
@@ -1996,6 +1995,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.kpiSharedService.getDataKPIExam(empId, kpiSessionID).pipe(
       switchMap((res: any) => {
         const points = res?.data[0] || res;
+        // Tìm point tương ứng với kpiExamID hiện tại
+        //const point: any = Array.isArray(points) ? points.find((p: any) => p.KPIExamID === kpiExamID) : null;
+        debugger
         if (res.data.length > 0) {
           return this.kpiSharedService.getIsPublish(res.data[0].ID, this.isPublish, empId, kpiSessionID);
         } else {
@@ -2128,27 +2130,22 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.kpiSharedService.loadKPIRuleAndTeamFactorScoring(examId, isPublic, empId, sessionId).subscribe({
       next: (res) => {
         if (res.status === 1 && res.data) {
-          const rawRuleData = res.data.dtKpiRule || [];
-          // TN.Binh update 18/04/2026: Add Row STT 3.9 NewLine 
-          // Thêm vào raw data trước khi transform để đảm bảo có đầy đủ tree metadata (__treeLevel, parentId, id)
-          const hasNewLine = rawRuleData.some((item: any) => item.EvaluationCode === 'NewLine' || item.STT === '3.9');
-          if (!hasNewLine) {
-            rawRuleData.push({
-              ID: -9999,
-              STT: '3.9',
-              Stt: '3.9',
-              EvaluationCode: 'NewLine',
-              FirstMonth: 0,
-              SecondMonth: 0,
-              ThirdMonth: 0,
-              RuleContent: '',
-              ParentID: 0,
-              __hasChildren: false
-            });
-          }
-
           // Rule Data sử dụng transformToTreeData (giống parent) nhưng không có summary row
-          this.dataRule = this.transformToTreeData(rawRuleData, false);
+          const tempRuleData = this.transformToTreeData(res.data.dtKpiRule || [], false);
+          // TN.Binh update 18/04/2026: Add Row STT 3.9 NewLine 
+          tempRuleData.push({
+            id: 'newline_3_9',
+            ID: -9999,
+            STT: '3.9',
+            EvaluationCode: 'NewLine',
+            FirstMonth: 0,
+            SecondMonth: 0,
+            ThirdMonth: 0,
+            RuleContent: '',
+            ParentID: 0,
+            __hasChildren: false
+          });
+          this.dataRule = tempRuleData;
 
           // Team Data mapping id
           this.dataTeam = (res.data.dtTeam || []).map((item: any, index: number) => ({
@@ -2161,8 +2158,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
           //#region ĐỒNG BỘ LOGIC LOAD POIN RULE NEW (WinForm)
           // Sau khi load Rule/Team, gọi API mới để lấy số liệu 3 tháng và tính toán
-          const listRule = res.data.lst || [];
-          if (listRule.length <= 0) {
+          if (res.data.lst.length <= 0) {
             this.loadPointRuleNewAndCalculateDetail();
           } else if (!this.isAdminConfirm && this.isPublish == false) {
             this.loadPointRuleLastMonthAndCalculateDetail();
@@ -3306,7 +3302,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
    * Scale: D, C-, C, C+, B-, B, B+, A-, A, A+
    */
   private getEvaluationRank(percent: number): string {
-    if (percent < 60) return 'D'
+    if (percent < 60) return 'D';
     if (percent < 65) return 'C-';
     if (percent < 70) return 'C';
     if (percent < 75) return 'C+';
@@ -3718,52 +3714,22 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   //#endregion
 
   //#region Save Data
-  saveData(closeAfterSave: boolean = false): void {
-    this.isCloseAfterSave = closeAfterSave;
+  saveData(): void {
     //#region Validate dữ liệu bắt buộc
     if (!this.selectedKPISessionId) {
       this.notification.warning('Cảnh báo', 'Hãy chọn Kỳ đánh giá KPI');
-      this.isCloseAfterSave = false;
       return;
     }
     if (!this.selectedKPIExamId) {
       this.notification.warning('Cảnh báo', 'Hãy chọn Bài đánh giá KPI');
-      this.isCloseAfterSave = false;
       return;
     }
     if (!this.selectedEmployeeId) {
       this.notification.warning('Cảnh báo', 'Hãy chọn Nhân viên');
-      this.isCloseAfterSave = false;
       return;
     }
     //#endregion
 
-    // Bước 1: Kiểm tra các dòng có điểm = 0
-    const zeroScores = this.collectZeroScoreSTTs();
-
-    if (zeroScores.size > 0) {
-      // Xây dựng thông báo
-      let message = 'Các số thứ tự (STT) sau đang có điểm bằng 0:<br/>';
-      zeroScores.forEach((stts, tabName) => {
-        message += `<b>• Tab ${tabName}:</b> ${stts.join(', ')}<br/>`;
-      });
-      message += '<br/>Bạn có chắc chắn muốn tiếp tục lưu hay không?';
-
-      this.modal.confirm({
-        nzTitle: 'Cảnh báo điểm đánh giá bằng 0',
-        nzContent: message,
-        nzOkText: 'Có, lưu ngay',
-        nzCancelText: 'Hủy để kiểm tra lại',
-        nzOnOk: () => {
-          this.performSave();
-        }
-      });
-    } else {
-      this.performSave();
-    }
-  }
-
-  private performSave(): void {
     //#region Chuẩn bị payload SaveDataKPI
     // Luôn tính lại bảng tổng hợp để đảm bảo số liệu mới nhất
     if (this.departmentID === this.DEPARTMENT_CO_KHI) {
@@ -3778,14 +3744,13 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
     if (kpiKyNang.length === 0 && kpiChung.length === 0 && kpiChuyenMon.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu thay đổi để lưu');
-      this.isCloseAfterSave = false;
       return;
     }
 
     const request: SaveDataKPIRequestParam = {
-      KPISessionID: this.selectedKPISessionId!,
-      KPIExamID: this.selectedKPIExamId!,
-      employeeID: this.selectedEmployeeId!,
+      KPISessionID: this.selectedKPISessionId,
+      KPIExamID: this.selectedKPIExamId,
+      employeeID: this.selectedEmployeeId,
       typePoint: this.typePoint,
       departmentID: this.departmentID,
       kpiKyNang,
@@ -3898,72 +3863,6 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     );
   }
 
-  /**
-   * Thu thập danh sách STT có điểm = 0 trong các cột có thể nhập liệu
-   * @returns Map chứa danh sách STT theo từng tab
-   */
-  private collectZeroScoreSTTs(): Map<string, string[]> {
-    const zeroScores = new Map<string, string[]>();
-
-    // Xác định cột điểm cần check dựa trên typePoint
-    let pointField = '';
-    if (this.typePoint === 1) pointField = 'EmployeePoint';
-    else if (this.typePoint === 2) pointField = 'TBPPointInput';
-    else if (this.typePoint === 3) pointField = 'BGDPointInput';
-
-    const checkTab = (tabName: string, dataSet: any[], field: string) => {
-      if (!field || !dataSet || dataSet.length === 0) return;
-      const stts: string[] = [];
-      dataSet.forEach(item => {
-        // Chỉ check node lá (không có con) và ID > 0
-        const isParent = item.__hasChildren;
-        if (!isParent && this.normalizeId(item.ID) > 0) {
-          const value = item[field];
-          // Check giá trị bằng 0 (chấp nhận cả kiểu number và string)
-          if (value === 0 || value === '0' || (typeof value === 'string' && value.trim() === '0')) {
-            stts.push(item.STT);
-          }
-        }
-      });
-      if (stts.length > 0) {
-        zeroScores.set(tabName, stts);
-      }
-    };
-
-    // Check 3 tab đánh giá chính
-    checkTab('Kỹ năng', this.dataSkill, pointField);
-    checkTab('Chung', this.dataGeneral, pointField);
-    checkTab('Chuyên môn', this.dataSpecialization, pointField);
-
-    // Check Tab Rule (nếu hiển thị)
-    if (this.showTabRule && this.dataRule && this.dataRule.length > 0) {
-      const ruleStts: string[] = [];
-      const ruleFields = ['FirstMonth', 'SecondMonth', 'ThirdMonth'];
-
-      this.dataRule.forEach(item => {
-        const isParent = item.__hasChildren;
-        if (!isParent && this.normalizeId(item.ID) > 0) {
-          ruleFields.forEach(field => {
-            if (this.canEditRuleCell(item, field)) {
-              const value = item[field];
-              if (value === 0 || value === '0' || (typeof value === 'string' && value.trim() === '0')) {
-                if (!ruleStts.includes(item.STT)) {
-                  ruleStts.push(item.STT);
-                }
-              }
-            }
-          });
-        }
-      });
-
-      if (ruleStts.length > 0) {
-        zeroScores.set('Rule', ruleStts);
-      }
-    }
-
-    return zeroScores;
-  }
-
   //#region Helper build payload SaveDataKPI
   private buildEvaluationPointParams(dataSet: any[]): KPIEvaluationPointParam[] {
     if (!dataSet || dataSet.length === 0) return [];
@@ -4051,24 +3950,16 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
     // Emit event to notify parent component to reload data
     this.dataSaved.emit();
-
-    if (this.isCloseAfterSave) {
-      this.isCloseAfterSave = false;
-      this.closeModal();
-    }
   }
+  //#endregion
 
-  private closeModal(): void {
+  saveAndClose(): void {
+    this.saveData();
     if (this.activeModal) {
       this.activeModal.close({ success: true });
     } else if (this.modalRef) {
       this.modalRef.close({ success: true });
     }
-  }
-  //#endregion
-
-  saveAndClose(): void {
-    this.saveData(true);
   }
 
   dismissModal(): void {

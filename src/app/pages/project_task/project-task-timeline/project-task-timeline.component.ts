@@ -159,7 +159,8 @@ export class ProjectTaskTimelineComponent implements OnInit {
         teamID: this.selectedTeam || undefined,
         userID: this.selectedEmployee || this.appUserService.id || undefined,
         projectID: undefined,
-        status: statusStr
+        status: statusStr,
+        typeSearch: 1
       }).subscribe({
         next: (data) => {
           // Tiếp tục nhường luồng trước khi xử lý dữ liệu nặng để không làm đơ vòng quay loading

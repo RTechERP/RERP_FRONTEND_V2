@@ -23,7 +23,7 @@ angular-slickgrid,
     display: flex;
 }
 
-:host ::ng-deep .slickgrid-container {
+:host ::ng-deep .kpi-employee-wrapper .slickgrid-container {
     height: 100% !important;
 }
 
@@ -35,21 +35,21 @@ angular-slickgrid,
 }
 
 /* ==================== TEXT ALIGNMENT ==================== */
-:host ::ng-deep .text-center {
+:host ::ng-deep .kpi-employee-wrapper .text-center {
     text-align: center !important;
 }
 
-:host ::ng-deep .text-right {
+:host ::ng-deep .kpi-employee-wrapper .text-right {
     text-align: right !important;
 }
 
-:host ::ng-deep .text-left {
+:host ::ng-deep .kpi-employee-wrapper .text-left {
     text-align: left !important;
 }
 
 /* ==================== HEADER STYLES ==================== */
 /* Scoped to Team Grid only */
-:host ::ng-deep .grid-team-container .slick-header-column {
+:host ::ng-deep .kpi-employee-wrapper .grid-team-container .slick-header-column {
     background-color: #fafafa;
     border-right: 1px solid #ddd !important;
     font-weight: 600;
@@ -62,25 +62,25 @@ angular-slickgrid,
     text-align: center !important;
 }
 
-:host ::ng-deep .grid-team-container .slick-header-columns {
+:host ::ng-deep .kpi-employee-wrapper .grid-team-container .slick-header-columns {
     height: 100px !important;
 }
 
-:host ::ng-deep .grid-team-container .slick-header-column .slick-column-name {
+:host ::ng-deep .kpi-employee-wrapper .grid-team-container .slick-header-column .slick-column-name {
     white-space: normal !important;
     line-height: 1.2 !important;
 }
 
-:host ::ng-deep .slick-row.active {
+:host ::ng-deep .kpi-employee-wrapper .slick-row.active {
     background-color: #e6f7ff;
 }
 
 /* ==================== TREE DATA STYLES ==================== */
-:host ::ng-deep .slick-group-toggle {
+:host ::ng-deep .kpi-employee-wrapper .slick-group-toggle {
     cursor: pointer;
 }
 
-:host ::ng-deep .slick-cell {
+:host ::ng-deep .kpi-employee-wrapper .slick-cell {
     padding: 4px 6px;
 }
 
@@ -91,12 +91,12 @@ nz-tabset {
     height: 100%;
 }
 
-::ng-deep .ant-tabs-content {
+:host ::ng-deep .kpi-employee-wrapper .ant-tabs-content {
     height: 100%;
     overflow: hidden;
 }
 
-::ng-deep .ant-tabs-tabpane {
+:host ::ng-deep .kpi-employee-wrapper .ant-tabs-tabpane {
     height: 100%;
     overflow: hidden;
 }
@@ -122,58 +122,58 @@ nz-tabset {
 
 /* ==================== EXAM GRID ROW STYLES ==================== */
 /* Status = 0 and expired deadline - OrangeRed background */
-:host ::ng-deep .exam-row-expired {
+:host ::ng-deep .kpi-employee-wrapper .exam-row-expired {
     background-color: #FF4500 !important;
     color: #F5F5F5 !important;
 }
 
-:host ::ng-deep .exam-row-expired .slick-cell {
+:host ::ng-deep .kpi-employee-wrapper .exam-row-expired .slick-cell {
     background-color: #FF4500 !important;
     color: #F5F5F5 !important;
 }
 
 /* Status > 0 - LightGreen background (completed) */
-:host ::ng-deep .exam-row-completed {
+:host ::ng-deep .kpi-employee-wrapper .exam-row-completed {
     background-color: #90EE90 !important;
 }
 
-:host ::ng-deep .exam-row-completed .slick-cell {
+:host ::ng-deep .kpi-employee-wrapper .exam-row-completed .slick-cell {
     background-color: #90EE90 !important;
 }
 
 /* ==================== EVALUATION GRID STYLES ==================== */
 /* Parent row - LightGray background */
-:host ::ng-deep .evaluation-parent-row {
+:host ::ng-deep .kpi-employee-wrapper .evaluation-parent-row {
     background-color: #D3D3D3 !important;
 }
 
-:host ::ng-deep .evaluation-parent-row .slick-cell {
+:host ::ng-deep .kpi-employee-wrapper .evaluation-parent-row .slick-cell {
     background-color: #D3D3D3 !important;
     font-weight: bold;
 }
 
 /* Point columns - LightYellow background for EmployeePoint, TBPPoint, BGDPoint */
-:host ::ng-deep .cell-point-highlight {
+:host ::ng-deep .kpi-employee-wrapper .cell-point-highlight {
     background-color: #FFFFE0 !important;
 }
 
 /* ==================== MULTI-LINE TEXT WRAPPING FOR SLICKGRID ==================== */
 /* Override SlickGrid's default white-space: nowrap to allow line-clamp to work */
-:host ::ng-deep .slick-cell.cell-wrap-text {
+:host ::ng-deep .kpi-employee-wrapper .slick-cell.cell-wrap-text {
     white-space: normal !important;
     overflow: visible !important;
     line-height: 1.4 !important;
 }
 
 /* Generic class for cells that need multi-line wrapping (max 3 lines) */
-:host ::ng-deep .cell-multiline {
+:host ::ng-deep .kpi-employee-wrapper .cell-multiline {
     white-space: normal !important;
     overflow: hidden !important;
     line-height: 1.4 !important;
 }
 
-:host ::ng-deep .cell-multiline>span,
-:host ::ng-deep .cell-wrap-text>span {
+:host ::ng-deep .kpi-employee-wrapper .cell-multiline>span,
+:host ::ng-deep .kpi-employee-wrapper .cell-wrap-text>span {
     display: -webkit-box !important;
     -webkit-line-clamp: 2 !important;
     line-clamp: 2 !important;
@@ -187,13 +187,13 @@ nz-tabset {
 }
 
 /* ==================== COLUMN GROUP STYLES (Pre-Header Panel) ==================== */
-:host ::ng-deep .slick-preheader-panel {
+:host ::ng-deep .kpi-employee-wrapper .slick-preheader-panel {
     background-color: #f0f0f0;
     border-bottom: 2px solid #666;
 }
 
 /* Pre-header panel - Column group headers */
-:host ::ng-deep .slick-preheader-panel .slick-header-column {
+:host ::ng-deep .kpi-employee-wrapper .slick-preheader-panel .slick-header-column {
     border-right: none !important;
     font-weight: bold !important;
     text-align: center !important;
@@ -202,53 +202,53 @@ nz-tabset {
 }
 
 /* Chỉ thêm border cho các group thực sự (có text) */
-:host ::ng-deep .slick-preheader-panel .slick-header-column:not(:empty) {
+:host ::ng-deep .kpi-employee-wrapper .slick-preheader-panel .slick-header-column:not(:empty) {
     border-right: 1px solid #ddd !important;
 }
 
 /* Ensure text is visible in column groups */
-:host ::ng-deep .slick-preheader-panel .slick-header-column .slick-column-name {
+:host ::ng-deep .kpi-employee-wrapper .slick-preheader-panel .slick-header-column .slick-column-name {
     display: block !important;
     text-align: center !important;
     font-weight: bold !important;
 }
 
 /* Nhóm: Thông tin chung - Mặc định */
-:host ::ng-deep .slick-preheader-panel .slick-header-column {
+:host ::ng-deep .kpi-employee-wrapper .slick-preheader-panel .slick-header-column {
     background-color: #fafafa !important;
 }
 
 /* Nhóm: Tuân thủ nội quy, Quy định */
-:host ::ng-deep .slick-preheader-panel .slick-header-column[title="Tuân thủ nội quy, Quy định"] {
+:host ::ng-deep .kpi-employee-wrapper .slick-preheader-panel .slick-header-column[title="Tuân thủ nội quy, Quy định"] {
     background-color: #e6f7ff !important;
     color: #0050b3 !important;
 }
 
 /* Nhóm: Tinh thần làm việc */
-:host ::ng-deep .slick-preheader-panel .slick-header-column[title="Tinh thần làm việc"] {
+:host ::ng-deep .kpi-employee-wrapper .slick-preheader-panel .slick-header-column[title="Tinh thần làm việc"] {
     background-color: #fff7e6 !important;
     color: #ad6800 !important;
 }
 
 /* Nhóm: Nhân viên - Xanh dương nhạt */
-:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Đánh giá của Nhân viên"] {
+:host ::ng-deep .kpi-employee-wrapper .slick-preheader-panel .slick-header-column[data-group="Đánh giá của Nhân viên"] {
     background-color: #e6f7ff !important;
     color: #0050b3 !important;
 }
 
 /* Nhóm: TBP/PBP - Xanh lá nhạt */
-:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Đánh giá của TBP/PBP"] {
+:host ::ng-deep .kpi-employee-wrapper .slick-preheader-panel .slick-header-column[data-group="Đánh giá của TBP/PBP"] {
     background-color: #f6ffed !important;
     color: #135200 !important;
 }
 
 /* Nhóm: Đánh giá của BGĐ - Cam nhạt */
-:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Đánh giá của BGĐ"] {
+:host ::ng-deep .kpi-employee-wrapper .slick-preheader-panel .slick-header-column[data-group="Đánh giá của BGĐ"] {
     background-color: #fff7e6 !important;
     color: #ad6800 !important;
 }
 
-:host ::ng-deep .slick-state-default .slick-footerrow-column {
+:host ::ng-deep .kpi-employee-wrapper .slick-state-default .slick-footerrow-column {
     display: block;
 }
 
@@ -302,7 +302,7 @@ nz-tabset {
 } */
 
 /* ==================== FOOTER ALIGNMENT ==================== */
-:host ::ng-deep .slick-footerrow .slick-footerrow-column {
+:host ::ng-deep .kpi-employee-wrapper .slick-footerrow .slick-footerrow-column {
     text-align: right !important;
     padding-right: 8px !important;
     line-height: 30px !important;
@@ -355,11 +355,11 @@ textarea {
 /* Khớp với logic treeList3_CustomDrawNodeCell trong WinForm */
 
 /* Node cha (có node con) - Màu xám nhạt */
-:host ::ng-deep .rule-parent-row {
+:host ::ng-deep .kpi-employee-wrapper .rule-parent-row {
     background-color: #D3D3D3 !important;
 }
 
-:host ::ng-deep .rule-parent-row .slick-cell {
+:host ::ng-deep .kpi-employee-wrapper .rule-parent-row .slick-cell {
     background-color: #D3D3D3 !important;
     font-weight: bold;
 }
@@ -367,40 +367,40 @@ textarea {
 /* Node Team - Màu xanh lá nhạt (#d1e7dd) cho các cột tháng */
 /* Selector này dùng làm marker, style thực sự áp dụng cho .month-column bên dưới */
 
-:host ::ng-deep .rule-team-row .slick-cell.month-column {
+:host ::ng-deep .kpi-employee-wrapper .rule-team-row .slick-cell.month-column {
     background-color: #d1e7dd !important;
 }
 
 /* Ô nhập liệu - Màu vàng nhạt (LightYellow) */
 /* Áp dụng cho các cột FirstMonth, SecondMonth, ThirdMonth, TotalError */
 /* Khi KHÔNG phải KPI và KHÔNG phải KPINL/KPINQ */
-:host ::ng-deep .rule-editable-cell {
+:host ::ng-deep .kpi-employee-wrapper .rule-editable-cell {
     background-color: #FFFFE0 !important;
 }
 
 /* Footer Row - Style đặc biệt cho footer của KPI Rule */
-:host ::ng-deep .grid-rule-container .slick-footerrow {
+:host ::ng-deep .kpi-employee-wrapper .grid-rule-container .slick-footerrow {
     background-color: #f0f0f0 !important;
 }
 
-:host ::ng-deep .grid-rule-container .slick-footerrow-column {
+:host ::ng-deep .kpi-employee-wrapper .grid-rule-container .slick-footerrow-column {
     font-weight: bold;
     line-height: 30px !important;
 }
 
 /* Footer Row căn sang phải */
-:host ::ng-deep .slick-state-default .slick-footerrow-column {
+:host ::ng-deep .kpi-employee-wrapper .slick-state-default .slick-footerrow-column {
     justify-content: end !important;
 }
 
 /* fix grouping bị xuống dòng */
 
-:host ::ng-deep .slick-row.slick-group {
+:host ::ng-deep .kpi-employee-wrapper .slick-row.slick-group {
     height: 40px !important;
     line-height: 40px !important;
 }
 
-:host ::ng-deep .slick-row.slick-group .slick-cell {
+:host ::ng-deep .kpi-employee-wrapper .slick-row.slick-group .slick-cell {
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -409,7 +409,7 @@ textarea {
     align-items: center !important;
 }
 
-:host ::ng-deep .slick-group-title {
+:host ::ng-deep .kpi-employee-wrapper .slick-group-title {
     display: inline-flex !important;
     align-items: center !important;
     white-space: nowrap !important;
@@ -417,14 +417,14 @@ textarea {
 
 /*end */
 /* Generic class for cells that need multi-line wrapping (max 3 lines) */
-:host ::ng-deep .cell-multiline {
+:host ::ng-deep .kpi-employee-wrapper .cell-multiline {
     white-space: normal !important;
     overflow: hidden !important;
     line-height: 1.4 !important;
 }
 
-:host ::ng-deep .cell-multiline>span,
-:host ::ng-deep .cell-wrap-text>span {
+:host ::ng-deep .kpi-employee-wrapper .cell-multiline>span,
+:host ::ng-deep .kpi-employee-wrapper .cell-wrap-text>span {
     display: -webkit-box !important;
     -webkit-line-clamp: 2 !important;
     line-clamp: 2 !important;
@@ -437,18 +437,18 @@ textarea {
     line-height: 1.4 !important;
 }
 
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
+:host ::ng-deep .kpi-employee-wrapper nz-tabset.approval-tabs .ant-tabs-tab-btn {
     color: #141a24 !important;
     opacity: 1 !important;
     padding: 4px !important;
     padding-left: 12px !important;
 }
 
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+:host ::ng-deep .kpi-employee-wrapper nz-tabset.approval-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
     color: #0e1114 !important;
     font-weight: 600;
 }
 
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-ink-bar {
+:host ::ng-deep .kpi-employee-wrapper nz-tabset.approval-tabs .ant-tabs-ink-bar {
     background: #1677ff !important;
 }

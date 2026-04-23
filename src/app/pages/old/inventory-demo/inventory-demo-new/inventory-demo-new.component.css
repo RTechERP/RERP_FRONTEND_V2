@@ -1,15 +1,15 @@
 /* Row color classes for inventory status */
-.row-orange {
+::ng-deep .row-orange {
   background-color: rgb(255, 231, 187) !important;
 }
 
-.row-pink {
+::ng-deep .row-pink {
   background-color: #ffd3dd !important;
 }
 
 /* Optional: Add hover effect while maintaining row color */
-.row-orange:hover,
-.row-pink:hover {
+::ng-deep .row-orange:hover,
+::ng-deep .row-pink:hover {
   filter: brightness(0.95);
 }
 

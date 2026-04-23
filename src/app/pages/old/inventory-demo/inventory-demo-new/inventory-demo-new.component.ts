@@ -93,7 +93,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
     productData: any[] = [];
 
     // List BillType for Orange color (Gift/Sell/Return)
-    listBillType: number[] = [0, 3];
+    listBillType: number[] = [0, 2, 3, 5];
 
     // Location data
     productLocationData: any[] = [];
@@ -1391,18 +1391,14 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         // Set item metadata for row coloring
         if (this.angularGrid.dataView) {
             this.angularGrid.dataView.getItemMetadata = (row: number) => {
-                const item = this.dataset[row];
+                const item = this.angularGrid.dataView.getItem(row);
                 if (!item) return null;
 
-                const billType = item.BillType;
-                const numberInStore = item.InventoryLate;
-
-                // Orange background for BillType in [0, 3] and InventoryLate === 0
+                const billType = Number(item.BillType);
+                const numberInStore = Number(item.InventoryLate);
                 if (this.listBillType.includes(billType) && numberInStore === 0) {
                     return { cssClasses: 'row-orange' };
                 }
-
-                // Pink background for BillType === 7 and InventoryLate === 0
                 if (billType === 7 && numberInStore === 0) {
                     return { cssClasses: 'row-pink' };
                 }

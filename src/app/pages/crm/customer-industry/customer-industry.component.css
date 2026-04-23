@@ -1,0 +1,4 @@
+:host ::ng-deep .p-menubar-mobile .p-menubar-root-list {
+    width: 100%;
+    margin-top: 5px;
+}

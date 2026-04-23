@@ -57,6 +57,130 @@
         style="flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0;">
         <div id="grid-container-report" style="flex: 1; width: 100%; height: 100%; min-width: 0;">
           <nz-spin [nzSpinning]="isLoading" style="height: 100%; display: block;">
+            <p-table #dt [value]="dataset" [scrollable]="true" scrollHeight="flex"
+              sortMode="multiple" [resizableColumns]="true" columnResizeMode="expand"
+              (onFilter)="onTableFilter($event)"
+              [globalFilterFields]="['EmployeeCode','FullName','DepartmentName','TeamName','Content','Results','Problem','ProblemSolve','Backlog','PlanNextDay','Note']"
+              styleClass="p-datatable-sm p-datatable-gridlines"
+              [rowHover]="true">
+
+              <!-- Header -->
+              <ng-template pTemplate="header">
+                <tr>
+                  <!-- Frozen columns -->
+                  @for (col of frozenCols; track col.field) {
+                    <th [pSortableColumn]="col.field" [style.width]="col.width" [style.min-width]="col.width"
+                        [style.text-align]="col.align" pFrozenColumn pResizableColumn>
+                      {{ col.header }}
+                      <p-sortIcon [field]="col.field"></p-sortIcon>
+                    </th>
+                  }
+                  <!-- Scrollable columns -->
+                  @for (col of scrollableCols; track col.field) {
+                    <th [pSortableColumn]="col.field" [style.width]="col.width" [style.min-width]="col.width"
+                        [style.text-align]="col.align" pResizableColumn>
+                      {{ col.header }}
+                      <p-sortIcon [field]="col.field"></p-sortIcon>
+                    </th>
+                  }
+                </tr>
+                <!-- Filter row -->
+                <tr>
+                  <!-- Frozen columns filters -->
+                  @for (col of frozenCols; track col.field) {
+                    <th [style.width]="col.width" [style.min-width]="col.width" pFrozenColumn>
+                      @if (col.type === 'multiselect') {
+                        <p-multiselect [options]="getFilterOptions(col.field)" [placeholder]="'Lọc'"
+                          (onChange)="dt.filter($event.value, col.field, 'in')"
+                          [style]="{'width': '100%'}" [maxSelectedLabels]="1"
+                          [selectedItemsLabel]="'{0} đã chọn'" appendTo="body"
+                          [filter]="true" filterPlaceHolder="Tìm...">
+                        </p-multiselect>
+                      } @else if (col.type === 'date') {
+                        <input pInputText type="date" [placeholder]="'Lọc ngày'"
+                          (input)="dt.filter($any($event.target).value, col.field, 'contains')"
+                          style="width: 100%; font-size: 0.7rem; padding: 2px 4px;" />
+                      }
+                    </th>
+                  }
+                  <!-- Scrollable columns filters -->
+                  @for (col of scrollableCols; track col.field) {
+                    <th [style.width]="col.width" [style.min-width]="col.width">
+                      @if (col.type === 'date') {
+                        <input pInputText type="date" [placeholder]="'Lọc ngày'"
+                          (input)="dt.filter($any($event.target).value, col.field, 'contains')"
+                          style="width: 100%; font-size: 0.7rem; padding: 2px 4px;" />
+                      } @else {
+                        <input pInputText type="text" [placeholder]="'Lọc'"
+                          (input)="dt.filter($any($event.target).value, col.field, 'contains')"
+                          style="width: 100%; font-size: 0.7rem; padding: 2px 4px;" />
+                      }
+                    </th>
+                  }
+                </tr>
+              </ng-template>
+
+              <!-- Body -->
+              <ng-template pTemplate="body" let-row>
+                <tr>
+                  <!-- Frozen columns -->
+                  @for (col of frozenCols; track col.field) {
+                    <td [style.width]="col.width" [style.min-width]="col.width" [style.text-align]="col.align"
+                        pFrozenColumn>
+                      {{ getCellValue(row, col) }}
+                    </td>
+                  }
+                  <!-- Scrollable columns -->
+                  @for (col of scrollableCols; track col.field) {
+                    <td [style.width]="col.width" [style.min-width]="col.width" [style.text-align]="col.align"
+                        [class.cell-wrap]="col.wrap">
+                      @if (col.wrap) {
+                        <div class="cell-wrap-content" [innerHTML]="getCellHtml(row, col)" [title]="row[col.field] || ''"></div>
+                      } @else {
+                        {{ getCellValue(row, col) }}
+                      }
+                    </td>
+                  }
+                </tr>
+              </ng-template>
+
+              <!-- Footer -->
+              <ng-template pTemplate="footer">
+                <tr>
+                  <!-- Frozen columns footer -->
+                  @for (col of frozenCols; track col.field; let i = $index) {
+                    <td [style.width]="col.width" [style.min-width]="col.width" pFrozenColumn>
+                      @if (i === frozenCols.length - 1) {
+                        <div style="text-align: right; font-weight: bold;">Tổng:</div>
+                      }
+                    </td>
+                  }
+                  <!-- Scrollable columns footer -->
+                  @for (col of scrollableCols; track col.field) {
+                    <td [style.width]="col.width" [style.min-width]="col.width">
+                      @if (col.field === 'Content') {
+                        <div style="text-align: right; font-weight: bold;">{{ totalAllData.count }}</div>
+                      } @else if (col.field === 'TimeReality') {
+                        <div style="text-align: right; font-weight: bold;">{{ totalAllData.sumTimeReality.toFixed(2) }}</div>
+                      } @else if (col.field === 'TotalHours') {
+                        <div style="text-align: right; font-weight: bold;">{{ totalAllData.sumTotalHours.toFixed(2) }}</div>
+                      } @else if (col.field === 'Results') {
+                        <div style="text-align: right; font-weight: bold;">Tổng số ngày: {{ totalAllData.totalDays.toFixed(1) }}</div>
+                      }
+                    </td>
+                  }
+                </tr>
+              </ng-template>
+
+              <!-- Empty message -->
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td [attr.colspan]="columns.length" style="text-align: center; padding: 20px;">
+                    Không có dữ liệu
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
             <p-table #dt [value]="dataset" [scrollable]="true" scrollHeight="flex" [virtualScroll]="true"
               [virtualScrollItemSize]="45" sortMode="multiple" [resizableColumns]="true" columnResizeMode="expand"
               (onFilter)="onTableFilter($event)"

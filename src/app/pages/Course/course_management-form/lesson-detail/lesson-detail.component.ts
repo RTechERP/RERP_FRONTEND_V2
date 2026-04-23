@@ -1379,11 +1379,11 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
             );
 
             // Subscribe để cập nhật progress trong component
-            this.uploadSubscription = uploadState$.subscribe((state: UploadState) => {
-                this.videoUploadProgress = state.progress;
-                this.videoUploadSpeed = state.speed;
-                this.cdr.detectChanges();
-            });
+            // this.uploadSubscription = uploadState$.subscribe((state: UploadState) => {
+            //     this.videoUploadProgress = state.progress;
+            //     this.videoUploadSpeed = state.speed;
+            //     this.cdr.detectChanges();
+            // });
 
             this.selectedVideoFile = null; // Clear file sau khi bắt đầu upload
 

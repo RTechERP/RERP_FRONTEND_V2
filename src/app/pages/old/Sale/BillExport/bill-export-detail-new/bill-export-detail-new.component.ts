@@ -2016,7 +2016,7 @@ export class BillExportDetailNewComponent
 
         if (billExportID <= 0 || !isTransfer) return;
 
-        this.billExportService.getBillImportByBillExportID(billExportID).subscribe({
+        this.billExportService.getBillImportByBillExportID(billExportID,1).subscribe({
             next: (res: any) => {
                 if (res?.status === 1 && res?.data) {
                     const billImport = res.data;

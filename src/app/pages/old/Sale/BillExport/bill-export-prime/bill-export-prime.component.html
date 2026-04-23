@@ -1,0 +1,149 @@
+<ng-container class="w-100 bill-export-new-w-100">
+    <div
+        class="card h-100 d-flex flex-column border-0 rounded-0 bill-export-new-card bill-export-new-h-100 bill-export-new-border-0 bill-export-new-rounded-0">
+        <!-- Header với PrimeNG MenuBar -->
+        <div class="card-header bg-white p-1 bill-export-new-card-header bill-export-new-bg-white bill-export-new-p-1">
+            <p-menubar [model]="menuItems" styleClass="p-0 border-0">
+                <ng-template pTemplate="end">
+                    <button nz-button nzType="text" (click)="toggleFilterBar()" nz-tooltip
+                        nzTooltipTitle="Ẩn/hiện bộ lọc tìm kiếm">
+                        <i class="fa text-secondary"
+                            [ngClass]="isFilterBarVisible ? 'fa-angle-double-up' : 'fa-magnifying-glass'"></i>
+                    </button>
+                </ng-template>
+            </p-menubar>
+        </div>
+
+        <!-- Filter bar -->
+        <div [hidden]="!isFilterBarVisible"
+            class="filter-bar bg-light border-bottom p-2 bill-export-new-filter-bar bill-export-new-bg-light bill-export-new-border-bottom bill-export-new-p-2">
+            <form [id]="'form-bill-export-search-' + warehouseCode" nz-form nzLayout="inline" (keyup.enter)="onSearch()"
+                class="d-flex flex-wrap gap-2 align-items-end bill-export-new-d-flex bill-export-new-flex-wrap bill-export-new-gap-2 bill-export-new-align-items-end">
+                <nz-form-item class="mb-0 bill-export-new-mb-0">
+                    <nz-form-label class="fs-12 bill-export-new-fs-12">Từ ngày</nz-form-label>
+                    <nz-form-control>
+                        <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateStart"
+                            name="dateStart" [nzDisabled]="checked" (ngModelChange)="onDateStartChange($event)"
+                            style="width: 130px">
+                        </nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0 bill-export-new-mb-0">
+                    <nz-form-label class="fs-12 bill-export-new-fs-12">Đến ngày</nz-form-label>
+                    <nz-form-control>
+                        <nz-date-picker [nzFormat]="dateFormat" nzSize="small" [(ngModel)]="searchParams.dateEnd"
+                            name="dateEnd" [nzDisabled]="checked" (ngModelChange)="onDateEndChange($event)"
+                            style="width: 130px">
+                        </nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0 bill-export-new-mb-0">
+                    <nz-form-label class="fs-12 bill-export-new-fs-12">Lọc kho</nz-form-label>
+                    <nz-form-control>
+                        <nz-select [(ngModel)]="selectedKhoTypes" (ngModelChange)="onKhoTypeChange($event)"
+                            [nzMode]="'multiple'" [nzPlaceHolder]="'Chọn nhóm kho'" [nzMaxTagCount]="1"
+                            name="selectedKhoTypes" nzSize="small" style="width: 200px" nzAllowClear>
+                            <nz-option *ngFor="let item of dataProductGroup" [nzLabel]="item.ProductGroupName"
+                                [nzValue]="item.ID"></nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0 bill-export-new-mb-0">
+                    <nz-form-label class="fs-12 bill-export-new-fs-12">Lọc phiếu</nz-form-label>
+                    <nz-form-control>
+                        <nz-select nzShowSearch nzAllowClear nzSize="small" [(ngModel)]="searchParams.status"
+                            name="status" style="width: 150px">
+                            <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
+                                <div
+                                    class="d-flex align-items-center bill-export-new-d-flex bill-export-new-align-items-center">
+                                    <span class="me-2 bill-export-new-me-2">{{ item.ID }}</span>
+                                    <span>{{ item.Name }}</span>
+                                </div>
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0 bill-export-new-mb-0">
+                    <nz-form-label class="fs-12 bill-export-new-fs-12">Từ khóa</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword"
+                            nzSize="small" (keyup.enter)="onSearch()" style="width: 200px" />
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0 bill-export-new-mb-0">
+                    <nz-form-control>
+                        <label nz-checkbox [(ngModel)]="checked" name="checked" (ngModelChange)="onCheckboxChange()">Tìm
+                            kiếm tất cả</label>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0 bill-export-new-mb-0">
+                    <nz-form-control>
+                        <button nz-button nzType="primary" nzSize="small" type="button" (click)="onSearch()">
+                            Tìm kiếm
+                        </button>
+                    </nz-form-control>
+                </nz-form-item>
+            </form>
+        </div>
+
+
+        <!-- Grid Content -->
+        <!-- <div class="card-body p-0 bill-export-new-card-body bill-export-new-p-0">
+                <nz-spin [nzSpinning]="isLoadTable" nzTip="Đang tải dữ liệu...">
+                    <div [id]="'grid-container-master-' + componentId" [ngClass]="'grid-container-master-' + componentId">
+                        <angular-slickgrid [gridId]="'gridMaster-' + componentId" [columns]="columnDefinitionsMaster"
+                            [options]="gridOptionsMaster" [dataset]="datasetMaster"
+                            (onAngularGridCreated)="angularGridMasterReady($event.detail)"
+                            (onDblClick)="onMasterDoubleClick($event)">
+                        </angular-slickgrid>
+                    </div>
+
+                    <div class="mt-2 bill-export-new-mt-2">
+                        <nz-tabset class="main-tab bill-export-new-main-tab" style="padding-left: 10px !important">
+                            <nz-tab [nzTitle]="tabDetailTitle">
+                                <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
+                                    <div [ngClass]="'grid-container-detail-' + componentId">
+                                        <angular-slickgrid [gridId]="'gridDetail-' + componentId"
+                                            [columns]="columnDefinitionsDetail" [options]="gridOptionsDetail"
+                                            [dataset]="datasetDetail" (onAngularGridCreated)="
+                        angularGridDetailReady($event.detail)
+                        ">
+                                        </angular-slickgrid>
+                                    </div>
+                                </nz-spin>
+                            </nz-tab>
+                        </nz-tabset>
+                    </div>
+                </nz-spin>
+            </div> -->
+
+
+        <!-- Splitter -->
+        <p-splitter layout="vertical" [panelSizes]="[60, 40]" [minSizes]="[10, 10]" style="flex: 1; min-height: 0">
+            <!-- Master Grid Panel -->
+            <ng-template pTemplate>
+                <app-custom-table [data]="datasetMaster" [columns]="columnsMaster" [loading]="isLoadTable"
+                    [scrollable]="true" scrollHeight="flex" selectionMode="multiple" [(selection)]="selectedMasterRows"
+                    [clickSelectRow]="true" (rowClick)="onRowClick($event)" dataKey="id" [showGlobalFilter]="false"
+                    [resizeMode]="'expand'" filterDisplay="row" [showGridlines]="true" [stripedRows]="true"
+                    [showFooter]="true" [virtualScroll]="true" [lazyRenderThreshold]="100" [virtualScrollItemSize]="34">
+                </app-custom-table>
+            </ng-template>
+
+            <!-- Detail Grid Panel -->
+            <ng-template pTemplate>
+                <app-custom-table [data]="datasetDetail" [columns]="columnsDetail" [loading]="isDetailLoad"
+                    [scrollable]="true" scrollHeight="flex" [showGlobalFilter]="false" filterDisplay="row"
+                    [showGridlines]="true" [stripedRows]="true" [showFooter]="true" [virtualScroll]="true"
+                    [lazyRenderThreshold]="100" [virtualScrollItemSize]="34">
+                </app-custom-table>
+            </ng-template>
+        </p-splitter>
+    </div>
+</ng-container>

@@ -57,18 +57,19 @@
 }
 
 /* Ensure frozen cells have an opaque background so scrolling text doesn't bleed through */
-:host ::ng-deep .p-treetable .p-treetable-thead > tr > th.p-frozen-column {
+:host ::ng-deep .p-treetable .p-treetable-thead>tr>th.p-frozen-column {
     background-color: var(--p-surface-50, #f8fafc) !important;
 }
-:host ::ng-deep .p-treetable .p-treetable-tbody > tr > td.p-frozen-column,
-:host ::ng-deep .p-treetable .p-treetable-tfoot > tr > td.p-frozen-column {
+
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td.p-frozen-column,
+:host ::ng-deep .p-treetable .p-treetable-tfoot>tr>td.p-frozen-column {
     background-color: var(--p-surface-0, #ffffff) !important;
 }
 
 /* Frozen header cells (incl. filter row) must always render above scrolling non-frozen cells.
    Non-frozen cells with datetime filters have position:relative children which can create
    stacking contexts that overlap frozen columns when scrolling horizontally. */
-:host ::ng-deep .p-treetable-thead > tr > th.p-frozen-column {
+:host ::ng-deep .p-treetable-thead>tr>th.p-frozen-column {
     z-index: 3 !important;
 }
 
@@ -163,14 +164,14 @@
 }
 
 /* ── Header: compact, no-wrap ── */
-:host ::ng-deep .p-treetable-thead > tr > th {
+:host ::ng-deep .p-treetable-thead>tr>th {
     white-space: nowrap;
     overflow: hidden;
     vertical-align: middle;
 }
 
 /* ── Filter row compact height ── */
-:host ::ng-deep .p-treetable-thead > tr.filter-header-row > th {
+:host ::ng-deep .p-treetable-thead>tr.filter-header-row>th {
     padding: 2px 4px !important;
 }
 
@@ -337,7 +338,7 @@
 }
 
 /* ── Click-to-select row highlight ── */
-:host ::ng-deep .p-treetable-tbody > tr.row-click-selected > td {
+:host ::ng-deep .p-treetable-tbody>tr.row-click-selected>td {
     background: var(--p-primary-50, rgba(59, 130, 246, 0.08)) !important;
     border-color: var(--p-primary-100, rgba(59, 130, 246, 0.2));
 }

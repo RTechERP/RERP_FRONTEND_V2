@@ -35,12 +35,19 @@ export class PaymentOrderService {
     get(data: any): Observable<any> {
         return this.http.post<any>(this.url, data);
     }
+    getPaging(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/paging`, data);
+    }
     getSpecial(data: any): Observable<any> {
         return this.http.post<any>(`${this.url}/special`, data);
     }
 
     getDetail(id: number): Observable<any> {
         return this.http.get<any>(this.url + `/${id}`);
+    }
+
+    deleteMulti(ids: number[]): Observable<any> {
+        return this.http.post<any>(`${this.url}/delete-multi`, ids);
     }
 
     getLogNew(paymentOrderId: number): Observable<any> {
@@ -104,6 +111,10 @@ export class PaymentOrderService {
 
     appovedKHReceive(data: any): Observable<any> {
         return this.http.post<any>(`${this.url}/appoved-khreceive`, data);
+    }
+
+    approved(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/approved`, data);
     }
 
     uploadFiles(file: any): Observable<any> {
@@ -211,6 +222,10 @@ export class PaymentOrderService {
     getPaymentOrderByTeam(data: any): Observable<any> {
         return this.http.post<any>(`${this.url}/get-payment-order-team`, data);
     }
+    getCurrencyConfig(): Observable<CurrencyConfig> {
+        return this.http.get<any>(`${this.url}/get-currency-config`);
+    }
+
 }
 
 
@@ -228,5 +243,6 @@ export const CURRENCY_CONFIGS: CurrencyConfig[] = [
     { id: 'jpy', text: 'JPY', unit: 'yên', subUnit: 'sen' },
     { id: 'sgd', text: 'SGD', unit: 'đô', subUnit: 'cent' },
     { id: 'cny', text: 'CNY', unit: 'nhân dân tệ', subUnit: '' },
-    { id: 'inr', text: 'INR', unit: 'rupee', subUnit: 'paise' }
+    { id: 'inr', text: 'INR', unit: 'rupee', subUnit: 'paise' },
+    { id: 'myr', text: 'MYR', unit: 'ringgit', subUnit: 'sen' },
 ];

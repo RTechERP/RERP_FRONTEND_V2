@@ -1,0 +1,44 @@
+<div class="card h-100 flex-column d-flex">
+    <div class="card-header pb-2 d-flex justify-content-between align-items-center flex-wrap" style="gap: 10px;">
+        <h5 class="m-0">Thống kê phát sinh</h5>
+        <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
+            <nz-select [(ngModel)]="selectedProjectId" nzShowSearch nzAllowClear nzPlaceHolder="Tất cả dự án"
+                style="min-width: 250px;">
+                <nz-option *ngFor="let project of projects" [nzValue]="project.ID"
+                    nzLabel="{{project.ProjectCode}} - {{project.ProjectName}}"></nz-option>
+            </nz-select>
+
+            <nz-date-picker [(ngModel)]="fromDate" nzPlaceHolder="Từ ngày" nzFormat="dd/MM/yyyy"></nz-date-picker>
+            <nz-date-picker [(ngModel)]="toDate" nzPlaceHolder="Đến ngày" nzFormat="dd/MM/yyyy"></nz-date-picker>
+
+            <button nz-button nzType="primary" (click)="loadDashboardData()">
+                <i class="fa-solid fa-magnifying-glass me-2"></i> Lọc
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-3" style="flex: 1; overflow-y: auto;">
+        <div class="row mb-3">
+            <div class="col-12 col-xl-4 mb-3 mb-xl-0">
+                <h6 class="text-center font-weight-bold mb-2 text-secondary">Trạng thái xử lý</h6>
+                <div class="border rounded p-3 bg-white text-center pb-0" style="height: 35vh;">
+                    <p-chart type="doughnut" [data]="doughnutChartData" [options]="doughnutChartOptions" height="30vh"
+                        width="100%" class="d-inline-flex justify-content-center"></p-chart>
+                </div>
+            </div>
+            <div class="col-12 col-xl-8">
+                <h6 class="text-center font-weight-bold mb-2 text-secondary">Số lượng phát sinh theo tháng</h6>
+                <div class="border rounded p-3 bg-white" style="height: 35vh;">
+                    <p-chart type="line" [data]="lineChartData" [options]="lineChartOptions" height="30vh"></p-chart>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-12">
+                <h6 class="text-center font-weight-bold mb-2 text-secondary">Theo phòng ban</h6>
+                <div class="border rounded p-3 bg-white" style="height: 38vh;">
+                    <p-chart type="bar" [data]="chartData" [options]="chartOptions" height="35vh"></p-chart>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

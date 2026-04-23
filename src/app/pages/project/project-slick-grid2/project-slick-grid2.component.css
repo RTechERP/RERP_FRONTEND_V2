@@ -1,0 +1,548 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+/* ===== Global 12px font for all PrimeNG tables in this component ===== */
+:host ::ng-deep .p-datatable {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+  font-size: 12px !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+  font-size: 12px !important;
+  padding: 6px 4px !important;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.fw-500 {
+  font-weight: 500;
+}
+
+:host ::ng-deep .p-datatable .p-column-filter input,
+:host ::ng-deep .p-datatable .p-column-filter .p-select,
+:host ::ng-deep .p-datatable .p-column-filter .p-select .p-select-label {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .p-paginator {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .p-paginator .p-paginator-current,
+:host ::ng-deep .p-paginator .p-paginator-pages .p-paginator-page,
+:host ::ng-deep .p-paginator .p-select .p-select-label {
+  font-size: 12px !important;
+}
+
+/* ===================================================================== */
+
+.reset {
+  all: revert;
+}
+
+/* Mobile menubar z-index fix */
+:host ::ng-deep .p-menubar {
+  position: relative;
+  z-index: 1050;
+}
+
+:host ::ng-deep .p-menubar-mobile {
+  position: relative;
+  z-index: 1050;
+}
+
+:host ::ng-deep .p-menubar-root-list {
+  position: relative;
+  z-index: 1051;
+}
+
+.ant-splitter-panel {
+  position: relative;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+
+/* SlickGrid styling */
+.grid-container {
+  width: 100%;
+  height: 100%;
+}
+
+:host ::ng-deep .slickgrid-container {
+  font-size: 0.75rem !important;
+}
+
+:host ::ng-deep .slick-cell {
+  font-size: 0.75rem !important;
+  padding: 2px 4px !important;
+}
+
+:host ::ng-deep .slick-header-column {
+  font-size: 0.75rem !important;
+  font-weight: 600;
+}
+
+:host ::ng-deep .slick-row {
+  cursor: pointer;
+}
+
+:host ::ng-deep .slick-row:hover {
+  background-color: #f5f5f5;
+}
+
+:host ::ng-deep .slick-row.selected {
+  background-color: #e6f7ff !important;
+}
+
+/* Cell wrap for long text */
+:host ::ng-deep .cell-wrap {
+  white-space: normal !important;
+  line-height: 1.4 !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-wrap: break-word !important;
+  padding: 4px !important;
+}
+
+/* Đảm bảo row có thể mở rộng chiều cao khi wrap */
+:host ::ng-deep .slick-row {
+  min-height: 35px !important;
+}
+
+/* Cho phép cell tự động mở rộng chiều cao */
+:host ::ng-deep .slick-cell {
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+/* Cell wrap - tự động tăng chiều cao theo nội dung */
+:host ::ng-deep .cell-wrap {
+  white-space: normal !important;
+  line-height: 1.5 !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  padding: 6px 4px !important;
+  vertical-align: top !important;
+  height: auto !important;
+  min-height: 35px !important;
+}
+
+/* Đảm bảo row height tự động điều chỉnh theo cell cao nhất */
+:host ::ng-deep .slick-row .slick-cell.cell-wrap {
+  display: table-cell !important;
+  vertical-align: top !important;
+}
+
+/* Text alignment */
+:host ::ng-deep .text-center {
+  text-align: center !important;
+}
+
+:host ::ng-deep .text-end {
+  text-align: right !important;
+}
+
+/* Tab buttons styling */
+.d-flex button.active {
+  color: #1890ff;
+  border-bottom: 2px solid #1890ff;
+}
+
+/* Dropdown menu styling */
+:host ::ng-deep .ant-dropdown-menu {
+  font-size: 0.75rem;
+}
+
+:host ::ng-deep .ant-dropdown-menu-item {
+  font-size: 0.75rem;
+  padding: 5px 12px;
+}
+
+:host ::ng-deep .ant-dropdown-menu-item img {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+
+/* Filter row styling */
+:host ::ng-deep .slick-headerrow {
+  background-color: #fafafa;
+}
+
+:host ::ng-deep .slick-headerrow-column {
+  padding: 2px !important;
+}
+
+:host ::ng-deep .slick-headerrow-column input {
+  font-size: 0.7rem;
+  padding: 2px 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+:host ::ng-deep .slick-multiselect-dropdown .ms-drop ul>li label {
+  display: block;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .slick-multiselect-dropdown .ms-drop ul>li label span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Dropdown multipleSelect - tập trung vào class thực tế từ F12 */
+:host ::ng-deep .ms-drop.bottom {
+  width: auto !important;
+  min-width: 350px !important;
+  max-width: 600px !important;
+}
+
+/* Ô tìm kiếm */
+:host ::ng-deep .ms-drop.bottom .ms-search {
+  padding: 8px !important;
+  border-bottom: 1px solid #e8e8e8 !important;
+}
+
+:host ::ng-deep .ms-drop.bottom .ms-search input {
+  width: 100% !important;
+  padding: 6px 8px !important;
+  border: 1px solid #d9d9d9 !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+}
+
+/* Danh sách options */
+:host ::ng-deep .ms-drop.bottom .ms-list {
+  overflow-y: auto !important;
+}
+
+:host ::ng-deep .ms-drop.bottom .ms-list li {
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+
+/* Label và checkbox */
+:host ::ng-deep .ms-drop.bottom .ms-list li label {
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 12px !important;
+  width: 100% !important;
+  cursor: pointer !important;
+}
+
+/* Text của option - ellipsis cho text dài */
+:host ::ng-deep .ms-drop.bottom .ms-list li label span {
+  flex: 1 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+/* Checkbox container */
+:host ::ng-deep .ms-drop.bottom .ms-list li label .icon-checkbox-container {
+  margin-right: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Select All */
+:host ::ng-deep .ms-drop.bottom .ms-select-all {
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  background-color: #fafafa !important;
+}
+
+:host ::ng-deep .ms-drop.bottom .ms-select-all label {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  cursor: pointer !important;
+}
+
+/* Hide time picker in date filters */
+:host ::ng-deep .vc-time {
+  display: none !important;
+}
+
+/* Row status colors for work reports */
+:host ::ng-deep .row-late-1 {
+  background-color: Orange !important;
+  color: white !important;
+}
+
+:host ::ng-deep .row-late-2 {
+  background-color: Red !important;
+  color: white !important;
+}
+
+:host ::ng-deep .row-warning {
+  background-color: LightYellow !important;
+}
+
+/* Tree data styling */
+:host ::ng-deep .slick-group-toggle {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 5px;
+  cursor: pointer;
+  position: relative;
+}
+
+:host ::ng-deep #grvProjects {
+  height: 85vh !important;
+}
+
+:host ::ng-deep .slick-group-toggle.collapsed::before {
+  content: "▶";
+  font-size: 8px;
+  color: #666;
+}
+
+:host ::ng-deep .slick-group-toggle.expanded::before {
+  content: "▼";
+  font-size: 8px;
+  color: #666;
+}
+
+:host ::ng-deep .slick-group-toggle:not(.collapsed):not(.expanded)::before {
+  content: "";
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+}
+
+/* Folder icons */
+:host ::ng-deep .mdi {
+  font-family: "Material Design Icons" !important;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  vertical-align: middle;
+}
+
+:host ::ng-deep .mdi-folder,
+:host ::ng-deep .mdi-folder-open {
+  color: #ffa500;
+  margin-right: 4px;
+}
+
+/* Màu cam cho trễ nhẹ */
+.slick-row.row-late-1 {
+  background-color: orange !important;
+  color: white !important;
+}
+
+/* Màu đỏ cho trễ nặng */
+.slick-row.row-late-2 {
+  background-color: red !important;
+  color: white !important;
+}
+
+/* Màu vàng cảnh báo sắp hết hạn */
+.slick-row.row-warning {
+  background-color: lightyellow !important;
+  color: black !important;
+}
+
+/* Đảm bảo màu không bị override bởi theme */
+.slick-row.row-late-1 .slick-cell,
+.slick-row.row-late-2 .slick-cell,
+.slick-row.row-warning .slick-cell {
+  background-color: inherit !important;
+  color: inherit !important;
+}
+
+:host ::ng-deep #grvWorkReport {
+  height: 80vh !important;
+}
+
+/*fix height*/
+.grid-container-projects,
+.grid-container-workreport,
+.grid-container-typelink {
+  height: 100%;
+  width: 100%;
+}
+
+:host ::ng-deep .ant-spin-nested-loading,
+:host ::ng-deep .ant-spin-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+  height: 100% !important;
+  width: 100%;
+  display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+  height: 100% !important;
+}
+
+/* Context Menu Icons - Custom image icons */
+:host ::ng-deep .ctx-icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  vertical-align: middle;
+}
+
+:host ::ng-deep .ctx-icon-priority {
+  background-image: url("/assets/icon/priority_level_16.png");
+}
+
+:host ::ng-deep .ctx-icon-participants {
+  background-image: url("/assets/icon/participants_16.png");
+}
+
+:host ::ng-deep .ctx-icon-compare {
+  background-image: url("/assets/icon/compare_project_16.png");
+}
+
+:host ::ng-deep .ctx-icon-additional {
+  background-image: url("/assets/icon/additional_goods_16.png");
+}
+
+:host ::ng-deep .ctx-icon-solution {
+  background-image: url("/assets/icon/solution_16.png");
+}
+
+:host ::ng-deep .ctx-icon-leader {
+  background-image: url("/assets/icon/update_leader_16.png");
+}
+
+:host ::ng-deep .ctx-icon-history {
+  background-image: url("/assets/icon/problem_history_16.png");
+}
+
+:host ::ng-deep .ctx-icon-status {
+  background-image: url("/assets/icon/project_status_16.png");
+}
+
+:host ::ng-deep .ctx-icon-update {
+  background-image: url("/assets/icon/update_status_16.png");
+}
+
+:host ::ng-deep .ctx-icon-sync {
+  background-image: url("/assets/icon/update_status2_16.png");
+}
+
+/* Status column filter: p-select fits the column */
+:host ::ng-deep .status-filter-select {
+  width: 100% !important;
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .status-filter-select .p-select-label {
+  font-size: 12px !important;
+  padding: 2px 6px !important;
+}
+
+/* Remove row button: appears on row hover */
+.remove-row-btn {
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.remove-row-btn:hover {
+  opacity: 1;
+}
+
+:host ::ng-deep .p-column-filter {
+  width: 100%;
+  min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter-element {
+  width: 100%;
+  min-width: 0;
+}
+
+:host ::ng-deep .p-datatable-inline-filter {
+  justify-content: space-between !important;
+}
+
+:host ::ng-deep .p-component .p-inputtext .ng-star-inserted {
+  width: 100% !important;
+}
+
+::host ::ng-deep p-virtualscroller p-virtualscroller-inline ng-star-inserted:host::ng-deep .p-fluid {
+  width: 100% !important;
+}
+
+:host::ng-deep .p-component .p-inputtext {
+  width: 100% !important;
+}
+
+.table-container,
+.grid-container-projects,
+.grid-container-workreport,
+.grid-container-typelink {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+:host ::ng-deep nz-splitter-panel {
+  min-width: 0 !important;
+  height: 100% !important;
+}
+
+:host ::ng-deep .p-datatable-scrollable-body {
+  /* Đã xóa height 100% để tránh lỗi ẩn thanh scroll ngang do tràn height (cộng dồn header bảng) */
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+}
+
+:host ::ng-deep .p-datatable-wrapper {
+  overflow: auto !important;
+}
+
+:host ::ng-deep .p-datatable table {
+  width: max-content !important;
+}
+
+::ng-deep th {
+  white-space: normal !important;
+  word-break: break-word;
+}

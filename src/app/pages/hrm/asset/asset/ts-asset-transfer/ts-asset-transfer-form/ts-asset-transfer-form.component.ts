@@ -314,12 +314,14 @@ export class TsAssetTransferFormComponent implements OnInit {
       Note: item.Note || "",
       IsDeleted: false       // <-- CỜ ĐÁNH LÀ ĐANG ACTIVE
     }));
-    // const assetManagements = rows.map(item => ({
-    //   ID: item.AssetManagementID,
-    //   IsAllocation: true,
-    //   DepartmentID: this.dataInput.ToDepartmentID,
-    //   EmployeeID: this.dataInput.ReceiverID,
-    // }));
+    const assetManagements = rows.map(item => ({
+      ID: item.AssetManagementID,
+      IsAllocation: true,
+      StatusID: 1,
+      Status: "Chưa sử dụng",
+      DepartmentID: this.dataInput.ToDepartmentID,
+      EmployeeID: this.dataInput.ReceiverID,
+    }));
     // Những detail đã bấm X: chỉ cần ID + IsDeleted = true
     const deletedDetailsPayload = this.deletedDetailIds.map(id => ({
       ID: id,
@@ -348,7 +350,7 @@ export class TsAssetTransferFormComponent implements OnInit {
         IsApprovedPersonalProperty: false,
         IsApproved: false
       },
-      //  tSAssetManagements: assetManagements,
+      tSAssetManagements: assetManagements,
       tSTranferAssetDetails: [
         ...detailPayload,
         ...deletedDetailsPayload

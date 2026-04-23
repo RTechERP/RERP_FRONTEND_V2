@@ -1,4 +1,6 @@
 import { ProjectPriorityDetailComponent } from './../project-priority-detail/project-priority-detail.component';
+import { ProjectTechnologyFormComponent } from '../project-application-types/project-technology-form/project-technology-form.component';
+import { ProjectApplicationTypesFormComponent } from '../project-application-types/project-application-types-form/project-application-types-form.component';
 import {
   Component,
   Input,
@@ -385,6 +387,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       ],
       valueField: 'ID',
       displayField: 'ApplicationName',
+      // TN.Bình update 15/04/26: Thêm action mở modal thêm mới kiểu ứng dụng
+      addAction: (rowData: any) => this.openAddApplicationTypeModal(rowData),
       loadData: (query: string, rowData?: any) => {
         const typeId = rowData?.ProjectTypeID || rowData?.ID;
         let filtered = this.applicationTypes.filter(x => x.ProjectTypeID === typeId);
@@ -404,6 +408,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       ],
       valueField: 'ID',
       displayField: 'TechnologyName',
+      // TN.Bình update 15/04/26: Thêm action mở modal thêm mới công nghệ
+      addAction: (rowData: any) => this.openAddTechnologyModal(rowData),
       loadData: (query: string, rowData?: any) => {
         const typeId = rowData?.ProjectTypeID || rowData?.ID;
         let filtered = this.technologies.filter(x => x.ProjectTypeID === typeId);
@@ -1652,9 +1658,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     return true;
   }
 
-  validateProjectAttributes(gridData: any[], statusId: number): boolean {
+  validateProjectAttributes(gridData: any[], statusId: any): boolean {
     const VALID_STATUS_FOR_ATTRIBUTES = [4, 5, 9];
-    if (VALID_STATUS_FOR_ATTRIBUTES.includes(parseInt(statusId.toString()))) {
+    if (statusId != null && VALID_STATUS_FOR_ATTRIBUTES.includes(Number(statusId))) {
       const selectedLinks = gridData.filter(x => x.Selected === true);
       for (const link of selectedLinks) {
         if (!link.ApplicationTypeIDs || !Array.isArray(link.ApplicationTypeIDs) || link.ApplicationTypeIDs.length === 0) {
@@ -1724,5 +1730,42 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         }
       },
     );
+  }
+
+  // Handle open modals for Lookups
+  // TN.Bình update 15/04/26: Hàm mở modal thêm mới kiểu ứng dụng
+  openAddApplicationTypeModal(rowData: any) {
+    const modalRef = this.modalService.open(ProjectApplicationTypesFormComponent, {
+      size: 'lg',
+      backdrop: 'static'
+    });
+    // Truyền ProjectTypeID hiện tại vào modal
+    modalRef.componentInstance.projectTypeID = rowData?.ProjectTypeID || rowData?.ID || 0;
+    modalRef.result.then((result) => {
+      // result = hasSaved flag từ NgbActiveModal.close()
+      if (result) {
+        this.getApplicationTypes(); // Load lại dữ liệu combobox sau khi thêm mới
+      }
+    }).catch((res) => {
+      // Catch trường hợp đóng modal bằng cách khác nhưng vẫn cần reload nếu res = true
+      if (res === true) this.getApplicationTypes();
+    });
+  }
+
+  // TN.Bình update 15/04/26: Hàm mở modal thêm mới công nghệ
+  openAddTechnologyModal(rowData: any) {
+    const modalRef = this.modalService.open(ProjectTechnologyFormComponent, {
+      size: 'lg',
+      backdrop: 'static'
+    });
+    // Truyền ProjectTypeID hiện tại vào modal
+    modalRef.componentInstance.projectTypeID = rowData?.ProjectTypeID || rowData?.ID || 0;
+    modalRef.result.then((result) => {
+      if (result) {
+        this.getTechnologies(); // Load lại dữ liệu combobox sau khi thêm mới
+      }
+    }).catch((res) => {
+      if (res === true) this.getTechnologies();
+    });
   }
 }

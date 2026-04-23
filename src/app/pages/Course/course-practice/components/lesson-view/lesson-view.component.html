@@ -1,227 +1,238 @@
 <nz-splitter [nzLayout]="splitterLayout">
-  <!-- Left: Lesson List -->
+    <!-- Left: Lesson List -->
 
-  <!-- Right: Lesson Detail -->
-  <nz-splitter-panel nzDefaultSize="70%" nzMin="50%" nzMax="80%">
-    <!-- Lesson Detail View -->
-    <div class="card h-100 border-0 rounded-0">
-      <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-start">
-        <button nz-button nzType="text" nzSize="small" (click)="goBackToCourses()" title="Quay lại danh sách khóa học">
-          <span nz-icon nzType="arrow-left"></span>
-        </button>
-        <h6 class="mb-0">{{ currentLesson?.LessonTitle || 'Chi tiết bài học' }}</h6>
-      </div>
-      <div class="card-body p-3" style="overflow-y: auto;">
-        <div *ngIf="currentLesson">
-          <!-- Video Section -->
-          <div *ngIf="videoUrl; else videoUnavailable" class="video-section">
-            <div class="player-wrapper" #playerWrapper [class.vg-inactive]="!isUserActive">
-              <vg-player (onPlayerReady)="onPlayerReady($event)">
-                <vg-overlay-play></vg-overlay-play>
-                <vg-buffering></vg-buffering>
+    <!-- Right: Lesson Detail -->
+    <nz-splitter-panel nzDefaultSize="70%" nzMin="50%" nzMax="80%">
+        <!-- Lesson Detail View -->
+        <div class="card h-100 border-0 rounded-0">
+            <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-start">
+                <button nz-button nzType="text" nzSize="small" (click)="goBackToCourses()"
+                    title="Quay lại danh sách khóa học">
+                    <span nz-icon nzType="arrow-left"></span>
+                </button>
+                <h6 class="mb-0">{{ currentLesson?.LessonTitle || 'Chi tiết bài học' }}</h6>
+            </div>
+            <div class="card-body p-3" style="overflow-y: auto;">
+                <div *ngIf="currentLesson">
+                    <!-- Video Section -->
+                    <div *ngIf="videoUrl; else videoUnavailable" class="video-section">
+                        <div class="player-wrapper" #playerWrapper [class.vg-inactive]="!isUserActive">
+                            <vg-player (onPlayerReady)="onPlayerReady($event)">
+                                <vg-overlay-play></vg-overlay-play>
+                                <vg-buffering></vg-buffering>
 
-                <vg-scrub-bar>
-                  <vg-scrub-bar-current-time></vg-scrub-bar-current-time>
-                  <vg-scrub-bar-buffering-time></vg-scrub-bar-buffering-time>
+                                <vg-scrub-bar>
+                                    <vg-scrub-bar-current-time></vg-scrub-bar-current-time>
+                                    <vg-scrub-bar-buffering-time></vg-scrub-bar-buffering-time>
 
-                  <!-- Chapter Segments Overlay -->
-                  <div class="vg-scrub-segments" style="pointer-events: none;">
-                    <div *ngFor="let chapter of chapters; let i = index" class="segment"
-                      [class.hovered]="i === hoveredChapterIndex" [style.left]="getChapterLeft(chapter)"
-                      [style.width]="getChapterWidth(chapter, i)">
+                                    <!-- Chapter Segments Overlay -->
+                                    <div class="vg-scrub-segments" style="pointer-events: none;">
+                                        <div *ngFor="let chapter of chapters; let i = index" class="segment"
+                                            [class.hovered]="i === hoveredChapterIndex"
+                                            [style.left]="getChapterLeft(chapter)"
+                                            [style.width]="getChapterWidth(chapter, i)">
+                                        </div>
+                                    </div>
+                                </vg-scrub-bar>
+
+                                <vg-controls>
+                                    <vg-play-pause></vg-play-pause>
+                                    <span class="current-chapter-label text-white ms-2" *ngIf="currentChapterName"
+                                        (click)="goToNextChapter()" style="cursor: pointer; font-size: 13px;">
+                                        {{ currentChapterName }} ›
+                                    </span>
+
+                                    <vg-time-display vgProperty="current" vgFormat="hh:mm:ss"></vg-time-display>
+                                    <span class="time-sep text-white mx-1">/</span>
+                                    <vg-time-display vgProperty="total" vgFormat="hh:mm:ss"></vg-time-display>
+
+
+                                    <vg-mute class="ms-auto"></vg-mute>
+                                    <vg-volume></vg-volume>
+
+                                    <vg-fullscreen></vg-fullscreen>
+                                </vg-controls>
+
+                                <!-- Chapter Tooltip -->
+                                <div class="chapter-tooltip" [class.visible]="tooltipVisible"
+                                    [style.left.px]="tooltipFixedX" [style.top.px]="tooltipFixedY">
+                                    <div class="tooltip-preview">
+                                        <!-- Use direct video element to bypass CORS canvas tainting -->
+                                        <video #previewVideo muted preload="auto" [src]="videoUrl"
+                                            style="width: 100%; height: 100%; object-fit: cover;"></video>
+                                    </div>
+                                    <div class="tooltip-info">
+                                        <span class="tooltip-time">{{ tooltipTime }}</span>
+                                        <span class="tooltip-sep"></span>
+                                        <span class="tooltip-title">{{ tooltipText }}</span>
+                                    </div>
+                                </div>
+
+                                <video [vgMedia]="$any(media)" #media id="singleVideo" preload="metadata"
+                                    [src]="videoUrl">
+                                </video>
+                            </vg-player>
+                        </div>
+                        <div *ngIf="isYoutubeLink(currentLesson.VideoURL || '')" class="mt-2 youtube-link-hint">
+                            <span class="text-muted" style="font-size: 13px;">Link Video: </span>
+                            <a [href]="currentLesson.VideoURL" target="_blank"
+                                style="font-size: 13px; text-decoration: underline;">{{
+                                currentLesson.VideoURL || ''}}</a>
+                        </div>
                     </div>
-                  </div>
-                </vg-scrub-bar>
 
-                <vg-controls>
-                  <vg-play-pause></vg-play-pause>
-                  <span class="current-chapter-label text-white ms-2" *ngIf="currentChapterName"
-                    (click)="goToNextChapter()" style="cursor: pointer; font-size: 13px;">
-                    {{ currentChapterName }} ›
-                  </span>
+                    <ng-template #videoUnavailable>
+                        <div class="video-unavailable mb-4">
+                            <div class="video-unavailable-content">
+                                <span nz-icon nzType="exclamation-circle" nzTheme="outline"
+                                    class="unavailable-icon"></span>
+                                <div class="unavailable-text">
+                                    <span class="unavailable-title">Video không khả dụng</span>
+                                    <span class="unavailable-desc">Video không khả dụng hoặc chưa có video</span>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-template>
 
-                  <vg-time-display vgProperty="current" vgFormat="hh:mm:ss"></vg-time-display>
-                  <span class="time-sep text-white mx-1">/</span>
-                  <vg-time-display vgProperty="total" vgFormat="hh:mm:ss"></vg-time-display>
 
-
-                  <vg-mute class="ms-auto"></vg-mute>
-                  <vg-volume></vg-volume>
-
-                  <vg-fullscreen></vg-fullscreen>
-                </vg-controls>
-
-                <!-- Chapter Tooltip -->
-                <div class="chapter-tooltip" [class.visible]="tooltipVisible" [style.left.px]="tooltipFixedX"
-                  [style.top.px]="tooltipFixedY">
-                  <div class="tooltip-preview">
-                    <!-- Use direct video element to bypass CORS canvas tainting -->
-                    <video #previewVideo muted preload="auto" [src]="videoUrl"
-                      style="width: 100%; height: 100%; object-fit: cover;"></video>
-                  </div>
-                  <div class="tooltip-info">
-                    <span class="tooltip-time">{{ tooltipTime }}</span>
-                    <span class="tooltip-sep"></span>
-                    <span class="tooltip-title">{{ tooltipText }}</span>
-                  </div>
                 </div>
-
-                <video [vgMedia]="$any(media)" #media id="singleVideo" preload="metadata" [src]="videoUrl">
-                </video>
-              </vg-player>
             </div>
-          </div>
-          <ng-template #videoUnavailable>
-            <div class="video-unavailable mb-4">
-              <div class="video-unavailable-content">
-                <span nz-icon nzType="exclamation-circle" nzTheme="outline" class="unavailable-icon"></span>
-                <div class="unavailable-text">
-                  <span class="unavailable-title">Video không khả dụng</span>
-                  <span class="unavailable-desc">Video không khả dụng hoặc chưa có video</span>
+            <!-- Chapters List -->
+            <div class="chapters-section px-3 pb-4" *ngIf="chapters && chapters.length > 0">
+                <h6 class="section-title border-bottom pb-2">
+                    <i nz-icon nzType="book" nzTheme="outline" class="text-primary"></i>
+                    Phân đoạn Video
+                </h6>
+
+                <div class="chapters-wrapper mt-3">
+                    <div class="chapter-list">
+                        <div class="chapter-item" #chapterItem *ngFor="let chapter of chapters; let i = index"
+                            [class.active]="activeChapterIndex === i" (click)="onClickChapter(chapter, i)">
+                            <span class="chapter-index">{{ i + 1 }}</span>
+                            <div class="chapter-info">
+                                <span class="chapter-name">{{ chapter.title }}</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="chapter-time">{{ formatTime(chapter.startTime) }}</span>
+                                    <span class="text-muted" style="font-size: 10px;">•</span>
+                                    <span class="chapter-duration text-muted" style="font-size: 11px;">
+                                        Thời lượng: {{ getChapterDuration(chapter, i) }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="blur-overlay"></div>
                 </div>
-              </div>
             </div>
-          </ng-template>
-
-
         </div>
-      </div>
-      <!-- Chapters List -->
-      <div class="chapters-section px-3 pb-4" *ngIf="chapters && chapters.length > 0">
-        <h6 class="section-title border-bottom pb-2">
-          <i nz-icon nzType="book" nzTheme="outline" class="text-primary"></i>
-          Phân đoạn Video
-        </h6>
-
-        <div class="chapters-wrapper mt-3">
-          <div class="chapter-list">
-            <div class="chapter-item" #chapterItem *ngFor="let chapter of chapters; let i = index"
-              [class.active]="activeChapterIndex === i" (click)="onClickChapter(chapter, i)">
-              <span class="chapter-index">{{ i + 1 }}</span>
-              <div class="chapter-info">
-                <span class="chapter-name">{{ chapter.title }}</span>
-                <div class="d-flex align-items-center gap-2">
-                  <span class="chapter-time">{{ formatTime(chapter.startTime) }}</span>
-                  <span class="text-muted" style="font-size: 10px;">•</span>
-                  <span class="chapter-duration text-muted" style="font-size: 11px;">
-                    Thời lượng: {{ getChapterDuration(chapter, i) }}
-                  </span>
+    </nz-splitter-panel>
+    <nz-splitter-panel nzDefaultSize="30%" nzMin="20%" nzMax="50%">
+        <div class="card h-100 border-0 rounded-0">
+            <div class="card-header bg-white border-bottom">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h6 class="mb-0">DANH SÁCH BÀI HỌC</h6>
                 </div>
-              </div>
+                <p class="mb-0 mt-1 text-muted" style="font-size: 12px;">{{ selectedCourseName }}</p>
             </div>
-          </div>
-          <div class="blur-overlay"></div>
-        </div>
-      </div>
-    </div>
-  </nz-splitter-panel>
-  <nz-splitter-panel nzDefaultSize="30%" nzMin="20%" nzMax="50%">
-    <div class="card h-100 border-0 rounded-0">
-      <div class="card-header bg-white border-bottom">
-        <div class="d-flex align-items-center justify-content-between">
-          <h6 class="mb-0">DANH SÁCH BÀI HỌC</h6>
-        </div>
-        <p class="mb-0 mt-1 text-muted" style="font-size: 12px;">{{ selectedCourseName }}</p>
-      </div>
-      <div class="card-body p-2" style="overflow-y: auto;">
-        <div class="lesson-list">
-          <div *ngFor="let lesson of lessonData; let i = index" class="lesson-item"
-            [class.active]="selectedLessonID === lesson.ID" [class.completed]="lesson.Status === 1"
-            (click)="onSelectLesson(lesson)">
-            <div class="lesson-number">{{ lesson.STT || (i + 1) }}</div>
-            <div class="lesson-content">
-              <div class="lesson-name">{{ lesson.LessonTitle }}</div>
-              <div class="lesson-code">{{ lesson.Code }}</div>
-            </div>
+            <div class="card-body p-2" style="overflow-y: auto;">
+                <div class="lesson-list">
+                    <div *ngFor="let lesson of lessonData; let i = index" class="lesson-item"
+                        [class.active]="selectedLessonID === lesson.ID" [class.completed]="lesson.Status === 1"
+                        (click)="onSelectLesson(lesson)">
+                        <div class="lesson-number">{{ lesson.STT || (i + 1) }}</div>
+                        <div class="lesson-content">
+                            <div class="lesson-name">{{ lesson.LessonTitle }}</div>
+                            <div class="lesson-code">{{ lesson.Code }}</div>
+                        </div>
 
-            <!-- Lesson Exam Dropdown -->
-            <div *ngIf="getLessonExams(lesson.ID).length > 0" class="lesson-exam-dropdown"
-              (click)="$event.stopPropagation()">
-              <button nz-button nz-dropdown [nzDropdownMenu]="lessonExamMenu" nzSize="small" nzType="primary"
-                class="lesson-exam-btn" [disabled]="!isLessonCompleted(lesson.ID)"
-                [nz-tooltip]="!isLessonCompleted(lesson.ID) ? 'Bạn phải hoàn thành lesson này' : null">
-                Bài test
-                <span nz-icon nzType="down"></span>
-              </button>
-              <nz-dropdown-menu #lessonExamMenu="nzDropdownMenu">
-                <ul nz-menu>
-                  <li nz-menu-item *ngFor="let exam of getLessonExams(lesson.ID)"
-                    (click)="onOpenLessonExam(lesson, exam)">
-                    {{ getExamTypeName(exam.ExamType) }}
-                  </li>
-                </ul>
-              </nz-dropdown-menu>
+                        <!-- Lesson Exam Dropdown -->
+                        <div *ngIf="getLessonExams(lesson.ID).length > 0" class="lesson-exam-dropdown"
+                            (click)="$event.stopPropagation()">
+                            <button nz-button nz-dropdown [nzDropdownMenu]="lessonExamMenu" nzSize="small"
+                                nzType="primary" class="lesson-exam-btn" [disabled]="!isLessonCompleted(lesson.ID)"
+                                [nz-tooltip]="!isLessonCompleted(lesson.ID) ? 'Bạn phải hoàn thành lesson này' : null">
+                                Bài test
+                                <span nz-icon nzType="down"></span>
+                            </button>
+                            <nz-dropdown-menu #lessonExamMenu="nzDropdownMenu">
+                                <ul nz-menu>
+                                    <li nz-menu-item *ngFor="let exam of getLessonExams(lesson.ID)"
+                                        (click)="onOpenLessonExam(lesson, exam)">
+                                        {{ getExamTypeName(exam.ExamType) }}
+                                    </li>
+                                </ul>
+                            </nz-dropdown-menu>
+                        </div>
+
+                        <label nz-checkbox [nzChecked]="lesson.Status == 1 || lesson.StatusText == 'Đã học'"
+                            (nzCheckedChange)="onLessonCompletionChange(lesson, $event)" class="lesson-checkbox">
+                        </label>
+                    </div>
+                </div>
             </div>
 
-            <label nz-checkbox [nzChecked]="lesson.Status == 1 || lesson.StatusText == 'Đã học'"
-              (nzCheckedChange)="onLessonCompletionChange(lesson, $event)" class="lesson-checkbox">
-            </label>
-          </div>
+            <!-- Exam Type Buttons - Fixed at bottom (Khối 3) -->
+            <div *ngIf="isExercise || isPractice || isQuiz" class="card-footer bg-white border-top p-3">
+                <div class="exam-buttons">
+                    <button *ngIf="isExercise" nz-button class="exam-btn exercise-btn" (click)="onOpenExercise()"
+                        [disabled]="!areAllLessonsCompleted()"
+                        [nz-tooltip]="!areAllLessonsCompleted() ? 'Hoàn thành tất cả bài học (' + getCompletedLessonsCount() + '/' + lessonData.length + ')' : null">
+                        <span nz-icon nzType="form"></span>
+                        Trắc nghiệm
+                    </button>
+                    <button *ngIf="isPractice" nz-button class="exam-btn practice-btn" (click)="onOpenPractice()"
+                        [disabled]="!areAllLessonsCompleted()"
+                        [nz-tooltip]="!areAllLessonsCompleted() ? 'Hoàn thành tất cả bài học (' + getCompletedLessonsCount() + '/' + lessonData.length + ')' : null">
+                        <span nz-icon nzType="experiment"></span>
+                        Thực hành
+                    </button>
+                    <button *ngIf="isQuiz" nz-button class="exam-btn quiz-btn" (click)="onOpenQuiz()"
+                        [disabled]="!areAllLessonsCompleted()"
+                        [nz-tooltip]="!areAllLessonsCompleted() ? 'Hoàn thành tất cả bài học (' + getCompletedLessonsCount() + '/' + lessonData.length + ')' : null">
+                        <span nz-icon nzType="highlight"></span>
+                        Bài tập
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
-
-      <!-- Exam Type Buttons - Fixed at bottom (Khối 3) -->
-      <div *ngIf="isExercise || isPractice || isQuiz" class="card-footer bg-white border-top p-3">
-        <div class="exam-buttons">
-          <button *ngIf="isExercise" nz-button class="exam-btn exercise-btn" (click)="onOpenExercise()"
-            [disabled]="!areAllLessonsCompleted()"
-            [nz-tooltip]="!areAllLessonsCompleted() ? 'Hoàn thành tất cả bài học (' + getCompletedLessonsCount() + '/' + lessonData.length + ')' : null">
-            <span nz-icon nzType="form"></span>
-            Trắc nghiệm
-          </button>
-          <button *ngIf="isPractice" nz-button class="exam-btn practice-btn" (click)="onOpenPractice()"
-            [disabled]="!areAllLessonsCompleted()"
-            [nz-tooltip]="!areAllLessonsCompleted() ? 'Hoàn thành tất cả bài học (' + getCompletedLessonsCount() + '/' + lessonData.length + ')' : null">
-            <span nz-icon nzType="experiment"></span>
-            Thực hành
-          </button>
-          <button *ngIf="isQuiz" nz-button class="exam-btn quiz-btn" (click)="onOpenQuiz()"
-            [disabled]="!areAllLessonsCompleted()"
-            [nz-tooltip]="!areAllLessonsCompleted() ? 'Hoàn thành tất cả bài học (' + getCompletedLessonsCount() + '/' + lessonData.length + ')' : null">
-            <span nz-icon nzType="highlight"></span>
-            Bài tập
-          </button>
-        </div>
-      </div>
-    </div>
-  </nz-splitter-panel>
+    </nz-splitter-panel>
 
 </nz-splitter>
 <div class="card border-0 rounded-0 p-4">
-  <!-- Content Section -->
-  <div class="content-section mb-4">
-    <h5 class="section-title">{{ currentLesson?.LessonTitle }}</h5>
-    <div class="section-subtitle mb-3">Nội dung</div>
-    <div class="lesson-content-html" [innerHTML]="processHtmlContent(currentLesson?.LessonContent)">
+    <!-- Content Section -->
+    <div class="content-section mb-4">
+        <h5 class="section-title">{{ currentLesson?.LessonTitle }}</h5>
+        <div class="section-subtitle mb-3">Nội dung</div>
+        <div class="lesson-content-html" [innerHTML]="processHtmlContent(currentLesson?.LessonContent)">
+        </div>
+        <!-- <object id="pdf" [data]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%" height="600"></object> -->
     </div>
-    <!-- <object id="pdf" [data]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%" height="600"></object> -->
-  </div>
 
-  <!-- PDF Section -->
-  <div *ngIf="urlPDF" class="pdf-section mb-4">
-    <div *ngIf="true">
-      <!-- <embed [src]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%" height="600"> -->
-      <!-- <iframe src="{{getUrlPDFFile(currentLesson?.UrlPDF)}}" width="600" height="780" style="border: none;">
+    <!-- PDF Section -->
+    <div *ngIf="urlPDF" class="pdf-section mb-4">
+        <div *ngIf="true">
+            <!-- <embed [src]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%" height="600"> -->
+            <!-- <iframe src="{{getUrlPDFFile(currentLesson?.UrlPDF)}}" width="600" height="780" style="border: none;">
             </iframe> -->
-      <!--
+            <!--
             <object [data]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%"
                 height="600"></object> -->
-      <!-- <object data="{{getUrlPDFFile(currentLesson?.UrlPDF)}}"  type="application/pdf" width="100%"
+            <!-- <object data="{{getUrlPDFFile(currentLesson?.UrlPDF)}}"  type="application/pdf" width="100%"
                 height="600"></object> -->
-      <embed [src]="urlPDF" type="application/pdf" width="100%" height="800" frameborder="0"
-        sandbox="allow-same-origin allow-scripts" allowfullscreen>
+            <embed [src]="urlPDF" type="application/pdf" width="100%" height="800" frameborder="0"
+                sandbox="allow-same-origin allow-scripts" allowfullscreen>
 
+        </div>
     </div>
-  </div>
 
-  <!-- File Attachments Section -->
-  <div *ngIf="currentLessonFiles.length > 0" class="files-section">
-    <div class="section-subtitle mb-3">Download tài liệu đính kèm:</div>
-    <div *ngFor="let file of currentLessonFiles" class="file-item">
-      <a [href]="getUrlPDFFile(file.ServerPath)" target="_blank">
-        <span nz-icon nzType="file" nzTheme="outline"></span>
-        {{ file.NameFile }}
-      </a>
+    <!-- File Attachments Section -->
+    <div *ngIf="currentLessonFiles.length > 0" class="files-section">
+        <div class="section-subtitle mb-3">Download tài liệu đính kèm:</div>
+        <div *ngFor="let file of currentLessonFiles" class="file-item">
+            <a [href]="getUrlPDFFile(file.ServerPath)" target="_blank">
+                <span nz-icon nzType="file" nzTheme="outline"></span>
+                {{ file.NameFile }}
+            </a>
+        </div>
     </div>
-  </div>
 </div>

@@ -134,6 +134,10 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
     get totalDiff(): number { return this.round2(Math.abs(this.totalI - this.totalII)); }
     get diff1(): number { return this.round2(Math.max(this.totalI - this.totalII, 0)); }
     get diff2(): number { return this.round2(Math.max(this.totalII - this.totalI, 0)); }
+    // Diff theo Thành tiền (TotalMoney): so sánh TM_I vs TM_II (không nhân %)
+    get diffThanhTien1(): number { return this.round2(Math.max(this.totalI - this.totalIIThanhTien, 0)); }
+    get diffThanhTien2(): number { return this.round2(Math.max(this.totalIIThanhTien - this.totalI, 0)); }
+    get totalIIIThanhTien(): number { return this.round2(this.diffThanhTien1 + this.diffThanhTien2); }
     get totalType1(): number {
         const total = this.dataset.reduce((s, r) => {
             const tm = this.parseNum(r.TotalMoney);
@@ -379,7 +383,8 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                             // Nếu là dòng Header I, II, III thì ép ID cố định 1, 2, 3
                             _id: isHeader ? defaultId : (rid || defaultId),
                             ParentID: isHeader ? null : pid,
-                            PaymentPercentage: pct
+                            PaymentPercentage: pct,
+                            ...(this.isCopy ? { TotalPaymentAmount: 0 } : {}),
                         };
                     };
 
@@ -562,13 +567,17 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                     ParentID: this.t2RowII._id
                 })),
 
-                sanitize(this.t2RowIII, { ID: this.isCopy ? 0 : (this.t2RowIII.ID || 0), TotalMoney: this.totalDiff }),
+                sanitize(this.t2RowIII, {
+                    ID: this.isCopy ? 0 : (this.t2RowIII.ID || 0),
+                    TotalMoney: 0,
+                    TotalPaymentAmount: this.totalDiff
+                }),
 
                 // Các dòng chênh lệch ở mục III
                 sanitize(this.dataset2.find(r => r.ContentPayment?.includes('Tạm ứng chi không hết')) || {},
-                    { ID: 0, TotalMoney: this.diff1, ParentID: this.isCopy ? 3 : 3 }), // ParentID mục III là 3
+                    { ID: 0, TotalMoney: 0, TotalPaymentAmount: this.diff1, ParentID: 3 }),
                 sanitize(this.dataset2.find(r => r.ContentPayment?.includes('Số chi quá tạm ứng')) || {},
-                    { ID: 0, TotalMoney: this.diff2, ParentID: this.isCopy ? 3 : 3 }),
+                    { ID: 0, TotalMoney: 0, TotalPaymentAmount: this.diff2, ParentID: 3 }),
             ].filter(r => r.Stt !== undefined);
         }
 

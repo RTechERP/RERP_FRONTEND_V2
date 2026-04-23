@@ -306,7 +306,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 field: 'ReasonOrder',
                 header: 'Lý do thanh toán',
                 width: '300px',
-                textWrap: false,
+                textWrap: true,
             },
             // --- Số tiền ---
             {
@@ -351,11 +351,12 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 field: 'ContentBankTransfer',
                 header: 'ND chuyển khoản',
                 width: '160px',
+                textWrap: true
             },
-            { field: 'SuplierName', header: 'Nhà cung cấp', width: '150px' },
-            { field: 'StatusContractText', header: 'TT hợp đồng', width: '130px' },
-            { field: 'DocumentName', header: 'Số hợp đồng', width: '130px' },
-            { field: 'ProjectFullName', header: 'Dự án', width: '150px' },
+            { field: 'SuplierName', header: 'Nhà cung cấp', width: '150px', textWrap: true },
+            { field: 'StatusContractText', header: 'TT hợp đồng', width: '130px', textWrap: true },
+            { field: 'DocumentName', header: 'Số hợp đồng', width: '130px', textWrap: true },
+            { field: 'ProjectFullName', header: 'Dự án', width: '150px', textWrap: true },
             {
                 field: 'IsBill',
                 header: 'Có HĐ',

@@ -14,21 +14,17 @@
     <div class="header-section main-header">
         <!-- Tabs -->
         <div class="tabs-container">
-            <div class="tab" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all')">
-                Tổng công việc
-                <span class="badge" [class.highlight]="allTasksCount() > 0">{{ allTasksCount() }}</span>
-            </div>
             <div class="tab" [class.active]="activeTab() === 'assigned'" (click)="setActiveTab('assigned')">
                 Việc giao cho tôi
-                <span class="badge" [class.highlight]="assignedTasksCount() > 0">{{ assignedTasksCount() }}</span>
             </div>
             <div class="tab" [class.active]="activeTab() === 'myApproval'" (click)="setActiveTab('myApproval')">
                 Việc tôi giao
-                <span class="badge" [class.highlight]="myApprovalTasksCount() > 0">{{ myApprovalTasksCount() }}</span>
             </div>
             <div class="tab" [class.active]="activeTab() === 'related'" (click)="setActiveTab('related')">
                 Việc liên quan đến tôi
-                <span class="badge" [class.highlight]="relatedTasksCount() > 0">{{ relatedTasksCount() }}</span>
+            </div>
+            <div class="tab" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all')">
+                Tổng công việc
             </div>
         </div>
 
@@ -72,30 +68,42 @@
 
     <!-- Search Bar (Hidden on mobile) -->
     <div class="search-bar main-search">
-        <div class="search-field">
-            <label class="search-label">Từ ngày</label>
-            <input type="date" [(ngModel)]="dateStart"
-                style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+        <div class="search-left">
+            <div class="search-field">
+                <label class="search-label">Từ ngày</label>
+                <input type="date" [(ngModel)]="dateStart"
+                    style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+            </div>
+            <div class="search-field">
+                <label class="search-label">Đến ngày</label>
+                <input type="date" [(ngModel)]="dateEnd"
+                    style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+            </div>
+            <div class="search-field">
+                <label class="search-label">Trạng thái</label>
+                <select [(ngModel)]="filterStatus"
+                    style="padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px;">
+                    <option [ngValue]="-1">Tất cả</option>
+                    <option [ngValue]="0">Chưa duyệt</option>
+                    <option [ngValue]="1">Đã duyệt</option>
+                </select>
+            </div>
+            <button class="btn-search" (click)="loadTasks()" [disabled]="!dateStart || !dateEnd"
+                [class.btn-disabled]="!dateStart || !dateEnd"
+                [pTooltip]="(!dateStart || !dateEnd) ? 'Vui lòng chọn khoảng ngày' : 'Tìm kiếm'" tooltipPosition="top">
+                <span nz-icon nzType="search" nzTheme="outline"></span>
+            </button>
         </div>
-        <div class="search-field">
-            <label class="search-label">Đến ngày</label>
-            <input type="date" [(ngModel)]="dateEnd"
-                style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+
+        <!-- Compact Paginator on the right -->
+        <div class="search-right">
+            <p-paginator #paginator [first]="first()" [rows]="rows()" [totalRecords]="totalRecords()"
+                [rowsPerPageOptions]="[20, 50, 100, 200]" (onPageChange)="onLazyLoad($event)"
+                [showCurrentPageReport]="true" [showFirstLastIcon]="false"
+                currentPageReportTemplate="{first}-{last}/{totalRecords}"
+                styleClass="compact-paginator border-none bg-transparent">
+            </p-paginator>
         </div>
-        <div class="search-field">
-            <label class="search-label">Trạng thái</label>
-            <select [(ngModel)]="filterStatus"
-                style="padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px;">
-                <option [ngValue]="-1">Tất cả</option>
-                <option [ngValue]="0">Chưa duyệt</option>
-                <option [ngValue]="1">Đã duyệt</option>
-            </select>
-        </div>
-        <button class="btn-search" (click)="loadTasks()" [disabled]="!dateStart || !dateEnd"
-            [class.btn-disabled]="!dateStart || !dateEnd"
-            [pTooltip]="(!dateStart || !dateEnd) ? 'Vui lòng chọn khoảng ngày' : 'Tìm kiếm'" tooltipPosition="top">
-            <span nz-icon nzType="search" nzTheme="outline"></span>
-        </button>
     </div>
 
     <!-- Mobile Drawer -->
@@ -106,22 +114,31 @@
                 <div class="drawer-group">
                     <div class="drawer-group-title">PHÂN LOẠI</div>
                     <div class="drawer-tabs">
-                        <div class="drawer-tab" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all'); closeMobileMenu()">
-                            <span>Tổng công việc</span>
-                            <span class="badge">{{ allTasksCount() }}</span>
-                        </div>
                         <div class="drawer-tab" [class.active]="activeTab() === 'assigned'" (click)="setActiveTab('assigned'); closeMobileMenu()">
                             <span>Việc giao cho tôi</span>
-                            <span class="badge">{{ assignedTasksCount() }}</span>
                         </div>
                         <div class="drawer-tab" [class.active]="activeTab() === 'myApproval'" (click)="setActiveTab('myApproval'); closeMobileMenu()">
                             <span>Việc tôi giao</span>
-                            <span class="badge">{{ myApprovalTasksCount() }}</span>
                         </div>
                         <div class="drawer-tab" [class.active]="activeTab() === 'related'" (click)="setActiveTab('related'); closeMobileMenu()">
-                            <span>Việc liên quan</span>
-                            <span class="badge">{{ relatedTasksCount() }}</span>
+                            <span>Việc liên quan đến tôi</span>
                         </div>
+                        <div class="drawer-tab" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all'); closeMobileMenu()">
+                            <span>Tổng công việc</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group: Pagination (New) -->
+                <div class="drawer-group">
+                    <div class="drawer-group-title">PHÂN TRANG</div>
+                    <div class="drawer-pagination">
+                        <p-paginator [first]="first()" [rows]="rows()" [totalRecords]="totalRecords()"
+                            [rowsPerPageOptions]="[20, 50, 100, 200]" (onPageChange)="onLazyLoad($event)"
+                            [showCurrentPageReport]="true" [showFirstLastIcon]="false"
+                            currentPageReportTemplate="{first}-{last}/{totalRecords}"
+                            styleClass="mobile-paginator">
+                        </p-paginator>
                     </div>
                 </div>
 
@@ -192,11 +209,12 @@
 
     <!-- Data Table -->
     <div class="table-container">
-        <p-table #dt [value]="filteredTasks()" [resizableColumns]="true" columnResizeMode="fit"
-            [reorderableColumns]="true" [customSort]="true" (sortFunction)="customSort($event)"
+        <p-table #dt [value]="pagedTasks()" [resizableColumns]="true" columnResizeMode="fit"
+            [reorderableColumns]="true"
             [(selection)]="selectedTasks" dataKey="ID" [loading]="loading()"
             styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true" scrollHeight="flex"
-            (onFilter)="handleFilter($event)">
+            (onFilter)="handleFilter($event)"
+            [lazy]="true" (onLazyLoad)="onLazyLoad($event)">
 
             <ng-template pTemplate="header">
                 <tr>
@@ -215,111 +233,94 @@
                             style="cursor: pointer; width: 16px; height: 16px;">
                     </th>
                     }
-                    <th style="width: 140px; text-align: center">
-                        Trạng thái
+                    <th pResizableColumn pSortableColumn="DisplayStatus" style="width: 80px; text-align: center">
+                        <div>Trạng thái <p-sortIcon field="DisplayStatus" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="Mission" style="min-width: 200px">
-                        Công việc
-                        <p-sortIcon field="Mission" />
+                        <div>Công việc <p-sortIcon field="Mission" /></div>
                     </th>
-                    <th pResizableColumn pSortableColumn="ParentCode" style="min-width: 200px">
-                        Công việc cha
-                        <p-sortIcon field="ParentCode" />
-                    </th>
-                    <th pResizableColumn pSortableColumn="ProjectName" style="min-width: 200px">
-                        Dự án
-                        <p-sortIcon field="ProjectName" />
+                    <th pResizableColumn pSortableColumn="ProjectName" style="min-width: 100px">
+                        <div>Dự án <p-sortIcon field="ProjectName" /></div>
                     </th>
                     @if (activeTab() !== 'myApproval') {
                     <th pResizableColumn pSortableColumn="FullName" style="width: 150px">
-                        Người giao việc
-                        <p-sortIcon field="FullName" />
+                        <div>Người giao <p-sortIcon field="FullName" /></div>
                     </th>
                     }
                     @if (activeTab() !== 'assigned') {
                     <th pResizableColumn pSortableColumn="AsigneeEmployeeFullName" style="width: 150px">
-                        Người nhận việc
-                        <p-sortIcon field="AsigneeEmployeeFullName" />
+                        <div>Người nhận <p-sortIcon field="AsigneeEmployeeFullName" /></div>
                     </th>
                     }
 
-                    <th pResizableColumn pSortableColumn="IsPersonalProject" style="width: 140px">
-                        Loại dự án
-                        <p-sortIcon field="IsPersonalProject" />
+                    <th pResizableColumn pSortableColumn="IsPersonalProject" style="width: 80px">
+                        <div>Loại</div><div>dự án <p-sortIcon field="IsPersonalProject" /></div>
                     </th>
-                    <th pResizableColumn pSortableColumn="ProjectTaskTypeName" style="width: 160px">
-                        Loại công việc
-                        <p-sortIcon field="ProjectTaskTypeName" />
+                    <th pResizableColumn pSortableColumn="Priority" style="width: 80px; text-align: center;">
+                        <div>Ưu tiên <p-sortIcon field="Priority" /></div>
                     </th>
-                    <th pResizableColumn pSortableColumn="PlanStartDate" class="col-date" style="width: 100px">
-                        Ngày BĐ dự kiến
-                        <p-sortIcon field="PlanStartDate" />
+                    <th pResizableColumn pSortableColumn="EstimatedTime" style="width: 85px; text-align: center;">
+                        <div>TG dự</div><div>kiến (h) <p-sortIcon field="EstimatedTime" /></div>
                     </th>
-                    <th pResizableColumn pSortableColumn="PlanEndDate" class="col-date" style="width: 100px">
-                        Ngày KT dự kiến
-                        <p-sortIcon field="PlanEndDate" />
+                    <th pResizableColumn pSortableColumn="ProjectTaskTypeName" style="width: 95px">
+                        <div>Loại</div><div>công việc <p-sortIcon field="ProjectTaskTypeName" /></div>
                     </th>
-                    <th pResizableColumn pSortableColumn="Deadline" class="col-date" style="width: 100px">
-                        Deadline
-                        <p-sortIcon field="Deadline" />
+                    <th pResizableColumn pSortableColumn="PlanStartDate" class="col-date" style="width: 85px">
+                        <div>Ngày</div><div>BĐ dự kiến <p-sortIcon field="PlanStartDate" /></div>
                     </th>
-                    <th pResizableColumn pSortableColumn="ActualStartDate" class="col-date" style="width: 100px">
-                        Ngày BĐ thực tế
-                        <p-sortIcon field="ActualStartDate" />
+                    <th pResizableColumn pSortableColumn="PlanEndDate" class="col-date" style="width: 85px">
+                        <div>Ngày</div><div>KT dự kiến <p-sortIcon field="PlanEndDate" /></div>
                     </th>
-                    <th pResizableColumn pSortableColumn="ActualEndDate" class="col-date" style="width: 100px">
-                        Ngày KT thực tế
-                        <p-sortIcon field="ActualEndDate" />
+                    <th pResizableColumn pSortableColumn="Deadline" class="col-date" style="width: 85px">
+                        <div>Deadline <p-sortIcon field="Deadline" /></div>
+                    </th>
+                    <th pResizableColumn pSortableColumn="ActualStartDate" class="col-date" style="width: 85px">
+                        <div>Ngày</div><div>BĐ thực tế <p-sortIcon field="ActualStartDate" /></div>
+                    </th>
+                    <th pResizableColumn pSortableColumn="ActualEndDate" class="col-date" style="width: 85px">
+                        <div>Ngày</div><div>KT thực tế <p-sortIcon field="ActualEndDate" /></div>
                     </th>
                     @if (activeTab() === 'assigned') {
-                    <th pResizableColumn pSortableColumn="IsCheck" style="width: 100px; text-align: center">
-                        Điểm danh
-                        <p-sortIcon field="IsCheck" />
+                    <th pResizableColumn pSortableColumn="IsCheck" style="width: 80px; text-align: center">
+                        <div>Điểm</div><div>danh <p-sortIcon field="IsCheck" /></div>
                     </th>
                     }
-                    <th pResizableColumn pSortableColumn="IsAdditional" style="width: 100px; text-align: center">
-                        Phát sinh
-                        <p-sortIcon field="IsAdditional" />
+                    <th pResizableColumn pSortableColumn="IsAdditional" style="width: 65px; text-align: center">
+                        <div>Phát</div><div>sinh <p-sortIcon field="IsAdditional" /></div>
                     </th>
-                    <th pResizableColumn pSortableColumn="TaskComplexity" style="width: 100px; text-align: center">
-                        Phức tạp
-                        <p-sortIcon field="TaskComplexity" />
+                    <th pResizableColumn pSortableColumn="TaskComplexity" style="width: 65px; text-align: center">
+                        <div>Phức</div><div>tạp <p-sortIcon field="TaskComplexity" /></div>
                     </th>
-                    <th pResizableColumn pSortableColumn="TotalActualHours" style="width: 100px; text-align: center">
-                        Thời gian thực tế
-                        <p-sortIcon field="TotalActualHours" />
+                    <th pResizableColumn pSortableColumn="TotalActualHours" style="width: 80px; text-align: center">
+                        <div>TG</div><div>thực tế <p-sortIcon field="TotalActualHours" /></div>
                     </th>
-                    <th pResizableColumn pSortableColumn="ActualPlannedRatio" style="width: 100px; text-align: center">
-                        % TG thực tế/KH
-                        <p-sortIcon field="ActualPlannedRatio" />
+                    <th pResizableColumn pSortableColumn="ActualPlannedRatio" style="width: 85px; text-align: center">
+                        <div>% TG thực</div><div>tế/KH <p-sortIcon field="ActualPlannedRatio" /></div>
                     </th>
-                    <th pResizableColumn pSortableColumn="PercentOverTime" style="width: 100px; text-align: center">
-                        % Quá hạn
-                        <p-sortIcon field="PercentOverTime" />
+                    <th pResizableColumn pSortableColumn="PercentOverTime" style="width: 70px; text-align: center">
+                        <div>%</div><div>Quá hạn <p-sortIcon field="PercentOverTime" /></div>
                     </th>
                     <th pResizableColumn pSortableColumn="CompletionRating" style="width: 120px; text-align: center">
-                        Đánh giá
-                        <p-sortIcon field="CompletionRating" />
+                        <div>Đánh giá <p-sortIcon field="CompletionRating" /></div>
                     </th>
                     @if (activeTab() === 'all' || activeTab() === 'assigned') {
-                    <th pResizableColumn pSortableColumn="DepartmentAssignerName" style="width: 180px">
-                        Phòng ban giao
-                        <p-sortIcon field="DepartmentAssignerName" />
+                    <th pResizableColumn pSortableColumn="DepartmentAssignerName" style="width: 120px">
+                        <div>Phòng ban</div><div>giao <p-sortIcon field="DepartmentAssignerName" /></div>
                     </th>
                     }
                     @if (activeTab() === 'all' || activeTab() === 'myApproval') {
-                    <th pResizableColumn pSortableColumn="DepartmentAssigneeName" style="width: 180px">
-                        Phòng ban nhận
-                        <p-sortIcon field="DepartmentAssigneeName" />
+                    <th pResizableColumn pSortableColumn="DepartmentAssigneeName" style="width: 120px">
+                        <div>Phòng ban</div><div>nhận <p-sortIcon field="DepartmentAssigneeName" /></div>
                     </th>
                     }
                     @if (filterStatus === -1 || filterStatus === 1) {
-                    <th pResizableColumn pSortableColumn="ReviewCompletionRating" style="width: 120px; text-align: center">
-                        Đánh giá (Review)
-                        <p-sortIcon field="ReviewCompletionRating" />
+                    <th pResizableColumn pSortableColumn="ReviewCompletionRating" style="width: 90px; text-align: center">
+                        <div>Đánh giá</div><div>(Review) <p-sortIcon field="ReviewCompletionRating" /></div>
                     </th>
                     }
-
+                    <th pResizableColumn pSortableColumn="CreatedDate" class="col-date" style="width: 90px; text-align: center;">
+                        <div>Ngày tạo <p-sortIcon field="CreatedDate" /></div>
+                    </th>
                 </tr>
                 <tr>
                     @if (activeTab() === 'myApproval') {
@@ -341,10 +342,6 @@
 
                     <th>
                         <p-columnFilter matchMode="contains" type="text" field="TaskSearchText"
-                            placeholder="Tìm kiếm..." />
-                    </th>
-                    <th>
-                        <p-columnFilter matchMode="contains" type="text" field="ParentSearchText"
                             placeholder="Tìm kiếm..." />
                     </th>
                     <th>
@@ -393,6 +390,23 @@
                                 </select>
                             </ng-template>
                         </p-columnFilter>
+                    </th>
+                    <th style="text-align: center;">
+                        <p-columnFilter field="Priority" matchMode="equals" [showMenu]="false">
+                            <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                <select class="status-filter"
+                                    (change)="filter($any($event.target).value === '' ? null : +$any($event.target).value)">
+                                    <option value="">Tất cả</option>
+                                    <option value="4">Khẩn cấp</option>
+                                    <option value="3">Cao</option>
+                                    <option value="2">Trung bình</option>
+                                    <option value="1">Thấp</option>
+                                </select>
+                            </ng-template>
+                        </p-columnFilter>
+                    </th>
+                    <th>
+                        <p-columnFilter type="text" field="EstimatedTime" matchMode="equals" placeholder="Tìm..."></p-columnFilter>
                     </th>
                     <th>
                         <p-columnFilter field="ProjectTaskTypeID" matchMode="equals" [showMenu]="false">
@@ -555,7 +569,9 @@
                         </p-columnFilter>
                     </th>
                     }
-
+                    <th class="col-date">
+                        <p-columnFilter type="date" field="CreatedDate" placeholder="Tìm kiếm..." />
+                    </th>
                 </tr>
             </ng-template>
 
@@ -563,13 +579,13 @@
                 <tr (click)="selectTaskForCopy(task)" [class.row-selected]="selectedTaskForCopy?.ID === task.ID"
                     (contextmenu)="onCellContextMenu($event, cm, task)">
                     @if (activeTab() === 'myApproval') {
-                    <td (click)="$event.stopPropagation()">
+                    <td style="text-align: center;" (click)="$event.stopPropagation()">
                         <p-tableCheckbox [value]="task"
-                            [disabled]="task.Status !== 3 || task.IsApproved === 2 || task.IsApproved === 3" />
+                            [disabled]="task.Status !== 2 || task.ApprovalStatus === true || task.ApprovalStatus === false" />
                     </td>
                     }
                     @if (activeTab() === 'related') {
-                    <td (click)="$event.stopPropagation()">
+                    <td style="text-align: center;" (click)="$event.stopPropagation()">
                         <p-tableCheckbox [value]="task" />
                     </td>
                     }
@@ -594,28 +610,22 @@
                     </td>
                     <td>
                         <div class="task-info">
-                            <a class="task-code-link" (click)="openTaskDetail(task); $event.stopPropagation()">{{
-                                task.Code || 'N/A' }}</a>
+                            <div class="d-flex align-items-center gap-1 text-nowrap w-100 overflow-hidden">
+                                <a class="task-code-link" (click)="openTaskDetail(task); $event.stopPropagation()">{{
+                                    task.Code || 'N/A' }}</a>
+                                <span *ngIf="task.ParentCode" class="text-muted d-inline-block text-truncate"
+                                    nz-tooltip [nzTooltipTitle]="task.ParentTitle" style="max-width: 130px;">
+                                    - <a class="task-code-link"
+                                        (click)="openTaskDetail({ ID: task.ParentID }); $event.stopPropagation()">{{
+                                        task.ParentCode || 'N/A' }}</a>
+                                </span>
+                            </div>
                             <div class="task-description text-wrap">{{ task.Mission }}</div>
                         </div>
                     </td>
                     <td>
-                        @if (task.ParentCode) {
-                        <div class="task-info">
-                            <a class="task-code-link"
-                                (click)="openTaskDetail({ ID: task.ParentID }); $event.stopPropagation()">{{
-                                task.ParentCode || 'N/A' }}</a>
-                            <div class="task-description text-wrap" (click)="openTaskDetail({ ID: task.ParentID })">{{
-                                task.ParentTitle }}</div>
-                        </div>
-                        } @else {
-                        <span class="text-muted">-</span>
-                        }
-                    </td>
-                    <td>
-                        <div class="task-info">
+                        <div class="task-info" nz-tooltip [nzTooltipTitle]="task.ProjectName">
                             <span class="project-code">{{ task.ProjectCode }}</span>
-                            <div class="project-description text-wrap">{{ task.ProjectName }}</div>
                         </div>
                     </td>
                     @if (activeTab() !== 'myApproval') {
@@ -631,6 +641,14 @@
 
                     <td style="text-align: center;">
                         <span class="text-wrap">{{ task.IsPersonalProject ? 'Cá nhân' : 'Dự án' }}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        <span nz-icon nzType="flag" nzTheme="fill" [style.color]="getPriorityColor(task.Priority)"
+                            [title]="task.Priority === 4 ? 'Khẩn cấp' : (task.Priority === 3 ? 'Cao' : (task.Priority === 2 ? 'Trung bình' : 'Thấp'))"
+                            style="font-size: 16px;"></span>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="fw-bold">{{ task.EstimatedTime || '-' }}</span>
                     </td>
                     <td style="text-align: center;">
                         <p-tag [value]="task.ProjectTaskTypeName || '-'"
@@ -729,13 +747,15 @@
                         }
                     </td>
                     }
-
+                    <td style="text-align: center;">
+                        <span class="date-text">{{ task.CreatedDate | date:'dd/MM/yyyy' }}</span>
+                    </td>
                 </tr>
             </ng-template>
 
             <ng-template pTemplate="footer">
                 <tr>
-                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 18 : (activeTab() === 'assigned' ? 18 : (activeTab() === 'related' ? 18 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0)"
+                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 20 : (activeTab() === 'assigned' ? 19 : (activeTab() === 'related' ? 19 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0) + 3"
                         class="table-footer-total">
                         Tổng cộng: <span class="total-count">{{ totalRecords() }}</span> công việc
                     </td>
@@ -744,7 +764,7 @@
 
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 18 : (activeTab() === 'assigned' ? 18 : (activeTab() === 'related' ? 18 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0)"
+                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 20 : (activeTab() === 'assigned' ? 19 : (activeTab() === 'related' ? 19 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0) + 3"
                         class="empty-message">
                         <div class="empty-state">
                             <span nz-icon nzType="inbox" nzTheme="outline" class="empty-icon"></span>
@@ -756,7 +776,7 @@
 
             <ng-template pTemplate="loadingbody">
                 <tr>
-                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 18 : (activeTab() === 'assigned' ? 18 : (activeTab() === 'related' ? 18 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0)"
+                    <td [attr.colspan]="(activeTab() === 'all' ? 20 : (activeTab() === 'myApproval' ? 20 : (activeTab() === 'assigned' ? 19 : (activeTab() === 'related' ? 19 : 17)))) + ( (filterStatus === -1 || filterStatus === 1) ? 1 : 0) + 3"
                         class="text-center">
                         <span nz-icon nzType="loading" nzTheme="outline"></span> Đang tải...
                     </td>

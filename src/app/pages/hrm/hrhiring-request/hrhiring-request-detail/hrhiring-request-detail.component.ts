@@ -15,6 +15,7 @@ import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSliderModule } from 'ng-zorro-antd/slider';
+import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 
 // NgBootstrap Modal
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -42,6 +43,7 @@ import { AppUserService } from '../../../../services/app-user.service';
     NzInputNumberModule,
     NzSpinModule,
     NzSliderModule,
+    NzAutocompleteModule,
   ],
   templateUrl: './hrhiring-request-detail.component.html',
   styleUrls: ['./hrhiring-request-detail.component.css'],

@@ -21,91 +21,58 @@
         <!-- Backdrop overlay cho mobile -->
         <div class="filter-backdrop" *ngIf="shouldShowSearchBar && isMobile" (click)="ToggleSearchPanelNew()"></div>
 
-        <!-- Filter bar - hiển thị dạng hàng ngang trên desktop, modal trên mobile -->
-        <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="true">
-            <div class="filter-bar-header d-flex justify-content-between align-items-center mb-2" *ngIf="isMobile">
+        <!-- Search Bar - Inline compact flex row (matching ProjectTask pattern) -->
+        <div class="search-bar" *ngIf="shouldShowSearchBar" [class.mobile-modal]="isMobile">
+            <!-- Mobile close header -->
+            <div class="filter-bar-header" *ngIf="isMobile">
                 <span class="fw-bold" style="font-size: 12px;">Tìm kiếm</span>
                 <button nz-button nzType="text" nzShape="circle" nzSize="small" nzDanger
                     (click)="ToggleSearchPanelNew()">
                     <nz-icon nzType="close" />
                 </button>
             </div>
-            <form nz-form class="mobile-filter-form">
-                <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
-                    <!-- Từ ngày -->
-                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
-                        <nz-form-item class="mb-0">
-                            <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
-                            <nz-form-control>
-                                <input type="date" [(ngModel)]="dateStart" name="dateStart"
-                                    class="form-control form-control-sm w-100" />
-                            </nz-form-control>
-                        </nz-form-item>
-                    </nz-col>
 
-                    <!-- Đến ngày -->
-                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
-                        <nz-form-item class="mb-0">
-                            <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
-                            <nz-form-control>
-                                <input type="date" [(ngModel)]="dateEnd" name="dateEnd"
-                                    class="form-control form-control-sm w-100" />
-                            </nz-form-control>
-                        </nz-form-item>
-                    </nz-col>
-
-                    <!-- Lọc theo trạng thái -->
-                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="4">
-                        <nz-form-item class="mb-0">
-                            <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái</nz-form-label>
-                            <nz-form-control>
-                                <nz-select class="w-100" nzShowSearch nzAllowClear nzMode="multiple" nzSize="small"
-                                    [(ngModel)]="status" name="status" nzPlaceHolder="Chọn trạng thái">
-                                    <nz-option *ngFor="let item of statusData" [nzValue]="item.ID"
-                                        [nzLabel]="item.Status">
-                                    </nz-option>
-                                </nz-select>
-                            </nz-form-control>
-                        </nz-form-item>
-                    </nz-col>
-
-                    <!-- Lọc theo phòng ban -->
-                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="4">
-                        <nz-form-item class="mb-0">
-                            <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
-                            <nz-form-control>
-                                <nz-select class="w-100" nzShowSearch nzAllowClear nzMode="multiple" nzSize="small"
-                                    [(ngModel)]="department" name="department" nzPlaceHolder="Chọn phòng ban">
-                                    <nz-option *ngFor="let item of departmentData" [nzValue]="item.ID"
-                                        [nzLabel]="item.Name">
-                                    </nz-option>
-                                </nz-select>
-                            </nz-form-control>
-                        </nz-form-item>
-                    </nz-col>
-
-                    <!-- Từ khóa và nút tìm kiếm -->
-                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="6">
-                        <nz-form-item class="mb-0">
-                            <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
-                            <nz-form-control>
-                                <div class="d-flex gap-1">
-                                    <input nz-input placeholder="Nhập từ khóa..." nzSize="small"
-                                        [(ngModel)]="filterText" name="filterText" class="flex-grow-1"
-                                        (keyup.enter)="getAssetmanagement()" />
-                                    <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
-                                        (click)="getAssetmanagement()">
-                                        <nz-icon nzType="search" />
-                                    </button>
-                                    <button nz-button nzType="default" nzSize="small" (click)="clearAllFilters()">
-                                        Đặt lại
-                                    </button>
-                                </div>
-                            </nz-form-control>
-                        </nz-form-item>
-                    </nz-col>
-                </nz-row>
-            </form>
+            <div class="search-field">
+                <label class="search-label">Từ ngày</label>
+                <input type="date" [(ngModel)]="dateStart"
+                    style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+            </div>
+            <div class="search-field">
+                <label class="search-label">Đến ngày</label>
+                <input type="date" [(ngModel)]="dateEnd"
+                    style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+            </div>
+            <div class="search-field">
+                <label class="search-label">Trạng thái</label>
+                <select [(ngModel)]="status" class="search-input-select">
+                    <option [ngValue]="[]">Tất cả</option>
+                    <option *ngFor="let item of statusData" [ngValue]="[item.ID]">{{ item.Status }}</option>
+                </select>
+            </div>
+            <div class="search-field">
+                <label class="search-label">Phòng ban</label>
+                <nz-select class="search-select" nzShowSearch nzAllowClear nzMode="multiple" nzSize="small"
+                    [(ngModel)]="department" nzPlaceHolder="Chọn phòng ban">
+                    <nz-option *ngFor="let item of departmentData" [nzValue]="item.ID"
+                        [nzLabel]="item.Name">
+                    </nz-option>
+                </nz-select>
+            </div>
+            <div class="search-field">
+                <label class="search-label">Từ khóa</label>
+                <input nz-input placeholder="Nhập từ khóa..." nzSize="small"
+                    [(ngModel)]="filterText"
+                    (keyup.enter)="getAssetmanagement()"
+                    style="width: 160px; font-size: 12px;" />
+            </div>
+            <button class="btn-search" (click)="getAssetmanagement()"
+                [disabled]="!dateStart || !dateEnd"
+                [class.btn-disabled]="!dateStart || !dateEnd">
+                <nz-icon nzType="search" />
+            </button>
+            <button class="btn-reset" (click)="clearAllFilters()">
+                Đặt lại
+            </button>
         </div>
 
         <!-- Content với bảng -->
@@ -132,8 +99,16 @@
                                         <th style="width: 50px; min-width: 50px; max-width: 50px; text-align: center;">
                                             STT</th>
                                         <th pSortableColumn="TSCodeNCC"
-                                            style="width: 80px; min-width: 80px; max-width: 80px; text-align: center;">
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
                                             Mã tài sản <p-sortIcon field="TSCodeNCC"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="OfficeActiveStatusText"
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                            Office Active <p-sortIcon field="OfficeActiveStatusText"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="WindowActiveStatusText"
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                            Windows Active <p-sortIcon field="WindowActiveStatusText"></p-sortIcon>
                                         </th>
                                         <th pSortableColumn="TSAssetName"
                                             style="width: 200px; min-width: 200px; max-width: 200px; text-align: center;">
@@ -147,6 +122,34 @@
                                             style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
                                             Tên loại <p-sortIcon field="AssetType"></p-sortIcon>
                                         </th>
+                                        <th pSortableColumn="SourceCode"
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                            Mã nguồn gốc <p-sortIcon field="SourceCode"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="SourceName"
+                                            style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
+                                            Tên nguồn gốc <p-sortIcon field="SourceName"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="SupplierCode"
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                            Mã NCC <p-sortIcon field="SupplierCode"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="SupplierName"
+                                            style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
+                                            Tên NCC <p-sortIcon field="SupplierName"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="Seri"
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                            Số Seri <p-sortIcon field="Seri"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="Model"
+                                            style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
+                                            Model <p-sortIcon field="Model"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="Quantity"
+                                            style="width: 100px; min-width: 100px; max-width: 100px; text-align: center;">
+                                            Số lượng <p-sortIcon field="Quantity"></p-sortIcon>
+                                        </th>
                                         <th pSortableColumn="Status"
                                             style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
                                             Tình trạng <p-sortIcon field="Status"></p-sortIcon>
@@ -159,9 +162,17 @@
                                             style="width: 100px; min-width: 100px; max-width: 100px; text-align: center;">
                                             Đơn vị <p-sortIcon field="UnitName"></p-sortIcon>
                                         </th>
+                                        <th pSortableColumn="DepartmentCode"
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                            Mã phòng ban <p-sortIcon field="DepartmentCode"></p-sortIcon>
+                                        </th>
                                         <th pSortableColumn="DepartmentName"
                                             style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
                                             Phòng ban <p-sortIcon field="DepartmentName"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="EmployeeCode"
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                            Mã nhân viên <p-sortIcon field="EmployeeCode"></p-sortIcon>
                                         </th>
                                         <th pSortableColumn="FullName"
                                             style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
@@ -170,6 +181,10 @@
                                         <th pSortableColumn="DateBuy"
                                             style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
                                             Thời gian mua <p-sortIcon field="DateBuy"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="Insurance"
+                                            style="width: 130px; min-width: 130px; max-width: 130px; text-align: center;">
+                                            Bảo hành (tháng) <p-sortIcon field="Insurance"></p-sortIcon>
                                         </th>
                                         <th pSortableColumn="DateEffect"
                                             style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
@@ -182,89 +197,159 @@
                                     <tr>
                                         <th style="width: 50px; min-width: 50px; max-width: 50px;"></th>
                                         <th style="width: 50px; min-width: 50px; max-width: 50px;"></th>
-                                        <th style="width: 80px; min-width: 80px; max-width: 80px;">
+                                        <th style="width: 120px; min-width: 120px; max-width: 120px;">
                                             <p-columnFilter field="TSCodeNCC" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value"
-                                                        (input)="filter($any($event.target).value)"
-                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 120px; min-width: 120px; max-width: 120px;">
+                                            <p-columnFilter field="OfficeActiveStatusText" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 120px; min-width: 120px; max-width: 120px;">
+                                            <p-columnFilter field="WindowActiveStatusText" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 200px; min-width: 200px; max-width: 200px;">
                                             <p-columnFilter field="TSAssetName" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value"
-                                                        (input)="filter($any($event.target).value)"
-                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 120px; min-width: 120px; max-width: 120px;">
                                             <p-columnFilter field="AssetCode" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value"
-                                                        (input)="filter($any($event.target).value)"
-                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 150px; min-width: 150px; max-width: 150px;">
                                             <p-columnFilter field="AssetType" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value"
-                                                        (input)="filter($any($event.target).value)"
-                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 120px; min-width: 120px; max-width: 120px;">
+                                            <p-columnFilter field="SourceCode" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 150px; min-width: 150px; max-width: 150px;">
+                                            <p-columnFilter field="SourceName" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 120px; min-width: 120px; max-width: 120px;">
+                                            <p-columnFilter field="SupplierCode" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 150px; min-width: 150px; max-width: 150px;">
+                                            <p-columnFilter field="SupplierName" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 120px; min-width: 120px; max-width: 120px;">
+                                            <p-columnFilter field="Seri" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 150px; min-width: 150px; max-width: 150px;">
+                                            <p-columnFilter field="Model" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 100px; min-width: 100px; max-width: 100px;">
+                                            <p-columnFilter field="Quantity" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 150px; min-width: 150px; max-width: 150px;">
                                             <p-columnFilter field="Status" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value"
-                                                        (input)="filter($any($event.target).value)"
-                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 200px; min-width: 200px; max-width: 200px;">
-                                            <p-columnFilter field="SpecificationsAsset" matchMode="contains"
-                                                [showMenu]="false">
+                                            <p-columnFilter field="SpecificationsAsset" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value"
-                                                        (input)="filter($any($event.target).value)"
-                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
-                                        <th style="width: 100px; min-width: 100px; max-width: 100px;"></th>
-                                        <th style="width: 150px; min-width: 150px; max-width: 150px;">
-                                            <p-columnFilter field="DepartmentName" matchMode="contains"
-                                                [showMenu]="false">
+                                        <th style="width: 100px; min-width: 100px; max-width: 100px;">
+                                            <p-columnFilter field="UnitName" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value"
-                                                        (input)="filter($any($event.target).value)"
-                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 120px; min-width: 120px; max-width: 120px;">
+                                            <p-columnFilter field="DepartmentCode" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 150px; min-width: 150px; max-width: 150px;">
+                                            <p-columnFilter field="DepartmentName" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="width: 120px; min-width: 120px; max-width: 120px;">
+                                            <p-columnFilter field="EmployeeCode" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 150px; min-width: 150px; max-width: 150px;">
                                             <p-columnFilter field="FullName" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value"
-                                                        (input)="filter($any($event.target).value)"
-                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 120px; min-width: 120px; max-width: 120px;"></th>
+                                        <th style="width: 130px; min-width: 130px; max-width: 130px;">
+                                            <p-columnFilter field="Insurance" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
                                         <th style="width: 120px; min-width: 120px; max-width: 120px;"></th>
                                         <th style="width: 250px; min-width: 250px; max-width: 250px;">
                                             <p-columnFilter field="Note" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value"
-                                                        (input)="filter($any($event.target).value)"
-                                                        class="p-inputtext-sm w-full" placeholder="Lọc...">
+                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
@@ -278,16 +363,33 @@
                                         </td>
                                         <td style="width: 50px; min-width: 50px; max-width: 50px; text-align: center;">
                                             {{ rowIndex + 1 }}</td>
-                                        <td style="width: 80px; min-width: 80px; max-width: 80px;" class="text-wrap">{{
-                                            row.TSCodeNCC }}</td>
+                                        <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
+                                            {{ row.TSCodeNCC }}</td>
+                                        <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
+                                            {{ row.OfficeActiveStatusText }}</td>
+                                        <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
+                                            {{ row.WindowActiveStatusText }}</td>
                                         <td style="width: 200px; min-width: 200px; max-width: 200px;" class="text-wrap">
                                             {{ row.TSAssetName }}</td>
                                         <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
                                             {{ row.AssetCode }}</td>
                                         <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
                                             {{ row.AssetType }}</td>
-                                        <td
-                                            style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
+                                        <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
+                                            {{ row.SourceCode }}</td>
+                                        <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
+                                            {{ row.SourceName }}</td>
+                                        <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
+                                            {{ row.SupplierCode }}</td>
+                                        <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
+                                            {{ row.SupplierName }}</td>
+                                        <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
+                                            {{ row.Seri }}</td>
+                                        <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
+                                            {{ row.Model }}</td>
+                                        <td style="width: 100px; min-width: 100px; max-width: 100px; text-align: center;">
+                                            {{ row.Quantity }}</td>
+                                        <td style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
                                             <span class="badge" [style.background]="row.statusColor"
                                                 style="display: block; width: 100%; white-space: normal; padding: 6px;">
                                                 {{ row.Status }}
@@ -297,15 +399,19 @@
                                             {{ row.SpecificationsAsset }}</td>
                                         <td style="width: 100px; min-width: 100px; max-width: 100px;" class="text-wrap">
                                             {{ row.UnitName }}</td>
+                                        <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
+                                            {{ row.DepartmentCode }}</td>
                                         <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
-                                            {{ row.Name }}</td>
+                                            {{ row.DepartmentName }}</td>
+                                        <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
+                                            {{ row.EmployeeCode }}</td>
                                         <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
                                             {{ row.FullName }}</td>
-                                        <td
-                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                        <td style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
                                             {{ row.DateBuy | date: 'dd/MM/yyyy' }}</td>
-                                        <td
-                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                        <td style="width: 130px; min-width: 130px; max-width: 130px; text-align: center;">
+                                            {{ row.Insurance }}</td>
+                                        <td style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
                                             {{ row.DateEffect | date: 'dd/MM/yyyy' }}</td>
                                         <td style="width: 250px; min-width: 250px; max-width: 250px;" class="text-wrap">
                                             {{ row.Note }}</td>
@@ -314,7 +420,7 @@
 
                                 <ng-template pTemplate="emptymessage">
                                     <tr>
-                                        <td colspan="14" class="text-center p-3 text-muted">Không tìm thấy dữ liệu tài
+                                        <td colspan="26" class="text-center p-3 text-muted">Không tìm thấy dữ liệu tài
                                             sản.</td>
                                     </tr>
                                 </ng-template>

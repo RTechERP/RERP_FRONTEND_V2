@@ -182,6 +182,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Map to store details for each master PONCC ID
   private masterDetailsMap: Map<number, any[]> = new Map();
+  private filterPatchObserver: MutationObserver | null = null;
 
   constructor(
     private srv: PONCCService,
@@ -194,6 +195,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     public appUserService: AppUserService,
     private tabService: TabServiceService,
+    private elementRef: ElementRef,
     @Optional() @Inject('tabData') public tabData?: any
   ) {
     this.employeeId = this.appUserService.employeeID || 0;
@@ -227,6 +229,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.tabOpenedSub?.unsubscribe();
+    if (this.filterPatchObserver) {
+      this.filterPatchObserver.disconnect();
+      this.filterPatchObserver = null;
+    }
   }
 
   ngAfterViewInit(): void {
@@ -238,6 +244,55 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.onSearch();
       }, 100);
     }, 200);
+    setTimeout(() => this.patchSlickGridFilterInputs(), 600);
+  }
+
+  /**
+   * Fix: SlickGrid filter inputs không nhận change khi Ctrl+X, Delete, Backspace trên text đang bôi đen.
+   */
+  private patchSlickGridFilterInputs(): void {
+    const container = this.elementRef.nativeElement as HTMLElement;
+
+    const applyPatch = (input: HTMLInputElement) => {
+      if (input.dataset['filterPatched']) return;
+      input.dataset['filterPatched'] = '1';
+
+      input.addEventListener('cut', () => {
+        setTimeout(() => input.dispatchEvent(new Event('input', { bubbles: true })), 10);
+      });
+
+      input.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          const hasSelection = (input.selectionStart ?? 0) !== (input.selectionEnd ?? 0);
+          if (hasSelection) {
+            setTimeout(
+              () => input.dispatchEvent(new Event('input', { bubbles: true })),
+              10
+            );
+          }
+        }
+      });
+    };
+
+    container
+      .querySelectorAll<HTMLInputElement>('.slick-headerrow-column input')
+      .forEach(applyPatch);
+
+    this.filterPatchObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of Array.from(mutation.addedNodes)) {
+          if (node instanceof HTMLElement) {
+            node.querySelectorAll<HTMLInputElement>(
+              '.slick-headerrow-column input'
+            ).forEach(applyPatch);
+            if (node instanceof HTMLInputElement && node.closest('.slick-headerrow-column')) {
+              applyPatch(node);
+            }
+          }
+        }
+      }
+    });
+    this.filterPatchObserver.observe(container, { childList: true, subtree: true });
   }
 
   toggleSearchPanel() {

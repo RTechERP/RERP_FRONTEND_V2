@@ -314,7 +314,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
   pendingApprovalTasks = computed(() => {
     const currentUserId = this.appUserService.employeeID;
     return this.allTasks()
-      .filter(t => t.Status === 3 && t.IsApproved === 1 && t.EmployeeIDRequest === currentUserId);
+      .filter(t => t.Status === 2 && t.ApprovalStatus === null && t.EmployeeIDRequest === currentUserId);
   });
 
   ngOnInit() {
@@ -461,7 +461,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
           const modalRef = this.modal.create({
             nzTitle: 'CHI TIẾT CÔNG VIỆC',
             nzContent: TaskDetailComponent,
-            nzData: { task: res.data },
+            nzData: { task: { ...res.data, ApprovalStatus: task.ApprovalStatus } },
             nzFooter: null,
             nzWidth: '100vw',
             nzBodyStyle: { padding: '0', height: '80vh', overflow: 'hidden' },

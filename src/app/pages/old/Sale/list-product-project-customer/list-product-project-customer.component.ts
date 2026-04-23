@@ -44,6 +44,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
+import * as ExcelJS from 'exceljs';
 import { ListProductProjectService } from '../ListProductProject/list-product-project-service/list-product-project.service';
 import { BillExportDetailNewComponent } from '../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 // import { ClipboardService } from '../../../../services/clipboard.service';
@@ -110,7 +111,6 @@ export class ListProductProjectCustomerComponent {
     this.initContextMenu();
     this.getProject();
     this.initColumns();
-    this.loadData();
   }
 
   ngOnDestroy(): void {
@@ -193,6 +193,126 @@ export class ListProductProjectCustomerComponent {
       });
   }
 
+  exportExcel() {
+    if (!this.dataset || this.dataset.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel');
+      return;
+    }
+
+    this.isLoading = true;
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Danh sách sản phẩm');
+
+      worksheet.columns = [
+        { header: 'STT', key: 'stt', width: 6 },
+        { header: 'Mã dự án', key: 'ProjectCode', width: 15 },
+        { header: 'Mã sản phẩm', key: 'ProductCode', width: 18 },
+        { header: 'Mã nội bộ', key: 'ProductNewCode', width: 15 },
+        { header: 'Tên sản phẩm', key: 'ProductName', width: 35 },
+        { header: 'Tồn đầu kỳ', key: 'NumberInStoreDauky', width: 14 },
+        { header: 'Nhập dự án', key: 'Import', width: 14 },
+        { header: 'Xuất dự án', key: 'Export', width: 14 },
+        { header: 'Tồn dự án', key: 'QuantityImportExport', width: 14 },
+        { header: 'Ngày nhập', key: 'ImportDates', width: 14 },
+        { header: 'Ngày xuất', key: 'ExportDates', width: 14 },
+        { header: 'Mã phiếu xuất', key: 'BillExportCode', width: 18 },
+        { header: 'Khách hàng', key: 'CustomerName', width: 35 },
+      ];
+
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true, size: 11 };
+      headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+      headerRow.height = 25;
+      headerRow.eachCell((cell: any) => {
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' },
+          bottom: { style: 'thin' }, right: { style: 'thin' }
+        };
+      });
+
+      const sums = { NumberInStoreDauky: 0, Import: 0, Export: 0, QuantityImportExport: 0 };
+
+      this.dataset.forEach((item: any, index: number) => {
+        const row = worksheet.addRow({
+          stt: index + 1,
+          ProjectCode: this.cleanXml(item.ProjectCode),
+          ProductCode: this.cleanXml(item.ProductCode),
+          ProductNewCode: this.cleanXml(item.ProductNewCode),
+          ProductName: this.cleanXml(item.ProductName),
+          NumberInStoreDauky: item.NumberInStoreDauky || 0,
+          Import: item.Import || 0,
+          Export: item.Export || 0,
+          QuantityImportExport: item.QuantityImportExport || 0,
+          ImportDates: item.ImportDates ? new Date(item.ImportDates).toLocaleDateString('vi-VN') : '',
+          ExportDates: item.ExportDates ? new Date(item.ExportDates).toLocaleDateString('vi-VN') : '',
+          BillExportCode: this.cleanXml(item.BillExportCode),
+          CustomerName: this.cleanXml(item.CustomerName),
+        });
+
+        row.eachCell((cell: any) => {
+          cell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' },
+            bottom: { style: 'thin' }, right: { style: 'thin' }
+          };
+        });
+
+        row.getCell('stt').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('ProjectCode').alignment = { horizontal: 'center', vertical: 'middle' };
+        (['NumberInStoreDauky', 'Import', 'Export', 'QuantityImportExport'] as const).forEach(key => {
+          row.getCell(key).alignment = { horizontal: 'right', vertical: 'middle' };
+          row.getCell(key).numFmt = '#,##0';
+          sums[key] += item[key] || 0;
+        });
+
+        row.getCell('ImportDates').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('ExportDates').alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+
+      const footerRow = worksheet.addRow({
+        stt: '', ProjectCode: '', ProductCode: 'TỔNG', ProductNewCode: '',
+        ProductName: '',
+        NumberInStoreDauky: sums.NumberInStoreDauky,
+        Import: sums.Import,
+        Export: sums.Export,
+        QuantityImportExport: sums.QuantityImportExport,
+        ImportDates: '', ExportDates: '', BillExportCode: '', CustomerName: '',
+      });
+      footerRow.font = { bold: true, size: 11 };
+      footerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFD966' } };
+      footerRow.eachCell((cell: any) => {
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' },
+          bottom: { style: 'thin' }, right: { style: 'thin' }
+        };
+      });
+      (['NumberInStoreDauky', 'Import', 'Export', 'QuantityImportExport'] as const).forEach(key => {
+        footerRow.getCell(key).alignment = { horizontal: 'right', vertical: 'middle' };
+        footerRow.getCell(key).numFmt = '#,##0';
+      });
+
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      workbook.xlsx.writeBuffer().then((buffer: any) => {
+        const blob = new Blob([buffer], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `DanhSachSanPham_${this.warehouseCode}_${dateStr}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.isLoading = false;
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xuất file Excel thành công!', { nzDuration: 1500 });
+      });
+    } catch (error) {
+      console.error('Lỗi khi xuất Excel:', error);
+      this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xuất Excel');
+      this.isLoading = false;
+    }
+  }
+
   getProject() {
     this.listproductprojectService.getProject().subscribe({
       next: (res) => {
@@ -214,7 +334,6 @@ export class ListProductProjectCustomerComponent {
         width: '120px',
         sortable: true,
         filterMode: 'multiselect',
-        textWrap: true,
       },
       {
         field: 'ProductCode',
@@ -222,7 +341,6 @@ export class ListProductProjectCustomerComponent {
         width: '150px',
         sortable: true,
         filterMode: 'multiselect',
-        textWrap: true,
       },
       {
         field: 'ProductNewCode',
@@ -296,7 +414,6 @@ export class ListProductProjectCustomerComponent {
         width: '150px',
         sortable: true,
         filterMode: 'multiselect',
-        textWrap: true,
       },
       {
         field: 'CustomerName',
@@ -323,12 +440,4 @@ export class ListProductProjectCustomerComponent {
     );
   }
 
-  exportExcel() {
-    if (!this.dataset || this.dataset.length === 0) {
-      this.notification.warning('Thông báo', 'Chưa có dữ liệu để xuất!');
-      return;
-    }
-    // Export functionality is handled by CustomTable's exportCSV or similar
-    // We can also trigger it manually if we had a ViewChild to CustomTable
-  }
 }

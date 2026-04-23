@@ -56,7 +56,8 @@ export interface IProjectTask {
     Code?: string;
     OrderIndex?: number;
     ParentID?: number;
-    IsApproved?: number; // 0/null: chưa duyệt, 1: Chờ duyệt, 2: Đã duyệt, 3: Từ chối
+    IsApproved?: number; // Old field (kept for compatibility)
+    ApprovalStatus?: boolean | null; // New field: null=chưa duyệt, true=đã duyệt, false=từ chối
     TaskComplexity?: number;
     IsAdditional?: boolean;
     TypeProjectItem?: number;

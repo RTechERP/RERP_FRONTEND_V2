@@ -58,7 +58,7 @@
                     </nz-select>
                 </div>
 
-                <div class="form-group col-md-4 m-0 p-1">
+                <div class="form-group col-md-2 m-0 p-1">
                     <label class="m-0">Nhà cung cấp</label>
                     <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small"
                         nzPlaceHolder="--Chọn nhà cung cấp--" formControlName="SupplierSaleID"
@@ -75,6 +75,16 @@
                         formControlName="PONCCID" nzDropdownClassName="select-dropdown">
                         @for (item of poNCCs; track item) {
                         <nz-option [nzLabel]="item.BillCode" [nzValue]="item.ID"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <div class="form-group col-md-2 m-0 p-1">
+                    <label class="m-0">Hợp đồng</label>
+                    <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn hợp đồng--"
+                        formControlName="RegisterContractID" nzDropdownClassName="select-dropdown">
+                        @for (item of registerContracts; track item) {
+                        <nz-option [nzLabel]="item.DocumentName" [nzValue]="item.ID"></nz-option>
                         }
                     </nz-select>
                 </div>
@@ -456,9 +466,9 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td class="text-end fw-bold">{{ totalDiff | number:'1.2-2' }}</td>
                         <td></td>
                         <td></td>
+                        <td class="text-end text-nowrap fw-bold">{{ totalDiff | number:'1.2-2' }}</td>
                         <td></td>
                     </tr>
 
@@ -470,9 +480,9 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td class="text-end">{{ diff1 | number:'1.2-2' }}</td>
                         <td></td>
                         <td></td>
+                        <td class="text-end text-nowrap fw-bold">{{ diff1 | number:'1.2-2' }}</td>
                         <td>
                             <textarea class="tbl-input" [(ngModel)]="t2RowDiff1.Note" rows="2"></textarea>
                         </td>
@@ -486,9 +496,9 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td class="text-end">{{ diff2 | number:'1.2-2' }}</td>
                         <td></td>
                         <td></td>
+                        <td class="text-end text-nowrap fw-bold">{{ diff2 | number:'1.2-2' }}</td>
                         <td>
                             <textarea class="tbl-input" [(ngModel)]="t2RowDiff2.Note" rows="2"></textarea>
                         </td>

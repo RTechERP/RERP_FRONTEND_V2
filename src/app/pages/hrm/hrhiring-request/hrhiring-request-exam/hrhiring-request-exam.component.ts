@@ -11,9 +11,17 @@ import { HRHiringRequestExamService } from './hrhiring-request-exam.service';
 import { HRHiringRequestExamDetailComponent } from './hrhiring-request-exam-detail/hrhiring-request-exam-detail.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ContextMenuModule } from 'primeng/contextmenu';
+import { ButtonModule } from 'primeng/button';
+import { SplitterModule } from 'primeng/splitter';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
+import { FormsModule } from '@angular/forms';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { DateTime } from 'luxon';
 
 @Component({
   selector: 'app-hrhiring-request-exam',
@@ -28,7 +36,14 @@ import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '
     ConfirmDialogModule,
     CheckboxModule,
     ContextMenuModule,
-    HasPermissionDirective
+    ButtonModule,
+    HasPermissionDirective,
+    FormsModule,
+    NzInputModule,
+    NzIconModule,
+    NzFormModule,
+    NzButtonModule,
+    SplitterModule
   ],
   providers: [MessageService, ConfirmationService]
 })
@@ -40,8 +55,19 @@ export class HRHiringRequestExamComponent implements OnInit {
   selectedHiringRequest: any;
   selectedItems: any[] = [];
   loading: boolean = false;
-  contextMenuItems: MenuItem[] = [];
   selectedRow: any;
+  candidatesList: any[] = [];
+  loadingCandidates: boolean = false;
+  selectedCandidate: any;
+  contextMenuItems: MenuItem[] = [];
+  candidateContextMenuItems: MenuItem[] = [];
+  selectedCandidates: any[] = [];
+
+  // Search parameters
+  showSearchBar: boolean = true;
+  keyword: string = '';
+  dateStart: string = '';
+  dateEnd: string = '';
 
   constructor(
     private service: HRHiringRequestExamService,
@@ -52,8 +78,13 @@ export class HRHiringRequestExamComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    const now = DateTime.local();
+    this.dateEnd = now.toFormat('yyyy-MM-dd');
+    this.dateStart = now.minus({ days: 30 }).toFormat('yyyy-MM-dd');
+
     this.initMenu();
     this.initContextMenu();
+    this.initCandidateContextMenu();
     this.loadData();
   }
 
@@ -81,7 +112,12 @@ export class HRHiringRequestExamComponent implements OnInit {
       {
         label: 'Làm mới',
         icon: 'fa-solid fa-arrows-rotate text-info',
-        command: () => this.loadData()
+        command: () => this.onReset()
+      },
+      {
+        label: 'Tìm kiếm',
+        icon: 'fa-solid fa-search text-primary',
+        command: () => this.ToggleSearchPanelNew()
       }
     ];
   }
@@ -101,9 +137,26 @@ export class HRHiringRequestExamComponent implements OnInit {
     ];
   }
 
+  initCandidateContextMenu(): void {
+    this.candidateContextMenuItems = [
+      {
+        label: 'Kích hoạt bài thi',
+        icon: 'fa-solid fa-check text-success',
+        command: () => this.onToggleCandidateExam([this.selectedCandidate], true)
+      },
+      {
+        label: 'Khóa bài thi',
+        icon: 'fa-solid fa-lock text-danger',
+        command: () => this.onToggleCandidateExam([this.selectedCandidate], false)
+      }
+    ];
+  }
+
   loadData(): void {
     this.loading = true;
-    this.service.getHiringRequests().subscribe({
+    const ds = this.dateStart ? new Date(this.dateStart).toISOString() : '';
+    const de = this.dateEnd ? new Date(this.dateEnd).toISOString() : '';
+    this.service.getHiringRequests(ds, de, this.keyword).subscribe({
       next: (res) => {
         if (res.status === 1) {
           this.uniqueHiringRequests = res.data;
@@ -135,6 +188,22 @@ export class HRHiringRequestExamComponent implements OnInit {
     });
   }
 
+  onSearch(): void {
+    this.loadData();
+  }
+
+  onReset(): void {
+    this.keyword = '';
+    const now = DateTime.local();
+    this.dateEnd = now.toFormat('yyyy-MM-dd');
+    this.dateStart = now.minus({ days: 30 }).toFormat('yyyy-MM-dd');
+    this.loadData();
+  }
+
+  ToggleSearchPanelNew(): void {
+    this.showSearchBar = !this.showSearchBar;
+  }
+
   updateMenuState(): void {
     const hasSelectionOnLeft = !!this.selectedHiringRequest;
     const hasSelectionOnRight = this.selectedItems && this.selectedItems.length > 0;
@@ -154,6 +223,7 @@ export class HRHiringRequestExamComponent implements OnInit {
 
   onHiringRequestSelect(event: any): void {
     this.filterExams();
+    this.loadCandidates(event.data.HiringRequestID);
     this.updateMenuState();
   }
 
@@ -185,6 +255,62 @@ export class HRHiringRequestExamComponent implements OnInit {
       this.filteredExams = [];
     }
     this.selectedItems = [];
+  }
+
+  loadCandidates(hiringRequestId: number): void {
+    if (!hiringRequestId) {
+      this.candidatesList = [];
+      return;
+    }
+    this.loadingCandidates = true;
+    this.service.getCandidates(hiringRequestId).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.candidatesList = res.data;
+        } else {
+          this.candidatesList = [];
+        }
+        this.loadingCandidates = false;
+      },
+      error: (err: any) => {
+        this.candidatesList = [];
+        this.loadingCandidates = false;
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+      }
+    });
+  }
+
+  onToggleCandidateExam(candidates: any[], status: boolean): void {
+    if (!candidates || candidates.length === 0) return;
+    console.log('Toggling exam status for candidates:', candidates, status);
+    this.loadingCandidates = true;
+    const ids = candidates.map(c => c.ID || c.CandidateID);
+    this.service.updateActiveExamCandidate(ids, status).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.notification.create('success', 'Thành công', res.message || 'Cập nhật trạng thái thành công');
+          this.selectedCandidates = [];
+          this.loadCandidates(this.selectedHiringRequest.HiringRequestID);
+        } else {
+          this.notification.create('error', 'Lỗi', res.message || 'Cập nhật thất bại');
+        }
+        this.loadingCandidates = false;
+      },
+      error: (err: any) => {
+        this.loadingCandidates = false;
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+      }
+    });
   }
 
   extractUniqueHiringRequests(): void {

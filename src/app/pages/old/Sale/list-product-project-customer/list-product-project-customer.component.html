@@ -22,7 +22,7 @@
             style="height: 90vh">
             <app-custom-table [data]="dataset" [columns]="columnDefinitions" [loading]="isLoading" [showFooter]="true"
                 [scrollable]="true" height="100%" [rowSpanBy]="'ProductID'" [exportable]="false"
-                [showGlobalFilter]="false" columnLayout="fixed"
+                [showGlobalFilter]="false" columnLayout="fixed" [virtualScroll]="true" [virtualScrollItemSize]="30"
                 [contextMenuItems]="contextMenu" [(selectedContextRow)]="selectedContextRow">
             </app-custom-table>
         </div>

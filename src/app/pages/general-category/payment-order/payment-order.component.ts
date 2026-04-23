@@ -719,22 +719,7 @@ export class PaymentOrderComponent implements OnInit {
                 label: 'Xuất excel',
                 icon: 'fa-solid fa-file-excel fa-lg text-success',
                 command: () => {
-                    const dateStart = DateTime.fromJSDate(this.param.dateStart).toFormat('ddMMyyyy');
-                    const dateEnd = DateTime.fromJSDate(this.param.dateEnd).toFormat('ddMMyyyy');
-                    const now = DateTime.fromJSDate(new Date()).toFormat('HHmmss');
-                    if (this.activeTab == '0') {
-
-                        this.excelExportService.exportToExcel({
-                            filename: `TheoDoiChiPhiVP_${dateStart}_${dateEnd}_${now}`,
-                            format: 'xlsx'
-                        });
-                    } else {
-                        this.excelExportServiceSpecial.exportToExcel({
-                            filename: `TheoDoiChiPhiVPDB_${dateStart}_${dateEnd}_${now}`,
-                            format: 'xlsx'
-                        });
-                    }
-
+                    this.exportToExcelJS(this.activeTab !== '0');
                 }
             },
             {
@@ -1300,6 +1285,16 @@ export class PaymentOrderComponent implements OnInit {
                 //         filter: true,
                 //     } as MultipleSelectOption,
                 // },
+            },
+
+            {
+                id: 'HRNote',
+                name: 'Ghi chú HR',
+                field: 'HRNote',
+                sortable: true,
+                filterable: true,
+                width: 200,
+                filter: { model: Filters['compoundInputText'] },
             },
 
 
@@ -2772,10 +2767,11 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     loadData() {
-
         // console.log('this.activeTabqqq:', this.activeTab);
-        this.loadDataNormal();
-        this.loadDataSpecial();
+        if (this.activeTab == '0')
+            this.loadDataNormal();
+        else
+            this.loadDataSpecial();
     }
 
     loadDataNormal() {
@@ -2842,7 +2838,7 @@ export class PaymentOrderComponent implements OnInit {
         //         this.param.approvedTBPID = 0;
         //         this.param.step = 0;
         //     }
-
+        this.isLoading = true;
         let emp = 0;
         if (this.isPermisstionDB && this.isApprove) {
             emp = this.param.employeeID;
@@ -2879,12 +2875,16 @@ export class PaymentOrderComponent implements OnInit {
                 // if (columnElement) {
                 //     columnElement.textContent = `${this.formatNumber(this.datasetSpecial.length, 0)}`;
                 // }
+                this.isLoading = false;
+
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
                     {
                         nzStyle: { whiteSpace: 'pre-line' }
                     });
+                this.isLoading = false;
+
             }
         })
     }
@@ -3623,22 +3623,26 @@ export class PaymentOrderComponent implements OnInit {
         }
 
         if (isApproved == 1) {
-            Swal.fire({
-                title: 'Xác nhận duyệt?',
-                text: `Bạn có chắc muốn duyệt ${selectedItems.length} đã chọn không?`,
-                icon: 'question',
+            const result = await Swal.fire({
+                input: 'textarea',
+                inputLabel: 'Ghi chú HR',
+                inputPlaceholder: 'Nhập ghi chú HR...',
+                inputAttributes: {
+                    'aria-label': 'Ghi chú HR',
+                },
                 showCancelButton: true,
                 confirmButtonColor: '#28a745 ',
                 cancelButtonColor: '#dc3545 ',
                 confirmButtonText: 'Duyệt',
                 cancelButtonText: 'Hủy',
-            }).then((result: any) => {
-                if (result.isConfirmed) {
-                    // console.log('duyêt:', selectedItems);
-
-                    this.handleApproved(selectedItems);
-                }
             });
+            if (result.isConfirmed) {
+                selectedItems = selectedItems.map((x: any) => ({
+                    ...x,
+                    HRNote: result.value || '',
+                }));
+                this.handleApproved(selectedItems);
+            }
         } else if (isApproved == 3) {
             const { value: reason }: { value?: string } = await Swal.fire({
                 input: 'textarea',
@@ -4247,6 +4251,243 @@ export class PaymentOrderComponent implements OnInit {
         }
     }
 
+    async exportToExcelJS(isSpecial: boolean = false) {
+        const ExcelJSModule = await import('exceljs');
+        // esbuild/webpack có thể wrap CJS → default. Fallback để tương thích
+        const WorkbookClass: any =
+            (ExcelJSModule as any).Workbook ??
+            (ExcelJSModule as any).default?.Workbook ??
+            (ExcelJSModule as any).default;
+        const workbook = new WorkbookClass();
+        const sheet = workbook.addWorksheet('Danh sách');
+
+        // Utility formatters
+        const dd = (n: number) => String(n).padStart(2, '0');
+        const fmtDate = (val: any): string => {
+            if (!val) return '';
+            try {
+                const d = new Date(val);
+                if (isNaN(d.getTime())) return '';
+                return `${dd(d.getDate())}/${dd(d.getMonth() + 1)}/${d.getFullYear()}`;
+            } catch { return ''; }
+        };
+        const fmtTime = (val: any): string => {
+            if (!val) return '';
+            try {
+                const d = new Date(val);
+                if (isNaN(d.getTime())) return '';
+                return `${dd(d.getHours())}:${dd(d.getMinutes())}`;
+            } catch { return ''; }
+        };
+        const fmtDateTime = (val: any): string => {
+            const date = fmtDate(val);
+            const time = fmtTime(val);
+            return date ? `${date} ${time}` : '';
+        };
+        const boolStr = (val: any) => (val === true) ? 'x' : '';
+
+        // Lấy dữ liệu đang hiển thị theo filter hiện tại
+        const filteredData: any[] = [];
+        const gridInstance = isSpecial ? this.angularGridSpecial : this.angularGrid;
+        if (gridInstance?.dataView) {
+            const len = gridInstance.dataView.getLength();
+            for (let i = 0; i < len; i++) {
+                filteredData.push(gridInstance.dataView.getItem(i));
+            }
+        } else {
+            filteredData.push(...(isSpecial ? this.datasetSpecial : this.dataset));
+        }
+
+        // ===== Dòng 1: tên các cột =====
+        const HEADERS = [
+            'Người nhận tiền', 'Số tài khoản', 'Ngân hàng',
+            'STT', 'Thanh toán gấp', 'Ngày đề nghị', 'Deadline', 'Tình trạng phiếu', 'Số đề nghị',
+            'Người đề nghị', 'Bộ phận', 'Phân loại chính', 'Nội dung chính của đề nghị', 'Lý do thanh toán',
+            'Số tiền', 'Số tiền thanh toán', 'Số tiền thanh toán thực tế', 'ĐVT', 'Bỏ qua HR',
+            'Hình thức thanh toán', 'Nội dung chuyển khoản', 'Nhà cung cấp',
+            'Trạng thái hợp đồng', 'Số hợp đồng', 'Dự án',
+            'Có hóa đơn', 'Điểm đi', 'Điểm đến', 'Trạng thái Bank Slip',
+            'Lịch sử duyệt / hủy duyệt', 'Lý do hủy duyệt', 'Ghi chú / Chứng từ kèm theo',
+            'Ghi chú kế toán', 'Số PO', 'Lý do KT Y/c bổ sung', 'Lý do HR Y/c bổ sung',
+        ];
+
+        const headerRow1 = sheet.getRow(1);
+        HEADERS.forEach((h, idx) => {
+            const cell = headerRow1.getCell(idx + 1);
+            cell.value = h;
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E75B6' } };
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            cell.border = {
+                top: { style: 'thin' }, left: { style: 'thin' },
+                bottom: { style: 'thin' }, right: { style: 'thin' },
+            };
+        });
+        headerRow1.height = 30;
+
+        // ===== Dữ liệu =====
+        // 0-indexed: TotalMoney=14, TotalPayment=15, TotalPaymentActual=16
+        const MONEY_COLS = [14, 15, 16];
+        // 0-indexed: STT=3, IsUrgent=4, DateOrder=5, Deadline=6, Unit=17, IsIgnoreHR=18, IsBill=25
+        const CENTER_COLS = [3, 4, 5, 6, 17, 18, 25];
+
+        filteredData.forEach((item, rowIdx) => {
+            const row = sheet.getRow(rowIdx + 2);
+            const vals: any[] = [
+                item.ReceiverInfo ?? '',
+                item.AccountNumber ?? '',
+                item.Bank ?? '',
+                item.RowNum ?? '',
+                boolStr(item.IsUrgent),
+                fmtDate(item.DateOrder),
+                fmtDateTime(item.DeadlinePayment),
+                item.StepName ?? '',
+                item.Code ?? '',
+                item.FullName ?? '',
+                item.DepartmentName ?? '',
+                item.TypeOrderText ?? '',
+                item.TypeName ?? '',
+                item.ReasonOrder ?? '',
+                item.TotalMoney ?? 0,
+                item.TotalPayment ?? 0,
+                item.TotalPaymentActual ?? 0,
+                (item.Unit ?? '').toUpperCase(),
+                boolStr(item.IsIgnoreHR),
+                item.TypeBankTransferText ?? '',
+                item.ContentBankTransfer ?? '',
+                item.SuplierName ?? '',
+                item.StatusContractText ?? '',
+                item.DocumentName ?? '',
+                item.ProjectFullName ?? '',
+                boolStr(item.IsBill),
+                item.StartLocation ?? '',
+                item.EndLocation ?? '',
+                item.StatusBankSlip ?? '',
+                item.ContentLog ?? '',
+                item.ReasonCancel ?? '',
+                item.Note ?? '',
+                item.AccountingNote ?? '',
+                item.POCode ?? '',
+                item.ReasonRequestAppendFileAC ?? '',
+                item.ReasonRequestAppendFileHR ?? '',
+            ];
+
+            vals.forEach((v, ci) => {
+                const cell = row.getCell(ci + 1);
+                cell.value = v;
+                cell.border = {
+                    top: { style: 'thin' }, left: { style: 'thin' },
+                    bottom: { style: 'thin' }, right: { style: 'thin' },
+                };
+                if (MONEY_COLS.includes(ci)) {
+                    cell.numFmt = '#,##0';
+                    cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                } else if (CENTER_COLS.includes(ci)) {
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                } else {
+                    cell.alignment = { vertical: 'middle' };
+                }
+            });
+            row.commit();
+        });
+
+        // ===== Độ rộng cột =====
+        const COL_WIDTHS = [
+            20, 18, 15,              // Người nhận tiền, Số tài khoản, Ngân hàng
+            8, 15, 14, 22, 25, 20,   // STT, Thanh toán gấp, Ngày đề nghị, Deadline, Tình trạng phiếu, Số đề nghị
+            22, 20, 22, 35, 45,      // Người đề nghị, Bộ phận, Phân loại chính, Nội dung chính, Lý do thanh toán
+            18, 18, 20, 8, 12,       // Số tiền, TT, TT thực tế, ĐVT, Bỏ qua HR
+            25, 35, 25, 25, 25, 35,  // Hình thức TT, ND chuyển khoản, NCC, Trạng thái HĐ, Số HĐ, Dự án
+            12, 35, 35, 25,          // Có HĐ, Điểm đi, Điểm đến, Trạng thái Bank Slip
+            45, 35, 45, 35,          // Lịch sử, Lý do hủy, Ghi chú CT, Ghi chú KT
+            15, 35, 35,              // Số PO, Lý do KT, Lý do HR
+        ];
+        COL_WIDTHS.forEach((w, i) => { sheet.getColumn(i + 1).width = w; });
+
+        // ===== Helper: số cột → chữ cột Excel (1=A, 26=Z, 27=AA, ...) =====
+        const colLetter = (n: number): string => {
+            let s = '';
+            let num = n;
+            while (num > 0) {
+                num--;
+                s = String.fromCharCode(65 + (num % 26)) + s;
+                num = Math.floor(num / 26);
+            }
+            return s;
+        };
+
+        const totalCols = 36; // 36 cột cố định
+        const dataStartRow = 2;
+        const lastDataRow = filteredData.length + 1; // row 1=col header, data từ row 2
+
+        // ===== AutoFilter trên dòng header (dòng 1) =====
+        sheet.autoFilter = {
+            from: { row: 1, column: 1 },
+            to: { row: 1, column: totalCols },
+        };
+
+        // ===== Dòng TỔNG CỘNG =====
+        if (filteredData.length > 0) {
+            const totalRowIdx = lastDataRow + 1;
+            const totalRow = sheet.getRow(totalRowIdx);
+
+            // Tô toàn bộ dòng nền xanh nhạt + border
+            for (let ci = 1; ci <= totalCols; ci++) {
+                const cell = totalRow.getCell(ci);
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD6E4F0' } };
+                cell.border = {
+                    top: { style: 'medium' }, left: { style: 'thin' },
+                    bottom: { style: 'medium' }, right: { style: 'thin' },
+                };
+            }
+
+            // Label "TỔNG CỘNG" ở cột 1
+            const labelCell = totalRow.getCell(1);
+            labelCell.value = 'TỔNG CỘNG';
+            labelCell.font = { bold: true, color: { argb: 'FF1F4E79' }, size: 10 };
+            labelCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+            // COUNT dòng dữ liệu (cột STT = cột 4 = D)
+            const cntCol = 4;
+            const cntCell = totalRow.getCell(cntCol);
+            cntCell.value = { formula: `COUNTA(${colLetter(cntCol)}${dataStartRow}:${colLetter(cntCol)}${lastDataRow})` };
+            cntCell.font = { bold: true, color: { argb: 'FF1F4E79' } };
+            cntCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+            // SUM 3 cột tiền: TotalMoney=15(O), TotalPayment=16(P), TotalPaymentActual=17(Q)
+            [15, 16, 17].forEach(ci => {
+                const cell = totalRow.getCell(ci);
+                cell.value = { formula: `SUM(${colLetter(ci)}${dataStartRow}:${colLetter(ci)}${lastDataRow})` };
+                cell.numFmt = '#,##0';
+                cell.font = { bold: true, color: { argb: 'FF1F4E79' } };
+                cell.alignment = { horizontal: 'right', vertical: 'middle' };
+            });
+
+            totalRow.height = 22;
+            totalRow.commit();
+        }
+
+        // Đóng băng dòng header
+        sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, activeCell: 'A2' }];
+
+        // ===== Tải file =====
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        const dateStart = DateTime.fromJSDate(this.param.dateStart).toFormat('ddMMyyyy');
+        const dateEnd = DateTime.fromJSDate(this.param.dateEnd).toFormat('ddMMyyyy');
+        const now = DateTime.now().toFormat('HHmmss');
+        anchor.href = url;
+        anchor.download = isSpecial
+            ? `TheoDoiChiPhiVPDB_${dateStart}_${dateEnd}_${now}.xlsx`
+            : `TheoDoiChiPhiVP_${dateStart}_${dateEnd}_${now}.xlsx`;
+        anchor.click();
+        URL.revokeObjectURL(url);
+    }
+
     formatNumber(num: number, digits: number = 2) {
         num = num || 0;
         return num.toLocaleString('vi-VN', {
@@ -4667,6 +4908,18 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     height: 60,
                 },
+                {
+
+                },
+                ...(paymentOrder.PaymentOrderTypeID === 22 ? [
+                    {
+                        columns: [
+                            { text: 'Điểm đi: ' + (paymentOrder.StartLocation || ''), width: '*' },
+                            { text: 'Điểm đến: ' + (paymentOrder.EndLocation || ''), width: '*' },
+                        ],
+                        margin: [0, 5, 0, 5],
+                    },
+                ] : []),
                 { text: "GHI CHÚ KẾ TOÁN:", bold: true, margin: [0, 10, 0, 0] },
                 { text: paymentOrder.AccountingNote, bold: true, margin: [0, 0, 0, 60] },
 
@@ -4983,9 +5236,10 @@ export class PaymentOrderComponent implements OnInit {
     tabValueChange(e: any) {
         // console.log('tabValueChange e:', e);
         this.activeTab = e;
+
         console.log('this.activeTab tabValueChange:', this.activeTab);
         this.getSteps();
-
+        this.loadData();
     }
 
     onUpdateTotalMoney() {

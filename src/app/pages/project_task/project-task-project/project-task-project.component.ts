@@ -607,7 +607,7 @@ export class ProjectTaskProjectComponent implements OnInit {
     this.projectTaskService.getTaskById(taskData.ID).subscribe({
       next: (res) => {
         if (res.status === 200 || res.status === 1) {
-          const fullTaskData = res.data;
+          const fullTaskData = { ...res.data, ApprovalStatus: taskData.ApprovalStatus };
 
           const modalRef = this.nzModal.create({
             nzTitle: 'CHI TIẾT CÔNG VIỆC',

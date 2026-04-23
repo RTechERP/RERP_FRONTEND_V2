@@ -70,8 +70,16 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
 
     @Input() minWidth: string = '50rem';
 
-    get tableStyleObj(): { [key: string]: string | null } {
-        return { 'min-width': this.minWidth, 'width': this.resizeMode === 'expand' ? null : '100%' };
+    get tableStyleObj() {
+        if (this.columnAutoWidth) {
+            return { 'width': '100%' };
+        }
+        return { 'min-width': '100%', 'width': 'max-content' };
+    }
+
+    /** Resize mode: columnAutoWidth=true forces 'fit'; otherwise use the resizeMode input */
+    get effectiveResizeMode(): 'fit' | 'expand' {
+        return this.columnAutoWidth ? 'fit' : this.resizeMode;
     }
 
     // --- Highlighting State ---
@@ -102,9 +110,23 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     // --- Cell Value Cache (avoid re-calling formatValue + getHighlightedText per CD cycle) ---
     private cellValueCache = new Map<string, string>();
 
+    // --- Per-column caches (rebuilt on columns/textWrap change, avoids per-cell ternaries in template) ---
+    /** 'wrap-text' or 'truncate-text' per column field */
+    colWrapClassCache: { [field: string]: string } = {};
+    /** Base td class (alignment + frozen) per column field — excludes dynamic cellClass/focusedCell */
+    colBaseTdClass: { [field: string]: string } = {};
+    /** Cached result of columns.some(textWrap) — avoids per-CD columns.some() in @HostBinding */
+    private _hasWrapColumn: boolean = false;
+
+    // --- Per-row class cache (rebuilt on data change, avoids calling rowClass() per row per CD) ---
+    private rowClassCache = new Map<any, any>();
+
     // --- Cell Focus State ---
     focusedCell: { rowData: any, colField: string } | null = null;
     private lookupDebounceTimer: any = null;
+    // --- Incremental Search ---
+    private _incrBuffer: string = '';
+    private _incrTimer: any = null;
 
     // --- Data ---
     private _originalData: any[] = [];
@@ -114,6 +136,7 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
         this._originalData = val ? [...val] : [];
         this._data = val ? [...val] : [];
         this.cellValueCache.clear();
+        this.rebuildRowClassCache();
         this.scheduleBuildFilterOptionsCache();
     }
     get data(): any[] {
@@ -128,6 +151,10 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     @Input() showGlobalFilter: boolean = false;
     @Input() globalFilterFields: string[] = [];
 
+    get hasCaption(): boolean {
+        return !!(this.title || this.showGlobalFilter || this.exportable);
+    }
+
     get actualGlobalFilterFields(): string[] {
         if (this.globalFilterFields && this.globalFilterFields.length > 0) {
             return this.globalFilterFields;
@@ -139,16 +166,33 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     @Input() height: string = '100%';
     @HostBinding('style.height') get hostHeight() { return this.height; }
     @Input() resizable: boolean = true;
-    @Input() resizeMode: string = 'expand';
+    /** 'fit' = resize shrinks others to keep table width; 'expand' = table width grows (default) */
+    @Input() resizeMode: 'fit' | 'expand' = 'expand';
+    /** When true: all columns fill the viewport width (no horizontal scrollbar) and resize in 'fit' mode.
+     *  When false (default): columns have independent widths; horizontal scrollbar appears if needed.
+     *  Overrides resizeMode when set. */
+    @Input() columnAutoWidth: boolean = false;
+    /** Max rows scanned when computing Best Fit width. 0 = scan all rows (default). */
+    @Input() bestFitMaxRowCount: number = 0;
     @Input() showGridlines: boolean = true;
     @Input() fontSize: string = '10px';
     @HostBinding('style.--table-font-size') get tableFontSizeVar() { return this.fontSize; }
     @HostBinding('style.--virtual-row-height') get virtualRowHeightVar() { return this.isVirtualScroll ? this.virtualScrollItemSize + 'px' : null; }
     @HostBinding('class.vs-active') get vsActiveClass() { return this.isVirtualScroll; }
+    @HostBinding('class.vs-wrap') get vsWrapClass() { return this.isVirtualScroll && this.hasWrapColumn; }
     /** 'auto' = columns size to content; 'fixed' = use the widths set in column definitions */
-    @Input() columnLayout: 'auto' | 'fixed' = 'auto';
-    _columnLayout: 'auto' | 'fixed' = 'auto';
+    @Input() columnLayout: 'auto' | 'fixed' = 'fixed';
+    _columnLayout: 'auto' | 'fixed' = 'fixed';
     @HostBinding('style.--table-col-layout') get colLayoutVar() { return this._columnLayout; }
+    /** View mode: 'grid' = standard table, 'card' = card/tile layout */
+    @Input() viewMode: 'grid' | 'card' = 'grid';
+    /** Show a preview sub-row below each data row */
+    @Input() showPreviewRow: boolean = false;
+    /** Field to display in the preview sub-row */
+    @Input() previewField: string = '';
+    /** Show aggregate summaries (sum/avg/count/min/max) in each group footer row (rowGroupMode='subheader') */
+    @Input() groupSummary: boolean = false;
+    @Input() showCaption: boolean = true;
     @Input() showColumnFilter: boolean = true;
     /** 'row' = filter inputs below header (default), 'menu' = filter icon in header opens popup */
     @Input() filterDisplay: 'row' | 'menu' = 'row';
@@ -174,6 +218,9 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     get isVirtualScroll(): boolean {
         return this.virtualScroll || (this.lazyRenderThreshold > 0 && this._data.length > this.lazyRenderThreshold);
     }
+
+    /** True when virtual scroll is active AND at least one column has textWrap */
+    get hasWrapColumn(): boolean { return this._hasWrapColumn; }
 
     /** Extra rows rendered above/below viewport — reduces blank area when scrolling fast */
     get mergedVirtualScrollOptions(): Record<string, unknown> | undefined {
@@ -364,10 +411,10 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     /** Build the CSS class string for a body <td>. Returns a single pre-built string
      *  so Angular doesn't diff a new array on every CD cycle. */
     getTdClass(col: ColumnDef, rowData: any): string {
-        let cls = this.autoAlignCache[col.field] || '';
+        let cls = this.colBaseTdClass[col.field] || '';
+        if (col.editType === 'table-lookup' && col.editable && this.editMode) cls += ' table-lookup-td';
         if (col.cellClass) cls += ' ' + col.cellClass(rowData);
-        if (col.frozen) cls += col.alignFrozen === 'right' ? ' frozen-right' : ' frozen-left';
-        if (this.focusedCell && this.focusedCell.rowData === rowData && this.focusedCell.colField === col.field) cls += ' focused-cell';
+        if (this.focusedCell?.rowData === rowData && this.focusedCell?.colField === col.field) cls += ' focused-cell';
         return cls;
     }
 
@@ -410,9 +457,13 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
         if (changes['data'] || changes['columns']) {
             this.scheduleBuildFilterOptionsCache();
         }
+        if (changes['textWrap']) {
+            this.rebuildColCaches();
+        }
         if (changes['columns'] && this.columns) {
             this._allColumns = [...this.columns];
             this.rebuildAutoAlignCache();
+            this.rebuildColCaches();
             if (this._viewInitialized) {
                 setTimeout(() => this.recalcFrozenPositions());
             }
@@ -455,6 +506,42 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
         for (const col of this.columns) {
             this.autoAlignCache[col.field] = this.getAutoAlignClass(col.cssClass, col);
         }
+    }
+
+    /** Pre-compute wrap class and base td class per column to avoid per-cell ternaries in template. */
+    private rebuildColCaches() {
+        this._hasWrapColumn = false;
+        this.colWrapClassCache = {};
+        this.colBaseTdClass = {};
+        for (const col of this.columns) {
+            // Wrap class
+            const wrap = col.textWrap !== undefined
+                ? col.textWrap
+                : (col.editType === 'textarea' ? true : this.textWrap);
+            if (wrap) this._hasWrapColumn = true;
+            this.colWrapClassCache[col.field] = wrap ? 'wrap-text' : 'truncate-text';
+
+            // Base td class: alignment + frozen — excludes dynamic cellClass / focusedCell
+            let cls = this.autoAlignCache[col.field] || '';
+            if (col.frozen) cls += col.alignFrozen === 'right' ? ' frozen-right' : ' frozen-left';
+            this.colBaseTdClass[col.field] = cls.trim();
+        }
+    }
+
+    /** Pre-compute row ngClass per row so rowClass() isn't called on every CD cycle. */
+    private rebuildRowClassCache() {
+        this.rowClassCache.clear();
+        if (!this.rowClass || !this._data) return;
+        for (const row of this._data) {
+            const key = this.dataKey ? row[this.dataKey] : row;
+            this.rowClassCache.set(key, this.rowClass(row));
+        }
+    }
+
+    getRowClass(rowData: any): any {
+        if (!this.rowClass) return null;
+        const key = this.dataKey ? rowData[this.dataKey] : rowData;
+        return this.rowClassCache.get(key) ?? null;
     }
 
     get visibleColumns(): ColumnDef[] {
@@ -517,7 +604,7 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     onGlobalFilter(event: Event) {
         this.globalFilterValue = (event.target as HTMLInputElement).value;
         this.cellValueCache.clear();
-        this.dt.filterGlobal(this.globalFilterValue, 'contains');
+        this.dt?.filterGlobal(this.globalFilterValue, 'contains');
     }
 
     getHighlightedText(text: any): string {
@@ -530,7 +617,8 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
 
     /** Memoized cell value: formatValue + getHighlightedText once per cell, cached across CD cycles */
     getCellValue(col: ColumnDef, rowData: any): string {
-        const rowKey = this.dataKey ? rowData[this.dataKey] : null;
+        // Computed columns are not cacheable by key since they can depend on any field
+        const rowKey = (!col.computed && this.dataKey) ? rowData[this.dataKey] : null;
         const cacheKey = rowKey != null ? `${col.field}__${rowKey}__${this.globalFilterValue}` : null;
         if (cacheKey) {
             const cached = this.cellValueCache.get(cacheKey);
@@ -652,9 +740,9 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
 
     getFilteredOptions(col: ColumnDef): { label: string; value: any }[] {
         const options = this.getFilterOptions(col);
-        const term = (this.excelFilterSearchText[col.field] || '').toLowerCase();
+        const term = (this.excelFilterSearchText[col.field] || '').trim().toLowerCase();
         if (!term) return options;
-        return options.filter(o => o.label.toLowerCase().includes(term));
+        return options.filter(o => (o.label || '').toLowerCase().includes(term));
     }
 
     trackByValue(_index: number, opt: { label: string; value: any }): any {
@@ -700,7 +788,7 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     }
 
     formatValue(col: ColumnDef, rowData: any): string {
-        const val = rowData[col.field];
+        const val = col.computed ? col.computed(rowData) : rowData[col.field];
         if (col.format) {
             return col.format(val, rowData);
         }
@@ -916,17 +1004,19 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
             { separator: true }
         );
 
-        // --- Column Sizing ---
+        // --- Best Fit ---
         this.headerMenuItems.push(
-            { label: 'Tự động co cột', icon: 'pi pi-arrows-h', command: () => this.autoFitColumn(field) },
-            { label: 'Tự động co tất cả cột', icon: 'pi pi-arrows-alt', command: () => this.autoFitAllColumns() },
+            { label: 'Best Fit cột này', icon: 'pi pi-arrows-h', command: () => this.bestFitColumn(field) },
+            { label: 'Best Fit tất cả cột', icon: 'pi pi-arrows-alt', command: () => this.bestFitAllColumns() },
+            { separator: true }
+        );
+
+        // --- View Mode ---
+        this.headerMenuItems.push(
             {
-                label: this._columnLayout === 'auto' ? 'Dùng chiều rộng cài sẵn' : 'Fit theo nội dung',
-                icon: this._columnLayout === 'auto' ? 'pi pi-lock' : 'pi pi-unlock',
-                command: () => {
-                    this._columnLayout = this._columnLayout === 'auto' ? 'fixed' : 'auto';
-                    this.cdr.markForCheck();
-                }
+                label: this.viewMode === 'card' ? 'Chuyển sang Grid View' : 'Chuyển sang Card View',
+                icon: this.viewMode === 'card' ? 'pi pi-table' : 'pi pi-id-card',
+                command: () => this.setViewMode(this.viewMode === 'card' ? 'grid' : 'card')
             },
             { separator: true }
         );
@@ -969,20 +1059,21 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     }
 
     sortAscending() {
-        if (!this.activeSortField) return;
+        if (!this.activeSortField || !this.dt) return;
         this.dt.sortField = this.activeSortField;
         this.dt.sortOrder = 1;
         this.dt.sortSingle();
     }
 
     sortDescending() {
-        if (!this.activeSortField) return;
+        if (!this.activeSortField || !this.dt) return;
         this.dt.sortField = this.activeSortField;
         this.dt.sortOrder = -1;
         this.dt.sortSingle();
     }
 
     clearSort() {
+        if (!this.dt) return;
         this.dt.sortOrder = 0;
         this.dt.sortField = undefined;
         this.dt.multiSortMeta = [];
@@ -1010,15 +1101,172 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
         this.saveTableLayout();
     }
 
-    autoFitColumn(field: string) {
-        const col = this.columns.find(c => c.field === field);
-        if (col) {
-            col.width = 'auto';
-        }
+    // =============================================
+    // Column width constraint helpers
+    // =============================================
+    /** Normalize minWidth/maxWidth/fixedWidth to CSS string or null */
+    getColMinWidth(col: ColumnDef): string | null {
+        if (col.fixedWidth && col.width) return col.width;
+        if (col.minWidth == null) return null;
+        return typeof col.minWidth === 'number' ? col.minWidth + 'px' : col.minWidth;
     }
 
-    autoFitAllColumns() {
-        this.columns.forEach(c => c.width = 'auto');
+    getColMaxWidth(col: ColumnDef): string | null {
+        if (col.fixedWidth && col.width) return col.width;
+        if (col.maxWidth == null) return null;
+        return typeof col.maxWidth === 'number' ? col.maxWidth + 'px' : col.maxWidth;
+    }
+
+    /** Returns true when this column's drag-resize should be disabled */
+    isResizeDisabled(col: ColumnDef): boolean {
+        return col.fixedWidth === true || col.allowResize === false;
+    }
+
+    // =============================================
+    // Best Fit
+    // =============================================
+    onHeaderDblClick(_event: MouseEvent, field: string) {
+        this.bestFitColumn(field);
+    }
+
+    bestFitColumn(field: string) {
+        const col = this.columns.find(c => c.field === field);
+        if (!col) return;
+
+        // Measure using Canvas API against actual rendered font
+        const host = this.el.nativeElement as HTMLElement;
+        const sampleCell = host.querySelector<HTMLElement>('.p-datatable-tbody td');
+        const computedFont = sampleCell
+            ? getComputedStyle(sampleCell).font
+            : `${this.fontSize} sans-serif`;
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+        ctx.font = computedFont;
+
+        // Header text + padding for sort icon / filter icon
+        let maxPx = ctx.measureText(col.header || '').width + 52;
+
+        // Limit rows scanned for performance (bestFitMaxRowCount = 0 means all rows)
+        const rows = this.bestFitMaxRowCount > 0
+            ? this._originalData.slice(0, this.bestFitMaxRowCount)
+            : this._originalData;
+
+        for (const row of rows) {
+            const rawVal = col.computed ? col.computed(row) : row[col.field];
+            const displayVal = col.format ? col.format(rawVal, row) : String(rawVal ?? '');
+            const w = ctx.measureText(displayVal).width + 24; // cell padding
+            if (w > maxPx) maxPx = w;
+        }
+
+        // Apply minWidth/maxWidth constraints to best fit result
+        const minPx = col.minWidth != null
+            ? (typeof col.minWidth === 'number' ? col.minWidth : parseFloat(col.minWidth))
+            : 60;
+        const maxPx2 = col.maxWidth != null
+            ? (typeof col.maxWidth === 'number' ? col.maxWidth : parseFloat(col.maxWidth))
+            : Infinity;
+
+        col.width = Math.min(maxPx2, Math.max(minPx, Math.ceil(maxPx))) + 'px';
+        this.cdr.markForCheck();
+        setTimeout(() => {
+            this.recalcFrozenPositions();
+            if (this.tableId) this.saveTableLayout();
+        });
+    }
+
+    bestFitAllColumns() {
+        this.columns.forEach(c => this.bestFitColumn(c.field));
+    }
+
+    // =============================================
+    // Group Summary
+    // =============================================
+    getGroupSummaryValue(col: ColumnDef, rowData: any): string {
+        if (!col.footerType && !col.footer) return '';
+        const groupData = this._data.filter(r => r[this.groupRowsBy] === rowData[this.groupRowsBy]);
+        if (col.footer) {
+            if (typeof col.footer === 'function') return col.footer(groupData);
+            return '';
+        }
+        const vals = groupData
+            .map(r => col.computed ? col.computed(r) : r[col.field])
+            .filter(v => v != null && !isNaN(Number(v)))
+            .map(Number);
+        const fmt = col.footerFormat;
+        switch (col.footerType) {
+            case 'sum': return vals.reduce((s, v) => s + v, 0).toLocaleString(undefined, fmt);
+            case 'avg': return vals.length ? (vals.reduce((s, v) => s + v, 0) / vals.length).toLocaleString(undefined, fmt) : '';
+            case 'count': return groupData.length.toString();
+            case 'min': return vals.length ? Math.min(...vals).toLocaleString(undefined, fmt) : '';
+            case 'max': return vals.length ? Math.max(...vals).toLocaleString(undefined, fmt) : '';
+        }
+        return '';
+    }
+
+    // =============================================
+    // Data Bar
+    // =============================================
+    getDataBarWidth(col: ColumnDef, rowData: any): number {
+        const raw = col.computed ? col.computed(rowData) : rowData[col.field];
+        const val = Number(raw ?? 0);
+        const min = col.dataBarMin ?? 0;
+        let max = col.dataBarMax;
+        if (max == null) {
+            // Auto-compute max from current data
+            max = Math.max(...this._originalData.map(r => Number(col.computed ? col.computed(r) : r[col.field]) || 0));
+        }
+        if (max <= min) return 0;
+        return Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
+    }
+
+    // =============================================
+    // Icon Set
+    // =============================================
+    getIconSetIcon(col: ColumnDef, rowData: any): string {
+        const val = Number(col.computed ? col.computed(rowData) : rowData[col.field]) || 0;
+        if (col.iconSetRules?.length) {
+            // Sort rules descending by threshold and pick first match
+            const sorted = [...col.iconSetRules].sort((a, b) => b.threshold - a.threshold);
+            const match = sorted.find(r => val >= r.threshold);
+            if (match) return match.icon;
+        }
+        return col.iconSetDefault || 'pi pi-minus';
+    }
+
+    getIconSetColor(col: ColumnDef, rowData: any): string {
+        const val = Number(col.computed ? col.computed(rowData) : rowData[col.field]) || 0;
+        if (col.iconSetRules?.length) {
+            const sorted = [...col.iconSetRules].sort((a, b) => b.threshold - a.threshold);
+            const match = sorted.find(r => val >= r.threshold);
+            if (match) return match.color;
+        }
+        return 'inherit';
+    }
+
+    // =============================================
+    // Card View helpers
+    // =============================================
+    setViewMode(mode: 'grid' | 'card') {
+        this.viewMode = mode;
+        this.cdr.markForCheck();
+    }
+
+    get isCardView(): boolean { return this.viewMode === 'card'; }
+    get isGridView(): boolean { return this.viewMode === 'grid'; }
+
+    getCardValue(col: ColumnDef, rowData: any): string {
+        return this.formatValue(col, rowData);
+    }
+
+    // =============================================
+    // Total colspan helper (used in preview row)
+    // =============================================
+    get totalColspan(): number {
+        return this.columns.length
+            + (this.selectionMode === 'multiple' ? 1 : 0)
+            + (this.expandable ? 1 : 0)
+            + (this.reorderableRows ? 1 : 0);
     }
 
     onRowReorder(event: any) {
@@ -1030,15 +1278,15 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
         // PrimeNG doesn't re-run initFrozenColumns on resize in v21.
         setTimeout(() => {
             this.recalcFrozenPositions();
+            this.syncColumnWidthsFromDOM();
             if (this.tableId) {
-                this.syncColumnWidthsFromDOM();
                 this.saveTableLayout();
             }
         });
     }
 
     private recalcFrozenPositions() {
-        const host = (this.dt as any).el?.nativeElement as HTMLElement;
+        const host = (this.dt as any)?.el?.nativeElement as HTMLElement;
         if (!host) return;
         ['thead', 'tbody', 'tfoot'].forEach(section => {
             const rows = host.querySelectorAll<HTMLTableRowElement>(`${section} tr`);
@@ -1082,7 +1330,7 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     }
 
     exportCSV() {
-        this.dt.exportCSV();
+        this.dt?.exportCSV();
     }
 
     // =============================================
@@ -1155,20 +1403,63 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
 
     @HostListener('keydown', ['$event'])
     onKeydown(event: KeyboardEvent) {
+        // Ctrl+C: copy focused cell value
         if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
             if (this.focusedCell) {
-                // Determine the cell value
                 const colDef = this.columns.find(c => c.field === this.focusedCell?.colField);
                 let textToCopy = '';
                 if (colDef) {
-                    const rawValue = this.focusedCell.rowData[colDef.field];
+                    const rawValue = colDef.computed
+                        ? colDef.computed(this.focusedCell.rowData)
+                        : this.focusedCell.rowData[colDef.field];
                     textToCopy = colDef.format ? colDef.format(rawValue, this.focusedCell.rowData) : rawValue;
                 }
-
                 if (textToCopy !== undefined && textToCopy !== null) {
                     navigator.clipboard.writeText(String(textToCopy)).catch(err => {
                         console.error('Failed to copy cell text: ', err);
                     });
+                }
+            }
+            return;
+        }
+
+        // Incremental search: printable char + focused cell → jump to matching row
+        if (!event.ctrlKey && !event.metaKey && !event.altKey && event.key.length === 1 && this.focusedCell) {
+            const field = this.focusedCell.colField;
+            const col = this.columns.find(c => c.field === field);
+            if (!col || col.editable) return; // skip editable columns
+
+            this._incrBuffer += event.key.toLowerCase();
+            clearTimeout(this._incrTimer);
+            this._incrTimer = setTimeout(() => { this._incrBuffer = ''; }, 800);
+
+            const data = this.getDisplayedData();
+            const idx = data.findIndex(r => {
+                const raw = col.computed ? col.computed(r) : r[field];
+                const val = (col.format ? col.format(raw, r) : String(raw ?? '')).toLowerCase();
+                return val.startsWith(this._incrBuffer);
+            });
+            if (idx >= 0) {
+                // Highlight the matching row
+                this.clickedRowKey = this.dataKey ? data[idx][this.dataKey] : data[idx];
+                this.focusedCell = { rowData: data[idx], colField: field };
+                this.cdr.markForCheck();
+                // Scroll to the row if possible
+                const host = this.el.nativeElement as HTMLElement;
+                const tbody = host.querySelector<HTMLElement>('.p-datatable-tbody');
+                if (tbody) {
+                    const rows = tbody.querySelectorAll<HTMLElement>('tr');
+                    // Find the physical row - may not be idx if preview rows are interleaved
+                    let dataRowCount = 0;
+                    for (let i = 0; i < rows.length; i++) {
+                        if (!rows[i].classList.contains('preview-row') && !rows[i].classList.contains('group-summary-row')) {
+                            if (dataRowCount === idx) {
+                                rows[i].scrollIntoView({ block: 'nearest' });
+                                break;
+                            }
+                            dataRowCount++;
+                        }
+                    }
                 }
             }
         }

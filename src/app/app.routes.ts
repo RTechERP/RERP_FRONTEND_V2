@@ -337,6 +337,7 @@ import { ProjectTaskSettingComponent } from './pages/project_task/project-task-s
 import { ProjectDeptSummaryPrimeNg2Component } from './pages/project/project-dept-summary-prime-ng2/project-dept-summary-prime-ng2.component';
 import { BillImportPrimeComponent } from './pages/old/Sale/BillImport/bill-import-prime/bill-import-prime.component';
 import { BillExportPrimeComponent } from './pages/old/Sale/BillExport/bill-export-prime/bill-export-prime.component';
+import { ProjectTaskTimeLineProjectComponent } from './pages/project_task/project-task-time-line-project/project-task-time-line-project.component';
 import { HrRecruitmentSummaryComponent } from './pages/hrm/hr-recruitment/hr-recruitment-summary/hr-recruitment-summary.component';
 export const routes: Routes = [
     {
@@ -722,6 +723,8 @@ export const routes: Routes = [
             { path: 'summary-project-join', component: SummaryProjectJoinComponent, canActivate: [authGuard] },
             { path: 'project-part-list', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
             { path: 'project-task-setting', component: ProjectTaskSettingComponent, canActivate: [authGuard] },
+            { path: 'project-task-time-line-project', component: ProjectTaskTimeLineProjectComponent, canActivate: [authGuard] },
+
             { path: 'project-application-types', component: ProjectApplicationTypesComponent, canActivate: [authGuard] },
 
             //kpi

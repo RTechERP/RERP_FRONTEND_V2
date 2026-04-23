@@ -204,6 +204,10 @@ export class KanbanService {
         );
     }
 
+    cancelApproveTask(projectTaskID: number): Observable<IAPIResponse<any>> {
+        return this.http.post<IAPIResponse<any>>(`${this.apiUrl}/cancel-approve`, projectTaskID);
+    }
+
     // --- Project Methods ---
     getAllProjects(): Observable<IAPIResponse<IProject[]>> {
         return this.http.get<IAPIResponse<IProject[]>>(`${this.apiUrl}/get-all-project`);

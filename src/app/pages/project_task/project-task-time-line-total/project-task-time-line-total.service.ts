@@ -30,6 +30,7 @@ export interface TimelineByTeamParams {
     teamID?: number;
     userID?: number;
     projectID?: number;
+    status?: string;
 }
 
 @Injectable({
@@ -56,6 +57,9 @@ export class ProjectTaskTimeLineTotalService {
         }
         if (params.projectID !== undefined) {
             httpParams = httpParams.set('projectID', params.projectID.toString());
+        }
+        if (params.status !== undefined && params.status !== '') {
+            httpParams = httpParams.set('status', params.status);
         }
 
         return this.http.get<IAPIResponse<TimelineByTeamItem[]>>(

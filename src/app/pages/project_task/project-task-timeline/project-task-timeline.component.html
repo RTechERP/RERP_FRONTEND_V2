@@ -24,6 +24,14 @@
                     <input type="date" [(ngModel)]="dateEnd"
                         style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
                 </div>
+                <div class="search-field">
+                    <label class="search-label">Trạng thái</label>
+                    <nz-select nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small" 
+                        nzMode="multiple" [nzMaxTagCount]="1" nzAllowClear style="width: 200px;">
+                        <nz-option *ngFor="let opt of statusOptions" [nzLabel]="opt.label" [nzValue]="opt.value">
+                        </nz-option>
+                    </nz-select>
+                </div>
                 <div class="filter-actions">
                     <button nz-button nzType="default" nzSize="small" (click)="resetFilters()">Đặt lại</button>
                 </div>
@@ -60,7 +68,7 @@
                         </th>
                         <th rowspan="2" class="sticky-col col-status">
                             Trạng Thái
-                            <p-multiSelect [options]="statusOptions" [(ngModel)]="selectedStatuses" placeholder="Tất cả"
+                            <p-multiSelect [options]="statusOptions" [(ngModel)]="filterStatusColumn" placeholder="Tất cả"
                                 [showHeader]="false" [filter]="false" (onChange)="applyFilters()"
                                 styleClass="timeline-status-multi" [maxSelectedLabels]="1"
                                 selectedItemsLabel="{0} trạng thái" appendTo="body" />

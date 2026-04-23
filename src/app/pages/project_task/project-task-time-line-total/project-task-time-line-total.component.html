@@ -65,7 +65,7 @@
                     <div class="form-field-vertical">
                         <label>Nhân viên</label>
                         <nz-select nzPlaceHolder="Nhân viên" [(ngModel)]="userId" nzSize="small" nzShowSearch
-                            nzAllowClear (ngModelChange)="loadTimeline()" style="width: 100%;">
+                            nzAllowClear style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
                             <nz-option *ngFor="let item of userList" [nzLabel]="item.FullName || ''"
                                 [nzValue]="item.UserID">
@@ -79,10 +79,22 @@
                     <div class="form-field-vertical">
                         <label>Dự án</label>
                         <nz-select nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch
-                            nzAllowClear (ngModelChange)="loadTimeline()" style="width: 100%;">
+                            nzAllowClear style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
                             <nz-option *ngFor="let item of projectList"
                                 [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
+                            </nz-option>
+                        </nz-select>
+                    </div>
+                </nz-col>
+
+                <!-- Trạng thái -->
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
+                    <div class="form-field-vertical">
+                        <label>Trạng thái</label>
+                        <nz-select nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small" 
+                            nzMode="multiple" [nzMaxTagCount]="1" nzAllowClear style="width: 100%;">
+                            <nz-option *ngFor="let opt of statusOptions" [nzLabel]="opt.label" [nzValue]="opt.value">
                             </nz-option>
                         </nz-select>
                     </div>
@@ -136,7 +148,7 @@
 
                         <th rowspan="2" class="sticky-col col-status">
                             Trạng Thái
-                            <p-multiSelect [options]="statusOptions" [(ngModel)]="selectedStatuses" placeholder="Tất cả"
+                            <p-multiSelect [options]="statusOptions" [(ngModel)]="filterStatusColumn" placeholder="Tất cả"
                                 [showHeader]="false" [filter]="false" (onChange)="onColumnFilter()"
                                 styleClass="timeline-status-multi" [maxSelectedLabels]="1"
                                 selectedItemsLabel="{0} trạng thái" appendTo="body" />

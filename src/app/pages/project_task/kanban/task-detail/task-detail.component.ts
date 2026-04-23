@@ -479,9 +479,13 @@ export class TaskDetailComponent implements OnInit {
         // Nếu đã duyệt hoặc từ chối (ReviewStatus >= 2), thì chỉ xem
         if (this.reviewStatus !== undefined && this.reviewStatus >= 2) return true;
 
-        // Bổ sung kiểm tra ApprovalStatus trực tiếp để đảm bảo
+        // Bổ sung kiểm tra ApprovalStatus trực tiếp (dùng loose check để xử lý cả string/number từ API)
         const activeTask = this.currentTaskData || this.task;
-        if (activeTask?.ApprovalStatus === true || activeTask?.ApprovalStatus === false) return true;
+        const approvalVal = activeTask?.ApprovalStatus;
+        if (approvalVal !== null && approvalVal !== undefined) {
+            // ApprovalStatus có giá trị (true/false, "True"/"False", 1/0) → task đã được duyệt hoặc từ chối → chỉ xem
+            return true;
+        }
 
         const currentEmployeeId = this.appUserService.employeeID;
         const currentAccountUserId = this.appUserService.id;
@@ -1782,7 +1786,12 @@ export class TaskDetailComponent implements OnInit {
         this.projectTaskService.getTaskById(id).subscribe({
             next: (res) => {
                 if (res.status === 200 || res.status === 1) {
-                    this.initializeWithTask(res.data);
+                    const taskData = res.data;
+                    // Nếu API không trả về ApprovalStatus, lấy từ tabData (được truyền từ project-task)
+                    if ((taskData?.ApprovalStatus === null || taskData?.ApprovalStatus === undefined) && this.tabData?.ApprovalStatus !== undefined && this.tabData?.ApprovalStatus !== null) {
+                        taskData.ApprovalStatus = this.tabData.ApprovalStatus;
+                    }
+                    this.initializeWithTask(taskData);
                 } else {
                     this.message.error('Không thể tải chi tiết công việc');
                 }
@@ -1807,8 +1816,16 @@ export class TaskDetailComponent implements OnInit {
             this.title = activeTask.Mission || '';
             this.description = activeTask.Description || '';
             this.isPersonalProject = activeTask.IsPersonalProject || false;
-            // Ánh xạ trạng thái duyệt: null -> 0, true -> 2, false -> 3
-            this.reviewStatus = activeTask.ApprovalStatus === true ? 2 : (activeTask.ApprovalStatus === false ? 3 : 0);
+            // Ánh xạ trạng thái duyệt: null/undefined -> 0, truthy -> 2, false/"False"/0 -> 3
+            const rawApproval = activeTask.ApprovalStatus;
+            if (rawApproval === null || rawApproval === undefined) {
+                this.reviewStatus = 0; // Chưa duyệt
+            } else if (rawApproval === true || rawApproval === 'True' || rawApproval === 'true' || rawApproval === 1) {
+                this.reviewStatus = 2; // Đã duyệt
+            } else {
+                this.reviewStatus = 3; // Từ chối
+            }
+            console.log('[TaskDetail] ApprovalStatus from API:', rawApproval, '-> reviewStatus:', this.reviewStatus, '-> isReadOnly will be:', this.reviewStatus >= 2);
 
             if (activeTask.ActualStartDate) {
                 this.startDate = new Date(activeTask.ActualStartDate);

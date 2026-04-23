@@ -7,7 +7,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from './../../../app.config';
@@ -36,7 +36,13 @@ import { CurrencyFormatRealtimeDirective } from '../../../directives/CurrencyFor
 export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
 
     validateForm!: FormGroup;
-
+    companyList: any[] = [
+        { value: 1, label: 'RTC' },
+        { value: 2, label: 'MVI' },
+        { value: 3, label: 'APR' },
+        { value: 4, label: 'YONKO' },
+        { value: 5, label: 'R-Tech' },
+    ];
     paymentOrderTypes: any[] = [];
     approvedTBPs: any[] = [];
     supplierSalesAll: any[] = [];
@@ -152,7 +158,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             : this.totalType1;
     }
     isRomanNumeral(stt: string): boolean {
-        return /^[IVXLCDMivxlcdm]+$/.test((stt || '').trim());
+        return /^[IVXLCDMivxlcdm]+$/.test(String(stt ?? '').trim());
     }
 
     parseNum(val: any): number {
@@ -179,10 +185,12 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
     ) { }
 
     ngOnInit(): void {
+        // Clone @Input để tránh mutate object gốc của component cha khi user thay đổi form
+        // mà không lưu (ví dụ đổi TypeOrder rồi đóng → lần sau mở vẫn đúng TypeOrder ban đầu)
+        this.paymentOrder = { ...this.paymentOrder };
         this.initDataCombo();
         this.initFormGroup();
         this.loadDetailData();
-        if (this.ponccID > 0) this.loadDataFromPONCC();
         if (this.initialContentPayment && this.t2DetailRows.length > 0) {
             this.t2DetailRows[0].ContentPayment = this.initialContentPayment;
         }
@@ -194,16 +202,21 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
     }
 
     initDataCombo(): void {
-        this.paymentService.getDataCombo().subscribe({
-            next: (res) => {
-                this.paymentOrderTypes = res.data.paymentOrderTypes;
-                this.approvedTBPs = res.data.approvedTBPs;
-                this.supplierSalesAll = res.data.supplierSales;
+        forkJoin({
+            approvers: this.paymentService.getApprovers(),
+            procurement: this.paymentService.getProcurement(),
+            partners: this.paymentService.getPartnersAndProjects(),
+            metadata: this.paymentService.getMetadata(),
+        }).subscribe({
+            next: ({ approvers, procurement, partners, metadata }) => {
+                this.paymentOrderTypes = metadata.data.paymentOrderTypes;
+                this.approvedTBPs = approvers.data.approvedTBPs;
+                this.supplierSalesAll = procurement.data.supplierSales;
                 this.supplierSales = [...this.supplierSalesAll];
-                this.poNCCsAll = res.data.poNCCs;
+                this.poNCCsAll = procurement.data.poNCCs;
                 this.poNCCs = [...this.poNCCsAll];
-                this.registerContracts = res.data.registerContracts;
-                this.projects = res.data.projects;
+                this.registerContracts = procurement.data.registerContracts;
+                this.projects = partners.data.projects;
                 // Patch lại các trường nz-select sau khi combo data đã có — không recreate form để tránh mất subscriptions
                 if (this.validateForm) {
                     // Auto-select TBP theo department khi tạo mới hoặc copy
@@ -214,21 +227,23 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                             const matched = this.approvedTBPs.find((x: any) => x.DepartmentID == 4);
                             if (matched) approvedTBPID = matched.EmployeeID;
                         }
-
                     }
-
                     this.validateForm.patchValue({
                         TypeOrder: this.paymentOrder.TypeOrder,
                         PaymentOrderTypeID: this.paymentOrder.PaymentOrderTypeID,
                         ApprovedTBPID: approvedTBPID,
-                        SupplierSaleID: this.paymentOrder.SupplierSaleID,
-                        PONCCID: this.paymentOrder.PONCCID,
+                        SupplierSaleID: this.ponccID > 0 ? null : this.paymentOrder.SupplierSaleID,
+                        PONCCID: this.ponccID > 0 ? null : this.paymentOrder.PONCCID,
                         RegisterContractID: this.paymentOrder.RegisterContractID,
                         ProjectID: this.paymentOrder.ProjectID,
                     }, { emitEvent: false });
                     const sid = this.paymentOrder.SupplierSaleID;
                     this.poNCCs = sid ? this.poNCCsAll.filter((x: any) => x.SupplierSaleID == sid) : [...this.poNCCsAll];
                     this.cdr.detectChanges();
+                    if (this.ponccID > 0) {
+                        console.log('[PONCC flow] options sẵn sàng → gọi loadDataFromPONCC với ponccID:', this.ponccID);
+                        this.loadDataFromPONCC();
+                    }
                 }
             },
             error: (err) => this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message)
@@ -271,6 +286,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             Bank: this.fb.control(this.paymentOrder.Bank),
             ContentBankTransfer: this.fb.control(this.paymentOrder.ContentBankTransfer),
             Unit: this.fb.control(this.paymentOrder.Unit?.toLowerCase(), [Validators.required]),
+            TaxCompanyID: this.fb.control({ value: (this.paymentOrder.ID <= 0 || this.isCopy) ? this.appUserService.currentUser?.TaxCompanyID : this.paymentOrder.TaxCompanyID, disabled: true }),
         });
 
         this.validateForm.get('TypeOrder')?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -279,6 +295,26 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                 const dp = this.validateForm.get('DatePayment');
                 v != 2 ? dp?.setValidators([Validators.required]) : dp?.clearValidators();
                 dp?.updateValueAndValidity();
+                if (v === 2 && this.dataset.length > 0) {
+                    const headers = this.dataset2.filter(r => [1, 2, 3, 4, 5].includes(r._id));
+                    const newDetailRows = this.dataset.map((r: any, i: number) => ({
+                        ...r, _id: 6 + i, ParentID: 2,
+                    }));
+                    const rowI = headers.find(r => r._id === 1);
+                    const rowII = headers.find(r => r._id === 2);
+                    const rowIII = headers.find(r => r._id === 3);
+                    const diff1 = headers.find(r => r._id === 4);
+                    const diff2 = headers.find(r => r._id === 5);
+                    this.dataset2 = [rowI, rowII, ...newDetailRows, rowIII, diff1, diff2].filter(Boolean);
+                } else if (v !== 2 && this.t2DetailRows.length > 0) {
+                    // Khi đổi từ 2 sang 1 hoặc 3, vớt các dòng chi tiết của mục II bỏ ngược vào bảng 1
+                    this.dataset = this.t2DetailRows.map((r: any, i: number) => ({
+                        ...r, 
+                        _id: i + 1, 
+                        ParentID: null, 
+                        Stt: `${i + 1}`,
+                    }));
+                }
             });
 
         this.validateForm.get('PaymentOrderTypeID')?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -384,7 +420,11 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                             _id: isHeader ? defaultId : (rid || defaultId),
                             ParentID: isHeader ? null : pid,
                             PaymentPercentage: pct,
-                            ...(this.isCopy ? { TotalPaymentAmount: 0 } : {}),
+                            ...(this.isCopy ? {
+                                TotalPaymentAmount: defaultId > 5
+                                    ? this.parseNum(r.TotalMoney) * (pct / 100)
+                                    : 0
+                            } : {}),
                         };
                     };
 
@@ -407,25 +447,47 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
     }
 
     loadDataFromPONCC(): void {
+        console.log('[PONCC flow] gọi API getDataFromPONCC — ponccID:', this.ponccID);
         this.paymentService.getDataFromPONCC(this.ponccID).subscribe({
             next: (res) => {
                 const { poNCC, supplierSale, poNCCDetails } = res.data;
+                console.log('[PONCC flow] API trả về —', { poNCC, supplierSale, detailCount: poNCCDetails?.length });
+                // Patch SupplierSaleID với emit (ép số tránh type-mismatch string/number)
+                // để nz-select hiển thị đúng label và trigger valueChanges → lọc poNCCs
+                this.validateForm.patchValue({ SupplierSaleID: +poNCC.SupplierSaleID });
+                this.cdr.detectChanges();
+                // Patch các trường còn lại, đè lên giá trị mà valueChanges vừa set
                 this.validateForm.patchValue({
-                    SupplierSaleID: poNCC.SupplierSaleID, PONCCID: poNCC.ID, ApprovedTBPID: 178,
+                    PONCCID: +poNCC.ID, ApprovedTBPID: 178,
                     AccountNumber: poNCC.AccountNumberSupplier, Bank: poNCC.BankSupplier,
                     ReceiverInfo: supplierSale?.NameNCC || '', Unit: poNCC.Unit.toLowerCase(),
-                });
-                this.dataset = poNCCDetails.map((item: any, i: number) => ({
-                    _id: i + 1, ID: 0, Stt: item.STT || `${i + 1}`,
+                }, { emitEvent: false });
+                this.cdr.detectChanges();
+                const detailRows = poNCCDetails.map((item: any, i: number) => ({
+                    _id: i + 1, ID: 0, Stt: String(item.STT ?? (i + 1)),
                     ContentPayment: item.ProductName || '', Unit: item.Unit || '',
                     Quantity: item.QtyRequest || 0, UnitPrice: item.UnitPrice || 0,
                     TotalMoney: item.TotalPrice || 0, Note: item.Note || '', ParentID: null,
                     PaymentPercentage: 100,
-                    // TotalMoneyWithInvoice: 0,
                 }));
-                this.cdr.detectChanges();
+                this.dataset = detailRows;
+                // Cũng bind vào dataset2 (dòng con của rowII) để dùng khi TypeOrder = 2
+                const t2Headers = this.dataset2.filter(r => [1, 2, 3, 4, 5].includes(r._id));
+                const t2DetailRows = detailRows.map((r: any, i: number) => ({
+                    ...r, _id: 6 + i, ParentID: 2,
+                }));
+                const rowII = t2Headers.find(r => r._id === 2);
+                const rowIII = t2Headers.find(r => r._id === 3);
+                const rowI = t2Headers.find(r => r._id === 1);
+                const diff1 = t2Headers.find(r => r._id === 4);
+                const diff2 = t2Headers.find(r => r._id === 5);
+                this.dataset2 = [rowI, rowII, ...t2DetailRows, rowIII, diff1, diff2].filter(Boolean);
+                console.log('[PONCC flow] dataset chi tiết:', this.dataset);
             },
-            error: (err) => this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message)
+            error: (err) => {
+                console.error('[PONCC flow] lỗi API:', err);
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message);
+            }
         });
     }
 
@@ -539,6 +601,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         const sanitize = (r: any, overrides: any = {}) => ({
             ...r,
             ...overrides,
+            Stt: String(overrides.Stt ?? r.Stt ?? ''),
             PaymentPercentage: this.parseNum(r.PaymentPercentage),
             // TotalMoneyWithInvoice: parseFloat(r.TotalMoneyWithInvoice) || 0,
             ...(this.isCopy ? { Id: 0, ID: 0, PaymentOrderId: 0, PaymentOrderID: 0 } : {}),
@@ -546,7 +609,15 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
 
         let details: any[];
         if (this.paymentOrder.TypeOrder != 2) {
-            details = this.dataset.map(r => sanitize(r, { ID: this.isCopy ? 0 : r.ID }));
+            details = this.dataset.map(r => {
+                const totalMoney = this.parseNum(r.TotalMoney);
+                const pct = this.parseNum(r.PaymentPercentage);
+                const totalPaymentAmount = totalMoney * (pct / 100);
+                return sanitize(r, { 
+                    ID: this.isCopy ? 0 : r.ID,
+                    TotalPaymentAmount: totalPaymentAmount
+                });
+            });
         } else {
             // details = [
             //     sanitize(this.t2RowI, { ID: this.isCopy ? 0 : (this.t2RowI.ID || 0) }),
@@ -561,11 +632,17 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                 sanitize(this.t2RowII, { ID: this.isCopy ? 0 : (this.t2RowII.ID || 0), TotalMoney: this.totalII, TotalPaymentAmount: this.totalII }),
 
                 // Đối với các dòng chi tiết của mục II
-                ...this.t2DetailRows.map(r => sanitize(r, {
-                    ID: this.isCopy ? 0 : (r.ID || 0),
-                    // Luôn dùng _id của Header II (= 2) để C# khớp x.ParentID == item._id
-                    ParentID: this.t2RowII._id
-                })),
+                ...this.t2DetailRows.map(r => {
+                    const totalMoney = this.parseNum(r.TotalMoney);
+                    const pct = this.parseNum(r.PaymentPercentage);
+                    const totalPaymentAmount = totalMoney * (pct / 100);
+                    return sanitize(r, {
+                        ID: this.isCopy ? 0 : (r.ID || 0),
+                        // Luôn dùng _id của Header II (= 2) để C# khớp x.ParentID == item._id
+                        ParentID: this.t2RowII._id,
+                        TotalPaymentAmount: totalPaymentAmount
+                    });
+                }),
 
                 sanitize(this.t2RowIII, {
                     ID: this.isCopy ? 0 : (this.t2RowIII.ID || 0),

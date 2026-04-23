@@ -114,6 +114,7 @@ export class PaymentOrder {
     TotalPage: number | null = 0;
     ApprovedTBPID: number | null = null;
     ApprovedBGDID: number | null = 0;
+    TaxCompanyID: number | null = null;
     PaymentOrderPOs: any[] = []
     PaymentOrderBillNumbers: any[] = []
     PaymentOrderBillNumberss: string | null = ''
@@ -146,6 +147,7 @@ export class PaymentOrderDetail {
     EmployeeID: number | null = 0;
     TotalPaymentAmount: number | null = 0;
     PaymentPercentage: number | null = 0;
+    TotalMoneyWithInvoice: number | null = 0;
     IsDeleted = false;
     PaymentOrderDetailUserTeamSales: any[] = []
 }
@@ -250,7 +252,9 @@ export const PaymentOrderField = {
     PaymentMethodsJoin: { name: '', field: 'PaymentMethodsJoin', type: 'string' },
     TotalPage: { name: '', field: 'TotalPage', type: 'number' },
     ApprovedTBPID: { name: 'TBP duyệt', field: 'ApprovedTBPID', type: 'number' },
-    ApprovedBGDID: { name: 'BGĐ duyệt', field: 'ApprovedBGDID', type: 'number' }
+    ApprovedBGDID: { name: 'BGĐ duyệt', field: 'ApprovedBGDID', type: 'number' },
+    TaxCompanyID: { name: 'Công ty', field: 'TaxCompanyID', type: 'number' },
+    TaxCompanyName: { name: 'Công ty', field: 'TaxCompanyName', type: 'string' },
 } as const
 
 
@@ -274,5 +278,6 @@ export const PaymentOrderDetailField = {
     EmployeeID: { name: '', field: 'EmployeeID', type: 'number' },
     TotalPaymentAmount: { name: 'Tổng tiền thanh toán', field: 'TotalPaymentAmount', type: 'number' },
     PaymentPercentage: { name: '% Thanh toán', field: 'PaymentPercentage', type: 'number' },
+    TotalMoneyWithInvoice: { name: 'Tổng tiền TT có HĐ', field: 'TotalMoneyWithInvoice', type: 'number' },
     IsDeleted: { name: '', field: 'IsDeleted', type: 'boolean' },
 } as const

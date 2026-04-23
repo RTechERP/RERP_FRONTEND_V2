@@ -66,6 +66,8 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
 // import { CustomerComponent } from '../../customer/customer.component';
 import { AppUserService } from '../../../../services/app-user.service';
 import { Menubar } from 'primeng/menubar';
+import { CustomerIndustryComponent } from '../../customer-industry/customer-industry.component';
+import { PermissionService } from '../../../../services/permission.service';
 @Component({
   selector: 'app-customer',
   imports: [
@@ -159,6 +161,14 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         }
       },
       {
+        label: 'Lĩnh vực',
+        icon: 'fa-solid fa-briefcase text-info',
+        visible: this.permissionService.hasPermission('N13,N1,N27,N31'),
+        command: () => {
+          this.openCustomerIndustryModal();
+        }
+      },
+      {
         label: 'Xuất Excel',
         icon: 'fa-solid fa-file-excel fa-lg text-success',
         command: () => {
@@ -173,7 +183,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private modal: NzModalService,
     private customerService: CustomerServiceService,
-    private viewPokhService: ViewPokhService
+    private viewPokhService: ViewPokhService,
+    private permissionService: PermissionService,
   ) { }
 
   customerContactData: any[] = [];
@@ -331,6 +342,20 @@ export class CustomerComponent implements OnInit, AfterViewInit {
 
   openMajorModal() {
     const modalRef = this.modalService.open(CustomerMajorComponent, {
+      centered: true,
+      backdrop: 'static',
+      size: 'xl',
+    });
+    modalRef.result.then(
+      (result) => { },
+      (reason) => {
+        console.log('Modal closed');
+      }
+    );
+  }
+
+    openCustomerIndustryModal() {
+    const modalRef = this.modalService.open(CustomerIndustryComponent, {
       centered: true,
       backdrop: 'static',
       size: 'xl',

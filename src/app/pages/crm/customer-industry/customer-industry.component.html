@@ -1,0 +1,56 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+  <h6 class="modal-title text-white">LĨNH VỰC</h6>
+  <button
+    type="button"
+    class="btn-close"
+    (click)="closeModal()"
+    aria-label="Close"
+  ></button>
+</div>
+
+<div class="card-body p-0 h-100">
+  <div class="d-flex flex-column h-100 w-100">
+    <div
+      class="card-header bg-white p-1 border-bottom"
+      style="flex-shrink: 0; z-index: 99; position: relative; width: 100%;"
+    >
+      <p-menubar
+        [model]="menuBarsCustomer"
+        [style]="{
+          border: 'none',
+          padding: '0',
+          background: 'transparent',
+          'min-height': 'auto',
+          width: '100%'
+        }"
+      ></p-menubar>
+    </div>
+    <div class="flex-grow-1" style="min-height: 0">
+      <div class="flat-table-section h-100">
+        <app-custom-table
+          [columns]="columns"
+          [data]="data"
+          [loading]="loading"
+          dataKey="ID"
+          [scrollable]="true"
+          scrollHeight="flex"
+          height="100%"
+          [resizable]="true"
+          [showGridlines]="true"
+          [showColumnFilter]="true"
+          [sortMode]="'single'"
+          [paginator]="true"
+          [rows]="pageSize"
+          [rowsPerPageOptions]="pageSizeOptions"
+          exportFilename="customer-industry"
+          tableId="customer-industry-table"
+          [selectionMode]="'multiple'"
+          [(selection)]="selectedCustomer"
+          (rowDblClick)="onEditCustomerIndustry()"
+          (rowClick)="onCustomerClick($event)"
+        >
+        </app-custom-table>
+      </div>
+    </div>
+  </div>
+</div>

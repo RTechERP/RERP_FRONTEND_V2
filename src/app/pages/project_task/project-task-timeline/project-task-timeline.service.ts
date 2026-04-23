@@ -31,7 +31,7 @@ export class ProjectTaskTimelineService {
 
     constructor(private http: HttpClient) { }
 
-    getProjectTaskTimeLine(dateStart: string, dateEnd: string, departmentId?: number, teamId?: number, employeeId?: number, keyword?: string, status?: string): Observable<ProjectTaskTimelineItem[]> {
+    getProjectTaskTimeLine(dateStart: string, dateEnd: string, departmentId?: number, teamId?: number, employeeId?: number, keyword?: string, status?: string, typeSearch?: number): Observable<ProjectTaskTimelineItem[]> {
         let params = new HttpParams()
             .set('dateStart', dateStart)
             .set('dateEnd', dateEnd);
@@ -41,6 +41,7 @@ export class ProjectTaskTimelineService {
         if (employeeId) params = params.set('employeeId', employeeId);
         if (keyword) params = params.set('keyword', keyword);
         if (status) params = params.set('status', status);
+        if (typeSearch !== undefined) params = params.set('typeSearch', typeSearch.toString());
 
         return this.http.get<IAPIResponse<ProjectTaskTimelineItem[]>>(`${this.apiUrl}/project-task-timeline`, { params }).pipe(
             map(response => response.data || [])

@@ -156,7 +156,8 @@ export class ProjectTaskTimeLineProjectComponent implements OnInit {
         dateStart: this.dateStart,
         dateEnd: this.dateEnd,
         projectID: this.projectId ?? -1,
-        status: statusStr
+        status: statusStr,
+        typeSearch: 1
       }).subscribe({
         next: (data) => {
           setTimeout(() => {

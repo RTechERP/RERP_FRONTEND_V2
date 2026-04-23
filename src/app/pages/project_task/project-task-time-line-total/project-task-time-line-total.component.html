@@ -205,7 +205,7 @@
                                                     class="d-flex align-items-center gap-1 text-nowrap w-100 overflow-hidden">
                                                     <a class="task-code-link"
                                                         (click)="openTaskDetail(task); $event.stopPropagation()">
-                                                        {{ task.ProjectTaskCode || 'N/A' }}
+                                                        {{ task.ProjectTaskCode || '' }}
                                                     </a>
                                                     <span *ngIf="task.ProjectTaskParentCode"
                                                         class="text-muted d-inline-block text-truncate" nz-tooltip
@@ -213,7 +213,7 @@
                                                         style="max-width: 130px;">
                                                         - <a class="task-code-link"
                                                             (click)="openTaskDetail(task.ProjectTaskParentID); $event.stopPropagation()">{{
-                                                            task.ProjectTaskParentCode || 'N/A' }}</a>
+                                                            task.ProjectTaskParentCode || '' }}</a>
                                                     </span>
                                                 </div>
                                                 <div class="task-title text-wrap mt-1">{{ task.ProjectTaskTitle }}</div>

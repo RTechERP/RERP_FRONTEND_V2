@@ -270,7 +270,8 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
         teamID: this.teamId || 0,
         userID: this.userId || 0,
         projectID: this.projectId || 0,
-        status: statusStr
+        status: statusStr,
+        typeSearch: -1
       }).subscribe({
         next: (data) => {
           // Tiếp tục nhường luồng trước khi xử lý dữ liệu nặng để không làm đơ vòng quay loading
@@ -337,7 +338,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       if (!employeeMap.has(empId)) {
         employeeMap.set(empId, {
           employeeId: empId,
-          FullName: item.FullName || 'N/A',
+          FullName: item.FullName || '',
           projectsMap: new Map<string, any>()
         });
       }
@@ -495,7 +496,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       case 2: return 'Hoàn thành';
       case 3: return 'Pending';
       case 4: return 'Quá hạn';
-      default: return 'N/A';
+      default: return '';
     }
   }
 

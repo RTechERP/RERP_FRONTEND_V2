@@ -1,4 +1,7 @@
 <div class="task-detail-container">
+    <div *ngIf="isLoading" class="loading-overlay">
+        <nz-spin nzSimple nzSize="large" [nzTip]="'Đang tải dữ liệu...'"></nz-spin>
+    </div>
 
     <!-- Status Alert for Approved/Rejected tasks -->
     <div *ngIf="isReadOnly && (reviewStatus === 2 || reviewStatus === 3)" class="px-3 pt-3">
@@ -11,7 +14,12 @@
     <!-- Simplified Mobile Header (Visible < 992px) -->
     <div class="mobile-main-header d-lg-none py-2 px-3 border-bottom bg-white sticky-top shadow-sm">
         <div class="d-flex align-items-center justify-content-between">
-            <h6 class="mb-0 fw-bold text-primary">{{ isUpdateMode ? 'CHI TIẾT CÔNG VIỆC' : 'THÊM CÔNG VIỆC MỚI' }}</h6>
+            <div class="d-flex align-items-center gap-2">
+                <button *ngIf="isFullPage" nz-button nzType="text" (click)="close()" class="p-0">
+                    <i nz-icon nzType="arrow-left" style="font-size: 18px;"></i>
+                </button>
+                <h6 class="mb-0 fw-bold text-primary">{{ isUpdateMode ? 'CHI TIẾT CÔNG VIỆC' : 'THÊM CÔNG VIỆC MỚI' }}</h6>
+            </div>
             <button nz-button nzType="text" (click)="toggleMobileMenu()"
                 class="mobile-hamburger-btn d-flex align-items-center justify-content-center">
                 <i nz-icon nzType="menu-unfold" style="font-size: 20px;"></i>
@@ -20,8 +28,15 @@
     </div>
 
     <!-- Desktop Header (Hidden on Mobile) -->
-    <div nz-row class="task-detail-header d-none d-lg-flex align-items-center px-3 py-2 border-bottom bg-white"
+    <div nz-row class="task-detail-header d-none align-items-center px-3 py-2 border-bottom bg-white"
         [nzGutter]="8" style="width: 100%;">
+
+        <!-- Back button for full page -->
+        <div *ngIf="isFullPage" nz-col>
+            <button nz-button nzType="default" (click)="close()" nzShape="circle" nz-tooltip="Quay lại">
+                <i nz-icon nzType="arrow-left"></i>
+            </button>
+        </div>
 
         <!-- Project Selector & Mobile Toggle -->
         <div nz-col [nzXs]="24" [nzSm]="12" [nzLg]="5" class="mb-2 mb-lg-0">
@@ -86,7 +101,7 @@
                 <!-- Loại hạng mục -->
                 <div class="d-flex align-items-center gap-1 text-nowrap">
                     <span class="text-muted small">Hạng mục</span>
-                    <nz-select [(ngModel)]="selectedTypeProjectItemId" nzBorderless nzSize="small"
+                    <nz-select [(ngModel)]="selectedTypeProjectItemId" nzAllowClear nzBorderless nzSize="small"
                         class="task-type-select" nzPlaceHolder="Chọn" [nzDisabled]="isReadOnly" style="width: 100px;">
                         @for (item of typeProjectItems; track item.ID) {
                         <nz-option [nzValue]="item.ID" [nzLabel]="item.ProjectTypeName"></nz-option>
@@ -118,8 +133,12 @@
                 <!-- Độ phức tạp -->
                 <div class="d-flex align-items-center gap-1 text-nowrap">
                     <span class="text-muted small">Độ khó</span>
-                    <nz-input-number [(ngModel)]="taskComplexity" [nzMin]="1" [nzMax]="5" [nzStep]="1"
-                        class="complexity-input" [nzDisabled]="isReadOnly" style="width: 45px;"></nz-input-number>
+                    <nz-select [(ngModel)]="taskComplexity" nzBorderless nzSize="small" class="complexity-select"
+                        [nzDisabled]="isReadOnly" style="width: 100px;">
+                        @for (c of complexityList; track c.value) {
+                        <nz-option [nzValue]="c.value" [nzLabel]="c.label"></nz-option>
+                        }
+                    </nz-select>
                 </div>
 
                 <!-- Độ ưu tiên -->
@@ -140,12 +159,6 @@
                     <span class="d-inline-block" style="vertical-align: bottom;">{{ selected.nzLabel }}</span>
                 </ng-template>
 
-                <!-- Thời gian dự kiến -->
-                <div class="d-flex align-items-center gap-1 text-nowrap">
-                    <span class="text-muted small">TG(h)</span>
-                    <nz-input-number [(ngModel)]="estimatedTimeHours" [nzMin]="0" [nzMax]="1000" [nzStep]="0.5"
-                        class="complexity-input" [nzDisabled]="isReadOnly" style="width: 55px;"></nz-input-number>
-                </div>
 
                 <!-- Trạng thái -->
                 <nz-select [(ngModel)]="taskStatus" (ngModelChange)="onStatusChange($event)" nzBorderless nzSize="small"
@@ -187,661 +200,632 @@
 
 
     <!-- Main Content with Tabs -->
-    <div class="tabs-wrapper">
+    <div class="task-detail-main-layout" [class.sidebar-collapsed]="!isDesktopSidebarVisible">
+        <div class="content-left-area">
+            <div class="tabs-wrapper">
         <!-- Desktop/Tablet Horizontal Tabs (Hidden on small mobile) -->
 
-        <nz-tabset [(nzSelectedIndex)]="activeMainTabIndex" nzType="card" class="main-tabs">
+        <nz-tabset [nzAnimated]="false" [nzSelectedIndex]="activeMainTabIndex" (nzSelectedIndexChange)="onTabChange($event)" nzType="card" class="main-tabs" [nzTabBarExtraContent]="tabBarActionTpl">
+            <ng-template #tabBarActionTpl>
+                <button class="d-none d-lg-inline-flex" nz-button nzType="text" nzSize="small"
+                    (click)="toggleDesktopSidebar()"
+                    [nz-tooltip]="isDesktopSidebarVisible ? 'Ẩn thông tin công việc' : 'Hiện thông tin công việc'">
+                    <i nz-icon [nzType]="isDesktopSidebarVisible ? 'menu-fold' : 'menu-unfold'"></i>
+                </button>
+            </ng-template>
+
 
             <!-- Tab 1: Nội dung chính -->
             <nz-tab nzTitle="Nội dung chính">
-                <div class="tab-content p-3 pb-0 mobile-tab-content">
+                <ng-template nz-tab>
+                    <div class="tab-content">
+                        <div class="rd-container">
 
-                    <!-- Tên công việc -->
-                    <div class=" mobile-mb-1">
-                        <label class="form-label">Tên công việc <span class="text-danger">*</span></label>
-                        <input nz-input [(ngModel)]="title" placeholder="Nhập tên công việc" class="task-title-input"
-                            [disabled]="isReadOnly">
-                        <div class="d-flex justify-content-between">
-                            @if (title && title.length > 150) {
-                            <small class="text-danger">Tên công việc không được quá 150 ký tự</small>
-                            } @else {
-                            <small>&nbsp;</small>
-                            }
-                            <small [class.text-danger]="title && title.length > 150" class="text-muted">{{
-                                title.length || 0 }}/150</small>
-                        </div>
-                        @if (isSaving) {
-                        <i nz-icon nzType="loading" class="ms-2 text-primary"></i>
-                        }
-                    </div>
-
-                    <!-- Two-panel layout: Left (metadata) + Right (description) -->
-                    <div class="row detail-panels">
-                        <!-- LEFT PANEL: People + Dates -->
-                        <div class="col-md-5 left-panel">
-                            <!-- Người thực hiện + Người giao việc (cùng hàng) -->
-
-                            <!-- Công việc cha + Deadline -->
-
-                            <!-- Employee Select Popover Template -->
-                            <ng-template #employeeSelectContent>
-                                <div class="employee-select-popover"
-                                    style="width: 300px; max-height: 400px; overflow-y: auto;">
-                                    <div class="p-2">
-                                        <h6 class="fw-bold" style="margin: 0;">Chọn người thực hiện</h6>
-                                    </div>
-                                    <div class="p-2">
-                                        <input nz-input placeholder="Tìm kiếm nhân viên..." [(ngModel)]="mainSearchText"
-                                            (ngModelChange)="updateFilteredLists()" nzSize="small" class="mb-2">
-                                    </div>
-                                    <nz-list nzSize="small">
-                                        @for (employee of _filteredEmployees; track $index) {
-                                        <nz-list-item class="employee-item" (click)="selectEmployee(employee)"
-                                            style="cursor: pointer; padding: 8px 12px;">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <nz-avatar nzSize="small" [nzText]="employee.FullName?.charAt(0) || 'U'"
-                                                    [ngStyle]="{'background': getAvatarColor(employee.ID)}">
-                                                </nz-avatar>
-                                                <div>
-                                                    <div class="fw-500">{{ employee.Code }} - {{ employee.FullName }}
-                                                    </div>
-                                                    @if (employee.DepartmentName) {
-                                                    <div class="text-muted" style="font-size: 12px;">{{
-                                                        employee.DepartmentName
-                                                        }}</div>
-                                                    }
-                                                </div>
-                                            </div>
-                                        </nz-list-item>
-                                        }
-                                    </nz-list>
-                                </div>
-                            </ng-template>
-
-                            <!-- Assigner Select Popover Template -->
-                            <ng-template #assignerSelectContent>
-                                <div class="employee-select-popover"
-                                    style="width: 300px; max-height: 400px; overflow-y: auto;">
-                                    <div class="p-2">
-                                        <h6 class="fw-bold" style="margin: 0;">Chọn người giao việc</h6>
-                                    </div>
-                                    <div class="p-2">
-                                        <input nz-input placeholder="Tìm kiếm nhân viên..." [(ngModel)]="mainSearchText"
-                                            (ngModelChange)="updateFilteredLists()" nzSize="small" class="mb-2">
-                                    </div>
-                                    <nz-list nzSize="small">
-                                        @for (employee of _filteredEmployees; track $index) {
-                                        <nz-list-item class="employee-item" (click)="selectAssigner(employee)"
-                                            style="cursor: pointer; padding: 8px 12px;">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <nz-avatar nzSize="small" [nzText]="employee.FullName?.charAt(0) || 'U'"
-                                                    [ngStyle]="{'background': getAvatarColor(employee.ID)}">
-                                                </nz-avatar>
-                                                <div>
-                                                    <div class="fw-500">{{ employee.Code }} - {{ employee.FullName }}
-                                                    </div>
-                                                    @if (employee.DepartmentName) {
-                                                    <div class="text-muted" style="font-size: 12px;">{{
-                                                        employee.DepartmentName
-                                                        }}</div>
-                                                    }
-                                                </div>
-                                            </div>
-                                        </nz-list-item>
-                                        }
-                                    </nz-list>
-                                </div>
-                            </ng-template>
-
-                            <!-- Nhân sự (Người thực hiện + Người giao việc) -->
-                            <div class="d-flex gap-2 mb-3 mobile-mb-1 people-row">
-                                <div class="flex-fill">
-                                    <label class="form-label">Người thực hiện <span class="text-danger">*</span></label>
-                                    <div class="info-box info-box-compact people-info-box" [class.readonly]="isReadOnly"
-                                        nz-popover nzPopoverTrigger="click"
-                                        [nzPopoverContent]="isReadOnly ? '' : employeeSelectContent"
-                                        nzPopoverPlacement="bottomLeft" [(nzPopoverVisible)]="isEmployeePopoverVisible">
-                                        @if (firstAssignee) {
-                                        <span class="info-value-compact">{{ firstAssignee.FullName }}</span>
-                                        } @else {
-                                        <span class="placeholder-text">Chọn người thực hiện</span>
-                                        }
-                                    </div>
-                                </div>
-                                <div class="flex-fill">
-                                    <label class="form-label">Người giao việc <span class="text-danger">*</span></label>
-                                    <div class="info-box info-box-compact people-info-box" [class.readonly]="isReadOnly"
-                                        nz-popover nzPopoverTrigger="click"
-                                        [nzPopoverContent]="isReadOnly ? '' : assignerSelectContent"
-                                        nzPopoverPlacement="bottomLeft" [(nzPopoverVisible)]="isAssignerPopoverVisible">
-                                        @if (selectedAssigner) {
-                                        <span class="info-value-compact">{{ selectedAssigner.FullName }}</span>
-                                        } @else {
-                                        <span class="placeholder-text">Chọn người giao việc</span>
-                                        }
-                                    </div>
-                                </div>
+                        <!-- ===== HEADER ===== -->
+                        <div class="rd-header">
+                            <div class="rd-header-left">
+                                <div class="rd-header-label">Tên công việc <span style="color:#ef4444">*</span></div>
+                                <input nz-input [(ngModel)]="title" placeholder="Nhập tên công việc..."
+                                    class="rd-title-input" [disabled]="isReadOnly">
+                                @if (title && title.length > 150) {
+                                <small style="color:#ef4444;font-size:11px;">Tên công việc không được quá 150 ký tự</small>
+                                }
                             </div>
+                            <div class="rd-header-right">
+                                <span class="rd-char-count" [class.over-limit]="title && title.length > 150">
+                                    {{ title?.length || 0 }}/150
+                                </span>
+                                <span class="rd-status-badge"
+                                    [style.background]="getStatusInfo(taskStatus).color + '18'"
+                                    [style.color]="getStatusInfo(taskStatus).color">
+                                    <span class="rd-status-dot"
+                                        [style.background]="getStatusInfo(taskStatus).color"></span>
+                                    {{ getStatusInfo(taskStatus).label }}
+                                </span>
+                                @if (isSaving) {
+                                <i nz-icon nzType="loading" style="color:var(--rd-primary);font-size:16px;"></i>
+                                }
+                            </div>
+                        </div>
 
-                            <!-- Ngay du kien + Tong thoi gian (cung hang) -->
-                            <div class="d-flex gap-2 mb-0 mobile-mb-1 mobile-dates-row">
-                                <div class="date-col">
-                                    <label class="form-label">Ngày BĐ dự kiến </label>
-                                    <input type="date" [(ngModel)]="planStartDateStr" [disabled]="isReadOnly"
-                                        [style.border-color]="dateValidationError && dateValidationError.includes('du kien') ? '#ff4d4f' : '#d9d9d9'"
-                                        style="width:100%;padding:4px 8px;font-size:12px;border:1px solid;border-radius:4px;box-sizing:border-box;text-align:center;" />
+                        <!-- ===== MAIN GRID ===== -->
+                        <div class="rd-grid">
+
+                            <!-- ===== LEFT COLUMN ===== -->
+                            <div class="rd-col-left">
+
+                                <!-- Card 1: Phân công -->
+                                <div class="rd-card">
+                                    <div class="rd-card-title">
+                                        <i nz-icon nzType="team" nzTheme="outline"></i>
+                                        PHÂN CÔNG
+                                    </div>
+
+                                    <!-- Employee Select Popover Template -->
+                                    <ng-template #employeeSelectContent>
+                                        <div class="employee-select-popover"
+                                            style="width: 300px; max-height: 400px; overflow-y: auto;">
+                                            <div class="p-2">
+                                                <h6 class="fw-bold" style="margin: 0;">Chọn người thực hiện</h6>
+                                            </div>
+                                            <div class="p-2">
+                                                <input nz-input placeholder="Tìm kiếm nhân viên..." [(ngModel)]="mainSearchText"
+                                                    (ngModelChange)="updateFilteredLists()" nzSize="small" class="mb-2">
+                                            </div>
+                                            <nz-list nzSize="small">
+                                                @for (employee of _filteredEmployees; track $index) {
+                                                <nz-list-item class="employee-item" (click)="selectEmployee(employee)"
+                                                    style="cursor: pointer; padding: 8px 12px;">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <nz-avatar nzSize="small" [nzText]="employee.FullName?.charAt(0) || 'U'"
+                                                            [ngStyle]="{'background': getAvatarColor(employee.ID)}">
+                                                        </nz-avatar>
+                                                        <div>
+                                                            <div class="fw-500">{{ employee.Code }} - {{ employee.FullName }}
+                                                            </div>
+                                                            @if (employee.DepartmentName) {
+                                                            <div class="text-muted" style="font-size: 12px;">{{
+                                                                employee.DepartmentName
+                                                                }}</div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </nz-list-item>
+                                                }
+                                            </nz-list>
+                                        </div>
+                                    </ng-template>
+
+                                    <!-- Assigner Select Popover Template -->
+                                    <ng-template #assignerSelectContent>
+                                        <div class="employee-select-popover"
+                                            style="width: 300px; max-height: 400px; overflow-y: auto;">
+                                            <div class="p-2">
+                                                <h6 class="fw-bold" style="margin: 0;">Chọn người giao việc</h6>
+                                            </div>
+                                            <div class="p-2">
+                                                <input nz-input placeholder="Tìm kiếm nhân viên..." [(ngModel)]="mainSearchText"
+                                                    (ngModelChange)="updateFilteredLists()" nzSize="small" class="mb-2">
+                                            </div>
+                                            <nz-list nzSize="small">
+                                                @for (employee of _filteredEmployees; track $index) {
+                                                <nz-list-item class="employee-item" (click)="selectAssigner(employee)"
+                                                    style="cursor: pointer; padding: 8px 12px;">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <nz-avatar nzSize="small" [nzText]="employee.FullName?.charAt(0) || 'U'"
+                                                            [ngStyle]="{'background': getAvatarColor(employee.ID)}">
+                                                        </nz-avatar>
+                                                        <div>
+                                                            <div class="fw-500">{{ employee.Code }} - {{ employee.FullName }}
+                                                            </div>
+                                                            @if (employee.DepartmentName) {
+                                                            <div class="text-muted" style="font-size: 12px;">{{
+                                                                employee.DepartmentName
+                                                                }}</div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </nz-list-item>
+                                                }
+                                            </nz-list>
+                                        </div>
+                                    </ng-template>
+
+                                    <div class="rd-form-grid">
+                                        <div class="rd-form-group">
+                                            <label class="rd-label">Người thực hiện <span class="required">*</span></label>
+                                            <div class="info-box info-box-compact people-info-box" [class.readonly]="isReadOnly"
+                                                nz-popover nzPopoverTrigger="click"
+                                                [nzPopoverContent]="isReadOnly ? '' : employeeSelectContent"
+                                                nzPopoverPlacement="bottomLeft" [(nzPopoverVisible)]="isEmployeePopoverVisible">
+                                                @if (firstAssignee) {
+                                                <span class="info-value-compact">{{ firstAssignee.FullName }}</span>
+                                                } @else {
+                                                <span class="placeholder-text">Chọn người thực hiện</span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="rd-form-group">
+                                            <label class="rd-label">Người giao việc <span class="required">*</span></label>
+                                            <div class="info-box info-box-compact people-info-box" [class.readonly]="isReadOnly"
+                                                nz-popover nzPopoverTrigger="click"
+                                                [nzPopoverContent]="isReadOnly ? '' : assignerSelectContent"
+                                                nzPopoverPlacement="bottomLeft" [(nzPopoverVisible)]="isAssignerPopoverVisible">
+                                                @if (selectedAssigner) {
+                                                <span class="info-value-compact">{{ selectedAssigner.FullName }}</span>
+                                                } @else {
+                                                <span class="placeholder-text">Chọn người giao việc</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="date-col">
-                                    <label class="form-label">Ngày KT dự kiến <span class="text-danger"
-                                            *ngIf="taskStatus !== 0 && taskStatus !== 3">*</span></label>
-                                    <input type="date" [(ngModel)]="planEndDateStr" [disabled]="isReadOnly"
-                                        [style.border-color]="dateValidationError && dateValidationError.includes('du kien') ? '#ff4d4f' : '#d9d9d9'"
-                                        style="width:100%;padding:4px 8px;font-size:12px;border:1px solid;border-radius:4px;box-sizing:border-box;text-align:center;" />
+
+                                <!-- Card 2: Lịch trình dự kiến -->
+                                <div class="rd-card">
+                                    <div class="rd-card-title">
+                                        <i nz-icon nzType="calendar" nzTheme="outline"></i>
+                                        LỊCH TRÌNH DỰ KIẾN
+                                    </div>
+                                    <div class="rd-form-grid">
+                                        <div class="rd-form-group">
+                                            <label class="rd-label">Ngày bắt đầu dự kiến</label>
+                                            <input type="date" [(ngModel)]="planStartDateStr" [disabled]="isReadOnly"
+                                                class="rd-input"
+                                                [class.has-error]="dateValidationError && dateValidationError.includes('du kien')" />
+                                        </div>
+                                        <div class="rd-form-group">
+                                            <label class="rd-label">Ngày kết thúc dự kiến
+                                                <span class="required" *ngIf="taskStatus !== 0 && taskStatus !== 3">*</span>
+                                            </label>
+                                            <input type="date" [(ngModel)]="planEndDateStr" [disabled]="isReadOnly"
+                                                class="rd-input"
+                                                [class.has-error]="dateValidationError && dateValidationError.includes('du kien')" />
+                                        </div>
+                                    </div>
                                     @if (estimatedTime && planStartDate && planEndDate) {
-                                    <div class="estimated-time-minimal">
+                                    <div class="rd-time-tag">
                                         <i nz-icon nzType="clock-circle" nzTheme="outline"></i>
-                                        <span>{{ estimatedTime }}</span>
+                                        {{ estimatedTime }}
                                     </div>
                                     }
+                                    <hr class="rd-divider">
+                                    <div class="rd-form-grid">
+                                        <div class="rd-form-group">
+                                            <label class="rd-label">Thời gian dự kiến (giờ)</label>
+                                            <nz-input-number [(ngModel)]="estimatedTimeHours" [nzMin]="0.1"
+                                                [nzMax]="maxEstimatedHours" [nzStep]="0.1"
+                                                class="estimated-hours-input" [nzDisabled]="isReadOnly">
+                                            </nz-input-number>
+                                        </div>
+                                        <div class="rd-form-group">
+                                            <label class="rd-label">Deadline</label>
+                                            <input type="date" [(ngModel)]="deadlineStr" [disabled]="isReadOnly"
+                                                class="rd-input" />
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <!-- Card 3: Thực tế thực hiện -->
+                                <div class="rd-card">
+                                    <div class="rd-card-title">
+                                        <i nz-icon nzType="field-time" nzTheme="outline"></i>
+                                        THỰC TẾ THỰC HIỆN
+                                    </div>
+                                    <div class="rd-form-grid">
+                                        <div class="rd-form-group">
+                                            <label class="rd-label">Ngày bắt đầu thực tế
+                                                <span class="required" *ngIf="taskStatus === 1 || taskStatus === 2">*</span>
+                                            </label>
+                                            <input type="date" [(ngModel)]="startDateStr" [disabled]="isReadOnly"
+                                                class="rd-input"
+                                                [class.has-error]="dateValidationError && dateValidationError.includes('thuc te')" />
+                                        </div>
+                                        <div class="rd-form-group">
+                                            <label class="rd-label">Ngày kết thúc thực tế</label>
+                                            <input type="date" [(ngModel)]="endDateStr" [disabled]="isReadOnly"
+                                                [min]="startDateStr" class="rd-input"
+                                                [class.has-error]="dateValidationError && dateValidationError.includes('thuc te')" />
+                                        </div>
+                                    </div>
+                                    @if (dateValidationError) {
+                                    <div class="rd-error">
+                                        <i nz-icon nzType="exclamation-circle" nzTheme="outline"></i>
+                                        {{ dateValidationError }}
+                                    </div>
+                                    }
+
+                                </div>
+
                             </div>
 
-                            <!-- Ngay thuc te -->
-                            <div class="d-flex gap-2 mb-3 mobile-mb-1 mobile-dates-row">
-                                <div class="date-col">
-                                    <label class="form-label">Ngày BĐ thực tế <span class="text-danger"
-                                            *ngIf="taskStatus === 1 || taskStatus === 2">*</span></label>
-                                    <input type="date" [(ngModel)]="startDateStr" [disabled]="isReadOnly"
-                                        [style.border-color]="dateValidationError && dateValidationError.includes('thuc te') ? '#ff4d4f' : '#d9d9d9'"
-                                        style="width:100%;padding:4px 8px;font-size:12px;border:1px solid;border-radius:4px;box-sizing:border-box;text-align:center;" />
-                                </div>
-                                <div class="date-col">
-                                    <label class="form-label">Ngày KT thực tế</label>
-                                    <input type="date" [(ngModel)]="endDateStr" [disabled]="isReadOnly"
-                                        [min]="startDateStr"
-                                        [style.border-color]="dateValidationError && dateValidationError.includes('thuc te') ? '#ff4d4f' : '#d9d9d9'"
-                                        style="width:100%;padding:4px 8px;font-size:12px;border:1px solid;border-radius:4px;box-sizing:border-box;text-align:center;" />
-                                </div>
-                            </div>
+                            <!-- ===== RIGHT COLUMN ===== -->
+                            <div class="rd-col-right">
 
-                            <div class="mb-3 mobile-mb-1">
-                                <label class="form-label">Deadline</label>
-                                <input type="date" [(ngModel)]="deadlineStr" [disabled]="isReadOnly"
-                                    style="width:100%;padding:4px 8px;font-size:12px;border:1px solid #d9d9d9;border-radius:4px;box-sizing:border-box;text-align:center;" />
+                                <!-- Card: Mô tả chi tiết -->
+                                <div class="rd-card rd-card-grow">
+                                    <div class="rd-card-title">
+                                        <i nz-icon nzType="align-left" nzTheme="outline"></i>
+                                        MÔ TẢ CHI TIẾT
+                                    </div>
+                                    <textarea nz-input [(ngModel)]="description"
+                                        placeholder="Thêm mô tả chi tiết cho công việc này..."
+                                        class="rd-textarea" [disabled]="isReadOnly">
+                                    </textarea>
+                                </div>
+
+                                <!-- Card: Kết quả công việc -->
+                                <div class="rd-card rd-card-grow">
+                                    <div class="rd-card-title">
+                                        <i nz-icon nzType="check-square" nzTheme="outline"></i>
+                                        KẾT QUẢ CÔNG VIỆC
+                                    </div>
+                                    <textarea nz-input [(ngModel)]="projectTaskResult"
+                                        placeholder="Nhập kết quả đạt được sau khi hoàn thành..."
+                                        class="rd-textarea" [disabled]="isReadOnly">
+                                    </textarea>
+                                </div>
+
                             </div>
-                            @if (dateValidationError) {
-                            <div style="color:#ff4d4f;font-size:12px;margin-top:-8px;margin-bottom:8px;">{{
-                                dateValidationError }}</div>
-                            }
                         </div>
 
-                        <!-- RIGHT PANEL: Description -->
-                        <div class="col-md-7 right-panel">
-                            <div class="description-panel">
-                                <div class="section-title d-flex align-items-center gap-2 mb-2">
-                                    <i nz-icon nzType="align-left"></i>
-                                    <span>Mô tả chi tiết</span>
-                                </div>
-                                <textarea nz-input [(ngModel)]="description" placeholder="Thêm mô tả chi tiết..."
-                                    class="description-textarea description-full-height" [disabled]="isReadOnly">
-                                </textarea>
-                            </div>
-
-                            <div class="description-panel">
-                                <div class="section-title d-flex align-items-center gap-2 mb-2">
-                                    <i nz-icon nzType="check-square" nzTheme="outline"></i>
-                                    <span>Kết quả công việc</span>
-                                </div>
-                                <textarea nz-input [(ngModel)]="projectTaskResult"
-                                    placeholder="Nhập kết quả công việc..." class="description-textarea result-textarea"
-                                    [disabled]="isReadOnly">
-                                </textarea>
-                            </div>
-                        </div>
                     </div>
-                </div>
+                    </div>
+                </ng-template>
             </nz-tab>
 
-            <!-- Tab: Nguyên nhân / Phương án xử lý (chỉ hiển thị khi loại công việc = Bug, ID=2) -->
             @if (selectedTaskTypeId === 2) {
             <nz-tab nzTitle="Nguyên nhân / Phương án xử lý">
-                <div class="tab-content p-3 solution-tab-content">
-                    <div class="solution-header mb-2">
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <i nz-icon nzType="bug" nzTheme="outline" class="solution-icon"></i>
-                            <span class="section-title mb-0">Nguyên nhân và phương án xử lý</span>
+                <ng-template nz-tab>
+                    <div class="tab-content p-3 solution-tab-content">
+                        <div class="solution-header mb-2">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <i nz-icon nzType="bug" nzTheme="outline" class="solution-icon"></i>
+                                <span class="section-title mb-0">Nguyên nhân và phương án xử lý</span>
+                            </div>
+                            <small class="text-muted">Bắt buộc nhập khi hoàn thành công việc loại Bug (tối thiểu 10 ký tự,
+                                không tính khoảng trắng)</small>
                         </div>
-                        <small class="text-muted">Bắt buộc nhập khi hoàn thành công việc loại Bug (tối thiểu 10 ký tự,
-                            không tính khoảng trắng)</small>
-                    </div>
 
-                    <textarea nz-input [(ngModel)]="descriptionSolution"
-                        placeholder="Nhập nguyên nhân lỗi và phương án xử lý..."
-                        class="description-textarea solution-full-height" [disabled]="isReadOnly">
-                    </textarea>
+                        <textarea nz-input [(ngModel)]="descriptionSolution"
+                            placeholder="Nhập nguyên nhân lỗi và phương án xử lý..."
+                            class="description-textarea solution-full-height" [disabled]="isReadOnly">
+                        </textarea>
 
-                    <!-- Character count (không tính khoảng trắng) -->
-                    <div class="d-flex justify-content-between mt-1">
-                        @if (taskStatus === 2 && getSolutionCleanLength() < 10) { <small class="text-danger">
-                            <i nz-icon nzType="warning"></i>
-                            Cần tối thiểu 10 ký tự (hiện tại: {{ getSolutionCleanLength() }})
-                            </small>
-                            } @else {
-                            <small>&nbsp;</small>
-                            }
-                            <small class="text-muted">{{ getSolutionCleanLength() }} ký tự (không tính khoảng
-                                trắng)</small>
+                        <!-- Character count (không tính khoảng trắng) -->
+                        <div class="d-flex justify-content-between mt-1">
+                            @if (taskStatus === 2 && getSolutionCleanLength() < 10) { <small class="text-danger">
+                                <i nz-icon nzType="warning"></i>
+                                Cần tối thiểu 10 ký tự (hiện tại: {{ getSolutionCleanLength() }})
+                                </small>
+                                } @else {
+                                <small>&nbsp;</small>
+                                }
+                                <small class="text-muted">{{ getSolutionCleanLength() }} ký tự (không tính khoảng
+                                    trắng)</small>
+                        </div>
                     </div>
-                </div>
+                </ng-template>
             </nz-tab>
             }
 
-            <!-- Tab 3: Danh sách người thực hiện -->
-            <nz-tab nzTitle="Người thực hiện">
-                <div class="tab-content p-3 employee-tab-content">
-                    <!-- Header & Add Button -->
-                    <div class="people-tab-header nhattest mb-3">
-                        <span class="selected-count">{{ assigneeIds.length }} người thực hiện</span>
-                        <button style="margin-left: auto;" *ngIf="!isReadOnly" nz-button nzType="primary" nzSize="small"
-                            (click)="openAddRelatedPeopleModal('assignee')">
-                            <i nz-icon nzType="plus"></i> Thêm
-                        </button>
-                    </div>
-
-                    <!-- Empty state -->
-                    @if (selectedAssignees.length === 0) {
-                    <div class="people-empty-state">
-                        <i nz-icon nzType="team" nzTheme="outline"></i>
-                        <p>Chưa có người thực hiện. Nhấn <strong>Thêm</strong> để chọn.</p>
-                    </div>
-                    } @else {
-                    <!-- Selected people table -->
-                    <nz-table [nzData]="selectedAssignees" [nzShowPagination]="false" nzSize="small">
-                        <thead>
-                            <tr>
-                                <th>Họ và tên</th>
-                                <th>Đơn vị công tác</th>
-                                <th nzWidth="60px" style="text-align:center">Xóa</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for (employee of selectedAssignees; track employee.ID) {
-                            <tr>
-                                <td>{{ employee.FullName }}</td>
-                                <td>{{ employee.DepartmentName || '-' }}</td>
-                                <td style="text-align:center">
-                                    <button *ngIf="!isReadOnly" nz-button nzType="text" nzDanger nzSize="small"
-                                        (click)="removeAssignee(employee)" nz-tooltip="Gỡ khỏi danh sách">
-                                        <i nz-icon nzType="delete"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            }
-                        </tbody>
-                    </nz-table>
-                    }
-                </div>
-            </nz-tab>
-
-            <!-- Tab 4: Người liên quan -->
-            <nz-tab nzTitle="Người liên quan">
-                <div class="tab-content p-3 employee-tab-content">
-                    <!-- Header & Add Button -->
-                    <div class="people-tab-header nhattest mb-3">
-                        <span class="selected-count">{{ relatedPeopleIds.length }} người liên quan</span>
-                        <button style="margin-left: auto;" *ngIf="!isReadOnly" nz-button nzType="primary" nzSize="small"
-                            (click)="openAddRelatedPeopleModal('related')">
-                            <i nz-icon nzType="plus"></i> Thêm
-                        </button>
-                    </div>
-
-                    <!-- Empty state -->
-                    @if (selectedRelatedPeople.length === 0) {
-                    <div class="people-empty-state">
-                        <i nz-icon nzType="team" nzTheme="outline"></i>
-                        <p>Chưa có người liên quan. Nhấn <strong>Thêm</strong> để chọn.</p>
-                    </div>
-                    } @else {
-                    <!-- Selected people table -->
-                    <nz-table [nzData]="selectedRelatedPeople" [nzShowPagination]="false" nzSize="small">
-                        <thead>
-                            <tr>
-                                <th>Họ và tên</th>
-                                <th>Đơn vị công tác</th>
-                                <th nzWidth="60px" style="text-align:center">Xóa</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for (employee of selectedRelatedPeople; track employee.ID) {
-                            <tr>
-                                <td>{{ employee.FullName }}</td>
-                                <td>{{ employee.DepartmentName || '-' }}</td>
-                                <td style="text-align:center">
-                                    <button *ngIf="!isReadOnly" nz-button nzType="text" nzDanger nzSize="small"
-                                        (click)="removeRelatedPerson(employee)" nz-tooltip="Gỡ khỏi danh sách">
-                                        <i nz-icon nzType="delete"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            }
-                        </tbody>
-                    </nz-table>
-                    }
-                </div>
-            </nz-tab>
-
             <!-- Tab Công việc con -->
             <nz-tab nzTitle="Công việc con">
-                <div class="tab-content p-3 overflow-auto" style="height: 100%;">
-                    <div style="margin-bottom: 16px;">
-                        <button nz-button nzType="dashed" (click)="openAddChildTask()" class="w-100"
-                            *ngIf="!isAddingChildTask && !isReadOnly">
-                            <span nz-icon nzType="plus"></span> Thêm công việc con
-                        </button>
-                    </div>
+                <ng-template nz-tab>
+                    <div class="tab-content p-3 overflow-auto" style="height: 100%;">
+                        <div style="margin-bottom: 16px;">
+                            <button nz-button nzType="dashed" (click)="openAddChildTask()" class="w-100"
+                                *ngIf="!isAddingChildTask && !isReadOnly">
+                                <span nz-icon nzType="plus"></span> Thêm công việc con
+                            </button>
+                        </div>
 
-                    @if (childTasks.length === 0) {
-                    <div class="people-empty-state">
-                        <i nz-icon nzType="project" nzTheme="outline"></i>
-                        <p>Chưa có công việc con nào.</p>
-                    </div>
-                    } @else {
-                    <nz-table #childTaskTable [nzData]="childTasks" nzSize="small" [nzFrontPagination]="false"
-                        [nzShowPagination]="false">
-                        <thead>
-                            <tr>
-                                <th style="width: 100px;">Mã CV</th>
-                                <th style="min-width: 200px;">Nội dung</th>
-                                <th style="min-width: 150px;">Thời gian (BĐ-KT)</th>
-                                <th style="min-width: 150px;">Nhân sự</th>
-                                <th style="min-width: 150px;">Loại / Mức</th>
-                                <th *ngIf="!isReadOnly && childTasks.length > 0"
-                                    style="width: 70px; text-align: center;">Xóa</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let item of childTaskTable.data"
-                                [style.textDecoration]="item.IsDeletedFromParent ? 'line-through' : 'none'">
-                                <td>
-                                    <a *ngIf="item.ID > 0" (click)="openChildTaskDetail(item.ID)"
-                                        style="font-weight: 500;">{{item.Code || '#' + item.ID}}</a>
-                                    <span *ngIf="item.ID <= 0" class="text-muted" style="font-style: italic;">Chưa
-                                        lưu</span>
-                                </td>
-                                <td>
-                                    <ng-container *ngIf="item.ID < 0">
-                                        <textarea nz-input [(ngModel)]="item.Mission" placeholder="Nhập nội dung..."
-                                            rows="2" nzSize="small" style="width: 100%;"></textarea>
-                                    </ng-container>
-                                    <ng-container *ngIf="item.ID >= 0">
-                                        {{item.Mission}}
-                                    </ng-container>
-                                </td>
-                                <td>
-                                    <ng-container *ngIf="item.ID < 0">
-                                        <div class="d-flex flex-column gap-1">
-                                            <input type="date" [(ngModel)]="item.PlanStartDate"
-                                                class="form-control form-control-sm" />
-                                            <input type="date" [(ngModel)]="item.PlanEndDate"
-                                                class="form-control form-control-sm" />
-                                        </div>
-                                    </ng-container>
-                                    <ng-container *ngIf="item.ID >= 0">
-                                        <div>{{item.PlanStartDate | date:'dd/MM/yyyy'}}</div>
-                                        <div>{{item.PlanEndDate | date:'dd/MM/yyyy'}}</div>
-                                    </ng-container>
-                                </td>
-                                <td>
-                                    <ng-container *ngIf="item.ID < 0">
-                                        <div class="d-flex flex-column gap-1">
-                                            <!-- Người thực hiện -->
-                                            <nz-select [(ngModel)]="item.EmployeeAssigneeID" nzSize="small"
-                                                nzPlaceHolder="TH" nzShowSearch>
-                                                <nz-option *ngFor="let emp of employees" [nzValue]="emp.ID"
-                                                    [nzLabel]="emp.FullName"></nz-option>
-                                            </nz-select>
-                                            <!-- Người giao -->
-                                            <nz-select [(ngModel)]="item.EmployeeIDRequest" nzSize="small"
-                                                nzPlaceHolder="Giao" nzShowSearch>
-                                                <nz-option *ngFor="let emp of employees" [nzValue]="emp.ID"
-                                                    [nzLabel]="emp.FullName"></nz-option>
-                                            </nz-select>
-                                        </div>
-                                    </ng-container>
-                                    <ng-container *ngIf="item.ID >= 0">
-                                        <div
-                                            [title]="item.FullName || item.AssigneeName || item.EmployeeAssigneeID || '-'">
-                                            TH: {{item.FullName || item.AssigneeName || item.EmployeeAssigneeID ||
-                                            '-'}}</div>
-                                        <div
-                                            [title]="item.EmployeeRequestFullName || item.EmployeeRequestName || item.EmployeeIDRequest || '-'">
-                                            Giao:
-                                            {{item.EmployeeRequestFullName || item.EmployeeRequestName ||
-                                            item.EmployeeIDRequest || '-'}}</div>
-                                    </ng-container>
-                                </td>
-                                <td>
-                                    <ng-container *ngIf="item.ID < 0">
-                                        <div class="d-flex flex-column gap-1">
-                                            <nz-select [(ngModel)]="item.ProjectTaskTypeID" nzSize="small"
-                                                nzPlaceHolder="Loại">
-                                                <nz-option *ngFor="let type of taskTypeList" [nzValue]="type.ID"
-                                                    [nzLabel]="type.TypeName"></nz-option>
-                                            </nz-select>
-                                            <nz-select [(ngModel)]="item.TypeProjectItem" nzSize="small"
-                                                nzPlaceHolder="Hạng mục">
-                                                <nz-option *ngFor="let hm of typeProjectItems" [nzValue]="hm.ID"
-                                                    [nzLabel]="hm.ProjectTypeName"></nz-option>
-                                            </nz-select>
-                                            <nz-select [(ngModel)]="item.TaskComplexity" nzSize="small"
-                                                nzPlaceHolder="Mức">
-                                                <nz-option [nzValue]="1" nzLabel="Mức 1"></nz-option>
-                                                <nz-option [nzValue]="2" nzLabel="Mức 2"></nz-option>
-                                                <nz-option [nzValue]="3" nzLabel="Mức 3"></nz-option>
-                                                <nz-option [nzValue]="4" nzLabel="Mức 4"></nz-option>
-                                                <nz-option [nzValue]="5" nzLabel="Mức 5"></nz-option>
-                                            </nz-select>
-                                        </div>
-                                    </ng-container>
-                                    <ng-container *ngIf="item.ID >= 0">
-                                        <div class="mb-1"><nz-tag
-                                                [nzColor]="getTaskTypeInfo(item.ProjectTaskTypeID).Color"
-                                                style="margin: 0;">{{getTaskTypeInfo(item.ProjectTaskTypeID).TypeName}}</nz-tag>
-                                        </div>
-                                        <div class="text-muted small"
-                                            [title]="getTypeProjectItemName(item.TypeProjectItem)">HM:
-                                            {{getTypeProjectItemName(item.TypeProjectItem) || '-'}}</div>
-                                        <div class="text-muted small">Độ khó: Mức {{item.TaskComplexity || 1}}</div>
-                                    </ng-container>
-                                </td>
-                                <td *ngIf="!isReadOnly" style="text-align: center; vertical-align: middle;">
-                                    <button *ngIf="!item.IsDeletedFromParent" nz-button nzType="text" nzDanger
-                                        nzSize="small" nz-tooltip="Xóa" (click)="removeChildTask(item)">
-                                        <i nz-icon nzType="delete"></i>
-                                    </button>
-                                    <nz-tag *ngIf="item.IsDeletedFromParent" nzColor="red">Đã xóa</nz-tag>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </nz-table>
-                    }
+                        @if (childTasks.length === 0) {
+                        <div class="people-empty-state">
+                            <i nz-icon nzType="project" nzTheme="outline"></i>
+                            <p>Chưa có công việc con nào.</p>
+                        </div>
+                        } @else {
+                        <nz-table #childTaskTable [nzData]="childTasks" nzSize="small" [nzFrontPagination]="false"
+                            [nzShowPagination]="false">
+                            <thead>
+                                <tr>
+                                    <th style="width: 100px;">Mã CV</th>
+                                    <th style="min-width: 200px;">Nội dung</th>
+                                    <th style="min-width: 150px;">Thời gian (BĐ-KT)</th>
+                                    <th style="min-width: 150px;">Nhân sự</th>
+                                    <th style="min-width: 150px;">Loại / Mức</th>
+                                    <th *ngIf="!isReadOnly && childTasks.length > 0"
+                                        style="width: 70px; text-align: center;">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let item of childTaskTable.data"
+                                    [style.textDecoration]="item.IsDeletedFromParent ? 'line-through' : 'none'">
+                                    <td>
+                                        <a *ngIf="item.ID > 0" (click)="openChildTaskDetail(item.ID)"
+                                            style="font-weight: 500;">{{item.Code || '#' + item.ID}}</a>
+                                        <span *ngIf="item.ID <= 0" class="text-muted" style="font-style: italic;">Chưa
+                                            lưu</span>
+                                    </td>
+                                    <td>
+                                        <ng-container *ngIf="item.ID < 0">
+                                            <textarea nz-input [(ngModel)]="item.Mission" placeholder="Nhập nội dung..."
+                                                rows="2" nzSize="small" style="width: 100%;"></textarea>
+                                        </ng-container>
+                                        <ng-container *ngIf="item.ID >= 0">
+                                            {{item.Mission}}
+                                        </ng-container>
+                                    </td>
+                                    <td>
+                                        <ng-container *ngIf="item.ID < 0">
+                                            <div class="d-flex flex-column gap-1">
+                                                <input type="date" [(ngModel)]="item.PlanStartDate"
+                                                    class="form-control form-control-sm" />
+                                                <input type="date" [(ngModel)]="item.PlanEndDate"
+                                                    class="form-control form-control-sm" />
+                                            </div>
+                                        </ng-container>
+                                        <ng-container *ngIf="item.ID >= 0">
+                                            <div>{{item.PlanStartDate | date:'dd/MM/yyyy'}}</div>
+                                            <div>{{item.PlanEndDate | date:'dd/MM/yyyy'}}</div>
+                                        </ng-container>
+                                    </td>
+                                    <td>
+                                        <ng-container *ngIf="item.ID < 0">
+                                            <div class="d-flex flex-column gap-1">
+                                                <!-- Người thực hiện -->
+                                                <nz-select [(ngModel)]="item.EmployeeAssigneeID" nzSize="small"
+                                                    nzPlaceHolder="TH" nzShowSearch>
+                                                    <nz-option *ngFor="let emp of employees" [nzValue]="emp.ID"
+                                                        [nzLabel]="emp.FullName"></nz-option>
+                                                </nz-select>
+                                                <!-- Người giao -->
+                                                <nz-select [(ngModel)]="item.EmployeeIDRequest" nzSize="small"
+                                                    nzPlaceHolder="Giao" nzShowSearch>
+                                                    <nz-option *ngFor="let emp of employees" [nzValue]="emp.ID"
+                                                        [nzLabel]="emp.FullName"></nz-option>
+                                                </nz-select>
+                                            </div>
+                                        </ng-container>
+                                        <ng-container *ngIf="item.ID >= 0">
+                                            <div
+                                                [title]="item.FullName || item.AssigneeName || item.EmployeeAssigneeID || '-'">
+                                                TH: {{item.FullName || item.AssigneeName || item.EmployeeAssigneeID ||
+                                                '-'}}</div>
+                                            <div
+                                                [title]="item.EmployeeRequestFullName || item.EmployeeRequestName || item.EmployeeIDRequest || '-'">
+                                                Giao:
+                                                {{item.EmployeeRequestFullName || item.EmployeeRequestName ||
+                                                item.EmployeeIDRequest || '-'}}</div>
+                                        </ng-container>
+                                    </td>
+                                    <td>
+                                        <ng-container *ngIf="item.ID < 0">
+                                            <div class="d-flex flex-column gap-1">
+                                                <nz-select [(ngModel)]="item.ProjectTaskTypeID" nzSize="small"
+                                                    nzPlaceHolder="Loại">
+                                                    <nz-option *ngFor="let type of taskTypeList" [nzValue]="type.ID"
+                                                        [nzLabel]="type.TypeName"></nz-option>
+                                                </nz-select>
+                                                <nz-select [(ngModel)]="item.TypeProjectItem" nzSize="small"
+                                                    nzPlaceHolder="Hạng mục">
+                                                    <nz-option *ngFor="let hm of typeProjectItems" [nzValue]="hm.ID"
+                                                        [nzLabel]="hm.ProjectTypeName"></nz-option>
+                                                </nz-select>
+                                                <nz-select [(ngModel)]="item.TaskComplexity" nzSize="small"
+                                                    nzPlaceHolder="Mức">
+                                                    <nz-option [nzValue]="1" nzLabel="Mức 1"></nz-option>
+                                                    <nz-option [nzValue]="2" nzLabel="Mức 2"></nz-option>
+                                                    <nz-option [nzValue]="3" nzLabel="Mức 3"></nz-option>
+                                                    <nz-option [nzValue]="4" nzLabel="Mức 4"></nz-option>
+                                                    <nz-option [nzValue]="5" nzLabel="Mức 5"></nz-option>
+                                                </nz-select>
+                                            </div>
+                                        </ng-container>
+                                        <ng-container *ngIf="item.ID >= 0">
+                                            <div class="mb-1"><nz-tag
+                                                    [nzColor]="getTaskTypeInfo(item.ProjectTaskTypeID).Color"
+                                                    style="margin: 0;">{{getTaskTypeInfo(item.ProjectTaskTypeID).TypeName}}</nz-tag>
+                                            </div>
+                                            <div class="text-muted small"
+                                                [title]="getTypeProjectItemName(item.TypeProjectItem)">HM:
+                                                {{getTypeProjectItemName(item.TypeProjectItem) || '-'}}</div>
+                                            <div class="text-muted small">Độ khó: Mức {{item.TaskComplexity || 1}}</div>
+                                        </ng-container>
+                                    </td>
+                                    <td *ngIf="!isReadOnly" style="text-align: center; vertical-align: middle;">
+                                        <button *ngIf="!item.IsDeletedFromParent" nz-button nzType="text" nzDanger
+                                            nzSize="small" nz-tooltip="Xóa" (click)="removeChildTask(item)">
+                                            <i nz-icon nzType="delete"></i>
+                                        </button>
+                                        <nz-tag *ngIf="item.IsDeletedFromParent" nzColor="red">Đã xóa</nz-tag>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </nz-table>
+                        }
 
-                    <!-- Add Quick Form -->
-                    <div class="quick-add-card mt-3 p-3 border rounded shadow-sm" *ngIf="isAddingChildTask"
-                        style="background-color: #fafafa;">
-                        <h6 class="mb-3"><i nz-icon nzType="plus-circle" class="mr-2"></i> Thêm nhanh công việc con</h6>
-                        <div class="row g-2 mb-2">
-                            <div class="col-12">
-                                <label class="small fw-semibold mb-1">Nội dung công việc <span
-                                        class="text-danger">*</span></label>
-                                <textarea nz-input [(ngModel)]="newChildTask.Mission"
-                                    placeholder="Nhập tên/nội dung công việc..." rows="2" autofocus></textarea>
+                        <!-- Add Quick Form -->
+                        <div class="quick-add-card mt-3 p-3 border rounded shadow-sm" *ngIf="isAddingChildTask"
+                            style="background-color: #fafafa;">
+                            <h6 class="mb-3"><i nz-icon nzType="plus-circle" class="mr-2"></i> Thêm nhanh công việc con</h6>
+                            <div class="row g-2 mb-2">
+                                <div class="col-12">
+                                    <label class="small fw-semibold mb-1">Nội dung công việc <span
+                                            class="text-danger">*</span></label>
+                                    <textarea nz-input [(ngModel)]="newChildTask.Mission"
+                                        placeholder="Nhập tên/nội dung công việc..." rows="2" autofocus></textarea>
+                                </div>
                             </div>
-                        </div>
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-6">
-                                <label class="small text-muted mb-1">Dự kiến bắt đầu</label>
-                                <input type="date" [(ngModel)]="newChildTask.PlanStartDate"
-                                    class="form-control form-control-sm" />
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-6">
+                                    <label class="small text-muted mb-1">Dự kiến bắt đầu</label>
+                                    <input type="date" [(ngModel)]="newChildTask.PlanStartDate"
+                                        class="form-control form-control-sm" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small text-muted mb-1">Dự kiến kết thúc</label>
+                                    <input type="date" [(ngModel)]="newChildTask.PlanEndDate"
+                                        class="form-control form-control-sm" />
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="small text-muted mb-1">Dự kiến kết thúc</label>
-                                <input type="date" [(ngModel)]="newChildTask.PlanEndDate"
-                                    class="form-control form-control-sm" />
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-6">
+                                    <label class="small text-muted mb-1">Người thực hiện</label>
+                                    <nz-select [(ngModel)]="newChildTask.EmployeeAssigneeID"
+                                        nzPlaceHolder="Chọn người thực hiện" style="width: 100%;" nzShowSearch nzAllowClear>
+                                        <nz-option *ngFor="let emp of employees" [nzValue]="emp.ID"
+                                            [nzLabel]="emp.FullName"></nz-option>
+                                    </nz-select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small text-muted mb-1">Người giao việc</label>
+                                    <nz-select [(ngModel)]="newChildTask.EmployeeIDRequest"
+                                        nzPlaceHolder="Chọn người giao việc" style="width: 100%;" nzShowSearch nzAllowClear>
+                                        <nz-option *ngFor="let emp of employees" [nzValue]="emp.ID"
+                                            [nzLabel]="emp.FullName"></nz-option>
+                                    </nz-select>
+                                </div>
                             </div>
-                        </div>
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-6">
-                                <label class="small text-muted mb-1">Người thực hiện</label>
-                                <nz-select [(ngModel)]="newChildTask.EmployeeAssigneeID"
-                                    nzPlaceHolder="Chọn người thực hiện" style="width: 100%;" nzShowSearch nzAllowClear>
-                                    <nz-option *ngFor="let emp of employees" [nzValue]="emp.ID"
-                                        [nzLabel]="emp.FullName"></nz-option>
-                                </nz-select>
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-4">
+                                    <label class="small text-muted mb-1">Loại công việc</label>
+                                    <nz-select [(ngModel)]="newChildTask.ProjectTaskTypeID" style="width: 100%;">
+                                        <nz-option *ngFor="let type of taskTypeList" [nzValue]="type.ID"
+                                            [nzLabel]="type.TypeName"></nz-option>
+                                    </nz-select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small text-muted mb-1">Độ phức tạp</label>
+                                    <nz-select [(ngModel)]="newChildTask.TaskComplexity" style="width: 100%;">
+                                        <nz-option [nzValue]="1" nzLabel="Mức 1 (Dễ nhất)"></nz-option>
+                                        <nz-option [nzValue]="2" nzLabel="Mức 2"></nz-option>
+                                        <nz-option [nzValue]="3" nzLabel="Mức 3"></nz-option>
+                                        <nz-option [nzValue]="4" nzLabel="Mức 4"></nz-option>
+                                        <nz-option [nzValue]="5" nzLabel="Mức 5 (Khó nhất)"></nz-option>
+                                    </nz-select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small text-muted mb-1">Loại hạng mục</label>
+                                    <nz-select [(ngModel)]="newChildTask.TypeProjectItem" style="width: 100%;">
+                                        <nz-option *ngFor="let item of typeProjectItems" [nzValue]="item.ID"
+                                            [nzLabel]="item.ProjectTypeName"></nz-option>
+                                    </nz-select>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="small text-muted mb-1">Người giao việc</label>
-                                <nz-select [(ngModel)]="newChildTask.EmployeeIDRequest"
-                                    nzPlaceHolder="Chọn người giao việc" style="width: 100%;" nzShowSearch nzAllowClear>
-                                    <nz-option *ngFor="let emp of employees" [nzValue]="emp.ID"
-                                        [nzLabel]="emp.FullName"></nz-option>
-                                </nz-select>
+                            <div class="d-flex justify-content-end gap-2 mt-2">
+                                <button nz-button (click)="cancelAddChildTask()">Hủy</button>
+                                <button nz-button nzType="primary" (click)="confirmAddChildTask()">Thêm mới</button>
                             </div>
-                        </div>
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-4">
-                                <label class="small text-muted mb-1">Loại công việc</label>
-                                <nz-select [(ngModel)]="newChildTask.ProjectTaskTypeID" style="width: 100%;">
-                                    <nz-option *ngFor="let type of taskTypeList" [nzValue]="type.ID"
-                                        [nzLabel]="type.TypeName"></nz-option>
-                                </nz-select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="small text-muted mb-1">Độ phức tạp</label>
-                                <nz-select [(ngModel)]="newChildTask.TaskComplexity" style="width: 100%;">
-                                    <nz-option [nzValue]="1" nzLabel="Mức 1 (Dễ nhất)"></nz-option>
-                                    <nz-option [nzValue]="2" nzLabel="Mức 2"></nz-option>
-                                    <nz-option [nzValue]="3" nzLabel="Mức 3"></nz-option>
-                                    <nz-option [nzValue]="4" nzLabel="Mức 4"></nz-option>
-                                    <nz-option [nzValue]="5" nzLabel="Mức 5 (Khó nhất)"></nz-option>
-                                </nz-select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="small text-muted mb-1">Loại hạng mục</label>
-                                <nz-select [(ngModel)]="newChildTask.TypeProjectItem" style="width: 100%;">
-                                    <nz-option *ngFor="let item of typeProjectItems" [nzValue]="item.ID"
-                                        [nzLabel]="item.ProjectTypeName"></nz-option>
-                                </nz-select>
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-end gap-2 mt-2">
-                            <button nz-button (click)="cancelAddChildTask()">Hủy</button>
-                            <button nz-button nzType="primary" (click)="confirmAddChildTask()">Thêm mới</button>
                         </div>
                     </div>
-                </div>
+                </ng-template>
             </nz-tab>
 
             <!-- Tab 5: Checklist -->
             <nz-tab nzTitle="Checklist">
-                <div class="tab-content p-3">
-                    <div class="section-title d-flex align-items-center gap-2 mb-2">
-                        <i nz-icon nzType="check-square"></i>
-                        <span>Checklist ({{ completedChecklists }}/{{ checklists.length }})</span>
-                    </div>
+                <ng-template nz-tab>
+                    <div class="tab-content p-3">
+                        <div class="section-title d-flex align-items-center gap-2 mb-2">
+                            <i nz-icon nzType="check-square"></i>
+                            <span>Checklist ({{ completedChecklists }}/{{ checklists.length }})</span>
+                        </div>
 
-                    <!-- Progress bar -->
-                    @if (checklists.length > 0) {
-                    <nz-progress [nzPercent]="checklistProgress" nzSize="small" class="mb-2"></nz-progress>
-                    }
+                        <!-- Progress bar -->
+                        @if (checklists.length > 0) {
+                        <nz-progress [nzPercent]="checklistProgress" nzSize="small" class="mb-2"></nz-progress>
+                        }
 
-                    <div class="checklist-items" cdkDropList (cdkDropListDropped)="dropChecklist($event)">
-                        @for (item of checklists; track item.ID) {
-                        <div class="checklist-item" [class.readonly]="isReadOnly" cdkDrag
-                            [cdkDragDisabled]="isReadOnly">
-                            <div class="drag-handle me-2" *ngIf="!isReadOnly" cdkDragHandle>
-                                <i nz-icon nzType="holder" nzTheme="outline"></i>
-                            </div>
+                        <div class="checklist-items" cdkDropList (cdkDropListDropped)="dropChecklist($event)">
+                            @for (item of checklists; track item.ID) {
+                            <div class="checklist-item" [class.readonly]="isReadOnly" cdkDrag
+                                [cdkDragDisabled]="isReadOnly">
+                                <div class="drag-handle me-2" *ngIf="!isReadOnly" cdkDragHandle>
+                                    <i nz-icon nzType="holder" nzTheme="outline"></i>
+                                </div>
 
-                            <label nz-checkbox [(ngModel)]="item.IsDone" [nzDisabled]="isReadOnly"
-                                (ngModelChange)="isReadOnly ? null : toggleChecklist(item)"></label>
+                                <label nz-checkbox [(ngModel)]="item.IsDone" [nzDisabled]="isReadOnly"
+                                    (ngModelChange)="isReadOnly ? null : toggleChecklist(item)"></label>
 
-                            @if (editingChecklistId === item.ID) {
-                            <!-- Editing mode -->
-                            <nz-input-group [nzSuffix]="suffixTemplate" style="flex: 1; margin: 0 8px;">
-                                <input nz-input nzSize="small" [(ngModel)]="editingChecklistTitle"
-                                    (keyup.enter)="saveEditChecklist(item)" (keyup.escape)="cancelEditChecklist()"
-                                    class="checklist-edit-input" autofocus>
-                            </nz-input-group>
-                            <ng-template #suffixTemplate>
-                                <i nz-icon nzType="check" class="text-success cursor-pointer"
-                                    (click)="saveEditChecklist(item)"></i>
-                            </ng-template>
-                            } @else {
-                            <!-- Display mode -->
-                            <span [class.completed]="item.IsDone" (dblclick)="startEditChecklist(item)"
-                                style="cursor: text; flex: 1;">{{ item.ChecklistTitle }}</span>
+                                @if (editingChecklistId === item.ID) {
+                                <!-- Editing mode -->
+                                <nz-input-group [nzSuffix]="suffixTemplate" style="flex: 1; margin: 0 8px;">
+                                    <input nz-input nzSize="small" [(ngModel)]="editingChecklistTitle"
+                                        (keyup.enter)="saveEditChecklist(item)" (keyup.escape)="cancelEditChecklist()"
+                                        class="checklist-edit-input" autofocus>
+                                </nz-input-group>
+                                <ng-template #suffixTemplate>
+                                    <i nz-icon nzType="check" class="text-success cursor-pointer"
+                                        (click)="saveEditChecklist(item)"></i>
+                                </ng-template>
+                                } @else {
+                                <!-- Display mode -->
+                                <span [class.completed]="item.IsDone" (dblclick)="startEditChecklist(item)"
+                                    style="cursor: text; flex: 1;">{{ item.ChecklistTitle }}</span>
 
-                            <div *ngIf="!isReadOnly" class="checklist-actions">
-                                <i nz-icon nzType="edit" class="edit-icon me-2" (click)="startEditChecklist(item)"></i>
-                                <i nz-icon nzType="delete" class="delete-icon"
-                                    (click)="deleteChecklistItemAction(item)"></i>
+                                <div *ngIf="!isReadOnly" class="checklist-actions">
+                                    <i nz-icon nzType="edit" class="edit-icon me-2" (click)="startEditChecklist(item)"></i>
+                                    <i nz-icon nzType="delete" class="delete-icon"
+                                        (click)="deleteChecklistItemAction(item)"></i>
+                                </div>
+                                }
+
+                                <!-- Placeholder when dragging -->
+                                <div class="checklist-placeholder" *cdkDragPlaceholder></div>
                             </div>
                             }
+                        </div>
 
-                            <!-- Placeholder when dragging -->
-                            <div class="checklist-placeholder" *cdkDragPlaceholder></div>
+                        <!-- Add new checklist (inline) -->
+                        @if (isAddingChecklist) {
+                        <div class="add-checklist-inline mt-2">
+                            <nz-input-group [nzSuffix]="addCheckSuffix" nzSize="small">
+                                <input nz-input [(ngModel)]="newChecklistItem" placeholder="Nhập nội dung checklist..."
+                                    (keyup.enter)="saveNewChecklist()" (keyup.escape)="cancelAddChecklist()" #checklistInput
+                                    [disabled]="isReadOnly">
+                            </nz-input-group>
+                            <ng-template #addCheckSuffix>
+                                <i nz-icon nzType="plus" class="text-primary cursor-pointer" (click)="saveNewChecklist()"
+                                    style="font-size: 16px; margin-right: 4px;"></i>
+                            </ng-template>
+                        </div>
+                        } @else {
+                        <div *ngIf="!isReadOnly" class="add-checklist-btn" (click)="startAddChecklist()">
+                            <i nz-icon nzType="plus"></i> Thêm checklist
                         </div>
                         }
                     </div>
-
-                    <!-- Add new checklist (inline) -->
-                    @if (isAddingChecklist) {
-                    <div class="add-checklist-inline mt-2">
-                        <nz-input-group [nzSuffix]="addCheckSuffix" nzSize="small">
-                            <input nz-input [(ngModel)]="newChecklistItem" placeholder="Nhập nội dung checklist..."
-                                (keyup.enter)="saveNewChecklist()" (keyup.escape)="cancelAddChecklist()" #checklistInput
-                                [disabled]="isReadOnly">
-                        </nz-input-group>
-                        <ng-template #addCheckSuffix>
-                            <i nz-icon nzType="plus" class="text-primary cursor-pointer" (click)="saveNewChecklist()"
-                                style="font-size: 16px; margin-right: 4px;"></i>
-                        </ng-template>
-                    </div>
-                    } @else {
-                    <div *ngIf="!isReadOnly" class="add-checklist-btn" (click)="startAddChecklist()">
-                        <i nz-icon nzType="plus"></i> Thêm checklist
-                    </div>
-                    }
-                </div>
+                </ng-template>
             </nz-tab>
 
             <!-- Tab 6: Tệp đính kèm -->
             <nz-tab nzTitle="Tệp đính kèm">
-                <div class="tab-content p-3">
-                    <div class="section-title d-flex justify-content-between align-items-center mb-2">
-                        <span>Tệp đính kèm</span>
-                        <button *ngIf="!isReadOnly" nz-button nzType="link" nzSize="small" (click)="showAddLink()">
-                            <i nz-icon nzType="link"></i> Thêm link
-                        </button>
-                    </div>
+                <ng-template nz-tab>
+                    <div class="tab-content p-3">
+                        <div class="section-title d-flex justify-content-between align-items-center mb-2">
+                            <span>Tệp đính kèm</span>
+                            <button *ngIf="!isReadOnly" nz-button nzType="link" nzSize="small" (click)="showAddLink()">
+                                <i nz-icon nzType="link"></i> Thêm link
+                            </button>
+                        </div>
 
-                    <!-- Error Message -->
-                    @if (uploadError) {
-                    <div class="alert alert-danger alert-sm mb-2">
-                        {{ uploadError }}
-                    </div>
-                    }
+                        <!-- Error Message -->
+                        @if (uploadError) {
+                        <div class="alert alert-danger alert-sm mb-2">
+                            {{ uploadError }}
+                        </div>
+                        }
 
-                    <!-- Upload Zone -->
-                    <div *ngIf="!isReadOnly" class="upload-area" (drop)="onFileDrop($event)"
-                        (dragover)="onDragOver($event)" (click)="fileInput.click()">
-                        <i nz-icon nzType="cloud-upload" class="fs-32 text-muted"></i>
-                        <div class="text-muted mt-2">Thả tệp, paste hoặc click để tải lên</div>
-                        <div class="text-muted small">Ảnh < 1MB, Video < 5MB, Tài liệu (PDF, DOC, Excel) < 10MB</div>
-                                <input #fileInput type="file" multiple
-                                    accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                    (change)="onFileSelected($event)" style="display: none;">
+                        <!-- Upload Zone -->
+                        <div *ngIf="!isReadOnly" class="upload-area" (drop)="onFileDrop($event)"
+                            (dragover)="onDragOver($event)" (click)="fileInput.click()">
+                            <i nz-icon nzType="cloud-upload" class="fs-32 text-muted"></i>
+                            <div class="text-muted mt-2">Thả tệp, paste hoặc click để tải lên</div>
+                            <div class="text-muted small">Ảnh < 1MB, Video < 5MB, Tài liệu (PDF, DOC, Excel) < 10MB</div>
+                            <input #fileInput type="file" multiple
+                                accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                (change)="onFileSelected($event)" style="display: none;">
                         </div>
 
                         <!-- Link Input Form -->
@@ -922,145 +906,150 @@
                         </div>
                         }
                     </div>
+                </ng-template>
             </nz-tab>
 
             <!-- Tab 7: Lịch sử hoạt động (chỉ hiện ở UPDATE mode) -->
             @if (isUpdateMode) {
             <nz-tab nzTitle="Lịch sử">
-                <div class="tab-content p-3">
-                    <div class="section-title d-flex align-items-center justify-content-between mb-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <i nz-icon nzType="history"></i>
-                            <span>Lịch sử hoạt động</span>
+                <ng-template nz-tab>
+                    <div class="tab-content p-3">
+                        <div class="section-title d-flex align-items-center justify-content-between mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <i nz-icon nzType="history"></i>
+                                <span>Lịch sử hoạt động</span>
+                            </div>
+                            <button nz-button nzType="link" nzSize="small"
+                                (click)="activeTaskId ? loadTaskLogs(activeTaskId) : null">
+                                <i nz-icon nzType="reload" [class.spin]="isLoadingLogs"></i> Tải lại
+                            </button>
                         </div>
-                        <button nz-button nzType="link" nzSize="small"
-                            (click)="loadTaskLogs((nzModalData?.task || task)?.ID)">
-                            <i nz-icon nzType="reload" [class.spin]="isLoadingLogs"></i> Tải lại
-                        </button>
-                    </div>
 
-                    @if (isLoadingLogs) {
-                    <div class="text-center py-4">
-                        <i nz-icon nzType="loading" class="fs-24 text-primary"></i>
-                        <p class="text-muted mt-2">Đang tải lịch sử...</p>
-                    </div>
-                    } @else if (taskLogs.length === 0) {
-                    <div class="text-center py-4">
-                        <i nz-icon nzType="inbox" class="fs-32 text-muted"></i>
-                        <p class="text-muted mt-2">Chưa có lịch sử hoạt động</p>
-                    </div>
-                    } @else {
-                    <div class="log-timeline">
-                        @for (log of taskLogs; track log.ID) {
-                        <div class="log-item">
-                            <div class="log-icon-wrapper">
-                                <div class="log-icon">
-                                    <i nz-icon [nzType]="getLogIcon(log.TypeLog)" nzTheme="outline"></i>
+                        @if (isLoadingLogs) {
+                        <div class="text-center py-4">
+                            <i nz-icon nzType="loading" class="fs-24 text-primary"></i>
+                            <p class="text-muted mt-2">Đang tải lịch sử...</p>
+                        </div>
+                        } @else if (taskLogs.length === 0) {
+                        <div class="text-center py-4">
+                            <i nz-icon nzType="inbox" class="fs-32 text-muted"></i>
+                            <p class="text-muted mt-2">Chưa có lịch sử hoạt động</p>
+                        </div>
+                        } @else {
+                        <div class="log-timeline">
+                            @for (log of taskLogs; track log.ID) {
+                            <div class="log-item">
+                                <div class="log-icon-wrapper">
+                                    <div class="log-icon">
+                                        <i nz-icon [nzType]="getLogIcon(log.TypeLog)" nzTheme="outline"></i>
+                                    </div>
+                                    <div class="log-line"></div>
                                 </div>
-                                <div class="log-line"></div>
-                            </div>
-                            <div class="log-body">
-                                <div class="log-type">{{ log.TypeLog }}</div>
-                                <div class="log-content">{{ log.ContentLog }}</div>
-                                <div class="log-meta">
-                                    <span class="log-author">
-                                        <i nz-icon nzType="user" nzTheme="outline"></i>
-                                        {{ log.CreatedBy }}
-                                    </span>
-                                    <span class="log-time">
-                                        <i nz-icon nzType="clock-circle" nzTheme="outline"></i>
-                                        {{ formatLogDate(log.CreatedDate) }}
-                                    </span>
+                                <div class="log-body">
+                                    <div class="log-type">{{ log.TypeLog }}</div>
+                                    <div class="log-content">{{ log.ContentLog }}</div>
+                                    <div class="log-meta">
+                                        <span class="log-author">
+                                            <i nz-icon nzType="user" nzTheme="outline"></i>
+                                            {{ log.CreatedBy }}
+                                        </span>
+                                        <span class="log-time">
+                                            <i nz-icon nzType="clock-circle" nzTheme="outline"></i>
+                                            {{ formatLogDate(log.CreatedDate) }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
+                            }
                         </div>
                         }
                     </div>
-                    }
-                </div>
+                </ng-template>
             </nz-tab>
             }
 
             <!-- Tab 8: Phát sinh -->
             <nz-tab nzTitle="Phát sinh">
-                <div class="tab-content additional-tab-content p-3">
-                    <div class="mb-3 d-flex align-items-center justify-content-between">
-                        <label nz-checkbox [(ngModel)]="isAdditional"
-                            [nzDisabled]="isReadOnly || additionals.length > 0">
-                            <span class="fw-bold">Có vấn đề phát sinh</span>
-                        </label>
-                    </div>
+                <ng-template nz-tab>
+                    <div class="tab-content additional-tab-content p-3">
+                        <div class="mb-3 d-flex align-items-center justify-content-between">
+                            <label nz-checkbox [(ngModel)]="isAdditional"
+                                [nzDisabled]="isReadOnly || additionals.length > 0">
+                                <span class="fw-bold">Có vấn đề phát sinh</span>
+                            </label>
+                        </div>
 
-                    <div class="additional-list">
-                        <div *ngFor="let item of additionals"
-                            class="additional-card mb-3 p-3 border rounded shadow-sm bg-white">
-                            <div class="additional-card-header d-flex justify-content-between align-items-center mb-2">
-                                <div class="metadata small text-muted d-flex align-items-center gap-2">
-                                    <span class="badge bg-light text-dark px-2 py-1 rounded">
-                                        <i nz-icon nzType="user" class="me-1"></i> {{item.CreatedBy}}
-                                    </span>
-                                    <span class="badge bg-light text-dark px-2 py-1 rounded">
-                                        <i nz-icon nzType="clock-circle" class="me-1"></i> {{item.CreatedDate |
-                                        date:'dd/MM/yyyy HH:mm'}}
-                                    </span>
+                        <div class="additional-list">
+                            <div *ngFor="let item of additionals"
+                                class="additional-card mb-3 p-3 border rounded shadow-sm bg-white">
+                                <div class="additional-card-header d-flex justify-content-between align-items-center mb-2">
+                                    <div class="metadata small text-muted d-flex align-items-center gap-2">
+                                        <span class="badge bg-light text-dark px-2 py-1 rounded">
+                                            <i nz-icon nzType="user" class="me-1"></i> {{item.CreatedBy}}
+                                        </span>
+                                        <span class="badge bg-light text-dark px-2 py-1 rounded">
+                                            <i nz-icon nzType="clock-circle" class="me-1"></i> {{item.CreatedDate |
+                                            date:'dd/MM/yyyy HH:mm'}}
+                                        </span>
+                                    </div>
+                                    <div class="actions" *ngIf="!isReadOnly && taskStatus !== 3">
+                                        <button nz-button nzType="text" nzSize="small" (click)="startEditAdditional(item)"
+                                            class="text-primary p-0 h-auto">
+                                            <i nz-icon nzType="edit"></i> Sửa
+                                        </button>
+                                        <button nz-button nzType="text" nzSize="small"
+                                            (click)="deleteAdditionalAction(item)" class="text-danger p-0 h-auto ms-3">
+                                            <i nz-icon nzType="delete"></i> Xóa
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="actions" *ngIf="!isReadOnly && taskStatus !== 3">
-                                    <button nz-button nzType="text" nzSize="small" (click)="startEditAdditional(item)"
-                                        class="text-primary p-0 h-auto">
-                                        <i nz-icon nzType="edit"></i> Sửa
-                                    </button>
-                                    <button nz-button nzType="text" nzSize="small"
-                                        (click)="deleteAdditionalAction(item)" class="text-danger p-0 h-auto ms-3">
-                                        <i nz-icon nzType="delete"></i> Xóa
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="additional-card-body">
-                                <div *ngIf="editingAdditionalId !== item.ID" class="description-content text-dark">
-                                    {{item.Description}}
-                                </div>
-                                <div *ngIf="editingAdditionalId === item.ID" class="edit-mode-container">
-                                    <textarea nz-input [(ngModel)]="editingAdditionalDescription" rows="3"
-                                        class="mb-2 rounded" placeholder="Nhập mô tả vấn đề..."></textarea>
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <button nz-button nzSize="small" (click)="cancelEditAdditional()">Hủy</button>
-                                        <button nz-button nzType="primary" nzSize="small"
-                                            (click)="saveEditAdditional(item)">Lưu thay đổi</button>
+                                <div class="additional-card-body">
+                                    <div *ngIf="editingAdditionalId !== item.ID" class="description-content text-dark">
+                                        {{item.Description}}
+                                    </div>
+                                    <div *ngIf="editingAdditionalId === item.ID" class="edit-mode-container">
+                                        <textarea nz-input [(ngModel)]="editingAdditionalDescription" rows="3"
+                                            class="mb-2 rounded" placeholder="Nhập mô tả vấn đề..."></textarea>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button nz-button nzSize="small" (click)="cancelEditAdditional()">Hủy</button>
+                                            <button nz-button nzType="primary" nzSize="small"
+                                                (click)="saveEditAdditional(item)">Lưu thay đổi</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Empty State for Additional -->
-                    <div *ngIf="additionals.length === 0"
-                        class="text-center py-5 text-muted border rounded bg-light mb-3">
-                        <i nz-icon nzType="info-circle" class="fs-32 mb-2"></i>
-                        <p>Chưa có vấn đề phát sinh nào được ghi nhận cho công việc này.</p>
-                    </div>
+                        <!-- Empty State for Additional -->
+                        <div *ngIf="additionals.length === 0"
+                            class="text-center py-5 text-muted border rounded bg-light mb-3">
+                            <i nz-icon nzType="info-circle" class="fs-32 mb-2"></i>
+                            <p>Chưa có vấn đề phát sinh nào được ghi nhận cho công việc này.</p>
+                        </div>
 
-                    <!-- Add New Button/Input -->
-                    <div class="add-additional-section mt-4" *ngIf="!isReadOnly && taskStatus !== 3">
-                        <button *ngIf="!isAddingAdditional" nz-button nzType="dashed" nzBlock
-                            (click)="startAddAdditional()" class="h-40 rounded">
-                            <i nz-icon nzType="plus"></i> Thêm vấn đề phát sinh mới
-                        </button>
+                        <!-- Add New Button/Input -->
+                        <div class="add-additional-section mt-4" *ngIf="!isReadOnly && taskStatus !== 3">
+                            <button *ngIf="!isAddingAdditional" nz-button nzType="dashed" nzBlock
+                                (click)="startAddAdditional()" class="h-40 rounded">
+                                <i nz-icon nzType="plus"></i> Thêm vấn đề phát sinh mới
+                            </button>
 
-                        <div *ngIf="isAddingAdditional" class="add-additional-form p-3 border rounded bg-light">
-                            <h6 class="mb-2 small fw-bold text-muted">VẤN ĐỀ PHÁT SINH MỚI</h6>
-                            <textarea nz-input [(ngModel)]="newAdditionalItem"
-                                placeholder="Nhập nội dung vấn đề phát sinh tại đây..." rows="3" class="mb-3 rounded"
-                                (keydown.enter)="onAdditionalEnter($event)"></textarea>
-                            <div class="d-flex justify-content-end gap-2">
-                                <button nz-button nzSize="small" (click)="cancelAddAdditional()">Đóng</button>
-                                <button nz-button nzType="primary" nzSize="small" (click)="saveNewAdditional()"
-                                    [disabled]="!(newAdditionalItem || '').trim()">
-                                    Thêm phát sinh
-                                </button>
+                            <div *ngIf="isAddingAdditional" class="add-additional-form p-3 border rounded bg-light">
+                                <h6 class="mb-2 small fw-bold text-muted">VẤN ĐỀ PHÁT SINH MỚI</h6>
+                                <textarea nz-input [(ngModel)]="newAdditionalItem"
+                                    placeholder="Nhập nội dung vấn đề phát sinh tại đây..." rows="3" class="mb-3 rounded"
+                                    (keydown.enter)="onAdditionalEnter($event)"></textarea>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button nz-button nzSize="small" (click)="cancelAddAdditional()">Đóng</button>
+                                    <button nz-button nzType="primary" nzSize="small" (click)="saveNewAdditional()"
+                                        [disabled]="!(newAdditionalItem || '').trim()">
+                                        Thêm phát sinh
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </ng-template>
             </nz-tab>
 
             <ng-template #pendingReasonTpl>
@@ -1074,11 +1063,216 @@
         </nz-tabset>
     </div>
 
+    <!-- Footer actions -->
+    <div class="modal-footer p-3 border-top bg-white rounded-bottom">
+        <div class="footer-buttons-wrapper d-flex justify-content-end gap-2">
+            <button nz-button nzType="default" (click)="close()" class="flex-mobile-1">
+                Quay lại
+            </button>
+
+            <ng-container *ngIf="!isReadOnly">
+                <button *ngIf="isCreateMode" nz-button nzType="default" (click)="saveAndAddNew()" [nzLoading]="isSaving"
+                    class="flex-mobile-1">Lưu & Thêm mới</button>
+                <button nz-button nzType="primary" (click)="isCreateMode ? saveNewTask() : save()"
+                    [nzLoading]="isSaving" class="flex-mobile-1">Lưu</button>
+            </ng-container>
+        </div>
+    </div>
+        </div>
+
+        <div class="metadata-sidebar d-none d-lg-flex" *ngIf="isDesktopSidebarVisible">
+            <div class="sidebar-header px-3 py-3 border-bottom">
+                <div class="fw-bold text-primary">{{ isUpdateMode ? 'THÔNG TIN CÔNG VIỆC' : 'THÊM CÔNG VIỆC' }}</div>
+            </div>
+            <div class="sidebar-content px-3 py-3">
+                <!-- People Management at the Top -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header">
+                        <label class="sidebar-label">Người thực hiện</label>
+                        <span *ngIf="!isReadOnly" class="add-person-btn" (click)="openAddRelatedPeopleModal('assignee')" nz-tooltip="Thêm người thực hiện">
+                            <i nz-icon nzType="plus-circle" nzTheme="outline"></i>
+                        </span>
+                    </div>
+                    <div class="sidebar-people-list">
+                        <div *ngFor="let emp of selectedAssignees.slice(0, 5)" class="avatar-item" [nz-tooltip]="emp.FullName">
+                            <nz-avatar class="sidebar-avatar" [nzText]="getInitials(emp.FullName)" 
+                                [style.background-color]="getAvatarColor(emp.ID)" [nzSrc]="emp.Avatar"></nz-avatar>
+                            <div *ngIf="!isReadOnly" class="remove-icon-overlay" (click)="removeAssignee(emp)">
+                                <i nz-icon nzType="close"></i>
+                            </div>
+                        </div>
+                        <div *ngIf="selectedAssignees.length > 5" class="avatar-plus-count" [nz-tooltip]="assignee">
+                            +{{ selectedAssignees.length - 5 }}
+                        </div>
+                        <div *ngIf="selectedAssignees.length === 0" class="sidebar-people-empty">
+                            Chưa có người thực hiện
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header">
+                        <label class="sidebar-label">Người liên quan</label>
+                        <span *ngIf="!isReadOnly" class="add-person-btn" (click)="openAddRelatedPeopleModal('related')" nz-tooltip="Thêm người liên quan">
+                            <i nz-icon nzType="plus-circle" nzTheme="outline"></i>
+                        </span>
+                    </div>
+                    <div class="sidebar-people-list">
+                        <div *ngFor="let emp of selectedRelatedPeople.slice(0, 5)" class="avatar-item" [nz-tooltip]="emp.FullName">
+                            <nz-avatar class="sidebar-avatar" [nzText]="getInitials(emp.FullName)" 
+                                [style.background-color]="getAvatarColor(emp.ID)" [nzSrc]="emp.Avatar"></nz-avatar>
+                            <div *ngIf="!isReadOnly" class="remove-icon-overlay" (click)="removeRelatedPerson(emp)">
+                                <i nz-icon nzType="close"></i>
+                            </div>
+                        </div>
+                        <div *ngIf="selectedRelatedPeople.length > 5" class="avatar-plus-count">
+                            +{{ selectedRelatedPeople.length - 5 }}
+                        </div>
+                        <div *ngIf="selectedRelatedPeople.length === 0" class="sidebar-people-empty">
+                            Chưa có người liên quan
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="sidebar-label">Dự án</label>
+                    <nz-select [(ngModel)]="selectedProjectId" nzAllowClear [nzDisabled]="isReadOnly"
+                        (ngModelChange)="onProjectChange($event)" nzSize="small" class="w-100" nzShowSearch
+                        nzPlaceHolder="Chọn dự án" [nzFilterOption]="filterProjectOption">
+                        @for (project of projects; track project.ID) {
+                        <nz-option [nzLabel]="project.ProjectCode + ' - ' + project.ProjectName" [nzValue]="project.ID">
+                        </nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="sidebar-label">Công việc cha</label>
+                    <nz-select [(ngModel)]="parentTaskId" nzAllowClear [nzDisabled]="isReadOnly" nzSize="small"
+                        class="w-100" nzShowSearch nzPlaceHolder="Chọn công việc cha"
+                        [nzFilterOption]="filterParentTaskOption">
+                        @for (pt of parentTaskList; track pt.ID) {
+                        <nz-option [nzValue]="pt.ID" [nzLabel]="(pt.Code || '').trim() + ' - ' + (pt.Mission || '')">
+                        </nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <div class="mb-3 d-flex flex-wrap gap-3">
+                    <label nz-checkbox [(ngModel)]="isPersonalProject" (ngModelChange)="onPersonalProjectChange($event)"
+                        [nzDisabled]="isReadOnly" class="sidebar-checkbox">
+                        Cá nhân
+                    </label>
+                    <label nz-checkbox [(ngModel)]="needApprove" [nzDisabled]="isReadOnly" class="sidebar-checkbox">
+                        Cần phê duyệt
+                    </label>
+                </div>
+
+                <div class="mb-3">
+                    <label class="sidebar-label">Hạng mục</label>
+                    <nz-select [(ngModel)]="selectedTypeProjectItemId" nzAllowClear nzSize="small" class="w-100"
+                        nzPlaceHolder="Chọn hạng mục" [nzDisabled]="isReadOnly">
+                        @for (item of typeProjectItems; track item.ID) {
+                        <nz-option [nzValue]="item.ID" [nzLabel]="item.ProjectTypeName"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="sidebar-label">Loại CV <span class="text-danger">*</span></label>
+                    <nz-select [(ngModel)]="selectedTaskTypeId" nzSize="small" class="w-100" nzPlaceHolder="Chọn loại CV"
+                        [nzDisabled]="isReadOnly">
+                        @for (t of taskTypeList; track t.ID) {
+                        <nz-option [nzValue]="t.ID" [nzLabel]="t.TypeName"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="sidebar-label">Độ khó</label>
+                    <nz-select [(ngModel)]="taskComplexity" nzSize="small" class="w-100" [nzDisabled]="isReadOnly">
+                        @for (c of complexityList; track c.value) {
+                        <nz-option [nzValue]="c.value" [nzLabel]="c.label"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="sidebar-label">Ưu tiên</label>
+                    <nz-select [(ngModel)]="priority" nzSize="small" class="w-100" [nzDisabled]="isReadOnly">
+                        @for (p of priorityList; track p.value) {
+                        <nz-option [nzValue]="p.value" [nzLabel]="p.label"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="sidebar-label">Trạng thái</label>
+                    <nz-select [(ngModel)]="taskStatus" (ngModelChange)="onStatusChange($event)" nzSize="small"
+                        class="w-100" [nzDisabled]="isReadOnly">
+                        @for (s of statusList; track s.value) {
+                        <nz-option [nzValue]="s.value" [nzLabel]="s.label"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Mobile Drawer (Hamburger Menu) -->
     <nz-drawer [nzVisible]="isMobileMenuOpen" nzPlacement="right" nzTitle="CÀI ĐẶT & DI CHUYỂN"
         (nzOnClose)="closeMobileMenu()" [nzWidth]="280">
         <ng-container *nzDrawerContent>
-            <div class="mobile-drawer-content">
+                <div class="mobile-drawer-content">
+
+                    <!-- Mobile People Management at the Top -->
+                    <div class="drawer-group mb-3">
+                        <div class="drawer-group-title">NHÂN SỰ</div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="drawer-label mb-0">Người thực hiện</label>
+                                <button *ngIf="!isReadOnly" nz-button nzType="primary" nzSize="small" nzShape="circle" (click)="openAddRelatedPeopleModal('assignee')">
+                                    <i nz-icon nzType="plus"></i>
+                                </button>
+                            </div>
+                            <div class="sidebar-people-list">
+                                <div *ngFor="let emp of selectedAssignees.slice(0, 5)" class="avatar-item" [nz-tooltip]="emp.FullName">
+                                    <nz-avatar class="sidebar-avatar" [nzText]="getInitials(emp.FullName)" 
+                                        [style.background-color]="getAvatarColor(emp.ID)" [nzSrc]="emp.Avatar"></nz-avatar>
+                                    <div *ngIf="!isReadOnly" class="remove-icon-overlay" (click)="removeAssignee(emp)">
+                                        <i nz-icon nzType="close"></i>
+                                    </div>
+                                </div>
+                                <div *ngIf="selectedAssignees.length > 5" class="avatar-plus-count">
+                                    +{{ selectedAssignees.length - 5 }}
+                                </div>
+                                <div *ngIf="selectedAssignees.length === 0" class="small text-muted italic">Chưa có người thực hiện</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-0">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="drawer-label mb-0">Người liên quan</label>
+                                <button *ngIf="!isReadOnly" nz-button nzType="primary" nzSize="small" nzShape="circle" (click)="openAddRelatedPeopleModal('related')">
+                                    <i nz-icon nzType="plus"></i>
+                                </button>
+                            </div>
+                            <div class="sidebar-people-list">
+                                <div *ngFor="let emp of selectedRelatedPeople.slice(0, 5)" class="avatar-item" [nz-tooltip]="emp.FullName">
+                                    <nz-avatar class="sidebar-avatar" [nzText]="getInitials(emp.FullName)" 
+                                        [style.background-color]="getAvatarColor(emp.ID)" [nzSrc]="emp.Avatar"></nz-avatar>
+                                    <div *ngIf="!isReadOnly" class="remove-icon-overlay" (click)="removeRelatedPerson(emp)">
+                                        <i nz-icon nzType="close"></i>
+                                    </div>
+                                </div>
+                                <div *ngIf="selectedRelatedPeople.length > 5" class="avatar-plus-count">
+                                    +{{ selectedRelatedPeople.length - 5 }}
+                                </div>
+                                <div *ngIf="selectedRelatedPeople.length === 0" class="small text-muted italic">Chưa có người liên quan</div>
+                            </div>
+                        </div>
+                    </div>
 
                 <!-- Group: Cài đặt công việc -->
                 <div class="drawer-group">
@@ -1125,15 +1319,43 @@
                     <div class="drawer-group-title">TRẠNG THÁI & THÔNG TIN</div>
 
                     <div class="d-flex flex-column gap-3">
-                        <label nz-checkbox [(ngModel)]="isPersonalProject"
-                            (ngModelChange)="onPersonalProjectChange($event)" [nzDisabled]="isReadOnly">
-                            Cá nhân
-                        </label>
+                        <div class="d-flex flex-wrap gap-3 mb-2">
+                            <label nz-checkbox [(ngModel)]="isPersonalProject"
+                                (ngModelChange)="onPersonalProjectChange($event)" [nzDisabled]="isReadOnly">
+                                Cá nhân
+                            </label>
+
+                            <label nz-checkbox [(ngModel)]="needApprove" [nzDisabled]="isReadOnly">
+                                Cần phê duyệt
+                            </label>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="drawer-label mb-0">Ưu tiên</span>
+                            <nz-select [(ngModel)]="priority" nzSize="small" class="priority-select-drawer"
+                                [nzDisabled]="isReadOnly">
+                                @for (p of priorityList; track p.value) {
+                                <nz-option [nzValue]="p.value" [nzLabel]="p.label" nzCustomContent>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i nz-icon nzType="flag" nzTheme="fill" [style.color]="p.color"></i>
+                                        <span>{{ p.label }}</span>
+                                    </div>
+                                </nz-option>
+                                }
+                            </nz-select>
+                        </div>
 
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="drawer-label mb-0">Độ phức tạp</span>
                             <nz-input-number [(ngModel)]="taskComplexity" [nzMin]="1" [nzMax]="5" [nzStep]="1"
                                 class="complexity-input-drawer" [nzDisabled]="isReadOnly"></nz-input-number>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="drawer-label mb-0">Thời gian (giờ)</span>
+                            <nz-input-number [(ngModel)]="estimatedTimeHours" [nzMin]="0" [nzStep]="0.5"
+                                class="complexity-input-drawer" [nzDisabled]="isReadOnly"
+                                nzPlaceHolder="0"></nz-input-number>
                         </div>
 
                         <div class="d-flex flex-column">
@@ -1174,7 +1396,7 @@
                     <div class="drawer-tabs-list">
                         @for (tab of mobileTabs; track tab.id; let i = $index) {
                         <div class="drawer-tab-item" [class.active]="activeMainTabIndex === i"
-                            (click)="activeMainTabIndex = i; closeMobileMenu()">
+                            (click)="onTabChange(i); closeMobileMenu()">
                             <div class="d-flex align-items-center gap-2">
                                 <i nz-icon [nzType]="tab.icon"></i>
                                 <span>{{ tab.title }}</span>
@@ -1189,24 +1411,6 @@
             </div>
         </ng-container>
     </nz-drawer>
-
-    <!-- Modal Footer - Fixed -->
-    <div class="modal-footer p-3 border-top bg-white rounded-bottom">
-        <div class="footer-buttons-wrapper d-flex justify-content-end gap-2">
-            <button nz-button nzType="default" (click)="close()" class="flex-mobile-1">
-                {{ isUpdateMode ? 'Đóng' : 'Hủy bỏ' }}
-            </button>
-
-            <ng-container *ngIf="!isReadOnly">
-                <button *ngIf="isCreateMode" nz-button nzType="default" (click)="saveAndAddNew()" [nzLoading]="isSaving"
-                    class="flex-mobile-1">Lưu & Thêm mới</button>
-                <button nz-button nzType="primary" (click)="isCreateMode ? saveNewTask() : save()"
-                    [nzLoading]="isSaving" class="flex-mobile-1">Lưu</button>
-            </ng-container>
-        </div>
-    </div>
-
-</div>
 
 <!-- PDF Preview Modal Overlay -->
 @if (isPreviewVisible) {

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, TemplateRef, ChangeDetectorRef, signal, computed, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, TemplateRef, ChangeDetectorRef, signal, computed, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,12 +10,13 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzRateModule } from 'ng-zorro-antd/rate';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
-import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 import { KanbanService } from '../kanban/kanban.service';
 import { ImportExcelProjectTaskComponent } from '../import-excel-project-task/import-excel-project-task.component';
+import { TabServiceService } from '../../../layouts/tab-service.service';
+import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 
 import { ButtonModule } from 'primeng/button';
 import { Table, TableModule } from 'primeng/table';
@@ -59,7 +60,7 @@ type TabType = 'all' | 'assigned' | 'related' | 'myApproval';
   templateUrl: './project-task.component.html',
   styleUrl: './project-task.component.css'
 })
-export class ProjectTaskComponent implements OnInit {
+export class ProjectTaskComponent implements OnInit, OnDestroy {
   // Modal templates
   @ViewChild('approveModalTpl') approveModalTpl!: TemplateRef<any>;
   @ViewChild('rejectModalTpl') rejectModalTpl!: TemplateRef<any>;
@@ -102,7 +103,8 @@ export class ProjectTaskComponent implements OnInit {
     private ngbModal: NgbModal,
     private el: ElementRef,
     private appUserService: AppUserService,
-    private router: Router
+    private router: Router,
+    private tabService: TabServiceService
   ) { }
 
   toggleMobileMenu(): void {
@@ -112,6 +114,8 @@ export class ProjectTaskComponent implements OnInit {
   closeMobileMenu(): void {
     this.isMobileMenuOpen = false;
   }
+
+  private subscription = new Subscription();
 
   // Data signals
   allTasks = signal<ProjectTaskItem[]>([]);
@@ -343,6 +347,18 @@ export class ProjectTaskComponent implements OnInit {
     this.currentUserId.set(this.appUserService.employeeID || 0);
     this.loadTasks();
     this.loadTaskTypes();
+
+    this.subscription.add(
+      this.tabService.dataSaved$.subscribe((key) => {
+        if (key === 'project-task') {
+          this.loadTasks(); // Tải lại danh sách công việc khi nhận được tín hiệu lưu
+        }
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   goToSettings(): void {
@@ -659,16 +675,24 @@ export class ProjectTaskComponent implements OnInit {
 
   // Kiểm tra quá hạn
   private isTaskOverdue(task: any): boolean {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
     const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
     if (!planEnd) return false;
+    planEnd.setHours(0, 0, 0, 0);
 
-    const actualEnd = task.ActualEndDate ? new Date(task.ActualEndDate) : new Date();
-    
+    const actualEnd = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
+    if (actualEnd) actualEnd.setHours(0, 0, 0, 0);
+
     // Nếu status là Pending (3) thì không tính quá hạn theo yêu cầu người dùng
     if (task.Status === 3) return false;
 
-    // (ActualEndDate || now) > PlanEndDate → Quá hạn
-    return actualEnd > planEnd;
+    if (actualEnd) {
+      return actualEnd > planEnd;
+    } else {
+      return now > planEnd;
+    }
   }
 
   // Tính tỷ lệ % thời gian thực tế / kế hoạch
@@ -1088,33 +1112,11 @@ export class ProjectTaskComponent implements OnInit {
   }
 
   openAddTaskModal(): void {
-    if (this.isOpeningDetail) return;
-    this.isOpeningDetail = true;
-    const modal = this.modal.create({
-      nzTitle: 'THÊM CÔNG VIỆC MỚI',
-      nzContent: TaskDetailComponent,
-      nzData: { task: null },
-      nzFooter: null,
-      nzWidth: '100vw',
-      nzBodyStyle: {
-        padding: '0',
-        height: '80vh',
-        overflow: 'hidden'
-      },
-      nzStyle: {
-        borderRadius: '12px',
-        top: '5vh'
-      },
-      nzMaskClosable: true,
-      nzClosable: true,
-      nzCentered: false
-    });
-
-    modal.afterClose.subscribe((result: any) => {
-      if (result) {
-        this.loadTasks();
-      }
-      this.isOpeningDetail = false;
+    this.tabService.openTabComp({
+      comp: TaskDetailComponent,
+      title: 'Thêm công việc mới',
+      key: `project-task-add-${Date.now()}`,
+      data: { id: null }
     });
   }
 
@@ -1168,32 +1170,13 @@ export class ProjectTaskComponent implements OnInit {
             _copyRelatedPeopleIds: (relatedPeople.data || []).map((e: any) => e.EmployeeID)
           };
 
-          const modal = this.modal.create({
-            nzTitle: 'COPY CÔNG VIỆC',
-            nzContent: TaskDetailComponent,
-            nzData: { task: copyData },
-            nzFooter: null,
-            nzWidth: '100vw',
-            nzBodyStyle: {
-              padding: '0',
-              height: '80vh',
-              overflow: 'hidden'
-            },
-            nzStyle: {
-              borderRadius: '12px',
-              top: '5vh'
-            },
-            nzMaskClosable: true,
-            nzClosable: true,
-            nzCentered: false
+          this.tabService.openTabComp({
+            comp: TaskDetailComponent,
+            title: 'Sao chép công việc',
+            key: `project-task-copy-${Date.now()}`,
+            data: { task: copyData }
           });
-
-          modal.afterClose.subscribe((result: any) => {
-            if (result) {
-              this.loadTasks();
-            }
-            this.isOpeningDetail = false;
-          });
+          this.isOpeningDetail = false;
         } else {
           this.message.error('Không thể tải chi tiết công việc');
           this.isOpeningDetail = false;
@@ -1207,53 +1190,18 @@ export class ProjectTaskComponent implements OnInit {
   }
 
   openTaskDetail(task: any): void {
-    if (this.isOpeningDetail) return;
-    if (!task?.ID) {
+    const taskId = task?.ID || (typeof task === 'number' ? task : null);
+    if (!taskId) {
       console.error('Task ID not found');
       return;
     }
-    this.isOpeningDetail = true;
-
-    this.projectTaskService.getTaskById(task.ID).subscribe({
-      next: (res) => {
-        if (res.status === 200 || res.status === 1) {
-          const fullTaskData = { ...res.data, ApprovalStatus: task.ApprovalStatus };
-
-          const modalRef = this.modal.create({
-            nzTitle: 'CHI TIẾT CÔNG VIỆC',
-            nzContent: TaskDetailComponent,
-            nzData: { task: fullTaskData },
-            nzFooter: null,
-            nzWidth: '100vw',
-            nzBodyStyle: {
-              padding: '0',
-              height: '80vh',
-              overflow: 'hidden'
-            },
-            nzStyle: {
-              borderRadius: '12px',
-              top: '5vh'
-            },
-            nzMaskClosable: false,
-            nzClosable: true,
-            nzCentered: false
-          });
-
-          modalRef.afterClose.subscribe((result: any) => {
-            if (result) {
-              this.loadTasks();
-            }
-            this.isOpeningDetail = false;
-          });
-        } else {
-          this.message.error('Không thể tải chi tiết công việc');
-          this.isOpeningDetail = false;
-        }
-      },
-      error: () => {
-        this.message.error('Lỗi khi tải chi tiết công việc');
-        this.isOpeningDetail = false;
-      }
+    
+    const taskCode = task?.Code || `Task-${taskId}`;
+    this.tabService.openTabComp({
+      comp: TaskDetailComponent,
+      title: taskCode,
+      key: `project-task-detail-${taskId}`,
+      data: { id: taskId }
     });
   }
 

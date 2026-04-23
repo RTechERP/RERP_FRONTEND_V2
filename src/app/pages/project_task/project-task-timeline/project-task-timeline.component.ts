@@ -13,8 +13,10 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { ContextMenuModule } from 'primeng/contextmenu';
 import { MenuItem } from 'primeng/api';
 import { ProjectTaskService } from '../project-task/project-task.service';
-import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 import { AppUserService } from '../../../services/app-user.service';
+import { Router } from '@angular/router';
+import { TabServiceService } from '../../../layouts/tab-service.service';
+import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 
 @Component({
   selector: 'app-project-task-timeline',
@@ -40,6 +42,8 @@ export class ProjectTaskTimelineComponent implements OnInit {
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
   private appUserService = inject(AppUserService);
+  private router = inject(Router);
+  private tabService = inject(TabServiceService);
 
   isOpeningDetail = false;
 
@@ -72,7 +76,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
   filterKeyword = '';
   filterProjectKeyword = '';
   filterParentCode = '';
-  selectedStatuses: number[] = [];
+  selectedStatuses: number[] = [0, 1];
   contextMenuItems: MenuItem[] = [];
 
   statusOptions = [
@@ -131,29 +135,36 @@ export class ProjectTaskTimelineComponent implements OnInit {
     if (!this.dateStart || !this.dateEnd) return;
 
     this.loading.set(true);
-    const startDate = new Date(this.dateStart);
-    const endDate = new Date(this.dateEnd);
-    this.generateDateColumns(startDate, endDate);
+    
+    // Nhường luồng để Angular kịp render biểu tượng loading trước khi tính toán nặng
+    setTimeout(() => {
+      const startDate = new Date(this.dateStart);
+      const endDate = new Date(this.dateEnd);
+      this.generateDateColumns(startDate, endDate);
 
-    this.timelineService.getTimelineByTeam({
-      dateStart: this.dateStart,
-      dateEnd: this.dateEnd,
-      departmentID: this.selectedDepartment || undefined,
-      teamID: this.selectedTeam || undefined,
-      userID: this.selectedEmployee || this.appUserService.id || undefined,
-      projectID: undefined
-    }).subscribe({
-      next: (data) => {
-        this.transformData(data);
-        this.applyFilters();
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('Error loading timeline:', err);
-        this.loading.set(false);
-        this.message.error('Không thể tải dữ liệu timeline');
-      }
-    });
+      this.timelineService.getTimelineByTeam({
+        dateStart: this.dateStart,
+        dateEnd: this.dateEnd,
+        departmentID: this.selectedDepartment || undefined,
+        teamID: this.selectedTeam || undefined,
+        userID: this.selectedEmployee || this.appUserService.id || undefined,
+        projectID: undefined
+      }).subscribe({
+        next: (data) => {
+          // Tiếp tục nhường luồng trước khi xử lý dữ liệu nặng để không làm đơ vòng quay loading
+          setTimeout(() => {
+            this.transformData(data);
+            this.applyFilters();
+            this.loading.set(false);
+          }, 10);
+        },
+        error: (err) => {
+          console.error('Error loading timeline:', err);
+          this.loading.set(false);
+          this.message.error('Không thể tải dữ liệu timeline');
+        }
+      });
+    }, 50);
   }
 
   generateDateColumns(start: Date, end: Date) {
@@ -344,62 +355,23 @@ export class ProjectTaskTimelineComponent implements OnInit {
     this.filterKeyword = '';
     this.filterProjectKeyword = '';
     this.filterParentCode = '';
-    this.selectedStatuses = [];
+    this.selectedStatuses = [0, 1];
     this.loadTimeline();
   }
 
   openTaskDetail(task: any): void {
-    if (this.isOpeningDetail) return;
     const taskID = typeof task === 'number' ? task : (task?.ProjectTaskID || task?.ID);
     if (!taskID) {
       console.error('Task ID not found', task);
       return;
     }
-    this.isOpeningDetail = true;
-
-    this.projectTaskService.getTaskById(taskID).subscribe({
-      next: (res) => {
-        if (res.status === 200 || res.status === 1) {
-          const fullTaskData = { ...res.data };
-          if (typeof task === 'object' && task !== null) {
-            fullTaskData.ApprovalStatus = task.ApprovalStatus;
-          }
-
-          const modalRef = this.modal.create({
-            nzTitle: 'CHI TIỂT CÔNG VIỆC',
-            nzContent: TaskDetailComponent,
-            nzData: { task: fullTaskData },
-            nzFooter: null,
-            nzWidth: '100vw',
-            nzBodyStyle: {
-              padding: '0',
-              height: '80vh',
-              overflow: 'hidden'
-            },
-            nzStyle: {
-              borderRadius: '12px',
-              top: '5vh'
-            },
-            nzMaskClosable: false,
-            nzClosable: true,
-            nzCentered: false
-          });
-
-          modalRef.afterClose.subscribe((result: any) => {
-            if (result) {
-              this.loadTimeline();
-            }
-            this.isOpeningDetail = false;
-          });
-        } else {
-          this.message.error('Không thể tải chi tiết công việc');
-          this.isOpeningDetail = false;
-        }
-      },
-      error: () => {
-        this.message.error('Lỗi khi tải chi tiết công việc');
-        this.isOpeningDetail = false;
-      }
+    
+    const taskCode = task?.ProjectTaskCode || task?.Code || `Task-${taskID}`;
+    this.tabService.openTabComp({
+      comp: TaskDetailComponent,
+      title: taskCode,
+      key: `project-task-detail-${taskID}`,
+      data: { id: taskID }
     });
   }
 

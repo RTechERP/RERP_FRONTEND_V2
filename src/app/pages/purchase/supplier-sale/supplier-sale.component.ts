@@ -203,6 +203,13 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
     if (angularGrid && angularGrid.dataView) {
       angularGrid.dataView.onPagingInfoChanged.subscribe(() => {
         this.updateMasterFooterRow();
+        // Khi đổi trang: tự động chọn dòng đầu tiên và load detail
+        setTimeout(() => {
+          if (this.angularGrid?.slickGrid) {
+            this.angularGrid.slickGrid.setSelectedRows([0]);
+            this.onActiveRowChanged(0);
+          }
+        }, 50);
       });
     }
 
@@ -698,6 +705,11 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
             this.angularGrid.resizerService?.resizeGrid();
             this.applyDistinctFilters();
             this.angularGrid?.slickGrid?.scrollColumnIntoView(4);
+            // Tự động chọn dòng đầu tiên
+            if (this.dataset.length > 0) {
+              this.angularGrid.slickGrid.setSelectedRows([0]);
+              this.onActiveRowChanged(0);
+            }
           }, 100);
         }
 

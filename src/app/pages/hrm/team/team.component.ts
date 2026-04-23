@@ -426,7 +426,8 @@ export class TeamComponent implements OnInit, AfterViewInit {
     this.teamTabulator = new Tabulator('#team-table', {
       data: this.teamList,
       layout: 'fitColumns',
-      selectableRows: 1, // <-- dùng selectable chứ không phải selectableRows
+      selectableRows: 1,
+
       height: '88vh',
       dataTree: true,
       dataTreeStartExpanded: true,

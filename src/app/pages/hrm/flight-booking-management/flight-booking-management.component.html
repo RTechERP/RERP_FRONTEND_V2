@@ -1,0 +1,317 @@
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0" style="background: transparent">
+    <div class="card-header bg-white p-1">
+      <div class="d-flex gap-1 align-items-center">
+        <p-menubar [model]="menuItems" class="p-0 border-0" style="width: 100%">
+          <ng-template #end>
+            <div style="margin-left: auto">
+              <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile"
+                (click)="isShowModal = true; $event.stopPropagation()">
+                <nz-icon nzType="search"></nz-icon>
+              </button>
+            </div>
+          </ng-template>
+        </p-menubar>
+      </div>
+    </div>
+
+    <!-- Filter bar (Desktop) -->
+    <div class="filter-bar bg-light border-bottom p-2" *ngIf="!isMobile">
+      <form nz-form>
+        <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+          <!-- Từ ngày -->
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="3" [nzXl]="3">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+              <nz-form-control>
+                <input type="date" class="form-control form-control-sm date-input-sm w-100"
+                  [ngModel]="dateStart | date: 'yyyy-MM-dd'" (ngModelChange)="onDateChange('dateStart', $event)"
+                  name="dateStart" title="Từ ngày" />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Đến ngày -->
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="3" [nzXl]="3">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+              <nz-form-control>
+                <input type="date" class="form-control form-control-sm date-input-sm w-100"
+                  [ngModel]="dateEnd | date: 'yyyy-MM-dd'" (ngModelChange)="onDateChange('dateEnd', $event)"
+                  name="dateEnd" title="Đến ngày" />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Dự án -->
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="5">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12">Dự án</nz-form-label>
+              <nz-form-control>
+                <nz-select name="projectID" [(ngModel)]="projectID" nzPlaceHolder="Tất cả dự án"
+                  nzDropdownClassName="select-dropdown" nzSize="small" class="w-100" nzAllowClear nzShowSearch
+                  (ngModelChange)="onSearch()">
+                  <nz-option *ngFor="let p of projects" [nzValue]="p.ID"
+                    [nzLabel]="p.ProjectCode + ' - ' + p.ProjectName"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Từ khóa -->
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="9" [nzXl]="10">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+              <nz-form-control>
+                <input nz-input placeholder="Nhập tên nhân viên, mục đích..." nzSize="small" [(ngModel)]="keyword"
+                  name="keyword" class="w-100 fs-12" (keyup.enter)="onSearch()" />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Nút tìm kiếm -->
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="3" [nzXl]="3">
+            <nz-form-item class="mb-0">
+              <nz-form-control>
+                <button nz-button nzType="primary" nzSize="small" (click)="onSearch()" class="w-100">
+                  Tìm kiếm
+                </button>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
+      </form>
+    </div>
+
+    <!-- Modal tìm kiếm cho mobile -->
+    <nz-modal [(nzVisible)]="isShowModal" nzTitle="Tìm kiếm" nzWidth="100vw" nzCentered
+      (nzOnCancel)="isShowModal = false" (nzOnOk)="onSearch(); isShowModal = false" nzOkText="Tìm kiếm">
+      <ng-container *nzModalContent>
+        <form nz-form nzLayout="vertical" class="mt-2">
+          <div nz-row [nzGutter]="12">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>Từ ngày</nz-form-label>
+                <nz-form-control>
+                  <input type="date" class="form-control form-control-sm" [ngModel]="dateStart | date: 'yyyy-MM-dd'"
+                    (ngModelChange)="onDateChange('dateStart', $event)" name="dateStart_m" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>Đến ngày</nz-form-label>
+                <nz-form-control>
+                  <input type="date" class="form-control form-control-sm" [ngModel]="dateEnd | date: 'yyyy-MM-dd'"
+                    (ngModelChange)="onDateChange('dateEnd', $event)" name="dateEnd_m" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Dự án</nz-form-label>
+                <nz-form-control>
+                  <nz-select name="projectID_m" [(ngModel)]="projectID" nzPlaceHolder="Tất cả dự án" class="w-100"
+                    nzAllowClear nzShowSearch>
+                    <nz-option *ngFor="let p of projects" [nzValue]="p.ID"
+                      [nzLabel]="p.ProjectCode + ' - ' + p.ProjectName"></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Từ khóa</nz-form-label>
+                <nz-form-control>
+                  <input nz-input placeholder="Nhập nhân viên, mục đích..." [(ngModel)]="keyword" name="keyword_m" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+        </form>
+      </ng-container>
+    </nz-modal>
+
+    <!-- Content Bar (Master-Detail) -->
+    <div class="card-body p-0 w-100 position-relative" style="height: 90vh">
+      <nz-splitter nzLayout="vertical" style="height: 85vh;">
+        <!-- Bảng Master -->
+        <nz-splitter-panel nzSize="60%">
+          <div class="table-container h-100">
+            <p-table #dt [value]="allBookings()" [loading]="isLoading" [paginator]="true" [rows]="20"
+              [rowsPerPageOptions]="[10, 20, 50, 100]" [alwaysShowPaginator]="true" [totalRecords]="totalRecords()"
+              [showCurrentPageReport]="true"
+              currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} bản ghi"
+              [resizableColumns]="true" columnResizeMode="expand" [scrollable]="true" scrollHeight="flex"
+              styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped" dataKey="ID"
+              [(selection)]="selectedBookings" selectionMode="multiple" (onRowSelect)="onRowSelect($event)"
+              (onRowUnselect)="onRowUnselect()">
+
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width: 50px; text-align: center;">
+                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                  </th>
+                  <th style="width: 50px; text-align: center;">STT</th>
+                  <th pSortableColumn="RequesterName" style="width: 180px;">Người yêu cầu <p-sortIcon
+                      field="RequesterName"></p-sortIcon></th>
+                  <th pSortableColumn="PassengerName" style="width: 180px;">Nhân viên <p-sortIcon
+                      field="PassengerName"></p-sortIcon></th>
+                  <th pSortableColumn="ProjectName" style="width: 180px;">Dự án <p-sortIcon
+                      field="ProjectName"></p-sortIcon>
+                  </th>
+                  <th pSortableColumn="DepartureDate" style="width: 110px; text-align: center;">Ngày đi <p-sortIcon
+                      field="DepartureDate"></p-sortIcon></th>
+                  <th pSortableColumn="DepartureTime" style="width: 90px; text-align: center;">Giờ đi <p-sortIcon
+                      field="DepartureTime"></p-sortIcon></th>
+                  <th pSortableColumn="DepartureAddress" style="width: 140px;">Điểm đi <p-sortIcon
+                      field="DepartureAddress"></p-sortIcon></th>
+                  <th pSortableColumn="ArrivesAddress" style="width: 140px;">Điểm đến <p-sortIcon
+                      field="ArrivesAddress"></p-sortIcon></th>
+                  <th pSortableColumn="Reason" style="width: 180px;">Mục đích <p-sortIcon field="Reason"></p-sortIcon>
+                  </th>
+                  <th pSortableColumn="Note" style="width: 180px;">Ghi chú <p-sortIcon field="Note"></p-sortIcon></th>
+                </tr>
+                <tr class="p-column-filter-row">
+                  <th style="text-align: center;"></th>
+                  <th style="text-align: center;"></th>
+                  <th><p-columnFilter type="text" field="RequesterName" matchMode="contains" [showMenu]="false"
+                      class="w-100" placeholder="Lọc..."></p-columnFilter></th>
+                  <th><p-columnFilter type="text" field="PassengerName" matchMode="contains" [showMenu]="false"
+                      class="w-100" placeholder="Lọc..."></p-columnFilter></th>
+                  <th><p-columnFilter type="text" field="ProjectName" matchMode="contains" [showMenu]="false"
+                      class="w-100" placeholder="Lọc..."></p-columnFilter></th>
+                  <th></th>
+                  <th></th>
+                  <th><p-columnFilter type="text" field="DepartureAddress" matchMode="contains" [showMenu]="false"
+                      class="w-100" placeholder="Lọc..."></p-columnFilter></th>
+                  <th><p-columnFilter type="text" field="ArrivesAddress" matchMode="contains" [showMenu]="false"
+                      class="w-100" placeholder="Lọc..."></p-columnFilter></th>
+                  <th><p-columnFilter type="text" field="Reason" matchMode="contains" [showMenu]="false" class="w-100"
+                      placeholder="Lọc..."></p-columnFilter></th>
+                  <th><p-columnFilter type="text" field="Note" matchMode="contains" [showMenu]="false" class="w-100"
+                      placeholder="Lọc..."></p-columnFilter></th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                <tr [pSelectableRow]="item" (dblclick)="onEdit(item)">
+                  <td style="text-align: center;">
+                    <p-tableCheckbox [value]="item"></p-tableCheckbox>
+                  </td>
+                  <td style="text-align: center;">{{ (dt.first ?? 0) + rowIndex + 1 }}</td>
+                  <td>{{ item.RequesterName }}</td>
+                  <td>{{ item.PassengerName }}</td>
+                  <td>{{ item.ProjectName }}</td>
+                  <td style="text-align: center;">{{ formatDate(item.DepartureDate) }}</td>
+                  <td style="text-align: center;">{{ item.DepartureTime | date: 'HH:mm' }}</td>
+                  <td>{{ item.DepartureAddress }}</td>
+                  <td>{{ item.ArrivesAddress }}</td>
+                  <td>{{ item.Reason }}</td>
+                  <td>{{ item.Note }}</td>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="11" style="text-align: center; padding: 20px; color: #8c8c8c;">
+                    <span nz-icon nzType="inbox" style="font-size: 24px; display: block; margin-bottom: 8px;"></span>
+                    Không có dữ liệu
+                  </td>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="footer">
+                <tr *ngIf="allBookings().length > 0">
+                  <td colspan="11" class="footer-summary"
+                    style="background: #f8f9fa; font-weight: 600; padding: 8px 16px;">
+                    Tổng cộng: <span class="text-primary">{{ totalRecords() }}</span> bản ghi
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </nz-splitter-panel>
+
+        <!-- Bảng Detail -->
+        <nz-splitter-panel nzSize="40%">
+          <div class="h-100 d-flex flex-column">
+            <nz-tabset class="h-40 flex-grow-1">
+              <nz-tab nzTitle="Phương án đề xuất">
+                <nz-spin [nzSpinning]="isDetailLoading" class="h-100">
+                  <p-table [value]="selectedProposals()" [scrollable]="true" scrollHeight="flex"
+                    styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped">
+                    <ng-template pTemplate="header">
+                      <tr>
+                        <th style="width: 100px; text-align: center;">Thao tác</th>
+                        <th style="width: 50px; text-align: center;">STT</th>
+                        <th style="width: 150px; text-align: center;">Hãng hàng không</th>
+                        <th style="width: 120px; text-align: center;">Giá vé (VND)</th>
+                        <th style="width: 150px; text-align: center;">Hành lý</th>
+                        <th style="width: 100px; text-align: center;">HCNS đề xuất</th>
+                        <th style="width: 120px; text-align: center;">Trạng thái</th>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-p let-rowIndex="rowIndex">
+                      <tr
+                        [style.background-color]="p.IsApprove === 1 ? '#CCFF99' : (p.IsApprove === 2 ? '#FFCCCC' : '')">
+                        <td style="text-align: center;">
+                          <div class="d-flex justify-content-center gap-2">
+                            <button *ngIf="p.IsApprove !== 1" nz-button nzType="text" nz-tooltip nzTooltipTitle="Duyệt"
+                              (click)="onApproveProposal(p)" class="text-success p-0">
+                              <i nz-icon nzType="check-circle" nzTheme="outline" style="font-size: 18px;"></i>
+                            </button>
+                            <button *ngIf="p.IsApprove === 1" nz-button nzType="text" nz-tooltip
+                              nzTooltipTitle="Hủy duyệt" (click)="onUnapproveProposal(p)" class="text-warning p-0">
+                              <i nz-icon nzType="rollback" nzTheme="outline" style="font-size: 18px;"></i>
+                            </button>
+                            <button *ngIf="p.IsApprove !== 2" nz-button nzType="text" nz-tooltip
+                              nzTooltipTitle="Không duyệt" (click)="onRejectProposal(p)" class="text-danger p-0">
+                              <i nz-icon nzType="close-circle" nzTheme="outline" style="font-size: 18px;"></i>
+                            </button>
+                          </div>
+                        </td>
+                        <td style="text-align: center;">{{ rowIndex + 1 }}</td>
+                        <td>{{ p.Airline }}</td>
+                        <td style="text-align: right; font-weight: 600; color: #f5222d;">
+                          {{ p.Price | number:'1.0-0':'vi-VN' }}
+                        </td>
+                        <td>{{ p.Baggage }}</td>
+                        <td style="text-align: center;">
+                          <i *ngIf="p.HCNSProposal" nz-icon nzType="check-circle" nzTheme="fill" style="color: #52c41a; font-size: 16px;"></i>
+                        </td>
+                        <td style="text-align: center;">
+                          <nz-tag [nzColor]="p.IsApprove === 1 ? 'success' : (p.IsApprove === 2 ? 'error' : 'default')"
+                            [nzTooltipTitle]="p.ReasonDecline" nz-tooltip>
+                            {{ p.IsApprove === 1 ? 'Đã duyệt' : (p.IsApprove === 2 ? 'Từ chối' : 'Chờ duyệt') }}
+                          </nz-tag>
+                        </td>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                      <tr>
+                        <td colspan="7" class="text-center p-4 text-muted">
+                          <i nz-icon nzType="info-circle" nzTheme="outline" class="me-2"></i>
+                          {{ selectedBookings.length > 0 ? 'Yêu cầu chưa có phương án bay nào.' : 'Vui lòng chọn yêu cầu
+                          để xem chi tiết phương án.' }}
+                        </td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </nz-spin>
+              </nz-tab>
+            </nz-tabset>
+          </div>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </div>
+  </div>
+
+  <!-- Template for Reject Reason -->
+  <ng-template #rejectTemplate>
+    <div class="mt-2">
+      <label class="mb-1 d-block">Lý do từ chối <span class="text-danger">*</span></label>
+      <textarea rows="4" nz-input placeholder="Nhập lý do không duyệt..." [(ngModel)]="rejectReason"></textarea>
+    </div>
+  </ng-template>
+</ng-container>

@@ -85,6 +85,7 @@ import { TrackingMarksComponent } from './pages/hrm/tracking-marks/tracking-mark
 import { ProposeVehicleRepairComponent } from './pages/hrm/vehicle/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair.component';
 import { VehicleRepairHistoryComponent } from './pages/hrm/vehicle/propose-vehicle-repair/vehicle-repair-history/vehicle-repair-history/vehicle-repair-history.component';
 import { VehicleBookingManagementComponent } from './pages/hrm/vehicle/vehicle-booking-management/vehicle-booking-management.component';
+import { FlightBookingManagementComponent } from './pages/hrm/flight-booking-management/flight-booking-management.component';
 import { VehicleManagementComponent } from './pages/hrm/vehicle/vehicle-management/vehicle-management.component';
 import { VehicleRepairTypeFormComponent } from './pages/hrm/vehicle/vehicle-repair/vehicle-repair-type/vehicle-repair-type-form/vehicle-repair-type-form.component';
 import { BillExportTechnicalComponent } from './pages/old/bill-export-technical/bill-export-technical.component';
@@ -336,6 +337,7 @@ import { ProjectTaskSettingComponent } from './pages/project_task/project-task-s
 import { ProjectDeptSummaryPrimeNg2Component } from './pages/project/project-dept-summary-prime-ng2/project-dept-summary-prime-ng2.component';
 import { BillImportPrimeComponent } from './pages/old/Sale/BillImport/bill-import-prime/bill-import-prime.component';
 import { BillExportPrimeComponent } from './pages/old/Sale/BillExport/bill-export-prime/bill-export-prime.component';
+import { HrRecruitmentSummaryComponent } from './pages/hrm/hr-recruitment/hr-recruitment-summary/hr-recruitment-summary.component';
 export const routes: Routes = [
     {
         path: 'file-preview',
@@ -444,6 +446,7 @@ export const routes: Routes = [
             { path: 'department', component: DepartmentComponent, canActivate: [authGuard] },
             { path: 'vehicle-management', component: VehicleManagementComponent, canActivate: [authGuard] },
             { path: 'vehicle-booking-management', component: VehicleBookingManagementComponent, canActivate: [authGuard] },
+            { path: 'flight-booking-management', component: FlightBookingManagementComponent, canActivate: [authGuard] },
             { path: 'vehicle-repair-type-form', component: VehicleRepairTypeFormComponent, canActivate: [authGuard] },
             { path: 'propose-vehicle-repair', component: ProposeVehicleRepairComponent, canActivate: [authGuard] },
             { path: 'vehicle-repair-history', component: VehicleRepairHistoryComponent, canActivate: [authGuard] },
@@ -1113,7 +1116,7 @@ export const routes: Routes = [
             { path: 'newsletter-view-all', component: NewsletterFormViewAllComponent, canActivate: [authGuard] },
             { path: 'newsletter-type', component: NewsletterTypeComponent, canActivate: [authGuard] },
             { path: 'newsletter-view-all', component: NewsletterFormViewAllComponent, canActivate: [authGuard] },
-
+            { path: 'hr-recruitment-summary', component: HrRecruitmentSummaryComponent, canActivate: [authGuard] },
             { path: 'document-sale-admin', component: DocumentSaleAdminComponent, canActivate: [authGuard] },
             // Tủ đồ bảo hộ và phòng sạch
             { path: 'product-protective-gear', component: ProductProtectiveGearComponent, canActivate: [authGuard] },

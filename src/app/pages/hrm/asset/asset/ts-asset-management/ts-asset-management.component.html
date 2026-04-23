@@ -53,20 +53,16 @@
                 <label class="search-label">Phòng ban</label>
                 <nz-select class="search-select" nzShowSearch nzAllowClear nzMode="multiple" nzSize="small"
                     [(ngModel)]="department" nzPlaceHolder="Chọn phòng ban">
-                    <nz-option *ngFor="let item of departmentData" [nzValue]="item.ID"
-                        [nzLabel]="item.Name">
+                    <nz-option *ngFor="let item of departmentData" [nzValue]="item.ID" [nzLabel]="item.Name">
                     </nz-option>
                 </nz-select>
             </div>
             <div class="search-field">
                 <label class="search-label">Từ khóa</label>
-                <input nz-input placeholder="Nhập từ khóa..." nzSize="small"
-                    [(ngModel)]="filterText"
-                    (keyup.enter)="getAssetmanagement()"
-                    style="width: 160px; font-size: 12px;" />
+                <input nz-input placeholder="Nhập từ khóa..." nzSize="small" [(ngModel)]="filterText"
+                    (keyup.enter)="getAssetmanagement()" style="width: 160px; font-size: 12px;" />
             </div>
-            <button class="btn-search" (click)="getAssetmanagement()"
-                [disabled]="!dateStart || !dateEnd"
+            <button class="btn-search" (click)="getAssetmanagement()" [disabled]="!dateStart || !dateEnd"
                 [class.btn-disabled]="!dateStart || !dateEnd">
                 <nz-icon nzType="search" />
             </button>
@@ -200,140 +196,188 @@
                                         <th style="width: 120px; min-width: 120px; max-width: 120px;">
                                             <p-columnFilter field="TSCodeNCC" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 120px; min-width: 120px; max-width: 120px;">
-                                            <p-columnFilter field="OfficeActiveStatusText" matchMode="contains" [showMenu]="false">
+                                            <p-columnFilter field="OfficeActiveStatusText" matchMode="contains"
+                                                [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 120px; min-width: 120px; max-width: 120px;">
-                                            <p-columnFilter field="WindowActiveStatusText" matchMode="contains" [showMenu]="false">
+                                            <p-columnFilter field="WindowActiveStatusText" matchMode="contains"
+                                                [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 200px; min-width: 200px; max-width: 200px;">
                                             <p-columnFilter field="TSAssetName" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 120px; min-width: 120px; max-width: 120px;">
                                             <p-columnFilter field="AssetCode" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 150px; min-width: 150px; max-width: 150px;">
                                             <p-columnFilter field="AssetType" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 120px; min-width: 120px; max-width: 120px;">
                                             <p-columnFilter field="SourceCode" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 150px; min-width: 150px; max-width: 150px;">
                                             <p-columnFilter field="SourceName" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 120px; min-width: 120px; max-width: 120px;">
-                                            <p-columnFilter field="SupplierCode" matchMode="contains" [showMenu]="false">
+                                            <p-columnFilter field="SupplierCode" matchMode="contains"
+                                                [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 150px; min-width: 150px; max-width: 150px;">
-                                            <p-columnFilter field="SupplierName" matchMode="contains" [showMenu]="false">
+                                            <p-columnFilter field="SupplierName" matchMode="contains"
+                                                [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 120px; min-width: 120px; max-width: 120px;">
                                             <p-columnFilter field="Seri" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 150px; min-width: 150px; max-width: 150px;">
                                             <p-columnFilter field="Model" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 100px; min-width: 100px; max-width: 100px;">
                                             <p-columnFilter field="Quantity" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 150px; min-width: 150px; max-width: 150px;">
                                             <p-columnFilter field="Status" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 200px; min-width: 200px; max-width: 200px;">
-                                            <p-columnFilter field="SpecificationsAsset" matchMode="contains" [showMenu]="false">
+                                            <p-columnFilter field="SpecificationsAsset" matchMode="contains"
+                                                [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 100px; min-width: 100px; max-width: 100px;">
                                             <p-columnFilter field="UnitName" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 120px; min-width: 120px; max-width: 120px;">
-                                            <p-columnFilter field="DepartmentCode" matchMode="contains" [showMenu]="false">
+                                            <p-columnFilter field="DepartmentCode" matchMode="contains"
+                                                [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 150px; min-width: 150px; max-width: 150px;">
-                                            <p-columnFilter field="DepartmentName" matchMode="contains" [showMenu]="false">
+                                            <p-columnFilter field="DepartmentName" matchMode="contains"
+                                                [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 120px; min-width: 120px; max-width: 120px;">
-                                            <p-columnFilter field="EmployeeCode" matchMode="contains" [showMenu]="false">
+                                            <p-columnFilter field="EmployeeCode" matchMode="contains"
+                                                [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
                                         <th style="width: 150px; min-width: 150px; max-width: 150px;">
                                             <p-columnFilter field="FullName" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
@@ -341,7 +385,9 @@
                                         <th style="width: 130px; min-width: 130px; max-width: 130px;">
                                             <p-columnFilter field="Insurance" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
@@ -349,7 +395,9 @@
                                         <th style="width: 250px; min-width: 250px; max-width: 250px;">
                                             <p-columnFilter field="Note" matchMode="contains" [showMenu]="false">
                                                 <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                                                    <input pInputText type="text" [ngModel]="value" (input)="filter($any($event.target).value)" placeholder="Lọc..." class="p-inputtext-sm w-full">
+                                                    <input pInputText type="text" [ngModel]="value"
+                                                        (input)="filter($any($event.target).value)" placeholder="Lọc..."
+                                                        class="p-inputtext-sm w-full">
                                                 </ng-template>
                                             </p-columnFilter>
                                         </th>
@@ -387,9 +435,11 @@
                                             {{ row.Seri }}</td>
                                         <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
                                             {{ row.Model }}</td>
-                                        <td style="width: 100px; min-width: 100px; max-width: 100px; text-align: center;">
+                                        <td
+                                            style="width: 100px; min-width: 100px; max-width: 100px; text-align: center;">
                                             {{ row.Quantity }}</td>
-                                        <td style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
+                                        <td
+                                            style="width: 150px; min-width: 150px; max-width: 150px; text-align: center;">
                                             <span class="badge" [style.background]="row.statusColor"
                                                 style="display: block; width: 100%; white-space: normal; padding: 6px;">
                                                 {{ row.Status }}
@@ -402,16 +452,19 @@
                                         <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
                                             {{ row.DepartmentCode }}</td>
                                         <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
-                                            {{ row.DepartmentName }}</td>
+                                            {{ row.Name }}</td>
                                         <td style="width: 120px; min-width: 120px; max-width: 120px;" class="text-wrap">
                                             {{ row.EmployeeCode }}</td>
                                         <td style="width: 150px; min-width: 150px; max-width: 150px;" class="text-wrap">
                                             {{ row.FullName }}</td>
-                                        <td style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                        <td
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
                                             {{ row.DateBuy | date: 'dd/MM/yyyy' }}</td>
-                                        <td style="width: 130px; min-width: 130px; max-width: 130px; text-align: center;">
+                                        <td
+                                            style="width: 130px; min-width: 130px; max-width: 130px; text-align: center;">
                                             {{ row.Insurance }}</td>
-                                        <td style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
+                                        <td
+                                            style="width: 120px; min-width: 120px; max-width: 120px; text-align: center;">
                                             {{ row.DateEffect | date: 'dd/MM/yyyy' }}</td>
                                         <td style="width: 250px; min-width: 250px; max-width: 250px;" class="text-wrap">
                                             {{ row.Note }}</td>

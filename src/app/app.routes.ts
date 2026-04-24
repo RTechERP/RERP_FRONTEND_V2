@@ -85,6 +85,7 @@ import { TrackingMarksComponent } from './pages/hrm/tracking-marks/tracking-mark
 import { ProposeVehicleRepairComponent } from './pages/hrm/vehicle/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair.component';
 import { VehicleRepairHistoryComponent } from './pages/hrm/vehicle/propose-vehicle-repair/vehicle-repair-history/vehicle-repair-history/vehicle-repair-history.component';
 import { VehicleBookingManagementComponent } from './pages/hrm/vehicle/vehicle-booking-management/vehicle-booking-management.component';
+import { FlightBookingManagementComponent } from './pages/hrm/flight-booking-management/flight-booking-management.component';
 import { VehicleManagementComponent } from './pages/hrm/vehicle/vehicle-management/vehicle-management.component';
 import { VehicleRepairTypeFormComponent } from './pages/hrm/vehicle/vehicle-repair/vehicle-repair-type/vehicle-repair-type-form/vehicle-repair-type-form.component';
 import { BillExportTechnicalComponent } from './pages/old/bill-export-technical/bill-export-technical.component';
@@ -318,6 +319,7 @@ import { ProjectTaskTypeComponent } from './pages/project_task/project-task-type
 import { ProjectTaskProjectComponent } from './pages/project_task/project-task-project/project-task-project.component'
 import { ProjectTaskTimeLineTotalComponent } from './pages/project_task/project-task-time-line-total/project-task-time-line-total.component'
 import { ProjectTaskStatusChartComponent } from './pages/project_task/project-task-status-chart/project-task-status-chart.component'
+import { TaskDetailComponent } from './pages/project_task/kanban/task-detail/task-detail.component';
 import { FilePreviewComponent } from './pages/general-category/file-preview/file-preview.component';
 import { FiveSRatingDetailComponent } from './pages/hrm/RatingError/five-s-rating-detail/five-s-rating-detail.component'
 import { FiveSMinusComponent } from './pages/hrm/RatingError/five-s-minus/five-s-minus.component'
@@ -335,6 +337,8 @@ import { ProjectTaskSettingComponent } from './pages/project_task/project-task-s
 import { ProjectDeptSummaryPrimeNg2Component } from './pages/project/project-dept-summary-prime-ng2/project-dept-summary-prime-ng2.component';
 import { BillImportPrimeComponent } from './pages/old/Sale/BillImport/bill-import-prime/bill-import-prime.component';
 import { BillExportPrimeComponent } from './pages/old/Sale/BillExport/bill-export-prime/bill-export-prime.component';
+import { ProjectTaskTimeLineProjectComponent } from './pages/project_task/project-task-time-line-project/project-task-time-line-project.component';
+import { HrRecruitmentSummaryComponent } from './pages/hrm/hr-recruitment/hr-recruitment-summary/hr-recruitment-summary.component';
 export const routes: Routes = [
     {
         path: 'file-preview',
@@ -443,6 +447,7 @@ export const routes: Routes = [
             { path: 'department', component: DepartmentComponent, canActivate: [authGuard] },
             { path: 'vehicle-management', component: VehicleManagementComponent, canActivate: [authGuard] },
             { path: 'vehicle-booking-management', component: VehicleBookingManagementComponent, canActivate: [authGuard] },
+            { path: 'flight-booking-management', component: FlightBookingManagementComponent, canActivate: [authGuard] },
             { path: 'vehicle-repair-type-form', component: VehicleRepairTypeFormComponent, canActivate: [authGuard] },
             { path: 'propose-vehicle-repair', component: ProposeVehicleRepairComponent, canActivate: [authGuard] },
             { path: 'vehicle-repair-history', component: VehicleRepairHistoryComponent, canActivate: [authGuard] },
@@ -718,6 +723,8 @@ export const routes: Routes = [
             { path: 'summary-project-join', component: SummaryProjectJoinComponent, canActivate: [authGuard] },
             { path: 'project-part-list', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
             { path: 'project-task-setting', component: ProjectTaskSettingComponent, canActivate: [authGuard] },
+            { path: 'project-task-time-line-project', component: ProjectTaskTimeLineProjectComponent, canActivate: [authGuard] },
+
             { path: 'project-application-types', component: ProjectApplicationTypesComponent, canActivate: [authGuard] },
 
             //kpi
@@ -1112,7 +1119,7 @@ export const routes: Routes = [
             { path: 'newsletter-view-all', component: NewsletterFormViewAllComponent, canActivate: [authGuard] },
             { path: 'newsletter-type', component: NewsletterTypeComponent, canActivate: [authGuard] },
             { path: 'newsletter-view-all', component: NewsletterFormViewAllComponent, canActivate: [authGuard] },
-
+            { path: 'hr-recruitment-summary', component: HrRecruitmentSummaryComponent, canActivate: [authGuard] },
             { path: 'document-sale-admin', component: DocumentSaleAdminComponent, canActivate: [authGuard] },
             // Tủ đồ bảo hộ và phòng sạch
             { path: 'product-protective-gear', component: ProductProtectiveGearComponent, canActivate: [authGuard] },
@@ -1191,6 +1198,8 @@ export const routes: Routes = [
             { path: 'project-task-project', component: ProjectTaskProjectComponent, canActivate: [authGuard] },
             { path: 'project-task-status-chart', component: ProjectTaskStatusChartComponent, canActivate: [authGuard] },
             { path: 'project-task-timeline-total', component: ProjectTaskTimeLineTotalComponent, canActivate: [authGuard] },
+            { path: 'project-task-detail/:id', component: TaskDetailComponent, canActivate: [authGuard] },
+            { path: 'project-task-add', component: TaskDetailComponent, canActivate: [authGuard] },
             { path: 'purchase-quote-summary', component: PurchaseQuoteSummaryComponent, canActivate: [authGuard] },
             { path: 'commercial-price-request', component: CommercialPriceRequestComponent, canActivate: [authGuard] },
             { path: 'purchase-quote-summary-main', component: PurchaseQuoteSummaryMainComponent, canActivate: [authGuard] },

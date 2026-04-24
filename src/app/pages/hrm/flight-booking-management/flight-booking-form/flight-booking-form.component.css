@@ -1,0 +1,73 @@
+.modal-dialog-scrollable {
+  font-size: 12px !important;
+}
+.modal-dialog-scrollable * {
+  font-size: 12px !important;
+}
+
+.ant-form-item-label {
+  padding: 0 !important;
+}
+
+.modal-dialog-scrollable {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.modal-header {
+  flex-shrink: 0;
+}
+
+.modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal-footer {
+  flex-shrink: 0;
+}
+
+::ng-deep .ant-form-item {
+  margin-bottom: 8px !important;
+}
+
+::ng-deep .ant-form-label > label {
+  font-size: 12px !important;
+  color: #333;
+}
+
+::ng-deep .ant-table-thead > tr > th {
+  background-color: #f8f9fa !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  padding: 8px !important;
+}
+
+::ng-deep .ant-table-tbody > tr > td {
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+}
+
+::ng-deep .nz-divider-horizontal.nz-divider-with-text-left {
+  margin: 16px 0 8px 0 !important;
+}
+
+::ng-deep .nz-divider-inner-text {
+  font-weight: 700 !important;
+  color: #0d6efd !important;
+  font-size: 12px !important;
+}
+
+.text-primary {
+  color: #0d6efd !important;
+}
+
+.text-success {
+  color: #198754 !important;
+}

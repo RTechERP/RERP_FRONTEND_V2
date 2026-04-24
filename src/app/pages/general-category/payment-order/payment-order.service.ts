@@ -125,6 +125,22 @@ export class PaymentOrderService {
         return this.http.get<any>(`${this.url}/get-data-combo`);
     }
 
+    getApprovers(): Observable<any> {
+        return this.http.get<any>(`${this.url}/approvers`);
+    }
+
+    getProcurement(): Observable<any> {
+        return this.http.get<any>(`${this.url}/procurement`);
+    }
+
+    getPartnersAndProjects(): Observable<any> {
+        return this.http.get<any>(`${this.url}/partners-projects`);
+    }
+
+    getMetadata(): Observable<any> {
+        return this.http.get<any>(`${this.url}/metadata`);
+    }
+
     getStep(): Observable<any> {
         return this.http.get<any>(`${this.url}/get-step`);
     }

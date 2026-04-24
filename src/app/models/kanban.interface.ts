@@ -64,6 +64,7 @@ export interface IProjectTask {
     ProjectTaskTypeID?: number;
     ProjectTaskResult?: string;
     PercentOverTime?: number;
+    NeedApprove?: boolean | null;
     Deadline?: Date;
     DescriptionSolution?: string;
     CreatedBy?: string;

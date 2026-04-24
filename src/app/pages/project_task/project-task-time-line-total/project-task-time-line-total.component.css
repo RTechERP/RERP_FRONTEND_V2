@@ -256,9 +256,14 @@ thead .sticky-col {
 
 /* Icon check trong ô Dự kiến */
 .check-icon {
-    color: #fff;
-    font-size: 18px;
-    font-weight: 700;
+    color: #15803d; /* xanh lá đậm */
+    font-size: 22px;
+    line-height: 1;
+}
+
+.check-icon svg {
+    stroke: #15803d;
+    stroke-width: 80px; /* Làm SVG dày lên (viewBox 1024) */
 }
 
 /* Số giờ trong ô Thực tế */

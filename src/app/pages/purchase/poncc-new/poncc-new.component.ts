@@ -54,7 +54,8 @@ import { DateTime } from 'luxon';
 import { environment } from '../../../../environments/environment';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { SafeUrlPipe } from '../../../../safeUrl.pipe';
-import { PaymentOrderDetailComponent } from '../../general-category/payment-order/payment-order-detail/payment-order-detail.component';
+import { PaymentOrderDetailOldComponent } from '../../general-category/payment-order-detail-old/payment-order-detail-old.component';
+import { PaymentOrder } from '../../general-category/payment-order/model/payment-order';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { BillImportDetailNewComponent } from '../../old/Sale/BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
@@ -2904,29 +2905,31 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const selectedPO = selectedRows[0];
-    const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-      windowClass: 'full-screen-modal',
+
+    const prefilledOrder = new PaymentOrder({
+      PONCCID: selectedPO.ID,
+      SupplierSaleID: selectedPO.SupplierSaleID,
+      ReceiverInfo: selectedPO.NameNCC || '',        // NameNCC có trong master row
+      Unit: (selectedPO.CurrencyText || 'vnd').toLowerCase(), // CurrencyText có trong master row
+      TypePayment: 1,
+      TypeOrder: 1, // Mặc định Đề nghị tạm ứng khi tạo từ PONCC
+      // AccountNumber / Bank KHÔNG có trong master row → loadDataFromPONCC() sẽ patch từ API
     });
 
+    const modalRef = this.modalService.open(PaymentOrderDetailOldComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      scrollable: true,
+      fullscreen: true,
+    });
+
+    modalRef.componentInstance.paymentOrder = prefilledOrder;
     modalRef.componentInstance.ponccID = selectedPO.ID;
 
     modalRef.result.then(
-      (result) => {
-        // Handle modal close with result
-        if (result) {
-          this.notify.success(
-            NOTIFICATION_TITLE.success,
-            'Tạo phiếu đề nghị thanh toán thành công'
-          );
-        }
-      },
-      (reason) => {
-        // Handle modal dismiss
-        console.log('Modal dismissed:', reason);
-      }
+      () => { },
+      () => { }
     );
   }
   onCreatePDFLanguageVi(data: any, isShowSign: boolean, isShowSeal: boolean) {

@@ -7,7 +7,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzModalRef, NZ_MODAL_DATA } from 'ng-zorro-antd/modal';
+import { NzModalRef, NZ_MODAL_DATA, NzModalService } from 'ng-zorro-antd/modal';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import {
@@ -93,6 +93,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   @Input() status: number = 0;
   @Input() departmentID: number = 0;
   @Input() isPublish: boolean = false; // IsPublish flag từ empPoint
+  @Input() isAdminConfirm: boolean = false; // cờ xác nhận của admin
 
   // Output event to notify parent when data is saved
   @Output() dataSaved = new EventEmitter<void>();
@@ -117,6 +118,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
   // DI
   private notification = inject(NzNotificationService);
+  private modal = inject(NzModalService);
   private cdr = inject(ChangeDetectorRef);
   private modalRef = inject(NzModalRef, { optional: true });
   public activeModal = inject(NgbActiveModal);
@@ -127,6 +129,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
   // UI State
   gridsInitialized = false;
+  private isCloseAfterSave = false;
   selectedTabIndex = 0;
   logicalTabIndex = 0;
 
@@ -137,6 +140,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   showLoadTeamButton = false;
 
   // Permissions
+  team: any = null;
   canSave = true;
   canLoadData = true;
 
@@ -567,6 +571,13 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.initializeGrids();
     // Bắt đầu load combobox ngay khi init component
     this.loadComboboxData();
+
+    // Lấy thông tin team của user hiện tại (Leader) - Mapping WinForms Block 1
+    this.kpiService.getTeam().subscribe(res => {
+      this.team = res;
+      this.applyVisibilityRules();
+      this.cdr.detectChanges();
+    });
   }
 
   ngAfterViewInit(): void {
@@ -583,26 +594,41 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
   //#region Visibility and Permission Rules
   private applyVisibilityRules(): void {
-    // Logic theo typePoint từ WinForm
-    if (this.typePoint === 1) {
-      // Nhân viên: ẩn tab Rule, Team
-      this.showTabRule = false;
-      this.showTabTeam = false;
-      this.canSave = this.status <= 2;
-    } else if (this.typePoint === 2) {
-      // TBP
-      this.canSave = this.status !== 3;
-      this.showLoadTeamButton = true;
-    } else if (this.typePoint === 3) {
-      // BGĐ
-      this.canLoadData = false;
-      this.showLoadTeamButton = true;
-    } else if (this.typePoint === 4) {
-      // Admin: chỉ thấy tab Rule, Team
-      this.showTabGeneral = false;
-      this.showTabRule = true;
-      this.showTabTeam = true;
-      this.showLoadTeamButton = true;
+    const isAdmin = this.typePoint === 4;
+
+    // Logic Block 2: Cấu hình chung theo typePoint và status
+    if (!(isAdmin && this.employeeID <= 0)) {
+      if (this.typePoint === 2) {
+        // Trưởng bộ phận (TBP)
+        this.canSave = this.status !== 3;
+        this.showLoadTeamButton = true;
+      } else if (this.typePoint === 1) {
+        // Nhân viên (NV)
+        this.canSave = this.status <= 2;
+        this.showTabRule = false;
+        this.showTabTeam = false;
+      } else if (this.typePoint === 4) {
+        // Quản trị viên (Admin)
+        this.showTabRule = true;
+        this.showTabTeam = true;
+        this.showTabGeneral = false;
+        // Ghi chú: Các Tab 1, 2, 3, 4 đã được ẩn trong HTML bằng *ngIf="typePoint !== 4"
+      }
+      this.canLoadData = this.typePoint !== 3; // BGD không được load data
+    }
+
+    // Logic Block 1: Kiểm tra quyền lưu của TBP (Mapping WinForms L63-L68)
+    if (this.team && this.typePoint === 2) {
+      // Giả định: kiểm tra xem employeeID có thuộc team của leader không
+      // Theo WinForms: isAccept = Global.IsAdmin || lstTeam.Any(p => p.UserID == employeeID);
+      // btnSave.Enabled = !isAccept;
+
+      // Nếu API get-team chỉ trả về header, ta tạm thời kiểm tra nếu team tồn tại 
+      // và logic isAccept được tính toán (ở đây tạm dùng true nếu team hợp lệ để khớp logic disable của WinForms)
+      const isAccept = isAdmin || (this.team && this.employeeID > 0);
+      if (isAccept) {
+        this.canSave = false;
+      }
     }
 
     // Logic theo departmentID (Phòng Cơ khí)
@@ -657,6 +683,51 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         console.warn('Error resetting column widths (Details):', e);
       }
     }, 150);
+  }
+
+  /**
+   * Tự động giãn cột content chính để lấp đầy khoảng trống bên phải.
+   * Giải quyết vấn đề: forceFitColumns=false nhưng tổng minWidth nhỏ hơn container.
+   */
+  private stretchMainColumn(angularGrid: any): void {
+    setTimeout(() => {
+      if (!this.isValidGrid(angularGrid)) return;
+      const grid = angularGrid.slickGrid;
+      if (!grid?.getColumns || !grid?.setColumns) return;
+      try {
+        const allColumns = grid.getColumns();
+        const visibleColumns = allColumns.filter((c: any) => !c.hidden);
+        if (!visibleColumns.length) return;
+
+        const container = grid.getContainerNode() as HTMLElement;
+        const containerWidth = container ? container.offsetWidth : (grid.getGridPosition()?.width || 0);
+        const totalCurrentWidth = visibleColumns.reduce((sum: number, c: any) => sum + (c.width || c.minWidth || 100), 0);
+        const remaining = containerWidth - totalCurrentWidth - 2;
+        if (remaining <= 0) return;
+
+        const stretchableIds = [
+          'EvaluationContent', 'RuleContent', 'VerificationToolsContent',
+          'ExamName', 'FullName', 'Note'
+        ];
+        let stretchCol: any = null;
+        for (const sid of stretchableIds) {
+          stretchCol = allColumns.find((c: any) => c.id === sid && !c.hidden);
+          if (stretchCol) break;
+        }
+        if (!stretchCol) {
+          stretchCol = visibleColumns.reduce((prev: any, curr: any) =>
+            (curr.width || curr.minWidth || 0) > (prev.width || prev.minWidth || 0) ? curr : prev
+            , visibleColumns[0]);
+        }
+        if (stretchCol) {
+          stretchCol.width = (stretchCol.width || stretchCol.minWidth || 100) + remaining;
+          grid.setColumns(allColumns);
+          grid.invalidate();
+          grid.render();
+          angularGrid.resizerService?.resizeGrid();
+        }
+      } catch (e) { /* safely ignore */ }
+    }, 300);
   }
 
   private createBaseEvaluationColumns(): Column[] {
@@ -740,15 +811,15 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         cssClass: 'text-right cell-point-highlight',
         sortable: true,
         editor: (this.typePoint === 1) ? {
-          model: this.departmentID === this.DEPARTMENT_CO_KHI ? Editors['float'] : Editors['integer'],
+          model: Editors['float'],
           minValue: 0,
-          maxValue: this.departmentID === this.DEPARTMENT_CO_KHI ? 100 : 5,
-          decimal: this.departmentID === this.DEPARTMENT_CO_KHI ? 2 : 0,
-          params: this.departmentID === this.DEPARTMENT_CO_KHI ? { decimalPlaces: 2 } : undefined
+          maxValue: 100,
+          decimal: 1,
+          params: { decimalPlaces: 1 }
         } : undefined,
         columnGroup: 'NV đánh giá',
         formatter: (_row: any, _cell: any, value: any, columnDef: any, dataContext: any) => {
-          const displayValue = (value !== null && value !== undefined && value !== '') ? value : '';
+          const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(1) : '';
           if (this.highlightZeroById[columnDef.id] && !dataContext.__hasChildren && (value === 0 || value === '0' || value === null || value === undefined || value === '')) {
             return `<div style="color:red; font-weight:bold; text-align:right;">${displayValue === '' ? '0' : displayValue}</div>`;
           }
@@ -770,15 +841,15 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         cssClass: 'text-right cell-point-highlight',
         sortable: true,
         editor: this.typePoint === 2 ? {
-          model: this.departmentID === this.DEPARTMENT_CO_KHI ? Editors['float'] : Editors['integer'],
+          model: Editors['float'],
           minValue: 0,
-          maxValue: this.departmentID === this.DEPARTMENT_CO_KHI ? 100 : 5,
-          decimal: this.departmentID === this.DEPARTMENT_CO_KHI ? 2 : 0,
-          params: this.departmentID === this.DEPARTMENT_CO_KHI ? { decimalPlaces: 2 } : undefined
+          maxValue: 100,
+          decimal: 1,
+          params: { decimalPlaces: 1 }
         } : undefined,
         columnGroup: 'TBP đánh giá',
         formatter: (_row: any, _cell: any, value: any, columnDef: any, dataContext: any) => {
-          const displayValue = (value !== null && value !== undefined && value !== '') ? value : '';
+          const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(1) : '';
           if (this.highlightZeroById[columnDef.id] && !dataContext.__hasChildren && (value === 0 || value === '0' || value === null || value === undefined || value === '')) {
             return `<div style="color:red; font-weight:bold; text-align:right;">${displayValue === '' ? '0' : displayValue}</div>`;
           }
@@ -812,15 +883,15 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         cssClass: 'text-right cell-point-highlight',
         sortable: true,
         editor: this.typePoint === 3 ? {
-          model: this.departmentID === this.DEPARTMENT_CO_KHI ? Editors['float'] : Editors['integer'],
+          model: Editors['float'],
           minValue: 0,
-          maxValue: this.departmentID === this.DEPARTMENT_CO_KHI ? 100 : 5,
-          decimal: this.departmentID === this.DEPARTMENT_CO_KHI ? 2 : 0,
-          params: this.departmentID === this.DEPARTMENT_CO_KHI ? { decimalPlaces: 2 } : undefined
+          maxValue: 100,
+          decimal: 1,
+          params: { decimalPlaces: 1 }
         } : undefined,
         columnGroup: 'BGĐ đánh giá',
         formatter: (_row: any, _cell: any, value: any, columnDef: any, dataContext: any) => {
-          const displayValue = (value !== null && value !== undefined && value !== '') ? value : '';
+          const displayValue = (value !== null && value !== undefined && value !== '') ? Number(value).toFixed(1) : '';
           if (this.highlightZeroById[columnDef.id] && !dataContext.__hasChildren && (value === 0 || value === '0' || value === null || value === undefined || value === '')) {
             return `<div style="color:red; font-weight:bold; text-align:right;">${displayValue === '' ? '0' : displayValue}</div>`;
           }
@@ -968,7 +1039,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       enableCellNavigation: true,
       enableSorting: true,
       enablePagination: false,
-      forceFitColumns: true,
+      forceFitColumns: false,
       editable: true,
       autoEdit: true,
       autoCommitEdit: false, // Thay đổi để cho phép dùng mũi tên điều hướng mà không mất focus
@@ -1144,6 +1215,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       const isKPI = ruleCode.startsWith('KPI');
       const isNQNL = ruleCode === 'KPINL' || ruleCode === 'KPINQ';
       let isTeam = ruleCode.startsWith('TEAM');
+      const isNewLine = ruleCode === 'NEWLINE';
 
       if (dataContext.ParentID || dataContext.parentId) {
         const parentItem = this.dataRule.find((r: any) =>
@@ -1156,7 +1228,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       }
 
       let bgColor = '';
-      if (dataContext.__hasChildren) bgColor = '#D3D3D3';
+      if (dataContext.__hasChildren || isNewLine) bgColor = '#D3D3D3';
       else if (isTeam) bgColor = '#d1e7dd';
       // Không set bgColor khi cell có thể edit - để class editable-field tự động tô màu xanh
       // else if (!isKPI && !isNQNL) bgColor = '#FFFFE0'; // LightYellow cho cell có thể edit
@@ -1164,6 +1236,15 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       // Thêm style cho cell editable
       const canEdit = this.canEditRuleCell(dataContext, columnDef.field);
       const editStyle = canEdit ? 'cursor: cell;' : '';
+
+      if (isNewLine) {
+        let text = '';
+        if (columnDef.id === 'FirstMonth') text = 'Tự đánh giá';
+        else if (columnDef.id === 'SecondMonth') text = 'Trưởng/Phó BP';
+        else if (columnDef.id === 'ThirdMonth') text = 'Ban giám đốc';
+
+        return `<div style="background-color: ${bgColor}; margin: -4px -6px; padding: 4px 6px; height: calc(100% + 8px); text-align: center; font-weight: bold; white-space: normal; word-wrap: break-word; line-height: 1.2; display: flex; align-items: center; justify-content: center;">${text}</div>`;
+      }
 
       if (bgColor) {
         return `<div style="background-color: ${bgColor}; margin: -4px -6px; padding: 4px 6px; height: calc(100% + 8px); text-align: right; ${editStyle}">${displayValue}</div>`;
@@ -1357,7 +1438,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       enableCellNavigation: true,
       enableSorting: true,
       enablePagination: false,
-      forceFitColumns: true,
+      forceFitColumns: false,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
       headerRowHeight: 60,
@@ -1583,6 +1664,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.angularGridSkill = angularGrid.detail ?? angularGrid;
     this.applyEvaluationRowStyling(this.angularGridSkill);
     this.subscribeToEditPrevention(this.angularGridSkill);
+    this.stretchMainColumn(this.angularGridSkill);
     // Nếu data đã có sẵn (do load nhanh), hãy apply sort ngay
     if (this.dataSkill && this.dataSkill.length > 0) {
       this.updateGrid(this.angularGridSkill, this.dataSkill);
@@ -1599,6 +1681,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.angularGridGeneral = angularGrid.detail ?? angularGrid;
     this.applyEvaluationRowStyling(this.angularGridGeneral);
     this.subscribeToEditPrevention(this.angularGridGeneral);
+    this.stretchMainColumn(this.angularGridGeneral);
     if (this.dataGeneral && this.dataGeneral.length > 0) {
       this.updateGrid(this.angularGridGeneral, this.dataGeneral);
     }
@@ -1614,6 +1697,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.angularGridSpecialization = angularGrid.detail ?? angularGrid;
     this.applyEvaluationRowStyling(this.angularGridSpecialization);
     this.subscribeToEditPrevention(this.angularGridSpecialization);
+    this.stretchMainColumn(this.angularGridSpecialization);
     if (this.dataSpecialization && this.dataSpecialization.length > 0) {
       this.updateGrid(this.angularGridSpecialization, this.dataSpecialization);
     }
@@ -1640,6 +1724,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
     // Reset columns and resize - following parent component stable logic
     this.resetColumnWidths(this.angularGridRule, this.ruleColumns);
+    this.stretchMainColumn(this.angularGridRule);
     setTimeout(() => {
       if (this.angularGridRule?.resizerService) {
         this.angularGridRule.resizerService.resizeGrid();
@@ -1662,6 +1747,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
   onTeamGridReady(angularGrid: any): void {
     this.angularGridTeam = angularGrid.detail ?? angularGrid;
+    this.stretchMainColumn(this.angularGridTeam);
     setTimeout(() => {
       this.angularGridTeam?.resizerService?.resizeGrid();
       this.updateTeamFooter();
@@ -1736,8 +1822,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     dataView.getItemMetadata = (rowIndex: number) => {
       const item = dataView.getItem(rowIndex);
 
+      const ruleCode = String(item?.EvaluationCode || '').toUpperCase();
       // Nếu là node cha (có children), thêm class đặc biệt
-      if (item && item.__hasChildren) {
+      if (item && (item.__hasChildren || ruleCode === 'NEWLINE')) {
         return {
           cssClasses: 'evaluation-parent-row'
         };
@@ -1908,12 +1995,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     // Sử dụng switchMap để chuỗi các API calls: getDataKPIExam -> getIsPublic
     this.kpiSharedService.getDataKPIExam(empId, kpiSessionID).pipe(
       switchMap((res: any) => {
-        const points = res?.data || res;
-        // Tìm point tương ứng với kpiExamID hiện tại
-        const point: any = Array.isArray(points) ? points.find((p: any) => p.KPIExamID === kpiExamID) : null;
-
-        if (point && point.ID) {
-          return this.kpiSharedService.getIsPublic(point.ID);
+        const points = res?.data[0] || res;
+        if (res.data.length > 0) {
+          return this.kpiSharedService.getIsPublish(res.data[0].ID, this.isPublish, empId, kpiSessionID);
         } else {
           // Nếu không tìm thấy point, trả về null để xử lý ở bước sau
           return of(null);
@@ -2044,8 +2128,27 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.kpiSharedService.loadKPIRuleAndTeamFactorScoring(examId, isPublic, empId, sessionId).subscribe({
       next: (res) => {
         if (res.status === 1 && res.data) {
+          const rawRuleData = res.data.dtKpiRule || [];
+          // TN.Binh update 18/04/2026: Add Row STT 3.9 NewLine 
+          // Thêm vào raw data trước khi transform để đảm bảo có đầy đủ tree metadata (__treeLevel, parentId, id)
+          const hasNewLine = rawRuleData.some((item: any) => item.EvaluationCode === 'NewLine' || item.STT === '3.9');
+          if (!hasNewLine) {
+            rawRuleData.push({
+              ID: -9999,
+              STT: '3.9',
+              Stt: '3.9',
+              EvaluationCode: 'NewLine',
+              FirstMonth: 0,
+              SecondMonth: 0,
+              ThirdMonth: 0,
+              RuleContent: '',
+              ParentID: 0,
+              __hasChildren: false
+            });
+          }
+
           // Rule Data sử dụng transformToTreeData (giống parent) nhưng không có summary row
-          this.dataRule = this.transformToTreeData(res.data.dtKpiRule || [], false);
+          this.dataRule = this.transformToTreeData(rawRuleData, false);
 
           // Team Data mapping id
           this.dataTeam = (res.data.dtTeam || []).map((item: any, index: number) => ({
@@ -2058,10 +2161,17 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
           //#region ĐỒNG BỘ LOGIC LOAD POIN RULE NEW (WinForm)
           // Sau khi load Rule/Team, gọi API mới để lấy số liệu 3 tháng và tính toán
-          this.loadPointRuleNewAndCalculateDetail();
+          const listRule = res.data.lst || [];
+          if (listRule.length <= 0) {
+            this.loadPointRuleNewAndCalculateDetail();
+          } else if (!this.isAdminConfirm && this.isPublish == false) {
+            this.loadPointRuleLastMonthAndCalculateDetail();
+          }
           //#endregion
+          // Luôn thực hiện tính toán ngay cả khi không có data mới
+          this.applyTeamSummaryAndCalculateDetail();
 
-          // Lấy điểm cuối cùng từ API mới
+          // Lấy điểm cuối cùng 
           this.kpiSharedService.getFinalPoint(empId, sessionId).subscribe({
             next: (finalRes) => {
               if (finalRes.data) {
@@ -2095,18 +2205,79 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
           if (res.data && Array.isArray(res.data)) {
             console.log('[FactorScoringDetail] loadPointRuleNew response:', res.data);
             // Cập nhật giá trị FirstMonth, SecondMonth, ThirdMonth vào dataRule hiện tại
-            this.dataRule = this.dataRule.map(rule => {
-              const newData = res.data.find((item: any) => item.EvaluationCode === rule.EvaluationCode);
-              if (newData) {
-                return {
-                  ...rule,
-                  FirstMonth: newData.FirstMonth,
-                  SecondMonth: newData.SecondMonth,
-                  ThirdMonth: newData.ThirdMonth
-                };
-              }
-              return rule;
-            });
+            const pointID = this.selectedEmployeeId || 0;
+            const hasDetails = pointID > 0 && this.dataRule.some((r: any) => (typeof r.EmpPointDetailID === 'number' && r.EmpPointDetailID > 0) || (r.KPIEmployeePointID === pointID) || r.EmpPointDetailID > 0);
+
+            if (this.isAdminConfirm && hasDetails) {
+              console.log('[FactorScoringDetail] Admin confirmed. Skipping API data overwrite.');
+            } else {
+              this.dataRule = this.dataRule.map(rule => {
+                const newData = res.data.find((item: any) => item.EvaluationCode === rule.EvaluationCode);
+                if (newData) {
+                  // WinForms: LoadPointRuleNew luôn cập nhật cả 3 tháng
+                  return {
+                    ...rule,
+                    FirstMonth: newData.FirstMonth,
+                    SecondMonth: newData.SecondMonth,
+                    ThirdMonth: newData.ThirdMonth
+                  };
+                }
+                return rule;
+              });
+            }
+          }
+          // Luôn thực hiện tính toán ngay cả khi không có data mới
+          this.applyTeamSummaryAndCalculateDetail();
+        },
+        error: (err) => {
+          console.error('[FactorScoringDetail] Error loading Point Rule New:', err);
+          this.applyTeamSummaryAndCalculateDetail();
+        }
+      });
+  }
+
+  private loadPointRuleLastMonthAndCalculateDetail(): void {
+    const empID = this.selectedEmployeeId || 0;
+    const examID = this.selectedKPIExamId || 0;
+    const sessionID = this.selectedKPISessionId || 0;
+
+    if (empID <= 0 || examID <= 0) return;
+
+    this.kpiSharedService.loadPointRuleLastMonthNew(examID, true, empID, sessionID)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          if (res.data && Array.isArray(res.data)) {
+            console.log('[FactorScoringDetail] loadPointRuleNew response:', res.data);
+            // Cập nhật giá trị FirstMonth, SecondMonth, ThirdMonth vào dataRule hiện tại
+            const pointID = this.selectedEmployeeId || 0;
+            const hasDetails = pointID > 0 && this.dataRule.some((r: any) => (typeof r.EmpPointDetailID === 'number' && r.EmpPointDetailID > 0) || (r.KPIEmployeePointID === pointID) || r.EmpPointDetailID > 0);
+
+            if (this.isAdminConfirm && hasDetails) {
+              console.log('[FactorScoringDetail] Admin confirmed. Skipping API data overwrite.');
+            } else {
+              this.dataRule = this.dataRule.map(rule => {
+                const newData = res.data.find((item: any) => item.EvaluationCode === rule.EvaluationCode);
+                if (newData) {
+                  const ruleCode = (rule.EvaluationCode || '').toUpperCase();
+                  // WinForms: LoadPointRuleLastMonth chỉ cập nhật tháng 3, trừ THUONG02/03 cập nhật cả 3 tháng
+                  if (ruleCode === 'THUONG02' || ruleCode === 'THUONG03') {
+                    return {
+                      ...rule,
+                      FirstMonth: newData.FirstMonth,
+                      SecondMonth: newData.SecondMonth,
+                      ThirdMonth: newData.ThirdMonth
+                    };
+                  } else {
+                    return {
+                      ...rule,
+                      ThirdMonth: newData.ThirdMonth
+                    };
+                  }
+                }
+                return rule;
+              });
+            }
           }
           // Luôn thực hiện tính toán ngay cả khi không có data mới
           this.applyTeamSummaryAndCalculateDetail();
@@ -2497,17 +2668,33 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     // #region Logic tính điểm từ WinForm (treeData_CellValueChanged)
     const coefficient = parseFloat(changedItem.Coefficient) || 0;
     const employeePoint = parseFloat(changedItem.EmployeePoint) || 0;
+    const standardPoint = parseFloat(changedItem.StandardPoint) || 0;
+    const isTKCK = this.departmentID === this.DEPARTMENT_CO_KHI;
 
     // Khi nhập EmployeePoint: tính EmployeeCoefficient = EmployeePoint * Coefficient
     if (fieldName === 'EmployeePoint') {
-      const newEmployeePoint = parseFloat(changedItem.EmployeePoint) || 0;
+      let newEmployeePoint = parseFloat(changedItem.EmployeePoint) || 0;
+
+      // Sửa theo yêu cầu: Nếu không phải TKCK và nhập quá điểm chuẩn thì gán về max điểm chuẩn
+      if (!isTKCK && newEmployeePoint > standardPoint) {
+        newEmployeePoint = standardPoint;
+        changedItem.EmployeePoint = standardPoint;
+      }
+
       changedItem.EmployeeCoefficient = newEmployeePoint * coefficient;
       changedItem.EmployeeEvaluation = newEmployeePoint;
     }
 
     // Khi nhập TBPPointInput: nếu chênh lệch >= 2 so với EmployeePoint thì chia đôi
     if (fieldName === 'TBPPointInput') {
-      const tbpPointInput = parseFloat(changedItem.TBPPointInput) || 0;
+      let tbpPointInput = parseFloat(changedItem.TBPPointInput) || 0;
+
+      // Sửa theo yêu cầu: Nếu không phải TKCK và nhập quá điểm chuẩn thì gán về max điểm chuẩn
+      if (!isTKCK && tbpPointInput > standardPoint) {
+        tbpPointInput = standardPoint;
+        changedItem.TBPPointInput = standardPoint;
+      }
+
       const diff = Math.abs(tbpPointInput - employeePoint);
       const tbpPoint = diff >= 2 ? tbpPointInput / 2 : tbpPointInput;
 
@@ -2518,7 +2705,14 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
     // Khi nhập BGDPointInput: nếu chênh lệch >= 2 so với EmployeePoint thì chia đôi
     if (fieldName === 'BGDPointInput') {
-      const bgdPointInput = parseFloat(changedItem.BGDPointInput) || 0;
+      let bgdPointInput = parseFloat(changedItem.BGDPointInput) || 0;
+
+      // Sửa theo yêu cầu: Nếu không phải TKCK và nhập quá điểm chuẩn thì gán về max điểm chuẩn
+      if (!isTKCK && bgdPointInput > standardPoint) {
+        bgdPointInput = standardPoint;
+        changedItem.BGDPointInput = standardPoint;
+      }
+
       const diff = Math.abs(bgdPointInput - employeePoint);
       const bgdPoint = diff >= 2 ? bgdPointInput / 2 : bgdPointInput;
 
@@ -2663,6 +2857,13 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
    * Logic từ WinForms: CalculatorPoint
    */
   private calculatorPointForRule(): void {
+    // Kiểm tra nếu là phòng Cơ Khí (TKCK) thì dùng logic riêng
+    if (this.departmentID === this.DEPARTMENT_CO_KHI) {
+      console.log('[FactorScoringDetail] Using specialized TKCK calculation pipe');
+      this.dataRule = this.calculatorAvgPointTKCK(this.dataRule);
+      return;
+    }
+
     // WinForms: nếu là admin (ID=548) dùng listAdminCodes, ngược lại dùng listCodes
     const listCodes = (this.selectedEmployeeId === this.ADMIN_EMPLOYEE_ID)
       ? this.listAdminCodesNoError
@@ -2995,6 +3196,37 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     // Lấy xếp loại dựa vào tổng % thưởng còn lại
     const rank = this.getEvaluationRank(totalPercentRemaining);
 
+    // Tính toán TN.Binh update 13/10/2025
+    let empPoint = 0;
+    let tbpPoint = 0;
+    let bgdPoint = 0;
+
+    const isKPI = (ruleCode: string) => {
+      if (!ruleCode) return false;
+      const code = ruleCode.toUpperCase().trim();
+      return code.startsWith('KPI') && code !== 'KPINL' && code !== 'KPINQ';
+    };
+
+    items.forEach((node: any) => {
+      // Check if node is a leaf (no other node has this node as ParentID)
+      const isLeaf = !items.some((n: any) => n.ParentID === (node.ID || node.id) || n.parentId === (node.ID || node.id));
+
+      if (isLeaf && isKPI(node.EvaluationCode)) {
+        const maxPercent = Number(node.MaxPercent) || 0;
+        const firstMonth = this.formatDecimalNumber(Number(node.FirstMonth) || 0, 2);
+        const secondMonth = this.formatDecimalNumber(Number(node.SecondMonth) || 0, 2);
+        const thirdMonth = this.formatDecimalNumber(Number(node.ThirdMonth) || 0, 2);
+
+        empPoint += this.formatDecimalNumber((firstMonth * maxPercent) / 5, 2);
+        tbpPoint += this.formatDecimalNumber((secondMonth * maxPercent) / 5, 2);
+        bgdPoint += this.formatDecimalNumber((thirdMonth * maxPercent) / 5, 2);
+      }
+    });
+
+    const firstMonthFooter = totalPercentRemaining - bgdPoint + empPoint;
+    const secondMonthFooter = totalPercentRemaining - bgdPoint + tbpPoint;
+    const thirdMonthFooter = totalPercentRemaining;
+
     // Cập nhật các ô footer
     const columns = slickGrid.getColumns();
     columns.forEach((column: any) => {
@@ -3039,6 +3271,27 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
             footerCol.style.textAlign = 'right';
             footerCol.style.paddingRight = '8px';
             break;
+          case 'FirstMonth':
+            footerCol.innerHTML = `<b>${firstMonthFooter.toFixed(2)}</b>`;
+            footerCol.style.textAlign = 'right';
+            footerCol.style.paddingRight = '8px';
+            footerCol.style.backgroundColor = '#e6f7ff';
+            footerCol.style.color = '#0050b3';
+            break;
+          case 'SecondMonth':
+            footerCol.innerHTML = `<b>${secondMonthFooter.toFixed(2)}</b>`;
+            footerCol.style.textAlign = 'right';
+            footerCol.style.paddingRight = '8px';
+            footerCol.style.backgroundColor = '#f6ffed';
+            footerCol.style.color = '#135200';
+            break;
+          case 'ThirdMonth':
+            footerCol.innerHTML = `<b>${thirdMonthFooter.toFixed(2)}</b>`;
+            footerCol.style.textAlign = 'right';
+            footerCol.style.paddingRight = '8px';
+            footerCol.style.backgroundColor = '#fff7e6';
+            footerCol.style.color = '#ad6800';
+            break;
         }
       } catch (e) {
         // Bỏ qua lỗi
@@ -3053,7 +3306,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
    * Scale: D, C-, C, C+, B-, B, B+, A-, A, A+
    */
   private getEvaluationRank(percent: number): string {
-    if (percent < 60) return 'D';
+    if (percent < 60) return 'D'
     if (percent < 65) return 'C-';
     if (percent < 70) return 'C';
     if (percent < 75) return 'C+';
@@ -3167,10 +3420,14 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     ];
 
     // 4. Update các giá trị vào tree node dựa trên EvaluationCode
+    // CHỈ cập nhật/ghi đè các node TEAM* và MA11 nếu chưa chốt (isAdminConfirm = false)
     for (const item of teamNodes) {
       const node = this.dataRule.find((row: any) => row.EvaluationCode === item.EvaluationCode);
       if (node) {
-        node.ThirdMonth = item.ThirdMonth || 0;
+        // Bảo vệ dữ liệu đã chốt: Nếu isAdminConfirm, không ghi đè giá trị từ grid Team vào ThirdMonth
+        if (!this.isAdminConfirm) {
+          node.ThirdMonth = item.ThirdMonth || 0;
+        }
       }
     }
   }
@@ -3461,22 +3718,52 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   //#endregion
 
   //#region Save Data
-  saveData(): void {
+  saveData(closeAfterSave: boolean = false): void {
+    this.isCloseAfterSave = closeAfterSave;
     //#region Validate dữ liệu bắt buộc
     if (!this.selectedKPISessionId) {
       this.notification.warning('Cảnh báo', 'Hãy chọn Kỳ đánh giá KPI');
+      this.isCloseAfterSave = false;
       return;
     }
     if (!this.selectedKPIExamId) {
       this.notification.warning('Cảnh báo', 'Hãy chọn Bài đánh giá KPI');
+      this.isCloseAfterSave = false;
       return;
     }
     if (!this.selectedEmployeeId) {
       this.notification.warning('Cảnh báo', 'Hãy chọn Nhân viên');
+      this.isCloseAfterSave = false;
       return;
     }
     //#endregion
 
+    // Bước 1: Kiểm tra các dòng có điểm = 0
+    const zeroScores = this.collectZeroScoreSTTs();
+
+    if (zeroScores.size > 0) {
+      // Xây dựng thông báo
+      let message = 'Các số thứ tự (STT) sau đang có điểm bằng 0:<br/>';
+      zeroScores.forEach((stts, tabName) => {
+        message += `<b>• Tab ${tabName}:</b> ${stts.join(', ')}<br/>`;
+      });
+      message += '<br/>Bạn có chắc chắn muốn tiếp tục lưu hay không?';
+
+      this.modal.confirm({
+        nzTitle: 'Cảnh báo điểm đánh giá bằng 0',
+        nzContent: message,
+        nzOkText: 'Có, lưu ngay',
+        nzCancelText: 'Hủy để kiểm tra lại',
+        nzOnOk: () => {
+          this.performSave();
+        }
+      });
+    } else {
+      this.performSave();
+    }
+  }
+
+  private performSave(): void {
     //#region Chuẩn bị payload SaveDataKPI
     // Luôn tính lại bảng tổng hợp để đảm bảo số liệu mới nhất
     if (this.departmentID === this.DEPARTMENT_CO_KHI) {
@@ -3491,13 +3778,14 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
     if (kpiKyNang.length === 0 && kpiChung.length === 0 && kpiChuyenMon.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu thay đổi để lưu');
+      this.isCloseAfterSave = false;
       return;
     }
 
     const request: SaveDataKPIRequestParam = {
-      KPISessionID: this.selectedKPISessionId,
-      KPIExamID: this.selectedKPIExamId,
-      employeeID: this.selectedEmployeeId,
+      KPISessionID: this.selectedKPISessionId!,
+      KPIExamID: this.selectedKPIExamId!,
+      employeeID: this.selectedEmployeeId!,
       typePoint: this.typePoint,
       departmentID: this.departmentID,
       kpiKyNang,
@@ -3610,6 +3898,72 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     );
   }
 
+  /**
+   * Thu thập danh sách STT có điểm = 0 trong các cột có thể nhập liệu
+   * @returns Map chứa danh sách STT theo từng tab
+   */
+  private collectZeroScoreSTTs(): Map<string, string[]> {
+    const zeroScores = new Map<string, string[]>();
+
+    // Xác định cột điểm cần check dựa trên typePoint
+    let pointField = '';
+    if (this.typePoint === 1) pointField = 'EmployeePoint';
+    else if (this.typePoint === 2) pointField = 'TBPPointInput';
+    else if (this.typePoint === 3) pointField = 'BGDPointInput';
+
+    const checkTab = (tabName: string, dataSet: any[], field: string) => {
+      if (!field || !dataSet || dataSet.length === 0) return;
+      const stts: string[] = [];
+      dataSet.forEach(item => {
+        // Chỉ check node lá (không có con) và ID > 0
+        const isParent = item.__hasChildren;
+        if (!isParent && this.normalizeId(item.ID) > 0) {
+          const value = item[field];
+          // Check giá trị bằng 0 (chấp nhận cả kiểu number và string)
+          if (value === 0 || value === '0' || (typeof value === 'string' && value.trim() === '0')) {
+            stts.push(item.STT);
+          }
+        }
+      });
+      if (stts.length > 0) {
+        zeroScores.set(tabName, stts);
+      }
+    };
+
+    // Check 3 tab đánh giá chính
+    checkTab('Kỹ năng', this.dataSkill, pointField);
+    checkTab('Chung', this.dataGeneral, pointField);
+    checkTab('Chuyên môn', this.dataSpecialization, pointField);
+
+    // Check Tab Rule (nếu hiển thị)
+    if (this.showTabRule && this.dataRule && this.dataRule.length > 0) {
+      const ruleStts: string[] = [];
+      const ruleFields = ['FirstMonth', 'SecondMonth', 'ThirdMonth'];
+
+      this.dataRule.forEach(item => {
+        const isParent = item.__hasChildren;
+        if (!isParent && this.normalizeId(item.ID) > 0) {
+          ruleFields.forEach(field => {
+            if (this.canEditRuleCell(item, field)) {
+              const value = item[field];
+              if (value === 0 || value === '0' || (typeof value === 'string' && value.trim() === '0')) {
+                if (!ruleStts.includes(item.STT)) {
+                  ruleStts.push(item.STT);
+                }
+              }
+            }
+          });
+        }
+      });
+
+      if (ruleStts.length > 0) {
+        zeroScores.set('Rule', ruleStts);
+      }
+    }
+
+    return zeroScores;
+  }
+
   //#region Helper build payload SaveDataKPI
   private buildEvaluationPointParams(dataSet: any[]): KPIEvaluationPointParam[] {
     if (!dataSet || dataSet.length === 0) return [];
@@ -3697,16 +4051,24 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
     // Emit event to notify parent component to reload data
     this.dataSaved.emit();
-  }
-  //#endregion
 
-  saveAndClose(): void {
-    this.saveData();
+    if (this.isCloseAfterSave) {
+      this.isCloseAfterSave = false;
+      this.closeModal();
+    }
+  }
+
+  private closeModal(): void {
     if (this.activeModal) {
       this.activeModal.close({ success: true });
     } else if (this.modalRef) {
       this.modalRef.close({ success: true });
     }
+  }
+  //#endregion
+
+  saveAndClose(): void {
+    this.saveData(true);
   }
 
   dismissModal(): void {

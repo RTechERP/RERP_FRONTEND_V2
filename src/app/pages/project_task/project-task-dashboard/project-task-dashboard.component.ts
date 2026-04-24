@@ -10,13 +10,13 @@ import { NzRateModule } from 'ng-zorro-antd/rate';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { ProjectTaskDashboardService, DashboardStats, ChartData } from './project-task-dashboard.service';
 import { KanbanService } from '../kanban/kanban.service';
-import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 import { ProjectTaskItem } from '../project-task/project-task.service';
 import { ChartModule } from 'primeng/chart';
 import { Router } from '@angular/router';
 import { AppUserService } from '../../../services/app-user.service';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { ProjectTaskStatusDetailComponent } from '../project-task-status-detail/project-task-status-detail.component';
+import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 import { TooltipModule } from 'primeng/tooltip';
 
 // ECharts
@@ -455,26 +455,13 @@ export class ProjectTaskDashboardComponent implements OnInit {
   }
 
   openTaskDetail(task: ProjectTaskItem) {
-    this.kanbanService.getTaskById(task.ID).subscribe({
-      next: (res) => {
-        if (res.status === 200 || res.status === 1) {
-          const modalRef = this.modal.create({
-            nzTitle: 'CHI TIẾT CÔNG VIỆC',
-            nzContent: TaskDetailComponent,
-            nzData: { task: { ...res.data, ApprovalStatus: task.ApprovalStatus } },
-            nzFooter: null,
-            nzWidth: '100vw',
-            nzBodyStyle: { padding: '0', height: '80vh', overflow: 'hidden' },
-            nzStyle: { borderRadius: '12px', top: '5vh' },
-            nzMaskClosable: false,
-            nzClosable: true
-          });
-
-          modalRef.afterClose.subscribe(result => {
-            if (result) this.refreshData();
-          });
-        }
-      }
+    const taskId = task.ID;
+    const taskCode = task.Code || `Task-${taskId}`;
+    this.tabService.openTabComp({
+      comp: TaskDetailComponent,
+      title: taskCode,
+      key: `project-task-detail-${taskId}`,
+      data: { id: taskId }
     });
   }
 

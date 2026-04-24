@@ -592,11 +592,7 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit, OnDestroy {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: { filter: true } as MultipleSelectOption,
-        },
+        filter: { model: Filters['compoundInputText'] },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -1056,6 +1052,34 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit, OnDestroy {
         },
 
 
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'DateSomeBill',
+        name: 'Ngày hóa đơn',
+        field: 'DateSomeBill',
+        cssClass: 'text-center',
+        width: 150,
+        sortable: false,
+        type: FieldType.date,
+        filterable: true,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+      },
+      {
+        id: 'NoteError',
+        name: 'Note lỗi',
+        field: 'NoteError',
+        minWidth: 300,
+        sortable: false,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
         customTooltip: {
           useRegularTooltip: true,
         },

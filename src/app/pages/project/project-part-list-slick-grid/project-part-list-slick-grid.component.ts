@@ -369,9 +369,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     this.initSolutionGrid();
 
     if (!this.isPOKH) {
-      console.log('[INIT] Initializing Solution Version Grid');
       this.initSolutionVersionGrid();
-      console.log('[INIT] Solution Version Grid columns:', this.solutionVersionColumns?.length);
     } else {
     }
 
@@ -650,7 +648,19 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'DescriptionVersion',
         field: 'DescriptionVersion',
         name: 'Mô tả',
-        width: 300,
+        width: 150,
+      },
+      //tbp duyệt po
+       {
+        id: 'IsApprovedTBP',
+        field: 'IsApprovedTBP',
+        name: 'TBP duyệt',
+        width: 70,
+        formatter: (row: number, cell: number, value: any) => {
+          const checked = value === true || value === 'true' || value === 1 || value === '1';
+          return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
+        },
+        cssClass: 'text-center',
       },
     ];
 
@@ -708,7 +718,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
   // Initialize PartList Grid (Tree structure)
   initPartListGrid(): void {
-    console.log('[INIT PARTLIST] ========== Initializing PartList Grid ==========');
 
     // Helper: checkbox formatter
     const checkboxFormatter = (row: number, cell: number, value: any) => {
@@ -2006,8 +2015,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         ],
       },
     };
-
-    console.log('[INIT PARTLIST] PartList grid options configured with tree data, header grouping, checkbox selector and row coloring');
   }
 
   // Hàm trả về row metadata cho tô màu dòng/cell (giống component cũ)
@@ -2100,12 +2107,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   // Handler cho checkbox selection - TỰ ĐỘNG CHỌN CON KHI CHỌN CHA (giống component cũ)
   // Logic: Khi chọn cha → tự động chọn tất cả con, khi bỏ chọn cha → bỏ chọn tất cả con
   onPartListRowSelectionChanged(e: any, args: any): void {
-    console.log('[CHECKBOX] ========== Selection Changed ==========');
-    console.log('[CHECKBOX] Current rows:', args.rows);
-    console.log('[CHECKBOX] Previous rows:', args.previousSelectedRows);
 
     if (!this.angularGridPartList) {
-      console.log('[CHECKBOX] Grid not ready, skipping');
       return;
     }
 
@@ -2133,7 +2136,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       }
     });
 
-    console.log('[CHECKBOX] Changed rows:', Array.from(changedRows));
 
     // Xử lý từng row thay đổi
     const finalSelection = new Set(currentSelectedRows);
@@ -2145,8 +2147,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       const isSelecting = currentSelectedRows.has(rowNum);
       const isParent = item.IsLeaf === false; // Node cha = IsLeaf = false
 
-      console.log(`[CHECKBOX] Processing row ${rowNum}: TT=${item.TT}, ID=${item.id}, IsLeaf=${item.IsLeaf}, Action=${isSelecting ? 'SELECT' : 'DESELECT'}`);
-
       if (isParent) {
         // Nếu là node cha, xử lý tất cả các con
         this.processChildrenSelection(item, dataView, slickGrid, isSelecting, finalSelection);
@@ -2155,7 +2155,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
     // Set selection mới
     const newSelectedRows = Array.from(finalSelection);
-    console.log('[CHECKBOX] Final selection:', newSelectedRows);
 
     // Cập nhật selection (sẽ trigger event nhưng chúng ta sẽ xử lý lại)
     slickGrid.setSelectedRows(newSelectedRows);
@@ -2163,10 +2162,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
   // Helper method: Lấy danh sách các row đã chọn với thông tin IsLeaf (dùng cho API actions)
   getSelectedPartListData(): any[] {
-    console.log('[SELECTION] ========== Getting Selected PartList Data ==========');
 
     if (!this.angularGridPartList) {
-      console.log('[SELECTION] Grid not ready');
       return [];
     }
 
@@ -2174,24 +2171,19 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     const dataView = this.angularGridPartList.dataView;
     const selectedRowIndices = slickGrid.getSelectedRows() || [];
 
-    console.log('[SELECTION] Selected row indices:', selectedRowIndices);
-
     const selectedData = selectedRowIndices.map((rowIndex: number) => {
       const item = dataView.getItem(rowIndex);
       return item;
     }).filter((item: any) => item !== null && item !== undefined);
 
-    console.log('[SELECTION] Selected data count:', selectedData.length);
 
     // Log chi tiết từng item
     selectedData.forEach((item: any, index: number) => {
-      console.log(`[SELECTION] Item ${index}: ID=${item.ID}, TT=${item.TT}, IsLeaf=${item.IsLeaf}, IsDeleted=${item.IsDeleted}`);
     });
 
     // Phân loại leaf và parent nodes
     const leafNodes = selectedData.filter((item: any) => item.IsLeaf === true);
     const parentNodes = selectedData.filter((item: any) => item.IsLeaf === false);
-    console.log(`[SELECTION] Leaf nodes: ${leafNodes.length}, Parent nodes: ${parentNodes.length}`);
 
     return selectedData;
   }
@@ -2200,7 +2192,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   getSelectedLeafNodes(): any[] {
     const allSelected = this.getSelectedPartListData();
     const leafNodes = allSelected.filter((item: any) => item.IsLeaf === true);
-    console.log(`[SELECTION] Filtered to ${leafNodes.length} leaf nodes only`);
     return leafNodes;
   }
 
@@ -2209,12 +2200,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     if (visited.has(parentItem.id)) return;
     visited.add(parentItem.id);
 
-    console.log(`[CHECKBOX] Processing children for parent: TT=${parentItem.TT}, ID=${parentItem.id}, Action=${isSelecting ? 'SELECT' : 'DESELECT'}`);
-
     const allItems = dataView.getItems();
     const children = allItems.filter((item: any) => item.parentId === parentItem.id);
-
-    console.log(`[CHECKBOX] Found ${children.length} direct children`);
 
     children.forEach((child: any) => {
       const childRowNum = dataView.getRowById(child.id);
@@ -2224,8 +2211,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         } else {
           finalSelection.delete(childRowNum as number);
         }
-
-        console.log(`[CHECKBOX] ${isSelecting ? 'SELECTED' : 'DESELECTED'} child: TT=${child.TT}, ID=${child.id}, Row=${childRowNum}`);
 
         // Đệ quy cho các con của child (multi-level) - Sử dụng IsLeaf để tối ưu
         if (!child.IsLeaf) {
@@ -2242,8 +2227,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
     const allItems = dataView.getItems();
     const children = allItems.filter((item: any) => item.parentId === parentItem.id);
-
-    console.log('[CHECKBOX] Collecting children for parent:', parentItem.TT || parentItem.id, 'Found:', children.length);
 
     children.forEach((child: any) => {
       const childRowNum = dataView.getRowById(child.id);
@@ -2290,9 +2273,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
   // Grid ready handlers
   onSolutionGridReady(event: any): void {
-    console.log('[GRID READY] Solution Grid ready');
     this.angularGridSolution = event.detail;
-    console.log('[GRID READY] Solution Grid instance:', !!this.angularGridSolution);
 
     // Setup grouping by ProjectCode
     if (this.angularGridSolution && this.angularGridSolution.dataView) {
@@ -2310,7 +2291,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
     // Load data nếu chưa có
     if (this.dataSolution.length === 0 && this.projectId > 0) {
-      console.log('[GRID READY] Scheduling Solution data load');
       setTimeout(() => this.loadDataSolution(), 100);
     }
 
@@ -2323,9 +2303,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   }
 
   onSolutionVersionGridReady(event: any): void {
-    console.log('[GRID READY] Solution Version Grid ready');
     this.angularGridSolutionVersion = event.detail;
-    console.log('[GRID READY] Solution Version Grid instance:', !!this.angularGridSolutionVersion);
 
     // Setup grouping by CodeSolution
     if (this.angularGridSolutionVersion && this.angularGridSolutionVersion.dataView) {
@@ -2343,7 +2321,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
     // Load data nếu đã có projectSolutionId
     if (this.dataSolutionVersion.length === 0 && this.projectSolutionId > 0) {
-      console.log('[GRID READY] Scheduling Solution Version data load');
       setTimeout(() => this.loadDataProjectPartListVersion(), 100);
     }
   }
@@ -2637,52 +2614,24 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             if (this.dataSolution.length > 0) {
               // Sử dụng setTimeout để đảm bảo grid đã render xong
               setTimeout(() => {
-                // Lấy tất cả items từ dataView (bao gồm cả group rows)
-                const allItems = this.angularGridSolution.dataView.getItems();
+                let rowIdx = -1;
+                // Duyệt qua các dòng đang hiển thị thực sự trên lưới để tìm dòng dữ liệu thực (không phải group)
+                const gridLength = this.angularGridSolution.dataView.getLength();
+                for (let i = 0; i < gridLength; i++) {
+                  const item = this.angularGridSolution.dataView.getItem(i);
+                  if (item && !item.__group && !item.__groupTotals) {
+                    rowIdx = i;
+                    break;
+                  }
+                }
 
-                // Tìm dòng dữ liệu thực sự đầu tiên (không phải group row)
-                const firstDataRow = allItems.find((item: any) => !item.__group && !item.__groupTotals);
-
-                if (firstDataRow) {
-                  // Tìm index trong mảng allItems (đúng vị trí trong grid sau grouping)
-                  const rowIdx = allItems.findIndex((item: any) => item.id === firstDataRow.id);
-
-                  if (rowIdx >= 0) {
-                    this.angularGridSolution.slickGrid.setActiveRow(rowIdx);
+                if (rowIdx >= 0) {
+                  if (this.angularGridSolution.slickGrid) {
+                    if (typeof this.angularGridSolution.slickGrid.setActiveCell === 'function') {
+                      try { this.angularGridSolution.slickGrid.setActiveCell(rowIdx, 0); } catch(e) {}
+                    }
                     this.angularGridSolution.slickGrid.setSelectedRows([rowIdx]);
                     this.angularGridSolution.slickGrid.scrollRowIntoView(rowIdx, false);
-
-                    // Thêm class selected thủ công vào DOM - tìm row trong canvas bằng cách so sánh data
-                    setTimeout(() => {
-                      const canvasNode = this.angularGridSolution.slickGrid.getCanvasNode();
-                      if (canvasNode) {
-                        const rows = canvasNode.querySelectorAll('.slick-row');
-
-                        // Xóa class selected khỏi tất cả rows
-                        rows.forEach((row: any) => {
-                          row.classList.remove('selected');
-                        });
-
-                        // Tìm row trong canvas có data.id khớp với id của data row
-                        let targetRow: any = null;
-                        for (let i = 0; i < rows.length; i++) {
-                          const data = this.angularGridSolution.slickGrid.getDataItem(i);
-                          if (data && data.id === firstDataRow.id) {
-                            targetRow = rows[i];
-                            break;
-                          }
-                        }
-
-                        // Thêm class selected vào row được chọn
-                        if (targetRow) {
-                          targetRow.classList.add('selected');
-                        }
-                      }
-                    }, 50);
-
-                    this.angularGridSolution.dataView.refresh();
-                    this.angularGridSolution.slickGrid.invalidate();
-                    this.angularGridSolution.slickGrid.render();
                   }
                 }
               }, 200);
@@ -2845,7 +2794,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 this.CodeName = firstItem.Code || '';
                 this.updatePageTitle();
 
-                console.log('[DATA LOAD] PO version selected, waiting for user to load PartList');
               }
             }
           }
@@ -2853,7 +2801,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.stopLoading();
       },
       error: (error: any) => {
-        console.error('Error loading PO version:', error);
         this.stopLoading();
       },
     });
@@ -2924,7 +2871,11 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
               if (firstDataRow) {
                 const rowIdx = allItems.findIndex((item: any) => item.id === firstDataRow.id);
                 if (rowIdx >= 0) {
+                  if (typeof this.angularGridVersion.slickGrid.setActiveCell === 'function') {
+                    try { this.angularGridVersion.slickGrid.setActiveCell(rowIdx, 0); } catch(e) {}
+                  }
                   this.angularGridVersion.slickGrid.setSelectedRows([rowIdx]);
+                  this.angularGridVersion.slickGrid.scrollRowIntoView(rowIdx, false);
 
                   // Set version based on type
                   if (firstDataRow.VersionType === 1) {
@@ -2942,13 +2893,12 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                   this.CodeName = firstDataRow.Code || '';
                   this.updatePageTitle();
                 }
-              }
             }
+          }
           }
           this.stopLoading();
         },
         error: (error: any) => {
-          console.error('Error loading merged version data:', error);
           this.stopLoading();
         }
       });
@@ -2967,7 +2917,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
     // Increment request ID to track this specific request
     const currentRequestId = ++this.partListRequestId;
-
     // Lấy versionID và projectTypeID theo logic component cũ
     let selectedVersionID: number = 0;
     let projectTypeID: number = 0;
@@ -3266,7 +3215,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       TotalPriceExchangeQuote: 0,
       UnitPricePurchase: 0,
       TotalPricePurchase: 0,
-      TotalPriceExchangePurchase: 0
+      TotalPriceExchangePurchase: 0,
     };
 
     parentNodes.forEach((node: any) => {
@@ -3725,7 +3674,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
   // Mở modal giải pháp
   openProjectSolutionDetail(isEdit: boolean): void {
-    console.log('[SOLUTION DETAIL] isEdit:', isEdit, '| projectId:', this.projectId);
 
     // Kiểm tra đã chọn dự án chưa
     if (!this.projectId || this.projectId === 0) {
@@ -3738,17 +3686,14 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       // Ưu tiên lấy dòng đang focus, nếu không có thì lấy selected rows
       // Lấy dòng đang focus (active cell)
       const activeCell = this.angularGridSolution?.slickGrid?.getActiveCell();
-      console.log('[SOLUTION DETAIL] Active cell:', activeCell);
 
       if (activeCell && activeCell.row >= 0) {
         selectedData = this.angularGridSolution?.dataView?.getItem(activeCell.row);
-        console.log('[SOLUTION DETAIL] Lấy từ active cell row:', activeCell.row, selectedData);
       } else {
         // Nếu không có active cell, thử lấy từ selected rows
         const selectedRows = this.angularGridSolution?.slickGrid?.getSelectedRows() || [];
         if (selectedRows.length > 0) {
           selectedData = this.angularGridSolution?.dataView?.getItem(selectedRows[0]);
-          console.log('[SOLUTION DETAIL] Lấy từ selected rows:', selectedData);
         }
       }
 
@@ -3757,7 +3702,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         return;
       }
 
-      console.log('[SOLUTION DETAIL] selectedData:', selectedData);
     }
 
     const modalRef = this.ngbModal.open(ProjectSolutionDetailComponent, {
@@ -3784,8 +3728,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   }
 
   openProjectSolutionVersionDetail(typenumber: number, isEdit: boolean): void {
-    console.log('[VERSION DETAIL] typenumber:', typenumber, '| isEdit:', isEdit);
-    console.log('[VERSION DETAIL] projectSolutionId:', this.projectSolutionId);
 
     // Kiểm tra đã chọn giải pháp chưa
     if (!this.projectSolutionId || this.projectSolutionId === 0) {
@@ -3840,8 +3782,12 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       modalRef.componentInstance.STT = selectedData.STT;
       modalRef.componentInstance.IsActive = selectedData.IsActive;
       modalRef.componentInstance.DescriptionVersion = selectedData.DescriptionVersion;
-
-      console.log('[VERSION DETAIL] Passing selectedData fields to modal:', selectedData);
+      modalRef.componentInstance.IsProblem = selectedData.IsProblem || false;
+      modalRef.componentInstance.TypeProblem = selectedData.TypeProblem || '';
+      modalRef.componentInstance.PIC = selectedData.PIC || '';
+      modalRef.componentInstance.DateProblem = selectedData.DateProblem || '';
+      modalRef.componentInstance.ContentError = selectedData.ContentError || '';
+      modalRef.componentInstance.ProjectHistoryProblemID = selectedData.ProjectHistoryProblemID || 0;
     }
 
     modalRef.result.then((result: any) => {
@@ -3868,17 +3814,14 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
       // Lấy dòng đang focus (active cell)
       const activeCell = this.angularGridPartList?.slickGrid?.getActiveCell();
-      console.log('[EDIT] Active cell:', activeCell);
 
       if (activeCell && activeCell.row >= 0) {
         item = this.angularGridPartList?.dataView?.getItem(activeCell.row);
-        console.log('[EDIT] Lấy từ active cell row:', activeCell.row, item);
       } else {
         // Nếu không có active cell, thử lấy từ selected rows
         const selectedRows = this.angularGridPartList?.slickGrid?.getSelectedRows() || [];
         if (selectedRows.length > 0) {
           item = this.angularGridPartList?.dataView?.getItem(selectedRows[0]);
-          console.log('[EDIT] Lấy từ selected rows:', item);
         }
       }
 
@@ -3900,6 +3843,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     modalRef.componentInstance.CodeName = this.CodeName;
     modalRef.componentInstance.projectTypeName = this.projectTypeName;
     modalRef.componentInstance.projectSolutionId = this.projectSolutionId || 0;
+    // modalRef.componentInstance.ProjectHistoryProblemDetailID = dataProjectPartList.ProjectHistoryProblemDetailID || 0;
 
     // Nếu là edit mode, map dữ liệu từ row đang focus vào selectedData
     if (isEdit) {
@@ -3909,21 +3853,21 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       const activeCell = this.angularGridPartList?.slickGrid?.getActiveCell();
       if (activeCell && activeCell.row >= 0) {
         partListData = this.angularGridPartList?.dataView?.getItem(activeCell.row);
-        console.log('[EDIT] Modal data từ active cell row:', activeCell.row, partListData);
       } else if (this.lastClickedPartListRow) {
         // Fallback: lấy từ last clicked row
         partListData = this.lastClickedPartListRow;
-        console.log('[EDIT] Modal data từ lastClickedPartListRow:', partListData);
       } else {
         // Fallback cuối: lấy từ selected rows
         const selectedRows = this.angularGridPartList?.slickGrid?.getSelectedRows() || [];
         if (selectedRows.length > 0) {
           partListData = this.angularGridPartList?.dataView?.getItem(selectedRows[0]);
-          console.log('[EDIT] Modal data từ selectedRows:', partListData);
         }
       }
 
       if (partListData) {
+        // Truyền ProjectHistoryProblemDetailID sang component detail khi sửa
+        modalRef.componentInstance.ProjectHistoryProblemDetailID = partListData.ProjectHistoryProblemDetailID || 0;
+
         // Map dữ liệu giống component cũ
         modalRef.componentInstance.selectedData = [{
           ProductID: partListData.ProductID || 0,
@@ -3976,7 +3920,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           DeadlinePriceRequest: !partListData.__hasChildren ? (partListData.DeadlinePriceRequest || null) : null,
           DatePriceRequest: !partListData.__hasChildren ? (partListData.DatePriceRequest || null) : null,
         }];
-        console.log('[EDIT] Modal selectedData:', modalRef.componentInstance.selectedData);
       }
     }
     modalRef.result.then((result: any) => {
@@ -4042,13 +3985,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   }
 
   searchDataProjectWorker(): void {
-    console.log('[SEARCH] searchDataProjectWorker called');
-    console.log('[SEARCH] versionID:', this.versionID, '| versionPOID:', this.versionPOID, '| type:', this.type);
-    console.log('[SEARCH] projectId:', this.projectId, '| keyword:', this.keyword);
 
     // Kiểm tra đã chọn phiên bản chưa
     if (!this.versionID && !this.versionPOID) {
-      console.log('[SEARCH] No version selected, showing warning');
       this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản trước khi tìm kiếm!');
       return;
     }
@@ -4526,7 +4465,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     const finalDeadline = deadline || this.deadlinePriceRequest;
 
     if (!finalDeadline) {
-      console.error('Deadline is null or undefined');
       return;
     }
 
@@ -4911,7 +4849,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     const finalDeadline = deadline || this.deadlinePurchaseRequest;
 
     if (!finalDeadline) {
-      console.error('Deadline is null or undefined');
       return;
     }
 
@@ -5144,7 +5081,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             }
           },
           error: (error: any) => {
-            console.error('Error deleting version:', error);
             const errorMessage = error?.error?.message || error?.message || 'Không thể xóa phiên bản!';
             this.notification.error('Lỗi', errorMessage);
           }
@@ -5203,9 +5139,82 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         }
       },
       error: (error: any) => {
-        console.error('Error toggling version IsActive:', error);
         const errorMessage = error?.error?.message || error?.message || `Không thể ${actionText} phiên bản!`;
         this.notification.error('Lỗi', errorMessage);
+      }
+    });
+  }
+
+  // Duyệt/hủy duyệt phiên bản PO
+  ApproveVersion(isApproved: boolean): void {
+    let selectedVersion: any = null;
+
+    // Lấy dữ liệu từ merged Version grid
+    const activeCell = this.angularGridVersion?.slickGrid?.getActiveCell();
+    if (activeCell && activeCell.row >= 0) {
+      selectedVersion = this.angularGridVersion?.dataView?.getItem(activeCell.row);
+    } else {
+      const selectedRows = this.angularGridVersion?.slickGrid?.getSelectedRows() || [];
+      if (selectedRows.length > 0) {
+        selectedVersion = this.angularGridVersion?.dataView?.getItem(selectedRows[0]);
+      }
+    }
+
+    if (!selectedVersion || selectedVersion.__group || selectedVersion.__groupTotals) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản để duyệt!');
+      return;
+    }
+
+    const versionId = selectedVersion.originalId || selectedVersion.ID || 0;
+    if (versionId <= 0) {
+      this.notification.warning('Thông báo', 'Phiên bản chưa được lưu, không thể duyệt!');
+      return;
+    }
+
+    const actionText = isApproved ? 'duyệt' : 'hủy duyệt';
+
+    this.modal.confirm({
+      nzTitle: `Xác nhận ${actionText} phiên bản`,
+      nzContent: `Bạn có chắc chắn muốn <b>${actionText}</b> phiên bản "<b>${selectedVersion.Code || ''}</b>" không?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const payload = {
+          projectPartListVersion: {
+            ID: versionId,
+            ProjectID: selectedVersion.ProjectID || this.projectId || null,
+            STT: selectedVersion.STT || null,
+            Code: selectedVersion.Code || '',
+            DescriptionVersion: selectedVersion.DescriptionVersion || '',
+            IsActive: selectedVersion.IsActive ?? true,
+            ProjectSolutionID: selectedVersion.ProjectSolutionID || this.projectSolutionId || null,
+            ProjectTypeID: selectedVersion.ProjectTypeID || null,
+            StatusVersion: selectedVersion.StatusVersion || selectedVersion.VersionType || null,
+            IsApprovedTBP: isApproved,
+          },
+          projectWorkerVersion: {},
+          projectHistoryProblem: null
+        };
+
+        this.projectPartListService.saveProjectPartListVersion(payload).subscribe({
+          next: (response: any) => {
+            if (response.status === 1) {
+              this.notification.success('Thành công', `Đã ${actionText} phiên bản "${selectedVersion.Code}" thành công!`);
+              // Refresh version data
+              if (this.projectSolutionId) {
+                this.loadDataVersion();
+              }
+              // Refresh part list grid to update the approval tick immediately
+              this.loadDataProjectPartList();
+            } else {
+              this.notification.error('Lỗi', response.message || `Không thể ${actionText} phiên bản!`);
+            }
+          },
+          error: (error: any) => {
+            const errorMessage = error?.error?.message || error?.message || `Không thể ${actionText} phiên bản!`;
+            this.notification.error('Lỗi', errorMessage);
+          }
+        });
       }
     });
   }
@@ -5285,7 +5294,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       ListItem: listItem
     };
 
-    console.log('[REQUEST TRANSFER] Payload:', request);
     this.startLoading();
 
     this.projectPartListService.requestExport(request).subscribe({
@@ -5311,7 +5319,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       },
       error: (error: any) => {
         this.stopLoading();
-        console.error('Error requesting transfer:', error);
         const errorMessage = error?.error?.message || error?.message || 'Không thể yêu cầu chuyển kho';
         this.notification.error('Lỗi', errorMessage);
       }
@@ -5393,7 +5400,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       ListItem: listItem
     };
 
-    console.log('[REQUEST EXPORT] Payload:', request);
     this.startLoading();
 
     this.projectPartListService.requestExport(request).subscribe({
@@ -5419,7 +5425,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       },
       error: (error: any) => {
         this.stopLoading();
-        console.error('Error requesting export:', error);
         const errorMessage = error?.error?.message || error?.message || 'Không thể yêu cầu xuất kho';
         this.notification.error('Lỗi', errorMessage);
       }
@@ -5482,8 +5487,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
       TotalInventory: 0
     }));
-    console.log('[OPEN BILL EXPORT DETAIL] BillExportForModal:', billExportForModal);
-    console.log('[OPEN BILL EXPORT DETAIL] DetailsForModal:', detailsForModal);
     const modalRef = this.ngbModal.open(BillExportDetailNewComponent, {
       centered: true,
       //size: 'xl',
@@ -5853,7 +5856,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       }
       // 4. Node cha (đầu mục 1/2/3...) → Gray (yêu cầu: các đầu mục khi xuất màu xám)
       else if (isParentRow) {
-        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'BBBBBB' } } as ExcelJS.Fill; // Gray
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb:'BBBBBB' } } as ExcelJS.Fill; // Gray
         rowFont = { name: 'Times New Roman', size: 11, bold: true };
       }
 
@@ -6661,13 +6664,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       projectID: this.projectId || 0,
       ReasonProblem: this.reasonProblem.trim()
     };
-    console.log('=== SENDING ADDITIONAL PARTLIST PO TO API ===');
-    console.log('Payload:', JSON.stringify(payload, null, 2));
     this.startLoading();
     this.projectPartListService.additionalPartListPO(payload).subscribe({
       next: (response: any) => {
         this.stopLoading();
-        console.log('API Response:', response);
         if (response.status === 1) {
           this.notification.success('Thành công', response.message || 'Bổ sung vật tư vào PO thành công!');
           this.loadDataProjectPartList();
@@ -6730,17 +6730,22 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   }
 
   downloadDrawing(): void {
+    let solutionCode = '';
     const selectedSolutionRows = this.angularGridSolution?.slickGrid?.getSelectedRows() || [];
-    if (selectedSolutionRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn giải pháp!');
-      return;
+    if (selectedSolutionRows.length > 0) {
+      const solutionData = this.angularGridSolution?.dataView?.getItem(selectedSolutionRows[0]);
+      solutionCode = solutionData?.CodeSolution?.trim() || '';
     }
-    const solutionData = this.angularGridSolution?.dataView?.getItem(selectedSolutionRows[0]);
-    const solutionCode = solutionData?.CodeSolution?.trim();
+
+    if (!solutionCode && this.selectionProjectSolutionName) {
+      solutionCode = this.selectionProjectSolutionName.trim();
+    }
+
     if (!solutionCode) {
       this.notification.warning('Thông báo', 'Không tìm thấy mã giải pháp!');
       return;
     }
+
     const selectedProducts = this.angularGridPartList?.slickGrid?.getSelectedRows() || [];
     if (selectedProducts.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn sản phẩm muốn tải file!');
@@ -6840,7 +6845,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             error: (error: any) => {
               completedCount++;
               errorCount++;
-              console.error(`Error downloading file ${fileName}:`, error);
               this.notification.error('Thông báo', `File [${fileName}] không tồn tại!`);
               if (completedCount === totalFiles) {
                 if (downloadCount > 0) {
@@ -7096,7 +7100,6 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       this.onSelectProductPOCallback(this.selectProductPOData);
     }
 
-    console.log("Dữ liệu trả về POKHDetail: ", this.selectProductPOData);
 
     // Đóng modal và trả dữ liệu về POKHDetail
     if (this.activeModal) {

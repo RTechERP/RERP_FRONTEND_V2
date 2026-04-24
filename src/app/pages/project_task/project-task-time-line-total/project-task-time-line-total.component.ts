@@ -18,11 +18,13 @@ import { MultiSelectModule } from 'primeng/multiselect';
 // Services
 import { ProjectTaskTimeLineTotalService, TimelineByTeamItem } from './project-task-time-line-total.service';
 import { ProjectTaskService } from '../project-task/project-task.service';
-import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 import { WorkplanService } from '../../person/workplan/workplan.service';
 import { EmployeeService } from '../../hrm/employee/employee-service/employee.service';
 import { AppUserService } from '../../../services/app-user.service';
 import { ProjectService } from '../../project/project-service/project.service';
+import { Router } from '@angular/router';
+import { TabServiceService } from '../../../layouts/tab-service.service';
+import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 
 @Component({
   selector: 'app-project-task-time-line-total',
@@ -51,6 +53,8 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   private employeeService = inject(EmployeeService);
   private appUserService = inject(AppUserService);
   private projectService = inject(ProjectService);
+  private router = inject(Router);
+  private tabService = inject(TabServiceService);
 
   isOpeningDetail = false;
 
@@ -78,14 +82,14 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   filterFullName = '';
   filterTaskKeyword = '';
   filterProjectKeyword = '';
-  selectedStatuses: number[] = [];
+  selectedStatuses: number[] = [0, 1];
+  filterStatusColumn: number[] = [];
 
   statusOptions = [
     { label: 'Chưa làm', value: 0 },
     { label: 'Đang làm', value: 1 },
     { label: 'Hoàn thành', value: 2 },
-    { label: 'Pending', value: 3 },
-    { label: 'Quá hạn', value: 4 }
+    { label: 'Pending', value: 3 }
   ];
 
   // ===== LIFECYCLE =====
@@ -206,7 +210,6 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     if (this.departmentId > 0) {
       this.loadTeamsByDepartment(this.departmentId);
     }
-    this.loadTimeline();
   }
 
   onTeamChange(): void {
@@ -216,7 +219,6 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     } else {
       this.loadEmployees();
     }
-    this.loadTimeline();
   }
 
   resetSearch(): void {
@@ -229,7 +231,8 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     this.filterFullName = '';
     this.filterTaskKeyword = '';
     this.filterProjectKeyword = '';
-    this.selectedStatuses = [];
+    this.selectedStatuses = [0, 1];
+    this.filterStatusColumn = [];
     this.teamList = [];
     this.userList = [];
     this.loadEmployees();
@@ -245,29 +248,46 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     if (!this.dateStart || !this.dateEnd) return;
 
     this.loading.set(true);
-    const startDate = new Date(this.dateStart);
-    const endDate = new Date(this.dateEnd);
-    this.generateDateColumns(startDate, endDate);
+    
+    // Nhường luồng để Angular kịp render biểu tượng loading trước khi tính toán nặng
+    setTimeout(() => {
+      const startDate = new Date(this.dateStart);
+      const endDate = new Date(this.dateEnd);
+      this.generateDateColumns(startDate, endDate);
 
-    this.timelineService.getTimelineByTeam({
-      dateStart: this.dateStart,
-      dateEnd: this.dateEnd,
-      departmentID: this.departmentId || 0,
-      teamID: this.teamId || 0,
-      userID: this.userId || 0,
-      projectID: this.projectId || 0
-    }).subscribe({
-      next: (data) => {
-        this.transformData(data);
-        this.applyFilters();
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('Error loading timeline:', err);
-        this.loading.set(false);
-        this.message.error('Không thể tải dữ liệu timeline');
+      // Build status string: "0,1" hoặc "-1" nếu chọn tất cả hoặc không chọn gì
+      let statusStr = '';
+      if (this.selectedStatuses.length === 0 || this.selectedStatuses.length === this.statusOptions.length) {
+        statusStr = '-1';
+      } else {
+        statusStr = this.selectedStatuses.join(',');
       }
-    });
+
+      this.timelineService.getTimelineByTeam({
+        dateStart: this.dateStart,
+        dateEnd: this.dateEnd,
+        departmentID: this.departmentId || 0,
+        teamID: this.teamId || 0,
+        userID: this.userId || 0,
+        projectID: this.projectId || 0,
+        status: statusStr,
+        typeSearch: -1
+      }).subscribe({
+        next: (data) => {
+          // Tiếp tục nhường luồng trước khi xử lý dữ liệu nặng để không làm đơ vòng quay loading
+          setTimeout(() => {
+            this.transformData(data);
+            this.applyFilters();
+            this.loading.set(false);
+          }, 10);
+        },
+        error: (err) => {
+          console.error('Error loading timeline:', err);
+          this.loading.set(false);
+          this.message.error('Không thể tải dữ liệu timeline');
+        }
+      });
+    }, 50);
   }
 
   // ===== TẠO CỘT NGÀY =====
@@ -318,7 +338,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       if (!employeeMap.has(empId)) {
         employeeMap.set(empId, {
           employeeId: empId,
-          FullName: item.FullName || 'N/A',
+          FullName: item.FullName || '',
           projectsMap: new Map<string, any>()
         });
       }
@@ -416,13 +436,13 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       })).filter(g => g.projects.length > 0);
     }
 
-    // Lọc theo Trạng thái
-    if (this.selectedStatuses && this.selectedStatuses.length > 0) {
+    // Lọc theo Trạng thái (inline filter)
+    if (this.filterStatusColumn && this.filterStatusColumn.length > 0) {
       groups = groups.map(g => ({
         ...g,
         projects: g.projects.map((p: any) => ({
           ...p,
-          tasks: p.tasks.filter((t: any) => this.selectedStatuses.includes(t.Status))
+          tasks: p.tasks.filter((t: any) => this.filterStatusColumn.includes(t.Status))
         })).filter((p: any) => p.tasks.length > 0)
       })).filter(g => g.projects.length > 0);
     }
@@ -476,7 +496,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       case 2: return 'Hoàn thành';
       case 3: return 'Pending';
       case 4: return 'Quá hạn';
-      default: return 'N/A';
+      default: return '';
     }
   }
 
@@ -500,44 +520,18 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   // ===== MỞ CHI TIẾT =====
 
   openTaskDetail(task: any): void {
-    const taskId = typeof task === 'number' ? task : task?.ProjectTaskID;
-    if (this.isOpeningDetail || !taskId) return;
-    this.isOpeningDetail = true;
-
-    this.projectTaskService.getTaskById(taskId).subscribe({
-      next: (res) => {
-        if (res.status === 200 || res.status === 1) {
-          const fullTaskData = { ...res.data };
-          if (typeof task === 'object' && task !== null) {
-            fullTaskData.ApprovalStatus = task.ApprovalStatus;
-          }
-
-          const modalRef = this.modal.create({
-            nzTitle: 'CHI TIẾT CÔNG VIỆC',
-            nzContent: TaskDetailComponent,
-            nzData: { task: fullTaskData },
-            nzFooter: null,
-            nzWidth: '100vw',
-            nzBodyStyle: { padding: '0', height: '80vh', overflow: 'hidden' },
-            nzStyle: { borderRadius: '12px', top: '5vh' },
-            nzMaskClosable: false,
-            nzClosable: true,
-            nzCentered: false
-          });
-
-          modalRef.afterClose.subscribe((result: any) => {
-            if (result) this.loadTimeline();
-            this.isOpeningDetail = false;
-          });
-        } else {
-          this.message.error('Không thể tải chi tiết công việc');
-          this.isOpeningDetail = false;
-        }
-      },
-      error: () => {
-        this.message.error('Lỗi khi tải chi tiết công việc');
-        this.isOpeningDetail = false;
-      }
+    const taskId = typeof task === 'number' ? task : (task?.ProjectTaskID || task?.ID);
+    if (!taskId) {
+      console.error('Task ID not found', task);
+      return;
+    }
+    
+    const taskCode = task?.ProjectTaskCode || task?.Code || `Task-${taskId}`;
+    this.tabService.openTabComp({
+      comp: TaskDetailComponent,
+      title: taskCode,
+      key: `project-task-detail-${taskId}`,
+      data: { id: taskId }
     });
   }
 }

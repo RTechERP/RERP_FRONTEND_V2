@@ -790,19 +790,39 @@ export class BillImportDetailNewComponent
                         minLength: 0,
                         forceUserInput: false,
                         openSearchListOnFocus: true,
+                        debounceWaitMs: 0,
                         labelField: 'ProductCode',
+                        customize: (_input: HTMLInputElement, inputRect: DOMRect, container: HTMLDivElement, _maxHeight: number) => {
+                            const spaceBelow = window.innerHeight - inputRect.bottom;
+                            const spaceAbove = inputRect.top;
+                            const dropdownHeight = 300;
+                            if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+                                const availableAbove = Math.min(spaceAbove - 8, dropdownHeight);
+                                container.style.top = 'auto';
+                                container.style.bottom = `${window.innerHeight - inputRect.top}px`;
+                                container.style.maxHeight = `${availableAbove}px`;
+                            } else {
+                                container.style.top = `${inputRect.bottom}px`;
+                                container.style.bottom = 'auto';
+                                container.style.maxHeight = `${Math.min(spaceBelow - 8, dropdownHeight)}px`;
+                            }
+                        },
                         fetch: (searchTerm: string, callback: (items: false | any[]) => void) => {
                             const products = this.productGridCollection || [];
                             if (!searchTerm || searchTerm.length === 0) {
-                                callback(products);
+                                callback(products.slice(0, 50));
                             } else {
-                                const filtered = products.filter((product: any) => {
+                                const term = searchTerm.toLowerCase();
+                                const filtered: any[] = [];
+                                for (const product of products) {
+                                    if (filtered.length >= 50) break;
                                     const code = (product.ProductCode || '').toLowerCase();
                                     const newCode = (product.ProductNewCode || '').toLowerCase();
                                     const name = (product.ProductName || '').toLowerCase();
-                                    const term = searchTerm.toLowerCase();
-                                    return code.includes(term) || newCode.includes(term) || name.includes(term);
-                                });
+                                    if (code.includes(term) || newCode.includes(term) || name.includes(term)) {
+                                        filtered.push(product);
+                                    }
+                                }
                                 callback(filtered);
                             }
                         },

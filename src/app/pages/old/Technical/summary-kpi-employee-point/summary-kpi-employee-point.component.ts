@@ -36,6 +36,7 @@ import { ActivatedRoute } from '@angular/router';
 import { SummaryKpiEmployeePointService, SummaryKPIEmployeePointRequest, SaveActualNewRequest } from './summary-kpi-employee-point-service/summary-kpi-employee-point.service';
 import { KPIEvaluationFactorScoringDetailsComponent } from '../../../KPITech/kpievaluation-factor-scoring-details/kpievaluation-factor-scoring-details.component';
 import { KpiRankingComponent } from '../kpi-ranking/kpi-ranking.component';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
 
 @Component({
   selector: 'app-summary-kpi-employee-point',
@@ -95,6 +96,7 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private route: ActivatedRoute,
     private excelExportService: ExcelExportService,
+    private tabService: TabServiceService,
     @Optional() @Inject('tabData') private tabData: any
   ) { }
 
@@ -415,20 +417,19 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
     // Calculate KPI Level Summary (matching C# GetKpiLevelSummary)
     const summary = this.getKpiLevelSummary();
 
-    // Open KPI Ranking modal with data (matching WinForm btnRanking_ItemClick)
-    const modalRef = this.ngbModal.open(KpiRankingComponent, {
-      centered: true,
-      backdrop: 'static',
-      keyboard: false,
-      windowClass: 'full-screen-modal',
+    // Mở như tab thực sự thông qua TabService
+    this.tabService.openTabComp({
+      comp: KpiRankingComponent,
+      title: `Xếp loại KPI - Q${this.quarter}/${this.year}`,
+      key: `kpi-ranking-${this.year}-${this.quarter}-${this.departmentId}`,
+      data: {
+        dtData: this.dataset,
+        dtSummary: summary,
+        inputYear: this.year,
+        inputQuarter: this.quarter,
+        inputDepartmentId: this.departmentId
+      }
     });
-
-    // Pass data to modal (matching WinForm: dtData, dtSummary, year, quarter, departmentID)
-    modalRef.componentInstance.dtData = this.dataset;
-    modalRef.componentInstance.dtSummary = summary;
-    modalRef.componentInstance.inputYear = this.year;
-    modalRef.componentInstance.inputQuarter = this.quarter;
-    modalRef.componentInstance.inputDepartmentId = this.departmentId;
   }
 
   // Calculate KPI Level Summary (matching C# GetKpiLevelSummary)
@@ -458,15 +459,6 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
 
   initGrid(): void {
     this.columnDefinitions = [
-      {
-        id: 'KPIEmployeePointID',
-        name: 'ID',
-        field: 'KPIEmployeePointID',
-        sortable: true,
-        maxWidth: 60,
-        excludeFromExport: true,
-        hidden: true,
-      },
       {
         id: 'Code',
         name: 'Mã nhân viên',
@@ -641,9 +633,9 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
       rowSelectionOptions: {
         selectActiveRow: false,
       },
-      enableGrouping: false,
+      enableGrouping: true,
       editable: true,
-      autoEdit: false,
+      autoEdit: true,
       autoCommitEdit: true,
       externalResources: [this.excelExportService],
     };
@@ -758,20 +750,19 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
       };
     }
 
-    // NOTE: Grouping disabled to allow cell editing - uncomment if grouping is needed
     // Auto group by DepartmentName
-    // setTimeout(() => {
-    //   if (this.angularGrid && this.angularGrid.dataView) {
-    //     this.angularGrid.dataView.setGrouping([
-    //       {
-    //         getter: 'DepartmentName',
-    //         formatter: (g: any) => `Phòng ban: <strong>${g.value}</strong> <span style="color:red">(${g.count} nhân viên)</span>`,
-    //         aggregateCollapsed: false,
-    //         lazyTotalsCalculation: true,
-    //       },
-    //     ]);
-    //   }
-    // }, 100);
+    setTimeout(() => {
+      if (this.angularGrid && this.angularGrid.dataView) {
+        this.angularGrid.dataView.setGrouping([
+          {
+            getter: 'DepartmentName',
+            formatter: (g: any) => `Phòng ban: <strong>${g.value}</strong> <span style="color:red">(${g.count} nhân viên)</span>`,
+            aggregateCollapsed: false,
+            lazyTotalsCalculation: true,
+          },
+        ]);
+      }
+    }, 100);
   }
 
   applyDistinctFiltersToGrid(): void {

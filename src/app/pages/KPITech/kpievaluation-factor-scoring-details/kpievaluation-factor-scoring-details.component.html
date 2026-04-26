@@ -1,9 +1,11 @@
-<!-- <div class="modal-container" style="display: flex; flex-direction: column; height: 85vh;"> -->
-<div style="display: flex; flex-direction: column; height: 100vh; position: relative;">
+<!-- <div class=" modal-container"
+                style="display: flex; flex-direction: column; height: 85vh;"> -->
+<div class="modal-container">
     <!-- Modal Header -->
     <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0">
         <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem">
-            Đánh giá KPI - {{typePoint === 1 ? "Cá nhân" : typePoint === 2 ? "TBP đánh giá" : typePoint === 3 ? "Giám
+            Đánh giá KPI - {{typePoint === 1 ? "Cá nhân" : typePoint === 2 ? "TBP đánh giá" : typePoint
+            === 3 ? "Giám
             đốc đánh giá" : typePoint === 4 ? "Admin đánh giá" : ""}}
         </h6>
         <button type="button" class="btn-close" (click)="dismissModal()" aria-label="Close"
@@ -31,38 +33,38 @@
             class="fs-12">
             <i nz-icon nzType="team"></i> Load KPI Team
         </button>
-    </div>
 
-    <!-- Control Panel: Dropdowns -->
-    <div class="control-panel d-flex gap-2 align-items-center flex-wrap" style="flex-shrink: 0;">
-        <div class="d-flex align-items-center gap-1">
-            <label class="fs-12 mb-0">Kỳ đánh giá:</label>
-            <nz-select [(ngModel)]="selectedKPISessionId" nzPlaceHolder="Chọn kỳ đánh giá" style="width: 150px;"
-                nzSize="small" class="fs-12" [nzDisabled]="true" (ngModelChange)="onSessionChange()">
-                @for (session of kpiSessions; track session.ID) {
-                <nz-option [nzValue]="session.ID" [nzLabel]="session.Code"></nz-option>
-                }
-            </nz-select>
-        </div>
+        <!-- Control Panel: Dropdowns -->
+        <div class="control-panel ms-auto d-flex gap-2 align-items-center flex-wrap" style="flex-shrink: 0;">
+            <div class="d-flex align-items-center gap-1">
+                <label class="fs-12 mb-0">Kỳ đánh giá:</label>
+                <nz-select [(ngModel)]="selectedKPISessionId" nzPlaceHolder="Chọn kỳ đánh giá" style="width: 150px;"
+                    nzSize="small" class="fs-12" [nzDisabled]="true" (ngModelChange)="onSessionChange()">
+                    @for (session of kpiSessions; track session.ID) {
+                    <nz-option [nzValue]="session.ID" [nzLabel]="session.Code"></nz-option>
+                    }
+                </nz-select>
+            </div>
 
-        <div class="d-flex align-items-center gap-1">
-            <label class="fs-12 mb-0">Bài đánh giá:</label>
-            <nz-select [(ngModel)]="selectedKPIExamId" nzPlaceHolder="Chọn bài đánh giá" style="width: 200px;"
-                nzSize="small" class="fs-12" [nzDisabled]="true" (ngModelChange)="onExamChange()">
-                @for (exam of kpiExams; track exam.ID) {
-                <nz-option [nzValue]="exam.ID" [nzLabel]="exam.ExamName"></nz-option>
-                }
-            </nz-select>
-        </div>
+            <div class="d-flex align-items-center gap-1">
+                <label class="fs-12 mb-0">Bài đánh giá:</label>
+                <nz-select [(ngModel)]="selectedKPIExamId" nzPlaceHolder="Chọn bài đánh giá" style="width: 200px;"
+                    nzSize="small" class="fs-12" [nzDisabled]="true" (ngModelChange)="onExamChange()">
+                    @for (exam of kpiExams; track exam.ID) {
+                    <nz-option [nzValue]="exam.ID" [nzLabel]="exam.ExamName"></nz-option>
+                    }
+                </nz-select>
+            </div>
 
-        <div class="d-flex align-items-center gap-1">
-            <label class="fs-12 mb-0">Nhân viên:</label>
-            <nz-select [(ngModel)]="selectedEmployeeId" nzPlaceHolder="Chọn nhân viên" style="width: 200px;"
-                nzSize="small" class="fs-12" [nzDisabled]="true" (ngModelChange)="onEmployeeChange()">
-                @for (emp of employees; track emp.ID) {
-                <nz-option [nzValue]="emp.ID" [nzLabel]="emp.FullName"></nz-option>
-                }
-            </nz-select>
+            <div class="d-flex align-items-center gap-1">
+                <label class="fs-12 mb-0">Nhân viên:</label>
+                <nz-select [(ngModel)]="selectedEmployeeId" nzPlaceHolder="Chọn nhân viên" style="width: 200px;"
+                    nzSize="small" class="fs-12" [nzDisabled]="true" (ngModelChange)="onEmployeeChange()">
+                    @for (emp of employees; track emp.ID) {
+                    <nz-option [nzValue]="emp.ID" [nzLabel]="emp.FullName"></nz-option>
+                    }
+                </nz-select>
+            </div>
         </div>
     </div>
 
@@ -74,60 +76,68 @@
             <!-- Tab 1: KPI Kỹ năng -->
             <nz-tab nzTitle="KPI Kỹ năng" *ngIf="typePoint !== 4">
                 <div class="grid-skill-details-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 0" gridId="grid-skill-details"
-                        [columns]="skillColumns" [options]="skillGridOptions" [dataset]="dataSkill"
-                        (onAngularGridCreated)="onSkillGridReady($event)">
-                    </angular-slickgrid>
+                    <app-custom-tree-table-kpi *ngIf="gridsInitialized && logicalTabIndex === 0"
+                        tableId="grid-skill-details" [data]="dataSkillTree" [columns]="skillTreeColumnsDef"
+                        [headerGroups]="evaluationHeaderGroups" dataKey="ID" [scrollable]="true" [minWidth]="'120rem'"
+                        scrollHeight="flex" editMode="cell" [textWrap]="true" [rowClass]="getRowClass"
+                        [showFooter]="true" [showColumnFilter]="false" (cellValueChange)="handleCellChangePrime($event, 'skill')">
+                    </app-custom-tree-table-kpi>
                 </div>
             </nz-tab>
 
             <!-- Tab 2: KPI Chung -->
             <nz-tab nzTitle="KPI Chung" *ngIf="showTabGeneral && typePoint !== 4">
                 <div class="grid-general-details-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 1" gridId="grid-general-details"
-                        [columns]="generalColumns" [options]="generalGridOptions" [dataset]="dataGeneral"
-                        (onAngularGridCreated)="onGeneralGridReady($event)">
-                    </angular-slickgrid>
+                    <app-custom-tree-table-kpi *ngIf="gridsInitialized && logicalTabIndex === 1"
+                        tableId="grid-general-details" [data]="dataGeneralTree" [columns]="generalTreeColumnsDef"
+                        [headerGroups]="evaluationHeaderGroups" dataKey="ID" [scrollable]="true" [minWidth]="'120rem'"
+                        scrollHeight="flex" editMode="cell" [textWrap]="true" [rowClass]="getRowClass"
+                        [showFooter]="true" [showColumnFilter]="false" (cellValueChange)="handleCellChangePrime($event, 'general')">
+                    </app-custom-tree-table-kpi>
                 </div>
             </nz-tab>
 
             <!-- Tab 3: KPI Chuyên môn -->
             <nz-tab nzTitle="KPI Chuyên môn" *ngIf="typePoint !== 4">
                 <div class="grid-specialization-details-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 2"
-                        gridId="grid-specialization-details" [columns]="specializationColumns"
-                        [options]="specializationGridOptions" [dataset]="dataSpecialization"
-                        (onAngularGridCreated)="onSpecializationGridReady($event)">
-                    </angular-slickgrid>
+                    <app-custom-tree-table-kpi *ngIf="gridsInitialized && logicalTabIndex === 2"
+                        tableId="grid-specialization-details" [data]="dataSpecializationTree"
+                        [columns]="specializationTreeColumnsDef" [headerGroups]="evaluationHeaderGroups" dataKey="ID"
+                        [scrollable]="true" [minWidth]="'120rem'" scrollHeight="flex" editMode="cell" [textWrap]="true"
+                        [rowClass]="getRowClass" [showFooter]="true" [showColumnFilter]="false"
+                        (cellValueChange)="handleCellChangePrime($event, 'specialization')">
+                    </app-custom-tree-table-kpi>
                 </div>
             </nz-tab>
             <!-- Tab 4: Tổng hợp đánh giá -->
             <nz-tab nzTitle="Tổng hợp đánh giá" *ngIf="typePoint !== 4">
                 <div class="grid-master-details-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 3" gridId="grid-master-details"
-                        [columns]="masterColumns" [options]="masterGridOptions" [dataset]="dataMaster"
-                        (onAngularGridCreated)="onMasterGridReady($event)">
-                    </angular-slickgrid>
+                    <app-custom-table-kpi *ngIf="gridsInitialized && logicalTabIndex === 3" tableId="grid-master-details"
+                        [data]="dataMaster" [columns]="masterColumnsDef" dataKey="id" [scrollable]="true"
+                        scrollHeight="flex" editMode="cell" [rowClass]="getRowClass" [textWrap]="true" [showColumnFilter]="false">
+                    </app-custom-table-kpi>
                 </div>
             </nz-tab>
 
             <!-- Tab 5: Rule -->
             <nz-tab nzTitle="KPI Rule" *ngIf="showTabRule">
                 <div class="grid-rule-details-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 4" gridId="grid-rule-details"
-                        [columns]="ruleColumns" [options]="ruleGridOptions" [dataset]="dataRule"
-                        (onAngularGridCreated)="onRuleGridReady($event)">
-                    </angular-slickgrid>
+                    <app-custom-tree-table-kpi *ngIf="gridsInitialized && logicalTabIndex === 4" tableId="grid-rule-details"
+                        [data]="dataRuleTree" [columns]="ruleTreeColumnsDef" dataKey="id" [scrollable]="true"
+                        [minWidth]="'100rem'" scrollHeight="flex" editMode="cell" [textWrap]="true" [rowClass]="getRowClass"
+                        [showFooter]="true" [showColumnFilter]="false" (cellValueChange)="handleRuleCellChangePrime($event)">
+                    </app-custom-tree-table-kpi>
                 </div>
             </nz-tab>
 
             <!-- Tab 6: Team -->
             <nz-tab nzTitle="Team Rule" *ngIf="showTabTeam">
                 <div class="grid-team-details-container" style="height: 100%; position: relative;">
-                    <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 5" gridId="grid-team-details"
-                        [columns]="teamColumns" [options]="teamGridOptions" [dataset]="dataTeam"
-                        (onAngularGridCreated)="onTeamGridReady($event)">
-                    </angular-slickgrid>
+                    <app-custom-table-kpi *ngIf="gridsInitialized && logicalTabIndex === 5" tableId="grid-team-details"
+                        [data]="dataTeam" [columns]="teamColumnsDef" dataKey="id" [scrollable]="true"
+                        [minWidth]="'120rem'" scrollHeight="flex" editMode="cell" [textWrap]="true" [rowClass]="getRowClass"
+                        [showFooter]="true" [showColumnFilter]="false">
+                    </app-custom-table-kpi>
                 </div>
             </nz-tab>
 

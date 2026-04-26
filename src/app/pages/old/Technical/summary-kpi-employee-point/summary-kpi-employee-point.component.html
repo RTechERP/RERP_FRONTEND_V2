@@ -39,7 +39,7 @@
                     <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
                     <nz-form-control>
                         <nz-select [(ngModel)]="departmentId" name="departmentId" nzSize="small"
-                            nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch style="width: 200px;">
+                            nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch style="width: 250px;">
                             <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
                                 [nzLabel]="item.Name"></nz-option>
                         </nz-select>
@@ -51,7 +51,7 @@
                     <nz-form-label class="fs-12" style="font-size: 12px;">Nhân viên</nz-form-label>
                     <nz-form-control>
                         <nz-select [(ngModel)]="employeeId" name="employeeId" nzSize="small"
-                            nzPlaceHolder="Chọn nhân viên" nzAllowClear nzShowSearch style="width: 200px;">
+                            nzPlaceHolder="Chọn nhân viên" nzAllowClear nzShowSearch style="width: 320px;">
                             <nz-option *ngFor="let item of employees" [nzValue]="item.ID"
                                 [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
                         </nz-select>

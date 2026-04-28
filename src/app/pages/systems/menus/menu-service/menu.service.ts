@@ -195,10 +195,10 @@ export class MenuService {
     private menuKeySource = new BehaviorSubject<string>('');
     menuKey$ = this.menuKeySource.asObservable();
 
-    departmentTechs: any[] = [2, 11, 12, 13];
+    departmentTechs: any[] = [2, 11, 12, 13, 24, 25, 26, 27];
     departmentAgvCokhis = [9, 10];
     departmentLapraps = [23];
-    departmentSales = [3, 12];
+    departmentSales = [3, 12, 28, 29, 30];
     departmentHRs = [6];
     employeeHRs = [586];
 

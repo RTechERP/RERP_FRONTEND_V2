@@ -501,13 +501,13 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
             item.ProjectItemID = projectItemId;
             item.ProjectItemCode = selectedItem.Code || selectedItem.ProjectItemCode || '';
             item.ProjectItemName = selectedItem.Mission || selectedItem.ProjectItemName || '';
-            // Tự động điền nội dung công việc từ Mission
-            if (selectedItem.Mission && !item.Content) {
-              //item.Content = selectedItem.Mission;
-            }
             // Tự động điền % hoàn thành
             if (selectedItem.PercentageActual !== undefined && selectedItem.PercentageActual !== null) {
               item.PercentComplete = selectedItem.PercentageActual;
+            }
+            // Nếu % hoàn thành = 0, tự động bind tên hạng mục vào nội dung
+            if (item.PercentComplete === 0 && item.ProjectItemName) {
+              item.Content = item.ProjectItemName;
             }
           }
         } else {

@@ -16,7 +16,7 @@
             </div>
             <button nz-button nzType="text" nzShape="circle"
                 (click)="ToggleSearchPanelNew($event); $event.stopPropagation()">
-              <nz-icon nzType="down" nzTheme="outline" />
+              <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" nzTheme="outline" />
             </button>
         </div>
     </ng-template>
@@ -153,8 +153,10 @@
                                 <nz-select formControlName="teamId" nzAllowClear nzShowSearch nzSize="small"
                                     nzPlaceHolder="Chọn Team" class="w-100" nzDropdownClassName="team-select-dropdown"
                                     (ngModelChange)="loadData()">
-                                    <nz-option *ngFor="let team of teamList" [nzValue]="team.ID"
-                                        [nzLabel]="team.Name | uppercase"></nz-option>
+                                    <nz-option-group *ngFor="let group of teamGroupList" [nzLabel]="group.label">
+                                        <nz-option *ngFor="let option of group.options" [nzValue]="option.item.ID"
+                                            [nzLabel]="option.item.Name | uppercase"></nz-option>
+                                    </nz-option-group>
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>

@@ -566,6 +566,7 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
           backgroundColor: backgroundColor,
           borderColor: backgroundColor,
           textColor: '#ffffff',
+          className: j === i + 1 ? 'fc-event-small' : '',
           extendedProps: {
             MeetingRoomID: row.MeetingRoomID || meetingRoomId,
             AllDate: row.AllDate,

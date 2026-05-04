@@ -893,8 +893,6 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
 
             allAssetManagements.push({
               ID: safeAssetId,
-              StatusID: 2,
-
               DepartmentID: master.ToDepartmentID || 0,
               EmployeeID: master.ReceiverID,
               Node: `Đã điều chuyển cho ${master.ReceiverName}`,

@@ -652,30 +652,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                     title: "PHỤ CẤP",
                                     headerHozAlign: "center",
                                     columns: [
-                                        {
-                                            title: "PC chuyên cần", hozAlign: "right", headerHozAlign: "center",
-                                            columns:
-                                                [
-                                                    {
-                                                        title: "PCCC tham chiếu", field: "ReferenceIndustry", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
-                                                    {
-                                                        title: "PCCC thực lĩnh", field: "RealIndustry", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
-                                                ]
-                                        },
+
                                         {
                                             title: "", hozAlign: "right", headerHozAlign: "center",
                                             columns:

@@ -388,7 +388,13 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
                             TaxDeduction: row.getCell(49).value || 0,
 
                             ActualAmountReceived: row.getCell(50).value || 0,
-                            Note: row.getCell(51).value?.toString() || '',
+                            Note: (() => {
+                                const val = row.getCell(51).value;
+                                if (val && typeof val === 'object' && (val as any).richText) {
+                                    return (val as any).richText.map((rt: any) => rt.text).join('');
+                                }
+                                return val?.toString() || '';
+                            })(),
                         };
 
                         data.push(rowData);

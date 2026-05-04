@@ -2287,11 +2287,11 @@ export class BillImportDetailNewComponent
                 ReturnedStatus: row.ReturnedStatus || false,
                 InventoryProjectID: row.InventoryProjectID || 0,
                 DateSomeBill: row.DateSomeBill
-                    ? this.toLocalISOString(new Date(row.DateSomeBill))
+                    ? this.formatDateForServer(row.DateSomeBill)
                     : null,
                 isDeleted: row.isDeleted || false,
                 DPO: row.DPO || 0,
-                DueDate: row.DueDate ? this.toLocalISOString(new Date(row.DueDate)) : null,
+                DueDate: row.DueDate ? this.formatDateForServer(row.DueDate) : null,
                 TaxReduction: row.TaxReduction || 0,
                 COFormE: row.COFormE || 0,
                 IsNotKeep: row.IsNotKeep || false,

@@ -67,6 +67,19 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
   payrollData: any[] = [];
   totalWorkdayStandard: number = 0;
 
+  get showPCCC(): boolean {
+    if (!this.searchForm) return true;
+    const year = this.searchForm.get('year')?.value;
+    const month = this.searchForm.get('month')?.value;
+    
+    if (!year || !month) return true;
+    
+    if (year < 2026) return true;
+    if (year === 2026 && month < 4) return true;
+    
+    return false;
+  }
+
   // Trạng thái xác thực lại
   showReAuthModal = false;
   pinMode: 'VERIFY' | 'CREATE' | 'FORGOT' | 'RESET' = 'VERIFY';

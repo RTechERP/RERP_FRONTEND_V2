@@ -117,7 +117,7 @@
                                 <tr>
                                     <th colspan="6" class="group-standard">CÔNG TIÊU CHUẨN (F4)</th>
                                     <th class="group-standard" id="total_workday_standard">{{totalWorkdayStandard}}</th>
-                                    <th colspan="48"></th>
+                                    <th [attr.colspan]="showPCCC ? 48 : 46"></th>
                                 </tr>
                                 <tr>
                                     <th rowspan="3" class="group-basic">STT</th>
@@ -130,7 +130,7 @@
 
                                     <th colspan="4" class="group-basic">THU THẬP TIÊU CHUẨN</th>
                                     <th colspan="7" class="group-overtime">LÀM THÊM</th>
-                                    <th colspan="5" class="group-allowance">PHỤ CẤP</th>
+                                    <th [attr.colspan]="showPCCC ? 5 : 3" class="group-allowance">PHỤ CẤP</th>
                                     <th colspan="6" class="group-bonus">CÁC KHOẢN CỘNG KHÁC</th>
                                     <th rowspan="3" class="group-bonus">TỔNG THU NHẬP TÍNH THUẾ</th>
                                     <th colspan="10" class="group-deduction">CÁC KHOẢN PHẢI TRỪ</th>
@@ -146,7 +146,7 @@
                                     <th colspan="2" class="group-overtime">Làm thêm cuối tuần</th>
                                     <th colspan="2" class="group-overtime">Làm thêm ngày lễ, tết</th>
                                     <th rowspan="2" class="group-overtime">Tổng tiền làm thêm</th>
-                                    <th colspan="2" class="group-allowance">PCCC</th>
+                                    <th *ngIf="showPCCC" colspan="2" class="group-allowance">PCCC</th>
                                     <th rowspan="2" class="group-allowance">PC cơm ca sau 20H/ theo loại CT</th>
                                     <th rowspan="2" class="group-allowance">PC đi làm trước 7H15</th>
                                     <th rowspan="2" class="group-allowance">Tổng tiền phụ cấp</th>
@@ -181,8 +181,10 @@
                                     <th style="font-weight: 400;" class="group-overtime">Thành tiền</th>
                                     <th style="font-weight: 400;" class="group-overtime">Số giờ</th>
                                     <th style="font-weight: 400;" class="group-overtime">Thành tiền</th>
-                                    <th style="font-weight: 400;" class="group-allowance">PCCC tham chiếu</th>
-                                    <th style="font-weight: 400;" class="group-allowance">PCCC thực lĩnh</th>
+                                    <th *ngIf="showPCCC" style="font-weight: 400;" class="group-allowance">PCCC tham
+                                        chiếu</th>
+                                    <th *ngIf="showPCCC" style="font-weight: 400;" class="group-allowance">PCCC thực
+                                        lĩnh</th>
                                     <th style="font-weight: 400;" class="group-deduction">Mức đóng</th>
                                     <th style="font-weight: 400;" class="group-deduction">Phải thu BHXH</th>
 
@@ -217,8 +219,8 @@
                                     <th class="group-overtime">(12)</th>
                                     <th class="group-overtime">(13)=(12)*(7)*3</th>
                                     <th class="group-allowance">(14)=(9)+(11)+(13)</th>
-                                    <th class="group-allowance">(15)</th>
-                                    <th class="group-allowance">(16)</th>
+                                    <th *ngIf="showPCCC" class="group-allowance">(15)</th>
+                                    <th *ngIf="showPCCC" class="group-allowance">(16)</th>
                                     <th class="group-allowance">(17)</th>
                                     <th class="group-allowance">(18)</th>
                                     <th class="group-allowance">(19)=(16)+(17)+(18)</th>
@@ -274,8 +276,9 @@
                                     <td class="text-center">{{formatNumber(item.OT_Hour_HD)}}</td>
                                     <td class="text-right">{{formatNumber(item.OT_Money_HD)}}</td>
                                     <td class="text-right">{{formatNumber(item.OT_TotalSalary)}}</td>
-                                    <td class="text-right">{{formatNumber(item.ReferenceIndustry)}}</td>
-                                    <td class="text-right">{{formatNumber(item.RealIndustry)}}</td>
+                                    <td *ngIf="showPCCC" class="text-right">{{formatNumber(item.ReferenceIndustry)}}
+                                    </td>
+                                    <td *ngIf="showPCCC" class="text-right">{{formatNumber(item.RealIndustry)}}</td>
                                     <td class="text-right">{{formatNumber(item.AllowanceMeal)}}</td>
                                     <td class="text-right">{{formatNumber(item.Allowance_OT_Early)}}</td>
                                     <td class="text-right">{{formatNumber(item.TotalAllowance)}}</td>

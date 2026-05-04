@@ -338,9 +338,12 @@
                 </h3>
                 <p>
                     <ng-container [ngSwitch]="pinMode">
-                        <span *ngSwitchCase="'VERIFY'">Vui lòng nhập mã PIN của bạn để xem thông tin Công & Lương.</span>
-                        <span *ngSwitchCase="'CREATE'">Bạn chưa có mã PIN. Vui lòng thiết lập mã PIN 6 số để tiếp tục.</span>
-                        <span *ngSwitchCase="'FORGOT'">Yêu cầu đặt lại mã PIN sẽ được gửi đến email đăng ký của bạn.</span>
+                        <span *ngSwitchCase="'VERIFY'">Vui lòng nhập mã PIN của bạn để xem thông tin Công &
+                            Lương.</span>
+                        <span *ngSwitchCase="'CREATE'">Bạn chưa có mã PIN. Vui lòng thiết lập mã PIN 6 số để tiếp
+                            tục.</span>
+                        <span *ngSwitchCase="'FORGOT'">Yêu cầu đặt lại mã PIN sẽ được gửi đến email đăng ký của
+                            bạn.</span>
                         <span *ngSwitchCase="'RESET'">Vui lòng nhập mã PIN mới gồm 6 chữ số.</span>
                     </ng-container>
                 </p>
@@ -352,12 +355,13 @@
                     <ng-container *ngIf="pinMode === 'VERIFY'">
                         <label>Nhập mã PIN</label>
                         <nz-input-group nzSize="large" [class.input-error]="errorMessage">
-                            <input type="password" nz-input placeholder="••••••" maxlength="6"
-                                [(ngModel)]="reAuthPin" (keyup.enter)="handleReAuth()" autocomplete="off"
+                            <input type="password" nz-input placeholder="••••••" maxlength="6" [(ngModel)]="reAuthPin"
+                                (keyup.enter)="handleReAuth()" autocomplete="off"
                                 style="text-align: center; letter-spacing: 0.5em; font-size: 20px;" />
                         </nz-input-group>
                         <div class="forgot-link">
-                            <a href="javascript:void(0)" (click)="$event.preventDefault(); switchToForgotMode()">Quên mã PIN?</a>
+                            <a href="javascript:void(0)" (click)="$event.preventDefault(); switchToForgotMode()">Quên mã
+                                PIN?</a>
                         </div>
                     </ng-container>
 
@@ -392,9 +396,9 @@
                 <button nz-button nzType="text" (click)="cancelReAuth()" class="btn-cancel">
                     {{ (pinMode !== 'VERIFY' && hasPin) ? 'Quay lại' : 'Hủy' }}
                 </button>
-                
-                <button nz-button nzType="primary" (click)="handleReAuth()" 
-                    [nzLoading]="isVerifying" nzSize="large" class="btn-confirm">
+
+                <button nz-button nzType="primary" (click)="handleReAuth()" [nzLoading]="isVerifying" nzSize="large"
+                    class="btn-confirm">
                     {{ pinMode === 'CREATE' ? 'Thiết lập' : (pinMode === 'RESET' ? 'Cập nhật' : 'Xác nhận') }}
                 </button>
             </div>
@@ -421,4 +425,3 @@
         </div>
     </div>
 </div>
-

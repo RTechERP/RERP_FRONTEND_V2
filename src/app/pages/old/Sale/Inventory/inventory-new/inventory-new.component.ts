@@ -1715,6 +1715,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 150,
                 sortable: true,
                 filterable: true,
+                formatter: this.wrapTextFormatter,
                 filter: {
                     model: Filters['compoundInput'],
                 },

@@ -584,6 +584,33 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         this.saveFile(buffer, `TongHopLoi_${this.month}_${this.year}.xlsx`);
     }
 
+    async exportExcelAllDepartments() {
+        this.service.getDataTongHop(
+            this.month, this.year, this.kpiErrorId_T1 || 0, this.employeeId_T1 || 0,
+            0, // 0 means all departments
+            this.keyword_T1
+        ).subscribe(async (res: any) => {
+            if (res.status === 1 && res.data) {
+                const datasetAll = (res.data.data1 || []).map((x: any, i: number) => ({ ...x, id: i }));
+                
+                if (!datasetAll.length) { 
+                    this.notification.warning('Thông báo', 'Không có dữ liệu cho tất cả phòng ban'); 
+                    return; 
+                }
+
+                const wb = new ExcelJS.Workbook();
+                const ws = wb.addWorksheet('TongHopTatCa');
+
+                this.writeSheet(ws, this.colDefTH1, datasetAll);
+
+                const buffer = await wb.xlsx.writeBuffer();
+                this.saveFile(buffer, `TongHopLoi_ToanBoPhongBan_${this.month}_${this.year}.xlsx`);
+            } else {
+                this.notification.warning('Thông báo', 'Không có dữ liệu');
+            }
+        });
+    }
+
     async exportExcelTab2() {
         if (!this.datasetTK.length) { this.notification.warning('Thông báo', 'Không có dữ liệu'); return; }
         const wb = new ExcelJS.Workbook();
@@ -599,7 +626,23 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         const visibleCols = cols.filter(c => !c.hidden);
         const headers = visibleCols.map(c => c.name || '');
         const headerRow = ws.addRow(headers);
-        headerRow.font = { bold: true };
+        
+        // Định dạng header
+        headerRow.eachCell((cell) => {
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF0070C0' } // Màu xanh dương nhạt
+            };
+            cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
+            };
+        });
 
         data.forEach(item => {
             const rowData = visibleCols.map(c => {
@@ -611,30 +654,40 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
             visibleCols.forEach((col, index) => {
                 const cell = row.getCell(index + 1);
                 
-                if (col.field === 'Content' || col.field === 'Note') {
-                    cell.alignment = { wrapText: true, vertical: 'top' };
-                } else {
-                    cell.alignment = { vertical: 'middle' };
-                }
+                // Mặc định wrapText và căn giữa theo chiều dọc
+                cell.alignment = { wrapText: true, vertical: 'middle' };
+                
+                // Thêm viền
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
 
+                // Nếu là số tiền thì format và căn phải
                 if ((col.field === 'TotalMoney' || col.field === 'Monney') && item[col.field]) {
                     const num = Number(item[col.field]);
                     if (!isNaN(num)) {
                         cell.value = num;
                         cell.numFmt = '#,##0';
+                        cell.alignment = { wrapText: true, vertical: 'middle', horizontal: 'right' };
                     }
                 }
             });
         });
 
+        // Căn chỉnh độ rộng cột
         ws.columns.forEach((c, i) => { 
             const field = visibleCols[i]?.field;
-            if (field === 'Content' || field === 'Note') {
-                c.width = 40;
-            } else if (field === 'FullName') {
-                c.width = 25;
+            if (field === 'Content' || field === 'Note' || field === 'ErrorContent') {
+                c.width = 45;
+            } else if (field === 'FullName' || field === 'EmployeeName') {
+                c.width = 30;
+            } else if (field === 'DepartmentName') {
+                c.width = 35;
             } else {
-                c.width = 15;
+                c.width = 18;
             }
         });
     }

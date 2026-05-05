@@ -356,7 +356,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
             { field: 'SuplierName', header: 'Nhà cung cấp', width: '150px', textWrap: true },
             { field: 'StatusContractText', header: 'TT hợp đồng', width: '130px', textWrap: true },
             { field: 'DocumentName', header: 'Số hợp đồng', width: '130px', textWrap: true },
-            { field: 'CompanyName', header: 'Công ty', width: '130px', textWrap: true },
+            { field: 'TaxCompanyName', header: 'Công ty', width: '130px', textWrap: true },
             { field: 'ProjectFullName', header: 'Dự án', width: '150px', textWrap: true },
             {
                 field: 'IsBill',

@@ -63,6 +63,7 @@ import { BillImportQcDetailComponent } from '../../../bill-import-qc/bill-import
 import { BillImportQcService } from '../../../bill-import-qc/bill-import-qc-service/bill-import-qc-service.service';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { log } from 'ng-zorro-antd/core/logger';
+import { Formatter } from 'tabulator-tables';
 
 interface ProductSale {
     Id?: number;
@@ -869,10 +870,21 @@ export class BillImportDetailNewComponent
                 id: 'ProjectCode',
                 name: 'Mã theo dự án',
                 field: 'ProjectCode',
-                width: 120,
+                width: 250,
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+                    if (!value) return '';
+                    return `
+                    <span
+                        title="${String(value).replace(/"/g, '&quot;')}"
+                        style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.3;"
+                    >
+                        ${value}
+                    </span>
+                    `;
+                },
                 editor: { model: Editors['text'], maxLength: 150 }, // nvarchar(150)
             },
             {
@@ -2218,10 +2230,10 @@ export class BillImportDetailNewComponent
     }
     //#endregion
 
-  //#region Save & Close
-  closeModal(): void {
-    this.activeModal.dismiss(false);
-  }
+    //#region Save & Close
+    closeModal(): void {
+        this.activeModal.dismiss(false);
+    }
 
     private mapTableDataToBillImportDetails(tableData: any[]): any[] {
         const parsePOKHList = (
@@ -2514,33 +2526,33 @@ export class BillImportDetailNewComponent
                         this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!'
                     );
 
-          if (this.isEmbedded) {
-            this.saveSuccess.emit();
-          } else {
-            this.activeModal.close(true);
-          }
-        } else {
-          this.notification.warning(
-            NOTIFICATION_TITLE.warning,
-            res.message ||
-            (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
-          );
-        }
-        this.isSaving = false;
-      },
-      error: (err: any) => {
-        console.error('Save error:', err);
-        let errorMessage =
-          'Có lỗi xảy ra khi ' + (this.isCheckmode ? 'cập nhật!' : 'thêm mới!');
-        if (err.error && err.error.message) {
-          errorMessage += ' Chi tiết: ' + err.error.message;
-        }
-        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
-        this.isSaving = false;
-      },
-    });
-  }
-  //#endregion
+                    if (this.isEmbedded) {
+                        this.saveSuccess.emit();
+                    } else {
+                        this.activeModal.close(true);
+                    }
+                } else {
+                    this.notification.warning(
+                        NOTIFICATION_TITLE.warning,
+                        res.message ||
+                        (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
+                    );
+                }
+                this.isSaving = false;
+            },
+            error: (err: any) => {
+                console.error('Save error:', err);
+                let errorMessage =
+                    'Có lỗi xảy ra khi ' + (this.isCheckmode ? 'cập nhật!' : 'thêm mới!');
+                if (err.error && err.error.message) {
+                    errorMessage += ' Chi tiết: ' + err.error.message;
+                }
+                this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+                this.isSaving = false;
+            },
+        });
+    }
+    //#endregion
 
     //#region Document Import Grid
     initDocumentGridOptions(): void {
@@ -2921,16 +2933,17 @@ export class BillImportDetailNewComponent
         return true;
     }
 
-  async closeModalWithCheck(): Promise<void> {
-    const isValid = await this.checkSerial();
-    if (!isValid) {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        'Số lượng serial không khớp với số lượng sản phẩm!'
-      );
-      return;
+    async closeModalWithCheck(): Promise<void> {
+        const isValid = await this.checkSerial();
+        if (!isValid) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Số lượng serial không khớp với số lượng sản phẩm!'
+            );
+            return;
+        }
+        this.activeModal.close(true);
     }
-    this.activeModal.close(true);
-  }
-  //#endregion
+    //#endregion
+
 }

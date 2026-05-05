@@ -494,7 +494,14 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
         editor: { model: Editors['text'] },
       },
       {
@@ -1592,6 +1599,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
       'DepartmentName',
       'KhoType',
       'WarehouseName',
+      'SomeBill',
     ];
 
     let hasChanges = false;

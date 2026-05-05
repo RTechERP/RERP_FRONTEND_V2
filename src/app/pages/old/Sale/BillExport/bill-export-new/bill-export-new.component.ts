@@ -9,6 +9,7 @@ import {
     Filters,
     Formatters,
     GridOption,
+    MultipleSelectOption,
     OnEventArgs,
 } from 'angular-slickgrid';
 import { BillExportService } from './../bill-export-service/bill-export.service';
@@ -269,7 +270,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 200,
             },
@@ -315,7 +322,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 150,
             },
@@ -326,7 +339,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 200,
             },
@@ -409,7 +428,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 200,
             },
@@ -420,7 +445,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 200,
             },
@@ -431,7 +462,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 120,
             },
@@ -442,7 +479,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 200,
             },
@@ -1032,8 +1075,10 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                         id: item.ID
                     }));
 
-                    this.applyDistinctFiltersToMaster();
-                    this.updateMasterFooterRow();
+                    setTimeout(() => {
+                        this.applyDistinctFiltersToMaster();
+                        this.updateMasterFooterRow();
+                    }, 100);
                 }
                 this.id = 0;
                 this.selectedRow = null;
@@ -1974,67 +2019,46 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     // =================================================================
 
     private applyDistinctFiltersToMaster(): void {
-        // Use this.datasetMaster directly since this method is called
-        // before Angular updates the dataView
-        const data = this.datasetMaster;
+        if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView) return;
+
+        const data = this.angularGridMaster.dataView.getItems() as any[];
         if (!data || data.length === 0) return;
 
-        // Wait for grid to be ready
-        if (!this.angularGridMaster?.slickGrid) {
-            // If grid not ready, retry after a short delay
-            setTimeout(() => this.applyDistinctFiltersToMaster(), 100);
-            return;
-        }
+        const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+            const map = new Map<string, string>();
+            dataArray.forEach((row: any) => {
+                const value = String(row?.[field] ?? '');
+                if (value && !map.has(value)) {
+                    map.set(value, value);
+                }
+            });
+            return Array.from(map.entries())
+                .map(([value, label]) => ({ value, label }))
+                .sort((a, b) => a.label.localeCompare(b.label));
+        };
 
-        // Lấy các giá trị unique của nameStatus
-        const statusMap = new Map<string, string>();
-        data.forEach((row: any) => {
-            const value = String(row?.nameStatus ?? '');
-            if (value && !statusMap.has(value)) {
-                statusMap.set(value, value);
+        const columns = this.angularGridMaster.slickGrid.getColumns();
+        if (!columns) return;
+
+        columns.forEach((column: any) => {
+            if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+                const field = column.field;
+                if (!field) return;
+                column.filter.collection = getUniqueValues(data, field);
             }
         });
 
-        const statusCollection = Array.from(statusMap.entries())
-            .map(([value, label]) => ({ value, label }))
-            .sort((a, b) => a.label.localeCompare(b.label));
+        this.columnDefinitionsMaster.forEach((colDef: any) => {
+            if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+                const field = colDef.field;
+                if (!field) return;
+                colDef.filter.collection = getUniqueValues(data, field);
+            }
+        });
 
-        // Lưu lại selected rows trước khi update columns
-        const selectedRows = this.angularGridMaster.slickGrid.getSelectedRows() || [];
-        const selectedIds = selectedRows.map(rowIndex => {
-            const item = this.angularGridMaster.slickGrid.getDataItem(rowIndex);
-            return item?.ID;
-        }).filter(id => id != null);
-
-        // Cập nhật filter collection cho cột nameStatus
-        const columns = this.angularGridMaster.slickGrid.getColumns();
-        const statusColumn = columns.find((col: any) => col.id === 'nameStatus');
-        if (statusColumn?.filter) {
-            statusColumn.filter.collection = statusCollection;
-        }
-
-        // Cập nhật trong columnDefinitions
-        const statusColDef = this.columnDefinitionsMaster.find((col) => col.id === 'nameStatus');
-        if (statusColDef?.filter) {
-            statusColDef.filter.collection = statusCollection;
-        }
-
-        this.angularGridMaster.slickGrid.setColumns(columns);
-
-        // Restore selected rows dựa trên ID
-        if (selectedIds.length > 0) {
-            setTimeout(() => {
-                const rowsToSelect: number[] = [];
-                this.datasetMaster.forEach((item: any, index: number) => {
-                    if (selectedIds.includes(item.ID)) {
-                        rowsToSelect.push(index);
-                    }
-                });
-                if (rowsToSelect.length > 0) {
-                    this.angularGridMaster.slickGrid?.setSelectedRows(rowsToSelect);
-                }
-            }, 0);
-        }
+        this.angularGridMaster.slickGrid.setColumns(this.angularGridMaster.slickGrid.getColumns());
+        this.angularGridMaster.slickGrid.invalidate();
+        this.angularGridMaster.slickGrid.render();
     }
 
     private applyDistinctFiltersToDetail(): void {

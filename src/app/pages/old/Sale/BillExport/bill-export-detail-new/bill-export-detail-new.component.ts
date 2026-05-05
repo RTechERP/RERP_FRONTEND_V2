@@ -1064,6 +1064,10 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'] }, // nvarchar(max) - không giới hạn
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'ExpectReturnDate',
@@ -1132,6 +1136,10 @@ export class BillExportDetailNewComponent
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'Specifications',
@@ -1142,6 +1150,10 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'], maxLength: 550 }, // nvarchar(550)
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'GroupExport',
@@ -1162,6 +1174,10 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'] }, // Không có trong DB schema, cần kiểm tra
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'CustomerResponse',
@@ -1172,6 +1188,10 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'], maxLength: 550 }, // nvarchar(550)
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'SerialNumber',
@@ -1186,6 +1206,10 @@ export class BillExportDetailNewComponent
                 excludeFromHeaderMenu: true,
                 hidden: true,
                 editor: { model: Editors['text'], maxLength: 50 }, // nvarchar(50)
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'PONumber',
@@ -1195,6 +1219,10 @@ export class BillExportDetailNewComponent
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'AddSerial',
@@ -2035,7 +2063,7 @@ export class BillExportDetailNewComponent
 
         if (billExportID <= 0 || !isTransfer) return;
 
-        this.billExportService.getBillImportByBillExportID(billExportID,1).subscribe({
+        this.billExportService.getBillImportByBillExportID(billExportID, 1).subscribe({
             next: (res: any) => {
                 if (res?.status === 1 && res?.data) {
                     const billImport = res.data;

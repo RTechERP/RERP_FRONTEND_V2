@@ -61,7 +61,8 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { SupplierSaleDetailComponent } from '../../purchase/supplier-sale/supplier-sale-detail/supplier-sale-detail.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { HorizontalScrollDirective } from '../../../directives/horizontalScroll.directive';
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
+import { HolidayServiceService } from '../../hrm/holiday/holiday-service/holiday-service.service';
 import { TabulatorPopupService } from '../../../shared/components/tabulator-popup/tabulator-popup.service';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
@@ -150,6 +151,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   // Flag để track khi tab đã render
   isTabReady: boolean = false;
   PriceRequetsService = inject(ProjectPartlistPriceRequestService);
+  private holidayService = inject(HolidayServiceService);
+  private holidaySet = new Set<string>();
   private notification = inject(NzNotificationService);
   private modal = inject(NzModalService);
   injector = inject(EnvironmentInjector);
@@ -259,6 +262,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     this.GetallProject();
     this.GetAllPOKH();
     this.initMenuItems();
+    this.LoadHolidays();
   }
 
   get restrictedView(): boolean {
@@ -3595,9 +3599,29 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     this.SaveDataCommon(filteredData, 'Dữ liệu đã được lưu.', onSuccess);
   }
 
+  private LoadHolidays() {
+    const year = DateTime.local().year;
+    const calls = Array.from({ length: 12 }, (_, i) =>
+      this.holidayService.getHolidays(i + 1, year)
+    );
+    forkJoin(calls).subscribe((results: any[]) => {
+      this.holidaySet = new Set<string>();
+      results.forEach((response) => {
+        const list = response?.data?.holidays ?? [];
+        list.forEach((h: any) => {
+          if (h.HolidayDate) {
+            this.holidaySet.add(DateTime.fromISO(h.HolidayDate).toFormat('yyyy-MM-dd'));
+          }
+        });
+      });
+      console.log('getHolidays', this.holidaySet);
+    });
+
+  }
+
   AddWeekdays(date: Date, days: number): Date {
     if (!days || isNaN(days)) {
-      return date; // Trả về ngày gốc nếu days không hợp lệ
+      return date;
     }
 
     let count = 0;
@@ -3606,13 +3630,13 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     while (count < days) {
       result.setDate(result.getDate() + 1);
       const day = result.getDay();
-      if (day !== 0 && day !== 6) {
-        // Skip Sunday (0) and Saturday (6)
+      const dateStr = DateTime.fromJSDate(result).toFormat('yyyy-MM-dd');
+      if (day !== 0 && day !== 6 && !this.holidaySet.has(dateStr)) {
         count++;
       }
     }
 
-    return result; // Vẫn trả về đối tượng Date JavaScript
+    return result;
   }
 
   /**
@@ -3747,6 +3771,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     const totalPriceImport = quantity * importPrice;
     const totalVAT = totalPrice + (totalPrice * vat) / 100;
     const totalPriceExchange = totalPrice * currencyRate;
+    console.log('getHolidays', this.holidaySet);
 
     const leadtime = Number(data.TotalDayLeadTime);
     // Sử dụng DateTime để tạo ngày dự kiến

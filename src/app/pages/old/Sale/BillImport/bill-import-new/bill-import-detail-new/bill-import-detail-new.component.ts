@@ -986,6 +986,7 @@ export class BillImportDetailNewComponent
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => this.formatTextWithTooltip(value),
             },
             {
                 id: 'PONumber',
@@ -995,6 +996,8 @@ export class BillImportDetailNewComponent
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => this.formatTextWithTooltip(value),
+
             },
             {
                 id: 'Note',
@@ -1016,6 +1019,8 @@ export class BillImportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'], maxLength: 150 }, // nvarchar(150)
+                formatter: (_row, _cell, value) => this.formatTextWithTooltip(value),
+
             },
             {
                 id: 'POKHDetailID',

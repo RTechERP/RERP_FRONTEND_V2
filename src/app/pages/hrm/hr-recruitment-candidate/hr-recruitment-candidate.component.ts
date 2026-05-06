@@ -161,7 +161,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         this.loadMenu();
         this.initAngularGrid();
         this.onSearch();
-        this.isHavePermission = this.permissionService.hasPermission('N1,N2');
+        this.isHavePermission = this.permissionService.hasPermission('N1,N2,N94');
     }
 
     ngAfterViewInit(): void {
@@ -187,25 +187,25 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             {
                 label: 'Thêm mới',
                 icon: 'fa-solid fa-plus fa-lg text-success',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 command: () => this.onAdd(),
             },
             {
                 label: 'Sửa',
                 icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 command: () => this.onEdit(),
             },
             {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 command: () => this.onDelete(),
             },
             {
                 label: 'Cập nhật trạng thái',
                 icon: 'fa-solid fa-arrow-right-arrow-left fa-lg text-success',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 items: statusItems.map(s => ({
                     label: s.label,
                     icon: 'fa-solid fa-circle-check text-success',
@@ -215,7 +215,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             {
                 label: 'Hủy trạng thái',
                 icon: 'fa-solid fa-rotate-left fa-lg text-danger',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 items: statusItems.map(s => ({
                     label: s.label,
                     icon: 'fa-solid fa-circle-xmark text-danger',
@@ -230,13 +230,13 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             },
             {
                 label: 'Tải file Cv',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 icon: 'fa-solid fa-file-arrow-down fa-lg text-warning',
                 command: () => this.onDownloadCV(),
             },
             {
                 label: 'Gửi thư mời PV',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 icon: 'fa-solid fa-envelope fa-lg text-primary',
                 items: [
                     {

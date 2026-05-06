@@ -578,7 +578,8 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         const wb = new ExcelJS.Workbook();
         const ws = wb.addWorksheet('TongHop');
 
-        this.writeSheet(ws, this.colDefTH1, this.datasetTH1);
+        const sortedData = [...this.datasetTH1].sort((a, b) => (a.FullName || '').localeCompare(b.FullName || ''));
+        this.writeSheet(ws, this.colDefTH1, sortedData);
 
         const buffer = await wb.xlsx.writeBuffer();
         this.saveFile(buffer, `TongHopLoi_${this.month}_${this.year}.xlsx`);
@@ -601,6 +602,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
                 const wb = new ExcelJS.Workbook();
                 const ws = wb.addWorksheet('TongHopTatCa');
 
+                datasetAll.sort((a: any, b: any) => (a.FullName || '').localeCompare(b.FullName || ''));
                 this.writeSheet(ws, this.colDefTH1, datasetAll);
 
                 const buffer = await wb.xlsx.writeBuffer();
@@ -644,12 +646,17 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
             };
         });
 
-        data.forEach(item => {
+        let previousFullName = data.length > 0 ? (data[0].FullName || '') : '';
+        let startRowForMerge = 2; // Row 1 is header
+        const fullNameColIndex = visibleCols.findIndex(c => c.field === 'FullName') + 1;
+
+        data.forEach((item, index) => {
             const rowData = visibleCols.map(c => {
                 const val = item[c.field];
                 return val !== undefined && val !== null ? val : '';
             });
             const row = ws.addRow(rowData);
+            const currentRowIndex = index + 2;
 
             visibleCols.forEach((col, index) => {
                 const cell = row.getCell(index + 1);
@@ -675,7 +682,24 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
                     }
                 }
             });
+
+            // Xử lý gộp ô cho cột tên nhân viên
+            if (fullNameColIndex > 0) {
+                const currentFullName = item.FullName || '';
+                if (currentFullName !== previousFullName) {
+                    if (currentRowIndex - 1 > startRowForMerge) {
+                        ws.mergeCells(startRowForMerge, fullNameColIndex, currentRowIndex - 1, fullNameColIndex);
+                    }
+                    previousFullName = currentFullName;
+                    startRowForMerge = currentRowIndex;
+                }
+            }
         });
+
+        // Gộp ô cho group cuối cùng nếu cần
+        if (fullNameColIndex > 0 && data.length + 1 > startRowForMerge) {
+            ws.mergeCells(startRowForMerge, fullNameColIndex, data.length + 1, fullNameColIndex);
+        }
 
         // Căn chỉnh độ rộng cột
         ws.columns.forEach((c, i) => { 

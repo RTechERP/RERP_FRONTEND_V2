@@ -1701,6 +1701,12 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     // }
 
     searchPOKH() {
+        if (this.angularGridPOKH?.filterService) {
+            this.angularGridPOKH.filterService.clearFilters();
+        }
+        if (this.angularGridPOKHProduct?.filterService) {
+            this.angularGridPOKHProduct.filterService.clearFilters();
+        }
         this.filters.pageNumber = 1;
         this.loadPOKH();
     }
@@ -2057,6 +2063,9 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     onPOKHRowClick(e: any, args: any): void {
         const item = args?.grid?.getDataItem(args?.row);
         if (item) {
+            if (this.angularGridPOKHProduct?.filterService) {
+                this.angularGridPOKHProduct.filterService.clearFilters();
+            }
             this.selectedId = item['ID'];
             this.selectedRow = item;
             this.loadPOKHProducts(this.selectedId);

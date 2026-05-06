@@ -65,6 +65,7 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
   @Input() SolutionTypeID: any;
   @Input() STT: number = 1;
   @Input() IsActive: boolean = false;
+  @Input() IsConsumable: boolean = false;
   @Input() DescriptionVersion: string = '';
   @Input() ProjectworkerID: number = 0;
   @Input() versionData: any[] = [];
@@ -85,6 +86,7 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
       ProjectSolutionID: [this.projectSolutionId || null, [Validators.required]],
       STT: [this.STT || 1],
       IsActive: [this.IsActive || false],
+      IsConsumable: [this.IsConsumable || false],
       SolutionTypeID: [{value: this.SolutionTypeID  || '', disabled: true}, [Validators.required]], //trạng thái
       DescriptionVersion: [this.DescriptionVersion || ''], //mô tả
     });
@@ -204,7 +206,7 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
   };
 
   closeModal() {
-    this.activeModal.close({ success: true });
+    this.activeModal.close({ success: true, isConsumable: this.form.value.IsConsumable});
   }
 
 
@@ -224,6 +226,7 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
       Code: valueRaw.VersionCode,
       StatusVersion: this.typeNumber,
       ProjectTypeID: valueRaw.ProjectTypeID,
+      IsConsumable: valueRaw.IsConsumable || false,
     };
     console.log("payload", payload);
     if(this.typecheck === 1) {

@@ -49,6 +49,10 @@
   background-color: #ffc0cb !important;
 }
 
+:host ::ng-deep .slick-cell.cell-over-qty {
+  background-color: #8effe6 !important;
+}
+
 /* Cell có IsApprovedTBP = true → Xanh lá cây */
 :host ::ng-deep .slick-cell.cell-approved-tbp {
   background-color: #52c41a !important;

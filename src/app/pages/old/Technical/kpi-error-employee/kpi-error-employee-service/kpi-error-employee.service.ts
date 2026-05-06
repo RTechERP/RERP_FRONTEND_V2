@@ -44,12 +44,12 @@ export class KpiErrorEmployeeService {
     keywords: string = ''
   ): Observable<any> {
     const params = new HttpParams()
-      .set('startDate', startDate.toISOString())
-      .set('endDate', endDate.toISOString())
-      .set('kpiErrorID', kpiErrorID.toString())
-      .set('employeeID', employeeID.toString())
-      .set('typeID', typeID.toString())
-      .set('departmentID', departmentID.toString())
+      .set('startDate', this.formatLocalDate(startDate))
+      .set('endDate', this.formatLocalDate(endDate))
+      .set('kpiErrorID', (kpiErrorID || 0).toString())
+      .set('employeeID', (employeeID || 0).toString())
+      .set('typeID', (typeID || 0).toString())
+      .set('departmentID', (departmentID || 0).toString())
       .set('keywords', keywords);
 
     return this.http.get(this._url + 'load-data', { params });

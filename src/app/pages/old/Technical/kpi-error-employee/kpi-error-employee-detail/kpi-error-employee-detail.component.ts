@@ -223,7 +223,7 @@ export class KpiErrorEmployeeDetailComponent implements OnInit {
             KPIErrorID: this.model.KPIErrorID,
             EmployeeID: this.model.EmployeeID,
             ErrorNumber: this.model.ErrorNumber || 1,
-            ErrorDate: this.model.ErrorDate,
+            ErrorDate: this.model.ErrorDate ? this.kpiErrorEmployeeService.formatLocalDate(this.model.ErrorDate) : null,
             Note: (this.model.Note || '').trim(),
             TotalMoney: this.model.TotalMoney || 0
         };

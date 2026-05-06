@@ -354,43 +354,47 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
                             OT_Money_HD: row.getCell(19).value || 0,
                             OT_TotalSalary: row.getCell(20).value || 0,
 
-                            ReferenceIndustry: row.getCell(21).value || 0,
-                            RealIndustry: row.getCell(22).value || 0,
-                            AllowanceMeal: row.getCell(23).value || 0,
-                            Allowance_OT_Early: row.getCell(24).value || 0,
-                            TotalAllowance: row.getCell(25).value || 0,
+                            AllowanceMeal: row.getCell(21).value || 0,
+                            Allowance_OT_Early: row.getCell(22).value || 0,
+                            TotalAllowance: row.getCell(23).value || 0,
 
-                            BussinessMoney: row.getCell(26).value || 0,
-                            NightShiftMoney: row.getCell(27).value || 0,
-                            CostVehicleBussiness: row.getCell(28).value || 0,
-                            Bonus: row.getCell(29).value || 0,
-                            Other: row.getCell(30).value || 0,
-                            TotalBonus: row.getCell(31).value || 0,
-                            RealSalary: row.getCell(32).value || 0,
+                            BussinessMoney: row.getCell(24).value || 0,
+                            NightShiftMoney: row.getCell(25).value || 0,
+                            CostVehicleBussiness: row.getCell(26).value || 0,
+                            Bonus: row.getCell(27).value || 0,
+                            Other: row.getCell(28).value || 0,
+                            TotalBonus: row.getCell(29).value || 0,
+                            RealSalary: row.getCell(30).value || 0,
 
-                            SocialInsurance: row.getCell(33).value || 0,
-                            Insurances: row.getCell(34).value || 0,
-                            UnionFees: row.getCell(35).value || 0,
-                            AdvancePayment: row.getCell(36).value || 0,
-                            DepartmentalFees: row.getCell(37).value || 0,
-                            ParkingMoney: row.getCell(38).value || 0,
-                            Punish5S: row.getCell(39).value || 0,
-                            MealUse: row.getCell(40).value || 0,
-                            OtherDeduction: row.getCell(41).value || 0,
-                            TotalDeduction: row.getCell(42).value || 0,
+                            SocialInsurance: row.getCell(31).value || 0,
+                            Insurances: row.getCell(32).value || 0,
+                            UnionFees: row.getCell(33).value || 0,
+                            AdvancePayment: row.getCell(34).value || 0,
+                            DepartmentalFees: row.getCell(35).value || 0,
+                            ParkingMoney: row.getCell(36).value || 0,
+                            Punish5S: row.getCell(37).value || 0,
+                            MealUse: row.getCell(38).value || 0,
+                            OtherDeduction: row.getCell(39).value || 0,
+                            TotalDeduction: row.getCell(40).value || 0,
 
-                            // TotalDeduction: row.getCell(43).value || 0,
-                            TaxSalaryOT: row.getCell(44).value || 0,
-                            TaxSalaryMeal: row.getCell(45).value || 0,
-                            TaxSalaryPhone: row.getCell(46).value || 0,
-                            TaxPersonalDeduction: row.getCell(47).value || 0,
-                            TaxDependentsDeduction: row.getCell(48).value || 0,
-                            TotalTaxDeduction: row.getCell(49).value || 0,
-                            TaxAbleIncome: row.getCell(50).value || 0,
-                            TaxDeduction: row.getCell(51).value || 0,
+                            // TotalDeduction: row.getCell(41).value || 0,
+                            TaxSalaryOT: row.getCell(42).value || 0,
+                            TaxSalaryMeal: row.getCell(43).value || 0,
+                            TaxSalaryPhone: row.getCell(44).value || 0,
+                            TaxPersonalDeduction: row.getCell(45).value || 0,
+                            TaxDependentsDeduction: row.getCell(46).value || 0,
+                            TotalTaxDeduction: row.getCell(47).value || 0,
+                            TaxAbleIncome: row.getCell(48).value || 0,
+                            TaxDeduction: row.getCell(49).value || 0,
 
-                            ActualAmountReceived: row.getCell(52).value || 0,
-                            Note: row.getCell(53).value?.toString() || '',
+                            ActualAmountReceived: row.getCell(50).value || 0,
+                            Note: (() => {
+                                const val = row.getCell(51).value;
+                                if (val && typeof val === 'object' && (val as any).richText) {
+                                    return (val as any).richText.map((rt: any) => rt.text).join('');
+                                }
+                                return val?.toString() || '';
+                            })(),
                         };
 
                         data.push(rowData);
@@ -632,30 +636,7 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
                                     title: "Phụ cấp",
                                     headerHozAlign: "center",
                                     columns: [
-                                        {
-                                            title: "PCCC", hozAlign: "right", headerHozAlign: "center",
-                                            columns:
-                                                [
-                                                    {
-                                                        title: "Phụ cấp chuyên cần tham chiếu", field: "ReferenceIndustry", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
-                                                    {
-                                                        title: "Phụ cấp chuyên cần thực lĩnh", field: "RealIndustry", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
-                                                ]
-                                        },
+
                                         {
                                             title: "", hozAlign: "right", headerHozAlign: "center",
                                             columns:

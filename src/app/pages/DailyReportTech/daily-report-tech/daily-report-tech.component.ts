@@ -785,19 +785,68 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Lấy danh sách ngày duy nhất
-    const uniqueDates = [...new Set(result.map(item => item.DateReport))];
+    // Lấy danh sách ngày duy nhất (chỉ lấy phần YYYY-MM-DD để tránh khác nhau do giờ)
+    const uniqueDates = [...new Set(result.map(item => (item.DateReport || '').substring(0, 10)))];
 
     // Chỉ copy khi có đúng 1 ngày (giống RTCWeb)
     if (uniqueDates.length === 1) {
-      // Copy 1 ngày
       const contentSummary = this.formatSingleDayReport(result, uniqueDates[0]);
-      // Copy vào clipboard
-      this.copyToClipboard(contentSummary);
+      // iOS không cho phép clipboard write sau async call - hiển thị modal để user tự copy
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIOS) {
+        this.showCopyModal(contentSummary);
+      } else {
+        this.copyToClipboard(contentSummary);
+      }
     } else {
-      // Nếu có nhiều ngày, hiển thị cảnh báo
       this.notification.warning('Thông báo', `Bạn không thể copy nội dung của ${uniqueDates.length} ngày!`);
     }
+  }
+
+  private showCopyModal(text: string): void {
+    const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const modalRef = this.nzModal.create({
+      nzTitle: 'Nội dung báo cáo',
+      nzContent: `<div style="max-height:350px;overflow-y:auto;"><pre style="white-space:pre-wrap;word-break:break-word;font-size:13px;margin:0;padding:4px;">${escaped}</pre></div>`,
+      nzFooter: [
+        {
+          label: 'Copy nội dung',
+          type: 'primary',
+          onClick: () => {
+            // Tạo textarea nhỏ hiển thị trên màn hình (iOS yêu cầu không off-screen)
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.cssText = 'position:fixed;top:50%;left:50%;width:2px;height:2px;opacity:0.01;border:none;outline:none;';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.setSelectionRange(0, text.length);
+
+            // Thử execCommand trước (đồng bộ, ăn theo user gesture - hoạt động trên iOS)
+            const copied = document.execCommand('copy');
+            document.body.removeChild(ta);
+
+            if (copied) {
+              this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
+              modalRef.destroy();
+            } else if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(() => {
+                this.notification.success('Thông báo', 'Đã copy vào clipboard thành công!');
+                modalRef.destroy();
+              }).catch(() => {
+                this.notification.error('Thông báo', 'Không thể copy. Vui lòng chọn nội dung trên và copy thủ công!');
+              });
+            } else {
+              this.notification.error('Thông báo', 'Không thể copy. Vui lòng chọn nội dung trên và copy thủ công!');
+            }
+          }
+        },
+        {
+          label: 'Đóng',
+          onClick: () => modalRef.destroy()
+        }
+      ]
+    });
   }
 
   private formatSingleDayReport(dayData: any[], dateReport: string): string {

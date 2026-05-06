@@ -67,6 +67,19 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
   payrollData: any[] = [];
   totalWorkdayStandard: number = 0;
 
+  get showPCCC(): boolean {
+    if (!this.searchForm) return true;
+    const year = this.searchForm.get('year')?.value;
+    const month = this.searchForm.get('month')?.value;
+    
+    if (!year || !month) return true;
+    
+    if (year < 2026) return true;
+    if (year === 2026 && month < 4) return true;
+    
+    return false;
+  }
+
   // Trạng thái xác thực lại
   showReAuthModal = false;
   pinMode: 'VERIFY' | 'CREATE' | 'FORGOT' | 'RESET' = 'VERIFY';
@@ -149,9 +162,17 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
 
   private initializeForm(): void {
     const now = new Date();
+    let year = now.getFullYear();
+    let month = now.getMonth(); 
+
+    if (month === 0) {
+      month = 12;
+      year -= 1;
+    }
+
     this.searchForm = this.fb.group({
-      year: [now.getFullYear()],
-      month: [now.getMonth() + 1]
+      year: [year],
+      month: [month]
     });
   }
 
@@ -255,8 +276,16 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
   }
   private loadDataForCurrentTab(): void {
     const formValue = this.searchForm.value;
-    const year = formValue.year || new Date().getFullYear();
-    const month = formValue.month || new Date().getMonth() + 1;
+    const now = new Date();
+    let defaultYear = now.getFullYear();
+    let defaultMonth = now.getMonth();
+    if (defaultMonth === 0) {
+      defaultMonth = 12;
+      defaultYear -= 1;
+    }
+
+    const year = formValue.year || defaultYear;
+    const month = formValue.month || defaultMonth;
 
     if (!this.pinAuthService.isAuthenticated()) {
       this.checkAndOpenPinModal();
@@ -794,8 +823,16 @@ export class EmployeeSyntheticPersonalComponent implements OnInit, AfterViewInit
     }
 
     const formValue = this.searchForm.value;
-    const year = formValue.year || new Date().getFullYear();
-    const month = formValue.month || new Date().getMonth() + 1;
+    const now = new Date();
+    let defaultYear = now.getFullYear();
+    let defaultMonth = now.getMonth();
+    if (defaultMonth === 0) {
+      defaultMonth = 12;
+      defaultYear -= 1;
+    }
+
+    const year = formValue.year || defaultYear;
+    const month = formValue.month || defaultMonth;
 
     // Xác thực mã PIN nghiêm ngặt cho BẤT KỲ hoạt động tải dữ liệu nào trong component này
     if (!this.pinAuthService.isAuthenticated()) {

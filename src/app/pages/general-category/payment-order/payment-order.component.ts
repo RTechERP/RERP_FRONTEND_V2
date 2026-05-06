@@ -1044,23 +1044,6 @@ export class PaymentOrderComponent implements OnInit {
                     } as MultipleSelectOption,
                 },
             },
-             {
-                id: PaymentOrderField.TaxCompanyName.field,
-                name: 'Công ty',
-                field: PaymentOrderField.TaxCompanyName.field,
-                type: PaymentOrderField.TaxCompanyName.type,
-                sortable: true, filterable: true,
-                width: 150,
-                // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
             {
                 id: PaymentOrderField.ContentBankTransfer.field,
                 name: 'Nội dung chuyển khoản',
@@ -1121,6 +1104,23 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.DocumentName.type,
                 sortable: true, filterable: true,
                 width: 200,
+                // formatter: Formatters.icon,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: PaymentOrderField.TaxCompanyName.field,
+                name: 'Công ty',
+                field: PaymentOrderField.TaxCompanyName.field,
+                type: PaymentOrderField.TaxCompanyName.type,
+                sortable: true, filterable: true,
+                width: 150,
                 // formatter: Formatters.icon,
                 filter: {
                     collection: [],

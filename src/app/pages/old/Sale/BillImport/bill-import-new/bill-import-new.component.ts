@@ -775,21 +775,44 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             },
             enablePagination: false,
 
-            frozenColumn: 2,
-            enableCellMenu: true,
-            cellMenu: {
-                commandItems: [
-                    {
-                        command: 'copy',
-                        title: 'Sao chép (Copy)',
-                        iconCssClass: 'fa fa-copy',
-                        positionOrder: 1,
-                        action: (_e, args) => {
-                            //this.clipboardService.copy(args.value);
-                        },
-                    },
-                ],
+      frozenColumn: 2,
+      enableCellMenu: true,
+      cellMenu: {
+        commandItems: [
+          {
+            command: 'copy',
+            title: 'Sao chép (Copy)',
+            iconCssClass: 'fa fa-copy',
+            positionOrder: 2,
+            action: (_e, args) => {
+              //this.clipboardService.copy(args.value);
             },
+          },
+        ],
+      },
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'log',
+            title: 'Lịch sử thay đổi',
+            iconCssClass: 'fa-solid fa-clock-rotate-left text-primary',
+            positionOrder: 1,
+            action: (_e, args) => {
+              this.viewLogHistory(args.dataContext);
+            },
+          },
+          {
+            command: 'copy',
+            title: 'Sao chép (Copy)',
+            iconCssClass: 'fa fa-copy',
+            positionOrder: 2,
+            action: (_e, args) => {
+              //this.clipboardService.copy(args.value);
+            },
+          },
+        ],
+      },
 
             // Excel export configuration
             externalResources: [this.excelExportService],
@@ -1894,9 +1917,37 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         }
     }
 
-    // =================================================================
-    // MODAL AND ACTION METHODS
-    // =================================================================
+  // =================================================================
+  // MODAL AND ACTION METHODS
+  // =================================================================
+
+  viewLogHistory(rowData: any): void {
+    if (!rowData || !rowData.ID) {
+      this.notification.warning('Thông báo', 'Dữ liệu phiếu không hợp lệ!');
+      return;
+    }
+    import('../Modal/bill-import-sale-log/bill-import-sale-log.component').then(
+      (m) => {
+        const modalRef = this.modal.create({
+          nzTitle:
+            'Lịch sử thay đổi phiếu nhập ' + (rowData.BillImportCode || ''),
+          nzContent: m.BillImportSaleLogComponent,
+          nzWidth: '1000px',
+          nzFooter: null, // Không hiện các nút Ok/Cancel mặc định
+          nzStyle: { top: '20px' },
+          nzBodyStyle: {
+            height: 'calc(100vh - 100px)',
+            overflowY: 'auto',
+            padding: '0 !important',
+          },
+        });
+        // Gắn Input cho component
+        if (modalRef.componentInstance) {
+          modalRef.componentInstance.billImportId = rowData.ID;
+        }
+      },
+    );
+  }
 
     openModalScanBill() {
         import('../Modal/scan-bill-import/scan-bill-import.component').then(m => {
@@ -2352,9 +2403,9 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     private applyDistinctFiltersToMaster(): void {
         if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView) return;
 
-        // Lấy toàn bộ data (không phải chỉ filtered view) - giống project-slick-grid2
-        const data = this.angularGridMaster.dataView.getItems() as any[];
-        if (!data || data.length === 0) return;
+    // Lấy toàn bộ data (không phải chỉ filtered view) - giống project-slick-grid2
+    const data = this.angularGridMaster.dataView.getItems() as any[];
+    if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
             const map = new Map<string, string>();

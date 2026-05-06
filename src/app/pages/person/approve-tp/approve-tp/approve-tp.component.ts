@@ -72,6 +72,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     searchForm!: FormGroup;
     employeeList: any[] = [];
     teamList: any[] = [];
+    teamGroupList: any[] = [];
     teamTreeNodes: any[] = [];
     userTeamLinkList: any[] = [];
     loadingData = false;
@@ -328,6 +329,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         this.approveTpService.getUserTeam().subscribe({
             next: (response: any) => {
                 this.teamList = response.data || [];
+                this.teamGroupList = this.projectService.createdDataGroup(this.teamList, 'DepartmentName');
                 this.teamTreeNodes = this.buildTeamTree(this.teamList);
                 // Auto bind team nếu currentUser đã được load
                 this.bindDefaultTeam();

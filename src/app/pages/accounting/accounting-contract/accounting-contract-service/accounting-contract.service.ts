@@ -106,5 +106,8 @@ export class AccountingContractService {
     return this.http.get<any>(`${this._url}get-accounting-contract-log`, { params });
   }
 
+  importExcel(rows: any[]): Observable<any> {
+    return this.http.post<any>(`${this._url}importexcel`, rows);
+  }
 
 }

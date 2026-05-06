@@ -63,6 +63,7 @@ import { setupTabulatorCellCopy } from '../../../shared/utils/tabulator-cell-cop
 import { AccountingContractService } from './accounting-contract-service/accounting-contract.service';
 import { AccountingContractDetailComponent } from './accounting-contract-detail/accounting-contract-detail.component';
 import { AccountingContractLogComponent } from './accounting-contract-log/accounting-contract-log.component';
+import { ImportExcelAccountingContractComponent } from './import-excel-accounting-contract/import-excel-accounting-contract.component';
 
 @Component({
   selector: 'app-accounting-contract',
@@ -470,6 +471,25 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       (result) => {
         if (result === 'saved' || result === 'success') {
           this.loadData();
+        }
+      },
+      () => {
+        // Modal dismissed
+      }
+    );
+  }
+
+  onImportExcel() {
+    const modalRef = this.modalService.open(ImportExcelAccountingContractComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      centered: true,
+    });
+
+    modalRef.result.then(
+      (result) => {
+        if (result === 'saved' || result === 'success') {
+          this.search();
         }
       },
       () => {

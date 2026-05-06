@@ -39,6 +39,7 @@ import { environment } from '../../../../../../environments/environment';
 // import { BillImportDetailNewComponent } from './bill-import-detail-new/bill-import-detail-new.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BillImportDetailNewComponent } from './bill-import-detail-new/bill-import-detail-new.component';
+import { BillImportSyntheticNewComponent } from '../Modal/bill-import-synthetic-new/bill-import-synthetic-new.component';
 
 interface BillImport {
     Id?: number;
@@ -2007,8 +2008,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     }
 
     openModalBillImportSynthetic() {
-        import('../Modal/bill-import-synthetic-new/bill-import-synthetic-new.component').then(m => {
-            const modalRef = this.modalService.open(m.BillImportSyntheticNewComponent, {
+        const modalRef = this.modalService.open(BillImportSyntheticNewComponent, {
                 centered: true,
                 backdrop: 'static',
                 keyboard: false,
@@ -2019,7 +2019,6 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 if (result == true) {
                     this.loadDataBillImport();
                 }
-            });
         });
     }
 

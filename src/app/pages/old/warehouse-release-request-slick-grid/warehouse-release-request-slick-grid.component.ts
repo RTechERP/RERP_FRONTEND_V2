@@ -343,6 +343,15 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
     ).subscribe(
       (response) => {
         if (response.status === 1) {
+          // Sort raw data by CreatedDate DESC
+          if (response.data && response.data.length > 0) {
+            response.data.sort((a: any, b: any) => {
+              const dateA = a.CreatedDate ? new Date(a.CreatedDate).getTime() : 0;
+              const dateB = b.CreatedDate ? new Date(b.CreatedDate).getTime() : 0;
+              return dateB - dateA;
+            });
+          }
+
           this.gridData = response.data;
           // Áp dụng cách xử lý tree data giống menu-app
           this.dataset = this.gridData.map((item: any) => ({
@@ -359,8 +368,13 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
             if (this.angularGrid && this.angularGrid.dataView) {
               this.angularGrid.dataView.setGrouping({
                 getter: 'PONumber',
-                formatter: (g) => `Số PO: ${g.value}  <span style="color:green">(${g.count} items)</span>`,
+                formatter: (g: any) => `Số PO: ${g.value}  <span style="color:green">(${g.count} items)</span>`,
                 collapsed: false,
+                comparer: (a: any, b: any) => {
+                  const dateA = a.rows && a.rows.length > 0 && a.rows[0].CreatedDate ? new Date(a.rows[0].CreatedDate).getTime() : 0;
+                  const dateB = b.rows && b.rows.length > 0 && b.rows[0].CreatedDate ? new Date(b.rows[0].CreatedDate).getTime() : 0;
+                  return dateB - dateA;
+                }
               });
             }
           }, 200);
@@ -959,6 +973,17 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       (response) => {
         if (response.status === 1) {
           let data = response.data;
+          
+          // Sort raw data by CreatedDate DESC
+          if (data && data.length > 0) {
+            data.sort((a: any, b: any) => {
+              const dateA = a.CreatedDate ? new Date(a.CreatedDate).getTime() : 0;
+              const dateB = b.CreatedDate ? new Date(b.CreatedDate).getTime() : 0;
+              return dateB - dateA;
+            });
+          }
+
+          this.gridData = data;
           this.dataset = data.map((item: any) => ({
             ...item,
             id: item.POKHDetailID,
@@ -973,8 +998,13 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
             if (this.angularGrid && this.angularGrid.dataView) {
               this.angularGrid.dataView.setGrouping({
                 getter: 'PONumber',
-                formatter: (g) => `Số PO: ${g.value}  <span style="color:green">(${g.count} items)</span>`,
+                formatter: (g: any) => `Số PO: ${g.value}  <span style="color:green">(${g.count} items)</span>`,
                 collapsed: false,
+                comparer: (a: any, b: any) => {
+                  const dateA = a.rows && a.rows.length > 0 && a.rows[0].CreatedDate ? new Date(a.rows[0].CreatedDate).getTime() : 0;
+                  const dateB = b.rows && b.rows.length > 0 && b.rows[0].CreatedDate ? new Date(b.rows[0].CreatedDate).getTime() : 0;
+                  return dateB - dateA;
+                }
               });
             }
           }, 200);
@@ -1332,6 +1362,11 @@ export class WarehouseReleaseRequestSlickGridComponent implements OnInit {
       enableCellNavigation: true,
       enableColumnReorder: true,
       enableSorting: true,
+      presets: {
+        sorters: [
+          { columnId: 'CreatedDate', direction: 'DESC' }
+        ]
+      },
       multiColumnSort: false, // Required for Tree Data
       enableFiltering: true,
       enableGrouping: true,

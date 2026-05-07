@@ -168,4 +168,7 @@ export class CoursePracticeService {
       params,
     });
   }
+  getPathServer(keyName: string): Observable<any> {
+    return this.http.get<any>(this.apiUrl + 'get-path-server?keyName=' + keyName);
+  }
 }

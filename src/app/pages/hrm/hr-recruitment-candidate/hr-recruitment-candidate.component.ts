@@ -62,6 +62,9 @@ import { ProjectService } from '../../project/project-service/project.service';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
 import { HomeLayoutCandidateComponent } from '../hr-recruitment/hr-recruitment-application-form/home-layout-candidate/home-layout-candidate.component';
 import { environment } from '../../../../environments/environment';
+import { HrRecruitmentInterviewAssessmentFormComponent } from '../hr-recruitment-interview-assessment/hr-recruitment-interview-assessment-form/hr-recruitment-interview-assessment-form.component';
+import { HrRecruitmentApproveFormComponent } from '../hr-recruitment-approve/hr-recruitment-approve-form/hr-recruitment-approve-form.component';
+import { HrOfferLetterComponent } from '../hr-offer-letter/hr-offer-letter.component';
 
 @Component({
     selector: 'app-hr-recruitment-candidate',
@@ -83,6 +86,7 @@ import { environment } from '../../../../environments/environment';
         NgbModalModule,
         Menubar,
         HomeLayoutCandidateComponent,
+        HrOfferLetterComponent,
     ],
     templateUrl: './hr-recruitment-candidate.component.html',
     styleUrl: './hr-recruitment-candidate.component.css'
@@ -251,18 +255,112 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                     },
                 ],
             },
-            // {
-            //   label: 'Gửi thư mời nhận việc',
-            //   visible: this.permissionService.hasPermission('N1,N2'),
-            //   icon: 'fa-solid fa-scroll fa-lg text-success',
-            //   command: () => this.onSendOfferLetter(),
-            // },
+            {
+                label: 'Gửi thư mời nhận việc',
+                visible: this.permissionService.hasPermission('N1,N2'),
+                icon: 'fa-solid fa-envelope fa-lg text-primary',
+                command: () => this.onSendOfferLetter(),
+            },
             {
                 label: 'Xem tờ khai UV',
                 icon: 'fa-solid fa-file-lines fa-lg text-info',
                 command: () => this.viewApplicationForm(),
             },
+            {
+                label: 'Đánh giá phỏng vấn',
+                icon: 'fa-solid fa-file-lines fa-lg text-info',
+                command: () => this.viewInterviewAssessment(), // phân quyền trưởng bộ phận tạo đánh giá pv
+                visible: this.permissionService.hasPermission('N1,N32'),
+            },
+            {
+                label: 'Tờ trình phê duyệt tuyển dụng',
+                icon: 'fa-solid fa-file-lines fa-lg text-info',
+                command: () => this.viewApproveForm(), // phân quyền hr tạo tờ trình tuyển dụng
+                visible: this.permissionService.hasPermission('N1,N2'),
+            },
         ];
+    }
+
+    viewApproveForm() {
+        const selectedRows = this.angularGrid?.slickGrid?.getSelectedRows() || [];
+        if (selectedRows.length !== 1) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 dòng để thao tác tờ trình tuyển dụng!');
+            return;
+        }
+
+        const item = this.angularGrid.slickGrid.getDataItem(selectedRows[0]);
+        if (!item) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy thông tin ứng viên!');
+            return;
+        }
+        if (item.Status < 3) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên chưa phỏng vấn!');
+            return;
+        }
+        if (item.Status == 3) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên được đánh giá sau phỏng vấn!');
+            return;
+        }
+        if (item.Status == 4) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên có kết quả phỏng vấn không đạt!');
+            return;
+        }
+
+        // hr tạo tờ trình tuyển dụng
+
+        const modalRef = this.modalService.open(HrRecruitmentApproveFormComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            size: 'xl',
+            scrollable: true,
+        });
+        modalRef.componentInstance.HRRecruitmentCandidateID = item.ID
+        modalRef.componentInstance.Status = item.Status
+        modalRef.result.then(
+            (result) => {
+                this.onSearch();
+            },
+            () => {
+            }
+        );
+    }
+    viewInterviewAssessment() {
+        const selectedRows = this.angularGrid?.slickGrid?.getSelectedRows() || [];
+        if (selectedRows.length !== 1) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 dòng để thao tác đánh giá phỏng vấn!');
+            return;
+        }
+
+        const item = this.angularGrid.slickGrid.getDataItem(selectedRows[0]);
+        if (!item) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy thông tin ứng viên!');
+            return;
+        }
+        if (item.Status < 3) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên chưa phỏng vấn!');
+            return;
+        }
+        if ((this.appUserService.employeeID != item.EmployeeRequestID && this.appUserService.employeeID != item.InterviewerID) && !this.permissionService.hasPermission('N1')) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn không phải trưởng bộ phận yêu cầu tuyển dụng hoặc người phỏng vấn!');
+            return;
+        }
+        const modalRef = this.modalService.open(HrRecruitmentInterviewAssessmentFormComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            size: 'xl',
+            scrollable: true,
+        });
+        modalRef.componentInstance.HRRecruitmentCandidateID = item.ID
+        modalRef.componentInstance.Status = item.Status
+        modalRef.result.then(
+            (result) => {
+                this.onSearch();
+            },
+            () => {
+            }
+        );
     }
 
     getPositionContract() {
@@ -1096,18 +1194,21 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 statusText = "Đã phỏng vấn";
                 break;
             case 4:
-                statusText = "Kết quả phỏng vấn";
+                statusText = "Kết quả phỏng vấn không đạt";
                 break;
             case 5:
-                statusText = "Trình phê duyệt";
+                statusText = "Kết quả phỏng vấn đạt";
                 break;
             case 6:
-                statusText = "Gửi thư mời nhận việc";
+                statusText = "Trình phê duyệt";
                 break;
             case 7:
-                statusText = "Xác nhận thư mời";
+                statusText = "Gửi thư mời nhận việc";
                 break;
             case 8:
+                statusText = "Xác nhận thư mời";
+                break;
+            case 9:
                 statusText = "Nhận việc";
                 break;
         }
@@ -1165,6 +1266,9 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                                 if (status === 1 && selectedRowsTemp.length > 0 && isApprove === true) {
                                     this.sendEmail(selectedRowsTemp);
                                 }
+                                if (status === 7 && selectedRowsTemp.length > 0 && isApprove === true) {
+                                    this.sendOfferLetter(selectedRowsTemp);
+                                }
                             },
                             error: (err: any) => {
                                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
@@ -1182,6 +1286,9 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
 
                                 if (status === 1 && selectedRowsTemp.length > 0 && isApprove === true) {
                                     this.sendEmail(selectedRowsTemp);
+                                }
+                                if (status === 7 && selectedRowsTemp.length > 0 && isApprove === true) {
+                                    this.sendOfferLetter(selectedRowsTemp);
                                 }
                             },
                             error: (err: any) => {
@@ -1479,28 +1586,59 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        // const modalRef = this.modalService.open(
-        //   HrOfferLetterComponent,
-        //   {
-        //     backdrop: 'static',
-        //     keyboard: false,
-        //     centered: true,
-        //     size: 'xl',
-        //   }
-        // );
+        const modalRef = this.modalService.open(
+            HrOfferLetterComponent,
+            {
+                backdrop: 'static',
+                keyboard: false,
+                centered: false,
+                size: 'fullscreen',
+                scrollable: true,
+                windowClass: 'offer-letter-fullscreen-modal',
+                modalDialogClass: 'modal-fullscreen',
+            }
+        );
 
-        // modalRef.componentInstance.candidates = selectedRows;
 
-        // modalRef.result.then(
-        //   (result) => {
-        //     this.onSearch();
-        //   },
-        //   () => {
-        //     // Modal dismissed
-        //   }
-        // );
+        modalRef.componentInstance.candidates = selectedRows;
+
+        modalRef.result.then(
+            (result) => {
+                this.onSearch();
+            },
+            () => {
+                // Modal dismissed
+            }
+        );
     }
     //#endregion
+
+    sendOfferLetter(selectedRowsTemp: any[]) {
+        const modalRef = this.modalService.open(
+            HrOfferLetterComponent,
+            {
+                backdrop: 'static',
+                keyboard: false,
+                centered: false,
+                size: 'fullscreen',
+                scrollable: true,
+                windowClass: 'offer-letter-fullscreen-modal',
+                modalDialogClass: 'modal-fullscreen',
+            }
+        );
+
+
+        modalRef.componentInstance.candidates = selectedRowsTemp;
+
+        modalRef.result.then(
+            (result) => {
+                this.onSearch();
+            },
+            () => {
+                // Modal dismissed
+            }
+        );
+    }
 
 
 }

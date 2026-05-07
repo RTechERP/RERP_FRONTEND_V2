@@ -1519,13 +1519,7 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit, OnDestroy {
 
           // Format số tiền
           if (numericFields.includes(col.field)) {
-            const numValue = Number(value) || 0;
-            return numValue === 0
-              ? 0
-              : new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }).format(numValue);
+            return Number(value) || 0;
           }
 
           // Format ngày
@@ -1553,10 +1547,12 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit, OnDestroy {
         });
 
         const addedRow = worksheet.addRow(rowData);
-        // Căn phải cho các cột số
+        // Căn phải và format số cho các cột số
         columns.forEach((col: any, index) => {
           if (numericFields.includes(col.field)) {
-            addedRow.getCell(index + 1).alignment = { horizontal: 'right' };
+            const cell = addedRow.getCell(index + 1);
+            cell.alignment = { horizontal: 'right' };
+            cell.numFmt = '#,##0.00';
           }
         });
       });
@@ -1569,14 +1565,9 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit, OnDestroy {
 
         // Các cột cần tính tổng
         if (numericFields.includes(col.field || '')) {
-          const sum = rawData.reduce((acc: number, item: any) => {
-            const val = Number(item[col.field || '']) || 0;
-            return acc + val;
+          return rawData.reduce((acc: number, item: any) => {
+            return acc + (Number(item[col.field || '']) || 0);
           }, 0);
-          return new Intl.NumberFormat('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }).format(sum);
         }
 
         return '';
@@ -1593,10 +1584,14 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit, OnDestroy {
         pattern: 'solid',
         fgColor: { argb: 'FFD3D3D3' },
       };
-      // Căn phải cho footer các cột số
+      // Căn phải và format số cho footer các cột số
       columns.forEach((col: any, index) => {
         if (numericFields.includes(col.field) || col.field === 'BillCode') {
-          footerRow.getCell(index + 1).alignment = { horizontal: 'right' };
+          const cell = footerRow.getCell(index + 1);
+          cell.alignment = { horizontal: 'right' };
+          if (numericFields.includes(col.field)) {
+            cell.numFmt = '#,##0.00';
+          }
         }
       });
       footerRow.eachCell((cell) => {

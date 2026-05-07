@@ -1,0 +1,8 @@
+.drawing-project-page {
+    background-color: #fff;
+}
+
+::ng-deep .p-menubar {
+    border: none;
+    background-color: #f8f9fa;
+}

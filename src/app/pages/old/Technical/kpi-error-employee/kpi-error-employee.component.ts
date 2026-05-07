@@ -231,6 +231,9 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             return;
         }
 
+        this.startDate.setHours(0, 0, 0, 0);
+        this.endDate.setHours(23, 59, 59, 999);
+
         this.kpiErrorEmployeeService.loadData(
             this.startDate,
             this.endDate,

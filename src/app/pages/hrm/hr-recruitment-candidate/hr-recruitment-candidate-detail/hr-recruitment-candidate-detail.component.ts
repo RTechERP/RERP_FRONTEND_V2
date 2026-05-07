@@ -433,16 +433,18 @@ export class HrRecruitmentCandidateDetailComponent implements OnInit, OnChanges 
 
     const now = new Date();
 
-    if (deadlineDateTime && deadlineDateTime <= now) {
-      this.isSaving = false;
-      this.notification.error('Dữ liệu không hợp lệ', 'Deadline phản hồi mail phải sau thời điểm hiện tại!');
-      return;
-    }
+    if (!formData.ID) {
+      if (deadlineDateTime && deadlineDateTime <= now) {
+        this.isSaving = false;
+        this.notification.error('Dữ liệu không hợp lệ', 'Deadline phản hồi mail phải sau thời điểm hiện tại!');
+        return;
+      }
 
-    if (deadlineDateTime && interviewDateTime && deadlineDateTime >= interviewDateTime) {
-      this.isSaving = false;
-      this.notification.error('Dữ liệu không hợp lệ', 'Deadline phản hồi mail phải trước ngày giờ phỏng vấn!');
-      return;
+      if (deadlineDateTime && interviewDateTime && deadlineDateTime >= interviewDateTime) {
+        this.isSaving = false;
+        this.notification.error('Dữ liệu không hợp lệ', 'Deadline phản hồi mail phải trước ngày giờ phỏng vấn!');
+        return;
+      }
     }
 
     const file = this.fileUploads.length > 0 ? this.fileUploads[0].file : undefined;

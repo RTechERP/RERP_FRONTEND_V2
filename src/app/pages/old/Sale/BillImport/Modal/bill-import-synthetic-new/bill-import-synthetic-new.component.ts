@@ -99,9 +99,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
   };
 
   searchParams = {
-    dateStart: new Date(new Date().setDate(new Date().getDate() - 2))
-      .toISOString()
-      .split('T')[0],
+    dateStart: (() => { const d = new Date(); d.setMonth(d.getMonth() - 2); return d.toISOString().split('T')[0]; })(),
     dateEnd: new Date().toISOString().split('T')[0],
     listproductgroupID: '',
     status: -1,
@@ -494,7 +492,14 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
         editor: { model: Editors['text'] },
       },
       {
@@ -1153,7 +1158,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
 
       // Style header row
       const headerRow = worksheet.getRow(1);
-      headerRow.font = { bold: true, size: 11 };
+      headerRow.font = { bold: true, name: 'Tahoma', size: 8.5 };
       headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
       headerRow.fill = {
         type: 'pattern',
@@ -1185,59 +1190,61 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
 
       // Add data rows
       items.forEach((item: any, index: number) => {
+        const v = (val: any) => val || null;
         const rowData: any = {
           stt: index + 1,
           Status: item.Status ? 'V' : 'X',
-          DateStatus: item.DateStatus ? DateTime.fromISO(item.DateStatus).toFormat('dd/MM/yyyy') : '',
-          DoccumentReceiver: item.DoccumentReceiver || '',
-          BillTypeText: item.BillTypeText || '',
-          DateRequestImport: item.DateRequestImport ? DateTime.fromISO(item.DateRequestImport).toFormat('dd/MM/yyyy') : '',
-          BillImportCode: item.BillImportCode || '',
-          CodeNCC: item.CodeNCC || '',
-          NameNCC: item.NameNCC || '',
-          DepartmentName: item.DepartmentName || '',
-          Code: item.Code || '',
-          Deliver: item.Deliver || '',
-          Reciver: item.Reciver || '',
-          CreatDateActual: item.CreatDateActual ? DateTime.fromISO(item.CreatDateActual).toFormat('dd/MM/yyyy') : '',
-          KhoType: item.KhoType || '',
-          WarehouseName: item.WarehouseName || '',
-          ProductCode: item.ProductCode || '',
-          Unit: item.Unit || '',
-          ProductNewCode: item.ProductNewCode || '',
-          Qty: item.Qty || 0,
-          Maker: item.Maker || '',
-          IsBill: item.IsBill ? 'Checked' : 'Unchecked',
-          SomeBill: item.SomeBill || '',
-          DateSomeBill: item.DateSomeBill ? DateTime.fromISO(item.DateSomeBill).toFormat('dd/MM/yyyy') : '',
-          DPO: item.DPO || 0,
-          DueDate: item.DueDate ? DateTime.fromISO(item.DueDate).toFormat('dd/MM/yyyy') : '',
-          TaxReduction: item.TaxReduction || 0,
-          COFormE: item.COFormE || 0,
-          ProjectCodeText: item.ProjectCodeText || '',
-          DeliverFullName: item.Deliver || '',
-          ProductName: item.ProductName || '',
-          ProjectCode: item.ProjectCode || '',
-          ProjectNameText: item.ProjectNameText || '',
-          BillCodePO: item.BillCodePO || '',
-          UnitPricePO: item.UnitPricePO || 0,
-          VATPO: item.VATPO || 0,
-          TotalPricePO: item.TotalPricePO || 0,
-          CurrencyCode: item.CurrencyCode || '',
-          SerialNumber: item.SerialNumber || '',
-          Note: item.Note || '',
-          IsSuccessText: item.IsSuccessText || '',
+          DateStatus: item.DateStatus ? DateTime.fromISO(item.DateStatus).toFormat('dd/MM/yyyy') : null,
+          DoccumentReceiver: v(item.DoccumentReceiver),
+          BillTypeText: v(item.BillTypeText),
+          DateRequestImport: item.DateRequestImport ? DateTime.fromISO(item.DateRequestImport).toFormat('dd/MM/yyyy') : null,
+          BillImportCode: v(item.BillImportCode),
+          CodeNCC: v(item.CodeNCC),
+          NameNCC: v(item.NameNCC),
+          DepartmentName: v(item.DepartmentName),
+          Code: v(item.Code),
+          Deliver: v(item.Deliver),
+          Reciver: v(item.Reciver),
+          CreatDateActual: item.CreatDateActual ? DateTime.fromISO(item.CreatDateActual).toFormat('dd/MM/yyyy') : null,
+          KhoType: v(item.KhoType),
+          WarehouseName: v(item.WarehouseName),
+          ProductCode: v(item.ProductCode),
+          Unit: v(item.Unit),
+          ProductNewCode: v(item.ProductNewCode),
+          Qty: Number(item.Qty) || 0,
+          Maker: v(item.Maker),
+          IsBill: item.IsBill ? 'V' : 'X',
+          SomeBill: v(item.SomeBill),
+          DateSomeBill: item.DateSomeBill ? DateTime.fromISO(item.DateSomeBill).toFormat('dd/MM/yyyy') : null,
+          DPO: Number(item.DPO) || 0,
+          DueDate: item.DueDate ? DateTime.fromISO(item.DueDate).toFormat('dd/MM/yyyy') : null,
+          TaxReduction: Number(item.TaxReduction) || 0,
+          COFormE: Number(item.COFormE) || 0,
+          ProjectCodeText: v(item.ProjectCodeText),
+          DeliverFullName: v(item.Deliver),
+          ProductName: v(item.ProductName),
+          ProjectCode: v(item.ProjectCode),
+          ProjectNameText: v(item.ProjectNameText),
+          BillCodePO: v(item.BillCodePO),
+          UnitPricePO: Number(item.UnitPricePO) || 0,
+          VATPO: Number(item.VATPO) || 0,
+          TotalPricePO: Number(item.TotalPricePO) || 0,
+          CurrencyCode: v(item.CurrencyCode),
+          SerialNumber: v(item.SerialNumber),
+          Note: v(item.Note),
+          IsSuccessText: v(item.IsSuccessText),
         };
 
         // Add dynamic document columns data
         if (this.documents && this.documents.length > 0) {
           this.documents.forEach((doc) => {
             const fieldKey = `D${doc.ID}`;
-            rowData[fieldKey] = item[fieldKey] || '';
+            rowData[fieldKey] = v(item[fieldKey]);
           });
         }
 
         const row = worksheet.addRow(rowData);
+        row.font = { name: 'Tahoma', size: 8.5 };
 
         // Add borders to data cells
         row.eachCell((cell: any) => {
@@ -1247,6 +1254,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
             bottom: { style: 'thin' },
             right: { style: 'thin' }
           };
+          cell.alignment = { ...cell.alignment, wrapText: true };
         });
 
         // Center align specific columns
@@ -1266,6 +1274,9 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
           row.getCell(key).alignment = { horizontal: 'right', vertical: 'middle' };
           row.getCell(key).numFmt = '#,##0';
         });
+
+        // Force text format for SomeBill to prevent Excel auto-converting to number
+        row.getCell('SomeBill').numFmt = '@';
 
         // Accumulate sums for footer
         sums.Qty += item.Qty || 0;
@@ -1333,7 +1344,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
       const footerRow = worksheet.addRow(footerRowData);
 
       // Style footer row
-      footerRow.font = { bold: true, size: 11 };
+      footerRow.font = { bold: true, name: 'Tahoma', size: 8.5 };
       footerRow.fill = {
         type: 'pattern',
         pattern: 'solid',
@@ -1420,9 +1431,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
   resetform(): void {
     this.selectedKhoTypes = [];
     this.searchParams = {
-      dateStart: new Date(new Date().setDate(new Date().getDate() - 1))
-        .toISOString()
-        .split('T')[0],
+      dateStart: (() => { const d = new Date(); d.setMonth(d.getMonth() - 2); return d.toISOString().split('T')[0]; })(),
       dateEnd: new Date().toISOString().split('T')[0],
       listproductgroupID: '',
       status: -1,
@@ -1592,6 +1601,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
       'DepartmentName',
       'KhoType',
       'WarehouseName',
+      'SomeBill',
     ];
 
     let hasChanges = false;

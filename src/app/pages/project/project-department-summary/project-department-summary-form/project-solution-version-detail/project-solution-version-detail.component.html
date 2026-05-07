@@ -98,13 +98,24 @@
           </nz-form-item>
         </div>
 
-        <div class="col-md-4 col-sm-12 pb-3 align-items-center h-auto">
+        <div class="col-md-2 col-sm-12 pb-3 align-items-center h-auto">
           <nz-form-item>
             <nz-form-label class="fs-12 d-flex align-items-center" [style.visibility]="'hidden'">
               Sử dụng
             </nz-form-label>
             <nz-form-control>
               <label class="mb-0 fs-12 justify-content " nz-checkbox formControlName="IsActive">Sử dụng</label>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div class="col-md-2 col-sm-12 pb-3 align-items-center h-auto">
+          <nz-form-item>
+            <nz-form-label class="fs-12 d-flex align-items-center" [style.visibility]="'hidden'">
+              Vật tư tiêu hao
+            </nz-form-label>
+            <nz-form-control>
+              <label class="mb-0 fs-12 justify-content " nz-checkbox formControlName="IsConsumable">Vật tư tiêu hao</label>
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -116,7 +127,7 @@
             <nz-form-label class="fs-12">Mô tả</nz-form-label>
             <nz-form-control>
               <textarea nz-input placeholder="Nhập mô tả" formControlName="DescriptionVersion" class="fs-12"
-                rows="10"></textarea>
+                rows="8"></textarea>
             </nz-form-control>
           </nz-form-item>
         </div>

@@ -547,25 +547,25 @@ export class HrhiringRequestComponent
       {
         label: 'HR xác nhận',
         icon: 'fa-solid fa-user-tie fa-lg text-info',
-        visible: this.permissionService.hasPermission('N56,N59'),
+        visible: this.permissionService.hasPermission('N56,N59,N94'),
         items: [
           {
             label: 'HR duyệt',
             icon: 'fa-solid fa-check text-success',
             command: () => this.approvedTBPNew(1, 2),
-            visible: this.permissionService.hasPermission('N59'),
+            visible: this.permissionService.hasPermission('N59,N94'),
           },
           {
             label: 'HR không duyệt',
             icon: 'fa-solid fa-ban text-danger',
             command: () => this.approvedTBPNew(2, 2),
-            visible: this.permissionService.hasPermission('N59'),
+            visible: this.permissionService.hasPermission('N59,N94'),
           },
           {
             label: 'HR hủy duyệt',
             icon: 'fa-solid fa-undo text-warning',
             command: () => this.approvedTBPNew(0, 2),
-            visible: this.permissionService.hasPermission('N59'),
+            visible: this.permissionService.hasPermission('N59,N94'),
           },
           { separator: true },
           {
@@ -613,7 +613,7 @@ export class HrhiringRequestComponent
       {
         label: 'Cập nhật trạng thái',
         icon: 'fa-solid fa-check-to-slot fa-lg text-info',
-        visible: this.permissionService.hasPermission('N1,N2'),
+        visible: this.permissionService.hasPermission('N1,N2,N94'),
         items: [
           {
             label: 'Hoàn thành',

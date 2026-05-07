@@ -18,16 +18,12 @@ export class KpiRankingService {
   }
 
   // Lấy dữ liệu KPI Ranking
-  getData(year: number, quarter: number, departmentId: number, kpiLevel: string | null = null): Observable<any> {
-    let params = new HttpParams()
+  getData(year: number, quarter: number, departmentId: number, kpiLevel: number): Observable<any> {
+    const params = new HttpParams()
       .set('year', year.toString())
       .set('quarter', quarter.toString())
-      .set('departmentId', departmentId.toString());
-
-    if (kpiLevel) {
-      params = params.set('kpiLevel', kpiLevel);
-    }
-
-    return this.http.get(this._url + 'get-data', { params });
+      .set('departmentId', departmentId.toString())
+      .set('kpiLevel', kpiLevel.toString());
+    return this.http.get(`${this._url}get-data`, { params });
   }
 }

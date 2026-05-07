@@ -47,7 +47,9 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
   @Input() projectSolutionId = 0;
   @Input() projectTypeId = 0;
   @Input() projectTypeName = '';
+  @Input() isConsumable = false;
 
+  projectTypeList: any[] = [2, 8, 17];
   filePath: string = '';
   excelSheets: string[] = [];
   selectedSheet: string = '';
@@ -712,6 +714,14 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
           return;
         }
 
+        if (res.products && res.products.trim() !== "") {
+          const productsArray = (res.products as string)
+            .split(',')
+            .map((p: string) => p.trim())
+            .filter(Boolean);
+          //this.showSkippedProductsModal(productsArray);
+        }
+
         // Không có diff
         this.diffs = [];
         this.validDataToSaveForDiff = validDataToSave;
@@ -758,6 +768,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       projectCode: this.projectCode.trim(),
       isProblem: this.isProblemRow,
       checkIsStock: null, // Có thể set nếu cần
+      IsConsumable: this.isConsumable,
       items: validDataToSave.map((row: any) => ({
         TT: row.TT?.toString()?.trim() || "",
         GroupMaterial: row.GroupMaterial?.toString()?.trim() || "",
@@ -796,7 +807,19 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
         if (res.status === 1 || res.success) {
           this.displayProgress = 100;
           this.displayText = `Đã lưu: ${totalRowsToSave}/${totalRowsToSave} bản ghi`;
-          this.notification.success('Thành công', res.message || `Đã lưu ${totalRowsToSave} vật tư thành công!`);
+          this.notification.success('Thành công', res.message || `Đã lưu ${totalRowsToSave} vật tư thành công!`, {
+            nzDuration: 8000
+          });
+
+          if (res.data.product && res.data.product.trim() !== "") {
+            const productsArray = (res.data.product as string)
+              .split(',')
+              .map((p: string) => p.trim())
+              .filter(Boolean);
+            this.isSaving = false;
+            this.showSkippedProductsModal(productsArray);
+          }
+
           if (res.data.DiffData.length > 0) {
             console.log('Dữ liệu nhận được', res.data.DiffData);
             this.dataDiff = res.data.DiffData;
@@ -805,6 +828,8 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
             return;
           }
 
+
+          this.isSaving = false;
           // Đóng modal và trả về kết quả
           setTimeout(() => {
             this.activeModal.close({ success: true });
@@ -903,6 +928,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       isProblem: this.isProblemRow,
       checkIsStock: this.isStock,
       warehouseID: 1, // Default warehouse
+      IsConsumable: this.isConsumable,
       items: validDataToSave.map((row: any) => ({
         TT: row.TT?.toString()?.trim() || "",
         GroupMaterial: row.GroupMaterial?.toString()?.trim() || "",
@@ -1208,6 +1234,31 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
           this.notification.error('Thông báo', errorMsg);
         }
       }
+    });
+  }
+
+  private showSkippedProductsModal(products: string[]): void {
+    this.modal.info({
+      nzTitle: `⚠️ Sản phẩm bị bỏ qua (${products.length} mã)`,
+      nzContent: `
+        <div style="margin-bottom:8px;font-size:12px;color:#999;">
+          Các mã sau không tồn tại trong kho vật tư thiết bị:
+        </div>
+        <div style="
+          background:#fafafa;
+          border:1px solid #e8e8e8;
+          border-radius:6px;
+          padding:12px 14px;
+          max-height:280px;
+          overflow-y:auto;
+          font-size:13px;
+          color:#333;
+          line-height:2;
+        ">${products.map(p => `<span style="white-space:nowrap">${p}</span>`).join(',&nbsp; ')}</div>`,
+      nzOkText: 'Ok',
+      nzWidth: 560,
+      nzBodyStyle: { padding: '16px 20px' },
+      nzOnOk: () => { }
     });
   }
 }

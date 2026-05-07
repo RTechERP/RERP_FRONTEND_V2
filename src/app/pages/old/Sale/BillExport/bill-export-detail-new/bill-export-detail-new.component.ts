@@ -868,18 +868,37 @@ export class BillExportDetailNewComponent
                         forceUserInput: false,
                         openSearchListOnFocus: true,
                         labelField: 'ProductCode',
+                        customize: (_input: HTMLInputElement, inputRect: DOMRect, container: HTMLDivElement, _maxHeight: number) => {
+                            const spaceBelow = window.innerHeight - inputRect.bottom;
+                            const spaceAbove = inputRect.top;
+                            const dropdownHeight = 300;
+                            if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+                                const availableAbove = Math.min(spaceAbove - 8, dropdownHeight);
+                                container.style.top = 'auto';
+                                container.style.bottom = `${window.innerHeight - inputRect.top}px`;
+                                container.style.maxHeight = `${availableAbove}px`;
+                            } else {
+                                container.style.top = `${inputRect.bottom}px`;
+                                container.style.bottom = 'auto';
+                                container.style.maxHeight = `${Math.min(spaceBelow - 8, dropdownHeight)}px`;
+                            }
+                        },
                         fetch: (searchTerm: string, callback: (items: false | any[]) => void) => {
                             const products = this.productGridCollection || [];
                             if (!searchTerm || searchTerm.length === 0) {
-                                callback(products);
+                                callback(products.slice(0, 50));
                             } else {
-                                const filtered = products.filter((product: any) => {
+                                const term = searchTerm.toLowerCase();
+                                const filtered: any[] = [];
+                                for (const product of products) {
+                                    if (filtered.length >= 50) break;
                                     const code = (product.ProductCode || '').toLowerCase();
                                     const newCode = (product.ProductNewCode || '').toLowerCase();
                                     const name = (product.ProductName || '').toLowerCase();
-                                    const term = searchTerm.toLowerCase();
-                                    return code.includes(term) || newCode.includes(term) || name.includes(term);
-                                });
+                                    if (code.includes(term) || newCode.includes(term) || name.includes(term)) {
+                                        filtered.push(product);
+                                    }
+                                }
                                 callback(filtered);
                             }
                         },
@@ -1045,6 +1064,10 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'] }, // nvarchar(max) - không giới hạn
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'ExpectReturnDate',
@@ -1113,6 +1136,10 @@ export class BillExportDetailNewComponent
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'Specifications',
@@ -1123,6 +1150,10 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'], maxLength: 550 }, // nvarchar(550)
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'GroupExport',
@@ -1143,6 +1174,10 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'] }, // Không có trong DB schema, cần kiểm tra
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'CustomerResponse',
@@ -1153,6 +1188,10 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'], maxLength: 550 }, // nvarchar(550)
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'SerialNumber',
@@ -1167,6 +1206,10 @@ export class BillExportDetailNewComponent
                 excludeFromHeaderMenu: true,
                 hidden: true,
                 editor: { model: Editors['text'], maxLength: 50 }, // nvarchar(50)
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'PONumber',
@@ -1176,6 +1219,10 @@ export class BillExportDetailNewComponent
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'AddSerial',
@@ -2016,7 +2063,7 @@ export class BillExportDetailNewComponent
 
         if (billExportID <= 0 || !isTransfer) return;
 
-        this.billExportService.getBillImportByBillExportID(billExportID,1).subscribe({
+        this.billExportService.getBillImportByBillExportID(billExportID, 1).subscribe({
             next: (res: any) => {
                 if (res?.status === 1 && res?.data) {
                     const billImport = res.data;

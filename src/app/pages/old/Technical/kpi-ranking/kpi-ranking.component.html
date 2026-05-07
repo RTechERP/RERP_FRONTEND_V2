@@ -1,88 +1,96 @@
-<div class="modal-header bg-primary text-uppercase py-2">
-    <h6 class="modal-title text-white">BIỂU ĐỒ XẾP LOẠI KPI</h6>
-    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
-</div>
+<div class="ranking-container d-flex flex-column h-100">
+    <!-- Filter Bar -->
+    <div class="filter-bar p-3 border-bottom shadow-sm">
+        <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-3 align-items-center">
+            <nz-form-item class="mb-0">
+                <nz-form-label class="fw-bold">Năm</nz-form-label>
+                <nz-form-control>
+                    <nz-input-number [(ngModel)]="year" name="year" [nzMin]="2024" [nzMax]="2100" nzSize="default"
+                        style="width: 90px;" [disabled]="true"></nz-input-number>
+                </nz-form-control>
+            </nz-form-item>
 
-<div class="modal-body p-0">
-    <div class="d-flex flex-column modal-content-container">
-        <!-- Filter Bar -->
-        <div class="filter-bar bg-light border-bottom p-2 d-flex align-items-center">
-            <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
-                <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">Năm</nz-form-label>
-                    <nz-form-control>
-                        <nz-input-number [(ngModel)]="year" name="year" [nzMin]="2024" [nzMax]="2100" nzSize="small"
-                            style="width: 80px;" (ngModelChange)="onFilterChange()"></nz-input-number>
-                    </nz-form-control>
-                </nz-form-item>
+            <nz-form-item class="mb-0">
+                <nz-form-label class="fw-bold">Quý</nz-form-label>
+                <nz-form-control>
+                    <nz-input-number [(ngModel)]="quarter" name="quarter" [nzMin]="1" [nzMax]="4" nzSize="default"
+                        style="width: 70px;" [disabled]="true"></nz-input-number>
+                </nz-form-control>
+            </nz-form-item>
 
-                <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">Quý</nz-form-label>
-                    <nz-form-control>
-                        <nz-input-number [(ngModel)]="quarter" name="quarter" [nzMin]="1" [nzMax]="4" nzSize="small"
-                            style="width: 65px;" (ngModelChange)="onFilterChange()"></nz-input-number>
-                    </nz-form-control>
-                </nz-form-item>
+            <nz-form-item class="mb-0">
+                <nz-form-label class="fw-bold">Phòng ban</nz-form-label>
+                <nz-form-control>
+                    <nz-select [(ngModel)]="departmentId" name="departmentId" nzSize="default"
+                        nzPlaceHolder="Chọn phòng ban" nzAllowClear style="width: 250px;" nzShowSearch
+                        [disabled]="true">
+                        <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
+                            [nzLabel]="item.Name"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
 
-                <nz-form-item class="mb-0">
-                    <nz-form-label class="fs-12">Phòng ban</nz-form-label>
-                    <nz-form-control>
-                        <nz-select [(ngModel)]="departmentId" name="departmentId" nzSize="small"
-                            nzPlaceHolder="Chọn phòng ban" nzAllowClear style="width: 200px;" nzShowSearch
-                            (ngModelChange)="onFilterChange()">
-                            <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
-                                [nzLabel]="item.Name"></nz-option>
-                        </nz-select>
-                    </nz-form-control>
-                </nz-form-item>
+            <div class="flex-grow-1"></div>
 
-                <nz-form-item class="mb-0">
-                    <nz-form-control>
-                        <button nz-button nzType="primary" nzSize="small" (click)="loadData()">
-                            <nz-icon nzType="search"></nz-icon> Tìm kiếm
-                        </button>
-                    </nz-form-control>
-                </nz-form-item>
-            </form>
-        </div>
+            <!-- <nz-form-item class="mb-0">
+                <nz-form-control>
+                    <button nz-button nzType="primary" nzSize="default" (click)="loadData()" class="px-4 shadow-sm">
+                        <nz-icon nzType="search"></nz-icon> Tìm kiếm
+                    </button>
+                </nz-form-control>
+            </nz-form-item> -->
+        </form>
+    </div>
 
-        <!-- Content Split -->
-        <nz-splitter class="content-container">
+    <!-- Content Split -->
+    <div class="content-body flex-grow-1 min-h-0">
+        <nz-splitter class="h-100">
             <!-- Left: Chart -->
-            <nz-splitter-panel nzDefaultSize="65%" [nzMin]="'40%'" [nzMax]="'80%'">
-                <div class="chart-container p-3 d-flex flex-column h-100 w-100">
-                    <!-- Radio buttons overlay -->
-                    <div class="radio-group">
-                        <label class="radio-kpi">
-                            <input type="radio" name="chartType" value="TotalPoinKPI" [(ngModel)]="selectedChartType"
-                                (change)="onChartTypeChange()">
-                            Tổng điểm KPI
-                        </label>
-                        <label class="radio-kpi-last">
-                            <input type="radio" name="chartType" value="TotalPoinKPILast"
-                                [(ngModel)]="selectedChartType" (change)="onChartTypeChange()">
-                            Tổng điểm cuối cùng
-                        </label>
+            <nz-splitter-panel nzDefaultSize="65%" [nzMin]="'40%'" [nzMax]="'85%'">
+                <div class="chart-panel h-100 w-100">
+                    <div class="chart-wrapper h-100 position-relative shadow-sm border rounded bg-white p-3">
+                        <!-- Radio buttons overlay -->
+                        <div class="radio-overlay">
+                            <label class="radio-item kpi-expected">
+                                <input type="radio" name="chartType" value="TotalPoinKPI"
+                                    [(ngModel)]="selectedChartType" (change)="onChartTypeChange()">
+                                <span class="radio-dot"></span>
+                                Tổng điểm KPI
+                            </label>
+                            <label class="radio-item kpi-actual">
+                                <input type="radio" name="chartType" value="TotalPoinKPILast"
+                                    [(ngModel)]="selectedChartType" (change)="onChartTypeChange()">
+                                <span class="radio-dot"></span>
+                                Tổng điểm cuối cùng
+                            </label>
+                        </div>
+                        <div class="chart-content">
+                            <p-chart type="bar" [data]="chartData" [options]="chartOptions" [plugins]="chartPlugins"
+                                (onDataSelect)="onDataSelect($event)" />
+                        </div>
                     </div>
-                    <p-chart type="bar" [data]="chartData" [options]="chartOptions" class="flex-grow-1" />
                 </div>
             </nz-splitter-panel>
 
             <!-- Right: Employee Grid -->
             <nz-splitter-panel [nzMin]="'20%'">
-                <div class="d-flex flex-column h-100">
-                    <div class="group-header">DANH SÁCH NHÂN VIÊN</div>
-                    <div class="grid-container flex-grow-1">
-                        <angular-slickgrid gridId="gridEmployee" [columns]="colDef" [options]="gridOptions"
-                            [dataset]="dataset" (onAngularGridCreated)="onGridReady($event.detail)">
-                        </angular-slickgrid>
+                <div class="grid-panel h-100 d-flex flex-column">
+                    <div
+                        class="grid-wrapper d-flex flex-column h-100 shadow-sm border rounded bg-white overflow-hidden">
+                        <div
+                            class="panel-header px-3 py-2 d-flex align-items-center justify-content-between bg-light border-bottom">
+                            <span class="fw-bold text-primary"><i nz-icon nzType="team" class="mr-2"></i>DANH SÁCH NHÂN
+                                VIÊN</span>
+                            <span class="badge bg-info text-white">{{dataset.length}} nhân viên</span>
+                        </div>
+                        <div class="grid-content flex-grow-1">
+                            <angular-slickgrid gridId="gridEmployee" [columns]="colDef" [options]="gridOptions"
+                                [dataset]="dataset" (onAngularGridCreated)="onGridReady($event.detail)">
+                            </angular-slickgrid>
+                        </div>
                     </div>
                 </div>
             </nz-splitter-panel>
         </nz-splitter>
     </div>
-</div>
-
-<div class="modal-footer py-1">
-    <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
 </div>

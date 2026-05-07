@@ -578,10 +578,39 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         const wb = new ExcelJS.Workbook();
         const ws = wb.addWorksheet('TongHop');
 
-        this.writeSheet(ws, this.colDefTH1, this.datasetTH1);
+        const sortedData = [...this.datasetTH1].sort((a, b) => (a.FullName || '').localeCompare(b.FullName || ''));
+        this.writeSheet(ws, this.colDefTH1, sortedData);
 
         const buffer = await wb.xlsx.writeBuffer();
         this.saveFile(buffer, `TongHopLoi_${this.month}_${this.year}.xlsx`);
+    }
+
+    async exportExcelAllDepartments() {
+        this.service.getDataTongHop(
+            this.month, this.year, this.kpiErrorId_T1 || 0, this.employeeId_T1 || 0,
+            0, // 0 means all departments
+            this.keyword_T1
+        ).subscribe(async (res: any) => {
+            if (res.status === 1 && res.data) {
+                const datasetAll = (res.data.data1 || []).map((x: any, i: number) => ({ ...x, id: i }));
+                
+                if (!datasetAll.length) { 
+                    this.notification.warning('Thông báo', 'Không có dữ liệu cho tất cả phòng ban'); 
+                    return; 
+                }
+
+                const wb = new ExcelJS.Workbook();
+                const ws = wb.addWorksheet('TongHopTatCa');
+
+                datasetAll.sort((a: any, b: any) => (a.FullName || '').localeCompare(b.FullName || ''));
+                this.writeSheet(ws, this.colDefTH1, datasetAll);
+
+                const buffer = await wb.xlsx.writeBuffer();
+                this.saveFile(buffer, `TongHopLoi_ToanBoPhongBan_${this.month}_${this.year}.xlsx`);
+            } else {
+                this.notification.warning('Thông báo', 'Không có dữ liệu');
+            }
+        });
     }
 
     async exportExcelTab2() {
@@ -599,42 +628,90 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         const visibleCols = cols.filter(c => !c.hidden);
         const headers = visibleCols.map(c => c.name || '');
         const headerRow = ws.addRow(headers);
-        headerRow.font = { bold: true };
+        
+        // Định dạng header
+        headerRow.eachCell((cell) => {
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF0070C0' } // Màu xanh dương nhạt
+            };
+            cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
+            };
+        });
 
-        data.forEach(item => {
+        let previousFullName = data.length > 0 ? (data[0].FullName || '') : '';
+        let startRowForMerge = 2; // Row 1 is header
+        const fullNameColIndex = visibleCols.findIndex(c => c.field === 'FullName') + 1;
+
+        data.forEach((item, index) => {
             const rowData = visibleCols.map(c => {
                 const val = item[c.field];
                 return val !== undefined && val !== null ? val : '';
             });
             const row = ws.addRow(rowData);
+            const currentRowIndex = index + 2;
 
             visibleCols.forEach((col, index) => {
                 const cell = row.getCell(index + 1);
                 
-                if (col.field === 'Content' || col.field === 'Note') {
-                    cell.alignment = { wrapText: true, vertical: 'top' };
-                } else {
-                    cell.alignment = { vertical: 'middle' };
-                }
+                // Mặc định wrapText và căn giữa theo chiều dọc
+                cell.alignment = { wrapText: true, vertical: 'middle' };
+                
+                // Thêm viền
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
 
+                // Nếu là số tiền thì format và căn phải
                 if ((col.field === 'TotalMoney' || col.field === 'Monney') && item[col.field]) {
                     const num = Number(item[col.field]);
                     if (!isNaN(num)) {
                         cell.value = num;
                         cell.numFmt = '#,##0';
+                        cell.alignment = { wrapText: true, vertical: 'middle', horizontal: 'right' };
                     }
                 }
             });
+
+            // Xử lý gộp ô cho cột tên nhân viên
+            if (fullNameColIndex > 0) {
+                const currentFullName = item.FullName || '';
+                if (currentFullName !== previousFullName) {
+                    if (currentRowIndex - 1 > startRowForMerge) {
+                        ws.mergeCells(startRowForMerge, fullNameColIndex, currentRowIndex - 1, fullNameColIndex);
+                    }
+                    previousFullName = currentFullName;
+                    startRowForMerge = currentRowIndex;
+                }
+            }
         });
 
+        // Gộp ô cho group cuối cùng nếu cần
+        if (fullNameColIndex > 0 && data.length + 1 > startRowForMerge) {
+            ws.mergeCells(startRowForMerge, fullNameColIndex, data.length + 1, fullNameColIndex);
+        }
+
+        // Căn chỉnh độ rộng cột
         ws.columns.forEach((c, i) => { 
             const field = visibleCols[i]?.field;
-            if (field === 'Content' || field === 'Note') {
-                c.width = 40;
-            } else if (field === 'FullName') {
-                c.width = 25;
+            if (field === 'Content' || field === 'Note' || field === 'ErrorContent') {
+                c.width = 45;
+            } else if (field === 'FullName' || field === 'EmployeeName') {
+                c.width = 30;
+            } else if (field === 'DepartmentName') {
+                c.width = 35;
             } else {
-                c.width = 15;
+                c.width = 18;
             }
         });
     }

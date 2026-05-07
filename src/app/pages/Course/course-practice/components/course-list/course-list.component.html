@@ -43,11 +43,11 @@
                                             style="margin: 0; width: fit-content;">
                                             {{ course.DeleteFlag ? 'Hoạt động' : 'Dừng hoạt động' }}
                                         </nz-tag>
-                                        <h5 class="course-title" (click)="onViewCourseDetail(course)"
+                                        <h5 class="course-title w-100" (click)="onViewCourseDetail(course)"
                                             [title]="course.NameCourse">{{ course.NameCourse }}
                                         </h5>
                                         <div style="font-size: 13px; color: #8c8c8c;">
-                                    {{ course.Instructor || 'N/A' }}
+                                            {{ course.Instructor || 'N/A' }}
                                         </div>
                                     </div>
 

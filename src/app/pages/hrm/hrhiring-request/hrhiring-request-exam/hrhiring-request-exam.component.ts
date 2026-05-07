@@ -94,13 +94,13 @@ export class HRHiringRequestExamComponent implements OnInit {
 
       //   label: 'Thêm',
       //   icon: 'fa-solid fa-plus text-success',
-      //   hasPermission: 'N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86',
+      //   hasPermission: 'N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86,N94',
       //   command: () => this.onAdd()
       // },
       {
         label: 'Thiết lập bài thi',
         icon: 'fa-solid fa-pencil text-primary',
-        hasPermission: 'N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86',
+        hasPermission: 'N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86,N94',
         command: () => this.onEdit()
       },
       // {

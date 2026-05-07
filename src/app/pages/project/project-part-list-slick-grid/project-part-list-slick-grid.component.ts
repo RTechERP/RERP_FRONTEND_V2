@@ -193,6 +193,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
   isLoading: boolean = false;
   private loadingCounter: number = 0;
   private loadingTimeout: any = null;
+  isHide: boolean = true;
+  isConsumable: boolean = false;
+
 
   // Selection tracking
   savedSelectedRowIds: Set<number> = new Set();
@@ -219,6 +222,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
   // Color filter toggles
   filterDeleted: boolean = false;
+  filterOverQty: boolean = false;
   filterProblem: boolean = false;
   filterNewCode: boolean = false;
   filterFix: boolean = false;
@@ -631,6 +635,17 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'IsActive',
         field: 'IsActive',
         name: 'Sử dụng',
+        width: 80,
+        formatter: (row: number, cell: number, value: any) => {
+          const checked = value === true || value === 'true' || value === 1 || value === '1';
+          return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
+        },
+        cssClass: 'text-center',
+      },
+      {
+        id: 'IsConsumable',
+        field: 'IsConsumable',
+        name: 'VTHH',
         width: 80,
         formatter: (row: number, cell: number, value: any) => {
           const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -2036,6 +2051,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     const totalSameMaker = Number(item.IsSameMaker) || 0;
     const totalSameUnit = Number(item.IsSameUnit) || 0;
 
+    const isOverQty = item.IsOverQty || false;
+
     let rowCssClass = '';
 
     // 1. Ưu tiên cao nhất: Dòng bị xóa → Red
@@ -2090,6 +2107,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         } else if (isProductSale) {
           columns['ProductCode'] = { cssClass: 'cell-product-sale' };
         }
+      }
+
+      if (isOverQty && this.isConsumable) {
+        columns['QtyFull'] = { cssClass: 'cell-over-qty' };
       }
     }
 
@@ -2942,7 +2963,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       IsApprovedTBP: this.isApprovedTBP || 0,
       IsApprovedPurchase: this.isApprovedPurchase || 0,
       ProjectPartListVersionID: selectedVersionID || 0,
+      IsConsumable: this.isConsumable || false,
     };
+
 
     this.projectPartListService.getProjectPartList(params).subscribe({
       next: (response: any) => {
@@ -3422,6 +3445,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     if (selectedRows.length > 0) {
       const rowIndex = selectedRows[0];
       const data = this.angularGridSolutionVersion?.dataView?.getItem(rowIndex);
+      this.isHide = data.IsConsumable ?? true;
+      this.isConsumable = data.IsConsumable ?? false;
       if (data) {
         this.versionID = data.ID;
         this.versionPOID = 0; // Reset PO version
@@ -3513,25 +3538,26 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     if (this.clearingSelection) {
       return;
     }
-
     const selectedRows = event.detail.args.rows || [];
 
     if (selectedRows.length > 0) {
       const rowIndex = selectedRows[0];
       const data = this.angularGridVersion?.dataView?.getItem(rowIndex);
-
       if (data && !data.__group && !data.__groupTotals) {
         // Set version based on VersionType
         if (data.VersionType === 1) {
+          this.isHide = data.IsConsumable ? !data.IsConsumable : true;
           this.versionID = data.originalId;
           this.versionPOID = 0;
           this.type = 1;
         } else {
+          this.isHide = data.IsConsumable ? !data.IsConsumable : true;
           this.versionPOID = data.originalId;
           this.versionID = 0;
           this.type = 2;
         }
 
+        this.isConsumable = data.IsConsumable ?? false;
         this.selectionCode = data.Code || '';
         this.projectTypeID = data.ProjectTypeID || 0;
         this.projectTypeName = data.ProjectTypeName || '';
@@ -3582,6 +3608,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
     // Kiểm tra trạng thái filter
     const activeFilters = {
+      OverQty: this.filterOverQty,
       Deleted: this.filterDeleted,
       Problem: this.filterProblem,
       New: this.filterNewCode,
@@ -3613,6 +3640,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       const isFix = item.IsFix === true;
       const isNewCode = item.IsNewCode === true;
       const isProductSale = item.IsProductSale && item.IsProductSale !== '';
+      const isOverQty = item.IsOverQty ?? false;
 
       let isMatch = false;
       if (this.filterDeleted && isDeleted) isMatch = true;
@@ -3621,6 +3649,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       if (this.filterFix && isFix) isMatch = true;
       if (this.filterReturn && quantityReturn > 0) isMatch = true;
       if (this.filterProductSale && isProductSale) isMatch = true;
+      if (this.filterOverQty && isOverQty) isMatch = true;
 
       if (isMatch) {
         matchedIds.add(item.ID);
@@ -3652,6 +3681,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     switch (filterType) {
       case 'deleted':
         this.filterDeleted = !this.filterDeleted;
+        break;
+      case 'overQty':
+        this.filterOverQty = !this.filterOverQty;
         break;
       case 'problem':
         this.filterProblem = !this.filterProblem;
@@ -3775,6 +3807,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     modalRef.componentInstance.versionData = this.dataVersion;
 
     if (isEdit && selectedData) {
+      modalRef.componentInstance.IsConsumable = this.isConsumable;
       modalRef.componentInstance.ProjectworkerID = selectedData.originalId;
       modalRef.componentInstance.VersionCode = selectedData.Code;
       modalRef.componentInstance.ProjectTypeID = selectedData.ProjectTypeID;
@@ -3794,6 +3827,13 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       if (result && result.success) {
         // Reload merged version data
         this.loadDataVersion();
+
+        let cosumable = result.isConsumable;
+
+        if (this.isConsumable != cosumable) {
+          this.isConsumable = result.isConsumable;
+          this.loadDataProjectPartList();
+        }
       }
     }).catch(() => { });
   }
@@ -6012,6 +6052,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     modalRef.componentInstance.projectTypeId = this.projectTypeID;
     modalRef.componentInstance.projectTypeName = this.projectTypeName;
     modalRef.componentInstance.projectSolutionId = this.projectSolutionId;
+    modalRef.componentInstance.isConsumable = this.isConsumable;
     modalRef.result.then((result: any) => {
       if (result && result.success) {
         this.loadDataProjectPartList();
@@ -6712,6 +6753,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       ProjectSolutionID: rowData.ProjectSolutionID,
       ProjectTypeName: rowData.ProjectTypeName,
       ProjectID: this.projectId,
+      IsConsumable: this.isConsumable
     };
     this.startLoading();
     (this.projectPartListService as any).convertVersionPO(payload).subscribe({

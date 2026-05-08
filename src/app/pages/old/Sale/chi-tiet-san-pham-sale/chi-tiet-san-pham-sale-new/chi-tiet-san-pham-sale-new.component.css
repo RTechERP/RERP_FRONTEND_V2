@@ -1,0 +1,25 @@
+/* ─── Make p-tabpanels + p-tabpanel participate in flex height chain ─────────
+   Needed so that p-table with scrollHeight="flex" can detect container height.
+   p-tabpanel renders as display:block by default which breaks scrollHeight=flex.
+────────────────────────────────────────────────────────────────────────────── */
+
+/* p-tabpanels: fill remaining space in the p-tabs flex column */
+:host ::ng-deep .p-tabpanels {
+  flex: 1;
+  min-height: 0;
+  padding: 0 !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* p-tabpanel: fill full height of tabpanels, act as flex column for p-table */
+:host ::ng-deep .p-tabpanel {
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}

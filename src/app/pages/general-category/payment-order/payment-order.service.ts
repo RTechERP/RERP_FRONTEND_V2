@@ -261,4 +261,6 @@ export const CURRENCY_CONFIGS: CurrencyConfig[] = [
     { id: 'cny', text: 'CNY', unit: 'nhân dân tệ', subUnit: '' },
     { id: 'inr', text: 'INR', unit: 'rupee', subUnit: 'paise' },
     { id: 'myr', text: 'MYR', unit: 'ringgit', subUnit: 'sen' },
+    { id: 'idr', text: 'IDR', unit: 'rupiah', subUnit: 'sen' },
+
 ];

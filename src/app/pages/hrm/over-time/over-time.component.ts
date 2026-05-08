@@ -901,6 +901,15 @@ export class OverTimeComponent implements OnInit {
       return acc;
     }, {});
 
+    // Sắp xếp các nhân viên trong cùng phòng ban để các dòng của một nhân viên nằm liền nhau
+    for (const dept in grouped) {
+      grouped[dept].sort((a: any, b: any) => {
+        const nameA = a.FullName || '';
+        const nameB = b.FullName || '';
+        return nameA.localeCompare(nameB);
+      });
+    }
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('DangKyLamThem');
 
@@ -912,7 +921,8 @@ export class OverTimeComponent implements OnInit {
       { header: '', key: 'Ngày', width: 15 },
       { header: '', key: 'Từ', width: 20 },
       { header: '', key: 'Đến', width: 20 },
-      { header: '', key: 'Số giờ', width: 10 },
+      { header: '', key: 'Số giờ Tại nhà', width: 15 },
+      { header: '', key: 'Số giờ', width: 15 },
       { header: '', key: 'Địa điểm', width: 20 },
       { header: '', key: 'Loại', width: 20 },
       { header: '', key: 'Ăn tối', width: 10 },
@@ -939,7 +949,7 @@ export class OverTimeComponent implements OnInit {
     let rowIndex = 2;
     for (const dept in grouped) {
       // Thêm dòng tiêu đề phòng ban
-      const deptRow = worksheet.addRow([dept, '', '', '', '', '', '', '', '', '', '', '', '', '']);
+      const deptRow = worksheet.addRow([dept, '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
       deptRow.font = { name: 'Tahoma', size: 9, bold: true };
       deptRow.alignment = { horizontal: 'left', vertical: 'middle' };
       deptRow.fill = {
@@ -954,6 +964,11 @@ export class OverTimeComponent implements OnInit {
         const safe = (val: any) => (val && typeof val === 'object' && Object.keys(val).length === 0 ? '' : val);
         const formatDate = (val: any) => val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
         const formatDateTime = (val: any) => val ? DateTime.fromISO(val).toFormat('HH:mm dd/MM/yyyy') : '';
+        
+        const location = item.LocationText || '';
+        const isHome = location.toLowerCase().includes('nhà');
+        const timeStr = safe(item.TimeReality);
+
         const row = worksheet.addRow({
           'TBP duyệt': safe(item.StatusText),
           'HR duyệt': safe(item.StatusHRText),
@@ -962,7 +977,8 @@ export class OverTimeComponent implements OnInit {
           'Ngày': safe(formatDate(item.DateRegister)),
           'Từ': safe(formatDateTime(item.TimeStart)),
           'Đến': safe(formatDateTime(item.EndTime)),
-          'Số giờ': safe(item.TimeReality),
+          'Số giờ Tại nhà': isHome ? timeStr : '',
+          'Số giờ': !isHome ? timeStr : '',
           'Địa điểm': safe(item.LocationText),
           'Loại': safe(item.Type),
           'Ăn tối': safe(item.Overnight ? 'Có' : 'Không'),
@@ -978,6 +994,33 @@ export class OverTimeComponent implements OnInit {
         rowIndex++;
       });
     }
+
+    // Tính tổng giờ theo từng địa điểm làm thêm
+    let totalHome = 0;
+    let totalOther = 0;
+
+    this.overTimeList.forEach((item: any) => {
+      const location = item.LocationText || '';
+      const isHome = location.toLowerCase().includes('nhà');
+      const hours = parseFloat(item.TimeReality) || 0;
+      
+      if (isHome) {
+        totalHome += hours;
+      } else {
+        totalOther += hours;
+      }
+    });
+
+    // Thêm khoảng trắng trước khi in tổng
+    worksheet.addRow([]);
+
+    // Thêm dòng tổng cộng
+    const sumRow = worksheet.addRow(['', '', '', '', '', '', 'TỔNG CỘNG:', totalHome.toFixed(2), totalOther.toFixed(2), '', '', '', '', '', '']);
+    sumRow.font = { name: 'Tahoma', size: 10, bold: true, color: { argb: 'FFFF0000' } };
+    sumRow.getCell(7).alignment = { horizontal: 'right', vertical: 'middle' };
+    sumRow.getCell(8).alignment = { horizontal: 'center', vertical: 'middle' };
+    sumRow.getCell(9).alignment = { horizontal: 'center', vertical: 'middle' };
+    sumRow.height = 25;
 
     // Xuất file
     const buffer = await workbook.xlsx.writeBuffer();

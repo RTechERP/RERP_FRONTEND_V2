@@ -1685,6 +1685,10 @@ export class BillImportDetailNewComponent
             this.warehouseID = resolvedId;
 
             this.getDataCbbProductGroup();
+
+            if (this.poNCCId > 0) {
+                this.updateReceiverDeliver();
+            }
         });
     }
 
@@ -2001,7 +2005,7 @@ export class BillImportDetailNewComponent
                 ProductName: item.ProductName || productInfo.ProductName || '',
                 Unit: item.UnitName || item.Unit || productInfo.Unit || '',
                 QtyRequest: item.QtyRequest || 0,
-                Qty: item.QtyRequest || item.QuantityRemain || 0,
+                Qty: item.QuantityRemain || 0,
                 IsNotKeep: false,
                 ProjectID: item.ProjectID || 0,
                 ProjectCode: item.ProductCodeOfSupplier || '',

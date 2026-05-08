@@ -50,6 +50,7 @@ import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESP
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
 import { ChiTietSanPhamSaleComponent } from '../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
+import { ChiTietSanPhamSaleNewComponent } from '../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale-new/chi-tiet-san-pham-sale-new.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
 import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { AppUserService } from '../../../../../services/app-user.service';
@@ -1664,7 +1665,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         const productCode = productData.ProductCode || '';
 
         this.tabService.openTabComp({
-            comp: ChiTietSanPhamSaleComponent,
+            comp: ChiTietSanPhamSaleNewComponent,
             title: `Chi tiết SP - ${productCode}`,
             key: `chi-tiet-san-pham-sale-${productData.ProductSaleID || 0}`,
             data: {

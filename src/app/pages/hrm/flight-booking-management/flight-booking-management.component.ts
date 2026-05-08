@@ -416,7 +416,7 @@ export class FlightBookingManagementComponent implements OnInit {
       backdrop: 'static',
       keyboard: false,
       centered: true,
-      size: 'lg',
+      size: 'xl',
       scrollable: true,
     });
 

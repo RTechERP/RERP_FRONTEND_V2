@@ -690,7 +690,18 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
         }
 
         const host = environment.host + 'api/share/';
-        let urlFile = this.existingPDFPath.replace('\\\\192.168.1.190\\', '');
+        // let stringFolderFileOld = '/Software/ftp/Upload/Course/PDFFileLesson/'
+        // if(this.existingPDFPath.)
+        // let urlFile = this.existingPDFPath.replace('\\\\192.168.1.190\\', '');
+        let stringFolderFileOld = 'Software/ftp/Upload/Course/PDFFileLesson/';
+
+        let urlFile = '';
+
+        if (this.existingPDFPath?.startsWith('\\\\192.168.1.190\\')) {
+            urlFile = this.existingPDFPath.replace('\\\\192.168.1.190\\', '');
+        } else {
+            urlFile = stringFolderFileOld + this.existingPDFPath;
+        }
         urlFile = urlFile.replace(/\\/g, '/');
         urlFile = host + urlFile;
 

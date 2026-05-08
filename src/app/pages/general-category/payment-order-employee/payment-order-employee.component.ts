@@ -232,6 +232,24 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                     this.selectedItem = null;
                 },
             },
+            {
+                label: 'KH đã nhận',
+                icon: 'fa-solid fa-circle-check fa-lg text-success',
+                command: () => {
+                    this.onApprovedKHReceive(1, {
+                        ButtonActionGroup: '', ButtonActionName: '', ButtonActionText: 'KH đã nhận',
+                    });
+                },
+            },
+            {
+                label: 'KH hủy nhận',
+                icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                command: () => {
+                    this.onApprovedKHReceive(2, {
+                        ButtonActionGroup: '', ButtonActionName: '', ButtonActionText: 'KH hủy nhận',
+                    });
+                },
+            },
 
         ];
     }
@@ -2047,5 +2065,79 @@ export class PaymentOrderEmployeeComponent implements OnInit {
             // window.open(url, '_blank', `width=${window.screen.width / 2},height=${window.screen.height}`);
             window.open(url, '_blank');
         });
+    }
+
+    async onApprovedKHReceive(isApproved: number, action: any) {
+        if (!this.selectedItem) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đề nghị!');
+            return;
+        }
+
+        const data = [{
+            ...this.selectedItem,
+            Action: action,
+            PaymentOrderLog: { IsApproved: isApproved },
+            CurrentApproved: this.selectedItem.IsApproved || 0,
+            Step: this.selectedItem.Step || 0,
+        }];
+
+        if (isApproved == 1) {
+            Swal.fire({
+                title: 'Xác nhận duyệt?',
+                text: `Bạn có chắc muốn xác nhận KH đã nhận không?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#dc3545',
+                confirmButtonText: 'Duyệt',
+                cancelButtonText: 'Hủy',
+            }).then((result: any) => {
+                if (result.isConfirmed) {
+                    this.paymentService.appovedKHReceive(data).subscribe({
+                        next: (response) => {
+                            this.loadData();
+                            this.notification.success(NOTIFICATION_TITLE.success, response.message);
+                        },
+                        error: (err) => {
+                            this.notification.create(
+                                NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                                NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                                err?.error?.message || `${err.error}\n${err.message}`,
+                                { nzStyle: { whiteSpace: 'pre-line' } }
+                            );
+                        },
+                    });
+                }
+            });
+        } else if (isApproved == 2) {
+            const { value: reason }: { value?: string } = await Swal.fire({
+                input: 'textarea',
+                inputLabel: 'Lý do hủy',
+                inputPlaceholder: 'Nhập lý do hủy...',
+                inputAttributes: { 'aria-label': 'Vui lòng nhập Lý do hủy' },
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#dc3545',
+                confirmButtonText: 'Hủy nhận',
+                cancelButtonText: 'Hủy',
+            });
+            if (reason) {
+                const cancelData = data.map((x) => ({ ...x, ReasonCancel: reason }));
+                this.paymentService.appovedKHReceive(cancelData).subscribe({
+                    next: (response) => {
+                        this.loadData();
+                        this.notification.success(NOTIFICATION_TITLE.success, response.message);
+                    },
+                    error: (err) => {
+                        this.notification.create(
+                            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                            err?.error?.message || `${err.error}\n${err.message}`,
+                            { nzStyle: { whiteSpace: 'pre-line' } }
+                        );
+                    },
+                });
+            }
+        }
     }
 }

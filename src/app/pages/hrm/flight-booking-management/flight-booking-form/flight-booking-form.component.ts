@@ -17,6 +17,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
+import { NzCardModule } from 'ng-zorro-antd/card';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { FlightBookingManagementService } from '../flight-booking-management.service';
@@ -24,6 +25,7 @@ import { FlightBookingSaveDTO } from '../models';
 import { ProjectService } from '../../../project/project-service/project.service';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 import { UserService } from '../../../../services/user.service';
+import { EmployeeService } from '../../employee/employee-service/employee.service';
 
 @Component({
   selector: 'app-flight-booking-form',
@@ -46,7 +48,8 @@ import { UserService } from '../../../../services/user.service';
     NzTableModule,
     NzInputNumberModule,
     NzCheckboxModule,
-    NzAutocompleteModule
+    NzAutocompleteModule,
+    NzCardModule
   ],
   templateUrl: './flight-booking-form.component.html',
   styleUrl: './flight-booking-form.component.css'
@@ -57,6 +60,7 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
   private fb = inject(NonNullableFormBuilder);
   private service = inject(FlightBookingManagementService);
   private projectService = inject(ProjectService);
+  private employeeService = inject(EmployeeService);
   private userService = inject(UserService);
   private notification = inject(NzNotificationService);
   private cdr = inject(ChangeDetectorRef);
@@ -64,15 +68,14 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
 
   validateForm = this.fb.group({
     ID: this.fb.control(0),
+    EmployeeRequestID: this.fb.control<number | null>(null),
     EmployeeIDs: this.fb.control<number[]>([], [Validators.required]),
     ProjectID: this.fb.control<number | null>(null, [Validators.required]),
-    DepartureDate: this.fb.control<string | null>(new Date().toISOString().slice(0, 10), [Validators.required]),
-    DepartureTimeHour: this.fb.control('08', [Validators.required]),
-    DepartureTimeMinute: this.fb.control('00', [Validators.required]),
     DepartureAddress: this.fb.control('', [Validators.required]),
     ArrivesAddress: this.fb.control('', [Validators.required]),
     Reason: this.fb.control('', [Validators.required]),
     Note: this.fb.control(''),
+    ApproveID: this.fb.control<number | null>(null, [Validators.required]),
     Proposals: this.fb.array([])
   });
 
@@ -83,6 +86,7 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
   employees: any[] = [];
   projects: any[] = [];
   groupedEmployees: any[] = [];
+  approvers: any[] = [];
 
   // Gợi ý lịch sử
   historicalSuggestions: any = { departures: [], arrivals: [], airlines: [] };
@@ -152,15 +156,14 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
   private loadForm(master: any, proposals: any[]): void {
     this.validateForm.patchValue({
       ID: master.ID ?? 0,
+      EmployeeRequestID: master.EmployeeRequestID ?? null,
       EmployeeIDs: [master.EmployeeID], // In edit mode, usually editing one record
       ProjectID: master.ProjectID ?? null,
-      DepartureDate: this.formatDateForInput(master.DepartureDate ?? new Date()),
-      DepartureTimeHour: master.DepartureTime ? String(new Date(master.DepartureTime).getHours()).padStart(2, '0') : '08',
-      DepartureTimeMinute: master.DepartureTime ? String(new Date(master.DepartureTime).getMinutes()).padStart(2, '0') : '00',
       DepartureAddress: master.DepartureAddress ?? '',
       ArrivesAddress: master.ArrivesAddress ?? '',
       Reason: master.Reason ?? '',
-      Note: master.Note ?? ''
+      Note: master.Note ?? '',
+      ApproveID: (proposals && proposals.length > 0) ? proposals[0].ApproveID : null
     });
 
     // Clear and load proposals
@@ -178,11 +181,15 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
   addProposal(data?: any): void {
     const proposalGroup = this.fb.group({
       ID: this.fb.control(data?.ID ?? data?.id ?? 0),
+      DepartureDate: this.fb.control(this.formatDateForInput(data?.DepartureDate ?? data?.departureDate ?? new Date()), [Validators.required]),
+      DepartureTimeHour: this.fb.control(data?.DepartureTime || data?.departureTime ? String(new Date(data?.DepartureTime || data?.departureTime).getHours()).padStart(2, '0') : '08', [Validators.required]),
+      DepartureTimeMinute: this.fb.control(data?.DepartureTime || data?.departureTime ? String(new Date(data?.DepartureTime || data?.departureTime).getMinutes()).padStart(2, '0') : '00', [Validators.required]),
       Airline: this.fb.control(data?.Airline ?? data?.airline ?? '', [Validators.required]),
       Price: this.fb.control(data?.Price ?? data?.price ?? 0, [Validators.required]),
       Baggage: this.fb.control(data?.Baggage ?? data?.baggage ?? ''),
       IsApprove: this.fb.control(data?.IsApprove ?? data?.isApprove ?? 0),
-      HCNSProposal: this.fb.control(data?.HCNSProposal ?? data?.hcnsProposal ?? false)
+      HCNSProposal: this.fb.control(data?.HCNSProposal ?? data?.hcnsProposal ?? false),
+      ReasonHCNSProposal: this.fb.control(data?.ReasonHCNSProposal ?? data?.reasonHCNSProposal ?? '')
     });
     this.proposals.push(proposalGroup);
     this.cdr.detectChanges();
@@ -205,11 +212,12 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
   }
 
   loadEmployees(): void {
-    this.projectService.getUsers().subscribe({
+    this.employeeService.getEmployees().subscribe({
       next: (res: any) => {
         if (res && res.status === 1) {
           this.employees = res.data || [];
           this.groupEmployees(this.employees);
+          this.approvers = this.employees.filter((emp: any) => emp.DepartmentID === 1);
         }
       }
     });
@@ -292,27 +300,31 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
     this.isSaving = true;
     const formData = this.validateForm.getRawValue();
 
-    // Combine Date and Time into a local ISO string to avoid timezone shifting
-    let departureTimeStr = '';
-    if (formData.DepartureDate) {
-      const [year, month, day] = formData.DepartureDate.split('-').map(Number);
-      const dTime = new Date(year, month - 1, day, +formData.DepartureTimeHour, +formData.DepartureTimeMinute, 0);
-
-      const pad = (n: number) => String(n).padStart(2, '0');
-      departureTimeStr = `${dTime.getFullYear()}-${pad(dTime.getMonth() + 1)}-${pad(dTime.getDate())}T${pad(dTime.getHours())}:${pad(dTime.getMinutes())}:${pad(dTime.getSeconds())}`;
-    }
+    const formattedProposals = formData.Proposals.map((p: any) => {
+      let departureTimeStr = '';
+      if (p.DepartureDate) {
+        const [year, month, day] = p.DepartureDate.split('-').map(Number);
+        const dTime = new Date(year, month - 1, day, +(p.DepartureTimeHour || '00'), +(p.DepartureTimeMinute || '00'), 0);
+        const pad = (n: number) => String(n).padStart(2, '0');
+        departureTimeStr = `${dTime.getFullYear()}-${pad(dTime.getMonth() + 1)}-${pad(dTime.getDate())}T${pad(dTime.getHours())}:${pad(dTime.getMinutes())}:${pad(dTime.getSeconds())}`;
+      }
+      return {
+        ...p,
+        DepartureTime: departureTimeStr,
+        ApproveID: formData.ApproveID
+      };
+    });
 
     const body: FlightBookingSaveDTO = {
       ID: formData.ID,
       Reason: formData.Reason,
       ProjectID: formData.ProjectID,
+      EmployeeRequestID: formData.EmployeeRequestID,
       DepartureAddress: formData.DepartureAddress,
       ArrivesAddress: formData.ArrivesAddress,
-      DepartureDate: formData.DepartureDate, // Already yyyy-MM-dd string
-      DepartureTime: departureTimeStr,
       Note: formData.Note,
       TravelerIDs: formData.EmployeeIDs,
-      Proposals: formData.Proposals as any
+      Proposals: formattedProposals as any
     };
 
     this.service.saveData(body).subscribe({

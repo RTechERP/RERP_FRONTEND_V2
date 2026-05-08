@@ -7,6 +7,7 @@ export interface FlightBookingManagement {
     ArrivesAddress?: string;
     DepartureDate?: any;
     DepartureTime?: any;
+    EmployeeRequestID?: number | null;
     EmployeeBookerID?: number;
     BookedDate?: any;
     Note?: string;
@@ -33,11 +34,14 @@ export interface FlightBookingProposal {
     ApproveID?: number;
     ReasonDecline?: string;
     HCNSProposal?: boolean;
+    ReasonHCNSProposal?: string;
     CreatedBy?: string;
     CreatedDate?: Date;
     UpdatedBy?: string;
     UpdatedDate?: Date;
     IsDeleted?: boolean;
+    DepartureDate?: string;
+    DepartureTime?: string;
 }
 
 export interface FlightBookingSaveDTO {
@@ -49,6 +53,7 @@ export interface FlightBookingSaveDTO {
     DepartureDate?: any;
     DepartureTime?: any;
     Note?: string;
+    EmployeeRequestID?: number | null;
     EmployeeBookerID?: number;
     TravelerIDs: number[];
     Proposals: FlightBookingProposal[];

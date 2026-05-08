@@ -35,6 +35,7 @@ import { VgBufferingModule } from '@videogular/ngx-videogular/buffering';
 import { CourseManagementService } from '../../../course-management/course-management-service/course-management.service';
 import { CoursePracticeService } from '../../course-practice.service';
 import { environment } from '../../../../../../environments/environment';
+import { PermissionService } from '../../../../../services/permission.service';
 
 interface CourseExam {
     ID: number;
@@ -182,12 +183,18 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
     @ViewChild('playerWrapper') playerWrapperRef!: ElementRef<HTMLDivElement>;
     @ViewChildren('chapterItem') chapterItemRefs!: QueryList<ElementRef>;
 
+    // Cho phép tua tiến nếu user có quyền N37
+    canSeekForward: boolean = false;
+
     constructor(
         private coursePracticeService: CoursePracticeService,
         private courseService: CourseManagementService,
         private sanitizer: DomSanitizer,
         private notification: NzNotificationService,
-    ) { }
+        private permissionService: PermissionService,
+    ) {
+        this.canSeekForward = this.permissionService.hasPermission('N1,N37');
+    }
 
     /**
      * Process HTML content to add target="_blank" to all links
@@ -994,12 +1001,11 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
         }
 
         // CHẶN tua tiến: Nếu tua tới đoạn CHƯA xem → force về vị trí max
-        // Giảm tolerance từ 1s xuống 0.5s để chặn chặt hơn
-        if (currentTime > this.maxWatchedSecond + 0.5) {
+        // Bỏ qua nếu user có quyền N37 (được phép tua tự do)
+        if (!this.canSeekForward && currentTime > this.maxWatchedSecond + 0.5) {
             this.isProgrammaticSeek = true;
             video.currentTime = this.maxWatchedSecond;
             this.lastTime = this.maxWatchedSecond;
-
         }
 
     }

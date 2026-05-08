@@ -1,0 +1,230 @@
+<!-- ===== MODAL HEADER ===== -->
+<div class="modal-header bg-primary align-items-center ps-3">
+  <h6 class="text-light text-uppercase m-0 fw-bold">Tờ Trình Phê Duyệt Tuyển Dụng</h6>
+  <button type="button" class="btn-close position-absolute end-0 m-3" aria-label="Close"
+    (click)="activeModal.dismiss()"></button>
+</div>
+
+<div class="modal-body ttr-modal-body" id="printArea">
+  <div class="ttr-paper">
+
+    <!-- ===== TIÊU ĐẦU 2 CỘT ===== -->
+    <table class="ttr-header-table">
+      <tr>
+        <td class="ttr-col-left">
+          <strong>CÔNG TY CỔ PHẦN<br>RTC TECHNOLOGY VIỆT NAM</strong>
+          <div class="cdoc-underline2"></div>
+        </td>
+        <td class="ttr-col-right">
+          <strong>CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br>
+          <span style="font-weight: bold;">Độc lập - Tự do - Hạnh phúc</span>
+          <div class="cdoc-underline"></div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- ===== SỐ VĂN BẢN + NGÀY ===== -->
+    <table class="ttr-ref-table">
+      <tr>
+        <td class="ttr-so">
+          Số: &nbsp;&nbsp;&nbsp;/2026/TTr-RTC
+        </td>
+        <td class="ttr-col-right ttr-ngay">
+          <input class="iput" [(ngModel)]="diaDiem" [attr.size]="diaDiem.length < 5 ? 1 : diaDiem.length-4"
+            [disabled]="isReadOnly" />,
+          ngày
+          <input class="iput" [(ngModel)]="ngay" placeholder="..." style="width:24px" [disabled]="isReadOnly" />
+          tháng <input class="iput" [(ngModel)]="thang" placeholder="..." style="width:24px" [disabled]="isReadOnly" />
+          năm 20<input class="iput" [(ngModel)]="nam" placeholder="..." style="width:24px" [disabled]="isReadOnly" />
+        </td>
+      </tr>
+    </table>
+
+    <!-- ===== TIÊU ĐỀ ===== -->
+    <div class="ttr-title-block">
+      <p class="ttr-title">TỜ TRÌNH</p>
+      <em class="ttr-subtitle">V/v: Phê duyệt tuyển dụng nhân sự</em>
+    </div>
+
+    <!-- ===== CĂN CỨ ===== -->
+    <em class="ttr-can-cu">Căn cứ tình hình sản xuất kinh doanh của Công ty;</em>
+    <br>
+    <em class="ttr-can-cu">Căn cứ Chức năng, nhiệm vụ của Phòng {{infomation.length > 0 ?
+      infomation[0].DepartmentName :
+      ''}};</em>
+    <br>
+    <em class="ttr-can-cu">Căn cứ tình hình nhân sự Phòng {{infomation.length > 0 ? infomation[0].DepartmentName :
+      ''}};</em>
+    <br>
+    <em class="ttr-can-cu">Căn cứ trình độ, năng lực, kinh nghiệm làm việc của Ứng viên (Bản CV đính kèm),</em>
+    <!-- ===== MỞ ĐẦU ===== -->
+    <p class="ttr-the">Phòng HCNS kính trình Ban Lãnh đạo phê duyệt tuyển dụng nhân sự cụ thể như sau:
+    </p>
+
+    <!-- ===== MỤC 1 ===== -->
+    <p class="ttr-section-h"><strong>1.&nbsp;&nbsp;Thông tin ứng viên.</strong></p>
+    <table class="ttr-info-table">
+      <tr>
+        <td class="info-lbl">• &nbsp;&nbsp;Ông/Bà</td>
+        <td class="info-sep">:</td>
+        <td><input readonly maxlength="50" class="iput iput-grow" [(ngModel)]="hoTen" placeholder=".." /></td>
+      </tr>
+      <tr>
+        <td class="info-lbl">• &nbsp;&nbsp;Ngày sinh</td>
+        <td class="info-sep">:</td>
+        <td>
+          <input readonly class="iput date-mask" [value]="ngaySinh" (input)="onDateMask($event, 'ngaySinh')"
+            placeholder="..../..../....." maxlength="10" />
+        </td>
+      </tr>
+      <tr>
+        <td class="info-lbl">• &nbsp;&nbsp;Hộ khẩu thường trú</td>
+        <td class="info-sep">:</td>
+        <td><input readonly maxlength="100" class="iput iput-grow" [(ngModel)]="hoKhau" placeholder="....." /></td>
+      </tr>
+      <tr>
+        <td class="info-lbl">• &nbsp;&nbsp;Chỗ ở hiện tại</td>
+        <td class="info-sep">:</td>
+        <td><input readonly maxlength="100" class="iput iput-grow" [(ngModel)]="noiO" placeholder="..." /></td>
+      </tr>
+      <tr>
+        <td class="info-lbl">• &nbsp;&nbsp;Trình độ chuyên môn</td>
+        <td class="info-sep">:</td>
+        <td>
+          <input class="iput iput-grow" maxlength="100" [(ngModel)]="trinhDo" placeholder="......" readonly />
+        </td>
+      </tr>
+      <tr>
+        <td class="info-lbl">• &nbsp;&nbsp;Chức danh ứng tuyển</td>
+        <td class="info-sep">:</td>
+        <td><input class="iput iput-grow" [(ngModel)]="chucDanh" readonly placeholder="...." /></td>
+      </tr>
+      <tr>
+        <td class="info-lbl">• &nbsp;&nbsp;Phòng/Ban</td>
+        <td class="info-sep">:</td>
+        <td><input class="iput iput-grow" [value]="infomation.length > 0 ? infomation[0].DepartmentName : ''" readonly
+            placeholder="...." /></td>
+      </tr>
+    </table>
+
+    <!-- ===== MỤC 2 ===== -->
+    <p class="ttr-section-h"><strong>2.&nbsp;&nbsp;Kinh nghiệm:</strong></p>
+    <table class="ttr-exp-table">
+      <thead>
+        <tr>
+          <th style="width:40px">TT</th>
+          <th style="width:180px">Thời gian</th>
+          <th>Công ty</th>
+          <th style="width:160px">Chức danh</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of kinhNghiem; let i = index">
+          <td class="text-center">{{ i + 1 }}</td>
+          <td><span class="tbl-iput">{{ row.thoiGian }}</span></td>
+          <td><span class="tbl-iput">{{ row.donVi }}</span></td>
+          <td><span class="tbl-iput">{{ row.chucVu }}</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ===== MỤC 3 ===== -->
+    <p class="ttr-num-para">
+      <strong>3.&nbsp;&nbsp;Thời gian nhận việc:</strong> Kể từ ngày
+      <!-- <input class="iput date-mask" [value]="thuViecTu" (input)="onDateMask($event, 'thuViecTu')"
+        placeholder="..../..../....." maxlength="10" style="width: 85px;" [disabled]="isReadOnly" /> -->
+      <input type="date" class="iput date-mask" maxlength="10" style="width: 95px;" [(ngModel)]="thuViecTu"
+        [disabled]="isReadOnly" min="1900-01-01" max="2100-12-31" />
+      &nbsp;<span>Thời gian thử việc:</span>
+      <input class="iput" [(ngModel)]="thoiGianThuViec" placeholder="........" style="width: 80px;"
+        [disabled]="isReadOnly" />
+    </p>
+
+    <!-- ===== MỤC 4 ===== -->
+    <p class="ttr-num-para">
+      <strong>4.&nbsp;&nbsp;Thời gian làm việc:</strong>
+      Từ thứ 2 đến thứ 6, thứ 7 làm việc/nghỉ cách tuần.
+    </p>
+
+    <!-- ===== MỤC 5 ===== -->
+    <p class="ttr-num-para"><strong>5.&nbsp;&nbsp;Chế độ được hưởng:</strong></p>
+    <ul class="ttr-benefit-list">
+      <li>
+        Mức lương chính thức:
+        <input class="iput" style="font-weight: bold; width: 85px;" [value]="luongCB"
+          (input)="onSalaryInput($event, 'luongCB')" placeholder="...................." [disabled]="isReadOnly" />
+      </li>
+      <li>Mức lương thử việc: <strong>90%*LCB.</strong></li>
+      <li>Chế độ phúc lợi khác: Theo quy định của Công ty.</li>
+    </ul>
+    <!-- ===== KẾT ===== -->
+    <p class="ttr-body-para no-indent">
+      Bằng văn bản này, Phòng HCNS kính trình Ban lãnh đạo xem xét, phê duyệt./.
+    </p>
+
+    <!-- ===== CHỮ KÝ 4 CỘT ===== -->
+    <div class="ttr-sig-row">
+      <div class="ttr-sig-col">
+        <p class="ttr-sig-title">NGƯỜI LẬP</p>
+        <div class="ttr-sig-space"></div>
+        <div class="ttr-sig-box">
+          <div class="iput ttr-sig-name-input">{{ nguoiLap }}</div>
+        </div>
+      </div>
+      <div class="ttr-sig-col">
+        <p class="ttr-sig-title">PHÒNG BAN</p>
+        <div class="ttr-sig-space"></div>
+        <div class="ttr-sig-box">
+          <div class="iput ttr-sig-name-input">{{ truongPhongBan }}</div>
+        </div>
+      </div>
+      <div class="ttr-sig-col">
+        <p class="ttr-sig-title">P.HCNS</p>
+        <div class="ttr-sig-space"></div>
+        <div class="ttr-sig-box">
+          <div class="iput ttr-sig-name-input">{{ phcns }}</div>
+        </div>
+      </div>
+      <div class="ttr-sig-col">
+        <p class="ttr-sig-title">PHÊ DUYỆT</p>
+        <div class="ttr-sig-space"></div>
+        <div class="ttr-sig-box">
+          <div class="iput ttr-sig-name-input">{{ pheDuyet }}</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /ttr-paper -->
+</div><!-- /modal-body -->
+
+<div class="modal-footer py-1 no-print">
+  <!-- Select TBP duyệt — chỉ hiện khi không readonly -->
+  <ng-container *ngIf="!isReadOnly">
+    <div class="d-flex align-items-center gap-2 me-auto">
+      <label style="font-size:13px; white-space:nowrap; margin:0; font-weight:500;">TBP duyệt:</label>
+      <nz-select [(ngModel)]="selectedTBPId" nzShowSearch nzAllowClear nzPlaceHolder="--Chọn TBP--" nzSize="small"
+        style="width:240px">
+        @for (parent of tbpList; track $index) {
+        <nz-option-group [nzLabel]="parent.label">
+          @for (child of parent.options; track $index) {
+          <nz-option [nzLabel]="child.item.Code + ' - ' + child.item.FullName" [nzValue]="child.item.EmployeeID">
+          </nz-option>
+          }
+        </nz-option-group>
+        }
+      </nz-select>
+    </div>
+  </ng-container>
+
+  <div class="d-flex gap-2">
+    <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
+      <span nz-icon nzType="close"></span> Đóng
+    </button>
+    <!-- <button nz-button nzType="default" (click)="onPrint()">
+      <span nz-icon nzType="printer"></span> In
+    </button> -->
+    <button *ngIf="!isReadOnly" nz-button nzType="primary" (click)="onSave()" [nzLoading]="loading">
+      <span nz-icon nzType="save"></span> Lưu
+    </button>
+  </div>
+</div>

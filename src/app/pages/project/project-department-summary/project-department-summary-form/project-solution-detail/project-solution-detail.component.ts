@@ -21,7 +21,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { ProjectWorkerService } from '../project-woker/project-worker-service/project-worker.service';
-import { Tabulator } from 'tabulator-tables';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { ProjectRequestDetailComponent } from '../../../project-request-detail/project-request-detail.component';
 import { ProjectRequestServiceService } from '../../../project-request/project-request-service/project-request-service.service';

@@ -57,6 +57,7 @@ import { TsAssetProposeLiquidationFormComponent } from './ts-asset-propose-liqui
 import { TsAssetLiquidationComponent } from './ts-asset-liquidation/ts-asset-liquidation.component';
 import { TsAssetManagementImportExcelComponent } from './ts-asset-management-import-excel/ts-asset-management-import-excel.component';
 import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
+
 @Component({
     standalone: true,
     imports: [
@@ -301,7 +302,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         const departmentString =
             this.department.length > 0
                 ? this.department.join(',')
-                : '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24';
+                : '';
 
         const request = {
             filterText: this.filterText || '',
@@ -535,6 +536,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             },
         });
     }
+
+   
 
     onAddAsset() {
         const initialData = {

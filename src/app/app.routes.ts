@@ -341,6 +341,7 @@ import { BillImportPrimeComponent } from './pages/old/Sale/BillImport/bill-impor
 import { BillExportPrimeComponent } from './pages/old/Sale/BillExport/bill-export-prime/bill-export-prime.component';
 import { ProjectTaskTimeLineProjectComponent } from './pages/project_task/project-task-time-line-project/project-task-time-line-project.component';
 import { HrRecruitmentSummaryComponent } from './pages/hrm/hr-recruitment/hr-recruitment-summary/hr-recruitment-summary.component';
+import { BillImportSyntheticAllComponent } from './pages/old/Sale/BillImport/Modal/bill-import-synthetic-all/bill-import-synthetic-all.component';
 export const routes: Routes = [
     {
         path: 'file-preview',
@@ -1209,7 +1210,7 @@ export const routes: Routes = [
             { path: 'purchase-quote-summary-main', component: PurchaseQuoteSummaryMainComponent, canActivate: [authGuard] },
             { path: 'employee-deduction-type', component: EmployeeDeductionTypeComponent, canActivate: [authGuard] },
             { path: 'product-project-customer-hn', component: ListProductProjectCustomerComponent, canActivate: [authGuard] },
-
+            { path: 'bill-import-synthetic-all', component: BillImportSyntheticAllComponent, canActivate: [authGuard] },
         ],
     },
 ];

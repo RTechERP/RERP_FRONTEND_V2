@@ -309,9 +309,9 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                 } else if (v !== 2 && this.t2DetailRows.length > 0) {
                     // Khi đổi từ 2 sang 1 hoặc 3, vớt các dòng chi tiết của mục II bỏ ngược vào bảng 1
                     this.dataset = this.t2DetailRows.map((r: any, i: number) => ({
-                        ...r, 
-                        _id: i + 1, 
-                        ParentID: null, 
+                        ...r,
+                        _id: i + 1,
+                        ParentID: null,
                         Stt: `${i + 1}`,
                     }));
                 }
@@ -338,7 +338,13 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             .subscribe((v: boolean) => {
                 this.paymentOrder.IsUrgent = v;
                 const dl = this.validateForm.get('DeadlinePayment');
-                v ? dl?.setValidators([Validators.required]) : dl?.clearValidators();
+                if (v) {
+                    dl?.setValidators([Validators.required]);
+                } else {
+                    dl?.clearValidators();
+                    dl?.setValue(null);
+                }
+                // v ? dl?.setValidators([Validators.required]) : dl?.clearValidators();
                 dl?.updateValueAndValidity();
             });
 
@@ -613,7 +619,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                 const totalMoney = this.parseNum(r.TotalMoney);
                 const pct = this.parseNum(r.PaymentPercentage);
                 const totalPaymentAmount = totalMoney * (pct / 100);
-                return sanitize(r, { 
+                return sanitize(r, {
                     ID: this.isCopy ? 0 : r.ID,
                     TotalPaymentAmount: totalPaymentAmount
                 });

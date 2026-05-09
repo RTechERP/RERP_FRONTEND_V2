@@ -76,6 +76,7 @@ import { RequestInvoiceStatusLinkService } from '../request-invoice-status-link/
 import { ActivatedRoute } from '@angular/router';
 import { environment } from '../../../../environments/environment';
 import { Menubar } from 'primeng/menubar';
+import { RequestInvoiceDetailNewPrimengComponent } from '../request-invoice-detail-new-primeng/request-invoice-detail-new-primeng.component';
 
 @Component({
     selector: 'app-request-invoice-slickgrid',
@@ -941,7 +942,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                         },
                     ];
                     const modalRef = this.modalService.open(
-                        RequestInvoiceDetailComponent,
+                        RequestInvoiceDetailNewPrimengComponent,
                         {
                             centered: true,
                             windowClass: 'full-screen-modal',
@@ -1113,7 +1114,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     }
 
     openModal() {
-        const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
+        const modalRef = this.modalService.open(RequestInvoiceDetailNewPrimengComponent, {
             centered: true,
             windowClass: 'full-screen-modal',
             backdrop: 'static',

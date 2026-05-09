@@ -1,0 +1,205 @@
+.request-invoice-detail-new-primeng {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: relative;
+}
+
+.request-invoice-detail-new-primeng .modal-body {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 42px);
+    overflow: hidden;
+}
+
+.request-invoice-detail-new-primeng form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.request-invoice-detail-new-primeng .detail-splitter-section {
+    flex: 0 0 37vh;
+    height: 37vh;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.request-invoice-detail-new-primeng .ant-splitter {
+    height: 100% !important;
+    min-height: 0;
+    overflow: hidden;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .ant-splitter-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.request-invoice-detail-new-primeng .detail-splitter-section h6 {
+    flex: 0 0 auto;
+}
+
+.request-invoice-detail-new-primeng .detail-table-shell,
+.request-invoice-detail-new-primeng .po-table-shell {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .detail-table-shell .p-datatable,
+:host ::ng-deep .request-invoice-detail-new-primeng .po-table-shell .p-datatable {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .detail-table-shell .p-datatable-table-container,
+:host ::ng-deep .request-invoice-detail-new-primeng .po-table-shell .p-datatable-table-container,
+:host ::ng-deep .request-invoice-detail-new-primeng .detail-table-shell .p-datatable-wrapper,
+:host ::ng-deep .request-invoice-detail-new-primeng .po-table-shell .p-datatable-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto !important;
+    max-height: 100%;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .detail-table-shell .p-paginator,
+:host ::ng-deep .request-invoice-detail-new-primeng .po-table-shell .p-paginator {
+    flex: 0 0 auto;
+}
+
+.request-invoice-detail-new-primeng textarea.form-control {
+    min-height: 30px;
+    resize: none;
+}
+
+.request-invoice-detail-new-primeng .file-link {
+    color: #1677ff;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.request-invoice-detail-new-primeng .table-icon-btn {
+    width: 28px;
+    height: 24px;
+    padding: 0;
+}
+
+.request-invoice-detail-new-primeng .table-cell-input {
+    width: 100%;
+    height: 26px;
+    font-size: 12px;
+    padding: 2px 6px;
+}
+
+.request-invoice-detail-new-primeng .table-checkbox {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .request-detail-table th.stt-column,
+:host ::ng-deep .request-invoice-detail-new-primeng .request-detail-table td.stt-column {
+    width: 34px !important;
+    min-width: 34px !important;
+    max-width: 34px !important;
+    padding-left: 2px;
+    padding-right: 2px;
+    text-align: center;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .request-detail-table .p-datatable-table {
+    table-layout: fixed;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .request-detail-table .column-size-row > th {
+    height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    line-height: 0 !important;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .p-datatable-sm .p-datatable-thead > tr > th,
+:host ::ng-deep .request-invoice-detail-new-primeng .p-datatable-sm .p-datatable-tbody > tr > td {
+    font-size: 12px;
+    padding: 3px 6px;
+    line-height: 1.25;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .p-datatable-sm .p-datatable-thead > tr > th {
+    background: #f6f8fb;
+    font-weight: 600;
+    text-align: center;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .request-detail-table .p-datatable-tbody > tr > td {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    vertical-align: top;
+    white-space: normal;
+    word-break: break-word;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .p-datatable .p-datatable-tbody > tr.p-highlight {
+    background: #e6f4ff;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .p-select {
+    width: 100%;
+    min-height: 26px;
+    font-size: 12px;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .p-select-label {
+    padding: 2px 6px;
+    line-height: 20px;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .product-editor-select,
+:host ::ng-deep .request-invoice-detail-new-primeng .product-editor-select .p-select-label {
+    font-size: 11px;
+}
+
+::ng-deep .product-editor-panel {
+    min-width: 520px !important;
+    max-width: 80vw !important;
+    font-size: 11px;
+}
+
+::ng-deep .product-editor-panel .p-select-list-container {
+    max-height: 360px !important;
+}
+
+::ng-deep .product-editor-panel .p-select-option {
+    min-height: 28px;
+    padding: 3px 8px;
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+::ng-deep .product-editor-panel .p-select-option-label,
+::ng-deep .product-editor-panel .p-select-empty-message {
+    font-size: 11px;
+}
+
+::ng-deep .product-editor-panel .p-select-filter {
+    height: 26px;
+    padding: 2px 6px;
+    font-size: 11px;
+}
+
+:host ::ng-deep .request-invoice-detail-new-primeng .p-paginator {
+    padding: 2px 6px;
+    font-size: 12px;
+}

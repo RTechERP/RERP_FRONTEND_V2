@@ -21,8 +21,8 @@
 }
 
 .request-invoice-detail-new-primeng .detail-splitter-section {
-    flex: 0 0 37vh;
-    height: 37vh;
+    flex: 0 0 45vh;
+    height: 45vh;
     min-height: 0;
     overflow: hidden;
 }

@@ -188,7 +188,7 @@
                     <angular-slickgrid [gridId]="'gridMaster-' + componentId" [columns]="columnDefinitionsMaster"
                         [options]="gridOptionsMaster" [dataset]="datasetMaster"
                         (onAngularGridCreated)="angularGridMasterReady($event.detail)"
-                        (onDblClick)="onMasterDoubleClick($event)">
+                        (onDblClick)="openModalBillExportDetail(true)">
                     </angular-slickgrid>
                 </div>
 

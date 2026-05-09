@@ -61,6 +61,7 @@ import { MenuItem } from 'primeng/api';
 import { BillImportDetailNewComponent } from '../../old/Sale/BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { PonccSummaryComponent } from '../poncc/poncc-summary/poncc-summary.component';
+import { PonccSummaryNewComponent } from '../poncc/poncc-summary/poncc-summary-new/poncc-summary-new.component';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -1962,7 +1963,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (currentGrid && currentGrid.slickGrid) {
       const items: any[] = this.activeTabIndex === 0
-          ? this.datasetPoThuongMai
+        ? this.datasetPoThuongMai
         : this.datasetPoMuon;
 
       // Đếm số lượng POCode
@@ -2871,7 +2872,14 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       data: {}
     });
   }
-
+  onOpenSummaryKT() {
+    this.tabService.openTabComp({
+      comp: PonccSummaryNewComponent,
+      title: 'Tổng hợp PONCC KT',
+      key: 'poncc-summary-new',
+      data: {}
+    });
+  }
   onOpenPaymentOrder() {
     const selectedRows = this.getSelectedMasterRows();
     if (selectedRows.length === 0) {
@@ -3945,6 +3953,13 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         label: 'Tổng hợp',
         icon: 'fa-solid fa-chart-pie fa-lg text-info',
         command: () => this.onOpenSummary(),
+        visible: (this.appUserService.departmentID != 5 || this.appUserService.isAdmin)
+      },
+      {
+        label: 'Tổng hợp',
+        icon: 'fa-solid fa-chart-pie fa-lg text-info',
+        command: () => this.onOpenSummaryKT(),
+        visible: (this.appUserService.departmentID === 5 || this.appUserService.isAdmin)
       },
       {
         label: 'Đề nghị TT',

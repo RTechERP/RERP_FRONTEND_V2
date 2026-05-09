@@ -1,0 +1,335 @@
+<div class="view-pokh-primeng-page">
+    <div class="modal-header bg-primary text-uppercase py-2">
+        <h6 class="modal-title text-white">Xem POKH</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+    </div>
+
+    <div class="modal-body p-1 d-flex flex-column">
+        <div class="card-header bg-white p-0 mb-2">
+            <p-menubar [model]="menuBars">
+                <ng-template pTemplate="item" let-item>
+                    <a class="p-menuitem-link" [ngClass]="item.styleClass">
+                        <i [class]="item.icon"></i>
+                        <span class="p-menuitem-text">{{ item.label }}</span>
+                    </a>
+                </ng-template>
+            </p-menubar>
+        </div>
+
+        <div class="filter-bar bg-light border-bottom p-2">
+            <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-center">
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+                    <nz-form-control>
+                        <nz-date-picker [(ngModel)]="filters.startDate" name="startDate" nzFormat="dd/MM/yyyy"
+                            style="width: 130px; font-size: 12px;" nzSize="small"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+                    <nz-form-control>
+                        <nz-date-picker [(ngModel)]="filters.endDate" name="endDate" nzFormat="dd/MM/yyyy"
+                            style="width: 130px; font-size: 12px;" nzSize="small"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Lọc</nz-form-label>
+                    <nz-form-control>
+                        <nz-select name="poType" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Chọn loại"
+                            style="width: 150px;" [(ngModel)]="filters.poType">
+                            <nz-option *ngFor="let item of statuses" [nzValue]="item.ID"
+                                [nzLabel]="item.MainIndex1"></nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filters.keyword"
+                            name="keyword" style="width: 150px; font-size: 12px;" (keyup.enter)="loadData()" />
+                    </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item class="mb-0">
+                    <nz-form-control>
+                        <div class="btn-group">
+                            <button nz-button nzType="primary" nzSize="small" (click)="loadData()">Tìm kiếm</button>
+                            <button nz-button nzType="primary" nzSize="small" nz-dropdown
+                                [nzDropdownMenu]="advancedSearchMenu" nzTrigger="click" nzPlacement="bottomRight"
+                                style="padding-left: 8px; padding-right: 8px;">
+                                <i nz-icon nzType="down"></i>
+                            </button>
+                            <nz-dropdown-menu #advancedSearchMenu="nzDropdownMenu">
+                                <div class="advanced-search-panel">
+                                    <form nz-form nzLayout="vertical">
+                                        <nz-form-item class="mb-2">
+                                            <nz-form-label class="fs-12">Khách hàng</nz-form-label>
+                                            <nz-form-control class="w-100">
+                                                <nz-select name="customerId" nzShowSearch nzAllowClear nzSize="small"
+                                                    class="w-100" nzPlaceHolder="Khách hàng"
+                                                    [(ngModel)]="filters.customerId">
+                                                    <nz-option *ngFor="let customer of customers"
+                                                        [nzValue]="customer.ID"
+                                                        [nzLabel]="customer.CustomerName"></nz-option>
+                                                </nz-select>
+                                            </nz-form-control>
+                                        </nz-form-item>
+
+                                        <nz-form-item class="mb-2">
+                                            <nz-form-label class="fs-12">Người phụ trách</nz-form-label>
+                                            <nz-form-control class="w-100">
+                                                <nz-select name="userId" nzShowSearch nzAllowClear nzSize="small"
+                                                    class="w-100" nzPlaceHolder="Người phụ trách"
+                                                    [(ngModel)]="filters.userId">
+                                                    <nz-option *ngFor="let user of users" [nzValue]="user.UserID"
+                                                        [nzLabel]="user.FullName"></nz-option>
+                                                </nz-select>
+                                            </nz-form-control>
+                                        </nz-form-item>
+
+                                        <nz-form-item class="mb-2">
+                                            <nz-form-label class="fs-12">Nhóm</nz-form-label>
+                                            <nz-form-control class="w-100">
+                                                <nz-select name="employeeTeamSaleId" nzShowSearch nzAllowClear
+                                                    nzSize="small" class="w-100" nzPlaceHolder="Nhóm"
+                                                    [(ngModel)]="filters.employeeTeamSaleId"
+                                                    (ngModelChange)="loadEmployeeByTeamSale($event)">
+                                                    <nz-option *ngFor="let item of EmployeeTeamSale" [nzValue]="item.ID"
+                                                        [nzLabel]="item.Name"></nz-option>
+                                                </nz-select>
+                                            </nz-form-control>
+                                        </nz-form-item>
+
+                                        <nz-form-item class="mb-0">
+                                            <nz-form-label class="fs-12">Trạng thái</nz-form-label>
+                                            <nz-form-control class="w-100">
+                                                <nz-select name="status" nzShowSearch nzAllowClear nzSize="small"
+                                                    class="w-100" nzPlaceHolder="Chọn trạng thái"
+                                                    [(ngModel)]="filters.status">
+                                                    <nz-option [nzValue]="0" [nzLabel]="'Chưa giao , chưa thanh toán'"></nz-option>
+                                                    <nz-option [nzValue]="1" [nzLabel]="'Đã giao, đã thanh toán'"></nz-option>
+                                                    <nz-option [nzValue]="2" [nzLabel]="'Chưa giao, đã thanh toán'"></nz-option>
+                                                    <nz-option [nzValue]="3" [nzLabel]="'Đã giao, nhưng chưa thanh toán'"></nz-option>
+                                                    <nz-option [nzValue]="4" [nzLabel]="'Đã thanh toán, GH chưa xuất hóa đơn'"></nz-option>
+                                                </nz-select>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </form>
+                                </div>
+                            </nz-dropdown-menu>
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+            </form>
+        </div>
+
+        <div class="grid-container-viewpokh flex-grow-1">
+            <nz-spin [nzSpinning]="isLoadingData" nzTip="Đang tải dữ liệu..." class="h-100 w-100">
+                <p-table #dt [value]="dataset" [columns]="columnDefinitions" dataKey="ID"
+                    styleClass="p-datatable-gridlines p-datatable-sm view-pokh-table"
+                    [tableStyle]="{ 'min-width': '3300px' }" [scrollable]="true"
+                    scrollHeight="calc(100vh - 190px)" [resizableColumns]="true" columnResizeMode="expand"
+                    [showGridlines]="true" [rowHover]="true" [stripedRows]="true"
+                    [paginator]="true" [rows]="50" [rowsPerPageOptions]="[25, 50, 100, 200]"
+                    [showCurrentPageReport]="true"
+                    currentPageReportTemplate="Hiển thị {first} - {last} / {totalRecords} dòng"
+                    selectionMode="multiple"
+                    [(selection)]="selectedRowsAll" (selectionChange)="onMasterSelectionChange($event)"
+                    rowGroupMode="subheader" groupRowsBy="PONumber" sortField="PONumber"
+                    editMode="cell">
+
+                    <ng-template pTemplate="header" let-columns>
+                        <tr style="height: 0;">
+                            <th style="width: 42px; height: 0; padding: 0; border: 0;"></th>
+                            <th style="width: 42px; height: 0; padding: 0; border: 0;"></th>
+                            <th *ngFor="let col of columns" [style.width]="col.width"
+                                style="height: 0; padding: 0; border: 0;"></th>
+                        </tr>
+                        <tr>
+                            <th style="width: 42px;"></th>
+                            <th style="width: 42px;">
+                                <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                            </th>
+                            <th *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field"
+                                [pSortableColumnDisabled]="!col.sortable" [style.width]="col.width"
+                                [ngClass]="col.cssClass || ''">
+                                <span>{{ col.header }}</span>
+                                <p-sortIcon *ngIf="col.sortable" [field]="col.field"></p-sortIcon>
+                            </th>
+                        </tr>
+                        <tr class="filter-header-row">
+                            <th></th>
+                            <th></th>
+                            <th *ngFor="let col of columns">
+                                <p-columnFilter [type]="getColumnFilterType(col)" [field]="col.field" display="row"
+                                    matchMode="contains" [showMenu]="false">
+                                    <ng-template pTemplate="filter" let-value let-filterCallback="filterCallback">
+                                        <input pInputText [ngModel]="value" style="width: 100%;"
+                                            (input)="filterCallback($any($event.target).value)" />
+                                    </ng-template>
+                                </p-columnFilter>
+                            </th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="groupheader" let-rowData>
+                        <tr pRowGroupHeader>
+                            <td [attr.colspan]="columnDefinitions.length + 2" class="group-header-cell">
+                                Số POKH: {{ rowData.PONumber || 'N/A' }}
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-rowData let-columns="columns">
+                        <tr [pSelectableRow]="rowData">
+                            <td class="control-cell">
+                                <button *ngIf="hasNestedDetails(rowData)" pButton type="button"
+                                    class="p-button-text p-button-rounded p-button-sm expand-row-btn"
+                                    aria-label="Toggle details"
+                                    [icon]="isRowExpanded(rowData) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                                    (click)="toggleRowExpansion(rowData, $event)">
+                                </button>
+                            </td>
+                            <td class="control-cell">
+                                <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
+                            </td>
+                            <td *ngFor="let col of columns" [style.width]="col.width" [ngClass]="col.cssClass || ''"
+                                [ngStyle]="col.cellStyle ? col.cellStyle(rowData) : null">
+                                <div [class.wrap-text]="col.textWrap" [class.truncate-text]="!col.textWrap"
+                                    [title]="formatCell(col, rowData)">
+                                    {{ formatCell(col, rowData) }}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr *ngIf="isRowExpanded(rowData)" class="detail-row">
+                            <td [attr.colspan]="columnDefinitions.length + 2">
+                                <div class="row-detail-container">
+                                    <div class="row-detail-tab-header"
+                                        *ngIf="rowData.exportDetails?.length && rowData.invoiceDetails?.length">
+                                        <button type="button" class="row-detail-tab-btn"
+                                            [class.active]="getActiveNestedTab(rowData) === 'export'"
+                                            (click)="setActiveNestedTab(rowData, 'export')">
+                                            Xuất kho ({{ rowData.exportDetails.length }})
+                                        </button>
+                                        <button type="button" class="row-detail-tab-btn"
+                                            [class.active]="getActiveNestedTab(rowData) === 'invoice'"
+                                            (click)="setActiveNestedTab(rowData, 'invoice')">
+                                            Hóa đơn ({{ rowData.invoiceDetails.length }})
+                                        </button>
+                                    </div>
+
+                                    <p-table *ngIf="getActiveNestedTab(rowData) === 'export' && rowData.exportDetails?.length"
+                                        [value]="rowData.exportDetails" dataKey="__exportKey"
+                                        styleClass="p-datatable-gridlines p-datatable-sm nested-table"
+                                        [tableStyle]="{ width: '382px', 'min-width': '382px', 'table-layout': 'fixed' }"
+                                        selectionMode="multiple"
+                                        [selection]="getSelectedExportRows(rowData)"
+                                        (selectionChange)="onExportSelectionChange(rowData, $event)">
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th style="width: 42px;"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+                                                <th *ngFor="let col of exportColumnDefinitions" [style.width]="col.width"
+                                                    [pSortableColumn]="col.field" [ngClass]="col.cssClass || ''">
+                                                    {{ col.header }}
+                                                    <p-sortIcon [field]="col.field"></p-sortIcon>
+                                                </th>
+                                            </tr>
+                                        </ng-template>
+                                        <ng-template pTemplate="body" let-exportRow>
+                                            <tr>
+                                                <td style="width: 42px;"><p-tableCheckbox [value]="exportRow"></p-tableCheckbox></td>
+                                                <td *ngFor="let col of exportColumnDefinitions" [style.width]="col.width"
+                                                    [ngClass]="col.cssClass || ''">
+                                                    <div [class.wrap-text]="col.textWrap" [class.truncate-text]="!col.textWrap"
+                                                        [title]="formatCell(col, exportRow)">
+                                                        {{ formatCell(col, exportRow) }}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+                                    </p-table>
+
+                                    <p-table *ngIf="getActiveNestedTab(rowData) === 'invoice' && rowData.invoiceDetails?.length"
+                                        [value]="rowData.invoiceDetails" dataKey="__invoiceKey"
+                                        styleClass="p-datatable-gridlines p-datatable-sm nested-table"
+                                        [tableStyle]="{ width: '530px', 'min-width': '530px', 'table-layout': 'fixed' }"
+                                        editMode="cell"
+                                        (onEditComplete)="onInvoiceCellEdit(rowData, $event)">
+                                        <ng-template pTemplate="header">
+                                            <tr>
+                                                <th *ngFor="let col of invoiceColumnDefinitions" [style.width]="col.width"
+                                                    [pSortableColumn]="col.field" [ngClass]="col.cssClass || ''">
+                                                    {{ col.header }}
+                                                    <p-sortIcon [field]="col.field"></p-sortIcon>
+                                                </th>
+                                            </tr>
+                                        </ng-template>
+                                        <ng-template pTemplate="body" let-invoiceRow>
+                                            <tr>
+                                                <td *ngFor="let col of invoiceColumnDefinitions"
+                                                    [style.width]="col.width"
+                                                    [pEditableColumn]="col.editable ? invoiceRow : null"
+                                                    [pEditableColumnField]="col.editable ? col.field : ''"
+                                                    [ngClass]="col.cssClass || ''">
+                                                    <p-cellEditor *ngIf="col.editable; else invoiceReadonly">
+                                                        <ng-template pTemplate="input">
+                                                            <p-datepicker *ngIf="col.editType === 'date'; else invoiceTextInput"
+                                                                [(ngModel)]="invoiceRow[col.field]" appendTo="body"
+                                                                dateFormat="dd/mm/yy" [showIcon]="true">
+                                                            </p-datepicker>
+                                                            <ng-template #invoiceTextInput>
+                                                                <input pInputText [(ngModel)]="invoiceRow[col.field]"
+                                                                    style="width: 100%;" />
+                                                            </ng-template>
+                                                        </ng-template>
+                                                        <ng-template pTemplate="output">
+                                                            <div [class.wrap-text]="col.textWrap" [class.truncate-text]="!col.textWrap"
+                                                                [title]="formatCell(col, invoiceRow)">
+                                                                {{ formatCell(col, invoiceRow) }}
+                                                            </div>
+                                                        </ng-template>
+                                                    </p-cellEditor>
+                                                    <ng-template #invoiceReadonly>
+                                                        <div [class.wrap-text]="col.textWrap" [class.truncate-text]="!col.textWrap"
+                                                            [title]="formatCell(col, invoiceRow)">
+                                                            {{ formatCell(col, invoiceRow) }}
+                                                        </div>
+                                                    </ng-template>
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+                                    </p-table>
+
+                                    <div class="no-data-message"
+                                        *ngIf="!rowData.exportDetails?.length && !rowData.invoiceDetails?.length">
+                                        Không có dữ liệu chi tiết
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="footer" let-columns>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td *ngFor="let col of columns" [ngClass]="col.footerClass || col.cssClass || ''"
+                                class="font-semibold footer-cell">
+                                {{ getFooterValue(col) }}
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td [attr.colspan]="columnDefinitions.length + 2">Không có dữ liệu.</td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </nz-spin>
+        </div>
+    </div>
+</div>

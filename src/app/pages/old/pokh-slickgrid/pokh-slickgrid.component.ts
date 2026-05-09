@@ -95,6 +95,7 @@ import { WarehouseReleaseRequestSlickGridComponent } from '../warehouse-release-
 import { PoRequestBuySlickgridComponent } from '../po-request-buy-slickgrid/po-request-buy-slickgrid.component';
 import { ViewPokhSlickgridComponent } from '../view-pokh-slickgrid/view-pokh-slickgrid.component';
 import { Menubar } from 'primeng/menubar';
+import { ViewPokhPrimengComponent } from '../view-pokh-primeng/view-pokh-primeng.component';
 @Component({
     selector: 'app-pokh-slickgrid',
     imports: [
@@ -1459,7 +1460,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     openModalViewPOKH() {
-        this.modalRef = this.modalService.open(ViewPokhSlickgridComponent, {
+        this.modalRef = this.modalService.open(ViewPokhPrimengComponent, {
             centered: true,
             windowClass: 'full-screen-modal',
             backdrop: 'static',

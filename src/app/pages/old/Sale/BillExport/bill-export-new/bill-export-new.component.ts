@@ -95,7 +95,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     isDetailLoad: boolean = false;
     isCheckmode: boolean = false;
     newBillExport: boolean = false;
-    isModalOpening: boolean = false; // Flag để ngăn mở modal 2 lần
+    private savedSelectedRows: number[] = [];
     sizeTbDetail: number | string = '0';
     warehouseCode: string = '';
     readonly componentId: string =
@@ -824,6 +824,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     }
 
     onMasterRowSelectionChanged(e: Event, args: any) {
+        this.savedSelectedRows = [...(args?.rows || [])];
         if (args && Array.isArray(args.rows) && args.rows.length > 0) {
             const selectedRowIndex = args.rows[0];
             const selectedData = args.dataContext || this.angularGridMaster?.dataView?.getItem(selectedRowIndex);
@@ -859,24 +860,6 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
 
     onMasterCellClick(e: Event, args: OnEventArgs) {
         // Handle cell click if needed
-    }
-
-    onMasterDoubleClick(event: any) {
-        // Ngăn mở modal 2 lần khi double click
-        if (this.isModalOpening) {
-            return;
-        }
-
-        // Lấy data từ event của Angular SlickGrid
-        const args = event?.detail?.args;
-        if (args && args.dataContext) {
-            const item = args.dataContext;
-            this.isModalOpening = true;
-            this.id = item.ID || 0;
-            this.selectedRow = item;
-            this.data = [item];
-            this.openModalBillExportDetail(true);
-        }
     }
 
     onDetailCellClick(e: Event, args: OnEventArgs) {
@@ -1208,14 +1191,20 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         modalRef.componentInstance.isCheckmode = this.isCheckmode;
         modalRef.componentInstance.id = isCheckmode ? this.id : 0; // Chỉ truyền id khi sửa
         modalRef.componentInstance.wareHouseCode = this.warehouseCode;
-        modalRef.result.then((result) => {
-            this.isModalOpening = false;
-            if (result === true) {
-                this.id = 0;
+        modalRef.result.finally(() => {
                 this.loadDataBillExport();
-            }
-        }).catch(() => {
-            this.isModalOpening = false;
+            setTimeout(() => {
+                if (this.angularGridMaster && this.savedSelectedRows.length > 0) {
+                    this.angularGridMaster.slickGrid.setSelectedRows(this.savedSelectedRows);
+                    const firstRowIndex = this.savedSelectedRows[0];
+                    const rowData = this.angularGridMaster.dataView.getItem(firstRowIndex);
+                    this.id = rowData?.ID || 0;
+                    this.selectedRow = rowData;
+                } else {
+                    this.id = 0;
+                    this.selectedRow = null;
+                }
+            }, 300);
         });
     }
 

@@ -540,6 +540,7 @@ export class ViewPokhPrimengComponent implements OnInit {
       data,
     }));
 
+    this.clearUserSelections();
     this.openModalSequentially(groupedArray, 0);
   }
 
@@ -872,11 +873,15 @@ export class ViewPokhPrimengComponent implements OnInit {
   }
 
   private resetSelectionsAfterLoad(): void {
+    this.clearUserSelections();
+    this.activeNestedTabs = {};
+    this.expandedRows = {};
+  }
+
+  private clearUserSelections(): void {
     this.selectedRows = [];
     this.selectedRowsAll = [];
     this.selectedExportRowsAll = [];
-    this.activeNestedTabs = {};
-    this.expandedRows = {};
   }
 
   private sortForGrouping(rows: any[]): any[] {

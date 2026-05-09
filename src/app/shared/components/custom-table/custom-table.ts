@@ -307,6 +307,9 @@ export class CustomTable implements OnChanges {
         if (changes['columns'] && this.columns) {
             this._allColumns = [...this.columns];
         }
+        if (changes['data'] || changes['groupRowsBy'] || changes['rowGroupMode'] || changes['expandableRowGroups']) {
+            this.syncExpandedGroups();
+        }
     }
 
     get visibleColumns(): ColumnDef[] {
@@ -465,6 +468,25 @@ export class CustomTable implements OnChanges {
 
     isGroupExpanded(group: string): boolean {
         return !!this.expandedRows[group];
+    }
+
+    private syncExpandedGroups() {
+        if (!this.expandableRowGroups || this.rowGroupMode !== 'subheader' || !this.groupRowsBy) return;
+
+        const groups = new Set(
+            (this.data || [])
+                .map((row: any) => row?.[this.groupRowsBy])
+                .filter((g: any) => g !== null && g !== undefined && String(g).trim() !== '')
+                .map((g: any) => String(g))
+        );
+
+        const nextExpandedRows: { [key: string]: boolean } = {};
+        groups.forEach((group) => {
+            // Lần đầu mở sẽ auto expand, các lần sau giữ trạng thái đã toggle.
+            nextExpandedRows[group] = this.expandedRows[group] ?? true;
+        });
+
+        this.expandedRows = nextExpandedRows;
     }
 
     onContextMenuSelect(event: any) {

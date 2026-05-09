@@ -18,7 +18,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ChangeDetectorRef } from '@angular/core';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { ProjectWorkerService } from '../project-woker/project-worker-service/project-worker.service';
-import { Tabulator } from 'tabulator-tables';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
 
 @Component({
   selector: 'app-project-worker-detail',

@@ -961,7 +961,16 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
         if (!urlPDF) return this.sanitizer.bypassSecurityTrustResourceUrl('');
 
         const host = environment.host + 'api/share/';
-        let urlFile = urlPDF.replace('\\\\192.168.1.190\\', '');
+        // let urlFile = urlPDF.replace('\\\\192.168.1.190\\', '');
+        let stringFolderFileOld = 'Software/ftp/Upload/Course/PDFFileLesson/';
+
+        let urlFile = '';
+
+        if (urlPDF?.startsWith('\\\\192.168.1.190\\')) {
+            urlFile = urlPDF.replace('\\\\192.168.1.190\\', '');
+        } else {
+            urlFile = stringFolderFileOld + urlPDF;
+        }
         urlFile = urlFile.replace(/\\/g, '/');
         urlFile = host + urlFile;
         return this.sanitizer.bypassSecurityTrustResourceUrl(urlFile);

@@ -1,0 +1,371 @@
+<p-card class="h-100 p-0">
+
+  <ng-template pTemplate="header">
+    <div class="d-flex align-items-center gap-2 px-2 pt-2 pb-1">
+      <button nz-button nzType="default" nzSize="small" (click)="refreshData()">
+        <img alt="refresh" src="assets/icon/green_refresh_button.svg"
+          style="width:15px;height:15px;vertical-align:middle;margin-right:4px;" />
+        Làm mới
+      </button>
+      <span class="ms-auto badge"
+        style="background:#fff1f0;border:1px solid #ffa39e;color:#cccf13;font-weight:500;font-size:14px;padding:2px 8px;border-radius:4px;">
+        Đang mượn
+      </span>
+    </div>
+
+
+    <div class="px-2 pb-2" style="font-size:12px;">
+      <div class="row g-1">
+        <div class="col-3">
+          <label class="form-label mb-0" style="font-size:12px;">Mã sản phẩm</label>
+          <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn sản phẩm" [(ngModel)]="productSaleID"
+            (ngModelChange)="onProductChange($event)" class="w-100" nzSize="small" nzDisabled>
+            <nz-option *ngFor="let item of dtProduct" [nzValue]="item.ProductSaleID" [nzLabel]="item.ProductCode" />
+          </nz-select>
+        </div>
+        <div class="col-9">
+          <label class="form-label mb-0" style="font-size:12px;">Tên sản phẩm</label>
+          <input nz-input nzSize="small" [(ngModel)]="productName" class="w-100" disabled />
+        </div>
+      </div>
+      <div class="row g-1 mt-1">
+        <div class="col-2">
+          <label class="form-label mb-0" style="font-size:12px;">Tồn đầu kỳ</label>
+          <input nz-input nzSize="small" type="number" [value]="numberDauKy" class="w-100 text-end" disabled />
+        </div>
+        <div class="col-2">
+          <label class="form-label mb-0" style="font-size:12px;">Nhập</label>
+          <input nz-input nzSize="small" type="number" [value]="totalImport" class="w-100 text-end" disabled />
+        </div>
+        <div class="col-2">
+          <label class="form-label mb-0" style="font-size:12px;">Xuất</label>
+          <input nz-input nzSize="small" type="number" [value]="totalExport" class="w-100 text-end" disabled />
+        </div>
+        <div class="col-2">
+          <label class="form-label mb-0" style="font-size:12px;">Yêu cầu xuất</label>
+          <input nz-input nzSize="small" type="number" [value]="totalRequestExport" class="w-100 text-end" disabled />
+        </div>
+        <div class="col-2">
+          <label class="form-label mb-0" style="font-size:12px;">SL giữ</label>
+          <input nz-input nzSize="small" type="number" [value]="totalKeep" class="w-100 text-end" disabled />
+        </div>
+        <div class="col-2">
+          <label class="form-label mb-0" style="font-size:12px;">Tồn cuối kỳ</label>
+          <input nz-input nzSize="small" type="number" [value]="totalLast" class="w-100 text-end" disabled />
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- BODY -->
+  <div style="display:flex;flex-direction:column;flex:1;min-height:0;">
+    <nz-spin [nzSpinning]="isLoading">
+      <p-splitter layout="vertical" [panelSizes]="[50, 50]" [minSizes]="[15, 15]"
+        [style]="{ height: 'calc(94vh - 175px)' }">
+
+        <!-- ══ TOP ═══════════════════════════════════════════════════════════ -->
+        <ng-template pTemplate>
+          <p-splitter [panelSizes]="[50, 50]" [minSizes]="[20, 20]" style="height:100%;width:100%;">
+
+            <!-- Phiếu nhập -->
+            <ng-template pTemplate>
+              <!-- flex column fills the splitter panel -->
+              <div style="height:100%;display:flex;flex-direction:column;overflow:hidden;">
+                <!-- p-tabs as flex column; tablist shrinks, tabpanels fills via CSS -->
+                <p-tabs [value]="0" style="display:flex;flex-direction:column;height:100%;min-height:0;">
+                  <p-tablist style="flex-shrink:0;">
+                    <p-tab [value]="0">Phiếu nhập</p-tab>
+                  </p-tablist>
+                  <p-tabpanels><!-- styled via CSS: flex:1;min-height:0 -->
+                    <p-tabpanel [value]="0"><!-- styled via CSS: height:100%;display:flex;flex-direction:column -->
+                      <p-table #tblImport [value]="dtImport" [scrollable]="true" scrollHeight="flex"
+                        [resizableColumns]="true" columnResizeMode="expand"
+                        styleClass="p-datatable-sm p-datatable-gridlines" [rowHover]="true" style="height:100%;">
+                        <ng-template pTemplate="header">
+                          <tr>
+                            @for (col of colsImport; track col.field) {
+                            <th [pSortableColumn]="col.field" [style.width]="col.width" [style.min-width]="col.width"
+                              [style.text-align]="col.align||'left'" pResizableColumn>
+                              {{col.header}}<p-sortIcon [field]="col.field" />
+                            </th>
+                            }
+                          </tr>
+                          <tr>
+                            @for (col of colsImport; track col.field) {
+                            <th [style.width]="col.width">
+                              <input pInputText type="text" placeholder="Lọc"
+                                (input)="tblImport.filter($any($event.target).value,col.field,'contains')"
+                                style="width:100%;font-size:0.7rem;padding:2px 4px;" />
+                            </th>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-row>
+                          <tr (dblclick)="openBillImportDetail(row)" style="cursor:pointer;">
+                            @for (col of colsImport; track col.field) {
+                            <td [style.width]="col.width" [style.text-align]="col.align||'left'"
+                              (click)="onCellClick(row[col.field])">{{getCellValue(row,col)}}</td>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="footer">
+                          <tr>
+                            @for (col of colsImport; track col.field) {
+                            <td [style.width]="col.width" [style.text-align]="col.align||'left'"
+                              style="font-weight:bold;">{{getFooterValue(dtImport,col)}}</td>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                          <tr>
+                            <td [attr.colspan]="colsImport.length" class="text-center p-3">Không có dữ liệu</td>
+                          </tr>
+                        </ng-template>
+                      </p-table>
+                    </p-tabpanel>
+                  </p-tabpanels>
+                </p-tabs>
+              </div>
+            </ng-template>
+
+            <!-- Phiếu xuất + Phiếu yêu cầu xuất -->
+            <ng-template pTemplate>
+              <div style="height:100%;display:flex;flex-direction:column;overflow:hidden;">
+                <p-tabs [value]="0" style="display:flex;flex-direction:column;height:100%;min-height:0;">
+                  <p-tablist style="flex-shrink:0;">
+                    <p-tab [value]="0">Phiếu xuất</p-tab>
+                    <p-tab [value]="1">Phiếu yêu cầu xuất</p-tab>
+                  </p-tablist>
+                  <p-tabpanels>
+                    <p-tabpanel [value]="0">
+                      <p-table #tblExport [value]="dtExport" [scrollable]="true" scrollHeight="flex"
+                        [resizableColumns]="true" columnResizeMode="expand"
+                        styleClass="p-datatable-sm p-datatable-gridlines" [rowHover]="true" style="height:100%;">
+                        <ng-template pTemplate="header">
+                          <tr>
+                            @for (col of colsExport; track col.field) {
+                            <th [pSortableColumn]="col.field" [style.width]="col.width" [style.min-width]="col.width"
+                              [style.text-align]="col.align||'left'" pResizableColumn>
+                              {{col.header}}<p-sortIcon [field]="col.field" />
+                            </th>
+                            }
+                          </tr>
+                          <tr>
+                            @for (col of colsExport; track col.field) {
+                            <th [style.width]="col.width">
+                              <input pInputText type="text" placeholder="Lọc"
+                                (input)="tblExport.filter($any($event.target).value,col.field,'contains')"
+                                style="width:100%;font-size:0.7rem;padding:2px 4px;" />
+                            </th>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-row>
+                          <tr (dblclick)="openBillExportDetail(row)" style="cursor:pointer;"
+                            [ngStyle]="exportRowStyle(row)">
+                            @for (col of colsExport; track col.field) {
+                            <td [style.width]="col.width" [style.text-align]="col.align||'left'"
+                              (click)="onCellClick(row[col.field])">{{getCellValue(row,col)}}</td>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="footer">
+                          <tr>
+                            @for (col of colsExport; track col.field) {
+                            <td [style.width]="col.width" [style.text-align]="col.align||'left'"
+                              style="font-weight:bold;">{{getFooterValue(dtExport,col)}}</td>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                          <tr>
+                            <td [attr.colspan]="colsExport.length" class="text-center p-3">Không có dữ liệu</td>
+                          </tr>
+                        </ng-template>
+                      </p-table>
+                    </p-tabpanel>
+
+                    <p-tabpanel [value]="1">
+                      <p-table #tblReqExport [value]="dtRequestExport" [scrollable]="true" scrollHeight="flex"
+                        [resizableColumns]="true" columnResizeMode="expand"
+                        styleClass="p-datatable-sm p-datatable-gridlines" [rowHover]="true" style="height:100%;">
+                        <ng-template pTemplate="header">
+                          <tr>
+                            @for (col of colsRequestExport; track col.field) {
+                            <th [pSortableColumn]="col.field" [style.width]="col.width" [style.min-width]="col.width"
+                              [style.text-align]="col.align||'left'" pResizableColumn>
+                              {{col.header}}<p-sortIcon [field]="col.field" />
+                            </th>
+                            }
+                          </tr>
+                          <tr>
+                            @for (col of colsRequestExport; track col.field) {
+                            <th [style.width]="col.width">
+                              <input pInputText type="text" placeholder="Lọc"
+                                (input)="tblReqExport.filter($any($event.target).value,col.field,'contains')"
+                                style="width:100%;font-size:0.7rem;padding:2px 4px;" />
+                            </th>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-row>
+                          <tr (dblclick)="openBillExportDetail(row)" style="cursor:pointer;">
+                            @for (col of colsRequestExport; track col.field) {
+                            <td [style.width]="col.width" [style.text-align]="col.align||'left'"
+                              (click)="onCellClick(row[col.field])">{{getCellValue(row,col)}}</td>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="footer">
+                          <tr>
+                            @for (col of colsRequestExport; track col.field) {
+                            <td [style.width]="col.width" [style.text-align]="col.align||'left'"
+                              style="font-weight:bold;">{{getFooterValue(dtRequestExport,col)}}</td>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                          <tr>
+                            <td [attr.colspan]="colsRequestExport.length" class="text-center p-3">Không có dữ liệu</td>
+                          </tr>
+                        </ng-template>
+                      </p-table>
+                    </p-tabpanel>
+                  </p-tabpanels>
+                </p-tabs>
+              </div>
+            </ng-template>
+
+          </p-splitter>
+        </ng-template>
+
+        <!-- ══ BOTTOM ════════════════════════════════════════════════════════ -->
+        <ng-template pTemplate>
+          <p-splitter [panelSizes]="[50, 50]" [minSizes]="[20, 20]" style="height:100%;width:100%;">
+
+            <!-- Phiếu yêu cầu nhập -->
+            <ng-template pTemplate>
+              <div style="height:100%;display:flex;flex-direction:column;overflow:hidden;">
+                <p-tabs [value]="0" style="display:flex;flex-direction:column;height:100%;min-height:0;">
+                  <p-tablist style="flex-shrink:0;">
+                    <p-tab [value]="0">Phiếu yêu cầu nhập</p-tab>
+                  </p-tablist>
+                  <p-tabpanels>
+                    <p-tabpanel [value]="0">
+                      <p-table #tblReqImport [value]="dtRequestImport" [scrollable]="true" scrollHeight="flex"
+                        [resizableColumns]="true" columnResizeMode="expand"
+                        styleClass="p-datatable-sm p-datatable-gridlines" [rowHover]="true" style="height:100%;">
+                        <ng-template pTemplate="header">
+                          <tr>
+                            @for (col of colsRequestImport; track col.field) {
+                            <th [pSortableColumn]="col.field" [style.width]="col.width" [style.min-width]="col.width"
+                              [style.text-align]="col.align||'left'" pResizableColumn>
+                              {{col.header}}<p-sortIcon [field]="col.field" />
+                            </th>
+                            }
+                          </tr>
+                          <tr>
+                            @for (col of colsRequestImport; track col.field) {
+                            <th [style.width]="col.width">
+                              <input pInputText type="text" placeholder="Lọc"
+                                (input)="tblReqImport.filter($any($event.target).value,col.field,'contains')"
+                                style="width:100%;font-size:0.7rem;padding:2px 4px;" />
+                            </th>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-row>
+                          <tr (dblclick)="openBillImportDetail(row)" style="cursor:pointer;">
+                            @for (col of colsRequestImport; track col.field) {
+                            <td [style.width]="col.width" [style.text-align]="col.align||'left'"
+                              (click)="onCellClick(row[col.field])">{{getCellValue(row,col)}}</td>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="footer">
+                          <tr>
+                            @for (col of colsRequestImport; track col.field) {
+                            <td [style.width]="col.width" [style.text-align]="col.align||'left'"
+                              style="font-weight:bold;">{{getFooterValue(dtRequestImport,col)}}</td>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                          <tr>
+                            <td [attr.colspan]="colsRequestImport.length" class="text-center p-3">Không có dữ liệu</td>
+                          </tr>
+                        </ng-template>
+                      </p-table>
+                    </p-tabpanel>
+                  </p-tabpanels>
+                </p-tabs>
+              </div>
+            </ng-template>
+
+            <!-- Hàng giữ -->
+            <ng-template pTemplate>
+              <div style="height:100%;display:flex;flex-direction:column;overflow:hidden;">
+                <p-tabs [value]="0" style="display:flex;flex-direction:column;height:100%;min-height:0;">
+                  <p-tablist style="flex-shrink:0;">
+                    <p-tab [value]="0">Hàng giữ</p-tab>
+                  </p-tablist>
+                  <p-tabpanels>
+                    <p-tabpanel [value]="0">
+                      <p-table #tblHold [value]="dtHold" [scrollable]="true" scrollHeight="flex"
+                        [resizableColumns]="true" columnResizeMode="expand"
+                        styleClass="p-datatable-sm p-datatable-gridlines" [rowHover]="true" style="height:100%;">
+                        <ng-template pTemplate="header">
+                          <tr>
+                            @for (col of colsHold; track col.field) {
+                            <th [pSortableColumn]="col.field" [style.width]="col.width" [style.min-width]="col.width"
+                              [style.text-align]="col.align||'left'" pResizableColumn>
+                              {{col.header}}<p-sortIcon [field]="col.field" />
+                            </th>
+                            }
+                          </tr>
+                          <tr>
+                            @for (col of colsHold; track col.field) {
+                            <th [style.width]="col.width">
+                              <input pInputText type="text" placeholder="Lọc"
+                                (input)="tblHold.filter($any($event.target).value,col.field,'contains')"
+                                style="width:100%;font-size:0.7rem;padding:2px 4px;" />
+                            </th>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-row>
+                          <tr>
+                            @for (col of colsHold; track col.field) {
+                            <td [style.width]="col.width" [style.text-align]="col.align||'left'"
+                              (click)="onCellClick(row[col.field])">{{getCellValue(row,col)}}</td>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="footer">
+                          <tr>
+                            @for (col of colsHold; track col.field) {
+                            <td [style.width]="col.width" [style.text-align]="col.align||'left'"
+                              style="font-weight:bold;">{{getFooterValue(dtHold,col)}}</td>
+                            }
+                          </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                          <tr>
+                            <td [attr.colspan]="colsHold.length" class="text-center p-3">Không có dữ liệu</td>
+                          </tr>
+                        </ng-template>
+                      </p-table>
+                    </p-tabpanel>
+                  </p-tabpanels>
+                </p-tabs>
+              </div>
+            </ng-template>
+
+          </p-splitter>
+        </ng-template>
+
+      </p-splitter>
+    </nz-spin>
+  </div>
+
+</p-card>

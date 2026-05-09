@@ -1,0 +1,150 @@
+/* Bill Import Synthetic New - SlickGrid Styles */
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.bill-import-synthetic-new-modal-body {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+
+#gridContainer {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* SlickGrid customizations */
+:host ::ng-deep .slick-header-column {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+:host ::ng-deep .slick-cell {
+  font-size: 12px;
+  padding: 4px 6px;
+}
+
+:host ::ng-deep .slick-cell.text-right {
+  text-align: right !important;
+}
+
+:host ::ng-deep .slick-cell.text-center {
+  text-align: center !important;
+}
+
+/* Frozen columns styling */
+:host ::ng-deep .slick-pane-left .slick-header-column {
+  background-color: #e9ecef;
+}
+
+/* Editor styling */
+:host ::ng-deep .slick-cell.editable {
+  background-color: #fff3cd;
+}
+
+/* ::ng-deep .slick-cell.active {
+  border: 2px solid #0d6efd !important;
+} */
+
+/* Filter row styling */
+:host ::ng-deep .slick-headerrow-column {
+  background-color: #f8f9fa;
+  padding: 2px 4px;
+}
+
+:host ::ng-deep .slick-headerrow-column input,
+:host ::ng-deep .slick-headerrow-column select {
+  font-size: 11px;
+  padding: 2px 4px;
+}
+
+/* Checkbox selector styling */
+:host ::ng-deep .slick-cell-checkboxsel {
+  text-align: center;
+}
+
+/* Row selection styling */
+:host ::ng-deep .slick-row.selected {
+  background-color: #cfe2ff !important;
+}
+
+/* Context menu styling */
+:host ::ng-deep .slick-context-menu {
+  z-index: 10000 !important;
+  background: white !important;
+  border: 1px solid #ccc !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+:host ::ng-deep .slick-context-menu .slick-menu-item {
+  padding: 8px 12px !important;
+  cursor: pointer !important;
+}
+
+:host ::ng-deep .slick-context-menu .slick-menu-item:hover {
+  background-color: #f0f0f0 !important;
+}
+
+/* Submenu styling */
+:host ::ng-deep .slick-context-menu .slick-submenu {
+  position: absolute !important;
+  left: 100% !important;
+  top: 0 !important;
+  z-index: 10001 !important;
+  background: white !important;
+  border: 1px solid #ccc !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+:host ::ng-deep .slick-context-menu .slick-menu-icon {
+  margin-right: 8px !important;
+}
+
+/* Form label styling */
+.bill-import-synthetic-new-fs-12 {
+  font-size: 12px;
+}
+
+/* Button styling */
+.bill-import-synthetic-new-btn {
+  font-size: 12px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  :host ::ng-deep .slick-cell {
+    font-size: 11px;
+    padding: 2px 4px;
+  }
+
+  :host ::ng-deep .slick-header-column {
+    font-size: 11px;
+  }
+}
+:host ::ng-deep div[id^="billImportSyntheticGrid-"] {
+  height: calc(91vh - 60px) !important;
+}
+
+:host ::ng-deep
+  .slickgrid-container
+  .slick-footerrow
+  .slick-footerrow-columns
+  .slick-footerrow-column {
+  border-right: 1px solid #ddd !important;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+  justify-content: end !important;
+  
+}
+
+:host ::ng-deep .slick-headerrow-column input {
+  font-family: 'Roboto', sans-serif !important;
+  font-size: 12px !important;
+}

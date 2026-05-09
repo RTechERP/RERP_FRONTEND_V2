@@ -18,7 +18,6 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { DateTime } from 'luxon';
-import * as ExcelJS from 'exceljs';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -1192,7 +1191,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         modalRef.componentInstance.id = isCheckmode ? this.id : 0; // Chỉ truyền id khi sửa
         modalRef.componentInstance.wareHouseCode = this.warehouseCode;
         modalRef.result.finally(() => {
-                this.loadDataBillExport();
+            this.loadDataBillExport();
             setTimeout(() => {
                 if (this.angularGridMaster && this.savedSelectedRows.length > 0) {
                     this.angularGridMaster.slickGrid.setSelectedRows(this.savedSelectedRows);
@@ -1445,7 +1444,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     async exportExcel() {
         if (!this.angularGridMaster?.slickGrid) return;
 
-        const data = this.angularGridMaster.slickGrid.getData() as any[];
+        const data = this.angularGridMaster.dataView?.getFilteredItems() || [];
         if (!data || data.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
@@ -1454,7 +1453,8 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             return;
         }
 
-        const workbook = new ExcelJS.Workbook();
+        const { Workbook } = await import('exceljs');
+        const workbook = new Workbook();
         const worksheet = workbook.addWorksheet('Danh sách phiếu xuất');
 
         const columns = this.angularGridMaster.slickGrid.getColumns();
@@ -1487,9 +1487,9 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             worksheet.views = [{ state: 'frozen', ySplit: 1 }];
         });
 
-        worksheet.eachRow((row, rowNumber) => {
+        worksheet.eachRow((row: any, rowNumber: any) => {
             if (rowNumber === 1) return;
-            row.eachCell((cell, colNumber) => {
+            row.eachCell((cell: any) => {
                 if (cell.value instanceof Date) {
                     cell.numFmt = 'dd/mm/yyyy';
                 }

@@ -248,7 +248,25 @@ export class PONCCService {
         }))
       );
   }
-
+  // Lấy tổng hợp PO NCC Kế toán
+  getPONCCSummaryKT(request: {
+    FilterText?: string;
+    DateStart?: string;
+    DateEnd?: string;
+    SupplierID?: number;
+    Status?: number;
+    EmployeeID?: number;
+  }): Observable<any> {
+    return this.http
+      .post<any>(`${this.baseUrl}get-po-ncc-summary-kt`, request)
+      .pipe(
+        map((res: any) => ({
+          data: Array.isArray(res?.data) ? res.data : res?.data || [],
+          status: res?.status,
+          message: res?.message,
+        }))
+      );
+  }
   //In PO
   printPO(id: number, isMerge: boolean) {
     return this.http.get<any>(

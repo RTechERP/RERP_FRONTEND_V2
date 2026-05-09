@@ -211,6 +211,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     userId: 0,
     poDate: new Date(),
     totalPO: 0,
+    totalPOBeforeVAT: 0,
     poNumber: '',
     projectId: 0,
     poType: 0,
@@ -643,6 +644,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             userId: pokhData.UserID,
             poDate: formattedDate,
             totalPO: pokhData.TotalMoneyPO,
+            totalPOBeforeVAT: pokhData.TotalMoneyKoVAT || 0,
             poNumber: pokhData.PONumber,
             projectId: pokhData.ProjectID,
             poType: pokhData.POType,
@@ -1450,6 +1452,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   }
   calculateTotalMoneyKoVAT() {
     let total = 0;
+    const sourceRows = this.tb_ProductDetailTreeList?.getData?.() || this.dataPOKHProduct || [];
     const processRows = (rows: any[]) => {
       rows.forEach((row) => {
         total += Number(row.IntoMoney) || 0;
@@ -1458,7 +1461,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         }
       });
     };
-    processRows(this.tb_ProductDetailTreeList.getData());
+    processRows(sourceRows);
     return total;
   }
 
@@ -1485,6 +1488,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       userId: 0,
       poDate: new Date(),
       totalPO: 0,
+      totalPOBeforeVAT: 0,
       poNumber: '',
       projectId: 0,
       poType: 0,
@@ -1696,12 +1700,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
     // Đảm bảo totalPO luôn là số hợp lệ, không phải NaN
     this.poFormData.totalPO = isNaN(totalSum) ? 0 : totalSum;
+    this.poFormData.totalPOBeforeVAT = this.calculateTotalMoneyKoVAT();
     console.log('Tổng giá trị sau VAT:', this.poFormData.totalPO);
 
     // Cập nhật lại giá trị tiền trong bảng người phụ trách
     this.updateResponsibleUsersMoney();
 
-    // Tính lại chiết khấu khi totalPO thay đổi: chỉ tính từ moneyDiscount, không tính từ %
+    // Tính lại chiết khấu theo tổng tiền trước VAT: chỉ tính từ moneyDiscount, không tính từ %
     this.calculateTotalFromMoneyDiscount();
   }
   updateResponsibleUsersMoney(): void {
@@ -1722,10 +1727,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     });
   }
   calculateDiscount(): void {
-    // Đảm bảo totalPO luôn là số hợp lệ
-    const totalPO = isNaN(Number(this.poFormData.totalPO))
-      ? 0
-      : Number(this.poFormData.totalPO) || 0;
+    const totalBeforeVAT = this.getDiscountBaseAmount();
 
     // Lấy tổng tiền chiết khấu hiện tại
     const moneyDiscount = isNaN(Number(this.poFormData.moneyDiscount))
@@ -1735,7 +1737,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     // Ưu tiên tổng tiền chiết khấu: nếu có moneyDiscount thì dùng nó
     if (moneyDiscount > 0) {
       // Tính tổng tiền sau chiết khấu từ moneyDiscount
-      const result = totalPO - moneyDiscount;
+      const result = totalBeforeVAT - moneyDiscount;
       this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
     } else {
       // Nếu không có moneyDiscount, tính từ % chiết khấu
@@ -1744,47 +1746,48 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         : Number(this.poFormData.discount) || 0;
 
       // Tính số tiền chiết khấu từ %
-      const calculatedMoneyDiscount = (totalPO * discount) / 100;
+      const calculatedMoneyDiscount = (totalBeforeVAT * discount) / 100;
       this.poFormData.moneyDiscount = isNaN(calculatedMoneyDiscount) ? 0 : calculatedMoneyDiscount;
 
       // Tính tổng tiền sau chiết khấu
-      const result = totalPO - calculatedMoneyDiscount;
+      const result = totalBeforeVAT - calculatedMoneyDiscount;
       this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
     }
   }
 
   // Tính từ % chiết khấu: cập nhật moneyDiscount và totalMoneyDiscount
   calculateDiscountFromPercent(): void {
-    const totalPO = isNaN(Number(this.poFormData.totalPO))
-      ? 0
-      : Number(this.poFormData.totalPO) || 0;
+    const totalBeforeVAT = this.getDiscountBaseAmount();
 
     const discount = isNaN(Number(this.poFormData.discount))
       ? 0
       : Number(this.poFormData.discount) || 0;
 
     // Tính số tiền chiết khấu từ %
-    const calculatedMoneyDiscount = (totalPO * discount) / 100;
+    const calculatedMoneyDiscount = (totalBeforeVAT * discount) / 100;
     this.poFormData.moneyDiscount = isNaN(calculatedMoneyDiscount) ? 0 : calculatedMoneyDiscount;
 
     // Tính tổng tiền sau chiết khấu
-    const result = totalPO - calculatedMoneyDiscount;
+    const result = totalBeforeVAT - calculatedMoneyDiscount;
     this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
   }
 
   // Tính từ tổng tiền chiết khấu: chỉ cập nhật totalMoneyDiscount, bỏ qua %
   calculateTotalFromMoneyDiscount(): void {
-    const totalPO = isNaN(Number(this.poFormData.totalPO))
-      ? 0
-      : Number(this.poFormData.totalPO) || 0;
+    const totalBeforeVAT = this.getDiscountBaseAmount();
 
     const moneyDiscount = isNaN(Number(this.poFormData.moneyDiscount))
       ? 0
       : Number(this.poFormData.moneyDiscount) || 0;
 
     // Tính tổng tiền sau chiết khấu từ moneyDiscount (bỏ qua %)
-    const result = totalPO - moneyDiscount;
+    const result = totalBeforeVAT - moneyDiscount;
     this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
+  }
+
+  private getDiscountBaseAmount(): number {
+    const totalBeforeVAT = Number(this.poFormData.totalPOBeforeVAT);
+    return isNaN(totalBeforeVAT) ? 0 : totalBeforeVAT || 0;
   }
 
   onDiscountChange(): void {
@@ -1815,7 +1818,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.poFormData.totalPO = numericValue;
 
     this.updateResponsibleUsersMoney();
-    // Tính lại chiết khấu khi totalPO thay đổi: chỉ tính từ moneyDiscount, không tính từ %
+    // Tính lại chiết khấu theo tổng tiền trước VAT: chỉ tính từ moneyDiscount, không tính từ %
     this.calculateTotalFromMoneyDiscount();
   }
   formatFileSize(bytes: number): string {

@@ -2,9 +2,10 @@ import { Component, Input, OnInit, Optional, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzTableModule } from 'ng-zorro-antd/table';
 
 // PrimeNG
 import { SharedModule, MenuItem } from 'primeng/api';
@@ -25,6 +26,8 @@ import { catchError, map } from 'rxjs/operators';
   imports: [
     CommonModule,
     FormsModule,
+    NzModalModule,
+    NzTableModule,
     Menubar,
     SharedModule,
     CustomTable
@@ -42,6 +45,10 @@ export class DrawingProjectComponent implements OnInit {
 
   columns: ColumnDef[] = [];
   menuBars: MenuItem[] = [];
+  isLogModalVisible: boolean = false;
+  isLoadingLogs: boolean = false;
+  selectedLogRow: any = null;
+  drawingLogs: any[] = [];
 
   constructor(
     private notification: NzNotificationService,
@@ -78,6 +85,11 @@ export class DrawingProjectComponent implements OnInit {
         label: 'Xóa',
         icon: 'fa-solid fa-trash fa-lg text-danger',
         command: () => this.deleteSelectedDrawing(),
+      },
+      {
+        label: 'Xem lịch sử thay đổi',
+        icon: 'fa-solid fa-clock-rotate-left fa-lg text-info',
+        command: () => this.openLogModal(),
       },
       {
         label: 'Tải lại',
@@ -275,6 +287,61 @@ export class DrawingProjectComponent implements OnInit {
         this.notification.error('Lỗi', err?.error?.message || 'Không thể duyệt bản vẽ này!');
       }
     });
+  }
+
+  openLogModal(): void {
+    if (this.selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một bản vẽ để xem lịch sử thay đổi!');
+      return;
+    }
+
+    if (this.selectedRows.length > 1) {
+      this.notification.warning('Thông báo', 'Chỉ được chọn duy nhất một bản vẽ để xem lịch sử thay đổi!');
+      return;
+    }
+
+    const selectedRow = this.selectedRows[0];
+    const drawingID = selectedRow.ID || selectedRow.id;
+    if (!drawingID || drawingID <= 0) {
+      this.notification.warning('Thông báo', 'Bản vẽ được chọn chưa có ID hợp lệ!');
+      return;
+    }
+
+    this.selectedLogRow = selectedRow;
+    this.drawingLogs = [];
+    this.isLogModalVisible = true;
+    this.isLoadingLogs = true;
+
+    this.drawingService.getLogs(drawingID).subscribe({
+      next: (res: any) => {
+        this.isLoadingLogs = false;
+        if (res.status === 1 || res.isSuccess) {
+          this.drawingLogs = Array.isArray(res.data) ? res.data : [];
+        } else {
+          this.drawingLogs = [];
+          this.notification.warning('Thông báo', res.message || 'Không lấy được lịch sử thay đổi!');
+        }
+      },
+      error: (err: any) => {
+        this.isLoadingLogs = false;
+        this.drawingLogs = [];
+        console.error(err);
+        this.notification.error('Lỗi', 'Không thể tải lịch sử thay đổi bản vẽ!');
+      }
+    });
+  }
+
+  closeLogModal(): void {
+    this.isLogModalVisible = false;
+    this.isLoadingLogs = false;
+    this.selectedLogRow = null;
+    this.drawingLogs = [];
+  }
+
+  formatLogDate(value: any): string {
+    if (!value) return '';
+    const dateTime = value instanceof Date ? DateTime.fromJSDate(value) : DateTime.fromISO(value);
+    return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy HH:mm') : '';
   }
 
   triggerUploadPdf(): void {

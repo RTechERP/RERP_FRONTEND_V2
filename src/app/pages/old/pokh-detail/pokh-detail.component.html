@@ -71,21 +71,6 @@
                 </div>
 
                 <div class="col-md-4">
-                  <label class="mb-1 fs-12">Ngày PO</label>
-                  <nz-date-picker name="poDate" nzFormat="dd/MM/yyyy" nzPlaceHolder="dd/mm/yyyy" nzSize="default"
-                    class="w-100" [(ngModel)]="poFormData.poDate"></nz-date-picker>
-                </div>
-
-                <div class="col-md-4">
-                  <label class="mb-1 fs-12">Tổng tiền PO</label>
-                  <nz-input-number name="totalPO" nzPlaceHolder="0" [nzMin]="0" [nzStep]="0.01" nzSize="default"
-                    class="w-100" [(ngModel)]="poFormData.totalPO" [nzFormatter]="formatAmount" [nzParser]="parseAmount"
-                    nzReadOnly="false" (ngModelChange)="onTotalPOChange($event)">
-                  </nz-input-number>
-                </div>
-
-                <!-- Row 3 -->
-                <div class="col-md-4">
                   <label class="mb-1 fs-12">Dự án <span class="text-danger">*</span>
                     <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm dự án"
                       (click)="openProjectDetailModal()">
@@ -102,6 +87,13 @@
                     *ngIf="(projectId.invalid && projectId.touched) || (isSubmitted && (!poFormData.projectId || poFormData.projectId === 0))">
                     Vui lòng chọn dự án
                   </small>
+                </div>
+
+                <!-- Row 3 -->
+                <div class="col-md-4">
+                  <label class="mb-1 fs-12">Ngày PO</label>
+                  <nz-date-picker name="poDate" nzFormat="dd/MM/yyyy" nzPlaceHolder="dd/mm/yyyy" nzSize="default"
+                    class="w-100" [(ngModel)]="poFormData.poDate"></nz-date-picker>
                 </div>
 
                 <div class="col-md-4">
@@ -129,27 +121,7 @@
                   </nz-select>
                 </div>
 
-                <!-- Row 4 -->
-                <div class="col-md-2">
-                  <label class="mb-1 fs-12">Loại tiền</label>
-                  <nz-select nzShowSearch name="currencyId" nzPlaceHolder="Chọn loại tiền" nzAllowClear nzSize="default"
-                    class="w-100" [(ngModel)]="poFormData.currencyId">
-                    <nz-option *ngFor="let currency of dataCurrencies" [nzValue]="currency.ID"
-                      [nzLabel]="currency.Code"></nz-option>
-                  </nz-select>
-                </div>
-                <div class="col-md-2">
-                  <label class="mb-1 fs-12">% Chiết khấu</label>
-                  <nz-input-number name="discount" nzPlaceHolder="0" [nzMin]="0" nzSize="default" class="w-100"
-                    [(ngModel)]="poFormData.discount" (ngModelChange)="onDiscountChange()">
-                  </nz-input-number>
-                </div>
-
-                <div class="col-md-4">
-                  <label class="mb-1 fs-12">End User</label>
-                  <input name="endUser" nz-input type="text" nzPlaceHolder="Nhập end user" nzSize="default"
-                    class="w-100 form-control form-control-sm fs-12" [(ngModel)]="poFormData.endUser" />
-                </div>
+                <!-- Money row -->
 
                 <div class="col-md-4">
                   <label class="mb-1 fs-12">Số POKH <span class="text-danger">*</span></label>
@@ -162,20 +134,64 @@
                   </small>
                 </div>
 
-                <div class="col-md-4">
-                  <label class="mb-1 fs-12">Tổng tiền chiết khấu</label>
+                <div class="col-md-2">
+                  <label class="mb-1 fs-12">Loại tiền</label>
+                  <nz-select nzShowSearch name="currencyId" nzPlaceHolder="Chọn loại tiền" nzAllowClear nzSize="default"
+                    class="w-100" [(ngModel)]="poFormData.currencyId">
+                    <nz-option *ngFor="let currency of dataCurrencies" [nzValue]="currency.ID"
+                      [nzLabel]="currency.Code"></nz-option>
+                  </nz-select>
+                </div>
+
+                <div class="col-md-2">
+                  <label class="mb-1 fs-12">Tổng tiền PO sau VAT</label>
+                  <nz-input-number name="totalPO" nzPlaceHolder="0" [nzMin]="0" [nzStep]="0.01" nzSize="default"
+                    class="w-100" [(ngModel)]="poFormData.totalPO" [nzFormatter]="formatAmount" [nzParser]="parseAmount"
+                    nzReadOnly="false" (ngModelChange)="onTotalPOChange($event)">
+                  </nz-input-number>
+                </div>
+
+                <div class="col-md-2">
+                  <label class="mb-1 fs-12">Tổng tiền PO trước VAT</label>
+                  <nz-input-number name="totalPOBeforeVAT" nzPlaceHolder="0" [nzMin]="0" [nzStep]="0.01"
+                    nzSize="default" class="w-100" [(ngModel)]="poFormData.totalPOBeforeVAT"
+                    [nzFormatter]="formatAmount" [nzParser]="parseAmount" [nzReadOnly]="true">
+                  </nz-input-number>
+                </div>
+
+                <div class="col-md-2">
+                  <label class="mb-1 fs-12">% Chiết khấu</label>
+                  <nz-input-number name="discount" nzPlaceHolder="0" [nzMin]="0" nzSize="default" class="w-100"
+                    [(ngModel)]="poFormData.discount" (ngModelChange)="onDiscountChange()">
+                  </nz-input-number>
+                </div>
+
+                <div class="col-md-2">
+                  <label class="mb-1 fs-12">Tiền chiết khấu</label>
                   <nz-input-number name="moneyDiscount" nzPlaceHolder="0" [nzMin]="0" [nzStep]="0.01" nzSize="default"
                     class="w-100" [(ngModel)]="poFormData.moneyDiscount" [nzFormatter]="formatAmount"
                     [nzParser]="parseAmount" (ngModelChange)="onMoneyDiscountChange()">
                   </nz-input-number>
                 </div>
 
-                <div class="col-md-4">
-                  <label class="mb-1 fs-12">Tổng tiền sau chiết khấu</label>
+                <div class="col-md-2">
+                  <label class="mb-1 fs-12">Sau chiết khấu</label>
                   <nz-input-number name="totalMoneyDiscount" nzPlaceHolder="0" [nzMin]="0" [nzStep]="0.01"
                     nzSize="default" class="w-100" [(ngModel)]="poFormData.totalMoneyDiscount"
                     [nzFormatter]="formatAmount" [nzParser]="parseAmount">
                   </nz-input-number>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="mb-1 fs-12">End User</label>
+                  <input name="endUser" nz-input type="text" nzPlaceHolder="Nhập end user" nzSize="default"
+                    class="w-100 form-control form-control-sm fs-12" [(ngModel)]="poFormData.endUser" />
+                </div>
+
+                <div class="col-md-4">
+                  <label class="mb-1 fs-12">Ghi chú</label>
+                  <textarea name="note" nz-input rows="1" nzPlaceHolder="Nhập ghi chú" nzSize="default"
+                    class="w-100 form-control form-control-sm fs-12" [(ngModel)]="poFormData.note"></textarea>
                 </div>
 
                 <div class="col-md-4">
@@ -192,26 +208,14 @@
                   </div>
                 </div>
               </div>
-
-              <!-- Ghi chú chiếm toàn bộ chiều rộng -->
-              <div class="row g-3 mt-3">
-                <div class="col-12">
-                  <label class="mb-1 fs-12">Ghi chú</label>
-                  <textarea name="note" nz-input rows="2" nzPlaceHolder="Nhập ghi chú" nzSize="default"
-                    class="w-100 form-control form-control-sm fs-12" [(ngModel)]="poFormData.note"></textarea>
-                </div>
-              </div>
             </div>
           </form>
 
           <!-- File upload section -->
-          <div class="bg-light p-3 rounded mt-3 shadow-sm">
+          <div class="bg-light p-2 rounded mt-2 shadow-sm">
             <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
               <div>
                 <h6 class="mb-1 text-uppercase text-muted">Tệp đính kèm</h6>
-                <p class="mb-0 text-muted small">
-                  Có thể chọn nhiều tệp cùng lúc.
-                </p>
               </div>
               <div class="d-flex gap-2">
                 <input type="file" multiple class="d-none" #fileInput (change)="onFileSelected($event)" />
@@ -221,10 +225,10 @@
                 </button>
               </div>
             </div>
-            <div class="border rounded bg-white mt-3 p-2">
-              <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="border rounded bg-white mt-2 p-2">
+              <!-- <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="fw-semibold text-secondary">Danh sách file</span>
-              </div>
+              </div> -->
               <div id="tb_POKHDetailFile"></div>
             </div>
           </div>

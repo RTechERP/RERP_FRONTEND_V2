@@ -4315,18 +4315,42 @@ export class PaymentOrderComponent implements OnInit {
             filteredData.push(...(isSpecial ? this.datasetSpecial : this.dataset));
         }
 
-        // ===== Dòng 1: tên các cột =====
-        const HEADERS = [
-            'Người nhận tiền', 'Số tài khoản', 'Ngân hàng',
-            'STT', 'Thanh toán gấp', 'Ngày đề nghị', 'Deadline', 'Tình trạng phiếu', 'Số đề nghị',
-            'Người đề nghị', 'Bộ phận', 'Phân loại chính', 'Nội dung chính của đề nghị', 'Lý do thanh toán',
-            'Số tiền', 'Số tiền thanh toán', 'Số tiền thanh toán thực tế', 'ĐVT', 'Bỏ qua HR',
-            'Hình thức thanh toán', 'Nội dung chuyển khoản', 'Nhà cung cấp',
-            'Trạng thái hợp đồng', 'Số hợp đồng', 'Dự án',
-            'Có hóa đơn', 'Điểm đi', 'Điểm đến', 'Trạng thái Bank Slip',
-            'Lịch sử duyệt / hủy duyệt', 'Lý do hủy duyệt', 'Ghi chú / Chứng từ kèm theo',
-            'Ghi chú kế toán', 'Số PO', 'Lý do KT Y/c bổ sung', 'Lý do HR Y/c bổ sung',
-        ];
+        // ===== Cấu hình cột theo loại đề nghị =====
+        let HEADERS: string[] = [];
+        let MONEY_COLS: number[] = [];
+        let CENTER_COLS: number[] = [];
+        let COL_WIDTHS: number[] = [];
+
+        if (isSpecial) {
+            HEADERS = [
+                'STT', 'Thanh toán gấp', 'Ngày đề nghị', 'Deadline thanh toán', 'Số đề nghị',
+                'Người đề nghị', 'Team kinh doanh', 'Phân loại thanh toán', 'Lý do thanh toán', 'Khách hàng',
+                'Số PO', 'Số hóa đơn', 'Số tiền', 'ĐVT', 'Hình thức thanh toán',
+                'Tình trạng phiếu', 'Lịch sử duyệt / hủy duyệt', 'Lý do hủy duyệt', 'Ghi chú / Chứng từ kèm theo'
+            ];
+            MONEY_COLS = [11];
+            CENTER_COLS = [0, 1, 2, 3, 12];
+            COL_WIDTHS = [8, 15, 14, 22, 20, 20, 25, 30, 25, 15, 20, 18, 8, 25, 25, 45, 35, 45];
+        } else {
+            HEADERS = [
+                'Người nhận tiền', 'Số tài khoản', 'Ngân hàng',
+                'STT', 'Thanh toán gấp', 'Ngày đề nghị', 'Deadline', 'Tình trạng phiếu', 'Số đề nghị',
+                'Người đề nghị', 'Bộ phận', 'Phân loại chính', 'Nội dung chính của đề nghị', 'Lý do thanh toán',
+                'Số tiền', 'Số tiền thanh toán', 'Số tiền thanh toán thực tế', 'ĐVT', 'Bỏ qua HR',
+                'Hình thức thanh toán', 'Nội dung chuyển khoản', 'Nhà cung cấp',
+                'Trạng thái hợp đồng', 'Số hợp đồng', 'Dự án',
+                'Có hóa đơn', 'Điểm đi', 'Điểm đến', 'Trạng thái Bank Slip',
+                'Lịch sử duyệt / hủy duyệt', 'Lý do hủy duyệt', 'Ghi chú / Chứng từ kèm theo',
+                'Ghi chú kế toán', 'Số PO', 'Lý do KT Y/c bổ sung', 'Lý do HR Y/c bổ sung',
+            ];
+            MONEY_COLS = [14, 15, 16];
+            CENTER_COLS = [3, 4, 5, 6, 17, 18, 25];
+            COL_WIDTHS = [
+                20, 18, 15, 8, 15, 14, 22, 25, 20, 22, 20, 22, 35, 45,
+                18, 18, 20, 8, 12, 25, 35, 25, 25, 25, 35, 12, 35, 35, 25,
+                45, 35, 45, 35, 15, 35, 35
+            ];
+        }
 
         const headerRow1 = sheet.getRow(1);
         HEADERS.forEach((h, idx) => {
@@ -4343,51 +4367,72 @@ export class PaymentOrderComponent implements OnInit {
         headerRow1.height = 30;
 
         // ===== Dữ liệu =====
-        // 0-indexed: TotalMoney=14, TotalPayment=15, TotalPaymentActual=16
-        const MONEY_COLS = [14, 15, 16];
-        // 0-indexed: STT=3, IsUrgent=4, DateOrder=5, Deadline=6, Unit=17, IsIgnoreHR=18, IsBill=25
-        const CENTER_COLS = [3, 4, 5, 6, 17, 18, 25];
-
         filteredData.forEach((item, rowIdx) => {
             const row = sheet.getRow(rowIdx + 2);
-            const vals: any[] = [
-                item.ReceiverInfo ?? '',
-                item.AccountNumber ?? '',
-                item.Bank ?? '',
-                item.RowNum ?? '',
-                boolStr(item.IsUrgent),
-                fmtDate(item.DateOrder),
-                fmtDateTime(item.DeadlinePayment),
-                item.StepName ?? '',
-                item.Code ?? '',
-                item.FullName ?? '',
-                item.DepartmentName ?? '',
-                item.TypeOrderText ?? '',
-                item.TypeName ?? '',
-                item.ReasonOrder ?? '',
-                item.TotalMoney ?? 0,
-                item.TotalPayment ?? 0,
-                item.TotalPaymentActual ?? 0,
-                (item.Unit ?? '').toUpperCase(),
-                boolStr(item.IsIgnoreHR),
-                item.TypeBankTransferText ?? '',
-                item.ContentBankTransfer ?? '',
-                item.SuplierName ?? '',
-                item.StatusContractText ?? '',
-                item.DocumentName ?? '',
-                item.ProjectFullName ?? '',
-                boolStr(item.IsBill),
-                item.StartLocation ?? '',
-                item.EndLocation ?? '',
-                item.StatusBankSlip ?? '',
-                item.ContentLog ?? '',
-                item.ReasonCancel ?? '',
-                item.Note ?? '',
-                item.AccountingNote ?? '',
-                item.POCode ?? '',
-                item.ReasonRequestAppendFileAC ?? '',
-                item.ReasonRequestAppendFileHR ?? '',
-            ];
+            let vals: any[] = [];
+
+            if (isSpecial) {
+                vals = [
+                    item.RowNum ?? '',
+                    boolStr(item.IsUrgent),
+                    fmtDate(item.DateOrder),
+                    fmtDateTime(item.DeadlinePayment),
+                    item.Code ?? '',
+                    item.FullName ?? '',
+                    item.UserTeamNameJoin ?? '',
+                    item.TypeName ?? '',
+                    item.ReasonOrder ?? '',
+                    item.CustomerName ?? '',
+                    item.POCodes ?? '',
+                    item.BillNumbers ?? '',
+                    item.TotalMoney ?? 0,
+                    (item.Unit ?? '').toUpperCase(),
+                    item.PaymentMethodsJoin ?? '',
+                    item.StepName ?? '',
+                    item.ContentLog ?? '',
+                    item.ReasonCancel ?? '',
+                    item.Note ?? '',
+                ];
+            } else {
+                vals = [
+                    item.ReceiverInfo ?? '',
+                    item.AccountNumber ?? '',
+                    item.Bank ?? '',
+                    item.RowNum ?? '',
+                    boolStr(item.IsUrgent),
+                    fmtDate(item.DateOrder),
+                    fmtDateTime(item.DeadlinePayment),
+                    item.StepName ?? '',
+                    item.Code ?? '',
+                    item.FullName ?? '',
+                    item.DepartmentName ?? '',
+                    item.TypeOrderText ?? '',
+                    item.TypeName ?? '',
+                    item.ReasonOrder ?? '',
+                    item.TotalMoney ?? 0,
+                    item.TotalPayment ?? 0,
+                    item.TotalPaymentActual ?? 0,
+                    (item.Unit ?? '').toUpperCase(),
+                    boolStr(item.IsIgnoreHR),
+                    item.TypeBankTransferText ?? '',
+                    item.ContentBankTransfer ?? '',
+                    item.SuplierName ?? '',
+                    item.StatusContractText ?? '',
+                    item.DocumentName ?? '',
+                    item.ProjectFullName ?? '',
+                    boolStr(item.IsBill),
+                    item.StartLocation ?? '',
+                    item.EndLocation ?? '',
+                    item.StatusBankSlip ?? '',
+                    item.ContentLog ?? '',
+                    item.ReasonCancel ?? '',
+                    item.Note ?? '',
+                    item.AccountingNote ?? '',
+                    item.POCode ?? '',
+                    item.ReasonRequestAppendFileAC ?? '',
+                    item.ReasonRequestAppendFileHR ?? '',
+                ];
+            }
 
             vals.forEach((v, ci) => {
                 const cell = row.getCell(ci + 1);
@@ -4409,16 +4454,6 @@ export class PaymentOrderComponent implements OnInit {
         });
 
         // ===== Độ rộng cột =====
-        const COL_WIDTHS = [
-            20, 18, 15,              // Người nhận tiền, Số tài khoản, Ngân hàng
-            8, 15, 14, 22, 25, 20,   // STT, Thanh toán gấp, Ngày đề nghị, Deadline, Tình trạng phiếu, Số đề nghị
-            22, 20, 22, 35, 45,      // Người đề nghị, Bộ phận, Phân loại chính, Nội dung chính, Lý do thanh toán
-            18, 18, 20, 8, 12,       // Số tiền, TT, TT thực tế, ĐVT, Bỏ qua HR
-            25, 35, 25, 25, 25, 35,  // Hình thức TT, ND chuyển khoản, NCC, Trạng thái HĐ, Số HĐ, Dự án
-            12, 35, 35, 25,          // Có HĐ, Điểm đi, Điểm đến, Trạng thái Bank Slip
-            45, 35, 45, 35,          // Lịch sử, Lý do hủy, Ghi chú CT, Ghi chú KT
-            15, 35, 35,              // Số PO, Lý do KT, Lý do HR
-        ];
         COL_WIDTHS.forEach((w, i) => { sheet.getColumn(i + 1).width = w; });
 
         // ===== Helper: số cột → chữ cột Excel (1=A, 26=Z, 27=AA, ...) =====
@@ -4433,7 +4468,7 @@ export class PaymentOrderComponent implements OnInit {
             return s;
         };
 
-        const totalCols = 36; // 36 cột cố định
+        const totalCols = HEADERS.length;
         const dataStartRow = 2;
         const lastDataRow = filteredData.length + 1; // row 1=col header, data từ row 2
 
@@ -4464,17 +4499,17 @@ export class PaymentOrderComponent implements OnInit {
             labelCell.font = { bold: true, color: { argb: 'FF1F4E79' }, size: 10 };
             labelCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-            // COUNT dòng dữ liệu (cột STT = cột 4 = D)
-            const cntCol = 4;
-            const cntCell = totalRow.getCell(cntCol);
-            cntCell.value = { formula: `COUNTA(${colLetter(cntCol)}${dataStartRow}:${colLetter(cntCol)}${lastDataRow})` };
+            // COUNT dòng dữ liệu (cột STT)
+            const cntColIdx = isSpecial ? 0 : 3; // Index của cột STT
+            const cntCell = totalRow.getCell(cntColIdx + 1);
+            cntCell.value = { formula: `COUNTA(${colLetter(cntColIdx + 1)}${dataStartRow}:${colLetter(cntColIdx + 1)}${lastDataRow})` };
             cntCell.font = { bold: true, color: { argb: 'FF1F4E79' } };
             cntCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-            // SUM 3 cột tiền: TotalMoney=15(O), TotalPayment=16(P), TotalPaymentActual=17(Q)
-            [15, 16, 17].forEach(ci => {
-                const cell = totalRow.getCell(ci);
-                cell.value = { formula: `SUM(${colLetter(ci)}${dataStartRow}:${colLetter(ci)}${lastDataRow})` };
+            // SUM các cột tiền
+            MONEY_COLS.forEach(ci => {
+                const cell = totalRow.getCell(ci + 1);
+                cell.value = { formula: `SUM(${colLetter(ci + 1)}${dataStartRow}:${colLetter(ci + 1)}${lastDataRow})` };
                 cell.numFmt = '#,##0';
                 cell.font = { bold: true, color: { argb: 'FF1F4E79' } };
                 cell.alignment = { horizontal: 'right', vertical: 'middle' };

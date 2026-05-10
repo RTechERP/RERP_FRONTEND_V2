@@ -144,6 +144,10 @@ export class PaymentOrderService {
     getStep(): Observable<any> {
         return this.http.get<any>(`${this.url}/get-step`);
     }
+
+    getBankList(): Observable<any> {
+        return this.http.get<any>(`${this.url}/get-bank-list`);
+    }
     // ====== 4. Đọc 3 chữ số ======
     private readThreeDigits(num: number): string {
         let tram = Math.floor(num / 100);

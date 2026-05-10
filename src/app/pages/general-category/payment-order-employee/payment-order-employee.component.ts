@@ -730,6 +730,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
         item.HRNote = '';
         item.Note = '';
         item = item as PaymentOrder;
+        console.log(item);
         this.initModal(item, true);
     }
     onOpenPaymentOrderLog(row: any) {

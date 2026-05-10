@@ -16,6 +16,7 @@ import { FilePreviewComponent } from '../file-preview/file-preview.component';
 import { environment } from '../../../../environments/environment';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { CurrencyFormatRealtimeDirective } from '../../../directives/CurrencyFormatRealtime.directive';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 @Component({
     selector: 'app-payment-order-detail-old',
     imports: [
@@ -28,7 +29,8 @@ import { CurrencyFormatRealtimeDirective } from '../../../directives/CurrencyFor
         NzIconModule,
         FilePreviewComponent,
         NzToolTipModule,
-        CurrencyFormatRealtimeDirective
+        CurrencyFormatRealtimeDirective,
+        NzModalModule
     ],
     templateUrl: './payment-order-detail-old.component.html',
     styleUrl: './payment-order-detail-old.component.css'
@@ -53,6 +55,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
     projects: any[] = [];
     typeBankTransfers: any[] = [];
     units: any[] = [];
+    bankList: any[] = [];
 
     @Input() ponccID: number = 0;
     @Input() paymentOrder = new PaymentOrder();
@@ -104,7 +107,8 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
 
     isSubmit = false;
     private destroy$ = new Subject<void>();
-
+    hasWarnedAccountInfo = false;
+    hasWarnedStkInfo = false;
     // ---- Type 2 getters ----
     private readonly FIXED_STTS = ['I', 'II', 'III'];
     private readonly FIXED_CONTENTS = [
@@ -181,7 +185,8 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         private appUserService: AppUserService,
         private paymentService: PaymentOrderService,
         private modalService: NgbModal,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private nzModal: NzModalService
     ) { }
 
     ngOnInit(): void {
@@ -207,8 +212,9 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             procurement: this.paymentService.getProcurement(),
             partners: this.paymentService.getPartnersAndProjects(),
             metadata: this.paymentService.getMetadata(),
+            bankList: this.paymentService.getBankList()
         }).subscribe({
-            next: ({ approvers, procurement, partners, metadata }) => {
+            next: ({ approvers, procurement, partners, metadata, bankList }) => {
                 this.paymentOrderTypes = metadata.data.paymentOrderTypes;
                 this.approvedTBPs = approvers.data.approvedTBPs;
                 this.supplierSalesAll = procurement.data.supplierSales;
@@ -217,6 +223,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                 this.poNCCs = [...this.poNCCsAll];
                 this.registerContracts = procurement.data.registerContracts;
                 this.projects = partners.data.projects;
+                this.bankList = bankList.data;
                 // Patch lại các trường nz-select sau khi combo data đã có — không recreate form để tránh mất subscriptions
                 if (this.validateForm) {
                     // Auto-select TBP theo department khi tạo mới hoặc copy
@@ -236,6 +243,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                         PONCCID: this.ponccID > 0 ? null : this.paymentOrder.PONCCID,
                         RegisterContractID: this.paymentOrder.RegisterContractID,
                         ProjectID: this.paymentOrder.ProjectID,
+                        BankListID: this.paymentOrder.BankListID
                     }, { emitEvent: false });
                     const sid = this.paymentOrder.SupplierSaleID;
                     this.poNCCs = sid ? this.poNCCsAll.filter((x: any) => x.SupplierSaleID == sid) : [...this.poNCCsAll];
@@ -284,11 +292,14 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             TypeBankTransfer: this.fb.control(this.paymentOrder.TypeBankTransfer),
             AccountNumber: this.fb.control(this.paymentOrder.AccountNumber),
             Bank: this.fb.control(this.paymentOrder.Bank),
+            BankListID: this.fb.control(this.paymentOrder.BankListID),
+            ContentBankTransferType: this.fb.control(this.paymentOrder.ContentBankTransferType === 0 ? 1 : this.paymentOrder.ContentBankTransferType),
             ContentBankTransfer: this.fb.control(this.paymentOrder.ContentBankTransfer),
             Unit: this.fb.control(this.paymentOrder.Unit?.toLowerCase(), [Validators.required]),
             TaxCompanyID: this.fb.control({ value: (this.paymentOrder.ID <= 0 || this.isCopy) ? this.appUserService.currentUser?.TaxCompanyID : this.paymentOrder.TaxCompanyID, disabled: true }),
-        });
 
+        });
+        console.log(this.validateForm);
         this.validateForm.get('TypeOrder')?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((v: number) => {
                 this.paymentOrder.TypeOrder = v;
@@ -331,7 +342,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             .subscribe((v: number) => {
                 this.poNCCs = v ? this.poNCCsAll.filter(x => x.SupplierSaleID == v) : [...this.poNCCsAll];
                 const s = this.supplierSalesAll.find(x => x.ID == v);
-                if (s) this.validateForm.patchValue({ AccountNumber: s.SoTK, ReceiverInfo: s.NameNCC, Bank: s.NganHang });
+                if (s) this.validateForm.patchValue({ AccountNumber: s.SoTK, ReceiverInfo: s.NameNCC, Bank: s.NganHang, BankListID: s.BankListID || 0 });
             });
 
         this.validateForm.get('IsUrgent')?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -348,16 +359,38 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                 dl?.updateValueAndValidity();
             });
 
+        this.validateForm.get('ContentBankTransferType')?.valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe((v: number) => {
+                const ctrl = this.validateForm.get('ContentBankTransfer');
+                if (this.validateForm.get('TypePayment')?.value == 1 && v == 2) {
+                    ctrl?.setValidators([Validators.required]);
+                } else {
+                    ctrl?.clearValidators();
+                    if (v == 1) {
+                        ctrl?.setValue('');
+                    }
+                }
+                ctrl?.updateValueAndValidity();
+            });
+
         const initialTypePayment = this.validateForm.get('TypePayment')?.value;
         this.validateForm.get('TypePayment')?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((v: number) => {
                 this.paymentOrder.TypePayment = v;
-                const bankFields = ['TypeBankTransfer', 'AccountNumber', 'Bank', 'ContentBankTransfer'];
+                const bankFields = ['TypeBankTransfer', 'AccountNumber', 'BankListID'];
                 bankFields.forEach(f => {
                     const ctrl = this.validateForm.get(f);
                     v == 1 ? ctrl?.setValidators([Validators.required]) : ctrl?.clearValidators();
                     ctrl?.updateValueAndValidity();
                 });
+
+                const contentCtrl = this.validateForm.get('ContentBankTransfer');
+                if (v == 1 && this.validateForm.get('ContentBankTransferType')?.value == 2) {
+                    contentCtrl?.setValidators([Validators.required]);
+                } else {
+                    contentCtrl?.clearValidators();
+                }
+                contentCtrl?.updateValueAndValidity();
             });
         if (initialTypePayment) {
             this.validateForm.get('TypePayment')?.updateValueAndValidity();
@@ -574,9 +607,10 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                 DatePayment: 'Thời gian thanh quyết toán',
                 TypeBankTransfer: 'Hình thức chuyển khoản',
                 AccountNumber: 'Số tài khoản',
-                Bank: 'Ngân hàng',
+                // Bank: 'Ngân hàng',
                 ContentBankTransfer: 'Nội dung chuyển khoản',
-                Unit: 'Loại tiền'
+                Unit: 'Loại tiền',
+                BankListID: 'ID ngân hàng'
             };
             const invalidFields = Object.entries(this.validateForm.controls)
                 .filter(([, c]) => c.invalid)
@@ -689,6 +723,19 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         if (formRawValue.DateOrder) formRawValue.DateOrder = formatDateLocal(formRawValue.DateOrder);
         if (formRawValue.DeadlinePayment) formRawValue.DeadlinePayment = formatDateLocal(formRawValue.DeadlinePayment);
         if (formRawValue.DatePayment) formRawValue.DatePayment = formatDateLocal(formRawValue.DatePayment);
+        
+        if (formRawValue.TypePayment == 1) {
+            if (formRawValue.ContentBankTransferType == 1) {
+                formRawValue.ContentBankTransfer = formRawValue.ContentBankTransfer || 'Mặc định';
+            }
+            if (!formRawValue.Bank && formRawValue.BankListID > 0) {
+                const selectedBank = this.bankList.find((b: any) => b.ID == formRawValue.BankListID);
+                if (selectedBank) formRawValue.Bank = selectedBank.BankName;
+            }
+            if (!formRawValue.Bank) {
+                formRawValue.Bank = 'Ngân hàng'; // Dự phòng để không bị lỗi backend
+            }
+        }
 
         const unit = this.validateForm.value.Unit;
         const totalMoney = this.currentTotal;
@@ -783,5 +830,30 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             const url = `${baseUrl}/file-preview?url=${encodeURIComponent(fileUrl)}&name=${encodeURIComponent(fileName)}`;
             window.open(url, '_blank');
         }
+    }
+
+    onAccountInfoBlur(type: string): void {
+        const accCtrl = this.validateForm.get('AccountNumber');
+        const recCtrl = this.validateForm.get('ReceiverInfo');
+        let context = 'thông tin người nhận tiền';
+        if (type === 'stk') {
+            // Chỉ hiện thông báo nếu người dùng thực sự đã thay đổi giá trị (dirty) và có giá trị
+            if (this.hasWarnedStkInfo || !accCtrl?.dirty || !accCtrl?.value) return;
+            this.hasWarnedStkInfo = true;
+            context = 'số tài khoản';
+        }
+        if (type === 'receiver') {
+            if (this.hasWarnedAccountInfo || !recCtrl?.dirty || !recCtrl?.value) return;
+            this.hasWarnedAccountInfo = true;
+        }
+
+        // Dùng setTimeout để tránh modal cướp focus ngay lập tức gây ra sự kiện blur dây chuyền
+        setTimeout(() => {
+            this.nzModal.warning({
+                nzTitle: 'Xác nhận thông tin',
+                nzContent: `Bạn có chắc chắn <b>[${context}]</b> này đúng không? <span class="text-danger">Nếu sai thì khoản thanh toán này sẽ không thể xử lý!</span>`,
+                nzOkText: 'Đã kiểm tra'
+            });
+        }, 100);
     }
 }

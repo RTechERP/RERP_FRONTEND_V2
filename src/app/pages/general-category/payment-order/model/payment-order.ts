@@ -119,6 +119,8 @@ export class PaymentOrder {
     PaymentOrderBillNumbers: any[] = []
     PaymentOrderBillNumberss: string | null = ''
     PaymentOrderPOss: string | null = ''
+    BankListID: number | null = 0;
+    ContentBankTransferType: number | null = 0;
 
     // ===== Optional: constructor map từ object =====
     constructor(init?: Partial<PaymentOrder>) {
@@ -150,6 +152,7 @@ export class PaymentOrderDetail {
     TotalMoneyWithInvoice: number | null = 0;
     IsDeleted = false;
     PaymentOrderDetailUserTeamSales: any[] = []
+
 }
 
 

@@ -1216,7 +1216,7 @@ export class BillExportDetailNewComponent
                 id: 'PONumber',
                 name: 'Số PO',
                 field: 'PONumber',
-                width: 120,
+                width: 200,
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },

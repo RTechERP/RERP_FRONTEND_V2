@@ -67,4 +67,8 @@ export class DrawingProjectService {
       responseType: 'blob'
     });
   }
+
+  getLogs(drawingID: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/get-log?drawingID=${drawingID}`);
+  }
 }

@@ -215,6 +215,7 @@ export class ViewPokhPrimengComponent implements OnInit {
       { field: 'DateMinutes', header: 'Ngày GH thực tế', width: '130px', sortable: true, filterMode: 'datetime', filterType: 'date', format: date, cssClass: 'text-center' },
       { field: 'PayDate', header: 'Ngày TT dự kiến', width: '130px', sortable: true, filterMode: 'datetime', filterType: 'date', format: date, cssClass: 'text-center' },
       { field: 'MoneyDate', header: 'Ngày tiền về', width: '130px', sortable: true, filterMode: 'datetime', filterType: 'date', format: date, cssClass: 'text-center' },
+      { field: 'RequestInvoiceCode', header: 'Mã lệnh YCXHD', width: '120px', sortable: true, filterMode: 'input' },
       { field: 'CompanyName', header: 'Công ty', width: '90px', sortable: true, filterMode: 'input' },
       { field: 'InvoiceNumberShow', header: 'Số HĐ (từ YC xuất)', width: '250px', sortable: true, filterMode: 'input', textWrap: true },
       { field: 'InvoiceDateShow', header: 'Ngày HĐ (từ YC)', width: '130px', sortable: true, filterMode: 'input', format: date, cssClass: 'text-center' },

@@ -6,3 +6,17 @@
     border: none;
     background-color: #f8f9fa;
 }
+
+.log-modal-header {
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.log-content-cell {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+}

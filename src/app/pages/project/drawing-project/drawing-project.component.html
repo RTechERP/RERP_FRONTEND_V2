@@ -26,4 +26,43 @@
     </app-custom-table>
   </div>
 
+  <nz-modal [(nzVisible)]="isLogModalVisible" nzTitle="Lịch sử thay đổi bản vẽ"
+    [nzWidth]="1000" [nzFooter]="null" (nzOnCancel)="closeLogModal()"
+    [nzBodyStyle]="{ padding: '12px', 'max-height': '70vh', overflow: 'hidden' }">
+    <ng-container *nzModalContent>
+      <div class="log-modal-header">
+        <div>
+          <strong>Bản vẽ:</strong>
+        </div>
+        <div class="text-muted text-truncate" [title]="selectedLogRow?.DrawingName">
+          {{ selectedLogRow?.DrawingName || '' }} - {{ selectedLogRow?.Version || '' }}
+        </div>
+      </div>
+
+      <nz-table [nzData]="drawingLogs" nzSize="small" nzBordered [nzLoading]="isLoadingLogs"
+        [nzShowPagination]="false" [nzFrontPagination]="false" [nzScroll]="{ y: '55vh' }">
+        <thead>
+          <tr>
+            <th nzWidth="55px" class="text-center">STT</th>
+            <th nzWidth="170px">Thời gian</th>
+            <th nzWidth="190px">Loại log</th>
+            <th>Nội dung</th>
+            <th nzWidth="120px">Người tạo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of drawingLogs; let i = index">
+            <td class="text-center">{{ i + 1 }}</td>
+            <td>{{ formatLogDate(log.CreatedDate) }}</td>
+            <td>{{ log.TypeLog }}</td>
+            <td class="log-content-cell">{{ log.ContentLog }}</td>
+            <td>{{ log.CreatedBy }}</td>
+          </tr>
+          <tr *ngIf="!isLoadingLogs && drawingLogs.length === 0">
+            <td colspan="5" class="text-center text-muted">Không có lịch sử thay đổi</td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </ng-container>
+  </nz-modal>
 </div>

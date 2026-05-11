@@ -135,13 +135,17 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       this.showHeader = true;
       return this.tabs.filter((tab) => tab.id === 7);
     }
+    if (this.isFromConsumables) {
+      this.showHeader = true;
+      return this.tabs.filter((tab) => tab.id === 8);
+    }
     if (this.isApprovedTBP) {
       // Chỉ hiển thị tab Mượn demo (id = 4)
       return this.tabs.filter((tab) => tab.id === 4);
     }
     if (this.isApprovedBGD) {
       // Chỉ hiển thị tab Mua dự án (id = 1)
-      return this.tabs.filter((tab) => tab.id === 1);
+      return this.tabs.filter((tab) => tab.id === 1 || tab.id === 7 || tab.id === 8);
     }
     return this.tabs;
   }
@@ -228,6 +232,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   @Input() isPurchaseRequestDemo: boolean = false;
   @Input() isFromMarketing: boolean = false;
   @Input() isFromHr: boolean = false;
+
+  @Input() isFromConsumables: boolean = false;
   WarehouseType: number = 1;
   // Flag to track if grids are ready and initial data has been loaded
   private gridsInitialized: boolean = false;
@@ -349,7 +355,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     }
 
     // Khi isFromMarketing = true, chỉ hiển thị nút xóa
-    if (this.isFromMarketing) {
+    if (this.isFromMarketing || this.isFromConsumables) {
       this.menuItems = [
         {
           label: 'Hủy Y/c',
@@ -687,6 +693,12 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
               if (muonDemoTab) {
                 this.visitedTabs.add(muonDemoTab.id);
                 this.activeTabIndex = 0; // Index trong filteredTabs sẽ là 0
+              }
+            } else if (this.isFromConsumables) {
+              const consumablesTab = this.tabs.find((tab) => tab.id === 8);
+              if (consumablesTab) {
+                this.visitedTabs.add(consumablesTab.id);
+                this.activeTabIndex = 0;
               }
             } else if (this.listRequestBuySelect) {
               //NTA B update 2612
@@ -1115,6 +1127,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
     // Check if this is tab 5 (Hàng Thương mại)
     const isCommercialTab = typeId === 5;
+    const isConsumableTab = typeId === 8;
 
     const columns: Column[] = [
       // TT - Row number (frozen) - ẩn ở tab Hàng Thương mại
@@ -1269,7 +1282,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     }
 
     // Chỉ thêm cột CustomerName nếu KHÔNG phải tab "Mua hàng dự án" (typeId !== 1) và KHÔNG phải tab mua demo (typeId !== 3)
-    if (typeId !== 1 && typeId !== 3) {
+    if (typeId !== 1 && typeId !== 3 && !isConsumableTab) {
       columns.push(
         // CustomerName
         {
@@ -2515,7 +2528,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   private initGridOptions(typeId: number): GridOption {
     // Tab 1 (Mua dự án) sẽ readonly khi isSelectedPO = true
     // Grid sẽ readonly khi isFromMarketing = true hoặc isFromHr = true
-    const isReadOnly = (this.isSelectedPO && typeId === 1) || this.isFromMarketing || this.isFromHr;
+    const isReadOnly = (this.isSelectedPO && typeId === 1) || this.isFromMarketing || this.isFromHr || this.isFromConsumables;
 
     return {
       enableAutoResize: true,
@@ -2756,6 +2769,18 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         this.updateFooterRow(typeId);
       });
     }
+
+    angularGrid.slickGrid.onBeforeEditCell.subscribe((e, args) => {
+      //const item = args.item;
+      if (args.column.field === 'ProductGroupID' || args.column.field === 'ProductGroupRTCID'
+        || args.column.field === 'WarehouseID'
+      ) {
+        if (typeId === 8) {
+          return false;
+        }
+      }
+      return true;
+    });
   }
 
 
@@ -2986,6 +3011,11 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
   // Build context menu items for a specific tab
   private buildContextMenuItems(typeId: number): any[] {
+
+    if (typeId === 8) {
+      return [];
+    }
+
     // Kiểm tra quyền N35 và N1
     const hasN35Permission = this.permissionService.hasPermission('N35');
     const hasN1Permission = this.permissionService.hasPermission('N1');
@@ -3158,7 +3188,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   private getProductGroupCollection(
     isRTC: boolean
   ): Array<{ value: number; label: string }> {
-    const groups = isRTC ? this.dtproductGroupsRTC : this.dtproductGroups?.filter((g: any) => g.ParentID === 0 || g.ParentID === null || g.ParentID === undefined);
+    const groups = isRTC ? this.dtproductGroupsRTC :
+      this.dtproductGroups?.filter((g: any) => g.ParentID === 0 || g.ParentID === null || g.ParentID === undefined);
 
     const collection = (groups || []).map((g: any) => ({
       value: g.ID,
@@ -3681,6 +3712,12 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
               );
               break;
 
+            case 8:
+              filteredData = allData.filter(
+                (x: any) => Number(x.ProjectPartlistPurchaseRequestTypeID) == 8
+              );
+              break;
+
             default:
               break;
           }
@@ -4197,7 +4234,24 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     const typeId = this.getTypeIdFromTabIndex(tabIndex);
     if (!typeId) return;
 
-    const selected = this.getSelectedGridData(typeId);
+    let selected = this.getSelectedGridData(typeId);
+    let isConsumable = typeId === 8 && !this.appUserService.isAdmin;
+    if (isConsumable) {
+      selected = selected.filter(x => !x.UpdatedName || x.UpdatedName.trim() === '');
+      if (selected.length === 0) {
+        this.notify.warning(
+          NOTIFICATION_TITLE.warning,
+          `Sản phẩm có nhân viên mua không được hủy!`
+        );
+        return;
+      }
+    }
+
+    let title = `Bạn có chắc muốn xoá danh sách đã chọn không?`;
+    if (isConsumable) {
+      title = `Bạn có chắc muốn xoá danh sách đã chọn không? Những sản phẩm có NV mua sẽ được bỏ qua!`;
+    }
+
     if (selected.length === 0) {
       this.notify.warning(
         NOTIFICATION_TITLE.warning,
@@ -4207,7 +4261,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     }
 
     this.modal.confirm({
-      nzTitle: `Bạn có chắc muốn xoá danh sách đã chọn không?`,
+      nzTitle: title,
       nzOkText: 'Ok',
       nzOkType: 'primary',
       nzCancelText: 'Hủy',
@@ -4447,7 +4501,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       );
       return;
     }
-
+    //debugger;
     const typeId = this.getTypeIdFromTabIndex(tabIndex);
     if (!typeId) return;
 

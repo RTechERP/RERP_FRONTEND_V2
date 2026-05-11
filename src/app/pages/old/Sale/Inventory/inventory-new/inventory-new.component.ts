@@ -2157,7 +2157,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         modalRef.componentInstance.dataInput = processedRows;
         modalRef.componentInstance.jobRequirementID = 0;
         modalRef.componentInstance.projectTypeID = -5;
-        modalRef.componentInstance.initialPriceRequestTypeID = 7
+        modalRef.componentInstance.initialPriceRequestTypeID = 7;
+        modalRef.componentInstance.isDP = this.isWareHouseDP;
 
         modalRef.result.then(
             (result) => {

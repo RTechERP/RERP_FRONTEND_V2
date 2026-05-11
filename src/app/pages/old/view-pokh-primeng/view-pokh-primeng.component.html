@@ -137,7 +137,7 @@
                     [showCurrentPageReport]="true"
                     currentPageReportTemplate="Hiển thị {first} - {last} / {totalRecords} dòng"
                     selectionMode="multiple"
-                    [(selection)]="selectedRowsAll" (selectionChange)="onMasterSelectionChange($event)"
+                    [selection]="selectedRowsInView" (selectionChange)="onMasterSelectionChange($event)"
                     rowGroupMode="subheader" groupRowsBy="PONumber" sortField="PONumber"
                     editMode="cell">
 

@@ -174,6 +174,10 @@ export class ProjectPartlistPriceRequestService {
     return this.http.post(`${this.baseUrl}/request-buy`, payload);
   }
 
+  requestBuyConsumable(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/request-buy-consumble`, payload);
+  }
+
   checkPrice(lstModel: any[]): Observable<any> {
     return this.http.post(`${this.baseUrl}/check-price`, lstModel);
   }

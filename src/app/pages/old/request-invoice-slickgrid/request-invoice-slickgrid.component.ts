@@ -76,6 +76,7 @@ import { RequestInvoiceStatusLinkService } from '../request-invoice-status-link/
 import { ActivatedRoute } from '@angular/router';
 import { environment } from '../../../../environments/environment';
 import { Menubar } from 'primeng/menubar';
+import { ActivityLogRequestInvoiceComponent } from '../../crm/activity-log-request-invoice/activity-log-request-invoice.component';
 import { RequestInvoiceDetailNewPrimengComponent } from '../request-invoice-detail-new-primeng/request-invoice-detail-new-primeng.component';
 
 @Component({
@@ -233,6 +234,13 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 icon: 'fa-solid fa-file-excel fa-lg text-success',
                 command: () => {
                     this.exportTableToExcel();
+                }
+            },
+            {
+                label: 'Lịch sử thao tác',
+                icon: 'fa-solid fa-clock-rotate-left',
+                command: () => {
+                    this.openHistoryActivity();
                 }
             }
         ];
@@ -1597,4 +1605,29 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 </span>
             `;
     };
+
+    openHistoryActivity() {
+        if (!this.selectedId) {
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
+                'Vui lòng chọn bản ghi cần xem lịch sử',
+                {
+                    nzStyle: { whiteSpace: 'pre-line' }
+                }
+            );
+            return;
+        }
+
+        const modalRef = this.modalService.open(ActivityLogRequestInvoiceComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            size: 'xl',
+        });
+
+        const selectedRow = this.datasetMain.find(item => item.ID === this.selectedId);
+        modalRef.componentInstance.requestInvoiceId = this.selectedId;
+        modalRef.componentInstance.requestInvoiceCode = selectedRow?.Code || '';
+    }
 }

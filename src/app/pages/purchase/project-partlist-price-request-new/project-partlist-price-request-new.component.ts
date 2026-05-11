@@ -236,6 +236,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       this.activeTabId = -1; // Tab thương mại
     }
 
+    if (this.projectPartlistPriceRequestTypeID === 17) {
+      this.activeTabId = 10; // Vtth tab
+    }
+
     this.filters = {
       dateStart: DateTime.local().startOf('month').toJSDate(), // Ngày đầu tháng hiện tại
       dateEnd: DateTime.local().endOf('month').toJSDate(), // Ngày cuối cùng của tháng hiện tại
@@ -298,6 +302,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (this.poKHID > 0 && id !== -1) return false;
     if (this.projectPartlistPriceRequestTypeID === 3) return id === -2;
     if (this.projectPartlistPriceRequestTypeID === 4) return id === -3;
+    if (this.projectPartlistPriceRequestTypeID === 17) return id === 10;
     return true;
   }
   getVisibleProjectTypes(): any[] {
@@ -372,6 +377,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       '-2': 3,
       '-3': 4,
       '-4': 6,
+      '10': 17,
     };
 
     const key = String(projectTypeID);
@@ -384,13 +390,13 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   }
 
   OnEditClick() {
-    const lstTypeAccept = [-1, -2, -3, -4];
+    const lstTypeAccept = [-1, -2, -3, -4, 10];
     const angularGrid = this.angularGrids.get(this.activeTabId);
 
     if (!lstTypeAccept.includes(this.activeTabId)) {
       this.notification.info(
         NOTIFICATION_TITLE.warning,
-        'Chỉ được sửa những sản phẩm của hàng thương mại, yêu cầu công việc, marketing, demo!'
+        'Chỉ được sửa những sản phẩm của hàng thương mại, yêu cầu công việc, marketing, demo, vật tư tiêu hao!'
       );
       return;
     }
@@ -703,6 +709,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         poKHID = 0; // poKHID = 0 cho các type khác
       }
       else if (projectTypeID === 0) {
+        isCommercialProduct = 0;
+        isJobRequirement = 0;
+        poKHID = 0; // poKHID = 0 cho các type khác
+      } else if (projectTypeID === 17) {
+        mappedProjectTypeID = -1;
+        projectPartlistPriceRequestTypeID = 7;
         isCommercialProduct = 0;
         isJobRequirement = 0;
         poKHID = 0; // poKHID = 0 cho các type khác

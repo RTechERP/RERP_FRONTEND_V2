@@ -95,6 +95,7 @@ import { WarehouseReleaseRequestSlickGridComponent } from '../warehouse-release-
 import { PoRequestBuySlickgridComponent } from '../po-request-buy-slickgrid/po-request-buy-slickgrid.component';
 import { ViewPokhSlickgridComponent } from '../view-pokh-slickgrid/view-pokh-slickgrid.component';
 import { Menubar } from 'primeng/menubar';
+import { ActivityLogCrmComponent } from '../../crm/activity-log-crm/activity-log-crm.component';
 import { ViewPokhPrimengComponent } from '../view-pokh-primeng/view-pokh-primeng.component';
 @Component({
     selector: 'app-pokh-slickgrid',
@@ -174,6 +175,8 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     menuBars: any[] = [];
     private queryParamsSubscription?: Subscription;
     private isInitialized: boolean = false;
+
+    poCode: string = '';
 
     initMenuBar() {
         this.menuBars = [
@@ -277,6 +280,13 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                         icon: 'fa-solid fa-file-invoice fa-lg text-warning',
                         command: () => {
                             this.openPORequestPriceRTC();
+                        }
+                    },
+                    {
+                        label: 'Lịch sử thao tác',
+                        icon: 'fa-solid fa-clock-rotate-left fa-lg text-warning',
+                        command: () => {
+                            this.openLogActivityModal();
                         }
                     }
                 ]
@@ -2069,6 +2079,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             }
             this.selectedId = item['ID'];
             this.selectedRow = item;
+            this.poCode = item['POCode'];
             this.loadPOKHProducts(this.selectedId);
             this.loadPOKHFiles(this.selectedId);
         } else {
@@ -2367,4 +2378,20 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 </span>
             `;
     };
+
+    //#region Lịch sử thao tác
+    openLogActivityModal() {
+        this.isModalOpen = true;
+        this.modalRef = this.modalService.open(ActivityLogCrmComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            size: 'xl',
+        });
+
+        this.modalRef.componentInstance.pokhId = this.selectedId;
+        this.modalRef.componentInstance.poCode = this.poCode;
+
+    }
+    //#endregion
 }

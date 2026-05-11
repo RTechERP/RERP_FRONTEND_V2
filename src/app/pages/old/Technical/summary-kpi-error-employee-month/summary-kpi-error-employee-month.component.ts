@@ -3,7 +3,6 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -24,7 +23,6 @@ import * as ExcelJS from 'exceljs';
         CommonModule,
         FormsModule,
         NzTabsModule,
-        NzDatePickerModule,
         NzSelectModule,
         NzButtonModule,
         NzIconModule,
@@ -40,8 +38,8 @@ import * as ExcelJS from 'exceljs';
 })
 export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
     // Chart Tab Variables (Tab 2)
-    startDate_BD: Date | null = null;
-    endDate_BD: Date | null = null;
+    startDate_BD: string | null = null;
+    endDate_BD: string | null = null;
     kpiErrorTypeId_BD: any = null;
     departmentId_BD: any = null;
 
@@ -50,8 +48,8 @@ export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
     options: any;
 
     // Statistics Tab Variables (Tab 1)
-    startDate_TK: Date | null = null;
-    endDate_TK: Date | null = null;
+    startDate_TK: string | null = null;
+    endDate_TK: string | null = null;
     kpiErrorTypeId_TK: any = null;
     departmentId_TK: any = null;
     keyword_TK: string = '';
@@ -107,12 +105,12 @@ export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
         const today = new Date();
         // Default dates: Start of year to Next month 1st (as per WinForm)
         // WinForm: dtpStartDate_TK.Value = new DateTime(DateTime.Now.Year, 1, 1);
-        this.startDate_TK = new Date(today.getFullYear(), 0, 1);
+        this.startDate_TK = this.formatDateForInput(new Date(today.getFullYear(), 0, 1));
         // WinForm: dtpEndDate_TK.Value = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(1).AddSeconds(-1);
-        this.endDate_TK = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
+        this.endDate_TK = this.formatDateForInput(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
-        this.startDate_BD = new Date(today.getFullYear(), 0, 1);
-        this.endDate_BD = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
+        this.startDate_BD = this.formatDateForInput(new Date(today.getFullYear(), 0, 1));
+        this.endDate_BD = this.formatDateForInput(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
         this.initGrid_BD();
         this.initGrid_TK();
@@ -283,7 +281,14 @@ export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
         // 2. Load Chart Data
         if (!this.startDate_BD || !this.endDate_BD) return;
 
-        if (this.startDate_BD.getFullYear() !== this.endDate_BD.getFullYear()) {
+        const startDate = this.parseDateInput(this.startDate_BD);
+        const endDate = this.parseDateInput(this.endDate_BD, true);
+        if (!startDate || !endDate) {
+            this.notification.warning('Thông báo', 'Ngày bắt đầu hoặc ngày kết thúc không hợp lệ!');
+            return;
+        }
+
+        if (startDate.getFullYear() !== endDate.getFullYear()) {
             this.notification.warning('Thông báo', 'Ngày bắt đầu và ngày kết thúc phải trong cùng 1 năm!');
             return;
         }
@@ -291,13 +296,13 @@ export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
         this.service.getSummaryKPIErrorMonth(
             this.departmentId_BD || 0,
             this.kpiErrorTypeId_BD || 0,
-            this.startDate_BD,
-            this.endDate_BD,
+            startDate,
+            endDate,
             ''
         ).subscribe({
             next: (res: any) => {
                 if (res.status === 1) {
-                    this.processChartData(res.data, this.startDate_BD!.getMonth() + 1, this.endDate_BD!.getMonth() + 1);
+                    this.processChartData(res.data, startDate.getMonth() + 1, endDate.getMonth() + 1);
                 }
             },
             error: (err) => console.error('Chart Data Error', err)
@@ -445,19 +450,26 @@ export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
     search_TK(): void {
         if (!this.startDate_TK || !this.endDate_TK) return;
 
-        if (this.startDate_TK.getFullYear() !== this.endDate_TK.getFullYear()) {
+        const startDate = this.parseDateInput(this.startDate_TK);
+        const endDate = this.parseDateInput(this.endDate_TK, true);
+        if (!startDate || !endDate) {
+            this.notification.warning('Thông báo', 'Ngày bắt đầu hoặc ngày kết thúc không hợp lệ!');
+            return;
+        }
+
+        if (startDate.getFullYear() !== endDate.getFullYear()) {
             this.notification.warning('Thông báo', 'Ngày bắt đầu và ngày kết thúc phải trong cùng 1 năm!');
             return;
         }
 
         // Generate Dynamic Columns for Months
-        this.generateDynamicColumns(this.startDate_TK, this.endDate_TK);
+        this.generateDynamicColumns(startDate, endDate);
 
         this.service.getSummaryKPIErrorMonth(
             this.departmentId_TK || 0,
             this.kpiErrorTypeId_TK || 0,
-            this.startDate_TK,
-            this.endDate_TK,
+            startDate,
+            endDate,
             this.keyword_TK
         ).subscribe({
             next: (res: any) => {
@@ -546,6 +558,28 @@ export class SummaryKpiErrorEmployeeMonthComponent implements OnInit {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
+    }
+
+    private formatDateForInput(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    private parseDateInput(value: string | Date | null, endOfDay = false): Date | null {
+        if (!value) return null;
+
+        const date = value instanceof Date ? new Date(value) : new Date(`${value}T00:00:00`);
+        if (isNaN(date.getTime())) return null;
+
+        if (endOfDay) {
+            date.setHours(23, 59, 59, 999);
+        } else {
+            date.setHours(0, 0, 0, 0);
+        }
+
+        return date;
     }
 
     private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {

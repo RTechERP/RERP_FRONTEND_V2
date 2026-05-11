@@ -36,6 +36,7 @@ import { KpiErrorDetailComponent } from './kpi-error-detail/kpi-error-detail.com
 import { KpiErrorFineAmountComponent } from './kpi-error-fine-amount/kpi-error-fine-amount.component';
 import { KpiErrorTypeComponent } from './kpi-error-type/kpi-error-type.component';
 import { TbProductRtcImportExcelComponent } from '../../tb-product-rtc/tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
+import { PermissionService } from '../../../../services/permission.service';
 
 @Component({
     selector: 'app-kpi-error',
@@ -68,6 +69,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
 
     // Menu bar
     menuBars: any[] = [];
+    private readonly actionPermissionCodes = 'N26,N38,N1';
 
     // Filters
     keyword: string = '';
@@ -85,6 +87,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
         private notification: NzNotificationService,
         private route: ActivatedRoute,
         private excelExportService: ExcelExportService,
+        private permissionService: PermissionService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -110,6 +113,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
             {
                 label: 'Thêm',
                 icon: 'fa-solid fa-circle-plus fa-lg text-success',
+                visible: this.canManageActions(),
                 command: () => {
                     this.onAdd();
                 },
@@ -117,6 +121,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
             {
                 label: 'Sửa',
                 icon: 'fa-solid fa-file-pen fa-lg text-primary',
+                visible: this.canManageActions(),
                 command: () => {
                     this.onEdit();
                 },
@@ -124,6 +129,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
             {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
+                visible: this.canManageActions(),
                 command: () => {
                     this.onDelete();
                 },
@@ -138,6 +144,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
             {
                 label: 'Loại lỗi',
                 icon: 'fa-solid fa-list fa-lg text-info',
+                visible: this.canManageActions(),
                 command: () => {
                     this.openErrorType();
                 },
@@ -204,6 +211,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
     }
 
     onAdd(): void {
+        if (!this.canManageActions()) return;
+
         const modalRef = this.modalService.open(KpiErrorDetailComponent, {
             size: 'lg',
             centered: true,
@@ -222,6 +231,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
     }
 
     onEdit(): void {
+        if (!this.canManageActions()) return;
+
         if (!this.selectedId) {
             this.notification.warning('Cảnh báo', 'Vui lòng chọn một dòng để sửa');
             return;
@@ -245,6 +256,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
     }
 
     onDelete(): void {
+        if (!this.canManageActions()) return;
+
         if (!this.selectedId) {
             this.notification.warning('Cảnh báo', 'Vui lòng chọn một dòng để xóa');
             return;
@@ -329,6 +342,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
     }
 
     openErrorType(): void {
+        if (!this.canManageActions()) return;
+
         const modalRef = this.modalService.open(KpiErrorTypeComponent, {
             size: 'lg',
             centered: true,
@@ -341,6 +356,10 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
             },
             () => { }
         );
+    }
+
+    private canManageActions(): boolean {
+        return this.permissionService.hasPermission(this.actionPermissionCodes);
     }
 
     openKPIErrorFineAmount(): void {

@@ -264,7 +264,7 @@ export class BillExportDetailNewComponent
         private appUserService: AppUserService
     ) {
         this.validateForm = this.fb.group({
-            Code: [{ value: '', disabled: true }],
+            Code: [''],
             UserID: [{ value: 0 }, [Validators.required, Validators.min(1)]],
             SenderID: [{ value: 0 }, [Validators.required, Validators.min(1)]],
             CustomerID: [0, [Validators.required, Validators.min(1)]],
@@ -867,6 +867,7 @@ export class BillExportDetailNewComponent
                         minLength: 0,
                         forceUserInput: false,
                         openSearchListOnFocus: true,
+                        debounceWaitMs: 0,
                         labelField: 'ProductCode',
                         customize: (_input: HTMLInputElement, inputRect: DOMRect, container: HTMLDivElement, _maxHeight: number) => {
                             const spaceBelow = window.innerHeight - inputRect.bottom;
@@ -958,7 +959,8 @@ export class BillExportDetailNewComponent
                 editor: { model: Editors['text'] },
                 formatter: (_row, _cell, value) => {
                     if (!value) return '';
-                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
                 },
             },
             {
@@ -971,7 +973,8 @@ export class BillExportDetailNewComponent
                 filter: { model: Filters['compoundInputText'] },
                 formatter: (_row, _cell, value) => {
                     if (!value) return '';
-                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
                 },
             },
             {
@@ -1086,13 +1089,7 @@ export class BillExportDetailNewComponent
                     const year = date.getFullYear();
                     return `${day}/${month}/${year}`;
                 },
-                editor: {
-                    model: Editors['date'],
-                    editorOptions: {
-                        minDate: 'today',
-                        maxDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
-                    },
-                },
+                editor: { model: Editors['date'] },
             },
             {
                 id: 'UnitPricePOKH',
@@ -1138,7 +1135,8 @@ export class BillExportDetailNewComponent
                 filter: { model: Filters['compoundInputText'] },
                 formatter: (_row, _cell, value) => {
                     if (!value) return '';
-                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
                 },
             },
             {
@@ -1176,7 +1174,8 @@ export class BillExportDetailNewComponent
                 editor: { model: Editors['text'] }, // Không có trong DB schema, cần kiểm tra
                 formatter: (_row, _cell, value) => {
                     if (!value) return '';
-                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
                 },
             },
             {
@@ -1190,7 +1189,8 @@ export class BillExportDetailNewComponent
                 editor: { model: Editors['text'], maxLength: 550 }, // nvarchar(550)
                 formatter: (_row, _cell, value) => {
                     if (!value) return '';
-                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
                 },
             },
             {
@@ -1208,7 +1208,8 @@ export class BillExportDetailNewComponent
                 editor: { model: Editors['text'], maxLength: 50 }, // nvarchar(50)
                 formatter: (_row, _cell, value) => {
                     if (!value) return '';
-                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
                 },
             },
             {
@@ -1221,7 +1222,8 @@ export class BillExportDetailNewComponent
                 filter: { model: Filters['compoundInputText'] },
                 formatter: (_row, _cell, value) => {
                     if (!value) return '';
-                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-all;">${html}</div>`;
                 },
             },
             {

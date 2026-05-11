@@ -259,7 +259,7 @@ export class BillImportDetailNewComponent
         private billImportQcService: BillImportQcService
     ) {
         this.validateForm = this.fb.group({
-            BillImportCode: [{ value: '', disabled: true }, [Validators.required]],
+            BillImportCode: ['', [Validators.required]],
             BillTypeNew: [0, [Validators.required]],
             ReciverID: [0, [Validators.required, Validators.min(1)]],
             WarehouseName: [{ value: 'HN', disabled: true }],
@@ -395,6 +395,7 @@ export class BillImportDetailNewComponent
 
     private updateReceiverDeliver(): void {
         if (this.isCheckmode && this.id > 0) return;
+        if (this.poNCCId > 0) return; // API đã cung cấp sẵn ReciverID/DeliverID từ PONCC
 
         const khoTypeId = this.validateForm.controls['KhoTypeID'].value || 0;
         const warehouseId = this.validateForm.controls['WarehouseID'].value || 0;
@@ -1686,9 +1687,9 @@ export class BillImportDetailNewComponent
 
             this.getDataCbbProductGroup();
 
-            if (this.poNCCId > 0) {
-                this.updateReceiverDeliver();
-            }
+            // if (this.poNCCId > 0) {
+            //     this.updateReceiverDeliver();
+            // }
         });
     }
 

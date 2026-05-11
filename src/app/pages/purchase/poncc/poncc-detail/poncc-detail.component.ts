@@ -1565,7 +1565,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
           // Tính lại nếu là trường ảnh hưởng đến tổng tiền
           if (['QtyRequest', 'UnitPrice', 'VAT', 'DiscountPercent', 'FeeShip', 'VATMoney'].includes(field)) {
-            this.recalculateRow(selectedRow);
+            this.recalculateRow(selectedRow, field);
           }
         }
       });
@@ -1573,7 +1573,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
 
     // Luôn tính lại cho dòng đang edit nếu cần
     if (['QtyRequest', 'UnitPrice', 'VAT', 'DiscountPercent', 'FeeShip', 'VATMoney'].includes(field)) {
-      this.recalculateRow(row);
+      this.recalculateRow(row, field);
     }
   }
 

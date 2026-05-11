@@ -1453,8 +1453,12 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             return;
         }
 
-        const { Workbook } = await import('exceljs');
-        const workbook = new Workbook();
+        const ExcelJSModule = await import('exceljs');
+        const WorkbookClass: any =
+            (ExcelJSModule as any).Workbook ??
+            (ExcelJSModule as any).default?.Workbook ??
+            (ExcelJSModule as any).default;
+        const workbook = new WorkbookClass();
         const worksheet = workbook.addWorksheet('Danh sách phiếu xuất');
 
         const columns = this.angularGridMaster.slickGrid.getColumns();

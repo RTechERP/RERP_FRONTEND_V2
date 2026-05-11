@@ -17,10 +17,11 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { firstValueFrom } from 'rxjs';
 import {
     AngularGridInstance,
     AngularSlickgridModule,
@@ -39,6 +40,7 @@ import { ActivatedRoute } from '@angular/router';
 import { KpiErrorEmployeeService } from './kpi-error-employee-service/kpi-error-employee.service';
 import { KpiErrorEmployeeDetailComponent } from './kpi-error-employee-detail/kpi-error-employee-detail.component';
 import { ImportExcelKpiErrorEmployeeComponent } from './import-excel/import-excel.component';
+import { PermissionService } from '../../../../services/permission.service';
 
 @Component({
     selector: 'app-kpi-error-employee',
@@ -53,7 +55,7 @@ import { ImportExcelKpiErrorEmployeeComponent } from './import-excel/import-exce
         NzSelectModule,
         NzFormModule,
         NzModalModule,
-        NzDatePickerModule,
+        NzMessageModule,
         NzSplitterModule,
         NzDropDownModule,
         AngularSlickgridModule,
@@ -79,11 +81,12 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
 
     // Menu bar
     menuBars: any[] = [];
+    private readonly actionPermissionCodes = 'N26,N38,N1';
 
     // Filters
     keyword: string = '';
-    startDate: Date | null = null;
-    endDate: Date | null = null;
+    startDate: string | null = null;
+    endDate: string | null = null;
     kpiErrorTypeId: number = 0;
     kpiErrorId: number = 0;
     employeeId: number = 0;
@@ -101,14 +104,18 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
 
     // Total summary
     totalErrorNumber: number = 0;
+    isDeleting = false;
+    isAutoAdding = false;
 
     constructor(
         private kpiErrorEmployeeService: KpiErrorEmployeeService,
         private modal: NzModalService,
         private modalService: NgbModal,
         private notification: NzNotificationService,
+        private message: NzMessageService,
         private route: ActivatedRoute,
         private excelExportService: ExcelExportService,
+        private permissionService: PermissionService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -132,9 +139,9 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
 
         const today = new Date();
         // First day of month at 00:00:00
-        this.startDate = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0);
+        this.startDate = this.formatDateForInput(new Date(today.getFullYear(), today.getMonth(), 1));
         // Last day of month at 23:59:59
-        this.endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
+        this.endDate = this.formatDateForInput(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
         this.initMenuBar();
         this.initGrid();
@@ -231,12 +238,16 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        this.startDate.setHours(0, 0, 0, 0);
-        this.endDate.setHours(23, 59, 59, 999);
+        const startDate = this.parseDateInput(this.startDate);
+        const endDate = this.parseDateInput(this.endDate, true);
+        if (!startDate || !endDate) {
+            this.notification.warning('Cảnh báo', 'Ngày bắt đầu hoặc ngày kết thúc không hợp lệ');
+            return;
+        }
 
         this.kpiErrorEmployeeService.loadData(
-            this.startDate,
-            this.endDate,
+            startDate,
+            endDate,
             this.kpiErrorId,
             this.employeeId,
             this.kpiErrorTypeId,
@@ -279,6 +290,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             {
                 label: 'Thêm',
                 icon: 'fa-solid fa-circle-plus fa-lg text-success',
+                visible: this.canManageActions(),
                 command: () => {
                     this.onAdd();
                 },
@@ -286,6 +298,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             {
                 label: 'Sửa',
                 icon: 'fa-solid fa-file-pen fa-lg text-primary',
+                visible: this.canManageActions(),
                 command: () => {
                     this.onEdit();
                 },
@@ -293,6 +306,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
+                visible: this.canManageActions(),
                 command: () => {
                     this.onDelete();
                 },
@@ -307,6 +321,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             {
                 label: 'Nhập Excel',
                 icon: 'fa-solid fa-file-import fa-lg text-primary',
+                visible: this.canManageActions(),
                 command: () => {
                     this.importExcel();
                 },
@@ -314,6 +329,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             {
                 label: 'Tự động thêm lỗi BCCV',
                 icon: 'fa-solid fa-wand-magic-sparkles fa-lg text-warning',
+                visible: this.canManageActions(),
                 command: () => {
                     this.autoAddError();
                 },
@@ -335,6 +351,8 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
 
     // Menu actions
     onAdd(): void {
+        if (!this.canManageActions()) return;
+
         const modalRef = this.modalService.open(KpiErrorEmployeeDetailComponent, {
             size: 'lg',
             centered: true,
@@ -353,6 +371,8 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
     }
 
     onEdit(): void {
+        if (!this.canManageActions()) return;
+
         if (!this.selectedId) {
             this.notification.warning('Cảnh báo', 'Vui lòng chọn một dòng để sửa');
             return;
@@ -376,53 +396,66 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
     }
 
     onDelete(): void {
-        if (!this.selectedId) {
-            this.notification.warning('Cảnh báo', 'Vui lòng chọn một dòng để xóa');
+        if (!this.canManageActions()) return;
+        if (this.isDeleting) {
+            this.notification.info('Thông báo', 'Đang xóa dữ liệu, vui lòng chờ');
             return;
         }
 
-        // Get selected rows from grid
         const selectedRows = this.angularGrid?.slickGrid?.getSelectedRows() || [];
-        if (selectedRows.length === 0) {
-            this.notification.warning('Cảnh báo', 'Vui lòng chọn ít nhất một dòng để xóa');
-            return;
-        }
-
         const idsToDelete: number[] = selectedRows.map((rowIndex: number) => {
             const item = this.angularGrid.dataView.getItem(rowIndex);
             return item?.ID;
         }).filter((id: number) => id);
 
+        if (idsToDelete.length === 0 && this.selectedId) {
+            idsToDelete.push(this.selectedId);
+        }
+
         if (idsToDelete.length === 0) {
-            this.notification.warning('Cảnh báo', 'Không tìm thấy ID để xóa');
+            this.notification.warning('Cảnh báo', 'Vui lòng chọn ít nhất một dòng để xóa');
             return;
         }
 
+        const uniqueIdsToDelete = [...new Set(idsToDelete)];
+
         this.modal.confirm({
             nzTitle: 'Xác nhận xóa',
-            nzContent: `Bạn có chắc chắn muốn xóa ${idsToDelete.length} dòng đã chọn?`,
+            nzContent: `Bạn có chắc chắn muốn xóa ${uniqueIdsToDelete.length} dòng đã chọn?`,
             nzOkText: 'Xóa',
             nzOkDanger: true,
             nzCancelText: 'Hủy',
-            nzOnOk: () => {
-                this.kpiErrorEmployeeService.deleteKPIErrorEmployee(idsToDelete).subscribe({
-                    next: (response: any) => {
-                        if (response.status === 1) {
-                            this.notification.success('Thành công', response.message || 'Xóa thành công');
-                            this.search();
-                        } else {
-                            this.notification.error('Lỗi', response.message || 'Xóa thất bại');
-                        }
-                    },
-                    error: (error: any) => {
-                        this.notification.error('Lỗi', 'Không thể xóa dữ liệu');
+            nzOnOk: async () => {
+                this.isDeleting = true;
+                const messageId = this.message.loading(`Đang xóa ${uniqueIdsToDelete.length} dòng, vui lòng chờ...`, { nzDuration: 0 }).messageId;
+
+                try {
+                    const response: any = await firstValueFrom(this.kpiErrorEmployeeService.deleteKPIErrorEmployee(uniqueIdsToDelete));
+                    if (response.status === 1) {
+                        this.notification.success('Thành công', response.message || 'Xóa thành công');
+                        this.selectedId = 0;
+                        this.selectedRow = null;
+                        this.search();
+                    } else {
+                        this.notification.error('Lỗi', response.message || 'Xóa thất bại');
                     }
-                });
+                } catch (error: any) {
+                    this.notification.error('Lỗi', 'Không thể xóa dữ liệu');
+                } finally {
+                    this.isDeleting = false;
+                    this.message.remove(messageId);
+                }
             }
         });
     }
 
     autoAddError(): void {
+        if (!this.canManageActions()) return;
+        if (this.isAutoAdding) {
+            this.notification.info('Thông báo', 'Đang tự động thêm lỗi BCCV, vui lòng chờ');
+            return;
+        }
+
         if (!this.startDate || !this.endDate) {
             this.notification.warning('Cảnh báo', 'Vui lòng chọn ngày bắt đầu và ngày kết thúc');
             return;
@@ -433,26 +466,32 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             nzContent: 'Bạn có chắc chắn muốn tự động thêm lỗi BCCV?',
             nzOkText: 'Đồng ý',
             nzCancelText: 'Hủy',
-            nzOnOk: () => {
-                const start = new Date(this.startDate!);
-                start.setHours(0, 0, 0, 0);
-                const end = new Date(this.endDate!);
-                end.setHours(23, 59, 59, 999);
+            nzOnOk: async () => {
+                const start = this.parseDateInput(this.startDate);
+                const end = this.parseDateInput(this.endDate, true);
+                if (!start || !end) {
+                    this.notification.warning('Cảnh báo', 'Ngày bắt đầu hoặc ngày kết thúc không hợp lệ');
+                    return;
+                }
 
-                this.kpiErrorEmployeeService.autoAdd(start, end).subscribe({
-                    next: (response: any) => {
-                        if (response.status === 1) {
-                            const inserted = response.data?.Inserted || 0;
-                            this.notification.success('Thành công', `Đã thêm ${inserted} lỗi BCCV`);
-                            this.search();
-                        } else {
-                            this.notification.error('Lỗi', response.message || 'Thêm lỗi thất bại');
-                        }
-                    },
-                    error: (error: any) => {
-                        this.notification.error('Lỗi', 'Không thể tự động thêm lỗi');
+                this.isAutoAdding = true;
+                const messageId = this.message.loading('Đang tự động thêm lỗi BCCV, vui lòng chờ...', { nzDuration: 0 }).messageId;
+
+                try {
+                    const response: any = await firstValueFrom(this.kpiErrorEmployeeService.autoAdd(start, end));
+                    if (response.status === 1) {
+                        const inserted = response.data?.Inserted || 0;
+                        this.notification.success('Thành công', `Đã thêm ${inserted} lỗi BCCV`);
+                        this.search();
+                    } else {
+                        this.notification.error('Lỗi', response.message || 'Thêm lỗi thất bại');
                     }
-                });
+                } catch (error: any) {
+                    this.notification.error('Lỗi', 'Không thể tự động thêm lỗi');
+                } finally {
+                    this.isAutoAdding = false;
+                    this.message.remove(messageId);
+                }
             }
         });
     }
@@ -663,7 +702,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             },
             multiSelect: true,
             rowSelectionOptions: {
-                selectActiveRow: true,
+                selectActiveRow: false,
             },
             // Enable grouping
             draggableGrouping: {
@@ -846,6 +885,8 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
     }
 
     importExcel(): void {
+        if (!this.canManageActions()) return;
+
         const modalRef = this.modalService.open(ImportExcelKpiErrorEmployeeComponent, {
             size: 'xl',
             centered: true,
@@ -860,6 +901,32 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             },
             () => { }
         );
+    }
+
+    private canManageActions(): boolean {
+        return this.permissionService.hasPermission(this.actionPermissionCodes);
+    }
+
+    private formatDateForInput(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    private parseDateInput(value: string | Date | null, endOfDay = false): Date | null {
+        if (!value) return null;
+
+        const date = value instanceof Date ? new Date(value) : new Date(`${value}T00:00:00`);
+        if (isNaN(date.getTime())) return null;
+
+        if (endOfDay) {
+            date.setHours(23, 59, 59, 999);
+        } else {
+            date.setHours(0, 0, 0, 0);
+        }
+
+        return date;
     }
 
     private applyDistinctFiltersToGrid(): void {

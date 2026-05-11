@@ -109,7 +109,7 @@
     <button nz-button nzType="default" nzSize="default" (click)="cancel()">
         <i class="fas fa-times"></i> Đóng
     </button>
-    <button nz-button nzType="primary" nzSize="default" (click)="save()">
+    <button nz-button nzType="primary" nzSize="default" [nzLoading]="isSaving" [disabled]="isSaving" (click)="save()">
         <i class="fas fa-save"></i> Lưu
     </button>
 </div>

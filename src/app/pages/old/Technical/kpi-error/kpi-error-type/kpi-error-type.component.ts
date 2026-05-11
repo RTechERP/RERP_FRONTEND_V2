@@ -19,6 +19,7 @@ import { Menubar } from 'primeng/menubar';
 import { KpiErrorTypeService } from './kpi-error-type-service/kpi-error-type.service';
 import { KpiErrorTypeDetailComponent } from './kpi-error-type-detail/kpi-error-type-detail.component';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { PermissionService } from '../../../../../services/permission.service';
 
 @Component({
   selector: 'app-kpi-error-type',
@@ -44,6 +45,7 @@ export class KpiErrorTypeComponent implements OnInit {
 
   // Menu bar
   menuBars: any[] = [];
+  private readonly actionPermissionCodes = 'N26,N38,N1';
 
   // Selected row
   selectedId: number = 0;
@@ -54,7 +56,8 @@ export class KpiErrorTypeComponent implements OnInit {
     private modalService: NgbModal,
     private modal: NzModalService,
     private notification: NzNotificationService,
-    private kpiErrorTypeService: KpiErrorTypeService
+    private kpiErrorTypeService: KpiErrorTypeService,
+    private permissionService: PermissionService
   ) { }
 
   ngOnInit(): void {
@@ -68,6 +71,7 @@ export class KpiErrorTypeComponent implements OnInit {
       {
         label: 'Thêm',
         icon: 'fa-solid fa-circle-plus fa-lg text-success',
+        visible: this.canManageActions(),
         command: () => {
           this.onAdd();
         },
@@ -75,6 +79,7 @@ export class KpiErrorTypeComponent implements OnInit {
       {
         label: 'Sửa',
         icon: 'fa-solid fa-file-pen fa-lg text-primary',
+        visible: this.canManageActions(),
         command: () => {
           this.onEdit();
         },
@@ -82,6 +87,7 @@ export class KpiErrorTypeComponent implements OnInit {
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash fa-lg text-danger',
+        visible: this.canManageActions(),
         command: () => {
           this.onDelete();
         },
@@ -119,6 +125,8 @@ export class KpiErrorTypeComponent implements OnInit {
   }
 
   onAdd(): void {
+    if (!this.canManageActions()) return;
+
     const modalRef = this.modalService.open(KpiErrorTypeDetailComponent, {
       size: 'md',
       centered: true,
@@ -136,6 +144,8 @@ export class KpiErrorTypeComponent implements OnInit {
   }
 
   onEdit(): void {
+    if (!this.canManageActions()) return;
+
     if (!this.selectedId) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng để sửa');
       return;
@@ -158,6 +168,8 @@ export class KpiErrorTypeComponent implements OnInit {
   }
 
   onDelete(): void {
+    if (!this.canManageActions()) return;
+
     if (!this.selectedId) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng để xóa');
       return;
@@ -188,6 +200,10 @@ export class KpiErrorTypeComponent implements OnInit {
         });
       },
     });
+  }
+
+  private canManageActions(): boolean {
+    return this.permissionService.hasPermission(this.actionPermissionCodes);
   }
 
   initGrid(): void {

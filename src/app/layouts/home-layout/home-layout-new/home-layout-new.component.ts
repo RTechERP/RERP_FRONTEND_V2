@@ -394,16 +394,18 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 var pesons = this.menus.find((x) => x.key == 'person');
                 var tasks = this.menus.find((x) => x.key == 'M03');// Công việc
                 this.menuPersons = pesons.children.filter((x: any) => menuPersonCodes.includes(x.key));
-                const menuWeekplans = pesons.children.find((x: any) => x.key === 'planweek');
-                const menuProjectTask = tasks.children.find((x: any) => x.key === 'M10005');
+                // const menuWeekplans = pesons.children.find((x: any) => x.key === 'planweek');
+                const menuWeekplans = tasks.children.find((x: any) => x.key === 'M10005');
+                const menuProjectTask = tasks.children.find((x: any) => x.key === 'M10002');
+                const menuTimeLine = menuProjectTask.children.find((x: any) => x.key === 'M10304');
+                menuWeekplans.children.unshift(menuTimeLine);
+                // if (menuWeekplans && menuProjectTask) {
+                //     menuWeekplans.children = menuWeekplans.children || [];
 
-                if (menuWeekplans && menuProjectTask) {
-                    menuWeekplans.children = menuWeekplans.children || [];
-
-                    menuProjectTask.children.forEach((item: any) => {
-                        menuWeekplans.children.push({ ...item });
-                    });
-                }
+                //     menuProjectTask.children.forEach((item: any) => {
+                //         menuWeekplans.children.push({ ...item });
+                //     });
+                // }
                 this.menuWeekplans = menuWeekplans;
                 this.menuQickAcesss = this.menus.find((x) => x.key == 'M4');
             }),
@@ -528,11 +530,11 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             tap((res: any) => {
                 if (res?.status !== 1 || !res?.data) return;
                 this.pendingReview = {
-                    asEmployee:  res.data.AsEmployee  || 0,
+                    asEmployee: res.data.AsEmployee || 0,
                     asEvaluator: res.data.AsEvaluator || 0,
-                    asTBP:       res.data.AsTBP       || 0,
-                    asHR:        res.data.AsHR        || 0,
-                    asBGD:       res.data.AsBGD       || 0,
+                    asTBP: res.data.AsTBP || 0,
+                    asHR: res.data.AsHR || 0,
+                    asBGD: res.data.AsBGD || 0,
                 };
                 const total = this.pendingReview.asEmployee + this.pendingReview.asEvaluator
                     + this.pendingReview.asTBP + this.pendingReview.asHR + this.pendingReview.asBGD;

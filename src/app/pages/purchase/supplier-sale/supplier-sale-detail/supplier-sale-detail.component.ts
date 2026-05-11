@@ -46,7 +46,6 @@ import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalRef, NzModalService } from 'ng-zorro-antd/modal';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NgModel } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
@@ -90,8 +89,7 @@ import { PermissionService } from '../../../../services/permission.service';
         NzModalModule,
         NzCheckboxModule,
         CommonModule,
-        HasPermissionDirective,
-        NzToolTipModule
+        HasPermissionDirective
     ],
     templateUrl: './supplier-sale-detail.component.html',
     styleUrl: './supplier-sale-detail.component.css',
@@ -106,7 +104,6 @@ export class SupplierSaleDetailComponent {
     employees: any[] = [];
     rulepays: any[] = [];
     companies: any[] = [];
-    bankList: any[] = [];
     isUpdate: boolean = false;
     isAddNew: boolean = false;
 
@@ -147,7 +144,6 @@ export class SupplierSaleDetailComponent {
         RulePayID: this.fb.control(0),
         Description: this.fb.control(''),
         RuleIncoterm: this.fb.control(''),
-        BankListID: this.fb.control(0),
     });
 
     constructor(
@@ -166,7 +162,6 @@ export class SupplierSaleDetailComponent {
         this.isUpdate = this.supplierSaleID > 0;
         this.getEmpployee();
         this.getRulePay();
-        this.getBankList();
         this.fillData(this.supplierSaleID);
         this.getTaxCompany();
     }
@@ -218,9 +213,8 @@ export class SupplierSaleDetailComponent {
                             RulePayID: supplier.RulePayID,
                             Description: supplier.Description,
                             RuleIncoterm: supplier.RuleIncoterm,
-                            BankListID: supplier.BankListID
                         });
-                        // console.log(this.validateForm.getRawValue());
+                        console.log(this.validateForm.getRawValue());
                     } else {
                         this.notification.warning(
                             NOTIFICATION_TITLE.warning,
@@ -397,22 +391,6 @@ export class SupplierSaleDetailComponent {
                 this.notification.error(
                     NOTIFICATION_TITLE.error,
                     'Không thể tải dữ liệu liên hệ. Vui lòng thử lại sau.'
-                );
-            },
-        });
-    }
-
-    getBankList() {
-        this.supplierSaleService.getBankList().subscribe({
-            next: (data) => {
-                if (data.status == 1) {
-                    this.bankList = data.data;
-                }
-            },
-            error: (error) => {
-                this.notification.error(
-                    NOTIFICATION_TITLE.error,
-                    'Lỗi khi tải danh sách ngân hàng: ' + error.message
                 );
             },
         });

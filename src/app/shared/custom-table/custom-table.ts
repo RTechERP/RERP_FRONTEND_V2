@@ -145,6 +145,7 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     @Input() columns: ColumnDef[] = [];
     @Input() dataKey: string = '';
     @Input() loading: boolean = false;
+    @Input() showViewModeSwitcher: boolean = true;
 
     // --- Caption ---
     @Input() title: string = '';

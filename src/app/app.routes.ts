@@ -23,6 +23,7 @@ import { DailyReportLXCPComponent } from './pages/daily-report-lxcp/daily-report
 import { DailyReportThrComponent } from './pages/daily-report-thr/daily-report-thr.component';
 import { DailyReportTechComponent } from './pages/DailyReportTech/daily-report-tech/daily-report-tech.component';
 import { CurrencyListComponent } from './pages/general-category/currency-list/currency-list.component';
+import { BankListComponent } from './pages/general-category/bank-list/bank-list.component';
 import { FirmComponent } from './pages/general-category/firm/firm.component';
 import { ProductLocationComponent } from './pages/general-category/product-location/product-location.component';
 import { FactoryVisitRegistrationComponent } from './pages/general-category/visit-factory-registation/factory-visit-registration.component';
@@ -500,6 +501,7 @@ export const routes: Routes = [
             { path: 'employee-purchase', component: EmployeePurchaseComponent, canActivate: [authGuard] },
             { path: 'rule-pay', component: RulePayComponent, canActivate: [authGuard] },
             { path: 'currency-list', component: CurrencyListComponent, canActivate: [authGuard] },
+            { path: 'bank-list', component: BankListComponent, canActivate: [authGuard] },
             { path: 'supplier-sale', component: SupplierSaleComponent, canActivate: [authGuard] },
             { path: 'project-partlist-price-request-new', component: ProjectPartlistPriceRequestNewComponent, canActivate: [authGuard] },
             { path: 'assign-work', component: AssignWorkComponent, canActivate: [authGuard] },

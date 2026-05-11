@@ -245,12 +245,18 @@
                             *ngIf="(!validateForm.get('BankListID')?.value || validateForm.get('BankListID')?.value === 0) && validateForm.get('Bank')?.value"
                             nz-tooltip [nzTooltipTitle]="validateForm.get('Bank')?.value"></i>
                     </label>
-                    <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn ngân hàng--"
-                        formControlName="BankListID">
-                        @for (item of bankList; track item) {
-                        <nz-option [nzLabel]="item.BankName" [nzValue]="item.ID"></nz-option>
+                    <div class="d-flex flex-column gap-1">
+                        <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn ngân hàng--"
+                            formControlName="BankListID">
+                            @for (item of bankList; track item) {
+                            <nz-option [nzLabel]="item.BankName" [nzValue]="item.ID"></nz-option>
+                            }
+                        </nz-select>
+                        @if (validateForm.get('BankListID')?.value == 187) {
+                        <input type="text" class="form-control form-control-sm mt-1" formControlName="Bank"
+                            placeholder="Nhập tên ngân hàng khác" />
                         }
-                    </nz-select>
+                    </div>
                 </div>
                 <div class="form-group col-md-4 m-0 p-1">
                     <label class="m-0">

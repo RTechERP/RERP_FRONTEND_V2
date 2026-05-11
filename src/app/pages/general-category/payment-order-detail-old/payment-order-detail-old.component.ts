@@ -243,8 +243,16 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                         PONCCID: this.ponccID > 0 ? null : this.paymentOrder.PONCCID,
                         RegisterContractID: this.paymentOrder.RegisterContractID,
                         ProjectID: this.paymentOrder.ProjectID,
-                        BankListID: this.paymentOrder.BankListID
+                        BankListID: ((this.ponccID > 0
+                            ? null
+                            : this.paymentOrder?.SupplierSaleID) || 0) > 0
+                            ? (this.paymentOrder?.BankListID || 187)
+                            : this.paymentOrder?.BankListID
                     }, { emitEvent: false });
+                    console.log(this.paymentOrder?.SupplierSaleID);
+                    console.log((this.paymentOrder?.SupplierSaleID || 0) > 0
+                        ? (this.paymentOrder?.BankListID || 187)
+                        : this.paymentOrder?.BankListID);
                     const sid = this.paymentOrder.SupplierSaleID;
                     this.poNCCs = sid ? this.poNCCsAll.filter((x: any) => x.SupplierSaleID == sid) : [...this.poNCCsAll];
                     this.cdr.detectChanges();
@@ -252,6 +260,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                         console.log('[PONCC flow] options sẵn sàng → gọi loadDataFromPONCC với ponccID:', this.ponccID);
                         this.loadDataFromPONCC();
                     }
+
                 }
             },
             error: (err) => this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message)
@@ -292,7 +301,11 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             TypeBankTransfer: this.fb.control(this.paymentOrder.TypeBankTransfer),
             AccountNumber: this.fb.control(this.paymentOrder.AccountNumber),
             Bank: this.fb.control(this.paymentOrder.Bank),
-            BankListID: this.fb.control(this.paymentOrder.BankListID),
+            BankListID: this.fb.control(
+                this.isCopy && (this.paymentOrder?.SupplierSaleID ?? 0) > 0
+                    ? (this.paymentOrder?.BankListID ?? 187)
+                    : this.paymentOrder?.BankListID
+            ),
             ContentBankTransferType: this.fb.control(this.paymentOrder.ContentBankTransferType === 0 ? 1 : this.paymentOrder.ContentBankTransferType),
             ContentBankTransfer: this.fb.control(this.paymentOrder.ContentBankTransfer),
             Unit: this.fb.control(this.paymentOrder.Unit?.toLowerCase(), [Validators.required]),
@@ -342,7 +355,16 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             .subscribe((v: number) => {
                 this.poNCCs = v ? this.poNCCsAll.filter(x => x.SupplierSaleID == v) : [...this.poNCCsAll];
                 const s = this.supplierSalesAll.find(x => x.ID == v);
-                if (s) this.validateForm.patchValue({ AccountNumber: s.SoTK, ReceiverInfo: s.NameNCC, Bank: s.NganHang, BankListID: s.BankListID || 0 });
+                if (s) {
+                    const bankListID = s.BankListID || 187;
+                    this.validateForm.patchValue({
+                        AccountNumber: s.SoTK,
+                        ReceiverInfo: s.NameNCC,
+                        Bank: s.NganHang,
+                        BankListID: bankListID
+                    });
+
+                }
             });
 
         this.validateForm.get('IsUrgent')?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -371,6 +393,17 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                     }
                 }
                 ctrl?.updateValueAndValidity();
+            });
+
+        this.validateForm.get('BankListID')?.valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe((v: number) => {
+                const bankCtrl = this.validateForm.get('Bank');
+                if (v == 187) {
+                    bankCtrl?.setValidators([Validators.required]);
+                } else {
+                    bankCtrl?.clearValidators();
+                }
+                bankCtrl?.updateValueAndValidity();
             });
 
         const initialTypePayment = this.validateForm.get('TypePayment')?.value;
@@ -723,7 +756,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         if (formRawValue.DateOrder) formRawValue.DateOrder = formatDateLocal(formRawValue.DateOrder);
         if (formRawValue.DeadlinePayment) formRawValue.DeadlinePayment = formatDateLocal(formRawValue.DeadlinePayment);
         if (formRawValue.DatePayment) formRawValue.DatePayment = formatDateLocal(formRawValue.DatePayment);
-        
+
         if (formRawValue.TypePayment == 1) {
             if (formRawValue.ContentBankTransferType == 1) {
                 formRawValue.ContentBankTransfer = formRawValue.ContentBankTransfer || 'Mặc định';

@@ -101,6 +101,7 @@ export class ViewPokhPrimengComponent implements OnInit {
 
   selectedRows: any[] = [];
   selectedRowsAll: any[] = [];
+  selectedRowsInView: any[] = [];
   selectedExportRowsAll: any[] = [];
   private modifiedRows: Set<number> = new Set();
   modifiedInvoiceRows: Set<number> = new Set();
@@ -288,7 +289,7 @@ export class ViewPokhPrimengComponent implements OnInit {
         this.dataInvoice = response?.data?.dataInvoice || [];
         this.dataAfterGroupNested = this.groupNested(this.data, this.dataExport, this.dataInvoice, 'ID', 'POKHDetailID');
         this.dataset = this.sortForGrouping(this.dataAfterGroupNested);
-        this.resetSelectionsAfterLoad();
+        this.restoreSelectionsAfterLoad();
         this.isLoadingData = false;
       },
       error: () => {
@@ -341,12 +342,25 @@ export class ViewPokhPrimengComponent implements OnInit {
 
   onMasterSelectionChange(selection: any): void {
     const nextRows = Array.isArray(selection) ? selection : [];
+    const currentDatasetIds = new Set(this.dataset.map((row) => row.ID));
     const nextIds = new Set(nextRows.map((row) => row.ID));
+    const previousIds = new Set(this.selectedRowsAll.map((row) => row.ID));
 
-    this.selectedExportRowsAll = this.selectedExportRowsAll.filter((row) => nextIds.has(row.POKHDetailID));
-    nextRows.forEach((row) => this.selectAllExportsForParent(row));
-    this.selectedRowsAll = [...nextRows];
-    this.selectedRows = [...this.selectedRowsAll];
+    this.selectedRowsAll = this.selectedRowsAll.filter(
+      (row) => !currentDatasetIds.has(row.ID) || nextIds.has(row.ID)
+    );
+    this.selectedExportRowsAll = this.selectedExportRowsAll.filter(
+      (row) => !currentDatasetIds.has(row.POKHDetailID) || nextIds.has(row.POKHDetailID)
+    );
+
+    nextRows.forEach((row) => {
+      this.upsertSelectedParent(row);
+      if (!previousIds.has(row.ID)) {
+        this.selectAllExportsForParent(row);
+      }
+    });
+
+    this.syncSelectedRows();
   }
 
   onExportSelectionChange(parentRow: any, selection: any): void {
@@ -363,7 +377,7 @@ export class ViewPokhPrimengComponent implements OnInit {
       this.selectedRowsAll = this.selectedRowsAll.filter((row) => row.ID !== parentRow.ID);
     }
 
-    this.selectedRows = [...this.selectedRowsAll];
+    this.syncSelectedRows();
   }
 
   onInvoiceCellEdit(parentRow: any, event: any): void {
@@ -868,13 +882,11 @@ export class ViewPokhPrimengComponent implements OnInit {
   }
 
   private ensureParentSelected(parentRow: any): void {
-    if (!this.selectedRowsAll.some((row) => row.ID === parentRow.ID)) {
-      this.selectedRowsAll = [...this.selectedRowsAll, parentRow];
-    }
+    this.upsertSelectedParent(parentRow);
   }
 
-  private resetSelectionsAfterLoad(): void {
-    this.clearUserSelections();
+  private restoreSelectionsAfterLoad(): void {
+    this.syncSelectedRows();
     this.activeNestedTabs = {};
     this.expandedRows = {};
   }
@@ -882,7 +894,26 @@ export class ViewPokhPrimengComponent implements OnInit {
   private clearUserSelections(): void {
     this.selectedRows = [];
     this.selectedRowsAll = [];
+    this.selectedRowsInView = [];
     this.selectedExportRowsAll = [];
+  }
+
+  private upsertSelectedParent(parentRow: any): void {
+    const existingIndex = this.selectedRowsAll.findIndex((row) => row.ID === parentRow.ID);
+    if (existingIndex >= 0) {
+      this.selectedRowsAll[existingIndex] = parentRow;
+    } else {
+      this.selectedRowsAll = [...this.selectedRowsAll, parentRow];
+    }
+  }
+
+  private syncSelectedRows(): void {
+    const selectedIds = new Set(this.selectedRowsAll.map((row) => row.ID));
+    const datasetById = new Map(this.dataset.map((row) => [row.ID, row]));
+
+    this.selectedRowsAll = this.selectedRowsAll.map((row) => datasetById.get(row.ID) || row);
+    this.selectedRowsInView = this.dataset.filter((row) => selectedIds.has(row.ID));
+    this.selectedRows = [...this.selectedRowsAll];
   }
 
   private sortForGrouping(rows: any[]): any[] {

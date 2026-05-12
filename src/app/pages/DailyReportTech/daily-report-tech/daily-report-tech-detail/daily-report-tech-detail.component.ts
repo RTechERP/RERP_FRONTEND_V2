@@ -27,6 +27,8 @@ import { DateTime } from 'luxon';
 import { ProjectService } from '../../../project/project-service/project.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { DailyReportTechService } from '../../DailyReportTechService/daily-report-tech.service';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 import { OverTimePersonFormComponent } from '../../../hrm/over-time/over-time-person/over-time-person-form/over-time-person-form.component';
 import { WorkItemComponent } from '../../../project/work-item/work-item.component';
 import { ProjectItemPersonDetailComponent } from '../../../project/project-item-person/project-item-person-detail/project-item-person-detail.component';
@@ -48,6 +50,7 @@ interface ProjectItem {
   ProblemSolve: string;
   Backlog: string;
   Note: string;
+  ProjectProblems?: any[];
 }
 
 interface Project {
@@ -79,6 +82,8 @@ interface Project {
     NzFormModule,
     NzCollapseModule,
     NzRadioModule,
+    NzCardModule,
+    NzTagModule,
   ],
   templateUrl: './daily-report-tech-detail.component.html',
   styleUrl: './daily-report-tech-detail.component.css'
@@ -260,6 +265,19 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
 
       // Thêm project vào projectList
       this.projectList.push(project);
+
+      // Gọi API lấy phát sinh cho projectItem này trong chế độ edit
+      this.dailyReportTechService.getProjectHistoryProblemByProjectItem(projectItemID).subscribe({
+        next: (res: any) => {
+          if (res && res.status === 1) {
+            projectItem.ProjectProblems = res.data || [];
+            if (projectItem.ProjectProblems && projectItem.ProjectProblems.length > 0) {
+              this.activeAccordion['additional_info'] = true;
+            }
+          }
+        },
+        error: (err: any) => console.error('Error loading project problems:', err)
+      });
 
       if (report.DateReport) {
         const dateReport = DateTime.fromISO(report.DateReport).toFormat('yyyy-MM-dd');
@@ -509,6 +527,19 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
             if (item.PercentComplete === 0 && item.ProjectItemName) {
               item.Content = item.ProjectItemName;
             }
+
+            // Gọi API lấy danh sách phát sinh
+            this.dailyReportTechService.getProjectHistoryProblemByProjectItem(projectItemId).subscribe({
+              next: (res: any) => {
+                if (res && res.status === 1) {
+                  item.ProjectProblems = res.data || [];
+                  if (item.ProjectProblems && item.ProjectProblems.length > 0) {
+                    this.activeAccordion['additional_info'] = true;
+                  }
+                }
+              },
+              error: (err: any) => console.error('Error loading project problems:', err)
+            });
           }
         } else {
           // Reset khi không chọn project item
@@ -734,7 +765,7 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
           onClick: async () => {
             // 1. Thực hiện copy ngay lập tức (để ăn theo User Gesture của nút click)
             const copyStatus = await this.copyToClipboard(summaryContent);
-            
+
             // 2. Gọi hàm lưu và truyền kết quả copy vào
             this.submitDailyReport(summaryContent, copyStatus);
             modal.destroy();

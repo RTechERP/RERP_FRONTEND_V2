@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HttpResponse } from '@angular/common/http';
 import { environment } from '../../../../../../../environments/environment';
+import { HttpParams } from '@angular/common/http';
 @Injectable({
   providedIn: 'root'
 })
@@ -102,5 +103,16 @@ export class ProjectWorkerService {
       IsActive: isActive
     };
     return this.http.post<any>(this._url + `projectworkerversion/approved-active`, requestBody);
+  }
+  // Load ProjectHistoryProblem by projectID
+  getProjectHistoryProblem(projectID: number): Observable<any> {
+    const params = new HttpParams().set('projectID', projectID.toString());
+    return this.http.get<any>(this._urlProjectWorkerVersion + 'get-project-history-problem-by-project', { params });
+  }
+
+  // Load linked ProjectHistoryProblem
+  getProjectHistoryProblemLinked(projectWorkerVersionID: number): Observable<any> {
+    const params = new HttpParams().set('projectWorkerVersionID', projectWorkerVersionID.toString());
+    return this.http.get<any>(this._urlProjectWorkerVersion + 'get-project-history-problem-linked', { params });
   }
 }

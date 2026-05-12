@@ -64,6 +64,8 @@ import { TreeTableModule } from 'primeng/treetable';
 import { ProjectReportSlickGridComponent } from '../project-report-slick-grid/project-report-slick-grid.component';
 import { ProjectWokerSlickGridComponent } from '../project-woker-slick-grid/project-woker-slick-grid.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
+import { ProjectHistoryProblemNewComponent } from '../project-history-problem-new/project-history-problem-new.component';
+import { DrawingProjectComponent } from '../drawing-project/drawing-project.component';
 
 @Component({
   selector: 'app-project-prime-ng2',
@@ -100,6 +102,7 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
     NzNotificationModule,
     NgbModalModule,
     RouterModule,
+    DrawingProjectComponent,
   ],
   templateUrl: './project-slick-grid2.component.html',
   styleUrls: ['./project-slick-grid2.component.css']
@@ -476,6 +479,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         label: 'Cập nhật Leader',
         icon: 'pi pi-user-edit',
         command: () => this.openProjectTypeLinkDetail()
+      },
+      {
+        label: 'Bản vẽ dự án',
+        icon: 'pi pi-folder-open',
+        command: () => this.openDrawingProjectModal()
       },
       {
         label: 'Lịch sử phát sinh',
@@ -1690,7 +1698,26 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
       return;
     }
 
-    const modalRef = this.modalService.open(ProjectHistoryProblemComponent, {
+    const modalRef = this.modalService.open(ProjectHistoryProblemNewComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+    });
+
+    modalRef.componentInstance.projectId = this.projectId;
+    modalRef.componentInstance.projectCode = this.projectCode;
+  }
+
+  openDrawingProjectModal() {
+    const selectedIDs = this.getSelectedIds();
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+      return;
+    }
+
+    const modalRef = this.modalService.open(DrawingProjectComponent, {
       centered: true,
       backdrop: 'static',
       keyboard: false,

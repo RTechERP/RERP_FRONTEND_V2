@@ -104,7 +104,35 @@
               Sử dụng
             </nz-form-label>
             <nz-form-control>
-              <label class="mb-0 fs-12 justify-content " nz-checkbox formControlName="IsActive">Sử dụng</label>
+              <div class="d-flex gap-3">
+                <label class="mb-0 fs-12 justify-content " nz-checkbox formControlName="IsActive">Sử dụng</label>
+                <label class="mb-0 fs-12 justify-content " nz-checkbox formControlName="IsProblem"
+                  *ngIf="typeNumber === 2">Phát sinh</label>
+              </div>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <!-- Hàng 3: Chọn phát sinh (chỉ hiển thị khi check Phát sinh) -->
+      <div class="row" *ngIf="form.get('IsProblem')?.value && typeNumber === 2">
+        <div class="col-md-12 pb-3">
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Chọn phát sinh
+              <span class="text-danger ps-1 me-1">*</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="
+                  form.get('ProjectHistoryProblemIds')?.invalid &&
+                  (form.get('ProjectHistoryProblemIds')?.dirty || form.get('ProjectHistoryProblemIds')?.touched)
+                    ? 'Vui lòng chọn phát sinh!'
+                    : undefined
+                ">
+              <nz-select nz-input formControlName="ProjectHistoryProblemIds" nzPlaceHolder="Chọn phát sinh"
+                class="fs-12 w-100" nzShowSearch nzAllowClear>
+                <!-- Title hoặc tên phụ thuộc vào data trả về, giả sử là Title -->
+                <nz-option *ngFor="let prob of historyProblems" [nzValue]="prob.ID"
+                  [nzLabel]="prob.ContentError || prob.ID"></nz-option>
+              </nz-select>
             </nz-form-control>
           </nz-form-item>
         </div>

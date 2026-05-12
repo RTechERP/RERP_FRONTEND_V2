@@ -137,9 +137,20 @@ export class ProjectHistoryProblemNewService {
     return this.http.get<any>(this._urlProjectHistoryProblem + 'get-employee-suggest', { params });
   }
 
+  // Lấy STT lớn nhất theo projectID
+  getMaxSTTByProject(projectID: number): Observable<any> {
+    const params = new HttpParams().set('projectID', projectID.toString());
+    return this.http.get<any>(this._urlProjectHistoryProblem + 'get-max-stt-by-project', { params });
+  }
+
   // Gửi mail tự động phát sinh
   sendEmailProblem(problemId: number): Observable<any> {
     const payload = { ProblemId: problemId };
     return this.http.post<any>(this._urlProjectHistoryProblem + 'send-email-problem', payload);
+  }
+
+  getProblemLogs(problemId: number): Observable<any> {
+    const params = new HttpParams().set('projectHistoryProblemID', problemId.toString());
+    return this.http.get<any>(this._urlProjectHistoryProblem + 'get-log', { params });
   }
 }

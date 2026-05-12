@@ -37,7 +37,7 @@ export class DrawingProjectService {
 
   uploadPdf(drawingID: number, file: File, subPath: string = ''): Observable<any> {
     const formData = new FormData();
-    formData.append('key', 'TuanBeoTest');
+    formData.append('key', 'DRAWING_PATH');
     formData.append('subPath', subPath);
     formData.append('files', file, file.name);
 

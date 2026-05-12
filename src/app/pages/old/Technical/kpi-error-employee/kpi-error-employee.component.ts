@@ -86,6 +86,7 @@ export class KpiErrorEmployeeComponent implements OnInit {
     kpiErrorId: number = 0;
     employeeId: number = 0;
     departmentId: number = 0;
+    departmentIds: number[] = [];
 
     kpiErrorTypes: any[] = [];
     kpiErrors: any[] = [];
@@ -119,6 +120,7 @@ export class KpiErrorEmployeeComponent implements OnInit {
 
         const queryDepartmentId = this.route.snapshot.queryParams['departmentId'];
         this.departmentId = queryDepartmentId ? Number(queryDepartmentId) : (this.tabData?.departmentId ?? 0);
+        this.departmentIds = this.departmentId > 0 ? [this.departmentId] : [];
 
         this.route.queryParams.subscribe(params => {
             const newDepartmentId = params['departmentId']
@@ -126,6 +128,7 @@ export class KpiErrorEmployeeComponent implements OnInit {
                 : (this.tabData?.departmentId ?? 0);
             if (newDepartmentId !== this.departmentId) {
                 this.departmentId = newDepartmentId;
+                this.departmentIds = this.departmentId > 0 ? [this.departmentId] : [];
                 this.search();
             }
         });
@@ -227,7 +230,7 @@ export class KpiErrorEmployeeComponent implements OnInit {
             this.kpiErrorId,
             this.employeeId,
             this.kpiErrorTypeId,
-            this.departmentId,
+            this.departmentIds,
             this.keyword
         ).pipe(finalize(() => this.isLoading = false)).subscribe({
             next: (response: any) => {
@@ -317,7 +320,7 @@ export class KpiErrorEmployeeComponent implements OnInit {
         });
         modalRef.componentInstance.id = 0;
         modalRef.componentInstance.isEditMode = false;
-        modalRef.componentInstance.departmentId = this.departmentId;
+        modalRef.componentInstance.departmentId = this.getCurrentDepartmentId();
 
         modalRef.result.then(
             () => this.search(),
@@ -340,7 +343,7 @@ export class KpiErrorEmployeeComponent implements OnInit {
         });
         modalRef.componentInstance.id = this.selectedId;
         modalRef.componentInstance.isEditMode = true;
-        modalRef.componentInstance.departmentId = this.departmentId;
+        modalRef.componentInstance.departmentId = this.getCurrentDepartmentId();
 
         modalRef.result.then(
             () => this.search(),
@@ -611,6 +614,11 @@ export class KpiErrorEmployeeComponent implements OnInit {
 
     trackById(_index: number, row: any): any {
         return row?.ID ?? row?.id ?? row;
+    }
+
+    private getCurrentDepartmentId(): number {
+        const selectedDepartmentId = (this.departmentIds || []).find(id => Number(id) > 0);
+        return selectedDepartmentId || this.departmentId || 0;
     }
 
     private canManageActions(): boolean {

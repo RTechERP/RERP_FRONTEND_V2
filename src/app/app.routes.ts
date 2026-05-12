@@ -344,6 +344,8 @@ import { BillExportPrimeComponent } from './pages/old/Sale/BillExport/bill-expor
 import { ProjectTaskTimeLineProjectComponent } from './pages/project_task/project-task-time-line-project/project-task-time-line-project.component';
 import { HrRecruitmentSummaryComponent } from './pages/hrm/hr-recruitment/hr-recruitment-summary/hr-recruitment-summary.component';
 import { BillImportSyntheticAllComponent } from './pages/old/Sale/BillImport/Modal/bill-import-synthetic-all/bill-import-synthetic-all.component';
+import { ProjectHistoryProblemNewComponent } from './pages/project/project-history-problem-new/project-history-problem-new.component';
+import { ProjectHistoryProblemDashboardComponent } from './pages/project/project-history-problem-new/project-history-problem-dashboard/project-history-problem-dashboard.component';
 export const routes: Routes = [
     {
         path: 'file-preview',
@@ -1215,6 +1217,8 @@ export const routes: Routes = [
             { path: 'employee-deduction-type', component: EmployeeDeductionTypeComponent, canActivate: [authGuard] },
             { path: 'product-project-customer-hn', component: ListProductProjectCustomerComponent, canActivate: [authGuard] },
             { path: 'bill-import-synthetic-all', component: BillImportSyntheticAllComponent, canActivate: [authGuard] },
+            { path: 'project-history-problem-new', component: ProjectHistoryProblemNewComponent, canActivate: [authGuard] },
+            { path: 'project-history-problem-dashboard', component: ProjectHistoryProblemDashboardComponent, canActivate: [authGuard] }
         ],
     },
 ];

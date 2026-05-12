@@ -94,9 +94,10 @@
                                         <nz-form-item class="mb-0">
                                             <nz-form-label class="fs-12">Phòng ban</nz-form-label>
                                             <nz-form-control class="w-100">
-                                                <nz-select [(ngModel)]="departmentId" name="departmentId" nzSize="small"
+                                                <nz-select [(ngModel)]="departmentIds" name="departmentIds"
+                                                    nzSize="small" nzMode="multiple"
                                                     nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch
-                                                    class="w-100">
+                                                    [nzMaxTagCount]="2" class="w-100">
                                                     <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
                                                         [nzLabel]="item.Name"></nz-option>
                                                 </nz-select>

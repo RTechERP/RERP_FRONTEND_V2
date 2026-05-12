@@ -9,7 +9,15 @@
           <h6 class="text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i>Thông tin</h6>
 
           <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-2">
+              <nz-form-item>
+                <nz-form-label>STT</nz-form-label>
+                <nz-form-control>
+                  <input nz-input formControlName="STT" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div class="col-md-3">
               <nz-form-item>
                 <nz-form-label nzRequired>Loại phát sinh</nz-form-label>
                 <nz-form-control nzErrorTip="Vui lòng chọn loại phát sinh">
@@ -22,7 +30,7 @@
 
               </nz-form-item>
             </div>
-            <div class="col-md-8">
+            <div class="col-md-7">
               <nz-form-item>
                 <nz-form-label nzRequired>Dự án</nz-form-label>
                 <nz-form-control nzErrorTip="Vui lòng chọn dự án">
@@ -198,7 +206,7 @@
           </div>
 
 
-          <div class="row">
+          <!-- <div class="row">
             <div class="col-md-6">
               <nz-form-item>
                 <nz-form-label nzRequired>PIC</nz-form-label>
@@ -208,7 +216,7 @@
               </nz-form-item>
             </div>
             <div class="col-md-6"></div>
-          </div>
+          </div> -->
 
           <!-- <h6 class="text-secondary mt-3 mb-3"><i class="fa-solid fa-link me-2"></i>Công việc liên quan (Project Item)
         </h6> -->
@@ -246,7 +254,7 @@
             <th nzWidth="45px" class="text-center py-1">STT</th>
             <th class="py-1">Tên file</th>
             <th nzWidth="70px" class="text-center py-1">Loại</th>
-            <th nzWidth="70px" class="text-center py-1">Dung lượng</th>
+            <!-- <th nzWidth="70px" class="text-center py-1">Dung lượng</th> -->
             <th nzWidth="50px" class="text-center py-1">Xóa</th>
           </tr>
         </thead>
@@ -255,7 +263,6 @@
             <td class="text-center py-1">{{ i + 1 }}</td>
             <td class="text-truncate py-1" style="max-width: 200px;" [title]="file.fileName">{{ file.fileName }}</td>
             <td class="text-center py-1">{{ file.fileType }}</td>
-            <td class="text-center py-1">{{ file.fileSize }}</td>
             <td class="text-center py-1">
               <a class="text-danger" style="cursor: pointer;" (click)="removeFile(i)" title="Xóa file">
                 <i class="fa-solid fa-trash-can"></i>
@@ -272,7 +279,7 @@
   <div class="detail-footer d-flex justify-content-end gap-2">
 
     <button nz-button nzType="default" (click)="destroyModal()"><i class="fa-solid fa-xmark me-2"></i>Đóng</button>
-    <button nz-button nzType="primary" (click)="submitForm()"><i class="fa-solid fa-floppy-disk me-2"></i>Lưu
+    <button nz-button nzType="primary" (click)="submitForm()" [nzLoading]="isSubmitting"><i class="fa-solid fa-floppy-disk me-2" *ngIf="!isSubmitting"></i>Lưu
       lại</button>
   </div>
 </div>

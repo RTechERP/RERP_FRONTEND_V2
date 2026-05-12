@@ -98,13 +98,13 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     public activeModal: NgbActiveModal,
     private ngbModal: NgbModal,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
-    // Biến lưu dòng đang được focus (click)
-    private lastClickedWorkerRow: any = null;
+  // Biến lưu dòng đang được focus (click)
+  private lastClickedWorkerRow: any = null;
 
-    sizeLeftPanel: string = ''; // Khởi tạo rỗng
-    sizeRightPanel: string = ''; // Khởi tạo rỗng
+  sizeLeftPanel: string = ''; // Khởi tạo rỗng
+  sizeRightPanel: string = ''; // Khởi tạo rỗng
   @ViewChild('tb_solution', { static: false })
   tb_solutionContainer!: ElementRef;
   @ViewChild('tb_solutionVersion', { static: false })
@@ -161,7 +161,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     this.drawTbSolutionVersion();
     this.drawTbPOVersion();
     this.drawTbProjectWorker();
-    
+
     // Sau khi các bảng đã được khởi tạo, mới load dữ liệu
     // Sử dụng setTimeout để đảm bảo DOM đã render xong
     setTimeout(() => {
@@ -172,12 +172,12 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
   private startLoading(): void {
     this.loadingCounter++;
     this.isLoading = true;
-    
+
     // Clear timeout cũ nếu có
     if (this.loadingTimeout) {
       clearTimeout(this.loadingTimeout);
     }
-    
+
     // Set timeout để đảm bảo loading không bị kẹt quá 30 giây
     this.loadingTimeout = setTimeout(() => {
       console.warn('Loading timeout - force stop loading');
@@ -191,7 +191,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     if (this.loadingCounter <= 0) {
       this.loadingCounter = 0;
       this.isLoading = false;
-      
+
       // Clear timeout khi loading đã dừng
       if (this.loadingTimeout) {
         clearTimeout(this.loadingTimeout);
@@ -353,15 +353,15 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         selectedVersionID = selectedData[0].ID || 0;
       }
     }
-    const payload = 
-    {  
+    const payload =
+    {
       projectID: this.projectId || 0,
       projectWorkerTypeID: this.projectworkertypeID || 0,
       IsApprovedTBP: this.isApprovedTBP || -1,
       IsDeleted: this.isDeleted || 0,
       KeyWord: this.keyword || '',
       versionID: selectedVersionID || 0,
-  };
+    };
     // "projectID": 0,
     // "projectWorkerTypeID": 0,
     // "IsApprovedTBP": true,
@@ -421,8 +421,8 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         this.notification.warning(
           'Thông báo',
           'Vui lòng chọn sử dụng phiên bản ' +
-            selectedRows[0].Code +
-            ' để cập nhật'
+          selectedRows[0].Code +
+          ' để cập nhật'
         );
         return;
       }
@@ -432,8 +432,8 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         this.notification.warning(
           'Thông báo',
           'Vui lòng chọn sử dụng phiên bản PO ' +
-            selectedRows[0].Code +
-            ' để cập nhật'
+          selectedRows[0].Code +
+          ' để cập nhật'
         );
         return;
       }
@@ -487,53 +487,53 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
   //#region export excel nhân công
   onExportExcel() {
     if (!this.tb_projectWorker) return;
-  
+
     const treeData = this.tb_projectWorker.getData('tree');
     if (!treeData || treeData.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
       return;
     }
-  
+
     const allColumns = this.tb_projectWorker.getColumns();
     const visibleColumns = allColumns.filter((col: any, index: number) => {
       if (index === 0) return false;
       const colDef = col.getDefinition();
       return colDef.visible !== false;
     });
-  
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Nhân công');
-  
+
     // === HEADER ===
     const headerRow = worksheet.addRow(
-      visibleColumns.map((col:any) => col.getDefinition().title)
+      visibleColumns.map((col: any) => col.getDefinition().title)
     );
     headerRow.font = { bold: true, color: { argb: 'FFFFFF' } };
     headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD700' } };
     headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
-  
+
     // === Hàm thêm node (đệ quy) ===
     const addNodeToSheet = (node: any, level: number = 0) => {
       // Tạo row mới và lấy reference
       const row = worksheet.addRow([]); // Truyền mảng rỗng để tránh lỗi
-  
-      visibleColumns.forEach((col:any, idx:any) => {
+
+      visibleColumns.forEach((col: any, idx: any) => {
         const field = col.getField();
         let value = node[field] ?? '';
-  
+
         const cell = row.getCell(idx + 1);
-  
+
         // 1. Thụt lề cột TT
         if (field === 'TT' && level > 0) {
-          value = '  '.repeat(level * 2)  + value;
+          value = '  '.repeat(level * 2) + value;
         }
-  
+
         // 2. Xử lý ngày
         if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
           value = new Date(value);
           cell.numFmt = 'dd/mm/yyyy';
         }
-  
+
         // 3. Cột số: 1.0, 2.0, 1000.0
         const numberFields = ['AmountPeople', 'NumberOfDay', 'TotalWorkforce', 'Price', 'TotalPrice'];
         if (numberFields.includes(field)) {
@@ -546,24 +546,24 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
             value = '';
           }
         }
-  
+
         // 4. Thành tiền: định dạng có dấu chấm
         if (field === 'TotalPrice') {
           cell.numFmt = '#,##0'; // 1.000, 5.000.000
         }
-  
+
         cell.value = value;
       });
-  
+
       // Thêm con
       if (node._children && node._children.length > 0) {
         node._children.forEach((child: any) => addNodeToSheet(child, level + 1));
       }
     };
-  
+
     // === Duyệt root ===
     treeData.forEach((root: any) => addNodeToSheet(root));
-  
+
     // === Tự động width ===
     worksheet.columns.forEach((column: any) => {
       let maxLength = 10;
@@ -573,13 +573,13 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       });
       column.width = Math.min(maxLength, 50);
     });
-  
+
     // === Auto filter ===
     worksheet.autoFilter = {
       from: { row: 1, column: 1 },
       to: { row: 1, column: visibleColumns.length },
     };
-  
+
     // === Xuất file ===
     workbook.xlsx.writeBuffer().then(buffer => {
       const blob = new Blob([buffer], {
@@ -755,6 +755,9 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         modalRef.componentInstance.SolutionTypeID = typenumber; //giải pháp
         modalRef.componentInstance.typeNumber = typenumber; //1: giải pháp, 2: PO
         modalRef.componentInstance.IsActive = row.IsActive;
+        modalRef.componentInstance.IsProblem = row.IsProblem;
+        // The API might return an array or we just take the first entry if available
+        modalRef.componentInstance.ProjectHistoryProblemIds = (row.ProjectHistoryProblemIds && row.ProjectHistoryProblemIds.length > 0) ? row.ProjectHistoryProblemIds[0] : null;
         modalRef.componentInstance.DescriptionVersion = row.DescriptionVersion;
         modalRef.componentInstance.ProjectworkerID = row.ID;
         modalRef.componentInstance.versionData =
@@ -768,6 +771,8 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         modalRef.componentInstance.SolutionTypeID = typenumber; //giải pháp
         modalRef.componentInstance.typeNumber = typenumber; //1: giải pháp, 2: PO
         modalRef.componentInstance.IsActive = row.IsActive;
+        modalRef.componentInstance.IsProblem = row.IsProblem;
+        modalRef.componentInstance.ProjectHistoryProblemIds = (row.ProjectHistoryProblemIds && row.ProjectHistoryProblemIds.length > 0) ? row.ProjectHistoryProblemIds[0] : null;
         modalRef.componentInstance.DescriptionVersion = row.DescriptionVersion;
         modalRef.componentInstance.ProjectworkerID = row.ID;
         modalRef.componentInstance.versionData =
@@ -816,7 +821,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       //   }
       // }
       el.style.cssText = '';
-        
+
       // 1. Ưu tiên: Dòng bị xóa → đỏ
       if (data.IsDeleted === true) {
         el.style.backgroundColor = 'red';
@@ -1010,7 +1015,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       {
         ...DEFAULT_TABLE_CONFIG,
         pagination: false,
-        rowHeader:false,
+        rowHeader: false,
         paginationMode: 'local',
         data: this.dataSolutionVersion,
         layout: 'fitDataStretch',
@@ -1143,7 +1148,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       {
         ...DEFAULT_TABLE_CONFIG,
         pagination: false,
-        rowHeader:false,
+        rowHeader: false,
         paginationMode: 'local',
         data: this.dataPOVersion,
         layout: 'fitDataStretch',
@@ -1265,10 +1270,10 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         rowFormatter: (row: any) => {
           const data = row.getData();
           const el = row.getElement();
-        
+
           // Reset style 1 lần duy nhất
           el.style.cssText = '';
-        
+
           // 1. Ưu tiên: Dòng bị xóa → đỏ
           if (data.IsDeleted === true) {
             el.style.backgroundColor = 'red';
@@ -1510,7 +1515,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     this.tb_projectWorker.on('cellClick', (e: any, cell: any) => {
       const field = cell.getField();
       if (field === 'rowSelection') return;
-      
+
       // Xóa highlight cũ
       if (this.lastClickedWorkerRow) {
         const oldElement = this.lastClickedWorkerRow.getElement();
@@ -1518,17 +1523,17 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
           oldElement.style.outline = '';
         }
       }
-      
+
       // Lưu và highlight dòng mới
       this.lastClickedWorkerRow = cell.getRow();
       const rowData = this.lastClickedWorkerRow.getData();
-      
+
       const newElement = this.lastClickedWorkerRow.getElement();
       if (newElement) {
         newElement.style.outline = '3px solid #52c41a';
         newElement.style.outlineOffset = '-1px';
       }
-      
+
       console.log('Cell clicked - Row TT:', rowData.TT, 'ID:', rowData.ID);
     });
   }
@@ -1707,7 +1712,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     if (isEdit) {
       // Thử 3 cách lấy dòng theo thứ tự ưu tiên
       let targetRow: any = null;
-      
+
       // Cách 1: Lấy từ biến đã lưu (khi click vào cell)
       if (this.lastClickedWorkerRow) {
         targetRow = this.lastClickedWorkerRow;
@@ -1746,39 +1751,39 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
 
       workerData = focusedRow;
     }
-     // Lấy danh sách parent từ tree data (chỉ lấy các node cha, không phải node lá)
-     const parentList = this.getParentListFromTree(this.treeWorkerData);
+    // Lấy danh sách parent từ tree data (chỉ lấy các node cha, không phải node lá)
+    const parentList = this.getParentListFromTree(this.treeWorkerData);
 
-     // Mở modal
-     const modalRef = this.ngbModal.open(ProjectWorkerDetailComponent, {
-       centered: true,
-       size: 'md',
-       backdrop: 'static',
-       keyboard: false,
-     });
- 
-     // Set các Input properties
-     modalRef.componentInstance.projectID = this.projectId;
-     modalRef.componentInstance.ProjectWorkerVersionID = selectedVersionID;
-     modalRef.componentInstance.ID = workerID;
-     modalRef.componentInstance.workerData = workerData;
-     modalRef.componentInstance.parentList = parentList;
- 
-     // Xử lý kết quả từ modal
-     modalRef.result
-       .then((result: any) => {
-         if (result && result.success) {
-           this.loadDataProjectWorker();
-           // Không hiện notification ở đây vì component con đã hiện rồi
-         }
-       })
-       .catch((error: any) => {
-         // Chỉ log error nếu không phải là dismiss với 'cancel' (đóng modal bình thường)
-         if (error !== 'cancel') {
-           console.error('Error in project worker detail modal:', error);
-         }
-       });
-   }
+    // Mở modal
+    const modalRef = this.ngbModal.open(ProjectWorkerDetailComponent, {
+      centered: true,
+      size: 'md',
+      backdrop: 'static',
+      keyboard: false,
+    });
+
+    // Set các Input properties
+    modalRef.componentInstance.projectID = this.projectId;
+    modalRef.componentInstance.ProjectWorkerVersionID = selectedVersionID;
+    modalRef.componentInstance.ID = workerID;
+    modalRef.componentInstance.workerData = workerData;
+    modalRef.componentInstance.parentList = parentList;
+
+    // Xử lý kết quả từ modal
+    modalRef.result
+      .then((result: any) => {
+        if (result && result.success) {
+          this.loadDataProjectWorker();
+          // Không hiện notification ở đây vì component con đã hiện rồi
+        }
+      })
+      .catch((error: any) => {
+        // Chỉ log error nếu không phải là dismiss với 'cancel' (đóng modal bình thường)
+        if (error !== 'cancel') {
+          console.error('Error in project worker detail modal:', error);
+        }
+      });
+  }
   // Hàm lấy danh sách parent từ tree (chỉ lấy các node cha, có thể làm parent)
   getParentListFromTree(tree: any[]): any[] {
     const parentList: any[] = [];

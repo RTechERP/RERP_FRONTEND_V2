@@ -40,7 +40,7 @@ export class KpiErrorEmployeeService {
     kpiErrorID: number,
     employeeID: number,
     typeID: number,
-    departmentID: number,
+    departmentIDs: number[] | string | number,
     keywords: string = ''
   ): Observable<any> {
     const params = new HttpParams()
@@ -49,7 +49,7 @@ export class KpiErrorEmployeeService {
       .set('kpiErrorID', (kpiErrorID || 0).toString())
       .set('employeeID', (employeeID || 0).toString())
       .set('typeID', (typeID || 0).toString())
-      .set('departmentID', (departmentID || 0).toString())
+      .set('departmentIDs', this.normalizeDepartmentIDs(departmentIDs))
       .set('keywords', keywords);
 
     return this.http.get(this._url + 'load-data', { params });
@@ -133,4 +133,16 @@ export class KpiErrorEmployeeService {
     const seconds = String(dateObj.getSeconds()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   };
+
+  private normalizeDepartmentIDs(departmentIDs: number[] | string | number): string {
+    if (Array.isArray(departmentIDs)) {
+      return departmentIDs.filter(id => Number(id) > 0).join(',');
+    }
+
+    if (typeof departmentIDs === 'number') {
+      return departmentIDs > 0 ? departmentIDs.toString() : '';
+    }
+
+    return departmentIDs || '';
+  }
 }

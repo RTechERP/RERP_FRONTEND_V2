@@ -577,11 +577,23 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         cssClass: 'text-center',
       },
       {
+        id: 'IsProblem',
+        field: 'IsProblem',
+        name: 'Phát sinh',
+        width: 80,
+        formatter: (row: number, cell: number, value: any) => {
+          const checked = value === true || value === 'true' || value === 1 || value === '1';
+          return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
+        },
+        cssClass: 'text-center',
+      },
+      {
         id: 'Code',
         field: 'Code',
         name: 'Mã',
         width: 100,
       },
+      { id: 'ContentError', field: 'ContentError', name: 'Nội dung phát sinh', width: 200 },
       {
         id: 'DescriptionVersion',
         field: 'DescriptionVersion',
@@ -654,6 +666,18 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         cssClass: 'text-center',
       },
       {
+        id: 'IsProblem',
+        field: 'IsProblem',
+        name: 'Phát sinh',
+        width: 80,
+        formatter: (row: number, cell: number, value: any) => {
+          const checked = value === true || value === 'true' || value === 1 || value === '1';
+          return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
+        },
+        cssClass: 'text-center',
+      },
+      { id: 'ContentError', field: 'ContentError', name: 'Nội dung phát sinh', width: 200 },
+      {
         id: 'Code',
         field: 'Code',
         name: 'Mã',
@@ -666,7 +690,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         width: 150,
       },
       //tbp duyệt po
-       {
+      {
         id: 'IsApprovedTBP',
         field: 'IsApprovedTBP',
         name: 'TBP duyệt',
@@ -675,6 +699,11 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           const checked = value === true || value === 'true' || value === 1 || value === '1';
           return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
         },
+        cssClass: 'text-center',
+      },
+      {
+        id: 'IsApprovedTBP', field: 'IsApprovedTBP', name: 'Duyệt', width: 70,
+        formatter: (row, cell, value) => `<input type="checkbox" ${value === true ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`,
         cssClass: 'text-center',
       },
     ];
@@ -2619,7 +2648,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           data = data.map((item: any, index: number) => ({
             ...item,
             STT: index + 1,
-            id: item.ID || index
+            id: `solution_${item.ID || 0}_${index}_${Date.now()}`
           }));
           this.dataSolution = data;
           console.log('[DATA LOAD] Solution processed data:', data.length, 'rows');
@@ -2649,7 +2678,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 if (rowIdx >= 0) {
                   if (this.angularGridSolution.slickGrid) {
                     if (typeof this.angularGridSolution.slickGrid.setActiveCell === 'function') {
-                      try { this.angularGridSolution.slickGrid.setActiveCell(rowIdx, 0); } catch(e) {}
+                      try { this.angularGridSolution.slickGrid.setActiveCell(rowIdx, 0); } catch (e) { }
                     }
                     this.angularGridSolution.slickGrid.setSelectedRows([rowIdx]);
                     this.angularGridSolution.slickGrid.scrollRowIntoView(rowIdx, false);
@@ -2731,7 +2760,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           data = data.map((item: any, index: number) => ({
             ...item,
             STT: index + 1,
-            id: item.ID || index
+            id: `version_${item.ID || 0}_${index}_${Date.now()}`
           }));
           this.dataSolutionVersion = data;
           if (this.angularGridSolutionVersion) {
@@ -2787,7 +2816,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           data = data.map((item: any, index: number) => ({
             ...item,
             STT: index + 1,
-            id: item.ID || index
+            id: `version_${item.ID || 0}_${index}_${Date.now()}`
           }));
           this.dataPOVersion = data;
           if (this.angularGridPOVersion) {
@@ -2893,7 +2922,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 const rowIdx = allItems.findIndex((item: any) => item.id === firstDataRow.id);
                 if (rowIdx >= 0) {
                   if (typeof this.angularGridVersion.slickGrid.setActiveCell === 'function') {
-                    try { this.angularGridVersion.slickGrid.setActiveCell(rowIdx, 0); } catch(e) {}
+                    try { this.angularGridVersion.slickGrid.setActiveCell(rowIdx, 0); } catch (e) { }
                   }
                   this.angularGridVersion.slickGrid.setSelectedRows([rowIdx]);
                   this.angularGridVersion.slickGrid.scrollRowIntoView(rowIdx, false);
@@ -2914,8 +2943,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                   this.CodeName = firstDataRow.Code || '';
                   this.updatePageTitle();
                 }
+              }
             }
-          }
           }
           this.stopLoading();
         },
@@ -3758,6 +3787,64 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       }
     }).catch(() => { });
   }
+
+  //#region cập nhật trạng thái duyệt phiên bản PO
+  updateApproveVersion(action: number): void {
+    const grid = this.angularGridVersion;
+    if (!grid?.slickGrid) return;
+
+    const selectedRows = grid.slickGrid.getSelectedRows() || [];
+    if (selectedRows.length === 0) {
+      this.notification.warning(
+        'Thông báo',
+        `Vui lòng chọn phiên bản PO cần cập nhật`
+      );
+      return;
+    }
+
+    const rowIdx = selectedRows[0];
+    const rowData = grid.dataView?.getItem(rowIdx);
+    if (!rowData) return;
+
+    const employeeId = this.appUserService.employeeID || 0;
+
+    const payload: any = {
+      ID: rowData.originalId || rowData.ID || 0,
+      ProjectID: rowData.ProjectID || this.projectId || null,
+      STT: rowData.STT || null,
+      Code: rowData.Code || '',
+      DescriptionVersion: rowData.DescriptionVersion || '',
+      IsActive: rowData.IsActive || false,
+      ProjectSolutionID: rowData.ProjectSolutionID || this.projectSolutionId || null,
+      ProjectTypeID: rowData.ProjectTypeID || null,
+      StatusVersion: rowData.StatusVersion || rowData.VersionType || null,
+      IsApprovedTBP: action === 1 ? true : false,
+      ApprovedTBPDate: action === 1 ? new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString() : null,
+      ApprovedTBPID: action === 1 ? employeeId : null,
+    };
+
+    this.projectPartListService.saveProjectPartListVersion({
+      ProjectPartListVersion: payload,
+      ProjectHistoryProblemIDs: []
+    }).subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          this.notification.success(
+            'Thành công',
+            'Cập nhật trạng thái duyệt phiên bản PO thành công!'
+          );
+          this.loadDataVersion();
+        } else {
+          this.notification.error('Lỗi', response.message);
+        }
+      },
+      error: (error: any) => {
+        console.error('Error updating approve version:', error);
+        this.notification.error('Lỗi', 'Không thể cập nhật trạng thái duyệt phiên bản PO');
+      },
+    });
+  }
+  //#endregion
 
   openProjectSolutionVersionDetail(typenumber: number, isEdit: boolean): void {
 
@@ -5896,7 +5983,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       }
       // 4. Node cha (đầu mục 1/2/3...) → Gray (yêu cầu: các đầu mục khi xuất màu xám)
       else if (isParentRow) {
-        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb:'BBBBBB' } } as ExcelJS.Fill; // Gray
+        rowFillColor = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'BBBBBB' } } as ExcelJS.Fill; // Gray
         rowFont = { name: 'Times New Roman', size: 11, bold: true };
       }
 

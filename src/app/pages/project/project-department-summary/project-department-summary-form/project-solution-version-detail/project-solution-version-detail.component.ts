@@ -44,7 +44,7 @@ interface ProjectSolution {
     NzFormModule,
     NzCheckboxModule,
     NzInputNumberModule
-  
+
   ],
   templateUrl: './project-solution-version-detail.component.html',
   styleUrl: './project-solution-version-detail.component.css'
@@ -66,32 +66,71 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
   @Input() STT: number = 1;
   @Input() IsActive: boolean = false;
   @Input() IsConsumable: boolean = false;
+  @Input() IsProblem: boolean = false;
+  @Input() ProjectHistoryProblemIds: any = null;
   @Input() DescriptionVersion: string = '';
   @Input() ProjectworkerID: number = 0;
   @Input() versionData: any[] = [];
   @Input() isEdit: boolean = false;
   projectTypeList: any[] = [];
   cbbSolutionType: any[] = [
-    {ID: 1, Name: 'Giải pháp'},
-    {ID: 2, Name: 'Po'},
+    { ID: 1, Name: 'Giải pháp' },
+    { ID: 2, Name: 'Po' },
   ];
-  
+  historyProblems: any[] = [];
+
   cbbProjectSolution: any[] = [];
   ngOnInit(): void {
     this.loadProjectType();
     this.loadProjectSolutionCbb();
+    this.loadHistoryProblems();
     this.form = this.fb.group({
-      VersionCode: [{value: this.VersionCode  || '', disabled: true}, [this.trimRequiredValidator]], //mã phiên bản
+      VersionCode: [{ value: this.VersionCode || '', disabled: true }, [this.trimRequiredValidator]], //mã phiên bản
       ProjectTypeID: [this.ProjectTypeID || null, [Validators.required]],
       ProjectSolutionID: [this.projectSolutionId || null, [Validators.required]],
       STT: [this.STT || 1],
       IsActive: [this.IsActive || false],
       IsConsumable: [this.IsConsumable || false],
-      SolutionTypeID: [{value: this.SolutionTypeID  || '', disabled: true}, [Validators.required]], //trạng thái
+      SolutionTypeID: [{ value: this.SolutionTypeID || '', disabled: true }, [Validators.required]], //trạng thái
+      IsProblem: [this.IsProblem || false], // New field for Phát sinh
+      ProjectHistoryProblemIds: [this.ProjectHistoryProblemIds || null], // Dropdown selection
       DescriptionVersion: [this.DescriptionVersion || ''], //mô tả
     });
+
+    // Subscribe to IsProblem to handle validation if needed
+    this.form.get('IsProblem')?.valueChanges.subscribe(isProblem => {
+      if (!isProblem) {
+        this.form.get('ProjectHistoryProblemIds')?.setValue(null);
+      }
+    });
+
+    if (this.isEdit && this.ProjectworkerID > 0) {
+      if (this.typecheck !== 1) { // Worker
+        this.projectWorkerService.getProjectHistoryProblemLinked(this.ProjectworkerID).subscribe({
+          next: (response: any) => {
+            if (response.status === 1 && response.data && response.data.length > 0) {
+              this.form.patchValue({
+                IsProblem: true,
+                ProjectHistoryProblemIds: response.data[0].ID
+              });
+            }
+          }
+        });
+      } else { // PartList
+        this.projectPartListService.getProjectHistoryProblemLinked(this.ProjectworkerID).subscribe({
+          next: (response: any) => {
+            if (response.status === 1 && response.data && response.data.length > 0) {
+              this.form.patchValue({
+                IsProblem: true,
+                ProjectHistoryProblemIds: response.data[0].ID
+              });
+            }
+          }
+        });
+      }
+    }
   }
-  
+
   ngAfterViewInit(): void {
     // Set values after view init to ensure @Input values are available
     if (this.ProjectTypeID) {
@@ -100,7 +139,7 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
         ProjectTypeName: this.ProjectTypeName
       });
     }
-    
+
     // Subscribe to ProjectTypeID changes to update ProjectTypeName và VersionCode
     this.form.get('ProjectTypeID')?.valueChanges.subscribe((projectTypeId: number) => {
       if (projectTypeId) {
@@ -136,6 +175,19 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
       }
     });
   }
+
+  loadHistoryProblems(): void {
+    this.projectWorkerService.getProjectHistoryProblem(this.ProjectID).subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          this.historyProblems = response.data || [];
+        }
+      },
+      error: (error: any) => {
+        console.error("Error loading history problems:", error);
+      }
+    });
+  }
   constructor(
     private notification: NzNotificationService,
     private activeModal: NgbActiveModal,
@@ -143,26 +195,26 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
     private fb: FormBuilder,
     private projectWorkerService: ProjectWorkerService,
     private projectPartListService: ProjectPartListService
-  ) {}
+  ) { }
   changeSTT() {
     const stt = this.form.get('STT')?.value;   // lấy giá trị STT từ form
-  
+
     this.form.patchValue({
       VersionCode: 'V' + stt
     });
   }
   changeProjectTypeID(): void {
-      //#region Tính STT lớn nhất + 1 theo ProjectTypeID
-      let maxSTT = 0;
-      if(!this.isEdit) {
+    //#region Tính STT lớn nhất + 1 theo ProjectTypeID
+    let maxSTT = 0;
+    if (!this.isEdit) {
       const currentProjectTypeID = this.form.get('ProjectTypeID')?.value;
-      
+
       if (currentProjectTypeID && this.versionData && this.versionData.length > 0) {
         // Filter data theo ProjectTypeID hiện tại
         const filteredData = this.versionData.filter(
           (item: any) => item.ProjectTypeID === currentProjectTypeID
         );
-        
+
         if (filteredData.length > 0) {
           const sttValues = filteredData
             .map((item: any) => item.STT)
@@ -178,7 +230,7 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
       const nextSTT = Math.max(1, maxSTT + 1);
       //#endregion
       this.form.patchValue({
-        VersionCode: 'V'+ nextSTT,
+        VersionCode: 'V' + nextSTT,
         STT: nextSTT,
       });
     }
@@ -206,7 +258,7 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
   };
 
   closeModal() {
-    this.activeModal.close({ success: true, isConsumable: this.form.value.IsConsumable});
+    this.activeModal.close({ success: true, isConsumable: this.form.value.IsConsumable });
   }
 
 
@@ -216,8 +268,8 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
       return;
     }
     const valueRaw = this.form.getRawValue();
-    const payload = { 
-      ID: this.ProjectworkerID ||0,
+    const payload: any = {
+      ID: this.ProjectworkerID || 0,
       ProjectSolutionID: this.projectSolutionId,
       ProjectID: this.projectSolutionId,
       STT: valueRaw.STT,
@@ -229,15 +281,20 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
       IsConsumable: valueRaw.IsConsumable || false,
     };
     console.log("payload", payload);
-    if(this.typecheck === 1) {
-      this.projectPartListService.saveProjectPartListVersion(payload).subscribe({
+    if (this.typecheck === 1) {
+      payload.IsProblem = valueRaw.IsProblem || false;
+      const partListPayload = {
+        ProjectPartListVersion: payload,
+        ProjectHistoryProblemIDs: valueRaw.ProjectHistoryProblemIds ? [valueRaw.ProjectHistoryProblemIds] : []
+      };
+      this.projectPartListService.saveProjectPartListVersion(partListPayload).subscribe({
         next: (response: any) => {
           console.log("response", response);
           if (response.status === 1) {
             this.notification.success('Thông báo', response.message);
             this.closeModal();
           }
-          else{
+          else {
             this.notification.error('Lỗi', response.message);
           }
         },
@@ -245,22 +302,28 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
           this.notification.error('Lỗi', error.error.message);
         }
       });
-    }else{  
-    this.projectWorkerService.saveSolutionVersion(payload).subscribe({
-      next: (response: any) => {
-        console.log("response", response);
-        if (response.status === 1) {
-          this.notification.success('Thông báo', response.message);
-          this.closeModal();
-        } else {
-          this.notification.error('Lỗi', response.message);
+    } else {
+      // New payload format per SaveProjectWorkerVersionDTO
+      payload.IsProblem = valueRaw.IsProblem || false;
+      const workerPayload = {
+        ProjectWorkerVersion: payload,
+        ProjectHistoryProblemIds: valueRaw.ProjectHistoryProblemIds ? [valueRaw.ProjectHistoryProblemIds] : []
+      };
+      this.projectWorkerService.saveSolutionVersion(workerPayload).subscribe({
+        next: (response: any) => {
+          console.log("response", response);
+          if (response.status === 1) {
+            this.notification.success('Thông báo', response.message);
+            this.closeModal();
+          } else {
+            this.notification.error('Lỗi', response.message);
+          }
+        },
+        error: (error: any) => {
+          console.log("error", error);
+          this.notification.error('Lỗi', error.error.message);
         }
-      },
-      error: (error: any) => {
-        console.log("error", error);
-        this.notification.error('Lỗi', error.error.message);
-      }
-    });
+      });
     }
   }
 }

@@ -84,6 +84,11 @@ export class DailyReportTechService {
     return this.http.get<any>(this.apiUrl + 'get-project-item-by-user', { params });
   }
 
+  getProjectHistoryProblemByProjectItem(projectItemId: number): Observable<any> {
+    const params = new HttpParams().set('projectItemId', projectItemId.toString());
+    return this.http.get<any>(this.apiUrl + 'get-project-history-problem-by-project-item', { params });
+  }
+
   deleteDailyReport(dailyReportID: number): Observable<any> {
     // API POST nhận dailyReportID - nếu backend không có [FromBody], 
     // ASP.NET Core sẽ tìm trong query string hoặc form data

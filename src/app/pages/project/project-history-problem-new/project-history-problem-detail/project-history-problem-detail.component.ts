@@ -386,7 +386,7 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
     newFiles.forEach((fileObj: any) => {
       formData.append('files', fileObj.file);
     });
-    formData.append('key', 'TuanBeoTest');
+    formData.append('key', 'ProjectHistoryProblemFile');
 
     this.projectHistoryProblemNewService.uploadFiles(formData, problemId, 1).subscribe({
       next: (response: any) => {

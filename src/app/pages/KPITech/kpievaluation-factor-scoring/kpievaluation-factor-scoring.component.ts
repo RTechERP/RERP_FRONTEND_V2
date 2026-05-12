@@ -3208,8 +3208,9 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
       { nzDuration: 0 } // Không tự động đóng
     );
 
-    // 5. Gọi API export Excel (chỉ truyền kpiSessionId và departmentId)
-    this.kpiService.exportExcelByTeam(this.selectedKPISessionID, this.selectedDepartmentID)
+    // 5. Gọi API export Excel
+    const userTeamID = parseInt(this.selectedUserTeamID) || 0;
+    this.kpiService.exportExcelByTeam(this.selectedKPISessionID, this.selectedDepartmentID, userTeamID)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (blob: Blob) => {

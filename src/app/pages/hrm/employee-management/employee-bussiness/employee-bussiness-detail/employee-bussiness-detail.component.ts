@@ -29,7 +29,7 @@ import { NzMessageModule } from 'ng-zorro-antd/message';
 import { AuthService } from '../../../../../auth/auth.service';
 import { EmployeeService } from '../../../employee/employee-service/employee.service';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { OnChangeType } from 'ng-zorro-antd/core/types';
 import { VehiceDetailComponent } from '../vehice-detail/vehice-detail.component';
@@ -1093,33 +1093,6 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     // Chỉ đăng ký events nếu tabulator được khởi tạo thành công
     if (this.tabulator) {
       this.tabulator.on('cellEdited', (cell: any) => {
-        const field = cell.getField();
-        const row = cell.getRow();
-        const rowData = row.getData();
-
-        // Nếu là dòng đã tồn tại (ID > 0) và không phải đang edit field ReasonHREdit
-        // thì kiểm tra lý do sửa
-        if (rowData.ID > 0 && field !== 'ReasonHREdit') {
-          const isAdmin = this.appUserService.isAdmin;
-          if (!isAdmin) {
-            const reasonHREdit = rowData.ReasonHREdit || '';
-            if (!reasonHREdit || reasonHREdit.trim() === '') {
-              const stt = rowData.STT || row.getPosition() + 1;
-              this.notification.warning(
-                NOTIFICATION_TITLE.error,
-                `Vui lòng nhập Lý do sửa cho dòng [STT: ${stt}]!`
-              );
-              // Focus vào cell ReasonHREdit
-              setTimeout(() => {
-                const reasonCell = row.getCell('ReasonHREdit');
-                if (reasonCell) {
-                  reasonCell.edit();
-                }
-              }, 100);
-            }
-          }
-        }
-
         this.hasDataChanges = true;
         this.employeeBussinessDetail = this.tabulator!.getData();
       });
@@ -1127,24 +1100,6 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       this.tabulator.on('dataChanged', () => {
         this.hasDataChanges = true;
         this.employeeBussinessDetail = this.tabulator!.getData();
-
-        // Kiểm tra các dòng đã tồn tại (ID > 0) có lý do sửa chưa
-        const allData = this.tabulator.getData();
-        allData.forEach((rowData: any, index: number) => {
-          if (rowData.ID > 0) {
-            const reasonHREdit = rowData.ReasonHREdit || '';
-            if (!reasonHREdit || reasonHREdit.trim() === '') {
-              const stt = rowData.STT || (index + 1);
-              // Chỉ hiển thị warning một lần, không spam
-              setTimeout(() => {
-                this.notification.warning(
-                  NOTIFICATION_TITLE.error,
-                  `Vui lòng nhập Lý do sửa cho dòng [STT: ${stt}]!`
-                );
-              }, 100);
-            }
-          }
-        });
       });
 
       this.tabulator.on('rowDeleted', () => {
@@ -1446,7 +1401,12 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       },
       error: (err: any) => {
         this.message.remove(loadingMsg);
-        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Upload file thất bại!');
+        this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err?.error}\n${err?.message}`,
+            { nzStyle: { whiteSpace: 'pre-line' } }
+        );
         this.isSaving = false;
       },
     });
@@ -1464,7 +1424,12 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       },
       error: (error: any) => {
         this.isSaving = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký công tác thất bại');
+        this.notification.create(
+            NOTIFICATION_TYPE_MAP[error.status] || 'error',
+            NOTIFICATION_TITLE_MAP[error.status as RESPONSE_STATUS] || 'Lỗi',
+            error?.error?.message || `${error?.error}\n${error?.message}`,
+            { nzStyle: { whiteSpace: 'pre-line' } }
+        );
       }
     });
   }
@@ -1614,9 +1579,14 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
           this.activeModal.close({ success: true });
           this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật đăng ký công tác thành công');
         },
-        error: () => {
+        error: (error: any) => {
           this.isSaving = false;
-          this.notification.error(NOTIFICATION_TITLE.error, 'Xóa công tác thất bại');
+          this.notification.create(
+              NOTIFICATION_TYPE_MAP[error.status] || 'error',
+              NOTIFICATION_TITLE_MAP[error.status as RESPONSE_STATUS] || 'Lỗi',
+              error?.error?.message || `${error?.error}\n${error?.message}`,
+              { nzStyle: { whiteSpace: 'pre-line' } }
+          );
         }
       });
     } else {

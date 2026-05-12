@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -9,7 +9,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
-  selector: 'app-employee-select-table',
+  selector: 'app-user-group-employee-select-table',
   standalone: true,
   imports: [
     CommonModule,
@@ -23,7 +23,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
   templateUrl: './employee-select-table.component.html',
   styleUrls: ['./employee-select-table.component.css']
 })
-export class EmployeeSelectTableComponent implements OnInit {
+export class UserGroupEmployeeSelectTableComponent implements OnInit, OnDestroy {
   public activeModal = inject(NgbActiveModal);
 
   @Input() employeeList: any[] = [];
@@ -47,6 +47,10 @@ export class EmployeeSelectTableComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.selectedEmployees = [];
+  }
+
   getDepartmentCount(departmentName: string): number {
     return this.employeeList.filter(emp => emp.DepartmentName === departmentName).length;
   }
@@ -57,6 +61,7 @@ export class EmployeeSelectTableComponent implements OnInit {
   }
 
   closeModal(): void {
+    this.selectedEmployees = [];
     this.activeModal.dismiss();
   }
 }

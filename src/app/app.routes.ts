@@ -346,7 +346,11 @@ import { HrRecruitmentSummaryComponent } from './pages/hrm/hr-recruitment/hr-rec
 import { BillImportSyntheticAllComponent } from './pages/old/Sale/BillImport/Modal/bill-import-synthetic-all/bill-import-synthetic-all.component';
 import { ProjectHistoryProblemNewComponent } from './pages/project/project-history-problem-new/project-history-problem-new.component';
 import { ProjectHistoryProblemDashboardComponent } from './pages/project/project-history-problem-new/project-history-problem-dashboard/project-history-problem-dashboard.component';
+
+import { PermissionManagerComponent } from './pages/systems/permission-manager/permission-manager.component';
+import { UserGroupComponent } from './pages/systems/user-group/user-group.component';
 export const routes: Routes = [
+
     {
         path: 'file-preview',
         component: FilePreviewComponent,
@@ -385,7 +389,10 @@ export const routes: Routes = [
 
             //#region hệ thống
             { path: 'menu-app', component: MenuAppComponent, canActivate: [authGuard] },
+            { path: 'permission-manager', component: PermissionManagerComponent, canActivate: [authGuard] },
+            { path: 'user-group', component: UserGroupComponent, canActivate: [authGuard] },
             //#endregion
+
             //#region crm
             { path: 'customer', component: CustomerComponent, canActivate: [authGuard] },
             //#endregion

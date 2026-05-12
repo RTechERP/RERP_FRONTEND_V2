@@ -68,29 +68,29 @@
 
                                         <div class="course-info-row">
                                             <span class="info-label">Điểm thi:</span>
-                                            <span class="info-value exam-buttons">
+                                            <span class="info-value exam-buttons" style="display:flex; flex-direction:column; align-items:flex-start; gap:3px;">
                                                 <ng-container *ngFor="let exam of courseExamData">
                                                     <!-- Trắc nghiệm (ExamType = 1) -->
                                                     <button *ngIf="exam.ExamType === 1 && exam.CourseId === course.ID"
-                                                        type="button" class="btn btn-primary btn-sm shadow-none ms-1"
+                                                        type="button" class="btn btn-primary btn-sm shadow-none"
                                                         title="Trắc nghiệm" style="font-size: 11px; padding: 2px 6px;">
-                                                        {{ formatDicimal(course.QuizPoints) || 0.00 }} / {{
+                                                        Trắc nghiệm: {{ formatDicimal(course.QuizPoints) || 0.00 }} / {{
                                                         formatDicimal(course.GoalMultiChoice) || 0.00 }}
                                                     </button>
                                                     <!-- Thực hành (ExamType = 2) -->
                                                     <button *ngIf="exam.ExamType === 2 && exam.CourseId === course.ID"
                                                         type="button"
-                                                        class="btn btn-warning btn-sm text-dark shadow-none ms-1"
+                                                        class="btn btn-warning btn-sm text-dark shadow-none"
                                                         title="Thực hành" style="font-size: 11px; padding: 2px 6px;">
-                                                        {{ formatDicimal(course.PracticePoints) || 0.00 }} / {{
+                                                        Thực hành: {{ formatDicimal(course.PracticePoints) || 0.00 }} / {{
                                                         formatDicimal(course.GoalPractice) || 0.00 }}
                                                     </button>
                                                     <!-- Bài tập (ExamType = 3 or else) -->
                                                     <button *ngIf="exam.ExamType === 3 && exam.CourseId === course.ID"
                                                         type="button"
-                                                        class="btn btn-info btn-sm text-dark shadow-none ms-1"
+                                                        class="btn btn-info btn-sm text-dark shadow-none"
                                                         title="Bài tập" style="font-size: 11px; padding: 2px 6px;">
-                                                        {{ formatDicimal(course.ExcercisePoints) || 0.00 }} / {{
+                                                        Bài tập: {{ formatDicimal(course.ExcercisePoints) || 0.00 }} / {{
                                                         formatDicimal(course.GoalExercise) || 0.00 }}
                                                     </button>
 

@@ -19,6 +19,7 @@ import {
     SafeResourceUrl,
     SafeHtml,
 } from '@angular/platform-browser';
+import { HttpClient } from '@angular/common/http';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -136,6 +137,7 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
     @Output() openQuiz = new EventEmitter<void>();
     currentLesson: CourseLesson | null = null;
     currentLessonFiles: LessonFile[] = [];
+    checkedFiles: LessonFile[] = [];
     selectedLessonID: number = 0;
     isQuiz: boolean = false;
     isPractice: boolean = false;
@@ -151,6 +153,7 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
     private watchAccumulator: number = 0;
     private maxWatchedSecond: number = 0;
     public urlPDF?: SafeResourceUrl;
+    public hiddenVideo: boolean = true;
     private readonly INTERVAL = 1; // 1 second
     chapters: Chapter[] = [
         // { title: 'Giới thiệu', startTime: 0, endTime: 120 },
@@ -186,12 +189,22 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
     // Cho phép tua tiến nếu user có quyền N37
     canSeekForward: boolean = false;
 
+    // PDF file existence cache
+    private pdfFileCache = new Map<string, boolean>();
+    pdfFileExists: boolean = false;
+
+    // Attachment file existence cache
+    private attachmentFileCache = new Map<string, boolean>();
+    attachmentFileExists = new Map<string, boolean>();
+    private checkedAttachments = new Set<string>();
+
     constructor(
         private coursePracticeService: CoursePracticeService,
         private courseService: CourseManagementService,
         private sanitizer: DomSanitizer,
         private notification: NzNotificationService,
         private permissionService: PermissionService,
+        private http: HttpClient,
     ) {
         this.canSeekForward = this.permissionService.hasPermission('N1,N37');
     }
@@ -507,7 +520,10 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
         this.checkExamType();
         // this.videoUrl = this.getVideoUrl(lesson.VideoURL);
         this.videoUrl = this.getVideoUrl(lesson.ID);
-        this.urlPDF = this.getUrlPDFFile(lesson?.UrlPDF);
+
+        // Check PDF file existence first, then build URL
+        this.checkPdfFileExists(lesson?.UrlPDF);
+        this.urlPDF = lesson?.UrlPDF ? this.getUrlPDFFile(lesson?.UrlPDF) : undefined;
         // Robust chapter parsing
         const rawChapters = lesson?.Chapters;
         if (rawChapters) {
@@ -719,6 +735,11 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
     // }
 
     getVideoUrl(ID?: number): string {
+        if (this.currentLesson?.VideoURL?.startsWith('\\\\192.168.1.190\\')) {
+            this.hiddenVideo = false;  // Show video
+        } else {
+            this.hiddenVideo = true;   // Ẩn video
+        }
         const host = environment.host + 'api/course/stream/';
         return host + ID;
     }
@@ -737,10 +758,26 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
     }
 
     getLessonFiles(lessonID: number): void {
+        this.checkedFiles = [];
         this.courseService.getLessonFilesByLessonID(lessonID).subscribe(
             (response: any) => {
                 if (response && response.status === 1) {
                     this.currentLessonFiles = response.data || [];
+                    this.currentLessonFiles.forEach(file => {
+                        if (!file?.ServerPath) {
+                            file.ServerPath = file.NameFile;
+                        }
+                        const fullUrl = this.buildAttachmentUrl(file.ServerPath);
+                        file.ServerPath = fullUrl;
+                        this.http.head(fullUrl, { observe: 'response' }).subscribe({
+                            next: () => {
+                                this.checkedFiles.push(file);
+                            },
+                            error: () => {
+                            }
+                        });
+            
+                    });
                 } else {
                     this.currentLessonFiles = [];
                 }
@@ -749,6 +786,7 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
                 this.currentLessonFiles = [];
             },
         );
+
     }
 
     goBackToCourses(): void {
@@ -951,6 +989,12 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
 
                     // Force Angular to re-check areAllLessonsCompleted() by cloning array
                     this.lessonData = [...this.lessonData];
+
+                    // Emit event để parent reload tree (Cách 1)
+                    const lesson = this.lessonData.find(l => l.ID === lessonId);
+                    if (lesson) {
+                        this.lessonCompleted.emit({ lesson, completed });
+                    }
                 },
                 error: (error: any) => {
                 },
@@ -959,13 +1003,19 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
 
     getUrlPDFFile(urlPDF: string | undefined): SafeResourceUrl {
         if (!urlPDF) return this.sanitizer.bypassSecurityTrustResourceUrl('');
+        const fullUrl = this.buildPdfUrl(urlPDF);
+        return this.sanitizer.bypassSecurityTrustResourceUrl(fullUrl);
+    }
+
+    /**
+     * Build full PDF URL from raw path
+     */
+    buildPdfUrl(urlPDF: string | undefined): string {
+        if (!urlPDF) return '';
 
         const host = environment.host + 'api/share/';
-        // let urlFile = urlPDF.replace('\\\\192.168.1.190\\', '');
         let stringFolderFileOld = 'Software/ftp/Upload/Course/PDFFileLesson/';
-
         let urlFile = '';
-
         if (urlPDF?.startsWith('\\\\192.168.1.190\\')) {
             urlFile = urlPDF.replace('\\\\192.168.1.190\\', '');
         } else {
@@ -973,8 +1023,52 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
         }
         urlFile = urlFile.replace(/\\/g, '/');
         urlFile = host + urlFile;
-        return this.sanitizer.bypassSecurityTrustResourceUrl(urlFile);
+        return urlFile;
     }
+
+    /**
+     * Check if PDF file exists on server using HEAD request
+     */
+    checkPdfFileExists(urlPDF: string | undefined): void {
+        if (!urlPDF) {
+            this.pdfFileExists = false;
+            return;
+        }
+        const fullUrl = this.buildPdfUrl(urlPDF);
+        if (this.pdfFileCache.has(fullUrl)) {
+            this.pdfFileExists = this.pdfFileCache.get(fullUrl)!;
+            return;
+        }
+        this.http.head(fullUrl).subscribe({
+            next: () => {
+                this.pdfFileCache.set(fullUrl, true);
+                this.pdfFileExists = true;
+            },
+            error: () => {
+                this.pdfFileCache.set(fullUrl, false);
+                this.pdfFileExists = false;
+            }
+        });
+    }
+
+    /**
+     * Check if attachment file exists on server using HEAD request
+     */
+
+    
+    private buildAttachmentUrl(serverPath: string): string {
+        const host = `${environment.host}api/share/`;
+        const oldFolder = 'Software/ftp/Upload/Course/PDFFileLesson/';
+    
+        let path = serverPath.startsWith('\\\\192.168.1.190\\')
+            ? serverPath.replace('\\\\192.168.1.190\\', '')
+            : `${oldFolder}${serverPath}`;
+    
+        path = path.replace(/\\/g, '/');
+    
+        return host + path;
+    }
+
 
     // getUrlPDFFile(urlPDF: string | undefined): string {
     //   if (!urlPDF) return '';

@@ -76,7 +76,8 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   // Search filters
   dateStart: string = DateTime.local().minus({ days: 1 }).toFormat('yyyy-MM-dd');
   dateEnd: string = DateTime.local().toFormat('yyyy-MM-dd');
-  departmentId: number = 2;
+  departmentId: number = 0;
+  isChangeDepartment: boolean = false;
   teamId: number = 0;
   userId: number = 0;
   keyword: string = '';
@@ -118,12 +119,17 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.departmentId = this.appUserService.currentUser?.DepartmentID || 0;
+    if (this.appUserService.currentUser?.IsAdmin) {
+      this.isChangeDepartment = true;
+    } else {
+      this.isChangeDepartment = USER_ALL_REPORT_TECH.includes(this.appUserService.currentUser?.ID || 0);
+    }
     this.updateResponsiveState();
     this.initMenuBar();
 
     this.loadDepartments();
-    this.loadUsers();
-    this.loadTeams(); // Load teams khi departmentId = 2
+    this.loadTeams(); // Load teams và sau đó sẽ tự động loadUsers
     this.loadProjects(); // Load projects
   }
 
@@ -156,7 +162,11 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   loadDepartments(): void {
     this.departmentService.getDepartments().subscribe({
       next: (response: any) => {
-        this.departments = response.data || [];
+        // Thêm option "Tất cả" với ID = 0 vào đầu danh sách
+        this.departments = [
+          { ID: 0, Name: 'Tất cả' },
+          ...(response.data || [])
+        ];
       },
       error: (error) => {
         console.error('Error loading departments:', error);
@@ -165,8 +175,9 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   }
 
   loadTeams(): void {
+    debugger;
     if (this.departmentId > 0) {
-      this.teamService.getTeams(this.departmentId).subscribe({
+      this.projectService.getUserTeam(this.departmentId).subscribe({
         next: (response: any) => {
           // Thêm option "Tất cả" với ID = 0 vào đầu danh sách
           this.teams = [
@@ -181,20 +192,27 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
               (team: any) => team.LeaderID === employeeID
             );
             if (leaderTeam && leaderTeam.ID) {
-              this.teamId = leaderTeam.ID;
+              if (leaderTeam.ID > 0) {
+                this.teamId = leaderTeam.ID;
+              } else {
+                this.teamId = 0;
+              }
               // Reload users theo team vừa chọn
-              this.loadUsers();
             }
           }
+          // Luôn load users sau khi đã xử lý xong teams
+          this.loadUsers();
         },
         error: (error) => {
           console.error('Error loading teams:', error);
           this.teams = [{ ID: 0, Name: 'Tất cả' }];
+          this.loadUsers();
         },
       });
     } else {
       this.teams = [{ ID: 0, Name: 'Tất cả' }];
       this.teamId = 0;
+      this.loadUsers();
     }
   }
 
@@ -228,16 +246,24 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
         // Nếu không tìm thấy currentUser trong danh sách, tự động set về "Tất cả" (ID = 0)
         const currentUser = this.appUserService.currentUser;
         if (currentUser) {
-          if (currentUser.ID && !this.appUserService.isAdmin && !USER_ALL_REPORT_TECH.includes(currentUser.ID)) {
-            this.setUserIdFromEmployeeID(currentUser.ID);
-          } else if (currentUser.EmployeeID && !this.appUserService.isAdmin && !USER_ALL_REPORT_TECH.includes(currentUser.EmployeeID)) {
-            this.setUserIdFromEmployeeID(currentUser.EmployeeID);
+          // Kiểm tra xem user có quyền xem tất cả không (Admin, Danh sách đặc biệt, hoặc Leader)
+          const isPowerUser = this.appUserService.isAdmin ||
+            USER_ALL_REPORT_TECH.includes(currentUser.ID || 0) ||
+            USER_ALL_REPORT_TECH.includes(currentUser.EmployeeID || 0) ||
+            (currentUser.IsLeader > 0);
+
+          if (!isPowerUser) {
+            // Nếu không phải power user, mặc định chọn chính họ
+            if (currentUser.ID) {
+              this.setUserIdFromEmployeeID(currentUser.ID);
+            } else if (currentUser.EmployeeID) {
+              this.setUserIdFromEmployeeID(currentUser.EmployeeID);
+            }
           } else {
-            // Nếu không có ID hoặc EmployeeID, set về "Tất cả"
+            // Nếu là Admin, Leader hoặc trong list đặc biệt, mặc định chọn "Tất cả"
             this.userId = 0;
           }
         } else {
-          // Nếu không có currentUser, set về "Tất cả"
           this.userId = 0;
         }
       },
@@ -397,13 +423,15 @@ export class DailyReportTechComponent implements OnInit, AfterViewInit {
   getSearchParams(): any {
     // dateStart và dateEnd giờ là string format yyyy-MM-dd từ native date input
     // Xử lý userID an toàn thông qua appUserService
+    debugger;
     let userID = 0;
     const currentUser = this.appUserService.currentUser;
     if (currentUser) {
-      if ((currentUser.IsLeader || 0) > 1 || this.appUserService.isAdmin || USER_ALL_REPORT_TECH.includes(currentUser.ID) || currentUser.Permissions?.includes('N1')) {
-        userID = this.userId || 0;
+      if ((currentUser.IsLeader || 0) > 1 || this.appUserService.isAdmin || USER_ALL_REPORT_TECH.includes(currentUser.ID) || currentUser.Permissions?.split(',').map(x => x.trim()).includes('N1')) {
+        userID = 0 || this.userId;
       } else {
         userID = currentUser.ID || 0;
+        this.teamId = 0;
       }
     }
 

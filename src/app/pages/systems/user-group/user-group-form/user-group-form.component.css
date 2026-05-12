@@ -1,0 +1,15 @@
+:host {
+    font-size: 12px;
+}
+
+.ant-form-item-label > label {
+    font-size: 12px !important;
+}
+
+.ant-input, .ant-select {
+    font-size: 12px !important;
+}
+
+.fs-12 {
+    font-size: 12px !important;
+}

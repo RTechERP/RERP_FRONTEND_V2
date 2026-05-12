@@ -1,0 +1,152 @@
+<p-menubar [model]="menuBarsGroup" styleClass="fs-10">
+  <ng-template pTemplate="item" let-item>
+    <a class="p-menuitem-link" [class.p-disabled]="item.disabled" (click)="!item.disabled && item.command($event)">
+      <i [class]="item.icon"></i>
+      <span class="p-menuitem-text ms-1">{{ item.label }}</span>
+    </a>
+  </ng-template>
+  <ng-template #end>
+    <p-menubar [model]="menuBarsFunction" [style]="{'border': 'none', 'padding': '0'}" styleClass="fs-10">
+      <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [class.p-disabled]="item.disabled" (click)="!item.disabled && item.command($event)">
+          <i [class]="item.icon"></i>
+          <span class="p-menuitem-text ms-1">{{ item.label }}</span>
+        </a>
+      </ng-template>
+    </p-menubar>
+  </ng-template>
+</p-menubar>
+
+<div style="height: calc(95vh - 65px);" class="p-2">
+  <p-splitter [panelSizes]="[60, 40]" [minSizes]="[30, 20]" styleClass="h-100 border-0">
+
+    <!-- MASTER: FormAndFunctionGroup Tree (Left) -->
+    <ng-template pTemplate>
+      <div class="h-100 pe-2">
+        <div class="card h-100 border-0 rounded-0 shadow-sm">
+          <div class="card-header bg-white p-2 d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-uppercase" style="color: #1890ff;">
+              NHÓM CHỨC NĂNG
+              <span class="text-lowercase text-danger ms-1">({{ groupList.length }})</span>
+            </span>
+            <nz-input-group [nzSuffix]="suffixIconSearch" style="width: 250px;">
+              <input type="text" nz-input placeholder="Tìm theo mã, tên..." [(ngModel)]="searchGroupText"
+                (input)="tt.filterGlobal(searchGroupText, 'contains')" />
+            </nz-input-group>
+            <ng-template #suffixIconSearch>
+              <span nz-icon nzType="search"></span>
+            </ng-template>
+          </div>
+          <div class="card-body p-0" style="height: calc(100% - 42px);">
+            <p-treeTable #tt [value]="groupTree" [scrollable]="true" scrollHeight="flex" selectionMode="checkbox"
+              [(selection)]="selectedGroupNodes" (onNodeSelect)="onNodeSelect($event)"
+              (onNodeUnselect)="onNodeUnselect()" [loading]="loadingGroups"
+              [virtualScroll]="true" [virtualScrollItemSize]="34"
+              [globalFilterFields]="['Code', 'Name', 'Description']"
+              styleClass="p-treetable-sm p-treetable-gridlines h-100" class="fs-10 w-100">
+
+              <ng-template pTemplate="colgroup">
+                <colgroup>
+                  <col style="width: 10%">
+                  <col style="width: 15%">
+                  <col style="width: 40%">
+                  <col style="width: 35%">
+                </colgroup>
+              </ng-template>
+
+              <ng-template pTemplate="header">
+                <tr>
+                  <th class="text-center" style="width: 10%">
+                    <p-treeTableHeaderCheckbox></p-treeTableHeaderCheckbox>
+                  </th>
+                  <th class="text-center">STT</th>
+                  <th class="text-center">Tên nhóm</th>
+                  <th class="text-center">Mô tả</th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+                <tr [ttRow]="rowNode" 
+                  (click)="setActiveNode(rowNode.node)"
+                  [class.active-row]="selectedGroupNode?.data?.ID === rowData.ID">
+                  <td class="text-center" (click)="$event.stopPropagation()">
+                    <p-treeTableCheckbox [value]="rowNode"></p-treeTableCheckbox>
+                  </td>
+                  <td>
+                    <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                    <span class="ms-1">{{ rowData.ID }}</span>
+                  </td>
+                  <td class="fw-semibold">{{ rowData.Name }}</td>
+                  <td class="text-muted">{{ rowData.Description }}</td>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">Không có dữ liệu</td>
+                </tr>
+              </ng-template>
+            </p-treeTable>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- DETAIL: FormAndFunction Table (Right) -->
+    <ng-template pTemplate>
+      <div class="h-100 ps-2">
+        <div class="card h-100 border-0 rounded-0 shadow-sm">
+          <div class="card-header bg-white p-2 d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-uppercase" style="color: #52c41a;">
+              CHỨC NĂNG
+              <span *ngIf="functionList.length > 0" class="text-lowercase text-danger ms-1">
+                ({{ functionList.length }})
+              </span>
+            </span>
+            <nz-input-group [nzSuffix]="suffixIconSearchFn" style="width: 180px;">
+              <input type="text" nz-input placeholder="Tìm nhanh..." [(ngModel)]="searchFunctionText"
+                (input)="dt.filterGlobal(searchFunctionText, 'contains')" />
+            </nz-input-group>
+            <ng-template #suffixIconSearchFn>
+              <span nz-icon nzType="search"></span>
+            </ng-template>
+          </div>
+          <div class="card-body p-0" style="height: calc(100% - 42px);">
+            <p-table #dt [value]="functionList" [scrollable]="true" scrollHeight="flex" dataKey="ID"
+              selectionMode="single" [(selection)]="selectedFunction" (onRowSelect)="onFunctionSelect($event)"
+              (onRowUnselect)="onFunctionUnselect()" [loading]="loadingFunctions"
+              [virtualScroll]="true" [virtualScrollItemSize]="34"
+              [globalFilterFields]="['Code', 'Name']" styleClass="p-datatable-sm p-datatable-gridlines h-100"
+              class="fs-10 w-100">
+
+              <ng-template pTemplate="header">
+                <tr>
+                  <th class="text-center" style="width: 20%;">Mã</th>
+                  <th class="text-center" style="width: 35%;">Tên chức năng</th>
+
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-fn>
+                <tr [pSelectableRow]="fn">
+                  <td class="fw-semibold">{{ fn.Code }}</td>
+                  <td>{{ fn.Name }}</td>
+
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">
+                    {{ selectedGroupNode ? 'Nhóm chưa có chức năng nào' : 'Chọn nhóm để xem chức năng' }}
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
+  </p-splitter>
+</div>

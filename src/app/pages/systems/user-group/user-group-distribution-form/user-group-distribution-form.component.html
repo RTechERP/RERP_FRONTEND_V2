@@ -1,0 +1,54 @@
+<div class="modal-header bg-primary text-white py-2">
+  <h6 class="modal-title text-white fs-14">Phân quyền nhóm: {{groupName}}</h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss()"></button>
+</div>
+
+<div class="modal-body p-3" style="height: 85vh; overflow: hidden; display: flex; flex-direction: column;">
+  <div class="mb-2">
+    <label class="fs-12 fw-bold mb-1">Nhóm người dùng</label>
+    <nz-select class="w-100 fs-12" [(ngModel)]="currentGroupId" (ngModelChange)="onGroupChange($event)" nzShowSearch
+      nzPlaceHolder="Chọn nhóm người dùng">
+      <nz-option *ngFor="let group of userGroups" [nzValue]="group.ID" [nzLabel]="group.Name"></nz-option>
+    </nz-select>
+  </div>
+  <nz-spin [nzSpinning]="loading" class="flex-grow-1 overflow-hidden" style="display: block; height: 100%;">
+    <p-treeTable #tt [value]="treeNodes" [scrollable]="true" scrollHeight="calc(75vh - 110px)"
+      styleClass="p-treetable-sm p-treetable-gridlines">
+      <ng-template pTemplate="colgroup">
+        <colgroup>
+          <col style="width: 100px;">
+          <col>
+        </colgroup>
+      </ng-template>
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width: 100px; text-align: center;" class="fs-12">Chọn</th>
+          <th class="fs-12">Tên quyền</th>
+        </tr>
+        <tr>
+          <th style="width: 100px; text-align: center;"></th>
+          <th>
+            <input nz-input type="text" (input)="tt.filter($any($event.target).value, 'Name', 'contains')"
+              placeholder="Tìm kiếm tên quyền..." class="w-100 fs-12" />
+          </th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+        <tr [ttRow]="rowNode" class="fs-12">
+          <td style="width: 100px; text-align: center;">
+            <input type="checkbox" [(ngModel)]="rowData.IsCheck" (change)="onCheckboxChange(rowNode)" />
+          </td>
+          <td>
+            <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+            {{ rowData.Name }}
+          </td>
+        </tr>
+      </ng-template>
+    </p-treeTable>
+  </nz-spin>
+</div>
+
+<div class="modal-footer py-2">
+  <button nz-button nzDanger nzType="default" (click)="activeModal.dismiss()" class="fs-12">Hủy</button>
+  <button nz-button nzType="primary" (click)="onSave()" class="fs-12">Lưu</button>
+</div>

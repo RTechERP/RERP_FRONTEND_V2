@@ -9,7 +9,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
-  selector: 'app-employee-select-table',
+  selector: 'app-department-employee-select-table',
   standalone: true,
   imports: [
     CommonModule,
@@ -20,10 +20,10 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
     IconFieldModule,
     InputIconModule
   ],
-  templateUrl: './employee-select-table.component.html',
-  styleUrls: ['./employee-select-table.component.css']
+  templateUrl: './department-employee-select-table.component.html',
+  styleUrls: ['./department-employee-select-table.component.css']
 })
-export class EmployeeSelectTableComponent implements OnInit {
+export class DepartmentEmployeeSelectTableComponent implements OnInit {
   public activeModal = inject(NgbActiveModal);
 
   @Input() employeeList: any[] = [];

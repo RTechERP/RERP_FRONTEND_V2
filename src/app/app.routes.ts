@@ -268,6 +268,7 @@ import { InventoryProjectNewComponent } from './pages/purchase/inventory-project
 // import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-report-sale-slickgrid/daily-report-sale-slickgrid.component';
 // // import { SummaryKpiErrorEmployeeCloneComponent } from './pages/old/Technical/summary-kpi-error-employee-clone/summary-kpi-error-employee-clone.component';
 import { SummaryKpiErrorEmployeeNewComponent } from './pages/old/Technical/summary-kpi-error-employee/summary-kpi-error-employee-new/summary-kpi-error-employee-new.component';
+import { SummaryKpiErrorEmployeePrimengComponent } from './pages/old/Technical/summary-kpi-error-employee-primeng/summary-kpi-error-employee-primeng.component';
 import { KpiCriteriaComponent } from './pages/old/Technical/kpi-criteria/kpi-criteria.component';
 
 import { DailyReportSaleSlickgridComponent } from './pages/old/KPISale/daily-report-sale-slickgrid/daily-report-sale-slickgrid.component';
@@ -1158,8 +1159,9 @@ export const routes: Routes = [
             { path: 'kpi-error-employee-agv', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-error-employee-summary-max', component: KpiErrorEmployeeSummaryMaxComponent, canActivate: [authGuard] },
             { path: 'summary-kpi-error-employee-month', component: SummaryKpiErrorEmployeeMonthComponent, canActivate: [authGuard] },
-            { path: 'summary-kpi-error-employee-new', component: SummaryKpiErrorEmployeeNewComponent, canActivate: [authGuard] },
-            { path: 'summary-kpi-error-employee-new-agv', component: SummaryKpiErrorEmployeeNewComponent, canActivate: [authGuard] },
+            { path: 'summary-kpi-error-employee-new', component: SummaryKpiErrorEmployeePrimengComponent, canActivate: [authGuard] },
+            { path: 'summary-kpi-error-employee-new-agv', component: SummaryKpiErrorEmployeePrimengComponent, canActivate: [authGuard] },
+            { path: 'summary-kpi-error-employee-primeng', component: SummaryKpiErrorEmployeePrimengComponent, canActivate: [authGuard] },
             //Cài đặt phòng kỹ thuật
             { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
             { path: 'kpi-position-employee', component: KpiPositionEmployeeComponent, canActivate: [authGuard] },

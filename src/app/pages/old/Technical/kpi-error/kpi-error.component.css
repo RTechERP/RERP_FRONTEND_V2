@@ -1,72 +1,171 @@
-/* Host element với chiều cao cố định */
 :host {
     display: flex;
     flex-direction: column;
     height: calc(100vh - 60px);
 }
 
-/* Card chiếm full height của host */
 :host>ng-container>.card {
     height: 100%;
 }
 
-/* Grid container chiếm full height */
+.card {
+    min-height: 0;
+}
+
+.card-body,
 .grid-container {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     height: 100%;
 }
 
-:host ::ng-deep .grid-container angular-slickgrid,
-:host ::ng-deep .grid-container .slickgrid-container,
-:host ::ng-deep .grid-container .gridPane {
-    height: 100% !important;
+.filter-bar {
+    flex-shrink: 0;
 }
 
-/* Font size nhỏ */
 .fs-12 {
     font-size: 0.75rem;
 }
 
-/* Select dropdown styles */
-:host ::ng-deep .ant-select-selection-item {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 200px;
-}
-
+:host ::ng-deep .ant-select-selection-item,
 :host ::ng-deep .ant-select-item-option-content {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* Card styles */
-.card {
-    min-height: 0;
-}
-
-.card-body {
+:host ::ng-deep .grid-container p-table,
+:host ::ng-deep .grid-container .p-datatable {
+    height: 100% !important;
     min-height: 0;
     display: flex;
     flex-direction: column;
 }
 
-/* Filter bar */
-.filter-bar {
-    flex-shrink: 0;
+:host ::ng-deep .kpi-prime-table .p-datatable-wrapper {
+    flex: 1;
+    min-height: 0;
 }
 
-/* Column group header style */
-:host ::ng-deep .slick-preheader-panel {
-    background-color: #f0f0f0;
-    font-weight: bold;
-    text-align: center;
+:host ::ng-deep .kpi-prime-table table {
+    table-layout: fixed;
 }
 
-:host ::ng-deep .slick-header-column {
+:host ::ng-deep .kpi-prime-table .p-datatable-thead > tr > th,
+:host ::ng-deep .kpi-prime-table .p-datatable-tbody > tr > td {
     font-size: 12px;
+    padding: 4px 6px;
+    vertical-align: middle;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
-:host ::ng-deep .slick-cell {
-    font-size: 12px;
+:host ::ng-deep .kpi-prime-table .p-datatable-thead > tr > th {
+    background: #f5f7fb;
+    font-weight: 600;
+}
+
+:host ::ng-deep .kpi-prime-table .filter-cell {
+    padding: 1px 3px;
+    min-width: 0 !important;
+    overflow: hidden;
+}
+
+:host ::ng-deep .kpi-prime-table .filter-cell p-columnfilter,
+:host ::ng-deep .kpi-prime-table .filter-cell .p-column-filter,
+:host ::ng-deep .kpi-prime-table .filter-cell .p-column-filter-row,
+:host ::ng-deep .kpi-prime-table .filter-cell .p-column-filter-element,
+:host ::ng-deep .kpi-prime-table .filter-cell .p-inputwrapper,
+:host ::ng-deep .kpi-prime-table .filter-cell .p-inputtext {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+:host ::ng-deep .kpi-prime-table .p-column-filter,
+:host ::ng-deep .kpi-prime-table .p-column-filter .p-inputtext,
+:host ::ng-deep .kpi-prime-table .p-column-filter input {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .kpi-prime-table .p-column-filter .p-inputtext,
+:host ::ng-deep .kpi-prime-table .p-column-filter input {
+    height: 20px;
+    min-height: 20px;
+    padding: 0 4px;
+    font-size: 10.5px;
+    line-height: 18px;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-loading-overlay {
+    background: rgba(255, 255, 255, 0.7);
+    color: #1677ff;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-loading-icon {
+    font-size: 24px;
+}
+
+.table-header-cell {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 4px;
+    min-height: 20px;
+    line-height: 1.25;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.cell-content {
+    display: block;
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.35;
+}
+
+:host ::ng-deep .kpi-prime-table .group-row > td {
+    background: #f0f7ff !important;
+    color: #222;
+    font-weight: 600;
+    padding: 5px 8px;
+}
+
+.group-title {
+    color: #0f172a;
+}
+
+:host ::ng-deep .kpi-prime-table .data-row {
+    cursor: pointer;
+}
+
+:host ::ng-deep .kpi-prime-table .selected-row > td {
+    background: #e6f4ff !important;
+}
+
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+    min-width: 0;
+}
+
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep p-columnfilterformelement.p-fluid {
+    width: 100% !important;
+    display: block;
+}
+
+:host ::ng-deep .p-inputtext {
+    height: 3vh;
 }

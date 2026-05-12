@@ -446,4 +446,10 @@ export class BillExportService {
       lstBillexportdetailID
     );
     }
+
+    getSaleLogs(billExportId: number): Observable<any> {
+        return this.http.get<any>(
+            environment.host + `api/billexport/get-sale-logs/${billExportId}`
+        );
+    }
 }

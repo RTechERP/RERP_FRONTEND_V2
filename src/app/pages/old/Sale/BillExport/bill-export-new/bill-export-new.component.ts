@@ -490,54 +490,76 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             },
         ];
 
-        this.gridOptionsMaster = {
-            autoResize: {
-                container: '.grid-container-master-' + this.componentId,
-                calculateAvailableSizeBy: 'container',
-                resizeDetection: 'container',
+    this.gridOptionsMaster = {
+      autoResize: {
+        container: '.grid-container-master-' + this.componentId,
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
+      enableAutoResize: true,
+      enableSorting: true,
+      enableFiltering: true,
+      enablePagination: false,
+      enableRowSelection: true,
+      enableCheckboxSelector: true,
+      enableRowMoveManager: false,
+      checkboxSelector: {
+        hideSelectAllCheckbox: false,
+        hideInFilterHeaderRow: false,
+        hideInColumnTitleRow: true,
+      },
+      rowSelectionOptions: {
+        selectActiveRow: false,
+      },
+      enableColumnPicker: true,
+      enableGridMenu: true,
+      autoHeight: false,
+      gridHeight: 450,
+      rowHeight: 66, // Height for 3 lines: 12px * 1.5 * 3 + padding
+      enableCellMenu: true,
+      cellMenu: {
+        commandItems: [
+          {
+            command: 'copy',
+            title: 'Sao chép (Copy)',
+            iconCssClass: 'fa fa-copy',
+            positionOrder: 2,
+            action: (_e, args) => {
+              this.clipboardService.copy(args.value);
             },
-            gridWidth: '100%',
-            enableAutoResize: true,
-            enableSorting: true,
-            enableFiltering: true,
-            enablePagination: false,
-            enableRowSelection: true,
-            enableCheckboxSelector: true,
-            enableRowMoveManager: false,
-            checkboxSelector: {
-                hideSelectAllCheckbox: false,
-                hideInFilterHeaderRow: false,
-                hideInColumnTitleRow: true,
+          },
+        ],
+      },
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'log',
+            title: 'Lịch sử thay đổi',
+            iconCssClass: 'fa-solid fa-clock-rotate-left text-primary',
+            positionOrder: 1,
+            action: (_e, args) => {
+              this.viewLogHistory(args.dataContext);
             },
-            rowSelectionOptions: {
-                selectActiveRow: false,
+          },
+          {
+            command: 'copy',
+            title: 'Sao chép (Copy)',
+            iconCssClass: 'fa fa-copy',
+            positionOrder: 2,
+            action: (_e, args) => {
+              this.clipboardService.copy(args.value);
             },
-            enableColumnPicker: true,
-            enableGridMenu: true,
-            autoHeight: false,
-            gridHeight: 450,
-            rowHeight: 66, // Height for 3 lines: 12px * 1.5 * 3 + padding
-            enableCellMenu: true,
-            cellMenu: {
-                commandItems: [
-                    {
-                        command: 'copy',
-                        title: 'Sao chép (Copy)',
-                        iconCssClass: 'fa fa-copy',
-                        positionOrder: 1,
-                        action: (_e, args) => {
-                            this.clipboardService.copy(args.value);
-                        },
-                    },
-                ],
-            },
-            // Footer row configuration
-            createFooterRow: true,
-            showFooterRow: true,
-            footerRowHeight: 28,
-        };
-
-    }
+          },
+        ],
+      },
+      // Footer row configuration
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 28,
+    };
+  }
 
     initDetailGrid() {
         this.columnDefinitionsDetail = [
@@ -1172,13 +1194,39 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     // Actions
     // ========================================
 
-    openModalBillExportDetail(isCheckmode: boolean) {
-
-        this.isCheckmode = isCheckmode;
-        if (this.isCheckmode === true && this.id === 0) {
-            this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
-            return;
+  viewLogHistory(rowData: any): void {
+    if (!rowData || !rowData.ID) {
+      this.notification.warning('Thông báo', 'Dữ liệu phiếu không hợp lệ!');
+      return;
+    }
+    import('../Modal/bill-export-sale-log/bill-export-sale-log.component').then(
+      (m) => {
+        const modalRef = this.modal.create({
+          nzTitle: 'Lịch sử thay đổi phiếu xuất ' + (rowData.Code || ''),
+          nzContent: m.BillExportSaleLogComponent,
+          nzWidth: '1000px',
+          nzFooter: null,
+          nzStyle: { top: '20px' },
+          nzBodyStyle: {
+            height: 'calc(100vh - 100px)',
+            overflowY: 'auto',
+            padding: '0 !important',
+          },
+        });
+        // Gắn Input cho component
+        if (modalRef.componentInstance) {
+          modalRef.componentInstance.billExportID = rowData.ID;
         }
+      },
+    );
+  }
+
+  openModalBillExportDetail(isCheckmode: boolean) {
+    this.isCheckmode = isCheckmode;
+    if (this.isCheckmode === true && this.id === 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
+      return;
+    }
 
         const modalRef = this.modalService.open(BillExportDetailNewComponent, {
             centered: true,
@@ -2014,8 +2062,8 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     private applyDistinctFiltersToMaster(): void {
         if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView) return;
 
-        const data = this.angularGridMaster.dataView.getItems() as any[];
-        if (!data || data.length === 0) return;
+    const data = this.angularGridMaster.dataView.getItems() as any[];
+    if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
             const map = new Map<string, string>();
@@ -2057,8 +2105,8 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     private applyDistinctFiltersToDetail(): void {
         if (!this.angularGridDetail?.slickGrid || !this.angularGridDetail?.dataView) return;
 
-        const data = this.angularGridDetail.dataView.getItems();
-        if (!data || data.length === 0) return;
+    const data = this.angularGridDetail.dataView.getItems();
+    if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
             const map = new Map<string, string>();

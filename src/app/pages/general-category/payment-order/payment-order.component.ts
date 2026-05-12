@@ -257,6 +257,7 @@ export class PaymentOrderComponent implements OnInit {
         const permissionCodeHR = "N59";
         const permissionCodeTbpHR = "N56";
         const permissionCodeKT = "N55";
+        const permissionCodeKTView = "N95";
         const permissionCodeKTT = "N61";
         const permissionCodeBGD = "N58";
         const permissionCodeSale = "N83";
@@ -267,6 +268,7 @@ export class PaymentOrderComponent implements OnInit {
             this.appUserService.currentUser?.Permissions.includes(permissionCodeKT) ||
             this.appUserService.currentUser?.Permissions.includes(permissionCodeKTT) ||
             this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
+            this.appUserService.currentUser?.Permissions.includes(permissionCodeKTView) ||
 
             this.appUserService.currentUser?.IsAdmin) || false;
 

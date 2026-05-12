@@ -71,7 +71,7 @@
                             <nz-form-control>
                                 <nz-select [(ngModel)]="departmentId" name="departmentId" nzShowSearch nzAllowClear
                                     nzSize="small" nzPlaceHolder="Chọn phòng ban" class="w-100"
-                                    (ngModelChange)="onDepartmentChange()">
+                                    (ngModelChange)="onDepartmentChange()" [nzDisabled]="!isChangeDepartment">
                                     <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
                                         [nzLabel]="item.Name">
                                         {{ item.Name }}

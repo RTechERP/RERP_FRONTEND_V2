@@ -181,16 +181,19 @@ export class EmployeeTeamSaleDetailComponent implements OnInit, AfterViewInit {
         {
           title: 'Mã nhân viên',
           field: 'Code',
+          headerFilter: 'input',
           sorter: 'string',
         },
         {
           title: 'Tên nhân viên',
           field: 'FullName',
+          headerFilter: 'input',
           sorter: 'string',
         },
         {
           title: 'Phòng ban',
           field: 'DepartmentName',
+          headerFilter: 'input',
           sorter: 'string',
           visible: false,
         },

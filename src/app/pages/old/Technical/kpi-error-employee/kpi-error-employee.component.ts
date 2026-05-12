@@ -1,46 +1,48 @@
 import {
     Component,
-    ViewEncapsulation,
-    OnInit,
-    AfterViewInit,
     CUSTOM_ELEMENTS_SCHEMA,
     Inject,
+    OnInit,
     Optional,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { firstValueFrom } from 'rxjs';
-import {
-    AngularGridInstance,
-    AngularSlickgridModule,
-    Column,
-    Filters,
-    Formatters,
-    GridOption,
-    MenuCommandItem,
-    MenuCommandItemCallbackArgs,
-    MultipleSelectOption,
-} from 'angular-slickgrid';
-import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import { finalize, firstValueFrom } from 'rxjs';
 import * as ExcelJS from 'exceljs';
 import { Menubar } from 'primeng/menubar';
+import { TableModule } from 'primeng/table';
 import { ActivatedRoute } from '@angular/router';
 import { KpiErrorEmployeeService } from './kpi-error-employee-service/kpi-error-employee.service';
 import { KpiErrorEmployeeDetailComponent } from './kpi-error-employee-detail/kpi-error-employee-detail.component';
 import { ImportExcelKpiErrorEmployeeComponent } from './import-excel/import-excel.component';
 import { PermissionService } from '../../../../services/permission.service';
+
+type KpiColumnType = 'text' | 'number' | 'date' | 'action';
+
+interface PrimeColumn {
+    id: string;
+    name: string;
+    field: string;
+    minWidth?: number;
+    hidden?: boolean;
+    sortable?: boolean;
+    filterable?: boolean;
+    type?: KpiColumnType;
+    align?: 'left' | 'center' | 'right';
+    excludeFromExport?: boolean;
+}
 
 @Component({
     selector: 'app-kpi-error-employee',
@@ -58,32 +60,25 @@ import { PermissionService } from '../../../../services/permission.service';
         NzMessageModule,
         NzSplitterModule,
         NzDropDownModule,
-        AngularSlickgridModule,
         Menubar,
+        TableModule,
     ],
     templateUrl: './kpi-error-employee.component.html',
     styleUrl: './kpi-error-employee.component.css',
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    providers: [ExcelExportService],
 })
-export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
-    // SlickGrid - Main grid
-    angularGrid!: AngularGridInstance;
-    columnDefinitions: Column[] = [];
-    gridOptions: GridOption = {};
+export class KpiErrorEmployeeComponent implements OnInit {
+    columnDefinitions: PrimeColumn[] = [];
     dataset: any[] = [];
+    selectedRows: any[] = [];
 
-    // SlickGrid - File grid
-    angularGridFile!: AngularGridInstance;
-    columnDefinitionsFile: Column[] = [];
-    gridOptionsFile: GridOption = {};
+    columnDefinitionsFile: PrimeColumn[] = [];
     datasetFile: any[] = [];
+    selectedFileRow: any = null;
 
-    // Menu bar
     menuBars: any[] = [];
     private readonly actionPermissionCodes = 'N26,N38,N1';
 
-    // Filters
     keyword: string = '';
     startDate: string | null = null;
     endDate: string | null = null;
@@ -92,20 +87,19 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
     employeeId: number = 0;
     departmentId: number = 0;
 
-    // Dropdown data
     kpiErrorTypes: any[] = [];
     kpiErrors: any[] = [];
     employees: any[] = [];
     departments: any[] = [];
 
-    // Selected row
     selectedId: number = 0;
     selectedRow: any = null;
 
-    // Total summary
     totalErrorNumber: number = 0;
     isDeleting = false;
     isAutoAdding = false;
+    isLoading = false;
+    isFileLoading = false;
 
     constructor(
         private kpiErrorEmployeeService: KpiErrorEmployeeService,
@@ -114,19 +108,18 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
         private notification: NzNotificationService,
         private message: NzMessageService,
         private route: ActivatedRoute,
-        private excelExportService: ExcelExportService,
         private permissionService: PermissionService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit(): void {
-        // Get departmentId from route snapshot or tabData synchronously first
-        const queryDepartmentId = this.route.snapshot.queryParams['departmentId'];
-        this.departmentId = queryDepartmentId
-            ? Number(queryDepartmentId)
-            : (this.tabData?.departmentId ?? 0);
+        const today = new Date();
+        this.startDate = this.formatDateForInput(new Date(today.getFullYear(), today.getMonth(), 1));
+        this.endDate = this.formatDateForInput(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
-        // Also subscribe for dynamic changes
+        const queryDepartmentId = this.route.snapshot.queryParams['departmentId'];
+        this.departmentId = queryDepartmentId ? Number(queryDepartmentId) : (this.tabData?.departmentId ?? 0);
+
         this.route.queryParams.subscribe(params => {
             const newDepartmentId = params['departmentId']
                 ? Number(params['departmentId'])
@@ -137,25 +130,15 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             }
         });
 
-        const today = new Date();
-        // First day of month at 00:00:00
-        this.startDate = this.formatDateForInput(new Date(today.getFullYear(), today.getMonth(), 1));
-        // Last day of month at 23:59:59
-        this.endDate = this.formatDateForInput(new Date(today.getFullYear(), today.getMonth() + 1, 0));
-
         this.initMenuBar();
         this.initGrid();
         this.initFileGrid();
-
         this.loadDepartments();
         this.loadEmployees();
         this.loadKPIErrorTypes();
         this.loadKPIErrors();
-
         this.search();
     }
-
-    ngAfterViewInit(): void { }
 
     loadDepartments(): void {
         this.kpiErrorEmployeeService.getDepartment().subscribe({
@@ -164,9 +147,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                     this.departments = response.data;
                 }
             },
-            error: (error: any) => {
-                console.error('Error loading departments:', error);
-            }
+            error: (error: any) => console.error('Error loading departments:', error),
         });
     }
 
@@ -177,9 +158,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                     this.employees = response.data;
                 }
             },
-            error: (error: any) => {
-                console.error('Error loading employees:', error);
-            }
+            error: (error: any) => console.error('Error loading employees:', error),
         });
     }
 
@@ -190,9 +169,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                     this.kpiErrorTypes = response.data;
                 }
             },
-            error: (error: any) => {
-                console.error('Error loading KPI Error Types:', error);
-            }
+            error: (error: any) => console.error('Error loading KPI Error Types:', error),
         });
     }
 
@@ -203,9 +180,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                     this.kpiErrors = response.data;
                 }
             },
-            error: (error: any) => {
-                console.error('Error loading KPI Errors:', error);
-            }
+            error: (error: any) => console.error('Error loading KPI Errors:', error),
         });
     }
 
@@ -216,21 +191,21 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
     }
 
     loadFileData(kpiErrorEmployeeId: number): void {
-        this.kpiErrorEmployeeService.loadDataFile(kpiErrorEmployeeId).subscribe({
-            next: (response: any) => {
-                if (response.status === 1) {
-                    this.datasetFile = response.data.map((item: any, index: number) => ({
-                        ...item,
-                        id: item.ID || `file_${index}`
-                    }));
-                }
-            },
-            error: (error: any) => {
-                console.error('Error loading file data:', error);
-            }
-        });
+        this.isFileLoading = true;
+        this.kpiErrorEmployeeService.loadDataFile(kpiErrorEmployeeId)
+            .pipe(finalize(() => this.isFileLoading = false))
+            .subscribe({
+                next: (response: any) => {
+                    if (response.status === 1) {
+                        this.datasetFile = (response.data || []).map((item: any, index: number) => ({
+                            ...item,
+                            id: item.ID || `file_${index}`,
+                        }));
+                    }
+                },
+                error: (error: any) => console.error('Error loading file data:', error),
+            });
     }
-
 
     search(): void {
         if (!this.startDate || !this.endDate) {
@@ -245,6 +220,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             return;
         }
 
+        this.isLoading = true;
         this.kpiErrorEmployeeService.loadData(
             startDate,
             endDate,
@@ -253,37 +229,32 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             this.kpiErrorTypeId,
             this.departmentId,
             this.keyword
-        ).subscribe({
+        ).pipe(finalize(() => this.isLoading = false)).subscribe({
             next: (response: any) => {
                 if (response.status === 1) {
-                    this.dataset = response.data.map((item: any, index: number) => ({
+                    this.dataset = (response.data || []).map((item: any, index: number) => ({
                         ...item,
                         id: item.ID,
                         STT: index + 1,
+                        GroupKey: this.buildGroupKey(item),
                     }));
-                    // Calculate total ErrorNumber
                     this.totalErrorNumber = this.dataset.reduce((sum: number, item: any) => {
                         return sum + (Number(item.ErrorNumber) || 0);
                     }, 0);
-                    // Apply distinct filters after data loads
-                    setTimeout(() => {
-                        this.applyDistinctFiltersToGrid();
-                    }, 100);
-                    // Clear file grid
                     this.datasetFile = [];
+                    this.selectedRows = [];
+                    this.selectedFileRow = null;
                     this.selectedId = 0;
                     this.selectedRow = null;
                 } else {
                     this.notification.error('Lỗi', response.message || 'Không thể tải dữ liệu');
                 }
             },
-            error: (error: any) => {
+            error: () => {
                 this.notification.error('Lỗi', 'Không thể tải dữ liệu');
-            }
+            },
         });
     }
-
-
 
     initMenuBar(): void {
         this.menuBars = [
@@ -291,65 +262,51 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 label: 'Thêm',
                 icon: 'fa-solid fa-circle-plus fa-lg text-success',
                 visible: this.canManageActions(),
-                command: () => {
-                    this.onAdd();
-                },
+                command: () => this.onAdd(),
             },
             {
                 label: 'Sửa',
                 icon: 'fa-solid fa-file-pen fa-lg text-primary',
                 visible: this.canManageActions(),
-                command: () => {
-                    this.onEdit();
-                },
+                command: () => this.onEdit(),
             },
             {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
                 visible: this.canManageActions(),
-                command: () => {
-                    this.onDelete();
-                },
+                command: () => this.onDelete(),
             },
             {
                 label: 'Xuất Excel',
                 icon: 'fa-solid fa-file-excel fa-lg text-success',
-                command: () => {
-                    this.exportToExcel();
-                },
+                command: () => this.exportToExcel(),
             },
             {
                 label: 'Nhập Excel',
                 icon: 'fa-solid fa-file-import fa-lg text-primary',
                 visible: this.canManageActions(),
-                command: () => {
-                    this.importExcel();
-                },
+                command: () => this.importExcel(),
             },
             {
                 label: 'Tự động thêm lỗi BCCV',
                 icon: 'fa-solid fa-wand-magic-sparkles fa-lg text-warning',
                 visible: this.canManageActions(),
-                command: () => {
-                    this.autoAddError();
-                },
+                command: () => this.autoAddError(),
             },
         ];
     }
 
-
-
-    onRowClick(e: any, args: any): void {
-        const item = args?.grid?.getDataItem?.(args.row);
-        if (item && item.ID) {
-            this.selectedId = item.ID;
-            this.selectedRow = item;
-            // Load file data
-            this.loadFileData(this.selectedId);
-        }
+    onPrimeRowSelect(event: any): void {
+        this.onRowClick(event?.data);
     }
 
-    // Menu actions
+    onRowClick(row: any): void {
+        if (!row || !row.ID) return;
+        this.selectedId = row.ID;
+        this.selectedRow = row;
+        this.loadFileData(this.selectedId);
+    }
+
     onAdd(): void {
         if (!this.canManageActions()) return;
 
@@ -363,9 +320,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
         modalRef.componentInstance.departmentId = this.departmentId;
 
         modalRef.result.then(
-            () => {
-                this.search();
-            },
+            () => this.search(),
             () => { }
         );
     }
@@ -388,9 +343,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
         modalRef.componentInstance.departmentId = this.departmentId;
 
         modalRef.result.then(
-            () => {
-                this.search();
-            },
+            () => this.search(),
             () => { }
         );
     }
@@ -402,11 +355,9 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        const selectedRows = this.angularGrid?.slickGrid?.getSelectedRows() || [];
-        const idsToDelete: number[] = selectedRows.map((rowIndex: number) => {
-            const item = this.angularGrid.dataView.getItem(rowIndex);
-            return item?.ID;
-        }).filter((id: number) => id);
+        const idsToDelete: number[] = (this.selectedRows || [])
+            .map(row => row?.ID)
+            .filter((id: number) => !!id);
 
         if (idsToDelete.length === 0 && this.selectedId) {
             idsToDelete.push(this.selectedId);
@@ -435,11 +386,12 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                         this.notification.success('Thành công', response.message || 'Xóa thành công');
                         this.selectedId = 0;
                         this.selectedRow = null;
+                        this.selectedRows = [];
                         this.search();
                     } else {
                         this.notification.error('Lỗi', response.message || 'Xóa thất bại');
                     }
-                } catch (error: any) {
+                } catch {
                     this.notification.error('Lỗi', 'Không thể xóa dữ liệu');
                 } finally {
                     this.isDeleting = false;
@@ -486,7 +438,7 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                     } else {
                         this.notification.error('Lỗi', response.message || 'Thêm lỗi thất bại');
                     }
-                } catch (error: any) {
+                } catch {
                     this.notification.error('Lỗi', 'Không thể tự động thêm lỗi');
                 } finally {
                     this.isAutoAdding = false;
@@ -494,28 +446,6 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
                 }
             }
         });
-    }
-
-    private getFileContextMenuOptions(): MenuCommandItem[] {
-        return [
-            {
-                iconCssClass: 'fa fa-eye',
-                title: 'Xem ảnh',
-                command: 'view',
-                positionOrder: 60,
-            },
-        ];
-    }
-
-    handleFileContextMenuCommand(e: any, args: MenuCommandItemCallbackArgs): void {
-        const command = args.command;
-        const dataContext = args.dataContext;
-
-        switch (command) {
-            case 'view':
-                this.viewFile(dataContext);
-                break;
-        }
     }
 
     viewFile(file: any): void {
@@ -530,23 +460,16 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        // Construct URL pattern: http://113.190.234.64:8083/api/kpi/{year}/T{month}/N{dd.MM.yyyy}/{fileName}
         const year = errorDate.getFullYear();
         const month = errorDate.getMonth() + 1;
         const day = String(errorDate.getDate()).padStart(2, '0');
         const monthStr = String(month).padStart(2, '0');
         const yearStr = String(year);
         const dateFolder = `${day}.${monthStr}.${yearStr}`;
-
         const baseUrl = 'http://113.190.234.64:8083/api/kpi';
         const url = `${baseUrl}/${year}/T${month}/N${dateFolder}/${file.FileName}`;
 
-        const newWindow = window.open(
-            url,
-            '_blank',
-            'width=1000,height=700'
-        );
-
+        const newWindow = window.open(url, '_blank', 'width=1000,height=700');
         if (newWindow) {
             newWindow.onload = () => {
                 newWindow.document.title = file.FileName;
@@ -556,275 +479,36 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
 
     initGrid(): void {
         this.columnDefinitions = [
-            {
-                id: 'ID',
-                name: 'ID',
-                field: 'ID',
-                sortable: true,
-                maxWidth: 60,
-                excludeFromExport: true,
-                hidden: true,
-            },
-            {
-                id: 'STT',
-                name: 'STT',
-                field: 'STT',
-                sortable: true,
-                maxWidth: 60,
-                hidden: true,
-                excludeFromExport: true,
-            },
-            {
-                id: 'Code',
-                name: 'Mã lỗi vi phạm',
-                field: 'Code',
-                sortable: true,
-                filterable: true,
-                minWidth: 80,
-                formatter: this.commonTooltipFormatter,
-            },
-            {
-                id: 'TypeName',
-                name: 'Loại lỗi vi phạm',
-                field: 'TypeName',
-                sortable: true,
-                filterable: true,
-                minWidth: 150,
-                hidden: true,
-                formatter: this.commonTooltipFormatter,
-            },
-            {
-                id: 'Content',
-                name: 'Nội dung lỗi vi phạm',
-                field: 'Content',
-                sortable: true,
-                filterable: true,
-                minWidth: 300,
-                formatter: this.commonTooltipFormatter,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
-                },
-            },
-            {
-                id: 'DepartmentName',
-                name: 'Phòng ban',
-                field: 'DepartmentName',
-                sortable: true,
-                filterable: true,
-                minWidth: 120,
-                formatter: this.commonTooltipFormatter,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
-                },
-            },
-            {
-                id: 'Employee',
-                name: 'Nhân viên',
-                field: 'Employee',
-                sortable: true,
-                filterable: true,
-                minWidth: 170,
-                formatter: this.commonTooltipFormatter,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
-                },
-            },
-            {
-                id: 'ErrorDate',
-                name: 'Ngày vi phạm',
-                field: 'ErrorDate',
-                sortable: true,
-                filterable: true,
-                minWidth: 120,
-                formatter: Formatters.dateEuro,
-                filter: {
-                    model: Filters['compoundDate'],
-                    filterOptions: {
-                        enableTime: false,
-                        dateFormat: 'd/m/Y',
-                    },
-                },
-            },
-            {
-                id: 'ErrorNumber',
-                name: 'Số lần vi phạm',
-                field: 'ErrorNumber',
-                sortable: true,
-                filterable: true,
-                minWidth: 100,
-                formatter: Formatters.decimal,
-                params: { minDecimal: 0, maxDecimal: 0 },
-                filter: { model: Filters['compoundInputNumber'] },
-                cssClass: 'text-center',
-            },
-            {
-                id: 'Note',
-                name: 'Ghi chú',
-                field: 'Note',
-                sortable: true,
-                filterable: true,
-                minWidth: 200,
-                cssClass: 'cell-wrap',
-                formatter: this.commonTooltipFormatter,
-            },
+            this.textCol('ID', 'ID', 'ID', 60, { hidden: true, excludeFromExport: true }),
+            this.textCol('STT', 'STT', 'STT', 60, { hidden: true, excludeFromExport: true }),
+            this.textCol('GroupKey', 'Nhóm', 'GroupKey', 120, { hidden: true, excludeFromExport: true }),
+            this.textCol('Code', 'Mã lỗi vi phạm', 'Code', 90),
+            this.textCol('TypeName', 'Loại lỗi vi phạm', 'TypeName', 150, { hidden: true }),
+            this.textCol('Content', 'Nội dung lỗi vi phạm', 'Content', 300),
+            this.textCol('DepartmentName', 'Phòng ban', 'DepartmentName', 120),
+            this.textCol('Employee', 'Nhân viên', 'Employee', 170),
+            this.dateCol('ErrorDate', 'Ngày vi phạm', 'ErrorDate', 120),
+            this.numberCol('ErrorNumber', 'Số lần vi phạm', 'ErrorNumber', 100),
+            this.textCol('Note', 'Ghi chú', 'Note', 200),
         ];
-
-        this.gridOptions = {
-            autoResize: {
-                container: '.grid-container-main',
-                calculateAvailableSizeBy: 'container',
-            },
-            gridWidth: '100%',
-            forceFitColumns: true,
-            enableAutoResize: true,
-            enableCellNavigation: true,
-            enableColumnReorder: true,
-            enableSorting: true,
-            enableFiltering: true,
-            createPreHeaderPanel: true,
-            showPreHeaderPanel: true,
-            preHeaderPanelHeight: 28,
-            rowHeight: 35,
-            headerRowHeight: 40,
-            enableRowSelection: true,
-            enableCheckboxSelector: true,
-            checkboxSelector: {
-                hideSelectAllCheckbox: false,
-            },
-            multiSelect: true,
-            rowSelectionOptions: {
-                selectActiveRow: false,
-            },
-            // Enable grouping
-            draggableGrouping: {
-                dropPlaceHolderText: 'Kéo cột vào đây để nhóm',
-                deleteIconCssClass: 'fa fa-times',
-                groupIconCssClass: 'fa fa-object-group',
-            },
-            externalResources: [this.excelExportService],
-        };
     }
 
     initFileGrid(): void {
         this.columnDefinitionsFile = [
+            this.textCol('ID', 'ID', 'ID', 60, { hidden: true, excludeFromExport: true }),
+            this.textCol('FileName', 'File ảnh đính kèm', 'FileName', 200),
             {
-                id: 'ID',
-                name: 'ID',
-                field: 'ID',
-                sortable: true,
-                maxWidth: 60,
-                hidden: true,
-            },
-            {
-                id: 'FileName',
-                name: 'File ảnh đính kèm',
-                field: 'FileName',
-                sortable: true,
-                filterable: true,
-                minWidth: 200,
-                formatter: this.commonTooltipFormatter,
+                id: 'Action',
+                name: '',
+                field: 'Action',
+                minWidth: 60,
+                sortable: false,
+                filterable: false,
+                type: 'action',
+                align: 'center',
+                excludeFromExport: true,
             },
         ];
-
-        this.gridOptionsFile = {
-            autoResize: {
-                container: '.grid-container-file',
-                calculateAvailableSizeBy: 'container',
-            },
-            gridWidth: '100%',
-            forceFitColumns: true,
-            enableAutoResize: true,
-            enableCellNavigation: true,
-            enableSorting: true,
-            enableFiltering: false,
-            rowHeight: 35,
-            headerRowHeight: 40,
-            enableRowSelection: true,
-            enableCheckboxSelector: true,
-            checkboxSelector: {
-                hideSelectAllCheckbox: false,
-            },
-            multiSelect: true,
-            rowSelectionOptions: {
-                selectActiveRow: true,
-            },
-            enableContextMenu: true,
-            contextMenu: {
-                commandItems: this.getFileContextMenuOptions(),
-                onCommand: (e, args) => this.handleFileContextMenuCommand(e, args),
-            },
-        };
-    }
-
-    // Helper function to escape HTML special characters for title attributes
-    private escapeHtml(text: string | null | undefined): string {
-        if (!text) return '';
-        return String(text)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
-    private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
-        if (!value) return '';
-        const escaped = this.escapeHtml(value);
-        return `
-                <span
-                title="${escaped}"
-                style="
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    word-wrap: break-word;
-                    word-break: break-word;
-                    line-height: 1.4;
-                "
-                >
-                ${value}
-                </span>
-            `;
-    }
-
-    // Grid events
-    angularGridReady(angularGrid: AngularGridInstance): void {
-        this.angularGrid = angularGrid;
-
-        // Auto group by TypeName and Employee
-        setTimeout(() => {
-            if (this.angularGrid && this.angularGrid.dataView) {
-                this.angularGrid.dataView.setGrouping([
-                    {
-                        getter: 'TypeName',
-                        formatter: (g: any) => `Loại lỗi: <strong>${g.value}</strong> <span style="color:red">(${g.count} lỗi)</span>`,
-                        aggregateCollapsed: false,
-                        lazyTotalsCalculation: true,
-                    },
-                    {
-                        getter: 'Employee',
-                        formatter: (g: any) => `Nhân viên: <strong>${g.value}</strong> <span style="color:red">(${g.count} lỗi)</span>`,
-                        aggregateCollapsed: false,
-                        lazyTotalsCalculation: true,
-                    },
-                ]);
-            }
-        }, 100);
-    }
-
-    angularGridFileReady(angularGrid: AngularGridInstance): void {
-        this.angularGridFile = angularGrid;
     }
 
     async exportToExcel(): Promise<void> {
@@ -835,34 +519,15 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
         try {
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('KPI Error Employee');
+            const columnsToExport = this.columnDefinitions.filter(col => !col.excludeFromExport && col.id !== 'STT');
 
-            const columnsToExport = this.columnDefinitions.filter(col =>
-                !col.excludeFromExport && col.id !== 'STT'
-            );
-
-            const headers = columnsToExport.map((col: any) => col.name);
+            const headers = columnsToExport.map(col => col.name);
             const headerRow = worksheet.addRow(headers);
             headerRow.font = { bold: true };
             headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
 
             this.dataset.forEach((rowData: any) => {
-                const row = columnsToExport.map((col: any) => {
-                    const value = rowData[col.field];
-                    // Format date column to dd/MM/yyyy
-                    if (col.field === 'ErrorDate' && value) {
-                        const date = new Date(value);
-                        if (!isNaN(date.getTime())) {
-                            const day = String(date.getDate()).padStart(2, '0');
-                            const month = String(date.getMonth() + 1).padStart(2, '0');
-                            const year = date.getFullYear();
-                            return `${day}/${month}/${year}`;
-                        }
-                    }
-                    if (typeof value === 'number') {
-                        return new Intl.NumberFormat('vi-VN').format(value);
-                    }
-                    return value ?? '';
-                });
+                const row = columnsToExport.map(col => this.formatExportValue(rowData, col));
                 worksheet.addRow(row);
             });
 
@@ -903,6 +568,51 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
         );
     }
 
+    visibleColumns(columns: PrimeColumn[] = this.columnDefinitions): PrimeColumn[] {
+        return columns.filter(col => !col.hidden);
+    }
+
+    getColumnWidth(col: PrimeColumn): string {
+        return `${col.minWidth || 120}px`;
+    }
+
+    getColumnFilterType(_col: PrimeColumn): string {
+        return 'text';
+    }
+
+    getCellClass(col: PrimeColumn): Record<string, boolean> {
+        return {
+            'text-end': col.align === 'right' || col.type === 'number',
+            'text-center': col.align === 'center' || col.type === 'date' || col.type === 'action',
+        };
+    }
+
+    formatCell(row: any, col: PrimeColumn): string {
+        const value = row?.[col.field];
+        if (value === null || value === undefined || value === '') return '';
+        if (col.type === 'number') return new Intl.NumberFormat('vi-VN').format(Number(value) || 0);
+        if (col.type === 'date') return this.formatDateValue(value);
+        return String(value);
+    }
+
+    getCellTitle(row: any, col: PrimeColumn): string {
+        return this.formatCell(row, col);
+    }
+
+    getGroupHeader(rowData: any): string {
+        const typeName = rowData?.TypeName || '(Không có loại lỗi)';
+        const employee = rowData?.Employee || '(Không có nhân viên)';
+        return `Loại lỗi: ${typeName} - Nhân viên: ${employee}`;
+    }
+
+    getGroupCount(groupKey: string): number {
+        return this.dataset.filter(item => item.GroupKey === groupKey).length;
+    }
+
+    trackById(_index: number, row: any): any {
+        return row?.ID ?? row?.id ?? row;
+    }
+
     private canManageActions(): boolean {
         return this.permissionService.hasPermission(this.actionPermissionCodes);
     }
@@ -916,7 +626,6 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
 
     private parseDateInput(value: string | Date | null, endOfDay = false): Date | null {
         if (!value) return null;
-
         const date = value instanceof Date ? new Date(value) : new Date(`${value}T00:00:00`);
         if (isNaN(date.getTime())) return null;
 
@@ -929,50 +638,63 @@ export class KpiErrorEmployeeComponent implements OnInit, AfterViewInit {
         return date;
     }
 
-    private applyDistinctFiltersToGrid(): void {
-        if (!this.angularGrid?.slickGrid || !this.angularGrid?.dataView) return;
+    private formatDateValue(value: any): string {
+        if (!value) return '';
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return String(value);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
 
-        const data = this.angularGrid.dataView.getItems();
-        if (!data || data.length === 0) return;
+    private formatExportValue(rowData: any, col: PrimeColumn): any {
+        const value = rowData[col.field];
+        if (col.type === 'date') return this.formatDateValue(value);
+        if (typeof value === 'number') return new Intl.NumberFormat('vi-VN').format(value);
+        return value ?? '';
+    }
 
-        const fieldsToFilter = ['DepartmentName', 'Content', 'Employee'];
+    private buildGroupKey(item: any): string {
+        return `${item?.TypeName || ''}|||${item?.Employee || ''}`;
+    }
 
-        const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
-            const map = new Map<string, string>();
-            dataArray.forEach((row: any) => {
-                const value = String(row?.[field] ?? '');
-                if (value && !map.has(value)) {
-                    map.set(value, value);
-                }
-            });
-            return Array.from(map.entries())
-                .map(([value, label]) => ({ value, label }))
-                .sort((a, b) => a.label.localeCompare(b.label));
+    private textCol(id: string, name: string, field: string, minWidth: number, extra: Partial<PrimeColumn> = {}): PrimeColumn {
+        return {
+            id,
+            name,
+            field,
+            minWidth,
+            sortable: true,
+            filterable: true,
+            type: 'text',
+            ...extra,
         };
+    }
 
-        const columns = this.angularGrid.slickGrid.getColumns();
-        if (!columns) return;
+    private numberCol(id: string, name: string, field: string, minWidth: number): PrimeColumn {
+        return {
+            id,
+            name,
+            field,
+            minWidth,
+            sortable: true,
+            filterable: true,
+            type: 'number',
+            align: 'right',
+        };
+    }
 
-        // Update runtime columns
-        columns.forEach((column: any) => {
-            if (column?.filter && column.filter.model === Filters['multipleSelect']) {
-                const field = column.field;
-                if (!field || !fieldsToFilter.includes(field)) return;
-                column.filter.collection = getUniqueValues(data, field);
-            }
-        });
-
-        // Update column definitions
-        this.columnDefinitions.forEach((colDef: any) => {
-            if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
-                const field = colDef.field;
-                if (!field || !fieldsToFilter.includes(field)) return;
-                colDef.filter.collection = getUniqueValues(data, field);
-            }
-        });
-
-        this.angularGrid.slickGrid.setColumns(this.angularGrid.slickGrid.getColumns());
-        this.angularGrid.slickGrid.invalidate();
-        this.angularGrid.slickGrid.render();
+    private dateCol(id: string, name: string, field: string, minWidth: number): PrimeColumn {
+        return {
+            id,
+            name,
+            field,
+            minWidth,
+            sortable: true,
+            filterable: true,
+            type: 'date',
+            align: 'center',
+        };
     }
 }

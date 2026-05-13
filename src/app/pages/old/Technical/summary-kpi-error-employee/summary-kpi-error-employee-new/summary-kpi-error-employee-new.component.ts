@@ -53,7 +53,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     departmentIdFromRoute: number = 0;
 
     // Tab 1 State
-    departmentId_T1: any = null;
+    departmentId_T1: number[] = [];
     employeeId_T1: any = null;
     kpiErrorId_T1: any = null;
     keyword_T1: string = '';
@@ -105,7 +105,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     isImageVisible: boolean = false;
 
     // Tab 2 State
-    departmentId_T2: any = null;
+    departmentId_T2: number[] = [];
     kpiErrorTypeId_T2: any = null;
     keyword_T2: string = '';
 
@@ -114,7 +114,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     colDefTK: Column[] = [];
 
     // Tab 3 State
-    departmentId_T3: any = null;
+    departmentId_T3: number[] = [];
     kpiErrorTypeId_T3: any = null;
 
     chartData: any = { labels: [], datasets: [] };
@@ -146,9 +146,9 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     ngOnInit(): void {
         this.route.queryParams.subscribe(params => {
             this.departmentIdFromRoute = params['departmentId'] ? Number(params['departmentId']) : 0;
-            this.departmentId_T1 = this.departmentIdFromRoute || null;
-            this.departmentId_T2 = this.departmentIdFromRoute || null;
-            this.departmentId_T3 = this.departmentIdFromRoute || null;
+            this.departmentId_T1 = this.departmentIdFromRoute ? [this.departmentIdFromRoute] : [];
+            this.departmentId_T2 = this.departmentIdFromRoute ? [this.departmentIdFromRoute] : [];
+            this.departmentId_T3 = this.departmentIdFromRoute ? [this.departmentIdFromRoute] : [];
 
             this.initColumns();
             this.initChartOptions();
@@ -214,7 +214,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
         this.colDefFile = [
             { id: 'FileName', name: 'Tên file', field: 'FileName', sortable: true, filterable: true, minWidth: 150, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'ErrorDateText', name: 'Ngày vi phạm', field: 'ErrorDate', sortable: true, filterable: true, minWidth: 100, formatter: this.dateFormatter.bind(this), filter: { model: Filters['compoundInputText'] } },
-            { id: 'ErrorName', name: 'Tên lỗi', field: 'ErrorName', sortable: true, filterable: true, minWidth: 0, width: 10, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
+            // { id: 'ErrorName', name: 'Tên lỗi', field: 'ErrorName', sortable: true, filterable: true, minWidth: 0, width: 10, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'EmployeeName', name: 'Nhân viên', field: 'Employee', sortable: true, filterable: true, minWidth: 0, width: 10, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
         ];
 
@@ -247,7 +247,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     searchTab1() {
         this.service.getDataTongHop(
             this.month, this.year, this.kpiErrorId_T1 || 0, this.employeeId_T1 || 0,
-            this.departmentId_T1 || 0, this.keyword_T1
+            this.departmentId_T1, this.keyword_T1
         ).subscribe(res => {
             if (res.status === 1 && res.data) {
                 this.datasetTH1 = (res.data.data1 || []).map((x: any, i: number) => ({ ...x, id: i }));
@@ -267,7 +267,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
 
         this.service.getDataFile(
             this.month, this.year, this.kpiErrorId_T1 || 0, this.employeeId_T1 || 0,
-            this.departmentId_T1 || 0, 0, this.keyword_T1
+            this.departmentId_T1, 0, this.keyword_T1
         ).subscribe(res => {
             if (res.status === 1) {
                 this.datasetFile = (res.data || []).map((x: any, i: number) => ({ ...x, id: i }));
@@ -418,7 +418,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
     // ===== TAB 2 FUNCTIONS =====
     searchTab2() {
         this.service.getDataThongKe(
-            this.month, this.year, this.kpiErrorTypeId_T2 || 0, this.departmentId_T2 || 0, this.keyword_T2
+            this.month, this.year, this.kpiErrorTypeId_T2 || 0, this.departmentId_T2, this.keyword_T2
         ).subscribe(res => {
             if (res.status === 1 && res.data) {
                 this.datasetTK = res.data.map((x: any, i: number) => ({ ...x, id: i }));
@@ -474,7 +474,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
 
     searchTab3() {
         this.service.getDataThongKe(
-            this.month, this.year, this.kpiErrorTypeId_T3 || 0, this.departmentId_T3 || 0, ''
+            this.month, this.year, this.kpiErrorTypeId_T3 || 0, this.departmentId_T3, ''
         ).subscribe(res => {
             if (res.status === 1 && res.data) {
                 this.processChartData(res.data);
@@ -525,7 +525,7 @@ export class SummaryKpiErrorEmployeeNewComponent implements OnInit {
 
         // Load employee details
         if (kpiErrorId) {
-            this.service.getKPIErrorInMonth(this.month, this.year, kpiErrorId, weekIndex, this.departmentId_T3 || 0)
+            this.service.getKPIErrorInMonth(this.month, this.year, kpiErrorId, weekIndex, this.departmentId_T3)
                 .subscribe(res => {
                     if (res.status === 1) {
                         this.datasetEmployee = (res.data || []).map((x: any, i: number) => ({ ...x, id: i }));

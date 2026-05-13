@@ -54,8 +54,9 @@
                                                     <nz-form-label class="fs-12">Phòng ban</nz-form-label>
                                                     <nz-form-control class="w-100">
                                                         <nz-select [(ngModel)]="departmentId_T1" name="departmentId_TH"
-                                                            nzSize="small" nzPlaceHolder="Chọn phòng ban" nzAllowClear
-                                                            nzShowSearch class="w-100">
+                                                            nzSize="small" nzMode="multiple"
+                                                            nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch
+                                                            [nzMaxTagCount]="2" class="w-100">
                                                             <nz-option *ngFor="let item of departments"
                                                                 [nzValue]="item.ID" [nzLabel]="item.Name"></nz-option>
                                                         </nz-select>
@@ -258,6 +259,7 @@
                                                     <nz-form-control class="w-100">
                                                         <nz-select [(ngModel)]="departmentId_T2" name="departmentId_TK"
                                                             nzDropdownClassName="select-dropdown" nzSize="small"
+                                                            nzMode="multiple" [nzMaxTagCount]="2"
                                                             nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch
                                                             class="w-100">
                                                             <nz-option *ngFor="let item of departments"
@@ -349,8 +351,8 @@
                             <nz-form-label class="fs-12">Phòng ban</nz-form-label>
                             <nz-form-control>
                                 <nz-select [(ngModel)]="departmentId_T3" name="departmentId_BD" nzSize="small"
-                                    nzDropdownClassName="select-dropdown" nzPlaceHolder="Chọn phòng ban" nzAllowClear
-                                    style="width: 200px;" nzShowSearch>
+                                    nzDropdownClassName="select-dropdown" nzMode="multiple" [nzMaxTagCount]="2"
+                                    nzPlaceHolder="Chọn phòng ban" nzAllowClear style="width: 200px;" nzShowSearch>
                                     <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
                                         [nzLabel]="item.Name"></nz-option>
                                 </nz-select>

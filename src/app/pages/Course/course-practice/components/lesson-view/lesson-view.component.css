@@ -711,8 +711,8 @@ li.playlist-item.selected {
 }
 
 .files-section {
-    background: #fafafa;
-    border: 1px solid #e8e8e8;
+    /* background: #fafafa;
+    border: 1px solid #e8e8e8; */
     border-radius: 8px;
     padding: 16px;
 }

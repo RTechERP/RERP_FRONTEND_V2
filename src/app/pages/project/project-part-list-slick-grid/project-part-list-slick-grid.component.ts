@@ -633,7 +633,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'STT',
         field: 'STT',
         name: 'STT',
-        width: 50,
+        width: 40,
       },
       {
         id: 'id',
@@ -647,7 +647,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'IsActive',
         field: 'IsActive',
         name: 'Sử dụng',
-        width: 80,
+        width: 40,
         formatter: (row: number, cell: number, value: any) => {
           const checked = value === true || value === 'true' || value === 1 || value === '1';
           return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
@@ -658,30 +658,18 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'IsConsumable',
         field: 'IsConsumable',
         name: 'VTHH',
-        width: 80,
+        width: 40,
         formatter: (row: number, cell: number, value: any) => {
           const checked = value === true || value === 'true' || value === 1 || value === '1';
           return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
         },
         cssClass: 'text-center',
       },
-      {
-        id: 'IsProblem',
-        field: 'IsProblem',
-        name: 'Phát sinh',
-        width: 80,
-        formatter: (row: number, cell: number, value: any) => {
-          const checked = value === true || value === 'true' || value === 1 || value === '1';
-          return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
-        },
-        cssClass: 'text-center',
-      },
-      { id: 'ContentError', field: 'ContentError', name: 'Nội dung phát sinh', width: 200 },
       {
         id: 'Code',
         field: 'Code',
         name: 'Mã',
-        width: 100,
+        width: 40,
       },
       {
         id: 'DescriptionVersion',
@@ -694,7 +682,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         id: 'IsApprovedTBP',
         field: 'IsApprovedTBP',
         name: 'TBP duyệt',
-        width: 70,
+        width: 50,
         formatter: (row: number, cell: number, value: any) => {
           const checked = value === true || value === 'true' || value === 1 || value === '1';
           return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
@@ -702,10 +690,22 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         cssClass: 'text-center',
       },
       {
-        id: 'IsApprovedTBP', field: 'IsApprovedTBP', name: 'Duyệt', width: 70,
+        id: 'IsApprovedTBP', field: 'IsApprovedTBP', name: 'Duyệt', width: 50,
         formatter: (row, cell, value) => `<input type="checkbox" ${value === true ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`,
         cssClass: 'text-center',
       },
+      {
+        id: 'IsProblem',
+        field: 'IsProblem',
+        name: 'Phát sinh',
+        width: 50,
+        formatter: (row: number, cell: number, value: any) => {
+          const checked = value === true || value === 'true' || value === 1 || value === '1';
+          return `<input type="checkbox" ${checked ? 'checked' : ''} disabled style="pointer-events: none; accent-color: #1677ff;" />`;
+        },
+        cssClass: 'text-center',
+      },
+      { id: 'ContentError', field: 'ContentError', name: 'Nội dung phát sinh', width: 200 },
     ];
 
     this.versionGridOptions = {
@@ -2915,17 +2915,12 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             // Tự động chọn phiên bản đầu tiên nếu có dữ liệu và chưa có version nào được chọn
             if (this.dataVersion.length > 0 && this.versionID === 0 && this.versionPOID === 0) {
               // Tìm dòng dữ liệu đầu tiên (không phải group row)
-              const allItems = this.angularGridVersion.dataView.getItems();
-              const firstDataRow = allItems.find((item: any) => !item.__group && !item.__groupTotals);
+              const rowIdx = this.findFirstVisibleDataRowIndex(this.angularGridVersion.dataView);
+              const firstDataRow = rowIdx >= 0 ? this.angularGridVersion.dataView.getItem(rowIdx) : null;
 
               if (firstDataRow) {
-                const rowIdx = allItems.findIndex((item: any) => item.id === firstDataRow.id);
                 if (rowIdx >= 0) {
-                  if (typeof this.angularGridVersion.slickGrid.setActiveCell === 'function') {
-                    try { this.angularGridVersion.slickGrid.setActiveCell(rowIdx, 0); } catch (e) { }
-                  }
-                  this.angularGridVersion.slickGrid.setSelectedRows([rowIdx]);
-                  this.angularGridVersion.slickGrid.scrollRowIntoView(rowIdx, false);
+                  this.selectSlickGridRow(this.angularGridVersion, rowIdx);
 
                   // Set version based on type
                   if (firstDataRow.VersionType === 1) {
@@ -2953,6 +2948,34 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         }
       });
     });
+  }
+
+  private findFirstVisibleDataRowIndex(dataView: any): number {
+    if (!dataView) return -1;
+
+    const rowCount = typeof dataView.getLength === 'function'
+      ? dataView.getLength()
+      : 0;
+
+    for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+      const item = dataView.getItem(rowIndex);
+      if (item && !item.__group && !item.__groupTotals) {
+        return rowIndex;
+      }
+    }
+
+    return -1;
+  }
+
+  private selectSlickGridRow(angularGrid: any, rowIndex: number): void {
+    if (!angularGrid?.slickGrid || rowIndex < 0) return;
+
+    const slickGrid = angularGrid.slickGrid;
+    if (typeof slickGrid.setActiveCell === 'function') {
+      try { slickGrid.setActiveCell(rowIndex, 0); } catch (e) { }
+    }
+    slickGrid.setSelectedRows([rowIndex]);
+    slickGrid.scrollRowIntoView(rowIndex, false);
   }
 
   loadDataProjectPartList(): void {

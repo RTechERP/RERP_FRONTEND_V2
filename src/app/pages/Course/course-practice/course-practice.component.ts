@@ -715,13 +715,20 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
     this.coursePracticeService.CourseLessonByCourseID(courseID).subscribe({
       next: (response: any) => {
         if (response && response.status === 1) {
-          this.courseLessonData = response.data || [];
+          const data = response.data || [];
+          this.courseLessonData = data;
+          // Nếu không có bài học nào → quay về chọn khóa học thay vì hiện panel rỗng
+          if (data.length === 0) {
+            this.viewMode = 'courses';
+          }
         } else {
           this.courseLessonData = [];
+          this.viewMode = 'courses';
         }
       },
       error: (error) => {
         this.courseLessonData = [];
+        this.viewMode = 'courses';
       },
     });
   }
@@ -798,6 +805,10 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
   onCourseSelected(course: Course): void {
     this.selectedCourseID = course.ID;
     this.selectedCourseName = course.NameCourse;
+    // Clear lesson data trước khi load mới, tránh hiện data cũ khi course mới không có bài học
+    this.courseLessonData = [];
+    this.lessonData = [];
+    this.viewMode = 'courses';
     this.getLessonsByCourse(course.ID);
     this.loadCourseLessonData(course.ID);
   }

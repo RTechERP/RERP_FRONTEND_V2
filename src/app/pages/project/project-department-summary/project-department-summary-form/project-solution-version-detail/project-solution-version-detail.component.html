@@ -102,18 +102,25 @@
                     </nz-form-item>
                 </div>
 
-                <div class="col-md-4 col-sm-12 pb-3 align-items-center h-auto">
+                <div class="col-md-2 col-sm-12 pb-3 align-items-center h-auto">
                     <nz-form-item>
                         <nz-form-label class="fs-12 d-flex align-items-center" [style.visibility]="'hidden'">
-                            Tùy chọn
+                            Sử dụng
                         </nz-form-label>
-                        <nz-form-control>
-                            <div class="d-flex align-items-center gap-3 flex-nowrap">
-                                <label class="mb-0 fs-12 justify-content" nz-checkbox formControlName="IsActive">Sử
-                                    dụng</label>
-                                <label class="mb-0 fs-12 justify-content" nz-checkbox
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 d-flex align-items-center" [style.visibility]="'hidden'">
+                                Vật tư tiêu hao
+                            </nz-form-label>
+                            <nz-form-control>
+                                <label class="mb-0 fs-12 justify-content " nz-checkbox
                                     formControlName="IsConsumable">Vật tư tiêu hao</label>
-                                <label class="mb-0 fs-12 justify-content" nz-checkbox formControlName="IsProblem"
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-control>
+                            <div class="d-flex gap-3">
+                                <label class="mb-0 fs-12 justify-content " nz-checkbox formControlName="IsActive">Sử
+                                    dụng</label>
+                                <label class="mb-0 fs-12 justify-content " nz-checkbox formControlName="IsProblem"
                                     *ngIf="typeNumber === 2">Phát sinh</label>
                             </div>
                         </nz-form-control>

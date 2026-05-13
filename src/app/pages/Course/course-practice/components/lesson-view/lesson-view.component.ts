@@ -519,7 +519,7 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
         this.lessonSelected.emit(lesson);
         this.checkExamType();
         // this.videoUrl = this.getVideoUrl(lesson.VideoURL);
-        this.videoUrl = this.getVideoUrl(lesson.ID);
+        this.getVideoUrl(lesson.ID);
 
         // Check PDF file existence first, then build URL
         this.checkPdfFileExists(lesson?.UrlPDF);
@@ -734,14 +734,22 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
     //   return host + urlVideo;
     // }
 
-    getVideoUrl(ID?: number): string {
-        if (this.currentLesson?.VideoURL?.startsWith('\\\\192.168.1.190\\')) {
-            this.hiddenVideo = false;  // Show video
-        } else {
-            this.hiddenVideo = true;   // Ẩn video
-        }
+    getVideoUrl(ID?: number): void {
         const host = environment.host + 'api/course/stream/';
-        return host + ID;
+        const url = host + ID;
+        this.videoUrl = url;
+        this.http.head(url, { observe: 'response' }).subscribe({
+            next: (response) => {
+                if (response.status === 200) {
+                    this.hiddenVideo = false;
+                } else {
+                    this.hiddenVideo = true;
+                }
+            },
+            error: () => {
+                this.hiddenVideo = true;
+            }
+        });
     }
 
     checkExamType(): void {

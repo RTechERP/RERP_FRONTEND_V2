@@ -236,8 +236,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       this.activeTabId = -1; // Tab thương mại
     }
 
-    if (this.projectPartlistPriceRequestTypeID === 17) {
-      this.activeTabId = 10; // Vtth tab
+    if (this.projectPartlistPriceRequestTypeID === -10) {
+      this.activeTabId = 15; // Vtth tab
     }
 
     this.filters = {
@@ -302,7 +302,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (this.poKHID > 0 && id !== -1) return false;
     if (this.projectPartlistPriceRequestTypeID === 3) return id === -2;
     if (this.projectPartlistPriceRequestTypeID === 4) return id === -3;
-    if (this.projectPartlistPriceRequestTypeID === 17) return id === 10;
+    if (this.projectPartlistPriceRequestTypeID === -10) return id === 15;
     return true;
   }
   getVisibleProjectTypes(): any[] {
@@ -377,7 +377,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       '-2': 3,
       '-3': 4,
       '-4': 6,
-      '10': 17,
+      '15': -10,
     };
 
     const key = String(projectTypeID);
@@ -712,7 +712,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         isCommercialProduct = 0;
         isJobRequirement = 0;
         poKHID = 0; // poKHID = 0 cho các type khác
-      } else if (projectTypeID === 17) {
+      } else if (projectTypeID === -10) {
         mappedProjectTypeID = -1;
         projectPartlistPriceRequestTypeID = 7;
         isCommercialProduct = 0;

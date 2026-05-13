@@ -99,7 +99,7 @@
                                                     <div class="tree-node catalog-type-node"
                                                         [class.collapsed]="catalogNode.isCollapsed"
                                                         (click)="toggleTreeNode(catalogNode, $event)">
-                                                        <span class="indent-1"></span>
+                                                        <!-- <span class="indent-1"></span> -->
                                                         <span nz-icon [nzType]="catalogNode.isCollapsed ? 'right' : 'down'"
                                                             nzTheme="outline"></span>
                                                         <strong>Loại: {{ catalogNode.name }}</strong>
@@ -118,11 +118,11 @@
                                                             <div class="tree-node catalog-node"
                                                                 [class.collapsed]="catalogGroupNode.isCollapsed"
                                                                 (click)="toggleTreeNode(catalogGroupNode, $event)">
-                                                                <span class="indent-2"></span>
+                                                                <!-- <span class="indent-2"></span> -->
                                                                 <span nz-icon [nzType]="catalogGroupNode.isCollapsed ? 'right' : 'down'"
                                                                     nzTheme="outline"></span>
-                                                                <strong class="catalog-code">Danh mục: {{ catalogGroupNode.name }}</strong>
-                                                                <span class="catalog-full-name">{{ catalogGroupNode.catalogName }}</span>
+                                                                <strong class="catalog-code">Danh mục: {{ catalogGroupNode.name }} - {{ catalogGroupNode.catalogName }}</strong>
+                                                                <!-- <span class="catalog-full-name"></span> -->
                                                                 <nz-tag nzColor="purple">{{ catalogGroupNode.courseCount }}</nz-tag>
                                                             </div>
 
@@ -136,7 +136,7 @@
                                                                     <div class="tree-node tech-type-node"
                                                                         [class.collapsed]="techNode.isCollapsed"
                                                                         (click)="toggleTreeNode(techNode, $event)">
-                                                                        <span class="indent-3"></span>
+                                                                        <!-- <span class="indent-3"></span> -->
                                                                         <span nz-icon [nzType]="techNode.isCollapsed ? 'right' : 'down'"
                                                                             nzTheme="outline"></span>
                                                                         <span class="tech-name">Loại khoá học: {{ techNode.name }}</span>

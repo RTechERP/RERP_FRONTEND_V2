@@ -1,6 +1,6 @@
 
 
-import { Component, OnInit, OnDestroy, ViewChild, Inject, Optional, HostListener } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Optional, HostListener, ElementRef, NgZone } from '@angular/core';
 import {
     AngularGridInstance,
     AngularSlickgridModule,
@@ -70,7 +70,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
         MenubarModule
     ],
 })
-export class BillExportNewComponent implements OnInit, OnDestroy {
+export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy {
     // ========================================
     // Grid Instances & Properties
     // ========================================
@@ -144,6 +144,8 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     // Để cleanup subscriptions
     private destroy$ = new Subject<void>();
     private isInitialized = false;
+    private resizeObserver: ResizeObserver | null = null;
+    private lastVisibleWidth: number = 0;
 
     isMobile: boolean = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
     isShowModal: boolean = false;
@@ -165,19 +167,25 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         private clipboardService: ClipboardService,
         private message: NzMessageService,
         @Optional() @Inject('tabData') private tabData: any,
-        private permissionService: PermissionService
+        private permissionService: PermissionService,
+        private elementRef: ElementRef,
+        private ngZone: NgZone
     ) { }
 
     ngOnInit() {
-        // Đọc wareHouseCode từ query params và reinit khi thay đổi
-        this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-            // const newWarehouseCode = params['warehouseCode'] || 'HN';
-            const newWarehouseCode =
-                params['warehouseCode']
-                ?? this.tabData?.warehouseCode
-                ?? 'HN';
+        if (this.tabData) {
+            // tabData mode: mỗi tab là 1 instance riêng, không subscribe queryParams
+            // để tránh bị reinit khi tab khác thay đổi route
+            this.warehouseCode = this.tabData.warehouseCode ?? 'HN';
+            this.searchParams.warehousecode = this.warehouseCode;
+            this.initializeComponent();
+            return;
+        }
 
-            // Nếu warehouseCode thay đổi và đã được init trước đó, cần destroy grid cũ và reinit
+        // Route mode: subscribe queryParams để detect thay đổi warehouse
+        this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+            const newWarehouseCode = params['warehouseCode'] ?? 'HN';
+
             if (this.isInitialized && this.warehouseCode !== newWarehouseCode) {
                 this.destroyGrids();
             }
@@ -185,15 +193,51 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             this.warehouseCode = newWarehouseCode;
             this.searchParams.warehousecode = this.warehouseCode;
 
-            // Init hoặc reinit
             this.initializeComponent();
         });
+    }
+
+    ngAfterViewInit() {
+        this.setupResizeObserver();
     }
 
     ngOnDestroy() {
         this.destroy$.next();
         this.destroy$.complete();
         this.destroyGrids();
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+    }
+
+    private resizeGrids(): void {
+        try {
+            if (this.angularGridMaster?.resizerService) {
+                this.angularGridMaster.resizerService.resizeGrid();
+            }
+        } catch (e) { }
+        try {
+            if (this.angularGridDetail?.resizerService) {
+                this.angularGridDetail.resizerService.resizeGrid();
+            }
+        } catch (e) { }
+    }
+
+    private setupResizeObserver(): void {
+        const element = this.elementRef.nativeElement;
+        this.resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const currentWidth = entry.contentRect.width;
+                if (this.lastVisibleWidth === 0 && currentWidth > 0) {
+                    this.ngZone.run(() => {
+                        setTimeout(() => this.resizeGrids(), 50);
+                    });
+                }
+                this.lastVisibleWidth = currentWidth;
+            }
+        });
+        this.resizeObserver.observe(element);
     }
 
     private initializeComponent() {
@@ -203,9 +247,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         this.canShippedOut = this.permissionService.hasPermission('N27,N1');
         this.canExcelKT = this.permissionService.hasPermission('N10,N11,N27,N29,N1');
         this.canDocumentFile = this.permissionService.hasPermission('N52,N36,N1,N34');
-        this.initMasterGrid();
-        this.initDetailGrid();
-        this.initializeMenu();
+
+        if (!this.isInitialized) {
+            this.initMasterGrid();
+            this.initDetailGrid();
+            this.initializeMenu();
+        }
+
         this.getProductGroup();
         this.loadDataBillExport();
         this.isInitialized = true;
@@ -223,6 +271,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         // Clear datasets
         this.datasetMaster = [];
         this.datasetDetail = [];
+        this.isInitialized = false;
     }
 
     // ========================================
@@ -2515,6 +2564,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             // Set footer values cho từng column
             const columns = this.angularGridDetail.slickGrid.getColumns();
             columns.forEach((col: any) => {
+                if (!col) return;
                 const footerCell = this.angularGridDetail.slickGrid.getFooterRowColumn(
                     col.id
                 );

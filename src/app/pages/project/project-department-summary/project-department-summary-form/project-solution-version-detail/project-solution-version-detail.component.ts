@@ -94,7 +94,7 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
       SolutionTypeID: [{ value: this.SolutionTypeID || '', disabled: true }, [Validators.required]], //trạng thái
       IsProblem: [this.IsProblem || false], // New field for Phát sinh
       ProjectHistoryProblemIds: [this.ProjectHistoryProblemIds || null], // Dropdown selection
-      DescriptionVersion: [this.DescriptionVersion || ''], //mô tả
+      DescriptionVersion: [this.DescriptionVersion || '', [this.trimRequiredValidator]], //mô tả
     });
 
     // Subscribe to IsProblem to handle validation if needed

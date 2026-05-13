@@ -67,7 +67,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
     employees: any[] = [];
     departmentIdFromRoute: number = 0;
 
-    departmentId_T1: any = null;
+    departmentId_T1: number[] = [];
     employeeId_T1: any = null;
     kpiErrorId_T1: any = null;
     keyword_T1: string = '';
@@ -88,14 +88,14 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
     isImageVisible: boolean = false;
     selectedFileRow: any = null;
 
-    departmentId_T2: any = null;
+    departmentId_T2: number[] = [];
     kpiErrorTypeId_T2: any = null;
     keyword_T2: string = '';
     datasetTK: any[] = [];
     colDefTK: KpiTableColumn[] = [];
     loadingTK: boolean = false;
 
-    departmentId_T3: any = null;
+    departmentId_T3: number[] = [];
     kpiErrorTypeId_T3: any = null;
 
     chartData: any = { labels: [], datasets: [] };
@@ -132,9 +132,9 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
     ngOnInit(): void {
         this.route.queryParams.subscribe(params => {
             this.departmentIdFromRoute = params['departmentId'] ? Number(params['departmentId']) : 0;
-            this.departmentId_T1 = this.departmentIdFromRoute || null;
-            this.departmentId_T2 = this.departmentIdFromRoute || null;
-            this.departmentId_T3 = this.departmentIdFromRoute || null;
+            this.departmentId_T1 = this.departmentIdFromRoute ? [this.departmentIdFromRoute] : [];
+            this.departmentId_T2 = this.departmentIdFromRoute ? [this.departmentIdFromRoute] : [];
+            this.departmentId_T3 = this.departmentIdFromRoute ? [this.departmentIdFromRoute] : [];
 
             this.initColumns();
             this.initChartOptions();
@@ -230,7 +230,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
         this.startLoading('th');
         this.service.getDataTongHop(
             this.month, this.year, this.kpiErrorId_T1 || 0, this.employeeId_T1 || 0,
-            this.departmentId_T1 || 0, this.keyword_T1
+            this.departmentId_T1, this.keyword_T1
         ).pipe(finalize(() => this.stopLoading('th'))).subscribe(res => {
             if (res.status === 1 && res.data) {
                 this.datasetTH1 = this.prepareRows(res.data.data1 || [], 'FullName');
@@ -242,7 +242,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
         this.startLoading('file');
         this.service.getDataFile(
             this.month, this.year, this.kpiErrorId_T1 || 0, this.employeeId_T1 || 0,
-            this.departmentId_T1 || 0, 0, this.keyword_T1
+            this.departmentId_T1, 0, this.keyword_T1
         ).pipe(finalize(() => this.stopLoading('file'))).subscribe(res => {
             if (res.status === 1) {
                 this.datasetFile = this.prepareRows(res.data || [], 'ErrorName', 'Employee');
@@ -305,7 +305,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
     searchTab2(): void {
         this.startLoading('tk');
         this.service.getDataThongKe(
-            this.month, this.year, this.kpiErrorTypeId_T2 || 0, this.departmentId_T2 || 0, this.keyword_T2
+            this.month, this.year, this.kpiErrorTypeId_T2 || 0, this.departmentId_T2, this.keyword_T2
         ).pipe(finalize(() => this.stopLoading('tk'))).subscribe(res => {
             if (res.status === 1 && res.data) {
                 this.datasetTK = this.prepareRows(res.data, 'TypeName');
@@ -359,7 +359,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
     searchTab3(): void {
         this.startLoading('chart');
         this.service.getDataThongKe(
-            this.month, this.year, this.kpiErrorTypeId_T3 || 0, this.departmentId_T3 || 0, ''
+            this.month, this.year, this.kpiErrorTypeId_T3 || 0, this.departmentId_T3, ''
         ).pipe(finalize(() => this.stopLoading('chart'))).subscribe(res => {
             if (res.status === 1 && res.data) {
                 this.processChartData(res.data);
@@ -408,7 +408,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
 
         if (kpiErrorId) {
             this.startLoading('employee');
-            this.service.getKPIErrorInMonth(this.month, this.year, kpiErrorId, weekIndex, this.departmentId_T3 || 0)
+            this.service.getKPIErrorInMonth(this.month, this.year, kpiErrorId, weekIndex, this.departmentId_T3)
                 .pipe(finalize(() => this.stopLoading('employee')))
                 .subscribe(res => {
                     if (res.status === 1) {

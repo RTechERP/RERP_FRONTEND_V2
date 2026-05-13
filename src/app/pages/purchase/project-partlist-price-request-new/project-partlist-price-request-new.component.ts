@@ -1620,9 +1620,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         type: 'number',
         cssClass: 'text-right',
-        editor: {
-          model: Editors['float'], decimal: 2,
-        },
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
 

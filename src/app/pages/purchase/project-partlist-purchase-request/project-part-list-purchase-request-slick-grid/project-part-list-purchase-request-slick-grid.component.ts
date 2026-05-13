@@ -1561,10 +1561,6 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         type: 'number',
         cssClass: 'text-right',
-        editor: {
-          model: Editors['float'],
-          decimal: 2,
-        },
         formatter: (row: number, cell: number, value: any) =>
           this.formatNumberEnUS(value, 2),
         filter: { model: Filters['compoundInputNumber'] },

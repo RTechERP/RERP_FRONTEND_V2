@@ -102,6 +102,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     private resizeObserver: ResizeObserver | null = null;
     private filterPatchObserver: MutationObserver | null = null;
     private lastVisibleWidth: number = 0;
+    private tooltipEl: HTMLElement | null = null;
 
     // Column definitions
     columnDefinitionsMaster: Column[] = [];
@@ -254,6 +255,10 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         if (this.filterPatchObserver) {
             this.filterPatchObserver.disconnect();
             this.filterPatchObserver = null;
+        }
+        if (this.tooltipEl) {
+            document.body.removeChild(this.tooltipEl);
+            this.tooltipEl = null;
         }
     }
 
@@ -473,11 +478,74 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         value: any
     ): string {
         if (!value) return '';
-        const escapedValue = String(value)
+        const escaped = String(value)
+            .replace(/&/g, '&amp;')
             .replace(/"/g, '&quot;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
-        return `<div class="cell-multiline" title="${escapedValue}">${escapedValue}</div>`;
+        return `<div class="cell-multiline" data-tooltip="${escaped}">${escaped}</div>`;
+    }
+
+    private initDetailGridTooltip(): void {
+        const gridContainer = this.elementRef.nativeElement.querySelector(
+            '.grid-container-detail-' + this.componentId
+        );
+        if (!gridContainer) return;
+
+        const tooltip = document.createElement('div');
+        tooltip.style.cssText = [
+            'display:none', 'position:fixed', 'z-index:99999',
+            'background:#fff', 'border:1px solid #d9d9d9', 'border-radius:6px',
+            'padding:8px 12px', 'max-width:420px', 'white-space:pre-wrap',
+            'word-break:break-word', 'line-height:1.6', 'font-size:13px',
+            'box-shadow:0 4px 16px rgba(0,0,0,0.15)', 'pointer-events:auto',
+            'user-select:text', '-webkit-user-select:text', 'cursor:text',
+        ].join(';');
+        document.body.appendChild(tooltip);
+        this.tooltipEl = tooltip;
+
+        let isOverTooltip = false;
+        let hideTimer: any = null;
+
+        const showTooltip = (text: string, anchorEl: Element) => {
+            if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+            tooltip.textContent = text;
+            tooltip.style.display = 'block';
+            const rect = anchorEl.getBoundingClientRect();
+            let left = rect.left;
+            let top = rect.bottom + 4;
+            if (left + 420 > window.innerWidth) left = Math.max(8, window.innerWidth - 428);
+            if (top + 150 > window.innerHeight) top = rect.top - 154;
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        };
+
+        const hideTooltip = () => {
+            hideTimer = setTimeout(() => {
+                if (!isOverTooltip) tooltip.style.display = 'none';
+            }, 80);
+        };
+
+        tooltip.addEventListener('mouseenter', () => {
+            isOverTooltip = true;
+            if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+        });
+        tooltip.addEventListener('mouseleave', () => {
+            isOverTooltip = false;
+            tooltip.style.display = 'none';
+        });
+
+        gridContainer.addEventListener('mouseover', (e: Event) => {
+            const el = (e as MouseEvent).target as HTMLElement;
+            const target = el.closest('[data-tooltip]') as HTMLElement | null;
+            if (target) showTooltip(target.getAttribute('data-tooltip') || '', target);
+        });
+
+        gridContainer.addEventListener('mouseout', (e: Event) => {
+            const related = (e as MouseEvent).relatedTarget as Node | null;
+            if (related && tooltip.contains(related)) return;
+            hideTooltip();
+        });
     }
 
     initGrids(): void {
@@ -852,7 +920,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'ProductCode' + this.wareHouseCode,
@@ -861,7 +930,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'ProductName' + this.wareHouseCode,
@@ -870,7 +940,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 300,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'SerialNumber' + this.wareHouseCode,
@@ -879,7 +950,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 300,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'Unit' + this.wareHouseCode,
@@ -889,7 +961,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 filterable: true,
                 width: 80,
                 filter: { model: Filters['compoundInputText'] },
-                cssClass: 'text-center'
+                cssClass: 'text-center',
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'ProjectCode' + this.wareHouseCode,
@@ -898,7 +971,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'Qty' + this.wareHouseCode,
@@ -919,7 +993,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'DateSomeBill' + this.wareHouseCode,
@@ -942,7 +1017,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'ProjectCodeText' + this.wareHouseCode,
@@ -951,7 +1027,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'ProjectNameText' + this.wareHouseCode,
@@ -960,7 +1037,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 200,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'CustomerFullName' + this.wareHouseCode,
@@ -969,7 +1047,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 400,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'BillCode' + this.wareHouseCode,
@@ -978,7 +1057,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'Note' + this.wareHouseCode,
@@ -987,7 +1067,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'DealineQC' + this.wareHouseCode,
@@ -1009,7 +1090,18 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
+            },
+            {
+                id: 'ProcessedGoods' + this.wareHouseCode,
+                name: 'Hàng gia công',
+                field: 'ProcessedGoods',
+                sortable: true,
+                filterable: false,
+                width: 100,
+                cssClass: 'text-center',
+                formatter: Formatters['checkmarkMaterial'],
             },
         ];
 
@@ -1024,6 +1116,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             enableCellNavigation: true,
             enableRowSelection: true,
             frozenColumn: 3,
+            rowHeight: 55,
 
             // Footer row configuration
             createFooterRow: true,
@@ -1121,6 +1214,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         setTimeout(() => {
             this.resizeGrids();
             this.updateDetailFooterRow();
+            this.initDetailGridTooltip();
         }, 100);
     }
 

@@ -255,6 +255,9 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
             autoAdjustDropHeight: true,
             filter: true,
@@ -333,6 +336,9 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
             autoAdjustDropHeight: true,
             filter: true,
@@ -390,6 +396,9 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
             autoAdjustDropHeight: true,
             filter: true,
@@ -406,6 +415,9 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
             autoAdjustDropHeight: true,
             filter: true,
@@ -495,6 +507,9 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
             autoAdjustDropHeight: true,
             filter: true,
@@ -1027,7 +1042,7 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
         UpdatedBy: this.appUserService.loginName || '',
         UpdatedDate: new Date().toISOString(),
       };
-      
+
       dataToSave.push(updateData);
     });
 

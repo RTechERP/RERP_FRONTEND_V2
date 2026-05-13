@@ -1648,10 +1648,14 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private handleMasterSelectionChange(selectedMasters: any[]): void {
     const selectedIds = selectedMasters.map((m) => m.ID);
+
     // Nếu không còn master nào → clear hết
     if (selectedIds.length === 0) {
+      // Save selection của master hiện tại trước khi clear (ví dụ user xóa filter header)
+      this.saveCurrentDetailSelection();
+
       this.masterDetailsMap.clear();
-      this.masterSelectedDetailIdsMap.clear();
+      // Không clear masterSelectedDetailIdsMap: giữ selection đã save để restore khi user re-select masters
       this.lastMasterId = null;
       this.datasetDetail = [];
       this.sizeTbDetail = '0';
@@ -1683,12 +1687,14 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     const deselectedIds = Array.from(this.masterDetailsMap.keys()).filter(
       (id) => !selectedIds.includes(id)
     );
+
     deselectedIds.forEach((id) => {
       this.masterDetailsMap.delete(id);
       this.masterSelectedDetailIdsMap.delete(id);
     });
 
     if (newMasterIds.length > 0) {
+
       const latestMasterId = (activeMaster && newMasterIds.includes(activeMaster.ID))
         ? activeMaster.ID
         : newMasterIds[newMasterIds.length - 1];
@@ -1758,10 +1764,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       });
     } else {
       const focusedId = focusedMaster?.ID ?? selectedIds[selectedIds.length - 1];
-      if (focusedId !== this.lastMasterId) {
-        this.saveCurrentDetailSelection();
-        this.lastMasterId = focusedId;
-      }
+
+      this.saveCurrentDetailSelection();
+      this.lastMasterId = focusedId;
       this.displayDetailsForMaster(focusedId);
     }
   }
@@ -1772,6 +1777,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     const allDetails = this.masterDetailsMap.get(this.lastMasterId) || [];
     if (selectedIndexes.length === allDetails.length) {
       // Select all → không cần lưu
+
       this.masterSelectedDetailIdsMap.delete(this.lastMasterId);
     } else {
       const selectedIds = new Set(
@@ -1780,12 +1786,14 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
           .filter(Boolean)
           .map((item: any) => String(item.id))
       );
+
       this.masterSelectedDetailIdsMap.set(this.lastMasterId, selectedIds);
     }
   }
 
   private displayDetailsForMaster(masterId: number): void {
     const details = this.masterDetailsMap.get(masterId) || [];
+
     this.datasetDetail = details;
     this.datasetsAllMapDetail = [...details];
     this.cdr.detectChanges();
@@ -1802,6 +1810,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
               .map((item: any, i: number) => savedIds.has(String(item.id)) ? i : -1)
               .filter((i: number) => i !== -1)
             : Array.from({ length: details.length }, (_, i) => i);
+
           this.angularGridDetail.slickGrid.setSelectedRows(rowIndexes);
         }
       }, 100);
@@ -1813,9 +1822,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.angularGridDetail) return [];
     const selectedIndexes = this.angularGridDetail.slickGrid.getSelectedRows();
     if (!selectedIndexes || selectedIndexes.length === 0) return [];
-    return selectedIndexes
+    const result = selectedIndexes
       .map((index: number) => this.angularGridDetail.dataView.getItem(index))
       .filter((item: any) => item);
+
+    return result;
   }
 
   private getSelectedMasterRows(): any[] {
@@ -2154,6 +2165,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.angularGridDetail.dataView.getItem(rowIndex)
       )
       .filter((item: any) => item);
+
 
     this.handleSelectionChange(selectedRows);
   }
@@ -2655,25 +2667,33 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       nzOkType: 'primary',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        // Cập nhật masterDetailsMap với các detail đã chọn hiện tại
-        // Nếu có detail được chọn thì chỉ lấy detail đã chọn
-        // Nếu không có detail nào được chọn thì giữ nguyên tất cả detail của master
+        // Lưu selection của master đang hiển thị vào masterSelectedDetailIdsMap
         if (this.lastMasterId) {
           const currentSelectedDetails = this.getSelectedDetailRows();
-          if (currentSelectedDetails.length > 0) {
-            this.masterDetailsMap.set(
+          const allDetails = this.masterDetailsMap.get(this.lastMasterId) || [];
+          if (currentSelectedDetails.length === allDetails.length) {
+            this.masterSelectedDetailIdsMap.delete(this.lastMasterId);
+          } else {
+            this.masterSelectedDetailIdsMap.set(
               this.lastMasterId,
-              currentSelectedDetails
+              new Set(currentSelectedDetails.map((d: any) => String(d.id)))
             );
           }
         }
 
         const ids = selectedRows.map((x) => x.ID).join(',');
-        const idString = Array.from(this.masterDetailsMap.values())
-          .flat()
-          .map((x) => x.ID)
-          .filter((id) => id != null)
+        // Build idString: lọc từng master theo masterSelectedDetailIdsMap
+        // undefined = all selected; Set([]) = none; Set([...]) = chỉ các id đó
+        const idString = Array.from(this.masterDetailsMap.entries())
+          .flatMap(([masterId, details]: [number, any[]]) => {
+            const savedIds = this.masterSelectedDetailIdsMap.get(masterId);
+            if (savedIds === undefined) return details;
+            return details.filter((d: any) => savedIds.has(String(d.id)));
+          })
+          .map((x: any) => x.ID)
+          .filter((id: any) => id != null)
           .join(',');
+
 
         this.srv.getPonccDetail(ids, warehouseID, idString).subscribe((res) => {
           let dataSale = res.data.dataSale || [];
@@ -4015,25 +4035,33 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       nzOnOk: () => {
         if (this.lastMasterId) {
           const currentSelectedDetails = this.getSelectedDetailRowsConsumer();
-          if (currentSelectedDetails.length > 0) {
-            this.masterDetailsMap.set(
-              this.lastMasterId,
-              currentSelectedDetails
-            );
-          } else {
+          if (currentSelectedDetails.length === 0) {
             this.notification.warning(
               NOTIFICATION_TITLE.warning,
               'Không có sản phẩm được tạo từ loại vật tư tiêu hao để chuyển kho!'
             );
             return;
           }
+          const allDetails = this.masterDetailsMap.get(this.lastMasterId) || [];
+          if (currentSelectedDetails.length === allDetails.length) {
+            this.masterSelectedDetailIdsMap.delete(this.lastMasterId);
+          } else {
+            this.masterSelectedDetailIdsMap.set(
+              this.lastMasterId,
+              new Set(currentSelectedDetails.map((d: any) => String(d.id)))
+            );
+          }
         }
 
         const ids = selectedRows.map((x) => x.ID).join(',');
-        const idString = Array.from(this.masterDetailsMap.values())
-          .flat()
-          .map((x) => x.ID)
-          .filter((id) => id != null)
+        const idString = Array.from(this.masterDetailsMap.entries())
+          .flatMap(([masterId, details]: [number, any[]]) => {
+            const savedIds = this.masterSelectedDetailIdsMap.get(masterId);
+            if (savedIds === undefined) return details;
+            return details.filter((d: any) => savedIds.has(String(d.id)));
+          })
+          .map((x: any) => x.ID)
+          .filter((id: any) => id != null)
           .join(',');
 
         this.srv.getPonccDetail(ids, 6, idString).subscribe((res) => {

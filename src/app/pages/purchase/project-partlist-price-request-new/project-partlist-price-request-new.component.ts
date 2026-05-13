@@ -1271,7 +1271,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   private switchTab(typeId: number): void {
     this.activeTabId = typeId;
     this.filters.projectTypeID = typeId;
-
     // Kiểm tra nếu grid chưa được init
     if (!this.columnDefinitionsMap.has(typeId)) {
       this.columnDefinitionsMap.set(typeId, this.initGridColumns(typeId));
@@ -2439,8 +2438,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         columnIndexPosition: 0, // Position of checkbox column (0 = first column)
         width: 35, // Width of checkbox column
       },
-      editable: true,
-      autoEdit: true, // Single click to edit instead of double click
+      editable: typeId !== -10,
+      autoEdit: typeId !== -10, // Single click to edit instead of double click
 
       enableCheckboxSelector: true,
       enableCellNavigation: true,
@@ -2463,6 +2462,11 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
       // Ngăn chỉnh sửa các hàng đã báo giá (StatusRequest = 2) hoặc đã hoàn thành (StatusRequest = 3)
       editCommandHandler: (item: any, _column: any, editCommand: any) => {
+        // Tab VTTH (typeId = 15) không cho phép sửa trực tiếp trên bảng
+        if (typeId === -10) {
+          return;
+        }
+
         const statusRequest = Number(item?.StatusRequest || item?.StatusRequestID || 0);
         // Cho phép edit nếu status = 1 (Yêu cầu báo giá) hoặc status = 5 (Từ chối)
         if (statusRequest === 2 || statusRequest === 3) {

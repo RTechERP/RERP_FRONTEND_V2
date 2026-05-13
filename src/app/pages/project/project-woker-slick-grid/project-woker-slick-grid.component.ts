@@ -1357,7 +1357,6 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
     const modalRef = this.ngbModal.open(ProjectSolutionDetailComponent, {
       centered: true,
       size: 'xl',
-      windowClass: 'project-solution-detail-tall-modal',
       keyboard: false,
     });
 

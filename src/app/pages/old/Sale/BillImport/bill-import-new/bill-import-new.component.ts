@@ -1630,7 +1630,10 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
 
         const billsWithDetails = selectedRows.map((bill: any) => ({
             ...bill,
-            billImportDetails: this.datasetDetail,
+            billImportDetails: this.datasetDetail.map((d: any) => ({
+                ...d,
+                ProcessedGoods: d.ProcessedGoods ? 1 : 0,
+            })),
         }));
 
         this.billImportService.approved(billsWithDetails, apr).subscribe({

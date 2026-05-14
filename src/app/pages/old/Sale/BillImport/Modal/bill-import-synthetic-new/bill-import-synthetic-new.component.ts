@@ -889,13 +889,10 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
       }
     );
 
-    // Subscribe to onRowCountChanged to update filter collections
-    // this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
-    //   setTimeout(() => {
-    //     this.applyDistinctFilters();
-    //     this.updateMasterFooterRow();
-    //   }, 100);
-    // });
+    // Cập nhật footer khi filter thay đổi (giống BillImportNew)
+    this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      this.updateMasterFooterRow();
+    });
 
     // Apply filters on initial load
     setTimeout(() => {
@@ -920,7 +917,6 @@ export class BillImportSyntheticNewComponent implements OnInit, AfterViewInit {
     if (this.angularGrid && this.angularGrid.slickGrid) {
       const dataView = this.angularGrid.dataView;
       const filteredItems = dataView.getFilteredItems() || [];
-      console.log(filteredItems);
       // Đếm số lượng sản phẩm (đã bỏ qua group)
       const codeCount = filteredItems.length;
 

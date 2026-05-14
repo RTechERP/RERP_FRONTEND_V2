@@ -303,4 +303,8 @@ export class PONCCService {
       `${this.baseUrl}get-rulepay-by-poncc?ponccId=${ponccId}`
     );
   }
+
+  getLogActivityPoncc(ponccId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}log-activity?ponccId=${ponccId}`);
+  }
 }

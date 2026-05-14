@@ -62,6 +62,7 @@ import { BillImportDetailNewComponent } from '../../old/Sale/BillImport/bill-imp
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { PonccSummaryComponent } from '../poncc/poncc-summary/poncc-summary.component';
 import { PonccSummaryNewComponent } from '../poncc/poncc-summary/poncc-summary-new/poncc-summary-new.component';
+import { ActivityLogPonccComponent } from '../poncc/activity-log-poncc/activity-log-poncc.component';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -3986,6 +3987,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         icon: 'fa-solid fa-money-bill fa-lg text-success',
         command: () => this.onOpenPaymentOrder(),
       },
+      {
+        label: 'Lịch sử thao tác',
+        icon: 'fa-solid fa-history fa-lg text-success',
+        command: () => this.openLogActivityModal(),
+      },
     ];
 
     if (this.isPriceRequest) {
@@ -4110,6 +4116,32 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       if (item?.ProjectPartlistPurchaseRequestTypeID === 8) acc.push(item);
       return acc;
     }, []);
+  }
+  //#endregion
+
+  //#region Lịch sử thao tác
+  openLogActivityModal() {
+    const selectedRows = this.getSelectedMasterRows();
+
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn một PO để sửa'
+      );
+      return;
+    }
+
+    const selectedPO = selectedRows[0];
+
+    let modalRef = this.modalService.open(ActivityLogPonccComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+      size: 'xl',
+    });
+
+    modalRef.componentInstance.ponccId = selectedPO.ID;
+    modalRef.componentInstance.ponccCode = selectedPO.POCode;
   }
   //#endregion
 }

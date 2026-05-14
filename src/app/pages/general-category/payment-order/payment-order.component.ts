@@ -11,7 +11,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { Fluid } from 'primeng/fluid';
 import { SplitterModule } from 'primeng/splitter';
-import { PaymentOrderService } from './payment-order.service';
+import { DownloadPaymentOrderDTO, PaymentOrderService } from './payment-order.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PaymentOrderDetailComponent } from './payment-order-detail/payment-order-detail.component';
 import {
@@ -185,6 +185,7 @@ export class PaymentOrderComponent implements OnInit {
     datasetFiles: any[] = [];
     datasetFileBankslip: any[] = [];
     datasetLog: any[] = [];
+    currentPaymentOrder: PaymentOrder | null = null;
 
     activeDetailTab = '0';
 
@@ -2908,8 +2909,14 @@ export class PaymentOrderComponent implements OnInit {
         })
     }
 
+    private getPaymentOrderFromCurrentDataset(id: number): PaymentOrder | null {
+        const dataSource = this.activeTab == '1' ? this.datasetSpecial : this.dataset;
+        return (dataSource.find((item: any) => Number(item.ID) === Number(id)) as PaymentOrder | undefined) ?? null;
+    }
+
     loadDetail(id: number) {
         // console.log('loadDetail id:', id);
+        this.currentPaymentOrder = this.getPaymentOrderFromCurrentDataset(id) ?? this.currentPaymentOrder;
         this.paymentService.getDetail(id).subscribe({
             next: (response) => {
                 // console.log('loadDetail response:', response);
@@ -3169,8 +3176,9 @@ export class PaymentOrderComponent implements OnInit {
         // however, we don't want to interfere with multiple row selection checkbox which is on 1st column cell
         if (args.cell !== 0) {
             this.gridData.setSelectedRows([args.row]);
-            const item = args.grid.getDataItem(args.row)
+            const item = args.grid.getDataItem(args.row) as PaymentOrder;
             // console.log('selected item:', item);
+            this.currentPaymentOrder = item;
             this.loadDetail(item.ID);
 
             this.defaultSizeSplit = '60%';
@@ -5256,6 +5264,82 @@ export class PaymentOrderComponent implements OnInit {
         }
     }
 
+    private buildServerFilePath(item: any): string {
+        const serverPath = String(item?.ServerPath || item?.FilePath || '').trim();
+        const fileName = String(item?.FileName || '').trim();
+
+        if (!serverPath) return '';
+        if (!fileName || serverPath.toLowerCase().endsWith(fileName.toLowerCase())) return serverPath;
+
+        const separator = serverPath.endsWith('\\') || serverPath.endsWith('/') ? '' : '\\';
+        return `${serverPath}${separator}${fileName}`;
+    }
+
+    private buildShareDownloadUrl(item: any): string {
+        const serverPath = String(item?.ServerPath || item?.FilePath || '').trim();
+        const fileName = String(item?.FileName || '').trim();
+
+        if (!serverPath) return '';
+
+        const host = environment.host + 'api/share';
+        const url = serverPath.replace("\\\\192.168.1.190", host);
+
+        if (!fileName || url.toLowerCase().endsWith(fileName.toLowerCase())) return url;
+        return `${url}/${fileName}`;
+    }
+
+    private sanitizeFileName(fileName: string): string {
+        return fileName.replace(/[\\/:*?"<>|]+/g, '_').trim() || 'PaymentOrder';
+    }
+
+    private saveBlob(blob: Blob, fileName: string): void {
+        const a = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
+
+        a.href = objectUrl;
+        a.download = fileName;
+        a.click();
+
+        URL.revokeObjectURL(objectUrl);
+    }
+
+    private downloadZipFileAttach(selectedItems: any[]): void {
+        const filePaths = selectedItems
+            .map((item: any) => this.buildServerFilePath(item))
+            .filter((path: string) => !!path);
+
+        if (filePaths.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Không tìm thấy đường dẫn file để tải!");
+            return;
+        }
+
+        const firstItem = selectedItems[0];
+        const paymentOrderCode = String(
+            firstItem?.PaymentOrderCode
+            || this.currentPaymentOrder?.Code
+            || firstItem?.Code
+            || 'PaymentOrder'
+        );
+        const payload: DownloadPaymentOrderDTO = {
+            PaymentOrderId: Number(firstItem?.PaymentOrderID || firstItem?.PaymentOrderId || this.currentPaymentOrder?.ID || 0),
+            PaymentOrderCode: paymentOrderCode,
+            FilePath: filePaths,
+        };
+
+        this.paymentService.downloadZip(payload).subscribe({
+            next: (blob: Blob) => {
+                const fileName = `${this.sanitizeFileName(paymentOrderCode)}_${DateTime.now().toFormat('yyyyMMddHHmmss')}.zip`;
+                this.saveBlob(blob, fileName);
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
+            },
+        });
+    }
+
     onDownloadFileAttach(e: Event, args: any, angularGrid: AngularGridInstance) {
         // console.log(args);
         if (this.isPriceRequest) return;
@@ -5263,25 +5347,29 @@ export class PaymentOrderComponent implements OnInit {
         if (selectedRows.length <= 0) selectedRows.push(args.row);
 
         let selectedItems = selectedRows
-            .map((i: any) => angularGrid.dataView?.getItem(i));
+            .map((i: any) => angularGrid.dataView?.getItem(i))
+            .filter((item: any) => !!item);
+
+        if (selectedItems.length <= 0) return;
+
+        if (selectedItems.length > 5) {
+            this.downloadZipFileAttach(selectedItems);
+            return;
+        }
 
         selectedItems.forEach((item: any) => {
-            const filePath = item?.ServerPath || '';
-            if (filePath) {
-                const host = environment.host + 'api/share';
-                let url = filePath.replace("\\\\192.168.1.190", host) + `/${item?.FileName}`;
+            const url = this.buildShareDownloadUrl(item);
+            if (!url) return;
 
-                this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
-                    const a = document.createElement('a');
-                    const objectUrl = URL.createObjectURL(blob);
-
-                    a.href = objectUrl;
-                    a.download = item?.FileName;
-                    a.click();
-
-                    URL.revokeObjectURL(objectUrl);
-                });
-            }
+            this.http.get(url, { responseType: 'blob' }).subscribe({
+                next: (blob: Blob) => this.saveBlob(blob, item?.FileName || 'download'),
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
+                },
+            });
         });
 
     }

@@ -61,6 +61,10 @@ export class PaymentOrderService {
         return this.http.post<any>(`${this.url}/update-totalmoney`, payment);
     }
 
+    downloadZip(file: DownloadPaymentOrderDTO): Observable<Blob> {
+        return this.http.post(`${this.url}/download-zip`, file, { responseType: 'blob' });
+    }
+
     uploadFile(files: File[], paymentOrderID: number, paymentOrderFileID: string): Observable<any> {
         const formData = new FormData();
         if (files) {
@@ -254,6 +258,12 @@ export interface CurrencyConfig {
     text: string;        // VND, USD (hiển thị combo)
     unit: string;        // đồng, đô la
     subUnit?: string;    // xu, cent...
+}
+
+export interface DownloadPaymentOrderDTO {
+    PaymentOrderId: number;
+    PaymentOrderCode: string;
+    FilePath: string[];
 }
 
 export const CURRENCY_CONFIGS: CurrencyConfig[] = [

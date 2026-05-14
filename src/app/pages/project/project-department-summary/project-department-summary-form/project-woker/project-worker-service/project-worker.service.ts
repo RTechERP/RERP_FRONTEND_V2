@@ -11,6 +11,7 @@ import { HttpParams } from '@angular/common/http';
 export class ProjectWorkerService {
   private _url = environment.host + 'api/';
   private _urlProjectWorker = this._url + 'projectworker/';
+  private _urlProjectTask = this._url + 'projecttask/';
   private _urlProjectWorkerVersion = this._url + 'projectwokervesion/';
   private _urlProjectSolution = this._url + 'projectsolution/';
   constructor(private http: HttpClient) { }
@@ -62,7 +63,7 @@ export class ProjectWorkerService {
   }
   //hàm get nhân công dự án 
   getProjectWorker(data: any): Observable<any> {
-    return this.http.post<any>(this._urlProjectWorker + 'get-project-worker' , data);
+    return this.http.post<any>(this._urlProjectWorker + 'get-project-worker', data);
   }
   //hàm save nhân công dự án (thêm/sửa) - theo API backend
   saveWorker(data: any): Observable<any> {
@@ -82,7 +83,7 @@ export class ProjectWorkerService {
     if (subPath && subPath.trim()) {
       formData.append('subPath', subPath.trim());
     }
-    return this.http.post<any>(this._url +`home/upload-multiple`, formData);
+    return this.http.post<any>(this._url + `home/upload-multiple`, formData);
   }
   //LƯU MẪU EXCEL
   downloadTemplate(fileName: string): Observable<Blob> {
@@ -122,6 +123,6 @@ export class ProjectWorkerService {
 
   // Tạo task từ nhân công
   createProjectWorkerTask(data: any): Observable<any> {
-    return this.http.post<any>(this._urlProjectWorker + 'create-project-worker-task', data);
+    return this.http.post<any>(this._urlProjectTask + 'project-worker', data);
   }
 }

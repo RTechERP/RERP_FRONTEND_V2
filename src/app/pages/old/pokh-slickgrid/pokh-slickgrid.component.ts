@@ -1385,6 +1385,12 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 command: 'price-request',
                 positionOrder: 62,
             },
+            {
+                iconCssClass: 'fas fa-eye',
+                title: 'Lịch sử thao tác',
+                command: 'log-activity',
+                positionOrder: 63,
+            },
         ];
     }
 
@@ -1412,6 +1418,9 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 break;
             case 'price-request':
                 this.openProjectPartlistPriceRequestNew();
+                break;
+            case 'log-activity':
+                this.openLogActivityModal();
                 break;
         }
     }
@@ -1781,6 +1790,11 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 label:
                     '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Danh sách yêu cầu báo giá</span>',
                 action: () => this.openProjectPartlistPriceRequestNew(),
+            },
+            {
+                label:
+                    '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Lịch sử thao tác</span>',
+                action: () => this.openLogActivityModal(),
             },
         ];
     }

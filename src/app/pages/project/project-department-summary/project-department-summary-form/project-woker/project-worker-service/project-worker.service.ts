@@ -104,15 +104,24 @@ export class ProjectWorkerService {
     };
     return this.http.post<any>(this._url + `projectworkerversion/approved-active`, requestBody);
   }
-  // Load ProjectHistoryProblem by projectID
-  getProjectHistoryProblem(projectID: number): Observable<any> {
-    const params = new HttpParams().set('projectID', projectID.toString());
-    return this.http.get<any>(this._urlProjectWorkerVersion + 'get-project-history-problem-by-project', { params });
+
+  // Lấy phát sinh đã link
+  getProjectHistoryProblemLinked(projectWorkerVersionID: number): Observable<any> {
+    return this.http.get<any>(this._urlProjectWorkerVersion + `get-project-history-problem-linked?projectWorkerVersionID=${projectWorkerVersionID}`);
   }
 
-  // Load linked ProjectHistoryProblem
-  getProjectHistoryProblemLinked(projectWorkerVersionID: number): Observable<any> {
-    const params = new HttpParams().set('projectWorkerVersionID', projectWorkerVersionID.toString());
-    return this.http.get<any>(this._urlProjectWorkerVersion + 'get-project-history-problem-linked', { params });
+  // Lấy danh sách phát sinh theo dự án
+  getProjectHistoryProblem(projectId: number): Observable<any> {
+    return this.http.get<any>(this._urlProjectWorker + `get-project-history-problem?projectID=${projectId}`);
+  }
+
+  // Get all project cho task
+  getAllProjectTask(): Observable<any> {
+    return this.http.get<any>(this._urlProjectSolution + 'get-all-project');
+  }
+
+  // Tạo task từ nhân công
+  createProjectWorkerTask(data: any): Observable<any> {
+    return this.http.post<any>(this._urlProjectWorker + 'create-project-worker-task', data);
   }
 }

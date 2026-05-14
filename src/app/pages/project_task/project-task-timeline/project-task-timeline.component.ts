@@ -86,7 +86,8 @@ export class ProjectTaskTimelineComponent implements OnInit {
     { label: 'Chưa làm', value: 0 },
     { label: 'Đang làm', value: 1 },
     { label: 'Hoàn thành', value: 2 },
-    { label: 'Pending', value: 3 }
+    { label: 'Pending', value: 3 },
+    { label: 'Hủy', value: 4 }
   ];
 
   ngOnInit() {
@@ -213,6 +214,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
         projectMap.set(projectKey, {
           ProjectCode: projectCode,
           ProjectName: projectName,
+          ProjectStatusName: (item as any)['ProjectStatusName'] || '',
           tasksMap: new Map<number, any>()
         });
       }
@@ -229,8 +231,8 @@ export class ProjectTaskTimelineComponent implements OnInit {
           ProjectTaskParentTitle: item['ProjectTaskParentTitle'] || '',
           Status: item['Status'],
           StatusName: this.getStatusName(item['Status']),
-          planned: { TypeDate: 1, SumTotalHour: 0 },
-          actual: { TypeDate: 2, SumTotalHour: 0 }
+          planned: { TypeDate: 1, SumTotalHour: null, DurationDays: null },
+          actual: { TypeDate: 2, SumTotalHour: null, DurationDays: null }
         });
       }
 
@@ -239,8 +241,10 @@ export class ProjectTaskTimelineComponent implements OnInit {
       // Tổng hợp dữ liệu theo ngày
       const targetRow = item['TypeDate'] === 1 ? taskEntry.planned : taskEntry.actual;
       
-      // Cộng dồn SumTotalHour
-      targetRow.SumTotalHour = (targetRow.SumTotalHour || 0) + (item['SumTotalHour'] || 0);
+      if (item['SumTotalHour'] != null) {
+        targetRow.SumTotalHour = (targetRow.SumTotalHour || 0) + item['SumTotalHour'];
+      }
+      if (item['DurationDays'] != null) targetRow.DurationDays = item['DurationDays'];
       
       // Cộng dồn các ô ngày
       Object.keys(item).forEach(key => {
@@ -296,7 +300,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
       case 1: return 'Đang làm';
       case 2: return 'Hoàn thành';
       case 3: return 'Pending';
-      case 4: return 'Quá hạn';
+      case 4: return 'Hủy';
       default: return 'N/A';
     }
   }
@@ -463,7 +467,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
       { header: 'Mã Công Việc', field: 'Code', width: 20 },
       { header: 'Tên Công Việc', field: 'Title', width: 40 },
       { header: 'Trạng Thái', field: 'StatusName', width: 15 },
-      { header: 'T.Gian (h)', field: 'TotalHours', width: 10 },
+      { header: 'T.Gian\n(giờ/ngày)', field: 'TotalHours', width: 15 },
       { header: 'Loại', field: 'TypeLabel', width: 12 }
     ];
 
@@ -504,7 +508,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
           Code: task.ProjectTaskCode,
           Title: task.ProjectTaskTitle,
           StatusName: task.StatusName,
-          TotalHours: this.calculateRowTime(task.rows[0]),
+          TotalHours: '(' + (task.rows[0].SumTotalHour != null ? task.rows[0].SumTotalHour : 0) + ' / ' + (task.rows[0].DurationDays != null ? task.rows[0].DurationDays : 0) + ')',
           TypeLabel: 'Dự kiến'
         });
 
@@ -517,7 +521,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
           Code: task.ProjectTaskCode,
           Title: task.ProjectTaskTitle,
           StatusName: task.StatusName,
-          TotalHours: this.calculateRowTime(task.rows[1]),
+          TotalHours: '(' + (task.rows[1].SumTotalHour != null ? task.rows[1].SumTotalHour : 0) + ' / ' + (task.rows[1].DurationDays != null ? task.rows[1].DurationDays : 0) + ')',
           TypeLabel: 'Thực tế'
         });
 

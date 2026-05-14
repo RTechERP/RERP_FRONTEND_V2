@@ -99,7 +99,8 @@ export class TaskDetailComponent implements OnInit {
         { value: 0, label: 'Chưa làm', color: '#8c8c8c', icon: 'minus-circle' },
         { value: 1, label: 'Đang làm', color: '#1890ff', icon: 'sync' },
         { value: 2, label: 'Hoàn thành', color: '#52c41a', icon: 'check-circle' },
-        { value: 3, label: 'Pending', color: '#faad14', icon: 'clock-circle' }
+        { value: 3, label: 'Pending', color: '#faad14', icon: 'clock-circle' },
+        { value: 4, label: 'Hủy', color: '#ff4d4f', icon: 'close-circle' }
     ];
 
     priority: number = 1;
@@ -161,9 +162,9 @@ export class TaskDetailComponent implements OnInit {
             end.setHours(0, 0, 0, 0);
             const diff = end.getTime() - start.getTime();
             const days = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
-            return days > 0 ? days * 24 : 1000;
+            return days > 0 ? days * 24 : 10000;
         }
-        return 1000;
+        return 10000;
     }
 
     // ===== String bridge cho input[type=date] (khong sua logic) =====
@@ -233,6 +234,14 @@ export class TaskDetailComponent implements OnInit {
     set planEndDateStr(val: string) {
         const d = this.parseInputDate(val);
         this.planEndDate = d;
+        
+        // AUTO-FILL DEADLINE:
+        // 1. Khi chưa có deadline (this.deadline là null/undefined)
+        // 2. Và có giá trị ngày kết thúc dự kiến mới (d không null)
+        if (!this.deadline && d) {
+            this.deadline = new Date(d);
+        }
+
         this.validateDates();
         this.updateEstimatedTime();
     }
@@ -347,6 +356,7 @@ export class TaskDetailComponent implements OnInit {
         this._validateAndApplyStatus(status, oldStatus);
     }
 
+    targetStatus: number | null = null;
     private _validateAndApplyStatus(status: number, oldStatus: number): void {
         if (status === 2 && this.checklists.length > 0 && this.completedChecklists < this.checklists.length) {
             this.message.error('Vui lòng hoàn thành tất cả checklist trước khi đặt trạng thái Hoàn thành');
@@ -364,10 +374,18 @@ export class TaskDetailComponent implements OnInit {
         }
 
         if (status === 3 && this.isUpdateMode) {
+            this.targetStatus = 3;
             this.showPendingReasonModal(oldStatus);
             return;
         }
 
+        if (status === 4 && this.isUpdateMode) {
+            this.targetStatus = 4;
+            this.showCancelReasonModal(oldStatus);
+            return;
+        }
+
+        this.targetStatus = null;
         this.taskStatus = status;
         this.previousStatus = status;
         if (status === 2) {
@@ -379,6 +397,59 @@ export class TaskDetailComponent implements OnInit {
             this.endDate = undefined;
             this.endTime = undefined;
         }
+    }
+
+    showCancelReasonModal(oldStatus: number): void {
+        this.pendingReasonText = '';
+        const modal = this.modalService.create({
+            nzTitle: 'Nhập lý do Hủy công việc',
+            nzContent: this.pendingReasonTpl,
+            nzFooter: [
+                {
+                    label: 'Quay lại',
+                    onClick: () => {
+                        this.taskStatus = oldStatus;
+                        this.previousStatus = oldStatus;
+                        modal.destroy();
+                    }
+                },
+                {
+                    label: 'Xác nhận Hủy',
+                    type: 'primary',
+                    nzDanger: true,
+                    disabled: (content) => !(this.pendingReasonText || '').trim(),
+                    onClick: () => {
+                        const reason = (this.pendingReasonText || '').trim();
+                        if (reason) {
+                            const tempId = this._tempAdditionalIdCounter--;
+                            const newItem: IProjectTaskAdditional = {
+                                ID: tempId,
+                                Description: `[Lý do Hủy]: ${reason}`,
+                                CreatedDate: new Date(),
+                                CreatedBy: this.appUserService.fullName || 'User'
+                            };
+
+                            this.additionals = [...this.additionals, newItem];
+                            this.pendingAdditionalOps.push({ type: 'add', item: newItem });
+                            this.isAdditional = true;
+
+                            this.taskStatus = 4;
+                            this.previousStatus = 4;
+                            
+                            // Hủy → xóa ngày KT thực tế nếu có
+                            this.endDate = undefined;
+                            this.endTime = undefined;
+                            
+                            modal.destroy();
+                            this.cdr.detectChanges();
+                            this.message.warning('Công việc đã được chuyển sang trạng thái Hủy');
+                        }
+                    }
+                }
+            ],
+            nzMaskClosable: false,
+            nzClosable: false
+        });
     }
 
     @ViewChild('pendingReasonTpl') pendingReasonTpl!: TemplateRef<any>;
@@ -449,6 +520,7 @@ export class TaskDetailComponent implements OnInit {
     employees: any[] = [];
     assigneeSearchText: string = '';
     relatedSearchText: string = '';
+    assignerSearchText: string = '';
     mainSearchText: string = '';
 
     // Popover visibility flags
@@ -463,14 +535,43 @@ export class TaskDetailComponent implements OnInit {
     _filteredEmployees: any[] = [];
     _filteredAssigneeEmployees: any[] = [];
     _filteredRelatedEmployees: any[] = [];
+    _filteredPopAssignerEmployees: any[] = [];
 
     // Người giao việc (Assigner)
     assignerId?: number;
+    projectTaskLeaders: any[] = [];
+    hadOriginalDeadline: boolean = false;
 
     // Check if current user can edit plan dates (default start/end)
     get canEditPlanDates(): boolean {
         if (this.isCreateMode) return true;
-        return this.appUserService.employeeID === this.assignerId;
+        const currentEmployeeId = this.appUserService.employeeID;
+        return currentEmployeeId === this.originalAssignerId;
+    }
+
+    // Check if current user can edit deadline
+    get canEditDeadline(): boolean {
+        // 1. Khi tạo công việc mới: Ai cũng có quyền sửa deadline
+        if (this.isCreateMode) return true;
+
+        const currentEmployeeId = this.appUserService.employeeID;
+        if (currentEmployeeId === undefined || currentEmployeeId === null) return false;
+
+        // 2. Người giao việc: Luôn có quyền sửa deadline
+        if (currentEmployeeId === this.originalAssignerId) return true;
+
+        // 3. Leader của người thực hiện công việc (từ API project-task-leaders)
+        const isLeader = this.projectTaskLeaders.some(leader => leader.LeaderID === currentEmployeeId);
+        if (isLeader) return true;
+
+        // 4. Người thực hiện: 
+        // - Chỉ được sửa nếu trạng thái là "Chưa làm" (0) 
+        // - VÀ ban đầu công việc này chưa có Deadline (hadOriginalDeadline = false)
+        const isAssignee = this.assigneeIds.includes(currentEmployeeId);
+        if (isAssignee && this.taskStatus === 0 && !this.hadOriginalDeadline) return true;
+
+        // Các trường hợp khác: KHÔNG được sửa
+        return false;
     }
 
     get isReadOnly(): boolean {
@@ -788,9 +889,9 @@ export class TaskDetailComponent implements OnInit {
 
     // Update all filtered lists - call this whenever source data changes
     updateFilteredLists(): void {
-        // Main content popover list
-        if (this.mainSearchText) {
-            const s = this.mainSearchText.toLowerCase();
+        // Popover "Người thực hiện"
+        if (this.assigneeSearchText) {
+            const s = this.assigneeSearchText.toLowerCase();
             this._filteredEmployees = this.employees.filter(emp =>
                 emp.FullName?.toLowerCase().includes(s) ||
                 emp.DepartmentName?.toLowerCase().includes(s) ||
@@ -798,6 +899,18 @@ export class TaskDetailComponent implements OnInit {
             );
         } else {
             this._filteredEmployees = this.employees;
+        }
+
+        // Popover "Người giao việc"
+        if (this.assignerSearchText) {
+            const s = this.assignerSearchText.toLowerCase();
+            this._filteredPopAssignerEmployees = this.employees.filter(emp =>
+                emp.FullName?.toLowerCase().includes(s) ||
+                emp.DepartmentName?.toLowerCase().includes(s) ||
+                emp.Code?.toLowerCase().includes(s)
+            );
+        } else {
+            this._filteredPopAssignerEmployees = this.employees;
         }
 
         // Assignee tab list
@@ -1180,7 +1293,7 @@ export class TaskDetailComponent implements OnInit {
     }
 
     // Tính toán tổng thời gian (chỉ tính ngày, dựa trên PlanStartDate/PlanEndDate)
-    updateEstimatedTime(): void {
+    updateEstimatedTime(isInitial: boolean = false): void {
         if (this.planStartDate && this.planEndDate) {
             const start = new Date(this.planStartDate);
             start.setHours(0, 0, 0, 0);
@@ -1192,7 +1305,13 @@ export class TaskDetailComponent implements OnInit {
             
             if (days > 0) {
                 this.estimatedTime = `${days} ngày`;
-                this.estimatedTimeHours = days * 8;
+                
+                // Nếu là khởi tạo và đã có giá trị từ API (>0) thì không ghi đè
+                if (isInitial && this.estimatedTimeHours && this.estimatedTimeHours > 0) {
+                    // Giữ nguyên giá trị từ API
+                } else {
+                    this.estimatedTimeHours = days * 8;
+                }
             } else {
                 this.estimatedTime = '';
                 this.estimatedTimeHours = null;
@@ -1838,10 +1957,16 @@ export class TaskDetailComponent implements OnInit {
             if (this.isUpdateMode) {
                 if (activeTask.PlanStartDate) this.planStartDate = new Date(activeTask.PlanStartDate);
                 if (activeTask.PlanEndDate) this.planEndDate = new Date(activeTask.PlanEndDate);
-                if (activeTask.Deadline) this.deadline = new Date(activeTask.Deadline);
+                if (activeTask.Deadline) {
+                    this.deadline = new Date(activeTask.Deadline);
+                    this.hadOriginalDeadline = true;
+                } else {
+                    this.hadOriginalDeadline = false;
+                }
                 this.descriptionSolution = activeTask.DescriptionSolution || '';
                 this.needApprove = activeTask.NeedApprove !== undefined && activeTask.NeedApprove !== null ? activeTask.NeedApprove : true;
             } else {
+                this.hadOriginalDeadline = false;
                 this.needApprove = true;
             }
 
@@ -1862,12 +1987,13 @@ export class TaskDetailComponent implements OnInit {
                 this.assigneeIds = [activeTask.AssignedToEmployeeID];
             }
             if (this.planStartDate && this.planEndDate) {
-                this.updateEstimatedTime();
+                this.updateEstimatedTime(true);
             }
 
             this.loadAllProjects();
 
             if (this.isUpdateMode) {
+                this.loadProjectTaskLeaders(activeTask.ID);
                 // ── Fix #1: forkJoin để đảm bảo employees luôn có trước khi updateFilteredLists ──
                 forkJoin({
                     employees: this.kanbanService.getEmployees(),
@@ -1922,7 +2048,7 @@ export class TaskDetailComponent implements OnInit {
                 if (copySource._copyAssigneeIds?.length) this.assigneeIds = [...copySource._copyAssigneeIds];
                 if (copySource._copyRelatedPeopleIds?.length) this.relatedPeopleIds = [...copySource._copyRelatedPeopleIds];
 
-                this.updateEstimatedTime();
+                this.updateEstimatedTime(true);
                 this.loadProjectTaskTypes();
 
                 // Load employees cho COPY mode (chỉ cần getEmployees)
@@ -2416,6 +2542,10 @@ export class TaskDetailComponent implements OnInit {
             this.message.error('Vui lòng chọn loại công việc cho công việc con');
             return;
         }
+        if (this.selectedProjectId && !this.newChildTask.TypeProjectItem) {
+            this.message.error('Vui lòng chọn loại hạng mục công việc cho công việc con');
+            return;
+        }
 
 
         if (this.newChildTask.PlanStartDate && this.newChildTask.PlanEndDate) {
@@ -2499,10 +2629,17 @@ export class TaskDetailComponent implements OnInit {
             }
         });
 
-        return forkJoin(calls);
+        return from(calls).pipe(
+            concatMap(call => call),
+            toArray()
+        );
     }
 
     save() {
+        if (this.isReadOnly) {
+            this.message.error('Bạn không có quyền sửa công việc này.');
+            return;
+        }
         const activeTask = this.currentTaskData || this.task;
         if (!activeTask) return;
 
@@ -2511,8 +2648,8 @@ export class TaskDetailComponent implements OnInit {
             this.message.error('Vui lòng nhập tên công việc');
             return;
         }
-        if (mission.length > 150) {
-            this.message.error('Tên công việc không được quá 150 ký tự');
+        if (this.selectedProjectId && !this.selectedTypeProjectItemId) {
+            this.message.error('Vui lòng chọn loại hạng mục công việc khi đã chọn dự án');
             return;
         }
         if (!this.assignerId) {
@@ -2538,8 +2675,8 @@ export class TaskDetailComponent implements OnInit {
             this.message.error(this.dateValidationError);
             return;
         }
-        if (this.estimatedTimeHours && this.estimatedTimeHours > 1000) {
-            this.message.error('Thời gian dự kiến không được quá 1000 giờ');
+        if (this.estimatedTimeHours && this.estimatedTimeHours > 10000) {
+            this.message.error('Thời gian dự kiến không được quá 10000 giờ');
             return;
         }
 
@@ -2693,13 +2830,13 @@ export class TaskDetailComponent implements OnInit {
     }
 
     saveNewTask(stayOpen: boolean = false): void {
+        if (this.isReadOnly) {
+            this.message.error('Bạn không có quyền thêm công việc mới.');
+            return;
+        }
         // Validation
         if (!this.title || !this.title.trim()) {
             this.message.error('Vui lòng nhập tên công việc');
-            return;
-        }
-        if (this.title.length > 150) {
-            this.message.error('Tên công việc không được quá 150 ký tự');
             return;
         }
         if (!this.assignerId) {
@@ -2708,6 +2845,10 @@ export class TaskDetailComponent implements OnInit {
         }
         if (!this.selectedTaskTypeId) {
             this.message.error('Vui lòng chọn loại công việc');
+            return;
+        }
+        if (this.selectedProjectId && !this.selectedTypeProjectItemId) {
+            this.message.error('Vui lòng chọn loại hạng mục công việc khi đã chọn dự án');
             return;
         }
 
@@ -2726,8 +2867,8 @@ export class TaskDetailComponent implements OnInit {
             this.message.error(this.dateValidationError);
             return;
         }
-        if (this.estimatedTimeHours && this.estimatedTimeHours > 1000) {
-            this.message.error('Thời gian dự kiến không được quá 1000 giờ');
+        if (this.estimatedTimeHours && this.estimatedTimeHours > 10000) {
+            this.message.error('Thời gian dự kiến không được quá 10000 giờ');
             return;
         }
 
@@ -2780,6 +2921,7 @@ export class TaskDetailComponent implements OnInit {
                     ProjectID: this.selectedProjectId,
                     IsPersonalProject: this.isPersonalProject,
                     Priority: 1,
+                    EstimatedTime: (this.estimatedTimeHours === null || this.estimatedTimeHours === undefined || this.estimatedTimeHours as any === '') ? null : this.estimatedTimeHours,
                     Status: this.taskStatus,
                     TypeProjectItem: this.selectedTypeProjectItemId,
                     ProjectTaskTypeID: this.selectedTaskTypeId,
@@ -2968,7 +3110,7 @@ export class TaskDetailComponent implements OnInit {
 
     // UPDATE mode - Add checklist with ProjectTaskID
     addChecklistItemUpdate(): void {
-        const activeTask = this.currentTaskData || this.task;
+            const activeTask = this.currentTaskData || this.task;
         if (!this.newChecklistItem.trim() || !activeTask?.ID) return;
 
         const newItem: Partial<IProjectTaskChecklist> = {
@@ -3045,6 +3187,18 @@ export class TaskDetailComponent implements OnInit {
                 this.updateFilteredLists();
                 this.cdr.detectChanges();
             }
+        });
+    }
+
+    loadProjectTaskLeaders(taskId: number): void {
+        this.kanbanService.getProjectTaskLeaders(taskId).subscribe({
+            next: (res) => {
+                if (res.status === 1) {
+                    this.projectTaskLeaders = res.data?.result || [];
+                    this.cdr.detectChanges();
+                }
+            },
+            error: (err) => console.error('Error fetching task leaders', err)
         });
     }
 }

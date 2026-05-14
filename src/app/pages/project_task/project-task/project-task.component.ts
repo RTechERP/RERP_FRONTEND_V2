@@ -10,6 +10,7 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzRateModule } from 'ng-zorro-antd/rate';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { forkJoin, Subscription } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -17,6 +18,7 @@ import { KanbanService } from '../kanban/kanban.service';
 import { ImportExcelProjectTaskComponent } from '../import-excel-project-task/import-excel-project-task.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
+import { ProjectTaskPojectWorkerComponent } from '../project-task-poject-worker/project-task-poject-worker.component';
 
 import { ButtonModule } from 'primeng/button';
 import { Table, TableModule } from 'primeng/table';
@@ -47,6 +49,7 @@ type TabType = 'all' | 'assigned' | 'related' | 'myApproval';
     NzRateModule,
     NzSwitchModule,
     NzDrawerModule,
+    NzDropDownModule,
 
     ButtonModule,
     TableModule,
@@ -189,7 +192,8 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
       21: 6, // Hoàn thành quá hạn
       2: 7,  // Hoàn thành
       22: 8, // Đã duyệt
-      23: 9  // Đã hủy duyệt
+      23: 9, // Đã hủy duyệt
+      4: 10  // Hủy
     };
 
     tasks.sort((data1: any, data2: any) => {
@@ -261,6 +265,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
     { label: 'Hoàn thành quá hạn', value: 21 },
     { label: 'Đã duyệt', value: 22 },
     { label: 'Đã hủy duyệt', value: 23 },
+    { label: 'Hủy', value: 4 },
     { label: 'Pending', value: 3 }
   ];
 
@@ -514,6 +519,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
 
   fetchDataForTab(tab: TabType) {
     this.loading.set(true);
+    this.cdr.detectChanges();
     const [start, end] = this.getFormattedDateRange();
     const viewNumber = this.viewNumberMap[tab];
 
@@ -538,7 +544,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
           })
           .map((t: any) => ({
             ...t,
-            ProjectFullName: `${t.ProjectCode || ''} - ${t.ProjectName || ''}`,
+            ProjectFullName: `${t.ProjectCode || ''}${t.ProjectStatusName ? ' (' + t.ProjectStatusName + ')' : ''} - ${t.ProjectName || ''}`,
             ProjectSearchText: `${t.ProjectCode || ''} ${t.ProjectName || ''}`,
             TaskSearchText: `${t.Code || ''} ${t.Mission || ''} ${t.ParentCode || ''} ${t.ParentTitle || ''}`,
             ParentSearchText: `${t.ParentCode || ''} ${t.ParentTitle || ''}`,
@@ -566,22 +572,29 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
           this.buildFilterOptions(finalTasks);
         }
         this.loading.set(false);
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error loading tasks:', err);
         this.loading.set(false);
+        this.cdr.detectChanges();
         this.message.error('Không thể tải danh sách công việc');
       }
     });
   }
 
   private buildFilterOptions(tasks: any[]): void {
-    // Dự án: chỉ hiện mã
-    const projectSet = new Set<string>();
-    tasks.forEach(t => { if (t.ProjectCode) projectSet.add(t.ProjectCode); });
-    this.projectOptions = Array.from(projectSet)
-      .sort()
-      .map(code => ({ label: code, value: code }));
+    // Dự án: hiện mã kèm trạng thái
+    const projectMap = new Map<string, string>();
+    tasks.forEach(t => {
+      if (t.ProjectCode) {
+        const label = t.ProjectStatusName ? `${t.ProjectCode} (${t.ProjectStatusName})` : t.ProjectCode;
+        projectMap.set(t.ProjectCode, label);
+      }
+    });
+    this.projectOptions = Array.from(projectMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([code, label]) => ({ label, value: code }));
 
     // Người giao việc
     const assignerSet = new Set<string>();
@@ -668,6 +681,8 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
     if (task.Status === 1) return 1;
     // Pending
     if (task.Status === 3) return 3;
+    // Hủy
+    if (task.Status === 4) return 4;
     // Chưa làm
     if (task.Status === 0 && isOverdue) return 10;
     return 0;
@@ -729,6 +744,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
       case 22: return { label: 'Đã duyệt', severity: 'success' };
       case 23: return { label: 'Đã hủy duyệt', severity: 'danger' };
       case 3: return { label: 'Pending', severity: 'warn' };
+      case 4: return { label: 'Hủy', severity: 'contrast' };
       default: return { label: 'Chưa xác định', severity: 'secondary' };
     }
   }
@@ -1308,6 +1324,15 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
       error: () => {
         this.message.error('Lỗi khi gửi yêu cầu điểm danh');
       }
+    });
+  }
+
+  goToProjectWorker(): void {
+    this.tabService.openTabComp({
+      comp: ProjectTaskPojectWorkerComponent,
+      title: 'Thêm danh sách công việc',
+      key: 'project-task-poject-worker',
+      data: {}
     });
   }
 

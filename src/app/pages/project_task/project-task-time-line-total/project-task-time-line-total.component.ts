@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -25,6 +25,7 @@ import { ProjectService } from '../../project/project-service/project.service';
 import { Router } from '@angular/router';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
+import { ProjectTaskTimeLineAllProjectComponent } from '../project-task-time-line-all-project/project-task-time-line-all-project.component';
 
 @Component({
   selector: 'app-project-task-time-line-total',
@@ -42,7 +43,8 @@ import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component
     MultiSelectModule
   ],
   templateUrl: './project-task-time-line-total.component.html',
-  styleUrl: './project-task-time-line-total.component.css'
+  styleUrl: './project-task-time-line-total.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProjectTaskTimeLineTotalComponent implements OnInit {
   private timelineService = inject(ProjectTaskTimeLineTotalService);
@@ -57,6 +59,13 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   private tabService = inject(TabServiceService);
 
   isOpeningDetail = false;
+
+  // ===== Context Menu =====
+  contextMenuVisible = false;
+  contextMenuX = 0;
+  contextMenuY = 0;
+  contextMenuFocusTaskId: number = 0;
+  contextMenuProject: any = null;
 
   // ===== Bộ tìm kiếm =====
   dateStart: string = this.getDefaultDateStart();
@@ -89,15 +98,16 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     { label: 'Chưa làm', value: 0 },
     { label: 'Đang làm', value: 1 },
     { label: 'Hoàn thành', value: 2 },
-    { label: 'Pending', value: 3 }
+    { label: 'Pending', value: 3 },
+    { label: 'Hủy', value: 4 }
   ];
 
   // ===== LIFECYCLE =====
 
   ngOnInit() {
     this.departmentId = this.appUserService.departmentID || 0;
-    this.teamId = this.appUserService.currentUser?.TeamOfUser || 0;
-    this.userId = this.appUserService.id || 0;
+    this.teamId = 0; // Mặc định tất cả
+    this.userId = 0; // Mặc định tất cả
 
     this.loadDepartments();
     this.loadProjects();
@@ -210,6 +220,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     if (this.departmentId > 0) {
       this.loadTeamsByDepartment(this.departmentId);
     }
+    this.loadTimeline();
   }
 
   onTeamChange(): void {
@@ -219,6 +230,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     } else {
       this.loadEmployees();
     }
+    this.loadTimeline();
   }
 
   resetSearch(): void {
@@ -248,7 +260,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     if (!this.dateStart || !this.dateEnd) return;
 
     this.loading.set(true);
-    
+
     // Nhường luồng để Angular kịp render biểu tượng loading trước khi tính toán nặng
     setTimeout(() => {
       const startDate = new Date(this.dateStart);
@@ -347,8 +359,10 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
       if (!empRecord.projectsMap.has(projectKey)) {
         empRecord.projectsMap.set(projectKey, {
+          ProjectID: item.ProjectID,
           ProjectCode: item.ProjectCode || '',
           ProjectName: item.ProjectName || '',
+          ProjectStatusName: (item as any).ProjectStatusName || '',
           tasksMap: new Map<number, any>()
         });
       }
@@ -364,7 +378,8 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
           ProjectTaskParentCode: item.ProjectTaskParentCode || '',
           ProjectTaskParentTitle: item.ProjectTaskParentTitle || '',
           Status: item.Status,
-          StatusName: this.getStatusName(item.Status),
+          isOverdue: this.isTaskOverdue(item),
+          StatusName: this.getStatusDisplayName(item),
           planned: null,
           actual: null
         });
@@ -380,8 +395,10 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       employeeId: emp.employeeId,
       FullName: emp.FullName,
       projects: Array.from(emp.projectsMap.values()).map((p: any) => ({
+        ProjectID: p.ProjectID,
         ProjectCode: p.ProjectCode,
         ProjectName: p.ProjectName,
+        ProjectStatusName: p.ProjectStatusName,
         tasks: Array.from(p.tasksMap.values()).map((t: any) => ({
           ...t,
           rows: [
@@ -488,6 +505,42 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   }
 
   // ===== TRẠNG THÁI =====
+  
+  private isTaskOverdue(task: any): boolean {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
+    if (planEnd) planEnd.setHours(0, 0, 0, 0);
+
+    const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
+    if (dueDate) dueDate.setHours(0, 0, 0, 0);
+
+    // Nếu đã hoàn thành (Status 2): quá hạn nếu ngày thực tế > ngày dự kiến
+    if (task.Status === 2) {
+      return !!(dueDate && planEnd && dueDate > planEnd);
+    }
+    
+    // Nếu chưa hoàn thành (Status 0, 1): quá hạn nếu ngày hiện tại > ngày dự kiến
+    if (task.Status === 0 || task.Status === 1) {
+      return !!(planEnd && planEnd < now);
+    }
+
+    return false;
+  }
+
+  getStatusDisplayName(task: any): string {
+    const isOverdue = this.isTaskOverdue(task);
+    const baseName = this.getStatusName(task.Status);
+    
+    if (isOverdue) {
+      if (task.Status === 0) return 'Chưa làm quá hạn';
+      if (task.Status === 1) return 'Đang làm quá hạn';
+      if (task.Status === 2) return 'Hoàn thành quá hạn';
+    }
+    
+    return baseName;
+  }
 
   getStatusName(status: number): string {
     switch (status) {
@@ -495,7 +548,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       case 1: return 'Đang làm';
       case 2: return 'Hoàn thành';
       case 3: return 'Pending';
-      case 4: return 'Quá hạn';
+      case 4: return 'Hủy';
       default: return '';
     }
   }
@@ -525,7 +578,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       console.error('Task ID not found', task);
       return;
     }
-    
+
     const taskCode = task?.ProjectTaskCode || task?.Code || `Task-${taskId}`;
     this.tabService.openTabComp({
       comp: TaskDetailComponent,
@@ -533,5 +586,65 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       key: `project-task-detail-${taskId}`,
       data: { id: taskId }
     });
+  }
+
+  // ===== CONTEXT MENU =====
+
+  onContextMenu(event: MouseEvent, project: any, focusId: number): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.contextMenuProject = project;
+    this.contextMenuFocusTaskId = focusId;
+    this.contextMenuX = event.clientX;
+    this.contextMenuY = event.clientY;
+    this.contextMenuVisible = true;
+  }
+
+  closeContextMenu(): void {
+    this.contextMenuVisible = false;
+  }
+
+  openProjectReport(): void {
+    this.closeContextMenu();
+    const project = this.contextMenuProject;
+    if (!project?.ProjectID) {
+      this.message.warning('Không tìm thấy thông tin dự án');
+      return;
+    }
+
+    const focusTaskId = this.contextMenuFocusTaskId || 0;
+
+    this.tabService.openTabComp({
+      comp: ProjectTaskTimeLineAllProjectComponent,
+      title: project.ProjectCode || 'Báo cáo DA',
+      key: `project-task-all-project-${project.ProjectID}`,
+      data: {
+        projectId: project.ProjectID,
+        projectCode: project.ProjectCode,
+        projectName: project.ProjectName,
+        focusTaskId: focusTaskId
+      }
+    });
+  }
+  // ===== TRACK BY FUNCTIONS FOR OPTIMIZATION =====
+
+  trackByGroup(index: number, group: any): any {
+    return group.employeeId;
+  }
+
+  trackByProject(index: number, project: any): any {
+    return project.ProjectID;
+  }
+
+  trackByTask(index: number, task: any): any {
+    return task.ProjectTaskID;
+  }
+
+  trackByRow(index: number, row: any): any {
+    return row.TypeDate;
+  }
+
+  trackByColumn(index: number, col: any): any {
+    return col.dateStr;
   }
 }

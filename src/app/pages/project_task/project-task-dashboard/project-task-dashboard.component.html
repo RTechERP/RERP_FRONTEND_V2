@@ -63,7 +63,7 @@
                 <div class="value">{{ stats()?.completed }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(31, 'Hoàn thành quá hạn')">
+        <div class="stat-card" (click)="viewStatusDetail(21, 'Hoàn thành quá hạn')">
             <div class="stat-icon bg-amber-soft">
                 <i nz-icon nzType="history" nzTheme="outline"></i>
             </div>
@@ -72,7 +72,7 @@
                 <div class="value">{{ stats()?.completedOverdue }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(32, 'Đã duyệt')">
+        <div class="stat-card" (click)="viewStatusDetail(22, 'Đã duyệt')">
             <div class="stat-icon bg-audit-soft">
                 <i nz-icon nzType="file-done" nzTheme="outline"></i>
             </div>
@@ -81,7 +81,7 @@
                 <div class="value">{{ stats()?.approved }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(33, 'Đã hủy duyệt')">
+        <div class="stat-card" (click)="viewStatusDetail(23, 'Đã hủy duyệt')">
             <div class="stat-icon bg-slate-soft">
                 <i nz-icon nzType="close-circle" nzTheme="outline"></i>
             </div>
@@ -90,13 +90,22 @@
                 <div class="value">{{ stats()?.rejected }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(4, 'Pending')">
+        <div class="stat-card" (click)="viewStatusDetail(3, 'Pending')">
             <div class="stat-icon bg-orange-soft">
                 <i nz-icon nzType="pause-circle" nzTheme="outline"></i>
             </div>
             <div class="stat-info">
                 <div class="label">Pending</div>
                 <div class="value">{{ stats()?.pending }}</div>
+            </div>
+        </div>
+        <div class="stat-card" (click)="viewStatusDetail(4, 'Hủy')">
+            <div class="stat-icon bg-rose-soft">
+                <i nz-icon nzType="stop" nzTheme="outline"></i>
+            </div>
+            <div class="stat-info">
+                <div class="label">Hủy</div>
+                <div class="value">{{ stats()?.cancel }}</div>
             </div>
         </div>
         <div class="stat-card" (click)="viewStatusDetail(0, 'Chờ phê duyệt')">

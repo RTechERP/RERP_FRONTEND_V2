@@ -83,7 +83,8 @@ export class ProjectTaskStatusComponent implements OnInit {
     { label: 'Đang làm (hết hạn)', value: 11 },
     { label: 'Hoàn thành', value: 2 },
     { label: 'Hoàn thành (quá hạn)', value: 21 },
-    { label: 'Pending', value: 3 }
+    { label: 'Pending', value: 3 },
+    { label: 'Hủy', value: 4 }
   ];
 
   // ===== Column filter (manual) =====
@@ -285,6 +286,7 @@ export class ProjectTaskStatusComponent implements OnInit {
             case 2: return item.Done > 0;
             case 21: return item.DoneLate > 0;
             case 3: return item.Pending > 0;
+            case 4: return item.Cancel > 0;
             default: return false;
           }
         });
@@ -343,6 +345,7 @@ export class ProjectTaskStatusComponent implements OnInit {
       { header: 'Hoàn thành', field: 'Done' },
       { header: 'Hoàn thành (quá hạn)', field: 'DoneLate' },
       { header: 'Pending', field: 'Pending' },
+      { header: 'Hủy', field: 'Cancel' },
       { header: 'Tổng', field: 'TotalTasks' },
     ];
 

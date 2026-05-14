@@ -342,6 +342,7 @@ import { ProjectDeptSummaryPrimeNg2Component } from './pages/project/project-dep
 import { BillImportPrimeComponent } from './pages/old/Sale/BillImport/bill-import-prime/bill-import-prime.component';
 import { BillExportPrimeComponent } from './pages/old/Sale/BillExport/bill-export-prime/bill-export-prime.component';
 import { ProjectTaskTimeLineProjectComponent } from './pages/project_task/project-task-time-line-project/project-task-time-line-project.component';
+import { ProjectTaskPojectWorkerComponent } from './pages/project_task/project-task-poject-worker/project-task-poject-worker.component';
 import { HrRecruitmentSummaryComponent } from './pages/hrm/hr-recruitment/hr-recruitment-summary/hr-recruitment-summary.component';
 import { BillImportSyntheticAllComponent } from './pages/old/Sale/BillImport/Modal/bill-import-synthetic-all/bill-import-synthetic-all.component';
 import { ProjectHistoryProblemNewComponent } from './pages/project/project-history-problem-new/project-history-problem-new.component';
@@ -1216,6 +1217,7 @@ export const routes: Routes = [
             { path: 'project-task-project', component: ProjectTaskProjectComponent, canActivate: [authGuard] },
             { path: 'project-task-status-chart', component: ProjectTaskStatusChartComponent, canActivate: [authGuard] },
             { path: 'project-task-timeline-total', component: ProjectTaskTimeLineTotalComponent, canActivate: [authGuard] },
+            { path: 'project-task-poject-worker', component: ProjectTaskPojectWorkerComponent, canActivate: [authGuard] },
             { path: 'project-task-detail/:id', component: TaskDetailComponent, canActivate: [authGuard] },
             { path: 'project-task-add', component: TaskDetailComponent, canActivate: [authGuard] },
             { path: 'purchase-quote-summary', component: PurchaseQuoteSummaryComponent, canActivate: [authGuard] },

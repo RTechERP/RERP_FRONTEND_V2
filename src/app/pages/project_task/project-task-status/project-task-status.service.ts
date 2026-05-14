@@ -15,6 +15,7 @@ export interface ProjectTaskViewStatusItem {
     Done: number;
     DoneLate: number;
     Pending: number;
+    Cancel: number;
     TotalTasks: number;
 }
 
@@ -27,6 +28,7 @@ export interface ProjectTaskChartItem {
     Done: number;
     DoneLate: number;
     Pending: number;
+    Cancel: number;
     TotalTasks: number;
 }
 

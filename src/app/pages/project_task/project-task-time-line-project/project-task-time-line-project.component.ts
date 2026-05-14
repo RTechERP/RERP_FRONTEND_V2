@@ -61,7 +61,8 @@ export class ProjectTaskTimeLineProjectComponent implements OnInit {
     { label: 'Chưa làm', value: 0 },
     { label: 'Đang làm', value: 1 },
     { label: 'Hoàn thành', value: 2 },
-    { label: 'Pending', value: 3 }
+    { label: 'Pending', value: 3 },
+    { label: 'Hủy', value: 4 }
   ];
 
   // ===== Trạng thái =====
@@ -339,7 +340,7 @@ export class ProjectTaskTimeLineProjectComponent implements OnInit {
       case 1: return 'Đang làm';
       case 2: return 'Hoàn thành';
       case 3: return 'Pending';
-      case 4: return 'Quá hạn';
+      case 4: return 'Hủy';
       default: return 'N/A';
     }
   }

@@ -157,6 +157,7 @@
                             <th style="width: 105px; text-align: center;">Hoàn<br>thành</th>
                             <th style="width: 110px; text-align: center;">Hoàn thành<br>(trễ)</th>
                             <th style="width: 85px; text-align: center;">Pending</th>
+                            <th style="width: 85px; text-align: center;">Hủy</th>
                             <th style="width: 70px; text-align: center;">Tổng</th>
                         </tr>
                         <!-- Row 2: column filter input (manual) -->
@@ -174,6 +175,7 @@
                                 <input class="col-filter-input" type="text" placeholder="Tìm kiếm..."
                                     [(ngModel)]="filterProjectName" (input)="onColumnFilter()" />
                             </th>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -261,6 +263,15 @@
                                 }
                             </td>
         
+                            <!-- Hủy -->
+                            <td class="cell-center">
+                                @if (item.Cancel > 0) {
+                                <p-tag [value]="item.Cancel.toString()" severity="danger" />
+                                } @else {
+                                <span class="zero-count">0</span>
+                                }
+                            </td>
+        
                             <!-- Tổng -->
                             <td class="cell-center cell-total">{{ item.TotalTasks }}</td>
                         </tr>
@@ -269,7 +280,7 @@
                     <!-- EMPTY -->
                     <ng-template pTemplate="emptymessage">
                         <tr>
-                            <td colspan="11" class="empty-message">
+                            <td colspan="12" class="empty-message">
                                 <div class="empty-state">
                                     <span nz-icon nzType="inbox" nzTheme="outline" class="empty-icon"></span>
                                     <p>Không có dữ liệu</p>
@@ -281,7 +292,7 @@
                     <!-- LOADING -->
                     <ng-template pTemplate="loadingbody">
                         <tr>
-                            <td colspan="11" class="cell-center" style="padding: 24px;">
+                            <td colspan="12" class="cell-center" style="padding: 24px;">
                                 <span nz-icon nzType="loading" nzTheme="outline"></span> Đang tải...
                             </td>
                         </tr>

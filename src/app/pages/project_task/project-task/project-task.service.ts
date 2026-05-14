@@ -59,6 +59,7 @@ export interface ProjectTaskItem {
     Deadline?: string | Date | null;
     ProjectTaskTypeID?: number | null;
     TypeProjectItem?: number | null;
+    ProjectStatusName?: string | null;
 
     // Additional fields from sample JSON
     STT?: number | null;

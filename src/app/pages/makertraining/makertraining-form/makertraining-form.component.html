@@ -1,0 +1,326 @@
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
+  <h6 class="modal-title text-white">Chi tiết training</h6>
+  <button
+    type="button"
+    class="btn-close"
+    (click)="closeModal()"
+    aria-label="Close"
+  ></button>
+</div>
+<div
+  class="modal-body p-2 d-flex flex-column"
+  style="height: calc(100vh - 110px); overflow: hidden"
+>
+  <nz-spin [nzSpinning]="isLoading" class="p-2">
+    <form nz-form [formGroup]="form" nzLayout="vertical" class="mt-2">
+      <!-- Dòng 1: 4 ô -->
+      <div class="row gx-2">
+        <div class="col-md-3">
+          <nz-form-item class="mt-2 mb-0">
+            <nz-form-label class="fs-12" [nzSpan]="24"
+              >Phòng ban <span class="text-danger">*</span></nz-form-label
+            >
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="deptError">
+              <nz-select
+                formControlName="DepartmentID"
+                [nzPlaceHolder]="'Chọn phòng ban'"
+                style="width: 100%"
+                nzShowSearch
+                [nzFilterOption]="filterOption"
+                nzAllowClear
+              >
+                <nz-option
+                  *ngFor="let item of dataDepartment"
+                  [nzLabel]="item.Code + '-' + item.Name"
+                  [nzValue]="item.ID"
+                ></nz-option>
+              </nz-select>
+              <ng-template #deptError let-control>
+                <ng-container *ngIf="control.hasError('required')"
+                  >Vui lòng chọn phòng ban!</ng-container
+                >
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div class="col-md-3">
+          <nz-form-item class="mt-2 mb-0">
+            <nz-form-label class="fs-12" [nzSpan]="24"
+              >Chọn hạng mục <span class="text-danger">*</span></nz-form-label
+            >
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="typeError">
+              <div nz-row [nzGutter]="8" style="align-items: center">
+                <div nz-col [nzSpan]="22">
+                  <nz-select
+                    formControlName="MakerTrainingTypeID"
+                    [nzPlaceHolder]="'Chọn hạng mục'"
+                    style="width: 100%"
+                    nzShowSearch
+                    [nzFilterOption]="filterOption"
+                    nzAllowClear
+                  >
+                    <nz-option
+                      *ngFor="let item of dataTrainingType"
+                      [nzLabel]="item.TypeCode + '-' + item.TypeName"
+                      [nzValue]="item.ID"
+                    ></nz-option>
+                  </nz-select>
+                </div>
+                <div
+                  nz-col
+                  [nzSpan]="2"
+                  style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
+                  <nz-icon
+                    nzType="plus-square"
+                    nzTheme="twotone"
+                    style="font-size: 20px; cursor: pointer"
+                    (click)="onAddMakerTrainingType()"
+                  ></nz-icon>
+                </div>
+              </div>
+              <ng-template #typeError let-control>
+                <ng-container *ngIf="control.hasError('required')"
+                  >Vui lòng chọn hạng mục!</ng-container
+                >
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div class="col-md-3">
+          <nz-form-item class="mt-2 mb-0">
+            <nz-form-label class="fs-12" [nzSpan]="24"
+              >Chọn hãng <span class="text-danger">*</span></nz-form-label
+            >
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="firmError">
+              <nz-select
+                formControlName="FirmID"
+                [nzPlaceHolder]="'Chọn hãng'"
+                style="width: 100%"
+                nzShowSearch
+                [nzFilterOption]="filterOption"
+                nzAllowClear
+              >
+                <nz-option
+                  *ngFor="let item of dataFirm"
+                  [nzLabel]="item.FirmName"
+                  [nzValue]="item.ID"
+                ></nz-option>
+              </nz-select>
+              <ng-template #firmError let-control>
+                <ng-container *ngIf="control.hasError('required')"
+                  >Vui lòng chọn hãng!</ng-container
+                >
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div class="col-md-3">
+          <nz-form-item class="mb-0">
+            <nz-form-label [nzSpan]="24" class="fs-12 mt-2"
+              >Người đào tạo <span class="text-danger">*</span></nz-form-label
+            >
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="trainerError">
+              <input
+                nz-input
+                formControlName="TrainerName"
+                placeholder="Nhập người đào tạo..."
+              />
+              <ng-template #trainerError let-control>
+                <ng-container *ngIf="control.hasError('required')"
+                  >Vui lòng nhập người đào tạo!</ng-container
+                >
+                <ng-container *ngIf="control.hasError('maxlength')"
+                  >Không được vượt quá 255 ký tự!</ng-container
+                >
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <!-- Dòng 2 -->
+      <div class="row gx-2">
+        <div class="col-md-3">
+          <nz-form-item class="mt-2 mb-0">
+            <nz-form-label class="fs-12" [nzSpan]="24"
+              >Thời gian bắt đầu
+              <span class="text-danger">*</span></nz-form-label
+            >
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="startError">
+              <nz-date-picker
+                [nzFormat]="dateFormat"
+                [nzShowTime]="true"
+                class="w-100 p-1"
+                nzSize="small"
+                formControlName="DateStart"
+              ></nz-date-picker>
+              <ng-template #startError let-control>
+                <ng-container *ngIf="control.hasError('required')"
+                  >Vui lòng chọn thời gian bắt đầu!</ng-container
+                >
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div class="col-md-3">
+          <nz-form-item class="mt-2 mb-0">
+            <nz-form-label class="fs-12" [nzSpan]="24"
+              >Thời gian kết thúc
+              <span class="text-danger">*</span></nz-form-label
+            >
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="endError">
+              <nz-date-picker
+                [nzFormat]="dateFormat"
+                [nzShowTime]="true"
+                class="w-100 p-1"
+                nzSize="small"
+                formControlName="DateEnd"
+              ></nz-date-picker>
+              <ng-template #endError let-control>
+                <ng-container *ngIf="control.hasError('required')"
+                  >Vui lòng chọn thời gian kết thúc!</ng-container
+                >
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div class="col-md-3">
+          <nz-form-item class="mb-0">
+            <nz-form-label [nzSpan]="24" class="fs-12 mt-2"
+              >Địa điểm</nz-form-label
+            >
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="locError">
+              <input
+                nz-input
+                formControlName="Location"
+                placeholder="Nhập địa điểm..."
+              />
+              <ng-template #locError let-control>
+                <ng-container *ngIf="control.hasError('maxlength')"
+                  >Không được vượt quá 500 ký tự!</ng-container
+                >
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div class="col-md-3">
+          <nz-form-item class="mb-0">
+            <nz-form-label [nzSpan]="24" class="fs-12 mt-2"
+              >Ghi chú</nz-form-label
+            >
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="noteError">
+              <input
+                nz-input
+                formControlName="Note"
+                placeholder="Nhập ghi chú..."
+              />
+              <ng-template #noteError let-control>
+                <ng-container *ngIf="control.hasError('maxlength')"
+                  >Không được vượt quá 500 ký tự!</ng-container
+                >
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+      <div class="row gx-2">
+        <div class="col-md-3">
+          <nz-form-item class="mt-2 flex mb-0">
+            <nz-form-control [nzSpan]="24">
+              <label nz-checkbox formControlName="IsTest"> Bài kiểm tra </label>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div class="col-md-9">
+          <nz-form-item class="mb-0">
+            <nz-form-label [nzSpan]="24" class="fs-12 mt-2"
+              >Nội dung đào tạo
+              <span class="text-danger">*</span></nz-form-label
+            >
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="contentError">
+              <textarea
+                nz-input
+                rows="3"
+                formControlName="TrainingContent"
+                placeholder="Nhập nội dung đào tạo..."
+              ></textarea>
+              <ng-template #contentError let-control>
+                <ng-container *ngIf="control.hasError('required')"
+                  >Vui lòng nhập nội dung đào tạo!</ng-container
+                >
+                <ng-container *ngIf="control.hasError('maxlength')"
+                  >Không được vượt quá 2000 ký tự!</ng-container
+                >
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+  </nz-spin>
+  <!-- Bảng -->
+  <div class="flex-grow-1 mt-2" style="min-height: 0">
+    <nz-splitter class="h-100">
+      <nz-splitter-panel [nzCollapsible]="true">
+        <div class="box h-100 px-2">
+          <nz-splitter>
+            <nz-splitter-panel nzDefaultSize="60%" nzMin="50%" nzMax="100%">
+              <div class="box h-100">
+                <div class="card-body p-0 h-100">
+                  <div
+                    id="makerTrainingEmployeeDetail"
+                    style="width: 100%; height: 100%"
+                  ></div>
+                </div>
+              </div>
+            </nz-splitter-panel>
+            <nz-splitter-panel>
+              <div class="box h-100">
+                <div class="card-body p-0 h-100">
+                  <div
+                    id="makerTrainingFileDetail"
+                    style="width: 100%; height: 100%"
+                  ></div>
+                </div>
+              </div>
+            </nz-splitter-panel>
+          </nz-splitter>
+        </div>
+      </nz-splitter-panel>
+    </nz-splitter>
+  </div>
+</div>
+<div class="modal-footer flex-shrink-0">
+  <button
+    nz-button
+    nzType="default"
+    class="btn-default fs-12"
+    (click)="closeModal(false)"
+  >
+    Đóng
+  </button>
+  <button
+    nz-button
+    nzType="primary"
+    class="btn-primary fs-12"
+    (click)="save(false)"
+    [nzLoading]="isLoading"
+  >
+    Lưu
+  </button>
+  <button
+    nz-button
+    nzType="primary"
+    class="btn-success fs-12"
+    *ngIf="!isCheckmode"
+    (click)="save(true)"
+    [nzLoading]="isLoading"
+  >
+    Lưu và Thêm mới
+  </button>
+</div>

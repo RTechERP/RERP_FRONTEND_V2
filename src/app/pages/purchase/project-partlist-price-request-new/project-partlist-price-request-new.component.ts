@@ -2435,8 +2435,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         columnIndexPosition: 0, // Position of checkbox column (0 = first column)
         width: 35, // Width of checkbox column
       },
-      editable: typeId !== -10,
-      autoEdit: typeId !== -10, // Single click to edit instead of double click
+      editable: true,
+      autoEdit: true, // Single click to edit instead of double click
 
       enableCheckboxSelector: true,
       enableCellNavigation: true,

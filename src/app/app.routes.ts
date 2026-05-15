@@ -350,6 +350,7 @@ import { ProjectHistoryProblemDashboardComponent } from './pages/project/project
 
 import { PermissionManagerComponent } from './pages/systems/permission-manager/permission-manager.component';
 import { UserGroupComponent } from './pages/systems/user-group/user-group.component';
+import { MakertrainingComponent } from './pages/makertraining/makertraining.component';
 export const routes: Routes = [
 
     {
@@ -1227,7 +1228,9 @@ export const routes: Routes = [
             { path: 'product-project-customer-hn', component: ListProductProjectCustomerComponent, canActivate: [authGuard] },
             { path: 'bill-import-synthetic-all', component: BillImportSyntheticAllComponent, canActivate: [authGuard] },
             { path: 'project-history-problem-new', component: ProjectHistoryProblemNewComponent, canActivate: [authGuard] },
-            { path: 'project-history-problem-dashboard', component: ProjectHistoryProblemDashboardComponent, canActivate: [authGuard] }
+            { path: 'project-history-problem-dashboard', component: ProjectHistoryProblemDashboardComponent, canActivate: [authGuard] },
+            { path: 'maker-training', component: MakertrainingComponent, canActivate: [authGuard] },
+
         ],
     },
 ];

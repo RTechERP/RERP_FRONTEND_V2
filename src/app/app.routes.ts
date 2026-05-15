@@ -66,6 +66,8 @@ import { EmployeeTeamComponent } from './pages/hrm/employee/employee-team/employ
 import { SummaryEmployeeComponent } from './pages/hrm/employee/summary-employee/summary-employee.component';
 import { FilmManagementComponent } from './pages/hrm/film-management/film-management.component';
 import { HandoverComponent } from './pages/hrm/handover/handover.component';
+//import { HandoverNewComponent } from './pages/hrm/handover/handover-new/handover-new.component';
+
 import { HolidayComponent } from './pages/hrm/holiday/holiday.component';
 import { HrPurchaseProposalComponent } from './pages/hrm/hr-purchase-proposal/hr-purchase-proposal.component';
 import { HrhiringRequestComponent } from './pages/hrm/hrhiring-request/hrhiring-request.component';
@@ -350,6 +352,9 @@ import { ProjectHistoryProblemDashboardComponent } from './pages/project/project
 
 import { PermissionManagerComponent } from './pages/systems/permission-manager/permission-manager.component';
 import { UserGroupComponent } from './pages/systems/user-group/user-group.component';
+import { UserGroupByEmployeeComponent } from './pages/systems/user-group/user-group-by-employee/user-group-by-employee.component';
+import { UserGroupSearchComponent } from './pages/systems/user-group/user-group-search/user-group-search.component';
+import { JobRequirementRecommendComponent } from './pages/hrm/job-requirement/job-requirement-recommend/job-requirement-recommend.component';
 import { MakertrainingComponent } from './pages/makertraining/makertraining.component';
 export const routes: Routes = [
 
@@ -393,8 +398,10 @@ export const routes: Routes = [
             { path: 'menu-app', component: MenuAppComponent, canActivate: [authGuard] },
             { path: 'permission-manager', component: PermissionManagerComponent, canActivate: [authGuard] },
             { path: 'user-group', component: UserGroupComponent, canActivate: [authGuard] },
+            { path: 'user-group-by-employee', component: UserGroupByEmployeeComponent, canActivate: [authGuard] },
+            { path: 'user-group-search', component: UserGroupSearchComponent, canActivate: [authGuard] },
             //#endregion
-
+            { path: 'job-requirement-recommend', component: JobRequirementRecommendComponent, canActivate: [authGuard] },
             //#region crm
             { path: 'customer', component: CustomerComponent, canActivate: [authGuard] },
             //#endregion
@@ -478,6 +485,8 @@ export const routes: Routes = [
             { path: 'employee-team', component: EmployeeTeamComponent, canActivate: [authGuard] },
             { path: 'contract', component: ContractComponent, canActivate: [authGuard] },
             { path: 'handover', component: HandoverComponent, canActivate: [authGuard] },
+            //  { path: 'handover-new', component: HandoverNewComponent, canActivate: [authGuard] },
+
             { path: 'holiday', component: HolidayComponent, canActivate: [authGuard] },
             { path: 'food-order', component: FoodOrderComponent, canActivate: [authGuard] },
             { path: 'day-off', component: DayOffComponent, canActivate: [authGuard] },

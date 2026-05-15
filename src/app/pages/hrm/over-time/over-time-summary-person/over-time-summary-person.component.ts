@@ -133,8 +133,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
       status: -1,
       filterText: '',
       idApprovedTP: 0,
-      employeeId: 0,
-      teamId: 0
+      employeeId: 0
     });
 
     if (this.tabulator) {
@@ -157,8 +156,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
       status: -1,
       filterText: '',
       idApprovedTP: 0,
-      employeeId: 0,
-      teamId: 0
+      employeeId: 0
     });
   }
 
@@ -212,11 +210,10 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           departmentID: formValue.departmentId || 0,
           idApprovedTP: formValue.idApprovedTP || 0,
           status: formValue.status ?? -1,
-          employeeID: formValue.employeeId || 0,
-          teamID: formValue.teamId || 0
+          employeeID: formValue.employeeId || 0
         };
 
-        return this.overTimeService.getSummaryOverTimePerson(request).toPromise();
+        return this.overTimeService.getSummaryOverTimePersonByDept(request).toPromise();
       },
       ajaxResponse: (_url, _params, response) => {
         this.isLoadTable = false;
@@ -227,6 +224,7 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           }
 
           const dataArray = response.data.data || [];
+          // SP mới trả TotalPage trong từng row của result set đầu tiên
           const totalPages = dataArray.length > 0 ? (dataArray[0].TotalPage || 1) : 1;
 
           return {
@@ -364,11 +362,6 @@ export class OverTimeSummaryPersonComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           width: 200,
           headerSort: false,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            if (!value) return '';
-            return `<a href="#" onclick="event.preventDefault(); window.open('${value}', '_blank')">${value}</a>`;
-          }
         },
         {
           title: 'Loại',

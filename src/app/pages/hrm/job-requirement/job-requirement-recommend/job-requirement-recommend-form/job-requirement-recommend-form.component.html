@@ -1,0 +1,176 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-white">Đề xuất yêu cầu công việc</h6>
+  <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-0">
+  <nz-spin [nzSpinning]="isLoading">
+    <nz-splitter nzLayout="vertical" style="height: 55vh;">
+      <nz-splitter-panel nzSize="50%">
+        <div class="p-3 bg-light h-100 overflow-auto">
+          <h6 class="text-primary mb-3 border-bottom pb-2 d-flex justify-content-between align-items-center">
+            <span>Thông tin phiếu yêu cầu</span>
+            <div *ngIf="!isEditMode && initialRequirementID === 0" style="width: 300px;">
+              <nz-select [(ngModel)]="selectedJobReq" (ngModelChange)="onJobReqSelect($event)" nzShowSearch nzAllowClear
+                nzPlaceHolder="Chọn phiếu yêu cầu..." style="width: 100%;">
+                <nz-option nzCustomContent *ngFor="let item of jobRequirements"
+                  [nzLabel]="item.NumberRequest + ' - ' + item.EmployeeName" [nzValue]="item">
+                  <div class="d-flex flex-column small">
+                    <span class="fw-bold">{{item.NumberRequest}}</span>
+                    <span>{{item.EmployeeName}} - {{item.DateRequest | date:'dd/MM/yyyy'}}</span>
+                  </div>
+                </nz-option>
+              </nz-select>
+            </div>
+            <span *ngIf="jobRequirementID > 0" class="badge bg-primary">{{ jobRequirementData.NumberRequest
+              }}</span>
+          </h6>
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label fw-bold small text-muted mb-1">Người yêu cầu</label>
+              <div class="fw-semibold text-dark small">{{ jobRequirementData.EmployeeName || '---' }}</div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-bold small text-muted mb-1">Bộ phận</label>
+              <div class="text-dark small">{{ jobRequirementData.DepartmentName || '---' }}</div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-bold small text-muted mb-1">Ngày yêu cầu</label>
+              <div class="text-dark small">{{ jobRequirementData.DateRequest ? (jobRequirementData.DateRequest |
+                date:'dd/MM/yyyy') : '---' }}</div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-bold small text-muted mb-1">Số lượng</label>
+              <div class="fw-bold text-primary small">{{ jobRequirementData.Quantity || 0 }}</div>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold small text-muted mb-1">Nội dung yêu cầu</label>
+              <div class="p-2 border rounded bg-white text-dark small" style="min-height: 40px; font-size: 12px;">
+                {{ jobRequirementData.Content || '---' }}
+              </div>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label fw-bold small text-muted mb-1">Lý do yêu cầu</label>
+              <div class="text-dark small" style="font-size: 12px;">{{ jobRequirementData.Reason || '---' }}</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold small text-muted mb-1">Hạn hoàn thành</label>
+              <div class="text-danger fw-semibold small">{{ jobRequirementData.Deadline || '---' }}</div>
+            </div>
+          </div>
+        </div>
+      </nz-splitter-panel>
+
+      <nz-splitter-panel nzSize="50%">
+        <div class="p-2 h-100 d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-center mb-2 px-2">
+            <h6 class="text-primary m-0">Phương án đề xuất</h6>
+            <button nz-button nzType="primary" nzSize="small" (click)="addNewProductRow()">
+              <i nz-icon nzType="plus"></i> Thêm phương án
+            </button>
+          </div>
+
+          <div class="flex-grow-1 overflow-auto">
+            <p-table [value]="flatRecommendationDetails" [rowTrackBy]="trackByProductSupplier"
+              styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped hcns-p-table" [scrollable]="true"
+              scrollHeight="flex" scrollDirection="both" [style]="{'min-width': '1300px'}">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width: 50px; text-align: center;">
+                    <i class="fas fa-plus text-success cursor-pointer" (click)="addNewProductRow()"
+                      title="Thêm hạng mục"></i>
+                  </th>
+                  <th style="width: 300px;">Hạng mục / Dịch vụ <span class="text-danger">*</span></th>
+                  <th style="width: 350px;">Nhà cung cấp / Phương án <span class="text-danger">*</span></th>
+                  <th style="width: 200px;">Thông tin liên hệ</th>
+                  <th style="width: 150px; text-align: right;">Đơn giá</th>
+                  <th style="width: 150px; text-align: right;">Thành tiền</th>
+                  <th style="width: 300px;">Ghi chú</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-d let-rowIndex="rowIndex">
+                <tr>
+                  <!-- Action column -->
+                  <td *ngIf="d.rowspan > 0" [attr.rowspan]="d.rowspan" style="width: 50px; text-align: center;">
+                    <i class="fas fa-times text-danger cursor-pointer delete-btn"
+                      (click)="removeProductRow(d.productRowID)" title="Xóa hạng mục"></i>
+                  </td>
+
+                  <td *ngIf="d.rowspan > 0" [attr.rowspan]="d.rowspan" style="width: 300px;">
+                    <textarea nz-input [(ngModel)]="d.originalProduct.ProductName"
+                      (ngModelChange)="onProductNameInput($event)" [nzAutocomplete]="autoProduct"
+                      [nzAutosize]="{ minRows: 1, maxRows: 10 }"
+                      style="font-size: 12px; border: none; background: transparent;"></textarea>
+                    <nz-autocomplete #autoProduct
+                      (selectionChange)="onSelectHistoricalProduct($event.nzValue, d.originalProduct, d.supplierRef)">
+                      <nz-auto-option *ngFor="let option of filteredProductNames" [nzValue]="option"
+                        style="font-size: 12px;">
+                        {{ option }}
+                      </nz-auto-option>
+                    </nz-autocomplete>
+                  </td>
+
+                  <td style="width: 350px;">
+                    <div class="d-flex align-items-start p-1">
+                      <textarea nz-input [(ngModel)]="d.supplierRef.Supplier" (ngModelChange)="onSupplierInput($event)"
+                        [nzAutocomplete]="autoSupplier" [nzAutosize]="{ minRows: 1, maxRows: 10 }"
+                        style="font-size: 12px; flex: 1; border: none; background: transparent;"></textarea>
+                      <nz-autocomplete #autoSupplier
+                        (selectionChange)="onSelectHistoricalSupplier($event.nzValue, d.originalProduct, d.supplierRef)">
+                        <nz-auto-option *ngFor="let option of filteredSuppliers" [nzValue]="option"
+                          style="font-size: 12px;">
+                          {{ option }}
+                        </nz-auto-option>
+                      </nz-autocomplete>
+                      <div class="ms-2 flex-shrink-0 pt-1">
+                        <i class="fas fa-plus text-success cursor-pointer" (click)="addSupplierRow(d.productRowID)"
+                          title="Thêm phương án"></i>
+                        <i class="fas fa-times text-danger cursor-pointer ms-1"
+                          (click)="removeSupplierRow(d.productRowID, d.supplierIndex)" title="Xóa phương án"></i>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Contact -->
+                  <td style="width: 200px;">
+                    <input type="text" nz-input [(ngModel)]="d.supplierRef.Contact" placeholder="SĐT, Email..."
+                      style="height: 32px; font-size: 12px; width: 100%;">
+                  </td>
+
+                  <!-- Unit Price -->
+                  <td style="width: 150px;" class="text-end">
+                    <p-inputNumber [(ngModel)]="d.supplierRef.UnitPrice"
+                      (onBlur)="calculateTotal(d.supplierRef); flattenData()" [min]="0" mode="decimal"
+                      [minFractionDigits]="0" [style]="{'width':'100%'}"
+                      [inputStyle]="{'width':'100%', 'text-align': 'right', 'font-size': '12px', 'height': '32px', 'border': 'none', 'background': 'transparent'}">
+                    </p-inputNumber>
+                  </td>
+
+                  <!-- Total Amount -->
+                  <td style="width: 150px;" class="text-end">
+                    <div class="fw-bold text-primary pe-2" style="font-size: 12px;">
+                      {{ d.supplierRef.TotalAmount | number:'1.0-0':'vi-VN' }}
+                    </div>
+                  </td>
+
+                  <td style="width: 300px;">
+                    <textarea nz-input [(ngModel)]="d.supplierRef.Note" [nzAutosize]="{ minRows: 1, maxRows: 10 }"
+                      placeholder="..."
+                      style="font-size: 12px; width: 100%; border: none; background: transparent;"></textarea>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+      </nz-splitter-panel>
+    </nz-splitter>
+  </nz-spin>
+</div>
+
+<div class="modal-footer py-2">
+  <button nz-button nzType="default" (click)="closeModal()">Hủy</button>
+  <button nz-button nzType="primary" (click)="saveData()" [nzLoading]="isLoading">
+    <i nz-icon nzType="save"></i> Lưu dữ liệu
+  </button>
+</div>

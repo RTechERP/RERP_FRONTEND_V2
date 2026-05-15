@@ -138,7 +138,7 @@
                     currentPageReportTemplate="Hiển thị {first} - {last} / {totalRecords} dòng"
                     selectionMode="multiple"
                     [selection]="selectedRowsInView" (selectionChange)="onMasterSelectionChange($event)"
-                    rowGroupMode="subheader" groupRowsBy="PONumber" sortField="PONumber"
+                    rowGroupMode="subheader" groupRowsBy="__POGroupSortKey" sortField="__POGroupSortKey" [sortOrder]="1"
                     editMode="cell">
 
                     <ng-template pTemplate="header" let-columns>

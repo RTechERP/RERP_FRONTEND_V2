@@ -917,11 +917,69 @@ export class ViewPokhPrimengComponent implements OnInit {
   }
 
   private sortForGrouping(rows: any[]): any[] {
-    return [...rows].sort((a, b) => {
-      const poCompare = String(a.PONumber || '').localeCompare(String(b.PONumber || ''));
-      if (poCompare !== 0) return poCompare;
-      return Number(b.POKHID || b.ID || 0) - Number(a.POKHID || a.ID || 0);
+    const groupedRows = new Map<string, any[]>();
+
+    rows.forEach((row) => {
+      const groupKey = String(row.PONumber || '');
+      if (!groupedRows.has(groupKey)) groupedRows.set(groupKey, []);
+      groupedRows.get(groupKey)!.push(row);
     });
+
+    const groups = Array.from(groupedRows.entries()).map(([groupKey, items], index) => {
+      const sortedItems = this.sortRowsInsideGroup(items);
+      return {
+        groupKey,
+        firstRow: sortedItems[0],
+        index,
+        items: sortedItems,
+      };
+    });
+
+    groups.sort((a, b) => {
+      const groupCompare = this.compareNullableValues(
+        this.toDateTime(a.firstRow?.ReceivedDatePO),
+        this.toDateTime(b.firstRow?.ReceivedDatePO)
+      );
+      if (groupCompare !== 0) return -groupCompare;
+
+      const poCompare = a.groupKey.localeCompare(b.groupKey);
+      if (poCompare !== 0) return poCompare;
+
+      return a.index - b.index;
+    });
+
+    return groups.flatMap((group, groupIndex) => {
+      const groupSortKey = `${String(groupIndex).padStart(8, '0')}|${group.groupKey}`;
+      return group.items.map((row) => ({ ...row, __POGroupSortKey: groupSortKey }));
+    });
+  }
+
+  private sortRowsInsideGroup(rows: any[]): any[] {
+    return [...rows].sort((a, b) => Number(b.POKHID || b.ID || 0) - Number(a.POKHID || a.ID || 0));
+  }
+
+  private compareNullableValues(valueA: string | number | null, valueB: string | number | null): number {
+    if (valueA == null && valueB != null) return -1;
+    if (valueA != null && valueB == null) return 1;
+    if (valueA == null && valueB == null) return 0;
+    if (typeof valueA === 'string' && typeof valueB === 'string') return valueA.localeCompare(valueB);
+    return valueA! < valueB! ? -1 : valueA! > valueB! ? 1 : 0;
+  }
+
+  private toDateTime(value: any): number | null {
+    if (!value) return null;
+    if (value instanceof Date) return isNaN(value.getTime()) ? null : value.getTime();
+
+    const textValue = String(value).trim();
+    const localDateMatch = textValue.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (localDateMatch) {
+      const [, day, month, year] = localDateMatch;
+      const date = new Date(Number(year), Number(month) - 1, Number(day));
+      return isNaN(date.getTime()) ? null : date.getTime();
+    }
+
+    const parsedTime = new Date(value).getTime();
+    return isNaN(parsedTime) ? null : parsedTime;
   }
 
   private toRequestInvoiceRow(row: any, exportRow: any | null, stt: number): any {

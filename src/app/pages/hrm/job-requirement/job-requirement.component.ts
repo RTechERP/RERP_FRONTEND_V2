@@ -68,7 +68,7 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HrPurchaseProposalComponent } from '../hr-purchase-proposal/hr-purchase-proposal.component';
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
-import { RecommendSupplierFormComponent } from './recommend-supplier/recommend-supplier-form/recommend-supplier-form.component';
+import { JobRequirementRecommendFormComponent } from './job-requirement-recommend/job-requirement-recommend-form/job-requirement-recommend-form.component';
 import { JobRequirementFormComponent } from './job-requirement-form/job-requirement-form.component';
 import { CancelApproveReasonFormComponent } from './cancel-approve-reason-form/cancel-approve-reason-form.component';
 import { AuthService } from '../../../auth/auth.service';
@@ -697,14 +697,14 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
         const selected = this.getSelectedData() || [];
         const rowData = { ...selected[0] };
-        const modalRef = this.modalService.open(RecommendSupplierFormComponent, {
+        const modalRef = this.modalService.open(JobRequirementRecommendFormComponent, {
             size: 'xl',
             backdrop: 'static',
             keyboard: false,
             centered: true,
         });
-        modalRef.componentInstance.isCheckmode = this.isCheckmode;
-        modalRef.componentInstance.JobrequirementID = this.JobrequirementID;
+        modalRef.componentInstance.jobRequirementID = this.JobrequirementID;
+        modalRef.componentInstance.isEditMode = this.isCheckmode;
         modalRef.componentInstance.dataInput = rowData;
 
         modalRef.result

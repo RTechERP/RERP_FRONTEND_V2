@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Input, OnDestroy, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, OnDestroy, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -21,6 +21,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ProjectService } from '../project-service/project.service';
 import { ProjectChangeComponent } from '../project-change/project-change.component';
 import { EmployeeService } from '../../hrm/employee/employee-service/employee.service';
+import { DepartmentServiceService } from '../../hrm/department/department-service/department-service.service';
 
 @Component({
   selector: 'app-project-report-slick-grid',
@@ -51,10 +52,12 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
   @Input() teamId: number = 0;
 
   @ViewChild('dt') dt!: Table;
+  @ViewChild('keywordInput') keywordInput!: ElementRef;
 
   constructor(
     private projectService: ProjectService,
     private employeeService: EmployeeService,
+    private departmentService: DepartmentServiceService,
     private notification: NzNotificationService,
     private modalService: NgbModal,
     public activeModal: NgbActiveModal,
@@ -79,6 +82,8 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
   keyword: string = '';
   totalTime: number = 0;
   projectCode: string = '';
+  departmentId: number = 0;
+  departments: any[] = [];
 
   // Column definitions cho PrimeNG
   columns: any[] = [];
@@ -90,27 +95,43 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
     count: number;
     sumTimeReality: number;
     sumTotalHours: number;
-    totalDays: number;
+    totalDaysReality: number;
+    totalDaysWeighted: number;
   } = {
       count: 0,
       sumTimeReality: 0,
       sumTotalHours: 0,
-      totalDays: 0,
+      totalDaysReality: 0,
+      totalDaysWeighted: 0,
     };
 
   ngOnInit() {
     this.initColumns();
     this.getProject();
+    this.loadDepartments();
     this.getTeam();
   }
 
   ngAfterViewInit() {
     setTimeout(() => {
       this.loadData();
-    }, 100);
+      if (this.keywordInput) {
+        this.keywordInput.nativeElement.focus();
+      }
+    }, 500);
   }
 
   ngOnDestroy() { }
+  loadDepartments(): void {
+    this.departmentService.getDepartments().subscribe({
+      next: (response: any) => {
+        this.departments = [{ ID: 0, Name: 'Tất cả' }, ...(response.data || [])];
+      },
+      error: (error) => {
+        console.error('Error loading departments:', error);
+      },
+    });
+  }
 
   //#region Column Initialization
   initColumns() {
@@ -162,6 +183,18 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
 
   private linkifyCache = new Map<string, string>();
 
+  private static readonly htmlEscapes: { [key: string]: string } = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+
+  private escapeHtml(str: string): string {
+    return str.replace(/[&<>"']/g, (s) => ProjectReportSlickGridComponent.htmlEscapes[s]);
+  }
+
   linkifyText(text: string): string {
     if (!text || (typeof text === 'string' && text.trim() === '')) return '';
 
@@ -172,12 +205,6 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
 
     const urlPattern = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9][a-zA-Z0-9-]+\.[a-zA-Z]{2,}[^\s]*)/gi;
 
-    const escapeHtml = (str: string): string => {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    };
-
     const parts: string[] = [];
     let lastIndex = 0;
     let match: RegExpExecArray | null;
@@ -185,19 +212,19 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
 
     while ((match = urlPattern.exec(text)) !== null) {
       if (match.index > lastIndex) {
-        parts.push(escapeHtml(text.substring(lastIndex, match.index)));
+        parts.push(this.escapeHtml(text.substring(lastIndex, match.index)));
       }
       let url = match[0];
       let href = url;
       if (!url.match(/^https?:\/\//i)) {
         href = 'http://' + url;
       }
-      parts.push(`<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" class="cell-link">${escapeHtml(url)}</a>`);
+      parts.push(`<a href="${this.escapeHtml(href)}" target="_blank" rel="noopener noreferrer" class="cell-link">${this.escapeHtml(url)}</a>`);
       lastIndex = match.index + match[0].length;
     }
 
     if (lastIndex < text.length) {
-      parts.push(escapeHtml(text.substring(lastIndex)));
+      parts.push(this.escapeHtml(text.substring(lastIndex)));
     }
 
     const result = parts.join('');
@@ -283,6 +310,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       this.keyword || '',
       1,
       999999, // Lấy toàn bộ dữ liệu
+      this.departmentId || 0,
       this.teamId || 0,
     ).subscribe({
       next: (response: any) => {
@@ -296,11 +324,23 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
             data = response.data.dt;
           }
 
-          // Map data với id
-          this.dataset = data.map((item: any, index: number) => ({
-            ...item,
-            id: item.ID || index,
-          }));
+          // Map data với id và pre-process HTML cho các cột wrap
+          this.dataset = data.map((item: any, index: number) => {
+            const row = {
+              ...item,
+              id: item.ID || index,
+            };
+
+            // Pre-process HTML cho các cột có wrap: true
+            this.scrollableCols.forEach(col => {
+              if (col.wrap) {
+                const val = item[col.field];
+                row[col.field + '_html'] = val ? this.linkifyText(String(val)) : '';
+              }
+            });
+
+            return row;
+          });
 
           // Build filter options
           this.buildFilterOptions();
@@ -334,10 +374,12 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         const value = parseFloat(row.TotalHours) || 0;
         return sum + (isNaN(value) ? 0 : value);
       }, 0),
-      totalDays: 0,
+      totalDaysReality: 0,
+      totalDaysWeighted: 0,
     };
-    this.totalAllData.totalDays = this.totalAllData.sumTotalHours / 8.0;
-    this.totalTime = this.totalAllData.totalDays;
+    this.totalAllData.totalDaysReality = this.totalAllData.sumTimeReality / 8.0;
+    this.totalAllData.totalDaysWeighted = this.totalAllData.sumTotalHours / 8.0;
+    this.totalTime = this.totalAllData.totalDaysWeighted;
   }
 
   resetTotals() {
@@ -345,7 +387,8 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
       count: 0,
       sumTimeReality: 0,
       sumTotalHours: 0,
-      totalDays: 0,
+      totalDaysReality: 0,
+      totalDaysWeighted: 0,
     };
     this.totalTime = 0;
   }
@@ -382,18 +425,28 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
   }
 
   getTeam() {
-    this.employeeService.getEmployeeTeam().subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          this.teams = response.data;
-          this.cdr.markForCheck();
-        }
-      },
-      error: () => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu danh sách team!');
-        this.cdr.markForCheck();
-      },
-    });
+    if (this.departmentId > 0) {
+      this.projectService.getUserTeam(this.departmentId).subscribe({
+        next: (response: any) => {
+          // Thêm option "Tất cả" với ID = 0 vào đầu danh sách
+          this.teams = [
+            { ID: 0, Name: 'Tất cả' },
+            ...(response.data || [])
+          ];
+        },
+        error: (error) => {
+          console.error('Error loading teams:', error);
+          this.teams = [{ ID: 0, Name: 'Tất cả' }];
+        },
+      });
+    } else {
+      this.teams = [{ ID: 0, Name: 'Tất cả' }];
+    }
+  }
+
+  onDepartmentChange(): void {
+    this.teamId = 0; // Reset teamId khi đổi department
+    this.getTeam();
   }
 
   updateProjectCode() {
@@ -504,7 +557,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
         } else if (field === 'TotalHours') {
           return this.totalAllData.sumTotalHours.toFixed(2);
         } else if (field === 'Results') {
-          return `Tổng số ngày = ${this.totalAllData.totalDays.toFixed(1)}`;
+          return `Tổng số ngày (hệ số) = ${this.totalAllData.totalDaysWeighted.toFixed(1)}`;
         }
         return '';
       });

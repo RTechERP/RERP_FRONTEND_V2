@@ -344,7 +344,7 @@
                 }
               </nz-select>
 
-              <input nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 220px" [(ngModel)]="keyword"
+              <input #keywordInput nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 220px" [(ngModel)]="keyword"
                 [ngModelOptions]="{ standalone: true }" (keyup.enter)="searchProjects(1, pageSize)" />
 
               <button nz-button nzType="primary" nzSize="small" (click)="searchProjects(1, pageSize)">

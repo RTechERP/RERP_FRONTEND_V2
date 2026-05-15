@@ -1315,12 +1315,13 @@ export class ProjectService {
   }
   //#endregion
   //#region Danh sách báo cáo công việc
-  getProjectListWorkReport(projectId: number, keyword: string, page: number, size: number, teamId: number): Observable<any> {
+  getProjectListWorkReport(projectId: number, keyword: string, page: number, size: number, departmentId: number, teamId: number): Observable<any> {
     const filter: any = {
       projectId: projectId.toString() || 0,
       keyword: keyword.trim() || '',
       page: page.toString(),
       size: size.toString(),
+      departmentId: departmentId.toString() || 0,
       teamId: teamId.toString() || 0,
     };
     return this.http.get<any>(this.urlProject + `get-project-work-reports`, { params: filter });

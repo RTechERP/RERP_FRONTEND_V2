@@ -7,7 +7,8 @@ import {
     AfterViewInit,
     ViewChild,
     OnDestroy,
-    HostListener
+    HostListener,
+    ElementRef
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
@@ -132,6 +133,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     @ViewChild('statusDateModalContent', { static: false })
     statusDateModalContent!: any;
 
+    @ViewChild('keywordInput') keywordInput!: ElementRef;
+
     selected = '';
     options = [
         { label: 'Mới', value: 'new' },
@@ -215,7 +218,8 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     masterDataset: any[] = [];
     selectedStatusDate: Date | null = null;
     dateStart: string = DateTime.local()
-        .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
+        .minus({ years: 1 })
+        .startOf('year')
         .toFormat('yyyy-MM-dd');
     dateEnd: string = DateTime.local()
         .set({ hour: 0, minute: 0, second: 0 })
@@ -263,6 +267,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
 
     ngAfterViewInit(): void {
         // All data loading is handled in ngOnInit to avoid duplicate API calls
+        setTimeout(() => {
+            if (this.keywordInput) {
+                this.keywordInput.nativeElement.focus();
+            }
+        }, 500);
     }
 
     ngOnDestroy(): void {
@@ -1128,7 +1137,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     setDefautSearch() {
         this.dateStart = DateTime.local()
             .minus({ years: 1 })
-            .set({ hour: 0, minute: 0, second: 0 })
+            .startOf('year')
             .toFormat('yyyy-MM-dd');
         this.dateEnd = DateTime.local()
             .set({ hour: 0, minute: 0, second: 0 })

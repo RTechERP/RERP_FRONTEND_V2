@@ -118,6 +118,9 @@ export class BillImportSyntheticAllComponent {
   gridOptions: GridOption = {};
   dataset: any[] = [];
   excelExportService = new ExcelExportService();
+  activeFilters: { columnName: string; operator: string; searchTerm: string }[] = [];
+  showFilterPopup = false;
+  filterPopupPosition: 'top' | 'bottom' = 'top';
 
   contextMenu: any[] = [];
   // Formatter cho date
@@ -172,7 +175,7 @@ export class BillImportSyntheticAllComponent {
     this.getProductGroup();
   }
 
-// #region Grid Setup
+  // #region Grid Setup
   initGrid() {
     // Build dynamic columns from documents
     const dynamicDocumentColumns: Column[] = this.documents.map((doc) => ({
@@ -247,6 +250,9 @@ export class BillImportSyntheticAllComponent {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
             autoAdjustDropHeight: true,
             filter: true,
@@ -304,7 +310,17 @@ export class BillImportSyntheticAllComponent {
         width: 120,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'NameNCC',
@@ -313,7 +329,17 @@ export class BillImportSyntheticAllComponent {
         width: 300,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'DepartmentName',
@@ -325,6 +351,9 @@ export class BillImportSyntheticAllComponent {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
             autoAdjustDropHeight: true,
             filter: true,
@@ -338,7 +367,17 @@ export class BillImportSyntheticAllComponent {
         width: 100,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'Deliver',
@@ -347,7 +386,17 @@ export class BillImportSyntheticAllComponent {
         width: 200,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'Reciver',
@@ -356,7 +405,17 @@ export class BillImportSyntheticAllComponent {
         width: 200,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'CreatDateActual',
@@ -382,6 +441,9 @@ export class BillImportSyntheticAllComponent {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
             autoAdjustDropHeight: true,
             filter: true,
@@ -398,6 +460,47 @@ export class BillImportSyntheticAllComponent {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'ProjectCodeText',
+        name: 'Mã dự án',
+        field: 'ProjectCodeText',
+        width: 130,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'BillCodePO',
+        name: 'Đơn mua hàng',
+        field: 'BillCodePO',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
             autoAdjustDropHeight: true,
             filter: true,
@@ -411,7 +514,17 @@ export class BillImportSyntheticAllComponent {
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'Unit',
@@ -420,7 +533,17 @@ export class BillImportSyntheticAllComponent {
         width: 100,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProductNewCode',
@@ -429,7 +552,17 @@ export class BillImportSyntheticAllComponent {
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'Qty',
@@ -451,7 +584,17 @@ export class BillImportSyntheticAllComponent {
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'IsBill',
@@ -487,6 +630,9 @@ export class BillImportSyntheticAllComponent {
         filter: {
           collection: [],
           model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
             autoAdjustDropHeight: true,
             filter: true,
@@ -565,15 +711,7 @@ export class BillImportSyntheticAllComponent {
         editor: { model: Editors['float'] },
         cssClass: 'text-right',
       },
-      {
-        id: 'ProjectCodeText',
-        name: 'Mã dự án',
-        field: 'ProjectCodeText',
-        width: 130,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-      },
+
       {
         id: 'DeliverFullName',
         name: 'Người giao',
@@ -581,7 +719,17 @@ export class BillImportSyntheticAllComponent {
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProductName',
@@ -590,7 +738,17 @@ export class BillImportSyntheticAllComponent {
         width: 300,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProjectCode',
@@ -599,7 +757,18 @@ export class BillImportSyntheticAllComponent {
         width: 150,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['compoundInputText'],
+          //   collection: [],
+          //   model: Filters['multipleSelect'],
+          //   collectionOptions: {
+          //     addBlankEntry: true
+          //   },
+          //   filterOptions: {
+          //     autoAdjustDropHeight: true,
+          //     filter: true,
+          //   } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProjectNameText',
@@ -608,16 +777,17 @@ export class BillImportSyntheticAllComponent {
         width: 300,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-      },
-      {
-        id: 'BillCodePO',
-        name: 'Đơn mua hàng',
-        field: 'BillCodePO',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'UnitPricePO',
@@ -736,35 +906,35 @@ export class BillImportSyntheticAllComponent {
       footerRowHeight: 28,
       contextMenu: {
         commandItems: [
-          {
-            command: 'history_header',
-            title: '——Bổ sung chứng từ——',
-            disabled: true
-          },
-          {
-            command: 'PO',
-            title: '↳ PO',
-            iconCssClass: 'fa fa-file-alt',
-            action: () => {
-              this.onUpdateDocument(1);
-            }
-          },
-          {
-            command: 'BBBG',
-            title: '↳ Biên bản bàn giao',
-            iconCssClass: 'fa fa-handshake',
-            action: () => {
-              this.onUpdateDocument(2);
-            },
-          },
-          {
-            command: 'PXK',
-            title: '↳ Phiếu Xuất Kho',
-            iconCssClass: 'fa fa-truck-loading',
-            action: () => {
-              this.onUpdateDocument(3);
-            }
-          },
+          // {
+          //   command: 'history_header',
+          //   title: '——Bổ sung chứng từ——',
+          //   disabled: true
+          // },
+          // {
+          //   command: 'PO',
+          //   title: '↳ PO',
+          //   iconCssClass: 'fa fa-file-alt',
+          //   action: () => {
+          //     this.onUpdateDocument(1);
+          //   }
+          // },
+          // {
+          //   command: 'BBBG',
+          //   title: '↳ Biên bản bàn giao',
+          //   iconCssClass: 'fa fa-handshake',
+          //   action: () => {
+          //     this.onUpdateDocument(2);
+          //   },
+          // },
+          // {
+          //   command: 'PXK',
+          //   title: '↳ Phiếu Xuất Kho',
+          //   iconCssClass: 'fa fa-truck-loading',
+          //   action: () => {
+          //     this.onUpdateDocument(3);
+          //   }
+          // },
         ]
       },
     };
@@ -866,13 +1036,11 @@ export class BillImportSyntheticAllComponent {
       }
     );
 
-    // Subscribe to onRowCountChanged to update filter collections
-    // this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
-    //   setTimeout(() => {
-    //     this.applyDistinctFilters();
-    //     this.updateMasterFooterRow();
-    //   }, 100);
-    // });
+    // Cập nhật footer và danh sách filter khi filter thay đổi
+    this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      this.updateMasterFooterRow();
+      this.updateActiveFilters();
+    });
 
     // Apply filters on initial load
     setTimeout(() => {
@@ -969,6 +1137,35 @@ export class BillImportSyntheticAllComponent {
         }
       });
     }
+  }
+
+  updateActiveFilters() {
+    const filters = this.angularGrid?.filterService?.getCurrentLocalFilters() || [];
+    this.activeFilters = filters
+      .filter((f: any) => f.searchTerms?.length && String(f.searchTerms[0]) !== '')
+      .map((f: any) => {
+        const colDef = this.columnDefinitions.find((c: any) => c.id === f.columnId);
+        return {
+          columnName: (colDef?.name as string) || f.columnId,
+          operator: f.operator || 'Contains',
+          searchTerm: (f.searchTerms || []).join(', '),
+        };
+      });
+  }
+
+  clearAllFilters() {
+    this.angularGrid?.filterService?.clearFilters();
+    this.activeFilters = [];
+    this.showFilterPopup = false;
+  }
+
+  toggleFilterPopup(event: MouseEvent) {
+    const el = (event.currentTarget as HTMLElement).closest('.active-filter-bar') as HTMLElement;
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      this.filterPopupPosition = rect.top > window.innerHeight / 2 ? 'top' : 'bottom';
+    }
+    this.showFilterPopup = !this.showFilterPopup;
   }
 
   // #endregion
@@ -1590,10 +1787,25 @@ export class BillImportSyntheticAllComponent {
     const multiSelectFields = [
       'BillTypeText',
       'BillImportCode',
+      'CodeNCC',
+      'NameNCC',
       'DepartmentName',
+      'Code',
+      'Deliver',
+      'Reciver',
       'KhoType',
       'WarehouseName',
+      'ProjectCodeText',
+      'BillCodePO',
+      'ProductCode',
+      'Unit',
+      'ProductNewCode',
+      'Maker',
       'SomeBill',
+      'DeliverFullName',
+      'ProductName',
+      'ProjectCode',
+      'ProjectNameText',
     ];
 
     let hasChanges = false;

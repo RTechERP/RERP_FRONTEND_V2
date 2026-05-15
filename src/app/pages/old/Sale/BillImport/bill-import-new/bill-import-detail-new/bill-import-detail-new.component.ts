@@ -131,6 +131,7 @@ export class BillImportDetailNewComponent
     isSaving: boolean = false;
     isFormDisabled: boolean = false;
     isApproved: boolean = false;
+    isBillApproved: boolean = false; // raw status, không loại trừ admin, dùng để truyền vào serial modal
     activePur: boolean = false;
     isEditPM: boolean = true;
     activeTabIndex: number = 0;
@@ -1512,13 +1513,13 @@ export class BillImportDetailNewComponent
         }
 
         // 2. Kiểm tra phiếu đã được duyệt chưa
-        if (this.isApproved) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                'Phiếu đã được duyệt, không thể chỉnh sửa Serial!'
-            );
-            return;
-        }
+        // if (this.isApproved) {
+        //     this.notification.warning(
+        //         NOTIFICATION_TITLE.warning,
+        //         'Phiếu đã được duyệt, không thể chỉnh sửa Serial!'
+        //     );
+        //     return;
+        // }
 
         // 3. Lấy thông tin từ dòng
         const quantity = rowData.Qty || 0;
@@ -1551,6 +1552,7 @@ export class BillImportDetailNewComponent
             modalRef.componentInstance.type = type;
             modalRef.componentInstance.dataBillDetail = rowData;
             modalRef.componentInstance.isBillImport = true;
+            modalRef.componentInstance.isApproved = this.isBillApproved;
 
             // Xử lý kết quả từ modal
             modalRef.result.then(
@@ -1733,6 +1735,10 @@ export class BillImportDetailNewComponent
                             : null,
                         RulePayID: data.RulePayID,
                     };
+
+                    if (data && (data.Status === true || data.Status === 1)) {
+                        this.isBillApproved = true;
+                    }
 
                     if (
                         data &&

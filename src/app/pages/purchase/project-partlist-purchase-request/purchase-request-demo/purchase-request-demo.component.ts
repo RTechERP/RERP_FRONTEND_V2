@@ -46,6 +46,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { ProjectService } from '../../../project/project-service/project.service';
 import { DateTime } from 'luxon';
 import { ProductRtcPurchaseRequestComponent } from '../product-rtc-purchase-request/product-rtc-purchase-request.component';
+import { ImportExcelPurchaseRequestDemoComponent } from '../import-excel-purchase-request-demo/import-excel-purchase-request-demo.component';
 import { WarehouseReleaseRequestService } from '../../../old/warehouse-release-request/warehouse-release-request/warehouse-release-request.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { PermissionService } from '../../../../services/permission.service';
@@ -508,6 +509,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
   currencies: Currency[] = [];
   productGroups: any[] = [];
   productRTC: any[] = [];
+  productGroupsRTC: any[] = [];
   supplierSales: any[] = [];
   projects: any[] = [];
 
@@ -1010,6 +1012,12 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
         this.updateEditorLookups();
       },
     });
+    this.srv.getProductGroupsRTC(1).subscribe({
+      next: (res) => {
+        this.productGroupsRTC = res || [];
+        this.updateEditorLookups();
+      },
+    });
   }
 
   //#endregion
@@ -1102,8 +1110,9 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
     }
 
     // Add common columns - simplified version for demo tabs
+    const isMuonTab = typeId === 4;
     columns.push(
-      {
+      ...(!isMuonTab ? [{
         id: 'CustomerName',
         field: 'CustomerName',
         name: 'Khách hàng',
@@ -1124,7 +1133,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
           collection: [],
           filterOptions: { filter: true } as MultipleSelectOption,
         },
-      },
+      }] : []),
       {
         id: isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID',
         field: isRTCTab ? 'ProductGroupRTCID' : 'ProductGroupID',
@@ -1144,7 +1153,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
           editorOptions: { enableClear: true },
         },
         formatter: (row: number, cell: number, value: any) => {
-          const groups = isRTCTab ? this.productRTC : this.productGroups;
+          const groups = isRTCTab ? this.productGroupsRTC : this.productGroups;
           const group = groups.find((g: any) => g.ID === value);
           return group ? group.ProductGroupName : '';
         },
@@ -1712,7 +1721,7 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
 
   // Helper methods for collections
   private getProductGroupCollection(isRTC: boolean): Array<{ value: number; label: string }> {
-    const groups = isRTC ? this.productRTC : this.productGroups;
+    const groups = isRTC ? this.productGroupsRTC : this.productGroups;
     return (groups || []).map((g: any) => ({
       value: g.ID,
       label: g.ProductGroupName || '',
@@ -1884,6 +1893,23 @@ export class PurchaseRequestDemoComponent implements OnInit, AfterViewInit, OnDe
   //#endregion
 
   //#region Chức năng Thêm, Sửa, Xóa
+  onImportExcel() {
+    const modalRef = this.modalService.open(ImportExcelPurchaseRequestDemoComponent, {
+      centered: false,
+      backdrop: 'static',
+      keyboard: false,
+      size: 'xl',
+    });
+    modalRef.componentInstance.supplierSales = this.supplierSales;
+    modalRef.componentInstance.productGroupsRTC = this.productGroupsRTC;
+    modalRef.componentInstance.projectPartListID = 0;
+    modalRef.componentInstance.warehouseID = 0;
+    modalRef.result.then(
+      (result) => { if (result?.success) this.onSearch(); },
+      () => {}
+    );
+  }
+
   onAdd() {
     const currentTab = this.tabs[this.activeTabIndex];
     if (!currentTab) {

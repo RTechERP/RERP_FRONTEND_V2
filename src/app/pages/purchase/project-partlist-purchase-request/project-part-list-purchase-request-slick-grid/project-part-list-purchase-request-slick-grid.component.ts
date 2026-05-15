@@ -1392,15 +1392,15 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['compoundInputText'],
-          // model: Filters['multipleSelect'],
-          // collectionOptions: {
-          //   addBlankEntry: true
-          // },
-          // collection: [],
-          // filterOptions: {
-          //   filter: true,
-          // } as MultipleSelectOption,
+          // model: Filters['compoundInputText'],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
@@ -1430,15 +1430,15 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['compoundInputText'],
-          // model: Filters['multipleSelect'],
-          // collectionOptions: {
-          //   addBlankEntry: true
-          // },
-          // collection: [],
-          // filterOptions: {
-          //   filter: true,
-          // } as MultipleSelectOption,
+          // model: Filters['compoundInputText'],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
@@ -1453,7 +1453,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
+          useRegularTooltipFromCellTextOnly: true,
         },
       },
       // ProductName
@@ -1465,15 +1465,15 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['compoundInputText'],
-          // model: Filters['multipleSelect'],
-          // collectionOptions: {
-          //   addBlankEntry: true
-          // },
-          // collection: [],
-          // filterOptions: {
-          //   filter: true,
-          // } as MultipleSelectOption,
+          // model: Filters['compoundInputText'],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
@@ -1488,7 +1488,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
+          useRegularTooltipFromCellTextOnly: true,
         },
       },
       // Model - ẩn ở tab Hàng Thương mại (typeId === 5)
@@ -1525,15 +1525,15 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         sortable: false,
         filterable: true,
         filter: {
-          model: Filters['compoundInputText'],
-          // model: Filters['multipleSelect'],
-          // collectionOptions: {
-          //   addBlankEntry: true
-          // },
-          // collection: [],
-          // filterOptions: {
-          //   filter: true,
-          // } as MultipleSelectOption,
+          // model: Filters['compoundInputText'],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
         },
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
@@ -1577,10 +1577,20 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 60,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        // Tính index cố định: TT(0) + WarehouseID(1) + TBP columns(0-3) + Approval columns(0-2) + CustomerName(0-1) + Fixed columns before UnitName
-        // Fixed columns trước UnitName: ProjectCode, ProductGroupID/ProductGroupRTCID, ProductNewCode/ProductCodeRTC, ProductCode, ProductName, Model, Manufacturer, Quantity = 8 columns
-        // Index = 2 + (isTBPTab ? 3 : 0) + (typeId !== 1 && typeId !== 4 ? 2 : 0) + (typeId !== 1 ? 1 : 0) + 8
+        filter: {
+          // model: Filters['compoundInputText'],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+          // Tính index cố định: TT(0) + WarehouseID(1) + TBP columns(0-3) + Approval columns(0-2) + CustomerName(0-1) + Fixed columns before UnitName
+          // Fixed columns trước UnitName: ProjectCode, ProductGroupID/ProductGroupRTCID, ProductNewCode/ProductCodeRTC, ProductCode, ProductName, Model, Manufacturer, Quantity = 8 columns
+          // Index = 2 + (isTBPTab ? 3 : 0) + (typeId !== 1 && typeId !== 4 ? 2 : 0) + (typeId !== 1 ? 1 : 0) + 8
+        },
       },
       // WarehouseID
       // {
@@ -1673,7 +1683,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         },
         customTooltip: {
           useRegularTooltip: true,
-          // useRegularTooltipFromCellTextOnly: true,
+          useRegularTooltipFromCellTextOnly: true,
         },
       },
       // UpdatedName

@@ -88,6 +88,10 @@ export class ProjectPartlistPurchaseRequestService {
         return this.http.post<any>(this.baseUrl + `save-data-rtc`, model);
     }
 
+    saveDataRTCExcel(models: any[]): Observable<any> {
+        return this.http.post<any>(this.baseUrl + `save-data-rtc-excel`, models);
+    }
+
     updateProductImport(items: any): Observable<any> {
         return this.http.post<any>(this.baseUrl + `update-product-import`, items);
     }
@@ -130,7 +134,7 @@ export class ProjectPartlistPurchaseRequestService {
     private productRTCUrl = environment.host + 'api/ProductRTC/';
 
     getProductRTC(): Observable<any[]> {
-        return this.http.get<any>(this.baseUrl + 'product-group_rtc').pipe(
+        return this.http.get<any>(this.baseUrl + 'product-group-rtc').pipe(
             map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
         );
     }

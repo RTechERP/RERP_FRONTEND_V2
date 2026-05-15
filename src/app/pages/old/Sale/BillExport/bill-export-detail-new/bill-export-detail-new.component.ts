@@ -1216,15 +1216,32 @@ export class BillExportDetailNewComponent
                 id: 'PONumber',
                 name: 'Số PO',
                 field: 'PONumber',
-                width: 200,
+                width: 300,
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 formatter: (_row, _cell, value) => {
                     if (!value) return '';
+
                     const html = String(value).replace(/\n/g, '<br>');
-                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-all;">${html}</div>`;
-                },
+
+                    return `
+                    <div 
+                        title="${String(value).replace(/"/g, '&quot;')}" 
+                        style="
+                            line-height: 1.3;
+                            overflow: hidden;
+                            display: -webkit-box;
+                            -webkit-line-clamp: 3;
+                            -webkit-box-orient: vertical;
+                            overflow-wrap: anywhere;
+                            word-break: break-all;
+                        "
+                    >
+                        ${html}
+                    </div>
+                `;
+                }
             },
             {
                 id: 'AddSerial',
@@ -3180,13 +3197,13 @@ export class BillExportDetailNewComponent
         }
 
         // Check if the bill is approved - if so, don't allow editing
-        if (this.newBillExport.IsApproved) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                'Phiếu đã được duyệt, không thể chỉnh sửa Serial!'
-            );
-            return;
-        }
+        // if (this.newBillExport.IsApproved) {
+        //     this.notification.warning(
+        //         NOTIFICATION_TITLE.warning,
+        //         'Phiếu đã được duyệt, không thể chỉnh sửa Serial!'
+        //     );
+        //     return;
+        // }
 
         // Get quantity and product code from row data
         const quantity = rowData.Qty || 0;
@@ -3217,6 +3234,7 @@ export class BillExportDetailNewComponent
             modalRef.componentInstance.existingSerials = existingSerials;
             modalRef.componentInstance.type = type;
             modalRef.componentInstance.dataBillDetail = rowData;
+            modalRef.componentInstance.isApproved = !!this.newBillExport.IsApproved;
 
             // Handle modal result
             modalRef.result.then(

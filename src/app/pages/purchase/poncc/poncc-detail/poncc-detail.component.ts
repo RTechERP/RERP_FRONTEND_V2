@@ -107,6 +107,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   supplierSales: any[] = [];
   isEditMode: boolean = false;
   isLoadingData: boolean = false;
+  deletedDetails: any[] = [];
 
   // Print properties
   showPreview = false;
@@ -806,16 +807,13 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
               nzCancelText: 'Hủy',
               nzOkDanger: true,
               nzOnOk: () => {
-                let id = cell.getRow().getData().ID;
-                if (id <= 0) {
-                  cell.getRow().delete();
-                  this.resetSTT();
-                } else {
-                  this.ponccService.deletedPonccDetail(id).subscribe((res: any) => {
-                    cell.getRow().delete();
-                    this.resetSTT();
-                  });
+                const rowData = cell.getRow().getData();
+                const id = rowData.ID;
+                if (id > 0) {
+                  this.deletedDetails.push({ ...rowData, IsDeleted: true });
                 }
+                cell.getRow().delete();
+                this.resetSTT();
               }
             });
           }
@@ -1710,6 +1708,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         // Check if response indicates success
         if (res && (res.status === 1 || res.success === true || res.status === true)) {
           this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công!');
+          this.deletedDetails = [];
           this.tabService.notifyDataSaved('poncc');
 
           // Reload data after save to get latest info including ID for new records
@@ -1801,7 +1800,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     // Chuẩn bị dữ liệu bảng (PONCCDetails)
     console.log('tableData:', tableData);
 
-    const ponccDetails = tableData.map((row: any) => ({
+    const mapRow = (row: any, isDeleted: boolean = false) => ({
       ID: row.ID || 0,
       STT: row.STT || 0,
       ProductSaleID: row.ProductSaleID || 0,
@@ -1839,7 +1838,13 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       PONCCDetailRequestBuyID: row.PONCCDetailRequestBuyID || '',
       ProjectPartlistPurchaseRequestID: row.ProjectPartlistPurchaseRequestID || 0,
       ProjectPartlistID: row.ProjectPartListID || 0,
-    }));
+      IsDeleted: isDeleted,
+    });
+
+    const ponccDetails = [
+      ...tableData.map((row: any) => mapRow(row, false)),
+      ...this.deletedDetails.map((row: any) => mapRow(row, true)),
+    ];
 
     // Kết hợp tất cả dữ liệu
     let dataMaster = {

@@ -1,0 +1,117 @@
+<div class="user-group-search-container h-100 d-flex flex-column bg-white">
+  <!-- Header / Breadcrumb if needed -->
+
+  <div class="flex-grow-1 position-relative">
+    <nz-spin [nzSpinning]="loading" nzTip="Đang tải dữ liệu..." class="h-100">
+      <nz-splitter style="height: 93vh !important">
+        <!-- Master Panel: Group Tree -->
+        <nz-splitter-panel nzDefaultSize="55%" class="h-100">
+          <div class="h-100 d-flex flex-column border-end">
+            <div class="pane-header bg-light p-2 border-bottom fw-bold fs-12 d-flex justify-content-between">
+              <span>Sơ đồ nhóm quyền</span>
+            </div>
+            <div class="flex-grow-1 overflow-auto p-1 bg-white">
+              <p-treeTable #tt [value]="treeNodes" selectionMode="single" [(selection)]="selectedNode"
+                (onNodeSelect)="onNodeSelect($event)" (onNodeUnselect)="onNodeUnselect()" [scrollable]="true"
+                scrollHeight="flex" styleClass="p-treetable-sm border-0 fs-12 custom-tree">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th style="width: 50%" class="text-center">Mã</th>
+                    <th style="width: 50%" class="text-center">Tên nhóm quyền / Quyền</th>
+                  </tr>
+                  <tr>
+                    <th style="width: 50%">
+                      <input pInputText type="text" (input)="tt.filter($any($event.target).value, 'Code', 'contains')"
+                        placeholder="Lọc mã..." class="w-100 p-inputtext-sm" />
+                    </th>
+                    <th style="width: 50%">
+                      <input pInputText type="text" (input)="tt.filter($any($event.target).value, 'Name', 'contains')"
+                        placeholder="Lọc tên..." class="w-100 p-inputtext-sm" />
+                    </th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+                  <tr [ttSelectableRow]="rowNode" [ngClass]="{'bg-light fw-bold': rowData.Type === 'GROUP'}">
+                    <td style="width: 50%" class="text-left">
+                      <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                      <span>{{ rowData.Code }}</span>
+                    </td>
+                    <td style="width: 50%" class="text-left">
+                      <span>{{ rowData.Name }}</span>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="2" class="text-center p-3 text-muted">Không có dữ liệu</td>
+                  </tr>
+                </ng-template>
+              </p-treeTable>
+            </div>
+          </div>
+        </nz-splitter-panel>
+
+        <!-- Detail Panel: Employee List -->
+        <nz-splitter-panel nzDefaultSize="45%" class="h-100">
+          <div class="h-100 d-flex flex-column">
+            <div class="pane-header bg-light p-2 border-bottom fw-bold fs-12 d-flex justify-content-between">
+              <span>Danh sách nhân viên</span>
+              <span class="badge bg-primary fs-10" *ngIf="datasetEmployees.length > 0">
+                {{ datasetEmployees.length }} nhân viên
+              </span>
+            </div>
+            <div class="flex-grow-1 overflow-hidden p-1">
+              <p-table [value]="datasetEmployees" styleClass="p-datatable-sm p-datatable-gridlines fs-12"
+                [scrollable]="true" scrollHeight="flex">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th style="width: 100px" class="text-center" pSortableColumn="UserCode">Mã NV <p-sortIcon
+                        field="UserCode" /></th>
+                    <th style="width: 200px" class="text-center" pSortableColumn="FullName">Họ và tên <p-sortIcon
+                        field="FullName" /></th>
+                    <th style="width: 200px" class="text-center" pSortableColumn="DepartmentName">Phòng ban <p-sortIcon
+                        field="DepartmentName" /></th>
+                    <th class="text-center" pSortableColumn="PosiotionName">Chức vụ <p-sortIcon field="PosiotionName" />
+                    </th>
+                    <th style="width: 50px" class="text-center">#</th>
+                  </tr>
+                  <tr>
+                    <th><p-columnFilter type="text" field="UserCode" [showMenu]="false" placeholder="Lọc..." /></th>
+                    <th><p-columnFilter type="text" field="FullName" [showMenu]="false" placeholder="Lọc..." /></th>
+                    <th><p-columnFilter type="text" field="DepartmentName" [showMenu]="false" placeholder="Lọc..." />
+                    </th>
+                    <th><p-columnFilter type="text" field="PosiotionName" [showMenu]="false" placeholder="Lọc..." />
+                    </th>
+                    <th></th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-item>
+                  <tr>
+                    <td class="text-center">{{ item.UserCode }}</td>
+                    <td class="fw-bold">{{ item.FullName }}</td>
+                    <td>{{ item.DepartmentName }}</td>
+                    <td>{{ item.PosiotionName }}</td>
+                    <td class="text-center">
+                      <button nz-button nzType="text" nzDanger nzSize="small" (click)="onDeleteUser(item)">
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="5" class="text-center p-5 text-muted">
+                      <div class="d-flex flex-column align-items-center">
+                        <span>Chọn một nhóm quyền để xem danh sách nhân viên</span>
+                      </div>
+                    </td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </div>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </nz-spin>
+  </div>
+</div>

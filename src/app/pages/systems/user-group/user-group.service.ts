@@ -51,7 +51,23 @@ export class UserGroupService {
         return this.http.get<any>(`${this.url}/get-groups-by-user?userId=${userId}`);
     }
 
+    getUserPermissions(userId: number): Observable<any> {
+        return this.http.get<any>(`${this.url}/get-user-permissions?userId=${userId}`);
+    }
+
+    saveUserGroupLinks(userId: number, userGroupIds: string): Observable<any> {
+        return this.http.post<any>(`${this.url}/save-user-group-links?userId=${userId}&userGroupIds=${userGroupIds}`, {});
+    }
+
     copyUserGroups(req: any): Observable<any> {
         return this.http.post<any>(`${this.url}/copy-user-groups`, req);
+    }
+
+    getTree(): Observable<any> {
+        return this.http.get<any>(`${this.url}/get-tree`);
+    }
+
+    getEmployeesByGroup(userGroupId: number): Observable<any> {
+        return this.http.get<any>(`${this.url}/get-employees-by-group?userGroupId=${userGroupId}`);
     }
 }

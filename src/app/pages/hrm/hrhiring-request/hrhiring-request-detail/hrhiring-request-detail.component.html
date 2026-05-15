@@ -370,38 +370,62 @@
                                         Trình độ ngoại ngữ
                                         <span class="text-danger fs-12">(*)</span>
                                     </legend>
-                                    <nz-form-item class="m-0">
-                                        <div class="d-flex flex-column gap-3">
-                                            <!-- Tiếng Anh - ĐỂ DỌC -->
-                                            <div>
-                                                <label class="fs-12 fw-semibold d-block mb-2">Tiếng Anh:
-                                                    <span class="text-danger fs-12">(*)</span></label>
-                                                <nz-select nzAllowClear class="w-100" formControlName="EnglishLevel"
-                                                    nzPlaceHolder="Chọn trình độ">
-                                                    <nz-option nzValue="Level A" nzLabel="Level A"></nz-option>
-                                                    <nz-option nzValue="Level B" nzLabel="Level B"></nz-option>
-                                                    <nz-option nzValue="Level C" nzLabel="Level C"></nz-option>
-                                                    <nz-option nzValue="Không cần" nzLabel="Không cần"></nz-option>
-                                                </nz-select>
-                                            </div>
+                                    <nz-row [nzGutter]="24">
+                                        <nz-col [nzSpan]="12">
+                                            <nz-form-item class="m-0">
+                                                <div class="d-flex flex-column gap-3">
+                                                    <!-- Tiếng Anh - ĐỂ DỌC -->
+                                                    <div>
+                                                        <label class="fs-12 fw-semibold d-block mb-2">Tiếng Anh:
+                                                            <span class="text-danger fs-12">(*)</span></label>
+                                                        <nz-select nzAllowClear class="w-100"
+                                                            formControlName="EnglishLevel"
+                                                            nzPlaceHolder="Chọn trình độ">
+                                                            <nz-option nzValue="Level A" nzLabel="Level A"></nz-option>
+                                                            <nz-option nzValue="Level B" nzLabel="Level B"></nz-option>
+                                                            <nz-option nzValue="Level C" nzLabel="Level C"></nz-option>
+                                                            <nz-option nzValue="Không yêu cầu"
+                                                                nzLabel="Không yêu cầu"></nz-option>
+                                                        </nz-select>
+                                                    </div>
 
-                                            <!-- Ngôn ngữ khác - ĐỂ DỌC -->
-                                            <div>
-                                                <label class="fs-12 fw-semibold d-block mb-2">Ngôn ngữ khác:</label>
-                                                <div class="d-flex gap-2 align-items-center mb-2">
-                                                    <input nz-input class="flex-fill" placeholder="Nhập tên ngôn ngữ"
-                                                        formControlName="OtherLanguage" />
-                                                    <nz-select nzAllowClear class="w-50"
-                                                        formControlName="OtherLanguageLevel" nzPlaceHolder="Trình độ">
-                                                        <nz-option nzValue="Level A" nzLabel="Level A"></nz-option>
-                                                        <nz-option nzValue="Level B" nzLabel="Level B"></nz-option>
-                                                        <nz-option nzValue="Level C" nzLabel="Level C"></nz-option>
-                                                        <nz-option nzValue="Không cần" nzLabel="Không cần"></nz-option>
-                                                    </nz-select>
+                                                    <!-- Ngôn ngữ khác - ĐỂ DỌC -->
+                                                    <div>
+                                                        <label class="fs-12 fw-semibold d-block mb-2">Ngôn ngữ
+                                                            khác:</label>
+                                                        <div class="d-flex gap-2 align-items-center mb-2">
+                                                            <input nz-input class="flex-fill"
+                                                                placeholder="Nhập tên ngôn ngữ"
+                                                                formControlName="OtherLanguage" />
+                                                            <nz-select nzAllowClear class="w-50"
+                                                                formControlName="OtherLanguageLevel"
+                                                                nzPlaceHolder="Trình độ">
+                                                                <nz-option nzValue="Level A"
+                                                                    nzLabel="Level A"></nz-option>
+                                                                <nz-option nzValue="Level B"
+                                                                    nzLabel="Level B"></nz-option>
+                                                                <nz-option nzValue="Level C"
+                                                                    nzLabel="Level C"></nz-option>
+                                                                <nz-option nzValue="Không yêu cầu"
+                                                                    nzLabel="Không yêu cầu"></nz-option>
+                                                            </nz-select>
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                            </nz-form-item>
+                                        </nz-col>
+                                        <nz-col [nzSpan]="12">
+                                            <div>
+                                                <label class="fs-12 fw-semibold d-block ">Ghi chú:</label>
+                                                <textarea nz-input class="flex-fill" rows="4" maxRows="6"
+                                                    formControlName="LanguageNote" nzPlaceholder="Trình độ">
+                                                        </textarea>
                                             </div>
-                                        </div>
-                                    </nz-form-item>
+                                        </nz-col>
+                                    </nz-row>
+
+
+
                                 </fieldset>
                             </div>
 

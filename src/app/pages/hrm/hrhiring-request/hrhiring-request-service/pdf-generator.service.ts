@@ -6,7 +6,7 @@ import html2canvas from 'html2canvas';
   providedIn: 'root',
 })
 export class PdfGeneratorService {
-  constructor() {}
+  constructor() { }
 
   async generateHiringRequestPDF(data: any): Promise<void> {
     try {
@@ -138,9 +138,8 @@ export class PdfGeneratorService {
         <!-- Row 1: Phòng ban và Trình độ học vấn -->
         <tr>
           <td style="border: 1px solid #000; padding: 6px; font-weight: bold; width: 25%; vertical-align: top;">Phòng ban/Bộ phận:</td>
-          <td style="border: 1px solid #000; padding: 6px; width: 30%; vertical-align: top;">${
-            data?.DepartmentName || 'Manufacturing Dept'
-          }</td>
+          <td style="border: 1px solid #000; padding: 6px; width: 30%; vertical-align: top;">${data?.DepartmentName || 'Manufacturing Dept'
+      }</td>
           <td style="border: 1px solid #000; padding: 6px; font-weight: bold; width: 20%; vertical-align: top;">*Trình độ học vấn*:</td>
           <td style="border: 1px solid #000; padding: 6px; width: 25%; vertical-align: top;">
             ${this.getEducationCheckboxes(data)}
@@ -150,9 +149,8 @@ export class PdfGeneratorService {
         <!-- Row 2: Vị trí tuyển dụng -->
         <tr>
           <td style="border: 1px solid #000; padding: 6px; font-weight: bold; vertical-align: top;">Vị trí tuyển dụng:</td>
-          <td style="border: 1px solid #000; padding: 6px; vertical-align: top;">${
-            data?.EmployeeChucVuHDName || 'Nhân viên lắp ráp điện'
-          }</td>
+          <td style="border: 1px solid #000; padding: 6px; vertical-align: top;">${data?.EmployeeChucVuHDName || 'Nhân viên lắp ráp điện'
+      }</td>
           <td style="border: 1px solid #000; padding: 6px; vertical-align: top;"></td>
           <td style="border: 1px solid #000; padding: 6px; vertical-align: top;"></td>
         </tr>
@@ -160,9 +158,8 @@ export class PdfGeneratorService {
         <!-- Row 3: Số lượng cần tuyển -->
         <tr>
           <td style="border: 1px solid #000; padding: 6px; font-weight: bold;">Số lượng cần tuyển:</td>
-          <td style="border: 1px solid #000; padding: 6px;">${
-            data?.QuantityHiring || '2'
-          }</td>
+          <td style="border: 1px solid #000; padding: 6px;">${data?.QuantityHiring || '2'
+      }</td>
           <td style="border: 1px solid #000; padding: 6px;"></td>
           <td style="border: 1px solid #000; padding: 6px;"></td>
         </tr>
@@ -171,8 +168,8 @@ export class PdfGeneratorService {
         <tr>
           <td style="border: 1px solid #000; padding: 6px; font-weight: bold;">Lương cơ bản đề xuất:</td>
           <td style="border: 1px solid #000; padding: 6px;">${this.formatSalaryRange(
-            data
-          )}</td>
+        data
+      )}</td>
           <td style="border: 1px solid #000; padding: 6px;"></td>
           <td style="border: 1px solid #000; padding: 6px;"></td>
         </tr>
@@ -181,12 +178,12 @@ export class PdfGeneratorService {
         <tr>
           <td style="border: 1px solid #000; padding: 6px; font-weight: bold;">Giới tính:</td>
           <td style="border: 1px solid #000; padding: 6px;">${this.getGenderText(
-            data
-          )}</td>
+        data
+      )}</td>
           <td style="border: 1px solid #000; padding: 6px; font-weight: bold;">Độ tuổi:</td>
           <td style="border: 1px solid #000; padding: 6px;">${this.formatAgeRange(
-            data
-          )}</td>
+        data
+      )}</td>
         </tr>
         
         <!-- Row 6: Ngoại hình -->
@@ -200,10 +197,9 @@ export class PdfGeneratorService {
         <!-- Row 7: Địa chỉ làm việc -->
         <tr>
           <td style="border: 1px solid #000; padding: 6px; font-weight: bold; vertical-align: top;">Địa chỉ làm việc:</td>
-          <td colspan="3" style="border: 1px solid #000; padding: 6px; vertical-align: top;">${
-            data?.WorkAddress ||
-            'Cụm công nghiệp Dân Phượng GĐ2, xã Dân Phượng, huyện Dân Phượng, Hà Nội.'
-          }</td>
+          <td colspan="3" style="border: 1px solid #000; padding: 6px; vertical-align: top;">${data?.WorkAddress ||
+      'Cụm công nghiệp Dân Phượng GĐ2, xã Dân Phượng, huyện Dân Phượng, Hà Nội.'
+      }</td>
         </tr>
         
         <!-- Row 8: Kinh nghiệm làm việc -->
@@ -217,10 +213,9 @@ export class PdfGeneratorService {
         <!-- Row 9: Yêu cầu chuyên môn -->
         <tr>
           <td style="border: 1px solid #000; padding: 6px; font-weight: bold; vertical-align: top;">Yêu cầu chuyên môn:</td>
-          <td colspan="3" style="border: 1px solid #000; padding: 6px; vertical-align: top;">${
-            data?.ProfessionalRequirement ||
-            'Điện tự động hóa, Điện công nghiệp.'
-          }</td>
+          <td colspan="3" style="border: 1px solid #000; padding: 6px; vertical-align: top;">${data?.ProfessionalRequirement ||
+      'Điện tự động hóa, Điện công nghiệp.'
+      }</td>
         </tr>
         
         <!-- Row 10: Mô tả công việc -->
@@ -251,6 +246,9 @@ export class PdfGeneratorService {
           <td colspan="3" style="border: 1px solid #000; padding: 6px; vertical-align: top;">
             ${this.getLanguageSection(data)}
           </td>
+        </tr>
+        <tr>
+         
         </tr>
         
         <!-- Computer Skills -->
@@ -330,11 +328,11 @@ export class PdfGeneratorService {
       <!-- Date -->
       <div style="text-align: right; margin: 30px 0 20px 0; font-style: italic; font-size: 11pt;">
         Hà Nội, ngày ${new Date()
-          .getDate()
+        .getDate()
+        .toString()
+        .padStart(2, '0')} tháng ${(new Date().getMonth() + 1)
           .toString()
-          .padStart(2, '0')} tháng ${(new Date().getMonth() + 1)
-      .toString()
-      .padStart(2, '0')}. năm ${new Date().getFullYear()}.
+          .padStart(2, '0')}. năm ${new Date().getFullYear()}.
       </div>
 
       <!-- Signature Table -->
@@ -370,9 +368,8 @@ export class PdfGeneratorService {
     Object.entries(educationMapping).forEach(([value, label]) => {
       const isSelected =
         data?.EducationSelections?.includes(Number(value)) || false;
-      html += `<div style="margin-bottom: 2px;">${
-        isSelected ? '☑' : '☐'
-      } ${label}</div>`;
+      html += `<div style="margin-bottom: 2px;">${isSelected ? '☑' : '☐'
+        } ${label}</div>`;
     });
     html += '</div>';
     return html;
@@ -428,9 +425,8 @@ export class PdfGeneratorService {
         index === Object.keys(experienceMapping).length - 1
       ) {
         html += `<div style="margin-bottom: 2px; display: flex;">`;
-        html += `<div style="width: 50%; margin-right: 10px;">${
-          currentRow[0] || ''
-        }</div>`;
+        html += `<div style="width: 50%; margin-right: 10px;">${currentRow[0] || ''
+          }</div>`;
         html += `<div style="width: 50%;">${currentRow[1] || ''}</div>`;
         html += `</div>`;
         currentRow = [];
@@ -451,29 +447,33 @@ export class PdfGeneratorService {
 
     const englishLevels = ['Level A', 'Level B', 'Level C', 'Không cần thiết'];
     const selectedEnglish = data?.EnglishLevel || '';
+    const languageNote = data?.LanguageNote || '';
 
     englishLevels.forEach((level) => {
       const isSelected = selectedEnglish === level;
-      html += `<span style="margin-right: 15px;">${
-        isSelected ? '☑' : '☐'
-      } ${level}</span>`;
+      html += `<span style="margin-right: 15px;">${isSelected ? '☑' : '☐'
+        } ${level}</span>`;
     });
     html += '</div>';
 
     // Other language section
     html += '<div style="margin-bottom: 5px;">';
     const otherLanguage = data?.OtherLanguage || '';
-    html += `<div style="font-weight: bold; margin-bottom: 5px;">+ Khác ${
-      otherLanguage ? otherLanguage : '________________'
-    }:</div>`;
+    html += `<div style="font-weight: bold; margin-bottom: 5px;">+ Khác ${otherLanguage ? otherLanguage : '________________'
+      }:</div>`;
 
     const selectedOther = data?.OtherLanguageLevel || '';
     englishLevels.forEach((level) => {
       const isSelected = selectedOther === level;
-      html += `<span style="margin-right: 15px;">${
-        isSelected ? '☑' : '☐'
-      } ${level}</span>`;
+      html += `<span style="margin-right: 15px;">${isSelected ? '☑' : '☐'
+        } ${level}</span>`;
     });
+    html += '</div>';
+
+    // Language Note section
+    html += '<div style="margin-top: 8px;">';
+    html += `<div style="font-weight: bold; display: inline;">+ Ghi chú: </div>`;
+    html += `<span>${languageNote ? languageNote : '......................................................................................'}</span>`;
     html += '</div>';
 
     html += '</div>';
@@ -494,9 +494,8 @@ export class PdfGeneratorService {
     // First row
     skills.slice(0, 3).forEach((skill) => {
       const isSelected = data?.[skill.key] || false;
-      html += `<span style="margin-right: 15px;">${isSelected ? '☑' : '☐'} ${
-        skill.name
-      }</span>`;
+      html += `<span style="margin-right: 15px;">${isSelected ? '☑' : '☐'} ${skill.name
+        }</span>`;
     });
 
     html += '<br><br>';
@@ -504,9 +503,8 @@ export class PdfGeneratorService {
     // Second row
     skills.slice(3).forEach((skill) => {
       const isSelected = data?.[skill.key] || false;
-      html += `<span style="margin-right: 15px;">${isSelected ? '☑' : '☐'} ${
-        skill.name
-      }</span>`;
+      html += `<span style="margin-right: 15px;">${isSelected ? '☑' : '☐'} ${skill.name
+        }</span>`;
     });
 
     html += ` Khác: ${data?.SkillOther || 'Cơ bản'}____________________`;
@@ -522,25 +520,22 @@ export class PdfGeneratorService {
     const needSpecialStrength = data?.NeedSpecialStrength || false;
     const ensureHealth = data?.EnsureHealth || false;
 
-    html += `<div style="margin-bottom: 8px;">${
-      needPhysical ? '☑' : '☐'
-    } Cần thể hình: Cao:>1.6 m; Nặng:>50 kg`;
+    html += `<div style="margin-bottom: 8px;">${needPhysical ? '☑' : '☐'
+      } Cần thể hình: Cao:>1.6 m; Nặng:>50 kg`;
     if (needPhysical && data?.PhysicalNote) {
       html += `<br>&nbsp;&nbsp;&nbsp;&nbsp;Ghi chú: ${data.PhysicalNote}`;
     }
     html += `</div>`;
 
-    html += `<div style="margin-bottom: 8px;">${
-      needSpecialStrength ? '☑' : '☐'
-    } Cần sức lực đặc biệt`;
+    html += `<div style="margin-bottom: 8px;">${needSpecialStrength ? '☑' : '☐'
+      } Cần sức lực đặc biệt`;
     if (needSpecialStrength && data?.StrengthNote) {
       html += `<br>&nbsp;&nbsp;&nbsp;&nbsp;Ghi chú: ${data.StrengthNote}`;
     }
     html += `</div>`;
 
-    html += `<div style="margin-bottom: 8px;">${
-      ensureHealth ? '☑' : '☐'
-    } Sức khỏe đủ đảm bảo cho công việc.`;
+    html += `<div style="margin-bottom: 8px;">${ensureHealth ? '☑' : '☐'
+      } Sức khỏe đủ đảm bảo cho công việc.`;
     if (ensureHealth && data?.HealthNote) {
       html += `<br>&nbsp;&nbsp;&nbsp;&nbsp;Ghi chú: ${data.HealthNote}`;
     }
@@ -579,9 +574,8 @@ export class PdfGeneratorService {
 
     commItems.forEach((item) => {
       const isChecked = data?.[item.key] === true || data?.[item.key] === 1;
-      html += `<div style="margin-bottom: 8px;">${isChecked ? '☑' : '☐'} ${
-        item.text
-      }`;
+      html += `<div style="margin-bottom: 8px;">${isChecked ? '☑' : '☐'} ${item.text
+        }`;
 
       if (item.key === 'CommForeignCustomer') {
         const country = data?.CommForeignCountry || '';

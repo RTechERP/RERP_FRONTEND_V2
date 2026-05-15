@@ -1,0 +1,78 @@
+.user-group-search-container {
+    height: calc(100vh - 45px);
+    /* Trừ chiều cao header chính của app */
+}
+
+.fs-12 {
+    font-size: 12px !important;
+}
+
+.fs-10 {
+    font-size: 10px !important;
+}
+
+.pane-header {
+    height: 40px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+}
+
+/* Đồng bộ phong cách với UserGroup component */
+:host ::ng-deep .p-treetable .p-treetable-thead>tr>th,
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    padding: 8px 12px;
+    background: #f8f9fa;
+    color: #333;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1px solid #dee2e6 !important;
+    font-size: 12px;
+}
+
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td,
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    padding: 6px 12px;
+    border: 1px solid #dee2e6 !important;
+    font-size: 12px;
+    word-break: break-word;
+    /* Tự động xuống dòng khi text quá dài */
+    white-space: normal;
+    /* Cho phép xuống dòng */
+}
+
+/* Row interaction */
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr:hover,
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr:hover {
+    background-color: #f0f7ff !important;
+}
+
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr.p-highlight,
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr.p-highlight {
+    background-color: #e6f4ff !important;
+    color: #1890ff !important;
+    font-weight: 500;
+}
+
+/* Tùy chỉnh input lọc */
+:host ::ng-deep .p-treetable .p-treetable-thead>tr>th .p-inputtext,
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th .p-inputtext {
+    padding: 4px 8px;
+    font-size: 12px;
+    width: 100%;
+    border-radius: 4px;
+}
+
+/* Custom Scrollbar */
+.overflow-auto::-webkit-scrollbar,
+.overflow-hidden::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.overflow-auto::-webkit-scrollbar-thumb,
+.overflow-hidden::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}

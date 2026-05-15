@@ -29,6 +29,7 @@ import { UserGroupFormComponent } from './user-group-form/user-group-form.compon
 import { UserGroupEmployeeSelectTableComponent } from './employee-select-table/employee-select-table.component';
 import { UserGroupDistributionFormComponent } from './user-group-distribution-form/user-group-distribution-form.component';
 import { UserGroupCopyDistributionFormComponent } from './user-group-copy-distribution-form/user-group-copy-distribution-form.component';
+import { UserGroupByEmployeeComponent } from './user-group-by-employee/user-group-by-employee.component';
 import { MenubarModule } from 'primeng/menubar';
 import { PermissionService } from '../../../services/permission.service';
 
@@ -139,6 +140,12 @@ export class UserGroupComponent implements OnInit, OnDestroy {
         icon: 'fa-solid fa-copy text-success',
         visible: this.permissinSv.hasPermission("N1999"),
         command: () => this.onCopyPermissions()
+      },
+      {
+        label: 'Tra cứu quyền NV',
+        icon: 'fa-solid fa-user-check text-indigo',
+        visible: this.permissinSv.hasPermission("N1999"),
+        command: () => this.onSearchPermissionsByEmployee()
       },
       {
         label: 'Tải lại',
@@ -328,6 +335,15 @@ export class UserGroupComponent implements OnInit, OnDestroy {
       (res) => { if (res === 'save') this.loadMasterData(); },
       () => { }
     );
+  }
+
+  onSearchPermissionsByEmployee(): void {
+    const modalRef = this.ngbModal.open(UserGroupByEmployeeComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      centered: true
+    });
+    modalRef.componentInstance.employeeList = this.employeeList;
   }
 
   onDelete(): void {

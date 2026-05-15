@@ -9,7 +9,7 @@
                         ban</nz-form-label>
                     <nz-form-control>
                         <nz-select name="departmentId" nzShowSearch nzSize="small" nzPlaceHolder="Chọn phòng ban"
-                            style="width: 200px;" [(ngModel)]="filters.departmentId" [nzDisabled]="true">
+                            style="width: 200px;" [(ngModel)]="filters.departmentId">
                             <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
                                 [nzLabel]="item.Name"></nz-option>
                         </nz-select>

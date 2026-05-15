@@ -257,6 +257,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   isSubmitted: boolean = false;
   isSaving: boolean = false;
   isLoadingData: boolean = false;
+  private copySourcePOKHId: number = 0;
 
   //#endregion
   //#region : Hàm khởi tạo
@@ -681,6 +682,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           // Nếu đang ở chế độ copy thì reset ID và data file
 
           if (this.isCopy) {
+            this.copySourcePOKHId = id;
+            this.poFormData.poCode = '';
             this.dataPOKHDetailFile = [];
             this.dataPOKHFiles = [];
 
@@ -863,8 +866,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       return;
     }
     if (this.isCopy) {
+      if (!this.validateForm()) return;
       this.copyPOKHToDTO();
-      this.isCopy = false;
       return;
     }
     if (!this.validateForm()) return;
@@ -1621,7 +1624,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   }
 
   generatePOCode(CustomerName: string): void {
-    const { isCopy = false, warehouseId = 1, pokhId = 0 } = this.poFormData;
+    const isCopy = this.isCopy;
+    const warehouseId =
+      this.poFormData.warehouseId ||
+      this.warehouseId ||
+      this.filters.warehouseId ||
+      1;
+    const pokhId = isCopy ? (this.copySourcePOKHId || this.selectedId || 0) : 0;
 
     this.POKHService.generatePOCode(
       CustomerName,
@@ -2229,6 +2238,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.isModalOpen = false;
     this.isEditMode = false;
     this.isCopy = false;
+    this.copySourcePOKHId = 0;
     this.selectedId = 0;
     this.isSubmitted = false;
     this.isLoadingData = false;
@@ -3234,19 +3244,11 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
   // Hàm chuẩn bị dữ liệu và gọi API copy-dto
   copyPOKHToDTO() {
-    const poDate = new Date(this.poFormData.poDate || new Date());
 
     // Reset ID của phiếu chính
     const pokhCopy = {
-      ...this.poFormData,
+      ...this.getPOKHData(),
       ID: 0,
-      Year: poDate.getFullYear(),
-      Month: poDate.getMonth() + 1,
-      ReceivedDatePO: poDate,
-      PartID: this.poFormData.departmentId,
-      NewAccount: this.poFormData.isBigAccount,
-      TotalMoneyPO: this.poFormData.totalPO,
-      TotalMoneyKoVAT: this.calculateTotalMoneyKoVAT(),
     };
     // Flatten chi tiết sản phẩm
     const detailsFlat = this.flattenDetails(this.dataPOKHProduct);
@@ -3262,14 +3264,25 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       POKHDetailsMoney: detailUserCopy,
     };
     // Gọi API copy-dto
-    this.POKHService.copyFromDTO(dto).subscribe((res) => {
-      if (res.status === 1) {
-        this.notification.success('Thông báo', 'Copy thành công!');
-        // Có thể load lại danh sách hoặc chuyển sang bản ghi mới
-      } else {
-        this.notification.error('Thông báo', 'Copy thất bại: ' + res.message);
-      }
-    });
+    this.isSaving = true;
+    this.POKHService.copyFromDTO(dto)
+      .pipe(finalize(() => {
+        this.isSaving = false;
+      }))
+      .subscribe((res) => {
+        if (res.status === 1) {
+          this.notification.success('Thông báo', 'Copy thành công!');
+          this.isCopy = false;
+          this.copySourcePOKHId = 0;
+          this.activeModal.close({
+            success: true,
+            reloadData: true,
+          });
+          // Có thể load lại danh sách hoặc chuyển sang bản ghi mới
+        } else {
+          this.notification.error('Thông báo', 'Copy thất bại: ' + res.message);
+        }
+      });
   }
 
   //hàm đệ quy tính bottomcalc cho bảng

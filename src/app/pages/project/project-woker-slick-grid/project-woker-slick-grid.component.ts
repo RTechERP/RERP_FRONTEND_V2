@@ -4,6 +4,8 @@ import {
   AfterViewInit,
   OnDestroy,
   Input,
+  Inject,
+  Optional,
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -112,6 +114,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   versionID: number = 0;
   type: number = 0;
   isLoading: boolean = false;
+  isTab: boolean = false;
 
   // Selection tracking
   lastClickedWorkerRow: any = null;
@@ -129,13 +132,24 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
     private projectWorkerService: ProjectWorkerService,
     private notification: NzNotificationService,
     private modal: NzModalService,
-    public activeModal: NgbActiveModal,
+    @Optional() public activeModal: NgbActiveModal,
     private ngbModal: NgbModal,
     private cdr: ChangeDetectorRef,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    @Optional() @Inject('tabData') private tabData?: any
   ) { }
 
   ngOnInit(): void {
+    // Nhận data khi được mở qua TabService
+    if (this.tabData) {
+      this.isTab = true;
+      if (this.tabData.projectId !== undefined) {
+        this.projectId = this.tabData.projectId;
+      }
+      if (this.tabData.projectCodex !== undefined) {
+        this.projectCodex = this.tabData.projectCodex;
+      }
+    }
     this.isDeleted = 0;
     this.isApprovedTBP = -1;
     this.initializeGrids();

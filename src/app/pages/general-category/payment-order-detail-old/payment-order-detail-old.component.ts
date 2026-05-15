@@ -107,8 +107,6 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
 
     isSubmit = false;
     private destroy$ = new Subject<void>();
-    hasWarnedAccountInfo = false;
-    hasWarnedStkInfo = false;
     // ---- Type 2 getters ----
     private readonly FIXED_STTS = ['I', 'II', 'III'];
     private readonly FIXED_CONTENTS = [
@@ -770,44 +768,59 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             }
         }
 
-        const unit = this.validateForm.value.Unit;
-        const totalMoney = this.currentTotal;
-        this.paymentOrder = {
-            ...this.paymentOrder,
-            ...formRawValue,
-            PaymentOrderDetails: details,
-            TotalMoney: totalMoney,
-            TotalMoneyText: this.paymentService.readMoney(totalMoney, unit),
-            ID: this.isCopy ? 0 : this.paymentOrder.ID,
-            ...(this.isCopy ? {
-                id: 0,
-                ID: 0,
-                EmployeeID: this.appUserService.currentUser?.EmployeeID ?? 0,
-                Code: '',
-                CreatedBy: null,
-                CreatedDate: null,
-                UpdatedBy: null,
-                UpdatedDate: null,
-            } : {}),
-        } as any;
+        const doSave = () => {
+            const unit = this.validateForm.value.Unit;
+            const totalMoney = this.currentTotal;
+            this.paymentOrder = {
+                ...this.paymentOrder,
+                ...formRawValue,
+                PaymentOrderDetails: details,
+                TotalMoney: totalMoney,
+                TotalMoneyText: this.paymentService.readMoney(totalMoney, unit),
+                ID: this.isCopy ? 0 : this.paymentOrder.ID,
+                ...(this.isCopy ? {
+                    id: 0,
+                    ID: 0,
+                    EmployeeID: this.appUserService.currentUser?.EmployeeID ?? 0,
+                    Code: '',
+                    CreatedBy: null,
+                    CreatedDate: null,
+                    UpdatedBy: null,
+                    UpdatedDate: null,
+                } : {}),
+            } as any;
 
-        this.paymentService.save(this.paymentOrder).subscribe({
-            next: (res) => {
-                this.isSubmit = false;
-                this.uploadFile(res.data.ID);
-                this.notification.success(NOTIFICATION_TITLE.success, res.message);
-                this.activeModal.close();
-            },
-            error: (err) => {
-                this.notification.create(
-                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                    err?.error?.message || `${err.error}\n${err.message}`,
-                    { nzStyle: { whiteSpace: 'pre-line' } }
-                );
-                this.isSubmit = false;
-            }
-        });
+            this.paymentService.save(this.paymentOrder).subscribe({
+                next: (res) => {
+                    this.isSubmit = false;
+                    this.uploadFile(res.data.ID);
+                    this.notification.success(NOTIFICATION_TITLE.success, res.message);
+                    this.activeModal.close();
+                },
+                error: (err) => {
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
+                        { nzStyle: { whiteSpace: 'pre-line' } }
+                    );
+                    this.isSubmit = false;
+                }
+            });
+        };
+
+        if (formRawValue.TypePayment == 1) {
+            this.nzModal.confirm({
+                nzTitle: 'Xác nhận thông tin ngân hàng',
+                nzContent: `Bạn có chắc chắn <b>số tài khoản</b> và <b>thông tin người nhận tiền</b> đúng không? <span class="text-danger">Nếu sai thì khoản thanh toán này sẽ không thể xử lý!</span>`,
+                nzOkText: 'Đã kiểm tra, tiếp tục lưu',
+                nzCancelText: 'Kiểm tra lại',
+                nzOnOk: () => doSave(),
+                nzOnCancel: () => { this.isSubmit = false; }
+            });
+        } else {
+            doSave();
+        }
     }
 
     // ---- File methods ----
@@ -865,28 +878,4 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         }
     }
 
-    onAccountInfoBlur(type: string): void {
-        const accCtrl = this.validateForm.get('AccountNumber');
-        const recCtrl = this.validateForm.get('ReceiverInfo');
-        let context = 'thông tin người nhận tiền';
-        if (type === 'stk') {
-            // Chỉ hiện thông báo nếu người dùng thực sự đã thay đổi giá trị (dirty) và có giá trị
-            if (this.hasWarnedStkInfo || !accCtrl?.dirty || !accCtrl?.value) return;
-            this.hasWarnedStkInfo = true;
-            context = 'số tài khoản';
-        }
-        if (type === 'receiver') {
-            if (this.hasWarnedAccountInfo || !recCtrl?.dirty || !recCtrl?.value) return;
-            this.hasWarnedAccountInfo = true;
-        }
-
-        // Dùng setTimeout để tránh modal cướp focus ngay lập tức gây ra sự kiện blur dây chuyền
-        setTimeout(() => {
-            this.nzModal.warning({
-                nzTitle: 'Xác nhận thông tin',
-                nzContent: `Bạn có chắc chắn <b>[${context}]</b> này đúng không? <span class="text-danger">Nếu sai thì khoản thanh toán này sẽ không thể xử lý!</span>`,
-                nzOkText: 'Đã kiểm tra'
-            });
-        }, 100);
-    }
 }

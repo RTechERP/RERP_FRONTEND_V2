@@ -1,10 +1,10 @@
-<div style="display: flex; flex-direction: column; height: 100vh; position: relative;">
+<div [style.height]="isTab ? '100%' : '100vh'" style="display: flex; flex-direction: column; position: relative;">
   <!-- Modal Header -->
-  <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0">
+  <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0" *ngIf="!isTab">
     <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem">
       Nhân công dự án_{{ projectCodex }}
     </h6>
-    <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"
+    <button type="button" class="btn-close" (click)="activeModal?.dismiss()" aria-label="Close"
       style="background-color:lightcyan !important; font-weight: bold;"></button>
   </div>
 

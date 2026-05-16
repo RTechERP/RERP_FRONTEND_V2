@@ -57,7 +57,7 @@ import { CheckboxModule } from 'primeng/checkbox';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { NOTIFICATION_TITLE } from '../../../app.config';
-import { FilterService, MenuItem, PrimeIcons } from 'primeng/api';
+import { FilterService, MenuItem, ScrollerOptions } from 'primeng/api';
 import { MenubarModule } from 'primeng/menubar';
 import { ContextMenuModule } from 'primeng/contextmenu';
 import { TooltipModule } from 'primeng/tooltip';
@@ -214,6 +214,15 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     // Pagination properties
     totalRecords: number = 0;
     pageSize: number = 100;
+    readonly projectVirtualRowHeight = 44;
+    readonly projectRowsPerPageOptions = [100, 200, 300, 99999, 999999];
+    readonly projectVirtualScrollOptions: ScrollerOptions = {
+        lazy: false,
+        showLoader: false,
+        numToleratedItems: 30,
+        resizeDelay: 50,
+    };
+    readonly trackProjectById = (index: number, row: any): any => row?.ID ?? row?.id ?? index;
     currentPage: number = -1; // Initialize with -1 to trigger the first loadProjectsLazy
     masterDataset: any[] = [];
     selectedStatusDate: Date | null = null;
@@ -262,6 +271,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 this.isHide = true;
                 this.projectTypeIds = [];
             }
+            this.searchProjects(1, this.pageSize);
         });
     }
 
@@ -782,10 +792,17 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         }
     }
 
-    loadProjectsLazy(event: any): void {
+    loadProjectsLazy(event: TableLazyLoadEvent): void {
+        if (event.last !== undefined && event.last !== null) {
+            if (this.currentPage === -1) {
+                this.searchProjects(1, this.pageSize);
+            }
+            return;
+        }
+
         // PrimeNG TableLazyLoadEvent
         const first = event.first ?? 0;
-        const rows = event.rows ?? 100;
+        const rows = event.rows && event.rows > 0 ? event.rows : this.pageSize;
         const page = Math.floor(first / rows) + 1;
 
         // Nếu thay đổi trang, số dòng mỗi trang HOẶC là lần nạp đầu tiên -> Gọi server

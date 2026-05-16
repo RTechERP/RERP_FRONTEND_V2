@@ -258,6 +258,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   isSaving: boolean = false;
   isLoadingData: boolean = false;
   private copySourcePOKHId: number = 0;
+  private lastPOKHDataLoadKey: string = '';
+  private customersLoaded: boolean = false;
+  private pendingPOKHDataLoadId: number | null = null;
 
   //#endregion
   //#region : Hàm khởi tạo
@@ -272,7 +275,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.filters.endDate = endDate;
     this.loadCustomers(() => {
       if (this.isEditMode) {
-        this.loadPOKHData(this.selectedId);
+        this.requestPOKHDataLoad(this.selectedId);
       }
     });
     this.loadEmployeeManagers();
@@ -282,12 +285,26 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.loadProducts();
   }
 
+  startCopyFromSource(id: number, warehouseId: number = 0): void {
+    this.isCopy = true;
+    this.isEditMode = true;
+    this.selectedId = id;
+    this.copySourcePOKHId = id;
+
+    if (warehouseId) {
+      this.warehouseId = warehouseId;
+      this.filters.warehouseId = warehouseId;
+    }
+
+    this.requestPOKHDataLoad(id);
+  }
+
   ngAfterViewInit(): void {
     if (this.isEditMode && this.selectedId > 0 && !this.isLoadingData) {
       // Kiểm tra xem data đã được load chưa bằng cách kiểm tra poFormData
       if (!this.poFormData.poCode) {
         // Nếu chưa có data, load lại (trường hợp loadCustomers chưa xong)
-        this.loadPOKHData(this.selectedId);
+        this.requestPOKHDataLoad(this.selectedId);
       }
     } else if (!this.isEditMode) {
       // Chế độ thêm mới
@@ -317,6 +334,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       (response) => {
         if (response.status === 1) {
           this.dataCustomers = response.data;
+          this.customersLoaded = true;
           if (this.selectedCustomer && this.selectedCustomer.ID && !this.selectedCustomer.CustomerShortName) {
             const fullCustomer = this.dataCustomers.find(
               (c) => c.ID === this.selectedCustomer.ID
@@ -327,6 +345,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           }
 
           if (callback) callback();
+          if (!callback && this.pendingPOKHDataLoadId) {
+            this.requestPOKHDataLoad(this.pendingPOKHDataLoadId);
+          }
         } else {
           this.notification.create(
             NOTIFICATION_TYPE_MAP[response.status] || 'error',
@@ -351,6 +372,19 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         return;
       }
     );
+  }
+  private requestPOKHDataLoad(id: number): void {
+    if (!id || id <= 0) {
+      return;
+    }
+
+    if (!this.customersLoaded) {
+      this.pendingPOKHDataLoadId = id;
+      return;
+    }
+
+    this.pendingPOKHDataLoadId = null;
+    this.loadPOKHData(id);
   }
   loadEmployeeManagers(): void {
     this.POKHService.loadEmployeeManagers().subscribe(
@@ -617,12 +651,18 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    const loadKey = `${id}:${this.isCopy ? 'copy' : 'edit'}`;
+    if (this.lastPOKHDataLoadKey === loadKey) {
+      return;
+    }
+
     if (this.isLoadingData) {
       console.warn('loadPOKHData: Already loading data');
       return;
     }
 
     this.isLoadingData = true;
+    this.lastPOKHDataLoadKey = loadKey;
 
     this.POKHService.getPOKHByID(id).subscribe(
       (response) => {
@@ -687,14 +727,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             this.dataPOKHDetailFile = [];
             this.dataPOKHFiles = [];
 
-            let item = this.selectedCustomer || this.dataCustomers.find(
-              (c) => c.ID === pokhData.CustomerID
-            );
-            if (item && item.CustomerShortName) {
-              this.generatePOCode(item.CustomerShortName);
-            } else if (this.poFormData.customerName) {
-              this.generatePOCode(this.poFormData.customerName);
-            }
+            const customerForPOCode = this.getCustomerForPOCode(pokhData);
+            this.generatePOCode(customerForPOCode);
           }
 
           // Lấy dữ liệu bộ phận bằng khách hàng
@@ -1623,7 +1657,44 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     return treeData;
   }
 
+  private getCustomerForPOCode(pokhData?: any): string {
+    const customerId =
+      this.selectedCustomer?.ID ||
+      this.poFormData.customerId ||
+      pokhData?.CustomerID ||
+      0;
+    const fullCustomer = this.dataCustomers.find(
+      (customer) => Number(customer.ID) === Number(customerId)
+    );
+
+    if (fullCustomer) {
+      this.selectedCustomer = fullCustomer;
+      this.poFormData.customerId = fullCustomer.ID;
+      this.poFormData.customerName = fullCustomer.CustomerName || this.poFormData.customerName || '';
+    }
+
+    const customer =
+      fullCustomer ||
+      this.selectedCustomer ||
+      pokhData ||
+      {};
+
+    return (
+      customer.CustomerShortName ||
+      customer.CustomerCode ||
+      this.poFormData.customerName ||
+      pokhData?.CustomerName ||
+      ''
+    ).toString().trim();
+  }
+
   generatePOCode(CustomerName: string): void {
+    const customer = (CustomerName || '').toString().trim();
+    if (!customer) {
+      console.warn('generatePOCode: customer is empty, skip generating PO code');
+      return;
+    }
+
     const isCopy = this.isCopy;
     const warehouseId =
       this.poFormData.warehouseId ||
@@ -1633,7 +1704,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     const pokhId = isCopy ? (this.copySourcePOKHId || this.selectedId || 0) : 0;
 
     this.POKHService.generatePOCode(
-      CustomerName,
+      customer,
       isCopy,
       warehouseId,
       pokhId
@@ -2048,14 +2119,23 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.selectedRow.treeExpand();
   }
   onCustomerChange(event: any): void {
+    if (!event) {
+      this.selectedCustomer = null;
+      this.poFormData.customerId = 0;
+      this.poFormData.customerName = '';
+      this.poFormData.departmentId = 0;
+      return;
+    }
+
     this.selectedCustomer = event;
     this.poFormData.customerId = event.ID;
+    this.poFormData.customerName = event.CustomerName || '';
     this.poFormData.departmentId = 0;
     this.loadPart(this.selectedCustomer.ID);
     console.log('Selected CustomerID:', this.selectedCustomer);
-    const customerShortName = this.selectedCustomer.CustomerShortName;
-    this.generatePOCode(customerShortName);
-    console.log('Customer Short Name:', customerShortName);
+    const customerForPOCode = this.getCustomerForPOCode();
+    this.generatePOCode(customerForPOCode);
+    console.log('Customer Short Name:', customerForPOCode);
   }
 
   openCustomerModal(): void {

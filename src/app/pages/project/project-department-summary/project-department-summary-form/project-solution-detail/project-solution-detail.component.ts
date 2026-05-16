@@ -412,12 +412,12 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
           this.notification.success('Thành công', response.message || 'Lưu dữ liệu thành công!');
           this.activeModal.close({ success: true });
         } else {
-          this.notification.error('Lỗi', response.message || 'Không thể lưu dữ liệu');
+          this.notification.error('Lỗi', response.error.message || 'Không thể lưu dữ liệu');
         }
       },
       error: (error: any) => {
         console.error('Error saving solution:', error);
-        this.notification.error('Lỗi', error.message || 'Có lỗi xảy ra khi lưu dữ liệu');
+        this.notification.error('Lỗi',error.error.message || 'Có lỗi xảy ra khi lưu dữ liệu');
       }
     });
   }

@@ -1,0 +1,187 @@
+<ng-container class="w-100">
+    <div class="card border-0 rounded-0 " style="height: 89vh !important;">
+        <!-- Filter bar - hiển thị dạng hàng ngang trên desktop, modal trên mobile -->
+        <div class="filter-bar bg-light border-bottom p-2">
+            <form nz-form [formGroup]="searchForm" class="mobile-filter-form">
+                <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+                    <!-- Từ ngày -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+                        <div class="form-field-vertical">
+                            <label>Từ ngày</label>
+                            <input type="date" formControlName="dateStart" class="form-control form-control-sm w-100" />
+                        </div>
+                    </nz-col>
+
+                    <!-- Đến ngày -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+                        <div class="form-field-vertical">
+                            <label>Đến ngày</label>
+                            <input type="date" formControlName="dateEnd" class="form-control form-control-sm w-100" />
+                        </div>
+                    </nz-col>
+
+                    <!-- Lỗi -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="3">
+                        <div class="form-field-vertical">
+                            <label>Lỗi</label>
+                            <nz-select formControlName="status" nzShowSearch nzAllowClear nzSize="small"
+                                nzPlaceHolder="Chọn lỗi" class="w-100">
+                                <nz-option *ngFor="let item of statusList" [nzValue]="item.value"
+                                    [nzLabel]="item.label"></nz-option>
+                            </nz-select>
+                        </div>
+                    </nz-col>
+
+                    <!-- Phòng ban -->
+                    <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="4">
+                        <div class="form-field-vertical">
+                            <label>Phòng ban</label>
+                            <nz-select formControlName="departmentId" nzShowSearch nzAllowClear nzSize="small"
+                                nzPlaceHolder="Chọn phòng ban" class="w-100" (ngModelChange)="onDepartmentChange()">
+                                <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
+                                    [nzLabel]="dept.Name"></nz-option>
+                            </nz-select>
+                        </div>
+                    </nz-col>
+
+                    <!-- Team -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="4" [nzXl]="3">
+                        <div class="form-field-vertical">
+                            <label>Team</label>
+                            <nz-select nzPlaceHolder="Team" formControlName="teamId" nzSize="small" nzShowSearch
+                                nzAllowClear (ngModelChange)="onTeamChange()" style="width: 100%;">
+                                <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                                <nz-option *ngFor="let item of teamList;" [nzLabel]="item.Name || ''"
+                                    [nzValue]="item.ID">
+                                </nz-option>
+                            </nz-select>
+                        </div>
+                    </nz-col>
+
+                    <!-- Nhân viên -->
+                    <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="4" [nzXl]="3">
+                        <div class="form-field-vertical">
+                            <label>Nhân viên</label>
+                            <nz-select nzPlaceHolder="Nhân viên" formControlName="userId" nzSize="small" nzShowSearch
+                                nzAllowClear style="width: 100%;">
+                                <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+                                <nz-option *ngFor="let item of userList;" [nzLabel]="item.FullName || ''"
+                                    [nzValue]="item.UserID">
+                                </nz-option>
+                            </nz-select>
+                        </div>
+                    </nz-col>
+
+
+                    <!-- Từ khóa và nút tìm kiếm -->
+                    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="5" [nzXl]="4">
+                        <div class="form-field-vertical">
+                            <label>Từ khóa</label>
+                            <div class="d-flex gap-1">
+                                <input nz-input placeholder="Nhập từ khóa..." nzSize="small" formControlName="keyWord"
+                                    class="flex-grow-1" (keyup.enter)="loadDataTable()" />
+                                <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
+                                    (click)="loadDataTable()">
+                                    <nz-icon nzType="search" />
+                                </button>
+                            </div>
+                        </div>
+                    </nz-col>
+                </nz-row>
+            </form>
+        </div>
+
+        <!-- Content với bảng -->
+        <div class="card-body p-0 position-relative">
+            <div class="table-container p-2" style="height: calc(100% - 10px);">
+                <p-table #dt [value]="dataset" [resizableColumns]="true" columnResizeMode="fit"
+                    [reorderableColumns]="true" dataKey="EmployeeCode" [loading]="isLoading"
+                    styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true" scrollHeight="flex"
+                    rowGroupMode="subheader" groupRowsBy="EmployeeCode" sortField="EmployeeCode" sortMode="single"
+                    (onFilter)="onFilter($event)">
+
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th pResizableColumn pSortableColumn="DateValue" class="col-date"
+                                style="width: 30%; text-align: center; min-width: 120px;">
+                                <div style="display: flex; justify-content: center; align-items: center;">Ngày
+                                    <p-sortIcon field="DateValue" />
+                                </div>
+                            </th>
+                            <th pResizableColumn pSortableColumn="StatusAttendanceText"
+                                style="width: 70%; text-align: center; min-width: 200px;">
+                                <div style="display: flex; justify-content: center; align-items: center;">Tên lỗi
+                                    <p-sortIcon field="StatusAttendanceText" />
+                                </div>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th class="col-date"
+                                style="width: 30%; text-align: center; padding: 0.5rem; min-width: 120px;">
+                                <input type="date" class="form-control form-control-sm w-100"
+                                    (change)="dt.filter($any($event.target).value, 'DateValue', 'contains')"
+                                    placeholder="Tìm kiếm..." />
+                            </th>
+                            <th style="width: 70%; padding: 0.5rem; min-width: 200px;">
+                                <input type="text" class="form-control form-control-sm w-100"
+                                    (input)="dt.filter($any($event.target).value, 'StatusAttendanceText', 'contains')"
+                                    placeholder="Tìm kiếm..." />
+                            </th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="groupheader" let-item>
+                        <tr pRowGroupHeader (click)="toggleGroup(item)" style="cursor: pointer;">
+                            <td colspan="2" style="background-color: #f4f6f8; padding: 8px 16px;">
+                                <span
+                                    style="font-weight: 600; color: #1890ff; display: inline-flex; align-items: center;">
+                                    <span nz-icon [nzType]="isCollapsed(item) ? 'right' : 'down'" nzTheme="outline"
+                                        style="margin-right: 8px;"></span>
+                                    <span nz-icon nzType="user" nzTheme="outline" style="margin-right: 8px;"></span>
+                                    {{ item.EmployeeName }} ({{ item.EmployeeCode }})
+                                </span>
+                                <span style="margin-left: 12px; font-weight: 600; color: #ff4d4f;">
+                                    - Tổng số lỗi: {{ groupCounts[item.EmployeeCode || 'N/A'] || 0 }}
+                                </span>
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-item>
+                        <tr *ngIf="!isCollapsed(item)">
+                            <td class="col-date" style="text-align: center;">
+                                <span class="date-text">{{ item.DateValue | date:'dd/MM/yyyy' }}</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <span class="text-wrap" style="font-weight: 500; color: #ff4d4f;">{{
+                                    item.StatusAttendanceText || '-' }}</span>
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="emptymessage">
+                        <tr>
+                            <td [attr.colspan]="2" class="empty-message" style="text-align: center; padding: 20px;">
+                                <div class="empty-state">
+                                    <span nz-icon nzType="inbox" nzTheme="outline" class="empty-icon"
+                                        style="font-size: 24px; color: #d9d9d9;"></span>
+                                    <p style="color: #999; margin-top: 8px;">Không có dữ liệu</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="loadingbody">
+                        <tr>
+                            <td [attr.colspan]="4" class="text-center" style="text-align: center; padding: 20px;">
+                                <span nz-icon nzType="loading" nzTheme="outline"
+                                    style="font-size: 24px; color: #1890ff;"></span>
+                                <span style="margin-left: 8px; color: #1890ff;">Đang tải...</span>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+        </div>
+    </div>
+</ng-container>

@@ -39,6 +39,9 @@ import { NewsletterDetailComponent } from '../../../pages/old/newsletter/newslet
 import { DateTime } from 'luxon';
 import { UpdateVersionDetailComponent } from '../../../pages/systems/update-version/update-version-detail/update-version-detail.component';
 import { NzButtonModule } from "ng-zorro-antd/button";
+import { HistoryBorrowSaleService } from '../../../pages/old/Sale/HistoryBorrowSale/history-borrow-sale-service/history-borrow-sale.service';
+import { ProjectTaskService } from '../../../pages/project_task/project-task/project-task.service';
+import { ProjectTaskSumaryAttendanceService } from '../../../pages/project_task/project-task-sumary-attendance/project-task-sumary-attendance.service';
 
 interface LiXi {
     id: number;
@@ -48,8 +51,6 @@ interface LiXi {
     rotation: number;
     icon: string;
 }
-import { HistoryBorrowSaleService } from '../../../pages/old/Sale/HistoryBorrowSale/history-borrow-sale-service/history-borrow-sale.service';
-import { ProjectTaskService } from '../../../pages/project_task/project-task/project-task.service';
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -110,6 +111,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     calendarDate = new Date();
     holidays: any[] = [];
     scheduleWorkSaturdays: any[] = [];
+    projectTaskAttendances: number = 0;
     quantityApprove: any = {};
     quantityBorrow: any = {};
     quantityBorrowExpried: any = {};
@@ -170,6 +172,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         private nzModal: NzModalService,
         public notifService: NotificationService,
         private projectTaskService: ProjectTaskService,
+        private projectTaskAttendanceService: ProjectTaskSumaryAttendanceService,
     ) { }
 
     get notifItems(): NotifyItem[] { return this.notifService.items; }
@@ -209,6 +212,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             this.getQuantityOverdueProjectTask(),
             this.loadNewsletters(),
             this.getPendingContractReview(),
+            this.getProjectTaskAttendance(),
         ]).subscribe({
             next: () => {
                 console.log('Tất cả API quan trọng đã load xong. Khởi tạo SSE và check version...');
@@ -555,6 +559,40 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         );
     }
 
+
+
+    getProjectTaskAttendance() {
+        return this.projectTaskAttendanceService.getCheckProjectTaskAttendance(this.appUserService.currentUser?.ID || 0).pipe(
+            tap((res: any) => {
+                const data = res.data;
+                this.projectTaskAttendances = data.length;
+                console.log(data);
+                // if (data.length > 0) {
+                //     this.notifService.addItem({
+                //         id: 3,
+                //         time: new Date().toISOString(),
+                //         title: 'Bạn chưa điểm danh công việc ngày hôm nay',
+                //         text: `Hãy điểm danh công việc của bạn!`,
+                //         group: 'today',
+                //         icon: 'clock-circle',
+                //         route: 'summary-asset-persional',
+                //         queryParams: { activeTab: 1 }
+                //     });
+                // }
+
+            }),
+            catchError((err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+                return of(null);
+            })
+        );
+    }
+
     onPick(n: NotifyItem) {
         if (n.route) {
             this.newTab(n.route, n.title || 'Thông báo', n.queryParams);
@@ -572,6 +610,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     onPickProjectTaskOverdue() {
         this.newTab('project-task', 'Công việc');
     }
+
 
 
     openModule(event: MouseEvent, route: string, key: string) {

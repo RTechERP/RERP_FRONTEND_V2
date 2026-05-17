@@ -1,3 +1,4 @@
+import { ProjectTaskSumaryAttendanceComponent } from './pages/project_task/project-task-sumary-attendance/project-task-sumary-attendance.component';
 import { Routes } from '@angular/router';
 import { WelcomeComponent } from './pages/old/welcome/welcome.component';
 import { LoginComponent } from './auth/login/login.component';
@@ -1230,6 +1231,8 @@ export const routes: Routes = [
             { path: 'project-task-poject-worker', component: ProjectTaskPojectWorkerComponent, canActivate: [authGuard] },
             { path: 'project-task-detail/:id', component: TaskDetailComponent, canActivate: [authGuard] },
             { path: 'project-task-add', component: TaskDetailComponent, canActivate: [authGuard] },
+            { path: 'project-task-summary-attendance', component: ProjectTaskSumaryAttendanceComponent, canActivate: [authGuard] },
+
             { path: 'purchase-quote-summary', component: PurchaseQuoteSummaryComponent, canActivate: [authGuard] },
             { path: 'commercial-price-request', component: CommercialPriceRequestComponent, canActivate: [authGuard] },
             { path: 'purchase-quote-summary-main', component: PurchaseQuoteSummaryMainComponent, canActivate: [authGuard] },

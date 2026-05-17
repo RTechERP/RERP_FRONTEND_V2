@@ -116,20 +116,22 @@ interface CatalogTypeGroup {
   isCollapsed: boolean;
 }
 
-// Interface cho Tree View 5 cấp: Department → CatalogType → Catalog → TechType → Course
+// Interface cho Tree View 4 cấp: Department → CatalogType → Catalog → Course
 interface CourseTreeNode {
   id: string; // Sử dụng string để tránh trùng ID
   name: string;
-  type: 'department' | 'catalogType' | 'catalog' | 'techType' | 'course';
+  // type: 'department' | 'catalogType' | 'catalog' | 'techType' | 'course';
+  type: 'department' | 'catalogType' | 'catalog' | 'course';
   departmentId?: number;
   catalogType?: number;    // 1: Cơ bản, 2: Nâng cao, 3: Bắt buộc
   catalogCode?: string;    // RULES, PLC, NOKT...
   catalogName?: string;    // Tên đầy đủ
-  techType?: string;       // C#, SQL, Java...
+  //techType?: string;       // C#, SQL, Java...
   course?: any;
   children: CourseTreeNode[];
   isCollapsed: boolean;
   courseCount: number;
+  stt?: number; // Thêm dòng này để lưu STT
 }
 
 @Component({
@@ -226,22 +228,54 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.draw_categoryTable();
   }
+  // private sortCategoryData(): void {
+  //   this.categoryData = this.categoryData
+  //     .map((x: any) => ({
+  //       ...x,
+  //       __catalogOrder:
+  //         x.CatalogTypeText === 'KHÓA HỌC BẮT BUỘC' ? 1 :
+  //           x.CatalogTypeText === 'CƠ BẢN' ? 2 :
+  //             x.CatalogTypeText === 'NÂNG CAO' ? 3 : 4,
+  //     }))
+  //     .sort((a: any, b: any) => {
+  //       if (a.__catalogOrder !== b.__catalogOrder) {
+  //         return a.__catalogOrder - b.__catalogOrder;
+  //       }
+
+  //       const deptCompare = (a.NameDepartment || '').localeCompare(b.NameDepartment || '');
+  //       if (deptCompare !== 0) return deptCompare;
+
+  //       return (a.STT || 999) - (b.STT || 999);
+  //     });
+  // }
   private sortCategoryData(): void {
+    // Định nghĩa thứ tự ưu tiên cho CatalogTypeText
+    const getCatalogPriority = (catalogTypeText: string): number => {
+      const text = (catalogTypeText || '').toUpperCase();
+      if (text.includes('KHÓA HỌC BẮT BUỘC') || text.includes('BẮT BUỘC')) return 1;
+      if (text.includes('CƠ BẢN')) return 2;
+      if (text.includes('NÂNG CAO')) return 3;
+      return 99; // Các loại khác
+    };
+
     this.categoryData = this.categoryData
-      .map((x: any) => ({
-        ...x,
-        __catalogOrder:
-          x.CatalogTypeText === 'KHÓA HỌC BẮT BUỘC' ? 1 :
-            x.CatalogTypeText === 'CƠ BẢN' ? 2 :
-              x.CatalogTypeText === 'NÂNG CAO' ? 3 : 4,
+      .map((item: any) => ({
+        ...item,
+        // Lưu priority để sort
+        catalogPriority: getCatalogPriority(item.CatalogTypeText)
       }))
       .sort((a: any, b: any) => {
-        if (a.__catalogOrder !== b.__catalogOrder) {
-          return a.__catalogOrder - b.__catalogOrder;
+        // Cấp 1: Sort theo tên phòng ban (NameDepartment)
+        const deptCompare = (a.NameDepartment || '').localeCompare(b.NameDepartment || '');
+        if (deptCompare !== 0) return deptCompare;
+
+        // Cấp 2: Sort theo priority của loại (Bắt buộc -> Cơ bản -> Nâng cao)
+        if (a.catalogPriority !== b.catalogPriority) {
+          return a.catalogPriority - b.catalogPriority;
         }
 
-        return (a.NameDepartment || '')
-          .localeCompare(b.NameDepartment || '');
+        // Cấp 3: Sort theo STT (tăng dần)
+        return (a.STT || 999) - (b.STT || 999);
       });
   }
   getDataCategory() {
@@ -360,11 +394,11 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
       });
     }
 
-    // Sắp xếp department: ưu tiên phòng ban của user đăng nhập lên đầu
+    // Sắp xếp department: ưu tiên phòng ban của user đăng nhập lên đầu, sau đó theo departmentID
     const sortedDepts = Array.from(departmentMap.values()).sort((a, b) => {
       if (a.departmentId === this.currentUserDepartmentId) return -1;
       if (b.departmentId === this.currentUserDepartmentId) return 1;
-      return a.departmentName.localeCompare(b.departmentName);
+      return a.departmentId - b.departmentId;
     });
     this.allCoursesByDepartment = sortedDepts;
   }
@@ -460,176 +494,488 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // Build tree structure: Department → CatalogType → Catalog → TechType → Course (5 cấp)
-  buildCourseTree(): void {
-    // Map để theo dõi các cấp
-    const departmentMap = new Map<number, CourseTreeNode>();
-    const catalogTypeMap = new Map<string, CourseTreeNode>();
-    const catalogMap = new Map<string, CourseTreeNode>();
-    const techTypeMap = new Map<string, CourseTreeNode>();
+//   buildCourseTree(): void {
+//     // Map để theo dõi các cấp
+//     const departmentMap = new Map<number, CourseTreeNode>();
+//     const catalogTypeMap = new Map<string, CourseTreeNode>();
+//     const catalogMap = new Map<string, CourseTreeNode>();
 
-    // DEBUG: Kiểm tra categoryData
-    console.log('=== buildCourseTree DEBUG ===');
-    console.log('categoryData length:', this.categoryData.length);
-    console.log('allCoursesRaw length:', this.allCoursesRaw.length);
-    console.log('Unique DepartmentNames:', [...new Set(this.allCoursesRaw.map(c => c.DepartmentName || 'Chưa phân loại'))]);
+//     // Sắp xếp thứ tự catalog type: Bắt buộc (3) -> Cơ bản (1) -> Nâng cao (2)
+//     const catalogOrder: Record<number, number> = { 3: 1, 1: 2, 2: 3 };
 
-    // Sắp xếp thứ tự catalog type: Bắt buộc (3) -> Cơ bản (1) -> Nâng cao (2)
-    const catalogOrder: Record<number, number> = { 3: 1, 1: 2, 2: 3 };
+//     for (const course of this.allCoursesRaw) {
+//       // Dùng DepartmentName làm key vì DepartmentID = 0 cho tất cả
+//       const deptId = course.DepartmentID || 0;
+//       const deptName = course.DepartmentName || 'Chưa phân loại';
+//       const deptKey = deptName; // Dùng tên làm key để phân nhóm đúng
 
-    // Sắp xếp thứ tự tech type: Web -> C# -> SQL -> Khác
-    const techTypeOrder = (name: string): number => {
-      const lower = name.toLowerCase();
-      if (lower.includes('web') || lower.includes('frontend') || lower.includes('angular') || lower.includes('react')) return 1;
-      if (lower.includes('c#') || lower.includes('.net') || lower.includes('csharp')) return 2;
-      if (lower.includes('sql') || lower.includes('database') || lower.includes('db')) return 3;
-      return 99; // Khác
-    };
+//       // Approach A: IsRequired override CatalogType
+//       // Chỉ check IsRequired: true → Bắt buộc, false → mặc định CatalogType = 0 (Tất cả)
+//       const catalogCategory = this.categoryData.find(c => c.ID === course.CatalogID);
+//       const isRequired = course.IsRequired === true || course.IsRequired === 1;
 
-    for (const course of this.allCoursesRaw) {
-      // Dùng DepartmentName làm key vì DepartmentID = 0 cho tất cả
-      const deptId = course.DepartmentID || 0;
-      const deptName = course.DepartmentName || 'Chưa phân loại';
-      const deptKey = deptName; // Dùng tên làm key để phân nhóm đúng
+//       let catalogType: number;
+//       let catalogTypeName: string;
 
-      // DEBUG: Log từng course để xem DepartmentID/Name
-      if (deptId !== 0) {
-        console.log('Course:', course.NameCourse, '| DeptID:', deptId, '| DeptName:', deptName);
-      }
+//       if (isRequired) {
+//         catalogType = 3; // Bắt buộc
+//         catalogTypeName = 'Bắt buộc';
+//       } else {
+//         // Nếu có CatalogType từ course data thì dùng, không thì mặc định 0
+//         catalogType = Number(course.CatalogType) || 0;
+//         catalogTypeName = catalogCategory?.CatalogTypeText || '';
+//       }
 
-      // Approach A: IsRequired override CatalogType
-      // Chỉ check IsRequired: true → Bắt buộc, false → mặc định CatalogType = 0 (Tất cả)
-      const catalogCategory = this.categoryData.find(c => c.ID === course.CatalogID);
-      const isRequired = course.IsRequired === true || course.IsRequired === 1;
+//       // ========== Cấp 3: CATALOG (Code + Name) - Từ Category ==========
+//       const catalogCode = catalogCategory?.Code || 'OTHER';
+//       const catalogName = catalogCategory?.Name || 'Danh mục khác';
+//       //const techType = course.CourseTypeName || 'Khác'; // C#, SQL, Java...
+//       // ========== Cấp 1: Department (dùng deptName làm key) ==========
+//       if (!departmentMap.has(deptKey)) {
+//         departmentMap.set(deptKey, {
+//           id: `dept-${deptKey}`,
+//           name: deptName,
+//           type: 'department',
+//           departmentId: deptId,
+//           children: [],
+//           isCollapsed: false,
+//           courseCount: 0
+//         });
+//       }
+//       const deptNode = departmentMap.get(deptKey)!;
 
-      let catalogType: number;
-      let catalogTypeName: string;
+//       // ========== Cấp 2: CatalogType (Bắt buộc, Cơ bản, Nâng cao) ==========
+//       const catalogKey = `${deptKey}-${catalogType}`;
+//       let catalogNode = deptNode.children.find(c => c.id === catalogKey);
 
-      if (isRequired) {
-        catalogType = 3; // Bắt buộc
-        catalogTypeName = 'Bắt buộc';
-      } else {
-        // Nếu có CatalogType từ course data thì dùng, không thì mặc định 0
-        catalogType = Number(course.CatalogType) || 0;
-        catalogTypeName = catalogCategory?.CatalogTypeText || '';
-      }
+//       if (!catalogNode) {
+//         catalogNode = {
+//           id: catalogKey,
+//           name: catalogTypeName,
+//           type: 'catalogType',
+//           catalogType: catalogType || 0,
+//           children: [],
+//           isCollapsed: false,
+//           courseCount: 0
+//         };
+//         deptNode.children.push(catalogNode!);
+//       }
 
-      // ========== Cấp 3: CATALOG (Code + Name) - Từ Category ==========
-      const catalogCode = catalogCategory?.Code || 'OTHER';
-      const catalogName = catalogCategory?.Name || 'Danh mục khác';
+//       // ========== Cấp 3: Catalog (Code + Name) ==========
+//       const catalogGroupKey = `${catalogKey}-${catalogCode}`;
+//       let catalogGroupNode = catalogNode!.children.find(c => c.id === catalogGroupKey);
 
-      const techType = course.CourseTypeName || 'Khác'; // C#, SQL, Java...
+//       if (!catalogGroupNode) {
+//         catalogGroupNode = {
+//           id: catalogGroupKey,
+//           name: catalogCode,
+//           type: 'catalog',
+//           catalogCode: catalogCode,
+//           catalogName: catalogName,
+//           children: [],
+//           isCollapsed: true,
+//           courseCount: 0
+//         };
+//         catalogNode!.children.push(catalogGroupNode!);
+//       }
+// // // ========== Cấp 4: TechType (C#, SQL, Java...) ==========
+// // const techKey = `${catalogGroupKey}-${techType}`;
+// // let techNode = catalogGroupNode!.children.find(c => c.id === techKey);
 
-      // ========== Cấp 1: Department (dùng deptName làm key) ==========
-      if (!departmentMap.has(deptKey)) {
-        departmentMap.set(deptKey, {
-          id: `dept-${deptKey}`,
-          name: deptName,
-          type: 'department',
-          departmentId: deptId,
-          children: [],
-          isCollapsed: false,
-          courseCount: 0
-        });
-      }
-      const deptNode = departmentMap.get(deptKey)!;
+// // if (!techNode) {
+// //   techNode = {
+// //     id: techKey,
+// //     name: techType,
+// //     type: 'techType',
+// //     techType: techType,
+// //     children: [],
+// //     isCollapsed: false,
+// //     courseCount: 0
+// //   };
+// //   catalogGroupNode!.children.push(techNode!);
+// // }
+//       // ========== Cấp 4: Course (gắn trực tiếp vào Catalog) ==========
+//       const courseNode: CourseTreeNode = {
+//         id: `course-${course.ID}`,
+//         name: course.NameCourse || 'Khóa học',
+//         type: 'course',
+//         course: course,
+//         children: [],
+//         isCollapsed: false,
+//         courseCount: 1
+//       };
+//       // techNode.children.push(courseNode);
+//       // techNode.courseCount++;
+//       catalogGroupNode!.children.push(courseNode);
+//       catalogGroupNode.courseCount++;
+//       catalogNode.courseCount++;
+//       deptNode.courseCount++;
+//     }
 
-      // ========== Cấp 2: CatalogType (Bắt buộc, Cơ bản, Nâng cao) ==========
-      const catalogKey = `${deptKey}-${catalogType}`;
-      let catalogNode = deptNode.children.find(c => c.id === catalogKey);
+//     // Chuyển Map thành Array và sắp xếp
+//     // Ưu tiên phòng ban của user đăng nhập lên đầu
+//     this.courseTreeData = Array.from(departmentMap.values())
+//       .sort((a, b) => {
+//         // User department lên đầu
+//         if (a.departmentId === this.currentUserDepartmentId) return -1;
+//         if (b.departmentId === this.currentUserDepartmentId) return 1;
+//         // Các department khác sort theo departmentId
+//         return (a.departmentId || 0) - (b.departmentId || 0);
+//       })
+//       .map(dept => ({
+//         ...dept,
+//         children: dept.children
+//          // .sort((a, b) => (catalogOrder[a.catalogType!] || 99) - (catalogOrder[b.catalogType!] || 99))
+//           .map(catalog => ({
+//             ...catalog,
+//             // Sắp xếp Catalog (Code) theo tên
+//             children: catalog.children
+//             // .map(catalogGroup => ({
+//             //   ...catalogGroup,
+//             //   // Sắp xếp TechType: Web -> C# -> SQL -> Khác
+//             //   children: catalogGroup.children.sort((a, b) => techTypeOrder(a.name) - techTypeOrder(b.name))
+//             // }))
+//           }))
+//       }));
+//   }
+  //-===============================================================================================================================================================
+// buildCourseTree(): void {
+//   // Map để theo dõi các cấp
+//   const departmentMap = new Map<string, CourseTreeNode>();
 
-      if (!catalogNode) {
-        catalogNode = {
-          id: catalogKey,
-          name: catalogTypeName,
-          type: 'catalogType',
-          catalogType: catalogType || 0,
-          children: [],
-          isCollapsed: false,
-          courseCount: 0
-        };
-        deptNode.children.push(catalogNode!);
-      }
+//   // Xử lý từng course
+//   for (const course of this.allCoursesRaw) {
+//     // Dùng DepartmentName làm key
+//     const deptId = course.DepartmentID || 0;
+//     const deptName = course.DepartmentName || 'Chưa phân loại';
+//     const deptKey = deptName;
 
-      // ========== Cấp 3: Catalog (Code + Name) ==========
-      const catalogGroupKey = `${catalogKey}-${catalogCode}`;
-      let catalogGroupNode = catalogNode!.children.find(c => c.id === catalogGroupKey);
+//     // Tìm category và xác định catalog type
+//     const catalogCategory = this.categoryData.find(c => c.ID === course.CatalogID);
+//     const isRequired = course.IsRequired === true || course.IsRequired === 1;
 
-      if (!catalogGroupNode) {
-        catalogGroupNode = {
-          id: catalogGroupKey,
-          name: catalogCode,
-          type: 'catalog',
-          catalogCode: catalogCode,
-          catalogName: catalogName,
-          children: [],
-          isCollapsed: false,
-          courseCount: 0
-        };
-        catalogNode!.children.push(catalogGroupNode!);
-      }
+//     let catalogType: number;
+//     let catalogTypeName: string;
 
-      // ========== Cấp 4: TechType (C#, SQL, Java...) ==========
-      const techKey = `${catalogGroupKey}-${techType}`;
-      let techNode = catalogGroupNode!.children.find(c => c.id === techKey);
+//     if (isRequired) {
+//       catalogType = 3; // Bắt buộc
+//       catalogTypeName = 'KHÓA HỌC BẮT BUỘC';
+//     } else {
+//       catalogType = Number(course.CatalogType) || 0;
+//       catalogTypeName = catalogCategory?.CatalogTypeText || this.getCatalogTypeName(catalogType);
+//     }
 
-      if (!techNode) {
-        techNode = {
-          id: techKey,
-          name: techType,
-          type: 'techType',
-          techType: techType,
-          children: [],
-          isCollapsed: false,
-          courseCount: 0
-        };
-        catalogGroupNode!.children.push(techNode!);
-      }
+//     // Catalog info
+//     const catalogCode = catalogCategory?.Code || 'OTHER';
+//     const catalogName = catalogCategory?.Name || 'Danh mục khác';
+//     const catalogSTT = catalogCategory?.STT || 999;
 
-      // ========== Cấp 5: Course ==========
-      const courseNode: CourseTreeNode = {
-        id: `course-${course.ID}`,
-        name: course.NameCourse || 'Khóa học',
-        type: 'course',
-        course: course,
-        children: [],
-        isCollapsed: false,
-        courseCount: 1
-      };
+//     // ========== Cấp 1: Department ==========
+//     if (!departmentMap.has(deptKey)) {
+//       departmentMap.set(deptKey, {
+//         id: `dept-${deptKey}`,
+//         name: deptName,
+//         type: 'department',
+//         departmentId: deptId,
+//         children: [],
+//         isCollapsed: false,
+//         courseCount: 0
+//       });
+//     }
+//     const deptNode = departmentMap.get(deptKey)!;
 
-      techNode.children.push(courseNode);
-      techNode.courseCount++;
-      catalogGroupNode.courseCount++;
-      catalogNode.courseCount++;
-      deptNode.courseCount++;
+//     // ========== Cấp 2: CatalogType ==========
+//     const catalogKey = `${deptKey}-${catalogType}`;
+//     let catalogTypeNode = deptNode.children.find(c => c.id === catalogKey);
+
+//     if (!catalogTypeNode) {
+//       catalogTypeNode = {
+//         id: catalogKey,
+//         name: catalogTypeName,
+//         type: 'catalogType',
+//         catalogType: catalogType,
+//         children: [],
+//         isCollapsed: false,
+//         courseCount: 0
+//       };
+//       deptNode.children.push(catalogTypeNode);
+//     }
+
+//     // ========== Cấp 3: Catalog ==========
+//     const catalogGroupKey = `${catalogKey}-${catalogCode}`;
+//     let catalogNode = catalogTypeNode.children.find(c => c.id === catalogGroupKey);
+
+//     if (!catalogNode) {
+//       catalogNode = {
+//         id: catalogGroupKey,
+//         name: catalogCode,
+//         type: 'catalog',
+//         catalogCode: catalogCode,
+//         catalogName: catalogName,
+//         children: [],
+//         isCollapsed: true,
+//         courseCount: 0,
+//         stt: catalogSTT // Lưu STT để sau này sort
+//       };
+//       catalogTypeNode.children.push(catalogNode);
+//     }
+
+//     // ========== Cấp 4: Course ==========
+//     const courseNode: CourseTreeNode = {
+//       id: `course-${course.ID}`,
+//       name: course.NameCourse || 'Khóa học',
+//       type: 'course',
+//       course: course,
+//       children: [],
+//       isCollapsed: false,
+//       courseCount: 1,
+//       stt: course.STT || 999 // Lưu STT của course nếu có
+//     };
+
+//     catalogNode.children.push(courseNode);
+//     catalogNode.courseCount++;
+//     catalogTypeNode.courseCount++;
+//     deptNode.courseCount++;
+
+//         this.courseTreeData = Array.from(departmentMap.values())
+//       .sort((a, b) => {
+//         // User department lên đầu
+//         if (a.departmentId === this.currentUserDepartmentId) return -1;
+//         if (b.departmentId === this.currentUserDepartmentId) return 1;
+//         // Các department khác sort theo departmentId
+//         return (a.departmentId || 0) - (b.departmentId || 0);
+//       })
+//       .map(dept => ({
+//         ...dept,
+//         children: dept.children
+//          // .sort((a, b) => (catalogOrder[a.catalogType!] || 99) - (catalogOrder[b.catalogType!] || 99))
+//           .map(catalog => ({
+//             ...catalog,
+//             // Sắp xếp Catalog (Code) theo tên
+//             children: catalog.children
+//             // .map(catalogGroup => ({
+//             //   ...catalogGroup,
+//             //   // Sắp xếp TechType: Web -> C# -> SQL -> Khác
+//             //   children: catalogGroup.children.sort((a, b) => techTypeOrder(a.name) - techTypeOrder(b.name))
+//             // }))
+//           }))
+//       }));
+//   }
+
+//   // ========== SẮP XẾP TOÀN BỘ TREE ==========
+
+//   // Hàm sắp xếp catalog type theo thứ tự: Bắt buộc (3) -> Cơ bản (1) -> Nâng cao (2)
+//   const sortCatalogType = (a: CourseTreeNode, b: CourseTreeNode): number => {
+//     const getPriority = (catalogType: number | undefined): number => {
+//       switch (catalogType) {
+//         case 3: return 1; // KHÓA HỌC BẮT BUỘC
+//         case 1: return 2; // CƠ BẢN
+//         case 2: return 3; // NÂNG CAO
+//         default: return 99;
+//       }
+//     };
+//     return getPriority(a.catalogType) - getPriority(b.catalogType);
+//   };
+
+//   // Hàm sắp xếp catalog theo STT
+//   const sortCatalog = (a: CourseTreeNode, b: CourseTreeNode): number => {
+//     const sttA = (a as any).stt || 999;
+//     const sttB = (b as any).stt || 999;
+//     if (sttA !== sttB) return sttA - sttB;
+//     return (a.name || '').localeCompare(b.name || '');
+//   };
+
+//   // Hàm sắp xếp course theo STT, nếu không có STT thì sort theo tên
+//   const sortCourse = (a: CourseTreeNode, b: CourseTreeNode): number => {
+//     const courseA = a.course;
+//     const courseB = b.course;
+//     const sttA = courseA?.STT || (a as any).stt || 999;
+//     const sttB = courseB?.STT || (b as any).stt || 999;
+
+//     if (sttA !== sttB) return sttA - sttB;
+//     return (a.name || '').localeCompare(b.name || '');
+//   };
+
+//   // Chuyển Map thành Array và sắp xếp
+//   this.courseTreeData = Array.from(departmentMap.values())
+//     .sort((a, b) => {
+//       // User department lên đầu
+//       if (a.departmentId === this.currentUserDepartmentId) return -1;
+//       if (b.departmentId === this.currentUserDepartmentId) return 1;
+//       // Các department khác sort theo tên
+//       return (a.name || '').localeCompare(b.name || '');
+//     })
+//     .map(dept => ({
+//       ...dept,
+//       // Sắp xếp cấp 2: CatalogType
+//       children: dept.children
+//         .sort(sortCatalogType)
+//         .map(catalogType => ({
+//           ...catalogType,
+//           // Sắp xếp cấp 3: Catalog theo STT
+//           children: catalogType.children
+//             .sort(sortCatalog)
+//             .map(catalog => ({
+//               ...catalog,
+//               // Sắp xếp cấp 4: Course theo STT
+//               children: catalog.children.sort(sortCourse)
+//             }))
+//         }))
+//     }));
+
+//   console.log('=== buildCourseTree COMPLETED ===');
+//   console.log('Tree structure:', this.courseTreeData);
+// }
+
+
+
+//=======================================================================================================
+
+buildCourseTree(): void {
+  const departmentMap = new Map<string, CourseTreeNode>();
+
+  for (const course of this.allCoursesRaw) {
+    const deptId = course.DepartmentID || 0;
+    const deptName = course.DepartmentName || 'Chưa phân loại';
+    const deptKey = deptName;
+
+    const catalogCategory = this.categoryData.find(c => c.ID === course.CatalogID);
+    const isRequired = course.IsRequired === true || course.IsRequired === 1;
+
+    let catalogType: number;
+    let catalogTypeName: string;
+
+    if (isRequired) {
+      catalogType = 3;
+      catalogTypeName = 'KHÓA HỌC BẮT BUỘC';
+    } else {
+      catalogType = Number(course.CatalogType) || 0;
+      catalogTypeName = catalogCategory?.CatalogTypeText || this.getCatalogTypeName(catalogType);
     }
 
-    // Chuyển Map thành Array và sắp xếp
-    // Ưu tiên phòng ban của user đăng nhập lên đầu
-    this.courseTreeData = Array.from(departmentMap.values())
-      .sort((a, b) => {
-        // User department lên đầu
-        if (a.departmentId === this.currentUserDepartmentId) return -1;
-        if (b.departmentId === this.currentUserDepartmentId) return 1;
-        // Các department khác sort theo tên
-        return a.name.localeCompare(b.name);
-      })
-      .map(dept => ({
-        ...dept,
-        children: dept.children
-          .sort((a, b) => (catalogOrder[a.catalogType!] || 99) - (catalogOrder[b.catalogType!] || 99))
-          .map(catalog => ({
-            ...catalog,
-            // Sắp xếp Catalog (Code) theo tên
-            children: catalog.children.sort((a, b) => a.name.localeCompare(b.name))
-              .map(catalogGroup => ({
-                ...catalogGroup,
-                // Sắp xếp TechType: Web -> C# -> SQL -> Khác
-                children: catalogGroup.children.sort((a, b) => techTypeOrder(a.name) - techTypeOrder(b.name))
-              }))
-          }))
-      }));
+    const catalogCode = catalogCategory?.Code || 'OTHER';
+    const catalogName = catalogCategory?.Name || 'Danh mục khác';
+    const catalogSTT = catalogCategory?.STT || 999;
+
+    // Cấp 1: Department
+    if (!departmentMap.has(deptKey)) {
+      departmentMap.set(deptKey, {
+        id: `dept-${deptKey}`,
+        name: deptName,
+        type: 'department',
+        departmentId: deptId,
+        children: [],
+        isCollapsed: false,
+        courseCount: 0
+      });
+    }
+    const deptNode = departmentMap.get(deptKey)!;
+
+    // Cấp 2: CatalogType
+    const catalogKey = `${deptKey}-${catalogType}`;
+    let catalogTypeNode = deptNode.children.find(c => c.id === catalogKey);
+
+    if (!catalogTypeNode) {
+      catalogTypeNode = {
+        id: catalogKey,
+        name: catalogTypeName,
+        type: 'catalogType',
+        catalogType: catalogType,
+        children: [],
+        isCollapsed: false,
+        courseCount: 0
+      };
+      deptNode.children.push(catalogTypeNode);
+    }
+
+    // Cấp 3: Catalog
+    const catalogGroupKey = `${catalogKey}-${catalogCode}`;
+    let catalogNode = catalogTypeNode.children.find(c => c.id === catalogGroupKey);
+
+    if (!catalogNode) {
+      catalogNode = {
+        id: catalogGroupKey,
+        name: catalogCode,
+        type: 'catalog',
+        catalogCode: catalogCode,
+        catalogName: catalogName,
+        children: [],
+        isCollapsed: true,
+        courseCount: 0,
+        stt: catalogSTT
+      };
+      catalogTypeNode.children.push(catalogNode);
+    }
+
+    // Cấp 4: Course
+    const courseNode: CourseTreeNode = {
+      id: `course-${course.ID}`,
+      name: course.NameCourse || 'Khóa học',
+      type: 'course',
+      course: course,
+      children: [],
+      isCollapsed: false,
+      courseCount: 1,
+      stt: course.STT || 999
+    };
+
+    catalogNode.children.push(courseNode);
+    catalogNode.courseCount++;
+    catalogTypeNode.courseCount++;
+    deptNode.courseCount++;
   }
+
+  // ========== SORT FUNCTIONS ==========
+  const sortCatalogType = (a: CourseTreeNode, b: CourseTreeNode): number => {
+    const getPriority = (catalogType: number | undefined): number => {
+      switch (catalogType) {
+        case 3: return 1;
+        case 1: return 2;
+        case 2: return 3;
+        default: return 99;
+      }
+    };
+    return getPriority(a.catalogType) - getPriority(b.catalogType);
+  };
+
+  const sortCatalog = (a: CourseTreeNode, b: CourseTreeNode): number => {
+    const sttA = (a as any).stt || 999;
+    const sttB = (b as any).stt || 999;
+    if (sttA !== sttB) return sttA - sttB;
+    return (a.name || '').localeCompare(b.name || '');
+  };
+
+  const sortCourse = (a: CourseTreeNode, b: CourseTreeNode): number => {
+    const courseA = a.course;
+    const courseB = b.course;
+    const sttA = courseA?.STT || (a as any).stt || 999;
+    const sttB = courseB?.STT || (b as any).stt || 999;
+    if (sttA !== sttB) return sttA - sttB;
+    return (a.name || '').localeCompare(b.name || '');
+  };
+
+  // ========== ASSIGN & SORT ==========
+  this.courseTreeData = Array.from(departmentMap.values())
+    .sort((a, b) => {
+      if (a.departmentId === this.currentUserDepartmentId) return -1;
+      if (b.departmentId === this.currentUserDepartmentId) return 1;
+      return (a.departmentId || 0) - (b.departmentId || 0);
+    })
+    .map(dept => ({
+      ...dept,
+      children: dept.children
+        .sort(sortCatalogType)
+        .map(catalogType => ({
+          ...catalogType,
+          children: catalogType.children
+            .sort(sortCatalog)
+            .map(catalog => ({
+              ...catalog
+              // children: catalog.children.sort(sortCourse)
+            }))
+        }))
+    }));
+}
 
   // Toggle node trong tree
   toggleTreeNode(node: CourseTreeNode, event: Event): void {
@@ -681,8 +1027,22 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
     this.coursePracticeService.getCourse(categoryID, catalogType).subscribe(
       (response: any) => {
         if (response && response.status === 1) {
+          // Sort data: DepartmentID -> CatalogType -> CatalogID -> ID
+          const sortedData = [...(response.data || [])].sort((a: any, b: any) => {
+            if (a.DepartmentID !== b.DepartmentID) {
+              return (a.DepartmentID || 0) - (b.DepartmentID || 0);
+            }
+            if (a.CatalogType !== b.CatalogType) {
+              return (a.CatalogType || 0) - (b.CatalogType || 0);
+            }
+            if (a.CatalogID !== b.CatalogID) {
+              return (a.CatalogID || 0) - (b.CatalogID || 0);
+            }
+            return (a.ID || 0) - (b.ID || 0);
+          });
+
           // Map data and add mock completion status, rating for demo
-          this.courseData = (response.data || []).map(
+          this.courseData = sortedData.map(
             (course: any, index: number) => ({
               ...course,
               CompletionStatus: index % 3 === 0 ? 'Đã hoàn thành' : 'Hoạt động',
@@ -1004,13 +1364,13 @@ export class CoursePracticeComponent implements OnInit, AfterViewInit {
   getScoresTooltip(course: any): string {
     const parts: string[] = [];
     if (course?.GoalMultiChoice > 0) {
-      parts.push(`Trắc nghiệm: ${this.formatDecimal(course.QuizPoints)}/${this.formatDecimal(course.GoalMultiChoice)}`);
+      parts.push(`TN: ${this.formatDecimal(course.QuizPoints)}/${this.formatDecimal(course.GoalMultiChoice)}`);
     }
     if (course?.GoalPractice > 0) {
-      parts.push(`Thực hành: ${this.formatDecimal(course.PracticePoints)}/${this.formatDecimal(course.GoalPractice)}`);
+      parts.push(`TH: ${this.formatDecimal(course.PracticePoints)}/${this.formatDecimal(course.GoalPractice)}`);
     }
     if (course?.GoalExercise > 0) {
-      parts.push(`Bài tập: ${this.formatDecimal(course.ExcercisePoints)}/${this.formatDecimal(course.GoalExercise)}`);
+      parts.push(`BT: ${this.formatDecimal(course.ExcercisePoints)}/${this.formatDecimal(course.GoalExercise)}`);
     }
     return parts.join('\n');
   }

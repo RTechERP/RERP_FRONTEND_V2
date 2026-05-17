@@ -206,7 +206,7 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
         private permissionService: PermissionService,
         private http: HttpClient,
     ) {
-        this.canSeekForward = this.permissionService.hasPermission('N1,N37');
+        this.canSeekForward = this.permissionService.hasPermission('N1,N93');
     }
 
     /**
@@ -735,10 +735,10 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
     // }
 
     getVideoUrl(ID?: number): void {
-        const host = environment.host + 'api/course/stream/';
+        const host = environment.host + 'api/streamvideo/stream/';
         const url = host + ID;
         this.videoUrl = url;
-        this.http.head(url, { observe: 'response' }).subscribe({
+        this.http.get(url, { observe: 'response',responseType: 'blob' }).subscribe({
             next: (response) => {
                 if (response.status === 200) {
                     this.hiddenVideo = false;

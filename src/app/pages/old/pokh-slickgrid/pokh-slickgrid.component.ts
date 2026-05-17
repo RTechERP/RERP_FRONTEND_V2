@@ -1879,6 +1879,12 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         this.modalRef.componentInstance.selectedId = this.selectedId;
         this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
         this.modalRef.componentInstance.isCopy = this.isCopy;
+        if (this.isCopy && this.selectedId > 0) {
+            this.modalRef.componentInstance.startCopyFromSource(
+                this.selectedId,
+                this.filters.warehouseId
+            );
+        }
 
         this.modalRef.result.then(
             (result: any) => {

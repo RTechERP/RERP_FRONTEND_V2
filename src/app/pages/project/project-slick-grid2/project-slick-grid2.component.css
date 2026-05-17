@@ -542,6 +542,35 @@ angular-slickgrid,
   width: max-content !important;
 }
 
+:host ::ng-deep .project-master-table.p-datatable-flex-scrollable,
+:host ::ng-deep .project-master-table .p-datatable-table-container,
+:host ::ng-deep .project-master-table .p-virtualscroller {
+  min-height: 0;
+}
+
+:host ::ng-deep .project-master-table .p-virtualscroller {
+  flex: 1 1 auto;
+  overflow: auto !important;
+}
+
+:host ::ng-deep .project-master-table .p-datatable-tbody > tr {
+  height: 44px !important;
+  max-height: 44px !important;
+}
+
+:host ::ng-deep .project-master-table .p-datatable-tbody > tr > td {
+  height: 44px !important;
+  max-height: 44px !important;
+  line-height: 16px !important;
+  overflow: hidden !important;
+  vertical-align: middle !important;
+}
+
+:host ::ng-deep .project-master-table .p-datatable-tbody > tr > td.cell-wrap {
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
 ::ng-deep th {
   white-space: normal !important;
   word-break: break-word;

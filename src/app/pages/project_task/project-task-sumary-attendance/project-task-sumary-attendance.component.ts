@@ -93,6 +93,7 @@ export class ProjectTaskSumaryAttendanceComponent {
   groupCounts: { [key: string]: number } = {};
 
   // Cấu hình bảng
+  collapsedGroups: { [key: string]: boolean } = {};
   dataset: any[] = [];
   isLoading = false;
 
@@ -295,7 +296,6 @@ export class ProjectTaskSumaryAttendanceComponent {
     });
   }
 
-  collapsedGroups: { [key: string]: boolean } = {};
 
   toggleGroup(item: any) {
     const key = item.EmployeeCode || 'N/A';

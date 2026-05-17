@@ -356,6 +356,8 @@ import { UserGroupByEmployeeComponent } from './pages/systems/user-group/user-gr
 import { UserGroupSearchComponent } from './pages/systems/user-group/user-group-search/user-group-search.component';
 import { JobRequirementRecommendComponent } from './pages/hrm/job-requirement/job-requirement-recommend/job-requirement-recommend.component';
 import { MakertrainingComponent } from './pages/makertraining/makertraining.component';
+import { PollFormComponent } from './pages/poll-form/poll-form.component';
+import { PollVoteComponent } from './pages/poll-vote/poll-vote.component';
 export const routes: Routes = [
 
     {
@@ -1239,6 +1241,9 @@ export const routes: Routes = [
             { path: 'project-history-problem-new', component: ProjectHistoryProblemNewComponent, canActivate: [authGuard] },
             { path: 'project-history-problem-dashboard', component: ProjectHistoryProblemDashboardComponent, canActivate: [authGuard] },
             { path: 'maker-training', component: MakertrainingComponent, canActivate: [authGuard] },
+            { path: 'poll-form', component: PollFormComponent, canActivate: [authGuard] },
+            { path: 'poll-vote/:id', component: PollVoteComponent, canActivate: [authGuard] },
+            { path: 'poll-vote', component: PollVoteComponent, canActivate: [authGuard] },
 
         ],
     },

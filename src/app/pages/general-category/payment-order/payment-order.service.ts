@@ -61,6 +61,10 @@ export class PaymentOrderService {
         return this.http.post<any>(`${this.url}/update-totalmoney`, payment);
     }
 
+    updateTransferType(payments: any[]): Observable<any> {
+        return this.http.post<any>(`${this.url}/update-transfer-type`, payments);
+    }
+
     downloadZip(file: DownloadPaymentOrderDTO): Observable<Blob> {
         return this.http.post(`${this.url}/download-zip`, file, { responseType: 'blob' });
     }

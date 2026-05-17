@@ -121,6 +121,8 @@ export class PaymentOrder {
     PaymentOrderPOss: string | null = ''
     BankListID: number | null = 0;
     ContentBankTransferType: number | null = 0;
+    TransferType: number | null = null;
+    TransferTypeText: string | null = '';
 
     // ===== Optional: constructor map từ object =====
     constructor(init?: Partial<PaymentOrder>) {
@@ -258,6 +260,8 @@ export const PaymentOrderField = {
     ApprovedBGDID: { name: 'BGĐ duyệt', field: 'ApprovedBGDID', type: 'number' },
     TaxCompanyID: { name: 'Công ty', field: 'TaxCompanyID', type: 'number' },
     TaxCompanyName: { name: 'Công ty', field: 'TaxCompanyName', type: 'string' },
+    TransferType: { name: '', field: 'TransferType', type: 'number' },
+    TransferTypeText: { name: 'Loại chuyển khoản', field: 'TransferTypeText', type: 'string' },
 } as const
 
 

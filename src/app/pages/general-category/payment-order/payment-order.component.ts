@@ -212,6 +212,14 @@ export class PaymentOrderComponent implements OnInit {
         if (value === false) return '';
         return '';
     };
+    transferTypes = [
+        { ID: 5, Text: 'Chuyển khoản cá nhân' },
+        { ID: 1, Text: 'Chuyển khoản RTC' },
+        { ID: 2, Text: 'Chuyển khoản MVI' },
+        { ID: 3, Text: 'Chuyển khoản APR' },
+        { ID: 4, Text: 'Chuyển khoản Yonko' },
+        { ID: 6, Text: 'Chuyển khoản R-Tech' },
+    ];
 
     isPermisstion: boolean = false;
     isPermisstionDB: boolean = false;
@@ -597,6 +605,24 @@ export class PaymentOrderComponent implements OnInit {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnPayment', ButtonActionText: 'Kế toán xác nhận',
                             });
                         }
+                    },
+                    {
+                        separator: true,
+                    },
+                    {
+                        label: 'Cập nhật loại chuyển khoản',
+                        icon: 'fa-solid fa-money-bill-transfer fa-lg text-primary',
+                        visible: this.permissionService.hasPermission("N55,N61"),
+                        items: this.transferTypes.map(type => ({
+                            label: type.Text,
+                            icon: 'fa-solid fa-money-bill-transfer fa-lg text-primary',
+                            command: () => {
+                                this.onUpdateTransferType(type.ID);
+                            }
+                        }))
+                    },
+                    {
+                        separator: true,
                     },
                     {
                         label: 'Đính kèm file Bank slip',
@@ -1306,7 +1332,22 @@ export class PaymentOrderComponent implements OnInit {
                 //     } as MultipleSelectOption,
                 // },
             },
-
+            {
+                id: PaymentOrderField.TransferTypeText.field,
+                name: PaymentOrderField.TransferTypeText.name,
+                field: PaymentOrderField.TransferTypeText.field,
+                type: PaymentOrderField.TransferTypeText.type,
+                sortable: true, filterable: true,
+                width: 190,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
             {
                 id: 'HRNote',
                 name: 'Ghi chú HR',
@@ -1316,9 +1357,6 @@ export class PaymentOrderComponent implements OnInit {
                 width: 200,
                 filter: { model: Filters['compoundInputText'] },
             },
-
-
-
             {
                 id: PaymentOrderField.POCode.field,
                 name: 'Số PO',
@@ -2373,6 +2411,22 @@ export class PaymentOrderComponent implements OnInit {
                     } as MultipleSelectOption,
                 },
             },
+            {
+                id: PaymentOrderField.TransferTypeText.field,
+                name: PaymentOrderField.TransferTypeText.name,
+                field: PaymentOrderField.TransferTypeText.field,
+                type: PaymentOrderField.TransferTypeText.type,
+                sortable: true, filterable: true,
+                width: 190,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
 
             {
                 id: PaymentOrderField.StepName.field,
@@ -2794,6 +2848,20 @@ export class PaymentOrderComponent implements OnInit {
             this.loadDataSpecial();
     }
 
+    private getTransferTypeText(transferType: any): string {
+        const type = this.transferTypes.find(x => x.ID === Number(transferType));
+        return type?.Text ?? '';
+    }
+
+    private normalizePaymentOrderRow(item: any): any {
+        const transferTypeText = String(item?.TransferTypeText ?? '').trim();
+        return {
+            ...item,
+            TransferTypeText: transferTypeText || this.getTransferTypeText(item?.TransferType),
+            id: item.ID   // dành riêng cho SlickGrid
+        };
+    }
+
     loadDataNormal() {
         this.isLoading = true;
 
@@ -2816,10 +2884,7 @@ export class PaymentOrderComponent implements OnInit {
                 // console.log(response);
                 this.dataset = response.data;
 
-                this.dataset = this.dataset.map((x, i) => ({
-                    ...x,
-                    id: x.ID   // dành riêng cho SlickGrid
-                }));
+                this.dataset = this.dataset.map(x => this.normalizePaymentOrderRow(x));
 
                 // this.applyDistinctFilters(this.angularGrid);
 
@@ -2877,10 +2942,7 @@ export class PaymentOrderComponent implements OnInit {
                 // console.log(response);
                 this.datasetSpecial = response.data;
 
-                this.datasetSpecial = this.datasetSpecial.map((x, i) => ({
-                    ...x,
-                    id: x.ID   // dành riêng cho SlickGrid
-                }));
+                this.datasetSpecial = this.datasetSpecial.map(x => this.normalizePaymentOrderRow(x));
 
 
                 this.rowStyle(this.angularGridSpecial);
@@ -4335,29 +4397,29 @@ export class PaymentOrderComponent implements OnInit {
             HEADERS = [
                 'STT', 'Thanh toán gấp', 'Ngày đề nghị', 'Deadline thanh toán', 'Số đề nghị',
                 'Người đề nghị', 'Team kinh doanh', 'Phân loại thanh toán', 'Lý do thanh toán', 'Khách hàng',
-                'Số PO', 'Số hóa đơn', 'Số tiền', 'ĐVT', 'Hình thức thanh toán',
+                'Số PO', 'Số hóa đơn', 'Số tiền', 'ĐVT', 'Hình thức thanh toán', 'Loại chuyển khoản',
                 'Tình trạng phiếu', 'Lịch sử duyệt / hủy duyệt', 'Lý do hủy duyệt', 'Ghi chú / Chứng từ kèm theo'
             ];
-            MONEY_COLS = [11];
-            CENTER_COLS = [0, 1, 2, 3, 12];
-            COL_WIDTHS = [8, 15, 14, 22, 20, 20, 25, 30, 25, 15, 20, 18, 8, 25, 25, 45, 35, 45];
+            MONEY_COLS = [12];
+            CENTER_COLS = [0, 1, 2, 3, 13];
+            COL_WIDTHS = [8, 15, 14, 22, 20, 20, 25, 30, 35, 25, 15, 20, 18, 8, 25, 25, 25, 45, 35, 45];
         } else {
             HEADERS = [
                 'Người nhận tiền', 'Số tài khoản', 'Ngân hàng',
                 'STT', 'Thanh toán gấp', 'Ngày đề nghị', 'Deadline', 'Tình trạng phiếu', 'Số đề nghị',
                 'Người đề nghị', 'Bộ phận', 'Phân loại chính', 'Nội dung chính của đề nghị', 'Lý do thanh toán',
                 'Số tiền', 'Số tiền thanh toán', 'Số tiền thanh toán thực tế', 'ĐVT', 'Bỏ qua HR',
-                'Hình thức thanh toán', 'Nội dung chuyển khoản', 'Nhà cung cấp',
+                'Hình thức thanh toán', 'Loại chuyển khoản', 'Nội dung chuyển khoản', 'Nhà cung cấp',
                 'Trạng thái hợp đồng', 'Số hợp đồng', 'Dự án',
                 'Có hóa đơn', 'Điểm đi', 'Điểm đến', 'Trạng thái Bank Slip',
                 'Lịch sử duyệt / hủy duyệt', 'Lý do hủy duyệt', 'Ghi chú / Chứng từ kèm theo',
                 'Ghi chú kế toán', 'Số PO', 'Lý do KT Y/c bổ sung', 'Lý do HR Y/c bổ sung',
             ];
             MONEY_COLS = [14, 15, 16];
-            CENTER_COLS = [3, 4, 5, 6, 17, 18, 25];
+            CENTER_COLS = [3, 4, 5, 6, 17, 18, 26];
             COL_WIDTHS = [
                 20, 18, 15, 8, 15, 14, 22, 25, 20, 22, 20, 22, 35, 45,
-                18, 18, 20, 8, 12, 25, 35, 25, 25, 25, 35, 12, 35, 35, 25,
+                18, 18, 20, 8, 12, 25, 25, 35, 25, 25, 25, 35, 12, 35, 35, 25,
                 45, 35, 45, 35, 15, 35, 35
             ];
         }
@@ -4398,6 +4460,7 @@ export class PaymentOrderComponent implements OnInit {
                     item.TotalMoney ?? 0,
                     (item.Unit ?? '').toUpperCase(),
                     item.PaymentMethodsJoin ?? '',
+                    item.TransferTypeText || this.getTransferTypeText(item.TransferType),
                     item.StepName ?? '',
                     item.ContentLog ?? '',
                     item.ReasonCancel ?? '',
@@ -4425,6 +4488,7 @@ export class PaymentOrderComponent implements OnInit {
                     (item.Unit ?? '').toUpperCase(),
                     boolStr(item.IsIgnoreHR),
                     item.TypeBankTransferText ?? '',
+                    item.TransferTypeText || this.getTransferTypeText(item.TransferType),
                     item.ContentBankTransfer ?? '',
                     item.SuplierName ?? '',
                     item.StatusContractText ?? '',
@@ -5382,6 +5446,55 @@ export class PaymentOrderComponent implements OnInit {
         console.log('this.activeTab tabValueChange:', this.activeTab);
         this.getSteps();
         this.loadData();
+    }
+
+    onUpdateTransferType(transferType: number) {
+        let gridInstance = this.angularGrid;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
+        const rowIndexes = grid.getSelectedRows();
+        const selectedItems = rowIndexes
+            .map(i => dataView.getItem(i))
+            .filter((item: any) => !!item);
+
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+            return;
+        }
+
+        const transferTypeText = this.getTransferTypeText(transferType);
+        Swal.fire({
+            title: 'Cập nhật loại chuyển khoản?',
+            text: `Bạn có chắc muốn cập nhật ${selectedItems.length} đề nghị sang "${transferTypeText}" không?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745 ',
+            cancelButtonColor: '#dc3545 ',
+            confirmButtonText: 'Cập nhật',
+            cancelButtonText: 'Hủy',
+        }).then((result: any) => {
+            if (!result.isConfirmed) return;
+
+            const payments = selectedItems.map((item: any) => ({
+                ID: item.ID,
+                TransferType: transferType
+            }));
+
+            this.paymentService.updateTransferType(payments).subscribe({
+                next: (response) => {
+                    this.notification.success(NOTIFICATION_TITLE.success, response.message);
+                    this.loadData();
+                },
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
+                },
+            });
+        });
     }
 
     onUpdateTotalMoney() {

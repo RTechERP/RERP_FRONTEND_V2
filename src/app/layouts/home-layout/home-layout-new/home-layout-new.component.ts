@@ -78,7 +78,7 @@ import { ProjectTaskService } from '../../../pages/project_task/project-task/pro
 export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     private eventSource: EventSource | null = null;
     currentAppVersion: string = '';
-    userAppVersion: string = localStorage.getItem('currentAppVersion') || '0.0.0';
+    userAppVersion: string = localStorage.getItem('currentAppVersion') || '1.0.3';
     lixis: LiXi[] = [];
     showLixiRain: boolean = false;
     hasNewVersion: boolean = false;
@@ -222,6 +222,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             }
         });
 
+        // mở new tab
 
     }
     getQuantityApprove() {

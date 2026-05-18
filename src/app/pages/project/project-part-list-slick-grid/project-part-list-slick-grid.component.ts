@@ -5264,6 +5264,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     const newIsActive = !selectedVersion.IsActive;
     const actionText = newIsActive ? 'đánh dấu sử dụng' : 'bỏ đánh dấu sử dụng';
 
+
     const payload: any = {
       ID: selectedVersion.originalId || selectedVersion.ID || 0,
       ProjectID: selectedVersion.ProjectID || this.projectId || null,
@@ -5275,8 +5276,12 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
       ProjectTypeID: selectedVersion.ProjectTypeID || null,
       StatusVersion: selectedVersion.StatusVersion || selectedVersion.VersionType || null,
     };
+    const payloads = {
+      ProjectPartListVersion: payload,
+      ProjectHistoryProblemIds: []
+    };
 
-    this.projectPartListService.saveProjectPartListVersion(payload).subscribe({
+    this.projectPartListService.saveProjectPartListVersion(payloads).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
           this.notification.success('Thành công', `Đã ${actionText} phiên bản "${selectedVersion.Code}"!`);

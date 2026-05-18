@@ -9,6 +9,7 @@
     font-size: 12px;
 }
 
+/* Container constraints để tránh overflow khi zoom */
 .box {
     height: 100%;
     width: 100%;
@@ -17,7 +18,6 @@
 .card {
     display: flex;
     flex-direction: column;
-    /* height: 100%; */
 }
 
 .card-header {
@@ -35,6 +35,7 @@
     overflow-y: auto;
 }
 
+/* Tree view body - no scroll, let tree-container handle scroll */
 .ant-splitter-panel {
     position: relative;
 }
@@ -398,9 +399,9 @@ nz-splitter-panel {
 /* Container cho tree view */
 .course-tree-view {
     height: 100%;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     background: #fafafa;
 }
 
@@ -420,7 +421,7 @@ nz-splitter-panel {
 }
 
 .tree-container {
-    flex: 1;
+
     overflow-y: auto;
     padding: 8px 0;
 }
@@ -479,7 +480,7 @@ nz-splitter-panel {
     background: #e3f2fd;
     border-left: 4px solid #1a73e8;
     padding: 10px 16px;
-    margin: 4px 8px 4px 24px;
+    margin: 4px 8px 4px 15px;
     border-radius: 0 8px 8px 0;
 }
 
@@ -505,21 +506,13 @@ nz-splitter-panel {
     font-size: 11px;
 }
 
-/* ===================== CẤP 3: TECH TYPE NODE ===================== */
-.tech-type-node {
-    background: #e8f5e9;
-    border-left: 4px solid #4caf50;
-    padding: 8px 16px;
-    margin: 4px 8px 4px 80px;
-    border-radius: 0 6px 6px 0;
-}
 
 /* ===================== CẤP 3: CATALOG NODE (Code + Name) ===================== */
 .catalog-node {
     background: #f3e5f5;
     border-left: 4px solid #9c27b0;
     padding: 10px 16px;
-    margin: 4px 8px 4px 48px;
+    margin: 4px 8px 4px 25px;
     border-radius: 0 8px 8px 0;
 }
 
@@ -574,12 +567,12 @@ nz-splitter-panel {
     flex-shrink: 0;
 }
 
-/* ===================== COURSE NODE - LAYOUT CARD MỚI (5 CẤP) ===================== */
+/* ===================== COURSE NODE - LAYOUT CARD MỚI (4 CẤP) ===================== */
 .course-node {
     background: white;
     border: 1px solid #e0e0e0;
     padding: 12px 14px;
-    margin: 4px 8px 4px 112px;
+    margin: 4px 8px 4px 35px;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     cursor: pointer;
@@ -637,7 +630,7 @@ nz-splitter-panel {
 .course-stats-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    /* gap: 12px; */
     align-items: center;
 }
 
@@ -646,6 +639,7 @@ nz-splitter-panel {
     display: flex;
     align-items: center;
     gap: 6px;
+    margin-right: 5px;
     font-size: 12px;
     color: #666;
 }

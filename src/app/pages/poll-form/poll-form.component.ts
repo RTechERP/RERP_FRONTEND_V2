@@ -417,14 +417,24 @@ export class PollFormComponent implements OnInit {
     return this.getQuestionsBySection(section);
   }
 
+  get previewSections(): PollSectionModel[] {
+    return this.sections;
+  }
+
+  get previewQuestions(): PollQuestionModel[] {
+    return this.previewSections.reduce<PollQuestionModel[]>((questions, section) => {
+      questions.push(...this.getQuestionsBySection(section));
+      return questions;
+    }, []);
+  }
+
   get canSubmitPreview(): boolean {
-    const section = this.currentPreviewSection;
     return (
       this.selectedPollId > 0 &&
-      !!section &&
-      section.id > 0 &&
-      this.currentPreviewQuestions.length > 0 &&
-      this.currentPreviewQuestions.every((question) => question.id > 0) &&
+      this.previewSections.length > 0 &&
+      this.previewSections.every((section) => section.id > 0) &&
+      this.previewQuestions.length > 0 &&
+      this.previewQuestions.every((question) => question.id > 0) &&
       this.isPollOpenForVote() &&
       !this.isPollCompleted
     );
@@ -1079,46 +1089,40 @@ export class PollFormComponent implements OnInit {
     if (this.isSubmitting) return;
 
     const pollId = Number(this.pollForm.get('id')?.value || 0);
-    const section = this.currentPreviewSection;
     if (pollId <= 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng lưu phiếu trước khi gửi bình chọn');
       return;
     }
-    if (!section || section.id <= 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Section hiện tại chưa được lưu');
+    if (this.previewSections.length === 0 || this.previewQuestions.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu chưa có section hoặc câu hỏi');
       return;
     }
-    const submittedSectionIndex = this.previewSectionIndex;
+    if (this.previewSections.some((section) => section.id <= 0) || this.previewQuestions.some((question) => question.id <= 0)) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng lưu phiếu trước khi gửi bình chọn');
+      return;
+    }
 
-    const sectionQuestions = this.currentPreviewQuestions;
-    if (!this.validateAnswers(sectionQuestions)) return;
+    const previewQuestions = this.previewQuestions;
+    if (!this.validateAnswers(previewQuestions)) return;
 
     this.isSubmitting = true;
     try {
       const payload = {
-        pollResponseId: this.pollResponseId,
-        sectionId: section.id,
+        pollFormId: pollId,
         employeeId: this.appUserService.employeeID ?? null,
-        answers: sectionQuestions
+        answers: previewQuestions
           .filter((question) => !this.isEmployeeMappedQuestion(question))
           .map((question) => this.buildAnswerPayload(question)),
       };
 
-      const response = await firstValueFrom(this.pollFormService.submitSection(pollId, payload));
+      const response = await firstValueFrom(this.pollFormService.submitResponse(payload));
       this.assertSuccess(response);
-      const result = this.normalizeSubmitSectionResult(this.unwrap<any>(response, {}));
-      this.pollResponseId = result.pollResponseId || this.pollResponseId;
-
-      const nextSectionIndex = this.resolveNextPreviewSectionIndex(section, submittedSectionIndex, result);
-      if (nextSectionIndex === null) {
-        this.isPollCompleted = true;
-        this.notification.success(NOTIFICATION_TITLE.success, 'Gửi bình chọn thành công');
-        await this.loadResults(pollId);
-        return;
-      }
-
-      this.previewSectionIndex = nextSectionIndex;
-      this.notification.success(NOTIFICATION_TITLE.success, `Đã lưu section ${section.sortOrder}`);
+      const savedResponse = this.normalizeResponse(this.unwrap<any>(response, {}));
+      this.pollResponseId = savedResponse.id || this.pollResponseId;
+      this.selectedResponse = savedResponse.id > 0 ? savedResponse : this.selectedResponse;
+      this.isPollCompleted = true;
+      this.notification.success(NOTIFICATION_TITLE.success, 'Gửi bình chọn thành công');
+      await this.loadResults(pollId);
     } catch (error) {
       this.notifyError(error, 'Không gửi được bình chọn');
     } finally {
@@ -1416,17 +1420,7 @@ export class PollFormComponent implements OnInit {
 
   getPreviewButtonText(): string {
     if (this.isPollCompleted) return 'Đã hoàn thành';
-    const section = this.currentPreviewSection;
-    if (!section) return 'Gửi bình chọn';
-
-    const localDecision = this.evaluateSectionBranchDecision(section);
-    if (localDecision.hasDecision) {
-      return localDecision.isExplicitEnd ? 'Gửi bình chọn' : 'Lưu và tiếp tục';
-    }
-
-    return this.findNextVisiblePreviewSectionIndex(this.previewSectionIndex + 1) >= 0
-      ? 'Lưu và tiếp tục'
-      : 'Gửi bình chọn';
+    return 'Gửi bình chọn';
   }
 
   formatDateTime(value: string | null | undefined): string {

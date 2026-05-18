@@ -37,8 +37,9 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Phòng ban</label>
-                        <nz-select nzPlaceHolder="Phòng ban" [(ngModel)]="departmentId" nzSize="small" nzShowSearch
-                            nzAllowClear (ngModelChange)="onDepartmentChange()" style="width: 100%;">
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Phòng ban" [(ngModel)]="departmentId" nzSize="small" nzShowSearch nzAllowClear
+                            (ngModelChange)="onDepartmentChange()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
                             <nz-option *ngFor="let item of departmentList; trackBy: trackByRow" [nzLabel]="item.Name || ''"
                                 [nzValue]="item.ID">
@@ -51,7 +52,8 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Team</label>
-                        <nz-select nzPlaceHolder="Team" [(ngModel)]="teamId" nzSize="small" nzShowSearch nzAllowClear
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Team" [(ngModel)]="teamId" nzSize="small" nzShowSearch nzAllowClear
                             (ngModelChange)="onTeamChange()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
                             <nz-option *ngFor="let item of teamList; trackBy: trackByRow" [nzLabel]="item.Name || ''" [nzValue]="item.ID">
@@ -64,8 +66,9 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Nhân viên</label>
-                        <nz-select nzPlaceHolder="Nhân viên" [(ngModel)]="userId" nzSize="small" nzShowSearch
-                            nzAllowClear (ngModelChange)="loadTimeline()" style="width: 100%;">
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Nhân viên" [(ngModel)]="userId" nzSize="small" nzShowSearch nzAllowClear
+                            (ngModelChange)="loadTimeline()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
                             <nz-option *ngFor="let item of userList; trackBy: trackByRow" [nzLabel]="item.FullName || ''"
                                 [nzValue]="item.UserID">
@@ -78,8 +81,9 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="4">
                     <div class="form-field-vertical">
                         <label>Dự án</label>
-                        <nz-select nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch
-                            nzAllowClear (ngModelChange)="loadTimeline()" style="width: 100%;">
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch nzAllowClear
+                            (ngModelChange)="loadTimeline()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
                             <nz-option *ngFor="let item of projectList; trackBy: trackByRow"
                                 [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
@@ -92,7 +96,8 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="6">
                     <div class="form-field-vertical">
                         <label>Trạng thái</label>
-                        <nz-select nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
                             nzMode="multiple" [nzMaxTagCount]="4" nzAllowClear (ngModelChange)="loadTimeline()" style="width: 100%;">
                             <nz-option *ngFor="let opt of statusOptions; trackBy: trackByRow" [nzLabel]="opt.label" [nzValue]="opt.value">
                             </nz-option>
@@ -151,7 +156,8 @@
                             <p-multiSelect [options]="statusOptions" [(ngModel)]="filterStatusColumn"
                                 placeholder="Tất cả" [showHeader]="false" [filter]="false" (onChange)="onColumnFilter()"
                                 styleClass="timeline-status-multi" [maxSelectedLabels]="3"
-                                selectedItemsLabel="{0} trạng thái" appendTo="body" />
+                                panelStyleClass="timeline-status-multi-panel" selectedItemsLabel="{0} trạng thái"
+                                appendTo="body" />
                         </th>
                         <th rowspan="2" class="sticky-col col-time">Thời gian <br>(giờ/ngày)</th>
                         <th rowspan="2" class="sticky-col col-type">Loại</th>

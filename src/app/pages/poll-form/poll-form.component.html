@@ -442,12 +442,13 @@
                 </div>
               </div>
 
-              <input
+              <textarea
                 class="question-title-input"
                 [(ngModel)]="question.questionText"
                 (blur)="ensureQuestionFieldKey(question, getQuestionIndex(question))"
                 placeholder="Nhập câu hỏi"
-              />
+                rows="2"
+              ></textarea>
 
               <div class="question-meta-row">
                 <label class="required-switch">
@@ -547,87 +548,90 @@
             <section class="preview-header">
               <h2>{{ currentPollTitle }}</h2>
               <p>{{ pollForm.get('description')?.value || 'Không có mô tả' }}</p>
-              <div class="preview-section-title" *ngIf="currentPreviewSection as section">
-                <strong>Section {{ previewSectionIndex + 1 }}: {{ section.title }}</strong>
-                <span>{{ section.description }}</span>
-              </div>
               <div class="preview-time">
                 <span>Bắt đầu: {{ formatDateTime(pollForm.get('startDate')?.value) }}</span>
                 <span>Kết thúc: {{ formatDateTime(pollForm.get('endDate')?.value) }}</span>
               </div>
             </section>
 
-            <section class="preview-question" *ngFor="let question of currentPreviewQuestions; let questionIndex = index; trackBy: trackByQuestion">
-              <h6>
-                {{ questionIndex + 1 }}. {{ question.questionText || 'Câu hỏi chưa có nội dung' }}
-                <span *ngIf="question.isRequired">*</span>
-              </h6>
-
-              <div class="mapped-answer" *ngIf="isEmployeeMappedQuestion(question); else manualAnswerInput">
-                <div>
-                  <span>{{ getEmployeeFieldLabel(question) }}</span>
-                  <nz-tag nzColor="warning" *ngIf="isEmployeeFieldSensitive(question)">Dữ liệu nhạy cảm</nz-tag>
-                </div>
-                <strong>{{ getMappedQuestionValue(question) }}</strong>
+            <section class="preview-section" *ngFor="let section of previewSections; let sectionIndex = index; trackBy: trackBySection">
+              <div class="preview-section-title">
+                <strong>Section {{ sectionIndex + 1 }}: {{ section.title }}</strong>
+                <span *ngIf="section.description">{{ section.description }}</span>
               </div>
 
-              <ng-template #manualAnswerInput>
-              <div [ngSwitch]="question.questionType">
-                <input
-                  *ngSwitchCase="'Text'"
-                  nz-input
-                  [(ngModel)]="answers[answerKey(question, getQuestionIndex(question))]"
-                  placeholder="Câu trả lời"
-                />
-                <textarea
-                  *ngSwitchCase="'Textarea'"
-                  nz-input
-                  rows="3"
-                  [(ngModel)]="answers[answerKey(question, getQuestionIndex(question))]"
-                  placeholder="Câu trả lời"
-                ></textarea>
-                <input
-                  *ngSwitchCase="'Date'"
-                  type="date"
-                  class="date-answer"
-                  [(ngModel)]="answers[answerKey(question, getQuestionIndex(question))]"
-                />
+              <section class="preview-question" *ngFor="let question of getQuestionsBySection(section); let questionIndex = index; trackBy: trackByQuestion">
+                <h6>
+                  {{ questionIndex + 1 }}. {{ question.questionText || 'Câu hỏi chưa có nội dung' }}
+                  <span *ngIf="question.isRequired">*</span>
+                </h6>
 
-                <div class="answer-options" *ngSwitchCase="'SingleChoice'">
-                  <label *ngFor="let option of question.options; trackBy: trackByOption">
+                <div class="mapped-answer" *ngIf="isEmployeeMappedQuestion(question); else manualAnswerInput">
+                  <div>
+                    <span>{{ getEmployeeFieldLabel(question) }}</span>
+                    <nz-tag nzColor="warning" *ngIf="isEmployeeFieldSensitive(question)">Dữ liệu nhạy cảm</nz-tag>
+                  </div>
+                  <strong>{{ getMappedQuestionValue(question) }}</strong>
+                </div>
+
+                <ng-template #manualAnswerInput>
+                  <div [ngSwitch]="question.questionType">
                     <input
-                      type="radio"
-                      [name]="'question-' + answerKey(question, getQuestionIndex(question))"
-                      [value]="option.optionValue"
+                      *ngSwitchCase="'Text'"
+                      nz-input
+                      [(ngModel)]="answers[answerKey(question, getQuestionIndex(question))]"
+                      placeholder="Câu trả lời"
+                    />
+                    <textarea
+                      *ngSwitchCase="'Textarea'"
+                      nz-input
+                      rows="3"
+                      [(ngModel)]="answers[answerKey(question, getQuestionIndex(question))]"
+                      placeholder="Câu trả lời"
+                    ></textarea>
+                    <input
+                      *ngSwitchCase="'Date'"
+                      type="date"
+                      class="date-answer"
                       [(ngModel)]="answers[answerKey(question, getQuestionIndex(question))]"
                     />
-                    <span>{{ option.optionText }}</span>
-                  </label>
-                </div>
 
-                <div class="answer-options" *ngSwitchCase="'MultipleChoice'">
-                  <label *ngFor="let option of question.options; trackBy: trackByOption">
-                    <input
-                      type="checkbox"
-                      [checked]="isOptionChecked(question, getQuestionIndex(question), option)"
-                      (change)="toggleMultipleAnswer(question, getQuestionIndex(question), option, $any($event.target).checked)"
-                    />
-                    <span>{{ option.optionText }}</span>
-                  </label>
-                </div>
+                    <div class="answer-options" *ngSwitchCase="'SingleChoice'">
+                      <label *ngFor="let option of question.options; trackBy: trackByOption">
+                        <input
+                          type="radio"
+                          [name]="'question-' + answerKey(question, getQuestionIndex(question))"
+                          [value]="option.optionValue"
+                          [(ngModel)]="answers[answerKey(question, getQuestionIndex(question))]"
+                        />
+                        <span>{{ option.optionText }}</span>
+                      </label>
+                    </div>
 
-                <div class="rating-answer" *ngSwitchCase="'Rating'">
-                  <button
-                    type="button"
-                    *ngFor="let score of ratingScale(question); trackBy: trackByNumber"
-                    [class.active]="isRatingSelected(question, getQuestionIndex(question), score)"
-                    (click)="setRatingAnswer(question, getQuestionIndex(question), score)"
-                  >
-                    {{ score }}
-                  </button>
-                </div>
-              </div>
-              </ng-template>
+                    <div class="answer-options" *ngSwitchCase="'MultipleChoice'">
+                      <label *ngFor="let option of question.options; trackBy: trackByOption">
+                        <input
+                          type="checkbox"
+                          [checked]="isOptionChecked(question, getQuestionIndex(question), option)"
+                          (change)="toggleMultipleAnswer(question, getQuestionIndex(question), option, $any($event.target).checked)"
+                        />
+                        <span>{{ option.optionText }}</span>
+                      </label>
+                    </div>
+
+                    <div class="rating-answer" *ngSwitchCase="'Rating'">
+                      <button
+                        type="button"
+                        *ngFor="let score of ratingScale(question); trackBy: trackByNumber"
+                        [class.active]="isRatingSelected(question, getQuestionIndex(question), score)"
+                        (click)="setRatingAnswer(question, getQuestionIndex(question), score)"
+                      >
+                        {{ score }}
+                      </button>
+                    </div>
+                  </div>
+                </ng-template>
+              </section>
             </section>
 
             <div class="preview-footer">

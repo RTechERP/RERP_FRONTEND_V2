@@ -86,8 +86,8 @@ export class SupplierSaleLinkFormComponent implements OnInit {
 
   columns: ColDef[] = [
     { field: 'CodeNCC', header: 'Mã', width: '150px', filterType: 'multiselect' },
-    { field: 'NameNCC', header: 'Tên nhà cung cấp', width: '250px', filterType: 'multiselect' },
-    { field: 'MatHang', header: 'Mặt hàng', width: '250px', filterType: 'text' },
+    { field: 'NameNCC', header: 'Tên nhà cung cấp', width: '350px', filterType: 'multiselect' },
+    { field: 'MatHang', header: 'Mặt hàng', width: '650px', filterType: 'text' },
     { field: 'Note', header: 'Ghi chú', width: 'auto', filterType: 'text' }
   ];
 

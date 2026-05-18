@@ -164,6 +164,7 @@ import { ProjectPartlistPriceRequestNewComponent } from './pages/purchase/projec
 import { ProjectPartListPurchaseRequestSlickGridComponent } from './pages/purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { RulePayComponent } from './pages/purchase/rulepay/rule-pay.component';
 import { SupplierSaleComponent } from './pages/purchase/supplier-sale/supplier-sale.component';
+import { SupplierSaleLinkComponent } from './pages/purchase/supplier-sale-link/supplier-sale-link.component';
 import { TrainingRegistrationComponent } from './pages/training-registration/training-registration.component';
 import { OverTimeSummaryPersonComponent } from './pages/hrm/over-time/over-time-summary-person/over-time-summary-person.component';
 import { WorkItemComponent } from './pages/project/work-item/work-item.component';
@@ -777,6 +778,7 @@ export const routes: Routes = [
             { path: 'poncc', component: PonccNewComponent, canActivate: [authGuard] },
             { path: 'inventory-project', component: InventoryProjectComponent, canActivate: [authGuard] },
             { path: 'purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
+            { path: 'supplier-sale-link', component: SupplierSaleLinkComponent, canActivate: [authGuard] },
             {
                 // "N35,N33,N1,N36,N27,N69,N80"
                 path: 'project-partlist-price-request-old',

@@ -523,6 +523,26 @@ angular-slickgrid,
   font-size: 12px !important;
 }
 
+/* Ensure the filter row header cells have minimal padding and take full width */
+:host ::ng-deep .p-datatable-thead > tr:nth-child(2) > th {
+  padding: 3px 4px !important;
+}
+
+/* Force all column filter elements to span 100% width of the header cell */
+:host ::ng-deep .p-datatable th p-columnfilter,
+:host ::ng-deep .p-datatable th .p-column-filter,
+:host ::ng-deep .p-datatable th .p-column-filter-element,
+:host ::ng-deep .p-datatable th .p-column-filter-element > *,
+:host ::ng-deep .p-datatable th input,
+:host ::ng-deep .p-datatable th select,
+:host ::ng-deep .p-datatable th .p-inputtext,
+:host ::ng-deep .p-datatable th .p-select,
+:host ::ng-deep .p-datatable th .p-multiselect,
+:host ::ng-deep .p-datatable th .status-filter-select {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
 :host ::ng-deep .p-datatable-inline-filter {
   justify-content: space-between !important;
 }
@@ -531,7 +551,7 @@ angular-slickgrid,
   width: 100% !important;
 }
 
-::host ::ng-deep p-virtualscroller p-virtualscroller-inline ng-star-inserted:host::ng-deep .p-fluid {
+:host ::ng-deep .p-fluid {
   width: 100% !important;
 }
 

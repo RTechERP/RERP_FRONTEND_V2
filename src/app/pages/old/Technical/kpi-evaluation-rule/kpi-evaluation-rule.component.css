@@ -1,13 +1,49 @@
-/* Splitter height */
-.ant-splitter {
-    height: 86.5vh !important;
+:host {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);
+    width: 100%;
 }
 
-/* Ensure splitter panels have height 100% */
+.card {
+    height: 100%;
+    min-height: 0;
+}
+
+.card-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-bar {
+    flex-shrink: 0;
+    background-color: #fafafa;
+}
+
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+.btn-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    justify-content: flex-end;
+}
+
+:host ::ng-deep nz-splitter,
+:host ::ng-deep .ant-splitter {
+    height: 100% !important;
+    min-height: 0;
+}
+
 :host ::ng-deep .ant-splitter-panel {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-width: 0;
+    min-height: 0;
 }
 
 :host ::ng-deep .ant-splitter-panel .card {
@@ -16,57 +52,179 @@
 
 :host ::ng-deep .ant-splitter-panel .card-body {
     min-height: 0;
+}
+
+.grid-container-session,
+.grid-container-rule,
+.grid-container-rule-detail {
+    height: 100%;
+    min-height: 0;
+    position: relative;
     display: flex;
     flex-direction: column;
 }
 
-.fs-12 {
-    font-size: 0.75rem;
-}
-
-/* Grid container - Session */
-.grid-container-session {
-    height: 100%;
-}
-
-:host ::ng-deep .grid-container-session nz-spin,
-:host ::ng-deep .grid-container-session .ant-spin-nested-loading,
-:host ::ng-deep .grid-container-session .ant-spin-container,
-:host ::ng-deep .grid-container-session angular-slickgrid,
-:host ::ng-deep .grid-container-session .slickgrid-container,
-:host ::ng-deep .grid-container-session .gridPane {
+:host ::ng-deep .grid-container-session p-table,
+:host ::ng-deep .grid-container-session .p-datatable,
+:host ::ng-deep .grid-container-rule p-table,
+:host ::ng-deep .grid-container-rule .p-datatable,
+:host ::ng-deep .grid-container-rule-detail p-treetable,
+:host ::ng-deep .grid-container-rule-detail .p-treetable {
     height: 100% !important;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Grid container - Rule */
-.grid-container-rule {
-    height: 100%;
+:host ::ng-deep .kpi-prime-table .p-datatable-wrapper,
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-table-container,
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-wrapper {
+    flex: 1;
+    min-height: 0;
 }
 
-:host ::ng-deep .grid-container-rule nz-spin,
-:host ::ng-deep .grid-container-rule .ant-spin-nested-loading,
-:host ::ng-deep .grid-container-rule .ant-spin-container,
-:host ::ng-deep .grid-container-rule angular-slickgrid,
-:host ::ng-deep .grid-container-rule .slickgrid-container,
-:host ::ng-deep .grid-container-rule .gridPane {
-    height: 100% !important;
+:host ::ng-deep .kpi-prime-table table,
+:host ::ng-deep .kpi-prime-tree-table table {
+    table-layout: fixed;
 }
 
-/* Grid container - Rule Detail */
-.grid-container-rule-detail {
-    height: 100%;
+:host ::ng-deep .kpi-prime-table .p-datatable-thead > tr > th,
+:host ::ng-deep .kpi-prime-table .p-datatable-tbody > tr > td,
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-thead > tr > th,
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-tbody > tr > td {
+    font-size: 12px;
+    padding: 4px 6px;
+    vertical-align: middle;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
-:host ::ng-deep .grid-container-rule-detail nz-spin,
-:host ::ng-deep .grid-container-rule-detail .ant-spin-nested-loading,
-:host ::ng-deep .grid-container-rule-detail .ant-spin-container,
-:host ::ng-deep .grid-container-rule-detail angular-slickgrid,
-:host ::ng-deep .grid-container-rule-detail .slickgrid-container,
-:host ::ng-deep .grid-container-rule-detail .gridPane {
-    height: 100% !important;
+:host ::ng-deep .kpi-prime-table .p-datatable-thead > tr > th,
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-thead > tr > th {
+    background: #f5f7fb;
+    font-weight: 600;
 }
 
-/* Card headers styling */
+:host ::ng-deep .kpi-prime-table .filter-cell,
+:host ::ng-deep .kpi-prime-tree-table .filter-cell {
+    padding: 2px 4px;
+}
+
+:host ::ng-deep .kpi-prime-table .p-column-filter,
+:host ::ng-deep .kpi-prime-table .p-column-filter .p-inputtext,
+:host ::ng-deep .kpi-prime-table .p-column-filter input {
+    width: 100%;
+}
+
+:host ::ng-deep .kpi-prime-tree-table .filter-cell .p-inputtext {
+    width: 100%;
+}
+
+:host ::ng-deep .kpi-prime-table .p-column-filter .p-inputtext,
+:host ::ng-deep .kpi-prime-table .p-column-filter input,
+:host ::ng-deep .kpi-prime-tree-table .filter-cell .p-inputtext {
+    height: 22px;
+    min-height: 22px;
+    padding: 1px 5px;
+    font-size: 11px;
+    line-height: 18px;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-loading-overlay,
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-loading-overlay,
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-mask {
+    background: rgba(255, 255, 255, 0.7);
+    color: #1677ff;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-loading-icon,
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-loading-icon {
+    font-size: 24px;
+}
+
+.table-header-cell {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 4px;
+    min-height: 20px;
+    line-height: 1.25;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.cell-content {
+    display: block;
+    min-width: 0;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.35;
+}
+
+.tree-cell {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+}
+
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-toggler {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    margin-right: 2px;
+}
+
+:host ::ng-deep .kpi-prime-table .data-row,
+:host ::ng-deep .kpi-prime-tree-table .data-row {
+    cursor: pointer;
+}
+
+:host ::ng-deep .kpi-prime-table .data-row:hover > td,
+:host ::ng-deep .kpi-prime-tree-table .data-row:hover > td {
+    background: #f0f7ff;
+}
+
+:host ::ng-deep .kpi-prime-table .selected-row > td,
+:host ::ng-deep .kpi-prime-tree-table .selected-row > td {
+    background: #e6f4ff !important;
+}
+
+:host ::ng-deep .kpi-prime-table .parent-row-highlight > td,
+:host ::ng-deep .kpi-prime-tree-table .parent-row-highlight > td {
+    background: #d3d3d3;
+}
+
+:host ::ng-deep .kpi-prime-table .parent-row-highlight.selected-row > td,
+:host ::ng-deep .kpi-prime-tree-table .parent-row-highlight.selected-row > td {
+    background: #e6f4ff !important;
+}
+
+:host ::ng-deep .kpi-prime-table .parent-row-highlight:hover > td,
+:host ::ng-deep .kpi-prime-tree-table .parent-row-highlight:hover > td {
+    background: #c8d8ea;
+}
+
+:host ::ng-deep .kpi-prime-table .group-row > td {
+    background: #f0f7ff !important;
+    color: #222;
+    font-weight: 600;
+    padding: 5px 8px;
+}
+
+.group-title {
+    margin-right: 6px;
+}
+
+.group-count {
+    color: #15803d;
+}
+
 .card-header {
     border-bottom: 1px solid #e8e8e8;
 }
@@ -76,63 +234,29 @@
     color: #333;
 }
 
-/* Menubar styling */
-:host ::ng-deep .p-menubar {
-    background: transparent !important;
-    border: none !important;
-    padding: 0 !important;
+:host ::ng-deep .ant-select-selection-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
 }
 
-:host ::ng-deep .p-menubar .p-menuitem-link {
-    padding: 0.5rem 0.75rem !important;
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+    min-width: 0;
 }
 
-:host ::ng-deep .p-menubar .p-menuitem-text {
-    font-size: 0.75rem;
-    font-weight: 600;
+:host ::ng-deep .p-column-filter-element {
+    width: 100%;
+    min-width: 0;
 }
 
-:host ::ng-deep .p-menubar .p-menuitem-icon {
-    font-size: 1rem;
-    margin-right: 0.25rem;
+:host ::ng-deep p-columnfilterformelement.p-fluid {
+    width: 100% !important;
+    display: block;
 }
 
-/* SlickGrid row hover */
-:host ::ng-deep .slick-row:hover {
-    background-color: #f0f7ff;
-}
-
-/* Selected row styling */
-:host ::ng-deep .slick-row.active {
-    background-color: #e6f4ff !important;
-}
-
-/* Tree node parent rows */
-:host ::ng-deep .slick-row.parent-row {
-    background-color: #f5f5f5;
-}
-
-/* Parent row highlight - similar to C# treeData_CustomDrawNodeCell (Color.LightGray) */
-:host ::ng-deep .slick-row.parent-row-highlight {
-    background-color: #D3D3D3 !important;
-}
-
-/* Filter bar */
-.filter-bar {
-    background-color: #fafafa;
-}
-
-/* Scrollbar styling */
-:host ::ng-deep .slick-viewport::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-:host ::ng-deep .slick-viewport::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
-
-:host ::ng-deep .slick-viewport::-webkit-scrollbar-track {
-    background: #f1f1f1;
+:host ::ng-deep .p-inputtext {
+    height: 3vh;
+    width: 100%;
 }

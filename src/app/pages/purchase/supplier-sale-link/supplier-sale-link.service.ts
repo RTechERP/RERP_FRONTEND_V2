@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
@@ -34,5 +35,17 @@ export class SupplierSaleLinkService {
 
     importExcelWithPayload(payload: any): Observable<any> {
         return this.http.post<any>(`${this.url}/import-excel`, payload);
+    }
+
+    downloadTemplate(fileName: string): Observable<Blob> {
+        const url = `${environment.host}api/share/software/Template/ImportExcel/${fileName}`;
+        return this.http.get(url, {
+            responseType: 'blob',
+            observe: 'response'
+        }).pipe(
+            map((response: HttpResponse<Blob>) => {
+                return response.body as Blob;
+            })
+        );
     }
 }

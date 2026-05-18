@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, OnDestroy, ViewChild, TemplateRef } from '@angular/core';
+import { Component, ElementRef, OnInit, OnDestroy, ViewChild, TemplateRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -41,7 +41,7 @@ export class SupplierSaleLinkImportExcelComponent implements OnInit, OnDestroy {
   sheetName = '';
   availableSheets: string[] = [];
   private headerTitles: string[] = [];
-  
+
   isFormDisabled = false;
   loading = false;
   saving = false;
@@ -54,7 +54,7 @@ export class SupplierSaleLinkImportExcelComponent implements OnInit, OnDestroy {
 
   @ViewChild('tb_excelPreview', { static: false }) tableElement!: ElementRef;
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
-  
+
   private table?: Tabulator;
   previewData: ExcelPreviewRow[] = [];
   private workbook?: XLSX.WorkBook;
@@ -62,10 +62,12 @@ export class SupplierSaleLinkImportExcelComponent implements OnInit, OnDestroy {
   constructor(
     public modal: NgbActiveModal,
     private noti: NzNotificationService,
-    private svc: SupplierSaleLinkService
-  ) {}
+    private svc: SupplierSaleLinkService,
+    private cdr: ChangeDetectorRef,
+    private modalSvc: NzModalService
+  ) { }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   ngOnDestroy(): void {
     this.stopFakeProgress();
@@ -103,6 +105,7 @@ export class SupplierSaleLinkImportExcelComponent implements OnInit, OnDestroy {
 
         this.sheetName = this.availableSheets[0];
         this.onSheetChange();
+        this.cdr.detectChanges();
       } catch (e) {
         this.noti.error('Lỗi', 'Không thể đọc file Excel. Vui lòng kiểm tra định dạng.');
         this.resetPreview();
@@ -115,15 +118,21 @@ export class SupplierSaleLinkImportExcelComponent implements OnInit, OnDestroy {
     };
 
     reader.readAsBinaryString(this.file);
+    // Clear input value so selecting the same file again triggers change event
+    target.value = '';
   }
 
   private resetPreview(): void {
     this.previewData = [];
     this.headerTitles = [];
+    this.availableSheets = [];
+    this.sheetName = '';
+    this.workbook = undefined;
     if (this.table) {
       this.table.destroy();
       this.table = undefined;
     }
+    this.cdr.detectChanges();
   }
 
   onSheetChange(sheetName?: string): void {
@@ -170,10 +179,11 @@ export class SupplierSaleLinkImportExcelComponent implements OnInit, OnDestroy {
         newRow[header] = row[colIndex] === null || row[colIndex] === undefined ? '' : row[colIndex];
       });
       return newRow;
-    }).filter((row: ExcelPreviewRow) => 
+    }).filter((row: ExcelPreviewRow) =>
       Object.keys(row).some(key => row[key] !== '' && row[key] !== null && row[key] !== undefined)
     );
 
+    this.cdr.detectChanges();
     setTimeout(() => this.renderTable(), 50);
   }
 
@@ -189,15 +199,41 @@ export class SupplierSaleLinkImportExcelComponent implements OnInit, OnDestroy {
         this.table = undefined;
       }
 
+      const getColumnWidth = (title: string): number => {
+        const t = title.trim().toLowerCase();
+        if (t === 'stt') return 60;
+        if (t === 'mã nv' || t === 'manv') return 90;
+        if (t === 'nhân viên' || t === 'nhanvien' || t === 'tên nv' || t === 'ten nv') return 160;
+        if (t === 'mã ncc' || t === 'mancc') return 130;
+        if (t === 'tên nhà cung cấp' || t === 'tên ncc' || t === 'ten ncc' || t === 'nhà cung cấp' || t === 'ten nha cung cap') return 250;
+        if (t === 'mặt hàng' || t === 'mathang') return 250;
+        if (t === 'ghi chú' || t === 'ghichu' || t === 'note') return 200;
+        return 150;
+      };
+
+      const getColumnAlign = (title: string): 'center' | 'left' => {
+        const t = title.trim().toLowerCase();
+        if (t === 'stt' || t === 'mã nv' || t === 'manv' || t === 'mã ncc' || t === 'mancc') return 'center';
+        return 'left';
+      };
+
+      const getColumnFormatter = (title: string): string | undefined => {
+        const t = title.trim().toLowerCase();
+        if (t === 'stt' || t === 'mã nv' || t === 'manv') return undefined;
+        return 'textarea';
+      };
+
       const columns = this.headerTitles.map(col => ({
         title: col,
         field: col,
-        width: 150,
-        hozAlign: 'left' as any
+        width: getColumnWidth(col),
+        hozAlign: getColumnAlign(col) as any,
+        formatter: getColumnFormatter(col) as any
       }));
 
       this.table = new Tabulator(this.tableElement.nativeElement, {
         data: this.previewData,
+        ...DEFAULT_TABLE_CONFIG,
         columns: columns,
         layout: 'fitDataStretch',
         reactiveData: true,
@@ -207,8 +243,9 @@ export class SupplierSaleLinkImportExcelComponent implements OnInit, OnDestroy {
         paginationMode: 'local',
         paginationSize: 20,
         paginationSizeSelector: [20, 50, 100, 200, 500],
-        ...DEFAULT_TABLE_CONFIG
+
       });
+      this.cdr.detectChanges();
     }, 100);
   }
 
@@ -219,6 +256,7 @@ export class SupplierSaleLinkImportExcelComponent implements OnInit, OnDestroy {
         this.progressPercent += Math.floor(Math.random() * 10) + 1;
         if (this.progressPercent > 90) this.progressPercent = 90;
         this.progressText = `Đang xử lý... ${this.progressPercent}%`;
+        this.cdr.detectChanges();
       }
     }, 300);
   }
@@ -235,6 +273,7 @@ export class SupplierSaleLinkImportExcelComponent implements OnInit, OnDestroy {
 
     this.saving = true;
     this.startFakeProgress();
+    this.cdr.detectChanges();
 
     // The export produces columns: STT, Mã NV, Nhân viên, Mã NCC, Tên nhà cung cấp, Mặt hàng, Ghi chú
     // We pass rows exactly as read
@@ -247,6 +286,7 @@ export class SupplierSaleLinkImportExcelComponent implements OnInit, OnDestroy {
       this.stopFakeProgress();
       this.progressPercent = 100;
       this.progressText = 'Hoàn thành';
+      this.cdr.detectChanges();
 
       let data: any = res?.data || res?.Data || res;
       const created = data?.Created ?? data?.created ?? 0;
@@ -257,17 +297,63 @@ export class SupplierSaleLinkImportExcelComponent implements OnInit, OnDestroy {
       const totalSuccess = created + updated;
       const totalRows = this.previewData.length;
 
-      if (totalSuccess === 0 && errors.length === 0) {
-        this.noti.warning(NOTIFICATION_TITLE.warning, `Không có bản ghi nào được lưu (0/${totalRows}). Vui lòng kiểm tra lại dữ liệu.`);
+      if (errors && errors.length > 0) {
+        const errorHtml = `
+          <div style="max-height: 250px; overflow-y: auto; padding: 10px; background: #fff1f0; border: 1px solid #ffa39e; border-radius: 4px; margin-top: 8px;">
+            <ul style="margin: 0; padding-left: 20px; color: #cf1322; font-family: Consolas, monospace; font-size: 12px; text-align: left;">
+              ${errors.map((err: string) => `<li style="margin-bottom: 6px;">${err}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+
+        this.modalSvc.warning({
+          nzTitle: 'Hoàn tất nhập dữ liệu (có dòng bị bỏ qua)',
+          nzContent: `
+            <div style="font-size: 12px; font-family: inherit;">
+              <p style="margin-bottom: 8px;">Đã lưu thành công <strong style="color: #52c41a;">${totalSuccess}/${totalRows}</strong> bản ghi (Tạo mới: ${created} • Cập nhật: ${updated}).</p>
+              <p style="margin-bottom: 8px; color: #fa8c16;">Số dòng bị bỏ qua do dữ liệu không hợp lệ: <strong>${skipped}</strong> dòng.</p>
+              ${errorHtml}
+            </div>
+          `,
+          nzOkText: 'Đóng',
+          nzOnOk: () => {
+            this.modal.close('success');
+          },
+          nzWidth: 600
+        });
       } else {
-        this.noti.success(NOTIFICATION_TITLE.success, `Lưu được ${totalSuccess}/${totalRows} bản ghi. Tạo mới: ${created} • Cập nhật: ${updated} • Bỏ qua: ${skipped}`);
+        if (totalSuccess === 0) {
+          this.noti.warning(NOTIFICATION_TITLE.warning, `Không có bản ghi nào được lưu (0/${totalRows}). Vui lòng kiểm tra lại dữ liệu.`);
+        } else {
+          this.noti.success(NOTIFICATION_TITLE.success, `Lưu thành công ${totalSuccess}/${totalRows} bản ghi. Tạo mới: ${created} • Cập nhật: ${updated}`);
+        }
+        this.modal.close('success');
       }
-      
-      this.modal.close('success');
     } catch (err: any) {
       this.stopFakeProgress();
       this.saving = false;
+      this.cdr.detectChanges();
       this.noti.error('Lỗi', err?.error?.message || err?.message || 'Có lỗi xảy ra khi nhập Excel');
     }
+  }
+
+  downloadTemplate(): void {
+    const fileName = 'FileMau_DSNVMuaTheoNCC.xlsx';
+    this.svc.downloadTemplate(fileName).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.noti.success('Thành công', 'Tải file mẫu thành công');
+      },
+      error: (err: any) => {
+        this.noti.error('Lỗi', err?.message || 'Không thể tải xuống file mẫu');
+      }
+    });
   }
 }

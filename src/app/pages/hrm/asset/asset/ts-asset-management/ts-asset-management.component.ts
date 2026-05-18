@@ -57,7 +57,6 @@ import { TsAssetProposeLiquidationFormComponent } from './ts-asset-propose-liqui
 import { TsAssetLiquidationComponent } from './ts-asset-liquidation/ts-asset-liquidation.component';
 import { TsAssetManagementImportExcelComponent } from './ts-asset-management-import-excel/ts-asset-management-import-excel.component';
 import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
-
 @Component({
     standalone: true,
     imports: [
@@ -536,9 +535,6 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             },
         });
     }
-
-   
-
     onAddAsset() {
         const initialData = {
             ID: 0,
@@ -846,7 +842,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             { header: 'Mô tả chi tiết', key: 'SpecificationsAsset', width: 30, field: 'SpecificationsAsset' },
             { header: 'Đơn vị', key: 'UnitName', width: 10, field: 'UnitName' },
             { header: 'Mã phòng ban', key: 'DepartmentCode', width: 15, field: 'DepartmentCode' },
-            { header: 'Phòng ban', key: 'DepartmentName', width: 20, field: 'DepartmentName' },
+            { header: 'Phòng ban', key: 'Name', width: 20, field: 'Name' },
             { header: 'Mã nhân viên', key: 'EmployeeCode', width: 15, field: 'EmployeeCode' },
             { header: 'Người quản lý', key: 'FullName', width: 20, field: 'FullName' },
             { header: 'Thời gian mua', key: 'DateBuy', width: 15, field: 'DateBuy' },

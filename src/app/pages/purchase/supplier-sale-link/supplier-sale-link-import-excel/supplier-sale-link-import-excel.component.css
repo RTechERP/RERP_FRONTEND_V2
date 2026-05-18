@@ -1,0 +1,4 @@
+/* Add custom styles here */
+.card-body.p-0 .tabulator {
+  border: none;
+}

@@ -17,7 +17,7 @@
                     </nz-form-label>
                     <nz-form-control>
                         <nz-select nzShowSearch nzPlaceHolder="Chọn kỳ đánh giá" [(ngModel)]="sourceSessionId"
-                            name="sourceSessionId" [nzLoading]="isLoadingSession"
+                            nzDropdownClassName="select-dropdown" name="sourceSessionId" [nzLoading]="isLoadingSession"
                             (ngModelChange)="onSourceSessionChange()" style="width: 100%;">
                             <nz-option *ngFor="let session of kpiSessions" [nzValue]="session.ID"
                                 [nzLabel]="session.Code + ' - ' + session.Name">
@@ -32,7 +32,8 @@
                     </nz-form-label>
                     <nz-form-control>
                         <nz-select nzShowSearch nzPlaceHolder="Chọn bài đánh giá" [(ngModel)]="sourceExamId"
-                            name="sourceExamId" [nzLoading]="isLoadingSourceExam" style="width: 100%;">
+                            nzDropdownClassName="select-dropdown" name="sourceExamId" [nzLoading]="isLoadingSourceExam"
+                            style="width: 100%;">
                             <nz-option *ngFor="let exam of sourceExams" [nzValue]="exam.ID"
                                 [nzLabel]="exam.ExamCode + ' - ' + exam.ExamName">
                             </nz-option>
@@ -53,7 +54,7 @@
                     </nz-form-label>
                     <nz-form-control>
                         <nz-select nzShowSearch nzPlaceHolder="Chọn kỳ đánh giá" [(ngModel)]="targetSessionId"
-                            name="targetSessionId" [nzLoading]="isLoadingSession"
+                            nzDropdownClassName="select-dropdown" name="targetSessionId" [nzLoading]="isLoadingSession"
                             (ngModelChange)="onTargetSessionChange()" style="width: 100%;">
                             <nz-option *ngFor="let session of kpiSessions" [nzValue]="session.ID"
                                 [nzLabel]="session.Code + ' - ' + session.Name">
@@ -68,7 +69,8 @@
                     </nz-form-label>
                     <nz-form-control>
                         <nz-select nzShowSearch nzPlaceHolder="Chọn bài đánh giá" [(ngModel)]="targetExamId"
-                            name="targetExamId" [nzLoading]="isLoadingTargetExam" style="width: 100%;">
+                            nzDropdownClassName="select-dropdown" name="targetExamId" [nzLoading]="isLoadingTargetExam"
+                            style="width: 100%;">
                             <nz-option *ngFor="let exam of targetExams" [nzValue]="exam.ID"
                                 [nzLabel]="exam.ExamCode + ' - ' + exam.ExamName">
                             </nz-option>

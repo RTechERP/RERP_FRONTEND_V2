@@ -5,16 +5,25 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import {
-  AngularGridInstance,
-  AngularSlickgridModule,
-  Column,
-  Filters,
-  GridOption,
-  Formatters
-} from 'angular-slickgrid';
+import { TableModule } from 'primeng/table';
 import { KpiPositionEmployeeService } from '../kpi-position-employee-service/kpi-position-employee.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
+
+type PrimeColumnType = 'text' | 'number' | 'boolean';
+
+interface PrimeColumn {
+  id: string;
+  name: string;
+  field: string;
+  width?: number;
+  minWidth?: number;
+  hidden?: boolean;
+  sortable?: boolean;
+  filterable?: boolean;
+  type?: PrimeColumnType;
+  align?: 'left' | 'center' | 'right';
+  cssClass?: string;
+}
 
 @Component({
   selector: 'app-kpi-position-employee-detail',
@@ -24,7 +33,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
     FormsModule,
     NzButtonModule,
     NzModalModule,
-    AngularSlickgridModule
+    TableModule
   ],
   templateUrl: './kpi-position-employee-detail.component.html',
   styleUrl: './kpi-position-employee-detail.component.css',
@@ -37,10 +46,9 @@ export class KpiPositionEmployeeDetailComponent implements OnInit {
   @Output() onSaved = new EventEmitter<any>();
 
   // Grid
-  angularGrid!: AngularGridInstance;
-  columnDefinitions: Column[] = [];
-  gridOptions: GridOption = {};
+  columnDefinitions: PrimeColumn[] = [];
   dataset: any[] = [];
+  isLoading = false;
 
   // Track changes
   lstInsert: number[] = [];  // EmployeeIDs to insert
@@ -58,124 +66,33 @@ export class KpiPositionEmployeeDetailComponent implements OnInit {
     this.loadEmployees();
   }
 
-  angularGridReady(event: any): void {
-    this.angularGrid = event.detail;
-
-    // Apply grouping after grid is ready
-    setTimeout(() => {
-      this.applyGrouping();
-    }, 100);
-  }
-
   private initGrid(): void {
     this.columnDefinitions = [
-      {
-        id: 'IsCheck',
-        name: '',
-        field: 'IsCheck',
-        type: 'boolean',
-        sortable: false,
-        width: 50,
-        maxWidth: 50,
-        cssClass: 'text-center',
-        formatter: Formatters.checkmarkMaterial,
-        onCellClick: (e: Event, args: any) => {
-          this.onCheckboxClick(args);
-        }
-      },
-      {
-        id: 'Code',
-        name: 'Mã nhân viên',
-        field: 'Code',
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        width: 120
-      },
-      {
-        id: 'FullName',
-        name: 'Tên nhân viên',
-        field: 'FullName',
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        width: 200
-      },
-      {
-        id: 'DepartmentName',
-        name: 'Phòng ban',
-        field: 'DepartmentName',
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        width: 150
-      },
-      {
-        id: 'ChucVuName',
-        name: 'Chức vụ',
-        field: 'ChucVuName',
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        width: 150
-      },
-      {
-        id: 'PositionName',
-        name: 'Vị trí',
-        field: 'PositionName',
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputText'] },
-        width: 150
-      }
+      this.textCol('IsCheck', '', 'IsCheck', 50, { sortable: false, filterable: false, cssClass: 'text-center' }),
+      this.textCol('Code', 'Mã nhân viên', 'Code', 120),
+      this.textCol('FullName', 'Tên nhân viên', 'FullName', 200),
+      this.textCol('DepartmentName', 'Phòng ban', 'DepartmentName', 150),
+      this.textCol('ChucVuName', 'Chức vụ', 'ChucVuName', 150),
+      this.textCol('PositionName', 'Vị trí', 'PositionName', 150)
     ];
-
-    this.gridOptions = {
-      autoResize: {
-        container: '.modal-body',
-        calculateAvailableSizeBy: 'container'
-      },
-      enableAutoResize: true,
-      enableFiltering: true,
-      enableSorting: true,
-      enableGrouping: true,
-      showHeaderRow: true,
-      headerRowHeight: 35,
-      rowHeight: 30,
-      gridHeight: 450,
-    };
-  }
-
-  private applyGrouping(): void {
-    if (!this.angularGrid?.dataView) return;
-
-    this.angularGrid.dataView.setGrouping([
-      {
-        getter: 'DepartmentName',
-        formatter: (g: any) => `Phòng ban: ${g.value} (${g.count} nhân viên)`,
-        aggregateCollapsed: false,
-        collapsed: false,
-      }
-    ]);
   }
 
   private loadEmployees(): void {
+    this.isLoading = true;
     this.service.getPositionEmployeeDetail(this.departmentId, this.kpiSessionId).subscribe({
       next: (response: any) => {
         if (response?.status === 1) {
-          this.dataset = response.data.map((item: any, index: number) => ({
+          this.dataset = (response.data || []).map((item: any, index: number) => ({
             ...item,
             id: `${item.ID}_${index}`,
             IsCheck: item.KPIPosiotionID === this.kpiPositionId
-          }));
-
-          setTimeout(() => {
-            this.applyGrouping();
-          }, 100);
+          })).sort((a: any, b: any) => (a.DepartmentName || '').localeCompare(b.DepartmentName || ''));
         }
+        this.isLoading = false;
       },
       error: (error: any) => {
         console.error('Error loading employees:', error);
+        this.isLoading = false;
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên');
       }
     });
@@ -184,15 +101,14 @@ export class KpiPositionEmployeeDetailComponent implements OnInit {
   /**
    * Xử lý click checkbox
    */
-  private onCheckboxClick(args: any): void {
-    const dataContext = args.dataContext;
+  onCheckboxClick(dataContext: any): void {
     const empId = parseInt(dataContext.ID, 10);
     const positionEmployeeId = parseInt(dataContext.PositionEmployeeID, 10) || 0;
     const currentPositionId = parseInt(dataContext.KPIPosiotionID, 10) || 0;
     const isCurrentlyChecked = dataContext.IsCheck;
 
     if (isCurrentlyChecked) {
-      // Đang checked -> bỏ check (xóa)
+      // Đang checked -> hỏi bỏ check (xóa)
       this.modal.confirm({
         nzTitle: 'Xác nhận xóa',
         nzContent: `Bạn có muốn xóa Nhân viên [${dataContext.FullName}] hay không?`,
@@ -210,7 +126,11 @@ export class KpiPositionEmployeeDetailComponent implements OnInit {
 
           // Update UI
           dataContext.IsCheck = false;
-          this.angularGrid.gridService.updateItem(dataContext);
+        },
+        nzOnCancel: () => {
+          // Reset UI state to keep checked
+          dataContext.IsCheck = true;
+          this.dataset = [...this.dataset];
         }
       });
     } else {
@@ -219,7 +139,6 @@ export class KpiPositionEmployeeDetailComponent implements OnInit {
         // Nhân viên đã có đúng KPI Position rồi => không cần insert
         this.lstInsert = this.lstInsert.filter(id => id !== empId);
         dataContext.IsCheck = true;
-        this.angularGrid.gridService.updateItem(dataContext);
         return;
       }
 
@@ -236,7 +155,11 @@ export class KpiPositionEmployeeDetailComponent implements OnInit {
               this.lstInsert.push(empId);
             }
             dataContext.IsCheck = true;
-            this.angularGrid.gridService.updateItem(dataContext);
+          },
+          nzOnCancel: () => {
+            // Reset UI state to keep unchecked
+            dataContext.IsCheck = false;
+            this.dataset = [...this.dataset];
           }
         });
       } else {
@@ -245,7 +168,6 @@ export class KpiPositionEmployeeDetailComponent implements OnInit {
           this.lstInsert.push(empId);
         }
         dataContext.IsCheck = true;
-        this.angularGrid.gridService.updateItem(dataContext);
       }
     }
   }
@@ -287,5 +209,63 @@ export class KpiPositionEmployeeDetailComponent implements OnInit {
 
   cancel(): void {
     this.activeModal.dismiss();
+  }
+
+  visibleColumns(columns: PrimeColumn[]): PrimeColumn[] {
+    return columns.filter(col => !col.hidden);
+  }
+
+  getColumnWidth(col: PrimeColumn): string {
+    return `${col.width || col.minWidth || 120}px`;
+  }
+
+  getColumnFilterType(col: PrimeColumn): string {
+    return 'text';
+  }
+
+  getCellClass(col: PrimeColumn): Record<string, boolean> {
+    return {
+      'text-end': col.align === 'right' || col.type === 'number' || col.cssClass === 'text-end',
+      'text-center': col.align === 'center' || col.type === 'boolean' || col.cssClass === 'text-center',
+    };
+  }
+
+  formatCell(row: any, col: PrimeColumn): string {
+    const value = row?.[col.field];
+    if (value === null || value === undefined || value === '') return '';
+    if (col.type === 'number') return this.formatNumber(value);
+    if (col.type === 'boolean') return value ? '✓' : '';
+    return String(value);
+  }
+
+  getCellTitle(row: any, col: PrimeColumn): string {
+    if (col.type === 'boolean') return row?.[col.field] ? 'Có' : 'Không';
+    return this.formatCell(row, col);
+  }
+
+  getDetailGroupCount(deptName: string): number {
+    return this.dataset.filter(item => item.DepartmentName === deptName).length;
+  }
+
+  private formatNumber(value: any): string {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue) || numericValue === 0) return '';
+    return new Intl.NumberFormat('vi-VN', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1,
+    }).format(numericValue);
+  }
+
+  private textCol(id: string, name: string, field: string, width: number, extra: Partial<PrimeColumn> = {}): PrimeColumn {
+    return {
+      id,
+      name,
+      field,
+      width,
+      sortable: true,
+      filterable: true,
+      type: 'text',
+      ...extra,
+    };
   }
 }

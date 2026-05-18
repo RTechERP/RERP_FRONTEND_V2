@@ -424,6 +424,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             { key: 'Note', width: 30 },
             { key: 'ProductNewCode', width: 15 },
             { key: 'ProductCode', width: 20 },
+            { key: 'ProductCodeOfSupplier', width: 20 },
             { key: 'GuestCode', width: 20 },
             { key: 'ProductName', width: 30 },
             { key: 'Unit', width: 10 },
@@ -448,19 +449,19 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         ];
 
         // Add Band Row (Row 1)
-        const bandValues = new Array(27).fill('');
+        const bandValues = new Array(28).fill('');
         bandValues.push('Thông tin đầu vào');
         const bandRow = worksheet.addRow(bandValues);
 
         // Merge cells for Band
-        worksheet.mergeCells('A1:AA1');
-        worksheet.mergeCells('AB1:AH1');
+        worksheet.mergeCells('A1:AB1');
+        worksheet.mergeCells('AC1:AI1');
 
         // Add Header Row (Row 2)
         const headerRow = worksheet.addRow([
             'Yêu cầu gấp', 'Deadline', 'Trạng thái', 'Mã lệnh', 'Tờ khai HQ',
             'Lý do yêu cầu bổ sung', 'Người yêu cầu', 'Khách hàng', 'Địa chỉ', 'Công ty bán',
-            'Ghi chú', 'Mã nội bộ', 'Mã sản phẩm', 'Mã theo khách', 'Tên sản phẩm',
+            'Ghi chú', 'Mã nội bộ', 'Mã sản phẩm', 'Mã sản phẩm NCC', 'Mã theo khách', 'Tên sản phẩm',
             'ĐVT', 'Số lượng', 'Mã dự án', 'Dự án', 'Ghi chú (Chi tiết)',
             'Thông số kỹ thuật', 'Số hóa đơn', 'Ngày hóa đơn', 'Số PO', 'Đơn giá trước VAT', 'Tổng tiền trước VAT', 'Mã PO',
             'Ngày đặt hàng', 'Ngày hàng về', 'Nhà cung cấp', 'Hóa đơn đầu vào', 'Ngày hàng về dự kiến', 'PNK', 'Công ty nhập'
@@ -516,6 +517,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 Note: item.Note,
                 ProductNewCode: item.ProductNewCode,
                 ProductCode: item.ProductCode,
+                ProductCodeOfSupplier: item.ProductCodeOfSupplier,
                 GuestCode: item.GuestCode,
                 ProductName: item.ProductName,
                 Unit: item.Unit,

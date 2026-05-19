@@ -77,6 +77,12 @@ export class BillImportTechnicalService {
     return this.http.get<any>(url, { params });
   }
 
+  getTechnicalLogs(billImportId: number): Observable<any> {
+    return this.http.get<any>(
+      this.url + `get-technical-logs/${billImportId}`
+    );
+  }
+
   exportBillImportTechnical(request: any): Observable<Blob> {
     return this.http.post(`${this.url}export-bill-import-technical`, request, {
       responseType: 'blob',

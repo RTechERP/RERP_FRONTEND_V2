@@ -201,9 +201,16 @@ export class SupplierSaleLinkFormComponent implements OnInit {
   loadAllSelectedItems(employeeID: number) {
     this.loading = true;
     this.cdr.detectChanges();
-    this.supplierSaleLinkService.getWithSelection(employeeID, '', 1, 999999).subscribe({
+    this.supplierSaleLinkService.getAll('', employeeID).subscribe({
       next: (res: any) => {
-        this.selectedSuppliers = (res.data || []).filter((x: any) => x.IsSelected === 1);
+        this.selectedSuppliers = (res.data || []).map((x: any) => ({
+          ID: x.SupplierSaleID,
+          CodeNCC: x.CodeNCC,
+          NameNCC: x.NameNCC,
+          MatHang: x.MatHang,
+          Note: x.Note,
+          IsSelected: 1
+        }));
         if (this.lastLazyLoadEvent) {
           this.lastLazyLoadEvent.first = 0;
           this.loadLazy(this.lastLazyLoadEvent);

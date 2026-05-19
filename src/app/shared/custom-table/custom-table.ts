@@ -268,6 +268,7 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
 
     // --- Context Menu ---
     @Input() contextMenuItems: MenuItem[] = [];
+    @Input() contextMenuItemsFn?: (row: any) => MenuItem[];
     @Input() selectedContextRow: any = null;
     @Output() selectedContextRowChange = new EventEmitter<any>();
     @Output() contextMenuSelectionChange = new EventEmitter<any>();
@@ -769,6 +770,10 @@ export class CustomTable implements OnChanges, AfterViewInit, OnDestroy {
     }
 
     onContextMenuSelect(event: any) {
+        if (this.contextMenuItemsFn) {
+            this.contextMenuItems = this.contextMenuItemsFn(event.data);
+            this.cdr.detectChanges();
+        }
         this.selectedContextRow = event.data;
         if (this.contextMenuItems) {
             this.contextMenuItems.forEach(item => (item as any).data = event.data);

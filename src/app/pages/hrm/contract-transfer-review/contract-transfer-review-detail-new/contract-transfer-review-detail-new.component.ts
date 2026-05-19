@@ -10,6 +10,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { SyncTextareaHeightDirective } from './sync-textarea-height.directive';
 import { ContractTransferReviewService } from '../contract-transfer-review.service';
 import { ProjectService } from '../../../project/project-service/project.service';
 import Swal from 'sweetalert2';
@@ -134,6 +135,11 @@ export interface CbqlFormModel {
   DepartmentName: string;                       // hiển thị phòng ban NV
   Step: number | null;                          // bước duyệt hiện tại
   StatusApprove: number | null;                 // trạng thái duyệt
+
+  TBPConclusionEmployeeLoaiHDID: number | null;
+  TBPRecommendationsOrOther: string;
+  TBPStrengths: string;
+  TBPAreasForImprovement: string;
 }
 
 // ─── Hard-coded master data ─────────────────────────────────────────────────
@@ -153,7 +159,11 @@ const CONCLUSIONS = [
   { id: 5, name: 'Ký HĐLĐ KXĐ thời hạn' },
   { id: 8, name: 'Chấm dứt HĐ' },
 ];
-
+const EMPLOYEECONCLUSIONS = [
+  { id: 1, name: 'Ký HĐ Thử Việc' },
+  { id: 4, name: 'Ký HĐLĐ' },
+  { id: 8, name: 'Chấm dứt HĐ' },
+];
 const RANK_TABLE = [
   { min: 95, label: 'Xuất sắc', note: 'Hoàn thành xuất sắc' },
   { min: 85, label: 'Tốt', note: 'Hoàn thành tốt KPI, ổn định, thái độ & năng lực tốt' },
@@ -199,6 +209,7 @@ const DEFAULT_ITEMS: CbqlItem[] = [
     NzButtonModule, NzIconModule, NzInputModule,
     NzDatePickerModule, NzSpinModule, NzInputNumberModule,
     NzSelectModule,
+    SyncTextareaHeightDirective,
   ],
   templateUrl: './contract-transfer-review-detail-new.component.html',
   styleUrl: './contract-transfer-review-detail-new.component.css',
@@ -210,6 +221,8 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
   @Input() role: string = 'hr';
   @Input() step: number = 0;
   @Input() statusApprove: number = 0;
+  /** Mode chỉ xem - disable tất cả quyền sửa (dùng cho double click) */
+  @Input() isViewOnly: boolean = false;
 
   isLoading = false;
   isSaving = false;
@@ -220,6 +233,7 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
 
   evalTypes = EVAL_TYPES;
   conclusions = CONCLUSIONS;
+  employeeConclusions = EMPLOYEECONCLUSIONS;
   rankTable = RANK_TABLE;
 
   // ─── Computed: tổng điểm & xếp loại ────────────────────────────────────
@@ -328,20 +342,37 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
 
   /** NV được nhập cột NLĐ */
   get canEditNLD(): boolean {
+    if (this.isViewOnly) return false;
     return this.role === 'employee' && Number(this.step) <= 1 && (Number(this.statusApprove) === 0 || Number(this.statusApprove) === -1);
   }
 
   /** TBP/Manager được nhập cột điểm TBP + nhận xét ở bước 2 */
   get canEditTBP(): boolean {
+    if (this.isViewOnly) return false;
     if (Number(this.step) !== 2 || Number(this.statusApprove) !== 0) return false;
+    if (this.role === 'hr' &&
+      Number(this.step) === 2 &&
+      Number(this.statusApprove) === 0 &&
+      this.form.TBPApproveID === this.appUserService.employeeID) {
+    return true;
+  }
+   if (this.role === 'bgd' &&
+      Number(this.step) === 2 &&
+      Number(this.statusApprove) === 0 &&
+      this.form.TBPApproveID === this.appUserService.employeeID) {
+    return true;
+  }
+
     return this.role === 'manager' || this.role === 'tbp' || this.appUserService.isAdmin;
   }
 
   get canEditHR(): boolean {
+    if (this.isViewOnly) return false;
     return this.role === 'hr' && Number(this.step) === 3 && Number(this.statusApprove) === 0;
   }
 
   get canHrCreate(): boolean {
+    if (this.isViewOnly) return false;
     if (this.role !== 'hr') return false;
     if (!this.id) return true;
     // statusApprove = -2: HR chưa gửi mail | 0: đang chờ NV tự đánh giá
@@ -350,36 +381,43 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
 
   /** Quyền sửa dữ liệu khởi tạo (ngày, công việc chính...) */
   get canEditGeneralInfo(): boolean {
+    if (this.isViewOnly) return false;
     return this.canEditNLD || this.canHrCreate;
   }
 
   /** Thời gian đánh giá (Từ/Đến) chỉ HR khởi tạo được sửa */
   get canEditEvaluationPeriod(): boolean {
+    if (this.isViewOnly) return false;
     return this.canHrCreate;
   }
 
   /** Có hiển thị nút Lưu hay không */
   get canShowSave(): boolean {
+    if (this.isViewOnly) return false;
     return this.canEditGeneralInfo || this.canEditTBP || this.canEditHR;
   }
 
   /** Cột điểm NLĐ: NV nhập, hoặc HR được phép hiệu chỉnh */
   get canEditNLDScores(): boolean {
+    if (this.isViewOnly) return false;
     return this.canEditNLD || this.canHrCreate;
   }
 
   /** Cột điểm TBP: chỉ TBP/Manager ở bước 2 được sửa */
   get canEditTBPScores(): boolean {
+    if (this.isViewOnly) return false;
     return this.canEditTBP;
   }
 
   /** Nhận xét (Strengths/Areas/Recommendations): TBP bước 2 hoặc HR ở bước khởi tạo */
   get canEditTBPComments(): boolean {
+    if (this.isViewOnly) return false;
     return this.canEditTBP || this.canHrCreate;
   }
 
   /** Kết luận: TBP bước 2, HR bước 3 hoặc HR bước khởi tạo */
   get canEditConclusionFields(): boolean {
+    if (this.isViewOnly) return false;
     return this.canEditTBP || this.canEditHR || this.canHrCreate;
   }
 
@@ -424,6 +462,7 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
   // ─── Quyền Confirm / Reject / Cancel ────────────────────────────────────
 
   get canConfirm(): boolean {
+    if (this.isViewOnly) return false;
     const step = Number(this.step);
     const status = Number(this.statusApprove);
     if (this.role === 'employee' && step <= 1 && (status === 0 || status === -1)) return true;
@@ -435,6 +474,7 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
   }
 
   get canReject(): boolean {
+    if (this.isViewOnly) return false;
     const step = Number(this.step);
     const status = Number(this.statusApprove);
     if (status !== 0) return false;
@@ -445,6 +485,7 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
   }
 
   get canCancelConfirm(): boolean {
+    if (this.isViewOnly) return false;
     const step = Number(this.step);
     const status = Number(this.statusApprove);
     if (this.role === 'employee' && step === 1 && status === 1) return true;
@@ -614,6 +655,10 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
         this.form.TBPCompanyCommitment = d.TBPCompanyCommitment ?? null;
         this.form.TBPTotalScore = d.TBPTotalScore ?? null;
         this.form.TBPEvaluationGrade = d.TBPEvaluationGrade ?? '';
+        this.form.TBPConclusionEmployeeLoaiHDID = d.TBPConclusionEmployeeLoaiHDID ?? null;
+        this.form.TBPRecommendationsOrOther = d.TBPRecommendationsOrOther ?? null;
+        this.form.TBPStrengths = d.TBPStrengths ?? null;
+        this.form.TBPAreasForImprovement = d.TBPAreasForImprovement ?? null;
 
         // ── Load items[] bảng đánh giá: NLĐ luôn từ cột gốc, TBP từ cột TBP* ──
         const setNLD = (code: string, val: number | null) => {
@@ -858,6 +903,10 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
       DepartmentName: '',
       Step: null,
       StatusApprove: null,
+      TBPConclusionEmployeeLoaiHDID: null,
+      TBPRecommendationsOrOther: '',
+      TBPStrengths: '',
+      TBPAreasForImprovement: '',
     };
   }
 
@@ -1039,15 +1088,15 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
 
     // ── TBP đánh giá ─────────────────────────────────────────────────────
     if (this.canEditTBP) {
-      // 1. Kết luận loại HĐ bắt buộc
-      if (!this.form.ConclusionEmployeeLoaiHDID)
-        errors.push('Vui lòng chọn <b>Kết luận loại Hợp đồng</b>.');
+      // 1. Kết luận loại HĐ bắt buộc (phần TBP)
+      if (!this.form.TBPConclusionEmployeeLoaiHDID)
+        errors.push('Vui lòng chọn <b>Kết luận loại Hợp đồng</b> (phần TBP).');
 
-      // 2. Nhận xét chung bắt buộc
-      if (!this.form.Strengths?.trim())
-        errors.push('Vui lòng nhập <b>Điểm mạnh</b> (Nhận xét chung).');
-      if (!this.form.AreasForImprovement?.trim())
-        errors.push('Vui lòng nhập <b>Điểm cần cải thiện</b> (Nhận xét chung).');
+      // 2. Nhận xét chung TBP bắt buộc
+      if (!this.form.TBPStrengths?.trim())
+        errors.push('Vui lòng nhập <b>Điểm mạnh</b> (phần TBP đánh giá).');
+      if (!this.form.TBPAreasForImprovement?.trim())
+        errors.push('Vui lòng nhập <b>Điểm cần cải thiện</b> (phần TBP đánh giá).');
 
       // 3. Bắt buộc nhập đủ 16 tiêu chí TBP
       const missingTbp = this.leafItems.filter(

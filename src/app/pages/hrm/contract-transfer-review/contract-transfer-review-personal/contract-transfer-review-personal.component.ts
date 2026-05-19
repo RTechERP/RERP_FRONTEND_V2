@@ -28,9 +28,10 @@ import { AppUserService } from '../../../../services/app-user.service';
 import { PermissionService } from '../../../../services/permission.service';
 import Swal from 'sweetalert2';
 import * as ExcelJS from 'exceljs';
+import { ContractTransferReviewPersonalDetailComponent } from '../contract-transfer-review-personal-detail/contract-transfer-review-personal-detail.component';
+
 @Component({
-  selector: 'app-contract-transfer-review',
-  standalone: true,
+  selector: 'app-contract-transfer-review-personal',
   imports: [
     CommonModule, FormsModule,
     NzButtonModule, NzIconModule, NzDatePickerModule,
@@ -38,12 +39,12 @@ import * as ExcelJS from 'exceljs';
     NzFormModule, NzDropDownModule,
     CustomTable, Menubar, NzModalModule,
     ContractTransferReviewSendMailComponent,
+    ContractTransferReviewPersonalDetailComponent
   ],
-  templateUrl: './contract-transfer-review.component.html',
-  styleUrl: './contract-transfer-review.component.css',
+  templateUrl: './contract-transfer-review-personal.component.html',
+  styleUrl: './contract-transfer-review-personal.component.css'
 })
-export class ContractTransferReviewComponent implements OnInit {
-
+export class ContractTransferReviewPersonalComponent  implements OnInit {
   menuItems: MenuItem[] = [];
 
   isLoading = false;
@@ -146,7 +147,6 @@ export class ContractTransferReviewComponent implements OnInit {
 
   ngOnInit(): void {
     this.initDefaultDates();
-    this.onChangeTextWithRole();
     this.loadDepartments();
     this.getEmployees();
     this.initMenu();
@@ -160,10 +160,6 @@ export class ContractTransferReviewComponent implements OnInit {
     }
 
     this.step = -1
-    if (this.checkRole() === 'bgd') {
-      this.step = 4
-    }
-
     this.onSearch();
   }
 
@@ -192,133 +188,34 @@ export class ContractTransferReviewComponent implements OnInit {
   onSearch() {
     this.loadData();
   }
-  onChangeTextWithRole() {
-    const role = this.checkRole();
-    if (role === 'employee') {
-      this.textButton = 'Đánh giá';
-      this.iconButton = 'fa-solid fa-file-pen fa-lg text-primary';
-    }
-    else if (role === 'manager' || role === 'tbp') {
-      this.textButton = 'Đánh giá';
-      this.iconButton = 'fa-solid fa-file-lines fa-lg text-info';
-    }
-    else if (role === 'hr') {
-      this.textButton = 'Sửa';
-      this.iconButton = 'fa-solid fa-file-pen fa-lg text-primary';
-    }
-    else {
-      this.textButton = 'Xem đánh giá';
-      this.iconButton = 'fa-solid fa-file-lines fa-lg text-info';
-    }
 
-
-  }
   initMenu(): void {
     const role = this.checkRole();
     this.menuItems = [
+
       {
-        label: 'Thêm',
-        icon: 'fa-solid fa-circle-plus fa-lg text-success',
-        visible: role === 'hr',
-        command: () => this.onAdd(),
-      },
-      {
-        label: this.textButton,
-        icon: this.iconButton,
-        visible: true, // Để tất cả các role đều thấy (Nội dung chữ đã đổi động theo role)
+        label: 'Đánh giá',
+        icon: 'fa-solid fa-file-pen fa-lg text-primary',
+        visible: true,
         command: () => this.onEdit(),
       },
       {
-        label: 'Xóa',
-        icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: role === 'hr',
-        command: () => this.onDelete(),
-      },
-
-
-      // ─── TBP xác nhận ───────────────────────────────────────────────────────
-      {
-        label: 'TBP xác nhận',
+        label: 'NLD xác nhận',
         icon: 'fa-solid fa-user-check fa-lg text-primary',
-        visible: this.permissionService.hasPermission('N1,N93'),
-        // visible: this.permissionService.hasPermission('N32'),
+        visible: true,
         items: [
           {
-            label: 'TBP xác nhận',
+            label: 'NLD xác nhận',
             icon: 'fa-solid fa-check text-success',
-            command: () => this.approvedTBPNew(1, 'manager'),
+            command: () => this.employeeConfirm(),
           },
           {
-            label: 'TBP không xác nhận',
-            icon: 'fa-solid fa-times text-danger',
-            command: () => this.approvedTBPNew(2, 'manager'),
-          },
-          {
-            label: 'TBP hủy xác nhận',
+            label: 'NLD hủy xác nhận',
             icon: 'fa-solid fa-undo text-warning',
-            command: () => this.approvedTBPNew(0, 'manager'),
+            command: () => this.employeeCancelConfirm(),
           },
         ],
       },
-
-      // ─── HR xác nhận ────────────────────────────────────────────────────────
-      {
-        label: 'HR xác nhận',
-        icon: 'fa-solid fa-user-tie fa-lg text-info',
-        visible: this.permissionService.hasPermission('N1,N56'),
-        items: [
-          {
-            label: 'HR xác nhận',
-            icon: 'fa-solid fa-check text-success',
-            command: () => this.approvedTBPNew(1, 'hr'),
-            // visible: this.permissionService.hasPermission('N2'),
-          },
-          {
-            label: 'HR không xác nhận',
-            icon: 'fa-solid fa-times text-danger',
-            command: () => this.approvedTBPNew(2, 'hr'),
-            // visible: this.permissionService.hasPermission('N2'),
-          },
-          {
-            label: 'HR hủy xác nhận',
-            icon: 'fa-solid fa-undo text-warning',
-            command: () => this.approvedTBPNew(0, 'hr'),
-            // visible: this.permissionService.hasPermission('N2'),
-          },
-        ],
-      },
-
-      // ─── BGĐ xác nhận ───────────────────────────────────────────────────────
-      {
-        label: 'BGĐ xác nhận',
-        icon: 'fa-solid fa-crown fa-lg text-warning',
-        visible: this.permissionService.hasPermission('N1'),
-        items: [
-          {
-            label: 'BGĐ xác nhận',
-            icon: 'fa-solid fa-check text-success',
-            command: () => this.approvedTBPNew(1, 'bgd'),
-          },
-          {
-            label: 'BGĐ không xác nhận',
-            icon: 'fa-solid fa-times text-danger',
-            command: () => this.approvedTBPNew(2, 'bgd'),
-          },
-          {
-            label: 'BGĐ hủy xác nhận',
-            icon: 'fa-solid fa-undo text-warning',
-            command: () => this.approvedTBPNew(0, 'bgd'),
-          },
-        ],
-      },
-      // ─── Gửi thông báo ───────────────────────────────────────────────────────
-      {
-        label: 'Gửi thông báo',
-        icon: 'fa-solid fa-paper-plane fa-lg text-primary',
-        visible: role === 'hr',
-        command: () => this.onSendMail(),
-      },
-      // ─── export excel ────────────────────────────────────────────────────────
       {
         label: 'Xuất Excel',
         icon: 'fa-solid fa-file-excel fa-lg text-success',
@@ -328,37 +225,12 @@ export class ContractTransferReviewComponent implements OnInit {
       { separator: true },
     ];
   }
-
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // APPROVAL WORKFLOW
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  /**
-   * Kiểm tra một dòng có hợp lệ để thực hiện thao tác tại role/step này không.
-   *
-   * Mapping role → expectedStep trong DB:
-   *   employee → Step <= 1 (chưa xác nhận / đang tự đánh giá)
-   *   manager  → Step = 2  (NV đã xác nhận, đến lượt TBP)
-   *   hr       → Step = 3  (TBP đã duyệt, đến lượt HR)
-   *   bgd      → Step = 4  (HR đã duyệt, đến lượt BGĐ)
-   *
-   * isApprove:
-   *   1 = Duyệt       – row phải đang ở đúng step chờ role này duyệt
-   *   2 = Không duyệt – idem (từ chối, cần lý do)
-   *   0 = Hủy duyệt   – role đã duyệt xong rồi, muốn rút lại
-   *                     → step đang là expectedStep + 1
-   */
   checkValidStepRow(row: any, isApprove: number, role: string): boolean {
     const stepMap: Record<string, number> = {
       employee: 1, manager: 2, hr: 3, bgd: 4,
     };
     const expectedStep = stepMap[role];
-    if (!expectedStep) return false;
-
-    // ── Kiểm tra TBP có phải là TBP được chỉ định của phiếu này không ──────
-    // TBP (manager) chỉ được duyệt phiếu mà mình là LeaderID của phiếu đó.
-    // Nếu không phải → bỏ qua, tránh TBP phòng ban khác duyệt nhầm.
+    if (!expectedStep) return false
     if (role === 'manager') {
       const currentEmployeeId = Number(
         this.appUserService.currentUser?.EmployeeID || this.appUserService.employeeID || 0
@@ -679,6 +551,29 @@ export class ContractTransferReviewComponent implements OnInit {
       return;
     }
 
+    // Kiểm tra từng phiếu: đã đánh giá đầy đủ chưa?
+    this.checkAndConfirmRows(validRows);
+  }
+
+  /** Kiểm tra chi tiết từng phiếu trước khi xác nhận */
+  private async checkAndConfirmRows(validRows: any[]): Promise<void> {
+    const unevaluatedRows: string[] = [];
+
+    for (const row of validRows) {
+      const isEvaluated = await this.checkIfEmployeeEvaluated(row.ID);
+      if (!isEvaluated) {
+        unevaluatedRows.push(row.EmployeeName || `#${row.ID}`);
+      }
+    }
+
+    if (unevaluatedRows.length > 0) {
+      const names = unevaluatedRows.slice(0, 3).join(', ');
+      const more = unevaluatedRows.length > 3 ? ` và ${unevaluatedRows.length - 3} phiếu khác` : '';
+      this.notification.warning('Thông báo', `Vui lòng đánh giá trước khi xác nhận!`);
+      return;
+    }
+
+    // Tất cả đã đánh giá đầy đủ → tiến hành xác nhận
     const ids = validRows.map(r => r.ID);
     Swal.fire({
       title: 'Xác nhận hoàn thành tự đánh giá?',
@@ -691,6 +586,81 @@ export class ContractTransferReviewComponent implements OnInit {
     }).then((result: any) => {
       if (result.isConfirmed) {
         this.handleApproved(ids, 'employee', 1, '');
+      }
+    });
+  }
+
+  /** Kiểm tra phiếu đã được employee đánh giá đầy đủ chưa */
+  private checkIfEmployeeEvaluated(id: number): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.service.getDetailNew(id).subscribe({
+        next: (res: any) => {
+          const d = res?.data ?? res ?? null;
+          if (!d) {
+            resolve(false);
+            return;
+          }
+          // Kiểm tra công việc chính
+          if (!d.MainJobmainResponsibilities?.trim()) {
+            resolve(false);
+            return;
+          }
+          // Kiểm tra các điểm NLĐ đã nhập chưa
+          const nldFields = [
+            d.ProfessionalKnowledge, d.ToolAndSystemSkills, d.WorkQuality,
+            d.WorkProgress, d.ProblemSolvingAbility, d.Proactiveness,
+            d.CollaborationAndSupport, d.CommunicationAndTeamwork, d.WorkOutputKPI,
+            d.ComplianceWithRegulations, d.Attendance, d.WorkStyle,
+            d.AttitudeAndResponsibility, d.CulturalFitRTC, d.LearningAndGrowthMindset,
+            d.CompanyCommitment
+          ];
+          const allFilled = nldFields.every(v => v !== null && v !== undefined);
+          resolve(allFilled);
+        },
+        error: () => resolve(false),
+      });
+    });
+  }
+
+  /**
+   * NV hủy xác nhận hoàn tất tự đánh giá từ màn hình list.
+   * Chỉ hoạt động khi Step === 1 và StatusApprove === 1 (đã xác nhận rồi)
+   */
+  employeeCancelConfirm(): void {
+    let listToProcess: any[] = this.selectedRequests?.length > 0 ? this.selectedRequests : [];
+    if (listToProcess.length === 0 && this.selectedRow) {
+      listToProcess = [this.selectedRow];
+    }
+    if (listToProcess.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một yêu cầu!');
+      return;
+    }
+
+    // Employee chỉ được hủy xác nhận khi TBP chưa xử lý:
+    // 1. Step=1, StatusApprove=1: Employee đã xác nhận, TBP chưa có gì
+    // 2. Step=1, StepName="TBP: Chờ đánh giá": TBP đã được tạo nhưng chưa xử lý
+    // Nếu TBP đã đánh giá (StepName = "TBP: Chờ xác nhận") thì không được hủy
+    const validRows = listToProcess.filter(
+      r => (Number(r.Step) === 1 && Number(r.StatusApprove ?? 0) === 1) ||
+           (Number(r.Step) === 2 && r.StepName === 'TBP: Chờ đánh giá')
+    );
+    if (validRows.length === 0) {
+      this.notification.info('Thông báo', 'Không có bản ghi nào hợp lệ để hủy xác nhận.');
+      return;
+    }
+
+    const ids = validRows.map(r => r.ID);
+    Swal.fire({
+      title: 'Xác nhận hủy xác nhận?',
+      text: `Bạn có chắc muốn hủy xác nhận ${ids.length} phiếu?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#f39c12',
+      confirmButtonText: 'Đồng ý',
+      cancelButtonText: 'Hủy bỏ',
+    }).then((result: any) => {
+      if (result.isConfirmed) {
+        this.handleApproved(ids, 'employee', 0, '');
       }
     });
   }
@@ -736,75 +706,36 @@ export class ContractTransferReviewComponent implements OnInit {
     this.openDetailNew(null); // id=0, tạo phiếu mới
   }
 
-  onSendMail(): void {
-    // Ưu tiên checkbox selection; fallback về dòng đang chọn
-    const records: any[] = this.selectedRequests?.length > 0
-      ? this.selectedRequests
-      : this.selectedRow ? [this.selectedRow] : [];
-
-    if (records.length === 0) {
-      this.notification.warning('Chưa chọn dòng', 'Vui lòng chọn ít nhất một phiếu để gửi thông báo!');
-      return;
-    }
-    this.openSendMailModal(records);
-  }
-
-  /** Mở modal gửi mail từ dữ liệu form detail (HR vừa tạo mới) */
-  private openSendMailWithFormData(form: any): void {
-    const pseudoRow = {
-      ID: form.ID ?? 0,
-      EmployeeID: form.EmployeeID ?? null,
-      EmployeeName: form.EmployeeName || '',
-      EmployeeSex: null,
-      // Hỗ trợ cả form cũ và form mới (CbqlFormModel)
-      EmployeePosition: form.EmployeePositionName || form.PositionName || '',
-      PositionName: form.EmployeePositionName || form.PositionName || '',
-      DepartmentName: form.DepartmentName || '',
-      DateStart: form.DateStart ?? null,
-      DateEnd: form.DateEnd ?? null,
-      // send-mail component đọc EvaluationEmployeeLoaiHDID (form mới) hoặc LoaiHDLDID (form cũ)
-      EvaluationEmployeeLoaiHDID: form.EvaluationEmployeeLoaiHDID ?? form.EmployeeLoaiHDID ?? form.LoaiHDLDID ?? null,
-      LoaiHDLDID: form.EvaluationEmployeeLoaiHDID ?? form.EmployeeLoaiHDID ?? form.LoaiHDLDID ?? null,
-      TBPApproveID: form.EmployeeEvaluationID ?? form.TBPApproveID ?? null,
-      TBPApproveName: form.EvaluatorName || form.TBPApproveName || '',
-      TBPApprovePositionName: form.EvaluatorPositionName || form.TBPApprovePositionName || '',
-      HeadofDepartment: null,
-      LeaderName: form.EvaluatorName || form.LeaderName || '',
-      LeaderPositionName: form.EvaluatorPositionName || form.LeaderPositionName || '',
-      EmployeeEvaluationName: form.EvaluatorName || form.EmployeeEvaluationName || '',
-      EmployeeEmailCongTy: '',
-      EmployeeEmailCaNhan: '',
-      LeaderEmail: '',
-      DateEvaluation: form.DateEvaluation ?? null,
-    };
-    this.openSendMailModal([pseudoRow]);
-  }
-
-  /** Mở modal gửi mail với danh sách records bất kỳ */
-  private openSendMailModal(records: any[]): void {
-    const ref = this.modalService.open(ContractTransferReviewSendMailComponent, {
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-      size: 'xl',
-      scrollable: true,
-      windowClass: 'ctr-send-mail-modal',
-    });
-    ref.componentInstance.records = records;
-    ref.result.then((r) => {
-      if (r === 'sent') {
-        this.notification.success('Thành công', 'Đã gửi thông báo!');
-        this.loadData();
-      }
-    }, () => { });
-  }
 
   onEdit(): void {
     if (!this.selectedRow) {
       this.notification.warning('Chưa chọn dòng', 'Vui lòng chọn một phiếu để sửa!');
       return;
     }
-    this.openDetailNew(this.selectedRow);
+    this.openEmployeeDetail(this.selectedRow);
+  }
+
+  /** Mở modal Employee Detail cho nhân viên tự đánh giá */
+  openEmployeeDetail(row: any): void {
+    const ref = this.modalService.open(ContractTransferReviewPersonalDetailComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      centered: false,
+      size: 'fullscreen',
+      scrollable: true,
+      windowClass: 'offer-letter-fullscreen-modal',
+      modalDialogClass: 'modal-fullscreen',
+    });
+    ref.componentInstance.id = row?.ID ?? 0;
+    ref.componentInstance.step = row?.Step ?? 0;
+    ref.componentInstance.statusApprove = row?.StatusApprove ?? 0;
+    ref.result.then((r) => {
+      if (r) {
+        this.selectedRequests = [];
+        this.selectedRow = null;
+        this.loadData();
+      }
+    }, () => { });
   }
 
   onDelete(row?: any): void {
@@ -894,10 +825,6 @@ export class ContractTransferReviewComponent implements OnInit {
         this.selectedRequests = [];
         this.selectedRow = null;
         this.loadData();
-        // HR tạo phiếu mới → tự động mở modal gửi mail
-        if (r?.action === 'send_mail') {
-          this.openSendMailWithFormData(r.form);
-        }
       }
     }, () => { });
   }
@@ -923,25 +850,11 @@ export class ContractTransferReviewComponent implements OnInit {
         this.selectedRequests = [];
         this.selectedRow = null;
         this.loadData();
-        if (r?.action === 'send_mail') {
-          this.openSendMailWithFormData(r.form);
-        }
       }
     }, () => { });
   }
 
   checkRole(): string {
-    // N1: Admin và BGD
-    // N32: TBP
-    // N2: HR
-    if (this.permissionService.hasPermission('N2')) {
-      return 'hr';
-    } else if (this.permissionService.hasPermission('N1')) {
-      return 'bgd';
-    } else if (this.permissionService.hasPermission('N93')) {
-      // } else if (this.permissionService.hasPermission('N32')) {
-      return 'tbp';
-    } else
       return 'employee';
   }
 
@@ -970,13 +883,8 @@ export class ContractTransferReviewComponent implements OnInit {
     switch (this.checkRole()) {
       case 'employee': return { label: 'Sửa', icon: 'edit', nzType: 'primary' };
       case 'tbp': return { label: 'Đánh giá', icon: 'form', nzType: 'primary' };
-      case 'hr': return { label: 'Sửa', icon: 'edit', nzType: 'primary' };
       default: return { label: 'Xem đánh giá', icon: 'eye', nzType: 'default' };
     }
-  }
-
-  canDeleteRow(row: any): boolean {
-    return this.checkRole() === 'hr' && Number(row?.Step) <= 1;
   }
 
   /** Click dòng: toggle chọn/bỏ chọn checkbox mà không sửa custom-table */
@@ -1028,12 +936,6 @@ export class ContractTransferReviewComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
-
-    // Logic xác định EmployeeID để truyền xuống API:
-    // 1. Ưu tiên EmployeeID được chọn từ bộ lọc (Search dropdown)
-    // 2. Nếu không chọn, và là Role Employee -> Chỉ xem của chính mình
-    // 3. Nếu là Admin/HR và không chọn cụ thể -> Xem tất cả (-1)
-
     const params = {
       DepartmentID: this.departmentId ?? -1,
       EmployeeID: this.employeeRequestId,

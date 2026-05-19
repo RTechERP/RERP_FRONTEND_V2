@@ -25,4 +25,5 @@
 :host ::ng-deep .grid-container-log .slickgrid-container,
 :host ::ng-deep .grid-container-log .gridPane {
     height: 100% !important;
+    width: 100% !important;
 }

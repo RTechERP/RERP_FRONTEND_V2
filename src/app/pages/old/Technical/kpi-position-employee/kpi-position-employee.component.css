@@ -32,24 +32,6 @@
     flex-direction: column;
 }
 
-/* SlickGrid containers */
-.grid-container-master,
-.grid-container-detail {
-    height: 100%;
-}
-
-:host ::ng-deep .grid-container-master angular-slickgrid,
-:host ::ng-deep .grid-container-master .slickgrid-container,
-:host ::ng-deep .grid-container-master .gridPane {
-    height: 100% !important;
-}
-
-:host ::ng-deep .grid-container-detail angular-slickgrid,
-:host ::ng-deep .grid-container-detail .slickgrid-container,
-:host ::ng-deep .grid-container-detail .gridPane {
-    height: 100% !important;
-}
-
 /* NZ Select dropdown styling */
 :host ::ng-deep .ant-select-selection-item {
     white-space: nowrap;
@@ -64,23 +46,182 @@
     text-overflow: ellipsis;
 }
 
-::ng-deep .ant-select-dropdown .ant-select-item {
-    white-space: nowrap !important;
-    overflow: visible !important;
+/* PrimeNG Table heights and scroll wrappers */
+.grid-container-master,
+.grid-container-detail {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
-::ng-deep .ant-select-dropdown .ant-select-item-option-content {
-    white-space: nowrap !important;
-    overflow-x: auto !important;
-    text-overflow: initial !important;
-    max-width: none !important;
+:host ::ng-deep .grid-container-master p-table,
+:host ::ng-deep .grid-container-master .p-datatable,
+:host ::ng-deep .grid-container-master p-treetable,
+:host ::ng-deep .grid-container-master .p-treetable,
+:host ::ng-deep .grid-container-detail p-table,
+:host ::ng-deep .grid-container-detail .p-datatable {
+    height: 100% !important;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
-::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar {
-    height: 4px;
+:host ::ng-deep .kpi-prime-table .p-datatable-wrapper,
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-wrapper {
+    flex: 1;
+    min-height: 0;
 }
 
-::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 2px;
+:host ::ng-deep .kpi-prime-table table,
+:host ::ng-deep .kpi-prime-tree-table table {
+    table-layout: fixed;
+}
+
+/* Cell padding, font sizes, text wrapping */
+:host ::ng-deep .kpi-prime-table .p-datatable-thead>tr>th,
+:host ::ng-deep .kpi-prime-table .p-datatable-tbody>tr>td,
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-thead>tr>th,
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-tbody>tr>td {
+    font-size: 12px;
+    padding: 4px 6px;
+    vertical-align: middle;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-thead>tr>th,
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-thead>tr>th {
+    background: #f5f7fb;
+    font-weight: 600;
+}
+
+/* PrimeNG filters */
+:host ::ng-deep .kpi-prime-table .filter-cell,
+:host ::ng-deep .kpi-prime-tree-table .filter-cell {
+    padding: 2px 4px;
+}
+
+:host ::ng-deep .kpi-prime-table .p-column-filter,
+:host ::ng-deep .kpi-prime-table .p-column-filter .p-inputtext,
+:host ::ng-deep .kpi-prime-table .p-column-filter input,
+:host ::ng-deep .kpi-prime-tree-table .p-column-filter,
+:host ::ng-deep .kpi-prime-tree-table .p-column-filter .p-inputtext,
+:host ::ng-deep .kpi-prime-tree-table .p-column-filter input {
+    width: 100%;
+}
+
+:host ::ng-deep .kpi-prime-table .p-column-filter .p-inputtext,
+:host ::ng-deep .kpi-prime-table .p-column-filter input,
+:host ::ng-deep .kpi-prime-tree-table .p-column-filter .p-inputtext,
+:host ::ng-deep .kpi-prime-tree-table .p-column-filter input {
+    height: 22px;
+    min-height: 22px;
+    padding: 1px 5px;
+    font-size: 11px;
+    line-height: 18px;
+}
+
+/* Loading icon / mask */
+:host ::ng-deep .kpi-prime-table .p-datatable-loading-overlay {
+    background: rgba(255, 255, 255, 0.7);
+    color: #1677ff;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-loading-icon {
+    font-size: 24px;
+}
+
+/* Row hover, click, selection states */
+:host ::ng-deep .kpi-prime-table .data-row,
+:host ::ng-deep .kpi-prime-tree-table .data-row {
+    cursor: pointer;
+}
+
+:host ::ng-deep .kpi-prime-table .data-row:hover>td,
+:host ::ng-deep .kpi-prime-tree-table .data-row:hover>td {
+    background: #f0f7ff;
+}
+
+:host ::ng-deep .kpi-prime-table .selected-row>td,
+:host ::ng-deep .kpi-prime-table .p-highlight>td,
+:host ::ng-deep .kpi-prime-tree-table .selected-row>td,
+:host ::ng-deep .kpi-prime-tree-table .p-highlight>td {
+    background: #e6f4ff !important;
+}
+
+:host ::ng-deep .kpi-prime-table .group-row>td,
+:host ::ng-deep .kpi-prime-tree-table .group-row>td {
+    background: #f0f7ff !important;
+    color: #222;
+    font-weight: 600;
+    padding: 5px 8px;
+}
+
+:host ::ng-deep .kpi-prime-tree-table .type-group-row>td {
+    background: #eaf3eb !important;
+}
+
+:host ::ng-deep .kpi-prime-tree-table .session-group-row>td {
+    background: #dcebfe !important;
+}
+
+/* Tree Table Cell Styles */
+:host ::ng-deep .kpi-prime-tree-table .tree-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-toggler {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-right: 0;
+    color: #555;
+    flex-shrink: 0;
+}
+
+:host ::ng-deep .kpi-prime-tree-table .p-treetable-toggler:focus {
+    box-shadow: none;
+}
+
+.table-header-cell {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 4px;
+    min-height: 20px;
+    line-height: 1.25;
+}
+
+.cell-content {
+    display: block;
+    min-width: 0;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.35;
+}
+
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep p-columnfilterformelement.p-fluid {
+    width: 100% !important;
+    display: block;
+}
+
+:host ::ng-deep .p-inputtext {
+    height: 3vh;
+    width: 100%;
 }

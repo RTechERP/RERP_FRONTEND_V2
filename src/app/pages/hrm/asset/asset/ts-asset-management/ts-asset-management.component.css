@@ -79,9 +79,100 @@
     font-size: 11px;
 }
 
-/* Mobile modal styles */
+/* Search Bar - Inline compact flex row (matching ProjectTask pattern) */
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    border-bottom: 1px solid #e8e8e8;
+    background: #fafafa;
+    flex-wrap: wrap;
+}
+
+.search-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.search-label {
+    font-size: 12px;
+    color: #595959;
+    white-space: nowrap;
+}
+
+.search-select {
+    min-width: 160px;
+    max-width: 200px;
+}
+
+.search-input-select {
+    height: 30px;
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background: #fff;
+    color: #595959;
+    min-width: 130px;
+    outline: none;
+    cursor: pointer;
+}
+
+.search-input-select:focus {
+    border-color: #1890ff;
+}
+
+.btn-search {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background: #1890ff;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-search:hover {
+    background: #40a9ff;
+}
+
+.btn-search.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-reset {
+    display: flex;
+    align-items: center;
+    padding: 4px 12px;
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    color: #595959;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    height: 30px;
+}
+
+.btn-reset:hover {
+    border-color: #1890ff;
+    color: #1890ff;
+}
+
+/* Mobile styles */
 @media (max-width: 768px) {
-    .filter-bar.mobile-modal {
+    .search-bar.mobile-modal {
         position: fixed;
         top: 60px;
         left: 0;
@@ -94,6 +185,20 @@
         overflow-y: auto;
         margin: 16px;
         border-radius: 8px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-bar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .search-select {
+        min-width: 100% !important;
+        max-width: 100% !important;
     }
 
     .filter-backdrop {

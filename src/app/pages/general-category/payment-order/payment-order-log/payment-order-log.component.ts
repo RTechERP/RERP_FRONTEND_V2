@@ -97,6 +97,7 @@ export class PaymentOrderLogComponent implements OnInit {
                 container: '.grid-container-log',
                 calculateAvailableSizeBy: 'container'
             },
+            forceFitColumns: true,
             enableAutoResize: true,
             enableSorting: true,
             enableFiltering: true,

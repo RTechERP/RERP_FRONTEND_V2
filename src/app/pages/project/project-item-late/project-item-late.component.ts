@@ -168,16 +168,21 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
   }
 
   getTeam() {
-    this.employeeService.getEmployeeTeam().subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          this.teams = response.data;
-        }
-      },
-      error: () => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu danh sách team!');
-      },
-    });
+    this.teams = [];
+    if (this.departmentId > 0) {
+      this.projectService
+        .getUserTeam(this.departmentId)
+        .subscribe({
+          next: (response: any) => {
+            this.teams = response.data;
+          },
+          error: (error) => {
+            console.error('Lỗi:', error);
+          },
+        });
+    } else {
+      this.teamId = 0;
+    }
   }
 
   resetSearch() {

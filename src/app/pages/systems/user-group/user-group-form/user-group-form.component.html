@@ -1,0 +1,32 @@
+<div class="modal-header bg-primary text-white py-2">
+  <h6 class="modal-title fs-14">{{ isEdit ? 'Cập nhật nhóm người dùng' : 'Thêm mới nhóm người dùng' }}</h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body p-3">
+  <form nz-form [formGroup]="form" nzLayout="vertical">
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label nzRequired class="fs-12">Mã nhóm</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng nhập mã nhóm">
+            <input nz-input formControlName="Code" placeholder="Mã nhóm" class="fs-12" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="12">
+        <nz-form-item>
+          <nz-form-label nzRequired class="fs-12">Tên nhóm</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng nhập tên nhóm">
+            <input nz-input formControlName="Name" placeholder="Tên nhóm" class="fs-12" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer py-2">
+  <button nz-button nzDanger nzType="default" (click)="onCancel()" class="fs-12">Hủy</button>
+  <button nz-button nzType="primary" (click)="onSubmit()" class="fs-12">Lưu</button>
+</div>

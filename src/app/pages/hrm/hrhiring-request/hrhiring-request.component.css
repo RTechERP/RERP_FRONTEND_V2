@@ -24,7 +24,7 @@
 .card-body>div {
     flex: 1 1 auto;
     min-height: 0;
-    overflow: visible;
+    overflow: hidden;
 }
 
 .card-header {
@@ -54,12 +54,15 @@
 }
 
 /* Card body with/without search bar */
+/* Card body with/without search bar */
 .card-body.with-search-bar {
-    height: calc(100% - 100px);
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .card-body.without-search-bar {
-    height: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 /* Mobile modal styles */
@@ -197,7 +200,7 @@
 }
 
 .ant-splitter {
-    height: 84vh !important;
+    height: 100% !important;
 }
 
 /* Detail panel content */

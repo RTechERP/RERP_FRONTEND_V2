@@ -19,7 +19,7 @@
                     </select>
                 </div>
 
-                <div class="form-group col-md-4 m-0 p-1">
+                <div class="form-group col-md-2 m-0 p-1">
                     <label class="m-0">Loại nội dung đề nghị <span class="text-danger">(*)</span></label>
                     <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn loại--"
                         formControlName="PaymentOrderTypeID" nzDropdownClassName="select-dropdown">
@@ -34,7 +34,22 @@
                     <nz-date-picker class="w-100" formControlName="DateOrder" nzFormat="dd/MM/yyyy" nzSize="small">
                     </nz-date-picker>
                 </div>
-
+                <div class="form-group col-md-2 m-0 p-1">
+                    <!-- <label class="m-0">Công ty <span class="text-danger">(*)</span></label> -->
+                    <!-- <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn công ty--"
+                        formControlName="TaxCompanyID" nzDropdownClassName="select-dropdown">
+                        @for (item of companyList; track item) {
+                        <nz-option [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
+                        }
+                    </nz-select> -->
+                    <label class="m-0">Công ty</label>
+                    <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn công ty--"
+                        formControlName="TaxCompanyID" nzDropdownClassName="select-dropdown">
+                        @for (item of companyList; track item.value) {
+                        <nz-option [nzLabel]="item.label" [nzValue]="item.value"></nz-option>
+                        }
+                    </nz-select>
+                </div>
                 <div class="form-group col-md-2 m-0 p-1">
                     <label class="m-0">Người đề nghị</label>
                     <input type="text" class="form-control form-control-sm p-0" formControlName="FullName" />
@@ -52,19 +67,20 @@
                     <label class="m-0">TBP duyệt <span class="text-danger">(*)</span></label>
                     <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn TBP duyệt--"
                         formControlName="ApprovedTBPID">
-                        @for (item of approvedTBPs; track item) {
+                        @for (item of approvedTBPs; track item.EmployeeID) {
                         <nz-option [nzLabel]="item.FullName" [nzValue]="item.EmployeeID"></nz-option>
                         }
                     </nz-select>
                 </div>
 
-                <div class="form-group col-md-4 m-0 p-1">
+                <div class="form-group col-md-2 m-0 p-1">
                     <label class="m-0">Nhà cung cấp</label>
                     <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small"
                         nzPlaceHolder="--Chọn nhà cung cấp--" formControlName="SupplierSaleID"
                         nzDropdownClassName="select-dropdown">
-                        @for (item of supplierSales; track item) {
-                        <nz-option [nzLabel]="item.MaSoThue + ' - ' + item.NameNCC" [nzValue]="item.ID"></nz-option>
+                        @for (item of supplierSales; track item.ID) {
+                        <nz-option [nzLabel]="item.MaSoThue + ' - ' + item.NameNCC" [nzValue]="item.ID">
+                        </nz-option>
                         }
                     </nz-select>
                 </div>
@@ -73,12 +89,21 @@
                     <label class="m-0">PO NCC</label>
                     <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn PO--"
                         formControlName="PONCCID" nzDropdownClassName="select-dropdown">
-                        @for (item of poNCCs; track item) {
-                        <nz-option [nzLabel]="item.BillCode" [nzValue]="item.ID"></nz-option>
+                        @for (item of poNCCs; track item.ID) {
+                        <nz-option [nzLabel]="item.BillCode" [nzValue]="item.ID">
+                        </nz-option>
                         }
                     </nz-select>
                 </div>
-
+                <div class="form-group col-md-2 m-0 p-1">
+                    <label class="m-0">Hợp đồng</label>
+                    <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn hợp đồng--"
+                        formControlName="RegisterContractID" nzDropdownClassName="select-dropdown">
+                        @for (item of registerContracts; track item) {
+                        <nz-option [nzLabel]="item.DocumentName" [nzValue]="item.ID"></nz-option>
+                        }
+                    </nz-select>
+                </div>
                 <div class="form-group col-md-2 m-0 p-1">
                     <label class="m-0">Dự án</label>
                     <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="--Chọn dự án--"
@@ -214,13 +239,53 @@
                     <label class="m-0">Số tài khoản <span class="text-danger">(*)</span></label>
                     <input type="text" class="form-control form-control-sm" formControlName="AccountNumber" />
                 </div>
+                <!-- <div class="form-group col-md-4 m-0 p-1">
+            <label class="m-0">Ngân hàng <span class="text-danger">(*)</span></label>
+            <input type="text" class="form-control form-control-sm" formControlName="Bank" />
+        </div> -->
                 <div class="form-group col-md-4 m-0 p-1">
-                    <label class="m-0">Ngân hàng <span class="text-danger">(*)</span></label>
-                    <input type="text" class="form-control form-control-sm" formControlName="Bank" />
+                    <label class="m-0">
+                        Ngân hàng
+                        <span class="text-danger" *ngIf="paymentOrder.TypePayment == 1"> (*)</span>
+                        <i class="fas fa-exclamation-circle text-warning ms-1 cursor-pointer"
+                            *ngIf="(!validateForm.get('BankListID')?.value || validateForm.get('BankListID')?.value === 0) && validateForm.get('Bank')?.value"
+                            nz-tooltip [nzTooltipTitle]="validateForm.get('Bank')?.value"></i>
+                    </label>
+                    <div class="d-flex flex-column gap-1">
+                        <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                            nzPlaceHolder="--Chọn ngân hàng--" formControlName="BankListID">
+                            @for (item of bankList; track item) {
+                            <nz-option [nzLabel]="item.BankName" [nzValue]="item.ID"></nz-option>
+                            }
+                        </nz-select>
+                        @if (validateForm.get('BankListID')?.value == 187) {
+                        <input type="text" class="form-control form-control-sm mt-1" formControlName="Bank"
+                            placeholder="Nhập tên ngân hàng khác" />
+                        }
+                    </div>
                 </div>
                 <div class="form-group col-md-4 m-0 p-1">
-                    <label class="m-0">Nội dung chuyển khoản <span class="text-danger">(*)</span></label>
-                    <input type="text" class="form-control form-control-sm" formControlName="ContentBankTransfer" />
+                    <label class="m-0">
+                        Nội dung chuyển khoản
+                        <span class="text-danger"
+                            *ngIf="validateForm.get('ContentBankTransferType')?.value == 2">(*)</span>
+                    </label>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="form-check form-check-inline m-0 text-nowrap">
+                            <input class="form-check-input" type="radio" formControlName="ContentBankTransferType"
+                                [value]="1" id="cbtt_default_old" />
+                            <label class="form-check-label" for="cbtt_default_old">Mặc định</label>
+                        </div>
+                        <div class="form-check form-check-inline m-0 text-nowrap">
+                            <input class="form-check-input" type="radio" formControlName="ContentBankTransferType"
+                                [value]="2" id="cbtt_custom_old" />
+                            <label class="form-check-label" for="cbtt_custom_old">Tùy chọn</label>
+                        </div>
+                        <div class="flex-grow-1" *ngIf="validateForm.get('ContentBankTransferType')?.value == 2">
+                            <input type="text" class="form-control form-control-sm"
+                                formControlName="ContentBankTransfer" placeholder="Nhập nội dung chuyển khoản" />
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -456,9 +521,9 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td class="text-end fw-bold">{{ totalDiff | number:'1.2-2' }}</td>
                         <td></td>
                         <td></td>
+                        <td class="text-end text-nowrap fw-bold">{{ totalDiff | number:'1.2-2' }}</td>
                         <td></td>
                     </tr>
 
@@ -470,9 +535,9 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td class="text-end">{{ diff1 | number:'1.2-2' }}</td>
                         <td></td>
                         <td></td>
+                        <td class="text-end text-nowrap fw-bold">{{ diff1 | number:'1.2-2' }}</td>
                         <td>
                             <textarea class="tbl-input" [(ngModel)]="t2RowDiff1.Note" rows="2"></textarea>
                         </td>
@@ -486,9 +551,9 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td class="text-end">{{ diff2 | number:'1.2-2' }}</td>
                         <td></td>
                         <td></td>
+                        <td class="text-end text-nowrap fw-bold">{{ diff2 | number:'1.2-2' }}</td>
                         <td>
                             <textarea class="tbl-input" [(ngModel)]="t2RowDiff2.Note" rows="2"></textarea>
                         </td>

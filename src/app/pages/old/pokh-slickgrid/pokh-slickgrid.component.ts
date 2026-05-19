@@ -95,6 +95,8 @@ import { WarehouseReleaseRequestSlickGridComponent } from '../warehouse-release-
 import { PoRequestBuySlickgridComponent } from '../po-request-buy-slickgrid/po-request-buy-slickgrid.component';
 import { ViewPokhSlickgridComponent } from '../view-pokh-slickgrid/view-pokh-slickgrid.component';
 import { Menubar } from 'primeng/menubar';
+import { ActivityLogCrmComponent } from '../../crm/activity-log-crm/activity-log-crm.component';
+import { ViewPokhPrimengComponent } from '../view-pokh-primeng/view-pokh-primeng.component';
 @Component({
     selector: 'app-pokh-slickgrid',
     imports: [
@@ -173,6 +175,8 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     menuBars: any[] = [];
     private queryParamsSubscription?: Subscription;
     private isInitialized: boolean = false;
+
+    poCode: string = '';
 
     initMenuBar() {
         this.menuBars = [
@@ -276,6 +280,13 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                         icon: 'fa-solid fa-file-invoice fa-lg text-warning',
                         command: () => {
                             this.openPORequestPriceRTC();
+                        }
+                    },
+                    {
+                        label: 'Lịch sử thao tác',
+                        icon: 'fa-solid fa-clock-rotate-left fa-lg text-warning',
+                        command: () => {
+                            this.openLogActivityModal();
                         }
                     }
                 ]
@@ -1374,6 +1385,12 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 command: 'price-request',
                 positionOrder: 62,
             },
+            {
+                iconCssClass: 'fas fa-eye',
+                title: 'Lịch sử thao tác',
+                command: 'log-activity',
+                positionOrder: 63,
+            },
         ];
     }
 
@@ -1401,6 +1418,9 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 break;
             case 'price-request':
                 this.openProjectPartlistPriceRequestNew();
+                break;
+            case 'log-activity':
+                this.openLogActivityModal();
                 break;
         }
     }
@@ -1459,7 +1479,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     openModalViewPOKH() {
-        this.modalRef = this.modalService.open(ViewPokhSlickgridComponent, {
+        this.modalRef = this.modalService.open(ViewPokhPrimengComponent, {
             centered: true,
             windowClass: 'full-screen-modal',
             backdrop: 'static',
@@ -1701,6 +1721,12 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     // }
 
     searchPOKH() {
+        if (this.angularGridPOKH?.filterService) {
+            this.angularGridPOKH.filterService.clearFilters();
+        }
+        if (this.angularGridPOKHProduct?.filterService) {
+            this.angularGridPOKHProduct.filterService.clearFilters();
+        }
         this.filters.pageNumber = 1;
         this.loadPOKH();
     }
@@ -1764,6 +1790,11 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 label:
                     '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Danh sách yêu cầu báo giá</span>',
                 action: () => this.openProjectPartlistPriceRequestNew(),
+            },
+            {
+                label:
+                    '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Lịch sử thao tác</span>',
+                action: () => this.openLogActivityModal(),
             },
         ];
     }
@@ -1848,6 +1879,12 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         this.modalRef.componentInstance.selectedId = this.selectedId;
         this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
         this.modalRef.componentInstance.isCopy = this.isCopy;
+        if (this.isCopy && this.selectedId > 0) {
+            this.modalRef.componentInstance.startCopyFromSource(
+                this.selectedId,
+                this.filters.warehouseId
+            );
+        }
 
         this.modalRef.result.then(
             (result: any) => {
@@ -2057,8 +2094,12 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     onPOKHRowClick(e: any, args: any): void {
         const item = args?.grid?.getDataItem(args?.row);
         if (item) {
+            if (this.angularGridPOKHProduct?.filterService) {
+                this.angularGridPOKHProduct.filterService.clearFilters();
+            }
             this.selectedId = item['ID'];
             this.selectedRow = item;
+            this.poCode = item['POCode'];
             this.loadPOKHProducts(this.selectedId);
             this.loadPOKHFiles(this.selectedId);
         } else {
@@ -2357,4 +2398,20 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 </span>
             `;
     };
+
+    //#region Lịch sử thao tác
+    openLogActivityModal() {
+        this.isModalOpen = true;
+        this.modalRef = this.modalService.open(ActivityLogCrmComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            size: 'xl',
+        });
+
+        this.modalRef.componentInstance.pokhId = this.selectedId;
+        this.modalRef.componentInstance.poCode = this.poCode;
+
+    }
+    //#endregion
 }

@@ -154,7 +154,7 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
 
     filters: any = {
         dateStart: DateTime.local().minus({ months: 1 }).toFormat('yyyy-MM-dd'),
-        dateEnd: DateTime.local().toFormat('yyyy-MM-dd'),
+        dateEnd: DateTime.local().plus({ days: 7 }).toFormat('yyyy-MM-dd'),
         projectId: 0,
         customerId: 0,
         groupTypeId: -1,

@@ -76,6 +76,8 @@ import { RequestInvoiceStatusLinkService } from '../request-invoice-status-link/
 import { ActivatedRoute } from '@angular/router';
 import { environment } from '../../../../environments/environment';
 import { Menubar } from 'primeng/menubar';
+import { ActivityLogRequestInvoiceComponent } from '../../crm/activity-log-request-invoice/activity-log-request-invoice.component';
+import { RequestInvoiceDetailNewPrimengComponent } from '../request-invoice-detail-new-primeng/request-invoice-detail-new-primeng.component';
 
 @Component({
     selector: 'app-request-invoice-slickgrid',
@@ -233,6 +235,13 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 command: () => {
                     this.exportTableToExcel();
                 }
+            },
+            {
+                label: 'Lịch sử thao tác',
+                icon: 'fa-solid fa-clock-rotate-left',
+                command: () => {
+                    this.openHistoryActivity();
+                }
             }
         ];
     }
@@ -249,9 +258,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         setTimeout(() => {
             if (tabIndex === 0 && this.angularGridFile?.resizerService) {
                 this.angularGridFile.resizerService.resizeGrid();
+                this.angularGridFile.slickGrid?.invalidate();
             }
             if (tabIndex === 1 && this.angularGridPOFile?.resizerService) {
                 this.angularGridPOFile.resizerService.resizeGrid();
+                this.angularGridPOFile.slickGrid?.invalidate();
+                this.angularGridPOFile.slickGrid?.render();
             }
         }, 150);
     }
@@ -451,6 +463,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             { id: 'STT', name: 'STT', field: 'STT', width: 70, minWidth: 70, sortable: true, filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'ProductNewCode', name: 'Mã nội bộ', field: 'ProductNewCode', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'ProductCode', name: 'Mã sản phẩm', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'ProductCodeOfSupplier', name: 'Mã sản phẩm NCC', field: 'ProductCodeOfSupplier', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'GuestCode', name: 'Mã theo khách', field: 'GuestCode', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'Unit', name: 'ĐVT', field: 'Unit', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
@@ -490,7 +503,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             enableCheckboxSelector: false,
             createPreHeaderPanel: true,
             showPreHeaderPanel: true,
-            frozenColumn: 3,
+            frozenColumn: 4,
             createFooterRow: true,
             showFooterRow: true,
             footerRowHeight: 30,
@@ -798,6 +811,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     loadDetailData(id: number): void {
         this.isLoadingDetail = true;
         this.isLoadingFile = true;
+        this.POFiles = [];
+        this.datasetPOFile = [];
+        if (this.angularGridPOFile && this.angularGridPOFile.dataView) {
+            this.angularGridPOFile.dataView.setItems([]);
+        }
+
         this.RequestInvoiceSlickgridService.getDetail(id).subscribe({
             next: (response) => {
                 if (response.status === 1) {
@@ -865,10 +884,17 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 if (response.status === 1) {
                     this.POFiles = response.data;
                     this.selectedPOFile = null;
-                    this.datasetPOFile = this.POFiles.map((item: any, index: number) => ({
+                    this.datasetPOFile = [...this.POFiles.map((item: any, index: number) => ({
                         ...item,
                         id: item.ID || `pofile_${index}`
-                    }));
+                    }))];
+
+                    // Ép Grid cập nhật thủ công DataView nếu grid đã được khởi tạo
+                    if (this.angularGridPOFile && this.angularGridPOFile.dataView) {
+                        this.angularGridPOFile.dataView.setItems(this.datasetPOFile);
+                        this.angularGridPOFile.slickGrid.invalidate();
+                        this.angularGridPOFile.slickGrid.render();
+                    }
                 } else {
                     this.notification.create(
                         NOTIFICATION_TYPE_MAP[response.status] || 'error',
@@ -925,7 +951,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                         },
                     ];
                     const modalRef = this.modalService.open(
-                        RequestInvoiceDetailComponent,
+                        RequestInvoiceDetailNewPrimengComponent,
                         {
                             centered: true,
                             windowClass: 'full-screen-modal',
@@ -1097,7 +1123,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     }
 
     openModal() {
-        const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
+        const modalRef = this.modalService.open(RequestInvoiceDetailNewPrimengComponent, {
             centered: true,
             windowClass: 'full-screen-modal',
             backdrop: 'static',
@@ -1580,4 +1606,29 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 </span>
             `;
     };
+
+    openHistoryActivity() {
+        if (!this.selectedId) {
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
+                'Vui lòng chọn bản ghi cần xem lịch sử',
+                {
+                    nzStyle: { whiteSpace: 'pre-line' }
+                }
+            );
+            return;
+        }
+
+        const modalRef = this.modalService.open(ActivityLogRequestInvoiceComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            size: 'xl',
+        });
+
+        const selectedRow = this.datasetMain.find(item => item.ID === this.selectedId);
+        modalRef.componentInstance.requestInvoiceId = this.selectedId;
+        modalRef.componentInstance.requestInvoiceCode = selectedRow?.Code || '';
+    }
 }

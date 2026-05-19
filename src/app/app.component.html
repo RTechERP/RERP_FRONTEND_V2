@@ -177,7 +177,7 @@
 
 
             <div class="content-host" *ngIf="hasDynamicTabComp">
-                <ng-container *ngFor="let tab of dynamicTabComps; let i = index">
+                <ng-container *ngFor="let tab of dynamicTabComps; let i = index; trackBy: trackKey">
                     <div [hidden]="selectedCompIndex !== i" class="tab-pane">
                         <ng-container *ngComponentOutlet="tab.comp; injector: tab.injector">
                         </ng-container>

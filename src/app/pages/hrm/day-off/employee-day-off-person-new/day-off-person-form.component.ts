@@ -255,15 +255,15 @@ export class DayOffPersonFormComponent implements OnInit {
     // Rule: Không được đăng ký trước ngày hôm nay
     if (currentDate < todayCopy) return true;
 
-    // Rule: Sau 19h không được đăng ký cho ngày hôm sau
-    const nowHour = today.getHours();
-    if (nowHour >= 19) {
-      const tomorrow = new Date(todayCopy);
-      tomorrow.setDate(todayCopy.getDate() + 1);
-      if (currentDate.getTime() === tomorrow.getTime()) {
-        return true;
-      }
-    }
+    // // Rule: Sau 19h không được đăng ký cho ngày hôm sau
+    // const nowHour = today.getHours();
+    // if (nowHour >= 19) {
+    //   const tomorrow = new Date(todayCopy);
+    //   tomorrow.setDate(todayCopy.getDate() + 1);
+    //   if (currentDate.getTime() === tomorrow.getTime()) {
+    //     return true;
+    //   }
+    // }
 
     return false;
   };
@@ -455,8 +455,8 @@ export class DayOffPersonFormComponent implements OnInit {
         return dDateStr === tomorrowStr;
       });
 
-      if (hasTomorrow) {
-        this.notification.error(NOTIFICATION_TITLE.error, `Đã quá 19h, không thể đăng ký nghỉ cho ngày ${tomorrowStr}. Vui lòng liên hệ HR hoặc quản lý.`);
+      if (hasTomorrow && this.form.get('TypeIsReal')?.value == 2) {
+        this.notification.error(NOTIFICATION_TITLE.error, `Đã quá 19h, không thể đăng ký nghỉ cho ngày ${tomorrowStr}. Vui lòng kiểm tra lại.`);
         return false;
       }
     }
@@ -552,7 +552,7 @@ export class DayOffPersonFormComponent implements OnInit {
         StartDate: phaseStartDateStr,
         EndDate: phaseEndDateStr,
         TotalDay: totalDaySum,
-       
+
         IsDeleted: false
       },
       Details: mappedDetails,

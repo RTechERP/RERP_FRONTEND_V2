@@ -91,4 +91,9 @@ export class SupplierSaleService {
 
     return this.http.get<any>(`${this.apiUrl}supplier-sale`, { params });
   }
+  getBankList(): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `get-bank-list`
+    );
+  }
 }

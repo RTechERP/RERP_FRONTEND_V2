@@ -135,7 +135,7 @@
                             [value]="rowNode"></p-treeTableCheckbox>
                     </ng-container>
 
-                    <div class="flex-1 overflow-hidden" style="min-width: 0;">
+                    <div class="flex-1 overflow-hidden" style="min-width:100%;">
                         <!-- Table Lookup Cell -->
                         <ng-container
                             *ngIf="(col.isEditable ? col.isEditable(rowData) : col.editable) && editMode && col.editType === 'table-lookup'; else normalCell">
@@ -143,7 +143,13 @@
                                 <span class="table-lookup-value" [class.text-400]="!rowData[col.field]">
                                     {{ formatValue(col, rowData) || 'Chọn...' }}
                                 </span>
-                                <i class="pi pi-chevron-down table-lookup-chevron"></i>
+                                <div class="flex align-items-center gap-1">
+                                    <i *ngIf="col.editLookupConfig?.addAction"
+                                        class="pi pi-plus text-primary hover:text-primary-700 font-bold p-1 border-circle hover:surface-hover transition-colors"
+                                        (click)="$event.stopPropagation(); col.editLookupConfig!.addAction!(rowData)"
+                                        title="Thêm mới" style="font-size: 0.8rem;"></i>
+                                    <i class="pi pi-chevron-down table-lookup-chevron"></i>
+                                </div>
                             </div>
                         </ng-container>
 

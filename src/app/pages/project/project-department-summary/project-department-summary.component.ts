@@ -57,7 +57,7 @@ import { ProjectWorkerComponent } from './project-department-summary-form/projec
 import { ProjectPartListComponent } from './project-department-summary-form/project-part-list/project-part-list.component';
 import { ProjectCurrentSituationComponent } from '../project-current-situation/project-current-situation.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
-import { ProjectRequestComponent } from '../../project-request/project-request.component';
+import { ProjectRequestComponent } from '../project-request/project-request.component';
 import { ProjectPartlistProblemComponent } from '../project-partlist-problem/project-partlist-problem.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { PermissionService } from '../../../services/permission.service';

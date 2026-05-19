@@ -28,7 +28,7 @@ export class ExamScoreService {
   /**
    * Lưu điểm cho một câu hỏi tự luận
    */
-  gradeEssayAnswer(data: { ExamResultDetailID: number, Score: number }): Observable<any> {
+  gradeEssayAnswer(data: { ExamResultDetailID: number, Score: number, EvaluationFiles?: any[] }): Observable<any> {
     return this.http.post<any>(this.apiUrl + 'grade-essay-answer', data);
   }
 

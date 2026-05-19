@@ -1,0 +1,382 @@
+<!-- ══════════════════ MODAL HEADER ══════════════════ -->
+<div class="modal-header bg-primary align-items-center ps-3">
+    <h6 class="text-light text-uppercase m-0 fw-bold">Phiếu Đánh Giá Cán Bộ Quản Lý - Nhân Viên Tự Đánh Giá</h6>
+    <div class="ms-auto d-flex gap-2 align-items-center no-print">
+      <button type="button" class="btn text-white border-0 p-1" style="background:transparent;box-shadow:none"
+        (click)="activeModal.dismiss()">
+        <i class="fas fa-times fa-lg"></i>
+      </button>
+    </div>
+  </div>
+  
+  <!-- ══════════════════ MODAL BODY ══════════════════ -->
+  <div class="modal-body cbql-modal-body" id="cbqlPrintArea">
+    <nz-spin [nzSpinning]="isLoading">
+      <div class="cbql-sheet">
+  
+        <!-- ── HEADER ──────────────────────────────────────────── -->
+        <div class="form-header">
+          <div class="header-left">
+            <img src="assets/images/logo-RTC-2023-1200-banchuan.png" alt="RTC" class="logo-img" />
+          </div>
+          <div class="header-center">
+            <h2 class="form-title">PHIẾU ĐÁNH GIÁ</h2>
+            <p class="form-subtitle"><i>(Dành cho Cán bộ Quản lý)</i></p>
+          </div>
+          <div class="header-right"></div>
+        </div>
+        <div class="sheet-divider"></div>
+  
+        <!-- ── Loại đánh giá + Thời gian (readonly cho employee) ─ -->
+        <div class="info-section">
+          <div class="info-row">
+            <span class="info-label fw-bold" style="min-width:130px">Loại đánh giá:</span>
+            <span class="info-sep"></span>
+            <nz-select class="ms-2" style="min-width:300px" nzShowSearch nzPlaceHolder="-- Chọn loại đánh giá --"
+              [(ngModel)]="form.EvaluationEmployeeLoaiHDID" [nzDisabled]="true">
+              <nz-option *ngFor="let t of evalTypes" [nzValue]="t.id" [nzLabel]="t.name"></nz-option>
+            </nz-select>
+          </div>
+          <div class="info-row">
+            <span class="info-label fw-bold" style="min-width:130px">Thời gian đánh giá:</span>
+            <span class="info-sep"></span>
+            <span class="info-hint-sm me-1">Từ</span>
+            <input type="date" class="iput date-mask date-ul info-value" [(ngModel)]="form.DateStart" [disabled]="true"
+              readonly />
+            <span class="mx-2 info-hint-sm">Đến</span>
+            <input type="date" class="iput date-mask date-ul info-value" [(ngModel)]="form.DateEnd" [disabled]="true"
+              readonly />
+          </div>
+        </div>
+  
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!-- SECTION I: CÁN BỘ QUẢN LÝ (readonly)                  -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div class="section-header mt-2">
+          <span class="section-header-title">I.&nbsp;&nbsp;CÁN BỘ QUẢN LÝ</span>
+        </div>
+        <div class="info-section mt-1">
+          <div class="info-row">
+            <span class="info-stt">1.</span>
+            <span class="info-label" style="min-width:80px">Họ và tên:</span>
+            <input class="info-value flex-grow-1" [(ngModel)]="form.EvaluatorName" [readonly]="true" />
+          </div>
+          <div class="info-row">
+            <span class="info-stt">2.</span>
+            <span class="info-label" style="min-width:80px">Chức vụ:</span>
+            <input class="info-value flex-grow-1" [(ngModel)]="form.EvaluatorPositionName" [readonly]="true" />
+          </div>
+        </div>
+  
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!-- SECTION II: NGƯỜI ĐƯỢC ĐÁNH GIÁ (readonly)           -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div class="section-header mt-2">
+          <span class="section-header-title">II.&nbsp;&nbsp;NGƯỜI ĐƯỢC ĐÁNH GIÁ</span>
+        </div>
+        <div class="info-section mt-1">
+          <div class="info-row">
+            <span class="info-stt">1.</span>
+            <span class="info-label" style="min-width:80px">Họ và tên:</span>
+            <input class="info-value flex-grow-1" [(ngModel)]="form.EmployeeName" [readonly]="true" />
+          </div>
+          <div class="info-row">
+            <span class="info-stt">2.</span>
+            <span class="info-label" style="min-width:80px">Chức vụ:</span>
+            <input class="info-value flex-grow-1" [(ngModel)]="form.EmployeePositionName" [readonly]="true" />
+          </div>
+          <div class="info-row">
+            <span class="info-stt">3.</span>
+            <span class="info-label" style="min-width:80px">Bộ phận:</span>
+            <input class="info-value flex-grow-1" [(ngModel)]="form.DepartmentName" [readonly]="true" />
+          </div>
+          <div class="info-row" style="align-items:flex-start"
+            [class.info-row-error]="isSubmitted && canEditNLD && (!form.MainJobmainResponsibilities || !form.MainJobmainResponsibilities.trim())">
+            <span class="info-stt" style="padding-top:2px">4</span>
+            <span class="info-label" style="min-width:80px; padding-top:2px">Công việc chính:</span>
+            <textarea nz-input [(ngModel)]="form.MainJobmainResponsibilities" [nzAutosize]="{ minRows: 2 }"
+              class="eval-textarea-sm flex-grow-1"
+              [class.box-error]="isSubmitted && canEditNLD && (!form.MainJobmainResponsibilities || !form.MainJobmainResponsibilities.trim())"
+              [readonly]="!canEditGeneralInfo"></textarea>
+          </div>
+        </div>
+  
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!-- SECTION III: XẾP LOẠI (bảng tham chiếu cố định)        -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div class="section-header mt-2">III.&nbsp;&nbsp;XẾP LOẠI</div>
+        <table class="rank-table mt-1">
+          <thead>
+            <tr>
+              <th style="width:50px">STT</th>
+              <th>Điểm %</th>
+              <th>Xếp loại</th>
+              <th>Chú thích</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of rankTable; let i = index">
+              <td class="text-center">{{i + 1}}</td>
+              <td class="text-center">
+                <span *ngIf="i === 0">KQ ≥ 95%</span>
+                <span *ngIf="i === 1">85% ≤ KQ &lt; 95%</span>
+                <span *ngIf="i === 2">70% ≤ KQ &lt; 85%</span>
+                <span *ngIf="i === 3">60% ≤ KQ &lt; 70%</span>
+                <span *ngIf="i === 4">KQ &lt; 60%</span>
+              </td>
+              <td class="text-center"><strong>{{r.label}}</strong></td>
+              <td>{{r.note}}</td>
+            </tr>
+          </tbody>
+        </table>
+  
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!-- SECTION IV: ĐÁNH GIÁ – Bảng KPI                        -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div class="section-header mt-2">IV.&nbsp;&nbsp;ĐÁNH GIÁ</div>
+        <table class="kpi-table mt-1">
+          <thead>
+            <tr>
+              <th rowspan="2" style="width:50px">STT</th>
+              <th rowspan="2">Nội dung đánh giá</th>
+              <th rowspan="2" style="width:120px">Trọng số</th>
+              <!-- NLĐ tự đánh giá -->
+              <th colspan="2" class="text-center">NLĐ tự đánh giá</th>
+              <!-- TBP đánh giá -->
+              <th colspan="2" class="text-center">TBP đánh giá</th>
+            </tr>
+            <tr>
+              <!-- NLĐ -->
+              <th class="text-center" style="width:120px">Điểm đánh giá</th>
+              <th class="text-center" style="width:120px">
+                Điểm quy đổi =<br />Điểm đánh giá (%) *<br />Trọng số
+              </th>
+              <!-- TBP -->
+              <th class="text-center" style="width:120px">Điểm đánh giá</th>
+              <th class="text-center" style="width:120px">
+                Điểm quy đổi =<br />Điểm đánh giá (%) *<br />Trọng số
+              </th>
+            </tr>
+          </thead>
+  
+          <tbody>
+            <ng-container *ngFor="let it of items; let i = index">
+              <!-- ── Hàng NHÓM (A/B/C/D) ── -->
+              <tr *ngIf="it.isGroup" class="group-row">
+                <td class="text-center group-code">{{it.code}}</td>
+                <td><strong>{{it.name}}</strong></td>
+                <td class="text-center"><strong>{{it.weight.toFixed(1)}}%</strong></td>
+                <!-- NLĐ group tổng -->
+                <td class="text-center"></td>
+                <td class="text-center score-auto">
+                  <strong>{{getGroupNLD(it.code) | number:'1.2-2'}}%</strong>
+                </td>
+                <!-- TBP group tổng -->
+                <td class="text-center"></td>
+                <td class="text-center score-auto">
+                  <strong>{{getGroupTBP(it.code) | number:'1.2-2'}}%</strong>
+                </td>
+              </tr>
+  
+              <!-- ── Hàng TIÊU CHÍ CON ── -->
+              <tr *ngIf="!it.isGroup" class="leaf-row" [class.row-error]="isRowInvalid(it)">
+                <td class="text-center" [class.row-error]="isRowInvalid(it)">{{it.code}}</td>
+                <td [class.row-error]="isRowInvalid(it)">{{it.name}}</td>
+                <td class="text-center" [class.row-error]="isRowInvalid(it)">{{it.weight.toFixed(1)}}%</td>
+  
+                <!-- NLĐ: Employee có thể nhập hoặc chỉ xem -->
+                <td class="text-center" [class.row-error]="isRowInvalid(it)">
+                  <ng-container *ngIf="canEditNLDScores; else nldDisplay">
+                    <input type="number" min="0" max="100" class="score-input" [(ngModel)]="it.nldScore"
+                      [id]="'nld-score-' + i" (keydown.arrowdown)="moveFocus($any($event), i, 'down')"
+                      (keydown.arrowup)="moveFocus($any($event), i, 'up')" (blur)="clampScore(it)"
+                      [class.score-invalid]="it.nldScore !== null && it.nldScore !== undefined && (it.nldScore < 0 || it.nldScore > 100)"
+                      placeholder="-" />
+                  </ng-container>
+                  <ng-template #nldDisplay>
+                    <span class="score-readonly">
+                      {{ it.nldScore !== null && it.nldScore !== undefined ? it.nldScore + '%' : '–' }}
+                    </span>
+                  </ng-template>
+                </td>
+                <!-- NLĐ: quy đổi -->
+                <td class="text-center score-auto" [class.row-error]="isRowInvalid(it)">{{nldConverted(it) |
+                  number:'1.2-2'}}%</td>
+  
+                <!-- TBP: Employee chỉ xem (readonly) -->
+                <td class="text-center" [class.row-error]="isRowInvalid(it)">
+                  <span class="score-readonly">
+                    {{ it.tbpScore !== null && it.tbpScore !== undefined ? it.tbpScore + '%' : '–' }}
+                  </span>
+                </td>
+                <!-- TBP: quy đổi -->
+                <td class="text-center score-auto" [class.row-error]="isRowInvalid(it)">{{tbpConverted(it) |
+                  number:'1.2-2'}}%</td>
+              </tr>
+            </ng-container>
+  
+            <!-- ── Tổng điểm ── -->
+            <tr class="total-row">
+              <td colspan="2" class="text-end pe-3"><strong>Tổng điểm:</strong></td>
+              <td class="text-center"><strong>100.0%</strong></td>
+              <td></td>
+              <td class="text-center total-score">{{nldTotal | number:'1.2-2'}}%</td>
+              <td></td>
+              <td class="text-center total-score">{{tbpTotal | number:'1.2-2'}}%</td>
+            </tr>
+  
+            <!-- ── Xếp loại ── -->
+            <tr class="rank-row">
+              <td colspan="2" class="text-end pe-3"><strong>Xếp loại:</strong></td>
+              <td></td>
+              <td></td>
+              <td class="text-center total-score"><strong>{{nldRank}}</strong></td>
+              <td></td>
+              <td class="text-center total-score"><strong>{{tbpRank}}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+  
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!-- SECTION E, F, G – giống mẫu Excel                        -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div class="comment-section">
+          <table class="comment-table">
+            <tbody>
+              <!-- E -->
+              <tr>
+                <td class="comment-code" rowspan="3" style="width: 50px;">E</td>
+                <td class="comment-label" rowspan="3">Tổng kết</td>
+                <td class="comment-sub"></td>
+                <td class="comment-head">NLĐ tự đánh giá</td>
+                <td class="comment-head">TBP đánh giá</td>
+              </tr>
+  
+              <tr>
+                <td class="comment-sub"><strong>Điểm mạnh:</strong></td>
+                <td>
+                  <textarea nz-input appSyncTextareaHeight="strengths" [appSyncTextareaHeightValue]="form.Strengths" [(ngModel)]="form.Strengths" [nzAutosize]="{ minRows: 2, maxRows: 40 }"
+                    class="eval-textarea-sm w-100"
+                    [class.box-error]="isSubmitted && canEditNLD && !form.Strengths?.trim()"
+                    [readonly]="!canEditNLDEG">
+                  </textarea>
+                </td>
+                <td>
+                  <textarea nz-input appSyncTextareaHeight="strengths" [appSyncTextareaHeightValue]="form.TBPStrengths" [(ngModel)]="form.TBPStrengths" [nzAutosize]="{ minRows: 2, maxRows: 40 }"
+                    class="eval-textarea-sm w-100"
+                    [class.box-error]="isSubmitted && canEditTBP && !form.TBPStrengths?.trim()"
+                    [readonly]="!canEditTBPEG">
+                  </textarea>
+                </td>
+              </tr>
+
+              <tr>
+                <td class="comment-sub"><strong>Điểm cần cải thiện:</strong></td>
+                <td>
+                  <textarea nz-input appSyncTextareaHeight="improvements" [appSyncTextareaHeightValue]="form.AreasForImprovement" [(ngModel)]="form.AreasForImprovement" [nzAutosize]="{ minRows: 2, maxRows: 40 }"
+                    class="eval-textarea-sm w-100"
+                    [class.box-error]="isSubmitted && canEditNLD && !form.AreasForImprovement?.trim()"
+                    [readonly]="!canEditNLDEG">
+                  </textarea>
+                </td>
+                <td>
+                  <textarea nz-input appSyncTextareaHeight="improvements" [appSyncTextareaHeightValue]="form.TBPAreasForImprovement" [(ngModel)]="form.TBPAreasForImprovement" [nzAutosize]="{ minRows: 2, maxRows: 40 }"
+                    class="eval-textarea-sm w-100"
+                    [class.box-error]="isSubmitted && canEditTBP && !form.TBPAreasForImprovement?.trim()"
+                    [readonly]="!canEditTBPEG">
+                  </textarea>
+                </td>
+              </tr>
+  
+              <!-- F -->
+              <tr>
+                <td class="comment-code">F</td>
+                <td class="comment-label" colspan="2">
+                  Kết luận <em>(chọn loại kết luận bên cạnh)</em>
+                </td>
+             
+                <td class="comment-head">
+                  <nz-select style="min-width:220px" nzShowSearch nzPlaceHolder="-- Chọn kết luận --"
+                    [(ngModel)]="form.ConclusionEmployeeLoaiHDID" [nzDisabled]="!canEditNLDEG"
+                    [class.select-error]="isSubmitted && canEditNLD && (form.ConclusionEmployeeLoaiHDID === null || form.ConclusionEmployeeLoaiHDID === undefined)">
+                    <nz-option *ngFor="let c of employeeConclusions" [nzValue]="c.id" [nzLabel]="c.name"></nz-option>
+                  </nz-select>
+                </td>
+                <td class="comment-head">
+                  <nz-select style="min-width:220px" nzShowSearch nzPlaceHolder="-- Chọn kết luận --"
+                    [(ngModel)]="form.TBPConclusionEmployeeLoaiHDID" [nzDisabled]="!canEditTBPEG"
+                    [class.select-error]="isSubmitted && canEditTBP && (form.TBPConclusionEmployeeLoaiHDID === null || form.TBPConclusionEmployeeLoaiHDID === undefined)">
+                    <nz-option *ngFor="let c of conclusions" [nzValue]="c.id" [nzLabel]="c.name"></nz-option>
+                  </nz-select>
+                </td>
+              </tr>
+  
+              <!-- G -->
+              <tr>
+                <td class="comment-code">G</td>
+                <td class="comment-label" colspan="2">Kiến nghị/Khác</td>
+                <td>
+                  <textarea nz-input appSyncTextareaHeight="recommendations" [appSyncTextareaHeightValue]="form.RecommendationsOrOther" [(ngModel)]="form.RecommendationsOrOther" [nzAutosize]="{ minRows: 2, maxRows: 40 }"
+                    class="eval-textarea-sm w-100" [readonly]="!canEditNLDEG">
+                  </textarea>
+                </td>
+                <td>
+                  <textarea nz-input appSyncTextareaHeight="recommendations" [appSyncTextareaHeightValue]="form.TBPRecommendationsOrOther" [(ngModel)]="form.TBPRecommendationsOrOther" [nzAutosize]="{ minRows: 2, maxRows: 40 }"
+                    class="eval-textarea-sm w-100" [readonly]="!canEditTBPEG">
+                  </textarea>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+  
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <!-- KÝ TÊN – 3 cột                                           -->
+        <!-- ══════════════════════════════════════════════════════════ -->
+        <div class="signature-row-triple mt-4">
+          <!-- Cột 1: Trưởng bộ phận -->
+          <div class="sig-triple-block">
+            <div class="sig-location-placeholder"></div>
+            <p class="sig-title">TRƯỞNG BỘ PHẬN</p>
+            <div class="sig-space">{{form.TBPApproveName || ''}}</div>
+          </div>
+          <!-- Cột 2: Trưởng phòng HCNS -->
+          <div class="sig-triple-block">
+            <div class="sig-location-placeholder"></div>
+            <p class="sig-title">TRƯỞNG PHÒNG HCNS</p>
+            <div class="sig-space">{{form.HCNSApproveName || ''}}</div>
+          </div>
+          <!-- Cột 3: Phê duyệt -->
+          <div class="sig-triple-block">
+            <p class="sig-location-sm">
+              <i>{{form.LocationEvaluation || 'Hà Nội'}}, ngày {{evaluationDateParts.d}} tháng
+                {{evaluationDateParts.m}} năm {{evaluationDateParts.y}}</i>
+            </p>
+            <p class="sig-title">PHÊ DUYỆT</p>
+            <div class="sig-space">{{form.BGDApproveName || ''}}</div>
+          </div>
+        </div>
+  
+      </div><!-- /cbql-sheet -->
+    </nz-spin>
+  </div>
+  
+  <!-- ══════════════════ MODAL FOOTER ══════════════════ -->
+  <div class="modal-footer py-1 no-print">
+    <div class="ms-auto d-flex gap-2">
+      <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
+        <span nz-icon nzType="close"></span> Đóng
+      </button>
+      <button nz-button nzType="primary" [nzLoading]="isSaving" (click)="onSave()" *ngIf="canShowSave">
+        <span nz-icon nzType="save"></span> Lưu
+      </button>
+      <button nz-button nzType="primary" class="bg-success border-0" [nzLoading]="isSaving" (click)="onConfirm()"
+        *ngIf="canConfirm">
+        <span nz-icon nzType="check-circle"></span> Xác nhận hoàn thành đánh giá
+      </button>
+      <button nz-button nzType="default" class="bg-warning text-dark border-0" [nzLoading]="isSaving"
+        (click)="onCancelConfirm()" *ngIf="canCancelConfirm">
+        <span nz-icon nzType="rollback"></span> Hủy xác nhận
+      </button>
+    </div>
+  </div>

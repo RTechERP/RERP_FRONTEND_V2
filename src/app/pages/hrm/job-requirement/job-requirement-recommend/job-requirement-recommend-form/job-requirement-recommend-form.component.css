@@ -1,0 +1,82 @@
+/* HCNS Table Wrapper */
+.hcns-table-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: #fafafa;
+}
+
+/* Custom styles for PrimeNG p-table to match hcns-table look */
+::ng-deep .hcns-p-table .p-datatable-thead>tr>th {
+  background-color: #f7f2e3 !important;
+  color: #1a1a1a !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  text-align: center !important;
+  padding: 8px 10px !important;
+}
+
+::ng-deep .hcns-p-table .p-datatable-tbody>tr>td {
+  font-size: 12px !important;
+  padding: 0 !important;
+  min-height: 32px !important;
+  height: auto !important;
+  vertical-align: top !important;
+}
+
+::ng-deep .hcns-p-table td[rowspan] {
+  background-color: #fafafa !important;
+  vertical-align: top !important;
+  text-align: left !important;
+  padding: 0 !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
+/* Custom inputs in cells */
+::ng-deep .hcns-p-table td input,
+::ng-deep .hcns-p-table td textarea {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  padding: 8px 10px !important;
+  font-size: 12px !important;
+  display: block !important;
+  resize: none !important;
+}
+
+::ng-deep .hcns-p-table td input:focus,
+::ng-deep .hcns-p-table td textarea:focus {
+  background: #f0f5ff !important;
+}
+
+/* Action icons */
+.cursor-pointer {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 2px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cursor-pointer:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.delete-btn {
+  font-size: 14px;
+  color: #ff4d4f;
+}
+
+.delete-btn:hover {
+  color: #d9363e;
+  background-color: rgba(255, 77, 79, 0.1);
+}
+
+:host ::ng-deep .ant-splitter {
+  height: 70vh !important;
+}

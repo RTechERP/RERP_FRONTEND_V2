@@ -2565,6 +2565,9 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       return;
     }
 
+    // Tab 5 và 6 (activeTabIndex 4, 5) không cần kiểm tra BGĐ duyệt
+    const isExemptTab = this.activeTabIndex === 4 || this.activeTabIndex === 5;
+
     // Bước 1: Kiểm tra validation
     for (const row of selectedRows) {
       const data = row.getData();
@@ -2574,9 +2577,10 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       const code = data['ProductNewCode'] || '';
       const isApprovedBGD = data['IsApprovedBGD'] || false;
       const isTechBought = data['IsTechBought'] || false;
+      const isCommercialProduct = Boolean(data['IsCommercialProduct']);
 
-      // Kiểm tra điều kiện (tương đương !chkIsCommercialProduct.Checked && !chkIsJobRequirement.Checked)
-      if (!isApprovedBGD && !isTechBought) {
+      // Không phải tab miễn trừ AND là hàng mua dự án (không phải thương mại/kỹ thuật mua) → bắt buộc BGĐ duyệt
+      if (!isExemptTab && !isApprovedBGD && !isTechBought && !isCommercialProduct) {
         this.notify.warning(NOTIFICATION_TITLE.warning, 'Sản phẩm chưa được BGĐ duyệt!');
         return;
       }
@@ -2599,9 +2603,11 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       if (id <= 0) continue;
 
       const isApprovedBGD = data['IsApprovedBGD'] || false;
+      const isTechBought2 = data['IsTechBought'] || false;
+      const isCommercialProduct2 = Boolean(data['IsCommercialProduct']);
 
-      // Logic lọc nghiêm ngặt cho danh sách kết quả
-      if (!isApprovedBGD) continue;
+      // Tab miễn trừ: lấy hết; tab thường: hàng mua dự án phải có BGĐ duyệt
+      if (!isExemptTab && !isApprovedBGD && !isTechBought2 && !isCommercialProduct2) continue;
       if (!code || code.toString().trim() === '') continue;
 
       if (!lstYCMH.includes(id)) {

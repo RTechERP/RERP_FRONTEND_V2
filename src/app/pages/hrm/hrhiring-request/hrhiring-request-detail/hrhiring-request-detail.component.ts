@@ -15,6 +15,7 @@ import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSliderModule } from 'ng-zorro-antd/slider';
+import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 
 // NgBootstrap Modal
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -42,6 +43,7 @@ import { AppUserService } from '../../../../services/app-user.service';
     NzInputNumberModule,
     NzSpinModule,
     NzSliderModule,
+    NzAutocompleteModule,
   ],
   templateUrl: './hrhiring-request-detail.component.html',
   styleUrls: ['./hrhiring-request-detail.component.css'],
@@ -84,7 +86,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
     'Level A': 1,
     'Level B': 2,
     'Level C': 3,
-    'Không cần': 4,
+    'Không yêu cầu': 4,
   };
 
   private readonly LANGUAGE_TYPES = {
@@ -181,6 +183,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
       CommForeignCountry: [''],
       CommMedia: [false],
       CommAuthorities: [false],
+      LanguageNote: [''],
     });
 
     // THÊM CUSTOM VALIDATORS
@@ -319,6 +322,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
         CommForeignCountry: this.data.CommForeignCountry || '',
         CommMedia: Boolean(this.data.CommMedia),
         CommAuthorities: Boolean(this.data.CommAuthorities),
+        LanguageNote: this.data.LanguageNote || '',
       });
 
 
@@ -950,6 +954,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
       ProfessionalRequirement: formData.ProfessionalRequirement || '',
       JobDescription: formData.JobDescription || '',
       Note: formData.Note || '',
+      LanguageNote: formData.LanguageNote || '',
       DateRequest: new Date().toISOString(),
       HiringDeadline: formData.HiringDeadline || null,
     };

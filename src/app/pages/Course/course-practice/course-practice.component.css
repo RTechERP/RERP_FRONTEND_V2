@@ -9,6 +9,7 @@
     font-size: 12px;
 }
 
+/* Container constraints để tránh overflow khi zoom */
 .box {
     height: 100%;
     width: 100%;
@@ -17,7 +18,6 @@
 .card {
     display: flex;
     flex-direction: column;
-    /* height: 100%; */
 }
 
 .card-header {
@@ -35,6 +35,7 @@
     overflow-y: auto;
 }
 
+/* Tree view body - no scroll, let tree-container handle scroll */
 .ant-splitter-panel {
     position: relative;
 }
@@ -56,6 +57,32 @@
 .hamburger-toggle:hover {
     box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
     transform: scale(1.05);
+}
+
+/* Expand Tree View Button - Floating button to show tree panel */
+.expand-tree-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    background: #1a73e8;
+    border-color: #1a73e8;
+    color: white;
+}
+
+.expand-tree-btn:hover {
+    background: #1557b0;
+    border-color: #1557b0;
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
+    transform: scale(1.05);
+}
+
+/* Adjust padding when expand button is visible */
+.box.with-hamburger ::ng-deep .card-header,
+.box.with-tree-btn ::ng-deep .card-header {
+    padding-left: 50px !important;
 }
 
 /* Smooth transition for panel visibility */
@@ -103,4 +130,614 @@ nz-splitter-panel {
 
 .card-header .hamburger-btn+h6 {
     flex: 1;
+}
+
+/* ===================== TOGGLE VIEW BUTTON ===================== */
+.toggle-view-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.toggle-view-btn:hover {
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+    transform: scale(1.05);
+}
+
+/* ===================== ALL COURSES VIEW (FULL WIDTH) ===================== */
+.all-courses-view {
+    padding: 16px;
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    background: #fafafa;
+}
+
+.department-section {
+    margin-bottom: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.department-header {
+    background: #1a73e8;
+    padding: 14px 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+    color: white;
+}
+
+.department-header:hover {
+    background: #1557b0;
+}
+
+.department-header h5 {
+    margin: 0;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.department-header nz-tag {
+    background: rgba(255, 255, 255, 0.25);
+    border: none;
+    color: white;
+    font-weight: 600;
+}
+
+.catalog-type-list {
+    padding: 8px 0;
+}
+
+.catalog-type-section {
+    border-top: 1px solid #e8e8e8;
+}
+
+.catalog-type-section:first-child {
+    border-top: none;
+}
+
+.type-header {
+    padding: 10px 20px;
+    background: #e8f0fe;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+    border-left: 4px solid #1a73e8;
+}
+
+.type-header:hover {
+    background: #d2e3fc;
+    border-left-color: #1557b0;
+}
+
+.type-header strong {
+    color: #1a73e8;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.type-header nz-tag {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.course-list {
+    padding: 8px 16px;
+    background: #fff;
+}
+
+.course-item {
+    position: relative;
+    padding: 14px 16px;
+    margin: 6px 0;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.course-item:hover:not(.locked) {
+    background: linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%);
+    border-color: #1890ff;
+    transform: translateX(6px);
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+}
+
+.course-item.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #fafafa;
+}
+
+.course-item.locked:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: #e8e8e8;
+}
+
+.lock-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ff4d4f;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+}
+
+.course-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 60px;
+}
+
+.course-main-info {
+    flex: 1;
+}
+
+.course-name {
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 6px 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.course-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 12px;
+    color: #666;
+}
+
+.course-meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.course-meta nz-icon {
+    color: #999;
+}
+
+.course-exam-info {
+    text-align: right;
+    min-width: 100px;
+}
+
+.exam-badge {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #f0f0f0;
+    color: #666;
+}
+
+.exam-badge.passed {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    border: none;
+}
+
+.exam-badge.failed {
+    background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    color: white;
+    border: none;
+}
+
+/* Empty states */
+.empty-type,
+.empty-state {
+    text-align: center;
+    padding: 32px;
+    color: #999;
+}
+
+.empty-type nz-icon,
+.empty-state nz-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    color: #d9d9d9;
+}
+
+.empty-type p,
+.empty-state p {
+    margin: 0;
+    font-size: 14px;
+    color: #999;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .all-courses-view {
+        padding: 8px;
+    }
+
+    .course-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .course-exam-info {
+        text-align: left;
+    }
+
+    .type-header {
+        padding: 8px 12px;
+    }
+
+    .course-list {
+        padding: 4px 8px;
+    }
+}
+
+/* ===================== TREE VIEW (ALL COURSES MODE) - 4 CẤP ===================== */
+
+/* Container cho tree view */
+.course-tree-view {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: #fafafa;
+}
+
+.tree-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    gap: 12px;
+    color: #999;
+}
+
+.tree-loading p {
+    margin: 0;
+    font-size: 13px;
+}
+
+.tree-container {
+
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+/* Tree Node Base */
+.tree-node {
+    display: flex;
+    align-items: flex-start;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    gap: 8px;
+    border-left: 3px solid transparent;
+}
+
+.tree-node:hover {
+    transform: translateX(2px);
+}
+
+.tree-node.selected {
+    background: linear-gradient(90deg, #bae7ff 0%, #e6f7ff 100%);
+    border-left-color: #1890ff;
+}
+
+/* ===================== CẤP 1: DEPARTMENT NODE ===================== */
+.department-node {
+    background: #1a73e8;
+    color: white;
+    padding: 14px 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    margin: 4px 8px;
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+}
+
+.department-node:hover {
+    background: #1557b0;
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
+}
+
+.department-node strong {
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.department-node nz-tag {
+    background: rgba(255, 255, 255, 0.25);
+    border: none;
+    color: white;
+    font-weight: 600;
+}
+
+/* ===================== CẤP 2: CATALOG TYPE NODE ===================== */
+.catalog-type-node {
+    background: #e3f2fd;
+    border-left: 4px solid #1a73e8;
+    padding: 10px 16px;
+    margin: 4px 8px 4px 15px;
+    border-radius: 0 8px 8px 0;
+}
+
+.catalog-type-node:hover {
+    background: #bbdefb;
+    border-left-color: #0d47a1;
+}
+
+.catalog-type-node strong {
+    color: #1a73e8;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex: 1;
+}
+
+.catalog-type-node nz-tag {
+    background: #1a73e8;
+    border: none;
+    color: white;
+    font-weight: 600;
+    font-size: 11px;
+}
+
+
+/* ===================== CẤP 3: CATALOG NODE (Code + Name) ===================== */
+.catalog-node {
+    background: #f3e5f5;
+    border-left: 4px solid #9c27b0;
+    padding: 10px 16px;
+    margin: 4px 8px 4px 25px;
+    border-radius: 0 8px 8px 0;
+}
+
+.catalog-node:hover {
+    background: #e1bee7;
+    border-left-color: #7b1fa2;
+}
+
+.catalog-node .catalog-code {
+    color: #7b1fa2;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.catalog-node .catalog-full-name {
+    color: #666;
+    font-size: 11px;
+    font-style: italic;
+    margin-left: 6px;
+}
+
+.catalog-node nz-tag {
+    background: #9c27b0;
+    border: none;
+    color: white;
+    font-weight: 600;
+    font-size: 10px;
+}
+
+/* Indent levels cho 5 cấp - tăng dần để phản ánh hierarchy */
+.indent-1 {
+    display: inline-block;
+    width: 16px;
+    flex-shrink: 0;
+}
+
+.indent-2 {
+    display: inline-block;
+    width: 32px;
+    flex-shrink: 0;
+}
+
+.indent-3 {
+    display: inline-block;
+    width: 48px;
+    flex-shrink: 0;
+}
+
+.indent-4 {
+    display: inline-block;
+    width: 64px;
+    flex-shrink: 0;
+}
+
+/* ===================== COURSE NODE - LAYOUT CARD MỚI (4 CẤP) ===================== */
+.course-node {
+    background: white;
+    border: 1px solid #e0e0e0;
+    padding: 12px 14px;
+    margin: 4px 8px 4px 35px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+/* Check icon */
+.check-icon {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.check-icon.passed {
+    color: #52c41a;
+}
+
+/* Tên khóa học */
+.course-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.course-name-text {
+    flex: 1;
+}
+
+/* Lock icon */
+.course-node .lock-icon {
+    color: #999;
+    font-size: 16px;
+    cursor: help;
+    transition: color 0.2s;
+    margin-left: auto;
+}
+
+.course-node.locked .lock-icon {
+    color: #666;
+    pointer-events: auto;
+}
+
+.course-node.locked:hover .lock-icon {
+    color: #ff4d4f;
+}
+
+/* Stats row: bài học + thời gian + điểm thi inline */
+.course-stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    /* gap: 12px; */
+    align-items: center;
+}
+
+/* Các dòng thống kê */
+.course-stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 5px;
+    font-size: 12px;
+    color: #666;
+}
+
+.course-stat span[nz-icon] {
+    font-size: 13px;
+    color: #999;
+}
+
+/* Điểm thi - hiển thị inline */
+.course-scores {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #666;
+}
+
+.course-scores span[nz-icon] {
+    font-size: 13px;
+    color: #999;
+}
+
+.course-scores span {
+    white-space: nowrap;
+}
+
+/* Trạng thái: Selected */
+.course-node.selected {
+    border: 2px solid #1890ff;
+    box-shadow: 0 3px 10px rgba(24, 144, 255, 0.3);
+    background: #e6f7ff;
+}
+
+/* Trạng thái: Locked */
+.course-node.locked {
+    opacity: 0.7;
+    background: #fafafa;
+    pointer-events: none;
+}
+
+.course-node.locked:hover {
+    opacity: 0.85;
+}
+
+/* Hover effect - highlight rõ ràng */
+.course-node:hover:not(.locked) {
+    border-color: #1890ff !important;
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+    transform: translateY(-2px);
+    background: #f0f9ff;
+}
+
+/* Empty Children */
+.empty-children {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    color: #999;
+    font-size: 12px;
+    font-style: italic;
+}
+
+/* ===================== EMPTY SELECTION STATE ===================== */
+.empty-selection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 40px;
+}
+
+.empty-selection-content {
+    text-align: center;
+    max-width: 400px;
+}
+
+.empty-selection-content .empty-icon {
+    font-size: 80px;
+    color: #d9d9d9;
+    margin-bottom: 16px;
+}
+
+.empty-selection-content h5 {
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+.empty-selection-content p {
+    color: #999;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Category table view */
+.category-table-view {
+    height: 100%;
+    overflow: hidden;
 }

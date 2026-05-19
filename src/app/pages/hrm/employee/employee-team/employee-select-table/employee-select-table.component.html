@@ -14,7 +14,7 @@
   </div>
 
   <div style="height: 450px;">
-    <p-table #dt [value]="employeeList" [(selection)]="selectedEmployees" dataKey="ID" [scrollable]="true"
+    <p-table #dt [value]="employeeList" [(selection)]="selectedEmployees" dataKey="UserID" [scrollable]="true"
       scrollHeight="flex" rowGroupMode="subheader" groupRowsBy="DepartmentName"
       [globalFilterFields]="['Code', 'FullName', 'DepartmentName', 'ChucVu']"
       styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped" class="fs-12 w-100">

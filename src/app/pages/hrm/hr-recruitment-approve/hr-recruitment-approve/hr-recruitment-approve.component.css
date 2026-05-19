@@ -1,0 +1,82 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background: #fff;
+}
+
+/* Gỡ bỏ đóng băng cột checkbox */
+::ng-deep th[pFrozenColumn]:first-child,
+::ng-deep td[pFrozenColumn]:first-child {
+    position: static !important;
+    left: auto !important;
+}
+
+::ng-deep .p-menubar {
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 2px 10px !important;
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #e8e8e8 !important;
+}
+
+.page-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.fs-12 {
+    font-size: 11.5px;
+}
+
+.fw-500 {
+    font-weight: 500;
+}
+
+::ng-deep .text-success {
+    color: #28a745 !important;
+    font-weight: 500;
+}
+
+::ng-deep .text-danger {
+    color: #dc3545 !important;
+}
+
+::ng-deep .text-muted {
+    color: #6c757d !important;
+    font-style: italic;
+}
+
+.grid-wrapper {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+    height: 100% !important;
+    width: 100%;
+    display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
+}
+
+::ng-deep .text-primary {
+    color: #007bff !important;
+}
+
+::ng-deep .pointer-link {
+    cursor: pointer !important;
+}
+
+::ng-deep .pointer-link:hover {
+    text-decoration: underline !important;
+}

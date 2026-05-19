@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, TemplateRef, ChangeDetectorRef, signal, computed, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, TemplateRef, ChangeDetectorRef, signal, computed, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,12 +10,15 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzRateModule } from 'ng-zorro-antd/rate';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
-import { forkJoin } from 'rxjs';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { forkJoin, Subscription } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
-import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 import { KanbanService } from '../kanban/kanban.service';
 import { ImportExcelProjectTaskComponent } from '../import-excel-project-task/import-excel-project-task.component';
+import { TabServiceService } from '../../../layouts/tab-service.service';
+import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
+import { ProjectTaskPojectWorkerComponent } from '../project-task-poject-worker/project-task-poject-worker.component';
 
 import { ButtonModule } from 'primeng/button';
 import { Table, TableModule } from 'primeng/table';
@@ -26,6 +29,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { PrimeNG } from 'primeng/config';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { ContextMenuModule } from 'primeng/contextmenu';
+import { PaginatorModule } from 'primeng/paginator';
 import { MenuItem } from 'primeng/api';
 import { AppUserService } from '../../../services/app-user.service';
 import { ProjectTaskService, ProjectTaskItem } from './project-task.service';
@@ -45,6 +49,7 @@ type TabType = 'all' | 'assigned' | 'related' | 'myApproval';
     NzRateModule,
     NzSwitchModule,
     NzDrawerModule,
+    NzDropDownModule,
 
     ButtonModule,
     TableModule,
@@ -52,12 +57,13 @@ type TabType = 'all' | 'assigned' | 'related' | 'myApproval';
     InputTextModule,
     TooltipModule,
     MultiSelectModule,
-    ContextMenuModule
+    ContextMenuModule,
+    PaginatorModule
   ],
   templateUrl: './project-task.component.html',
   styleUrl: './project-task.component.css'
 })
-export class ProjectTaskComponent implements OnInit {
+export class ProjectTaskComponent implements OnInit, OnDestroy {
   // Modal templates
   @ViewChild('approveModalTpl') approveModalTpl!: TemplateRef<any>;
   @ViewChild('rejectModalTpl') rejectModalTpl!: TemplateRef<any>;
@@ -100,7 +106,8 @@ export class ProjectTaskComponent implements OnInit {
     private ngbModal: NgbModal,
     private el: ElementRef,
     private appUserService: AppUserService,
-    private router: Router
+    private router: Router,
+    private tabService: TabServiceService
   ) { }
 
   toggleMobileMenu(): void {
@@ -111,23 +118,154 @@ export class ProjectTaskComponent implements OnInit {
     this.isMobileMenuOpen = false;
   }
 
+  private subscription = new Subscription();
+
   // Data signals
   allTasks = signal<ProjectTaskItem[]>([]);
   currentUserId = signal<number>(0);
   loading = signal(true);
-  activeTab = signal<TabType>('all');
+  activeTab = signal<TabType>('assigned');
   selectedTasks = signal<ProjectTaskItem[]>([]);
   taskTypes = signal<{ ID: number; TypeName: string }[]>([]);
-  totalRecords = signal<number>(0);
+  
+  // Cache data per tab
+  cachedTasks: Record<TabType, ProjectTaskItem[] | null> = {
+    assigned: null,
+    myApproval: null,
+    related: null,
+    all: null
+  };
+
+  get viewNumberMap(): Record<TabType, number> {
+    return {
+      assigned: 1,
+      related: 2,
+      myApproval: 3,
+      all: -1
+    };
+  }
+  
+  // Pagination & Lazy Load signals
+  first = signal(0);
+  rows = signal(50);
+  lastLazyLoadEvent = signal<any>(null);
+  
+  // Computed: total count of tasks after Tab filter AND Column filters
+  totalRecords = computed(() => this.columnFilteredTasks().length);
+
+  // 2. Tasks filtered by Columns (PrimeNG Filters)
+  columnFilteredTasks = computed(() => {
+    let tasks = this.allTasks();
+    const event = this.lastLazyLoadEvent();
+
+    if (event?.filters) {
+      // Apply PrimeNG internal filtering logic manually for lazy mode
+      for (const field in event.filters) {
+        const filterMetadata = event.filters[field];
+        if (Array.isArray(filterMetadata)) {
+          // Handle Multiple filters (default PrimeNG 11+)
+          for (const metadata of filterMetadata) {
+            tasks = this.applyFilter(tasks, field, metadata);
+          }
+        } else {
+          tasks = this.applyFilter(tasks, field, filterMetadata);
+        }
+      }
+    }
+    return tasks;
+  });
+
+  // 3. Sorted Tasks
+  sortedTasks = computed(() => {
+    const tasks = [...this.columnFilteredTasks()];
+    const event = this.lastLazyLoadEvent();
+    const field = event?.sortField;
+    const order = event?.sortOrder || 1;
+
+    // Mapping trọng số sắp xếp trạng thái: Quá hạn lên trước -> Chưa làm -> Đang làm -> Hoàn thành...
+    const statusWeight: Record<number, number> = {
+      10: 1, // Chưa làm quá hạn
+      0: 2,  // Chưa làm
+      11: 3, // Đang làm quá hạn
+      1: 4,  // Đang làm
+      3: 5,  // Pending
+      21: 6, // Hoàn thành quá hạn
+      2: 7,  // Hoàn thành
+      22: 8, // Đã duyệt
+      23: 9, // Đã hủy duyệt
+      4: 10  // Hủy
+    };
+
+    tasks.sort((data1: any, data2: any) => {
+      // 1. Primary Sort (from user interaction)
+      if (field) {
+        const value1 = data1[field];
+        const value2 = data2[field];
+        let result: number = 0;
+
+        if (value1 == null && value2 != null) result = -1;
+        else if (value1 != null && value2 == null) result = 1;
+        else if (value1 == null && value2 == null) result = 0;
+        else if (value1 instanceof Date && value2 instanceof Date) {
+          result = value1.getTime() - value2.getTime();
+        } else if (typeof value1 === 'string' && typeof value2 === 'string') {
+          result = value1.localeCompare(value2);
+        } else {
+          result = value1 < value2 ? -1 : value1 > value2 ? 1 : 0;
+        }
+
+        if (result !== 0) return order * result;
+      }
+
+      // 2. Default Sort Level 0: Pending Approval priority for 'myApproval' tab
+      if (this.activeTab() === 'myApproval') {
+        const isPending1 = data1.Status === 2 && data1.ApprovalStatus === null;
+        const isPending2 = data2.Status === 2 && data2.ApprovalStatus === null;
+        if (isPending1 !== isPending2) return isPending1 ? -1 : 1;
+      }
+
+      // 3. Default Sort Level 1: Priority (DESC: 4 -> 1)
+      const p1 = data1.Priority ?? 0;
+      const p2 = data2.Priority ?? 0;
+      if (p1 !== p2) return p2 - p1;
+
+      // 3. Default Sort Level 2: Status Weight (ASC by custom weight)
+      const s1 = data1.DisplayStatus ?? 0;
+      const s2 = data2.DisplayStatus ?? 0;
+      const w1 = statusWeight[s1] ?? 99;
+      const w2 = statusWeight[s2] ?? 99;
+      if (w1 !== w2) return w1 - w2;
+
+      // 4. Default Sort Level 3: CreatedDate (DESC: Newest first)
+      const d1 = data1.CreatedDate instanceof Date ? data1.CreatedDate.getTime() : 0;
+      const d2 = data2.CreatedDate instanceof Date ? data2.CreatedDate.getTime() : 0;
+      if (d1 !== d2) return d2 - d1;
+
+      // 5. Tie-breaker: ID DESC
+      return (data2.ID || 0) - (data1.ID || 0);
+    });
+
+    return tasks;
+  });
+
+  // 4. Final Slice (Paging)
+  pagedTasks = computed(() => {
+    const tasks = this.sortedTasks();
+    const start = this.first();
+    const end = start + this.rows();
+    return tasks.slice(start, end);
+  });
 
   statusOptions = [
     { label: 'Chưa làm', value: 0 },
+    { label: 'Chưa làm quá hạn', value: 10 },
     { label: 'Đang làm', value: 1 },
     { label: 'Đang làm quá hạn', value: 11 },
     { label: 'Hoàn thành', value: 2 },
     { label: 'Hoàn thành quá hạn', value: 21 },
     { label: 'Đã duyệt', value: 22 },
     { label: 'Đã hủy duyệt', value: 23 },
+    { label: 'Hủy', value: 4 },
     { label: 'Pending', value: 3 }
   ];
 
@@ -138,23 +276,26 @@ export class ProjectTaskComponent implements OnInit {
   deptAssignerOptions: { label: string, value: string }[] = [];
   deptAssigneeOptions: { label: string, value: string }[] = [];
 
+  // Optimized: Use Set for O(1) lookups during selection checks
+  selectedIds = computed(() => new Set(this.selectedTasks().map(t => t.ID)));
+
   // Computed: only tasks eligible for approval (Status=2, not yet reviewed)
   pendingTasks = computed(() => this.filteredTasks().filter(t =>
-    t.Status === 2 && t.IsApproved !== 2 && t.IsApproved !== 3
+    t.Status === 2 && t.ApprovalStatus === null
   ));
 
-  // Computed: are all pending tasks selected?
+  // Computed: are all pending tasks selected? (Optimized: O(P) instead of O(P*S))
   isAllPendingSelected = computed(() => {
     const pending = this.pendingTasks();
-    const selected = this.selectedTasks();
-    return pending.length > 0 && pending.every(t => selected.some(s => s.ID === t.ID));
+    const ids = this.selectedIds();
+    return pending.length > 0 && pending.every(t => ids.has(t.ID));
   });
 
-  // Computed: indeterminate state for myApproval tab
+  // Computed: indeterminate state for myApproval tab (Optimized)
   isIndeterminate = computed(() => {
     const pending = this.pendingTasks();
-    const selected = this.selectedTasks();
-    const selectedPendingCount = pending.filter(t => selected.some(s => s.ID === t.ID)).length;
+    const ids = this.selectedIds();
+    const selectedPendingCount = pending.filter(t => ids.has(t.ID)).length;
     return selectedPendingCount > 0 && selectedPendingCount < pending.length;
   });
 
@@ -167,18 +308,18 @@ export class ProjectTaskComponent implements OnInit {
     }
   }
 
-  // Computed: are all related tasks selected?
+  // Computed: are all related tasks selected? (Optimized)
   isAllRelatedSelected = computed(() => {
     const related = this.filteredTasks();
-    const selected = this.selectedTasks();
-    return related.length > 0 && related.every(t => selected.some(s => s.ID === t.ID));
+    const ids = this.selectedIds();
+    return related.length > 0 && related.every(t => ids.has(t.ID));
   });
 
-  // Computed: indeterminate state for related tab
+  // Computed: indeterminate state for related tab (Optimized)
   isRelatedIndeterminate = computed(() => {
     const related = this.filteredTasks();
-    const selected = this.selectedTasks();
-    const count = related.filter(t => selected.some(s => s.ID === t.ID)).length;
+    const ids = this.selectedIds();
+    const count = related.filter(t => ids.has(t.ID)).length;
     return count > 0 && count < related.length;
   });
 
@@ -202,64 +343,8 @@ export class ProjectTaskComponent implements OnInit {
   }
 
   // Computed filtered tasks based on active tab
-  filteredTasks = computed(() => {
-    const tasks = this.allTasks();
-    const userId = this.currentUserId();
-    const tab = this.activeTab();
+  filteredTasks = computed(() => this.columnFilteredTasks());
 
-    switch (tab) {
-      case 'all':
-        return this.uniqueById(tasks);
-      case 'assigned':
-        return this.uniqueById(tasks.filter(t =>
-          t.SecondEmployeeID &&
-          t.SecondEmployeeID === userId &&
-          t.SecondEmployeeType === 1
-        ));
-      case 'related':
-        return this.uniqueById(tasks.filter(t =>
-          t.SecondEmployeeID &&
-          t.SecondEmployeeID === userId &&
-          t.SecondEmployeeType === 2
-        ));
-      case 'myApproval':
-        return this.uniqueById(tasks.filter(t =>
-          t.EmployeeIDRequest &&
-          t.EmployeeIDRequest === userId
-        ));
-      default:
-        return this.uniqueById(tasks);
-    }
-  });
-
-  // Badge counts for each tab
-  allTasksCount = computed(() => this.uniqueById(this.allTasks()).length);
-
-  assignedTasksCount = computed(() => {
-    const userId = this.currentUserId();
-    return this.uniqueById(this.allTasks().filter(t =>
-      t.SecondEmployeeID &&
-      t.SecondEmployeeID === userId &&
-      t.SecondEmployeeType === 1
-    )).length;
-  });
-
-  relatedTasksCount = computed(() => {
-    const userId = this.currentUserId();
-    return this.uniqueById(this.allTasks().filter(t =>
-      t.SecondEmployeeID &&
-      t.SecondEmployeeID === userId &&
-      t.SecondEmployeeType === 2
-    )).length;
-  });
-
-  myApprovalTasksCount = computed(() => {
-    const userId = this.currentUserId();
-    return this.uniqueById(this.allTasks().filter(t =>
-      t.EmployeeIDRequest &&
-      t.EmployeeIDRequest === userId
-    )).length;
-  });
 
   ngOnInit() {
     this.setVietnameseLocale();
@@ -267,6 +352,18 @@ export class ProjectTaskComponent implements OnInit {
     this.currentUserId.set(this.appUserService.employeeID || 0);
     this.loadTasks();
     this.loadTaskTypes();
+
+    this.subscription.add(
+      this.tabService.dataSaved$.subscribe((key) => {
+        if (key === 'project-task') {
+          this.loadTasks(); // Tải lại danh sách công việc khi nhận được tín hiệu lưu
+        }
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   goToSettings(): void {
@@ -408,14 +505,28 @@ export class ProjectTaskComponent implements OnInit {
       return;
     }
 
+    // Reset cache per tab when searching
+    this.cachedTasks = {
+      assigned: null,
+      myApproval: null,
+      related: null,
+      all: null
+    };
+
+    // Load active tab
+    this.fetchDataForTab(this.activeTab());
+  }
+
+  fetchDataForTab(tab: TabType) {
     this.loading.set(true);
+    this.cdr.detectChanges();
     const [start, end] = this.getFormattedDateRange();
-    this.projectTaskService.getProjectTasks(start, end, this.filterStatus).subscribe({
+    const viewNumber = this.viewNumberMap[tab];
+
+    this.projectTaskService.getProjectTasks(start, end, this.filterStatus, viewNumber).subscribe({
       next: (response) => {
         const rawTasks = response.ProjectTask || [];
         
-        // 2. Identify "Parents" (tasks that have others pointing to them as ParentID)
-
         // 2. Identify "Parents" (tasks that have others pointing to them as ParentID)
         const parentIdSet = new Set<number>();
         rawTasks.forEach(t => {
@@ -427,52 +538,63 @@ export class ProjectTaskComponent implements OnInit {
         // 3. Enrich with ParentCode and filter
         const tasks = rawTasks
           .filter((t: any) => {
-            // Logic: Hide if it's Root (no parent) AND it's a Parent (has children)
             const isRoot = !t.ParentID || t.ParentID === 0;
             const isParent = parentIdSet.has(t.ID);
             return !(isRoot && isParent);
           })
           .map((t: any) => ({
             ...t,
-            ProjectFullName: `${t.ProjectCode || ''} - ${t.ProjectName || ''}`,
+            ProjectFullName: `${t.ProjectCode || ''}${t.ProjectStatusName ? ' (' + t.ProjectStatusName + ')' : ''} - ${t.ProjectName || ''}`,
             ProjectSearchText: `${t.ProjectCode || ''} ${t.ProjectName || ''}`,
-            TaskSearchText: `${t.Code || ''} ${t.Mission || ''}`,
+            TaskSearchText: `${t.Code || ''} ${t.Mission || ''} ${t.ParentCode || ''} ${t.ParentTitle || ''}`,
             ParentSearchText: `${t.ParentCode || ''} ${t.ParentTitle || ''}`,
             DisplayStatus: this.computeDisplayStatus(t),
-            // Use ParentCode from API instead of manual lookup
             ParentCode: (t.ParentCode || '').trim(),
-            // Convert date strings to Date objects for PrimeNG date filtering
             PlanStartDate: t.PlanStartDate ? new Date(t.PlanStartDate) : null,
             PlanEndDate: t.PlanEndDate ? new Date(t.PlanEndDate) : null,
             ActualStartDate: t.ActualStartDate ? new Date(t.ActualStartDate) : null,
             ActualEndDate: t.ActualEndDate ? new Date(t.ActualEndDate) : null,
             Deadline: t.Deadline ? new Date(t.Deadline) : null,
+            CreatedDate: t.CreatedDate ? new Date(t.CreatedDate) : null,
             ActualPlannedRatio: this.calculateActualPlannedRatio(t)
           }));
 
-        this.allTasks.set(tasks);
-        this.initialTasks = [...tasks]; // lưu thứ tự gốc cho removesort
-        this.isSorted = null;
-        this.currentUserId.set(response.UserID || 0);
-        this.totalRecords.set(tasks.length);
-        this.buildFilterOptions(tasks);
+        const finalTasks = this.uniqueById(tasks);
+
+        this.cachedTasks[tab] = finalTasks;
+
+        if (this.activeTab() === tab) {
+          this.allTasks.set(finalTasks);
+          this.initialTasks = [...finalTasks];
+          this.isSorted = null;
+          this.currentUserId.set(response.UserID || 0);
+          this.first.set(0); 
+          this.buildFilterOptions(finalTasks);
+        }
         this.loading.set(false);
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error loading tasks:', err);
         this.loading.set(false);
+        this.cdr.detectChanges();
         this.message.error('Không thể tải danh sách công việc');
       }
     });
   }
 
   private buildFilterOptions(tasks: any[]): void {
-    // Dự án: chỉ hiện mã
-    const projectSet = new Set<string>();
-    tasks.forEach(t => { if (t.ProjectCode) projectSet.add(t.ProjectCode); });
-    this.projectOptions = Array.from(projectSet)
-      .sort()
-      .map(code => ({ label: code, value: code }));
+    // Dự án: hiện mã kèm trạng thái
+    const projectMap = new Map<string, string>();
+    tasks.forEach(t => {
+      if (t.ProjectCode) {
+        const label = t.ProjectStatusName ? `${t.ProjectCode} (${t.ProjectStatusName})` : t.ProjectCode;
+        projectMap.set(t.ProjectCode, label);
+      }
+    });
+    this.projectOptions = Array.from(projectMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([code, label]) => ({ label, value: code }));
 
     // Người giao việc
     const assignerSet = new Set<string>();
@@ -504,14 +626,30 @@ export class ProjectTaskComponent implements OnInit {
   }
 
   setActiveTab(tab: TabType): void {
+    const currentRows = this.rows(); // Lưu lại số lượng bản ghi/trang hiện tại
     this.activeTab.set(tab);
     this.selectedTasks.set([]);
     this.isSorted = null;
-    // Cập nhật lại số lượng bản ghi cho tab mới (chưa tính filter cột)
-    this.totalRecords.set(this.filteredTasks().length);
-    // Reset filter của table nếu cần (tùy chọn, ở đây ta chỉ cập nhật count)
+    this.first.set(0); // Reset về trang đầu
+    
+    // Reset filter của table nếu cần 
     if (this.dt) {
       this.dt.reset();
+      // Sau khi reset, đảm bảo giữ nguyên số lượng bản ghi/trang người dùng đã chọn
+      this.rows.set(currentRows);
+    }
+
+    if (this.cachedTasks[tab] !== null) {
+      // Use cached tasks
+      const cached = this.cachedTasks[tab]!;
+      this.allTasks.set(cached);
+      this.initialTasks = [...cached];
+      this.buildFilterOptions(cached);
+    } else {
+      // Not cached yet, fetch from server 
+      if (this.dateStart && this.dateEnd) {
+        this.fetchDataForTab(tab);
+      }
     }
   }
 
@@ -530,9 +668,9 @@ export class ProjectTaskComponent implements OnInit {
     const isOverdue = this.isTaskOverdue(task);
 
     // Hoàn thành + đã duyệt
-    if (task.Status === 2 && task.IsApproved === 2) return 22;
+    if (task.Status === 2 && task.ApprovalStatus === true) return 22;
     // Hoàn thành + hủy duyệt
-    if (task.Status === 2 && task.IsApproved === 3) return 23;
+    if (task.Status === 2 && task.ApprovalStatus === false) return 23;
     // Hoàn thành + quá hạn (chưa duyệt/hủy)
     if (task.Status === 2 && isOverdue) return 21;
     // Hoàn thành bình thường
@@ -543,7 +681,10 @@ export class ProjectTaskComponent implements OnInit {
     if (task.Status === 1) return 1;
     // Pending
     if (task.Status === 3) return 3;
+    // Hủy
+    if (task.Status === 4) return 4;
     // Chưa làm
+    if (task.Status === 0 && isOverdue) return 10;
     return 0;
   }
 
@@ -553,18 +694,20 @@ export class ProjectTaskComponent implements OnInit {
     now.setHours(0, 0, 0, 0);
 
     const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
-    if (planEnd) planEnd.setHours(0, 0, 0, 0);
+    if (!planEnd) return false;
+    planEnd.setHours(0, 0, 0, 0);
 
-    const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
-    if (dueDate) dueDate.setHours(0, 0, 0, 0);
+    const actualEnd = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
+    if (actualEnd) actualEnd.setHours(0, 0, 0, 0);
 
-    // Ngày KT thực tế > Ngày KT dự kiến → Quá hạn
-    if (dueDate && planEnd && dueDate > planEnd) return true;
-    
-    // Ngày KT thực tế null, Ngày KT dự kiến < hôm nay, status khác Pending → Quá hạn
-    if (!dueDate && planEnd && planEnd < now && task.Status !== 3) return true;
-    
-    return false;
+    // Nếu status là Pending (3) thì không tính quá hạn theo yêu cầu người dùng
+    if (task.Status === 3) return false;
+
+    if (actualEnd) {
+      return actualEnd > planEnd;
+    } else {
+      return now > planEnd;
+    }
   }
 
   // Tính tỷ lệ % thời gian thực tế / kế hoạch
@@ -593,14 +736,26 @@ export class ProjectTaskComponent implements OnInit {
     const ds = task.DisplayStatus ?? task.Status;
     switch (ds) {
       case 0: return { label: 'Chưa làm', severity: 'secondary' };
+      case 10: return { label: 'Chưa làm\nquá hạn', severity: 'danger' };
       case 1: return { label: 'Đang làm', severity: 'info' };
-      case 11: return { label: 'Đang làm quá hạn', severity: 'danger' };
+      case 11: return { label: 'Đang làm\nquá hạn', severity: 'danger' };
       case 2: return { label: 'Hoàn thành', severity: 'success' };
-      case 21: return { label: 'Hoàn thành quá hạn', severity: 'warn' };
+      case 21: return { label: 'Hoàn thành\nquá hạn', severity: 'warn' };
       case 22: return { label: 'Đã duyệt', severity: 'success' };
       case 23: return { label: 'Đã hủy duyệt', severity: 'danger' };
       case 3: return { label: 'Pending', severity: 'warn' };
+      case 4: return { label: 'Hủy', severity: 'contrast' };
       default: return { label: 'Chưa xác định', severity: 'secondary' };
+    }
+  }
+
+  getPriorityColor(priority: number | null): string {
+    switch (priority) {
+      case 4: return '#f5222d'; // Khẩn cấp (Đỏ)
+      case 3: return '#faad14'; // Cao (Vàng)
+      case 2: return '#1890ff'; // Trung bình (Xanh dương)
+      case 1:
+      default: return '#bfbfbf'; // Thấp / Mặc định (Xám)
     }
   }
 
@@ -609,7 +764,7 @@ export class ProjectTaskComponent implements OnInit {
     if (this.activeTab() !== 'myApproval') return false;
     const ds = task.DisplayStatus;
     // Hiển thị khi Hoàn thành hoặc Hoàn thành quá hạn (chưa duyệt/hủy)
-    return ds === 2 || ds === 21;
+    return (ds === 2 || ds === 21) && task.ApprovalStatus === null;
   }
   // Default date helpers
   private formatDateForInput(d: Date): string {
@@ -719,7 +874,7 @@ export class ProjectTaskComponent implements OnInit {
 
   // Duyệt hàng loạt
   approveSelected(): void {
-    const selected = this.selectedTasks().filter(t => t.IsApproved === 1);
+    const selected = this.selectedTasks().filter(t => t.ApprovalStatus === null);
     if (selected.length === 0) {
       this.message.warning('Không có công việc chờ duyệt nào được chọn');
       return;
@@ -761,7 +916,7 @@ export class ProjectTaskComponent implements OnInit {
 
   // Từ chối hàng loạt
   rejectSelected(): void {
-    const selected = this.selectedTasks().filter(t => t.IsApproved === 1);
+    const selected = this.selectedTasks().filter(t => t.ApprovalStatus === null);
     if (selected.length === 0) {
       this.message.warning('Không có công việc chờ duyệt nào được chọn');
       return;
@@ -973,33 +1128,11 @@ export class ProjectTaskComponent implements OnInit {
   }
 
   openAddTaskModal(): void {
-    if (this.isOpeningDetail) return;
-    this.isOpeningDetail = true;
-    const modal = this.modal.create({
-      nzTitle: 'THÊM CÔNG VIỆC MỚI',
-      nzContent: TaskDetailComponent,
-      nzData: { task: null },
-      nzFooter: null,
-      nzWidth: '100vw',
-      nzBodyStyle: {
-        padding: '0',
-        height: '80vh',
-        overflow: 'hidden'
-      },
-      nzStyle: {
-        borderRadius: '12px',
-        top: '5vh'
-      },
-      nzMaskClosable: true,
-      nzClosable: true,
-      nzCentered: false
-    });
-
-    modal.afterClose.subscribe((result: any) => {
-      if (result) {
-        this.loadTasks();
-      }
-      this.isOpeningDetail = false;
+    this.tabService.openTabComp({
+      comp: TaskDetailComponent,
+      title: 'Thêm công việc mới',
+      key: `project-task-add-${Date.now()}`,
+      data: { id: null }
     });
   }
 
@@ -1046,39 +1179,20 @@ export class ProjectTaskComponent implements OnInit {
             ID: undefined,
             Code: undefined,
             Status: 0,
-            IsApproved: 0,
+            ApprovalStatus: null,
             ActualStartDate: undefined,
             ActualEndDate: undefined,
             _copyAssigneeIds: (assignees.data || []).map((e: any) => e.EmployeeID),
             _copyRelatedPeopleIds: (relatedPeople.data || []).map((e: any) => e.EmployeeID)
           };
 
-          const modal = this.modal.create({
-            nzTitle: 'COPY CÔNG VIỆC',
-            nzContent: TaskDetailComponent,
-            nzData: { task: copyData },
-            nzFooter: null,
-            nzWidth: '100vw',
-            nzBodyStyle: {
-              padding: '0',
-              height: '80vh',
-              overflow: 'hidden'
-            },
-            nzStyle: {
-              borderRadius: '12px',
-              top: '5vh'
-            },
-            nzMaskClosable: true,
-            nzClosable: true,
-            nzCentered: false
+          this.tabService.openTabComp({
+            comp: TaskDetailComponent,
+            title: 'Sao chép công việc',
+            key: `project-task-copy-${Date.now()}`,
+            data: { task: copyData }
           });
-
-          modal.afterClose.subscribe((result: any) => {
-            if (result) {
-              this.loadTasks();
-            }
-            this.isOpeningDetail = false;
-          });
+          this.isOpeningDetail = false;
         } else {
           this.message.error('Không thể tải chi tiết công việc');
           this.isOpeningDetail = false;
@@ -1092,89 +1206,53 @@ export class ProjectTaskComponent implements OnInit {
   }
 
   openTaskDetail(task: any): void {
-    if (this.isOpeningDetail) return;
-    if (!task?.ID) {
+    const taskId = task?.ID || (typeof task === 'number' ? task : null);
+    if (!taskId) {
       console.error('Task ID not found');
       return;
     }
-    this.isOpeningDetail = true;
-
-    this.projectTaskService.getTaskById(task.ID).subscribe({
-      next: (res) => {
-        if (res.status === 200 || res.status === 1) {
-          const fullTaskData = res.data;
-
-          const modalRef = this.modal.create({
-            nzTitle: 'CHI TIẾT CÔNG VIỆC',
-            nzContent: TaskDetailComponent,
-            nzData: { task: fullTaskData },
-            nzFooter: null,
-            nzWidth: '100vw',
-            nzBodyStyle: {
-              padding: '0',
-              height: '80vh',
-              overflow: 'hidden'
-            },
-            nzStyle: {
-              borderRadius: '12px',
-              top: '5vh'
-            },
-            nzMaskClosable: false,
-            nzClosable: true,
-            nzCentered: false
-          });
-
-          modalRef.afterClose.subscribe((result: any) => {
-            if (result) {
-              this.loadTasks();
-            }
-            this.isOpeningDetail = false;
-          });
-        } else {
-          this.message.error('Không thể tải chi tiết công việc');
-          this.isOpeningDetail = false;
-        }
-      },
-      error: () => {
-        this.message.error('Lỗi khi tải chi tiết công việc');
-        this.isOpeningDetail = false;
-      }
+    
+    const taskCode = task?.Code || `Task-${taskId}`;
+    this.tabService.openTabComp({
+      comp: TaskDetailComponent,
+      title: taskCode,
+      key: `project-task-detail-${taskId}`,
+      data: { id: taskId, ApprovalStatus: task?.ApprovalStatus ?? null }
     });
   }
 
   // ========== REMOVESORT ==========
 
-  customSort(event: SortEvent) {
-    if (this.isSorted == null || this.isSorted === undefined) {
-      this.isSorted = true;
-      this.sortTableData(event);
-    } else if (this.isSorted === true) {
-      this.isSorted = false;
-      this.sortTableData(event);
-    } else {
-      this.isSorted = null;
-      this.allTasks.set([...this.initialTasks]);
-      this.dt.reset();
-    }
-  }
-
-  sortTableData(event: SortEvent) {
-    event.data!.sort((data1: any, data2: any) => {
-      const value1 = data1[event.field!];
-      const value2 = data2[event.field!];
-      let result: number;
-      if (value1 == null && value2 != null) result = -1;
-      else if (value1 != null && value2 == null) result = 1;
-      else if (value1 == null && value2 == null) result = 0;
-      else if (typeof value1 === 'string' && typeof value2 === 'string')
-        result = value1.localeCompare(value2);
-      else result = value1 < value2 ? -1 : value1 > value2 ? 1 : 0;
-      return event.order! * result;
-    });
-  }
-
   handleFilter(event: any) {
-    this.totalRecords.set(event.filteredValue.length);
+    this.first.set(0); // Reset to first page on filter
+  }
+
+  onLazyLoad(event: any) {
+    this.lastLazyLoadEvent.set(event);
+    this.first.set(event.first || 0);
+    this.rows.set(event.rows || 50);
+  }
+
+  private applyFilter(tasks: any[], field: string, metadata: any): any[] {
+    const value = metadata.value;
+    const matchMode = metadata.matchMode || 'contains';
+
+    if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
+      return tasks;
+    }
+
+    return tasks.filter(task => {
+      const taskValue = task[field];
+      const filterConstraint = this.filterService.filters[matchMode];
+      
+      if (filterConstraint) {
+        // PrimeNG filter constraints usually take (value, filter, locale)
+        // If config.locale is not available, we pass undefined
+        return filterConstraint(taskValue, value);
+      }
+      
+      return true;
+    });
   }
 
   // Right-click context menu for cell actions
@@ -1213,6 +1291,17 @@ export class ProjectTaskComponent implements OnInit {
         });
       }
 
+      // Hủy duyệt option (Chỉ hiển thị khi tab là Việc tôi giao và task đã được duyệt)
+      if (this.activeTab() === 'myApproval' && task.ApprovalStatus === true) {
+        this.contextMenuItems.push({
+          label: `Hủy duyệt công việc`,
+          icon: 'pi pi-times-circle',
+          command: () => {
+            this.cancelApprove(task);
+          }
+        });
+      }
+
       if (this.contextMenuItems.length > 0) {
         cm.show(event);
       }
@@ -1234,6 +1323,42 @@ export class ProjectTaskComponent implements OnInit {
       },
       error: () => {
         this.message.error('Lỗi khi gửi yêu cầu điểm danh');
+      }
+    });
+  }
+
+  goToProjectWorker(): void {
+    this.tabService.openTabComp({
+      comp: ProjectTaskPojectWorkerComponent,
+      title: 'Thêm danh sách công việc',
+      key: 'project-task-poject-worker',
+      data: {}
+    });
+  }
+
+  cancelApprove(task: ProjectTaskItem) {
+    if (!task || !task.ID) return;
+    this.modal.confirm({
+      nzTitle: 'Xác nhận hủy duyệt',
+      nzContent: 'Bạn có chắc chắn muốn hủy duyệt công việc này?',
+      nzOkText: 'Đồng ý',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.kanbanService.cancelApproveTask(task.ID).subscribe({
+          next: (res) => {
+            if (res.status === 200 || res.status === 1) {
+              this.message.success('Đã hủy duyệt công việc');
+              this.loadTasks();
+            } else {
+              this.message.error(res.message || 'Lỗi khi hủy duyệt công việc');
+            }
+          },
+          error: () => {
+            this.message.error('Lỗi hệ thống khi gửi yêu cầu hủy duyệt');
+          }
+        });
       }
     });
   }

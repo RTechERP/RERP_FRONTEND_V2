@@ -176,7 +176,7 @@ export class KPIEvaluationFactorScoringDetailsService {
   }
 
   /**
-   * Load dữ liệu KPI Rule mới (Factor Scoring Detail)
+   * Load Point Rule data (Factor Scoring Detail)
    * API: GET api/KPIEvaluationFactorScoringDetails/load-point-rule-new-detail
    */
   loadPointRuleNewDetail(kpiExamID: number, isAmdinConfirm: boolean, employeeID: number, sessionID: number): Observable<any> {
@@ -187,6 +187,20 @@ export class KPIEvaluationFactorScoringDetailsService {
       sessionID: sessionID.toString()
     };
     return this.http.get<any>(`${this.baseUrl}api/KPIEvaluationFactorScoringDetails/load-point-rule-new-detail`, { params });
+  }
+
+  /**
+   * Lấy thông tin team của user hiện tại (Leader)
+   * API: GET api/KPIEvaluationFactorScoringDetails/get-team
+   */
+  getTeam(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}api/KPIEvaluationFactorScoringDetails/get-team`).pipe(
+      map(response => response?.data || null),
+      catchError(error => {
+        console.error('Error loading User Team:', error);
+        return of(null);
+      })
+    );
   }
 }
 

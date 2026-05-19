@@ -20,6 +20,7 @@ export class CourseListComponent implements OnInit, OnChanges, AfterViewInit, On
     @ViewChild('CourseTable') tableRef!: ElementRef;
 
     table: Tabulator | null = null;
+    private tableData: any[] = [];
     private isTableBuilt = false;
     private boundResizeHandler: any;
 
@@ -28,11 +29,12 @@ export class CourseListComponent implements OnInit, OnChanges, AfterViewInit, On
     ngOnInit(): void { }
 
     ngOnChanges(changes: SimpleChanges): void {
+        this.tableData = this.normalizeAndSortCourses(this.data);
         if (this.table && this.isTableBuilt) {
             if (changes['data']) {
-                this.table.replaceData(this.data).then(() => {
+                this.table.replaceData(this.tableData).then(() => {
                     this.table?.redraw();
-                    if (this.autoSelectFirst && this.data.length > 0) {
+                    if (this.autoSelectFirst && this.tableData.length > 0) {
                         this.selectFirstRow();
                     }
                 });
@@ -59,9 +61,10 @@ export class CourseListComponent implements OnInit, OnChanges, AfterViewInit, On
 
     private drawTable(): void {
         if (!this.tableRef || !this.tableRef.nativeElement) return;
+        this.tableData = this.normalizeAndSortCourses(this.data);
 
         this.table = new Tabulator(this.tableRef.nativeElement, {
-            data: this.data,
+            data: this.tableData,
             ...DEFAULT_TABLE_CONFIG,
             reactiveData: false,
             index: 'ID',
@@ -72,12 +75,12 @@ export class CourseListComponent implements OnInit, OnChanges, AfterViewInit, On
             paginationMode: 'local',
             groupBy: [
                 (data: any) => data.DepartmentName || 'Chưa có phòng ban',
-                (data: any) => data.CatalogName || 'Chưa có danh mục',
+                (data: any) => data.CatalogTypeText || 'Chưa có loại khóa học',
             ],
             groupStartOpen: [true, true],
             groupHeader: [
                 (value) => `<strong>Phòng ban: ${value}</strong>`,
-                (value) => `<strong>Danh mục: ${value}</strong>`,
+                (value) => `<strong>Loại: ${value}</strong>`,
             ],
             columns: [
                 {
@@ -131,6 +134,47 @@ export class CourseListComponent implements OnInit, OnChanges, AfterViewInit, On
             if (this.table) this.table.redraw();
         };
         window.addEventListener('resize', this.boundResizeHandler);
+    }
+
+    private normalizeAndSortCourses(data: any[]): any[] {
+        const source = Array.isArray(data) ? data : [];
+
+        const normalized = source.map((item: any) => {
+            const catalogType = Number(item?.CatalogType ?? 0);
+            let catalogOrder = 99;
+
+            if (catalogType === 3) catalogOrder = 0;      // KHÓA HỌC BẮT BUỘC
+            else if (catalogType === 1) catalogOrder = 1; // CƠ BẢN
+            else if (catalogType === 2) catalogOrder = 2; // NÂNG CAO
+
+            return {
+                ...item,
+                DepartmentName: item?.DepartmentName ?? item?.NameDepartment ?? 'Chưa có phòng ban',
+                CatalogTypeText: item?.CatalogTypeText ?? item?.CatalogName ?? 'Chưa có loại khóa học',
+                NameCourse: item?.NameCourse ?? item?.Name ?? '',
+                _catalogOrder: catalogOrder,
+                _departmentOrder: Number.isFinite(Number(item?.DepartmentSTT)) ? Number(item.DepartmentSTT) : 9999,
+            };
+        });
+
+        return normalized.sort((a: any, b: any) => {
+            if (a._departmentOrder !== b._departmentOrder) {
+                return a._departmentOrder - b._departmentOrder;
+            }
+
+            const deptCompare = String(a.DepartmentName || '').localeCompare(String(b.DepartmentName || ''), 'vi');
+            if (deptCompare !== 0) return deptCompare;
+
+            if (a._catalogOrder !== b._catalogOrder) {
+                return a._catalogOrder - b._catalogOrder;
+            }
+
+            const sttA = Number(a?.STT ?? 999999);
+            const sttB = Number(b?.STT ?? 999999);
+            if (sttA !== sttB) return sttA - sttB;
+
+            return String(a?.Code ?? '').localeCompare(String(b?.Code ?? ''), 'vi');
+        });
     }
 
     selectFirstRow() {

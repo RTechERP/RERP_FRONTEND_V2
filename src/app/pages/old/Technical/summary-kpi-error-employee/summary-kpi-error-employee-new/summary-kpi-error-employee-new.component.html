@@ -54,8 +54,9 @@
                                                     <nz-form-label class="fs-12">Phòng ban</nz-form-label>
                                                     <nz-form-control class="w-100">
                                                         <nz-select [(ngModel)]="departmentId_T1" name="departmentId_TH"
-                                                            nzSize="small" nzPlaceHolder="Chọn phòng ban" nzAllowClear
-                                                            nzShowSearch class="w-100">
+                                                            nzSize="small" nzMode="multiple"
+                                                            nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch
+                                                            [nzMaxTagCount]="2" class="w-100">
                                                             <nz-option *ngFor="let item of departments"
                                                                 [nzValue]="item.ID" [nzLabel]="item.Name"></nz-option>
                                                         </nz-select>
@@ -89,7 +90,11 @@
                                 </div>
                                 <button nz-button nzType="default" nzSize="small" class="ms-2"
                                     (click)="exportExcelTab1()">
-                                    <nz-icon nzType="file-excel" nzTheme="outline"></nz-icon> Xuất Excel
+                                    <nz-icon nzType="file-excel" nzTheme="outline"></nz-icon> Xuất Excel theo phòng ban
+                                </button>
+                                <button nz-button nzType="primary" nzSize="small" class="ms-2"
+                                    (click)="exportExcelAllDepartments()">
+                                    <nz-icon nzType="file-excel" nzTheme="outline"></nz-icon> Xuất Excel toàn bộ
                                 </button>
                             </nz-form-control>
                         </nz-form-item>
@@ -183,7 +188,9 @@
                             <nz-splitter-panel [nzMin]="'20%'" *ngIf="isImageVisible">
                                 <div
                                     class="position-relative image-container h-100 d-flex justify-content-center align-items-center bg-light">
-                                    <button nz-button nzType="text" nzSize="small" class="position-absolute border-0 text-danger" style="top: 5px; right: 5px; z-index: 10;" (click)="closeImage()">
+                                    <button nz-button nzType="text" nzSize="small"
+                                        class="position-absolute border-0 text-danger"
+                                        style="top: 5px; right: 5px; z-index: 10;" (click)="closeImage()">
                                         <nz-icon nzType="close" nzTheme="outline" />
                                     </button>
                                     <img *ngIf="imageUrl" [src]="imageUrl" alt="Error Image" class="img-fluid"
@@ -252,6 +259,7 @@
                                                     <nz-form-control class="w-100">
                                                         <nz-select [(ngModel)]="departmentId_T2" name="departmentId_TK"
                                                             nzDropdownClassName="select-dropdown" nzSize="small"
+                                                            nzMode="multiple" [nzMaxTagCount]="2"
                                                             nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch
                                                             class="w-100">
                                                             <nz-option *ngFor="let item of departments"
@@ -343,8 +351,8 @@
                             <nz-form-label class="fs-12">Phòng ban</nz-form-label>
                             <nz-form-control>
                                 <nz-select [(ngModel)]="departmentId_T3" name="departmentId_BD" nzSize="small"
-                                    nzDropdownClassName="select-dropdown" nzPlaceHolder="Chọn phòng ban" nzAllowClear
-                                    style="width: 200px;" nzShowSearch>
+                                    nzDropdownClassName="select-dropdown" nzMode="multiple" [nzMaxTagCount]="2"
+                                    nzPlaceHolder="Chọn phòng ban" nzAllowClear style="width: 200px;" nzShowSearch>
                                     <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
                                         [nzLabel]="item.Name"></nz-option>
                                 </nz-select>
@@ -392,7 +400,9 @@
                                 <nz-splitter-panel [nzMin]="'20%'" *ngIf="isImageEmployeeVisible">
                                     <div
                                         class="position-relative image-container h-100 d-flex justify-content-center align-items-center bg-light">
-                                        <button nz-button nzType="text" nzSize="small" class="position-absolute border-0 text-danger" style="top: 5px; right: 5px; z-index: 10;" (click)="closeEmployeeImage()">
+                                        <button nz-button nzType="text" nzSize="small"
+                                            class="position-absolute border-0 text-danger"
+                                            style="top: 5px; right: 5px; z-index: 10;" (click)="closeEmployeeImage()">
                                             <nz-icon nzType="close" nzTheme="outline" />
                                         </button>
                                         <img *ngIf="imageUrlEmployee" [src]="imageUrlEmployee" alt="Error Image"

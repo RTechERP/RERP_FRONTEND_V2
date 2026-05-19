@@ -250,6 +250,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
             request.keyword,
             request.page,
             request.size,
+            0,
             request.teamId
           ).toPromise().catch((error) => {
             console.error('Error loading project list work report data:', error);
@@ -645,6 +646,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
         this.keyword || '',
         1, // page = 1
         999999, // size rất lớn để lấy tất cả
+        0, // departmentId
         this.teamId || 0,
       ).toPromise();
 
@@ -1005,6 +1007,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
       this.keyword || '',
       1, // page = 1
       999999, // size rất lớn để lấy tất cả
+      0,
       this.teamId || 0,
     ).subscribe({
       next: (response: any) => {

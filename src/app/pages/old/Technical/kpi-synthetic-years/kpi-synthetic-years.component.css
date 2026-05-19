@@ -26,8 +26,11 @@
     background-color: #4472c4 !important;
     color: white !important;
     font-weight: bold !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     text-align: center;
-    border-right: 1px solid #2f5496;
+    border-right: 2px solid #ffffff !important;
 }
 
 .grid-container ::ng-deep .slick-header-columns {
@@ -51,6 +54,7 @@
 /* Fixed columns styling */
 .grid-container ::ng-deep .slick-pane-left .slick-header-column {
     background-color: #e2efda !important;
+    color: #000 !important;
 }
 
 /* Filter bar styling */
@@ -61,4 +65,22 @@
 /* Center text in cells */
 .text-center {
     text-align: center;
+}
+
+/* Quarterly background colors */
+.grid-container ::ng-deep .bg-q1 {
+    background-color: #e6f7ff !important;
+}
+
+.grid-container ::ng-deep .bg-q2 {
+    background-color: #f6ffed !important;
+}
+
+.grid-container ::ng-deep .bg-q3 {
+    background-color: #f6eaf6 !important;
+    color: #000 !important;
+}
+
+.grid-container ::ng-deep .bg-q4 {
+    background-color: #fff7e6 !important;
 }

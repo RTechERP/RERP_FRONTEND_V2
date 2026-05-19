@@ -102,8 +102,8 @@ export class HRRecruitmentExamDetailComponent implements OnInit {
 
   ngOnInit(): void {
     // Thêm mảng employeeID đặc biệt có quyền như admin
-    const specialAdminIds = [54];
-    this.isAdmin = this.appUserService.isAdmin || specialAdminIds.includes(this.appUserService.employeeID || 0);
+    const specialAdminIds = [54, 1, 2, 3, 400, 401, 402, 403];
+    this.isAdmin = this.appUserService.isAdmin || specialAdminIds.includes(this.appUserService.employeeID || (this.appUserService.departmentID == 6) ? 1 : 0);
 
     this.loadDepartments();
 

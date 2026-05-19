@@ -1,0 +1,138 @@
+<div class="supplier-sale-link-container h-100 d-flex flex-column bg-white" style="height: 93vh !important;">
+  <!-- Thanh Menu chính -->
+  <p-menubar [model]="menuBars" styleClass="fs-12 border-0 mb-0 shadow-sm custom-menubar">
+    <ng-template pTemplate="item" let-item>
+      <a class="p-menuitem-link" [class.p-disabled]="item.disabled">
+        <i [class]="item.icon"></i>
+        <span class="p-menuitem-text ms-1" style="font-size: 12px;">{{ item.label }}</span>
+      </a>
+    </ng-template>
+    <ng-template pTemplate="end">
+      <div class="d-flex items-center gap-2 pe-2">
+        <button nz-button nzType="text" nzShape="circle" (click)="toggleSearchPanel()">
+          <nz-icon nzType="search" />
+        </button>
+      </div>
+    </ng-template>
+  </p-menubar>
+
+  <!-- Thanh tìm kiếm (Filter bar) -->
+  <div class="filter-bar bg-light border-bottom p-2" *ngIf="showSearchBar">
+    <form nz-form>
+      <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12" style="font-size: 12px; font-weight: 600;">Nhân viên thu mua</nz-form-label>
+            <nz-form-control>
+              <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Tất cả nhân viên" nzSize="small" class="w-100"
+                [(ngModel)]="searchEmployeeID" name="searchEmployeeID" (ngModelChange)="onSearch()">
+                <nz-option *ngFor="let emp of employeePurchases" [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                  [nzValue]="emp.ID"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12" style="font-size: 12px; font-weight: 600;">Từ khóa tìm kiếm</nz-form-label>
+            <nz-form-control>
+              <input nz-input placeholder="Nhập mã, tên NCC..." nzSize="small" [(ngModel)]="searchKeyword"
+                name="searchKeyword" class="w-100" (keyup.enter)="onSearch()" />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <nz-form-item class="mb-0">
+            <nz-form-control>
+              <button nz-button nzType="primary" nzSize="small" (click)="onSearch()" class="me-2">
+                <i class="fa-solid fa-magnifying-glass me-1"></i> Tìm kiếm
+              </button>
+              <button nz-button nzType="default" nzSize="small" (click)="onReset()">
+                <i class="fa-solid fa-arrows-rotate me-1"></i> Đặt lại
+              </button>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </form>
+  </div>
+
+  <!-- Content chính -->
+  <div class="flex-grow-1 overflow-hidden p-2 bg-light">
+    <nz-spin [nzSpinning]="loading" nzTip="Đang tải dữ liệu..." class="h-100">
+      <div class="table-wrapper h-100 bg-white border rounded">
+        <p-table #dt [value]="filteredDataset" [(selection)]="selectedItems" selectionMode="multiple" dataKey="ID"
+          (onRowSelect)="updateMenuState()" (onRowUnselect)="updateMenuState()"
+          (onHeaderCheckboxToggle)="updateMenuState()" styleClass="p-datatable-sm p-datatable-gridlines fs-12"
+          [scrollable]="true" scrollHeight="flex" rowGroupMode="subheader" groupRowsBy="EmployeePurchaseName"
+          sortField="EmployeePurchaseName" sortMode="single" [paginator]="true" [rows]="50"
+          [rowsPerPageOptions]="[50, 100, 200, 500]">
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 3rem; text-align: center;">
+                <p-tableHeaderCheckbox />
+              </th>
+              <th *ngFor="let col of columns" [pSortableColumn]="col.field" [style.width]="col.width"
+                class="text-center">
+                {{col.header}} <p-sortIcon [field]="col.field" />
+              </th>
+            </tr>
+            <tr>
+              <th></th>
+              <th *ngFor="let col of columns">
+                <p-multiSelect *ngIf="col.filterType === 'multiselect'" [options]="col.filterOptions || []"
+                  [(ngModel)]="col.filterValue" (onChange)="onFilterChange()" placeholder="Tất cả" [showHeader]="true"
+                  [filter]="true" appendTo="body" [style]="{'width':'100%','font-size':'12px'}" [maxSelectedLabels]="1"
+                  selectedItemsLabel="{0} đã chọn">
+                </p-multiSelect>
+                <input *ngIf="col.filterType === 'text'" pInputText type="text" [(ngModel)]="col.filterValue"
+                  (input)="onFilterChange()" [placeholder]="'Lọc ' + col.header + '...'"
+                  class="p-column-filter w-100 fs-12 px-2 py-1"
+                  style="height: 28px; border: 1px solid #ced4da; border-radius: 4px;">
+                <input *ngIf="col.filterType === 'number'" pInputText type="number" [(ngModel)]="col.filterValue"
+                  (input)="onFilterChange()" placeholder="Lọc số..." class="p-column-filter w-100 fs-12 px-2 py-1"
+                  style="height: 28px; border: 1px solid #ced4da; border-radius: 4px;">
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="groupheader" let-item>
+            <tr pRowGroupHeader>
+              <td colspan="5">
+                <i class="fa-solid fa-user-tie me-2 text-primary"></i>
+                <span class="fw-bold" style="font-size: 13px;">{{item.EmployeePurchaseName}}</span>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+            <tr [pSelectableRow]="item">
+              <td class="text-center">
+                <p-tableCheckbox [value]="item" />
+              </td>
+              <td *ngFor="let col of columns">
+                <ng-container [ngSwitch]="col.type">
+                  <span *ngSwitchCase="'date'">{{item[col.field] | date:col.dateFormat || 'dd/MM/yyyy'}}</span>
+                  <span *ngSwitchCase="'number'">{{item[col.field] | number:'1.0-2'}}</span>
+                  <span *ngSwitchCase="'boolean'">
+                    <i class="pi pi-check" *ngIf="item[col.field]" style="color:green"></i>
+                  </span>
+                  <span *ngSwitchDefault>{{item[col.field]}}</span>
+                </ng-container>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="5" class="text-center p-3 text-muted">Không có dữ liệu</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </nz-spin>
+  </div>
+</div>

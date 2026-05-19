@@ -58,6 +58,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
     customers: any[] = [];
     approverBGDs: any[] = [];
     pokhs: any[] = [];
+    allPokhs: any[] = [];
     pokhDetails: any[] = [];
     billNumbers: any[] = [];
     units: any[] = [];
@@ -408,6 +409,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 this.customers = response.data.customers;
                 this.approverSales = response.data.approverSales;
                 this.pokhs = response.data.pokhs;
+                this.allPokhs = response.data.pokhs;
                 this.pokhDetails = response.data.pokhDetails;
                 this.approverBGDs = response.data.approverBGDs;
                 // this.userTeamNames = response.data.userTeamNames.map((x: any) => ({
@@ -484,9 +486,10 @@ export class PaymentOrderSpecialComponent implements OnInit {
             .get(this.paymentOrderField.CustomerID.field)
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((value: number) => {
+                console.log('value:', value);
 
-                this.pokhs = this.pokhs.filter(x => x.CustomerID == value);
-                // console.log('valueChanges:', value, this.pokhs);
+                this.pokhs = value ? this.allPokhs.filter(x => x.CustomerID == value) : this.allPokhs;
+                console.log('valueChanges:', value, this.pokhs);
             });
 
         //Sự kiện chọn pokh
@@ -505,7 +508,7 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 //Check add thêm vào billNumber
                 for (let i = 0; i < this.selectedPOKHs.length; i++) {
                     const pokhID = this.selectedPOKHs[i];
-                    const pokh = this.pokhs.find(x => x.ID == pokhID);
+                    const pokh = this.allPokhs.find(x => x.ID == pokhID);
                     if (pokh) {
                         const pokhDetail = this.pokhDetails.filter(x => x.POKHID == pokh.ID);
                         const billBumber = this.billNumbers.find(x => x.POKHID == pokhID);

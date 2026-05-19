@@ -698,6 +698,11 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
             this.angularGrid.resizerService?.resizeGrid();
             this.applyDistinctFilters();
             this.angularGrid?.slickGrid?.scrollColumnIntoView(4);
+            // Tự động chọn dòng đầu tiên
+            if (this.dataset.length > 0) {
+              this.angularGrid.slickGrid.setSelectedRows([0]);
+              this.onActiveRowChanged(0);
+            }
           }, 100);
         }
 

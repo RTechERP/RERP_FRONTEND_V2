@@ -117,7 +117,7 @@ export class KpiSyntheticYearsComponent implements OnInit {
         columnGroup: 'THÔNG TIN'
       },
       {
-        id: 'FullName', name: 'Kỹ thuật', field: 'FullName', sortable: true, filterable: true, width: 200,
+        id: 'FullName', name: 'Kỹ thuật', field: 'FullName', sortable: true, filterable: true, width: 200, minWidth: 150,
         columnGroup: 'THÔNG TIN'
       },
       {
@@ -131,80 +131,80 @@ export class KpiSyntheticYearsComponent implements OnInit {
       // QUÝ 1 band
       {
         id: 'TotalPercentQ1', name: '% Đánh giá', field: 'TotalPercentQ1', sortable: true, width: 100,
-        cssClass: 'text-center',
-        headerCssClass: 'text-center',
+        cssClass: 'text-center bg-q1',
+        headerCssClass: 'text-center bg-q1',
         columnGroup: 'QUÝ 1'
       },
       {
         id: 'TotalPercentTextQ1', name: 'Thang điểm', field: 'TotalPercentTextQ1', sortable: true, width: 100,
-        cssClass: 'text-center',
-        headerCssClass: 'text-center',
+        cssClass: 'text-center bg-q1',
+        headerCssClass: 'text-center bg-q1',
         columnGroup: 'QUÝ 1'
       },
       {
         id: 'IsApproveQ1', name: 'Duyệt', field: 'IsApproveQ1', sortable: true, width: 70,
-        cssClass: 'text-center',
-        headerCssClass: 'text-center',
+        cssClass: 'text-center bg-q1',
+        headerCssClass: 'text-center bg-q1',
         formatter: Formatters.checkmarkMaterial,
         columnGroup: 'QUÝ 1'
       },
       // QUÝ 2 band
       {
         id: 'TotalPercentQ2', name: '% Đánh giá', field: 'TotalPercentQ2', sortable: true, width: 100,
-        cssClass: 'text-center',
-        headerCssClass: 'text-center',
+        cssClass: 'text-center bg-q2',
+        headerCssClass: 'text-center bg-q2',
         columnGroup: 'QUÝ 2'
       },
       {
         id: 'TotalPercentTextQ2', name: 'Thang điểm', field: 'TotalPercentTextQ2', sortable: true, width: 100,
-        cssClass: 'text-center',
-        headerCssClass: 'text-center',
+        cssClass: 'text-center bg-q2',
+        headerCssClass: 'text-center bg-q2',
         columnGroup: 'QUÝ 2'
       },
       {
         id: 'IsApproveQ2', name: 'Duyệt', field: 'IsApproveQ2', sortable: true, width: 70,
-        cssClass: 'text-center',
-        headerCssClass: 'text-center',
+        cssClass: 'text-center bg-q2',
+        headerCssClass: 'text-center bg-q2',
         formatter: Formatters.checkmarkMaterial,
         columnGroup: 'QUÝ 2'
       },
       // QUÝ 3 band
       {
         id: 'TotalPercentQ3', name: '% Đánh giá', field: 'TotalPercentQ3', sortable: true, width: 100,
-        cssClass: 'text-center',
-        headerCssClass: 'text-center',
+        cssClass: 'text-center bg-q3',
+        headerCssClass: 'text-center bg-q3',
         columnGroup: 'QUÝ 3'
       },
       {
         id: 'TotalPercentTextQ3', name: 'Thang điểm', field: 'TotalPercentTextQ3', sortable: true, width: 100,
-        cssClass: 'text-center',
-        headerCssClass: 'text-center',
+        cssClass: 'text-center bg-q3',
+        headerCssClass: 'text-center bg-q3',
         columnGroup: 'QUÝ 3'
       },
       {
         id: 'IsApproveQ3', name: 'Duyệt', field: 'IsApproveQ3', sortable: true, width: 70,
-        cssClass: 'text-center',
-        headerCssClass: 'text-center',
+        cssClass: 'text-center bg-q3',
+        headerCssClass: 'text-center bg-q3',
         formatter: Formatters.checkmarkMaterial,
         columnGroup: 'QUÝ 3'
       },
       // QUÝ 4 band
       {
         id: 'TotalPercentQ4', name: '% Đánh giá', field: 'TotalPercentQ4', sortable: true, width: 100,
-        cssClass: 'text-center',
-        headerCssClass: 'text-center',
+        cssClass: 'text-center bg-q4',
+        headerCssClass: 'text-center bg-q4',
         columnGroup: 'QUÝ 4'
       },
       {
         id: 'TotalPercentTextQ4', name: 'Thang điểm', field: 'TotalPercentTextQ4', sortable: true, width: 100,
-        cssClass: 'text-center',
-        headerCssClass: 'text-center',
+        cssClass: 'text-center bg-q4',
+        headerCssClass: 'text-center bg-q4',
         columnGroup: 'QUÝ 4'
       },
       {
         id: 'IsApproveQ4', name: 'Duyệt', field: 'IsApproveQ4', sortable: true, width: 70,
-        cssClass: 'text-center',
-        headerCssClass: 'text-center',
+        cssClass: 'text-center bg-q4',
+        headerCssClass: 'text-center bg-q4',
         formatter: Formatters.checkmarkMaterial,
         columnGroup: 'QUÝ 4'
       },
@@ -369,16 +369,24 @@ export class KpiSyntheticYearsComponent implements OnInit {
 
     // Style column headers
     const headerRow = worksheet.getRow(3);
-    headerRow.eachCell((cell) => {
+    headerRow.eachCell((cell, colNumber) => {
       cell.font = { bold: true };
       cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2EFDA' } };
       cell.border = {
         top: { style: 'thin' },
         left: { style: 'thin' },
         bottom: { style: 'thin' },
         right: { style: 'thin' }
       };
+
+      // Background colors based on columns
+      let bgColor = 'FFE2EFDA'; // Default
+      if (colNumber >= 5 && colNumber <= 7) bgColor = 'FFE6F7FF'; // Q1
+      if (colNumber >= 8 && colNumber <= 10) bgColor = 'FFF6FFED'; // Q2
+      if (colNumber >= 11 && colNumber <= 13) bgColor = 'FFF6EAF6'; // Q3
+      if (colNumber >= 14 && colNumber <= 16) bgColor = 'FFFFF7E6'; // Q4
+
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
     });
 
     // Data rows
@@ -390,34 +398,60 @@ export class KpiSyntheticYearsComponent implements OnInit {
         item.ProjectTypeName || '',
         item.TotalPercentQ1 || '',
         item.TotalPercentTextQ1 || '',
-        item.IsApproveQ1 ? 'Có' : 'Không',
+        item.IsApproveQ1 ? '✓' : '',
         item.TotalPercentQ2 || '',
         item.TotalPercentTextQ2 || '',
-        item.IsApproveQ2 ? 'Có' : 'Không',
+        item.IsApproveQ2 ? '✓' : '',
         item.TotalPercentQ3 || '',
         item.TotalPercentTextQ3 || '',
-        item.IsApproveQ3 ? 'Có' : 'Không',
+        item.IsApproveQ3 ? '✓' : '',
         item.TotalPercentQ4 || '',
         item.TotalPercentTextQ4 || '',
-        item.IsApproveQ4 ? 'Có' : 'Không',
+        item.IsApproveQ4 ? '✓' : '',
         item.PointPercentYear || '',
         item.ScoreScaleYear || '',
-        item.IsApproveYear ? 'Có' : 'Không'
+        item.IsApproveYear ? '✓' : ''
       ]);
 
-      row.eachCell((cell) => {
+      row.eachCell((cell, colNumber) => {
         cell.border = {
           top: { style: 'thin' },
           left: { style: 'thin' },
           bottom: { style: 'thin' },
           right: { style: 'thin' }
         };
+
+        // Alignment: Center STT, Position, and all metrics columns
+        // 1: STT, 3: Vị trí, 5-19: Metrics
+        if (colNumber === 1 || colNumber === 3 || colNumber >= 5) {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+
+        // Background colors for quarterly columns
+        let bgColor = '';
+        if (colNumber >= 5 && colNumber <= 7) bgColor = 'FFE6F7FF'; // Q1
+        if (colNumber >= 8 && colNumber <= 10) bgColor = 'FFF6FFED'; // Q2
+        if (colNumber >= 11 && colNumber <= 13) bgColor = 'FFF6EAF6'; // Q3
+        if (colNumber >= 14 && colNumber <= 16) bgColor = 'FFFFF7E6'; // Q4
+
+        if (bgColor) {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgColor } };
+        }
       });
     });
 
     // Auto fit columns
-    worksheet.columns.forEach((column) => {
-      column.width = 15;
+    worksheet.columns.forEach((column, index) => {
+      if (index === 1) { // Column B (Kỹ thuật) - 0-indexed column objects array
+        let maxLen = 15;
+        this.dataset.forEach(item => {
+          const len = item.FullName ? item.FullName.toString().length : 0;
+          if (len > maxLen) maxLen = len;
+        });
+        column.width = maxLen + 5;
+      } else {
+        column.width = 12;
+      }
     });
 
     // Export

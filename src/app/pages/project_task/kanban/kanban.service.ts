@@ -204,6 +204,10 @@ export class KanbanService {
         );
     }
 
+    cancelApproveTask(projectTaskID: number): Observable<IAPIResponse<any>> {
+        return this.http.post<IAPIResponse<any>>(`${this.apiUrl}/cancel-approve`, projectTaskID);
+    }
+
     // --- Project Methods ---
     getAllProjects(): Observable<IAPIResponse<IProject[]>> {
         return this.http.get<IAPIResponse<IProject[]>>(`${this.apiUrl}/get-all-project`);
@@ -239,6 +243,11 @@ export class KanbanService {
     // --- Parent Task List Methods ---
     getProjectTasksList(projectID: number = 0, isPersionalProject: boolean = false): Observable<IAPIResponse<any[]>> {
         return this.http.get<IAPIResponse<any[]>>(`${this.apiUrl}/list-project-task?projectID=${projectID}&isPersionalProject=${isPersionalProject}`);
+    }
+
+    // --- Task Leader Methods ---
+    getProjectTaskLeaders(projectTaskID: number): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/project-task-leaders?projectTaskID=${projectTaskID}`);
     }
 }
 

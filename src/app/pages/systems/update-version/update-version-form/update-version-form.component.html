@@ -8,9 +8,9 @@
         <div nz-row [nzGutter]="[16, 16]">
             <div nz-col [nzXs]="24" [nzMd]="12">
                 <nz-form-item>
-                    <nz-form-label>Mã phiên bản</nz-form-label>
-                    <nz-form-control>
-                        <input nz-input [(ngModel)]="formData.Code" name="code" disabled placeholder="Tự động tạo" />
+                    <nz-form-label nzRequired>Mã phiên bản</nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Vui lòng nhập mã phiên bản'">
+                        <input nz-input [(ngModel)]="formData.Code" name="code" placeholder="Nhập mã phiên bản" />
                     </nz-form-control>
                 </nz-form-item>
             </div>

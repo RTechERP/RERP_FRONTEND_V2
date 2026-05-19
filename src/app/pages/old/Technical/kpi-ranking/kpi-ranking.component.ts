@@ -12,6 +12,8 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { AngularSlickgridModule, Column, GridOption, AngularGridInstance } from 'angular-slickgrid';
 import { ChartModule } from 'primeng/chart';
 import { KpiRankingService } from './kpi-ranking-service/kpi-ranking.service';
+import { Inject, Optional } from '@angular/core';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
 
 @Component({
   selector: 'app-kpi-ranking',
@@ -47,7 +49,33 @@ export class KpiRankingComponent implements OnInit {
   selectedChartType: string = 'TotalPoinKPI';
   chartData: any = { labels: [], datasets: [] };
   chartOptions: any = {};
+  chartPlugins: any[] = [{
+    id: 'chartDataLabels',
+    afterDatasetsDraw: (chart: any) => {
+      const { ctx } = chart;
+      chart.data.datasets.forEach((dataset: any, i: number) => {
+        const meta = chart.getDatasetMeta(i);
+        meta.data.forEach((bar: any, index: number) => {
+          const value = dataset.data[index];
+          if (value > 0) {
+            ctx.save();
+            ctx.font = 'bold 12px Arial';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const x = bar.x;
+            const y = bar.y;
+            const base = bar.base;
+            // Draw in the middle of the bar
+            ctx.fillText(value.toString(), x, y + (base - y) / 2);
+            ctx.restore();
+          }
+        });
+      });
+    }
+  }];
   rawChartData: any[] = [];
+  allEmployees: any[] = [];
 
   // Grid State
   grid!: AngularGridInstance;
@@ -55,8 +83,13 @@ export class KpiRankingComponent implements OnInit {
   colDef: Column[] = [];
 
   gridOptions: GridOption = {
-    gridWidth: '100%',
     enableAutoResize: true,
+    autoResize: {
+      container: '.grid-content',
+      rightPadding: 0,
+      bottomPadding: 10,
+      minHeight: 200
+    },
     enableCellNavigation: true,
     enableFiltering: true,
     enableSorting: true,
@@ -74,21 +107,41 @@ export class KpiRankingComponent implements OnInit {
   private kpiOrder: string[] = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D'];
 
   constructor(
-    public activeModal: NgbActiveModal,
+    @Optional() public activeModal: NgbActiveModal,
     private service: KpiRankingService,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+    private tabService: TabServiceService,
+    @Optional() @Inject('tabData') public tabData: any
   ) { }
 
   ngOnInit(): void {
-    // Apply inputs từ parent
-    if (this.inputYear) this.year = this.inputYear;
-    if (this.inputQuarter) this.quarter = this.inputQuarter;
-    if (this.inputDepartmentId) this.departmentId = this.inputDepartmentId;
+    // Apply inputs từ parent hoặc tabData
+    let hasPassedData = false;
+    if (this.tabData) {
+      if (this.tabData.inputYear) this.year = this.tabData.inputYear;
+      if (this.tabData.inputQuarter) this.quarter = this.tabData.inputQuarter;
+      if (this.tabData.inputDepartmentId) this.departmentId = this.tabData.inputDepartmentId;
+
+      // Ưu tiên sử dụng dữ liệu truyền từ form cha (dataset)
+      if (this.tabData.dtData && Array.isArray(this.tabData.dtData)) {
+        this.allEmployees = this.tabData.dtData;
+        this.processChartData(this.allEmployees);
+        hasPassedData = true;
+      }
+    } else {
+      if (this.inputYear) this.year = this.inputYear;
+      if (this.inputQuarter) this.quarter = this.inputQuarter;
+      if (this.inputDepartmentId) this.departmentId = this.inputDepartmentId;
+    }
 
     this.initColumns();
     this.initChartOptions();
     this.loadDepartments();
-    this.loadData();
+
+    // Chỉ gọi API nếu không có dữ liệu truyền từ cha
+    if (!hasPassedData) {
+      this.loadData();
+    }
   }
 
   initColumns(): void {
@@ -100,6 +153,7 @@ export class KpiRankingComponent implements OnInit {
       { id: 'DepartmentName', name: 'Phòng ban', field: 'DepartmentName', sortable: true, filterable: true, minWidth: 150, formatter: this.commonTooltipFormatter },
     ];
   }
+
 
   initChartOptions(): void {
     const documentStyle = getComputedStyle(document.documentElement);
@@ -115,7 +169,8 @@ export class KpiRankingComponent implements OnInit {
           display: true,
           text: 'BIỂU ĐỒ XẾP LOẠI',
           font: { size: 18, weight: 'bold' },
-          color: '#333'
+          color: '#333',
+          padding: { bottom: 30 }
         },
         legend: {
           display: true,
@@ -123,6 +178,7 @@ export class KpiRankingComponent implements OnInit {
           position: 'bottom'
         },
         tooltip: {
+          enabled: true,
           callbacks: {
             label: (context: any) => `${context.dataset.label}: ${context.parsed.y}`
           }
@@ -132,15 +188,14 @@ export class KpiRankingComponent implements OnInit {
         x: {
           stacked: true,
           ticks: { color: textColorSecondary, font: { weight: 500 } },
-          grid: { color: surfaceBorder }
+          grid: { display: false }
         },
         y: {
           stacked: true,
           ticks: { color: textColorSecondary, stepSize: 1 },
           grid: { color: surfaceBorder }
         }
-      },
-      onClick: (e: any, elements: any) => this.onChartClick(e, elements)
+      }
     };
   }
 
@@ -153,30 +208,55 @@ export class KpiRankingComponent implements OnInit {
   }
 
   loadData(): void {
-    this.service.getData(this.year, this.quarter, this.departmentId || 0).subscribe(res => {
+    this.service.getData(this.year, this.quarter, this.departmentId || 0, 0).subscribe(res => {
       if (res.status === 1 && res.data) {
+        this.allEmployees = res.data;
         this.processChartData(res.data);
+        // Clear grid initially
+        this.dataset = [];
       }
     });
   }
 
   processChartData(data: any[]): void {
-    // Group by KPILevel and sum quantities
-    const grouped = data.reduce((acc: any, item: any) => {
-      const level = item.KPILevel;
-      if (!acc[level]) {
-        acc[level] = { KPILevel: level, SoLuongExpected: 0, SoLuongActual: 0 };
-      }
-      acc[level].SoLuongExpected += item.SoLuongExpected || 0;
-      acc[level].SoLuongActual += item.SoLuongActual || 0;
-      return acc;
-    }, {});
+    const levels = this.kpiOrder;
+    const result: any[] = [];
 
-    // Sort by KPI order
-    this.rawChartData = Object.values(grouped).sort((a: any, b: any) => {
-      return this.kpiOrder.indexOf(a.KPILevel) - this.kpiOrder.indexOf(b.KPILevel);
-    });
+    // Kiểm tra xem dữ liệu truyền vào là dạng Tóm tắt (có KPILevel) hay Chi tiết (có TotalPercentText)
+    const isSummarized = data.length > 0 && data[0].KPILevel !== undefined;
 
+    if (isSummarized) {
+      // Xử lý dữ liệu tóm tắt từ API
+      levels.forEach(level => {
+        const items = data.filter(d => (d.KPILevel || '').trim().toUpperCase() === level.toUpperCase());
+        const expected = items.reduce((sum, d) => sum + (d.SoLuongExpected || 0), 0);
+        const actual = items.reduce((sum, d) => sum + (d.SoLuongActual || 0), 0);
+        result.push({
+          KPILevel: level,
+          SoLuongExpected: expected,
+          SoLuongActual: actual
+        });
+      });
+    } else {
+      // Xử lý dữ liệu chi tiết từ Parent hoặc API đã sửa
+      levels.forEach((level) => {
+        const expectedCount = data.filter((item: any) =>
+          (item.TotalPercentText || '').trim().toUpperCase() === level.toUpperCase()
+        ).length;
+
+        const actualCount = data.filter((item: any) =>
+          (item.TotalPercentTextActual || '').trim().toUpperCase() === level.toUpperCase()
+        ).length;
+
+        result.push({
+          KPILevel: level,
+          SoLuongExpected: expectedCount,
+          SoLuongActual: actualCount
+        });
+      });
+    }
+
+    this.rawChartData = result;
     this.updateChartVisibility();
   }
 
@@ -207,20 +287,41 @@ export class KpiRankingComponent implements OnInit {
     this.updateChartVisibility();
   }
 
-  onChartClick(event: any, elements: any[]): void {
-    if (!elements || !elements.length) return;
-
-    const el = elements[0];
-    const kpiLevel = this.chartData.labels[el.index];
+  onDataSelect(event: any): void {
+    if (!event.element) return;
+    const kpiLevel = this.chartData.labels[event.element.index];
     const isActual = this.selectedChartType === 'TotalPoinKPILast';
-
     this.loadEmployeesByKpiLevel(kpiLevel, isActual);
   }
 
   loadEmployeesByKpiLevel(kpiLevel: string, isActual: boolean): void {
-    this.service.getData(this.year, this.quarter, this.departmentId || 0, kpiLevel).subscribe(res => {
+    const filterField = isActual ? 'TotalPercentTextActual' : 'TotalPercentText';
+
+    // Nếu đã có dữ liệu chi tiết (ví dụ từ Form cha truyền vào), thực hiện lọc local
+    if (this.allEmployees.length > 0 && this.allEmployees[0].Code !== undefined) {
+      const filtered = this.allEmployees.filter((emp: any) =>
+        (emp[filterField] || '').trim().toUpperCase() === kpiLevel.toUpperCase()
+      );
+
+      this.dataset = filtered.map((x: any, i: number) => ({
+        ...x,
+        id: i
+      }));
+
+      this.updateColumnVisibility(isActual);
+      setTimeout(() => this.applyGrouping(), 100);
+      return;
+    }
+
+    // Nếu chưa có dữ liệu chi tiết, gọi API để lấy theo Level
+    const kpiLevelInt = this.kpiOrder.indexOf(kpiLevel) + 1;
+    this.service.getData(this.year, this.quarter, this.departmentId || 0, kpiLevelInt).subscribe(res => {
       if (res.status === 1 && res.data) {
-        const data = res.data.map((x: any, i: number) => ({
+        const filtered = res.data.filter((emp: any) =>
+          (emp[filterField] || '').trim().toUpperCase() === kpiLevel.toUpperCase()
+        );
+
+        const data = filtered.map((x: any, i: number) => ({
           ...x,
           id: i
         }));
@@ -250,15 +351,22 @@ export class KpiRankingComponent implements OnInit {
 
   applyGrouping(): void {
     if (this.grid && this.grid.dataView) {
-      this.grid.dataView.setGrouping({
-        getter: 'DepartmentName',
-        formatter: (g) => `${g.value} <span style="color:green">(${g.count})</span>`
-      });
+      this.grid.dataView.setGrouping([
+        {
+          getter: 'DepartmentName',
+          formatter: (g: any) => `Phòng ban: <strong>${g.value}</strong> <span style="color: #1890ff; font-weight: bold;">(${g.count} nhân viên)</span>`,
+          aggregateCollapsed: false,
+          lazyTotalsCalculation: true
+        }
+      ]);
     }
   }
 
   onGridReady(grid: AngularGridInstance): void {
     this.grid = grid;
+    if (this.dataset && this.dataset.length > 0) {
+      setTimeout(() => this.applyGrouping(), 100);
+    }
   }
 
   onFilterChange(): void {
@@ -266,7 +374,15 @@ export class KpiRankingComponent implements OnInit {
   }
 
   closeModal(): void {
-    this.activeModal.close();
+    if (this.activeModal) {
+      this.activeModal.close();
+    } else if (this.tabData && this.tabData._tabKey) {
+      this.tabService.closeTabByKey(this.tabData._tabKey);
+    } else {
+      // Fallback close by key based on how it was opened
+      const key = `kpi-ranking-${this.year}-${this.quarter}-${this.departmentId}`;
+      this.tabService.closeTabByKey(key);
+    }
   }
 
   // Helper function to escape HTML special characters

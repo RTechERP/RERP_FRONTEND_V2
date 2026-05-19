@@ -1,14 +1,18 @@
 :host ::ng-deep .ant-row-space-between {
     justify-content: flex-start;
 }
+
 .timeline-container {
+    --timeline-table-font-family: 'Inter', sans-serif;
+    --timeline-table-font-size: 10px;
+
     display: flex;
     flex-direction: column;
     height: calc(100vh - 64px);
     background-color: #f4f7f9;
     padding: 0px;
     overflow: hidden;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--timeline-table-font-family);
 }
 
 /* ===== SEARCH FORM ===== */
@@ -26,6 +30,27 @@
     font-size: 12px;
     color: #595959;
     font-weight: 500;
+}
+
+.form-field-vertical input,
+.form-field-vertical nz-select {
+    font-size: 12px !important;
+}
+
+:host ::ng-deep .form-field-vertical .timeline-combo-select .ant-select-selection-item,
+:host ::ng-deep .form-field-vertical .timeline-combo-select .ant-select-selection-placeholder,
+:host ::ng-deep .form-field-vertical .timeline-combo-select .ant-select-selection-search-input {
+    font-family: var(--timeline-table-font-family) !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+}
+
+::ng-deep .timeline-combo-dropdown,
+::ng-deep .timeline-combo-dropdown .ant-select-item,
+::ng-deep .timeline-combo-dropdown .ant-select-item-option-content {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
 }
 
 .legend-bar {
@@ -78,7 +103,8 @@
     border-spacing: 0;
     width: max-content;
     min-width: 100%;
-    font-size: 11px;
+    font-family: var(--timeline-table-font-family);
+    font-size: var(--timeline-table-font-size);
     table-layout: fixed;
 }
 
@@ -86,7 +112,7 @@
 .grid-table td {
     border-right: 1px solid #e2e8f0;
     border-bottom: 1px solid #e2e8f0;
-    padding: 6px 8px;
+    padding: 3px 4px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -100,58 +126,72 @@ thead th {
     font-weight: 600;
     color: #334155;
     text-align: center;
+    white-space: nowrap;
+    height: 26px;
+    padding: 0 4px !important;
+    vertical-align: middle;
 }
 
 thead tr:nth-child(2) th {
-    top: 31px;
+    top: 26px;
 }
 
-/* ===== CỘT KÍCH THƯỚC ===== */
 .col-stt {
-    width: 45px;
-    min-width: 45px;
+    width: 30px;
+    min-width: 30px;
+    max-width: 30px;
 }
 
 .col-name {
-    width: 130px;
-    min-width: 130px;
-}
-
-.col-job {
-    width: 240px;
-    min-width: 240px;
+    width: 100px;
+    min-width: 100px;
+    max-width: 100px;
 }
 
 .col-proj {
-    width: 150px;
-    min-width: 150px;
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+}
+
+.col-job {
+    width: 180px;
+    min-width: 180px;
+    max-width: 180px;
 }
 
 .col-status {
-    width: 85px;
-    min-width: 85px;
+    width: 90px;
+    min-width: 90px;
+    max-width: 90px;
 }
 
 .col-time {
-    width: 65px;
-    min-width: 65px;
+    width: 80px;
+    min-width: 80px;
+    max-width: 80px;
 }
 
 .col-type {
     width: 60px;
     min-width: 60px;
+    max-width: 60px;
+    white-space: nowrap;
 }
 
 /* ===== STICKY COLUMNS ===== */
 .sticky-col {
     position: sticky;
-    left: 0;
     z-index: 11;
     background-color: #fff;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 thead .sticky-col {
     z-index: 15;
+    background-color: #f8fafc !important;
 }
 
 .col-stt.sticky-col {
@@ -159,29 +199,43 @@ thead .sticky-col {
 }
 
 .col-name.sticky-col {
-    left: 45px;
+    left: 30px;
 }
 
 .col-proj.sticky-col {
-    left: 175px; 
+    left: 130px;
 }
 
 .col-job.sticky-col {
-    left: 325px; 
+    left: 250px;
+}
+
+.col-status.sticky-col {
+    left: 430px;
+}
+
+.col-time.sticky-col {
+    left: 520px;
+}
+
+.col-type.sticky-col {
+    left: 600px;
 }
 
 /* ===== DATE COLUMNS ===== */
 .date-header,
 .date-subheader {
-    width: 38px;
-    min-width: 38px;
-    font-size: 10px;
+    width: 28px;
+    min-width: 28px;
+    font-size: 9px;
     position: relative;
+    padding: 0 !important;
+    line-height: 26px;
 }
 
 .today-col {
     position: relative;
-    background-color: #fff1f0 !important;
+    background-color: #e6f7ff !important;
 }
 
 .today-col::after {
@@ -198,7 +252,7 @@ thead .sticky-col {
 }
 
 .sunday {
-    background-color: #fff1f2 !important;
+    background-color: #f1f5f9 !important;
 }
 
 .date-header.sunday,
@@ -208,8 +262,8 @@ thead .sticky-col {
 
 .gantt-cell {
     padding: 0 !important;
-    width: 38px;
-    min-width: 38px;
+    width: 28px;
+    min-width: 28px;
     text-align: center;
     vertical-align: middle;
     position: relative;
@@ -227,16 +281,21 @@ thead .sticky-col {
 
 /* Icon check trong ô Dự kiến */
 .check-icon {
-    color: #fff;
-    font-size: 25px;
-    font-weight: 700;
+    color: #15803d; /* xanh lá đậm */
+    font-size: 22px;
+    line-height: 1;
+}
+
+.check-icon svg {
+    stroke: #15803d;
+    stroke-width: 80px; /* Làm SVG dày lên (viewBox 1024) */
 }
 
 /* Số giờ trong ô Thực tế */
 .actual-percent,
 .actual-hours {
     color: #fff;
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 700;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
@@ -244,6 +303,22 @@ thead .sticky-col {
 /* ===== ROW STYLING ===== */
 .row-actual td {
     border-bottom: 2px solid #cbd5e1;
+}
+
+.row-overdue td:not(.filled-planned):not(.filled-actual) {
+    background-color: #fff1f2 !important;
+}
+
+.row-overdue td.sunday:not(.filled-planned):not(.filled-actual) {
+    background-color: #f1f5f9 !important;
+}
+
+.row-overdue .sticky-col {
+    background-color: #fff1f2 !important;
+}
+
+.cell-group-end {
+    border-bottom: 2px solid #b4b4b4 !important;
 }
 
 .text-center {
@@ -301,12 +376,18 @@ thead .sticky-col {
 
 /* ===== STATUS TAGS ===== */
 .status-tag {
-    padding: 2px 8px;
+    display: inline-block;
+    padding: 2px 10px;
     border-radius: 12px;
     font-size: 11px;
     font-weight: 600;
     background: #f1f5f9;
     color: #475569;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.4;
+    min-width: 70px;
+    max-width: 100%;
 }
 
 .status-tag[data-status="0"] {
@@ -332,6 +413,12 @@ thead .sticky-col {
 .status-tag[data-status="4"] {
     background: #fff1f2;
     color: #e11d48;
+}
+
+.status-tag.overdue {
+    background: #fee2e2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fca5a5;
 }
 
 /* ===== FILTER INPUT ===== */
@@ -414,11 +501,65 @@ tfoot td {
 
 :host ::ng-deep .timeline-status-multi .p-multiselect-label {
     padding: 0 4px;
-    font-size: 11px;
+    font-family: var(--timeline-table-font-family);
+    font-size: var(--timeline-table-font-size);
+    font-weight: 400;
     line-height: normal;
 }
 
 :host ::ng-deep .timeline-status-multi .p-multiselect-trigger {
     width: 20px;
     height: 22px;
+}
+
+::ng-deep .timeline-status-multi-panel,
+::ng-deep .timeline-status-multi-panel .p-multiselect-item,
+::ng-deep .timeline-status-multi-panel .p-multiselect-option,
+::ng-deep .timeline-status-multi-panel .p-multiselect-option-label {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 10px !important;
+    font-weight: 400 !important;
+}
+
+/* ===== CUSTOM CONTEXT MENU ===== */
+.custom-context-menu {
+    position: fixed;
+    z-index: 1050;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    min-width: 200px;
+    padding: 4px 0;
+}
+
+.custom-context-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.custom-context-menu li {
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s;
+}
+
+.custom-context-menu li:hover {
+    background: #f0f5ff;
+    color: #1890ff;
+}
+
+.context-menu-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1049;
 }

@@ -137,12 +137,10 @@ export class TrackingMarksComponent implements OnInit, AfterViewInit {
   ) {
     // Set default dates - tháng hiện tại
     const dateStart = new Date();
-    dateStart.setDate(1);
     this.filters.dateStart = dateStart;
 
     const dateEnd = new Date();
-    dateEnd.setMonth(dateEnd.getMonth() + 1);
-    dateEnd.setDate(0);
+    // dateEnd.setMonth(dateEnd.getMonth() + 1);
     this.filters.dateEnd = dateEnd;
   }
 

@@ -76,7 +76,7 @@ import { MenuEventService } from '../../systems/menus/menu-service/menu-event.se
 import { ProductSaleComponent } from '../Sale/ProductSale/product-sale.component';
 import { TabulatorPopupService } from '../../../shared/components/tabulator-popup';
 import { ProjectDetailComponent } from '../../project/project-detail/project-detail.component';
-import { ProjectPartListSlickGridComponent } from '../../project-part-list-slick-grid/project-part-list-slick-grid.component';
+import { ProjectPartListSlickGridComponent } from '../../project/project-part-list-slick-grid/project-part-list-slick-grid.component';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -211,6 +211,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     userId: 0,
     poDate: new Date(),
     totalPO: 0,
+    totalPOBeforeVAT: 0,
     poNumber: '',
     projectId: 0,
     poType: 0,
@@ -256,6 +257,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   isSubmitted: boolean = false;
   isSaving: boolean = false;
   isLoadingData: boolean = false;
+  private copySourcePOKHId: number = 0;
+  private lastPOKHDataLoadKey: string = '';
+  private customersLoaded: boolean = false;
+  private pendingPOKHDataLoadId: number | null = null;
 
   //#endregion
   //#region : Hàm khởi tạo
@@ -270,7 +275,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.filters.endDate = endDate;
     this.loadCustomers(() => {
       if (this.isEditMode) {
-        this.loadPOKHData(this.selectedId);
+        this.requestPOKHDataLoad(this.selectedId);
       }
     });
     this.loadEmployeeManagers();
@@ -280,12 +285,26 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.loadProducts();
   }
 
+  startCopyFromSource(id: number, warehouseId: number = 0): void {
+    this.isCopy = true;
+    this.isEditMode = true;
+    this.selectedId = id;
+    this.copySourcePOKHId = id;
+
+    if (warehouseId) {
+      this.warehouseId = warehouseId;
+      this.filters.warehouseId = warehouseId;
+    }
+
+    this.requestPOKHDataLoad(id);
+  }
+
   ngAfterViewInit(): void {
     if (this.isEditMode && this.selectedId > 0 && !this.isLoadingData) {
       // Kiểm tra xem data đã được load chưa bằng cách kiểm tra poFormData
       if (!this.poFormData.poCode) {
         // Nếu chưa có data, load lại (trường hợp loadCustomers chưa xong)
-        this.loadPOKHData(this.selectedId);
+        this.requestPOKHDataLoad(this.selectedId);
       }
     } else if (!this.isEditMode) {
       // Chế độ thêm mới
@@ -315,6 +334,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       (response) => {
         if (response.status === 1) {
           this.dataCustomers = response.data;
+          this.customersLoaded = true;
           if (this.selectedCustomer && this.selectedCustomer.ID && !this.selectedCustomer.CustomerShortName) {
             const fullCustomer = this.dataCustomers.find(
               (c) => c.ID === this.selectedCustomer.ID
@@ -325,6 +345,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           }
 
           if (callback) callback();
+          if (!callback && this.pendingPOKHDataLoadId) {
+            this.requestPOKHDataLoad(this.pendingPOKHDataLoadId);
+          }
         } else {
           this.notification.create(
             NOTIFICATION_TYPE_MAP[response.status] || 'error',
@@ -349,6 +372,19 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         return;
       }
     );
+  }
+  private requestPOKHDataLoad(id: number): void {
+    if (!id || id <= 0) {
+      return;
+    }
+
+    if (!this.customersLoaded) {
+      this.pendingPOKHDataLoadId = id;
+      return;
+    }
+
+    this.pendingPOKHDataLoadId = null;
+    this.loadPOKHData(id);
   }
   loadEmployeeManagers(): void {
     this.POKHService.loadEmployeeManagers().subscribe(
@@ -615,12 +651,18 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    const loadKey = `${id}:${this.isCopy ? 'copy' : 'edit'}`;
+    if (this.lastPOKHDataLoadKey === loadKey) {
+      return;
+    }
+
     if (this.isLoadingData) {
       console.warn('loadPOKHData: Already loading data');
       return;
     }
 
     this.isLoadingData = true;
+    this.lastPOKHDataLoadKey = loadKey;
 
     this.POKHService.getPOKHByID(id).subscribe(
       (response) => {
@@ -643,6 +685,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             userId: pokhData.UserID,
             poDate: formattedDate,
             totalPO: pokhData.TotalMoneyPO,
+            totalPOBeforeVAT: pokhData.TotalMoneyKoVAT || 0,
             poNumber: pokhData.PONumber,
             projectId: pokhData.ProjectID,
             poType: pokhData.POType,
@@ -679,17 +722,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           // Nếu đang ở chế độ copy thì reset ID và data file
 
           if (this.isCopy) {
+            this.copySourcePOKHId = id;
+            this.poFormData.poCode = '';
             this.dataPOKHDetailFile = [];
             this.dataPOKHFiles = [];
 
-            let item = this.selectedCustomer || this.dataCustomers.find(
-              (c) => c.ID === pokhData.CustomerID
-            );
-            if (item && item.CustomerShortName) {
-              this.generatePOCode(item.CustomerShortName);
-            } else if (this.poFormData.customerName) {
-              this.generatePOCode(this.poFormData.customerName);
-            }
+            const customerForPOCode = this.getCustomerForPOCode(pokhData);
+            this.generatePOCode(customerForPOCode);
           }
 
           // Lấy dữ liệu bộ phận bằng khách hàng
@@ -861,8 +900,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       return;
     }
     if (this.isCopy) {
+      if (!this.validateForm()) return;
       this.copyPOKHToDTO();
-      this.isCopy = false;
       return;
     }
     if (!this.validateForm()) return;
@@ -1450,6 +1489,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   }
   calculateTotalMoneyKoVAT() {
     let total = 0;
+    const sourceRows = this.tb_ProductDetailTreeList?.getData?.() || this.dataPOKHProduct || [];
     const processRows = (rows: any[]) => {
       rows.forEach((row) => {
         total += Number(row.IntoMoney) || 0;
@@ -1458,7 +1498,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         }
       });
     };
-    processRows(this.tb_ProductDetailTreeList.getData());
+    processRows(sourceRows);
     return total;
   }
 
@@ -1485,6 +1525,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       userId: 0,
       poDate: new Date(),
       totalPO: 0,
+      totalPOBeforeVAT: 0,
       poNumber: '',
       projectId: 0,
       poType: 0,
@@ -1616,11 +1657,54 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     return treeData;
   }
 
+  private getCustomerForPOCode(pokhData?: any): string {
+    const customerId =
+      this.selectedCustomer?.ID ||
+      this.poFormData.customerId ||
+      pokhData?.CustomerID ||
+      0;
+    const fullCustomer = this.dataCustomers.find(
+      (customer) => Number(customer.ID) === Number(customerId)
+    );
+
+    if (fullCustomer) {
+      this.selectedCustomer = fullCustomer;
+      this.poFormData.customerId = fullCustomer.ID;
+      this.poFormData.customerName = fullCustomer.CustomerName || this.poFormData.customerName || '';
+    }
+
+    const customer =
+      fullCustomer ||
+      this.selectedCustomer ||
+      pokhData ||
+      {};
+
+    return (
+      customer.CustomerShortName ||
+      customer.CustomerCode ||
+      this.poFormData.customerName ||
+      pokhData?.CustomerName ||
+      ''
+    ).toString().trim();
+  }
+
   generatePOCode(CustomerName: string): void {
-    const { isCopy = false, warehouseId = 1, pokhId = 0 } = this.poFormData;
+    const customer = (CustomerName || '').toString().trim();
+    if (!customer) {
+      console.warn('generatePOCode: customer is empty, skip generating PO code');
+      return;
+    }
+
+    const isCopy = this.isCopy;
+    const warehouseId =
+      this.poFormData.warehouseId ||
+      this.warehouseId ||
+      this.filters.warehouseId ||
+      1;
+    const pokhId = isCopy ? (this.copySourcePOKHId || this.selectedId || 0) : 0;
 
     this.POKHService.generatePOCode(
-      CustomerName,
+      customer,
       isCopy,
       warehouseId,
       pokhId
@@ -1696,12 +1780,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
     // Đảm bảo totalPO luôn là số hợp lệ, không phải NaN
     this.poFormData.totalPO = isNaN(totalSum) ? 0 : totalSum;
+    this.poFormData.totalPOBeforeVAT = this.calculateTotalMoneyKoVAT();
     console.log('Tổng giá trị sau VAT:', this.poFormData.totalPO);
 
     // Cập nhật lại giá trị tiền trong bảng người phụ trách
     this.updateResponsibleUsersMoney();
 
-    // Tính lại chiết khấu khi totalPO thay đổi: chỉ tính từ moneyDiscount, không tính từ %
+    // Tính lại chiết khấu theo tổng tiền trước VAT: chỉ tính từ moneyDiscount, không tính từ %
     this.calculateTotalFromMoneyDiscount();
   }
   updateResponsibleUsersMoney(): void {
@@ -1722,10 +1807,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     });
   }
   calculateDiscount(): void {
-    // Đảm bảo totalPO luôn là số hợp lệ
-    const totalPO = isNaN(Number(this.poFormData.totalPO))
-      ? 0
-      : Number(this.poFormData.totalPO) || 0;
+    const totalBeforeVAT = this.getDiscountBaseAmount();
 
     // Lấy tổng tiền chiết khấu hiện tại
     const moneyDiscount = isNaN(Number(this.poFormData.moneyDiscount))
@@ -1735,7 +1817,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     // Ưu tiên tổng tiền chiết khấu: nếu có moneyDiscount thì dùng nó
     if (moneyDiscount > 0) {
       // Tính tổng tiền sau chiết khấu từ moneyDiscount
-      const result = totalPO - moneyDiscount;
+      const result = totalBeforeVAT - moneyDiscount;
       this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
     } else {
       // Nếu không có moneyDiscount, tính từ % chiết khấu
@@ -1744,47 +1826,48 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         : Number(this.poFormData.discount) || 0;
 
       // Tính số tiền chiết khấu từ %
-      const calculatedMoneyDiscount = (totalPO * discount) / 100;
+      const calculatedMoneyDiscount = (totalBeforeVAT * discount) / 100;
       this.poFormData.moneyDiscount = isNaN(calculatedMoneyDiscount) ? 0 : calculatedMoneyDiscount;
 
       // Tính tổng tiền sau chiết khấu
-      const result = totalPO - calculatedMoneyDiscount;
+      const result = totalBeforeVAT - calculatedMoneyDiscount;
       this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
     }
   }
 
   // Tính từ % chiết khấu: cập nhật moneyDiscount và totalMoneyDiscount
   calculateDiscountFromPercent(): void {
-    const totalPO = isNaN(Number(this.poFormData.totalPO))
-      ? 0
-      : Number(this.poFormData.totalPO) || 0;
+    const totalBeforeVAT = this.getDiscountBaseAmount();
 
     const discount = isNaN(Number(this.poFormData.discount))
       ? 0
       : Number(this.poFormData.discount) || 0;
 
     // Tính số tiền chiết khấu từ %
-    const calculatedMoneyDiscount = (totalPO * discount) / 100;
+    const calculatedMoneyDiscount = (totalBeforeVAT * discount) / 100;
     this.poFormData.moneyDiscount = isNaN(calculatedMoneyDiscount) ? 0 : calculatedMoneyDiscount;
 
     // Tính tổng tiền sau chiết khấu
-    const result = totalPO - calculatedMoneyDiscount;
+    const result = totalBeforeVAT - calculatedMoneyDiscount;
     this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
   }
 
   // Tính từ tổng tiền chiết khấu: chỉ cập nhật totalMoneyDiscount, bỏ qua %
   calculateTotalFromMoneyDiscount(): void {
-    const totalPO = isNaN(Number(this.poFormData.totalPO))
-      ? 0
-      : Number(this.poFormData.totalPO) || 0;
+    const totalBeforeVAT = this.getDiscountBaseAmount();
 
     const moneyDiscount = isNaN(Number(this.poFormData.moneyDiscount))
       ? 0
       : Number(this.poFormData.moneyDiscount) || 0;
 
     // Tính tổng tiền sau chiết khấu từ moneyDiscount (bỏ qua %)
-    const result = totalPO - moneyDiscount;
+    const result = totalBeforeVAT - moneyDiscount;
     this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
+  }
+
+  private getDiscountBaseAmount(): number {
+    const totalBeforeVAT = Number(this.poFormData.totalPOBeforeVAT);
+    return isNaN(totalBeforeVAT) ? 0 : totalBeforeVAT || 0;
   }
 
   onDiscountChange(): void {
@@ -1815,7 +1898,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.poFormData.totalPO = numericValue;
 
     this.updateResponsibleUsersMoney();
-    // Tính lại chiết khấu khi totalPO thay đổi: chỉ tính từ moneyDiscount, không tính từ %
+    // Tính lại chiết khấu theo tổng tiền trước VAT: chỉ tính từ moneyDiscount, không tính từ %
     this.calculateTotalFromMoneyDiscount();
   }
   formatFileSize(bytes: number): string {
@@ -2036,14 +2119,23 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.selectedRow.treeExpand();
   }
   onCustomerChange(event: any): void {
+    if (!event) {
+      this.selectedCustomer = null;
+      this.poFormData.customerId = 0;
+      this.poFormData.customerName = '';
+      this.poFormData.departmentId = 0;
+      return;
+    }
+
     this.selectedCustomer = event;
     this.poFormData.customerId = event.ID;
+    this.poFormData.customerName = event.CustomerName || '';
     this.poFormData.departmentId = 0;
     this.loadPart(this.selectedCustomer.ID);
     console.log('Selected CustomerID:', this.selectedCustomer);
-    const customerShortName = this.selectedCustomer.CustomerShortName;
-    this.generatePOCode(customerShortName);
-    console.log('Customer Short Name:', customerShortName);
+    const customerForPOCode = this.getCustomerForPOCode();
+    this.generatePOCode(customerForPOCode);
+    console.log('Customer Short Name:', customerForPOCode);
   }
 
   openCustomerModal(): void {
@@ -2226,6 +2318,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.isModalOpen = false;
     this.isEditMode = false;
     this.isCopy = false;
+    this.copySourcePOKHId = 0;
     this.selectedId = 0;
     this.isSubmitted = false;
     this.isLoadingData = false;
@@ -3231,19 +3324,11 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
   // Hàm chuẩn bị dữ liệu và gọi API copy-dto
   copyPOKHToDTO() {
-    const poDate = new Date(this.poFormData.poDate || new Date());
 
     // Reset ID của phiếu chính
     const pokhCopy = {
-      ...this.poFormData,
+      ...this.getPOKHData(),
       ID: 0,
-      Year: poDate.getFullYear(),
-      Month: poDate.getMonth() + 1,
-      ReceivedDatePO: poDate,
-      PartID: this.poFormData.departmentId,
-      NewAccount: this.poFormData.isBigAccount,
-      TotalMoneyPO: this.poFormData.totalPO,
-      TotalMoneyKoVAT: this.calculateTotalMoneyKoVAT(),
     };
     // Flatten chi tiết sản phẩm
     const detailsFlat = this.flattenDetails(this.dataPOKHProduct);
@@ -3259,14 +3344,25 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       POKHDetailsMoney: detailUserCopy,
     };
     // Gọi API copy-dto
-    this.POKHService.copyFromDTO(dto).subscribe((res) => {
-      if (res.status === 1) {
-        this.notification.success('Thông báo', 'Copy thành công!');
-        // Có thể load lại danh sách hoặc chuyển sang bản ghi mới
-      } else {
-        this.notification.error('Thông báo', 'Copy thất bại: ' + res.message);
-      }
-    });
+    this.isSaving = true;
+    this.POKHService.copyFromDTO(dto)
+      .pipe(finalize(() => {
+        this.isSaving = false;
+      }))
+      .subscribe((res) => {
+        if (res.status === 1) {
+          this.notification.success('Thông báo', 'Copy thành công!');
+          this.isCopy = false;
+          this.copySourcePOKHId = 0;
+          this.activeModal.close({
+            success: true,
+            reloadData: true,
+          });
+          // Có thể load lại danh sách hoặc chuyển sang bản ghi mới
+        } else {
+          this.notification.error('Thông báo', 'Copy thất bại: ' + res.message);
+        }
+      });
   }
 
   //hàm đệ quy tính bottomcalc cho bảng

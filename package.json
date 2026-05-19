@@ -63,6 +63,7 @@
     "ngx-select-ex": "^19.0.7",
     "ngx-toastr": "^19.1.0",
     "ngx-translate": "^0.0.1-security",
+    "pdf-lib": "^1.17.1",
     "pdfmake": "^0.2.20",
     "primeicons": "^7.0.0",
     "primeng": "^21.0.1",

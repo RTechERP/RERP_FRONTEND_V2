@@ -8,9 +8,14 @@
                 class="d-flex gap-1 align-items-center list-product-project-customer-d-flex list-product-project-customer-gap-1 list-product-project-customer-align-items-center">
                 <nz-select class="fs-12 list-product-project-customer-fs-12" style="width: 500px"
                     [(ngModel)]="sreachParam.selectedProject" nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án"
-                    name="projectID" (ngModelChange)="loadData()">
+                    name="projectID">
                     <nz-option style="width: 500px" *ngFor="let id of cbbProject" [nzValue]="id"
                         [nzLabel]="id.ProjectCode + ' - ' + id.ProjectName">
+                    </nz-option>
+                </nz-select>
+                <nz-select class="fs-12" style="width: 450px" [(ngModel)]="sreachParam.selectedCustomer" nzShowSearch
+                    nzAllowClear nzPlaceHolder="Chọn khách hàng" name="customerID">
+                    <nz-option *ngFor="let c of cbbCustomer" [nzValue]="c" [nzLabel]="c.CustomerName">
                     </nz-option>
                 </nz-select>
                 <p-menubar [model]="listProductMenu"
@@ -22,8 +27,9 @@
             style="height: 90vh">
             <app-custom-table [data]="dataset" [columns]="columnDefinitions" [loading]="isLoading" [showFooter]="true"
                 [scrollable]="true" height="100%" [rowSpanBy]="'ProductID'" [exportable]="false"
-                [showGlobalFilter]="false" columnLayout="fixed"
-                [contextMenuItems]="contextMenu" [(selectedContextRow)]="selectedContextRow">
+                [showGlobalFilter]="false" columnLayout="fixed" [virtualScroll]="true" [virtualScrollItemSize]="30"
+                [contextMenuItems]="contextMenu" [contextMenuItemsFn]="getContextMenuItems"
+                [(selectedContextRow)]="selectedContextRow">
             </app-custom-table>
         </div>
     </div>

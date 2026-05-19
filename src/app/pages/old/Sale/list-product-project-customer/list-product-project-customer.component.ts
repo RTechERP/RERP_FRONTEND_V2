@@ -44,6 +44,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
+import * as ExcelJS from 'exceljs';
 import { ListProductProjectService } from '../ListProductProject/list-product-project-service/list-product-project.service';
 import { BillExportDetailNewComponent } from '../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 // import { ClipboardService } from '../../../../services/clipboard.service';
@@ -76,17 +77,43 @@ export class ListProductProjectCustomerComponent {
   ) { }
 
   listProductMenu: MenuItem[] = [];
-  contextMenu: MenuItem[] = [];
+  contextMenu: MenuItem[] = [{ label: ' ', disabled: true }]; // placeholder để p-table đăng ký context menu
+
   selectedContextRow: any = null;
+
+  getContextMenuItems = (row: any): MenuItem[] => {
+    if (!row) return [];
+
+    const ids: number[] = String(row.BillExportIDs || '')
+      .split(',')
+      .map((s: string) => parseInt(s.trim(), 10))
+      .filter((id: number) => !isNaN(id) && id > 0);
+
+    const codes: string[] = String(row.BillExportCodes || '')
+      .split(',')
+      .map((s: string) => s.trim());
+
+    if (ids.length === 0) return [{ label: 'Không có phiếu xuất', disabled: true }];
+
+    return ids.map((id: number, i: number) => ({
+      label: `Xem phiếu xuất: ${codes[i] || id}`,
+      icon: 'fas fa-eye text-primary',
+      command: () => this.openBillExportDetail(id),
+    }));
+  };
+
   cbbProject: any;
+  cbbCustomer: { ID: number; CustomerName: string }[] = [];
   isLoading: boolean = false;
   warehouseCode: string = 'HN';
   sreachParam = {
     selectedProject: {
       ProjectCode: '',
       ID: 0,
-      // Có thể thêm ProjectName nếu cần
-      // ProjectName: ""
+    },
+    selectedCustomer: {
+      ID: 0,
+      CustomerName: '',
     },
     WareHouseCode: this.warehouseCode,
   };
@@ -107,10 +134,9 @@ export class ListProductProjectCustomerComponent {
     });
 
     this.loadMenu();
-    this.initContextMenu();
     this.getProject();
+    this.getCustomers();
     this.initColumns();
-    this.loadData();
   }
 
   ngOnDestroy(): void {
@@ -137,18 +163,7 @@ export class ListProductProjectCustomerComponent {
     ];
   }
 
-  initContextMenu() {
-    this.contextMenu = [
-      {
-        label: 'Xem phiếu xuất',
-        icon: 'fas fa-eye text-primary',
-        command: () => this.openBillExportDetail(),
-      },
-    ];
-  }
-
-  openBillExportDetail() {
-    const billExportID = this.selectedContextRow?.BillExportID;
+  openBillExportDetail(billExportID: number) {
     if (!billExportID) {
       this.notification.warning('Thông báo', 'Không tìm thấy ID phiếu xuất');
       return;
@@ -166,10 +181,7 @@ export class ListProductProjectCustomerComponent {
 
   loadData() {
     if (this.sreachParam.selectedProject == null) {
-      this.sreachParam.selectedProject = {
-        ProjectCode: '',
-        ID: 0,
-      };
+      this.sreachParam.selectedProject = { ProjectCode: '', ID: 0 };
     }
     this.isLoading = true;
     this.listproductprojectService
@@ -177,20 +189,121 @@ export class ListProductProjectCustomerComponent {
         this.sreachParam.selectedProject.ProjectCode,
         this.sreachParam.selectedProject.ID,
         this.sreachParam.WareHouseCode,
+        this.sreachParam.selectedCustomer?.ID || 0
       )
       .subscribe({
         next: (res) => {
           this.dataset = res.data || [];
           this.isLoading = false;
         },
-        error: (err) => {
-          this.notification.error(
-            NOTIFICATION_TITLE.error,
-            'Có lỗi xảy ra khi lấy sản phẩm theo dự án',
-          );
+        error: () => {
+          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy sản phẩm theo dự án');
           this.isLoading = false;
         },
       });
+  }
+
+  exportExcel() {
+    if (!this.dataset || this.dataset.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel');
+      return;
+    }
+
+    this.isLoading = true;
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Danh sách sản phẩm');
+
+      worksheet.columns = [
+        { header: 'STT', key: 'stt', width: 6 },
+        { header: 'Mã dự án', key: 'ProjectCode', width: 15 },
+        { header: 'Mã sản phẩm', key: 'ProductCode', width: 18 },
+        { header: 'Mã nội bộ', key: 'ProductNewCode', width: 15 },
+        { header: 'Tên sản phẩm', key: 'ProductName', width: 35 },
+        { header: 'Tổng xuất dự án', key: 'TotalExportQty', width: 14 },
+        { header: 'Ngày tạo', key: 'BillDate', width: 14 },
+        { header: 'Mã phiếu', key: 'BillExportCodes', width: 18 },
+        { header: 'Khách hàng', key: 'CustomerName', width: 35 },
+      ];
+
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true, size: 11 };
+      headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+      headerRow.height = 25;
+      headerRow.eachCell((cell: any) => {
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' },
+          bottom: { style: 'thin' }, right: { style: 'thin' }
+        };
+      });
+
+      let totalExportQty = 0;
+
+      this.dataset.forEach((item: any, index: number) => {
+        const row = worksheet.addRow({
+          stt: index + 1,
+          ProjectCode: this.cleanXml(item.ProjectCode),
+          ProductCode: this.cleanXml(item.ProductCode),
+          ProductNewCode: this.cleanXml(item.ProductNewCode),
+          ProductName: this.cleanXml(item.ProductName),
+          TotalExportQty: item.TotalExportQty || 0,
+          BillDate: item.BillDate || '',
+          BillExportCodes: this.cleanXml(item.BillExportCodes),
+          CustomerName: this.cleanXml(item.CustomerName),
+        });
+
+        row.eachCell((cell: any) => {
+          cell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' },
+            bottom: { style: 'thin' }, right: { style: 'thin' }
+          };
+        });
+
+        row.getCell('stt').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('ProjectCode').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('BillDate').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('TotalExportQty').alignment = { horizontal: 'right', vertical: 'middle' };
+        row.getCell('TotalExportQty').numFmt = '#,##0';
+        totalExportQty += item.TotalExportQty || 0;
+      });
+
+      const footerRow = worksheet.addRow({
+        stt: '', ProjectCode: '', ProductCode: 'TỔNG',
+        ProductNewCode: '', ProductName: '',
+        TotalExportQty: totalExportQty,
+        BillDate: '', BillExportCodes: '', CustomerName: '',
+      });
+      footerRow.font = { bold: true, size: 11 };
+      footerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFD966' } };
+      footerRow.eachCell((cell: any) => {
+        cell.border = {
+          top: { style: 'thin' }, left: { style: 'thin' },
+          bottom: { style: 'thin' }, right: { style: 'thin' }
+        };
+      });
+      footerRow.getCell('TotalExportQty').alignment = { horizontal: 'right', vertical: 'middle' };
+      footerRow.getCell('TotalExportQty').numFmt = '#,##0';
+
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      workbook.xlsx.writeBuffer().then((buffer: any) => {
+        const blob = new Blob([buffer], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `DanhSachSanPham_${this.warehouseCode}_${dateStr}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.isLoading = false;
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xuất file Excel thành công!', { nzDuration: 1500 });
+      });
+    } catch (error) {
+      console.error('Lỗi khi xuất Excel:', error);
+      this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xuất Excel');
+      this.isLoading = false;
+    }
   }
 
   getProject() {
@@ -198,11 +311,19 @@ export class ListProductProjectCustomerComponent {
       next: (res) => {
         this.cbbProject = res.data;
       },
-      error: (err) => {
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          'Có lỗi xảy ra khi lấy dự án',
-        );
+      error: () => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dự án');
+      },
+    });
+  }
+
+  getCustomers() {
+    this.listproductprojectService.getCustomers().subscribe({
+      next: (res) => {
+        this.cbbCustomer = res.data || [];
+      },
+      error: () => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy khách hàng');
       },
     });
   }
@@ -214,7 +335,6 @@ export class ListProductProjectCustomerComponent {
         width: '120px',
         sortable: true,
         filterMode: 'multiselect',
-        textWrap: true,
       },
       {
         field: 'ProductCode',
@@ -222,7 +342,6 @@ export class ListProductProjectCustomerComponent {
         width: '150px',
         sortable: true,
         filterMode: 'multiselect',
-        textWrap: true,
       },
       {
         field: 'ProductNewCode',
@@ -238,26 +357,9 @@ export class ListProductProjectCustomerComponent {
         sortable: true,
         textWrap: true,
       },
+
       {
-        field: 'NumberInStoreDauky',
-        header: 'Tồn đầu kỳ',
-        width: '80px',
-        sortable: true,
-        filterType: 'numeric',
-        footerType: 'sum',
-        cssClass: 'text-right',
-      },
-      {
-        field: 'Import',
-        header: 'Nhập dự án',
-        width: '80px',
-        sortable: true,
-        filterType: 'numeric',
-        footerType: 'sum',
-        cssClass: 'text-right',
-      },
-      {
-        field: 'Export',
+        field: 'TotalExportQty',
         header: 'Xuất dự án',
         width: '80px',
         sortable: true,
@@ -265,38 +367,21 @@ export class ListProductProjectCustomerComponent {
         footerType: 'sum',
         cssClass: 'text-right',
       },
+
       {
-        field: 'QuantityImportExport',
-        header: 'Tồn dự án',
-        width: '80px',
-        sortable: true,
-        filterType: 'numeric',
-        footerType: 'sum',
-        cssClass: 'text-right',
-      },
-      {
-        field: 'ImportDates',
-        header: 'Ngày nhập',
+        field: 'BillDate',
+        header: 'Ngày tạo',
         width: '120px',
         sortable: true,
-        filterMode: 'datetime',
-        format: (val) => val ? new Date(val).toLocaleDateString('vi-VN') : '',
+        filterMode: 'input',
+        // format: (val) => val ? new Date(val).toLocaleDateString('vi-VN') : '',
       },
       {
-        field: 'ExportDates',
-        header: 'Ngày xuất',
-        width: '120px',
-        sortable: true,
-        filterMode: 'datetime',
-        format: (val) => val ? new Date(val).toLocaleDateString('vi-VN') : '',
-      },
-      {
-        field: 'BillExportCode',
-        header: 'Mã phiếu xuất',
+        field: 'BillExportCodes',
+        header: 'Mã phiếu',
         width: '150px',
         sortable: true,
         filterMode: 'multiselect',
-        textWrap: true,
       },
       {
         field: 'CustomerName',
@@ -305,6 +390,12 @@ export class ListProductProjectCustomerComponent {
         sortable: true,
         filterMode: 'multiselect',
         textWrap: true,
+      },
+      {
+        field: 'BillExportIDs',
+        header: 'BillExportIDs',
+        width: '0px',
+        visible: false,
       },
     ];
   }
@@ -323,12 +414,4 @@ export class ListProductProjectCustomerComponent {
     );
   }
 
-  exportExcel() {
-    if (!this.dataset || this.dataset.length === 0) {
-      this.notification.warning('Thông báo', 'Chưa có dữ liệu để xuất!');
-      return;
-    }
-    // Export functionality is handled by CustomTable's exportCSV or similar
-    // We can also trigger it manually if we had a ViewChild to CustomTable
-  }
 }

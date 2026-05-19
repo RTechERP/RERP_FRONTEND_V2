@@ -1,0 +1,357 @@
+﻿<div class="modal-header bg-primary align-items-center ps-3">
+  <h6 class="text-light text-uppercase m-0 fw-bold">Phiếu Đánh Giá Chuyển Hợp Đồng</h6>
+  <div class="ms-auto d-flex gap-2 align-items-center no-print">
+    <button type="button" class="btn text-white border-0 p-1" style="background: transparent; box-shadow: none;"
+      (click)="activeModal.dismiss()"> <i class="fas fa-times fa-lg"></i></button>
+  </div>
+</div>
+<div class="modal-body review-modal-body" id="printArea">
+  <nz-spin [nzSpinning]="isLoading">
+    <div class="dual-sheet-wrapper">
+
+      <!-- ═══════════ TRANG TRÁI: NV TỰ ĐÁNH GIÁ ═══════════ -->
+      <div class="sheet-left">
+
+        <!-- Header -->
+        <div class="form-header">
+          <div class="header-left">
+            <img src="assets/images/logo-RTC-2023-1200-banchuan.png" alt="RTC" class="logo-img" />
+          </div>
+          <div class="header-center">
+            <h2 class="form-title">PHIẾU TỰ ĐÁNH GIÁ CHUYỂN HỢP ĐỒNG</h2>
+            <p class="form-subtitle"><i>(Dành cho người chuyển hợp đồng)</i></p>
+          </div>
+          <div class="header-right"></div>
+        </div>
+        <div class="sheet-divider"></div>
+
+        <!-- Thông tin cơ bản -->
+        <div class="info-section">
+          <div class="info-row" *ngIf="canSelectEmployeeForHr">
+            <span class="info-label">Chọn nhân viên</span>
+            <span class="info-sep">:</span>
+            <nz-select class="info-value flex-grow-1" nzShowSearch nzAllowClear nzPlaceHolder="-- Chọn nhân viên --"
+              [(ngModel)]="form.EmployeeID" (ngModelChange)="onEmployeeChange($event)">
+              <ng-container *ngFor="let group of employeeOptions">
+                <nz-option-group [nzLabel]="group.label">
+                  <nz-option *ngFor="let option of group.options" [nzValue]="option.item.EmployeeID"
+                    [nzLabel]="option.item.Code + ' - ' + option.item.FullName" nzCustomContent>
+                    <span style="white-space: normal; word-break: break-word; display: block;">
+                      {{ option.item.Code }} - {{ option.item.FullName }}
+                    </span>
+                  </nz-option>
+                </nz-option-group>
+              </ng-container>
+            </nz-select>
+          </div>
+          <div class="info-row" *ngIf="canSelectEmployeeForHr">
+            <span class="info-label">Chọn TBP duyệt</span>
+            <span class="info-sep">:</span>
+            <nz-select class="info-value flex-grow-1" nzShowSearch nzAllowClear nzPlaceHolder="-- Chọn TBP duyệt --"
+              [(ngModel)]="form.TBPApproveID">
+              <ng-container *ngFor="let group of employeeOptions">
+                <nz-option-group [nzLabel]="group.label">
+                  <nz-option *ngFor="let option of group.options" [nzValue]="option.item.EmployeeID"
+                    [nzLabel]="option.item.Code + ' - ' + option.item.FullName" nzCustomContent>
+                    <span style="white-space: normal; word-break: break-word; display: block;">
+                      {{ option.item.Code }} - {{ option.item.FullName }}
+                    </span>
+                  </nz-option>
+                </nz-option-group>
+              </ng-container>
+            </nz-select>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Họ và tên</span>
+            <span class="info-sep">:</span>
+            <input class="info-value flex-grow-1" [(ngModel)]="form.EmployeeName" [readonly]="true" />
+          </div>
+          <div class="info-row">
+            <span class="info-label">Chức vụ</span>
+            <span class="info-sep">:</span>
+            <input class="info-value flex-grow-1" [(ngModel)]="form.PositionName" [readonly]="true" />
+          </div>
+          <div class="info-row">
+            <span class="info-label">Phòng ban</span>
+            <span class="info-sep">:</span>
+            <input class="info-value flex-grow-1" [(ngModel)]="form.DepartmentName" [readonly]="true" />
+          </div>
+          <div class="info-row">
+            <span class="info-label">Thời gian đánh giá từ</span>
+            <span class="info-sep">:</span>
+            <nz-date-picker class="date-ul" [(ngModel)]="form.DateStart" nzFormat="dd/MM/yyyy"
+              nzPlaceHolder="dd/MM/yyyy" nzBorderless [nzDisabled]="!canEditEvaluationDates"></nz-date-picker>
+            <span class="mx-1">đến</span>
+            <nz-date-picker class="date-ul" [(ngModel)]="form.DateEnd" nzFormat="dd/MM/yyyy" nzPlaceHolder="dd/MM/yyyy"
+              nzBorderless [nzDisabled]="!canEditEvaluationDates"></nz-date-picker>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Cán bộ quản lý trực tiếp</span>
+            <span class="info-sep">:</span>
+            <input class="info-value flex-grow-1" [(ngModel)]="form.LeaderName" [readonly]="true" />
+          </div>
+          <div class="info-row">
+            <span class="info-label">Chức vụ</span>
+            <span class="info-sep">:</span>
+            <input class="info-value flex-grow-1" [(ngModel)]="form.LeaderPositionName" [readonly]="true" />
+          </div>
+          <div class="info-row" style="margin-bottom:0">
+            <span class="info-label">Các nội dung tự đánh giá</span>
+            <span class="info-sep">:</span>
+          </div>
+        </div>
+
+        <!-- 6 nội dung tự đánh giá -->
+        <div class="eval-section">
+
+          <div class="eval-item">
+            <div class="eval-label">1. Năng lực chuyên môn, tay nghề, kỹ năng trong chuyên môn:</div>
+            <textarea nz-input [(ngModel)]="form.ProfessionalCompetence" [nzAutosize]="{ minRows: 2, maxRows: 3 }"
+              class="eval-textarea-sm" placeholder="" [readonly]="!canEditEmployee" maxlength="350"
+              (keydown)="onTextareaKeydown($event, form.ProfessionalCompetence)"></textarea>
+          </div>
+
+          <div class="eval-item">
+            <div class="eval-label">2. Mức độ hoàn thành công việc được giao:</div>
+            <textarea nz-input [(ngModel)]="form.JobComplete" [nzAutosize]="{ minRows: 2, maxRows: 3 }"
+              class="eval-textarea-sm" placeholder="" [readonly]="!canEditEmployee" maxlength="350"
+              (keydown)="onTextareaKeydown($event, form.JobComplete)"></textarea>
+          </div>
+
+          <div class="eval-item">
+            <div class="eval-label">3. Ý thức, tinh thần làm việc, tâm huyết với Công ty:</div>
+            <textarea nz-input [(ngModel)]="form.Consciousness" [nzAutosize]="{ minRows: 2, maxRows: 3 }"
+              class="eval-textarea-sm" placeholder="" [readonly]="!canEditEmployee" maxlength="350"
+              (keydown)="onTextareaKeydown($event, form.Consciousness)"></textarea>
+          </div>
+
+          <div class="eval-item">
+            <div class="eval-label">4. Chấp hành nội quy, quy định của Công ty, Pháp luật.</div>
+            <textarea nz-input [(ngModel)]="form.Regulations" [nzAutosize]="{ minRows: 2, maxRows: 3 }"
+              class="eval-textarea-sm" placeholder="" [readonly]="!canEditEmployee" maxlength="350"
+              (keydown)="onTextareaKeydown($event, form.Regulations)"></textarea>
+          </div>
+
+          <div class="eval-item">
+            <div class="eval-label">5. Khả năng khác: Làm việc độc lập, năng động, sáng tạo, khả năng quản lý...</div>
+            <textarea nz-input [(ngModel)]="form.OtherPossiblities" [nzAutosize]="{ minRows: 2, maxRows: 3 }"
+              class="eval-textarea-sm" placeholder="" [readonly]="!canEditEmployee" maxlength="350"
+              (keydown)="onTextareaKeydown($event, form.OtherPossiblities)"></textarea>
+          </div>
+
+          <div class="eval-item">
+            <div class="eval-label">6. Ý kiến và nguyện vọng cá nhân:</div>
+            <textarea nz-input [(ngModel)]="form.PesonalWishes" [nzAutosize]="{ minRows: 2, maxRows: 3 }"
+              class="eval-textarea-sm" placeholder="" [readonly]="!canEditEmployee" maxlength="350"
+              (keydown)="onTextareaKeydown($event, form.PesonalWishes)"></textarea>
+          </div>
+
+        </div>
+
+        <!-- Ký tên NV -->
+        <div class="signature-row mt-3">
+          <div class="signature-block">
+            <p class="sig-location"><i>{{form.LocationEvaluation}}, ngày {{createdDateParts.d}} tháng
+                {{createdDateParts.m}} năm {{createdDateParts.y}}</i></p>
+            <p class="sig-title">NGƯỜI LAO ĐỘNG</p>
+            <div class="sig-space" style="padding-top: 50px;">{{form.EmployeeName}}</div>
+          </div>
+        </div>
+
+      </div><!-- /sheet-left -->
+
+      <!-- ═══════════ TRANG PHẢI: TBP ĐÁNH GIÁ ═══════════ -->
+      <div class="sheet-right">
+
+        <!-- Header -->
+        <div class="form-header">
+          <div class="header-left">
+            <img src="assets/images/logo-RTC-2023-1200-banchuan.png" alt="RTC" class="logo-img" />
+          </div>
+          <div class="header-center">
+            <h2 class="form-title">PHIẾU ĐÁNH GIÁ CHUYỂN HỢP ĐỒNG</h2>
+            <p class="form-subtitle"><i>(Dành cho Cán bộ Quản lý)</i></p>
+          </div>
+          <div class="header-right"></div>
+        </div>
+        <div class="sheet-divider"></div>
+
+        <!-- Thông tin TBP -->
+        <div class="info-section">
+          <div class="info-row">
+            <span class="info-label" style="min-width: 130px;">Họ và tên Cán bộ quản lý</span>
+            <span class="info-sep">:</span>
+            <input class="info-value" style="width:140px" [(ngModel)]="form.EmployeeEvaluationName" [readonly]="true" />
+            <span class="info-label ms-3" style="min-width: 2px;">Chức vụ</span>
+            <span class="info-sep">:</span>
+            <input class="info-value flex-grow-1" [(ngModel)]="form.EmployeeEvaluationPositionName" [readonly]="true" />
+          </div>
+          <div class="info-row">
+            <span class="info-label" style="min-width: 130px;">Người được đánh giá</span>
+            <span class="info-sep">:</span>
+            <input class="info-value flex-grow-1" [(ngModel)]="form.EmployeeName" [readonly]="true" />
+          </div>
+          <div class="info-row" style="margin-bottom:0">
+            <span class="info-label fw-bold">Nội dung đánh giá nhân viên:</span>
+          </div>
+        </div>
+
+        <!-- Nội dung đánh giá TBP -->
+        <div class="eval-section">
+
+          <!-- 1. Công việc được giao -->
+          <div class="eval-item">
+            <div class="eval-label-sm"><b>1. Công việc được giao:</b></div>
+            <textarea nz-input [(ngModel)]="form.AssignTask" [nzAutosize]="{ minRows: 2, maxRows: 3 }"
+              class="eval-textarea-sm dash-prefix-area" placeholder="" [readonly]="!canEditManager" maxlength="350"
+              (keydown)="onTextareaKeydown($event, form.AssignTask, 3)"></textarea>
+          </div>
+
+          <!-- 2. Kết quả thực hiện -->
+          <div class="eval-item">
+            <div class="eval-label-sm"><b>2. Kết quả thực hiện</b></div>
+            <div class="dash-line-row">
+              <span class="dash-pfx">–</span>
+              <span class="dash-lbl">Nhìn chung các công việc:</span>
+              <input class="dash-input flex-grow-1" [(ngModel)]="form.ResultOfImplementation" placeholder=""
+                [readonly]="!canEditManager" maxlength="100" />
+            </div>
+            <div class="dash-line-row">
+              <span class="dash-pfx">–</span>
+              <span class="dash-lbl">Ý thức trách nhiệm:</span>
+              <input class="dash-input flex-grow-1" [(ngModel)]="form.ResultOfImplementationConsciousness"
+                placeholder="" [readonly]="!canEditManager" maxlength="100" />
+            </div>
+          </div>
+
+          <!-- 3. Bảng tiêu chí -->
+          <div class="eval-item">
+            <div class="eval-label-sm"><b>3. Đánh giá các chỉ tiêu cơ bản</b> <i>(1- kém, 2- trung bình, 3- khá, 4-
+                tốt,
+                5- suất sắc)</i></div>
+            <table class="criteria-table">
+              <thead>
+                <tr>
+                  <th rowspan="2" style="width:36%">Các chỉ tiêu đánh giá</th>
+                  <th colspan="5" style="text-align:center">Kết quả đánh giá</th>
+                  <th rowspan="2" style="width:18%">Ghi chú</th>
+                </tr>
+                <tr>
+                  <th *ngFor="let s of scoreOptions" style="width:7%; text-align:center">({{s}})</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of criterias">
+                  <td>3.{{c.STT}}. {{c.NameCriteria}}</td>
+                  <td *ngFor="let s of scoreOptions" style="text-align:center">
+                    <input type="radio" [name]="'score_' + c.STT" [value]="s" [(ngModel)]="c.ResultEvaluation"
+                      [disabled]="!canEditManager" />
+                  </td>
+                  <td>
+                    <input class="note-input" [(ngModel)]="c.Note" placeholder="" [readonly]="!canEditManager" />
+                  </td>
+                </tr>
+                <tr class="total-row">
+                  <td><strong>Tổng điểm</strong></td>
+                  <td colspan="5" style="text-align:center"><strong>{{totalScore}}</strong></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 4. Nhận xét khác -->
+          <div class="eval-item">
+            <div class="eval-label-sm"><b>4. Nhận xét khác:</b></div>
+            <textarea nz-input [(ngModel)]="form.OtherComment" [nzAutosize]="{ minRows: 1, maxRows: 3 }"
+              class="eval-textarea-sm" placeholder="" [readonly]="!canEditManager" maxlength="300"
+              (keydown)="onTextareaKeydown($event, form.OtherComment)"></textarea>
+          </div>
+
+          <!-- 5. Kiến nghị -->
+          <div class="eval-item">
+            <div class="eval-label-sm"><b>5. Kiến nghị:</b></div>
+            <textarea nz-input [(ngModel)]="form.Recomment" [nzAutosize]="{ minRows: 1, maxRows: 3 }"
+              class="eval-textarea-sm" placeholder="" [readonly]="!canEditManager" maxlength="300"
+              (keydown)="onTextareaKeydown($event, form.Recomment)"></textarea>
+          </div>
+
+          <!-- 6. Kết luận -->
+          <div class="eval-item">
+            <div class="eval-label-sm"><b>6. Kết luận:</b></div>
+            <div class="conclusion-row">
+              <ng-container *ngFor="let ct of contractTypes">
+                <label class="conclusion-check">
+                  <input type="checkbox" [checked]="form.EmployeeLoaiHDID === ct.ID"
+                    [disabled]="!canEditManager && !canEditHR && !canHrCreateOrUpdateBeforeEmployeeConfirm"
+                    (change)="form.EmployeeLoaiHDID = $any($event.target).checked ? ct.ID : null" />
+                  {{ ct.Name }}
+                </label>
+              </ng-container>
+            </div>
+            <div class="dash-line-row mt-1">
+              <span class="dash-pfx">–</span>
+              <span class="dash-lbl">Đề xuất mức lương (nếu có):</span>
+              <nz-input-number [(ngModel)]="form.SalaryPropose" [nzMin]="0" [nzStep]="500000"
+                [nzFormatter]="formatterSalary" [nzParser]="parserSalary" [nzDisabled]="!canEditManager && !canEditHR && !canHrCreateOrUpdateBeforeEmployeeConfirm"
+                nzPlaceholder="..." style="width:160px; margin-left:6px;">
+              </nz-input-number>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Ký 3 bên (Trình bày lại để Title thẳng hàng) -->
+        <div class="signature-row-triple mt-3">
+          <!-- Cột 1 -->
+          <div class="sig-triple-block">
+            <div class="sig-location-placeholder"></div>
+            <p class="sig-title">TRƯỞNG BỘ PHẬN</p>
+            <div class="sig-space" style="padding-top: 40px;">{{form.TBPApproveName || ''}}</div>
+          </div>
+          <!-- Cột 2 -->
+          <div class="sig-triple-block">
+            <div class="sig-location-placeholder"></div>
+            <p class="sig-title">PHÒNG HCNS</p>
+            <div class="sig-space" style="padding-top: 40px;">{{form.HCNSApproveName || ''}}</div>
+          </div>
+          <!-- Cột 3 -->
+          <div class="sig-triple-block">
+            <p class="sig-location-sm"><i>{{form.LocationEvaluation || ''}}, ngày
+                {{evaluationDateParts.d}} tháng
+                {{evaluationDateParts.m}} năm {{evaluationDateParts.y}}</i></p>
+            <p class="sig-title">PHÊ DUYỆT</p>
+            <div class="sig-space" style="padding-top: 40px;">{{form.BGDApproveName || ''}}</div>
+          </div>
+        </div>
+
+      </div><!-- /sheet-right -->
+
+    </div><!-- /dual-sheet-wrapper -->
+  </nz-spin>
+</div>
+
+<!-- Footer -->
+<div class="modal-footer py-1 no-print">
+  <div class="ms-auto d-flex gap-2">
+
+    <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
+      <span nz-icon nzType="close"></span> Đóng
+    </button>
+    <button nz-button nzType="primary" [nzLoading]="isSaving" (click)="onSave()" *ngIf="canEdit">
+      <span nz-icon nzType="save"></span> Lưu
+    </button>
+    <button nz-button nzType="primary" class="bg-primary" [nzLoading]="isSaving" (click)="onConfirm()"
+      *ngIf="canConfirm">
+      <span nz-icon nzType="check-circle"></span> Xác nhận
+    </button>
+    <button nz-button nzType="default" nzDanger [nzLoading]="isSaving" (click)="onReject()" *ngIf="canReject">
+      <span nz-icon nzType="close-circle"></span> Không Xác nhận
+    </button>
+    <button nz-button nzType="default" class="bg-warning text-dark border-0" [nzLoading]="isSaving"
+      (click)="onCancelConfirm()" *ngIf="canCancelConfirm">
+      <span nz-icon nzType="rollback"></span> Hủy xác nhận
+    </button>
+  </div>
+</div>

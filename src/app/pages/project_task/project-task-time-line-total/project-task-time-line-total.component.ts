@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -18,11 +18,14 @@ import { MultiSelectModule } from 'primeng/multiselect';
 // Services
 import { ProjectTaskTimeLineTotalService, TimelineByTeamItem } from './project-task-time-line-total.service';
 import { ProjectTaskService } from '../project-task/project-task.service';
-import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 import { WorkplanService } from '../../person/workplan/workplan.service';
 import { EmployeeService } from '../../hrm/employee/employee-service/employee.service';
 import { AppUserService } from '../../../services/app-user.service';
 import { ProjectService } from '../../project/project-service/project.service';
+import { Router } from '@angular/router';
+import { TabServiceService } from '../../../layouts/tab-service.service';
+import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
+import { ProjectTaskTimeLineAllProjectComponent } from '../project-task-time-line-all-project/project-task-time-line-all-project.component';
 
 @Component({
   selector: 'app-project-task-time-line-total',
@@ -40,7 +43,8 @@ import { ProjectService } from '../../project/project-service/project.service';
     MultiSelectModule
   ],
   templateUrl: './project-task-time-line-total.component.html',
-  styleUrl: './project-task-time-line-total.component.css'
+  styleUrl: './project-task-time-line-total.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProjectTaskTimeLineTotalComponent implements OnInit {
   private timelineService = inject(ProjectTaskTimeLineTotalService);
@@ -51,8 +55,17 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   private employeeService = inject(EmployeeService);
   private appUserService = inject(AppUserService);
   private projectService = inject(ProjectService);
+  private router = inject(Router);
+  private tabService = inject(TabServiceService);
 
   isOpeningDetail = false;
+
+  // ===== Context Menu =====
+  contextMenuVisible = false;
+  contextMenuX = 0;
+  contextMenuY = 0;
+  contextMenuFocusTaskId: number = 0;
+  contextMenuProject: any = null;
 
   // ===== Bộ tìm kiếm =====
   dateStart: string = this.getDefaultDateStart();
@@ -78,26 +91,38 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   filterFullName = '';
   filterTaskKeyword = '';
   filterProjectKeyword = '';
-  selectedStatuses: number[] = [];
+  selectedStatuses: number[] = [0, 1];
+  filterStatusColumn: number[] = [];
 
   statusOptions = [
     { label: 'Chưa làm', value: 0 },
     { label: 'Đang làm', value: 1 },
     { label: 'Hoàn thành', value: 2 },
     { label: 'Pending', value: 3 },
-    { label: 'Quá hạn', value: 4 }
+    { label: 'Hủy', value: 4 }
   ];
 
   // ===== LIFECYCLE =====
 
   ngOnInit() {
     this.departmentId = this.appUserService.departmentID || 0;
+    this.teamId = 0; // Mặc định tất cả
+    this.userId = 0; // Mặc định tất cả
+
     this.loadDepartments();
-    this.loadEmployees();
+    this.loadProjects();
+
     if (this.departmentId > 0) {
       this.loadTeamsByDepartment(this.departmentId);
     }
-    this.loadProjects();
+
+    // Nếu đã có teamId thì load nhân viên theo team, ngược lại load theo phòng ban
+    if (this.teamId > 0) {
+      this.loadEmployeesByTeam(this.teamId);
+    } else {
+      this.loadEmployees();
+    }
+
     this.loadTimeline();
   }
 
@@ -161,6 +186,19 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     });
   }
 
+  loadEmployeesByTeam(teamId: number): void {
+    this.projectService.getEmployeeByUserTeam(teamId).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 1 && res.data) {
+          this.userList = Array.isArray(res.data) ? res.data : [];
+        } else {
+          this.userList = [];
+        }
+      },
+      error: () => { this.userList = []; }
+    });
+  }
+
   loadProjects(): void {
     this.projectService.getProjectModal().subscribe({
       next: (res: any) => {
@@ -187,6 +225,11 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
   onTeamChange(): void {
     this.userId = 0;
+    if (this.teamId > 0) {
+      this.loadEmployeesByTeam(this.teamId);
+    } else {
+      this.loadEmployees();
+    }
     this.loadTimeline();
   }
 
@@ -195,12 +238,13 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     this.dateEnd = this.getDefaultDateEnd();
     this.departmentId = this.appUserService.departmentID || 0;
     this.teamId = 0;
-    this.userId = 0;
+    this.userId = this.appUserService.id || 0;
     this.projectId = 0;
     this.filterFullName = '';
     this.filterTaskKeyword = '';
     this.filterProjectKeyword = '';
-    this.selectedStatuses = [];
+    this.selectedStatuses = [0, 1];
+    this.filterStatusColumn = [];
     this.teamList = [];
     this.userList = [];
     this.loadEmployees();
@@ -216,29 +260,46 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     if (!this.dateStart || !this.dateEnd) return;
 
     this.loading.set(true);
-    const startDate = new Date(this.dateStart);
-    const endDate = new Date(this.dateEnd);
-    this.generateDateColumns(startDate, endDate);
 
-    this.timelineService.getTimelineByTeam({
-      dateStart: this.dateStart,
-      dateEnd: this.dateEnd,
-      departmentID: this.departmentId || 0,
-      teamID: this.teamId || 0,
-      userID: this.userId || 0,
-      projectID: this.projectId || 0
-    }).subscribe({
-      next: (data) => {
-        this.transformData(data);
-        this.applyFilters();
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('Error loading timeline:', err);
-        this.loading.set(false);
-        this.message.error('Không thể tải dữ liệu timeline');
+    // Nhường luồng để Angular kịp render biểu tượng loading trước khi tính toán nặng
+    setTimeout(() => {
+      const startDate = new Date(this.dateStart);
+      const endDate = new Date(this.dateEnd);
+      this.generateDateColumns(startDate, endDate);
+
+      // Build status string: "0,1" hoặc "-1" nếu chọn tất cả hoặc không chọn gì
+      let statusStr = '';
+      if (this.selectedStatuses.length === 0 || this.selectedStatuses.length === this.statusOptions.length) {
+        statusStr = '-1';
+      } else {
+        statusStr = this.selectedStatuses.join(',');
       }
-    });
+
+      this.timelineService.getTimelineByTeam({
+        dateStart: this.dateStart,
+        dateEnd: this.dateEnd,
+        departmentID: this.departmentId || 0,
+        teamID: this.teamId || 0,
+        userID: this.userId || 0,
+        projectID: this.projectId || 0,
+        status: statusStr,
+        typeSearch: -1
+      }).subscribe({
+        next: (data) => {
+          // Tiếp tục nhường luồng trước khi xử lý dữ liệu nặng để không làm đơ vòng quay loading
+          setTimeout(() => {
+            this.transformData(data);
+            this.applyFilters();
+            this.loading.set(false);
+          }, 10);
+        },
+        error: (err) => {
+          console.error('Error loading timeline:', err);
+          this.loading.set(false);
+          this.message.error('Không thể tải dữ liệu timeline');
+        }
+      });
+    }, 50);
   }
 
   // ===== TẠO CỘT NGÀY =====
@@ -289,7 +350,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       if (!employeeMap.has(empId)) {
         employeeMap.set(empId, {
           employeeId: empId,
-          FullName: item.FullName || 'N/A',
+          FullName: item.FullName || '',
           projectsMap: new Map<string, any>()
         });
       }
@@ -298,8 +359,10 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
       if (!empRecord.projectsMap.has(projectKey)) {
         empRecord.projectsMap.set(projectKey, {
+          ProjectID: item.ProjectID,
           ProjectCode: item.ProjectCode || '',
           ProjectName: item.ProjectName || '',
+          ProjectStatusName: (item as any).ProjectStatusName || '',
           tasksMap: new Map<number, any>()
         });
       }
@@ -315,7 +378,8 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
           ProjectTaskParentCode: item.ProjectTaskParentCode || '',
           ProjectTaskParentTitle: item.ProjectTaskParentTitle || '',
           Status: item.Status,
-          StatusName: this.getStatusName(item.Status),
+          isOverdue: this.isTaskOverdue(item),
+          StatusName: this.getStatusDisplayName(item),
           planned: null,
           actual: null
         });
@@ -331,8 +395,10 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       employeeId: emp.employeeId,
       FullName: emp.FullName,
       projects: Array.from(emp.projectsMap.values()).map((p: any) => ({
+        ProjectID: p.ProjectID,
         ProjectCode: p.ProjectCode,
         ProjectName: p.ProjectName,
+        ProjectStatusName: p.ProjectStatusName,
         tasks: Array.from(p.tasksMap.values()).map((t: any) => ({
           ...t,
           rows: [
@@ -387,13 +453,13 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       })).filter(g => g.projects.length > 0);
     }
 
-    // Lọc theo Trạng thái
-    if (this.selectedStatuses && this.selectedStatuses.length > 0) {
+    // Lọc theo Trạng thái (inline filter)
+    if (this.filterStatusColumn && this.filterStatusColumn.length > 0) {
       groups = groups.map(g => ({
         ...g,
         projects: g.projects.map((p: any) => ({
           ...p,
-          tasks: p.tasks.filter((t: any) => this.selectedStatuses.includes(t.Status))
+          tasks: p.tasks.filter((t: any) => this.filterStatusColumn.includes(t.Status))
         })).filter((p: any) => p.tasks.length > 0)
       })).filter(g => g.projects.length > 0);
     }
@@ -418,13 +484,15 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   calculateRowTime(row: any): number {
     let total = 0;
     if (row.TypeDate === 1) {
-      // Loại 1 (Dự kiến): (PlanEndDate - PlanStartDate + 1) * 8
-      if (row.PlanStartDate && row.PlanEndDate) {
+      // Loại 1 (Dự kiến): Ưu tiên SumTotalHour, nếu không có thì tính (PlanEndDate - PlanStartDate + 1) * 8
+      if (row.SumTotalHour > 0) {
+        total = row.SumTotalHour;
+      } else if (row.PlanStartDate && row.PlanEndDate) {
         const start = new Date(row.PlanStartDate);
         const end = new Date(row.PlanEndDate);
         start.setHours(0, 0, 0, 0);
         end.setHours(0, 0, 0, 0);
-        
+
         const diffTime = Math.abs(end.getTime() - start.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
         total = diffDays > 0 ? diffDays * 8 : 0;
@@ -437,6 +505,42 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   }
 
   // ===== TRẠNG THÁI =====
+  
+  private isTaskOverdue(task: any): boolean {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
+    if (planEnd) planEnd.setHours(0, 0, 0, 0);
+
+    const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
+    if (dueDate) dueDate.setHours(0, 0, 0, 0);
+
+    // Nếu đã hoàn thành (Status 2): quá hạn nếu ngày thực tế > ngày dự kiến
+    if (task.Status === 2) {
+      return !!(dueDate && planEnd && dueDate > planEnd);
+    }
+    
+    // Nếu chưa hoàn thành (Status 0, 1): quá hạn nếu ngày hiện tại > ngày dự kiến
+    if (task.Status === 0 || task.Status === 1) {
+      return !!(planEnd && planEnd < now);
+    }
+
+    return false;
+  }
+
+  getStatusDisplayName(task: any): string {
+    const isOverdue = this.isTaskOverdue(task);
+    const baseName = this.getStatusName(task.Status);
+    
+    if (isOverdue) {
+      if (task.Status === 0) return 'Chưa làm quá hạn';
+      if (task.Status === 1) return 'Đang làm quá hạn';
+      if (task.Status === 2) return 'Hoàn thành quá hạn';
+    }
+    
+    return baseName;
+  }
 
   getStatusName(status: number): string {
     switch (status) {
@@ -444,8 +548,8 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       case 1: return 'Đang làm';
       case 2: return 'Hoàn thành';
       case 3: return 'Pending';
-      case 4: return 'Quá hạn';
-      default: return 'N/A';
+      case 4: return 'Hủy';
+      default: return '';
     }
   }
 
@@ -468,39 +572,79 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
   // ===== MỞ CHI TIẾT =====
 
-  openTaskDetail(taskId: number): void {
-    if (this.isOpeningDetail || !taskId) return;
-    this.isOpeningDetail = true;
+  openTaskDetail(task: any): void {
+    const taskId = typeof task === 'number' ? task : (task?.ProjectTaskID || task?.ID);
+    if (!taskId) {
+      console.error('Task ID not found', task);
+      return;
+    }
 
-    this.projectTaskService.getTaskById(taskId).subscribe({
-      next: (res) => {
-        if (res.status === 200 || res.status === 1) {
-          const modalRef = this.modal.create({
-            nzTitle: 'CHI TIẾT CÔNG VIỆC',
-            nzContent: TaskDetailComponent,
-            nzData: { task: res.data },
-            nzFooter: null,
-            nzWidth: '100vw',
-            nzBodyStyle: { padding: '0', height: '80vh', overflow: 'hidden' },
-            nzStyle: { borderRadius: '12px', top: '5vh' },
-            nzMaskClosable: false,
-            nzClosable: true,
-            nzCentered: false
-          });
+    const taskCode = task?.ProjectTaskCode || task?.Code || `Task-${taskId}`;
+    this.tabService.openTabComp({
+      comp: TaskDetailComponent,
+      title: taskCode,
+      key: `project-task-detail-${taskId}`,
+      data: { id: taskId }
+    });
+  }
 
-          modalRef.afterClose.subscribe((result: any) => {
-            if (result) this.loadTimeline();
-            this.isOpeningDetail = false;
-          });
-        } else {
-          this.message.error('Không thể tải chi tiết công việc');
-          this.isOpeningDetail = false;
-        }
-      },
-      error: () => {
-        this.message.error('Lỗi khi tải chi tiết công việc');
-        this.isOpeningDetail = false;
+  // ===== CONTEXT MENU =====
+
+  onContextMenu(event: MouseEvent, project: any, focusId: number): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.contextMenuProject = project;
+    this.contextMenuFocusTaskId = focusId;
+    this.contextMenuX = event.clientX;
+    this.contextMenuY = event.clientY;
+    this.contextMenuVisible = true;
+  }
+
+  closeContextMenu(): void {
+    this.contextMenuVisible = false;
+  }
+
+  openProjectReport(): void {
+    this.closeContextMenu();
+    const project = this.contextMenuProject;
+    if (!project?.ProjectID) {
+      this.message.warning('Không tìm thấy thông tin dự án');
+      return;
+    }
+
+    const focusTaskId = this.contextMenuFocusTaskId || 0;
+
+    this.tabService.openTabComp({
+      comp: ProjectTaskTimeLineAllProjectComponent,
+      title: project.ProjectCode || 'Báo cáo DA',
+      key: `project-task-all-project-${project.ProjectID}`,
+      data: {
+        projectId: project.ProjectID,
+        projectCode: project.ProjectCode,
+        projectName: project.ProjectName,
+        focusTaskId: focusTaskId
       }
     });
+  }
+  // ===== TRACK BY FUNCTIONS FOR OPTIMIZATION =====
+
+  trackByGroup(index: number, group: any): any {
+    return group.employeeId;
+  }
+
+  trackByProject(index: number, project: any): any {
+    return project.ProjectID;
+  }
+
+  trackByTask(index: number, task: any): any {
+    return task.ProjectTaskID;
+  }
+
+  trackByRow(index: number, row: any): any {
+    return row.TypeDate;
+  }
+
+  trackByColumn(index: number, col: any): any {
+    return col.dateStr;
   }
 }

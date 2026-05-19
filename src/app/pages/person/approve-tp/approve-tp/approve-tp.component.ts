@@ -72,6 +72,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     searchForm!: FormGroup;
     employeeList: any[] = [];
     teamList: any[] = [];
+    teamGroupList: any[] = [];
     teamTreeNodes: any[] = [];
     userTeamLinkList: any[] = [];
     loadingData = false;
@@ -82,8 +83,8 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
     isHighlightFilterActive: boolean = false;
     automationDept: number = 2;
-    
-    seniorPermision:boolean=false;
+
+    seniorPermision: boolean = false;
     get shouldShowSearchBar(): boolean {
         return this.showSearchBar;
     }
@@ -137,7 +138,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         // if (this.tabData) {
         //     this.isSeniorMode = this.tabData.isSeniorMode || false;
         // }
-        this.seniorPermision = this.appUserService.hasPermission('N85') || this.appUserService.departmentID===this.automationDept
+        this.seniorPermision = this.appUserService.hasPermission('N85') || this.appUserService.departmentID === this.automationDept
         this.route.queryParams.subscribe(params => {
             // this.isSeniorMode = params['isSeniorMode'];
 
@@ -328,6 +329,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
         this.approveTpService.getUserTeam().subscribe({
             next: (response: any) => {
                 this.teamList = response.data || [];
+                this.teamGroupList = this.projectService.createdDataGroup(this.teamList, 'DepartmentName');
                 this.teamTreeNodes = this.buildTeamTree(this.teamList);
                 // Auto bind team nếu currentUser đã được load
                 this.bindDefaultTeam();
@@ -646,7 +648,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                 {
                     title: 'Trạng thái duyệt', columns: [
                         {
-                            title: 'Senior ', field: 'IsSeniorApprovedText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false,visible:this.seniorPermision,
+                            title: 'Senior ', field: 'IsSeniorApprovedText', hozAlign: 'center', headerHozAlign: 'center', width: 70, headerWordWrap: true, headerSort: false, visible: this.seniorPermision,
                             formatter: (cell: any) => {
                                 const rowData = cell.getRow().getData();
                                 const textValue = cell.getValue();
@@ -849,7 +851,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                 {
                     title: 'Người duyệt', columns: [
                         {
-                            title: 'Tên Senior ', field: 'ApprovedSeniorName', hozAlign: 'left', headerHozAlign: 'center', width: 120, formatter: 'textarea', headerSort: false, visible:this.seniorPermision,
+                            title: 'Tên Senior ', field: 'ApprovedSeniorName', hozAlign: 'left', headerHozAlign: 'center', width: 120, formatter: 'textarea', headerSort: false, visible: this.seniorPermision,
                         },
                         {
                             title: 'Tên TBP ', field: 'NguoiDuyet', hozAlign: 'left', headerHozAlign: 'center', width: 120, headerWordWrap: true, headerSort: false,

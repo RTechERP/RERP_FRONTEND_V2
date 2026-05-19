@@ -27,6 +27,9 @@ import { EmployeeService } from '../employee/employee-service/employee.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { forkJoin } from 'rxjs';
 import { ProjectService } from '../../project/project-service/project.service';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { DepartmentEmployeeSelectTableComponent } from './department-employee-select-table/department-employee-select-table.component';
 
 @Component({
   selector: 'app-department',
@@ -47,6 +50,9 @@ import { ProjectService } from '../../project/project-service/project.service';
     NgIf,
     NzSpinModule,
     HasPermissionDirective,
+    NzGridModule,
+    NgbModalModule,
+    DepartmentEmployeeSelectTableComponent,
   ],
 })
 export class DepartmentComponent implements OnInit {
@@ -62,13 +68,20 @@ export class DepartmentComponent implements OnInit {
   searchText: string = '';
   isLoading = false;
 
+  private tabulatorEmployee!: Tabulator;
+  employeeListByDept: any[] = [];
+  selectedEmployee: any = null;
+  isLoadingEmployee = false;
+  allEmployees: any[] = [];
+
   constructor(
     private employeeService: EmployeeService,
     private departmentService: DepartmentServiceService,
     private fb: FormBuilder,
     private modal: NzModalService,
     private notification: NzNotificationService,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private ngbModal: NgbModal
   ) {
     this.initForm();
   }
@@ -87,8 +100,10 @@ export class DepartmentComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeTable();
+    this.initializeEmployeeTable();
     this.loadDepartments();
     this.loadEmployees();
+    this.loadAllEmployees();
   }
 
   private initializeTable(): void {
@@ -145,11 +160,59 @@ export class DepartmentComponent implements OnInit {
 
     this.tabulator.on('rowClick', (e: UIEvent, row: RowComponent) => {
       this.selectedDepartment = row.getData();
+      this.loadEmployeeByDepartment();
     });
 
     this.tabulator.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
       this.selectedDepartment = row.getData();
+      this.loadEmployeeByDepartment();
       this.openEditModal();
+    });
+  }
+
+  private initializeEmployeeTable(): void {
+    this.tabulatorEmployee = new Tabulator('#tb_employee', {
+      data: this.employeeListByDept,
+      ...DEFAULT_TABLE_CONFIG,
+      layout: 'fitDataStretch',
+      selectableRows: 1,
+      columns: [
+        {
+          title: 'Mã NV',
+          field: 'Code',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          width: 100,
+        },
+        {
+          title: 'Họ tên',
+          field: 'FullName',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 250,
+          bottomCalc: 'count'
+        },
+        {
+          title: 'Trạng thái',
+          field: 'Status',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          formatter: (cell) => {
+            const value = cell.getValue();
+            return value === 1
+              ? '<span class="badge bg-danger">Đã nghỉ việc</span>'
+              : '<span class="badge bg-success">Đang làm việc</span>';
+          },
+        },
+      ],
+    });
+
+    this.tabulatorEmployee.on('rowClick', (e: UIEvent, row: RowComponent) => {
+      this.selectedEmployee = row.getData();
+    });
+
+    this.tabulatorEmployee.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+      this.selectedEmployee = row.getData();
     });
   }
 
@@ -157,10 +220,7 @@ export class DepartmentComponent implements OnInit {
     this.isLoading = true;
     this.departmentService.getDepartments().subscribe({
       next: (data: any) => {
-        this.departments = data.data.map((item: any, index: number) => ({
-          ...item,
-          STT: index + 1,
-        }));
+        this.departments = data.data;
         this.tabulator.setData(this.departments);
         this.isLoading = false;
       },
@@ -169,6 +229,33 @@ export class DepartmentComponent implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  loadAllEmployees(callback?: () => void) {
+    this.employeeService.getAllEmployee().subscribe({
+      next: (res: any) => {
+        this.allEmployees = res.data || [];
+        if (callback) callback();
+      },
+      error: (err) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + err.message);
+      }
+    });
+  }
+
+  loadEmployeeByDepartment() {
+    if (!this.selectedDepartment) {
+      this.employeeListByDept = [];
+      this.tabulatorEmployee.setData(this.employeeListByDept);
+      this.selectedEmployee = null;
+      return;
+    }
+    this.isLoadingEmployee = true;
+    const deptId = this.selectedDepartment.ID;
+    this.employeeListByDept = this.allEmployees.filter(emp => emp.DepartmentID === deptId);
+    this.tabulatorEmployee.setData(this.employeeListByDept);
+    this.selectedEmployee = null;
+    this.isLoadingEmployee = false;
   }
 
   // loadEmployees() {
@@ -329,7 +416,7 @@ export class DepartmentComponent implements OnInit {
           this.loadDepartments();
         },
         error: (error) => {
-          
+
           this.notification.error(
             NOTIFICATION_TITLE.error,
             'Cập nhật phòng ban thất bại: ' + error.error.message
@@ -374,4 +461,71 @@ export class DepartmentComponent implements OnInit {
   handleOk() {
     this.onSubmit();
   }
+
+  addMember() {
+    if (!this.selectedDepartment) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một phòng ban để thêm nhân viên');
+      return;
+    }
+
+    const deptId = this.selectedDepartment.ID;
+    const deptName = this.selectedDepartment.Name;
+
+    // Lọc danh sách nhân viên chưa thuộc phòng ban này
+    const employeesNotInDept = this.allEmployees.filter(emp => emp.DepartmentID !== deptId);
+
+    const modalRef = this.ngbModal.open(DepartmentEmployeeSelectTableComponent, { size: 'lg', backdrop: 'static', centered: true });
+    modalRef.componentInstance.employeeList = employeesNotInDept;
+    modalRef.componentInstance.selectedEmployeeIds = [];
+
+    modalRef.result.then((selectedEmployees: any[]) => {
+      if (selectedEmployees && selectedEmployees.length > 0) {
+        this.isLoadingEmployee = true;
+        // Cập nhật từng nhân viên
+        const requests = selectedEmployees.map(emp =>
+          this.employeeService.updateEmployeeDepartment(emp.ID, deptId).toPromise()
+        );
+
+        Promise.all(requests).then(() => {
+          this.notification.success(NOTIFICATION_TITLE.success, `Đã thêm ${selectedEmployees.length} nhân viên vào phòng ban ${deptName}`);
+          this.loadAllEmployees(() => {
+            this.loadEmployeeByDepartment();
+          });
+        }).catch(err => {
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi thêm nhân viên: ' + err.message);
+          this.isLoadingEmployee = false;
+        });
+      }
+    }, () => { });
+  }
+
+  removeMember() {
+    if (!this.selectedEmployee) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên để xóa');
+      return;
+    }
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa nhân viên <b>${this.selectedEmployee.FullName}</b> khỏi phòng ban này không?`,
+      nzOkText: 'Xóa',
+      nzOkDanger: true,
+      nzOnOk: () => {
+        this.isLoadingEmployee = true;
+        this.employeeService.updateEmployeeDepartment(this.selectedEmployee.ID, 0).subscribe({
+          next: (res) => {
+            this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa nhân viên khỏi phòng ban thành công');
+            this.loadAllEmployees(() => {
+              this.loadEmployeeByDepartment();
+            });
+          },
+          error: (err) => {
+            this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xóa nhân viên: ' + err.message);
+            this.isLoadingEmployee = false;
+          }
+        });
+      }
+    });
+  }
 }
+

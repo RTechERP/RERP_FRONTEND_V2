@@ -128,6 +128,7 @@ export class HrhiringRequestComponent
   searchValue: string = '';
   dateStart: any = DateTime.local().startOf('month').toISODate();
   dateEnd: any = DateTime.local().endOf('month').toISODate();
+  selectedIsCompletedFilter: number = 0; // 0.Chưa hoàn thành, 1.Hoàn thành, -1.Tất cả
 
   departmentList: any[] = [];
 
@@ -178,7 +179,8 @@ export class HrhiringRequestComponent
         params.findText,
         params.dateStart,
         params.dateEnd,
-        params.id
+        params.id,
+        params.isCompleted
       )
       .subscribe({
         next: (rows) => {
@@ -196,6 +198,10 @@ export class HrhiringRequestComponent
           );
         },
       });
+  }
+
+  onStatusFilterChange(): void {
+    this.loadHrHiringRequestData();
   }
 
   private toISODate(d: any): string {
@@ -234,6 +240,7 @@ export class HrhiringRequestComponent
       dateStart: this.toISODate(this.dateStart),
       dateEnd: this.toISODate(this.dateEnd),
       id: 0,
+      isCompleted: this.selectedIsCompletedFilter,
     };
   }
 
@@ -430,7 +437,7 @@ export class HrhiringRequestComponent
 
   // UI helpers
   get shouldShowSearchBar(): boolean {
-    return this.showSearchBar || !this.isMobile();
+    return this.showSearchBar;
   }
 
   isMobile(): boolean {
@@ -540,25 +547,25 @@ export class HrhiringRequestComponent
       {
         label: 'HR xác nhận',
         icon: 'fa-solid fa-user-tie fa-lg text-info',
-        visible: this.permissionService.hasPermission('N56,N59'),
+        visible: this.permissionService.hasPermission('N56,N59,N94'),
         items: [
           {
             label: 'HR duyệt',
             icon: 'fa-solid fa-check text-success',
             command: () => this.approvedTBPNew(1, 2),
-            visible: this.permissionService.hasPermission('N59'),
+            visible: this.permissionService.hasPermission('N59,N94'),
           },
           {
             label: 'HR không duyệt',
             icon: 'fa-solid fa-ban text-danger',
             command: () => this.approvedTBPNew(2, 2),
-            visible: this.permissionService.hasPermission('N59'),
+            visible: this.permissionService.hasPermission('N59,N94'),
           },
           {
             label: 'HR hủy duyệt',
             icon: 'fa-solid fa-undo text-warning',
             command: () => this.approvedTBPNew(0, 2),
-            visible: this.permissionService.hasPermission('N59'),
+            visible: this.permissionService.hasPermission('N59,N94'),
           },
           { separator: true },
           {
@@ -606,7 +613,7 @@ export class HrhiringRequestComponent
       {
         label: 'Cập nhật trạng thái',
         icon: 'fa-solid fa-check-to-slot fa-lg text-info',
-        visible: this.permissionService.hasPermission('N1,N2'),
+        visible: this.permissionService.hasPermission('N1,N2,N94'),
         items: [
           {
             label: 'Hoàn thành',

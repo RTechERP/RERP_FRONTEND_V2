@@ -10,13 +10,13 @@ import { NzRateModule } from 'ng-zorro-antd/rate';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { ProjectTaskDashboardService, DashboardStats, ChartData } from './project-task-dashboard.service';
 import { KanbanService } from '../kanban/kanban.service';
-import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 import { ProjectTaskItem } from '../project-task/project-task.service';
 import { ChartModule } from 'primeng/chart';
 import { Router } from '@angular/router';
 import { AppUserService } from '../../../services/app-user.service';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { ProjectTaskStatusDetailComponent } from '../project-task-status-detail/project-task-status-detail.component';
+import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 import { TooltipModule } from 'primeng/tooltip';
 
 // ECharts
@@ -109,8 +109,8 @@ export class ProjectTaskDashboardComponent implements OnInit {
     this.showTypeSidebar.set(!this.showTypeSidebar());
     // Rezize chart after sidebar transition
     setTimeout(() => {
-        // Trigger resize event for ECharts
-        window.dispatchEvent(new Event('resize'));
+      // Trigger resize event for ECharts
+      window.dispatchEvent(new Event('resize'));
     }, 300);
   }
 
@@ -132,7 +132,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
     });
   }
 
-  private statusChartMapping = [1, 2, 21, 3, 31, 32, 33, 4];
+  private statusChartMapping = [0, 1, 11, 2, 21, 22, 23, 3, 4];
 
   onStatusChartClick(event: any) {
     if (!event.element) return;
@@ -286,7 +286,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
 
     return this.allTasks()
       .filter(t => {
-        if (t.Status === 3 || t.Status === 4) return false; // Skip completed/pending
+        if (t.Status === 2 || t.Status === 3 || t.Status === 4) return false; // Skip completed/pending/cancel
         if (!t.PlanEndDate) return false;
         const d = new Date(t.PlanEndDate);
         d.setHours(0, 0, 0, 0);
@@ -314,7 +314,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
   pendingApprovalTasks = computed(() => {
     const currentUserId = this.appUserService.employeeID;
     return this.allTasks()
-      .filter(t => t.Status === 3 && t.IsApproved === 1 && t.EmployeeIDRequest === currentUserId);
+      .filter(t => t.Status === 2 && t.ApprovalStatus === null && t.EmployeeIDRequest === currentUserId);
   });
 
   ngOnInit() {
@@ -337,7 +337,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
         this.stats.set(data.stats);
         this.statusChartData.set(data.statusChartData);
         this.projectChartData.set(data.projectChartData);
-        
+
         // My Tasks Analytics
         this.initTypeSelections(data.tasks);
         this.updateTypeStackedChart();
@@ -382,7 +382,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
     if (dueDate) dueDate.setHours(0, 0, 0, 0);
 
     if (dueDate && planEnd && dueDate > planEnd) return true;
-    if (!dueDate && planEnd && planEnd < now && task.Status !== 4) return true;
+    if (!dueDate && planEnd && planEnd < now && task.Status !== 3 && task.Status !== 4) return true;
     return false;
   }
 
@@ -455,26 +455,13 @@ export class ProjectTaskDashboardComponent implements OnInit {
   }
 
   openTaskDetail(task: ProjectTaskItem) {
-    this.kanbanService.getTaskById(task.ID).subscribe({
-      next: (res) => {
-        if (res.status === 200 || res.status === 1) {
-          const modalRef = this.modal.create({
-            nzTitle: 'CHI TIẾT CÔNG VIỆC',
-            nzContent: TaskDetailComponent,
-            nzData: { task: res.data },
-            nzFooter: null,
-            nzWidth: '100vw',
-            nzBodyStyle: { padding: '0', height: '80vh', overflow: 'hidden' },
-            nzStyle: { borderRadius: '12px', top: '5vh' },
-            nzMaskClosable: false,
-            nzClosable: true
-          });
-
-          modalRef.afterClose.subscribe(result => {
-            if (result) this.refreshData();
-          });
-        }
-      }
+    const taskId = task.ID;
+    const taskCode = task.Code || `Task-${taskId}`;
+    this.tabService.openTabComp({
+      comp: TaskDetailComponent,
+      title: taskCode,
+      key: `project-task-detail-${taskId}`,
+      data: { id: taskId }
     });
   }
 
@@ -537,15 +524,15 @@ export class ProjectTaskDashboardComponent implements OnInit {
   updateTypeStackedChart() {
     const currentUserId = this.appUserService.employeeID || 0;
     const selectedTypes = this.typeSelections().filter(s => s.selected).map(s => s.name);
-    
+
     // Filter tasks for current user and selected types
-    const filteredTasks = this.allTasks().filter(t => 
-      t.AsigneeEmployeeID === currentUserId && 
+    const filteredTasks = this.allTasks().filter(t =>
+      t.AsigneeEmployeeID === currentUserId &&
       selectedTypes.includes(t.ProjectTaskTypeName || 'Khác')
     );
 
     const data = this.dashboardService.prepareTypeStackedChartData(filteredTasks, selectedTypes);
-    
+
     // Convert ChartData to ECharts Options
     this.typeStackedChartOptions.set({
       tooltip: {

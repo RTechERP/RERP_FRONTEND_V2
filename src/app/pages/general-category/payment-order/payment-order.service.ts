@@ -35,12 +35,19 @@ export class PaymentOrderService {
     get(data: any): Observable<any> {
         return this.http.post<any>(this.url, data);
     }
+    getPaging(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/paging`, data);
+    }
     getSpecial(data: any): Observable<any> {
         return this.http.post<any>(`${this.url}/special`, data);
     }
 
     getDetail(id: number): Observable<any> {
         return this.http.get<any>(this.url + `/${id}`);
+    }
+
+    deleteMulti(ids: number[]): Observable<any> {
+        return this.http.post<any>(`${this.url}/delete-multi`, ids);
     }
 
     getLogNew(paymentOrderId: number): Observable<any> {
@@ -52,6 +59,14 @@ export class PaymentOrderService {
     }
     updateTotalmoney(payment: any): Observable<any> {
         return this.http.post<any>(`${this.url}/update-totalmoney`, payment);
+    }
+
+    updateTransferType(payments: any[]): Observable<any> {
+        return this.http.post<any>(`${this.url}/update-transfer-type`, payments);
+    }
+
+    downloadZip(file: DownloadPaymentOrderDTO): Observable<Blob> {
+        return this.http.post(`${this.url}/download-zip`, file, { responseType: 'blob' });
     }
 
     uploadFile(files: File[], paymentOrderID: number, paymentOrderFileID: string): Observable<any> {
@@ -106,6 +121,10 @@ export class PaymentOrderService {
         return this.http.post<any>(`${this.url}/appoved-khreceive`, data);
     }
 
+    approved(data: any): Observable<any> {
+        return this.http.post<any>(`${this.url}/approved`, data);
+    }
+
     uploadFiles(file: any): Observable<any> {
         return this.http.post<any>(`${this.url}/upload-file`, file);
     }
@@ -114,8 +133,28 @@ export class PaymentOrderService {
         return this.http.get<any>(`${this.url}/get-data-combo`);
     }
 
+    getApprovers(): Observable<any> {
+        return this.http.get<any>(`${this.url}/approvers`);
+    }
+
+    getProcurement(): Observable<any> {
+        return this.http.get<any>(`${this.url}/procurement`);
+    }
+
+    getPartnersAndProjects(): Observable<any> {
+        return this.http.get<any>(`${this.url}/partners-projects`);
+    }
+
+    getMetadata(): Observable<any> {
+        return this.http.get<any>(`${this.url}/metadata`);
+    }
+
     getStep(): Observable<any> {
         return this.http.get<any>(`${this.url}/get-step`);
+    }
+
+    getBankList(): Observable<any> {
+        return this.http.get<any>(`${this.url}/get-bank-list`);
     }
     // ====== 4. Đọc 3 chữ số ======
     private readThreeDigits(num: number): string {
@@ -211,6 +250,10 @@ export class PaymentOrderService {
     getPaymentOrderByTeam(data: any): Observable<any> {
         return this.http.post<any>(`${this.url}/get-payment-order-team`, data);
     }
+    getCurrencyConfig(): Observable<CurrencyConfig> {
+        return this.http.get<any>(`${this.url}/get-currency-config`);
+    }
+
 }
 
 
@@ -221,6 +264,12 @@ export interface CurrencyConfig {
     subUnit?: string;    // xu, cent...
 }
 
+export interface DownloadPaymentOrderDTO {
+    PaymentOrderId: number;
+    PaymentOrderCode: string;
+    FilePath: string[];
+}
+
 export const CURRENCY_CONFIGS: CurrencyConfig[] = [
     { id: 'vnd', text: 'VND', unit: 'đồng', subUnit: 'xu' },
     { id: 'usd', text: 'USD', unit: 'đô', subUnit: 'cent' },
@@ -228,5 +277,8 @@ export const CURRENCY_CONFIGS: CurrencyConfig[] = [
     { id: 'jpy', text: 'JPY', unit: 'yên', subUnit: 'sen' },
     { id: 'sgd', text: 'SGD', unit: 'đô', subUnit: 'cent' },
     { id: 'cny', text: 'CNY', unit: 'nhân dân tệ', subUnit: '' },
-    { id: 'inr', text: 'INR', unit: 'rupee', subUnit: 'paise' }
+    { id: 'inr', text: 'INR', unit: 'rupee', subUnit: 'paise' },
+    { id: 'myr', text: 'MYR', unit: 'ringgit', subUnit: 'sen' },
+    { id: 'idr', text: 'IDR', unit: 'rupiah', subUnit: 'sen' },
+
 ];

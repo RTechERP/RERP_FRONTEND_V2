@@ -241,7 +241,7 @@ export class HRHiringRequestExamDetailComponent implements OnInit {
     const deletedExamIds = this.initialExamIds.filter(id => !currentExamIds.includes(id));
 
     const savePayload = {
-      IsActiveExam: this.isActive ?? false,
+      IsActiveExam: true,
       HiringRequestID: this.selectedHiringRequestId,
       listHiringRequestIDExam: currentExamIds,
       deletedHiringRequestIDExam: deletedExamIds

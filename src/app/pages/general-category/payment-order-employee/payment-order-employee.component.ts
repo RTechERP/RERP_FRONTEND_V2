@@ -232,6 +232,24 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                     this.selectedItem = null;
                 },
             },
+            {
+                label: 'KH đã nhận',
+                icon: 'fa-solid fa-circle-check fa-lg text-success',
+                command: () => {
+                    this.onApprovedKHReceive(1, {
+                        ButtonActionGroup: '', ButtonActionName: '', ButtonActionText: 'KH đã nhận',
+                    });
+                },
+            },
+            {
+                label: 'KH hủy nhận',
+                icon: 'fa-solid fa-circle-xmark fa-lg text-danger',
+                command: () => {
+                    this.onApprovedKHReceive(2, {
+                        ButtonActionGroup: '', ButtonActionName: '', ButtonActionText: 'KH hủy nhận',
+                    });
+                },
+            },
 
         ];
     }
@@ -291,22 +309,23 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 format: fmtDateTime,
                 cssClass: 'text-center',
             },
-            { field: 'StepName', header: 'Tình trạng phiếu', width: '200px' },
+            { field: 'StepName', header: 'Tình trạng phiếu', width: '200px', filterMode: 'multiselect' },
             {
                 field: 'Code',
                 header: 'Số đề nghị',
                 width: '160px',
                 footerType: 'count',
+                filterMode: 'multiselect',
             },
-            { field: 'FullName', header: 'Người đề nghị', width: '150px' },
+            { field: 'FullName', header: 'Người đề nghị', width: '150px', filterMode: 'multiselect' },
             { field: 'DepartmentName', header: 'Bộ phận', width: '150px' },
             { field: 'TypeOrderText', header: 'Phân loại chính', width: '130px' },
-            { field: 'TypeName', header: 'Nội dung chính', width: '180px' },
+            { field: 'TypeName', header: 'Nội dung chính', width: '180px', filterMode: 'multiselect' },
             {
                 field: 'ReasonOrder',
                 header: 'Lý do thanh toán',
                 width: '300px',
-                textWrap: false,
+                textWrap: true,
             },
             // --- Số tiền ---
             {
@@ -346,16 +365,19 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 field: 'TypeBankTransferText',
                 header: 'HT thanh toán',
                 width: '130px',
+                filterMode: 'multiselect',
             },
             {
                 field: 'ContentBankTransfer',
                 header: 'ND chuyển khoản',
                 width: '160px',
+                textWrap: true
             },
-            { field: 'SuplierName', header: 'Nhà cung cấp', width: '150px' },
-            { field: 'StatusContractText', header: 'TT hợp đồng', width: '130px' },
-            { field: 'DocumentName', header: 'Số hợp đồng', width: '130px' },
-            { field: 'ProjectFullName', header: 'Dự án', width: '150px' },
+            { field: 'SuplierName', header: 'Nhà cung cấp', width: '150px', textWrap: true },
+            { field: 'StatusContractText', header: 'TT hợp đồng', width: '130px', textWrap: true },
+            { field: 'DocumentName', header: 'Số hợp đồng', width: '130px', textWrap: true },
+            { field: 'TaxCompanyName', header: 'Công ty', width: '130px', textWrap: true },
+            { field: 'ProjectFullName', header: 'Dự án', width: '150px', textWrap: true },
             {
                 field: 'IsBill',
                 header: 'Có HĐ',
@@ -371,7 +393,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
             { field: 'ReasonCancel', header: 'Lý do hủy duyệt', width: '150px' },
             { field: 'Note', header: 'Ghi chú / Chứng từ', width: '350px' },
             { field: 'AccountingNote', header: 'Ghi chú kế toán', width: '150px' },
-            { field: 'POCode', header: 'Số PO', width: '120px' },
+            { field: 'POCode', header: 'Số PO', width: '120px', filterMode: 'multiselect' },
             {
                 field: 'ReasonRequestAppendFileAC',
                 header: 'Lý do KT Y/c bổ sung',
@@ -458,6 +480,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 field: 'ContentPayment',
                 header: 'Nội dung thanh toán',
                 width: '350px',
+                filterMode: 'multiselect',
             },
             { field: 'Unit', header: 'ĐVT', width: '60px' },
             {
@@ -534,19 +557,20 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 format: fmtDateTime,
                 cssClass: 'text-center',
             },
-            { field: 'StepName', header: 'Tình trạng phiếu', width: '200px' },
+            { field: 'StepName', header: 'Tình trạng phiếu', width: '200px', filterMode: 'multiselect' },
             {
                 field: 'Code',
                 header: 'Số đề nghị',
                 width: '160px',
                 footerType: 'count',
+                filterMode: 'multiselect',
             },
-            { field: 'FullName', header: 'Người đề nghị', width: '150px' },
-            { field: 'UserTeamNameJoin', header: 'Team kinh doanh', width: '200px' },
-            { field: 'TypeName', header: 'Phân loại thanh toán', width: '300px' },
+            { field: 'FullName', header: 'Người đề nghị', width: '150px', filterMode: 'multiselect' },
+            { field: 'UserTeamNameJoin', header: 'Team kinh doanh', width: '200px', filterMode: 'multiselect' },
+            { field: 'TypeName', header: 'Phân loại thanh toán', width: '300px', filterMode: 'multiselect' },
             { field: 'CustomerName', header: 'Khách hàng', width: '300px' },
-            { field: 'POCode', header: 'Số PO', width: '120px' },
-            { field: 'BillNumbers', header: 'Số hóa đơn', width: '300px' },
+            { field: 'POCode', header: 'Số PO', width: '120px', filterMode: 'multiselect' },
+            { field: 'BillNumbers', header: 'Số hóa đơn', width: '300px', filterMode: 'multiselect' },
             {
                 field: 'TotalMoney',
                 header: 'Số tiền',
@@ -560,6 +584,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 field: 'TypeBankTransferText',
                 header: 'Hình thức thanh toán',
                 width: '170px',
+                filterMode: 'multiselect',
             },
             {
                 field: 'ContentLog',
@@ -576,6 +601,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 field: 'ContentPayment',
                 header: 'Đối tượng nhận COM',
                 width: '350px',
+                filterMode: 'multiselect',
             },
             {
                 field: 'TotalMoney',
@@ -589,6 +615,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 field: 'PaymentMethodsText',
                 header: 'Hình thức thanh toán',
                 width: '170px',
+                filterMode: 'multiselect',
             },
             {
                 field: 'PaymentInfor',
@@ -599,6 +626,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 field: 'UserTeamName',
                 header: 'Team kinh doanh',
                 width: '150px',
+                filterMode: 'multiselect',
             },
             { field: 'Note', header: 'Ghi chú / Chứng từ kèm theo', width: '300px' },
         ];
@@ -710,6 +738,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
         item.HRNote = '';
         item.Note = '';
         item = item as PaymentOrder;
+        console.log(item);
         this.initModal(item, true);
     }
     onOpenPaymentOrderLog(row: any) {
@@ -2045,5 +2074,79 @@ export class PaymentOrderEmployeeComponent implements OnInit {
             // window.open(url, '_blank', `width=${window.screen.width / 2},height=${window.screen.height}`);
             window.open(url, '_blank');
         });
+    }
+
+    async onApprovedKHReceive(isApproved: number, action: any) {
+        if (!this.selectedItem) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đề nghị!');
+            return;
+        }
+
+        const data = [{
+            ...this.selectedItem,
+            Action: action,
+            PaymentOrderLog: { IsApproved: isApproved },
+            CurrentApproved: this.selectedItem.IsApproved || 0,
+            Step: this.selectedItem.Step || 0,
+        }];
+
+        if (isApproved == 1) {
+            Swal.fire({
+                title: 'Xác nhận duyệt?',
+                text: `Bạn có chắc muốn xác nhận KH đã nhận không?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#dc3545',
+                confirmButtonText: 'Duyệt',
+                cancelButtonText: 'Hủy',
+            }).then((result: any) => {
+                if (result.isConfirmed) {
+                    this.paymentService.appovedKHReceive(data).subscribe({
+                        next: (response) => {
+                            this.loadData();
+                            this.notification.success(NOTIFICATION_TITLE.success, response.message);
+                        },
+                        error: (err) => {
+                            this.notification.create(
+                                NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                                NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                                err?.error?.message || `${err.error}\n${err.message}`,
+                                { nzStyle: { whiteSpace: 'pre-line' } }
+                            );
+                        },
+                    });
+                }
+            });
+        } else if (isApproved == 2) {
+            const { value: reason }: { value?: string } = await Swal.fire({
+                input: 'textarea',
+                inputLabel: 'Lý do hủy',
+                inputPlaceholder: 'Nhập lý do hủy...',
+                inputAttributes: { 'aria-label': 'Vui lòng nhập Lý do hủy' },
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#dc3545',
+                confirmButtonText: 'Hủy nhận',
+                cancelButtonText: 'Hủy',
+            });
+            if (reason) {
+                const cancelData = data.map((x) => ({ ...x, ReasonCancel: reason }));
+                this.paymentService.appovedKHReceive(cancelData).subscribe({
+                    next: (response) => {
+                        this.loadData();
+                        this.notification.success(NOTIFICATION_TITLE.success, response.message);
+                    },
+                    error: (err) => {
+                        this.notification.create(
+                            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                            err?.error?.message || `${err.error}\n${err.message}`,
+                            { nzStyle: { whiteSpace: 'pre-line' } }
+                        );
+                    },
+                });
+            }
+        }
     }
 }

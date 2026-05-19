@@ -61,7 +61,8 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { SupplierSaleDetailComponent } from '../../purchase/supplier-sale/supplier-sale-detail/supplier-sale-detail.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { HorizontalScrollDirective } from '../../../directives/horizontalScroll.directive';
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
+import { HolidayServiceService } from '../../hrm/holiday/holiday-service/holiday-service.service';
 import { TabulatorPopupService } from '../../../shared/components/tabulator-popup/tabulator-popup.service';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
@@ -150,6 +151,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   // Flag để track khi tab đã render
   isTabReady: boolean = false;
   PriceRequetsService = inject(ProjectPartlistPriceRequestService);
+  private holidayService = inject(HolidayServiceService);
+  private holidaySet = new Set<string>();
   private notification = inject(NzNotificationService);
   private modal = inject(NzModalService);
   injector = inject(EnvironmentInjector);
@@ -233,6 +236,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       this.activeTabId = -1; // Tab thương mại
     }
 
+    if (this.projectPartlistPriceRequestTypeID === -10) {
+      this.activeTabId = 15; // Vtth tab
+    }
+
     this.filters = {
       dateStart: DateTime.local().startOf('month').toJSDate(), // Ngày đầu tháng hiện tại
       dateEnd: DateTime.local().endOf('month').toJSDate(), // Ngày cuối cùng của tháng hiện tại
@@ -259,6 +266,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     this.GetallProject();
     this.GetAllPOKH();
     this.initMenuItems();
+    this.LoadHolidays();
   }
 
   get restrictedView(): boolean {
@@ -294,6 +302,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     if (this.poKHID > 0 && id !== -1) return false;
     if (this.projectPartlistPriceRequestTypeID === 3) return id === -2;
     if (this.projectPartlistPriceRequestTypeID === 4) return id === -3;
+    if (this.projectPartlistPriceRequestTypeID === -10) return id === 15;
     return true;
   }
   getVisibleProjectTypes(): any[] {
@@ -368,6 +377,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       '-2': 3,
       '-3': 4,
       '-4': 6,
+      '15': -10,
     };
 
     const key = String(projectTypeID);
@@ -380,13 +390,13 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   }
 
   OnEditClick() {
-    const lstTypeAccept = [-1, -2, -3, -4];
+    const lstTypeAccept = [-1, -2, -3, -4, 10];
     const angularGrid = this.angularGrids.get(this.activeTabId);
 
     if (!lstTypeAccept.includes(this.activeTabId)) {
       this.notification.info(
         NOTIFICATION_TITLE.warning,
-        'Chỉ được sửa những sản phẩm của hàng thương mại, yêu cầu công việc, marketing, demo!'
+        'Chỉ được sửa những sản phẩm của hàng thương mại, yêu cầu công việc, marketing, demo, vật tư tiêu hao!'
       );
       return;
     }
@@ -699,6 +709,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         poKHID = 0; // poKHID = 0 cho các type khác
       }
       else if (projectTypeID === 0) {
+        isCommercialProduct = 0;
+        isJobRequirement = 0;
+        poKHID = 0; // poKHID = 0 cho các type khác
+      } else if (projectTypeID === -10) {
+        mappedProjectTypeID = -1;
+        projectPartlistPriceRequestTypeID = 7;
         isCommercialProduct = 0;
         isJobRequirement = 0;
         poKHID = 0; // poKHID = 0 cho các type khác
@@ -1255,7 +1271,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   private switchTab(typeId: number): void {
     this.activeTabId = typeId;
     this.filters.projectTypeID = typeId;
-
     // Kiểm tra nếu grid chưa được init
     if (!this.columnDefinitionsMap.has(typeId)) {
       this.columnDefinitionsMap.set(typeId, this.initGridColumns(typeId));
@@ -1605,9 +1620,6 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         filterable: true,
         type: 'number',
         cssClass: 'text-right',
-        editor: {
-          model: Editors['float'], decimal: 2,
-        },
         filter: { model: Filters['compoundInputNumber'] },
         groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
 
@@ -2447,6 +2459,11 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
       // Ngăn chỉnh sửa các hàng đã báo giá (StatusRequest = 2) hoặc đã hoàn thành (StatusRequest = 3)
       editCommandHandler: (item: any, _column: any, editCommand: any) => {
+        // Tab VTTH (typeId = 15) không cho phép sửa trực tiếp trên bảng
+        if (typeId === -10) {
+          return;
+        }
+
         const statusRequest = Number(item?.StatusRequest || item?.StatusRequestID || 0);
         // Cho phép edit nếu status = 1 (Yêu cầu báo giá) hoặc status = 5 (Từ chối)
         if (statusRequest === 2 || statusRequest === 3) {
@@ -3595,9 +3612,29 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     this.SaveDataCommon(filteredData, 'Dữ liệu đã được lưu.', onSuccess);
   }
 
+  private LoadHolidays() {
+    const year = DateTime.local().year;
+    const calls = Array.from({ length: 12 }, (_, i) =>
+      this.holidayService.getHolidays(i + 1, year)
+    );
+    forkJoin(calls).subscribe((results: any[]) => {
+      this.holidaySet = new Set<string>();
+      results.forEach((response) => {
+        const list = response?.data?.holidays ?? [];
+        list.forEach((h: any) => {
+          if (h.HolidayDate) {
+            this.holidaySet.add(DateTime.fromISO(h.HolidayDate).toFormat('yyyy-MM-dd'));
+          }
+        });
+      });
+      console.log('getHolidays', this.holidaySet);
+    });
+
+  }
+
   AddWeekdays(date: Date, days: number): Date {
     if (!days || isNaN(days)) {
-      return date; // Trả về ngày gốc nếu days không hợp lệ
+      return date;
     }
 
     let count = 0;
@@ -3606,13 +3643,13 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     while (count < days) {
       result.setDate(result.getDate() + 1);
       const day = result.getDay();
-      if (day !== 0 && day !== 6) {
-        // Skip Sunday (0) and Saturday (6)
+      const dateStr = DateTime.fromJSDate(result).toFormat('yyyy-MM-dd');
+      if (day !== 0 && day !== 6 && !this.holidaySet.has(dateStr)) {
         count++;
       }
     }
 
-    return result; // Vẫn trả về đối tượng Date JavaScript
+    return result;
   }
 
   /**
@@ -3747,6 +3784,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     const totalPriceImport = quantity * importPrice;
     const totalVAT = totalPrice + (totalPrice * vat) / 100;
     const totalPriceExchange = totalPrice * currencyRate;
+    console.log('getHolidays', this.holidaySet);
 
     const leadtime = Number(data.TotalDayLeadTime);
     // Sử dụng DateTime để tạo ngày dự kiến

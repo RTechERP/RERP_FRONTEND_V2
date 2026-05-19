@@ -1,149 +1,231 @@
-/* Modal content container */
-.modal-content-container {
-    height: 80vh;
-    min-height: 600px;
+:host {
+    display: block;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+.ranking-container {
+    height: 100%;
+    width: 100%;
+    background-color: #f8f9fa;
+    color: #333;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Filter bar styling */
 .filter-bar {
-    background-color: #f5f5f5;
-    border-bottom: 1px solid #d9d9d9;
+    background-color: white;
+    z-index: 10;
     flex-shrink: 0;
 }
 
-.fs-12 {
-    font-size: 12px !important;
+.fw-bold {
+    font-weight: 600 !important;
 }
 
-/* Align labels and inputs in filter bar */
-:host ::ng-deep .filter-bar nz-form-item {
-    display: flex;
-    align-items: center;
-}
-
-:host ::ng-deep .filter-bar nz-form-label {
-    padding: 0 8px 0 0;
-    line-height: 24px;
-}
-
-:host ::ng-deep .filter-bar nz-form-control {
-    line-height: 24px;
-}
-
-/* Content container */
-.content-container {
+/* Content body */
+.content-body {
+    background-color: #f0f2f5;
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
-}
-
-/* SlickGrid Container */
-.grid-container {
-    position: relative;
-    min-height: 0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-:host ::ng-deep .grid-container angular-slickgrid,
-:host ::ng-deep .grid-container .slickgrid-container,
-:host ::ng-deep .grid-container .gridPane {
-    height: 100% !important;
-}
-
-:host ::ng-deep .slick-cell {
-    display: flex;
-    align-items: center;
-}
-
-/* Chart Container */
-.chart-container {
-    background-color: white;
-    height: 100%;
-    min-height: 0;
     overflow: hidden;
-    position: relative;
 }
 
-/* PrimeNG Chart - fit container */
-:host ::ng-deep .chart-container p-chart {
-    display: block;
-    height: 100% !important;
-    max-height: 100%;
+/* Panel containers */
+.chart-panel,
+.grid-panel {
+    background-color: transparent;
+    padding: 1.5rem !important;
+    /* Reduced from p-4 (3rem) */
 }
 
-:host ::ng-deep .chart-container p-chart>div {
-    height: 100% !important;
+.chart-wrapper,
+.grid-wrapper {
+    transition: box-shadow 0.3s ease;
 }
 
-:host ::ng-deep .chart-container canvas {
-    max-height: 100% !important;
+.chart-wrapper:hover,
+.grid-wrapper:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Radio group positioning */
-.radio-group {
+/* Chart overlay buttons */
+.radio-overlay {
     position: absolute;
     top: 10px;
-    right: 10px;
+    right: 20px;
     z-index: 10;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-direction: row;
+    gap: 15px;
     background: rgba(255, 255, 255, 0.9);
-    padding: 8px 12px;
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid #eee;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.radio-group label {
-    font-size: 13px;
-    cursor: pointer;
+.radio-item {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
 }
 
-.radio-kpi {
+.radio-item:hover {
+    opacity: 0.8;
+}
+
+.radio-item input {
+    display: none;
+}
+
+.radio-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    position: relative;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.kpi-expected .radio-dot {
+    border-color: #60B5CC;
+}
+
+.kpi-actual .radio-dot {
+    border-color: #E66C7D;
+}
+
+.radio-item input:checked+.radio-dot::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.kpi-expected input:checked+.radio-dot {
+    background-color: #60B5CC;
+}
+
+.kpi-expected input:checked+.radio-dot::after {
+    background-color: white;
+}
+
+.kpi-expected {
     color: #60B5CC;
 }
 
-.radio-kpi-last {
+.kpi-actual input:checked+.radio-dot {
+    background-color: #E66C7D;
+}
+
+.kpi-actual input:checked+.radio-dot::after {
+    background-color: white;
+}
+
+.kpi-actual {
     color: #E66C7D;
 }
 
-/* NZ Splitter custom styles */
-:host ::ng-deep nz-splitter {
+/* Chart Content */
+.chart-content {
+    height: calc(100% - 35px);
+    width: 100%;
+    margin-top: 15px;
+}
+
+:host ::ng-deep .chart-content p-chart,
+:host ::ng-deep .chart-content p-chart>div,
+:host ::ng-deep .chart-content canvas {
     height: 100% !important;
+    width: 100% !important;
+}
+
+/* Grid Styling */
+.panel-header {
+    height: 45px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.grid-content {
     flex: 1;
     min-height: 0;
+    position: relative;
+    background-color: white;
+    height: 100%;
 }
 
-:host ::ng-deep nz-splitter-panel {
-    overflow: hidden;
+:host ::ng-deep .grid-content angular-slickgrid,
+:host ::ng-deep .grid-content .slickgrid-container,
+:host ::ng-deep .grid-content .gridPane {
+    height: 100% !important;
+    width: 100% !important;
+    display: block;
+}
+
+/* Custom SlickGrid styling for premium look */
+:host ::ng-deep .slick-header-column {
+    background: #fafafa !important;
+    border-right: 1px solid #f0f0f0 !important;
+}
+
+:host ::ng-deep .slick-row:hover {
+    background-color: #f0f7ff !important;
+}
+
+/* Utility classes */
+.mr-2 {
+    margin-right: 0.5rem;
+}
+
+.shadow-sm {
+    box-shadow: 0 .125rem .25rem rgba(0, 0, 0, .075) !important;
+}
+
+.rounded {
+    border-radius: .375rem !important;
+}
+
+.badge {
+    padding: 0.35em 0.65em;
+    font-size: .75em;
+    font-weight: 700;
+    line-height: 1;
+    border-radius: .25rem;
+}
+
+/* Splitter Customization */
+:host ::ng-deep nz-splitter {
+    background-color: transparent !important;
+}
+
+:host ::ng-deep .nz-splitter-splitbar-horizontal {
+    background-color: #d9d9d9 !important;
+    width: 6px !important;
+    transition: background-color 0.2s;
+}
+
+:host ::ng-deep .nz-splitter-splitbar-horizontal:hover {
+    background-color: #1890ff !important;
+}
+
+::ng-deep .content-host {
     height: 100% !important;
 }
 
-/* Group control styling */
-.group-header {
-    background-color: #f0f0f0;
-    padding: 8px 12px;
-    font-weight: bold;
-    border-bottom: 1px solid #d9d9d9;
-    font-size: 13px;
-}
-
-/* Gap utilities */
-.gap-1 {
-    gap: 0.25rem;
-}
-
-.gap-2 {
-    gap: 0.5rem;
-}
-
-.gap-3 {
-    gap: 1rem;
+::ng-deep .tab-pane {
+    height: 100% !important;
 }

@@ -12,7 +12,8 @@ export interface DashboardStats {
   approved: number;         // 22
   rejected: number;         // 23
   pending: number;          // 3
-  pendingApproval: number;  // (Status 2 + IsApproved 1)
+  cancel: number;           // 4
+  pendingApproval: number;  // (Status 2 + ApprovalStatus null)
   typeStats: { name: string, count: number, color: string }[];
 }
 
@@ -24,7 +25,8 @@ export const STATUS_CONFIGS = [
     { id: 21, label: 'Hoàn thành quá hạn', color: '#f59e0b' },
     { id: 22, label: 'Đã duyệt', color: '#8b5cf6' },
     { id: 23, label: 'Đã hủy duyệt', color: '#64748b' },
-    { id: 3, label: 'Pending', color: '#ea580c' }
+    { id: 3, label: 'Pending', color: '#ea580c' },
+    { id: 4, label: 'Hủy', color: '#ef4444' }
 ];
 
 export interface ChartData {
@@ -102,7 +104,7 @@ export class ProjectTaskDashboardService {
         now.setHours(0, 0, 0, 0);
 
         const statusCounts = {
-            0: 0, 1: 0, 11: 0, 2: 0, 21: 0, 22: 0, 23: 0, 3: 0
+            0: 0, 1: 0, 11: 0, 2: 0, 21: 0, 22: 0, 23: 0, 3: 0, 4: 0
         };
 
         const typeMap = new Map<string, { count: number, color: string }>();
@@ -139,7 +141,8 @@ export class ProjectTaskDashboardService {
             approved: statusCounts[22],
             rejected: statusCounts[23],
             pending: statusCounts[3],
-            pendingApproval: tasks.filter(t => t.IsApproved === 1 && t.Status === 2 && t.EmployeeIDRequest === currentUserId).length,
+            cancel: statusCounts[4],
+            pendingApproval: tasks.filter(t => t.ApprovalStatus === null && t.Status === 2 && t.EmployeeIDRequest === currentUserId).length,
             typeStats
         };
     }
@@ -215,8 +218,8 @@ export class ProjectTaskDashboardService {
 
         if (status === 1 && isOverdue) return 11;
         if (status === 2) {
-            if (task.IsApproved === 2) return 22;
-            if (task.IsApproved === 3) return 23;
+            if (task.ApprovalStatus === true) return 22;
+            if (task.ApprovalStatus === false) return 23;
             if (isOverdue) return 21;
             return 2;
         }
@@ -229,7 +232,7 @@ export class ProjectTaskDashboardService {
         now.setHours(0, 0, 0, 0);
 
         const counts: { [key: number]: number } = {
-            0: 0, 1: 0, 11: 0, 2: 0, 21: 0, 22: 0, 23: 0, 3: 0
+            0: 0, 1: 0, 11: 0, 2: 0, 21: 0, 22: 0, 23: 0, 3: 0, 4: 0
         };
 
         tasks.forEach(t => {
@@ -247,7 +250,8 @@ export class ProjectTaskDashboardService {
             'Hoàn thành quá hạn',
             'Đã duyệt',
             'Đã hủy duyệt',
-            'Pending'
+            'Pending',
+            'Hủy'
         ];
 
         const data = [
@@ -258,7 +262,8 @@ export class ProjectTaskDashboardService {
             counts[21],
             counts[22],
             counts[23],
-            counts[3]
+            counts[3],
+            counts[4]
         ];
 
         const colors = [
@@ -269,7 +274,8 @@ export class ProjectTaskDashboardService {
             '#f59e0b', // 31: Warning (Amber)
             '#8b5cf6', // 32: Violet
             '#64748b', // 33: Gray
-            '#ea580c'  // 4: Orange
+            '#ea580c', // 4: Orange
+            '#ef4444'  // Cancel: Red
         ];
 
         return {

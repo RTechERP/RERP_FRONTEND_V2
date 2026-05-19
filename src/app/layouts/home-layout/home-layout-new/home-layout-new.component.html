@@ -1,6 +1,6 @@
-<!-- <nav class="navbar sticky-top p-0" style="background-image: url('assets/icon/—Pngtree—vietnamese new year apricot blossom_1995958.png'); 
-            background-size: 100% 100%; 
-            background-position: center; 
+<!-- <nav class="navbar sticky-top p-0" style="background-image: url('assets/icon/—Pngtree—vietnamese new year apricot blossom_1995958.png');
+            background-size: 100% 100%;
+            background-position: center;
             background-repeat: no-repeat;"> -->
 <nav class="navbar sticky-top p-0" style="background-color: #23458a">
     <div class="container-fluid">
@@ -216,7 +216,13 @@
             quantityBorrow > 0 ||
             quantityBorrowExpried > 0 ||
             quantityBorrowSale > 0 ||
-            quantityBorrowExpriedSale > 0
+            quantityBorrowExpriedSale > 0 ||
+            quantityOverdueProjectTask > 0 ||
+            pendingReview.asEmployee > 0 ||
+            pendingReview.asEvaluator > 0 ||
+            pendingReview.asTBP > 0 ||
+            pendingReview.asHR > 0 ||
+            pendingReview.asBGD > 0
           ">
                     <div class="px-3 py-2 bg-light" style="
               background-color: #fff3cd !important;
@@ -239,7 +245,24 @@
                                 </ng-container>
                             </div>
                             <ng-container *ngIf="
-                  quantityApprove?.Count > 0 &&
+                  (quantityApprove?.Count > 0 || quantityBorrow > 0 || quantityBorrowExpried > 0 || quantityBorrowSale > 0 || quantityBorrowExpriedSale > 0) &&
+                  quantityOverdueProjectTask > 0
+                ">
+                                <br />
+                            </ng-container>
+                            <ng-container *ngIf="quantityOverdueProjectTask > 0">
+                                Bạn đang có
+                                <span class="text-danger fw-bold">{{ quantityOverdueProjectTask }}</span>
+                                công việc quá hạn!
+                                <span class="text-primary cursor-pointer fw-bold" style="
+                    color: #007bff !important;
+                    text-decoration: underline;
+                    cursor: pointer;
+                    font-weight: 600;
+                  " (click)="onPickProjectTaskOverdue()"> Bấm vào đây để xem</span>
+                            </ng-container>
+                            <ng-container *ngIf="
+                  (quantityApprove?.Count > 0 || quantityOverdueProjectTask > 0) &&
                   (quantityBorrow > 0 || quantityBorrowExpried > 0)
                 ">
                                 <br />
@@ -295,6 +318,73 @@
                     font-weight: 600;
                   " (click)="onPickHistoryProductSale()">Tới lịch sử mượn kho sale</span>
                                 <br />
+                            </ng-container>
+
+                            <!-- Thông báo phiếu đánh giá chuyển HDLD chờ xử lý -->
+                            <ng-container
+                                *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0 || pendingReview.asTBP > 0 || pendingReview.asHR > 0 || pendingReview.asBGD > 0">
+                                <br *ngIf="quantityBorrow > 0 || quantityBorrowExpried > 0 || quantityBorrowSale > 0
+                                           || quantityBorrowExpriedSale > 0 || quantityApprove?.Count > 0
+                                           || quantityOverdueProjectTask > 0" />
+
+                                <!-- NV tự đánh giá -->
+                                <ng-container *ngIf="pendingReview.asEmployee > 0">
+                                    <i nz-icon nzType="file-done" nzTheme="outline" style="color:#0d6efd"></i>
+                                    Bạn có <span class="text-danger fw-bold">{{ pendingReview.asEmployee }}</span>
+                                    phiếu đánh giá chuyển hợp đồng <strong>cần tự đánh giá</strong>.
+                                    <span class="text-primary fw-bold"
+                                        style="text-decoration:underline;cursor:pointer;margin-left:4px"
+                                        (click)="newTab('contract-transfer-review-personal', 'Đánh giá chuyển hợp đồng')">Xem
+                                        ngay</span>
+                                </ng-container>
+
+                                <!-- Người đánh giá -->
+                                <ng-container *ngIf="pendingReview.asEvaluator > 0">
+                                    <br *ngIf="pendingReview.asEmployee > 0" />
+                                    <i nz-icon nzType="audit" nzTheme="outline" style="color:#0d6efd"></i>
+                                    Bạn có <span class="text-danger fw-bold">{{ pendingReview.asEvaluator }}</span>
+                                    phiếu đánh giá chuyển hợp đồng <strong>cần đánh giá</strong>.
+                                    <span class="text-primary fw-bold"
+                                        style="text-decoration:underline;cursor:pointer;margin-left:4px"
+                                        (click)="newTab('contract-transfer-review', 'Đánh giá chuyển hợp đồng')">Xem
+                                        ngay</span>
+                                </ng-container>
+
+                                <!-- TBP -->
+                                <ng-container *ngIf="pendingReview.asTBP > 0">
+                                    <br *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0" />
+                                    <i nz-icon nzType="check-square" nzTheme="outline" style="color:#198754"></i>
+                                    Bạn có <span class="text-danger fw-bold">{{ pendingReview.asTBP }}</span>
+                                    phiếu đánh giá chuyển hợp đồng <strong>cần duyệt (TBP)</strong>.
+                                    <span class="text-primary fw-bold"
+                                        style="text-decoration:underline;cursor:pointer;margin-left:4px"
+                                        (click)="newTab('contract-transfer-review', 'Đánh giá chuyển hợp đồng')">Xem
+                                        ngay</span>
+                                </ng-container>
+
+                                <!-- HR -->
+                                <ng-container *ngIf="pendingReview.asHR > 0">
+                                    <br *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0 || pendingReview.asTBP > 0" />
+                                    <i nz-icon nzType="solution" nzTheme="outline" style="color:#fd7e14"></i>
+                                    Bạn có <span class="text-danger fw-bold">{{ pendingReview.asHR }}</span>
+                                    phiếu đánh giá chuyển hợp đồng <strong>chờ HR xác nhận</strong>.
+                                    <span class="text-primary fw-bold"
+                                        style="text-decoration:underline;cursor:pointer;margin-left:4px"
+                                        (click)="newTab('contract-transfer-review', 'Đánh giá chuyển hợp đồng')">Xem
+                                        ngay</span>
+                                </ng-container>
+
+                                <!-- BGD -->
+                                <ng-container *ngIf="pendingReview.asBGD > 0">
+                                    <br *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0 || pendingReview.asTBP > 0 || pendingReview.asHR > 0" />
+                                    <i nz-icon nzType="crown" nzTheme="outline" style="color:#6f42c1"></i>
+                                    Bạn có <span class="text-danger fw-bold">{{ pendingReview.asBGD }}</span>
+                                    phiếu đánh giá chuyển hợp đồng <strong>chờ BGĐ phê duyệt</strong>.
+                                    <span class="text-primary fw-bold"
+                                        style="text-decoration:underline;cursor:pointer;margin-left:4px"
+                                        (click)="newTab('contract-transfer-review', 'Đánh giá chuyển hợp đồng')">Xem
+                                        ngay</span>
+                                </ng-container>
                             </ng-container>
                         </small>
                     </div>
@@ -559,5 +649,5 @@
 
         <div class="inner-content">Content</div>
     </nz-content>
-  
+
 </nz-layout> -->

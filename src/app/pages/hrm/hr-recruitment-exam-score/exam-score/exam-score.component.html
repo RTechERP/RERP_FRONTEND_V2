@@ -188,16 +188,17 @@
               <th></th>
               <th></th>
               <th></th>
+              <th></th>
             </tr>
           </ng-template>
           <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
             <tr
-              [ngStyle]="{'background-color': row.CandidateStatus === 5 ? '#d4edda' : (row.CandidateStatus === 4 ? '#e9ecef' : 'inherit')}">
+              [ngStyle]="{'background-color': row.CandidateStatus >= 5 ? '#d4edda' : (row.CandidateStatus === 4 ? '#e9ecef' : 'inherit')}">
               <!-- Action column -->
               <td pFrozenColumn [frozen]="true" alignFrozen="left" style="text-align: center;">
                 <div class="d-flex justify-content-center flex-nowrap" style="gap: 8px;">
-                  <button nz-button nzSize="small" [nzType]="row.CandidateStatus === 5 ? 'primary' : 'default'"
-                    [class.bg-success]="row.CandidateStatus === 5" [class.border-success]="row.CandidateStatus === 5"
+                  <button nz-button nzSize="small" [nzType]="row.CandidateStatus >= 5 ? 'primary' : 'default'"
+                    [class.bg-success]="row.CandidateStatus >= 5" [class.border-success]="row.CandidateStatus >= 5"
                     (click)="evaluateCandidate(row, 5)">
                     Đạt
                   </button>
@@ -261,7 +262,8 @@
       <!-- Single View Count -->
       <div *ngIf="viewMode === 'single' && ((stateService.scores$ | async) || []).length > 0" class="font-weight-500">
         <i nz-icon nzType="info-circle" class="mr-2 text-info"></i>
-        Tổng cộng: <span class="text-primary font-weight-bold">{{((stateService.scores$ | async) || []).length}}</span> ứng viên
+        Tổng cộng: <span class="text-primary font-weight-bold">{{((stateService.scores$ | async) || []).length}}</span>
+        ứng viên
       </div>
     </div>
   </div>

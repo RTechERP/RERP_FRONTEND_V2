@@ -37,6 +37,7 @@ export class HrhiringRequestService {
       DepartmentID: params.departmentID || 0,
       Keyword: params.keyword || params.findText || '',
       Id: params.id || 0,
+      IsComplete: params.isCompleted !== undefined ? params.isCompleted : 0,
     };
 
     const headers = {
@@ -80,7 +81,8 @@ export class HrhiringRequestService {
     findText: string = '',
     dateStart: string = '',
     dateEnd: string = '',
-    id: number = 0
+    id: number = 0,
+    isCompleted: number = 0
   ): Observable<any[]> {
     const requestData = {
       DateStart: dateStart || null,
@@ -88,6 +90,7 @@ export class HrhiringRequestService {
       DepartmentID: departmentID,
       Keyword: findText,
       Id: 0, // Luôn = 0 để lấy danh sách
+      IsComplete: isCompleted,
     };
 
     const headers = {

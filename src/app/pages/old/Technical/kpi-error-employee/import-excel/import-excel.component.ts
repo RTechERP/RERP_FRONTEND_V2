@@ -11,6 +11,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { finalize } from 'rxjs';
 import { KpiErrorEmployeeService } from '../kpi-error-employee-service/kpi-error-employee.service';
 
 @Component({
@@ -37,6 +38,7 @@ export class ImportExcelKpiErrorEmployeeComponent implements OnInit {
 
     tableData: any[] = [];
     tableHeaders: string[] = [];
+    isSaving = false;
 
     @ViewChild('excelTable', { static: true }) excelTable!: ElementRef;
     tabulator!: Tabulator;
@@ -172,10 +174,16 @@ export class ImportExcelKpiErrorEmployeeComponent implements OnInit {
     }
 
     importData() {
+        if (this.isSaving) {
+            this.notification.info('Thông báo', 'Đang lưu dữ liệu, vui lòng chờ...');
+            return;
+        }
         if (!this.tableData || this.tableData.length === 0) {
             this.notification.warning('Thông báo', 'Không có dữ liệu để nhập!');
             return;
         }
+
+        this.isSaving = true;
 
         const mappedData = this.tableData.map(row => {
             const newRow: any = {};
@@ -192,7 +200,9 @@ export class ImportExcelKpiErrorEmployeeComponent implements OnInit {
             return newRow;
         });
 
-        this.kpiErrorEmployeeService.importExcel(mappedData).subscribe({
+        this.kpiErrorEmployeeService.importExcel(mappedData).pipe(
+            finalize(() => this.isSaving = false)
+        ).subscribe({
             next: (res: any) => {
                 if (res.status === 1) {
                     const created = res?.data?.created ?? res?.created ?? 0;

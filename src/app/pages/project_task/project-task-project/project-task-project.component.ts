@@ -29,10 +29,12 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectTaskProjectService, ProjectTaskTreeData, ProjectTaskTreeNode } from './project-task-project.service';
 import { ProjectService } from '../../project/project-service/project.service';
 import { ProjectTaskService } from '../project-task/project-task.service';
-import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 import { ImportExcelProjectTaskComponent } from '../import-excel-project-task/import-excel-project-task.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DateTime } from 'luxon';
+import { Router } from '@angular/router';
+import { TabServiceService } from '../../../layouts/tab-service.service';
+import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 
 @Component({
   selector: 'app-project-task-project',
@@ -52,7 +54,6 @@ import { DateTime } from 'luxon';
     TagModule,
     TooltipModule,
     InputTextModule,
-    TaskDetailComponent,
     ImportExcelProjectTaskComponent,
     MultiSelectModule
   ],
@@ -102,7 +103,8 @@ export class ProjectTaskProjectComponent implements OnInit {
     { label: 'Hoàn thành quá hạn', value: 21 },
     { label: 'Đã duyệt', value: 22 },
     { label: 'Đã hủy duyệt', value: 23 },
-    { label: 'Pending', value: 3 }
+    { label: 'Pending', value: 3 },
+    { label: 'Hủy', value: 4 }
   ];
 
   // ===== Column filters =====
@@ -117,7 +119,9 @@ export class ProjectTaskProjectComponent implements OnInit {
     private filterService: FilterService,
     private nzModal: NzModalService,
     private ngbModal: NgbModal,
-    private el: ElementRef
+    private el: ElementRef,
+    private router: Router,
+    private tabService: TabServiceService
   ) {
     const now = DateTime.now();
     this.dateStart = now.startOf('month').toFormat('yyyy-MM-dd');
@@ -525,6 +529,7 @@ export class ProjectTaskProjectComponent implements OnInit {
     if (task.Status === 1 && isOverdue) return 11;
     if (task.Status === 1) return 1;
     if (task.Status === 3) return 3;
+    if (task.Status === 4) return 4;
     return 0;
   }
 
@@ -539,7 +544,7 @@ export class ProjectTaskProjectComponent implements OnInit {
     if (dueDate) dueDate.setHours(0, 0, 0, 0);
 
     if (dueDate && planEnd && dueDate > planEnd) return true;
-    if (!dueDate && planEnd && planEnd < now && task.Status !== 3) return true;
+    if (!dueDate && planEnd && planEnd < now && task.Status !== 3 && task.Status !== 4) return true;
     return false;
   }
 
@@ -554,6 +559,7 @@ export class ProjectTaskProjectComponent implements OnInit {
       case 22: return { label: 'Đã duyệt', severity: 'success' };
       case 23: return { label: 'Đã hủy duyệt', severity: 'danger' };
       case 3: return { label: 'Pending', severity: 'warn' };
+      case 4: return { label: 'Hủy', severity: 'contrast' };
       default: return { label: 'Chưa xác định', severity: 'secondary' };
     }
   }
@@ -606,35 +612,19 @@ export class ProjectTaskProjectComponent implements OnInit {
 
     this.projectTaskService.getTaskById(taskData.ID).subscribe({
       next: (res) => {
+        this.isOpeningDetail = false;
         if (res.status === 200 || res.status === 1) {
-          const fullTaskData = res.data;
+          const fullTaskData = { ...res.data, ApprovalStatus: taskData.ApprovalStatus };
 
-          const modalRef = this.nzModal.create({
-            nzTitle: 'CHI TIẾT CÔNG VIỆC',
-            nzContent: TaskDetailComponent,
-            nzData: { task: fullTaskData },
-            nzFooter: null,
-            nzWidth: '100vw',
-            nzBodyStyle: {
-              padding: '0',
-              height: '80vh',
-              overflow: 'hidden'
-            },
-            nzStyle: {
-              borderRadius: '12px',
-              top: '5vh'
-            },
-            nzMaskClosable: false,
-            nzClosable: true,
-            nzCentered: false
-          });
-
-          modalRef.afterClose.subscribe(() => {
-            this.isOpeningDetail = false;
+          const taskCode = fullTaskData.Code || `Task-${fullTaskData.ID}`;
+          this.tabService.openTabComp({
+            comp: TaskDetailComponent,
+            title: taskCode,
+            key: `project-task-detail-${fullTaskData.ID}`,
+            data: { id: fullTaskData.ID }
           });
         } else {
           this.notification.error('Thất bại', 'Không thể lấy thông tin chi tiết công việc.');
-          this.isOpeningDetail = false;
         }
       },
       error: (err) => {

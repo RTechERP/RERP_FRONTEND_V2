@@ -11,7 +11,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { Fluid } from 'primeng/fluid';
 import { SplitterModule } from 'primeng/splitter';
-import { PaymentOrderService } from './payment-order.service';
+import { DownloadPaymentOrderDTO, PaymentOrderService } from './payment-order.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PaymentOrderDetailComponent } from './payment-order-detail/payment-order-detail.component';
 import {
@@ -185,6 +185,7 @@ export class PaymentOrderComponent implements OnInit {
     datasetFiles: any[] = [];
     datasetFileBankslip: any[] = [];
     datasetLog: any[] = [];
+    currentPaymentOrder: PaymentOrder | null = null;
 
     activeDetailTab = '0';
 
@@ -211,6 +212,14 @@ export class PaymentOrderComponent implements OnInit {
         if (value === false) return '';
         return '';
     };
+    transferTypes = [
+        { ID: 5, Text: 'Chuyển khoản cá nhân' },
+        { ID: 1, Text: 'Chuyển khoản RTC' },
+        { ID: 2, Text: 'Chuyển khoản MVI' },
+        { ID: 3, Text: 'Chuyển khoản APR' },
+        { ID: 4, Text: 'Chuyển khoản Yonko' },
+        { ID: 6, Text: 'Chuyển khoản R-Tech' },
+    ];
 
     isPermisstion: boolean = false;
     isPermisstionDB: boolean = false;
@@ -257,6 +266,7 @@ export class PaymentOrderComponent implements OnInit {
         const permissionCodeHR = "N59";
         const permissionCodeTbpHR = "N56";
         const permissionCodeKT = "N55";
+        const permissionCodeKTView = "N95";
         const permissionCodeKTT = "N61";
         const permissionCodeBGD = "N58";
         const permissionCodeSale = "N83";
@@ -267,6 +277,7 @@ export class PaymentOrderComponent implements OnInit {
             this.appUserService.currentUser?.Permissions.includes(permissionCodeKT) ||
             this.appUserService.currentUser?.Permissions.includes(permissionCodeKTT) ||
             this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
+            this.appUserService.currentUser?.Permissions.includes(permissionCodeKTView) ||
 
             this.appUserService.currentUser?.IsAdmin) || false;
 
@@ -596,6 +607,24 @@ export class PaymentOrderComponent implements OnInit {
                         }
                     },
                     {
+                        separator: true,
+                    },
+                    {
+                        label: 'Cập nhật loại chuyển khoản',
+                        icon: 'fa-solid fa-money-bill-transfer fa-lg text-primary',
+                        visible: this.permissionService.hasPermission("N55,N61"),
+                        items: this.transferTypes.map(type => ({
+                            label: type.Text,
+                            icon: 'fa-solid fa-money-bill-transfer fa-lg text-primary',
+                            command: () => {
+                                this.onUpdateTransferType(type.ID);
+                            }
+                        }))
+                    },
+                    {
+                        separator: true,
+                    },
+                    {
                         label: 'Đính kèm file Bank slip',
                         icon: 'fa-solid fa-paperclip fa-lg text-primary',
                         visible: this.permissionService.hasPermission("N55,N61"),
@@ -719,22 +748,7 @@ export class PaymentOrderComponent implements OnInit {
                 label: 'Xuất excel',
                 icon: 'fa-solid fa-file-excel fa-lg text-success',
                 command: () => {
-                    const dateStart = DateTime.fromJSDate(this.param.dateStart).toFormat('ddMMyyyy');
-                    const dateEnd = DateTime.fromJSDate(this.param.dateEnd).toFormat('ddMMyyyy');
-                    const now = DateTime.fromJSDate(new Date()).toFormat('HHmmss');
-                    if (this.activeTab == '0') {
-
-                        this.excelExportService.exportToExcel({
-                            filename: `TheoDoiChiPhiVP_${dateStart}_${dateEnd}_${now}`,
-                            format: 'xlsx'
-                        });
-                    } else {
-                        this.excelExportServiceSpecial.exportToExcel({
-                            filename: `TheoDoiChiPhiVPDB_${dateStart}_${dateEnd}_${now}`,
-                            format: 'xlsx'
-                        });
-                    }
-
+                    this.exportToExcelJS(this.activeTab !== '0');
                 }
             },
             {
@@ -1130,6 +1144,23 @@ export class PaymentOrderComponent implements OnInit {
                 },
             },
             {
+                id: PaymentOrderField.TaxCompanyName.field,
+                name: 'Công ty',
+                field: PaymentOrderField.TaxCompanyName.field,
+                type: PaymentOrderField.TaxCompanyName.type,
+                sortable: true, filterable: true,
+                width: 150,
+                // formatter: Formatters.icon,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
                 id: PaymentOrderField.ProjectFullName.field,
                 name: 'Dự án',
                 field: PaymentOrderField.ProjectFullName.field,
@@ -1301,9 +1332,31 @@ export class PaymentOrderComponent implements OnInit {
                 //     } as MultipleSelectOption,
                 // },
             },
-
-
-
+            {
+                id: PaymentOrderField.TransferTypeText.field,
+                name: PaymentOrderField.TransferTypeText.name,
+                field: PaymentOrderField.TransferTypeText.field,
+                type: PaymentOrderField.TransferTypeText.type,
+                sortable: true, filterable: true,
+                width: 190,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'HRNote',
+                name: 'Ghi chú HR',
+                field: 'HRNote',
+                sortable: true,
+                filterable: true,
+                width: 200,
+                filter: { model: Filters['compoundInputText'] },
+            },
             {
                 id: PaymentOrderField.POCode.field,
                 name: 'Số PO',
@@ -2358,6 +2411,22 @@ export class PaymentOrderComponent implements OnInit {
                     } as MultipleSelectOption,
                 },
             },
+            {
+                id: PaymentOrderField.TransferTypeText.field,
+                name: PaymentOrderField.TransferTypeText.name,
+                field: PaymentOrderField.TransferTypeText.field,
+                type: PaymentOrderField.TransferTypeText.type,
+                sortable: true, filterable: true,
+                width: 190,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
 
             {
                 id: PaymentOrderField.StepName.field,
@@ -2772,10 +2841,25 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     loadData() {
-
         // console.log('this.activeTabqqq:', this.activeTab);
-        this.loadDataNormal();
-        this.loadDataSpecial();
+        if (this.activeTab == '0')
+            this.loadDataNormal();
+        else
+            this.loadDataSpecial();
+    }
+
+    private getTransferTypeText(transferType: any): string {
+        const type = this.transferTypes.find(x => x.ID === Number(transferType));
+        return type?.Text ?? '';
+    }
+
+    private normalizePaymentOrderRow(item: any): any {
+        const transferTypeText = String(item?.TransferTypeText ?? '').trim();
+        return {
+            ...item,
+            TransferTypeText: transferTypeText || this.getTransferTypeText(item?.TransferType),
+            id: item.ID   // dành riêng cho SlickGrid
+        };
     }
 
     loadDataNormal() {
@@ -2800,10 +2884,7 @@ export class PaymentOrderComponent implements OnInit {
                 // console.log(response);
                 this.dataset = response.data;
 
-                this.dataset = this.dataset.map((x, i) => ({
-                    ...x,
-                    id: x.ID   // dành riêng cho SlickGrid
-                }));
+                this.dataset = this.dataset.map(x => this.normalizePaymentOrderRow(x));
 
                 // this.applyDistinctFilters(this.angularGrid);
 
@@ -2842,7 +2923,7 @@ export class PaymentOrderComponent implements OnInit {
         //         this.param.approvedTBPID = 0;
         //         this.param.step = 0;
         //     }
-
+        this.isLoading = true;
         let emp = 0;
         if (this.isPermisstionDB && this.isApprove) {
             emp = this.param.employeeID;
@@ -2861,10 +2942,7 @@ export class PaymentOrderComponent implements OnInit {
                 // console.log(response);
                 this.datasetSpecial = response.data;
 
-                this.datasetSpecial = this.datasetSpecial.map((x, i) => ({
-                    ...x,
-                    id: x.ID   // dành riêng cho SlickGrid
-                }));
+                this.datasetSpecial = this.datasetSpecial.map(x => this.normalizePaymentOrderRow(x));
 
 
                 this.rowStyle(this.angularGridSpecial);
@@ -2879,18 +2957,28 @@ export class PaymentOrderComponent implements OnInit {
                 // if (columnElement) {
                 //     columnElement.textContent = `${this.formatNumber(this.datasetSpecial.length, 0)}`;
                 // }
+                this.isLoading = false;
+
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
                     {
                         nzStyle: { whiteSpace: 'pre-line' }
                     });
+                this.isLoading = false;
+
             }
         })
     }
 
+    private getPaymentOrderFromCurrentDataset(id: number): PaymentOrder | null {
+        const dataSource = this.activeTab == '1' ? this.datasetSpecial : this.dataset;
+        return (dataSource.find((item: any) => Number(item.ID) === Number(id)) as PaymentOrder | undefined) ?? null;
+    }
+
     loadDetail(id: number) {
         // console.log('loadDetail id:', id);
+        this.currentPaymentOrder = this.getPaymentOrderFromCurrentDataset(id) ?? this.currentPaymentOrder;
         this.paymentService.getDetail(id).subscribe({
             next: (response) => {
                 // console.log('loadDetail response:', response);
@@ -3150,8 +3238,9 @@ export class PaymentOrderComponent implements OnInit {
         // however, we don't want to interfere with multiple row selection checkbox which is on 1st column cell
         if (args.cell !== 0) {
             this.gridData.setSelectedRows([args.row]);
-            const item = args.grid.getDataItem(args.row)
+            const item = args.grid.getDataItem(args.row) as PaymentOrder;
             // console.log('selected item:', item);
+            this.currentPaymentOrder = item;
             this.loadDetail(item.ID);
 
             this.defaultSizeSplit = '60%';
@@ -3623,22 +3712,26 @@ export class PaymentOrderComponent implements OnInit {
         }
 
         if (isApproved == 1) {
-            Swal.fire({
-                title: 'Xác nhận duyệt?',
-                text: `Bạn có chắc muốn duyệt ${selectedItems.length} đã chọn không?`,
-                icon: 'question',
+            const result = await Swal.fire({
+                input: 'textarea',
+                inputLabel: 'Ghi chú HR',
+                inputPlaceholder: 'Nhập ghi chú HR...',
+                inputAttributes: {
+                    'aria-label': 'Ghi chú HR',
+                },
                 showCancelButton: true,
                 confirmButtonColor: '#28a745 ',
                 cancelButtonColor: '#dc3545 ',
                 confirmButtonText: 'Duyệt',
                 cancelButtonText: 'Hủy',
-            }).then((result: any) => {
-                if (result.isConfirmed) {
-                    // console.log('duyêt:', selectedItems);
-
-                    this.handleApproved(selectedItems);
-                }
             });
+            if (result.isConfirmed) {
+                selectedItems = selectedItems.map((x: any) => ({
+                    ...x,
+                    HRNote: result.value || '',
+                }));
+                this.handleApproved(selectedItems);
+            }
         } else if (isApproved == 3) {
             const { value: reason }: { value?: string } = await Swal.fire({
                 input: 'textarea',
@@ -4247,6 +4340,280 @@ export class PaymentOrderComponent implements OnInit {
         }
     }
 
+    async exportToExcelJS(isSpecial: boolean = false) {
+        const ExcelJSModule = await import('exceljs');
+        // esbuild/webpack có thể wrap CJS → default. Fallback để tương thích
+        const WorkbookClass: any =
+            (ExcelJSModule as any).Workbook ??
+            (ExcelJSModule as any).default?.Workbook ??
+            (ExcelJSModule as any).default;
+        const workbook = new WorkbookClass();
+        const sheet = workbook.addWorksheet('Danh sách');
+
+        // Utility formatters
+        const dd = (n: number) => String(n).padStart(2, '0');
+        const fmtDate = (val: any): string => {
+            if (!val) return '';
+            try {
+                const d = new Date(val);
+                if (isNaN(d.getTime())) return '';
+                return `${dd(d.getDate())}/${dd(d.getMonth() + 1)}/${d.getFullYear()}`;
+            } catch { return ''; }
+        };
+        const fmtTime = (val: any): string => {
+            if (!val) return '';
+            try {
+                const d = new Date(val);
+                if (isNaN(d.getTime())) return '';
+                return `${dd(d.getHours())}:${dd(d.getMinutes())}`;
+            } catch { return ''; }
+        };
+        const fmtDateTime = (val: any): string => {
+            const date = fmtDate(val);
+            const time = fmtTime(val);
+            return date ? `${date} ${time}` : '';
+        };
+        const boolStr = (val: any) => (val === true) ? 'x' : '';
+
+        // Lấy dữ liệu đang hiển thị theo filter hiện tại
+        const filteredData: any[] = [];
+        const gridInstance = isSpecial ? this.angularGridSpecial : this.angularGrid;
+        if (gridInstance?.dataView) {
+            const len = gridInstance.dataView.getLength();
+            for (let i = 0; i < len; i++) {
+                filteredData.push(gridInstance.dataView.getItem(i));
+            }
+        } else {
+            filteredData.push(...(isSpecial ? this.datasetSpecial : this.dataset));
+        }
+
+        // ===== Cấu hình cột theo loại đề nghị =====
+        let HEADERS: string[] = [];
+        let MONEY_COLS: number[] = [];
+        let CENTER_COLS: number[] = [];
+        let COL_WIDTHS: number[] = [];
+
+        if (isSpecial) {
+            HEADERS = [
+                'STT', 'Thanh toán gấp', 'Ngày đề nghị', 'Deadline thanh toán', 'Số đề nghị',
+                'Người đề nghị', 'Team kinh doanh', 'Phân loại thanh toán', 'Lý do thanh toán', 'Khách hàng',
+                'Số PO', 'Số hóa đơn', 'Số tiền', 'ĐVT', 'Hình thức thanh toán', 'Loại chuyển khoản',
+                'Tình trạng phiếu', 'Lịch sử duyệt / hủy duyệt', 'Lý do hủy duyệt', 'Ghi chú / Chứng từ kèm theo'
+            ];
+            MONEY_COLS = [12];
+            CENTER_COLS = [0, 1, 2, 3, 13];
+            COL_WIDTHS = [8, 15, 14, 22, 20, 20, 25, 30, 35, 25, 15, 20, 18, 8, 25, 25, 25, 45, 35, 45];
+        } else {
+            HEADERS = [
+                'Người nhận tiền', 'Số tài khoản', 'Ngân hàng',
+                'STT', 'Thanh toán gấp', 'Ngày đề nghị', 'Deadline', 'Tình trạng phiếu', 'Số đề nghị',
+                'Người đề nghị', 'Bộ phận', 'Phân loại chính', 'Nội dung chính của đề nghị', 'Lý do thanh toán',
+                'Số tiền', 'Số tiền thanh toán', 'Số tiền thanh toán thực tế', 'ĐVT', 'Bỏ qua HR',
+                'Hình thức thanh toán', 'Loại chuyển khoản', 'Nội dung chuyển khoản', 'Nhà cung cấp',
+                'Trạng thái hợp đồng', 'Số hợp đồng', 'Dự án',
+                'Có hóa đơn', 'Điểm đi', 'Điểm đến', 'Trạng thái Bank Slip',
+                'Lịch sử duyệt / hủy duyệt', 'Lý do hủy duyệt', 'Ghi chú / Chứng từ kèm theo',
+                'Ghi chú kế toán', 'Số PO', 'Lý do KT Y/c bổ sung', 'Lý do HR Y/c bổ sung',
+            ];
+            MONEY_COLS = [14, 15, 16];
+            CENTER_COLS = [3, 4, 5, 6, 17, 18, 26];
+            COL_WIDTHS = [
+                20, 18, 15, 8, 15, 14, 22, 25, 20, 22, 20, 22, 35, 45,
+                18, 18, 20, 8, 12, 25, 25, 35, 25, 25, 25, 35, 12, 35, 35, 25,
+                45, 35, 45, 35, 15, 35, 35
+            ];
+        }
+
+        const headerRow1 = sheet.getRow(1);
+        HEADERS.forEach((h, idx) => {
+            const cell = headerRow1.getCell(idx + 1);
+            cell.value = h;
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E75B6' } };
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            cell.border = {
+                top: { style: 'thin' }, left: { style: 'thin' },
+                bottom: { style: 'thin' }, right: { style: 'thin' },
+            };
+        });
+        headerRow1.height = 30;
+
+        // ===== Dữ liệu =====
+        filteredData.forEach((item, rowIdx) => {
+            const row = sheet.getRow(rowIdx + 2);
+            let vals: any[] = [];
+
+            if (isSpecial) {
+                vals = [
+                    item.RowNum ?? '',
+                    boolStr(item.IsUrgent),
+                    fmtDate(item.DateOrder),
+                    fmtDateTime(item.DeadlinePayment),
+                    item.Code ?? '',
+                    item.FullName ?? '',
+                    item.UserTeamNameJoin ?? '',
+                    item.TypeName ?? '',
+                    item.ReasonOrder ?? '',
+                    item.CustomerName ?? '',
+                    item.POCodes ?? '',
+                    item.BillNumbers ?? '',
+                    item.TotalMoney ?? 0,
+                    (item.Unit ?? '').toUpperCase(),
+                    item.PaymentMethodsJoin ?? '',
+                    item.TransferTypeText || this.getTransferTypeText(item.TransferType),
+                    item.StepName ?? '',
+                    item.ContentLog ?? '',
+                    item.ReasonCancel ?? '',
+                    item.Note ?? '',
+                ];
+            } else {
+                vals = [
+                    item.ReceiverInfo ?? '',
+                    item.AccountNumber ?? '',
+                    item.Bank ?? '',
+                    item.RowNum ?? '',
+                    boolStr(item.IsUrgent),
+                    fmtDate(item.DateOrder),
+                    fmtDateTime(item.DeadlinePayment),
+                    item.StepName ?? '',
+                    item.Code ?? '',
+                    item.FullName ?? '',
+                    item.DepartmentName ?? '',
+                    item.TypeOrderText ?? '',
+                    item.TypeName ?? '',
+                    item.ReasonOrder ?? '',
+                    item.TotalMoney ?? 0,
+                    item.TotalPayment ?? 0,
+                    item.TotalPaymentActual ?? 0,
+                    (item.Unit ?? '').toUpperCase(),
+                    boolStr(item.IsIgnoreHR),
+                    item.TypeBankTransferText ?? '',
+                    item.TransferTypeText || this.getTransferTypeText(item.TransferType),
+                    item.ContentBankTransfer ?? '',
+                    item.SuplierName ?? '',
+                    item.StatusContractText ?? '',
+                    item.DocumentName ?? '',
+                    item.ProjectFullName ?? '',
+                    boolStr(item.IsBill),
+                    item.StartLocation ?? '',
+                    item.EndLocation ?? '',
+                    item.StatusBankSlip ?? '',
+                    item.ContentLog ?? '',
+                    item.ReasonCancel ?? '',
+                    item.Note ?? '',
+                    item.AccountingNote ?? '',
+                    item.POCode ?? '',
+                    item.ReasonRequestAppendFileAC ?? '',
+                    item.ReasonRequestAppendFileHR ?? '',
+                ];
+            }
+
+            vals.forEach((v, ci) => {
+                const cell = row.getCell(ci + 1);
+                cell.value = v;
+                cell.border = {
+                    top: { style: 'thin' }, left: { style: 'thin' },
+                    bottom: { style: 'thin' }, right: { style: 'thin' },
+                };
+                if (MONEY_COLS.includes(ci)) {
+                    cell.numFmt = '#,##0';
+                    cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                } else if (CENTER_COLS.includes(ci)) {
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                } else {
+                    cell.alignment = { vertical: 'middle' };
+                }
+            });
+            row.commit();
+        });
+
+        // ===== Độ rộng cột =====
+        COL_WIDTHS.forEach((w, i) => { sheet.getColumn(i + 1).width = w; });
+
+        // ===== Helper: số cột → chữ cột Excel (1=A, 26=Z, 27=AA, ...) =====
+        const colLetter = (n: number): string => {
+            let s = '';
+            let num = n;
+            while (num > 0) {
+                num--;
+                s = String.fromCharCode(65 + (num % 26)) + s;
+                num = Math.floor(num / 26);
+            }
+            return s;
+        };
+
+        const totalCols = HEADERS.length;
+        const dataStartRow = 2;
+        const lastDataRow = filteredData.length + 1; // row 1=col header, data từ row 2
+
+        // ===== AutoFilter trên dòng header (dòng 1) =====
+        sheet.autoFilter = {
+            from: { row: 1, column: 1 },
+            to: { row: 1, column: totalCols },
+        };
+
+        // ===== Dòng TỔNG CỘNG =====
+        if (filteredData.length > 0) {
+            const totalRowIdx = lastDataRow + 1;
+            const totalRow = sheet.getRow(totalRowIdx);
+
+            // Tô toàn bộ dòng nền xanh nhạt + border
+            for (let ci = 1; ci <= totalCols; ci++) {
+                const cell = totalRow.getCell(ci);
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD6E4F0' } };
+                cell.border = {
+                    top: { style: 'medium' }, left: { style: 'thin' },
+                    bottom: { style: 'medium' }, right: { style: 'thin' },
+                };
+            }
+
+            // Label "TỔNG CỘNG" ở cột 1
+            const labelCell = totalRow.getCell(1);
+            labelCell.value = 'TỔNG CỘNG';
+            labelCell.font = { bold: true, color: { argb: 'FF1F4E79' }, size: 10 };
+            labelCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+            // COUNT dòng dữ liệu (cột STT)
+            const cntColIdx = isSpecial ? 0 : 3; // Index của cột STT
+            const cntCell = totalRow.getCell(cntColIdx + 1);
+            cntCell.value = { formula: `COUNTA(${colLetter(cntColIdx + 1)}${dataStartRow}:${colLetter(cntColIdx + 1)}${lastDataRow})` };
+            cntCell.font = { bold: true, color: { argb: 'FF1F4E79' } };
+            cntCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+            // SUM các cột tiền
+            MONEY_COLS.forEach(ci => {
+                const cell = totalRow.getCell(ci + 1);
+                cell.value = { formula: `SUM(${colLetter(ci + 1)}${dataStartRow}:${colLetter(ci + 1)}${lastDataRow})` };
+                cell.numFmt = '#,##0';
+                cell.font = { bold: true, color: { argb: 'FF1F4E79' } };
+                cell.alignment = { horizontal: 'right', vertical: 'middle' };
+            });
+
+            totalRow.height = 22;
+            totalRow.commit();
+        }
+
+        // Đóng băng dòng header
+        sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, activeCell: 'A2' }];
+
+        // ===== Tải file =====
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        const dateStart = DateTime.fromJSDate(this.param.dateStart).toFormat('ddMMyyyy');
+        const dateEnd = DateTime.fromJSDate(this.param.dateEnd).toFormat('ddMMyyyy');
+        const now = DateTime.now().toFormat('HHmmss');
+        anchor.href = url;
+        anchor.download = isSpecial
+            ? `TheoDoiChiPhiVPDB_${dateStart}_${dateEnd}_${now}.xlsx`
+            : `TheoDoiChiPhiVP_${dateStart}_${dateEnd}_${now}.xlsx`;
+        anchor.click();
+        URL.revokeObjectURL(url);
+    }
+
     formatNumber(num: number, digits: number = 2) {
         num = num || 0;
         return num.toLocaleString('vi-VN', {
@@ -4667,6 +5034,18 @@ export class PaymentOrderComponent implements OnInit {
                     },
                     height: 60,
                 },
+                {
+
+                },
+                ...(paymentOrder.PaymentOrderTypeID === 22 ? [
+                    {
+                        columns: [
+                            { text: 'Điểm đi: ' + (paymentOrder.StartLocation || ''), width: '*' },
+                            { text: 'Điểm đến: ' + (paymentOrder.EndLocation || ''), width: '*' },
+                        ],
+                        margin: [0, 5, 0, 5],
+                    },
+                ] : []),
                 { text: "GHI CHÚ KẾ TOÁN:", bold: true, margin: [0, 10, 0, 0] },
                 { text: paymentOrder.AccountingNote, bold: true, margin: [0, 0, 0, 60] },
 
@@ -4949,6 +5328,82 @@ export class PaymentOrderComponent implements OnInit {
         }
     }
 
+    private buildServerFilePath(item: any): string {
+        const serverPath = String(item?.ServerPath || item?.FilePath || '').trim();
+        const fileName = String(item?.FileName || '').trim();
+
+        if (!serverPath) return '';
+        if (!fileName || serverPath.toLowerCase().endsWith(fileName.toLowerCase())) return serverPath;
+
+        const separator = serverPath.endsWith('\\') || serverPath.endsWith('/') ? '' : '\\';
+        return `${serverPath}${separator}${fileName}`;
+    }
+
+    private buildShareDownloadUrl(item: any): string {
+        const serverPath = String(item?.ServerPath || item?.FilePath || '').trim();
+        const fileName = String(item?.FileName || '').trim();
+
+        if (!serverPath) return '';
+
+        const host = environment.host + 'api/share';
+        const url = serverPath.replace("\\\\192.168.1.190", host);
+
+        if (!fileName || url.toLowerCase().endsWith(fileName.toLowerCase())) return url;
+        return `${url}/${fileName}`;
+    }
+
+    private sanitizeFileName(fileName: string): string {
+        return fileName.replace(/[\\/:*?"<>|]+/g, '_').trim() || 'PaymentOrder';
+    }
+
+    private saveBlob(blob: Blob, fileName: string): void {
+        const a = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
+
+        a.href = objectUrl;
+        a.download = fileName;
+        a.click();
+
+        URL.revokeObjectURL(objectUrl);
+    }
+
+    private downloadZipFileAttach(selectedItems: any[]): void {
+        const filePaths = selectedItems
+            .map((item: any) => this.buildServerFilePath(item))
+            .filter((path: string) => !!path);
+
+        if (filePaths.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Không tìm thấy đường dẫn file để tải!");
+            return;
+        }
+
+        const firstItem = selectedItems[0];
+        const paymentOrderCode = String(
+            firstItem?.PaymentOrderCode
+            || this.currentPaymentOrder?.Code
+            || firstItem?.Code
+            || 'PaymentOrder'
+        );
+        const payload: DownloadPaymentOrderDTO = {
+            PaymentOrderId: Number(firstItem?.PaymentOrderID || firstItem?.PaymentOrderId || this.currentPaymentOrder?.ID || 0),
+            PaymentOrderCode: paymentOrderCode,
+            FilePath: filePaths,
+        };
+
+        this.paymentService.downloadZip(payload).subscribe({
+            next: (blob: Blob) => {
+                const fileName = `${this.sanitizeFileName(paymentOrderCode)}_${DateTime.now().toFormat('yyyyMMddHHmmss')}.zip`;
+                this.saveBlob(blob, fileName);
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
+            },
+        });
+    }
+
     onDownloadFileAttach(e: Event, args: any, angularGrid: AngularGridInstance) {
         // console.log(args);
         if (this.isPriceRequest) return;
@@ -4956,25 +5411,29 @@ export class PaymentOrderComponent implements OnInit {
         if (selectedRows.length <= 0) selectedRows.push(args.row);
 
         let selectedItems = selectedRows
-            .map((i: any) => angularGrid.dataView?.getItem(i));
+            .map((i: any) => angularGrid.dataView?.getItem(i))
+            .filter((item: any) => !!item);
+
+        if (selectedItems.length <= 0) return;
+
+        if (selectedItems.length > 5) {
+            this.downloadZipFileAttach(selectedItems);
+            return;
+        }
 
         selectedItems.forEach((item: any) => {
-            const filePath = item?.ServerPath || '';
-            if (filePath) {
-                const host = environment.host + 'api/share';
-                let url = filePath.replace("\\\\192.168.1.190", host) + `/${item?.FileName}`;
+            const url = this.buildShareDownloadUrl(item);
+            if (!url) return;
 
-                this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
-                    const a = document.createElement('a');
-                    const objectUrl = URL.createObjectURL(blob);
-
-                    a.href = objectUrl;
-                    a.download = item?.FileName;
-                    a.click();
-
-                    URL.revokeObjectURL(objectUrl);
-                });
-            }
+            this.http.get(url, { responseType: 'blob' }).subscribe({
+                next: (blob: Blob) => this.saveBlob(blob, item?.FileName || 'download'),
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
+                },
+            });
         });
 
     }
@@ -4983,9 +5442,59 @@ export class PaymentOrderComponent implements OnInit {
     tabValueChange(e: any) {
         // console.log('tabValueChange e:', e);
         this.activeTab = e;
+
         console.log('this.activeTab tabValueChange:', this.activeTab);
         this.getSteps();
+        this.loadData();
+    }
 
+    onUpdateTransferType(transferType: number) {
+        let gridInstance = this.angularGrid;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
+        const rowIndexes = grid.getSelectedRows();
+        const selectedItems = rowIndexes
+            .map(i => dataView.getItem(i))
+            .filter((item: any) => !!item);
+
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+            return;
+        }
+
+        const transferTypeText = this.getTransferTypeText(transferType);
+        Swal.fire({
+            title: 'Cập nhật loại chuyển khoản?',
+            text: `Bạn có chắc muốn cập nhật ${selectedItems.length} đề nghị sang "${transferTypeText}" không?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745 ',
+            cancelButtonColor: '#dc3545 ',
+            confirmButtonText: 'Cập nhật',
+            cancelButtonText: 'Hủy',
+        }).then((result: any) => {
+            if (!result.isConfirmed) return;
+
+            const payments = selectedItems.map((item: any) => ({
+                ID: item.ID,
+                TransferType: transferType
+            }));
+
+            this.paymentService.updateTransferType(payments).subscribe({
+                next: (response) => {
+                    this.notification.success(NOTIFICATION_TITLE.success, response.message);
+                    this.loadData();
+                },
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
+                },
+            });
+        });
     }
 
     onUpdateTotalMoney() {

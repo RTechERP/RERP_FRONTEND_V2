@@ -49,6 +49,7 @@ import { EmployeeService } from '../../hrm/employee/employee-service/employee.se
 import { ViewPokhRowDetailPreloadComponent } from './row-detail-preload.component';
 import { ViewPokhRowDetailViewComponent } from './row-detail-view.component';
 import { Menubar } from 'primeng/menubar';
+import { RequestInvoiceDetailNewPrimengComponent } from '../request-invoice-detail-new-primeng/request-invoice-detail-new-primeng.component';
 
 interface GroupedData {
   CustomerName: string;
@@ -1080,7 +1081,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     if (index >= groupedArray.length) return;
 
     const currentGroup = groupedArray[index];
-    const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
+    const modalRef = this.modalService.open(RequestInvoiceDetailNewPrimengComponent, {
       windowClass: "full-screen-modal",
       backdrop: 'static',
       keyboard: false,

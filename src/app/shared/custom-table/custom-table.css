@@ -4,6 +4,11 @@
     overflow: hidden;
 }
 
+/* Ẩn header khi caption rỗng (không có globalSearch / export / title) */
+:host ::ng-deep .p-datatable-header:not(:has(> div)) {
+    display: none !important;
+}
+
 
 :host:focus {
     outline: none;
@@ -171,9 +176,20 @@
 }
 
 :host ::ng-deep .p-column-resizer {
-    width: 8px !important;
-    border-right: 2px solid transparent;
-    transition: border-color 0.2s;
+    width: 8px;
+    cursor: col-resize;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    z-index: 10;
+}
+
+/* Prevent resizer from showing on non-resizable cells in header groups */
+:host ::ng-deep th:not(.p-resizable-column) .p-column-resizer {
+    display: none !important;
 }
 
 :host ::ng-deep .p-column-resizer:hover {
@@ -528,12 +544,33 @@
 }
 
 /* Override wrap-text inside virtual scroll to prevent variable heights */
-:host.vs-active ::ng-deep .p-datatable-tbody>tr>td .wrap-text,
+:host.vs-active:not(.vs-wrap) ::ng-deep .p-datatable-tbody>tr>td .wrap-text,
 :host.vs-active ::ng-deep .p-datatable-tbody>tr>td .truncate-text {
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     display: block !important;
+}
+
+/* ── Virtual Scroll + textWrap: min-height thay vì fixed height ── */
+:host.vs-wrap ::ng-deep .p-datatable-tbody>tr {
+    height: auto !important;
+    max-height: none !important;
+    min-height: var(--virtual-row-height) !important;
+    overflow: visible !important;
+}
+
+:host.vs-wrap ::ng-deep .p-datatable-tbody>tr>td {
+    white-space: normal !important;
+    text-overflow: clip !important;
+    overflow: visible !important;
+}
+
+:host.vs-wrap ::ng-deep .p-datatable-tbody>tr>td .wrap-text {
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
 }
 
 /* ── Table header context menu: submenu scrollable khi nhiều cột ── */
@@ -542,4 +579,180 @@
     max-height: var(--tbl-submenu-max-height, 240px) !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
+}
+
+:host .p-contextmenu-item-label {
+    font-size: 11px !important;
+}
+
+:host .p-multiselect-filter.p-component.p-inputtext {
+    padding: 4px 40px 4px 5px !important;
+    font-size: 12px !important;
+}
+
+/* ======================================================
+   Preview Row
+   ====================================================== */
+:host ::ng-deep .p-datatable-tbody>tr.preview-row>td.preview-cell {
+    padding: 2px 12px 6px 24px !important;
+    background: var(--p-surface-50, #f8fafc) !important;
+    border-top: none !important;
+    font-style: italic;
+    color: var(--p-surface-600, #475569);
+    font-size: calc(var(--table-font-size, 11px) - 1px);
+}
+
+.preview-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.preview-icon {
+    color: var(--p-surface-400, #94a3b8);
+    font-size: 11px;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+/* ======================================================
+   Data Bar
+   ====================================================== */
+.databar-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+
+.databar-track {
+    flex: 1;
+    height: 10px;
+    background: var(--p-surface-200, #e2e8f0);
+    border-radius: 3px;
+    overflow: hidden;
+    min-width: 30px;
+}
+
+.databar-fill {
+    height: 100%;
+    background: var(--p-primary-color, #3b82f6);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.databar-label {
+    font-size: calc(var(--table-font-size, 11px) - 1px);
+    white-space: nowrap;
+    color: var(--p-surface-700, #334155);
+    min-width: 30px;
+    text-align: right;
+}
+
+/* ======================================================
+   Icon Set
+   ====================================================== */
+.iconset-cell {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.iconset-cell i {
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.iconset-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ======================================================
+   Group Summary Row
+   ====================================================== */
+:host ::ng-deep .p-datatable-tbody>tr.group-summary-row>td.group-summary-cell {
+    background: var(--p-surface-100, #f1f5f9) !important;
+    border-top: 2px solid var(--p-surface-300, #cbd5e1) !important;
+    font-weight: 600;
+    font-size: calc(var(--table-font-size, 11px));
+    color: var(--p-surface-800, #1e293b);
+}
+
+/* ======================================================
+   Card View
+   ====================================================== */
+.card-view-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-content: flex-start;
+}
+
+.card-item {
+    background: var(--p-surface-0, #ffffff);
+    border: 1px solid var(--p-surface-200, #e2e8f0);
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-width: 220px;
+    max-width: 340px;
+    flex: 1 1 260px;
+    cursor: pointer;
+    transition: box-shadow 0.15s, border-color 0.15s;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+    font-size: var(--table-font-size, 11px);
+}
+
+.card-item:hover {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.09);
+    border-color: var(--p-primary-200, #bfdbfe);
+}
+
+.card-item-selected {
+    border-color: var(--p-primary-color, #3b82f6) !important;
+    background: var(--p-primary-50, rgba(59, 130, 246, 0.05)) !important;
+}
+
+.card-field {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow: hidden;
+}
+
+.card-field-label {
+    font-size: calc(var(--table-font-size, 11px) - 1px);
+    color: var(--p-surface-500, #64748b);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-field-value {
+    color: var(--p-surface-800, #1e293b);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-empty {
+    color: var(--p-surface-400, #94a3b8);
+    padding: 24px;
+    text-align: center;
+    width: 100%;
+    font-style: italic;
+}
+
+.p-multiselect-filter.p-component.p-inputtext {
+    padding: 4px 30px 4px 6px;
 }

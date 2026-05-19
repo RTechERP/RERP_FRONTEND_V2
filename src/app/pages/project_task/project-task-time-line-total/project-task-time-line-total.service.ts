@@ -20,6 +20,9 @@ export interface TimelineByTeamItem {
     ProjectTaskParentTitle: string | null;
     Status: number;
     TypeDate: number; // 1: Dự kiến, 2: Thực tế
+    PlanStartDate: string | null;
+    PlanEndDate: string | null;
+    ActualEndDate: string | null;
     [key: string]: any; // Dynamic date keys (e.g. "2026-04-03": 1)
 }
 
@@ -30,6 +33,8 @@ export interface TimelineByTeamParams {
     teamID?: number;
     userID?: number;
     projectID?: number;
+    status?: string;
+    typeSearch?: number;
 }
 
 @Injectable({
@@ -56,6 +61,12 @@ export class ProjectTaskTimeLineTotalService {
         }
         if (params.projectID !== undefined) {
             httpParams = httpParams.set('projectID', params.projectID.toString());
+        }
+        if (params.status !== undefined && params.status !== '') {
+            httpParams = httpParams.set('status', params.status);
+        }
+        if (params.typeSearch !== undefined) {
+            httpParams = httpParams.set('typeSearch', params.typeSearch.toString());
         }
 
         return this.http.get<IAPIResponse<TimelineByTeamItem[]>>(

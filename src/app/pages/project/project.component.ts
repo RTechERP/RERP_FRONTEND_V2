@@ -48,7 +48,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 import { ProjectService } from './project-service/project.service';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { AuthService } from '../../auth/auth.service';
-import { ProjectRequestComponent } from '../project-request/project-request.component';
+import { ProjectRequestComponent } from './project-request/project-request.component';
 import { ProjectWorkerSyntheticComponent } from './project-department-summary/project-department-summary-form/project-worker-synthetic/project-worker-synthetic.component';
 import { ProjectListWorkReportComponent } from './project-list-work-report/project-list-work-report.component';
 import { WorkItemComponent } from './work-item/work-item.component';

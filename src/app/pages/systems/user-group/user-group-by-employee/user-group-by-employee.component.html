@@ -1,0 +1,88 @@
+<div class="user-group-container h-100 d-flex flex-column bg-white">
+  <!-- Thanh Menu chính -->
+  <p-menubar [model]="menuBars" styleClass="fs-12 border-0 mb-0 shadow-sm custom-menubar">
+    <ng-template pTemplate="item" let-item>
+      <a class="p-menuitem-link" [class.p-disabled]="item.disabled">
+        <i [class]="item.icon"></i>
+        <span class="p-menuitem-text ms-1">{{ item.label }}</span>
+      </a>
+    </ng-template>
+    <ng-template pTemplate="end">
+      <div class="d-flex items-center gap-2 pe-2">
+        <button nz-button nzType="text" nzShape="circle" (click)="ToggleSearchPanelNew($event)">
+          <nz-icon nzType="search" />
+        </button>
+      </div>
+    </ng-template>
+  </p-menubar>
+
+  <!-- Thanh tìm kiếm -->
+  <div class="filter-bar bg-light border-bottom p-2" *ngIf="showSearchBar">
+    <form nz-form>
+      <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+        <!-- Nhân viên -->
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="6">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12" style="font-size: 12px; font-weight: 600;">Chọn nhân viên</nz-form-label>
+            <nz-form-control>
+              <nz-select [(ngModel)]="selectedUserId" nzPlaceHolder="Tìm kiếm nhân viên..." nzShowSearch nzAllowClear
+                nzSize="small" class="w-100" name="userId" (ngModelChange)="onEmployeeChange($event)">
+                <ng-container *ngFor="let group of groupedEmployees">
+                  <nz-option-group [nzLabel]="group.DepartmentName">
+                    <nz-option *ngFor="let emp of group.items" [nzValue]="emp.UserID || emp.ID"
+                      [nzLabel]="emp.FullName + ' (' + (emp.UserCode || emp.Code) + ')'"></nz-option>
+                  </nz-option-group>
+                </ng-container>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </form>
+  </div>
+
+  <div [class.modal-body]="activeModal" [class.p-1]="!activeModal" class="flex-grow-1 overflow-hidden">
+    <nz-spin [nzSpinning]="loading" nzTip="Đang tải dữ liệu...">
+      <div class="tree-container">
+        <p-treeTable #tt [value]="treeNodes" [scrollable]="true" scrollHeight="800px"
+          [tableStyle]="{'min-width':'50rem', 'table-layout': 'fixed'}" selectionMode="checkbox"
+          [(selection)]="selectedNodes">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 30%" class="text-center">Nhóm quyền / Tên chức năng</th>
+              <th style="width: 70%" class="text-center">Mã</th>
+            </tr>
+            <tr>
+              <th>
+                <input pInputText type="text" (input)="tt.filter($any($event.target).value, 'Name', 'contains')"
+                  placeholder="Lọc..." class="w-100" />
+              </th>
+              <th>
+                <input pInputText type="text" (input)="tt.filter($any($event.target).value, 'Code', 'contains')"
+                  placeholder="Lọc..." class="w-100" />
+              </th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+            <tr [ngClass]="{'bg-light fw-bold': rowData.IsGroup}">
+              <td style="width: 30%">
+                <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                <p-treeTableCheckbox [value]="rowNode" *ngIf="rowData.IsGroup"></p-treeTableCheckbox>
+                <span class="ms-2" [class.ms-4]="!rowData.IsGroup">{{ rowData.Name }}</span>
+              </td>
+              <td style="width: 70%">{{ rowData.Code }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="2" class="text-center text-muted">Vui lòng chọn nhân viên để xem quyền.</td>
+            </tr>
+          </ng-template>
+        </p-treeTable>
+      </div>
+    </nz-spin>
+  </div>
+
+  <div class="modal-footer" *ngIf="activeModal">
+    <button nz-button nzType="default" (click)="activeModal.dismiss()">Đóng</button>
+  </div>

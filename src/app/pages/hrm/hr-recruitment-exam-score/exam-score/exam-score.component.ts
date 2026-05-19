@@ -54,7 +54,7 @@ export class ExamScoreComponent implements OnInit {
   departments: any[] = [];
   exams: any[] = [];
   hiringRequests: any[] = [];
-  
+
   departmentID: number = 0;
   recruitmentExamID: number = 0;
   selectedHiringRequestID: number = 0;
@@ -84,11 +84,11 @@ export class ExamScoreComponent implements OnInit {
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     @Optional() @Inject('tabData') public tabData: any
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const specialAdminIds = [54, 1, 2, 3, 400, 401, 402, 403];
-    this.isAdmin = this.appUserService.isAdmin || specialAdminIds.includes(this.appUserService.employeeID || 0);
+    this.isAdmin = this.appUserService.isAdmin || specialAdminIds.includes(this.appUserService.employeeID || (this.appUserService.departmentID == 6) ? 1 : 0);
 
     // Xử lý khi mở từ component tab (TabService.openTabComp)
     if (this.tabData) {
@@ -278,7 +278,7 @@ export class ExamScoreComponent implements OnInit {
       this.matrixData = [...this.originalMatrixData];
     } else {
       this.matrixData = this.originalMatrixData.filter(row => {
-        if (this.filterPassed) return row.CandidateStatus === 5;
+        if (this.filterPassed) return row.CandidateStatus >= 5;
         if (this.filterFailed) return row.CandidateStatus === 4;
         return true;
       });
@@ -326,7 +326,7 @@ export class ExamScoreComponent implements OnInit {
 
   openGradingDialog(rowData: any) {
     this.stateService.setSelectedCandidate(rowData);
-    
+
     const tabKey = `exam-grading-${rowData.ExamResultID}`;
     const title = `Chấm điểm: ${rowData.CandidateName}`;
 
@@ -367,7 +367,7 @@ export class ExamScoreComponent implements OnInit {
   }
 
   // =========== EVALUATE CANDIDATE ===========
-  
+
   evaluateCandidate(candidate: any, status: number) {
     const statusText = status === 5 ? 'Đạt' : 'Không đạt';
     this.modal.confirm({

@@ -26,4 +26,14 @@ export class HomeLayoutService {
   getConfigSystemHR(): Observable<any> {
     return this.http.get<any>(environment.host + 'api/home/get-config-system-hr');
   }
+
+  /** Kiểm tra hợp đồng nhân viên hiện tại sắp hết hạn chưa */
+  getContractExpiryDays(): Observable<any> {
+    return this.http.get<any>(environment.host + 'api/home/get-contract-expiry-days');
+  }
+  getPendingContractReviewCount(): Observable<any> {
+    return this.http.get<any>(
+      environment.host + 'api/jobperfomanceevaluation/get-pending-count'
+    );
+  }
 }

@@ -1,0 +1,225 @@
+<div class="email-composer">
+  <!-- HEADER -->
+  <div class="email-header">
+    <div class="header-icon">
+      <i class="fa-solid fa-file-signature"></i>
+    </div>
+    <div class="header-text">
+      <h4>Soạn thư mời nhận việc</h4>
+      <span class="form-code">BM03-RTC.HR-QT01</span>
+    </div>
+    <div class="header-meta">
+      <span class="candidate-count">
+        <i class="fa-solid fa-users"></i> {{ mails.length }} ứng viên
+      </span>
+      <button class="modal-close-btn" (click)="onCancel()" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <nz-spin [nzSpinning]="isSending" nzTip="Đang gửi thư mời...">
+    <!-- TABS PER ỨNG VIÊN -->
+    <nz-tabset [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="activeTabIndex = $any($event)" nzType="card"
+      class="candidate-tabs">
+      <nz-tab *ngFor="let mail of mails; let i = index" [nzTitle]="tabTitle">
+        <ng-template #tabTitle>
+          <i class="fa-solid fa-user-check" style="margin-right: 5px; color: #2e86c1"></i>
+          {{ mail.candidateName }}
+        </ng-template>
+
+        <div class="tab-body">
+          <!-- LEFT: FORM -->
+          <div class="form-panel">
+
+            <!-- Email + Subject -->
+            <div class="field-group">
+              <label class="field-label"><i class="fa-solid fa-at text-primary"></i> Đến (Email)
+                <span style="color: red">(*)</span></label>
+              <input nz-input [(ngModel)]="mail.toEmail" placeholder="email@domain.com" />
+            </div>
+            <div class="field-group">
+              <label class="field-label"><i class="fa-solid fa-heading text-warning"></i> Tiêu đề
+                <span style="color: red">(*)</span></label>
+              <input nz-input [(ngModel)]="mail.subject" />
+            </div>
+
+
+            <!-- Số văn bản + Ngày ký -->
+            <div class="fields-row">
+              <div class="field-group flex1">
+                <label class="field-label"><i class="fa-solid fa-hashtag text-secondary"></i> Số văn bản</label>
+                <input nz-input [(ngModel)]="mail.docNumber" placeholder="VD: 56/2026/TMNV-RTC" />
+              </div>
+              <div class="field-group flex1">
+                <label class="field-label"><i class="fa-solid fa-calendar text-secondary"></i> Ngày ký</label>
+                <nz-date-picker [(ngModel)]="mail.signDate" nzFormat="dd/MM/yyyy" style="width: 100%"
+                  nzPlaceHolder="Chọn ngày ký"></nz-date-picker>
+              </div>
+            </div>
+
+
+            <!-- Vị trí + Phòng ban -->
+            <div class="fields-row">
+              <div class="field-group flex1">
+                <label class="field-label">Loại vị trí <span style="color: red">(*)</span></label>
+                <nz-select [(ngModel)]="mail.positionType" style="width: 100%;">
+                  <nz-option nzValue="official" nzLabel="Chính thức"></nz-option>
+                  <nz-option nzValue="internship" nzLabel="Thực tập"></nz-option>
+                </nz-select>
+              </div>
+              <div class="field-group flex1" style="flex: 2;">
+                <label class="field-label">Vị trí trúng tuyển <span style="color: red">(*)</span></label>
+                <input nz-input [(ngModel)]="mail.position" (ngModelChange)="updateSubject(mail)" />
+              </div>
+            </div>
+
+            <!-- Báo cáo -->
+            <div class="fields-row">
+              <div class="field-group flex1">
+                <label class="field-label">Phòng ban / Bộ phận làm việc</label>
+                <input nz-input [(ngModel)]="mail.department" />
+              </div>
+              <div class="field-group flex1">
+                <label class="field-label">Báo cáo trực tiếp cho</label>
+                <input nz-input [(ngModel)]="mail.reportingTo" />
+              </div>
+            </div>
+
+            <!-- Lương chính thức -->
+            <div class="fields-row">
+              <div class="field-group flex1">
+                <label class="field-label">
+                   <ng-container *ngIf="mail.positionType === 'official'">Lương chính thức (đồng/tháng)</ng-container>
+                   <ng-container *ngIf="mail.positionType === 'internship'">Lương thực tập (đồng/tháng)</ng-container>
+                   <span style="color: red">(*)</span>
+                </label>
+                <nz-input-number [(ngModel)]="mail.salary" [nzMin]="0" [nzStep]="1000000" [nzFormatter]="formatterVND"
+                  [nzParser]="parserVND" style="width: 100%;">
+                </nz-input-number>
+              </div>
+              <div class="field-group flex1" *ngIf="mail.positionType === 'official'">
+                <label class="field-label">Lương thử việc <span style="color: red">(*)</span></label>
+                <input nz-input [(ngModel)]="mail.probationSalary" placeholder="90%*LCB" />
+              </div>
+            </div>
+
+
+            <!-- Ngày nhận việc -->
+            <div class="fields-row">
+              <div class="field-group" style="flex: 2">
+                <label class="field-label"><i class="fa-solid fa-calendar-day text-success"></i> Ngày nhận việc <span
+                    style="color: red">(*)</span></label>
+                <nz-date-picker [(ngModel)]="mail.startDate" (ngModelChange)="updateSubject(mail)" nzFormat="dd/MM/yyyy" style="width: 100%"
+                  nzPlaceHolder="Chọn ngày"></nz-date-picker>
+              </div>
+              <div class="field-group" style="flex: 1">
+                <label class="field-label">Giờ</label>
+                <nz-select [(ngModel)]="mail.startTimeHour" style="width: 100%">
+                  <nz-option *ngFor="let h of hours" [nzValue]="h" [nzLabel]="h + 'h'"></nz-option>
+                </nz-select>
+              </div>
+              <div class="field-group" style="flex: 1">
+                <label class="field-label">Phút</label>
+                <nz-select [(ngModel)]="mail.startTimeMinute" style="width: 100%">
+                  <nz-option *ngFor="let m of minutes" [nzValue]="m" [nzLabel]="m + 'p'"></nz-option>
+                </nz-select>
+              </div>
+            </div>
+
+            <!-- Deadline phản hồi -->
+            <!-- <div class="fields-row">
+              <div class="field-group" style="flex: 2">
+                <label class="field-label"><i class="fa-solid fa-hourglass-half text-warning"></i> Chốt Offer trước ngày <span style="color: red">(*)</span></label>
+                <nz-date-picker [(ngModel)]="mail.replyDeadlineDate" nzFormat="dd/MM/yyyy" style="width: 100%"
+                  nzPlaceHolder="Chọn ngày"></nz-date-picker>
+              </div>
+              <div class="field-group" style="flex: 1">
+                <label class="field-label">Giờ</label>
+                <nz-select [(ngModel)]="mail.replyDeadlineHour" style="width: 100%">
+                  <nz-option *ngFor="let h of hours" [nzValue]="h" [nzLabel]="h + 'h'"></nz-option>
+                </nz-select>
+              </div>
+              <div class="field-group" style="flex: 1">
+                <label class="field-label">Phút</label>
+                <nz-select [(ngModel)]="mail.replyDeadlineMinute" style="width: 100%">
+                  <nz-option *ngFor="let m of minutes" [nzValue]="m" [nzLabel]="m + 'p'"></nz-option>
+                </nz-select>
+              </div>
+            </div> -->
+
+            <!-- Thời gian làm việc -->
+            <div class="field-group">
+              <label class="field-label">Thời gian làm việc (Quy định)</label>
+              <input nz-input [(ngModel)]="mail.workTimeText" />
+            </div>
+
+            <!-- Địa điểm -->
+            <div class="field-group">
+              <label class="field-label"><i class="fa-solid fa-location-dot text-danger"></i> Địa chỉ đến nhận
+                việc</label>
+              <textarea nz-input [(ngModel)]="mail.workAddress" [nzAutosize]="{ minRows: 2, maxRows: 3 }"
+                placeholder="Địa chỉ nhận việc"></textarea>
+            </div>
+
+
+            <!-- Liên hệ -->
+            <div class="fields-row">
+              <div class="field-group flex1">
+                <label class="field-label"><i class="fa-solid fa-phone text-primary"></i> SĐT liên hệ</label>
+                <input nz-input [(ngModel)]="mail.contactPhone" />
+              </div>
+              <div class="field-group flex1">
+                <label class="field-label"><i class="fa-solid fa-envelope text-primary"></i> Email liên hệ</label>
+                <input nz-input [(ngModel)]="mail.contactEmail" />
+              </div>
+            </div>
+
+
+
+          </div>
+          <!-- /form-panel -->
+
+          <!-- RIGHT: PREVIEW EMAIL -->
+          <div class="preview-panel">
+            <div class="preview-label">
+              <i class="fa-solid fa-eye"></i> Xem trước thư mời
+            </div>
+            <div class="email-preview-card">
+              <div class="preview-meta">
+                <div class="meta-row">
+                  <span class="meta-key">Đến:</span>
+                  <span class="meta-val">{{ mail.toEmail || "(chưa nhập email)" }}</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-key">Tiêu đề:</span>
+                  <span class="meta-val bold">{{ mail.subject }}</span>
+                </div>
+              </div>
+              <nz-divider></nz-divider>
+              <div class="email-body-preview" [innerHTML]="getPreviewBody(mail)"></div>
+            </div>
+          </div>
+        </div>
+        <!-- /tab-body -->
+      </nz-tab>
+    </nz-tabset>
+  </nz-spin>
+
+  <!-- FOOTER -->
+  <div class="email-footer">
+    <span class="footer-hint">
+      <i class="fa-solid fa-circle-info text-primary"></i>
+      Kiểm tra chính xác ngày nhận việc và mức lương trước khi gửi Offer
+    </span>
+    <div class="footer-right">
+      <button nz-button nzType="default" (click)="onCancel()" nzDanger>
+        Đóng
+      </button>
+      <button nz-button nzType="primary" (click)="onSend()" [nzLoading]="isSending">
+        <i class="fa-solid fa-paper-plane" style="margin-right: 5px;"></i>
+        Gửi thư mời nhận việc
+      </button>
+    </div>
+  </div>
+</div>

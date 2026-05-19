@@ -153,4 +153,10 @@ export class EmployeeService {
       this._url + `EmployeeTeam/update-employee-team?employeeID=${employeeID}&teamID=${teamID}`
     );
   }
+
+  updateEmployeeDepartment(employeeID: number, departmentID: number): Observable<any> {
+    return this.http.get<any>(
+      this._url + `Employee/update-employee-department?employeeID=${employeeID}&departmentID=${departmentID}`
+    );
+  }
 }

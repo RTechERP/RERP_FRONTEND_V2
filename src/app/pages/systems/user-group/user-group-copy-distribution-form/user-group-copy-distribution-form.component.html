@@ -1,0 +1,67 @@
+<div class="modal-header bg-primary text-white py-2">
+  <h6 class="modal-title text-white fs-14">Copy quyền nhân viên</h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss()"></button>
+</div>
+
+<div class="modal-body p-3" style="height: 60vh; overflow: hidden; display: flex; flex-direction: column;">
+  <nz-spin [nzSpinning]="loading" class="flex-grow-1 overflow-hidden"
+    style="display: flex; flex-direction: column; height: 100%;">
+
+    <div class="d-flex mb-3 gap-3">
+      <div class="flex-grow-1" style="width: 50%;">
+        <label class="fs-12 fw-bold mb-1">Từ nhân viên:</label>
+        <nz-select class="w-100 fs-12" [(ngModel)]="fromUserId" (ngModelChange)="onFromUserChange()" nzShowSearch
+          nzPlaceHolder="Chọn nhân viên nguồn">
+          <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
+            <nz-option *ngFor="let emp of group.items" [nzValue]="emp.UserID || emp.ID"
+              [nzLabel]="emp.FullName"></nz-option>
+          </nz-option-group>
+        </nz-select>
+      </div>
+      <div class="flex-grow-1" style="width: 50%;">
+        <label class="fs-12 fw-bold mb-1">Đến nhân viên:</label>
+        <nz-select class="w-100 fs-12" [(ngModel)]="toUserId" nzShowSearch nzPlaceHolder="Chọn nhân viên đích">
+          <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
+            <nz-option *ngFor="let emp of group.items" [nzValue]="emp.UserID || emp.ID"
+              [nzLabel]="emp.FullName"></nz-option>
+          </nz-option-group>
+        </nz-select>
+      </div>
+    </div>
+
+    <div class="flex-grow-1 overflow-hidden">
+      <p-table [value]="groups" [(selection)]="selectedGroups" dataKey="RoleID" [scrollable]="true"
+        scrollHeight="calc(60vh - 120px)" styleClass="p-datatable-sm p-datatable-gridlines">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 3rem; text-align: center">
+              <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+            </th>
+            <th class="fs-12">Tên nhóm</th>
+
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr class="fs-12">
+            <td style="text-align: center">
+              <p-tableCheckbox [value]="row"></p-tableCheckbox>
+            </td>
+            <td>{{ row.Name }}</td>
+
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="3" class="text-center p-3 fs-12">Không có dữ liệu quyền</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+  </nz-spin>
+</div>
+
+<div class="modal-footer py-2">
+  <button nz-button nzDanger nzType="default" (click)="activeModal.dismiss()" class="fs-12">Hủy</button>
+  <button nz-button nzType="primary" (click)="onSave()" class="fs-12">Lưu</button>
+</div>

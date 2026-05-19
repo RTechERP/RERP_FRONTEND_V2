@@ -1,0 +1,33 @@
+:host ::ng-deep .ant-splitter {
+    height:  100% !important;
+}
+
+:host ::ng-deep .ant-btn-icon-only.ant-btn-sm {
+    height: 28px !important;
+    margin-top: 6px;
+}
+
+/* Ensure menubar is above table on mobile */
+:host ::ng-deep .p-menubar {
+    position: relative;
+}
+
+:host ::ng-deep .p-menubar .p-menubar-root-list {
+    z-index: 1000 !important;
+    width: 100%;
+    margin-top: 7px;
+}
+
+@media screen and (max-width: 960px) {
+    :host ::ng-deep .p-menubar {
+        width: 100%;
+    }
+    
+    :host ::ng-deep .p-menubar-root-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        border: 1px solid #dee2e6;
+    }
+}

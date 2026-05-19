@@ -160,6 +160,57 @@
             </div>
             <div [innerHTML]="item.EssayGuidance" class="small p-2 bg-white rounded border italic text-secondary"></div>
           </div>
+
+          <!-- ===== JURY EVALUATION ATTACHMENTS (New Feature) ===== -->
+          <div *ngIf="item.QuestionType === 2" class="jury-attachments mt-3 pt-2 border-top">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="text-primary small font-weight-bold">
+                <i nz-icon nzType="paper-clip" class="mr-1"></i>Đính kèm đánh giá của Giám khảo:
+              </div>
+              <button nz-button nzType="default" nzSize="small" (click)="fileInput.click()" class="d-flex align-items-center">
+                <i nz-icon nzType="upload" class="mr-1"></i>Đính kèm file
+              </button>
+              <input #fileInput type="file" multiple (change)="onFileSelectedEvaluation($event, item)" style="display: none;">
+            </div>
+
+            <!-- List of evaluation files -->
+            <div class="d-flex flex-wrap gap-2" *ngIf="getVisibleEvaluationFiles(item).length > 0; else noEvaluationFiles">
+              <div *ngFor="let file of getVisibleEvaluationFiles(item)"
+                class="attachment-item mr-2 mb-2 border rounded overflow-hidden shadow-sm bg-white d-flex align-items-center p-1 position-relative"
+                style="min-width: 150px; max-width: 200px; border-color: #1890ff !important;">
+                
+                <!-- Image Preview -->
+                <div *ngIf="file.isImage" class="thumb mr-2" style="width: 50px; height: 50px; flex-shrink: 0;">
+                  <img *ngIf="file.blobUrl" [src]="file.blobUrl" (click)="openImageOverlay(file.blobUrl)"
+                    style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" title="Click để xem to">
+                  <div *ngIf="!file.blobUrl" class="d-flex align-items-center justify-content-center bg-light h-100"><i
+                      nz-icon nzType="loading"></i></div>
+                </div>
+                <!-- File Icon -->
+                <div *ngIf="!file.isImage" class="thumb mr-2 d-flex align-items-center justify-content-center bg-light"
+                  style="width: 50px; height: 50px; flex-shrink: 0;">
+                  <i nz-icon nzType="file-done" style="font-size: 24px; color: #52c41a;"></i>
+                </div>
+                <!-- Filename & Action -->
+                <div class="file-info overflow-hidden">
+                  <div class="text-truncate small font-weight-bold" [title]="file.FileNameOrigin">{{file.FileNameOrigin}}</div>
+                  <div class="d-flex gap-2">
+                    <a href="javascript:void(0)" class="small text-primary" (click)="downloadFileFromServer({path: file.ServerPath, fileName: file.FileNameOrigin})">
+                      <i nz-icon nzType="download"></i>
+                    </a>
+                    <a href="javascript:void(0)" class="small text-danger" (click)="removeEvaluationFile(file, item)">
+                      <i nz-icon nzType="delete"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <ng-template #noEvaluationFiles>
+              <div class="text-muted small italic p-2 bg-light rounded border-dashed text-center">
+                Chưa có file đánh giá nào được đính kèm.
+              </div>
+            </ng-template>
+          </div>
         </div>
 
         <!-- ===== GRADING AREA ===== -->

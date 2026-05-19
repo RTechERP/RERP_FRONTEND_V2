@@ -1,0 +1,11 @@
+<div class="bank-list-container" style="height:90vh">
+  <div class="menubar-container">
+    <p-menubar [model]="menuBars"></p-menubar>
+  </div>
+  <div class="table-container">
+    <app-custom-table [columns]="columns" [data]="data" [loading]="isLoading" dataKey="ID" selectionMode="single"
+      [showGlobalFilter]="true" [showViewModeSwitcher]="false" (selectionChange)="onSelectionChange($event)"
+      (rowDblClick)="onEdit()">
+    </app-custom-table>
+  </div>
+</div>

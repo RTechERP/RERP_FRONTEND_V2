@@ -110,4 +110,13 @@ export class AccountingContractService {
     return this.http.post<any>(`${this._url}importexcel`, rows);
   }
 
+  bulkReceiveContract(contractIds: number[], dateReceived: string, quantityDocument: number): Observable<any> {
+    const dto = {
+      ContractIds: contractIds,
+      DateReceived: dateReceived,
+      QuantityDocument: quantityDocument,
+    };
+    return this.http.post<any>(`${this._url}bulk-receive-contract`, dto);
+  }
+
 }

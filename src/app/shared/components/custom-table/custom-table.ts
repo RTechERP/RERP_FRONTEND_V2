@@ -203,6 +203,7 @@ export class CustomTable implements OnChanges {
     showColumnChooser: boolean = false;
     chooserColumns: ColumnDef[] = [];
     @Output() rowClick = new EventEmitter<any>();
+    @Output() onRowDoubleClick = new EventEmitter<any>();
     clickedRowKey: any = null;
 
     onRowClick(rowData: any) {
@@ -220,6 +221,10 @@ export class CustomTable implements OnChanges {
         }
         this.clickedRowKey = newKey;
         this.rowClick.emit(rowData);
+    }
+
+    onRowDblClick(rowData: any): void {
+        this.onRowDoubleClick.emit(rowData);
     }
 
     isRowClicked(rowData: any): boolean {

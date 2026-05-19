@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { environment } from '../../../../../environments/environment';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -42,11 +43,14 @@ export interface ContractReviewMail {
   // Email
   toEmail: string;       // gửi đến nhân viên
   ccEmail: string;       // CC quản lý
+  ccEmailBgd: string;    // CC BGD
   subject: string;
   // Deadline nộp
   deadlineDate: any;
   deadlineHour: string;
   deadlineMinute: string;
+  // Link chuyển hướng cá nhân đánh giá
+  personalReviewUrl: string;
 }
 
 @Component({
@@ -138,10 +142,12 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
         // Ưu tiên email công ty, fallback email cá nhân
         toEmail: r.EmployeeEmailCongTy || r.EmployeeEmailCaNhan || '',
         ccEmail: r.LeaderEmail || '',
+        ccEmailBgd: 'dept_manager@rtc.edu.vn',
         subject: '',
         deadlineDate: dl,
         deadlineHour: '17',
         deadlineMinute: '00',
+        personalReviewUrl: `${window.location.origin}${environment.baseHref}/contract-transfer-review-personal`,
       };
       this.updateSubject(mail);
       return mail;
@@ -323,7 +329,8 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
     Đề nghị ${empSal} ${mail.employeeName} làm bản tự đánh giá
     và ${'phòng ' + mail.departmentName || 'bộ phận liên quan'} làm đánh giá chuyển hợp đồng
     <i>(trên phần mềm)</i> trước ${deadlineStr} để P. HCNS trình Ban Giám đốc
-    phê duyệt và căn cứ để làm các thủ tục tiếp theo cho người lao động.
+    phê duyệt và căn cứ để làm các thủ tục tiếp theo cho người lao động.<br>
+    Cá nhân nhấn vào <a href="${mail.personalReviewUrl}" target="_blank"><b>link này</b></a> để đánh giá chuyển hợp đồng.
   </p>
 
   <p style="margin:12pt 0 4pt 0;">Trân trọng!</p>
@@ -378,10 +385,10 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
 
     const payload = this.mails.map(mail => {
       return {
-        ID: mail.recordId,
+        ID: mail.recordId,  
         Subject: mail.subject,
         EmailTo: mail.toEmail,
-        EmailCC: mail.ccEmail || '',
+        EmailCC: [mail.ccEmail, mail.ccEmailBgd].filter(Boolean).join(';'),
         Body: this.getMailBody(mail),
       };
     });

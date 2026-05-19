@@ -39,13 +39,19 @@
                   <i class="fa-solid fa-at text-primary"></i> Email nhân viên
                   <span style="color:red">(*)</span>
                 </label>
-                <input nz-input [(ngModel)]="mail.toEmail" placeholder="nhanvien@rtc.edu.vn" />
+                <input nz-input [(ngModel)]="mail.toEmail"/>
               </div>
               <div class="field-group flex1">
                 <label class="field-label">
-                  <i class="fa-solid fa-at text-secondary"></i> CC (Quản lý)
+                  <i class="fa-solid fa-at text-secondary"></i> CC (TBP)
                 </label>
-                <input nz-input [(ngModel)]="mail.ccEmail" placeholder="quanly@rtc.edu.vn" />
+                <input nz-input [(ngModel)]="mail.ccEmail" />
+              </div>
+              <div class="field-group flex1">
+                <label class="field-label">
+                  <i class="fa-solid fa-at text-success"></i> CC (BGD)
+                </label>
+                <input nz-input [(ngModel)]="mail.ccEmailBgd" />
               </div>
             </div>
 
@@ -142,13 +148,12 @@
                   <span class="echeader-val">{{ mail.employeeName }}{{ mail.toEmail ? ' &lt;' + mail.toEmail + '&gt;' :
                     ' (chưa nhập email)' }}</span>
                 </div>
-                <div class="echeader-row" *ngIf="mail.ccEmail">
+                <div class="echeader-row" *ngIf="mail.ccEmailBgd || mail.ccEmail">
                   <span class="echeader-key">CC:</span>
-                  <span class="echeader-val"> Manager &lt;dept_manager&#64;rtc.edu.vn&gt;;{{ mail.evaluatorName }}{{
-                    mail.ccEmail
-                    ? ' &lt;' + mail.ccEmail + '&gt;' :
-                    '' }}</span>
+                  <span class="echeader-val" *ngIf="mail.ccEmailBgd">Manager &lt;{{ mail.ccEmailBgd }}&gt;;</span>
+                  <span class="echeader-val" *ngIf="mail.ccEmail"> {{ mail.evaluatorName }} &lt;{{mail.ccEmail}}&gt; </span>
                 </div>
+                
                 <div class="echeader-row">
                   <span class="echeader-key">Tiêu đề:</span>
                   <span class="echeader-val bold">{{ mail.subject }}</span>

@@ -324,6 +324,7 @@ import { ProjectTaskTypeComponent } from './pages/project_task/project-task-type
 import { ProjectTaskProjectComponent } from './pages/project_task/project-task-project/project-task-project.component'
 import { HrRecruitmentApproveComponent } from './pages/hrm/hr-recruitment-approve/hr-recruitment-approve/hr-recruitment-approve.component';
 import { ContractTransferReviewComponent } from './pages/hrm/contract-transfer-review/contract-transfer-review/contract-transfer-review.component';
+import { ContractTransferReviewPersonalComponent } from './pages/hrm/contract-transfer-review/contract-transfer-review-personal/contract-transfer-review-personal.component';
 import { ProjectTaskTimeLineTotalComponent } from './pages/project_task/project-task-time-line-total/project-task-time-line-total.component'
 import { ProjectTaskStatusChartComponent } from './pages/project_task/project-task-status-chart/project-task-status-chart.component'
 import { TaskDetailComponent } from './pages/project_task/kanban/task-detail/task-detail.component';
@@ -454,6 +455,7 @@ export const routes: Routes = [
             { path: 'tb-product-rtc', component: TbProductRtcComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-approve', component: HrRecruitmentApproveComponent, canActivate: [authGuard] },
             { path: 'contract-transfer-review', component: ContractTransferReviewComponent, canActivate: [authGuard] },
+            { path: 'contract-transfer-review-personal', component: ContractTransferReviewPersonalComponent, canActivate: [authGuard] },
             { path: 'hrhiring-request', component: HrhiringRequestComponent, canActivate: [authGuard] },
             { path: 'hrhiring-request-exam', component: HRHiringRequestExamComponent, canActivate: [authGuard] },
             { path: 'job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },

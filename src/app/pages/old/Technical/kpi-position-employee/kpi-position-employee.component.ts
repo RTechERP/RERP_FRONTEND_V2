@@ -226,9 +226,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
+        const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi kết nối khi tải phòng ban: ' + error
+          'Lỗi kết nối khi tải phòng ban: ' + errorMessage
         );
       },
     });
@@ -251,9 +252,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
+          const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
           this.notification.error(
             NOTIFICATION_TITLE.error,
-            'Lỗi kết nối khi tải kỳ đánh giá: ' + error
+            'Lỗi kết nối khi tải kỳ đánh giá: ' + errorMessage
           );
         },
       });
@@ -331,9 +333,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isLoadingMaster = false;
+        const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi kết nối khi tải dữ liệu: ' + error
+          'Lỗi kết nối khi tải dữ liệu: ' + errorMessage
         );
       },
     });
@@ -360,9 +363,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isLoadingDetail = false;
+        const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi kết nối khi tải nhân viên: ' + error
+          'Lỗi kết nối khi tải nhân viên: ' + errorMessage
         );
       },
     });
@@ -513,9 +517,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
             }
           },
           error: (error) => {
+            const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              'Lỗi kết nối khi xóa vị trí: ' + error
+              'Lỗi khi xóa vị trí: ' + errorMessage
             );
           },
         });
@@ -575,9 +580,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
             }
           },
           error: (error) => {
+            const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              'Lỗi kết nối khi copy: ' + error
+              'Lỗi khi copy: ' + errorMessage
             );
           },
         });
@@ -654,9 +660,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
             }
           },
           error: (error) => {
+            const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              'Lỗi kết nối khi xóa nhân viên: ' + error
+              'Lỗi khi xóa nhân viên: ' + errorMessage
             );
           },
         });

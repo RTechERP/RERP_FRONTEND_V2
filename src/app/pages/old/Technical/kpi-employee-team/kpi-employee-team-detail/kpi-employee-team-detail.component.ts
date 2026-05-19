@@ -72,6 +72,7 @@ export class KpiEmployeeTeamDetailComponent implements OnInit {
 
     // Errors
     errors: any = {};
+    isSaving: boolean = false;
 
     constructor(
         public activeModal: NgbActiveModal,
@@ -256,10 +257,14 @@ export class KpiEmployeeTeamDetailComponent implements OnInit {
     }
 
     save(): void {
+        if (this.isSaving) return;
+
         if (!this.validate()) {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng kiểm tra lại thông tin');
             return;
         }
+
+        this.isSaving = true;
 
         const saveData = {
             ID: this.mode === 'edit' ? this.id : 0,
@@ -274,6 +279,7 @@ export class KpiEmployeeTeamDetailComponent implements OnInit {
 
         this.kpiEmployeeTeamService.saveData(saveData).subscribe({
             next: (response) => {
+                this.isSaving = false;
                 if (response?.status === 1) {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Lưu thành công');
                     this.onSaved.emit(response.data);
@@ -283,8 +289,9 @@ export class KpiEmployeeTeamDetailComponent implements OnInit {
                 }
             },
             error: (error) => {
+                this.isSaving = false;
                 console.error('Error saving KPI employee team:', error);
-                const errorMessage = error?.error?.message || error?.message || 'Có lỗi xảy ra khi lưu dữ liệu';
+                const errorMessage = typeof error?.error === 'string' ? error.error : (error?.error?.message || error?.message || 'Có lỗi xảy ra khi lưu dữ liệu');
                 this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
             }
         });

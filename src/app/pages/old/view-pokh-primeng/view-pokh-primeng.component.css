@@ -136,6 +136,19 @@ nz-form-label {
   font-size: 10px;
 }
 
+.group-header-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.group-select-checkbox {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  cursor: pointer;
+}
+
 :host ::ng-deep .view-pokh-table .p-datatable-thead > tr:not(:first-child) > th {
   background: #eaf4ff !important;
   color: #123b5d;

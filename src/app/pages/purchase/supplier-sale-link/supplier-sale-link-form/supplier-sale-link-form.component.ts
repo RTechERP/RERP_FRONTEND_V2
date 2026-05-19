@@ -240,17 +240,16 @@ export class SupplierSaleLinkFormComponent implements OnInit {
     this.cdr.detectChanges();
     this.supplierSaleLinkService.getWithSelection(employeeID, keyword, page, rows).subscribe({
       next: (res: any) => {
+        this.totalRecords = res.data && res.data.length > 0 ? res.data[0].TotalCount : 0;
+
         this.suppliers = (res.data || []).map((s: any) => {
           const existing = this.selectedSuppliers.find(sel => sel.ID === s.ID);
           if (existing) {
-            // If it exists in selection, use that reference but update it with the latest data from DB if needed
-            // Actually, we usually want to keep the user's current edits in selectedSuppliers
+
             return existing;
           }
           return s;
         });
-
-        this.totalRecords = this.suppliers.length > 0 ? this.suppliers[0].TotalCount : 0;
 
         // Sync selected status from the database for the current page
         // If an item is marked as IsSelected in DB but not in our current selection array, add it.

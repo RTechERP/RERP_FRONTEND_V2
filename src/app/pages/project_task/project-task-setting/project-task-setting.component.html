@@ -1,0 +1,71 @@
+<div class="setting-page">
+    <div class="setting-header">
+        <div class="header-content">
+            <i nz-icon nzType="setting" nzTheme="outline" class="header-icon"></i>
+            <div class="header-text">
+                <h1>Cài đặt Công việc</h1>
+                <p>Quản lý các tùy chỉnh cá nhân và thông báo cho hệ thống công việc</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <span *ngIf="isSaving" class="autosave-indicator">
+                <i nz-icon nzType="loading" nzTheme="outline"></i> Đang lưu...
+            </span>
+            <span *ngIf="!isSaving && !isLoading" class="autosave-indicator success">
+                <i nz-icon nzType="check-circle" nzTheme="outline"></i> Đã lưu tự động
+            </span>
+        </div>
+    </div>
+
+    <nz-spin [nzSpinning]="isLoading">
+        <div class="setting-content">
+            <!-- Email Notifications Group -->
+            <div class="setting-group">
+                <div class="group-header">
+                    <i nz-icon nzType="mail" nzTheme="outline"></i>
+                    <span>Cấu hình Email thông báo</span>
+                </div>
+                
+                <nz-card class="setting-card">
+                    <div class="setting-item">
+                        <div class="item-info">
+                            <h3>Thông báo khi tạo công việc</h3>
+                            <p>Nhận email khi có công việc mới được khởi tạo và giao cho bạn</p>
+                        </div>
+                        <nz-switch [(ngModel)]="settings.SendMailCreateProjectTask" (ngModelChange)="saveSettings()"></nz-switch>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="item-info">
+                            <h3>Thông báo khi hoàn thành</h3>
+                            <p>Nhận email khi một công việc bạn đang theo dõi được đánh dấu hoàn thành</p>
+                        </div>
+                        <nz-switch [(ngModel)]="settings.SendFinishProjectTask" (ngModelChange)="saveSettings()"></nz-switch>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="item-info">
+                            <h3>Thông báo khi được duyệt</h3>
+                            <p>Nhận email khi các công việc bạn yêu cầu hoặc thực hiện được cấp trên phê duyệt</p>
+                        </div>
+                        <nz-switch [(ngModel)]="settings.SendApproveProjectTask" (ngModelChange)="saveSettings()"></nz-switch>
+                    </div>
+                </nz-card>
+            </div>
+
+            <!-- Future Settings Group Placeholder -->
+            <div class="setting-group disabled">
+                <div class="group-header">
+                    <i nz-icon nzType="appstore" nzTheme="outline"></i>
+                    <span>Cấu hình hiển thị (Đang phát triển)</span>
+                </div>
+                <nz-card class="setting-card">
+                    <div class="setting-placeholder">
+                        <i nz-icon nzType="field-time" nzTheme="outline"></i>
+                        <span>Các tính năng cài đặt thêm sẽ được cập nhật tại đây</span>
+                    </div>
+                </nz-card>
+            </div>
+        </div>
+    </nz-spin>
+</div>

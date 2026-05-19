@@ -109,6 +109,19 @@ export class HRRecruitmentCandidateService {
   sendInterviewMail(payload: any[]) {
     return this.http.post<any>(this.apiUrl + `send-interview-mail`, payload);
   }
+  sendOfferLetterMail(payload: any[]) {
+    return this.http.post<any>(this.apiUrl + `send-offer-letter-mail`, payload);
+  }
 
+  getUsernameCandidate() {
+    return this.http.get<any>(this.apiUrl + `get-username-candidate`);
+  }
+
+  getEmployees(): Observable<any> {
+    const request = { status: 0, departmentid: 0, keyword: '' };
+    return this.http.get<any>(`${environment.host}api/employee/`, {
+      params: request as any,
+    });
+  }
 }
 

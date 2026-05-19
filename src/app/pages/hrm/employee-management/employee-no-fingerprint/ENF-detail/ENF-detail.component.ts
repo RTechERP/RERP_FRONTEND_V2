@@ -17,8 +17,8 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
 import { PermissionService } from '../../../../../services/permission.service';
 import { AuthService } from '../../../../../auth/auth.service';
 import { EmployeeService } from '../../../employee/employee-service/employee.service';
+import { OverTimeService } from '../../../over-time/over-time-service/over-time.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
-
 export interface ENFDetailDto {
   ID?: number;
   EmployeeID?: number;
@@ -139,7 +139,8 @@ export class ENFDetailComponent implements OnInit {
     private fb: FormBuilder,
     private permissionService: PermissionService,
     private authService: AuthService,
-    private employeeService: EmployeeService
+    private employeeService: EmployeeService,
+    private overTimeService: OverTimeService
   ) { }
 
   private initForm(): void {
@@ -150,6 +151,11 @@ export class ENFDetailComponent implements OnInit {
       selectedType: [1, [Validators.required]],
       note: [''],
       reasonHREdit: [''] // Validation sẽ được thêm động trong updateReasonHREditValidation
+    });
+
+    // Cập nhật validation khi người được chọn thay đổi
+    this.enfForm.get('selectedEmployeeId')?.valueChanges.subscribe(() => {
+      this.updateReasonHREditValidation();
     });
   }
 
@@ -170,6 +176,8 @@ export class ENFDetailComponent implements OnInit {
         this.currentUser = Array.isArray(data) ? data[0] : data;
         // Cập nhật lại disable/enable cho EmployeeID sau khi có currentUser
         this.updateEmployeeIdDisabledState();
+        // Cập nhật lại validation cho lý do sửa sau khi có currentUser
+        this.updateReasonHREditValidation();
       },
       error: (err: any) => {
         console.error('Lỗi lấy thông tin người dùng:', err);
@@ -192,13 +200,25 @@ export class ENFDetailComponent implements OnInit {
   private updateReasonHREditValidation(): void {
     const reasonHREditControl = this.enfForm.get('reasonHREdit');
     if (reasonHREditControl) {
-      if (this.isEditMode) {
+      if (this.isReasonRequired) {
         reasonHREditControl.setValidators([Validators.required]);
       } else {
         reasonHREditControl.clearValidators();
       }
       reasonHREditControl.updateValueAndValidity();
     }
+  }
+
+  get isReasonRequired(): boolean {
+    if (!this.isEditMode) return false;
+
+    const currentLoggedInEmployeeID = this.currentUser?.EmployeeID;
+    const selectedFormEmployeeID = this.enfForm.get('selectedEmployeeId')?.value;
+
+    // Yêu cầu nhập lý do sửa nếu:
+    // 1. Đang ở chế độ sửa (isEditMode)
+    // 2. Người đang đăng nhập có ID khác với nhân viên trong phiếu
+    return currentLoggedInEmployeeID !== selectedFormEmployeeID;
   }
 
   loadApprovers() {
@@ -264,6 +284,20 @@ export class ENFDetailComponent implements OnInit {
         dayWork: new Date(),
         selectedType: 1
       });
+
+      // Automatically bind closest approver for new requests
+      const employeeId = this.currentEmployeeId || (this.currentUser?.EmployeeID) || 0;
+      if (employeeId > 0) {
+        this.overTimeService.getApproveID(employeeId, 'EmployeeNoFingerprint').subscribe({
+          next: (res: any) => {
+            if (res && res.status === 1 && res.data && res.data.ApproveID) {
+              this.enfForm.patchValue({
+                selectedApprovedId: res.data.ApproveID
+              });
+            }
+          }
+        });
+      }
     }
 
     // Disable fields based on mode
@@ -321,7 +355,7 @@ export class ENFDetailComponent implements OnInit {
     if (this.enfForm.get('selectedType')?.hasError('required')) {
       errors.push('Vui lòng chọn loại quên chấm công');
     }
-    if (this.isEditMode && this.enfForm.get('reasonHREdit')?.hasError('required')) {
+    if (this.isReasonRequired && this.enfForm.get('reasonHREdit')?.hasError('required')) {
       errors.push('Vui lòng nhập lý do chỉnh sửa');
     }
     return errors;

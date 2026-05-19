@@ -20,6 +20,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { HRRecruitmentApplicationFormService } from './hr-recruitment-application-form.service';
+import { DateTime } from 'luxon';
 
 @Component({
     selector: 'app-home-layout-candidate',
@@ -50,6 +51,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     @Input() isEmbedded = false;
     private destroy$ = new Subject<void>();
     private cancelLoad$ = new Subject<void>();
+    data: any; // Raw API data
     form!: FormGroup;
     isLoading = false;
     isComplete = false;
@@ -99,8 +101,8 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
         if (n === 1 || n === 2) return n;
         // Text fallback
         const s = String(val).trim().toLowerCase();
-        if (s === 'nam' || s === 'male' || s === 'm') return 1;
-        if (s === 'nữ' || s === 'nu' || s === 'female' || s === 'f') return 2;
+        if (s === 'nam' || s === 'male' || s === 'm') return 0;
+        if (s === 'nữ' || s === 'nu' || s === 'female' || s === 'f') return 1;
         return null;
     }
 
@@ -132,6 +134,44 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     };
 
     parserVND = (value: string): number => Number(value.replace(/\./g, ''));
+    private readonly FIELD_LABELS: any = {
+        FullName: 'Họ và tên',
+        Gender: 'Giới tính',
+        DateOfBirth: 'Ngày sinh',
+        PlaceOfBirth: 'Nơi sinh',
+        Ethnic: 'Dân tộc',
+        Religion: 'Tôn giáo',
+        PermanentResidence: 'Hộ khẩu thường trú',
+        CurrentAddress: 'Nơi ở hiện nay',
+        Tel: 'Điện thoại',
+        Mobile: 'Di động',
+        Email: 'Email',
+        MaritalStatus: 'Tình trạng hôn nhân',
+        Experiences: 'Kinh nghiệm phù hợp',
+        ReasonApplication: 'Lý do ứng tuyển',
+        AcceptedSalary: 'Mức lương tối thiểu mong muốn',
+        DateOfStart: 'Ngày có thể bắt đầu nhận việc',
+        PositionName: 'Vị trí ứng tuyển',
+        WorkExperienceLevel: 'Mức kinh nghiệm làm việc',
+        // FormArrays
+        emergencyContacts: 'Người liên hệ khẩn cấp',
+        educations: 'Trình độ học vấn/Bằng cấp',
+        foreignLanguages: 'Trình độ ngoại ngữ',
+        otherCertificates: 'Chứng chỉ khác',
+        workExperiences: 'Kinh nghiệm làm việc',
+        // Nested fields
+        'emergencyContacts.FullName': 'Người liên hệ khẩn cấp: Họ tên',
+        'emergencyContacts.Relation': 'Người liên hệ khẩn cấp: Quan hệ',
+        'emergencyContacts.Tel': 'Người liên hệ khẩn cấp: Số điện thoại',
+        'emergencyContacts.Address': 'Người liên hệ khẩn cấp: Địa chỉ',
+        'educations.NameOfSchool': 'Trình độ học vấn: Tên trường',
+        'educations.Major': 'Trình độ học vấn: Ngành học',
+        'educations.GraduatedTime': 'Trình độ học vấn: Thời gian',
+        'educations.QualificationLevel': 'Trình độ học vấn: Xếp loại',
+        'RelativeInfo': 'Thông tin người thân tại công ty',
+        'BHXH': 'Số sổ BHXH',
+        'TaxCode': 'Mã số thuế',
+    };
 
     constructor(
         private fb: FormBuilder,
@@ -253,7 +293,9 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
                 }
 
                 // 2. Patch Form - Always call to handle defaults if no data exists
-                this.patchForm(res.candidateInfo?.data || {}, candidateFromStorage);
+                const candidateData = res.candidateInfo?.data || {};
+                this.data = candidateData;
+                this.patchForm(candidateData, candidateFromStorage);
                 this.cdr.detectChanges();
             },
             error: (err: any) => {
@@ -295,6 +337,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             InjuriesOrSeriousIll: false,
             CurrentlyPregnant: false,
             IsPlanPregnant: false,
+            WorkExperienceLevel: null,
             HasRelativeOrFriendInCompany: false,
             HasSocialInsurance: false,
             HasTaxCode: false
@@ -332,14 +375,19 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             }, { emitEvent: false });
 
             if (this.candidateId || mainForm?.HRRecruitmentCandidateID) {
-              this.form.get('PositionName')?.disable();
+                this.form.get('PositionName')?.disable();
             } else {
-              this.form.get('PositionName')?.enable();
+                this.form.get('PositionName')?.enable();
             }
 
             // Ảnh chân dung
             if (mainForm?.FileName && !this.imagePreview) {
-                this.hrService.downloadFile(mainForm.FileName).pipe(takeUntil(this.cancelLoad$), takeUntil(this.destroy$)).subscribe({
+                const dateApply = mainForm.DateApply || mainForm.DateSign || mainForm.CreatedDate || new Date();
+                const positionName = mainForm.PositionName || 'NoPosition';
+                const yearStr = DateTime.fromJSDate(new Date(dateApply)).toFormat('yyyy');
+                const subPath = `/${yearStr}/${positionName}`;
+
+                this.hrService.downloadFile(mainForm.FileName, subPath).pipe(takeUntil(this.cancelLoad$), takeUntil(this.destroy$)).subscribe({
                     next: (blob) => {
                         this.imagePreview = URL.createObjectURL(blob);
                         this.cdr.markForCheck();
@@ -419,11 +467,11 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
                     DateStart: [this.formatDateForInput(item?.DateStart)],
                     DateEnd: [this.formatDateForInput(item?.DateEnd)],
                     Leader: [item?.Leader || null, [Validators.maxLength(550)]],
-                    Mission: [item?.Mission || null, [Validators.maxLength(550)]],
-                    Achievement: [item?.Achievement || null, [Validators.maxLength(550)]],
+                    Mission: [item?.Mission || null],
+                    Achievement: [item?.Achievement || null],
                     Salary: [item?.Salary || null],
                     WorkingStatus: [item?.WorkingStatus || null],
-                    ReasonQuit: [item?.ReasonQuit || null, [Validators.maxLength(550)]]
+                    ReasonQuit: [item?.ReasonQuit || null]
                 })
             }
         ];
@@ -511,6 +559,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             IfYesSpecify: [null, [Validators.maxLength(550)]],
             CurrentlyPregnant: [false],
             IsPlanPregnant: [false],
+            WorkExperienceLevel: [null, [Validators.required]],
             OtherActivities: [null, [Validators.maxLength(550)]],
             Experiences: [null, [Validators.required, Validators.maxLength(550)]],
             ReasonApplication: [null, [Validators.required, Validators.maxLength(550)]],
@@ -735,13 +784,48 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
         this.markControlsDirty(this.form);
 
         if (this.form.invalid) {
-            // Debug: log invalid controls to quickly identify what is still "required"
             const invalids = this.collectInvalidControls(this.form);
-            console.groupCollapsed('[HRRecruitmentApplicationForm] Form invalid - controls');
-            console.table(invalids.map(x => ({ path: x.path, errors: JSON.stringify(x.errors), value: x.value })));
-            console.groupEnd();
-            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin!');
+
+            // Create list of unique human-readable field names
+            const fieldNames = new Set<string>();
+            invalids.forEach(x => {
+                // Simplify path: emergencyContacts[0].FullName -> emergencyContacts.FullName
+                const cleanPath = x.path.replace(/\[\d+\]/g, '');
+                const label = this.FIELD_LABELS[cleanPath] || cleanPath;
+                fieldNames.add(label);
+            });
+
+            const errorList = Array.from(fieldNames).map(name => `• ${name}`).join('\n');
+
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Vui lòng kiểm tra lại các thông tin sau:\n${errorList}`,
+                { nzStyle: { whiteSpace: 'pre-line' }, nzDuration: 5000 }
+            );
+
+            // Scroll to the first invalid element
+            const firstInvalid = document.querySelector('.ant-form-item-has-error');
+            if (firstInvalid) {
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
             return;
+        }
+
+        // Cross-validation: If experience level > 1 (has experience), workExperiences must have at least 1 entry
+        const level = this.form.get('WorkExperienceLevel')?.value;
+        if (level > 1) {
+            const activeExp = this.workExperiences.controls.filter(x => x.get('IsDeleted')?.value !== true);
+            if (activeExp.length === 0) {
+                this.notification.warning(
+                    NOTIFICATION_TITLE.warning,
+                    'Vì bạn đã có kinh nghiệm làm việc, vui lòng nhập ít nhất 1 thông tin Quá trình công tác (Mục III).',
+                    { nzDuration: 5000 }
+                );
+                // Scroll to Section III
+                const sectionIII = document.querySelector('.section-title.mt-4:nth-of-type(3)'); // Or use a specific ID if available
+                if (sectionIII) sectionIII.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
         }
 
         // Ứng viên tự điền: hiện confirm trước khi lưu, set IsComplete = true
@@ -766,9 +850,17 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
     private doSave() {
         this.isLoading = true;
 
+        const formData = this.form.getRawValue();
+        const mainForm = (this.data?.applicationForm && this.data.applicationForm.length > 0) ? this.data.applicationForm[0] : (this.data?.HRRecruitmentApplicationForm || {});
+
+        const dateApply = mainForm?.DateApply || formData.DateSign || mainForm?.CreatedDate || new Date();
+        const positionName = formData.PositionName || mainForm?.PositionName || 'NoPosition';
+        const yearStr = DateTime.fromJSDate(new Date(dateApply)).toFormat('yyyy');
+        const subPath = `/${yearStr}/${positionName}`;
+
         // Nếu có file mới được chọn, upload trước rồi mới save form
         if (this.selectedFile) {
-            this.hrService.uploadFile(this.selectedFile).subscribe({
+            this.hrService.uploadFile(this.selectedFile, subPath).subscribe({
                 next: (res) => {
                     if ((res.status === 1 || res.isSuccess) && res.data?.length > 0) {
                         const uploadedFile = res.data[0];

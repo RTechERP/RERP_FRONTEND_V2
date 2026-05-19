@@ -1,0 +1,208 @@
+/* ==============================
+   Page Wrapper
+   ============================== */
+.page-wrapper {
+    padding: 8px 12px;
+    font-size: 12px;
+}
+
+/* ==============================
+   Stats Bar
+   ============================== */
+.stats-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    background: #f0f5ff;
+    border-left: 3px solid #1677ff;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.stats-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ==============================
+   Table Styles
+   ============================== */
+.task-type-table {
+    font-size: 12px;
+}
+
+.table-row-hover {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.table-row-hover:hover td {
+    background-color: #e6f4ff !important;
+}
+
+.row-selected td {
+    background-color: #bae0ff !important;
+    font-weight: 500;
+}
+
+/* ==============================
+   Type Badge & Name
+   ============================== */
+.type-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: #e6f4ff;
+    color: #1677ff;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.type-name {
+    font-size: 12px;
+    color: #1a1a2e;
+}
+
+.code-link {
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.code-link:hover {
+    text-decoration: underline;
+    color: #0958d9 !important;
+}
+
+.date-text {
+    color: #666;
+    font-size: 11px;
+}
+
+.dept-text {
+    color: #595959;
+    font-size: 12px;
+}
+
+/* ==============================
+   Action Buttons
+   ============================== */
+.btn-action {
+    padding: 2px 6px !important;
+    height: 24px !important;
+    border-radius: 4px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-edit {
+    color: #1677ff;
+}
+
+.btn-edit:hover {
+    background-color: #e6f4ff !important;
+    color: #0958d9 !important;
+}
+
+.btn-delete {
+    color: #ff4d4f;
+}
+
+.btn-delete:hover {
+    background-color: #fff1f0 !important;
+    color: #cf1322 !important;
+}
+
+/* ==============================
+   Empty State
+   ============================== */
+/* ==============================
+   Modal Close Button
+   ============================== */
+.btn-close-custom {
+    background: transparent;
+    border: none;
+    color: #ff4d4f;
+    font-size: 1.4rem;
+    line-height: 1;
+    opacity: 1;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.btn-close-custom:hover {
+    color: #ff7875;
+    transform: scale(1.2);
+}
+
+.btn-close-custom:active {
+    transform: scale(0.95);
+}
+
+/* ==============================
+   Color Picker & Tag
+   ============================== */
+.color-picker-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 8px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    width: fit-content;
+    background: #fafafa;
+}
+
+.color-input {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background: none;
+}
+
+.color-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-input::-webkit-color-swatch {
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+}
+
+.color-code {
+    font-family: monospace;
+    font-size: 13px;
+    color: #595959;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.color-tag {
+    min-width: 80px;
+    text-align: center;
+    font-weight: 600;
+    font-family: monospace;
+    border: none;
+    font-size: 12px;
+    padding: 2px 8px;
+    color: #fff !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+

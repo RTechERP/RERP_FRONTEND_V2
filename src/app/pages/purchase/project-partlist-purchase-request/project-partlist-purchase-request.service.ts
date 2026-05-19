@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AppUserService } from '../../../services/app-user.service';
@@ -88,6 +88,10 @@ export class ProjectPartlistPurchaseRequestService {
         return this.http.post<any>(this.baseUrl + `save-data-rtc`, model);
     }
 
+    saveDataRTCExcel(models: any[]): Observable<any> {
+        return this.http.post<any>(this.baseUrl + `save-data-rtc-excel`, models);
+    }
+
     updateProductImport(items: any): Observable<any> {
         return this.http.post<any>(this.baseUrl + `update-product-import`, items);
     }
@@ -130,7 +134,7 @@ export class ProjectPartlistPurchaseRequestService {
     private productRTCUrl = environment.host + 'api/ProductRTC/';
 
     getProductRTC(): Observable<any[]> {
-        return this.http.get<any>(this.baseUrl + 'product-group_rtc').pipe(
+        return this.http.get<any>(this.baseUrl + 'product-group-rtc').pipe(
             map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res))
         );
     }
@@ -209,5 +213,49 @@ export class ProjectPartlistPurchaseRequestService {
                 Keyword: filter.keyword
             }
         );
+    }
+
+    getPurchaseQuoteSummary(
+        dateStart: string,
+        dateEnd: string,
+        departmentID: number,
+        employeeRequestID: number,
+        Keyword: string
+    ): Observable<any> {
+        let params = new HttpParams()
+            .set('DepartmentID', departmentID.toString())
+            .set('EmployeeRequestID', employeeRequestID.toString())
+            .set('Keyword', Keyword || '');
+
+        if (dateStart) {
+            params = params.set('DateStart', dateStart);
+        }
+        if (dateEnd) {
+            params = params.set('DateEnd', dateEnd);
+        }
+
+        return this.http.get<any>(`${this.baseUrl}purchase-quote-summary`, { params });
+    }
+
+    getPurchaseQuoteSummaryNew(
+        dateStart: string,
+        dateEnd: string,
+        departmentID: number,
+        employeeRequestID: number,
+        Keyword: string
+    ): Observable<any> {
+        let params = new HttpParams()
+            .set('DepartmentID', departmentID.toString())
+            .set('EmployeeRequestID', employeeRequestID.toString())
+            .set('Keyword', Keyword || '');
+
+        if (dateStart) {
+            params = params.set('DateStart', dateStart);
+        }
+        if (dateEnd) {
+            params = params.set('DateEnd', dateEnd);
+        }
+        debugger;
+        return this.http.get<any>(`${this.baseUrl}purchase-quote-summary-new`, { params });
     }
 }

@@ -39,6 +39,7 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
   projects: any[] = [];
   employees: any[] = [];
   currentUser: any = null;
+  editingId: number = 0;
 
   constructor(
     private notification: NzNotificationService,
@@ -175,11 +176,11 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
     const employeeId = this.currentUser?.EmployeeID || 0;
 
     const payload = {
-      ID: 0, // Tạo mới
+      ID: this.editingId, // 0 for new, existing ID for update
       ProjectID: projectId,
       EmployeeID: employeeId,
       ContentSituation: content,
-      // DateSituation sẽ được set ở backend (DateTime.Now)
+      // DateSituation will be set at backend (DateTime.Now)
     };
 
     this.projectService.saveProjectCurrentSituationData(payload).subscribe({
@@ -195,7 +196,9 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
             if (contentControl) {
               contentControl.reset('');
             }
-            // Reload data để cập nhật bảng (không đóng form)
+            // Reset editing state
+            this.editingId = 0;
+            // Reload data to update table (don't close form)
             this.loadData();
           }
         } else {
@@ -315,6 +318,20 @@ export class ProjectCurrentSituationComponent implements OnInit, AfterViewInit {
           formatter: 'textarea',
         },
       ],
+    });
+
+    this.tb_ProjectCurrentSituationTable.on('rowDblClick', (e: any, row: any) => {
+      debugger;
+      const rowData = row.getData();
+      const employeeId = rowData.EmployeeID;
+
+      if (this.currentUser?.EmployeeID === employeeId) {
+        this.editingId = rowData.ID;
+        this.form.patchValue({
+          content: rowData.ContentSituation
+        });
+        //this.notification.info('Chỉnh sửa', 'Đã nạp dữ liệu để chỉnh sửa');
+      }
     });
   }
 }

@@ -1,0 +1,86 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center ps-2 d-flex">
+    <h6 class="text-light text-uppercase m-0">CẤU HÌNH NHÓM SẢN PHẨM</h6>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="activeModal.close()"
+    ></button>
+  </div>
+
+  <div class="modal-body p-0">
+    <ng-container class="w-100">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-0 px-1">
+          <p-menubar [model]="productGroupMenu" class="p-0 border-0 py-1">
+          </p-menubar>
+        </div>
+        <div
+          class="filter-bar bg-light border-bottom p-2 py-0"
+          *ngIf="shouldShowSearchBar"
+          [class.mobile-modal]="true"
+        >
+          <form
+            nz-form
+            nzLayout="inline"
+            class="d-flex flex-wrap gap-2 align-items-center"
+          >
+            <nz-form-item class="mt-0 py-1">
+              <nz-form-label class="fs-12">Kho</nz-form-label>
+              <nz-form-control>
+                <nz-select
+                  nzShowSearch
+                  nzAllowClear
+                  class="w-100"
+                  [(ngModel)]="warehouseId"
+                  name="warehouse"
+                  nzPlaceHolder="Chọn kho"
+                  style="width: 400px !important; font-size: 12px"
+                  (ngModelChange)="onLoadData()"
+                >
+                  <nz-option
+                    *ngFor="let s of warehouses"
+                    [nzValue]="s.ID"
+                    [nzLabel]="s.WarehouseName"
+                  ></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </div>
+        <div class="card-body p-0 ps-1">
+          <div *ngIf="isLoading">
+            <nz-spin
+              [nzSpinning]="isLoading"
+              nzSimple
+              [style]="{
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                width: '100%',
+                height: '100%',
+                background: 'rgba(255,255,255,0.4)',
+                zIndex: '999',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }"
+            ></nz-spin>
+          </div>
+
+          <div class="grid-container-product-group">
+            <angular-slickgrid
+              [gridId]="'gridProductGroup_' + tableId"
+              [columns]="columnDefinitionsMaster"
+              [options]="gridOptionsMaster"
+              [dataset]="productGroupsData"
+              (onAngularGridCreated)="angularGridMasterReady($event.detail)"
+            >
+            </angular-slickgrid>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

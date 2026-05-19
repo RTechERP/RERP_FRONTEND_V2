@@ -16,6 +16,11 @@
         nzTooltipTitle="Xuất ảnh PDF (Zoom Nét Cao)" nzTooltipPlacement="bottomLeft" nz-tooltip>
         <i nz-icon nzType="file-pdf"></i>
       </button>
+      <button nz-button nzSize="small" (click)="loadOrgChart()"
+        nzTooltipTitle="Tải lại dữ liệu" nzTooltipPlacement="bottomLeft" nz-tooltip
+        [nzLoading]="isLoading">
+        <i nz-icon nzType="reload"></i>
+      </button>
     </div>
   </div>
 

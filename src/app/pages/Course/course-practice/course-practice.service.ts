@@ -161,11 +161,22 @@ export class CoursePracticeService {
     return this.http.get<any>(this.apiUrl + 'load-data-course', { params });
   }
 
+  // Lấy tất cả khóa học theo phòng ban (API mới)
+  getAllCourses(): Observable<any> {
+    const params = new HttpParams()
+      .set('courseCatalogID', '0')
+      .set('catalogType', '0');
+    return this.http.get<any>(this.apiUrl + 'load-all-courses', { params });
+  }
+
   // Lấy danh sách khóa học theo danh mục
   getLessonByLessonId(lessonId: number): Observable<any> {
     const params = new HttpParams().set('lessonId', lessonId.toString());
     return this.http.get<any>(this.apiUrl + 'get-lesson-by-lesson-id', {
       params,
     });
+  }
+  getPathServer(keyName: string): Observable<any> {
+    return this.http.get<any>(this.apiUrl + 'get-path-server?keyName=' + keyName);
   }
 }

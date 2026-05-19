@@ -2,10 +2,12 @@ import {
     Component,
     OnInit,
     AfterViewInit,
+    OnDestroy,
     HostListener,
     Inject,
     Optional,
     Input,
+    ElementRef,
 } from '@angular/core';
 import {
     NgbModal,
@@ -51,6 +53,7 @@ import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../../../pu
 import { ProjectPartListService } from '../../../../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-service/project-part-list-service.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { ProductGroupSettingComponent } from '../product-group-setting/product-group-setting.component';
 
 interface ProductGroup {
     ID?: number;
@@ -102,7 +105,7 @@ interface ProductSale {
     templateUrl: './product-sale-new.component.html',
     styleUrls: ['./product-sale-new.component.css'],
 })
-export class ProductSaleNewComponent implements OnInit, AfterViewInit {
+export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy {
     @Input() isFromPOKH: boolean = false;
 
     warehouseCode: string = 'HN';
@@ -162,6 +165,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
 
     // Excel export service
     excelExportService = new ExcelExportService();
+    private filterPatchObserver: MutationObserver | null = null;
 
     newProductGroup: ProductGroup = {
         ProductGroupID: '',
@@ -193,6 +197,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
         private modal: NzModalService,
         private projectPartListService: ProjectPartListService,
         private route: ActivatedRoute,
+        private elementRef: ElementRef,
         @Optional() @Inject('tabData') private tabData: any,
         @Optional() public activeModal: NgbActiveModal
     ) { }
@@ -245,6 +250,62 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
             this.getdataUnit();
             this.getDataProductGroupCBB();
         }, 100);
+        setTimeout(() => this.patchSlickGridFilterInputs(), 600);
+    }
+
+    ngOnDestroy(): void {
+        if (this.filterPatchObserver) {
+            this.filterPatchObserver.disconnect();
+            this.filterPatchObserver = null;
+        }
+    }
+
+    /**
+     * Fix: SlickGrid filter inputs không nhận change khi Ctrl+X, Delete, Backspace trên text đang bôi đen.
+     */
+    private patchSlickGridFilterInputs(): void {
+        const container = this.elementRef.nativeElement as HTMLElement;
+
+        const applyPatch = (input: HTMLInputElement) => {
+            if (input.dataset['filterPatched']) return;
+            input.dataset['filterPatched'] = '1';
+
+            input.addEventListener('cut', () => {
+                setTimeout(() => input.dispatchEvent(new Event('input', { bubbles: true })), 10);
+            });
+
+            input.addEventListener('keydown', (e: KeyboardEvent) => {
+                if (e.key === 'Delete' || e.key === 'Backspace') {
+                    const hasSelection = (input.selectionStart ?? 0) !== (input.selectionEnd ?? 0);
+                    if (hasSelection) {
+                        setTimeout(
+                            () => input.dispatchEvent(new Event('input', { bubbles: true })),
+                            10
+                        );
+                    }
+                }
+            });
+        };
+
+        container
+            .querySelectorAll<HTMLInputElement>('.slick-headerrow-column input')
+            .forEach(applyPatch);
+
+        this.filterPatchObserver = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const node of Array.from(mutation.addedNodes)) {
+                    if (node instanceof HTMLElement) {
+                        node.querySelectorAll<HTMLInputElement>(
+                            '.slick-headerrow-column input'
+                        ).forEach(applyPatch);
+                        if (node instanceof HTMLInputElement && node.closest('.slick-headerrow-column')) {
+                            applyPatch(node);
+                        }
+                    }
+                }
+            }
+        });
+        this.filterPatchObserver.observe(container, { childList: true, subtree: true });
     }
 
     // Load UnitCount để tìm ID từ UnitName
@@ -1496,6 +1557,19 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit {
         return num.toLocaleString('vi-VN', {
             minimumFractionDigits: digits,
             maximumFractionDigits: digits,
+        });
+    }
+
+    //#endregion
+
+    //#region Setting Product Group
+
+    openModalSettingProductGroup(): void {
+        const modalRef = this.modalService.open(ProductGroupSettingComponent, {
+            size: 'lg',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
         });
     }
 

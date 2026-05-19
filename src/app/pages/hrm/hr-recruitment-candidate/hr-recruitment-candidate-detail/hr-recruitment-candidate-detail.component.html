@@ -32,11 +32,10 @@
         <div nz-col [nzXs]="12" [nzSm]="12" [nzMd]="4">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
-              Ngày sinh <span class="text-danger ms-1">(*)</span>
+              Ngày sinh
             </nz-form-label>
-            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập ngày sinh!">
-              <nz-date-picker name="DateOfBirth" class="w-100" formControlName="DateOfBirth"
-                nzFormat="dd/MM/yyyy"></nz-date-picker>
+            <nz-form-control [nzSpan]="24">
+              <input nz-input type="date" name="DateOfBirth" class="w-100 fs-12" formControlName="DateOfBirth" />
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -44,9 +43,9 @@
         <div nz-col [nzXs]="12" [nzSm]="12" [nzMd]="3">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
-              Giới tính <span class="text-danger ms-1">(*)</span>
+              Giới tính
             </nz-form-label>
-            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn giới tính!">
+            <nz-form-control [nzSpan]="24">
               <nz-select name="Gender" formControlName="Gender" placeholder="Chọn giới tính" class="w-100">
                 <nz-option *ngFor="let item of genderList" [nzValue]="item.ID" [nzLabel]="item.GenderName"></nz-option>
               </nz-select>
@@ -124,7 +123,7 @@
         <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="4">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
-              Số điện thoại <span class="text-danger ms-1">(*)</span>
+              Số điện thoại
             </nz-form-label>
             <nz-form-control [nzSpan]="24" [nzErrorTip]="phoneErrorTpl">
               <input nz-input name="PhoneNumber" formControlName="PhoneNumber" placeholder="Nhập số điện thoại" />
@@ -144,6 +143,20 @@
 
       <!-- Hàng 3: Yêu cầu TD, Ngày ứng tuyển, Vị trí, Trạng thái -->
       <div nz-row [nzGutter]="[16, 0]">
+        <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="24" class="fw-semibold">Người phỏng vấn</nz-form-label>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn người phỏng vấn!">
+              <nz-select nzShowSearch nzAllowClear formControlName="InterviewerID" nzPlaceHolder="Chọn người phỏng vấn"
+                class="fs-12" style="width: 100%" nzSize="default">
+                <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
+                  <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID"
+                    [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                </nz-option-group>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
         <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="7">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
@@ -178,13 +191,12 @@
               Ngày ứng tuyển <span class="text-danger ms-1">(*)</span>
             </nz-form-label>
             <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập ngày ứng tuyển!">
-              <nz-date-picker name="DateApply" class="w-100" formControlName="DateApply"
-                nzFormat="dd/MM/yyyy"></nz-date-picker>
+              <input nz-input type="date" name="DateApply" class="w-100 fs-12" formControlName="DateApply" />
             </nz-form-control>
           </nz-form-item>
         </div>
 
-        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="7">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Vị trí ứng tuyển <span class="text-danger ms-1">(*)</span>
@@ -196,7 +208,12 @@
           </nz-form-item>
         </div>
 
-        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="5">
+
+      </div>
+
+      <!-- Hàng 4: DateInterview + DeadlineFeedbackMail -->
+      <div nz-row [nzGutter]="[16, 0]">
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="4">
           <nz-form-item>
             <nz-form-label [nzSpan]="24" class="fw-semibold">
               Trạng thái <span class="text-danger ms-1">(*)</span>
@@ -209,9 +226,50 @@
             </nz-form-control>
           </nz-form-item>
         </div>
+        <!-- DateInterview -->
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="9">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="24" class="fw-semibold">
+              Ngày giờ phỏng vấn
+            </nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <div class="d-flex gap-2">
+                <input nz-input type="date" name="DateInterview" formControlName="DateInterview" class="fs-12"
+                  nzPlaceHolder="Chọn ngày" style="flex: 2" />
+                <nz-select formControlName="DateInterviewHour" style="flex: 1" nzPlaceHolder="Giờ">
+                  <nz-option *ngFor="let h of timeHours" [nzValue]="h" [nzLabel]="h + 'h'"></nz-option>
+                </nz-select>
+                <nz-select formControlName="DateInterviewMinute" style="flex: 1" nzPlaceHolder="Phút">
+                  <nz-option *ngFor="let m of timeMinutes" [nzValue]="m" [nzLabel]="m + 'p'"></nz-option>
+                </nz-select>
+              </div>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <!-- DeadlineFeedbackMail -->
+        <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="11">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="24" class="fw-semibold">
+              Deadline phản hồi mail
+            </nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <div class="d-flex gap-2">
+                <input nz-input type="date" name="DeadlineFeedbackMail" formControlName="DeadlineFeedbackMail"
+                  class="fs-12" nzPlaceHolder="Chọn ngày" style="flex: 2" />
+                <nz-select formControlName="DeadlineFeedbackHour" style="flex: 1" nzPlaceHolder="Giờ">
+                  <nz-option *ngFor="let h of timeHours" [nzValue]="h" [nzLabel]="h + 'h'"></nz-option>
+                </nz-select>
+                <nz-select formControlName="DeadlineFeedbackMinute" style="flex: 1" nzPlaceHolder="Phút">
+                  <nz-option *ngFor="let m of timeMinutes" [nzValue]="m" [nzLabel]="m + 'p'"></nz-option>
+                </nz-select>
+              </div>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
       </div>
 
-      <!-- Hàng 4: Ghi chú + File CV -->
+      <!-- Hàng 5: Ghi chú + File CV -->
       <div nz-row [nzGutter]="[16, 0]">
         <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="16">
           <nz-form-item>

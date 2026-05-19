@@ -1,0 +1,201 @@
+<div style="display: flex; flex-direction: column; height: 100vh;">
+  <!-- Modal Header -->
+  <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0">
+    <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem;">
+      Danh sách báo cáo công việc {{projectCode}}
+    </h6>
+    <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"
+      style="background-color:lightcyan !important; font-weight: bold;"></button>
+  </div>
+
+  <!-- Modal Body -->
+  <div class="p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+    <div class="card h-100 border-0 rounded-0" style="display: flex; flex-direction: column; height: 100%;">
+      <!-- Header với filter -->
+      <div class="card-header bg-white p-1" style="flex-shrink: 0;">
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+          <div class="d-flex align-items-center gap-2">
+            <label class="fs-12 mb-0">Dự án:</label>
+            <nz-select nzDropdownClassName="select-dropdown" name="projectId" class="fs-12" style="width: 300px;"
+              nzShowSearch nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" [nzAllowClear]="false" nzSize="small"
+              (ngModelChange)="onProjectChange()">
+              @for (item of projects; track $index) {
+              <nz-option [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID"></nz-option>
+              }
+            </nz-select>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label class="fs-12 mb-0">Phòng ban:</label>
+            <nz-select nzDropdownClassName="select-dropdown" name="departmentId" class="fs-12" style="width: 200px;"
+              nzShowSearch nzPlaceHolder="Chọn phòng ban" [(ngModel)]="departmentId" [nzAllowClear]="false"
+              nzSize="small" (ngModelChange)="onDepartmentChange()">
+              @for (item of departments; track $index) {
+              <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
+              }
+            </nz-select>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label class="fs-12 mb-0">Team:</label>
+            <nz-select name="teamId" class="fs-12" style="width: 200px;" nzShowSearch nzPlaceHolder="Chọn team"
+              [(ngModel)]="teamId" [nzAllowClear]="false" nzSize="small" (ngModelChange)="onTeamChange()">
+              @for (item of teams; track $index) {
+              <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
+              }
+            </nz-select>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <label class="fs-12 mb-0">Từ khóa:</label>
+            <input #keywordInput name="keyword" nz-input nzSize="small" class="fs-12" style="width: 200px;"
+              placeholder="Nhập mã , tên nhân viên" [(ngModel)]="keyword" (keyup.enter)="onSearch()" />
+          </div>
+          <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+            Tìm kiếm
+          </button>
+          <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" />Xuất excel
+          </button>
+          <div class="bg-light border-bottom p-1 ms-auto d-flex gap-3 fs-12" style="flex-shrink: 0;">
+            <span><strong>Số báo cáo:</strong> {{ totalAllData.count }}</span>
+            <span><strong>Tổng số giờ:</strong> {{ totalAllData.sumTimeReality.toFixed(2) }}</span>
+            <span><strong>Tổng số ngày:</strong> {{ totalAllData.totalDaysReality.toFixed(1) }}</span>
+            <span><strong>Tổng giờ (có hệ số):</strong> {{ totalAllData.sumTotalHours.toFixed(2) }}</span>
+            <span><strong>Tổng ngày (có hệ số):</strong> {{ totalAllData.totalDaysWeighted.toFixed(1) }}</span>
+          </div>
+        </div>
+      </div>
+      <!-- Grid container -->
+      <div class="card-body p-0"
+        style="flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0;">
+        <div id="grid-container-report" style="flex: 1; width: 100%; height: 100%; min-width: 0;">
+          <nz-spin [nzSpinning]="isLoading" style="height: 100%; display: block;">
+            <p-table #dt [value]="dataset" [scrollable]="true" scrollHeight="flex" [virtualScroll]="true"
+              [virtualScrollItemSize]="45" sortMode="multiple" [resizableColumns]="true" columnResizeMode="expand"
+              (onFilter)="onTableFilter($event)"
+              [globalFilterFields]="['EmployeeCode','FullName','DepartmentName','TeamName','Content','Results','Problem','ProblemSolve','Backlog','PlanNextDay','Note']"
+              styleClass="p-datatable-sm p-datatable-gridlines" [rowHover]="true">
+
+              <!-- Header -->
+              <ng-template pTemplate="header">
+                <tr>
+                  <!-- Frozen columns -->
+                  @for (col of frozenCols; track col.field) {
+                  <th [pSortableColumn]="col.field" [style.width]="col.width" [style.min-width]="col.width"
+                    [style.text-align]="col.align" pFrozenColumn pResizableColumn>
+                    {{ col.header }}
+                    <p-sortIcon [field]="col.field"></p-sortIcon>
+                  </th>
+                  }
+                  <!-- Scrollable columns -->
+                  @for (col of scrollableCols; track col.field) {
+                  <th [pSortableColumn]="col.field" [style.width]="col.width" [style.min-width]="col.width"
+                    [style.text-align]="col.align" pResizableColumn>
+                    {{ col.header }}
+                    <p-sortIcon [field]="col.field"></p-sortIcon>
+                  </th>
+                  }
+                </tr>
+                <!-- Filter row -->
+                <tr>
+                  <!-- Frozen columns filters -->
+                  @for (col of frozenCols; track col.field) {
+                  <th [style.width]="col.width" [style.min-width]="col.width" pFrozenColumn>
+                    @if (col.type === 'multiselect') {
+                    <p-multiselect [options]="getFilterOptions(col.field)" [placeholder]="'Lọc'"
+                      (onChange)="dt.filter($event.value, col.field, 'in')" [style]="{'width': '100%'}"
+                      [maxSelectedLabels]="1" [selectedItemsLabel]="'{0} đã chọn'" appendTo="body" [filter]="true"
+                      filterPlaceHolder="Tìm...">
+                    </p-multiselect>
+                    } @else if (col.type === 'date') {
+                    <input pInputText type="date" [placeholder]="'Lọc ngày'"
+                      (input)="dt.filter($any($event.target).value, col.field, 'contains')"
+                      style="width: 100%; font-size: 0.7rem; padding: 2px 4px;" />
+                    }
+                  </th>
+                  }
+                  <!-- Scrollable columns filters -->
+                  @for (col of scrollableCols; track col.field) {
+                  <th [style.width]="col.width" [style.min-width]="col.width">
+                    @if (col.type === 'date') {
+                    <input pInputText type="date" [placeholder]="'Lọc ngày'"
+                      (input)="dt.filter($any($event.target).value, col.field, 'contains')"
+                      style="width: 100%; font-size: 0.7rem; padding: 2px 4px;" />
+                    } @else {
+                    <input pInputText type="text" [placeholder]="'Lọc'"
+                      (input)="dt.filter($any($event.target).value, col.field, 'contains')"
+                      style="width: 100%; font-size: 0.7rem; padding: 2px 4px;" />
+                    }
+                  </th>
+                  }
+                </tr>
+              </ng-template>
+
+              <!-- Body -->
+              <ng-template pTemplate="body" let-row>
+                <tr>
+                  <!-- Frozen columns -->
+                  @for (col of frozenCols; track col.field) {
+                  <td [style.width]="col.width" [style.min-width]="col.width" [style.text-align]="col.align"
+                    pFrozenColumn>
+                    {{ getCellValue(row, col) }}
+                  </td>
+                  }
+                  <!-- Scrollable columns -->
+                  @for (col of scrollableCols; track col.field) {
+                  <td [style.width]="col.width" [style.min-width]="col.width" [style.text-align]="col.align"
+                    [class.cell-wrap]="col.wrap">
+                    @if (col.wrap) {
+                    <div class="cell-wrap-content" [innerHTML]="row[col.field + '_html']"
+                      [title]="row[col.field] || ''"></div>
+                    } @else {
+                    {{ getCellValue(row, col) }}
+                    }
+                  </td>
+                  }
+                </tr>
+              </ng-template>
+
+              <!-- Footer -->
+              <ng-template pTemplate="footer">
+                <tr>
+                  <!-- Frozen columns footer -->
+                  @for (col of frozenCols; track col.field; let i = $index) {
+                  <td [style.width]="col.width" [style.min-width]="col.width" pFrozenColumn>
+                    @if (i === frozenCols.length - 1) {
+                    <div style="text-align: right; font-weight: bold;">Tổng:</div>
+                    }
+                  </td>
+                  }
+                  <!-- Scrollable columns footer -->
+                  @for (col of scrollableCols; track col.field) {
+                  <td [style.width]="col.width" [style.min-width]="col.width">
+                    @if (col.field === 'Content') {
+                    <div style="text-align: right; font-weight: bold;">{{ totalAllData.count }}</div>
+                    } @else if (col.field === 'TimeReality') {
+                    <div style="text-align: right; font-weight: bold;">{{ totalAllData.sumTimeReality.toFixed(2) }}
+                    </div>
+                    } @else if (col.field === 'TotalHours') {
+                    <div style="text-align: right; font-weight: bold;">{{ totalAllData.sumTotalHours.toFixed(2) }}</div>
+                    } @else if (col.field === 'Results') {
+                    <div style="text-align: right; font-weight: bold;">Tổng số ngày: {{
+                      totalAllData.totalDaysReality.toFixed(1) }}</div>
+                    }
+                  </td>
+                  }
+                </tr>
+              </ng-template>
+
+              <!-- Empty message -->
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td [attr.colspan]="columns.length" style="text-align: center; padding: 20px;">
+                    Không có dữ liệu
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </nz-spin>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

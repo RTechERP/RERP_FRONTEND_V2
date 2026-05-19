@@ -1,0 +1,91 @@
+::ng-deep .ant-card-body{
+    padding: 0.5rem !important;
+}
+
+ .ant-form-item{
+    margin: 0 !important;
+}
+
+
+:host ::ng-deep .tabs-full {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .tabs-full .p-tabpanels {
+  flex: 1;
+  min-height: 0; /* ⚠️ CỰC KỲ QUAN TRỌNG */
+  display: flex;
+}
+
+
+:host ::ng-deep .tabs-full .p-tabpanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.grid-container,.grid-container-special {
+  flex: 1;
+  min-height: 0;
+}
+
+
+:host ::ng-deep .ant-splitter-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+:host ::ng-deep .grid-container-detail {
+  flex: 1;
+  min-height: 0;
+  height: 100% !important;
+}
+
+
+
+:host ::ng-deep .bg-isurgent{
+    background-color: orange !important;
+}
+
+:host ::ng-deep .bg-type2{
+    background-color: lightyellow !important;
+}
+
+:host ::ng-deep .bg-isapproved{
+    background-color: red !important;
+    color: white !important;
+}
+
+:host ::ng-deep .slick-cell.ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+:host ::ng-deep #grvData{
+    height: 42vh !important;
+}
+
+:host ::ng-deep #grvDataSpecial{
+    height: 42vh !important;
+}
+:host ::ng-deep #grvDetail{
+    height: 31vh !important;
+}
+:host ::ng-deep #grvDetailSpecial{
+    height: 31vh !important;
+}
+
+/* :host ::ng-deep .slick-row:has(.slick-tree-level-0) .slick-cell {
+    background-color: lightgrey !important;
+    font-weight: bold !important;
+} */
+
+
+
+

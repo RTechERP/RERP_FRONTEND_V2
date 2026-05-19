@@ -291,10 +291,11 @@
       Đóng
     </button>
     <button
-      tclass="fs-12 btn"
+      class="fs-12 btn"
       nz-button
       nzType="primary"
       (click)="saveDataProductSale()"
+      [nzLoading]="isSaving"
       *hasPermission="'N27,N35,N1,N33,N34'"
     >
       Lưu

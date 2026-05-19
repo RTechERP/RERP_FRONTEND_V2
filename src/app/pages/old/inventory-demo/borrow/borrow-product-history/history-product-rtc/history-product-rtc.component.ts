@@ -169,7 +169,7 @@ export class HistoryProductRtcComponent
         this.loadMenu();
         this.route.queryParams.subscribe((params) => {
             this.warehouseID = params['warehouseID'] || 1;
-            this.warehouseType = params['warehouseType'] || 1;
+            this.warehouseType = params['warehouseType'] || 0;
         });
         this.gridId += `${this.warehouseID}-${this.warehouseType}-${crypto.randomUUID()}`;
 
@@ -276,6 +276,128 @@ export class HistoryProductRtcComponent
                 id: 'ProductQRCode',
                 field: 'ProductQRCode',
                 name: 'Mã QR',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'FullName',
+                field: 'FullName',
+                name: 'Người mượn',
+                width: 150,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+                // Custom formatter for cell coloring
+                formatter: (
+                    row: number,
+                    cell: number,
+                    value: any,
+                    columnDef: Column,
+                    dataContext: any
+                ) => {
+                    const statusNew = dataContext['StatusNew'];
+                    const status = dataContext['Status'];
+                    const billExportID = dataContext['BillExportTechnicalID'] || 0;
+
+                    let bgColor = '';
+                    let textColor = 'black';
+
+                    if (statusNew == 6) {
+                        // Sắp đến ngày
+                        bgColor = 'rgb(255, 255, 74)';
+                    } else if (statusNew == 5) {
+                        // Quá hạn
+                        bgColor = 'rgb(239, 31, 62)';
+                        textColor = 'white';
+                    } else if (status == 4) {
+                        // Đăng ký trả
+                        bgColor = 'rgb(0, 255, 0)';
+                    } else if (billExportID > 0) {
+                        // Từ phiếu xuất
+                        bgColor = 'rgb(128, 255, 255)';
+                    }
+
+                    if (bgColor) {
+                        return `<span style="background-color: ${bgColor}; color: ${textColor}; display: block; width: 100%; height: 100%; padding: 3px;">${value || ''
+                            }</span>`;
+                    }
+                    return value || '';
+                },
+            },
+            {
+                id: 'DateBorrow',
+                field: 'DateBorrow',
+                name: 'Ngày mượn',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => {
+                    if (!value) return '';
+                    try {
+                        return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
+                    } catch {
+                        return value;
+                    }
+                },
+            },
+            {
+                id: 'DateReturnExpected',
+                field: 'DateReturnExpected',
+                name: 'Ngày trả dự kiến',
+                width: 130,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => {
+                    if (!value) return '';
+                    try {
+                        return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
+                    } catch {
+                        return value;
+                    }
+                },
+            },
+            {
+                id: 'DateReturn',
+                field: 'DateReturn',
+                name: 'Ngày trả',
+                width: 120,
+                sortable: true,
+                filterable: true,
+                formatter: (row: number, cell: number, value: any) => {
+                    if (!value) return '';
+                    try {
+                        return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
+                    } catch {
+                        return value;
+                    }
+                },
+            },
+            {
+                id: 'Note',
+                field: 'Note',
+                name: 'Note',
+                width: 200,
+                sortable: true,
+                filterable: true,
+            },
+            {
+                id: 'BillExportCode',
+                field: 'BillExportCode',
+                name: 'Mã phiếu xuất',
                 width: 120,
                 sortable: true,
                 filterable: true,
@@ -415,57 +537,7 @@ export class HistoryProductRtcComponent
                     } as MultipleSelectOption,
                 },
             },
-            {
-                id: 'FullName',
-                field: 'FullName',
-                name: 'Người mượn',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-                // Custom formatter for cell coloring
-                formatter: (
-                    row: number,
-                    cell: number,
-                    value: any,
-                    columnDef: Column,
-                    dataContext: any
-                ) => {
-                    const statusNew = dataContext['StatusNew'];
-                    const status = dataContext['Status'];
-                    const billExportID = dataContext['BillExportTechnicalID'] || 0;
 
-                    let bgColor = '';
-                    let textColor = 'black';
-
-                    if (statusNew == 6) {
-                        // Sắp đến ngày
-                        bgColor = 'rgb(255, 255, 74)';
-                    } else if (statusNew == 5) {
-                        // Quá hạn
-                        bgColor = 'rgb(239, 31, 62)';
-                        textColor = 'white';
-                    } else if (status == 4) {
-                        // Đăng ký trả
-                        bgColor = 'rgb(0, 255, 0)';
-                    } else if (billExportID > 0) {
-                        // Từ phiếu xuất
-                        bgColor = 'rgb(128, 255, 255)';
-                    }
-
-                    if (bgColor) {
-                        return `<span style="background-color: ${bgColor}; color: ${textColor}; display: block; width: 100%; height: 100%; padding: 3px;">${value || ''
-                            }</span>`;
-                    }
-                    return value || '';
-                },
-            },
             {
                 id: 'OldBorrower',
                 field: 'OldBorrower',
@@ -481,54 +553,7 @@ export class HistoryProductRtcComponent
                     } as MultipleSelectOption,
                 },
             },
-            {
-                id: 'DateBorrow',
-                field: 'DateBorrow',
-                name: 'Ngày mượn',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => {
-                    if (!value) return '';
-                    try {
-                        return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
-                    } catch {
-                        return value;
-                    }
-                },
-            },
-            {
-                id: 'DateReturnExpected',
-                field: 'DateReturnExpected',
-                name: 'Ngày trả dự kiến',
-                width: 130,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => {
-                    if (!value) return '';
-                    try {
-                        return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
-                    } catch {
-                        return value;
-                    }
-                },
-            },
-            {
-                id: 'DateReturn',
-                field: 'DateReturn',
-                name: 'Ngày trả',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                formatter: (row: number, cell: number, value: any) => {
-                    if (!value) return '';
-                    try {
-                        return DateTime.fromISO(value).toFormat('dd/MM/yyyy');
-                    } catch {
-                        return value;
-                    }
-                },
-            },
+
             {
                 id: 'Project',
                 field: 'Project',
@@ -544,29 +569,7 @@ export class HistoryProductRtcComponent
                     } as MultipleSelectOption,
                 },
             },
-            {
-                id: 'Note',
-                field: 'Note',
-                name: 'Note',
-                width: 200,
-                sortable: true,
-                filterable: true,
-            },
-            {
-                id: 'BillExportCode',
-                field: 'BillExportCode',
-                name: 'Mã phiếu xuất',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
+
             {
                 id: 'BillTypeText',
                 field: 'BillTypeText',
@@ -657,7 +660,12 @@ export class HistoryProductRtcComponent
                             const rowData = args.dataContext;
                             const id = rowData?.ID || 0;
                             if (id > 0) {
-                                this.deleteHistoryProduct([id]);
+                                // Nếu ID click vào nằm trong danh sách đang chọn thì xóa cả list, ngược lại chỉ xóa 1
+                                if (this.selectedArrHistoryProductID.has(id)) {
+                                    this.deleteHistoryProduct();
+                                } else {
+                                    this.deleteHistoryProduct([id]);
+                                }
                             }
                         },
                     },
@@ -731,7 +739,6 @@ export class HistoryProductRtcComponent
 
     loadData() {
         this.isLoading = true;
-
         // Single API call with large pageSize to load all data at once
         const params = {
             keyWords: this.keyWords?.trim() || '',
@@ -749,10 +756,10 @@ export class HistoryProductRtcComponent
                     : '1',
             isDeleted: 0,
             warehouseType: this.warehouseType ?? 1,
+            //warehouseType: 0,
             page: 1,
             size: 9999999, // Load all data in one call
         };
-
         const sub = this.borrowService.getProductHistory(params).subscribe({
             next: (response: any) => {
                 const data = response.data || [];
@@ -1535,6 +1542,14 @@ export class HistoryProductRtcComponent
                 visible: this.permissionService.hasPermission('N26,N1,N34,N80'),
                 command: () => {
                     this.editBorrower();
+                },
+            },
+            {
+                label: 'Xóa thiết bị',
+                icon: 'fa fa-trash text-danger',
+                visible: (ID_ADMIN_DEMO_LIST.includes(this.appUserService.id ?? 0) || this.appUserService.isAdmin),
+                command: () => {
+                    this.deleteHistoryProduct();
                 },
             },
             {

@@ -44,7 +44,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { Subject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BillExportService } from '../bill-export-service/bill-export.service';
@@ -264,7 +264,7 @@ export class BillExportDetailNewComponent
         private appUserService: AppUserService
     ) {
         this.validateForm = this.fb.group({
-            Code: [{ value: '', disabled: true }],
+            Code: [''],
             UserID: [{ value: 0 }, [Validators.required, Validators.min(1)]],
             SenderID: [{ value: 0 }, [Validators.required, Validators.min(1)]],
             CustomerID: [0, [Validators.required, Validators.min(1)]],
@@ -300,7 +300,7 @@ export class BillExportDetailNewComponent
         this.getWarehouseID();
         this.getDataCbbAdressStock();
         this.getDataCbbCustomer();
-        this.getDataCbbProductGroup();
+
         this.getDataCbbSender();
         this.getDataCbbUser();
         this.getDataCbbSupplierSale();
@@ -495,6 +495,9 @@ export class BillExportDetailNewComponent
         });
         this.newBillExport.Status = this.newBillExport.Status || 6;
 
+        let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+
         // Bind selectedList vào dataDetail
         if (this.selectedList && this.selectedList.length > 0) {
             this.dataDetail = this.selectedList.map((item: any, index: number) => ({
@@ -514,7 +517,7 @@ export class BillExportDetailNewComponent
                 Note: item.Note || '',
                 ExpectReturnDate: item.ExpectReturnDate
                     ? new Date(item.ExpectReturnDate)
-                    : new Date(),
+                    : expectReturnDate,
                 UnitPricePOKH: item.UnitPricePOKH || 0,
                 UnitPricePurchase: item.UnitPricePurchase || 0,
                 BillCode: item.BillCode || '',
@@ -578,6 +581,9 @@ export class BillExportDetailNewComponent
             this.getNewCode();
         }
 
+        let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+
         // Bind selectedList vào dataDetail
         if (this.selectedList && this.selectedList.length > 0) {
             this.dataDetail = this.selectedList.map((item: any, index: number) => ({
@@ -598,7 +604,7 @@ export class BillExportDetailNewComponent
                 ProjectCode: item.ProjectCode || '',
                 ExpectReturnDate: item.ExpectReturnDate
                     ? new Date(item.ExpectReturnDate)
-                    : new Date(),
+                    : expectReturnDate,
                 UnitPricePOKH: item.UnitPricePOKH || 0,
                 UnitPricePurchase: item.UnitPricePurchase || 0,
                 BillCode: item.BillCode || '',
@@ -678,6 +684,9 @@ export class BillExportDetailNewComponent
 
         this.getNewCode();
 
+        let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+
         if (this.selectedList && this.selectedList.length > 0) {
             this.dataDetail = this.selectedList.map((item: any, index: number) => ({
                 ID: -(index + 1),
@@ -696,7 +705,7 @@ export class BillExportDetailNewComponent
                 Note: item.Note || '',
                 ExpectReturnDate: item.ExpectReturnDate
                     ? new Date(item.ExpectReturnDate)
-                    : new Date(),
+                    : expectReturnDate,
                 POKHID: item.POKHID || 0,
                 SerialNumber: item.SerialNumber || '',
             }));
@@ -858,19 +867,39 @@ export class BillExportDetailNewComponent
                         minLength: 0,
                         forceUserInput: false,
                         openSearchListOnFocus: true,
+                        debounceWaitMs: 0,
                         labelField: 'ProductCode',
+                        customize: (_input: HTMLInputElement, inputRect: DOMRect, container: HTMLDivElement, _maxHeight: number) => {
+                            const spaceBelow = window.innerHeight - inputRect.bottom;
+                            const spaceAbove = inputRect.top;
+                            const dropdownHeight = 300;
+                            if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+                                const availableAbove = Math.min(spaceAbove - 8, dropdownHeight);
+                                container.style.top = 'auto';
+                                container.style.bottom = `${window.innerHeight - inputRect.top}px`;
+                                container.style.maxHeight = `${availableAbove}px`;
+                            } else {
+                                container.style.top = `${inputRect.bottom}px`;
+                                container.style.bottom = 'auto';
+                                container.style.maxHeight = `${Math.min(spaceBelow - 8, dropdownHeight)}px`;
+                            }
+                        },
                         fetch: (searchTerm: string, callback: (items: false | any[]) => void) => {
                             const products = this.productGridCollection || [];
                             if (!searchTerm || searchTerm.length === 0) {
-                                callback(products);
+                                callback(products.slice(0, 50));
                             } else {
-                                const filtered = products.filter((product: any) => {
+                                const term = searchTerm.toLowerCase();
+                                const filtered: any[] = [];
+                                for (const product of products) {
+                                    if (filtered.length >= 50) break;
                                     const code = (product.ProductCode || '').toLowerCase();
                                     const newCode = (product.ProductNewCode || '').toLowerCase();
                                     const name = (product.ProductName || '').toLowerCase();
-                                    const term = searchTerm.toLowerCase();
-                                    return code.includes(term) || newCode.includes(term) || name.includes(term);
-                                });
+                                    if (code.includes(term) || newCode.includes(term) || name.includes(term)) {
+                                        filtered.push(product);
+                                    }
+                                }
                                 callback(filtered);
                             }
                         },
@@ -879,7 +908,7 @@ export class BillExportDetailNewComponent
                             templateCallback: (item: any) => {
                                 // Custom template: mã bên trên, tên bên dưới, số lượng tồn bên phải
                                 const code = item?.ProductCode || '';
-                const newCode = item?.ProductNewCode || '';
+                                const newCode = item?.ProductNewCode || '';
                                 const name = item?.ProductName || '';
                                 const inventory = item?.TotalInventory ?? 0;
                                 const formattedInventory = new Intl.NumberFormat('vi-VN', {
@@ -889,7 +918,7 @@ export class BillExportDetailNewComponent
                                 // Màu đỏ nếu tồn kho < 0, màu xanh nếu >= 0
                                 const inventoryColor = inventory < 0 ? '#ff4d4f' : '#52c41a';
                                 // Tooltip hiển thị đầy đủ thông tin
-                const tooltipText = `Mã: ${code}\nMã nội bộ: ${newCode}\nTên: ${name}\nTồn kho: ${formattedInventory}`;
+                                const tooltipText = `Mã: ${code}\nMã nội bộ: ${newCode}\nTên: ${name}\nTồn kho: ${formattedInventory}`;
                                 return `<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; padding: 4px 0; gap: 8px;" title="${tooltipText.replace(/"/g, '&quot;')}">
                   <div style="flex: 1; min-width: 0; overflow: hidden;">
                     <div style="font-weight: 600; color: #1890ff; word-wrap: break-word; overflow-wrap: break-word;">${code}${newCode ? ` <span style="color: #fa8c16; font-size: 11px;">(${newCode})</span>` : ''}</div>
@@ -930,7 +959,8 @@ export class BillExportDetailNewComponent
                 editor: { model: Editors['text'] },
                 formatter: (_row, _cell, value) => {
                     if (!value) return '';
-                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
                 },
             },
             {
@@ -943,7 +973,8 @@ export class BillExportDetailNewComponent
                 filter: { model: Filters['compoundInputText'] },
                 formatter: (_row, _cell, value) => {
                     if (!value) return '';
-                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
                 },
             },
             {
@@ -1036,6 +1067,10 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'] }, // nvarchar(max) - không giới hạn
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'ExpectReturnDate',
@@ -1098,6 +1133,11 @@ export class BillExportDetailNewComponent
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
+                },
             },
             {
                 id: 'Specifications',
@@ -1108,6 +1148,10 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'], maxLength: 550 }, // nvarchar(550)
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'GroupExport',
@@ -1128,6 +1172,11 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'] }, // Không có trong DB schema, cần kiểm tra
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
+                },
             },
             {
                 id: 'CustomerResponse',
@@ -1138,6 +1187,11 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'], maxLength: 550 }, // nvarchar(550)
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
+                },
             },
             {
                 id: 'SerialNumber',
@@ -1152,15 +1206,42 @@ export class BillExportDetailNewComponent
                 excludeFromHeaderMenu: true,
                 hidden: true,
                 editor: { model: Editors['text'], maxLength: 50 }, // nvarchar(50)
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
+                },
             },
             {
                 id: 'PONumber',
                 name: 'Số PO',
                 field: 'PONumber',
-                width: 120,
+                width: 300,
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+
+                    const html = String(value).replace(/\n/g, '<br>');
+
+                    return `
+                    <div 
+                        title="${String(value).replace(/"/g, '&quot;')}" 
+                        style="
+                            line-height: 1.3;
+                            overflow: hidden;
+                            display: -webkit-box;
+                            -webkit-line-clamp: 3;
+                            -webkit-box-orient: vertical;
+                            overflow-wrap: anywhere;
+                            word-break: break-all;
+                        "
+                    >
+                        ${html}
+                    </div>
+                `;
+                }
             },
             {
                 id: 'AddSerial',
@@ -1420,6 +1501,9 @@ export class BillExportDetailNewComponent
             .map((x) => Math.abs(Number(x?.ID)));
         const nextTempId = tempIds.length > 0 ? Math.max(...tempIds) + 1 : 1;
 
+        let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+
         const newRow = {
             ID: -nextTempId,
             ProductID: 0,
@@ -1435,7 +1519,7 @@ export class BillExportDetailNewComponent
             ProjectCodeExport: '',
             ProjectNameText: '',
             Note: '',
-            ExpectReturnDate: new Date(),
+            ExpectReturnDate: expectReturnDate,
             UnitPricePOKH: 0,
             UnitPricePurchase: 0,
             BillCode: '',
@@ -1611,7 +1695,7 @@ export class BillExportDetailNewComponent
                     this.validateForm.get('Code')?.disable();
                     this.validateForm.get('Address')?.disable();
 
-          if (this.newBillExport.IsApproved && !this.appUserService.isAdmin) {
+                    if (this.newBillExport.IsApproved && !this.appUserService.isAdmin) {
                         this.isFormDisabled = true;
                         this.validateForm.disable();
                     }
@@ -1998,7 +2082,7 @@ export class BillExportDetailNewComponent
 
         if (billExportID <= 0 || !isTransfer) return;
 
-        this.billExportService.getBillImportByBillExportID(billExportID).subscribe({
+        this.billExportService.getBillImportByBillExportID(billExportID, 1).subscribe({
             next: (res: any) => {
                 if (res?.status === 1 && res?.data) {
                     const billImport = res.data;
@@ -2075,6 +2159,8 @@ export class BillExportDetailNewComponent
                         this.loadSenderFromProductGroupWarehouse(this.newBillExport.KhoTypeID, this.newBillExport.WarehouseID);
                     }
                 }
+
+                this.getDataCbbProductGroup(currentWarehouse.ID ?? 1);
             },
             error: (err: any) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
@@ -2207,22 +2293,40 @@ export class BillExportDetailNewComponent
     }
 
     /** Load danh sách loại kho (nhóm sản phẩm) */
-    getDataCbbProductGroup(): void {
-        this.billExportService.getCbbProductGroup().subscribe({
-            next: (res: any) => {
-                this.dataCbbProductGroup = Array.isArray(res?.data) ? res.data : [];
+    getDataCbbProductGroup(warehouseID: number): void {
+        // this.billExportService.getCbbProductGroup().subscribe({
+        //     next: (res: any) => {
+        //         this.dataCbbProductGroup = Array.isArray(res?.data) ? res.data : [];
 
-                this.dataCbbProductGroup = this.dataCbbProductGroup?.filter(
+        //         this.dataCbbProductGroup = this.dataCbbProductGroup?.filter(
+        //             (x: any) => x.Isvisible != false && x.ParentID == 0
+        //                 || x.ParentID == null || x.ParentID == undefined
+        //         );
+        //     },
+        //     error: (err: any) => {
+        //         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+        //             { nzStyle: { whiteSpace: 'pre-line' } });
+        //     },
+        // });
+
+        this.productSaleService.getdataProductGroupNew(warehouseID, false, true).subscribe({
+            next: (res: any) => {
+                this.dataCbbProductGroup = res.data?.data1?.filter(
                     (x: any) => x.Isvisible != false && x.ParentID == 0
                         || x.ParentID == null || x.ParentID == undefined
                 );
             },
             error: (err: any) => {
-                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
-                    { nzStyle: { whiteSpace: 'pre-line' } });
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    }
+                );
             },
         });
-
 
     }
 
@@ -2808,7 +2912,7 @@ export class BillExportDetailNewComponent
                 Specifications: row.Specifications || '',
                 BillImportDetailID: row.ImportDetailID || row.BillImportDetailID || 0,
                 TotalInventory: row.TotalInventory || 0,
-                ExpectReturnDate: row.ExpectReturnDate || null,
+                ExpectReturnDate: this.toLocalISOString(row.ExpectReturnDate) || null,
                 CustomerResponse: row.CustomerResponse || '',
                 POKHDetailIDActual: row.POKHDetailIDActual || 0,
                 PONumber: row.PONumber || '',
@@ -3093,13 +3197,13 @@ export class BillExportDetailNewComponent
         }
 
         // Check if the bill is approved - if so, don't allow editing
-        if (this.newBillExport.IsApproved) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                'Phiếu đã được duyệt, không thể chỉnh sửa Serial!'
-            );
-            return;
-        }
+        // if (this.newBillExport.IsApproved) {
+        //     this.notification.warning(
+        //         NOTIFICATION_TITLE.warning,
+        //         'Phiếu đã được duyệt, không thể chỉnh sửa Serial!'
+        //     );
+        //     return;
+        // }
 
         // Get quantity and product code from row data
         const quantity = rowData.Qty || 0;
@@ -3130,6 +3234,7 @@ export class BillExportDetailNewComponent
             modalRef.componentInstance.existingSerials = existingSerials;
             modalRef.componentInstance.type = type;
             modalRef.componentInstance.dataBillDetail = rowData;
+            modalRef.componentInstance.isApproved = !!this.newBillExport.IsApproved;
 
             // Handle modal result
             modalRef.result.then(

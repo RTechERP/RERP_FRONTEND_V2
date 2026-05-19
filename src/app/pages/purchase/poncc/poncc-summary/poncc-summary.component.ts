@@ -3,10 +3,12 @@ import {
   Component,
   AfterViewInit,
   OnInit,
+  OnDestroy,
   ViewChild,
   ElementRef,
   inject,
   ChangeDetectorRef,
+  Optional,
 } from '@angular/core';
 import {
   AngularSlickgridModule,
@@ -52,6 +54,7 @@ import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { PonccSummaryDetailComponent } from './poncc-summary-detail/poncc-summary-detail.component';
 import { DateTime } from 'luxon';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
 @Component({
   selector: 'app-poncc-summary',
   standalone: true,
@@ -75,10 +78,10 @@ import { DateTime } from 'luxon';
   templateUrl: './poncc-summary.component.html',
   styleUrl: './poncc-summary.component.css',
 })
-export class PonccSummaryComponent implements OnInit, AfterViewInit {
+export class PonccSummaryComponent implements OnInit, AfterViewInit, OnDestroy {
   //#region Khai báo biến
   constructor(
-    public activeModal: NgbActiveModal,
+    @Optional() public activeModal: NgbActiveModal,
     private projectService: ProjectService,
     private ponccService: PONCCService,
     private notify: NzNotificationService,
@@ -86,8 +89,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private ngbModal: NgbModal,
     private modal: NzModalService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private tabService: TabServiceService
   ) { }
+
+  private dropdownFixListener!: EventListener;
 
   ponccSummaryMenu: MenuItem[] = [];
   shouldShowSearchBar: boolean = true;
@@ -126,12 +132,38 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.setupDropdownOverflowFix();
     setTimeout(() => {
       this.cdr.detectChanges();
       setTimeout(() => {
         this.onSearch();
-      }, 100);
-    }, 200);
+      }, 200);
+    }, 400);
+  }
+
+  ngOnDestroy(): void {
+    if (this.dropdownFixListener) {
+      document.removeEventListener('click', this.dropdownFixListener);
+    }
+  }
+
+  private setupDropdownOverflowFix(): void {
+    this.dropdownFixListener = () => {
+      setTimeout(() => {
+        document.querySelectorAll<HTMLElement>('.ms-drop').forEach((drop) => {
+          if (drop.style.display === 'none') return;
+          const rect = drop.getBoundingClientRect();
+          if (rect.right > window.innerWidth - 5) {
+            const newLeft = Math.max(5, drop.offsetLeft - (rect.right - window.innerWidth + 10));
+            drop.style.left = `${newLeft}px`;
+          }
+          if (rect.left < 5) {
+            drop.style.left = '5px';
+          }
+        });
+      }, 10);
+    };
+    document.addEventListener('click', this.dropdownFixListener);
   }
   //#endregion
 
@@ -236,8 +268,15 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         console.log(this.summaryData);
         this.isLoading = false;
 
-        // Update footer row with count
+        // Refresh grid để căn cột đúng sau khi load data
         setTimeout(() => {
+          if (this.angularGridMaster?.slickGrid) {
+            this.angularGridMaster.slickGrid.invalidate();
+            this.angularGridMaster.slickGrid.render();
+          }
+          if (this.angularGridMaster?.resizerService) {
+            this.angularGridMaster.resizerService.resizeGrid();
+          }
           this.applyDistinctFilters();
           this.updateMasterFooterRow();
         }, 100);
@@ -270,6 +309,14 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
     this.onSearch();
   }
 
+  close(): void {
+    if (this.activeModal) {
+      this.activeModal.close();
+    } else {
+      this.tabService.closeTabByKey('poncc-summary');
+    }
+  }
+
   //#endregion
 
   //#region Các hàm xử lý cho bảng
@@ -284,7 +331,9 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
     }
 
     setTimeout(() => {
-      angularGrid.resizerService.resizeGrid();
+      try {
+        angularGrid.resizerService.resizeGrid();
+      } catch (e) { /* stylesheet chưa sẵn sàng, bỏ qua */ }
       this.updateMasterFooterRow();
       this.applyDistinctFilters();
     }, 100);
@@ -419,7 +468,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -459,7 +512,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -471,7 +528,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 200,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -483,7 +544,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -495,7 +560,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 200,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -507,7 +576,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -531,7 +604,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 200,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -543,7 +620,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -567,7 +648,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -745,7 +830,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 150,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -957,6 +1046,39 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         formatter: Formatters.checkmarkMaterial,
         type: FieldType.boolean,
         filterable: true,
+        filter: {
+          model: Filters['multipleSelect']
+
+        },
+
+
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+      },
+      {
+        id: 'DateSomeBill',
+        name: 'Ngày hóa đơn',
+        field: 'DateSomeBill',
+        cssClass: 'text-center',
+        width: 150,
+        sortable: false,
+        type: FieldType.date,
+        filterable: true,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+      },
+      {
+        id: 'NoteError',
+        name: 'Note lỗi',
+        field: 'NoteError',
+        minWidth: 300,
+        sortable: false,
+        filterable: true,
         filter: { model: Filters['compoundInputText'] },
         customTooltip: {
           useRegularTooltip: true,
@@ -985,7 +1107,11 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
@@ -1072,12 +1198,27 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         width: 120,
         sortable: false,
         filterable: true,
-        filter: { model: Filters['compoundInputText'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
         customTooltip: {
           useRegularTooltip: true,
         },
       },
     ];
+
+    // Đảm bảo tất cả filter multipleSelect có collection không rỗng khi khởi tạo.
+    // applyDistinctFilters() sẽ ghi đè với dữ liệu thực sau khi load xong.
+    this.columnDefinitionsMaster.forEach((col: any) => {
+      if (
+        col.filter?.model === Filters['multipleSelect'] &&
+        (!col.filter.collection || col.filter.collection.length === 0)
+      ) {
+        col.filter.collection = [{ value: '', label: '' }];
+      }
+    });
   }
 
   initGridOptions() {
@@ -1378,13 +1519,7 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
 
           // Format số tiền
           if (numericFields.includes(col.field)) {
-            const numValue = Number(value) || 0;
-            return numValue === 0
-              ? 0
-              : new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }).format(numValue);
+            return Number(value) || 0;
           }
 
           // Format ngày
@@ -1412,10 +1547,12 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         });
 
         const addedRow = worksheet.addRow(rowData);
-        // Căn phải cho các cột số
+        // Căn phải và format số cho các cột số
         columns.forEach((col: any, index) => {
           if (numericFields.includes(col.field)) {
-            addedRow.getCell(index + 1).alignment = { horizontal: 'right' };
+            const cell = addedRow.getCell(index + 1);
+            cell.alignment = { horizontal: 'right' };
+            cell.numFmt = '#,##0.00';
           }
         });
       });
@@ -1428,14 +1565,9 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
 
         // Các cột cần tính tổng
         if (numericFields.includes(col.field || '')) {
-          const sum = rawData.reduce((acc: number, item: any) => {
-            const val = Number(item[col.field || '']) || 0;
-            return acc + val;
+          return rawData.reduce((acc: number, item: any) => {
+            return acc + (Number(item[col.field || '']) || 0);
           }, 0);
-          return new Intl.NumberFormat('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }).format(sum);
         }
 
         return '';
@@ -1452,10 +1584,14 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit {
         pattern: 'solid',
         fgColor: { argb: 'FFD3D3D3' },
       };
-      // Căn phải cho footer các cột số
+      // Căn phải và format số cho footer các cột số
       columns.forEach((col: any, index) => {
         if (numericFields.includes(col.field) || col.field === 'BillCode') {
-          footerRow.getCell(index + 1).alignment = { horizontal: 'right' };
+          const cell = footerRow.getCell(index + 1);
+          cell.alignment = { horizontal: 'right' };
+          if (numericFields.includes(col.field)) {
+            cell.numFmt = '#,##0.00';
+          }
         }
       });
       footerRow.eachCell((cell) => {

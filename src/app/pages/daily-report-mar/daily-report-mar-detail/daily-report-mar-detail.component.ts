@@ -12,7 +12,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { Tabulator, RowComponent } from 'tabulator-tables';
 import { DateTime } from 'luxon';
 import { DailyReportTechService } from '../../DailyReportTech/DailyReportTechService/daily-report-tech.service';
-import { ProjectRequestServiceService } from '../../project-request/project-request-service/project-request-service.service';
+import { ProjectRequestServiceService } from '../../project/project-request/project-request-service/project-request-service.service';
 
 @Component({
   selector: 'app-daily-report-mar-detail',

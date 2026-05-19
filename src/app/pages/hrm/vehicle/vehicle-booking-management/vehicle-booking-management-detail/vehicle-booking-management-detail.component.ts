@@ -155,6 +155,7 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
   isSaving: boolean = false;
   currentUserPhoneNumber: string = ''; // SDT của người đang đăng nhập
   isSpecialEmployee: boolean = false; // NV ID 395 được chọn bất kỳ thời gian
+  deletedFileIds: number[] = []; // Lưu lại ID file đã xóa để gọi API khi save
 
   // Flatpickr instances
   private flatpickrInstances: Map<string, flatpickr.Instance> = new Map();
@@ -1115,6 +1116,17 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
     let currentIndex = 0;
     const saveNext = () => {
       if (currentIndex >= payloads.length) {
+        // Xóa các file đã đánh dấu xóa trước khi hoàn tất
+        if (this.deletedFileIds.length > 0) {
+          this.vehicleBookingService.removeFile(this.deletedFileIds).subscribe({
+            next: () => {
+              this.deletedFileIds = [];
+            },
+            error: (err) => {
+              console.error('Error removing files:', err);
+            }
+          });
+        }
         // Tất cả booking đã được tạo, gửi email
         this.sendEmailNotification();
         this.notification.success('Thành công', 'Đặt xe thành công');
@@ -1236,6 +1248,11 @@ export class VehicleBookingManagementDetailComponent implements OnInit, AfterVie
   removeFile(goodsIndex: number, fileUid: string): void {
     const goods = this.attachedGoods.find(g => g.index === goodsIndex);
     if (goods) {
+      // Tìm file bị xóa, nếu có ID từ server thì lưu lại để gọi API xóa khi save
+      const fileToRemove = goods.files.find(f => f.uid === fileUid);
+      if (fileToRemove && (fileToRemove as any).id) {
+        this.deletedFileIds.push((fileToRemove as any).id);
+      }
       goods.files = goods.files.filter(f => f.uid !== fileUid);
     }
   }

@@ -353,30 +353,30 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       return '';
     }
   }
-// ===== 1. Validate Manufacturer cho Vision =====
-private validateManufacturerForVision(rows: any[]): boolean {
-  const PRODUCT_GROUP_TVISION = 4;
+  // ===== 1. Validate Manufacturer cho Vision =====
+  private validateManufacturerForVision(rows: any[]): boolean {
+    const PRODUCT_GROUP_TVISION = 4;
 
-  for (const row of rows) {
-    const manufacturer = String(row.Manufacturer || '').trim();
-    const productGroupID = Number(row.ProductGroupID || 0);
-    const productSaleID = Number(row.ProductSaleID || 0);
-    const productCode = String(row.ProductCode || '');
-    const tt = String(row.TT || '');
+    for (const row of rows) {
+      const manufacturer = String(row.Manufacturer || '').trim();
+      const productGroupID = Number(row.ProductGroupID || 0);
+      const productSaleID = Number(row.ProductSaleID || 0);
+      const productCode = String(row.ProductCode || '');
+      const tt = String(row.TT || '');
 
-    if (productSaleID <= 0) {
-      if (!manufacturer && productGroupID === PRODUCT_GROUP_TVISION) {
-        this.notify.error(
-          NOTIFICATION_TITLE.error,
-          `Yêu cầu mua hàng kho vision có mã sản phẩm ${productCode} ở vị trí ${tt} phải có hãng!`
-        );
-        return false;
+      if (productSaleID <= 0) {
+        if (!manufacturer && productGroupID === PRODUCT_GROUP_TVISION) {
+          this.notify.error(
+            NOTIFICATION_TITLE.error,
+            `Yêu cầu mua hàng kho vision có mã sản phẩm ${productCode} ở vị trí ${tt} phải có hãng!`
+          );
+          return false;
+        }
       }
     }
-  }
 
-  return true;
-}
+    return true;
+  }
 
 
   private toStartOfDayISO(d: Date): string {
@@ -436,8 +436,9 @@ private validateManufacturerForVision(rows: any[]): boolean {
       IsDeleted: this.isDeletedFilter,
       IsTechBought: -1,
       IsJobRequirement: -1,
-      Page: 1,
-      Size: 5000,
+      IsRequestApproved: -1,
+      JobRequirementID: 0,
+      EmployeeID: 0,
     };
 
     this.srv.getAll(filter).subscribe({
@@ -797,13 +798,13 @@ private validateManufacturerForVision(rows: any[]): boolean {
     });
 
     // Áp dụng width từ COLUMN_WIDTH_CONFIG cho các cột được chỉ định
-    ['ProductNewCode', 'Quantity', 'ProductGroupID', 'UnitName', 'Manufacturer', 
-     'StatusRequestText', 'FullName', 'UpdatedName'].forEach((f) => {
-      const col = columnsMap.get(f);
-      if (col && this.COLUMN_WIDTH_CONFIG[f]) {
-        col.width = this.COLUMN_WIDTH_CONFIG[f];
-      }
-    });
+    ['ProductNewCode', 'Quantity', 'ProductGroupID', 'UnitName', 'Manufacturer',
+      'StatusRequestText', 'FullName', 'UpdatedName'].forEach((f) => {
+        const col = columnsMap.get(f);
+        if (col && this.COLUMN_WIDTH_CONFIG[f]) {
+          col.width = this.COLUMN_WIDTH_CONFIG[f];
+        }
+      });
 
     // Editor numeric
     ['Quantity', 'UnitPrice', 'UnitImportPrice', 'VAT', 'TargetPrice', 'TotalDayLeadTime'].forEach((f) => {
@@ -2564,6 +2565,9 @@ private validateManufacturerForVision(rows: any[]): boolean {
       return;
     }
 
+    // Tab 5 và 6 (activeTabIndex 4, 5) không cần kiểm tra BGĐ duyệt
+    const isExemptTab = this.activeTabIndex === 4 || this.activeTabIndex === 5;
+
     // Bước 1: Kiểm tra validation
     for (const row of selectedRows) {
       const data = row.getData();
@@ -2573,9 +2577,10 @@ private validateManufacturerForVision(rows: any[]): boolean {
       const code = data['ProductNewCode'] || '';
       const isApprovedBGD = data['IsApprovedBGD'] || false;
       const isTechBought = data['IsTechBought'] || false;
+      const isCommercialProduct = Boolean(data['IsCommercialProduct']);
 
-      // Kiểm tra điều kiện (tương đương !chkIsCommercialProduct.Checked && !chkIsJobRequirement.Checked)
-      if (!isApprovedBGD && !isTechBought) {
+      // Không phải tab miễn trừ AND là hàng mua dự án (không phải thương mại/kỹ thuật mua) → bắt buộc BGĐ duyệt
+      if (!isExemptTab && !isApprovedBGD && !isTechBought && !isCommercialProduct) {
         this.notify.warning(NOTIFICATION_TITLE.warning, 'Sản phẩm chưa được BGĐ duyệt!');
         return;
       }
@@ -2598,9 +2603,11 @@ private validateManufacturerForVision(rows: any[]): boolean {
       if (id <= 0) continue;
 
       const isApprovedBGD = data['IsApprovedBGD'] || false;
+      const isTechBought2 = data['IsTechBought'] || false;
+      const isCommercialProduct2 = Boolean(data['IsCommercialProduct']);
 
-      // Logic lọc nghiêm ngặt cho danh sách kết quả
-      if (!isApprovedBGD) continue;
+      // Tab miễn trừ: lấy hết; tab thường: hàng mua dự án phải có BGĐ duyệt
+      if (!isExemptTab && !isApprovedBGD && !isTechBought2 && !isCommercialProduct2) continue;
       if (!code || code.toString().trim() === '') continue;
 
       if (!lstYCMH.includes(id)) {

@@ -141,38 +141,38 @@ angular-slickgrid,
 }
 
 /* Fix nz-tab height for grid */
-::ng-deep nz-tabset {
+:host ::ng-deep nz-tabset {
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;
 }
 
-::ng-deep .ant-tabs {
+:host ::ng-deep .ant-tabs {
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;
 }
 
-::ng-deep .ant-tabs-content-holder {
+:host ::ng-deep .ant-tabs-content-holder {
   flex: 1 !important;
   min-height: 0 !important;
   overflow: visible !important;
   height: 100% !important;
 }
 
-::ng-deep .ant-tabs-content {
+:host ::ng-deep .ant-tabs-content {
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
 }
 
-::ng-deep .ant-tabs-tabpane {
+:host ::ng-deep .ant-tabs-tabpane {
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
 }
 
-::ng-deep .ant-tabs-tabpane-active {
+:host ::ng-deep .ant-tabs-tabpane-active {
   height: 100% !important;
   display: flex !important;
   flex-direction: column !important;

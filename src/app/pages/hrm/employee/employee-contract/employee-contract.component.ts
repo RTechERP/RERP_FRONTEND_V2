@@ -470,7 +470,7 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
 
             // ===== Thông tin công ty (BỔ SUNG) =====
             CompanyNameHeader: contractResponse.CompanyName,
-            COMPANYCODE: contractResponse.COMPANYCODE,
+            COMPANYCODE: contractResponse.CompanyCode,
             CompanyName: contractResponse.CompanyName,
             TaxCodeCom: contractResponse.TaxCodeCom,
             AddressCom: contractResponse.AddressCom,

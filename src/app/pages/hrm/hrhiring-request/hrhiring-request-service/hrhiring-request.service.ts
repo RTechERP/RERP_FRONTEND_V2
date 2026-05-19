@@ -17,7 +17,7 @@ export class HrhiringRequestService {
     this.LoginName = this.appUserService.loginName || '';
     this.ISADMIN = this.appUserService.isAdmin || false;
     this.GlobalDepartmentId = this.appUserService.departmentID || 0;
-    
+
   }
 
   GlobalEmployeeId: number = 78;
@@ -37,6 +37,7 @@ export class HrhiringRequestService {
       DepartmentID: params.departmentID || 0,
       Keyword: params.keyword || params.findText || '',
       Id: params.id || 0,
+      IsComplete: params.isCompleted !== undefined ? params.isCompleted : 0,
     };
 
     const headers = {
@@ -80,7 +81,8 @@ export class HrhiringRequestService {
     findText: string = '',
     dateStart: string = '',
     dateEnd: string = '',
-    id: number = 0
+    id: number = 0,
+    isCompleted: number = 0
   ): Observable<any[]> {
     const requestData = {
       DateStart: dateStart || null,
@@ -88,6 +90,7 @@ export class HrhiringRequestService {
       DepartmentID: departmentID,
       Keyword: findText,
       Id: 0, // Luôn = 0 để lấy danh sách
+      IsComplete: isCompleted,
     };
 
     const headers = {
@@ -329,6 +332,10 @@ export class HrhiringRequestService {
     return this.http.get<any>(this.apiUrl + 'get-employee-chuc-vu-hd');
   }
 
+  getEmployees(): Observable<any> {
+    return this.http.get<any>(environment.host + 'api/Employee/employees');
+  }
+
   deleteHiringRequest(id: number): Observable<any> {
     const deleteData = {
       HiringRequests: {
@@ -561,4 +568,14 @@ export class HrhiringRequestService {
     return this.http.post<any>(this.apiUrl + 'approved-bgd', data);
   }
   //#endregion
+
+  updateCompleted(list: any[]): Observable<any> {
+    const headers = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+    return this.http.post<any>(this.apiUrl + 'update-completed', list, {
+      headers,
+    });
+  }
 }

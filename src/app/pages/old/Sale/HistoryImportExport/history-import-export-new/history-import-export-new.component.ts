@@ -148,7 +148,7 @@ export class HistoryImportExportNewComponent implements OnInit, AfterViewInit, O
 
     // Grid ID getter
     get gridId(): string {
-        return `historyImportExport-${this.warehouseCode}`;
+        return `historyImportExport-${Math.random().toString(36).substring(2, 11)}`;
     }
 
     //#region Grid Initialization

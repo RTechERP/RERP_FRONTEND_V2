@@ -9,32 +9,55 @@ import { environment } from '../../../../../environments/environment';
 })
 export class JobRequirementService {
   private apiUrl = environment.host + 'api';
- private apiUrlWFH = `${environment.host}api/EmployeeWFH/`;
-   constructor(private http: HttpClient) {}
+  private apiUrlWFH = `${environment.host}api/EmployeeWFH/`;
+  constructor(private http: HttpClient) { }
 
-   getJobrequirement(
-  DepartmentID: number,
-  EmployeeID: number,
-  ApprovedTBPID: number, 
-  Step: number,         
-  Request: string,
-  DateStart: Date,
-  DateEnd: Date
-): Observable<any> {
-  const asset: any = {
-    DepartmentID: DepartmentID || 0,
-    EmployeeID: EmployeeID || 0,
-    ApprovedTBPID: ApprovedTBPID || 0,
-    Step: Step || 0,                  
-    Request: Request?.trim() || '',
-    DateStart: DateStart,
-    DateEnd: DateEnd
-  };
-  return this.http.post<any>(
-    environment.host + `api/jobrequirement`,
-    asset
-  );
-}
+  getJobrequirement(
+    DepartmentID: number,
+    EmployeeID: number,
+    ApprovedTBPID: number,
+    Step: number,
+    Request: string,
+    DateStart: Date,
+    DateEnd: Date
+  ): Observable<any> {
+    const asset: any = {
+      DepartmentID: DepartmentID || 0,
+      EmployeeID: EmployeeID || 0,
+      ApprovedTBPID: ApprovedTBPID || 0,
+      Step: Step || 0,
+      Request: Request?.trim() || '',
+      DateStart: DateStart,
+      DateEnd: DateEnd
+    };
+    return this.http.post<any>(
+      environment.host + `api/jobrequirement`,
+      asset
+    );
+  }
+  getJobrequirementPersonal(
+    DepartmentID: number,
+    EmployeeID: number,
+    ApprovedTBPID: number,
+    Step: number,
+    Request: string,
+    DateStart: Date,
+    DateEnd: Date
+  ): Observable<any> {
+    const asset: any = {
+      DepartmentID: DepartmentID || 0,
+      EmployeeID: EmployeeID || 0,
+      ApprovedTBPID: ApprovedTBPID || 0,
+      Step: Step || 0,
+      Request: Request?.trim() || '',
+      DateStart: DateStart,
+      DateEnd: DateEnd
+    };
+    return this.http.post<any>(
+      environment.host + `api/jobrequirement/get-job-requirement-personal`,
+      asset
+    );
+  }
   getDepartmentRequired(
     JobRequirementID: number,
     EmployeeID: number,
@@ -44,7 +67,7 @@ export class JobRequirementService {
     DateEnd: Date
   ): Observable<any> {
     const asset: any = {
-      JobRequirementID: JobRequirementID|| 0,
+      JobRequirementID: JobRequirementID || 0,
       EmployeeID: EmployeeID || 0,
       DepartmentID: DepartmentID || 0,
       Keyword: Keyword?.trim() || '',
@@ -57,14 +80,14 @@ export class JobRequirementService {
     );
   }
 
-    getHCNSProposals(
+  getHCNSProposals(
     JobRequirementID: number,
     DepartmentRequiredID: number,
     DateStart: Date,
     DateEnd: Date
   ): Observable<any> {
     const asset: any = {
-      JobRequirementID: JobRequirementID|| 0,
+      JobRequirementID: JobRequirementID || 0,
       DepartmentRequiredID: DepartmentRequiredID || 0,
       DateStart: DateStart,
       DateEnd: DateEnd
@@ -75,27 +98,27 @@ export class JobRequirementService {
     );
   }
 
-    getJobrequirementbyID(id: number) {
+  getJobrequirementbyID(id: number) {
     return this.http.get<any>(environment.host + `api/jobrequirement/details/${id}`);
   }
-    getApprovers() {
+  getApprovers() {
     return this.http.get<any>(this.apiUrlWFH + `get-employee-approver`);
   }
-      saveData(data: any): Observable<any> {
+  saveData(data: any): Observable<any> {
     return this.http.post<any>(
       environment.host + `api/recommendsupplier/save-data-department-required`,
       data
     );
   }
 
-    saveDataJobRequirement(data: any): Observable<any> {
+  saveDataJobRequirement(data: any): Observable<any> {
     return this.http.post<any>(
       environment.host + `api/jobrequirement/save-data`,
       data
     );
   }
 
-    getDataDepartment(): Observable<any> {
+  getDataDepartment(): Observable<any> {
     return this.http.get<any>(environment.host + `api/handover/get-departments`);
   }
 
@@ -157,7 +180,7 @@ export class JobRequirementService {
     keyWord: string,
     jobRequirementID: number
   ): Observable<any> {
- 
+
     const formatDate = (date: Date): string => {
       if (!date) return '';
       const year = date.getFullYear();

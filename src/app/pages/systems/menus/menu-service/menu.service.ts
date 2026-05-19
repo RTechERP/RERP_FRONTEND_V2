@@ -195,10 +195,10 @@ export class MenuService {
     private menuKeySource = new BehaviorSubject<string>('');
     menuKey$ = this.menuKeySource.asObservable();
 
-    departmentTechs: any[] = [2, 11, 12, 13];
+    departmentTechs: any[] = [2, 11, 12, 13, 24, 25, 26, 27, 9, 10];
     departmentAgvCokhis = [9, 10];
     departmentLapraps = [23];
-    departmentSales = [3, 12];
+    departmentSales = [3, 12, 28, 29, 30];
     departmentHRs = [6];
     employeeHRs = [586];
 
@@ -215,8 +215,7 @@ export class MenuService {
     ];
 
     departmentBODs = [22];
-
-
+    departmentAccs = [5];
 
     setMenuKey(value: string) {
         // console.log(value);
@@ -294,6 +293,11 @@ export class MenuService {
                     //Nếu là BOD
                     if (item.Router == 'daily-report-bod') {
                         isPermission = isAdmin || this.departmentBODs.includes(departmentID);
+                    }
+
+                    //Nếu là KẾ toán
+                    if (item.Router == 'daily-report-accounting-person') {
+                        isPermission = isAdmin || this.departmentAccs.includes(departmentID);
                     }
 
                     // console.log('isAdmin:', isAdmin);

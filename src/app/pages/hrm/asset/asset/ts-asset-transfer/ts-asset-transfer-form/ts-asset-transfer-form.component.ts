@@ -319,7 +319,6 @@ export class TsAssetTransferFormComponent implements OnInit {
       IsAllocation: true,
       DepartmentID: this.dataInput.ToDepartmentID,
       EmployeeID: this.dataInput.ReceiverID,
-
     }));
     // Những detail đã bấm X: chỉ cần ID + IsDeleted = true
     const deletedDetailsPayload = this.deletedDetailIds.map(id => ({

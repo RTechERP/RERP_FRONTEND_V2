@@ -317,6 +317,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
         DateAllocation: this.dataInput.DateAllocation,
         EmployeeID: this.dataInput.EmployeeID,
         Note: this.dataInput.Note,
+
         IsApproveAccountant: false,
         Status: 0,
         IsApprovedPersonalProperty: false

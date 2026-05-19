@@ -1,0 +1,84 @@
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command() : null">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text ml-1" style="font-size: 12px;">{{ item.label }}</span>
+        </a>
+    </ng-template>
+</p-menubar>
+
+<div class="card border-0 rounded-0" style="height: 85vh !important;">
+    <!-- Filter bar -->
+    <div class="filter-bar bg-light border-bottom p-2">
+        <nz-row [nzGutter]="8" nzAlign="bottom">
+            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+                <nz-form-item class="mb-0">
+                    <nz-form-label style="font-size: 12px;">Từ khóa</nz-form-label>
+                    <nz-form-control>
+                        <div class="d-flex gap-1">
+                            <input nz-input placeholder="Mã hoặc tên loại phạt..." nzSize="small" [(ngModel)]="keyword"
+                                class="flex-grow-1" (keyup.enter)="onSearch()" />
+                            <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                                <nz-icon nzType="search" />
+                            </button>
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+    </div>
+
+    <!-- Table content -->
+    <div class="card-body p-0 position-relative" style="flex-grow: 1; overflow: hidden;">
+        <div *ngIf="isLoading" class="loading-overlay">
+            <nz-spin nzSimple></nz-spin>
+        </div>
+
+        <p-table [value]="filteredData" [paginator]="true" [rows]="20" [rowsPerPageOptions]="[20, 50, 100]"
+            currentPageReportTemplate="Hiện thị {first} đến {last} của {totalRecords} bản ghi"
+            [showCurrentPageReport]="true" selectionMode="single" [(selection)]="selectedDeduction"
+            (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)" [scrollable]="true"
+            scrollHeight="flex" styleClass="p-datatable-sm p-datatable-gridlines" dataKey="ID">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="width: 60px; text-align: center">STT</th>
+                    <th style="width: 150px; text-align: center" pSortableColumn="DeductionTypeCode">Mã loại phạt
+                        <p-sortIcon field="DeductionTypeCode"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="DeductionTypeName" style="text-align: center">Tên loại phạt <p-sortIcon
+                            field="DeductionTypeName"></p-sortIcon></th>
+                    <th style="width: 150px; text-align: center" pSortableColumn="MoneyLevel1">Mức tiền 1 <p-sortIcon
+                            field="MoneyLevel1"></p-sortIcon></th>
+                    <th style="width: 150px; text-align: center" pSortableColumn="MoneyLevel2">Mức tiền 2 <p-sortIcon
+                            field="MoneyLevel2"></p-sortIcon></th>
+                    <th style="width: 300px;">Ghi chú</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                <tr [pSelectableRow]="item" style="font-size: 12px;">
+                    <td style="text-align: center">{{ rowIndex + 1 }}</td>
+                    <td style="text-align: left">{{ item.DeductionTypeCode }}</td>
+                    <td>{{ item.DeductionTypeName }}</td>
+                    <td style="text-align: right; color: #d32f2f; font-weight: 500;">{{ formatCurrency(item.MoneyLevel1)
+                        }}</td>
+                    <td style="text-align: right; color: #1976d2; font-weight: 500;">{{ formatCurrency(item.MoneyLevel2)
+                        }}</td>
+                    <td>{{ item.Note }}</td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+                        Không có dữ liệu loại phạt.
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+    <!-- Confirm Dialog -->
+    <p-confirmDialog [style]="{ width: '400px' }" baseZIndex="10000"></p-confirmDialog>
+</div>

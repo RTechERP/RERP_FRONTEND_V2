@@ -1,0 +1,345 @@
+.project-form {
+    background: #fff;
+}
+
+/* Header */
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.form-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.close-icon {
+    font-size: 18px;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-icon:hover {
+    color: #333;
+}
+
+/* Form Content */
+.form-content {
+    padding: 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.form-label.required::after {
+    content: ' *';
+    color: #ff4d4f;
+}
+
+/* Input with icon button */
+.input-with-icon {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.icon-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+.icon-button:hover {
+    transform: scale(1.05);
+}
+
+.input-with-icon input {
+    flex: 1;
+    height: 40px;
+}
+
+/* Icon & Color Picker Popover */
+.icon-color-picker {
+    width: 280px;
+    padding: 16px;
+}
+
+.picker-section {
+    margin-bottom: 16px;
+}
+
+.picker-section label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+}
+
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+}
+
+.icon-item {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.icon-item:hover {
+    background: #f0f0f0;
+}
+
+.icon-item.selected {
+    background: #e6f7ff;
+    color: #1890ff;
+}
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.color-item {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: transform 0.2s;
+}
+
+.color-item:hover {
+    transform: scale(1.1);
+}
+
+.color-item.selected {
+    box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.3);
+}
+
+.picker-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* Date range */
+.date-range {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.date-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.date-label {
+    font-size: 13px;
+    color: #666;
+    white-space: nowrap;
+}
+
+/* Priority select */
+.priority-select {
+    width: 160px;
+}
+
+/* Fix dropdown height to show all options without scroll */
+.priority-select ::ng-deep .ant-select-dropdown {
+    max-height: none !important;
+}
+
+/* Fix selected value display height */
+.priority-select ::ng-deep .ant-select-selector {
+    height: auto !important;
+    min-height: 36px;
+    padding: 4px 11px !important;
+    display: flex;
+    align-items: center;
+}
+
+.priority-select ::ng-deep .ant-select-selection-item {
+    line-height: normal !important;
+}
+
+.priority-badge {
+    display: inline-block;
+    padding: 6px 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Department select - remove scrollbar */
+.department-select ::ng-deep .ant-select-dropdown {
+    max-height: none !important;
+}
+
+/* Member section */
+.member-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.member-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8f9fa;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    padding: 8px 12px;
+}
+
+.member-search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+}
+
+.search-action {
+    color: #1890ff;
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Search results dropdown */
+.search-results {
+    margin-top: 4px;
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-result-item:hover {
+    background: #f5f5f5;
+}
+
+.emp-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.emp-name {
+    font-size: 14px;
+    color: #333;
+}
+
+.emp-email {
+    font-size: 12px;
+    color: #999;
+}
+
+/* Member list */
+.member-list {
+    margin-top: 12px;
+}
+
+.member-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.member-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.member-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+}
+
+.member-email {
+    font-size: 12px;
+    color: #999;
+}
+
+.remove-member {
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.remove-member:hover {
+    color: #ff4d4f;
+}
+
+/* Footer */
+.form-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid #f0f0f0;
+}

@@ -1,0 +1,61 @@
+:host {
+    display: block;
+    width: 100%;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.4);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.p-menubar {
+    padding: 0.5rem;
+    border-radius: 0;
+}
+
+.p-datatable-sm {
+    font-size: 12px;
+}
+
+.p-datatable-gridlines tr td,
+.p-datatable-gridlines tr th {
+    border-width: 1px !important;
+}
+
+.p-datatable-gridlines .p-datatable-thead > tr > th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+}
+
+.table-section {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.p-datatable-footer {
+    font-weight: bold;
+}
+
+.p-sort-icon {
+    font-size: 10px;
+    margin-left: 2px;
+}
+
+.p-menuitem-text {
+    font-size: 12px !important;
+}
+
+.p-menuitem-link i {
+    font-size: 14px;
+}

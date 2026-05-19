@@ -1,0 +1,80 @@
+<nz-spin [nzSpinning]="isLoading">
+    <nz-card nzSize="small" style="padding: 0px !important;">
+        <p-menubar [model]="menuBars"></p-menubar> <!-- removed mb-2 because filter bar will follow -->
+
+        <!-- Filter bar -->
+        <div class="filter-bar bg-light border-bottom p-2 mt-2 mb-2">
+            <nz-row [nzGutter]="8" nzAlign="bottom">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+                    <nz-form-item class="mb-0">
+                        <nz-form-label style="font-size: 12px;">Từ khóa</nz-form-label>
+                        <nz-form-control>
+                            <div class="d-flex gap-1">
+                                <input nz-input placeholder="Tìm kiếm chung..." nzSize="small" [(ngModel)]="keyword"
+                                    class="flex-grow-1" (keyup.enter)="onSearch()" />
+                                <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                                    <nz-icon nzType="search" />
+                                </button>
+                            </div>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </div>
+
+        <div class="table-container">
+            <p-table [value]="filteredData" [(selection)]="selectedRow" selectionMode="single" dataKey="ID"
+                [paginator]="true" [rows]="50" [rowsPerPageOptions]="[50, 100, 200]" [scrollable]="true"
+                scrollHeight="calc(100vh - 250px)" styleClass="p-datatable-sm p-datatable-gridlines" #dt>
+
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th style="width: 50px">STT</th>
+                        <th pSortableColumn="DepartmentName">Phòng ban <p-sortIcon field="DepartmentName"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="TicketName">Phiếu <p-sortIcon field="TicketName"></p-sortIcon></th>
+                        <th pSortableColumn="ErrorName">Lỗi <p-sortIcon field="ErrorName"></p-sortIcon></th>
+                        <th pSortableColumn="Type" style="width: 120px">Loại điểm <p-sortIcon field="Type"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="Point" style="width: 100px">Số điểm <p-sortIcon field="Point"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="Note">Ghi chú <p-sortIcon field="Note"></p-sortIcon></th>
+                        <th pSortableColumn="CreatedBy" style="width: 150px">Người tạo <p-sortIcon
+                                field="CreatedBy"></p-sortIcon></th>
+                        <th pSortableColumn="CreatedDate" style="width: 150px">Ngày tạo <p-sortIcon
+                                field="CreatedDate"></p-sortIcon></th>
+                        <th pSortableColumn="DateMinus" style="width: 120px">Ngày ghi lỗi <p-sortIcon
+                                field="DateMinus"></p-sortIcon></th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                    <tr [pSelectableRow]="item">
+                        <td class="text-center">{{rowIndex + 1}}</td>
+                        <td>{{item.DepartmentName}}</td>
+                        <td>{{item.TicketName}}</td>
+                        <td>{{item.ErrorName}}</td>
+                        <td>
+                            <span *ngIf="item.Type === 1" class="text-success fw-bold">Thưởng (+)</span>
+                            <span *ngIf="item.Type === 2" class="text-danger fw-bold">Phạt (-)</span>
+                        </td>
+                        <td class="text-right fw-bold"
+                            [ngClass]="{'text-success': item.Type === 1, 'text-danger': item.Type === 2}">
+                            {{item.Point | number:'1.0-2'}}
+                        </td>
+                        <td>{{item.Note}}</td>
+                        <td>{{item.CreatedBy}}</td>
+                        <td>{{item.CreatedDate | date:'dd/MM/yyyy HH:mm'}}</td>
+                        <td>{{item.DateMinus | date:'dd/MM/yyyy'}}</td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="10" class="text-center text-muted">Không có dữ liệu</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </nz-card>
+</nz-spin>

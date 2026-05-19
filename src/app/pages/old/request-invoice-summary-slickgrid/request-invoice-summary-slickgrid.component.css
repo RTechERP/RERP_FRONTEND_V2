@@ -61,5 +61,5 @@
 :host ::ng-deep .grid-container angular-slickgrid,
 :host ::ng-deep .grid-container .slickgrid-container,
 :host ::ng-deep .grid-container .gridPane {
-    height: 90vh !important;
+    height: 80vh !important;
 }

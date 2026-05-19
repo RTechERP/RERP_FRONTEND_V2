@@ -1,5 +1,10 @@
 /* Footer row styling */
-:host ::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
+:host
+  ::ng-deep
+  .slickgrid-container
+  .slick-footerrow
+  .slick-footerrow-columns
+  .slick-footerrow-column {
   border-right: 1px solid #ddd !important;
   padding: 4px 6px;
   font-size: 0.75rem;
@@ -8,16 +13,23 @@
   min-height: 94vh !important;
 }
 
+::ng-deep div[id^="grid-container-inventory-"] {
+  height: 86vh !important;
+}
+::ng-deep div[id^="grid-product-group-"] {
+  height: 65vh !important;
+}
+
 /* Product Group grid - Selected row với màu mặc định */
 :host ::ng-deep div[id^="grid-product-group-"] .slick-row.active {
-  background-color: #789CCE !important;
+  background-color: #789cce !important;
   color: white !important;
 }
 
 /* Product Group grid - Hover row với màu khác */
 /* ::ng-deep div[id^="grid-product-group-"] .slick-row:hover { */
-  /* background-color: #2f9deb !important; Màu xanh nhạt khi hover/ */
-  /* color: white !important; */
+/* background-color: #2f9deb !important; Màu xanh nhạt khi hover/ */
+/* color: white !important; */
 /* } */
 
 /* Đảm bảo các cell trong row cũng có màu tương ứng */

@@ -36,7 +36,7 @@ import {
     GridOption,
     MultipleSelectOption,
     OnSelectedRowsChangedEventArgs,
-    MenuCommandItemCallbackArgs
+    MenuCommandItemCallbackArgs,
 } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import * as ExcelJS from 'exceljs';
@@ -46,11 +46,17 @@ import { ProductsaleServiceService } from '../../ProductSale/product-sale-servic
 import { InventoryService } from '../inventory-service/inventory.service';
 import { ProductGroupDetailComponent } from '../../ProductSale/product-group-detail/product-group-detail.component';
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { BillExportDetailNewComponent } from '../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
 import { ChiTietSanPhamSaleComponent } from '../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
+import { ChiTietSanPhamSaleNewComponent } from '../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale-new/chi-tiet-san-pham-sale-new.component';
 import { ProjectPartlistPriceRequestNewComponent } from '../../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
+import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
+import { AppUserService } from '../../../../../services/app-user.service';
+import { ProjectPartlistPriceRequestFormComponent } from '../../../project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
+import { ProductLocationService } from '../../../../general-category/product-location/product-location-service/product-location.service';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 
 interface ProductGroup {
     ID?: number;
@@ -82,12 +88,14 @@ interface ProductGroup {
         NzSpinModule,
         NgbModule,
         AngularSlickgridModule,
+        HasPermissionDirective
     ],
     templateUrl: './inventory-new.component.html',
     styleUrls: ['./inventory-new.component.css'],
 })
 export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     warehouseCode: string = 'HN';
+    warehouseId: number = 1;
     componentId: string = '';
     productGroupID: number = 0;
 
@@ -141,11 +149,17 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         ParentID: 0
     };
 
+
+
     private subscriptions: Subscription[] = [];
 
     // ResizeObserver để detect khi tab được hiển thị lại
     private resizeObserver: ResizeObserver | null = null;
+    private filterPatchObserver: MutationObserver | null = null;
     private lastVisibleWidth: number = 0;
+    //nhat them set location cho san pham
+    locations: any[] = [];
+    locationID: number = 0;
 
     constructor(
         private productsaleSV: ProductsaleServiceService,
@@ -156,40 +170,45 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         private zone: NgZone,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
+        private appUserService: AppUserService,
         @Optional() @Inject('tabData') private tabData: any,
         private elementRef: ElementRef,
         private tabService: TabServiceService,
+        private productLocationService: ProductLocationService,
     ) { }
 
     ngOnInit(): void {
-        this.componentId = 'inventory-' + this.generateUUIDv4();
-        // Subscribe to queryParams để reload data khi params thay đổi
+        this.componentId = this.generateUUIDv4();
+        console.log(this.tabData);
+        if (this.tabData) {
+            //debugger;
+            // Chạy trong component-tab: dùng tabData, không subscribe queryParams
+            this.warehouseCode = this.tabData.warehouseCode ?? 'HN';
+            this.warehouseId = this.tabData.warehouseID ?? 1;
+            this.isWareHouseDP = this.warehouseCode.toUpperCase() === 'DP';
+            console.log(this.warehouseId)
+            this.initGridColumns();
+            this.initGridOptions();
+            this.cdr.detectChanges();
+            this.getProductGroup();
+            this.getDataProductGroupWareHouse(this.productGroupID);
+            this.getLocation();
+            return;
+        }
+
+        // Chạy trong router-outlet: react khi queryParams thay đổi
         const sub = this.route.queryParams.subscribe((params) => {
-            // const newWarehouseCode = params['warehouseCode'] || 'HN';
-
-
-            const newWarehouseCode =
-                params['warehouseCode']
-                ?? this.tabData?.warehouseCode
-                ?? 'HN';
-
-            // Kiểm tra xem params có thay đổi không
+            const newWarehouseCode = params['warehouseCode'] ?? 'HN';
+            this.warehouseId = params['warehouseID'] ?? 1;
+            // console.log("Warehouseid", this.warehouseId);
             const paramsChanged = this.warehouseCode !== newWarehouseCode;
 
-            // Cập nhật warehouseCode TRƯỚC khi init grid options
             this.warehouseCode = newWarehouseCode;
-            this.isWareHouseDP = this.warehouseCode.toUpperCase() === 'DP' ? true : false;
-            console.log(this.isWareHouseDP);
-            // Init grid options với ID selector unique dựa trên warehouseCode
-            //this.initGridOptions();
+            this.isWareHouseDP = this.warehouseCode.toUpperCase() === 'DP';
 
-            // Nếu params thay đổi (và không phải lần đầu), reset và clear data trước
             if (paramsChanged && this.angularGridProductGroup) {
-                // Reset productGroupID
                 this.productGroupID = 0;
                 this.searchParam.Find = '';
-
-                // Clear existing data
                 this.datasetProductGroup = [];
                 this.datasetPGWarehouse = [];
                 this.datasetInventory = [];
@@ -197,8 +216,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.dataPGWareHouse = [];
                 this.dataInventory = [];
 
-                // Clear grid selections, filters và force refresh data
-                if (this.angularGridProductGroup && this.angularGridProductGroup.slickGrid) {
+                if (this.angularGridProductGroup?.slickGrid) {
                     this.angularGridProductGroup.slickGrid.setSelectedRows([]);
                     this.angularGridProductGroup.filterService?.clearFilters();
                     this.angularGridProductGroup.dataView?.setItems([], 'id');
@@ -206,7 +224,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.angularGridProductGroup.slickGrid.render();
                     this.angularGridProductGroup.slickGrid.scrollRowToTop(0);
                 }
-                if (this.angularGridPGWarehouse && this.angularGridPGWarehouse.slickGrid) {
+                if (this.angularGridPGWarehouse?.slickGrid) {
                     this.angularGridPGWarehouse.slickGrid.setSelectedRows([]);
                     this.angularGridPGWarehouse.filterService?.clearFilters();
                     this.angularGridPGWarehouse.dataView?.setItems([], 'id');
@@ -214,7 +232,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.angularGridPGWarehouse.slickGrid.render();
                     this.angularGridPGWarehouse.slickGrid.scrollRowToTop(0);
                 }
-                if (this.angularGridInventory && this.angularGridInventory.slickGrid) {
+                if (this.angularGridInventory?.slickGrid) {
                     this.angularGridInventory.slickGrid.setSelectedRows([]);
                     this.angularGridInventory.filterService?.clearFilters();
                     this.angularGridInventory.dataView?.setItems([], 'id');
@@ -222,31 +240,25 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.angularGridInventory.slickGrid.render();
                     this.angularGridInventory.slickGrid.scrollRowToTop(0);
                 }
-
-                // Re-initialize grids if warehouse code changed
             }
+
             this.initGridColumns();
             this.initGridOptions();
-
-            // Trigger change detection
             this.cdr.detectChanges();
-
-            //this.initGridColumns();
-
-            // Update parameters after clearing
-            this.warehouseCode = newWarehouseCode;
-
-            // Load data mỗi khi params thay đổi
             this.getProductGroup();
             this.getDataProductGroupWareHouse(this.productGroupID);
+            this.getLocation();
         });
         this.subscriptions.push(sub);
+        // console.log("Warehouseid", this.warehouseId);
     }
 
     ngAfterViewInit(): void {
         // Data đã được load trong ngOnInit qua queryParams subscribe
         // Sử dụng ResizeObserver để detect khi component được hiển thị lại (tab switch)
         this.setupResizeObserver();
+        // Fix: Ctrl+X / Delete / Backspace khi bôi đen không trigger filter trong SlickGrid
+        setTimeout(() => this.patchSlickGridFilterInputs(), 600);
     }
 
     ngOnDestroy(): void {
@@ -256,6 +268,10 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
             this.resizeObserver = null;
+        }
+        if (this.filterPatchObserver) {
+            this.filterPatchObserver.disconnect();
+            this.filterPatchObserver = null;
         }
     }
 
@@ -286,6 +302,54 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         });
 
         this.resizeObserver.observe(element);
+    }
+
+    /**
+     * Fix: SlickGrid filter inputs không nhận change khi Ctrl+X, Delete, Backspace trên text đang bôi đen.
+     */
+    private patchSlickGridFilterInputs(): void {
+        const container = this.elementRef.nativeElement as HTMLElement;
+
+        const applyPatch = (input: HTMLInputElement) => {
+            if (input.dataset['filterPatched']) return;
+            input.dataset['filterPatched'] = '1';
+
+            input.addEventListener('cut', () => {
+                setTimeout(() => input.dispatchEvent(new Event('input', { bubbles: true })), 10);
+            });
+
+            input.addEventListener('keydown', (e: KeyboardEvent) => {
+                if (e.key === 'Delete' || e.key === 'Backspace') {
+                    const hasSelection = (input.selectionStart ?? 0) !== (input.selectionEnd ?? 0);
+                    if (hasSelection) {
+                        setTimeout(
+                            () => input.dispatchEvent(new Event('input', { bubbles: true })),
+                            10
+                        );
+                    }
+                }
+            });
+        };
+
+        container
+            .querySelectorAll<HTMLInputElement>('.slick-headerrow-column input')
+            .forEach(applyPatch);
+
+        this.filterPatchObserver = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const node of Array.from(mutation.addedNodes)) {
+                    if (node instanceof HTMLElement) {
+                        node.querySelectorAll<HTMLInputElement>(
+                            '.slick-headerrow-column input'
+                        ).forEach(applyPatch);
+                        if (node instanceof HTMLInputElement && node.closest('.slick-headerrow-column')) {
+                            applyPatch(node);
+                        }
+                    }
+                }
+            }
+        });
+        this.filterPatchObserver.observe(container, { childList: true, subtree: true });
     }
 
     //#region Grid Initialization
@@ -495,7 +559,6 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         };
     }
 
-
     //#endregion
 
     //#region Grid Ready Events
@@ -568,7 +631,6 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.isWareHouseDP == false) return;
         const angularGrid = this.angularGridInventory;
         if (!angularGrid || !angularGrid.dataView) return;
-
         angularGrid.dataView.setGrouping([
             {
                 getter: 'ProductGroupName',
@@ -712,73 +774,158 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     //#region Data Loading
 
+    //#region old
+    // getProductGroup() {
+    //     this.isLoadingProductGroup = true;
+    //     const sub = this.productsaleSV
+    //         .getdataProductGroup(this.warehouseCode, true)
+    //         .subscribe({
+    //             next: (res) => {
+
+    //                 this.isLoadingProductGroup = false;
+    //                 if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+    //                     this.dataProductGroup = res.data;
+
+    //                     // Map data với id unique cho SlickGrid
+    //                     let mappedData = this.dataProductGroup.map((item: any, index: number) => ({
+    //                         ...item,
+    //                         id: item.ID,
+    //                         parentId: item.ParentID && item.ParentID !== 0 ? item.ParentID : null
+    //                     }));
+
+    //                     if (this.isWareHouseDP) {
+    //                         mappedData = mappedData.filter(
+    //                             (item: any) => item.ID === 4 || item.ID === 13
+    //                                 || item.parentId === 4 || item.parentId === 13
+    //                                 || item.ProductGroupID === 'D');
+    //                     }
+
+    //                     this.datasetProductGroup = mappedData;
+
+    //                     // Update filter collections
+    //                     this.updateFilterCollections('productGroup');
+
+    //                     this.cdr.detectChanges();
+
+    //                     // Resize grids after data is loaded
+    //                     setTimeout(() => {
+    //                         this.resizeGrids();
+
+    //                     }, 50);
+
+    //                     // Auto select first row if not checkedAll, hoặc load inventory nếu checkedAll = true
+    //                     setTimeout(() => {
+    //                         if (this.searchParam.checkedAll) {
+    //                             // Nếu checkedAll = true, load inventory ngay lập tức
+    //                             this.getInventory();
+    //                         } else if (this.angularGridProductGroup) {
+    //                             // Nếu checkedAll = false, chọn row đầu tiên
+    //                             const firstItem = this.angularGridProductGroup.dataView.getItem(0);
+    //                             if (firstItem) {
+    //                                 this.angularGridProductGroup.slickGrid.setSelectedRows([0]);
+    //                                 this.productGroupID = firstItem.ID || 0;
+    //                                 this.getInventory();
+    //                                 this.getDataProductGroupWareHouse(this.productGroupID);
+    //                             }
+    //                         }
+
+    //                         this.applyGrouping();
+    //                         this.angularGridInventory?.slickGrid?.invalidate();
+    //                         this.angularGridInventory?.slickGrid?.render();
+    //                     }, 100);
+
+
+    //                 }
+    //             },
+    //             error: (err) => {
+    //                 this.isLoadingProductGroup = false;
+    //                 console.error('Lỗi khi lấy nhóm vật tư:', err);
+    //             },
+    //         });
+    //     this.subscriptions.push(sub);
+    // }
+    //#endregion
+    //#region New
     getProductGroup() {
         this.isLoadingProductGroup = true;
         const sub = this.productsaleSV
-            .getdataProductGroup(this.warehouseCode, true)
+            .getdataProductGroupNew(this.warehouseId, false, true)
             .subscribe({
                 next: (res) => {
 
                     this.isLoadingProductGroup = false;
-                    if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
-                        this.dataProductGroup = res.data;
 
-                        // Map data với id unique cho SlickGrid
-                        let mappedData = this.dataProductGroup.map((item: any, index: number) => ({
-                            ...item,
-                            id: item.ID,
-                            parentId: item.ParentID && item.ParentID !== 0 ? item.ParentID : null
-                        }));
+                    this.dataProductGroup = res.data.data1;
 
-                        if (this.isWareHouseDP) {
-                            mappedData = mappedData.filter(
-                                (item: any) => item.ID === 4 || item.ID === 13 || item.parentId === 4 || item.parentId === 13 || item.ProductGroupID === 'D');
-                        }
+                    // Map data với id unique cho SlickGrid
+                    let mappedData = this.dataProductGroup.map((item: any, index: number) => ({
+                        ...item,
+                        id: item.ID,
+                        parentId: item.ParentID && item.ParentID !== 0 ? item.ParentID : null
+                    }));
 
-                        this.datasetProductGroup = mappedData;
+                    // if (this.isWareHouseDP) {
+                    //     mappedData = mappedData.filter(
+                    //         (item: any) => item.ID === 4 || item.ID === 13
+                    //             || item.parentId === 4 || item.parentId === 13
+                    //             || item.ProductGroupID === 'D');
+                    // }
 
-                        // Update filter collections
-                        this.updateFilterCollections('productGroup');
+                    this.datasetProductGroup = mappedData;
 
-                        this.cdr.detectChanges();
+                    // Update filter collections
+                    this.updateFilterCollections('productGroup');
 
-                        // Resize grids after data is loaded
-                        setTimeout(() => {
-                            this.resizeGrids();
+                    this.cdr.detectChanges();
 
-                        }, 50);
+                    // Resize grids after data is loaded
+                    setTimeout(() => {
+                        this.resizeGrids();
 
-                        // Auto select first row if not checkedAll, hoặc load inventory nếu checkedAll = true
-                        setTimeout(() => {
-                            if (this.searchParam.checkedAll) {
-                                // Nếu checkedAll = true, load inventory ngay lập tức
-                                this.getInventory();
-                            } else if (this.angularGridProductGroup) {
-                                // Nếu checkedAll = false, chọn row đầu tiên
-                                const firstItem = this.angularGridProductGroup.dataView.getItem(0);
-                                if (firstItem) {
-                                    this.angularGridProductGroup.slickGrid.setSelectedRows([0]);
-                                    this.productGroupID = firstItem.ID || 0;
-                                    this.getInventory();
-                                    this.getDataProductGroupWareHouse(this.productGroupID);
-                                }
+                    }, 50);
+
+                    // Auto select first row if not checkedAll, hoặc load inventory nếu checkedAll = true
+                    setTimeout(() => {
+                        if (this.searchParam.checkedAll) {
+                            // Nếu checkedAll = true, load inventory ngay lập tức
+                            this.getInventory();
+
+                            if (this.angularGridProductGroup) {
+                                this.angularGridProductGroup.slickGrid.setSelectedRows([0]);
                             }
 
-                            this.applyGrouping();
-                            this.angularGridInventory?.slickGrid?.invalidate();
-                            this.angularGridInventory?.slickGrid?.render();
-                        }, 100);
+                        } else if (this.angularGridProductGroup) {
+                            // Nếu checkedAll = false, chọn row đầu tiên
+                            const firstItem = this.angularGridProductGroup.dataView.getItem(0);
+                            if (firstItem) {
+                                this.angularGridProductGroup.slickGrid.setSelectedRows([0]);
+                                this.productGroupID = firstItem.ID || 0;
+                                this.getInventory();
+                                this.getDataProductGroupWareHouse(this.productGroupID);
+                            }
+                        }
+
+                        this.applyGrouping();
+                        this.angularGridInventory?.slickGrid?.invalidate();
+                        this.angularGridInventory?.slickGrid?.render();
+                    }, 100);
 
 
-                    }
+
                 },
                 error: (err) => {
                     this.isLoadingProductGroup = false;
-                    console.error('Lỗi khi lấy nhóm vật tư:', err);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
+                        { nzStyle: { whiteSpace: 'pre-line' } }
+                    );
                 },
             });
         this.subscriptions.push(sub);
     }
+    //#endregion
 
     getDataProductGroupWareHouse(id: number) {
         const sub = this.inventoryService.getPGWH(id, this.warehouseCode).subscribe({
@@ -801,7 +948,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
             },
             error: (err) => {
-                console.error('Lỗi khi lấy dữ liệu sản phẩm:', err);
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
             },
         });
         this.subscriptions.push(sub);
@@ -822,18 +974,18 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.isLoadingInventory = false;
                     if (res?.data) {
                         this.dataInventory = res.data;
-
                         // Map data với id unique cho SlickGrid
                         let mappedData = this.dataInventory.map((item: any, index: number) => ({
                             ...item,
                             id: item.ID,
                         }));
 
-                        if (this.isWareHouseDP) {
-                            mappedData = mappedData.filter(
-                                (item: any) => item.ProductGroupID === 4 || item.ProductGroupID === 13 || item.ProductGroupID === 83 ||
-                                    item.ParentID === 4 || item.ParentID === 13 || item.ParentID === 83);
-                        }
+                        // if (this.isWareHouseDP) {
+                        //     mappedData = mappedData.filter(
+                        //         (item: any) => item.ProductGroupID === 4 || item.ProductGroupID === 13 ||
+                        //             item.ProductGroupID === 83 || item.ProductGroupID === 81 ||
+                        //             item.ParentID === 4 || item.ParentID === 13 || item.ParentID === 83);
+                        // }
 
                         this.datasetInventory = mappedData;
 
@@ -846,13 +998,19 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                             this.resizeGrids();
                             // Update footer row sau khi dữ liệu được load
                             this.updateMasterFooterRow();
+                            this.applyGrouping();
                         }, 100);
                     }
 
                 },
                 error: (err) => {
                     this.isLoadingInventory = false;
-                    console.error('Lỗi khi lấy dữ liệu sản phẩm:', err);
+                    this.notification.create(
+                        NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                        err?.error?.message || `${err.error}\n${err.message}`,
+                        { nzStyle: { whiteSpace: 'pre-line' } }
+                    );
                 },
             });
         this.subscriptions.push(sub);
@@ -1165,11 +1323,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 // Open modal
                 this.openBillExportDetailModal(dtDetail, lstTonCk, warehouseID, khoTypeID);
             });
-        } catch (error) {
-            console.error('Error in requestBorrow:', error);
-            this.notification.error(
-                NOTIFICATION_TITLE.error,
-                'Có lỗi xảy ra khi xử lý yêu cầu mượn'
+        } catch (error: any) {
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[error?.status] || 'error',
+                NOTIFICATION_TITLE_MAP[error?.status as RESPONSE_STATUS] || 'Lỗi',
+                error?.error?.message || `${error?.error}\n${error?.message}`,
+                { nzStyle: { whiteSpace: 'pre-line' } }
             );
         }
     }
@@ -1488,11 +1647,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                     { nzDuration: 1000 }
                 );
             });
-        } catch (error) {
-            console.error('Lỗi khi xuất Excel:', error);
-            this.notification.error(
-                NOTIFICATION_TITLE.error,
-                'Có lỗi xảy ra khi xuất file Excel'
+        } catch (error: any) {
+            this.notification.create(
+                NOTIFICATION_TYPE_MAP[error?.status] || 'error',
+                NOTIFICATION_TITLE_MAP[error?.status as RESPONSE_STATUS] || 'Lỗi',
+                error?.error?.message || `${error?.error}\n${error?.message}`,
+                { nzStyle: { whiteSpace: 'pre-line' } }
             );
         }
     }
@@ -1505,7 +1665,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         const productCode = productData.ProductCode || '';
 
         this.tabService.openTabComp({
-            comp: ChiTietSanPhamSaleComponent,
+            comp: ChiTietSanPhamSaleNewComponent,
             title: `Chi tiết SP - ${productCode}`,
             key: `chi-tiet-san-pham-sale-${productData.ProductSaleID || 0}`,
             data: {
@@ -1556,6 +1716,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 150,
                 sortable: true,
                 filterable: true,
+                formatter: this.wrapTextFormatter,
                 filter: {
                     model: Filters['compoundInput'],
                 },
@@ -1868,7 +2029,6 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
             },
         ];
-        debugger;
         if (this.isWareHouseDP == false) {
             columns.unshift(
                 {
@@ -1937,7 +2097,121 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     //#endregion
 
-    //#region Yêu cầu mua hàng
+    //#region Danh sách yêu cầu báo giá
+    openPurchaseRequest(): void {
+        const modalRef = this.modalService.open(ProjectPartListPurchaseRequestSlickGridComponent, {
+            centered: true,
+            windowClass: 'full-screen-modal',
+            backdrop: 'static',
+        });
+        modalRef.componentInstance.isFromConsumables = true;
+    }
     //#endregion
 
+    //#region Yêu cầu báo giá
+    projectPartlistPriceRequestTypeID: number = 7;
+    openAddPurchaseRequest(): void {
+
+        const angularGrid = this.angularGridInventory;
+        if (!angularGrid) return;
+
+        const selectedRows = angularGrid.slickGrid.getSelectedRows().map((rowIndex: number) =>
+            angularGrid.dataView.getItem(rowIndex)
+        ).filter((item: any) => item && !item.__group && !item.__groupTotals);
+
+        if (selectedRows.length === 0) {
+            this.notification.info(
+                'Thông báo',
+                'Vui lòng chọn ít nhất 1 sản phẩm cần yêu cầu báo giá!'
+            );
+            return;
+        }
+
+        const empID = this.appUserService.employeeID;
+
+        // Gán STT và map các field cần thiết cho từng dòng được chọn
+        const processedRows = selectedRows.map((row, index) => {
+            let productNewCode = row.ProductNewCode;
+            return {
+                ...row,
+                ID: 0,
+                STT: index + 1,
+                ProductNewCode: productNewCode || row.ProductNewCode || null,
+                Maker: row.Maker || row.Manufacturer || '',
+                Unit: row.Unit || row.UnitCount || '',
+                ProjectPartlistPriceRequestTypeID: this.projectPartlistPriceRequestTypeID,
+            };
+        });
+
+        console.log("Processed Rows:", processedRows);
+
+        const modalRef = this.modalService.open(
+            ProjectPartlistPriceRequestFormComponent,
+            {
+                size: 'xl',
+                backdrop: 'static',
+                keyboard: false,
+                centered: true,
+            }
+        );
+        modalRef.componentInstance.dataInput = processedRows;
+        modalRef.componentInstance.jobRequirementID = 0;
+        modalRef.componentInstance.projectTypeID = -5;
+        modalRef.componentInstance.initialPriceRequestTypeID = 7;
+        modalRef.componentInstance.isDP = this.isWareHouseDP;
+
+        modalRef.result.then(
+            (result) => {
+                if (result === 'saved') {
+                    this.getdataFind();
+                }
+            },
+            (dismissed) => {
+                console.log('Modal dismissed');
+            }
+        );
+    }
+    //#endregion
+
+    //#region Set Location
+    getLocation() {
+        this.productLocationService.getProductLocations().subscribe((res: any) => {
+            this.locations = res.data;
+            console.log('location', this.locations);
+        });
+    }
+    onSetLocation() {
+        const selectedRows = this.getSelectedInventoryRows();
+        if (selectedRows.length === 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn sản phẩm để set vị trí!');
+            return;
+        }
+
+        if (this.locationID === 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn vị trí!');
+            return;
+        }
+
+        const lstIDs = selectedRows.map((row: any) => row.ProductSaleID || row.ID);
+
+        this.inventoryService.setLocationList(this.locationID, lstIDs, this.warehouseId).subscribe({
+            next: (res) => {
+                if (res.status == 1) {
+                    this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật vị trí thành công');
+                    this.getInventory();
+                } else {
+                    this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Cập nhật vị trí thất bại');
+                }
+            },
+            error: (err) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+            }
+        });
+    }
+    //#endregion
 }

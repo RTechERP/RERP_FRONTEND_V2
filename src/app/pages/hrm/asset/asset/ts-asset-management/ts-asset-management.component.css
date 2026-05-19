@@ -1,150 +1,241 @@
 :host {
-  font-size: 12px !important;
+    font-size: 12px !important;
+}
+
+:host ::ng-deep .p-datatable {
+    font-size: 12px !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    font-size: 12px !important;
+    font-weight: 600;
+    padding: 0.5rem 0.5rem;
+    background: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    font-size: 12px !important;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid #dee2e6;
+}
+
+:host ::ng-deep .p-paginator {
+    padding: 0.2rem;
+    font-size: 11px;
+}
+
+:host ::ng-deep .p-paginator .p-paginator-current {
+    font-size: 11px;
+}
+
+.text-wrap {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    line-height: 1.4 !important;
 }
 
 .box {
-  height: 100%;
-  width: 100%;
+    height: 100%;
+    width: 100%;
 }
 
 .card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  max-height: 93vh;
-  overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
 }
 
 .card-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .card-body>div {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.ant-splitter-panel {
-  position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .ant-splitter {
-  height: 93vh !important;
+    height: 93vh !important;
 }
 
 .fs-12 {
-  font-size: 12px;
+    font-size: 12px;
 }
 
-.btn {
-  font-size: 12px;
+.badge {
+    color: #fff;
+    font-weight: 500;
+    border-radius: 4px;
+    font-size: 11px;
 }
 
-/* Search form positioning and z-index fixes */
-.filter-bar {
-  position: relative;
-  z-index: 10;
-  background: #f8f9fa;
-  border-bottom: 1px solid #dee2e6;
+/* Search Bar - Inline compact flex row (matching ProjectTask pattern) */
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    border-bottom: 1px solid #e8e8e8;
+    background: #fafafa;
+    flex-wrap: wrap;
 }
 
-/* Ensure buttons stay above search form on desktop */
-.card-header {
-  position: relative;
-  z-index: 20;
-  background: white;
+.search-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-/* Mobile modal styles */
+.search-label {
+    font-size: 12px;
+    color: #595959;
+    white-space: nowrap;
+}
+
+.search-select {
+    min-width: 160px;
+    max-width: 200px;
+}
+
+.search-input-select {
+    height: 30px;
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background: #fff;
+    color: #595959;
+    min-width: 130px;
+    outline: none;
+    cursor: pointer;
+}
+
+.search-input-select:focus {
+    border-color: #1890ff;
+}
+
+.btn-search {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background: #1890ff;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-search:hover {
+    background: #40a9ff;
+}
+
+.btn-search.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-reset {
+    display: flex;
+    align-items: center;
+    padding: 4px 12px;
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    color: #595959;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    height: 30px;
+}
+
+.btn-reset:hover {
+    border-color: #1890ff;
+    color: #1890ff;
+}
+
+/* Mobile styles */
 @media (max-width: 768px) {
-  .filter-bar.mobile-modal {
-    position: fixed;
-    top: 60px;
-    left: 0;
-    right: 0;
-    z-index: 1050;
+    .search-bar.mobile-modal {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        background: white;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        max-height: 70vh;
+        overflow-y: auto;
+        margin: 16px;
+        border-radius: 8px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-bar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .search-select {
+        min-width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .filter-backdrop {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1040;
+    }
+}
+
+.table-container {
+    width: 100%;
+    height: 100%;
     background: white;
-    border-bottom: 1px solid #dee2e6;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    max-height: 70vh;
-    overflow-y: auto;
-    margin: 16px;
-    border-radius: 8px;
-  }
-
-  .filter-backdrop {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 1040;
-  }
 }
 
-/* Desktop - keep search form always visible */
-@media (min-width: 769px) {
-  .filter-backdrop {
-    display: none !important;
-  }
-
-  .filter-bar {
-    position: static !important;
-    z-index: 1 !important;
-  }
+::ng-deep .p-component.p-inputtext {
+    font-size: 12px;
+    padding: 0;
+    width: 100% !important;
 }
 
-/* Grid container */
-#demo-container,
-.grid-container {
-  width: 100% !important;
-  height: 100% !important;
-  overflow: visible !important;
+::ng-deep p-columnfilterformelement {
+    width: 100% !important;
 }
 
-/* Ensure grid fills the container */
-::ng-deep #grvAssetManagement {
-  min-height: 54vh !important;
+/* Fix z-index for paginator dropdown/select */
+::ng-deep .p-paginator .p-select-panel,
+::ng-deep .p-paginator .p-dropdown-panel {
+    z-index: 99999 !important;
 }
 
-/* SlickGrid styles */
-::ng-deep #demo-container .slickgrid-container {
-  font-size: 12px !important;
-  height: 100% !important;
-  min-height: 52 0px !important;
-  overflow: visible !important;
-}
-
-::ng-deep .slick-header-column {
-  font-size: 12px !important;
-  font-weight: bold;
-}
-
-::ng-deep .slick-cell {
-  font-size: 12px !important;
-}
-
-::ng-deep .slick-footerrow-cell {
-  font-size: 12px !important;
-  font-weight: bold;
-  background-color: #f0f0f0 !important;
-  border-top: 2px solid #1677ff !important;
-}
-
-::ng-deep .slick-footerrow {
-  background-color: #f0f0f0 !important;
-}
-
-/* Cell wrap class */
-::ng-deep .cell-wrap {
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+::ng-deep .p-paginator .p-select,
+::ng-deep .p-paginator .p-dropdown {
+    position: relative;
 }

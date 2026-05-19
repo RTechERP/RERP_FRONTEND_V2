@@ -897,6 +897,12 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 Deliver: this.selectedRow.Deliver,
                 EmployeeReceiverName: this.selectedRow.EmployeeReceiverName,
                 DepartmentName: this.selectedRow.DepartmentName,
+                ReceiverID: this.selectedRow.ReceiverID,
+                DepartmentID: this.selectedRow.DepartmentID,
+                SupplierID: this.selectedRow.SupplierID,
+                Receiver: this.selectedRow.Receiver,
+                Address: this.selectedRow.Address,
+
             },
             details: details.map((item: any) => ({
                 ProductCode: item.ProductCode,

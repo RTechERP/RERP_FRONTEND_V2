@@ -1,0 +1,8 @@
+.grid-container {
+    border: 1px solid #ddd;
+}
+
+:host ::ng-deep .slick-header-column {
+    background-color: #f8f9fa !important;
+    font-weight: bold;
+}

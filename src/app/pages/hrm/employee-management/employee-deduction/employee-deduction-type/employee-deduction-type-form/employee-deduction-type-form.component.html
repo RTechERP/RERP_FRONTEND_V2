@@ -1,0 +1,72 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-uppercase text-white">
+    {{ title }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body fs-12">
+  <nz-spin [nzSpinning]="isLoading">
+    <form nz-form [formGroup]="validateForm" nzLayout="vertical">
+      <nz-row [nzGutter]="16">
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="mb-2">
+            <nz-form-label nzRequired style="font-size: 12px;">Mã loại phạt</nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng nhập mã loại phạt!">
+              <input nz-input formControlName="DeductionTypeCode" placeholder="Nhập mã loại phạt" nzSize="small" />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="mb-2">
+            <nz-form-label nzRequired style="font-size: 12px;">Tên loại phạt</nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng nhập tên loại phạt!">
+              <input nz-input formControlName="DeductionTypeName" placeholder="Nhập tên loại phạt" nzSize="small" />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="mb-2">
+            <nz-form-label nzRequired style="font-size: 12px;">Số tiền mức 1 (VNĐ)</nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng nhập số tiền mức 1!">
+              <nz-input-number [nzPrecision]="0" formControlName="MoneyLevel1" [nzMin]="0" [nzStep]="1000"
+                nzPlaceHolder="Nhập số tiền 1" nzSize="small" class="w-100" [nzFormatter]="formatterVND"
+                [nzParser]="parserVND"></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="mb-2">
+            <nz-form-label nzRequired style="font-size: 12px;">Số tiền mức 2 (VNĐ)</nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng nhập số tiền mức 2!">
+              <nz-input-number [nzPrecision]="0" formControlName="MoneyLevel2" [nzMin]="0" [nzStep]="1000"
+                nzPlaceHolder="Nhập số tiền 2" nzSize="small" class="w-100" [nzFormatter]="formatterVND"
+                [nzParser]="parserVND"></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="24">
+          <nz-form-item class="mb-0">
+            <nz-form-label style="font-size: 12px;">Ghi chú</nz-form-label>
+            <nz-form-control>
+              <textarea nz-input formControlName="Note" placeholder="Nhập ghi chú" nzSize="small" [nzAutosize]="{ minRows: 2, maxRows: 4 }"></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </form>
+  </nz-spin>
+</div>
+
+<div class="modal-footer fs-12 p-2">
+  <button nz-button type="button" nzType="default" (click)="onCancel()" [nzLoading]="isLoading">
+    Hủy
+  </button>
+  <button nz-button type="button" nzType="primary" (click)="onSave()" [nzLoading]="isLoading">
+    Lưu
+  </button>
+</div>

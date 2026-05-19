@@ -65,12 +65,13 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import * as ExcelJS from 'exceljs';
-import { NOTIFICATION_TITLE } from '../../../app.config';
+import { NOTIFICATION_TITLE, EMPLOYEE_ID_LIST_DOWNLOAD_FILE_YCHXD_SUMMARY } from '../../../app.config';
 import { RequestInvoiceService } from '../request-invoice/request-invoice-service/request-invoice-service.service'
 import { RequestInvoiceStatusLinkComponent } from '../request-invoice-status-link/request-invoice-status-link.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { ActivatedRoute } from '@angular/router';
 import { Menubar } from 'primeng/menubar';
+import { AppUserService } from '../../../services/app-user.service';
 
 // Custom formatter for checkbox display
 const checkboxFormatter: Formatter = (row, cell, value, columnDef, dataContext) => {
@@ -174,6 +175,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         private requestInvoiceService: RequestInvoiceService,
         private viewPokhService: ViewPokhService,
         private route: ActivatedRoute,
+        private appUserService: AppUserService,
         @Optional() @Inject('tabData') private tabData: any
     ) {
         // Nhận data từ tab nếu có
@@ -185,6 +187,14 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
     menuBars: any[] = [];
 
     initMenuBar() {
+        const currentEmployeeId = this.appUserService.employeeID ?? 0;
+        const currentUser = this.appUserService.currentUser;
+        const hasN1Permission = currentUser?.Permissions ? currentUser.Permissions.split(',').includes('N1') : false;
+        
+        const canDownload = EMPLOYEE_ID_LIST_DOWNLOAD_FILE_YCHXD_SUMMARY.includes(currentEmployeeId) 
+            || this.appUserService.isAdmin 
+            || hasN1Permission;
+
         this.menuBars = [
             {
                 label: 'Xuất Excel',
@@ -193,13 +203,13 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                     this.exportToExcel();
                 }
             },
-            {
+            ...(canDownload ? [{
                 label: 'Tải file',
                 icon: 'fa-solid fa-download fa-lg text-primary',
                 command: () => {
                     this.downloadBatchFiles();
                 }
-            },
+            }] : []),
             {
                 label: 'Quản lý trạng thái',
                 icon: 'fa-solid fa-list-check fa-lg text-warning',
@@ -414,6 +424,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             { key: 'Note', width: 30 },
             { key: 'ProductNewCode', width: 15 },
             { key: 'ProductCode', width: 20 },
+            { key: 'ProductCodeOfSupplier', width: 20 },
             { key: 'GuestCode', width: 20 },
             { key: 'ProductName', width: 30 },
             { key: 'Unit', width: 10 },
@@ -438,19 +449,19 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         ];
 
         // Add Band Row (Row 1)
-        const bandValues = new Array(27).fill('');
+        const bandValues = new Array(28).fill('');
         bandValues.push('Thông tin đầu vào');
         const bandRow = worksheet.addRow(bandValues);
 
         // Merge cells for Band
-        worksheet.mergeCells('A1:AA1');
-        worksheet.mergeCells('AB1:AH1');
+        worksheet.mergeCells('A1:AB1');
+        worksheet.mergeCells('AC1:AI1');
 
         // Add Header Row (Row 2)
         const headerRow = worksheet.addRow([
             'Yêu cầu gấp', 'Deadline', 'Trạng thái', 'Mã lệnh', 'Tờ khai HQ',
             'Lý do yêu cầu bổ sung', 'Người yêu cầu', 'Khách hàng', 'Địa chỉ', 'Công ty bán',
-            'Ghi chú', 'Mã nội bộ', 'Mã sản phẩm', 'Mã theo khách', 'Tên sản phẩm',
+            'Ghi chú', 'Mã nội bộ', 'Mã sản phẩm', 'Mã sản phẩm NCC', 'Mã theo khách', 'Tên sản phẩm',
             'ĐVT', 'Số lượng', 'Mã dự án', 'Dự án', 'Ghi chú (Chi tiết)',
             'Thông số kỹ thuật', 'Số hóa đơn', 'Ngày hóa đơn', 'Số PO', 'Đơn giá trước VAT', 'Tổng tiền trước VAT', 'Mã PO',
             'Ngày đặt hàng', 'Ngày hàng về', 'Nhà cung cấp', 'Hóa đơn đầu vào', 'Ngày hàng về dự kiến', 'PNK', 'Công ty nhập'
@@ -506,6 +517,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 Note: item.Note,
                 ProductNewCode: item.ProductNewCode,
                 ProductCode: item.ProductCode,
+                ProductCodeOfSupplier: item.ProductCodeOfSupplier,
                 GuestCode: item.GuestCode,
                 ProductName: item.ProductName,
                 Unit: item.Unit,
@@ -584,12 +596,14 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 RequestInvoiceID: item.RequestInvoiceID ?? item.ID,
                 POKHId: item.POKHID ?? item.PokhId ?? item.POKHId,
                 CompanyText: companyText,
-                InvoiceNumber: item.InvoiceNumber || ''
+                InvoiceNumber: item.InvoiceNumber || '',
+                InvoiceDate: item.InvoiceDate || '',
+                PONumber: item.PONumber || ''
             };
         });
 
-        // get unique payload by RequestInvoiceID
-        const uniquePayload = Array.from(new Map(payload.map((item: any) => [item.RequestInvoiceID, item])).values());
+        // get unique payload by RequestInvoiceID and POKHId
+        const uniquePayload = Array.from(new Map(payload.map((item: any) => [`${item.RequestInvoiceID}_${item.PONumber}`, item])).values());
 
         if (uniquePayload.length === 0) {
             this.notification.warning('Thông báo', 'Không tìm thấy dữ liệu hợp lệ trong các dòng đã chọn!');
@@ -602,7 +616,36 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             next: (response) => {
                 this.message.remove(loadingMsg);
                 if (response && response.status === 1) {
-                    this.notification.success('Thông báo', 'Đã lưu file thành công!');
+                    let savedPath = '';
+                    let errorFilesHtml = '';
+
+                    // Nếu trả về object chứa baseDestPath và errorFiles
+                    if (response.data && typeof response.data === 'object') {
+                        savedPath = response.data.baseDestPath || '';
+                        
+                        if (response.data.errorFiles && Array.isArray(response.data.errorFiles) && response.data.errorFiles.length > 0) {
+                            const errors = response.data.errorFiles.map((f: string) => `<li>${f}</li>`).join('');
+                            errorFilesHtml = `<br><br><b class="text-danger">Các file lỗi không copy được:</b><br><ul class="text-danger" style="max-height: 150px; overflow-y: auto;">${errors}</ul>`;
+                        }
+                    } else {
+                        // Nếu trả về string như cũ
+                        savedPath = response.data || '';
+                    }
+
+                    if (!savedPath && response.message) {
+                        savedPath = response.message;
+                    }
+
+                    this.modal.success({
+                        nzTitle: 'Tải file thành công',
+                        nzContent: savedPath
+                            ? `Đã lưu file thành công!<br><br><b>Đường dẫn:</b><br>${savedPath}${errorFilesHtml}`
+                            : `Đã lưu file thành công!${errorFilesHtml}`,
+                        nzOkText: 'Đóng',
+                        nzClosable: true,
+                        nzMaskClosable: false,
+                        nzWidth: errorFilesHtml ? 600 : 416
+                    });
                 } else {
                     this.notification.error('Thông báo', response?.message || 'Có lỗi xảy ra!');
                 }
@@ -943,6 +986,20 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 columnGroup: 'Chung',
                 columnGroupKey: 'Chung',
                 width: 150,
+                minWidth: 150,
+                sortable: true,
+                filterable: true,
+                type: FieldType.string,
+                formatter: this.commonTooltipFormatter,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: 'ProductCodeOfSupplier',
+                name: 'Mã sản phẩm NCC',
+                field: 'ProductCodeOfSupplier',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
+                width: 190,
                 minWidth: 150,
                 sortable: true,
                 filterable: true,

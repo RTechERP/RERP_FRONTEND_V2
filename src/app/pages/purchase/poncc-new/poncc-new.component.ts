@@ -7,6 +7,8 @@ import {
   OnDestroy,
   ElementRef,
   ChangeDetectorRef,
+  Optional,
+  Inject,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
@@ -39,12 +41,11 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { SupplierSaleService } from '../supplier-sale/supplier-sale.service';
 import { NzSpinComponent } from 'ng-zorro-antd/spin';
 import { PonccDetailComponent } from '../poncc/poncc-detail/poncc-detail.component';
-import { PonccSummaryComponent } from '../poncc/poncc-summary/poncc-summary.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { BillImportDetailComponent } from '../../old/Sale/BillImport/Modal/bill-import-detail/bill-import-detail.component';
 import { firstValueFrom, forkJoin, of } from 'rxjs';
-import ExcelJS from 'exceljs';
+import * as ExcelJS from 'exceljs';
 import { BillImportTechnicalComponent } from '../../old/bill-import-technical/bill-import-technical.component';
 import { BillImportTechnicalFormComponent } from '../../old/bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -53,11 +54,15 @@ import { DateTime } from 'luxon';
 import { environment } from '../../../../environments/environment';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { SafeUrlPipe } from '../../../../safeUrl.pipe';
-import { PaymentOrderDetailComponent } from '../../general-category/payment-order/payment-order-detail/payment-order-detail.component';
+import { PaymentOrderDetailOldComponent } from '../../general-category/payment-order-detail-old/payment-order-detail-old.component';
+import { PaymentOrder } from '../../general-category/payment-order/model/payment-order';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { BillImportDetailNewComponent } from '../../old/Sale/BillImport/bill-import-new/bill-import-detail-new/bill-import-detail-new.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
+import { PonccSummaryComponent } from '../poncc/poncc-summary/poncc-summary.component';
+import { PonccSummaryNewComponent } from '../poncc/poncc-summary/poncc-summary-new/poncc-summary-new.component';
+import { ActivityLogPonccComponent } from '../poncc/activity-log-poncc/activity-log-poncc.component';
 
 (pdfMake as any).vfs = vfs;
 (pdfMake as any).fonts = {
@@ -137,6 +142,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
   language: string = 'vi';
   dataPrint: any;
   tabs: PoTab[] = [];
+  isPriceRequest: boolean = false;
 
   // PrimeNG MenuBar
   menuItems: MenuItem[] = [];
@@ -179,6 +185,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Map to store details for each master PONCC ID
   private masterDetailsMap: Map<number, any[]> = new Map();
+  // Map to store selected detail IDs per master (null = select all)
+  private masterSelectedDetailIdsMap: Map<number, Set<string>> = new Map();
+  private filterPatchObserver: MutationObserver | null = null;
 
   constructor(
     private srv: PONCCService,
@@ -190,12 +199,27 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     private modalService: NgbModal,
     private cdr: ChangeDetectorRef,
     public appUserService: AppUserService,
-    private tabService: TabServiceService
+    private tabService: TabServiceService,
+    private elementRef: ElementRef,
+    @Optional() @Inject('tabData') public tabData?: any
   ) {
     this.employeeId = this.appUserService.employeeID || 0;
   }
 
   ngOnInit(): void {
+    if (this.tabData) {
+      if (this.tabData.dateStart) {
+        this.dateStart = new Date(this.tabData.dateStart);
+      }
+      if (this.tabData.dateEnd) {
+        this.dateEnd = new Date(this.tabData.dateEnd);
+      }
+      if (this.tabData.employeeId !== undefined && this.tabData.employeeId !== null) {
+        this.employeeId = this.tabData.employeeId;
+      }
+      this.isPriceRequest = this.tabData.isPriceRequest || false;
+    }
+
     this.loadLookups();
     this.initGridColumns();
     this.initGridOptions();
@@ -210,6 +234,10 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.tabOpenedSub?.unsubscribe();
+    if (this.filterPatchObserver) {
+      this.filterPatchObserver.disconnect();
+      this.filterPatchObserver = null;
+    }
   }
 
   ngAfterViewInit(): void {
@@ -221,6 +249,55 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.onSearch();
       }, 100);
     }, 200);
+    setTimeout(() => this.patchSlickGridFilterInputs(), 600);
+  }
+
+  /**
+   * Fix: SlickGrid filter inputs không nhận change khi Ctrl+X, Delete, Backspace trên text đang bôi đen.
+   */
+  private patchSlickGridFilterInputs(): void {
+    const container = this.elementRef.nativeElement as HTMLElement;
+
+    const applyPatch = (input: HTMLInputElement) => {
+      if (input.dataset['filterPatched']) return;
+      input.dataset['filterPatched'] = '1';
+
+      input.addEventListener('cut', () => {
+        setTimeout(() => input.dispatchEvent(new Event('input', { bubbles: true })), 10);
+      });
+
+      input.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          const hasSelection = (input.selectionStart ?? 0) !== (input.selectionEnd ?? 0);
+          if (hasSelection) {
+            setTimeout(
+              () => input.dispatchEvent(new Event('input', { bubbles: true })),
+              10
+            );
+          }
+        }
+      });
+    };
+
+    container
+      .querySelectorAll<HTMLInputElement>('.slick-headerrow-column input')
+      .forEach(applyPatch);
+
+    this.filterPatchObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of Array.from(mutation.addedNodes)) {
+          if (node instanceof HTMLElement) {
+            node.querySelectorAll<HTMLInputElement>(
+              '.slick-headerrow-column input'
+            ).forEach(applyPatch);
+            if (node instanceof HTMLInputElement && node.closest('.slick-headerrow-column')) {
+              applyPatch(node);
+            }
+          }
+        }
+      }
+    });
+    this.filterPatchObserver.observe(container, { childList: true, subtree: true });
   }
 
   toggleSearchPanel() {
@@ -1389,11 +1466,18 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private toLocalISOString(date: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${String(date.getMilliseconds()).padStart(3, '0')}`;
+  }
+
   onSearch(): void {
     this.isLoading = true;
+    const start = new Date(this.dateStart); start.setHours(0, 0, 0, 0);
+    const end = new Date(this.dateEnd); end.setHours(23, 59, 59, 999);
     const filter = {
-      DateStart: new Date(this.dateStart.setHours(0, 0, 0, 0)).toISOString(),
-      DateEnd: new Date(this.dateEnd.setHours(23, 59, 59, 999)).toISOString(),
+      DateStart: this.toLocalISOString(start),
+      DateEnd: this.toLocalISOString(end),
       Status: this.status,
       SupplierID: this.supplierId || 0,
       EmployeeID: this.employeeId || 0,
@@ -1525,6 +1609,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
               this.datasetDetail = [];
               this.sizeTbDetail = '0';
               this.masterDetailsMap.clear();
+              this.masterSelectedDetailIdsMap.clear();
               this.cdr.detectChanges();
             }
           }
@@ -1564,9 +1649,14 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private handleMasterSelectionChange(selectedMasters: any[]): void {
     const selectedIds = selectedMasters.map((m) => m.ID);
+
     // Nếu không còn master nào → clear hết
     if (selectedIds.length === 0) {
+      // Save selection của master hiện tại trước khi clear (ví dụ user xóa filter header)
+      this.saveCurrentDetailSelection();
+
       this.masterDetailsMap.clear();
+      // Không clear masterSelectedDetailIdsMap: giữ selection đã save để restore khi user re-select masters
       this.lastMasterId = null;
       this.datasetDetail = [];
       this.sizeTbDetail = '0';
@@ -1576,9 +1666,20 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.sizeTbDetail = '38%';
 
-    const latestMaster = selectedMasters[selectedMasters.length - 1];
-    if (latestMaster) {
-      this.poCode = latestMaster.POCode;
+    // Ưu tiên row đang được focus (active cell) nếu nằm trong selection
+    const currentGrid = this.activeTabIndex === 0
+      ? this.angularGridPoThuongMai
+      : this.angularGridPoMuon;
+    const activeCell = currentGrid?.slickGrid?.getActiveCell();
+    const activeMaster = activeCell != null
+      ? currentGrid!.dataView.getItem(activeCell.row)
+      : null;
+    const focusedMaster = (activeMaster && selectedIds.includes(activeMaster.ID))
+      ? activeMaster
+      : selectedMasters[selectedMasters.length - 1];
+
+    if (focusedMaster) {
+      this.poCode = focusedMaster.POCode;
     }
 
     const newMasterIds = selectedIds.filter(
@@ -1587,28 +1688,19 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     const deselectedIds = Array.from(this.masterDetailsMap.keys()).filter(
       (id) => !selectedIds.includes(id)
     );
-    deselectedIds.forEach((id) => this.masterDetailsMap.delete(id));
+
+    deselectedIds.forEach((id) => {
+      this.masterDetailsMap.delete(id);
+      this.masterSelectedDetailIdsMap.delete(id);
+    });
 
     if (newMasterIds.length > 0) {
-      const latestMasterId = newMasterIds[newMasterIds.length - 1];
 
-      if (this.lastMasterId && this.masterDetailsMap.has(this.lastMasterId)) {
-        const currentSelectedDetails = this.getSelectedDetailRows();
-        if (currentSelectedDetails.length > 0) {
-          const selectedDetailIds = new Set(
-            currentSelectedDetails.map((d: any) => d.ID)
-          );
+      const latestMasterId = (activeMaster && newMasterIds.includes(activeMaster.ID))
+        ? activeMaster.ID
+        : newMasterIds[newMasterIds.length - 1];
 
-          const oldDetails = this.masterDetailsMap.get(this.lastMasterId) || [];
-          const filtered = oldDetails.filter((d) => selectedDetailIds.has(d.ID));
-
-          if (filtered.length > 0) {
-            this.masterDetailsMap.set(this.lastMasterId, filtered);
-          }
-          // Nếu filtered rỗng → giữ nguyên toàn bộ detail của master cũ
-        }
-        // Nếu không có row nào được chọn (do timing auto-select chưa chạy) → giữ nguyên
-      }
+      this.saveCurrentDetailSelection();
       this.lastMasterId = latestMasterId;
 
       this.isLoading = true;
@@ -1672,34 +1764,55 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         });
       });
     } else {
-      const lastSelectedId = selectedIds[selectedIds.length - 1];
-      this.lastMasterId = lastSelectedId;
-      this.displayDetailsForMaster(lastSelectedId);
+      const focusedId = focusedMaster?.ID ?? selectedIds[selectedIds.length - 1];
+
+      this.saveCurrentDetailSelection();
+      this.lastMasterId = focusedId;
+      this.displayDetailsForMaster(focusedId);
+    }
+  }
+
+  private saveCurrentDetailSelection(): void {
+    if (this.lastMasterId == null || !this.angularGridDetail) return;
+    const selectedIndexes = this.angularGridDetail.slickGrid.getSelectedRows();
+    const allDetails = this.masterDetailsMap.get(this.lastMasterId) || [];
+    if (selectedIndexes.length === allDetails.length) {
+      // Select all → không cần lưu
+
+      this.masterSelectedDetailIdsMap.delete(this.lastMasterId);
+    } else {
+      const selectedIds = new Set(
+        selectedIndexes
+          .map((i: number) => this.angularGridDetail.dataView.getItem(i))
+          .filter(Boolean)
+          .map((item: any) => String(item.id))
+      );
+
+      this.masterSelectedDetailIdsMap.set(this.lastMasterId, selectedIds);
     }
   }
 
   private displayDetailsForMaster(masterId: number): void {
     const details = this.masterDetailsMap.get(masterId) || [];
+
     this.datasetDetail = details;
-    // Sync to all data map for filters
     this.datasetsAllMapDetail = [...details];
     this.cdr.detectChanges();
-    // Resize detail grid sau khi data được set
     if (this.angularGridDetail) {
       setTimeout(() => {
         this.angularGridDetail.resizerService.resizeGrid();
-        // Apply distinct filters after detail data is loaded
-        this.applyDistinctFilters();
-        // Update footer row for detail grid
+        this.applyDistinctFiltersDetailOnly();
         this.updateDetailFooterRow();
 
-        // Tự động select all các dòng detail
         if (details.length > 0) {
-          const allRowIndexes = Array.from(
-            { length: details.length },
-            (_, i) => i
-          );
-          this.angularGridDetail.slickGrid.setSelectedRows(allRowIndexes);
+          const savedIds = this.masterSelectedDetailIdsMap.get(masterId);
+          const rowIndexes = savedIds
+            ? details
+              .map((item: any, i: number) => savedIds.has(String(item.id)) ? i : -1)
+              .filter((i: number) => i !== -1)
+            : Array.from({ length: details.length }, (_, i) => i);
+
+          this.angularGridDetail.slickGrid.setSelectedRows(rowIndexes);
         }
       }, 100);
     }
@@ -1710,9 +1823,11 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.angularGridDetail) return [];
     const selectedIndexes = this.angularGridDetail.slickGrid.getSelectedRows();
     if (!selectedIndexes || selectedIndexes.length === 0) return [];
-    return selectedIndexes
+    const result = selectedIndexes
       .map((index: number) => this.angularGridDetail.dataView.getItem(index))
       .filter((item: any) => item);
+
+    return result;
   }
 
   private getSelectedMasterRows(): any[] {
@@ -1792,10 +1907,42 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     updateGrid(this.angularGridPoMuon, this.columnDefinitionsMaster);
     updateGrid(this.angularGridDetail, this.columnDefinitionsDetail);
 
-    // Update footer row sau khi grid đã được refresh
     setTimeout(() => {
       this.updateMasterFooterRow();
     }, 200);
+  }
+
+  private applyDistinctFiltersDetailOnly(): void {
+    if (!this.angularGridDetail?.slickGrid || !this.angularGridDetail.dataView) return;
+    const data = this.angularGridDetail.dataView.getItems() as any[];
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (field: string) => {
+      const map = new Map<string, string>();
+      data.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) map.set(value, value);
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const columns = this.angularGridDetail.slickGrid.getColumns();
+    columns.forEach((column: any) => {
+      if (column?.filter?.model === Filters['multipleSelect'] && column.field) {
+        column.filter.collection = getUniqueValues(column.field);
+      }
+    });
+    this.columnDefinitionsDetail.forEach((colDef: any) => {
+      if (colDef?.filter?.model === Filters['multipleSelect'] && colDef.field) {
+        colDef.filter.collection = getUniqueValues(colDef.field);
+      }
+    });
+
+    this.angularGridDetail.slickGrid.setColumns(this.angularGridDetail.slickGrid.getColumns());
+    this.angularGridDetail.slickGrid.invalidate();
+    this.angularGridDetail.slickGrid.render();
   }
 
 
@@ -1827,12 +1974,9 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         : this.angularGridPoMuon;
 
     if (currentGrid && currentGrid.slickGrid) {
-      // Lấy dữ liệu đã lọc trên view thay vì toàn bộ dữ liệu
-      const items =
-        (currentGrid.dataView?.getFilteredItems?.() as any[]) ||
-        (this.activeTabIndex === 0
-          ? this.datasetPoThuongMai
-          : this.datasetPoMuon);
+      const items: any[] = this.activeTabIndex === 0
+        ? this.datasetPoThuongMai
+        : this.datasetPoMuon;
 
       // Đếm số lượng POCode
       const poCodeCount = (items || []).filter((item) => item.POCode).length;
@@ -1847,8 +1991,6 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         (sum, item) => sum + (Number(item.TotalMoneyPO) || 0),
         0
       );
-
-      currentGrid.slickGrid.setFooterRowVisibility(true);
 
       // Set footer values cho từng column
       const columns = currentGrid.slickGrid.getColumns();
@@ -1883,10 +2025,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   updateDetailFooterRow(): void {
     if (this.angularGridDetail && this.angularGridDetail.slickGrid) {
-      // Lấy dữ liệu đã lọc trên view thay vì toàn bộ dữ liệu
-      const items =
-        (this.angularGridDetail.dataView?.getFilteredItems?.() as any[]) ||
-        this.datasetDetail;
+      const items: any[] = this.datasetDetail;
 
       // Danh sách các cột cần tính sum
       const sumColumns = [
@@ -1971,95 +2110,27 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       this.applyDistinctFilters();
     }, 100);
 
-    // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
-    if (angularGrid.dataView) {
-      // angularGrid.dataView.onRowCountChanged.subscribe(() => {
-      //   setTimeout(() => {
-      //     this.applyDistinctFilters();
-      //   }, 100);
-      // });
-    }
-
-    // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
-    if (angularGrid.slickGrid) {
-      angularGrid.slickGrid.onRendered.subscribe(() => {
-        setTimeout(() => {
-          this.updateMasterFooterRow();
-        }, 50);
-      });
-    }
-
-    // if (angularGrid.slickGrid) {
-    //   angularGrid.slickGrid.onActiveCellChanged.subscribe((e, args) => {
-    //     setTimeout(() => {
-    //       console.log(args.row);
-    //       this.onActiveRowChanged(args.row);
-    //     }, 50);
-    //   });
-    // }
   }
 
 
   angularGridPoMuonReady(angularGrid: AngularGridInstance) {
     this.angularGridPoMuon = angularGrid;
 
-    // Resize grid sau khi container đã render
     setTimeout(() => {
       angularGrid.resizerService.resizeGrid();
-      // Apply distinct filters for this grid after it's ready (updateMasterFooterRow is called inside)
       this.applyDistinctFilters();
     }, 100);
-
-    // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
-    if (angularGrid.dataView) {
-      // angularGrid.dataView.onRowCountChanged.subscribe(() => {
-      //   setTimeout(() => {
-      //     this.applyDistinctFilters();
-      //   }, 100);
-      // });
-    }
-
-    // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
-    if (angularGrid.slickGrid) {
-      angularGrid.slickGrid.onRendered.subscribe(() => {
-        setTimeout(() => {
-          this.updateMasterFooterRow();
-        }, 50);
-      });
-    }
   }
 
 
   angularGridDetailReady(angularGrid: AngularGridInstance) {
     this.angularGridDetail = angularGrid;
 
-    // Resize grid sau khi container đã render
     setTimeout(() => {
       angularGrid.resizerService.resizeGrid();
-      // Apply distinct filters for this grid after it's ready
       this.applyDistinctFilters();
-      // Update footer row
       this.updateDetailFooterRow();
     }, 100);
-
-    // Subscribe to dataView.onRowCountChanged để update filter collections khi data thay đổi (bao gồm filter)
-    if (angularGrid.dataView) {
-      // angularGrid.dataView.onRowCountChanged.subscribe(() => {
-      //   setTimeout(() => {
-      //     this.applyDistinctFilters();
-      //     this.updateDetailFooterRow();
-      //   }, 100);
-      // });
-    }
-
-    // Đăng ký sự kiện onRendered để đảm bảo footer luôn được render lại sau mỗi lần grid render
-    if (angularGrid.slickGrid) {
-      angularGrid.slickGrid.onRendered.subscribe(() => {
-        setTimeout(() => {
-          this.updateDetailFooterRow();
-        }, 50);
-      });
-    }
   }
 
 
@@ -2095,6 +2166,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.angularGridDetail.dataView.getItem(rowIndex)
       )
       .filter((item: any) => item);
+
 
     this.handleSelectionChange(selectedRows);
   }
@@ -2596,25 +2668,33 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
       nzOkType: 'primary',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        // Cập nhật masterDetailsMap với các detail đã chọn hiện tại
-        // Nếu có detail được chọn thì chỉ lấy detail đã chọn
-        // Nếu không có detail nào được chọn thì giữ nguyên tất cả detail của master
+        // Lưu selection của master đang hiển thị vào masterSelectedDetailIdsMap
         if (this.lastMasterId) {
           const currentSelectedDetails = this.getSelectedDetailRows();
-          if (currentSelectedDetails.length > 0) {
-            this.masterDetailsMap.set(
+          const allDetails = this.masterDetailsMap.get(this.lastMasterId) || [];
+          if (currentSelectedDetails.length === allDetails.length) {
+            this.masterSelectedDetailIdsMap.delete(this.lastMasterId);
+          } else {
+            this.masterSelectedDetailIdsMap.set(
               this.lastMasterId,
-              currentSelectedDetails
+              new Set(currentSelectedDetails.map((d: any) => String(d.id)))
             );
           }
         }
 
         const ids = selectedRows.map((x) => x.ID).join(',');
-        const idString = Array.from(this.masterDetailsMap.values())
-          .flat()
-          .map((x) => x.ID)
-          .filter((id) => id != null)
+        // Build idString: lọc từng master theo masterSelectedDetailIdsMap
+        // undefined = all selected; Set([]) = none; Set([...]) = chỉ các id đó
+        const idString = Array.from(this.masterDetailsMap.entries())
+          .flatMap(([masterId, details]: [number, any[]]) => {
+            const savedIds = this.masterSelectedDetailIdsMap.get(masterId);
+            if (savedIds === undefined) return details;
+            return details.filter((d: any) => savedIds.has(String(d.id)));
+          })
+          .map((x: any) => x.ID)
+          .filter((id: any) => id != null)
           .join(',');
+
 
         this.srv.getPonccDetail(ids, warehouseID, idString).subscribe((res) => {
           let dataSale = res.data.dataSale || [];
@@ -2788,6 +2868,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
   onMasterDblClick(event: any): void {
+    if (this.isPriceRequest) return;
     clearTimeout(this.clickTimer);
     const args = event?.args;
     const row = args?.row;
@@ -2805,15 +2886,21 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onOpenSummary() {
-    const modalRef = this.modalService.open(PonccSummaryComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-      windowClass: 'full-screen-modal',
+    this.tabService.openTabComp({
+      comp: PonccSummaryComponent,
+      title: 'Tổng hợp PONCC',
+      key: 'poncc-summary',
+      data: {}
     });
   }
-
+  onOpenSummaryKT() {
+    this.tabService.openTabComp({
+      comp: PonccSummaryNewComponent,
+      title: 'Tổng hợp PONCC KT',
+      key: 'poncc-summary-new',
+      data: {}
+    });
+  }
   onOpenPaymentOrder() {
     const selectedRows = this.getSelectedMasterRows();
     if (selectedRows.length === 0) {
@@ -2825,29 +2912,31 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     const selectedPO = selectedRows[0];
-    const modalRef = this.modalService.open(PaymentOrderDetailComponent, {
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-      windowClass: 'full-screen-modal',
+
+    const prefilledOrder = new PaymentOrder({
+      PONCCID: selectedPO.ID,
+      SupplierSaleID: selectedPO.SupplierSaleID,
+      ReceiverInfo: selectedPO.NameNCC || '',        // NameNCC có trong master row
+      Unit: (selectedPO.CurrencyText || 'vnd').toLowerCase(), // CurrencyText có trong master row
+      TypePayment: 1,
+      TypeOrder: 1, // Mặc định Đề nghị tạm ứng khi tạo từ PONCC
+      // AccountNumber / Bank KHÔNG có trong master row → loadDataFromPONCC() sẽ patch từ API
     });
 
+    const modalRef = this.modalService.open(PaymentOrderDetailOldComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      scrollable: true,
+      fullscreen: true,
+    });
+
+    modalRef.componentInstance.paymentOrder = prefilledOrder;
     modalRef.componentInstance.ponccID = selectedPO.ID;
 
     modalRef.result.then(
-      (result) => {
-        // Handle modal close with result
-        if (result) {
-          this.notify.success(
-            NOTIFICATION_TITLE.success,
-            'Tạo phiếu đề nghị thanh toán thành công'
-          );
-        }
-      },
-      (reason) => {
-        // Handle modal dismiss
-        console.log('Modal dismissed:', reason);
-      }
+      () => { },
+      () => { }
     );
   }
   onCreatePDFLanguageVi(data: any, isShowSign: boolean, isShowSeal: boolean) {
@@ -3877,17 +3966,184 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         ],
       },
       {
+        label: 'Yc nhập kho vtth',
+        icon: 'fa-solid fa-warehouse fa-lg text-primary',
+        command: () => this.onImportWareHouseConsumer(),
+      },
+      {
         label: 'Tổng hợp',
         icon: 'fa-solid fa-chart-pie fa-lg text-info',
         command: () => this.onOpenSummary(),
+        visible: (this.appUserService.departmentID != 5 || this.appUserService.isAdmin)
+      },
+      {
+        label: 'Tổng hợp',
+        icon: 'fa-solid fa-chart-pie fa-lg text-info',
+        command: () => this.onOpenSummaryKT(),
+        visible: (this.appUserService.departmentID === 5 || this.appUserService.isAdmin)
       },
       {
         label: 'Đề nghị TT',
         icon: 'fa-solid fa-money-bill fa-lg text-success',
         command: () => this.onOpenPaymentOrder(),
       },
+      {
+        label: 'Lịch sử thao tác',
+        icon: 'fa-solid fa-history fa-lg text-success',
+        command: () => this.openLogActivityModal(),
+      },
     ];
+
+    if (this.isPriceRequest) {
+      this.menuItems = [];
+    }
+
   }
+
+  //#region Yêu cầu nhập kho riêng loại vạt tư
+  onImportWareHouseConsumer() {
+    const selectedRows = this.getSelectedMasterRows();
+
+    // Validate selection
+    if (!selectedRows || selectedRows.length <= 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn PO!'
+      );
+      return;
+    }
+
+    // Validate status - chỉ cho phép status 0 hoặc 5
+    for (const po of selectedRows) {
+      const id = po.ID || 0;
+      if (id <= 0) continue;
+
+      const status = po.Status || 0;
+      const statusText = po.StatusText || '';
+      const code = po.POCode || '';
+
+      if (status !== 0 && status !== 5) {
+        this.modal.warning({
+          nzTitle: 'Thông báo',
+          nzContent: `PO [${code}] đã ${statusText}.\nBạn không thể yêu cầu nhập kho!`,
+          nzOkText: 'Đóng',
+        });
+        return;
+      }
+    }
+
+    this.modal.confirm({
+      nzTitle: `Xác nhận yêu cầu nhập kho`,
+      nzContent: `Bạn có chắc muốn yêu cầu nhập kho danh sách PO đã chọn không?`,
+      nzOkText: 'OK',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        if (this.lastMasterId) {
+          const currentSelectedDetails = this.getSelectedDetailRowsConsumer();
+          if (currentSelectedDetails.length === 0) {
+            this.notification.warning(
+              NOTIFICATION_TITLE.warning,
+              'Không có sản phẩm được tạo từ loại vật tư tiêu hao để chuyển kho!'
+            );
+            return;
+          }
+          const allDetails = this.masterDetailsMap.get(this.lastMasterId) || [];
+          if (currentSelectedDetails.length === allDetails.length) {
+            this.masterSelectedDetailIdsMap.delete(this.lastMasterId);
+          } else {
+            this.masterSelectedDetailIdsMap.set(
+              this.lastMasterId,
+              new Set(currentSelectedDetails.map((d: any) => String(d.id)))
+            );
+          }
+        }
+
+        const ids = selectedRows.map((x) => x.ID).join(',');
+        const idString = Array.from(this.masterDetailsMap.entries())
+          .flatMap(([masterId, details]: [number, any[]]) => {
+            const savedIds = this.masterSelectedDetailIdsMap.get(masterId);
+            if (savedIds === undefined) return details;
+            return details.filter((d: any) => savedIds.has(String(d.id)));
+          })
+          .map((x: any) => x.ID)
+          .filter((id: any) => id != null)
+          .join(',');
+
+        this.srv.getPonccDetail(ids, 6, idString).subscribe((res) => {
+          let dataSale = res.data.dataSale || [];
+          let dataDemo = res.data.dataDemo || [];
+          let listSaleDetail = res.data.listSaleDetail || [];
+          let listDemoDetail = res.data.listDemoDetail || [];
+          let listDemoPonccId = res.data.listDemoPonccId || [];
+          let listSalePonccId = res.data.listSalePonccId || [];
+
+          if (dataSale.length > 0) {
+            this.openBillImportModalSequentially(
+              dataSale,
+              listSaleDetail,
+              listSalePonccId,
+              6,
+              0,
+              0
+            );
+          }
+
+          if (dataDemo.length > 0) {
+            this.openBillImportModalSequentially(
+              dataDemo,
+              listDemoDetail,
+              listDemoPonccId,
+              6,
+              0,
+              1
+            );
+          }
+        });
+      },
+    });
+  }
+
+  private getSelectedDetailRowsConsumer(): any[] {
+    const grid = this.angularGridDetail;
+    if (!grid) return [];
+
+    const selectedIndexes = grid.slickGrid.getSelectedRows();
+    if (!selectedIndexes?.length) return [];
+
+    return selectedIndexes.reduce((acc: any[], index: number) => {
+      const item = grid.dataView.getItem(index);
+      if (item?.ProjectPartlistPurchaseRequestTypeID === 8) acc.push(item);
+      return acc;
+    }, []);
+  }
+  //#endregion
+
+  //#region Lịch sử thao tác
+  openLogActivityModal() {
+    const selectedRows = this.getSelectedMasterRows();
+
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn một PO để sửa'
+      );
+      return;
+    }
+
+    const selectedPO = selectedRows[0];
+
+    let modalRef = this.modalService.open(ActivityLogPonccComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+      size: 'xl',
+    });
+
+    modalRef.componentInstance.ponccId = selectedPO.ID;
+    modalRef.componentInstance.ponccCode = selectedPO.POCode;
+  }
+  //#endregion
 }
 
 interface PoTab {

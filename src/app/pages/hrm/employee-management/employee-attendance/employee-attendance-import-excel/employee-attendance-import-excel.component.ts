@@ -6,6 +6,7 @@ import {
   OnInit,
   ViewChild,
   AfterViewInit,
+  TemplateRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -23,8 +24,8 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal'; // Thêm để hiển thị modal chi tiết
 import { EmployeeAttendanceService } from '../employee-attendance.service';
-  import { FormsModule } from '@angular/forms';
-  import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { FormsModule } from '@angular/forms';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 
 type AOA = any[][];
@@ -56,8 +57,7 @@ interface ExcelPreviewRow {
   ],
 })
 export class EmployeeAttendanceImportExcelComponent
-  implements OnInit, OnDestroy, AfterViewInit
-{
+  implements OnInit, OnDestroy, AfterViewInit {
   @Input() dateStart?: string;
   @Input() dateEnd?: string;
   @Input() departmentId?: number;
@@ -76,7 +76,7 @@ export class EmployeeAttendanceImportExcelComponent
   loading = false;
   saving = false;
   departments: any[] = [];
-  
+
   // Progress tracking
   progressCurrent = 0;
   progressTotal = 0;
@@ -87,6 +87,9 @@ export class EmployeeAttendanceImportExcelComponent
   @ViewChild('tb_excelPreview', { static: false }) tableElement!: ElementRef;
   @ViewChild('fileInput', { static: false })
   fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('errorModalContent', { static: false }) errorModalContent!: TemplateRef<any>;
+  
+  modalErrorData: any = {};
   private table?: Tabulator;
   previewData: ExcelPreviewRow[] = [];
   private workbook?: XLSX.WorkBook;
@@ -96,7 +99,7 @@ export class EmployeeAttendanceImportExcelComponent
     private noti: NzNotificationService,
     private modalSvc: NzModalService, // Thêm để hiển thị modal chi tiết
     private svc: EmployeeAttendanceService
-  ) {}
+  ) { }
   ngOnDestroy(): void {
     // Clear progress interval when component is destroyed
     if (this.progressInterval) {
@@ -116,8 +119,8 @@ export class EmployeeAttendanceImportExcelComponent
         let list = Array.isArray(res?.data)
           ? res.data
           : Array.isArray(res)
-          ? res
-          : [];
+            ? res
+            : [];
         list = list.filter((x: any) => (x.ID || 0) > 10);
         list.push({
           ID: 9, // hoặc một ID phù hợp
@@ -199,18 +202,18 @@ export class EmployeeAttendanceImportExcelComponent
   }
   onSheetChange(sheetName?: string): void {
     console.log('onSheetChange called with:', sheetName);
-  
+
     if (sheetName) {
       this.sheetName = sheetName;
     }
-  
+
     if (!this.workbook || !this.sheetName) {
       console.warn('No workbook or sheetName');
       return;
     }
-  
+
     console.log('Loading sheet:', this.sheetName);
-  
+
     const ws = this.workbook.Sheets[this.sheetName];
     if (!ws || !ws['!ref']) {
       this.previewData = [];
@@ -219,17 +222,17 @@ export class EmployeeAttendanceImportExcelComponent
       this.noti.warning('Cảnh báo', 'Sheet không có dữ liệu');
       return;
     }
-  
+
     // Đọc toàn bộ sheet dạng mảng 2 chiều, mỗi phần tử = 1 row
     const rawArray = XLSX.utils.sheet_to_json<any[]>(ws, {
       header: 1,
       defval: '',
       raw: false // convert về string/number
     });
-  
+
     console.log('Raw array length:', rawArray.length);
     console.log('First row:', rawArray[0]);
-  
+
     if (!rawArray || rawArray.length === 0) {
       this.previewData = [];
       this.headerTitles = [];
@@ -249,14 +252,14 @@ export class EmployeeAttendanceImportExcelComponent
       }
     }
     console.log('Header row index:', headerRowIndex, 'Row:', rawArray[headerRowIndex]);
-  
+
     const headerRow = rawArray[headerRowIndex] || [];
     const headers = headerRow
       .map((h: any) => String(h || '').trim())
       .filter((h: string) => h.length > 0 && !h.startsWith('__'));
-  
+
     console.log('Headers extracted:', headers);
-  
+
     if (headers.length === 0) {
       this.previewData = [];
       this.headerTitles = [];
@@ -264,9 +267,9 @@ export class EmployeeAttendanceImportExcelComponent
       this.noti.warning('Cảnh báo', 'Không tìm thấy header trong sheet');
       return;
     }
-  
+
     this.headerTitles = headers;
-  
+
     // ===== BUILD DATA TỪ SAU DÒNG HEADER =====
     this.previewData = rawArray
       .slice(headerRowIndex + 1) // dữ liệu bắt đầu sau dòng header thực sự
@@ -296,7 +299,7 @@ export class EmployeeAttendanceImportExcelComponent
 
           newRow[header] = value;
         });
-  
+
         // Tính cờ màu cho preview
         const dateStr = newRow['Ngày'] || newRow['AttendanceDate'] || '';
         const inStr = newRow['Giờ vào'] || newRow['CheckIn'] || '';
@@ -307,7 +310,7 @@ export class EmployeeAttendanceImportExcelComponent
         newRow.__overLate = flags.overLate;
         newRow.__isEarly = flags.isEarly;
         newRow.__overEarly = flags.overEarly;
-  
+
         return newRow;
       })
       .filter((row: ExcelPreviewRow) =>
@@ -320,14 +323,14 @@ export class EmployeeAttendanceImportExcelComponent
             row[key] !== undefined
         )
       );
-  
+
     console.log('✅ Data processed:', {
       dataLength: this.previewData.length,
       headerCount: this.headerTitles.length,
       headers: this.headerTitles,
       sampleRow: this.previewData[0]
     });
-  
+
     // Render table với delay để DOM đảm bảo đã update
     setTimeout(() => {
       this.renderTable();
@@ -335,7 +338,7 @@ export class EmployeeAttendanceImportExcelComponent
   }
   private normalizeDateCell(value: any): string {
     if (value === null || value === undefined || value === '') return '';
-  
+
     // Excel numeric serial date
     if (typeof value === 'number') {
       try {
@@ -350,7 +353,7 @@ export class EmployeeAttendanceImportExcelComponent
         console.warn('Date parse error (number):', e);
       }
     }
-  
+
     // Nếu là Date object
     if (value instanceof Date) {
       const d = String(value.getDate()).padStart(2, '0');
@@ -358,11 +361,11 @@ export class EmployeeAttendanceImportExcelComponent
       const y = value.getFullYear();
       return `${d}/${m}/${y}`;
     }
-  
+
     // Chuỗi kiểu mm/dd/yyyy hoặc dd/mm/yyyy...
     const s = String(value).trim();
     if (!s) return '';
-  
+
     const dObj = new Date(s);
     if (!isNaN(dObj.getTime())) {
       const d = String(dObj.getDate()).padStart(2, '0');
@@ -370,14 +373,14 @@ export class EmployeeAttendanceImportExcelComponent
       const y = dObj.getFullYear();
       return `${d}/${m}/${y}`;
     }
-  
+
     // fallback: trả lại chuỗi gốc
     return s;
   }
-  
+
   private normalizeTimeCell(value: any): string {
     if (value === null || value === undefined || value === '') return '';
-  
+
     // Excel time dạng số (fraction of day)
     if (typeof value === 'number') {
       try {
@@ -391,7 +394,7 @@ export class EmployeeAttendanceImportExcelComponent
         console.warn('Time parse error (number):', e);
       }
     }
-  
+
     // Nếu đã là string thì để nguyên
     return String(value).trim();
   }
@@ -536,14 +539,14 @@ export class EmployeeAttendanceImportExcelComponent
   }
   async save(): Promise<void> {
     if (!this.validateForm()) return;
-    
+
     // Reset progress
     this.progressCurrent = 0;
     this.progressTotal = 0;
     this.progressPercent = 0;
     this.progressText = 'Đang chuẩn bị...';
     this.saving = true;
-    
+
     // Cho phép đóng modal ngay sau khi bấm lưu (chạy async)
     // Modal sẽ tự đóng khi hoàn thành hoặc có lỗi
 
@@ -588,7 +591,7 @@ export class EmployeeAttendanceImportExcelComponent
         this.saving = false;
         return;
       }
-      
+
       // Kiểm tra deptId có hợp lệ không (sau khi convert)
       if (isNaN(deptId)) {
         this.noti.error(NOTIFICATION_TITLE.error, 'Văn phòng không hợp lệ');
@@ -620,17 +623,17 @@ export class EmployeeAttendanceImportExcelComponent
               row[key] !== null &&
               row[key] !== undefined
           );
-          
+
           if (!hasData) {
             filteredByEmpty++;
             return false;
           }
-          
+
           return true;
         })
         .map((row) => {
           const cleanedRow: Record<string, any> = {};
-          
+
           // Lặp qua tất cả các key trong row (trừ các field kỹ thuật __*)
           Object.keys(row).forEach((key) => {
             if (!key.startsWith('__')) {
@@ -638,7 +641,7 @@ export class EmployeeAttendanceImportExcelComponent
               cleanedRow[key] = row[key];
             }
           });
-          
+
           return cleanedRow;
         });
 
@@ -652,7 +655,7 @@ export class EmployeeAttendanceImportExcelComponent
       // Kiểm tra sau khi clean có còn dữ liệu không
       if (cleanedRows.length === 0) {
         this.noti.error(
-          NOTIFICATION_TITLE.error, 
+          NOTIFICATION_TITLE.error,
           `Không có dữ liệu hợp lệ để import. Tổng ${totalPreviewRows} dòng, đã lọc bỏ ${filteredBySTT} dòng (STT <= 0) và ${filteredByEmpty} dòng trống.`
         );
         this.saving = false;
@@ -664,14 +667,14 @@ export class EmployeeAttendanceImportExcelComponent
       // Backend sẽ parse và dùng .Date để lấy ngày (bỏ qua giờ)
       const dateStartISO = ds ? `${ds}T00:00:00.000Z` : '';
       const dateEndISO = de ? `${de}T00:00:00.000Z` : '';
-      
+
       // Kiểm tra payload đầy đủ
       if (!dateStartISO || !dateEndISO) {
         this.noti.error(NOTIFICATION_TITLE.error, 'Ngày bắt đầu và kết thúc không hợp lệ');
         this.saving = false;
         return;
       }
-      
+
       const payload = {
         DateStart: dateStartISO, // Backend expect DateTime format (ISO string)
         DateEnd: dateEndISO, // Backend expect DateTime format (ISO string)
@@ -688,7 +691,7 @@ export class EmployeeAttendanceImportExcelComponent
         rowsCount: cleanedRows.length,
         sampleRow: cleanedRows[0],
       });
-      
+
       // Log sample rows để debug
       console.log('📋 Sample rows (first 3):', cleanedRows.slice(0, 3));
       console.log('📋 Sample row keys:', cleanedRows[0] ? Object.keys(cleanedRows[0]) : []);
@@ -700,10 +703,10 @@ export class EmployeeAttendanceImportExcelComponent
       // Gọi API import-excel (async - không block UI)
       // Backend sẽ xử lý từng dòng và trả về kết quả
       const res = await this.svc.importExcelWithPayload(payload).toPromise();
-      
+
       // Dừng progress simulation khi API trả về
       this.stopFakeProgress();
-      
+
       // Log response để debug
       console.log('📥 Full API Response:', res);
       console.log('📥 Response keys:', Object.keys(res || {}));
@@ -715,7 +718,7 @@ export class EmployeeAttendanceImportExcelComponent
       // ImportResult có: Created, Updated, Skipped, Errors
       // Kiểm tra nhiều format response khác nhau
       let data: any = null;
-      
+
       if (res?.data) {
         data = res.data;
       } else if (res?.Data) {
@@ -725,43 +728,43 @@ export class EmployeeAttendanceImportExcelComponent
       } else {
         data = res;
       }
-      
+
       console.log('📊 Parsed data:', data);
       console.log('📊 Data keys:', Object.keys(data || {}));
-      
+
       // Thử nhiều cách lấy giá trị (PascalCase và camelCase)
-      const created = 
-        data?.Created ?? 
-        data?.created ?? 
-        data?.CreatedCount ?? 
-        data?.createdCount ?? 
+      const created =
+        data?.Created ??
+        data?.created ??
+        data?.CreatedCount ??
+        data?.createdCount ??
         0;
-      const updated = 
-        data?.Updated ?? 
-        data?.updated ?? 
-        data?.UpdatedCount ?? 
-        data?.updatedCount ?? 
+      const updated =
+        data?.Updated ??
+        data?.updated ??
+        data?.UpdatedCount ??
+        data?.updatedCount ??
         0;
-      const skipped = 
-        data?.Skipped ?? 
-        data?.skipped ?? 
-        data?.SkippedCount ?? 
-        data?.skippedCount ?? 
+      const skipped =
+        data?.Skipped ??
+        data?.skipped ??
+        data?.SkippedCount ??
+        data?.skippedCount ??
         (data?.Errors?.length ?? data?.errors?.length ?? 0);
-      const errors = 
-        data?.Errors ?? 
-        data?.errors ?? 
-        data?.ErrorList ?? 
-        data?.errorList ?? 
+      const errors =
+        data?.Errors ??
+        data?.errors ??
+        data?.ErrorList ??
+        data?.errorList ??
         [];
-      
+
       console.log('📊 Parsed values:', {
         created,
         updated,
         skipped,
         errorsCount: errors.length,
       });
-      
+
       // Kiểm tra nếu response thành công nhưng không có dữ liệu
       if ((res?.status === 1 || res?.success) && created === 0 && updated === 0 && skipped === 0 && errors.length === 0) {
         console.warn('⚠️ Response thành công nhưng không có dữ liệu được lưu.');
@@ -771,8 +774,8 @@ export class EmployeeAttendanceImportExcelComponent
         console.warn('  3. Dữ liệu không hợp lệ nhưng không được báo lỗi');
         console.log('⚠️ Full response object:', JSON.stringify(res, null, 2));
         console.log('⚠️ Sample payload row:', JSON.stringify(cleanedRows[0], null, 2));
-        
-       
+
+
       }
 
       // Kiểm tra response thành công
@@ -802,18 +805,13 @@ export class EmployeeAttendanceImportExcelComponent
 
         // Hiển thị modal chi tiết nếu có lỗi
         if (errors.length > 0) {
-          const errorDetails = errors
-            .map((e: any) => `Dòng ${e.Row || e.row || '?'}: ${e.Message || e.message || ''}`)
-            .join('<br/>');
-          
+          this.modalErrorData = {
+            totalSuccess, totalRows, created, updated, skipped, errors
+          };
+
           this.modalSvc.warning({
             nzTitle: 'Hoàn tất nhập dữ liệu (có lỗi)',
-            nzContent: `
-            <div>Lưu được <b>${totalSuccess}/${totalRows}</b> bản ghi</div>
-            <div class="mt-2">Tạo mới: <b>${created}</b> • Cập nhật: <b>${updated}</b> • Bỏ qua: <b>${skipped}</b></div>
-            <div class="mt-2"><b>Chi tiết lỗi:</b></div>
-            <div class="mt-1" style="max-height: 300px; overflow-y: auto;">${errorDetails}</div>
-          `,
+            nzContent: this.errorModalContent,
             nzOkText: 'Đóng',
             nzOnOk: () => {
               this.saving = false;
@@ -947,15 +945,15 @@ export class EmployeeAttendanceImportExcelComponent
     const hasValidData = this.previewData.some((row) => {
       // Kiểm tra có STT hoặc có mã nhân viên hoặc có ngày
       const hasSTT = row['STT'] !== undefined && row['STT'] !== null && row['STT'] !== '';
-      const hasCode = 
+      const hasCode =
         (row['Mã nhân viên'] !== undefined && row['Mã nhân viên'] !== null && row['Mã nhân viên'] !== '') ||
         (row['Mã NV'] !== undefined && row['Mã NV'] !== null && row['Mã NV'] !== '') ||
         (row['Code'] !== undefined && row['Code'] !== null && row['Code'] !== '');
-      const hasDate = 
+      const hasDate =
         (row['Ngày'] !== undefined && row['Ngày'] !== null && row['Ngày'] !== '') ||
         (row['Date'] !== undefined && row['Date'] !== null && row['Date'] !== '') ||
         (row['AttendanceDate'] !== undefined && row['AttendanceDate'] !== null && row['AttendanceDate'] !== '');
-      
+
       return hasSTT || hasCode || hasDate;
     });
 
@@ -978,16 +976,16 @@ export class EmployeeAttendanceImportExcelComponent
   private getSTT(row: ExcelPreviewRow): number {
     // Thử lấy từ các tên cột phổ biến
     const sttValue = row['STT'] ?? row['F1'] ?? row['stt'] ?? row['f1'];
-    
+
     if (sttValue === null || sttValue === undefined || sttValue === '') {
       return 0;
     }
 
     // Convert sang number
-    const num = typeof sttValue === 'number' 
-      ? sttValue 
+    const num = typeof sttValue === 'number'
+      ? sttValue
       : parseInt(String(sttValue).trim(), 10);
-    
+
     return isNaN(num) ? 0 : num;
   }
 
@@ -1034,15 +1032,15 @@ export class EmployeeAttendanceImportExcelComponent
   }
 
   // Các methods khác giữ nguyên
-  onMonthChange(_: any): void {}
+  onMonthChange(_: any): void { }
   isFormValid(): boolean {
     // Kiểm tra văn phòng: officeId phải có giá trị (null/undefined/'' là không hợp lệ)
     // Nhưng "0" hoặc 0 là hợp lệ (Văn phòng Hà Nội)
-    const isOfficeIdValid = 
-      this.officeId !== null && 
-      this.officeId !== undefined && 
+    const isOfficeIdValid =
+      this.officeId !== null &&
+      this.officeId !== undefined &&
       this.officeId !== '';
-    
+
     return !!(
       this.fromDate &&
       this.toDate &&

@@ -30,6 +30,7 @@ import { DailyReportHrDetailComponent } from '../DailyReportTech/daily-report-hr
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { ActivatedRoute } from '@angular/router';
+import { AppUserService } from '../../services/app-user.service';
 
 @Component({
     selector: 'app-daily-report-hr',
@@ -82,6 +83,7 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
     users: any[] = [];
     currentUser: any = null;
     dailyReportHrData: any[] = [];
+    isChangeDepartment: boolean = false;
 
     // Table
     tb_daily_report_hr: any;
@@ -95,6 +97,7 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
         private modalService: NgbModal,
         private nzModal: NzModalService,
         private route: ActivatedRoute,
+        private appUserService: AppUserService,
         @Optional() @Inject('tabData') private tabData: any
     ) {
         this.searchSubject
@@ -110,13 +113,18 @@ export class DailyReportThrComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit(): void {
+        const permissions = this.appUserService.currentUser?.Permissions
+            ?.split(',')
+            ?.map(x => x.trim()) || [];
 
+        this.isChangeDepartment =
+            permissions.includes('N1') || permissions.includes('N2');
         this.route.queryParams.subscribe(params => {
             // console.log('params[departmentId]:', params['departmentId'], typeof (params['departmentId']));
             this.departmentId =
                 parseInt(params['departmentId'])
-                ?? this.tabData?.departmentId
-                ?? 6;
+                || this.tabData?.departmentId
+                || 6;
         });
 
         this.updateResponsiveState();

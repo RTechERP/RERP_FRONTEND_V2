@@ -11,6 +11,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { finalize } from 'rxjs';
 import { KpiErrorEmployeeService } from '../kpi-error-employee-service/kpi-error-employee.service';
 
 @Component({
@@ -37,6 +38,7 @@ export class ImportExcelKpiErrorEmployeeComponent implements OnInit {
 
     tableData: any[] = [];
     tableHeaders: string[] = [];
+    isSaving = false;
 
     @ViewChild('excelTable', { static: true }) excelTable!: ElementRef;
     tabulator!: Tabulator;
@@ -52,15 +54,12 @@ export class ImportExcelKpiErrorEmployeeComponent implements OnInit {
     }
 
     onFileChange(evt: any) {
-        const target: DataTransfer = <DataTransfer>evt.target;
+        const target = evt.target as HTMLInputElement;
         if (!target.files || target.files.length === 0) {
-            if (this.selectedSheet && this.sheetNames.length > 0) {
-                return;
-            }
             return;
         }
+        const file = target.files[0];
         this.resetPreview();
-        if (target.files.length !== 1) return;
 
         const reader: FileReader = new FileReader();
         reader.onload = (e: any) => {
@@ -73,8 +72,11 @@ export class ImportExcelKpiErrorEmployeeComponent implements OnInit {
                 this.selectedSheet = this.sheetNames[0];
                 this.onSheetChange();
             }
+            
+            // Reset the input value so the change event can fire again for the same file or a new file
+            target.value = '';
         };
-        reader.readAsBinaryString(target.files[0]);
+        reader.readAsBinaryString(file);
     }
 
     private resetPreview() {
@@ -84,8 +86,12 @@ export class ImportExcelKpiErrorEmployeeComponent implements OnInit {
         this.tableData = [];
 
         if (this.tabulator) {
-            this.tabulator.clearData();
-            this.tabulator.setColumns([]);
+            try {
+                this.tabulator.destroy();
+            } catch (e) {
+                console.error('Error destroying tabulator', e);
+            }
+            this.tabulator = null as any;
         }
     }
 
@@ -168,10 +174,16 @@ export class ImportExcelKpiErrorEmployeeComponent implements OnInit {
     }
 
     importData() {
+        if (this.isSaving) {
+            this.notification.info('Thông báo', 'Đang lưu dữ liệu, vui lòng chờ...');
+            return;
+        }
         if (!this.tableData || this.tableData.length === 0) {
             this.notification.warning('Thông báo', 'Không có dữ liệu để nhập!');
             return;
         }
+
+        this.isSaving = true;
 
         const mappedData = this.tableData.map(row => {
             const newRow: any = {};
@@ -188,7 +200,9 @@ export class ImportExcelKpiErrorEmployeeComponent implements OnInit {
             return newRow;
         });
 
-        this.kpiErrorEmployeeService.importExcel(mappedData).subscribe({
+        this.kpiErrorEmployeeService.importExcel(mappedData).pipe(
+            finalize(() => this.isSaving = false)
+        ).subscribe({
             next: (res: any) => {
                 if (res.status === 1) {
                     const created = res?.data?.created ?? res?.created ?? 0;

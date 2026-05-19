@@ -1,0 +1,58 @@
+<div class="modal-header bg-primary py-2">
+    <h6 class="modal-title text-uppercase text-white">
+        {{ title }}
+    </h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+<div class="modal-body fs-12 p-3">
+    <nz-spin [nzSpinning]="isLoading">
+        <form nz-form [formGroup]="form" nzLayout="vertical">
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="12">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired>Năm đánh giá</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn năm!">
+                            <nz-select formControlName="YearValue" style="width: 100%" nzSize="small" nzPlaceHolder="Chọn năm">
+                                <nz-option *ngFor="let year of years" [nzValue]="year" [nzLabel]="year"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="12">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired>Tháng đánh giá</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn tháng!">
+                            <nz-select formControlName="MonthValue" style="width: 100%" nzSize="small" nzPlaceHolder="Chọn tháng">
+                                <nz-option *ngFor="let m of months" [nzValue]="m" [nzLabel]="'Tháng ' + m"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="24">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired>Ngày đánh giá</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn ngày đánh giá!">
+                            <nz-date-picker formControlName="RatingDate" nzFormat="dd/MM/yyyy" style="width: 100%" nzSize="small" nzPlaceHolder="Chọn ngày"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="24">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Ghi chú</nz-form-label>
+                        <nz-form-control>
+                            <textarea nz-input formControlName="Note" [nzAutosize]="{ minRows: 2, maxRows: 4 }" placeholder="Nhập ghi chú..." nzSize="small"></textarea>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </form>
+    </nz-spin>
+</div>
+<div class="modal-footer fs-12 p-2">
+    <button nz-button nzDanger type="button" nzType="default" (click)="onCancel()" [nzLoading]="isLoading">Đóng</button>
+    <button nz-button type="button" nzType="primary" (click)="onSubmit()" [nzLoading]="isLoading">Lưu dữ liệu</button>
+</div>

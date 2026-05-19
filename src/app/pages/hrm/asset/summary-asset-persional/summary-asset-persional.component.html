@@ -1,0 +1,30 @@
+<div class="page-wrapper">
+  <nz-tabset [(nzSelectedIndex)]="activeTabIndex">
+    <!-- Tab 1 -->
+    <nz-tab nzTitle="TÀI SẢN CÁ NHÂN">
+      <ng-template nz-tab>
+        <div class="tab-content">
+          <app-asset-personal></app-asset-personal>
+        </div>
+      </ng-template>
+    </nz-tab>
+
+    <!-- Tab 2 -->
+    <nz-tab nzTitle="LỊCH SỬ MƯỢN KHO SALE">
+      <ng-template nz-tab>
+        <div class="tab-content">
+          <app-history-borrow-sale-personal></app-history-borrow-sale-personal>
+        </div>
+      </ng-template>
+    </nz-tab>
+
+    <!-- Tab 3 -->
+    <nz-tab nzTitle="LỊCH SỬ MƯỢN KHO DEMO">
+      <ng-template nz-tab>
+        <div class="tab-content">
+          <app-history-product-rtc-personal></app-history-product-rtc-personal>
+        </div>
+      </ng-template>
+    </nz-tab>
+  </nz-tabset>
+</div>

@@ -148,6 +148,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
       {
         label: 'Thêm NV',
         icon: 'fa-solid fa-user-plus fa-lg text-success',
+        styleClass: 'ms-auto',
         visible: this.permissionService.hasPermission('N26,N40,N1'),
         command: () => {
           this.openAddEmployeeModal();
@@ -425,7 +426,8 @@ export class TeamComponent implements OnInit, AfterViewInit {
     this.teamTabulator = new Tabulator('#team-table', {
       data: this.teamList,
       layout: 'fitColumns',
-      selectableRows: 1, // <-- dùng selectable chứ không phải selectableRows
+      selectableRows: 1,
+
       height: '88vh',
       dataTree: true,
       dataTreeStartExpanded: true,

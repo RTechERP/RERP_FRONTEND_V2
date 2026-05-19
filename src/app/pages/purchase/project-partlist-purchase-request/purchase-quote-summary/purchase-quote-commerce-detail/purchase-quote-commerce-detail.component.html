@@ -1,0 +1,21 @@
+<div [ngClass]="{'modal-dialog-scrollable': activeModal, 'h-100': !activeModal}" style="display: flex; flex-direction: column; width: 100%; min-height: 100%;">
+  <div *ngIf="activeModal" class="modal-header bg-primary align-items-center ps-2 d-flex">
+    <h6 class="text-light text-uppercase m-0">
+      TỔNG HỢP chi tiết báo giá khách hàng
+    </h6>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="activeModal.close()"
+    ></button>
+  </div>
+
+  <div [ngClass]="{'modal-body': activeModal, 'p-0': true, 'flex-grow-1': !activeModal, 'h-100': !activeModal}" style="overflow: hidden;">
+    <app-commercial-price-request
+      [dateStart]="dateStart"
+      [dateEnd]="dateEnd"
+      [employeeId]="employeeId"
+    ></app-commercial-price-request>
+  </div>
+</div>

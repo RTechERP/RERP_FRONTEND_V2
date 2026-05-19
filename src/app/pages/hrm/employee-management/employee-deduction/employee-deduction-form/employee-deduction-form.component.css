@@ -1,0 +1,4 @@
+/* Styles are now handled by standard project classes and Ant Design components */
+.modal-body.fs-12 ::ng-deep .ant-form-item-label > label {
+  font-size: 12px;
+}

@@ -1,0 +1,88 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-uppercase text-white">
+    {{ title }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body fs-12">
+  <nz-spin [nzSpinning]="isLoading">
+    <form nz-form [formGroup]="form" nzLayout="vertical">
+      <nz-row [nzGutter]="16">
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="mb-2">
+            <nz-form-label [nzRequired]="true">Nhân viên</nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng chọn nhân viên">
+              <nz-select formControlName="EmployeeID" nzPlaceHolder="Chọn nhân viên" nzShowSearch nzAllowClear
+                style="width: 100%" nzSize="small">
+                <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
+                  <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID"
+                    [nzLabel]="emp.Code + '-' + emp.FullName"></nz-option>
+                </nz-option-group>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="mb-2">
+            <nz-form-label [nzRequired]="true">Ngày phạt</nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng chọn ngày">
+              <nz-date-picker formControlName="DeductionDate" nzFormat="dd/MM/yyyy" style="width: 100%"
+                nzSize="small"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="16">
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="mb-2">
+            <nz-form-label [nzRequired]="true">Loại phạt</nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng chọn loại phạt">
+              <nz-select formControlName="DeductionType" nzPlaceHolder="Chọn loại phạt" style="width: 100%"
+                nzSize="small">
+                <nz-option *ngFor="let type of deductionTypes" [nzValue]="type.value"
+                  [nzLabel]="type.label"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+
+
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="mb-2">
+            <nz-form-label [nzRequired]="true">Số tiền (VNĐ)</nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng nhập số tiền">
+              <nz-input-number formControlName="DeductionAmount" [nzMin]="0" [nzStep]="1000" style="width: 100%"
+                nzPlaceHolder="Nhập số tiền" nzSize="small" [nzFormatter]="formatter"
+                [nzParser]="parser"></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="16">
+        <nz-col [nzSpan]="24">
+          <nz-form-item class="mb-0">
+            <nz-form-label>Lý do</nz-form-label>
+            <nz-form-control>
+              <textarea nz-input formControlName="Reason" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+                placeholder="Nhập lý do phạt..." nzSize="small"></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </form>
+  </nz-spin>
+</div>
+
+<div class="modal-footer fs-12 p-2">
+  <button nz-button type="button" nzType="default" (click)="onCancel()" [nzLoading]="isLoading">
+    Hủy
+  </button>
+  <button nz-button type="button" nzType="primary" (click)="onSave()" [nzLoading]="isLoading">
+    Lưu
+  </button>
+</div>

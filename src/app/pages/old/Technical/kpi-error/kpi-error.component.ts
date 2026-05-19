@@ -1,41 +1,47 @@
 import {
     Component,
-    ViewEncapsulation,
-    OnInit,
-    AfterViewInit,
     CUSTOM_ELEMENTS_SCHEMA,
     Inject,
+    OnInit,
     Optional,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import {
-    AngularGridInstance,
-    AngularSlickgridModule,
-    Column,
-    Filters,
-    Formatters,
-    GridOption,
-    MultipleSelectOption,
-} from 'angular-slickgrid';
-import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import { finalize } from 'rxjs';
 import * as ExcelJS from 'exceljs';
 import { Menubar } from 'primeng/menubar';
+import { TableModule } from 'primeng/table';
 import { ActivatedRoute } from '@angular/router';
 import { KpiErrorService } from './kpi-error-service/kpi-error.service';
 import { KpiErrorDetailComponent } from './kpi-error-detail/kpi-error-detail.component';
 import { KpiErrorFineAmountComponent } from './kpi-error-fine-amount/kpi-error-fine-amount.component';
 import { KpiErrorTypeComponent } from './kpi-error-type/kpi-error-type.component';
-import { TbProductRtcImportExcelComponent } from '../../tb-product-rtc/tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
+import { PermissionService } from '../../../../services/permission.service';
+
+type KpiColumnType = 'text' | 'number' | 'money';
+
+interface PrimeColumn {
+    id: string;
+    name: string;
+    field: string;
+    minWidth?: number;
+    hidden?: boolean;
+    sortable?: boolean;
+    filterable?: boolean;
+    type?: KpiColumnType;
+    align?: 'left' | 'center' | 'right';
+    columnGroup?: string;
+    excludeFromExport?: boolean;
+}
 
 @Component({
     selector: 'app-kpi-error',
@@ -50,32 +56,26 @@ import { TbProductRtcImportExcelComponent } from '../../tb-product-rtc/tb-produc
         NzSelectModule,
         NzFormModule,
         NzModalModule,
-        AngularSlickgridModule,
         Menubar,
+        TableModule,
     ],
     templateUrl: './kpi-error.component.html',
     styleUrl: './kpi-error.component.css',
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    providers: [ExcelExportService],
 })
-export class KpiErrorComponent implements OnInit, AfterViewInit {
-    // SlickGrid properties
-    angularGrid!: AngularGridInstance;
-    columnDefinitions: Column[] = [];
-    gridOptions: GridOption = {};
+export class KpiErrorComponent implements OnInit {
+    columnDefinitions: PrimeColumn[] = [];
     dataset: any[] = [];
-
-    // Menu bar
     menuBars: any[] = [];
+    private readonly actionPermissionCodes = 'N26,N38,N1';
 
-    // Filters
     keyword: string = '';
     departmentId: number = 0;
     departments: any[] = [];
 
-    // Selected row
     selectedId: number = 0;
     selectedRow: any = null;
+    isLoading = false;
 
     constructor(
         private kpiErrorService: KpiErrorService,
@@ -83,74 +83,54 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
         private modalService: NgbModal,
         private notification: NzNotificationService,
         private route: ActivatedRoute,
-        private excelExportService: ExcelExportService,
+        private permissionService: PermissionService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     ngOnInit(): void {
-
         this.route.queryParams.subscribe(params => {
-            // this.departmentId = params['departmentId'] || 0;
-            this.departmentId =
-                params['departmentId']
-                ?? this.tabData?.departmentId
-                ?? 0;
+            this.departmentId = params['departmentId'] ?? this.tabData?.departmentId ?? 0;
         });
+
         this.initMenuBar();
         this.initGrid();
         this.loadDepartments();
         this.loadKPIError();
     }
 
-    ngAfterViewInit(): void { }
-
     initMenuBar(): void {
         this.menuBars = [
             {
                 label: 'Thêm',
                 icon: 'fa-solid fa-circle-plus fa-lg text-success',
-                command: () => {
-                    this.onAdd();
-                },
+                visible: this.canManageActions(),
+                command: () => this.onAdd(),
             },
             {
                 label: 'Sửa',
                 icon: 'fa-solid fa-file-pen fa-lg text-primary',
-                command: () => {
-                    this.onEdit();
-                },
+                visible: this.canManageActions(),
+                command: () => this.onEdit(),
             },
             {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
-                command: () => {
-                    this.onDelete();
-                },
+                visible: this.canManageActions(),
+                command: () => this.onDelete(),
             },
             {
                 label: 'Xuất Excel',
                 icon: 'fa-solid fa-file-excel fa-lg text-success',
-                command: () => {
-                    this.exportToExcel();
-                },
+                command: () => this.exportToExcel(),
             },
             {
                 label: 'Loại lỗi',
                 icon: 'fa-solid fa-list fa-lg text-info',
-                command: () => {
-                    this.openErrorType();
-                },
+                visible: this.canManageActions(),
+                command: () => this.openErrorType(),
             },
-            // {
-            //   label: 'Đánh giá lỗi',
-            //   icon: 'fa-solid fa-coins fa-lg text-warning',
-            //   command: () => {
-            //     this.openKPIErrorFineAmount();
-            //   },
-            // },
         ];
     }
-
 
     loadDepartments(): void {
         this.kpiErrorService.getDepartment().subscribe({
@@ -159,50 +139,53 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                     this.departments = response.data;
                 }
             },
-            error: (error: any) => {
+            error: () => {
                 this.notification.error('Lỗi', 'Không thể tải danh sách phòng ban');
             },
         });
     }
 
     loadKPIError(): void {
-        this.kpiErrorService.getKPIError(this.departmentId, this.keyword).subscribe({
-            next: (response: any) => {
-                if (response.status === 1) {
-                    this.dataset = response.data.map((item: any, index: number) => ({
-                        ...item,
-                        id: item.ID,
-                        STT: index + 1,
-                    }));
-                    setTimeout(() => {
-                        this.applyDistinctFiltersToGrid();
-                    }, 100);
-                } else {
-                    this.notification.error('Lỗi', response.message);
-                }
-            },
-            error: (error: any) => {
-                this.notification.error('Lỗi', 'Không thể tải dữ liệu KPI Error');
-            },
-        });
+        this.isLoading = true;
+        this.kpiErrorService.getKPIError(this.departmentId, this.keyword)
+            .pipe(finalize(() => this.isLoading = false))
+            .subscribe({
+                next: (response: any) => {
+                    if (response.status === 1) {
+                        this.dataset = (response.data || []).map((item: any, index: number) => ({
+                            ...item,
+                            id: item.ID,
+                            STT: index + 1,
+                        }));
+                        this.selectedId = 0;
+                        this.selectedRow = null;
+                    } else {
+                        this.notification.error('Lỗi', response.message);
+                    }
+                },
+                error: () => {
+                    this.notification.error('Lỗi', 'Không thể tải dữ liệu KPI Error');
+                },
+            });
     }
 
     search(): void {
         this.loadKPIError();
     }
 
-    onRowClick(e: any, args: any): void {
-        if (args && args.row !== undefined) {
-            const grid = this.angularGrid.slickGrid;
-            const dataItem = grid.getDataItem(args.row);
-            if (dataItem) {
-                this.selectedId = dataItem.ID;
-                this.selectedRow = dataItem;
-            }
-        }
+    onPrimeRowSelect(event: any): void {
+        this.onRowClick(event?.data);
+    }
+
+    onRowClick(row: any): void {
+        if (!row) return;
+        this.selectedId = row.ID;
+        this.selectedRow = row;
     }
 
     onAdd(): void {
+        if (!this.canManageActions()) return;
+
         const modalRef = this.modalService.open(KpiErrorDetailComponent, {
             size: 'lg',
             centered: true,
@@ -213,14 +196,14 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
         modalRef.componentInstance.departmentId = this.departmentId;
 
         modalRef.result.then(
-            () => {
-                this.loadKPIError();
-            },
+            () => this.loadKPIError(),
             () => { }
         );
     }
 
     onEdit(): void {
+        if (!this.canManageActions()) return;
+
         if (!this.selectedId) {
             this.notification.warning('Cảnh báo', 'Vui lòng chọn một dòng để sửa');
             return;
@@ -236,14 +219,14 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
         modalRef.componentInstance.departmentId = this.departmentId;
 
         modalRef.result.then(
-            () => {
-                this.loadKPIError();
-            },
+            () => this.loadKPIError(),
             () => { }
         );
     }
 
     onDelete(): void {
+        if (!this.canManageActions()) return;
+
         if (!this.selectedId) {
             this.notification.warning('Cảnh báo', 'Vui lòng chọn một dòng để xóa');
             return;
@@ -251,7 +234,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
 
         this.modal.confirm({
             nzTitle: 'Xác nhận xóa',
-            nzContent: `Bạn có chắc chắn muốn xóa lỗi này?`,
+            nzContent: 'Bạn có chắc chắn muốn xóa lỗi này?',
             nzOkText: 'Xóa',
             nzOkDanger: true,
             nzCancelText: 'Hủy',
@@ -267,7 +250,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                             this.notification.error('Lỗi', response.message);
                         }
                     },
-                    error: (error: any) => {
+                    error: () => {
                         this.notification.error('Lỗi', 'Không thể xóa dữ liệu');
                     },
                 });
@@ -280,24 +263,19 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
             this.notification.warning('Cảnh báo', 'Không có dữ liệu để export');
             return;
         }
+
         try {
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('KPI Error');
+            const columnsToExport = this.columnDefinitions.filter(col => !col.excludeFromExport && col.id !== 'STT');
 
-            // Filter columns to export (exclude STT, excludeFromExport, include TypeName even if hidden)
-            const columnsToExport = this.columnDefinitions.filter(col =>
-                !col.excludeFromExport && col.id !== 'STT'
-            );
-
-            // Add headers
-            const headers = columnsToExport.map((col: any) => col.name);
+            const headers = columnsToExport.map(col => col.name);
             const headerRow = worksheet.addRow(headers);
             headerRow.font = { bold: true };
             headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
 
-            // Add data rows from dataset (not grouped)
             this.dataset.forEach((rowData: any) => {
-                const row = columnsToExport.map((col: any) => {
+                const row = columnsToExport.map(col => {
                     const value = rowData[col.field];
                     if (typeof value === 'number') {
                         return new Intl.NumberFormat('vi-VN').format(value);
@@ -307,10 +285,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
                 worksheet.addRow(row);
             });
 
-            // Auto-fit columns
             worksheet.columns.forEach((column: any) => { column.width = 20; });
 
-            // Generate and download Excel file
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = window.URL.createObjectURL(blob);
@@ -328,6 +304,8 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
     }
 
     openErrorType(): void {
+        if (!this.canManageActions()) return;
+
         const modalRef = this.modalService.open(KpiErrorTypeComponent, {
             size: 'lg',
             centered: true,
@@ -335,9 +313,7 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
         });
 
         modalRef.result.then(
-            () => {
-                this.loadKPIError();
-            },
+            () => this.loadKPIError(),
             () => { }
         );
     }
@@ -356,362 +332,119 @@ export class KpiErrorComponent implements OnInit, AfterViewInit {
         modalRef.componentInstance.kpiErrorId = this.selectedId;
 
         modalRef.result.then(
-            () => {
-                this.loadKPIError();
-            },
+            () => this.loadKPIError(),
             () => { }
         );
     }
 
     initGrid(): void {
         this.columnDefinitions = [
-            {
-                id: 'ID',
-                name: 'ID',
-                field: 'ID',
-                sortable: true,
-                maxWidth: 60,
-                excludeFromExport: true,
-                hidden: true,
-            },
-            {
-                id: 'STT',
-                name: 'STT',
-                field: 'STT',
-                sortable: true,
-                maxWidth: 60,
-                hidden: true,
-                excludeFromExport: true,
-            },
-            {
-                id: 'Department',
-                name: 'Phòng ban',
-                field: 'Department',
-                sortable: true,
-                filterable: true,
-                minWidth: 120,
-                formatter: this.commonTooltipFormatter,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
-                },
-            },
-            {
-                id: 'Code',
-                name: 'Mã lỗi vi phạm',
-                field: 'Code',
-                sortable: true,
-                filterable: true,
-                minWidth: 120,
-                formatter: this.commonTooltipFormatter,
-            },
-            {
-                id: 'TypeName',
-                name: 'Loại lỗi vi phạm',
-                field: 'TypeName',
-                sortable: true,
-                filterable: true,
-                minWidth: 150,
-                hidden: true,
-                formatter: this.commonTooltipFormatter,
-            },
-            {
-                id: 'Content',
-                name: 'Nội dung lỗi vi phạm',
-                field: 'Content',
-                sortable: true,
-                filterable: true,
-                minWidth: 300,
-                formatter: this.commonTooltipFormatter,
-            },
-            {
-                id: 'Quantity',
-                name: 'Số vi phạm',
-                field: 'Quantity',
-                sortable: true,
-                filterable: true,
-                minWidth: 100,
-                formatter: Formatters.decimal,
-                params: { minDecimal: 0, maxDecimal: 0 },
-                filter: { model: Filters['compoundInputNumber'] },
-                cssClass: 'text-end',
-                headerCssClass: 'text-end',
-            },
-            {
-                id: 'UnitText',
-                name: 'Đơn vị',
-                field: 'UnitText',
-                sortable: true,
-                filterable: true,
-                minWidth: 80,
-                formatter: this.commonTooltipFormatter,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    collectionOptions: { addBlankEntry: true },
-                    filterOptions: { autoAdjustDropHeight: true, filter: true } as MultipleSelectOption
-                },
-            },
-            {
-                id: 'Monney',
-                name: 'Tiền phạt',
-                field: 'Monney',
-                sortable: true,
-                filterable: true,
-                minWidth: 120,
-                formatter: Formatters.decimal,
-                params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
-                cssClass: 'text-end',
-                headerCssClass: 'text-end',
-            },
-            {
-                id: 'Note',
-                name: 'Ghi chú',
-                field: 'Note',
-                sortable: true,
-                filterable: true,
-                minWidth: 150,
-                formatter: this.commonTooltipFormatter,
-            },
-            // Column group: Đánh giá
-            {
-                id: 'TotalMoney_1',
-                name: '1',
-                field: 'TotalMoney_1',
-                columnGroup: 'Đánh giá',
-                sortable: true,
-                filterable: true,
-                minWidth: 80,
-                formatter: Formatters.decimal,
-                params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
-                filter: { model: Filters['compoundInputNumber'] },
-                cssClass: 'text-end',
-                headerCssClass: 'text-end',
-            },
-            {
-                id: 'TotalMoney_2',
-                name: '2',
-                field: 'TotalMoney_2',
-                columnGroup: 'Đánh giá',
-                sortable: true,
-                filterable: true,
-                minWidth: 80,
-                formatter: Formatters.decimal,
-                params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
-                filter: { model: Filters['compoundInputNumber'] },
-                cssClass: 'text-end',
-                headerCssClass: 'text-end',
-            },
-            {
-                id: 'TotalMoney_3',
-                name: '3',
-                field: 'TotalMoney_3',
-                columnGroup: 'Đánh giá',
-                sortable: true,
-                filterable: true,
-                minWidth: 80,
-                formatter: Formatters.decimal,
-                params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
-                filter: { model: Filters['compoundInputNumber'] },
-                cssClass: 'text-end',
-                headerCssClass: 'text-end',
-            },
-            {
-                id: 'TotalMoney_4',
-                name: '4',
-                field: 'TotalMoney_4',
-                columnGroup: 'Đánh giá',
-                sortable: true,
-                filterable: true,
-                minWidth: 80,
-                formatter: Formatters.decimal,
-                params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
-                filter: { model: Filters['compoundInputNumber'] },
-                cssClass: 'text-end',
-                headerCssClass: 'text-end',
-            },
-            {
-                id: 'TotalMoney_5',
-                name: '5',
-                field: 'TotalMoney_5',
-                columnGroup: 'Đánh giá',
-                sortable: true,
-                filterable: true,
-                minWidth: 80,
-                formatter: Formatters.decimal,
-                params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
-                filter: { model: Filters['compoundInputNumber'] },
-                cssClass: 'text-end',
-                headerCssClass: 'text-end',
-            },
-            {
-                id: 'TotalMoney_6',
-                name: '>5',
-                field: 'TotalMoney_6',
-                columnGroup: 'Đánh giá',
-                sortable: true,
-                filterable: true,
-                minWidth: 80,
-                formatter: Formatters.decimal,
-                params: { minDecimal: 0, maxDecimal: 0, thousandSeparator: ',' },
-                filter: { model: Filters['compoundInputNumber'] },
-                cssClass: 'text-end',
-                headerCssClass: 'text-end',
-            },
+            this.textCol('ID', 'ID', 'ID', 60, { hidden: true, excludeFromExport: true }),
+            this.textCol('STT', 'STT', 'STT', 60, { hidden: true, excludeFromExport: true }),
+            this.textCol('Department', 'Phòng ban', 'Department', 120),
+            this.textCol('Code', 'Mã lỗi vi phạm', 'Code', 120),
+            this.textCol('TypeName', 'Loại lỗi vi phạm', 'TypeName', 150, { hidden: true }),
+            this.textCol('Content', 'Nội dung lỗi vi phạm', 'Content', 300),
+            this.numberCol('Quantity', 'Số vi phạm', 'Quantity', 100),
+            this.textCol('UnitText', 'Đơn vị', 'UnitText', 80),
+            this.moneyCol('Monney', 'Tiền phạt', 'Monney', 120),
+            this.textCol('Note', 'Ghi chú', 'Note', 150),
+            this.moneyCol('TotalMoney_1', '1', 'TotalMoney_1', 80, 'Đánh giá'),
+            this.moneyCol('TotalMoney_2', '2', 'TotalMoney_2', 80, 'Đánh giá'),
+            this.moneyCol('TotalMoney_3', '3', 'TotalMoney_3', 80, 'Đánh giá'),
+            this.moneyCol('TotalMoney_4', '4', 'TotalMoney_4', 80, 'Đánh giá'),
+            this.moneyCol('TotalMoney_5', '5', 'TotalMoney_5', 80, 'Đánh giá'),
+            this.moneyCol('TotalMoney_6', '>5', 'TotalMoney_6', 80, 'Đánh giá'),
         ];
+    }
 
-        this.gridOptions = {
-            autoResize: {
-                container: '.grid-container',
-                calculateAvailableSizeBy: 'container',
-            },
-            enableAutoResize: true,
-            enableCellNavigation: true,
-            enableColumnReorder: true,
-            enableSorting: true,
-            enableFiltering: true,
-            createPreHeaderPanel: true,
-            showPreHeaderPanel: true,
-            preHeaderPanelHeight: 28,
-            rowHeight: 35,
-            headerRowHeight: 40,
-            enableRowSelection: true,
-            enableCheckboxSelector: true,
-            checkboxSelector: {
-                hideSelectAllCheckbox: false,
-            },
-            multiSelect: false,
-            rowSelectionOptions: {
-                selectActiveRow: true,
-            },
-            // Enable grouping
-            draggableGrouping: {
-                dropPlaceHolderText: 'Kéo cột vào đây để nhóm',
-                deleteIconCssClass: 'fa fa-times',
-                groupIconCssClass: 'fa fa-object-group',
-            },
-            // Define the grouping column to exclude from export
-            // enableDraggableGrouping: true,
-            // Enable Excel Export
-            enableExcelExport: true,
-            excelExportOptions: {
-                exportWithFormatter: true,
-                addGroupIndentation: false,
-            },
-            externalResources: [this.excelExportService],
+    visibleColumns(): PrimeColumn[] {
+        return this.columnDefinitions.filter(col => !col.hidden);
+    }
+
+    baseColumns(): PrimeColumn[] {
+        return this.visibleColumns().filter(col => !col.columnGroup);
+    }
+
+    groupedColumns(groupName: string): PrimeColumn[] {
+        return this.visibleColumns().filter(col => col.columnGroup === groupName);
+    }
+
+    getColumnWidth(col: PrimeColumn): string {
+        return `${col.minWidth || 120}px`;
+    }
+
+    getColumnFilterType(_col: PrimeColumn): string {
+        return 'text';
+    }
+
+    getCellClass(col: PrimeColumn): Record<string, boolean> {
+        const right = col.align === 'right' || col.type === 'number' || col.type === 'money';
+        const center = col.align === 'center';
+        return {
+            'text-end': right,
+            'text-center': center,
         };
     }
 
-    angularGridReady(angularGrid: AngularGridInstance): void {
-        this.angularGrid = angularGrid;
+    formatCell(row: any, col: PrimeColumn): string {
+        const value = row?.[col.field];
+        if (value === null || value === undefined || value === '') return '';
 
-        // Mark the group column as excludeFromExport
-        setTimeout(() => {
-            const slickGrid = this.angularGrid?.slickGrid;
-            if (slickGrid) {
-                const columns = slickGrid.getColumns();
-                columns.forEach((col: any) => {
-                    // Find the draggable grouping column and exclude it from export
-                    if (col.id && col.id.toString().includes('_group')) {
-                        col.excludeFromExport = true;
-                    }
-                });
-                slickGrid.setColumns(columns);
-            }
-        }, 50);
+        if (col.type === 'number' || col.type === 'money') {
+            return new Intl.NumberFormat('vi-VN').format(Number(value) || 0);
+        }
 
-        // Auto group by TypeName
-        setTimeout(() => {
-            if (this.angularGrid && this.angularGrid.dataView) {
-                this.angularGrid.dataView.setGrouping({
-                    getter: 'TypeName',
-                    formatter: (g: any) => `Loại lỗi: <strong>${g.value}</strong> <span style="color:green">(${g.count} dòng)</span>`,
-                    aggregateCollapsed: false,
-                    lazyTotalsCalculation: true,
-                });
-            }
-        }, 100);
+        return String(value);
     }
 
-    private applyDistinctFiltersToGrid(): void {
-        if (!this.angularGrid?.slickGrid || !this.angularGrid?.dataView) return;
+    getCellTitle(row: any, col: PrimeColumn): string {
+        return this.formatCell(row, col);
+    }
 
-        const data = this.angularGrid.dataView.getItems();
-        if (!data || data.length === 0) return;
+    getGroupHeader(rowData: any): string {
+        return rowData?.TypeName || '(Không có loại lỗi)';
+    }
 
-        const fieldsToFilter = ['Department', 'UnitText'];
+    trackById(_index: number, row: any): any {
+        return row?.ID ?? row?.id ?? row;
+    }
 
-        const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
-            const map = new Map<string, string>();
-            dataArray.forEach((row: any) => {
-                const value = String(row?.[field] ?? '');
-                if (value && !map.has(value)) {
-                    map.set(value, value);
-                }
-            });
-            return Array.from(map.entries())
-                .map(([value, label]) => ({ value, label }))
-                .sort((a, b) => a.label.localeCompare(b.label));
+    private canManageActions(): boolean {
+        return this.permissionService.hasPermission(this.actionPermissionCodes);
+    }
+
+    private textCol(id: string, name: string, field: string, minWidth: number, extra: Partial<PrimeColumn> = {}): PrimeColumn {
+        return {
+            id,
+            name,
+            field,
+            minWidth,
+            sortable: true,
+            filterable: true,
+            type: 'text',
+            ...extra,
         };
-
-        const columns = this.angularGrid.slickGrid.getColumns();
-        if (!columns) return;
-
-        // Update runtime columns
-        columns.forEach((column: any) => {
-            if (column?.filter && column.filter.model === Filters['multipleSelect']) {
-                const field = column.field;
-                if (!field || !fieldsToFilter.includes(field)) return;
-                column.filter.collection = getUniqueValues(data, field);
-            }
-        });
-
-        // Update column definitions
-        this.columnDefinitions.forEach((colDef: any) => {
-            if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
-                const field = colDef.field;
-                if (!field || !fieldsToFilter.includes(field)) return;
-                colDef.filter.collection = getUniqueValues(data, field);
-            }
-        });
-
-        this.angularGrid.slickGrid.setColumns(this.angularGrid.slickGrid.getColumns());
-        this.angularGrid.slickGrid.invalidate();
-        this.angularGrid.slickGrid.render();
     }
 
-    // Helper function to escape HTML special characters for title attributes
-    private escapeHtml(text: string | null | undefined): string {
-        if (!text) return '';
-        return String(text)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
+    private numberCol(id: string, name: string, field: string, minWidth: number, columnGroup?: string): PrimeColumn {
+        return {
+            id,
+            name,
+            field,
+            minWidth,
+            sortable: true,
+            filterable: true,
+            type: 'number',
+            align: 'right',
+            columnGroup,
+        };
     }
 
-    private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
-        if (!value) return '';
-        const escaped = this.escapeHtml(value);
-        return `
-                <span
-                title="${escaped}"
-                style="
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    word-wrap: break-word;
-                    word-break: break-word;
-                    line-height: 1.4;
-                "
-                >
-                ${value}
-                </span>
-            `;
-    };
+    private moneyCol(id: string, name: string, field: string, minWidth: number, columnGroup?: string): PrimeColumn {
+        return {
+            ...this.numberCol(id, name, field, minWidth, columnGroup),
+            type: 'money',
+        };
+    }
 }

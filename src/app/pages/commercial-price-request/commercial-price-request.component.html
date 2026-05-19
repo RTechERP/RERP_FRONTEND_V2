@@ -1,0 +1,54 @@
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text">{{ item.label }}</span>
+        </a>
+    </ng-template>
+    <span class="ms-auto d-flex align-items-center gap-1">
+        <!-- <nz-form-label class="mb-0" style="text-align: right;padding-right: 5px;"><span>Gia hạn đến
+            </span></nz-form-label>
+        <nz-date-picker name="dateExtend" class="fs-12" nzSize="small" nzFormat="dd/MM/yyyy"
+            nzAllowClear="false"></nz-date-picker>
+        <button type="button" nz-button nzType="primary" nzSize="small">
+            Gia hạn
+        </button> -->
+
+        <nz-form-label class="mb-0" nzNoColon>Năm</nz-form-label>
+        <nz-input-number [(ngModel)]="filter.YearNo" (ngModelChange)="onSearch()" [nzMin]="1900" [nzMax]="2100"
+            [nzStep]="1" [nzPrecision]="0" [ngModelOptions]="{ standalone: true }" nzSize="small"
+            style="width: 120px;"></nz-input-number>
+
+        <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="small">
+            <input type="text" [(ngModel)]="filter.Keyword" nz-input placeholder="Nhập từ khóa"
+                [ngModelOptions]="{ standalone: true }" />
+        </nz-input-group>
+        <ng-template #suffixIconButton>
+            <button nz-button nzType="primary" nzSearch nzSize="small"><span nz-icon nzType="search"
+                    (click)="onSearch()"></span></button>
+        </ng-template>
+    </span>
+    <!-- <ng-template pTemplate="end">
+        <div class="flex gap-2 align-items-center pr-2">
+            <p-select [options]="yearOptions" [(ngModel)]="filter.YearNo" (onChange)="onSearch()" optionLabel="label"
+                optionValue="value" placeholder="Chọn năm" [style]="{'width':'120px'}">
+            </p-select>
+
+            <p-iconfield>
+                <p-inputicon styleClass="pi pi-search" />
+                <input pInputText type="text" [(ngModel)]="filter.Keyword" (keyup.enter)="onSearch()"
+                    placeholder="Tìm kiếm mã, ký tự..." class="p-inputtext-sm" />
+            </p-iconfield>
+
+            <p-button label="Tìm kiếm" icon="pi pi-search" size="small" (onClick)="onSearch()"></p-button>
+        </div>
+    </ng-template> -->
+</p-menubar>
+
+<div class="price-request-table-container" style="height:89vh">
+    <app-custom-table [columns]="columns" [data]="dataset" [loading]="isLoading" [headerGroups]="headerGroups"
+        [showColumnFilter]="true" filterDisplay="row" dataKey="stt" [rowClass]="getRowClass" [paginator]="true"
+        [rows]="50" [rowsPerPageOptions]="[50, 100, 200, 500, 1000000]" [scrollable]="true" scrollHeight="flex"
+        [virtualScroll]="true" [virtualScrollItemSize]="35" selectionMode="multiple" [(selection)]="selectedRequests" [resizeMode]="'expand'">
+    </app-custom-table>
+</div>

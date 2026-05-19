@@ -100,7 +100,7 @@
 
             <!-- Tab: BẢNG LƯƠNG (Payroll) -->
             <div [hidden]="selectedTabIndex !== 3" class="w-100 payroll-tab-container">
-                <ng-container *ngIf="authService.isReAuthenticated()">
+                <ng-container *ngIf="pinAuthService.isAuthenticated()">
                     <div id="group_btn_action_payroll" class="p-2" style="border:none !important"
                         *ngIf="payrollData && payrollData.length > 0">
                         <button nz-button nzType="default" nzSize="small" class="me-1" (click)="onConfirmPayroll()">
@@ -117,7 +117,7 @@
                                 <tr>
                                     <th colspan="6" class="group-standard">CÔNG TIÊU CHUẨN (F4)</th>
                                     <th class="group-standard" id="total_workday_standard">{{totalWorkdayStandard}}</th>
-                                    <th colspan="48"></th>
+                                    <th [attr.colspan]="showPCCC ? 48 : 46"></th>
                                 </tr>
                                 <tr>
                                     <th rowspan="3" class="group-basic">STT</th>
@@ -130,7 +130,7 @@
 
                                     <th colspan="4" class="group-basic">THU THẬP TIÊU CHUẨN</th>
                                     <th colspan="7" class="group-overtime">LÀM THÊM</th>
-                                    <th colspan="5" class="group-allowance">PHỤ CẤP</th>
+                                    <th [attr.colspan]="showPCCC ? 5 : 3" class="group-allowance">PHỤ CẤP</th>
                                     <th colspan="6" class="group-bonus">CÁC KHOẢN CỘNG KHÁC</th>
                                     <th rowspan="3" class="group-bonus">TỔNG THU NHẬP TÍNH THUẾ</th>
                                     <th colspan="10" class="group-deduction">CÁC KHOẢN PHẢI TRỪ</th>
@@ -146,7 +146,7 @@
                                     <th colspan="2" class="group-overtime">Làm thêm cuối tuần</th>
                                     <th colspan="2" class="group-overtime">Làm thêm ngày lễ, tết</th>
                                     <th rowspan="2" class="group-overtime">Tổng tiền làm thêm</th>
-                                    <th colspan="2" class="group-allowance">PCCC</th>
+                                    <th *ngIf="showPCCC" colspan="2" class="group-allowance">PCCC</th>
                                     <th rowspan="2" class="group-allowance">PC cơm ca sau 20H/ theo loại CT</th>
                                     <th rowspan="2" class="group-allowance">PC đi làm trước 7H15</th>
                                     <th rowspan="2" class="group-allowance">Tổng tiền phụ cấp</th>
@@ -181,8 +181,10 @@
                                     <th style="font-weight: 400;" class="group-overtime">Thành tiền</th>
                                     <th style="font-weight: 400;" class="group-overtime">Số giờ</th>
                                     <th style="font-weight: 400;" class="group-overtime">Thành tiền</th>
-                                    <th style="font-weight: 400;" class="group-allowance">PCCC tham chiếu</th>
-                                    <th style="font-weight: 400;" class="group-allowance">PCCC thực lĩnh</th>
+                                    <th *ngIf="showPCCC" style="font-weight: 400;" class="group-allowance">PCCC tham
+                                        chiếu</th>
+                                    <th *ngIf="showPCCC" style="font-weight: 400;" class="group-allowance">PCCC thực
+                                        lĩnh</th>
                                     <th style="font-weight: 400;" class="group-deduction">Mức đóng</th>
                                     <th style="font-weight: 400;" class="group-deduction">Phải thu BHXH</th>
 
@@ -217,8 +219,8 @@
                                     <th class="group-overtime">(12)</th>
                                     <th class="group-overtime">(13)=(12)*(7)*3</th>
                                     <th class="group-allowance">(14)=(9)+(11)+(13)</th>
-                                    <th class="group-allowance">(15)</th>
-                                    <th class="group-allowance">(16)</th>
+                                    <th *ngIf="showPCCC" class="group-allowance">(15)</th>
+                                    <th *ngIf="showPCCC" class="group-allowance">(16)</th>
                                     <th class="group-allowance">(17)</th>
                                     <th class="group-allowance">(18)</th>
                                     <th class="group-allowance">(19)=(16)+(17)+(18)</th>
@@ -274,8 +276,9 @@
                                     <td class="text-center">{{formatNumber(item.OT_Hour_HD)}}</td>
                                     <td class="text-right">{{formatNumber(item.OT_Money_HD)}}</td>
                                     <td class="text-right">{{formatNumber(item.OT_TotalSalary)}}</td>
-                                    <td class="text-right">{{formatNumber(item.ReferenceIndustry)}}</td>
-                                    <td class="text-right">{{formatNumber(item.RealIndustry)}}</td>
+                                    <td *ngIf="showPCCC" class="text-right">{{formatNumber(item.ReferenceIndustry)}}
+                                    </td>
+                                    <td *ngIf="showPCCC" class="text-right">{{formatNumber(item.RealIndustry)}}</td>
                                     <td class="text-right">{{formatNumber(item.AllowanceMeal)}}</td>
                                     <td class="text-right">{{formatNumber(item.Allowance_OT_Early)}}</td>
                                     <td class="text-right">{{formatNumber(item.TotalAllowance)}}</td>
@@ -319,31 +322,71 @@
     </div>
 </ng-container>
 
-<!-- Re-authentication Modal -->
+<!-- PIN-based Re-authentication Modal -->
 <nz-modal [(nzVisible)]="showReAuthModal" [nzClosable]="false" [nzMaskClosable]="false" [nzFooter]="null" nzCentered
     [nzWidth]="400" nzClassName="reauth-modal">
     <ng-container *nzModalContent>
         <div class="reauth-container">
             <div class="reauth-header">
-                <div class="lock-icon">
-                    <span nz-icon nzType="lock" nzTheme="outline"></span>
+                <div class="lock-icon" [ngClass]="pinMode">
+                    <span nz-icon [nzType]="pinMode === 'FORGOT' ? 'mail' : 'lock'" nzTheme="outline"></span>
                 </div>
-                <h3>Xác thực bảo mật</h3>
-                <p>Vì lý do bảo mật, vui lòng nhập lại mật khẩu của bạn để truy cập thông tin Công & Lương.</p>
+                <h3>
+                    <ng-container [ngSwitch]="pinMode">
+                        <span *ngSwitchCase="'CREATE'">Thiết lập mã PIN</span>
+                        <span *ngSwitchCase="'FORGOT'">Quên mã PIN</span>
+                        <span *ngSwitchCase="'RESET'">Đặt lại mã PIN</span>
+                        <span *ngSwitchDefault>Xác thực bảo mật</span>
+                    </ng-container>
+                </h3>
+                <p>
+                    <ng-container [ngSwitch]="pinMode">
+                        <span *ngSwitchCase="'VERIFY'">Vui lòng nhập mã PIN của bạn để xem thông tin Công &
+                            Lương.</span>
+                        <span *ngSwitchCase="'CREATE'">Bạn chưa có mã PIN. Vui lòng thiết lập mã PIN 6 số để tiếp
+                            tục.</span>
+                        <span *ngSwitchCase="'FORGOT'">Yêu cầu đặt lại mã PIN sẽ được gửi đến email đăng ký của
+                            bạn.</span>
+                        <span *ngSwitchCase="'RESET'">Vui lòng nhập mã PIN mới gồm 6 chữ số.</span>
+                    </ng-container>
+                </p>
             </div>
 
             <div class="reauth-body">
                 <div class="input-wrapper">
-                    <label>Mật khẩu xác nhận</label>
-                    <nz-input-group [nzSuffix]="suffixTemplate" nzSize="large" [class.input-error]="errorMessage">
-                        <input [type]="passwordVisible ? 'text' : 'password'" nz-input placeholder="••••••••"
-                            [(ngModel)]="reAuthPassword" (keyup.enter)="handleReAuth()" autocomplete="off"
-                            name="no-autocomplete-password" />
-                    </nz-input-group>
-                    <ng-template #suffixTemplate>
-                        <span nz-icon [nzType]="passwordVisible ? 'eye-invisible' : 'eye'"
-                            (click)="passwordVisible = !passwordVisible" class="password-toggle"></span>
-                    </ng-template>
+                    <!-- Verification Mode -->
+                    <ng-container *ngIf="pinMode === 'VERIFY'">
+                        <label>Nhập mã PIN</label>
+                        <nz-input-group nzSize="large" [class.input-error]="errorMessage">
+                            <input type="password" nz-input placeholder="••••••" maxlength="6" [(ngModel)]="reAuthPin"
+                                (keyup.enter)="handleReAuth()" autocomplete="off"
+                                style="text-align: center; letter-spacing: 0.5em; font-size: 20px;" />
+                        </nz-input-group>
+                        <div class="forgot-link">
+                            <a href="javascript:void(0)" (click)="$event.preventDefault(); switchToForgotMode()">Quên mã
+                                PIN?</a>
+                        </div>
+                    </ng-container>
+
+                    <!-- Create/Reset Mode -->
+                    <ng-container *ngIf="pinMode === 'CREATE' || pinMode === 'RESET'">
+                        <div class="mb-3">
+                            <label>{{ pinMode === 'CREATE' ? 'Mã PIN mới' : 'Mã PIN mới' }} (6 số)</label>
+                            <nz-input-group nzSize="large">
+                                <input type="password" nz-input placeholder="••••••" maxlength="6"
+                                    [(ngModel)]="reAuthPin" autocomplete="off"
+                                    style="text-align: center; letter-spacing: 0.5em; font-size: 20px;" />
+                            </nz-input-group>
+                        </div>
+                        <div>
+                            <label>Xác nhận mã PIN</label>
+                            <nz-input-group nzSize="large" [class.input-error]="errorMessage">
+                                <input type="password" nz-input placeholder="••••••" maxlength="6"
+                                    [(ngModel)]="reAuthConfirmPin" (keyup.enter)="handleReAuth()" autocomplete="off"
+                                    style="text-align: center; letter-spacing: 0.5em; font-size: 20px;" />
+                            </nz-input-group>
+                        </div>
+                    </ng-container>
 
                     <div class="error-helper" *ngIf="errorMessage">
                         <span nz-icon nzType="close-circle" nzTheme="fill"></span>
@@ -354,11 +397,12 @@
 
             <div class="reauth-footer">
                 <button nz-button nzType="text" (click)="cancelReAuth()" class="btn-cancel">
-                    Quay lại
+                    {{ (pinMode !== 'VERIFY' && hasPin) ? 'Quay lại' : 'Hủy' }}
                 </button>
+
                 <button nz-button nzType="primary" (click)="handleReAuth()" [nzLoading]="isVerifying" nzSize="large"
                     class="btn-confirm">
-                    Xác nhận
+                    {{ pinMode === 'CREATE' ? 'Thiết lập' : (pinMode === 'RESET' ? 'Cập nhật' : 'Xác nhận') }}
                 </button>
             </div>
         </div>

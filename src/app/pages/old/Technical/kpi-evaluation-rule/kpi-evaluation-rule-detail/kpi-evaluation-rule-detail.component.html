@@ -24,8 +24,8 @@
                 </div>
                 <div class="col-md-9">
                     <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn kỳ đánh giá"
-                        [(ngModel)]="selectedSessionCopyId" style="width: 100%;" nzSize="small"
-                        (ngModelChange)="onSessionCopyChange()">
+                        [(ngModel)]="selectedSessionCopyId" nzDropdownClassName="select-dropdown" style="width: 100%;"
+                        nzSize="small" (ngModelChange)="onSessionCopyChange()">
                         <nz-option *ngFor="let item of sessions" [nzValue]="item.ID"
                             [nzLabel]="item.Code + ' - ' + item.Name">
                         </nz-option>
@@ -44,7 +44,8 @@
                 </div>
                 <div class="col-md-9">
                     <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn Rule đánh giá"
-                        [(ngModel)]="selectedRuleCopyId" style="width: 100%;" nzSize="small">
+                        [(ngModel)]="selectedRuleCopyId" nzDropdownClassName="select-dropdown" style="width: 100%;"
+                        nzSize="small">
                         <nz-option *ngFor="let item of rulesCopy" [nzValue]="item.ID"
                             [nzLabel]="item.RuleCode + ' - ' + item.RuleName">
                         </nz-option>
@@ -66,7 +67,7 @@
                 </div>
                 <div class="col-md-9">
                     <nz-select nzShowSearch nzPlaceHolder="Chọn kỳ đánh giá" [(ngModel)]="selectedSessionId"
-                        style="width: 100%;" nzSize="small" [nzDisabled]="true">
+                        nzDropdownClassName="select-dropdown" style="width: 100%;" nzSize="small" [nzDisabled]="true">
                         <nz-option *ngFor="let item of sessions" [nzValue]="item.ID"
                             [nzLabel]="item.Code + ' - ' + item.Name">
                         </nz-option>
@@ -113,7 +114,8 @@
                 </div>
                 <div class="col-md-9">
                     <nz-select nzShowSearch nzPlaceHolder="Chọn vị trí" [(ngModel)]="selectedPositionId"
-                        style="width: 100%;" nzSize="small" (ngModelChange)="onPositionChange()">
+                        nzDropdownClassName="select-dropdown" style="width: 100%;" nzSize="small"
+                        (ngModelChange)="onPositionChange()">
                         <nz-option *ngFor="let item of positions" [nzValue]="item.ID"
                             [nzLabel]="item.PositionCode + ' - ' + item.PositionName">
                         </nz-option>

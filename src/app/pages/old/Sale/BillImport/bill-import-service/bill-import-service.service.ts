@@ -195,6 +195,12 @@ export class BillImportServiceService {
             `api/billimport/get-product?warehouseID=${warehouseID}&ProductGroupID=${productGroupID}`
         );
     }
+    getProductOptionNew() {
+        return this.http.get<any>(
+            environment.host +
+            `api/billimport/get-product-new`
+        );
+    }
     convertImportToExport(billImportId: number): Observable<any> {
         return this.http.post(
             environment.host + `api/billexport/convert-from-import?billImportId=${billImportId}`,
@@ -233,6 +239,10 @@ export class BillImportServiceService {
         return this.http.get(environment.host + `api/billimport/get-phieu-tra?productID=${productID}`);
     }
 
+    getViewDetail(billId: number): Observable<any> {
+        return this.http.get(environment.host + `api/BillImport/get-view-import-detail/${billId}`);
+    }
+
     exportFiles(billImportIds: number[]): Observable<Blob> {
         return this.http.post(
             environment.host + 'api/BillImport/export-files-sale',
@@ -240,6 +250,12 @@ export class BillImportServiceService {
             {
                 responseType: 'blob'
             }
+        );
+    }
+
+    getSaleLogs(billImportId: number): Observable<any> {
+        return this.http.get<any>(
+            environment.host + `api/BillImport/get-sale-logs/${billImportId}`
         );
     }
 }

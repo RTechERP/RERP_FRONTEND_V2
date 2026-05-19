@@ -8,10 +8,10 @@ import { environment } from '../../../../../../environments/environment';
   providedIn: 'root',
 })
 export class HistoryBorrowSaleService {
-  constructor(private http: HttpClient) {}
-getCbbEmployee(): Observable<any> {
-  return this.http.get<any>(environment.host + 'api/historyborrowsale/get-user');
-}
+  constructor(private http: HttpClient) { }
+  getCbbEmployee(): Observable<any> {
+    return this.http.get<any>(environment.host + 'api/historyborrowsale/get-user');
+  }
 
   getHistoryBorrowSale(
     status: number,
@@ -41,11 +41,35 @@ getCbbEmployee(): Observable<any> {
   approvedReturned(data: number[], approved: boolean): Observable<any> {
     return this.http.post(
       environment.host +
-        `api/historyborrowsale/approved-returned?isapproved=${approved}`,
+      `api/historyborrowsale/approved-returned?isapproved=${approved}`,
       data
     );
   }
-  getSummaryReturn(exportID:number):Observable<any>{
-    return this.http.get(environment.host+`api/historyborrowsale/get-summary-return?exportID=${exportID}`)
+  getSummaryReturn(exportID: number): Observable<any> {
+    return this.http.get(environment.host + `api/historyborrowsale/get-summary-return?exportID=${exportID}`)
+  }
+
+  getProductGroupWarehouse(): Observable<any> {
+    return this.http.get(environment.host + `api/historyborrowsale/product-group-warehouse`)
+  }
+
+  getQuantityBorrow(): Observable<any> {
+    return this.http.get(environment.host + `api/historyborrowsale/quantity-borrow-sale-persional`)
+  }
+
+  extendProduct(data: number[], extendDate: string): Observable<any> {
+    return this.http.post(
+      environment.host +
+      `api/historyborrowsale/extend-product?extendDate=${extendDate}`,
+      data
+    );
+  }
+
+  approvedExtendProduct(data: number[], approved: boolean): Observable<any> {
+    return this.http.post(
+      environment.host +
+      `api/historyborrowsale/approved-extend-product?isapproved=${approved}`,
+      data
+    );
   }
 }

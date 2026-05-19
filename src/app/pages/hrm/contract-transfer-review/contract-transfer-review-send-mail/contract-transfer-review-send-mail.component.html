@@ -1,0 +1,190 @@
+<div class="email-composer">
+  <!-- HEADER -->
+  <div class="email-header">
+    <div class="header-icon">
+      <i class="fa-solid fa-envelope-open-text"></i>
+    </div>
+    <div class="header-text">
+      <h4>Gửi thông báo đánh giá chuyển HĐLĐ</h4>
+      <span class="form-code">P. HCNS – RTC Technology Việt Nam</span>
+    </div>
+    <div class="header-meta">
+      <span class="candidate-count">
+        <i class="fa-solid fa-users"></i> {{ mails.length }} nhân viên
+      </span>
+      <button class="modal-close-btn" (click)="onCancel()" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <nz-spin [nzSpinning]="isSending" nzTip="Đang gửi thông báo...">
+    <!-- TABS PER NHÂN VIÊN -->
+    <nz-tabset [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="activeTabIndex = $any($event)" nzType="card"
+      class="candidate-tabs">
+      <nz-tab *ngFor="let mail of mails; let i = index" [nzTitle]="tabTitle">
+        <ng-template #tabTitle>
+          <i class="fa-solid fa-user" style="margin-right:4px;color:#2e86c1"></i>
+          {{ mail.employeeName }}
+        </ng-template>
+
+        <div class="tab-body">
+          <!-- LEFT: FORM -->
+          <div class="form-panel">
+
+            <!-- Email nhân viên + CC -->
+            <div class="fields-row">
+              <div class="field-group flex1">
+                <label class="field-label">
+                  <i class="fa-solid fa-at text-primary"></i> Email nhân viên
+                  <span style="color:red">(*)</span>
+                </label>
+                <input nz-input [(ngModel)]="mail.toEmail" placeholder="nhanvien@rtc.edu.vn" />
+              </div>
+              <div class="field-group flex1">
+                <label class="field-label">
+                  <i class="fa-solid fa-at text-secondary"></i> CC (Quản lý)
+                </label>
+                <input nz-input [(ngModel)]="mail.ccEmail" placeholder="quanly@rtc.edu.vn" />
+              </div>
+            </div>
+
+
+            <!-- Tiêu đề -->
+            <div class="field-group">
+              <label class="field-label">
+                <i class="fa-solid fa-heading text-warning"></i> Tiêu đề
+                <span style="color:red">(*)</span>
+              </label>
+              <input nz-input [(ngModel)]="mail.subject" />
+            </div>
+
+            <!-- Thông tin nhân viên (readonly) -->
+            <nz-divider nzText="Thông tin nhân viên" nzOrientation="left" style="margin:10px 0 6px;"></nz-divider>
+
+            <div class="fields-row">
+              <div class="field-group flex1">
+                <label class="field-label">Họ và tên</label>
+                <input nz-input [(ngModel)]="mail.employeeName" />
+              </div>
+              <div class="field-group flex1">
+                <label class="field-label">Chức danh</label>
+                <input nz-input [(ngModel)]="mail.positionName" />
+              </div>
+            </div>
+
+            <div class="fields-row">
+              <div class="field-group flex1">
+                <label class="field-label">Phòng / Ban</label>
+                <input nz-input [(ngModel)]="mail.departmentName" />
+              </div>
+              <div class="field-group flex1">
+                <label class="field-label">Người đánh giá</label>
+                <input nz-input [(ngModel)]="mail.managerName" />
+              </div>
+            </div>
+
+            <div class="fields-row">
+              <div class="field-group flex1">
+                <label class="field-label">{{ mail.periodLabel }} (Từ)</label>
+                <nz-date-picker [(ngModel)]="mail.dateStart" nzFormat="dd/MM/yyyy" style="width:100%"></nz-date-picker>
+              </div>
+              <div class="field-group flex1">
+                <label class="field-label">{{ mail.periodLabel }} (Đến)</label>
+                <nz-date-picker [(ngModel)]="mail.dateEnd" nzFormat="dd/MM/yyyy" style="width:100%"></nz-date-picker>
+              </div>
+            </div>
+
+            <!-- Deadline -->
+            <nz-divider nzText="Thời hạn nộp đánh giá" nzOrientation="left" style="margin:10px 0 6px;"></nz-divider>
+
+            <div class="fields-row">
+              <div class="field-group" style="flex:2">
+                <label class="field-label">
+                  <i class="fa-solid fa-hourglass-half text-warning"></i> Deadline
+                  <span style="color:red">(*)</span>
+                </label>
+                <nz-date-picker [(ngModel)]="mail.deadlineDate" nzFormat="dd/MM/yyyy" style="width:100%"
+                  nzPlaceHolder="Chọn ngày"></nz-date-picker>
+              </div>
+              <div class="field-group" style="flex:1">
+                <label class="field-label">Giờ</label>
+                <nz-select [(ngModel)]="mail.deadlineHour" style="width:100%">
+                  <nz-option *ngFor="let h of hours" [nzValue]="h" [nzLabel]="h + 'h'"></nz-option>
+                </nz-select>
+              </div>
+              <div class="field-group" style="flex:1">
+                <label class="field-label">Phút</label>
+                <nz-select [(ngModel)]="mail.deadlineMinute" style="width:100%">
+                  <nz-option *ngFor="let m of minutes" [nzValue]="m" [nzLabel]="m + 'p'"></nz-option>
+                </nz-select>
+              </div>
+            </div>
+
+          </div>
+          <!-- /form-panel -->
+
+          <!-- RIGHT: PREVIEW (email client style) -->
+          <div class="preview-panel">
+            <div class="preview-label">
+              <i class="fa-solid fa-envelope-open-text"></i>&nbsp; Xem trước — hiển thị như email nhận được
+            </div>
+            <div class="email-preview-card">
+
+              <!-- Email header giống Outlook -->
+              <div class="email-client-header">
+                <div class="echeader-row">
+                  <span class="echeader-key">Từ:</span>
+                  <span class="echeader-val">HR RTC &lt;hr&#64;rtc.edu.vn&gt;</span>
+                </div>
+                <div class="echeader-row">
+                  <span class="echeader-key">Đến:</span>
+                  <span class="echeader-val">{{ mail.employeeName }}{{ mail.toEmail ? ' &lt;' + mail.toEmail + '&gt;' :
+                    ' (chưa nhập email)' }}</span>
+                </div>
+                <div class="echeader-row" *ngIf="mail.ccEmail">
+                  <span class="echeader-key">CC:</span>
+                  <span class="echeader-val"> Manager &lt;dept_manager&#64;rtc.edu.vn&gt;;{{ mail.evaluatorName }}{{
+                    mail.ccEmail
+                    ? ' &lt;' + mail.ccEmail + '&gt;' :
+                    '' }}</span>
+                </div>
+                <div class="echeader-row">
+                  <span class="echeader-key">Tiêu đề:</span>
+                  <span class="echeader-val bold">{{ mail.subject }}</span>
+                </div>
+              </div>
+
+              <div class="echeader-divider"></div>
+
+              <!-- Nội dung email — Times New Roman -->
+              <div class="email-body-preview" [innerHTML]="getPreviewBody(mail)"></div>
+
+            </div>
+          </div>
+
+
+        </div>
+        <!-- /tab-body -->
+      </nz-tab>
+    </nz-tabset>
+  </nz-spin>
+
+  <!-- FOOTER -->
+  <div class="email-footer">
+    <span class="footer-hint">
+      <i class="fa-solid fa-circle-info text-primary"></i>
+      Kiểm tra lại email và deadline trước khi gửi thông báo
+    </span>
+    <div class="footer-right">
+      <button nz-button nzType="default" (click)="onCancel()" nzDanger>
+        Đóng
+      </button>
+      <button nz-button nzType="primary" (click)="onSend()" [nzLoading]="isSending">
+        <i class="fa-solid fa-paper-plane" style="margin-right:5px;"></i>
+        Gửi thông báo
+      </button>
+    </div>
+  </div>
+
+</div>

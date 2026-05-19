@@ -72,7 +72,8 @@
                       <nz-form-label class="fs-12">Người phụ trách</nz-form-label>
                       <nz-form-control class="w-100">
                         <nz-select name="userId" nzShowSearch nzAllowClear nzSize="small" class="w-100"
-                          nzPlaceHolder="Người phụ trách" [(ngModel)]="filters.userId">
+                          nzDropdownClassName="select-dropdown" nzPlaceHolder="Người phụ trách"
+                          [(ngModel)]="filters.userId">
                           <nz-option *ngFor="let item of filterUserData" [nzValue]="item.ID"
                             [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
                         </nz-select>
@@ -83,7 +84,8 @@
                       <nz-form-label class="fs-12">Nhóm</nz-form-label>
                       <nz-form-control class="w-100">
                         <nz-select name="employeeTeamSaleId" nzShowSearch nzAllowClear nzSize="small" class="w-100"
-                          nzPlaceHolder="Nhóm" [(ngModel)]="filters.employeeTeamSaleId">
+                          nzDropdownClassName="select-dropdown" nzPlaceHolder="Nhóm"
+                          [(ngModel)]="filters.employeeTeamSaleId">
                           <nz-option *ngFor="let item of filterEmployeeTeamSale" [nzValue]="item.ID"
                             [nzLabel]="item.Name"></nz-option>
                         </nz-select>
@@ -94,7 +96,8 @@
                       <nz-form-label class="fs-12">Khách hàng</nz-form-label>
                       <nz-form-control class="w-100">
                         <nz-select name="customerId" nzShowSearch nzAllowClear nzSize="small" class="w-100"
-                          nzPlaceHolder="Khách hàng" [(ngModel)]="filters.customerId">
+                          nzDropdownClassName="select-dropdown" nzPlaceHolder="Khách hàng"
+                          [(ngModel)]="filters.customerId">
                           <nz-option *ngFor="let item of dataCustomers" [nzValue]="item.ID"
                             [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"></nz-option>
                         </nz-select>

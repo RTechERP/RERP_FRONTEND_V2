@@ -253,12 +253,12 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
         visible: this.permissionService.hasPermission('N2,N34,N1'),
         command: () => this.Cancel_Click()
       },
-      {
-        label: 'Đăng ký xe',
-        icon: 'fa-solid fa-car-side fa-lg text-info',
-        visible: this.permissionService.hasPermission('N2,N34,N1,N68'),
-        command: () => this.test()
-      }
+      // {
+      //   label: 'Đăng ký xe',
+      //   icon: 'fa-solid fa-car-side fa-lg text-info',
+      //   visible: this.permissionService.hasPermission('N2,N34,N1,N68'),
+      //   command: () => this.test()
+      // }
     );
 
 

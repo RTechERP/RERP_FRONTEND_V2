@@ -1,0 +1,490 @@
+/* ===== Layout Container ===== */
+.ptp-container {
+    background: #fff;
+    height: calc(100vh - 64px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ===== Sticky Search Header ===== */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* ===== Form field vertical ===== */
+.form-field-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.form-field-vertical label {
+    font-size: 12px;
+    color: #595959;
+    white-space: nowrap;
+}
+
+/* ===== Table Container ===== */
+.table-container {
+    flex: 1;
+    overflow: hidden;
+    padding: 8px 16px 16px 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== Column filter input ===== */
+.col-filter-input {
+    width: 100%;
+    padding: 3px 6px;
+    font-size: 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    outline: none;
+    background: #fff;
+    color: #262626;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.col-filter-input:focus {
+    border-color: #1890ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, .1);
+}
+
+/* ===== Search input field ===== */
+.search-input-field {
+    width: 100%;
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    box-sizing: border-box;
+    transition: all 0.3s;
+}
+
+.search-input-field:focus,
+.search-input-field:active {
+    border-color: #40a9ff;
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    outline: 0;
+}
+
+/* Đồng bộ chiều cao cho các ô tìm kiếm */
+.form-field-vertical input[type="date"],
+.search-input-field {
+    height: 28px !important;
+}
+
+:host ::ng-deep .ant-select-small:not(.ant-select-customize-input) .ant-select-selector {
+    height: 28px !important;
+}
+
+:host ::ng-deep .ant-select-small .ant-select-selection-item,
+:host ::ng-deep .ant-select-small .ant-select-selection-placeholder {
+    line-height: 26px !important;
+}
+
+
+/* ===== Project Group Row ===== */
+.project-group-title {
+    font-weight: 600;
+    color: #1890ff;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.task-count-badge {
+    background: #1890ff;
+    color: #fff;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+/* ===== Task Title ===== */
+.task-title {
+    color: #262626;
+    word-break: break-word;
+    white-space: normal;
+}
+
+/* Task Code Link */
+.task-code-link {
+    color: #1890ff;
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap !important;
+}
+
+.task-code-link:hover {
+    text-decoration: underline;
+    color: #40a9ff;
+}
+
+/* ===== Date Column ===== */
+.col-date {
+    text-align: center !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+}
+
+.date-text {
+    color: #262626;
+    font-size: 13px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+/* ===== Text helpers ===== */
+.text-wrap {
+    word-break: break-word;
+    white-space: normal !important;
+}
+
+.text-muted {
+    color: #bfbfbf;
+}
+
+.cell-center {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+/* ===== Button styles ===== */
+.btn-outline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    color: #595959;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-outline:hover {
+    border-color: #1890ff;
+    color: #1890ff;
+}
+
+.btn-sm {
+    padding: 0 12px !important;
+    font-size: 13px !important;
+    height: 30px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* ===== Footer ===== */
+.table-footer-total {
+    font-weight: 600;
+    background-color: #f8f9fa !important;
+    padding: 10px 16px !important;
+    color: #495057;
+    border-top: 2px solid #dee2e6 !important;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+.table-footer-total .total-count {
+    color: #007ad9;
+    font-size: 1.1em;
+}
+
+/* ===== Empty State ===== */
+.empty-message {
+    text-align: center;
+    padding: 48px 16px !important;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #8c8c8c;
+}
+
+.empty-icon {
+    font-size: 48px;
+    color: #d9d9d9;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* ===== PrimeNG TreeTable Overrides ===== */
+:host ::ng-deep .p-treetable {
+    font-size: 13px;
+}
+
+:host ::ng-deep .p-treetable .p-treetable-thead>tr>th {
+    background: #fafafa;
+    font-weight: 500;
+    color: #262626;
+    padding: 6px 8px;
+    border-color: #e8e8e8;
+    text-align: center;
+    vertical-align: middle;
+}
+
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td {
+    padding: 4px 8px;
+    border-color: #f0f0f0;
+    color: #595959;
+    vertical-align: middle;
+}
+
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr:hover {
+    background: #f5f5f5 !important;
+}
+
+/* Project group row style — nội dung tràn ngang qua nhiều cột */
+.project-group-row td {
+    background-color: #f0f7ff !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: 2px solid #bae7ff !important;
+}
+
+/* Giữ viền trái ô đầu và viền phải ô cuối */
+.project-group-row td:first-child {
+    border-left: 1px solid #e8e8e8 !important;
+    overflow: visible;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+}
+
+.project-group-row td:last-child {
+    border-right: 1px solid #e8e8e8 !important;
+}
+
+/* Căn chỉnh toggler và nội dung trên cùng 1 hàng - Dùng div wrapper bên trong td */
+.cell-content-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* Tăng khoảng cách một chút cho thoáng */
+    min-height: 32px;
+    /* Đảm bảo chiều cao tối thiểu cho row */
+}
+
+.cell-content-wrapper p-treeTableToggler {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Toggler button compact */
+:host ::ng-deep .p-treetable .p-treetable-toggler {
+    width: 24px;
+    height: 24px;
+    margin-right: 4px;
+}
+
+/* Column filter compact */
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+}
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-inputtext {
+    padding: 4px 6px;
+    font-size: 12px;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter-menu-button,
+:host ::ng-deep .p-column-filter-clear-button {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+}
+
+/* Sort icons */
+:host ::ng-deep .p-treetable .p-sortable-column .p-sortable-column-icon {
+    color: #8c8c8c;
+}
+
+/* Column resizer */
+:host ::ng-deep .p-treetable .p-column-resizer {
+    width: 8px;
+}
+
+/* p-tag compact */
+:host ::ng-deep .p-tag {
+    font-size: 12px;
+    padding: 2px 8px;
+    min-width: 28px;
+    display: inline-flex;
+    justify-content: center;
+}
+
+/* Loading overlay */
+:host ::ng-deep .p-treetable-loading-overlay {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+:host ::ng-deep .table-container {
+    padding: 0px;
+}
+
+/* Status filter dropdown */
+.status-filter {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    font-size: 12px;
+    background: #fff;
+    cursor: pointer;
+    margin: 0 auto;
+    display: block;
+    max-width: 100px;
+}
+
+.status-filter:focus {
+    outline: none;
+    border-color: #1890ff;
+}
+
+/* Excel Import Modal 90% Height & Width */
+:host ::ng-deep .excel-import-modal-90 .modal-dialog {
+    max-width: 80vw;
+    height: 85vh;
+    display: flex;
+    align-items: center;
+    margin: 0vh auto;
+}
+
+:host ::ng-deep .excel-import-modal-90 .modal-content {
+    height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .excel-import-modal-90 .modal-body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+:host ::ng-deep .excel-import-modal-90 .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0 !important;
+}
+
+:host ::ng-deep .excel-import-modal-90 #taskImportTable {
+    flex: 1;
+    height: 95% !important;
+    width: 100% !important;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .ptp-container {
+        height: auto;
+    }
+
+    .table-container {
+        padding: 8px;
+    }
+}
+
+.ms-2 {
+    margin-left: 8px !important;
+}
+
+/* Excel Button Style */
+.btn-excel {
+    color: #1d6f42 !important;
+    border-color: #1d6f42 !important;
+    background: #fff !important;
+}
+
+.btn-excel:hover {
+    color: #fff !important;
+    background-color: #1d6f42 !important;
+}
+
+.ant-row-space-between {
+    justify-content: left;
+}
+
+/* MultiSelect Status Filter */
+.status-filter-multi ::ng-deep .p-multiselect {
+    background: #ffffff !important;
+    border: 1px solid #d9d9d9 !important;
+    border-radius: 4px !important;
+    height: 28px !important;
+    width: 100% !important;
+    max-width: 130px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.status-filter-multi ::ng-deep .p-multiselect-label {
+    padding: 1px 8px !important;
+    font-size: 12px !important;
+    line-height: normal !important;
+}
+
+.status-filter-multi ::ng-deep .p-multiselect-trigger {
+    width: 20px !important;
+}
+
+.status-filter-multi ::ng-deep .p-multiselect-panel .p-multiselect-items .p-multiselect-item {
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+}
+
+/* Standardizing MultiSelect with col-filter-input */
+.status-filter-multi ::ng-deep .p-multiselect {
+    height: 28px !important;
+    border: 1px solid #d9d9d9 !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    padding: 0 !important;
+    line-height: normal !important;
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+}
+
+.status-filter-multi ::ng-deep .p-multiselect-label {
+    padding: 0 8px !important;
+    line-height: 26px !important;
+    font-size: 12px !important;
+    color: #262626 !important;
+    display: flex !important;
+    align-items: center !important;
+    height: 100% !important;
+}

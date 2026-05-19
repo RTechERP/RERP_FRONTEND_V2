@@ -61,6 +61,9 @@ export class CustomerServiceService {
   getBusinessField(): Observable<any> {
     return this.http.get<any>(this._url + 'get-business-field');
   }
+  getCustomerIndustry(): Observable<any> {
+    return this.http.get<any>(this._url + 'get-customer-industry');
+  }
 
   getProvinces(): Observable<any> {
     return this.http.get<any>(this._url + 'get-provinces');

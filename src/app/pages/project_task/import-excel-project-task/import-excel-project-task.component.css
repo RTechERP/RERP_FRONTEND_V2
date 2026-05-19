@@ -1,0 +1,68 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.modal-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: none;
+}
+
+.modal-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0 !important;
+}
+
+#taskImportTable {
+    flex: 1;
+    height: 100%;
+    width: 100%;
+}
+
+.btn-close-custom {
+    background: transparent;
+    border: none;
+    color: #ff4d4f;
+    font-size: 1.4rem;
+    line-height: 1;
+    opacity: 1;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.btn-close-custom:hover {
+    color: #ff7875;
+    transform: scale(1.2);
+}
+
+.btn-close-custom:active {
+    transform: scale(0.95);
+}
+

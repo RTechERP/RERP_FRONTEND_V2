@@ -7,7 +7,7 @@
 
     <!-- Fieldset 1: Copy -->
 
-    <fieldset class="reset m-0 mb-3">
+    <fieldset class="reset m-0 mb-3" style="width: fit-content;">
       <legend class="reset fs-12 p-0  d-flex align-items-center gap-2">Copy <nz-switch [(ngModel)]="disabled"
           [ngModelOptions]="{standalone: true}" nzCheckedChildren="Hiện" nzUnCheckedChildren="Ẩn">
         </nz-switch>
@@ -242,11 +242,11 @@
         <nz-col [nzSpan]="24">
           <nz-form-item>
             <nz-form-label class="fs-12 p-0" [nzSpan]="24">Loại vị trí</nz-form-label>
-            <nz-form-control [nzSpan]="24">
-              <nz-select formControlName="KPIID" [nzPlaceHolder]="'Chọn loại vị trí'" style="width: 100%" name="KPIID"
-                nzAllowClear nzShowSearch nzMode="multiple">
-                <nz-option *ngFor="let item of kpiData" [nzLabel]="item.TypeName" [nzValue]="item.ID"></nz-option>
-              </nz-select>
+            <nz-form-control nzErrorTip="">
+              <nz-tree-select class="w-100" [nzNodes]="kpiData" nzShowSearch [nzPlaceHolder]="'Chọn loại vị trí'"
+                [formControlName]="'KPIID'" nzCheckable nzMultiple nzExpandAll
+                [nzDropdownStyle]="{ 'max-height': '300px', 'overflow-y': 'auto' }">
+              </nz-tree-select>
             </nz-form-control>
           </nz-form-item>
         </nz-col>

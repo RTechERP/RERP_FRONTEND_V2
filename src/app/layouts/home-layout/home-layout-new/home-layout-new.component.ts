@@ -18,7 +18,7 @@ import { PermissionService } from '../../../services/permission.service';
 import { GroupItem, LeafItem, MenuItem, MenuService } from '../../../pages/systems/menus/menu-service/menu.service';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
-import { NOTIFICATION_TITLE, NOTIFICATION_TYPE_MAP, NOTIFICATION_TITLE_MAP, RESPONSE_STATUS } from '../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../app.config';
 import { FormsModule } from '@angular/forms';
 import { MenuAppService } from '../../../pages/systems/menu-app/menu-app.service';
 import { environment } from '../../../../environments/environment';
@@ -48,7 +48,8 @@ interface LiXi {
     rotation: number;
     icon: string;
 }
-
+import { HistoryBorrowSaleService } from '../../../pages/old/Sale/HistoryBorrowSale/history-borrow-sale-service/history-borrow-sale.service';
+import { ProjectTaskService } from '../../../pages/project_task/project-task/project-task.service';
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -77,7 +78,7 @@ interface LiXi {
 export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     private eventSource: EventSource | null = null;
     currentAppVersion: string = '';
-    userAppVersion: string = localStorage.getItem('currentAppVersion') || '0.0.0';
+    userAppVersion: string = localStorage.getItem('currentAppVersion') || '1.0.3';
     lixis: LiXi[] = [];
     showLixiRain: boolean = false;
     hasNewVersion: boolean = false;
@@ -112,6 +113,13 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     quantityApprove: any = {};
     quantityBorrow: any = {};
     quantityBorrowExpried: any = {};
+    quantityBorrowSale: any = {};
+    quantityBorrowExpriedSale: any = {};
+    quantityOverdueProjectTask: number = 0;
+    hasBorrowSale: boolean = true;
+    hasBorrowDemo: boolean = true;
+    contractExpiryInfo: { daysLeft: number | null; contractEndDate: string | null } = { daysLeft: null, contractEndDate: null };
+    pendingReview = { asEmployee: 0, asEvaluator: 0, asTBP: 0, asHR: 0, asBGD: 0 };
 
     isHoliday(date: Date): boolean {
         let isHoliday = this.holidays.some(
@@ -157,9 +165,11 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         private approveTpService: ApproveTpService,
         private modalService: NgbModal,
         private borrowService: BorrowService,
+        private historyBorrowSaleService: HistoryBorrowSaleService,
         private updateVersionService: UpdateVersionService,
         private nzModal: NzModalService,
         public notifService: NotificationService,
+        private projectTaskService: ProjectTaskService,
     ) { }
 
     get notifItems(): NotifyItem[] { return this.notifService.items; }
@@ -179,14 +189,26 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
             // this.isAdmin = (this.appUserService.currentUser?.IsAdmin) || false;
         });
+
+        // this.getMenus();
+        // this.getHoliday(this.today.getFullYear(), this.today.getMonth());
+        // this.getEmployeeOnleaveAndWFH();
+        // this.getQuantityApprove();
+        // this.getQuantityBorrow();
+        // this.loadNewsletters();
+
         // Gom các API load UI vào forkJoin để biết khi nào tất cả đã xong
+        this.notifService.setItems([]);
         forkJoin([
             this.getMenus(),
             this.getHoliday(this.today.getFullYear(), this.today.getMonth()),
             this.getEmployeeOnleaveAndWFH(),
             this.getQuantityApprove(),
             this.getQuantityBorrow(),
-            this.loadNewsletters()
+            this.getQuantityBorrowSale(),
+            this.getQuantityOverdueProjectTask(),
+            this.loadNewsletters(),
+            this.getPendingContractReview(),
         ]).subscribe({
             next: () => {
                 console.log('Tất cả API quan trọng đã load xong. Khởi tạo SSE và check version...');
@@ -199,6 +221,9 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 // this.initSseConnection();
             }
         });
+
+        // mở new tab
+
     }
     getQuantityApprove() {
         return this.approveTpService.getQuantityApprove().pipe(
@@ -225,27 +250,31 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             tap((res: any) => {
                 this.quantityBorrow = res.data.QuantitySemiExpired;
                 this.quantityBorrowExpried = res.data.QuantityExpired;
-
+                if (this.quantityBorrow > 0 || this.quantityBorrowExpried > 0) {
+                    this.hasBorrowDemo = false;
+                }
                 if (this.quantityBorrow > 0) {
                     this.notifService.addItem({
                         id: 1,
                         time: new Date().toISOString(),
-                        title: 'Vật tư sắp hết hạn',
+                        title: 'Vật tư sắp hết hạn kho demo',
                         text: `Bạn đang có ${this.quantityBorrow} vật tư mượn sắp hết hạn`,
                         group: 'today',
                         icon: 'clock-circle',
-                        route: 'history-product-rtc-personal'
+                        route: 'summary-asset-persional',
+                        queryParams: { activeTab: 2 }
                     });
                 }
                 if (this.quantityBorrowExpried > 0) {
                     this.notifService.addItem({
                         id: 2,
                         time: new Date().toISOString(),
-                        title: 'Vật tư quá hạn',
+                        title: 'Vật tư quá hạn kho demo',
                         text: `Bạn đang có ${this.quantityBorrowExpried} vật tư mượn quá hạn`,
                         group: 'today',
                         icon: 'warning',
-                        route: 'history-product-rtc-personal'
+                        route: 'summary-asset-persional',
+                        queryParams: { activeTab: 2 }
                     });
                 }
             }),
@@ -256,6 +285,66 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                     err?.error?.message || `${err.error}\n${err.message}`,
                     { nzStyle: { whiteSpace: 'pre-line' } }
                 );
+                return of(null);
+            })
+        );
+
+    }
+
+    getQuantityBorrowSale() {
+        return this.historyBorrowSaleService.getQuantityBorrow().pipe(
+            tap((res: any) => {
+                this.quantityBorrowSale = res.data.quantityBorrowSale;
+                this.quantityBorrowExpriedSale = res.data.quantityBorrowExpriedSale;
+
+                if (this.quantityBorrowSale > 0 || this.quantityBorrowExpriedSale > 0) {
+                    this.hasBorrowSale = false;
+                }
+                if (this.quantityBorrowSale > 0) {
+                    this.notifService.addItem({
+                        id: 3,
+                        time: new Date().toISOString(),
+                        title: 'Vật tư sắp hết hạn kho sale',
+                        text: `Bạn đang có ${this.quantityBorrowSale} vật tư mượn sắp hết hạn`,
+                        group: 'today',
+                        icon: 'clock-circle',
+                        route: 'summary-asset-persional',
+                        queryParams: { activeTab: 1 }
+                    });
+                }
+                if (this.quantityBorrowExpriedSale > 0) {
+                    this.notifService.addItem({
+                        id: 4,
+                        time: new Date().toISOString(),
+                        title: 'Vật tư quá hạn kho sale',
+                        text: `Bạn đang có ${this.quantityBorrowExpriedSale} vật tư mượn quá hạn`,
+                        group: 'today',
+                        icon: 'warning',
+                        route: 'summary-asset-persional',
+                        queryParams: { activeTab: 1 }
+                    });
+                }
+            }),
+            catchError((err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+                return of(null);
+            })
+        );
+    }
+
+    getQuantityOverdueProjectTask() {
+        return this.projectTaskService.getNumberOverdue().pipe(
+            tap((res: any) => {
+                if (res.status === 1 && res.data?.result?.length > 0) {
+                    this.quantityOverdueProjectTask = res.data.result[0][''] || 0;
+                }
+            }),
+            catchError((err: any) => {
                 return of(null);
             })
         );
@@ -293,7 +382,6 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         return this.menuService.getCompMenus('').pipe(
             tap(menus => {
                 // this.menuComps = menus;
-
                 this.menus = menus;
                 // console.log('this.menus:', this.menus);
 
@@ -304,10 +392,22 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                     (item: any) => (item.isPermission || false) === false
                 );
                 // console.log('hasMenuApprovePermission', this.hasMenuApprovePermission);
-
                 var pesons = this.menus.find((x) => x.key == 'person');
+                var tasks = this.menus.find((x) => x.key == 'M03');// Công việc
                 this.menuPersons = pesons.children.filter((x: any) => menuPersonCodes.includes(x.key));
-                this.menuWeekplans = pesons.children.find((x: any) => x.key == 'planweek');
+                // const menuWeekplans = pesons.children.find((x: any) => x.key === 'planweek');
+                const menuWeekplans = tasks.children.find((x: any) => x.key === 'M10005');
+                const menuProjectTask = tasks.children.find((x: any) => x.key === 'M10002');
+                const menuTimeLine = menuProjectTask.children.find((x: any) => x.key === 'M10304');
+                menuWeekplans.children.unshift(menuTimeLine);
+                // if (menuWeekplans && menuProjectTask) {
+                //     menuWeekplans.children = menuWeekplans.children || [];
+
+                //     menuProjectTask.children.forEach((item: any) => {
+                //         menuWeekplans.children.push({ ...item });
+                //     });
+                // }
+                this.menuWeekplans = menuWeekplans;
                 this.menuQickAcesss = this.menus.find((x) => x.key == 'M4');
             }),
             catchError((err) => {
@@ -383,14 +483,95 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         );
     }
 
+
+    getContractExpiry() {
+        return this.homepageService.getContractExpiryDays().pipe(
+            tap((res: any) => {
+                if (res?.status !== 1 || !res?.data) return;
+                const daysLeft: number = res.data.daysLeft;
+                const contractEndDate: string = res.data.contractEndDate;
+
+                this.contractExpiryInfo = { daysLeft, contractEndDate };
+
+                if (daysLeft <= 0) {
+                    // Đã hết hạn hoặc hết hạn hôm nay
+                    this.notifService.addItem({
+                        id: 10,
+                        time: new Date().toISOString(),
+                        title: 'Hợp đồng đã hết hạn!',
+                        text: daysLeft === 0
+                            ? `Hợp đồng của bạn hết hạn hôm nay (${contractEndDate})!`
+                            : `Hợp đồng của bạn đã hết hạn ${Math.abs(daysLeft)} ngày trước (${contractEndDate})!`,
+                        group: 'today',
+                        icon: 'close-circle',
+                        route: '',
+                        queryParams: {}
+                    });
+                } else if (daysLeft <= 10) {
+                    // Sắp hết hạn
+                    this.notifService.addItem({
+                        id: 10,
+                        time: new Date().toISOString(),
+                        title: 'Hợp đồng sắp hết hạn',
+                        text: `Hợp đồng của bạn còn ${daysLeft} ngày nữa sẽ hết hạn (${contractEndDate})!`,
+                        group: 'today',
+                        icon: 'warning',
+                        route: '',
+                        queryParams: {}
+                    });
+                }
+            }),
+            catchError(() => of(null)) // Bỏ qua lỗi, không ảnh hưởng các API khác
+        );
+    }
+
+    /** Lấy số phiếu đánh giá chuyển HĐLĐ đang chờ xử lý của người dùng hiện tại */
+    getPendingContractReview() {
+        return this.homepageService.getPendingContractReviewCount().pipe(
+            tap((res: any) => {
+                if (res?.status !== 1 || !res?.data) return;
+                this.pendingReview = {
+                    asEmployee: res.data.AsEmployee || 0,
+                    asEvaluator: res.data.AsEvaluator || 0,
+                    asTBP: res.data.AsTBP || 0,
+                    asHR: res.data.AsHR || 0,
+                    asBGD: res.data.AsBGD || 0,
+                };
+                const total = this.pendingReview.asEmployee + this.pendingReview.asEvaluator
+                    + this.pendingReview.asTBP + this.pendingReview.asHR + this.pendingReview.asBGD;
+                if (total > 0) {
+                    this.notifService.addItem({
+                        id: 11,
+                        time: new Date().toISOString(),
+                        title: 'Phiếu đánh giá chuyển HĐLĐ',
+                        text: `Bạn có ${total} phiếu chờ xử lý`,
+                        group: 'today',
+                        icon: 'file-done',
+                        route: 'contract-transfer-review',
+                        queryParams: {}
+                    });
+                }
+            }),
+            catchError(() => of(null))
+        );
+    }
+
     onPick(n: NotifyItem) {
         if (n.route) {
-            this.newTab(n.route, n.title || 'Thông báo');
+            this.newTab(n.route, n.title || 'Thông báo', n.queryParams);
         }
     }
 
     onPickHistoryProduct() {
-        this.newTab('history-product-rtc-personal', '');
+        this.newTab('summary-asset-persional', '', { activeTab: 2 });
+    }
+
+    onPickHistoryProductSale() {
+        this.newTab('summary-asset-persional', '', { activeTab: 1 });
+    }
+
+    onPickProjectTaskOverdue() {
+        this.newTab('project-task', 'Công việc');
     }
 
 

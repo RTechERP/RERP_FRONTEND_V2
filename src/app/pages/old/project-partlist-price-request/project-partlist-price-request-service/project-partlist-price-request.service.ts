@@ -174,6 +174,10 @@ export class ProjectPartlistPriceRequestService {
     return this.http.post(`${this.baseUrl}/request-buy`, payload);
   }
 
+  requestBuyConsumable(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/request-buy-consumble`, payload);
+  }
+
   checkPrice(lstModel: any[]): Observable<any> {
     return this.http.post(`${this.baseUrl}/check-price`, lstModel);
   }
@@ -216,5 +220,26 @@ export class ProjectPartlistPriceRequestService {
       .set('isCommercialProduct', isCommercialProduct.toString());
 
     return this.http.get<any>(`${this.baseUrl}/get-partlist`, { params });
+  }
+
+  getAllPartlistLocalSummary(
+    dateStart: string,
+    dateEnd: string,
+    statusRequest: number,
+    projectId: number,
+    keyword: string,
+    employeeID: number,
+    isDeleted: number,
+  ): Observable<any> {
+    let params = new HttpParams()
+      .set('dateStart', dateStart)
+      .set('dateEnd', dateEnd)
+      .set('statusRequest', statusRequest.toString())
+      .set('projectId', projectId.toString())
+      .set('keyword', keyword || '')
+      .set('employeeID', employeeID.toString())
+      .set('isDeleted', isDeleted.toString())
+
+    return this.http.get<any>(`${this.baseUrl}/get-partlist-summary`, { params });
   }
 }

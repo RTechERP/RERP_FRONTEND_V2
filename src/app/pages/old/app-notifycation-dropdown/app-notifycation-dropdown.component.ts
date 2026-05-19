@@ -13,6 +13,7 @@ export interface NotifyItem {
   group?: 'today' | 'yesterday' | 'other';
   icon?: string;
   route?: string;
+  queryParams?: any;
 }
 @Component({
   selector: 'app-app-notifycation-dropdown',

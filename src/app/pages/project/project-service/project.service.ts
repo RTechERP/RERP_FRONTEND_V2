@@ -57,6 +57,10 @@ export class ProjectService {
   getCustomers(): Observable<any> {
     return this.http.get<any>(this.urlProject + 'get-customers');
   }
+  //Danh sách lĩnh vực khách hàng 
+  getCustomerIndustries(): Observable<any> {
+    return this.http.get<any>(this.urlProject + 'get-customer-industries');
+  }
   // Danh sách nhân viên khi thêm dự án lấy table 2 phụ trách sale/ phụ trách kỹ thuật/ leader
   getUsers(): Observable<any> {
     return this.http.get<any>(this.urlProject + 'get-users');
@@ -70,6 +74,36 @@ export class ProjectService {
     return this.http.get<any>(
       this.urlProject + `get-project-type-links?id=${id}`
     );
+  }
+
+  // Danh sách ProjectApplicationTypes
+  getApplicationTypes(): Observable<any> {
+    return this.http.get<any>(this.urlProject + 'get-application-types');
+  }
+
+  // Danh sách ProjectTechnologies
+  getTechnologies(): Observable<any> {
+    return this.http.get<any>(this.urlProject + 'get-technologies');
+  }
+
+  // Lấy các kiểu ứng dụng đã chọn
+  getTypeApplicationLinks(projectTypeLinkId: number): Observable<any> {
+    return this.http.get<any>(this.urlProject + `get-type-application-links?projectTypeLinkId=${projectTypeLinkId}`);
+  }
+
+  // Lấy các công nghệ đã chọn
+  getTypeTechnologyLinks(projectTypeLinkId: number): Observable<any> {
+    return this.http.get<any>(this.urlProject + `get-type-technology-links?projectTypeLinkId=${projectTypeLinkId}`);
+  }
+
+  // Lấy kiểu ứng dụng đã chọn theo Project
+  getProjectApplicationLinks(projectId: number): Observable<any> {
+    return this.http.get<any>(this.urlProject + `get-project-application-links?projectId=${projectId}`);
+  }
+
+  // Lấy công nghệ đã chọn theo Project
+  getProjectTechnologyLinks(projectId: number): Observable<any> {
+    return this.http.get<any>(this.urlProject + `get-project-technology-links?projectId=${projectId}`);
   }
   // Load Hạng mục công việc
   getProjectItems(): string {
@@ -385,7 +419,9 @@ export class ProjectService {
         ID: row.ID,
         LeaderID: row.LeaderID || 0,
         Selected: row.Selected,
-        projectTypeID: row.ProjectTypeID || row.ID
+        projectTypeID: row.ProjectTypeID || row.ID,
+        ApplicationTypeIDs: row.ApplicationTypeIDs || [],
+        TechnologyIDs: row.TechnologyIDs || []
       });
 
       // Đệ quy lấy tất cả các dòng con (children) nếu có
@@ -1279,12 +1315,13 @@ export class ProjectService {
   }
   //#endregion
   //#region Danh sách báo cáo công việc
-  getProjectListWorkReport(projectId: number, keyword: string, page: number, size: number, teamId: number): Observable<any> {
+  getProjectListWorkReport(projectId: number, keyword: string, page: number, size: number, departmentId: number, teamId: number): Observable<any> {
     const filter: any = {
       projectId: projectId.toString() || 0,
       keyword: keyword.trim() || '',
       page: page.toString(),
       size: size.toString(),
+      departmentId: departmentId.toString() || 0,
       teamId: teamId.toString() || 0,
     };
     return this.http.get<any>(this.urlProject + `get-project-work-reports`, { params: filter });

@@ -478,6 +478,7 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
   @Input() isBillImport: boolean = false; // true phiếu nhập, false phiếu xuất
   @Input() existingSerials: { ID: number; Serial: string }[] = []; // Serials đã tồn tại (cho auto-bind)
   @Input() skipSaveDB: boolean = false; // Nếu true, modal chỉ trả về list serial, không lưu vào DB
+  @Input() isApproved: boolean = false; // Phiếu đã duyệt → chỉ xem, không chỉnh sửa
   modularGrid: any = [];
   isAddSerial: boolean = true;
   serialData: any = [];
@@ -519,6 +520,29 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
         },
       });
 
+      // Khi skipSaveDB = true (tạo mới chưa lưu), dùng existingSerials trực tiếp, không gọi API
+      if (this.skipSaveDB) {
+        const requiredQty = this.dataBillDetail.Quantity || 0;
+        if (this.existingSerials && this.existingSerials.length > 0) {
+          this.serialData = this.existingSerials.map((serial, index) => ({
+            ID: serial.ID,
+            STT: index + 1,
+            SerialNumber: serial.Serial,
+            ModulaLocationDetailID: 0,
+          }));
+          // Chỉ fill dòng trống khi đang có data (lần đầu mở với QR)
+          const currentCount = this.serialData.length;
+          for (let i = currentCount; i < requiredQty; i++) {
+            this.serialData.push({ ID: -(i + 1), STT: i + 1, SerialNumber: '', ModulaLocationDetailID: 0 });
+          }
+        } else {
+          // Không có existingSerials (user đã xóa hết) → để trống, không auto-fill
+          this.serialData = [];
+        }
+        console.log('skipSaveDB - serialData từ existingSerials:', this.serialData);
+        return;
+      }
+
       this.billImportChoseSerialService
         .getSerialTechByBillDetailID(
           this.dataBillDetail.ID ?? 0,
@@ -534,23 +558,21 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
           const currentCount = this.serialData.length;
           const requiredQty = this.dataBillDetail.Quantity || 0;
 
-          // Nếu không có data từ API và có existingSerials, sử dụng existingSerials
           if (currentCount === 0 && this.existingSerials && this.existingSerials.length > 0) {
             console.log('Sử dụng existingSerials để populate grid:', this.existingSerials);
             this.serialData = this.existingSerials.map((serial, index) => ({
               ID: serial.ID,
               STT: index + 1,
               SerialNumber: serial.Serial,
-              ModularLocationDetailID: 0,
+              ModulaLocationDetailID: 0,
             }));
           } else if (currentCount < requiredQty) {
-            // Thêm các dòng trống nếu cần
             for (let i = currentCount; i < requiredQty; i++) {
               this.serialData.push({
                 ID: -(i + 1),
                 STT: i + 1,
                 SerialNumber: '',
-                ModularLocationDetailID: 0,
+                ModulaLocationDetailID: 0,
               });
             }
           }
@@ -603,6 +625,10 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
       const clickedElement = e.target as HTMLElement;
 
       if (clickedElement.classList.contains('fa-plus')) {
+        if (this.isApproved) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt, không thể chỉnh sửa Serial!');
+          return;
+        }
         let requiredQty = this.isTechBill
           ? this.dataBillDetail.Quantity
           : this.dataBillDetail.Qty;
@@ -634,6 +660,10 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
       const clickedElement = e.target as HTMLElement;
 
       if (clickedElement.classList.contains('fa-trash')) {
+        if (this.isApproved) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt, không thể chỉnh sửa Serial!');
+          return;
+        }
         const item = args.grid.getDataItem(args.row);
 
         this.modal.confirm({
@@ -682,8 +712,8 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
         filename: 'Danh sách serial',
         exportWithFormatter: true,
       },
-      editable: true,
-      autoEdit: true,
+      editable: !this.isApproved,
+      autoEdit: !this.isApproved,
     };
   }
 
@@ -824,6 +854,10 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
   }
 
   async saveData() {
+    if (this.isApproved) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt, không thể chỉnh sửa Serial!');
+      return;
+    }
     // Force commit cell đang edit để lưu giá trị
     if (this.angularGridMaster?.slickGrid) {
       const editController = this.angularGridMaster.slickGrid.getEditorLock();
@@ -855,19 +889,31 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
 
     // REFACTOR: Nếu skipSaveDB = true, chỉ trả về danh sách serial, không lưu vào DB
     if (this.skipSaveDB) {
-      // Chỉ lấy các serial có SerialNumber không rỗng
+      // Serials còn lại (chưa bị xóa)
       const validSerials = data
         .filter((row: any) => row.SerialNumber && row.SerialNumber.trim() !== '')
         .map((row: any, index: number) => ({
-          ID: 0, // ID = 0 nghĩa là serial mới chưa lưu
+          ID: row.ID > 0 ? row.ID : 0, // Giữ ID thật nếu là serial đã lưu DB
           STT: index + 1,
           Serial: row.SerialNumber.trim(),
           SerialNumber: row.SerialNumber.trim(),
-          ModulaLocationDetailID: row.ModulaLocationDetailID ?? 0
+          ModulaLocationDetailID: row.ModulaLocationDetailID ?? 0,
+          IsDeleted: false,
         }));
 
-      console.log('skipSaveDB = true, trả về serials:', validSerials);
-      this.activeModal.close(validSerials);
+      // Serials đã bị xóa trong modal (ID > 0) → gửi về BE với IsDeleted = true
+      const deletedSerials = this.deletedIds.map((id: number) => ({
+        ID: id,
+        STT: 0,
+        Serial: '',
+        SerialNumber: '',
+        ModulaLocationDetailID: 0,
+        IsDeleted: true,
+      }));
+
+      const result = [...validSerials, ...deletedSerials];
+      console.log('skipSaveDB = true, trả về serials:', result);
+      this.activeModal.close(result);
       return;
     }
 
@@ -1003,6 +1049,10 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
   }
 
   addSerial() {
+    if (this.isApproved) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt, không thể chỉnh sửa Serial!');
+      return;
+    }
     const modalRef = this.modalService.open(BillImportAddSerialComponent, {
       size: 'md',
       centered: true,

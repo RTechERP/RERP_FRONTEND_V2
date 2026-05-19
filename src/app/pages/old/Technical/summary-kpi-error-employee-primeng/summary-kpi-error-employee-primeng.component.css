@@ -1,0 +1,374 @@
+/* Host container - fixed height */
+:host {
+    height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Main tabset styling */
+:host ::ng-deep nz-tabset {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep .ant-tabs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep .ant-tabs-content-holder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+:host ::ng-deep .ant-tabs-content {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .ant-tabs-tabpane {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Sub-tabs styling (inside Tab 1) */
+.sub-tabs {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .sub-tabs .ant-tabs-content {
+    flex: 1;
+    height: 100%;
+}
+
+:host ::ng-deep .sub-tabs .ant-tabs-tabpane {
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Filter bar styling */
+.filter-bar {
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #d9d9d9;
+    flex-shrink: 0;
+}
+
+.fs-12 {
+    font-size: 12px !important;
+}
+
+/* Align labels and inputs in filter bar */
+:host ::ng-deep .filter-bar nz-form-item {
+    display: flex;
+    align-items: center;
+}
+
+:host ::ng-deep .filter-bar nz-form-label {
+    padding: 0 8px 0 0;
+    line-height: 24px;
+}
+
+:host ::ng-deep .filter-bar nz-form-control {
+    line-height: 24px;
+}
+
+/* PrimeNG table container */
+.grid-container {
+    position: relative;
+    min-height: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container p-table,
+:host ::ng-deep .grid-container .p-datatable {
+    height: 100% !important;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-wrapper {
+    flex: 1;
+    min-height: 0;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-loading-overlay {
+    background: rgba(255, 255, 255, 0.7);
+    color: #1677ff;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-loading-icon {
+    font-size: 24px;
+}
+
+:host ::ng-deep .kpi-prime-table table {
+    table-layout: fixed;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-thead > tr > th,
+:host ::ng-deep .kpi-prime-table .p-datatable-tbody > tr > td,
+:host ::ng-deep .kpi-prime-table .p-datatable-tfoot > tr > td {
+    font-size: 12px;
+    padding: 4px 6px;
+    vertical-align: middle;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-thead > tr > th {
+    background: #f5f7fb;
+    font-weight: 600;
+}
+
+:host ::ng-deep .kpi-prime-table .p-column-filter {
+    width: 100%;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-thead > tr:nth-child(2) > th {
+    padding: 2px 4px;
+}
+
+:host ::ng-deep .kpi-prime-table .p-column-filter .p-inputtext,
+:host ::ng-deep .kpi-prime-table .p-column-filter input {
+    height: 22px;
+    min-height: 22px;
+    padding: 1px 5px;
+    font-size: 11px;
+    line-height: 18px;
+}
+
+:host ::ng-deep .kpi-prime-table .p-column-filter-clear-button,
+:host ::ng-deep .kpi-prime-table .p-column-filter-menu-button {
+    width: 22px;
+    height: 22px;
+}
+
+.table-header-cell {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 4px;
+    min-height: 20px;
+    line-height: 1.25;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.table-header-cell span {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.cell-content {
+    display: block;
+    white-space: normal;
+    overflow: visible;
+    word-wrap: break-word;
+    word-break: break-word;
+    line-height: 1.35;
+}
+
+:host ::ng-deep .kpi-prime-table .group-row > td {
+    background: #f0f7ff !important;
+    color: #222;
+    font-weight: 600;
+    padding: 5px 8px;
+}
+
+.group-title {
+    margin-right: 6px;
+}
+
+.group-count {
+    color: #15803d;
+}
+
+:host ::ng-deep .kpi-prime-table .data-row {
+    cursor: default;
+}
+
+:host ::ng-deep .kpi-prime-table .selected-image-row > td {
+    background: #e6f4ff !important;
+}
+
+:host ::ng-deep .kpi-prime-table td.cell-warning {
+    background-color: #ffff4a !important;
+}
+
+:host ::ng-deep .kpi-prime-table td.cell-week-warning {
+    background-color: #ffff4a !important;
+}
+
+:host ::ng-deep .kpi-prime-table td.cell-orange {
+    background-color: #ffa500 !important;
+    color: #fff;
+}
+
+:host ::ng-deep .kpi-prime-table td.cell-danger {
+    background-color: #ef1f3e !important;
+    color: #fff;
+}
+
+/* Chart Container - match grid height */
+.chart-container {
+    background-color: white;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* PrimeNG Chart - fit container */
+:host ::ng-deep .chart-container p-chart {
+    display: block;
+    height: 100% !important;
+    max-height: 100%;
+}
+
+:host ::ng-deep .chart-container p-chart>div {
+    height: 100% !important;
+}
+
+:host ::ng-deep .chart-container canvas {
+    max-height: 100% !important;
+}
+
+/* Image Container */
+.image-container {
+    border: 1px solid #e8e8e8;
+    background-color: #fafafa;
+}
+
+/* NZ Splitter custom styles */
+:host ::ng-deep nz-splitter {
+    height: 100% !important;
+    flex: 1;
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-splitter-panel {
+    overflow: hidden;
+    min-width: 0;
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-splitter-horizontal > .ant-splitter-panel {
+    height: 100%;
+}
+
+:host ::ng-deep .ant-splitter-vertical > .ant-splitter-panel {
+    width: 100%;
+}
+
+/* Gap utilities */
+.gap-1 {
+    gap: 0.25rem;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.gap-3 {
+    gap: 1rem;
+}
+
+/* Width utilities */
+.w-80px {
+    width: 80px;
+}
+
+.w-60px {
+    width: 60px;
+}
+
+.w-150px {
+    width: 150px;
+}
+
+.w-200px {
+    width: 200px;
+}
+
+.mh-100 {
+    max-height: 100%;
+}
+
+.mw-100 {
+    max-width: 100%;
+}
+
+/* Info icon red styling */
+.info-icon-red {
+    font-size: 18px;
+    color: #ff4d4f;
+    cursor: pointer;
+}
+
+.info-icon-red:hover {
+    color: #cf1322;
+}
+
+/* Tooltip content styling */
+.tooltip-content {
+    color: #ff4d4f;
+    font-size: 13px;
+}
+
+.tooltip-content .tooltip-title {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.tooltip-content .tooltip-body p {
+    margin: 4px 0;
+}
+
+/* Custom tooltip override */
+:host ::ng-deep .custom-tooltip-large .ant-tooltip-inner {
+    max-width: 500px;
+    min-width: 400px;
+    background: #fff;
+    color: #ff4d4f;
+    padding: 12px 16px;
+    border: 1px solid #ffa39e;
+}
+
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+    min-width: 0;
+}
+
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep p-columnfilterformelement.p-fluid {
+    width: 100% !important;
+    display: block;
+}
+
+:host ::ng-deep .p-inputtext {
+    height: 3vh;
+    width: 100%;
+}

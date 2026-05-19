@@ -124,7 +124,7 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
   ) {
     this.initForm();
   }
-  
+
   initForm() {
     this.groupSaleForm = this.fb.group({
       Code: [''],
@@ -202,7 +202,7 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
         console.error('Lỗi khi load STT:', error);
       }
     );
-    
+
     this.loadTeamSaleOptions();
     this.isModalVisible = true;
   }
@@ -216,7 +216,7 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
 
     const rowData = selectedRow[0];
     this.currentEditId = rowData.ID;
-    
+
     this.groupSaleForm.patchValue({
       Code: rowData.Code || '',
       STT: rowData.STT || 1,
@@ -235,7 +235,7 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
     }
 
     const rowData = selectedRow[0];
-    
+
     // Hiển thị dialog xác nhận
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
@@ -257,7 +257,7 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
           next: (response: any) => {
             if (response.status === 1) {
               this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Xóa thành công!');
-              
+
               // Reload data
               this.loadGroupSale();
             } else {
@@ -274,7 +274,7 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
   }
 
   onAddEmployeeSale() {
-    if(this.selectedGroupSaleParentId === 0) {
+    if (this.selectedGroupSaleParentId === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Hãy chọn một chức vụ để thêm nhân viên!');
       return;
     }
@@ -299,9 +299,43 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
       }
     );
   }
-  
-  onDeleteEmployeeSale() {
 
+  onDeleteEmployeeSale() {
+    const selectedRow = this.tb_Detail.getSelectedData();
+    if (!selectedRow || selectedRow.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một nhân viên để xóa!');
+      return;
+    }
+
+    const rowData = selectedRow[0];
+
+    // Hiển thị dialog xác nhận
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa nhân viên "${rowData.FullName || rowData.EmployeeCode}" khỏi chức vụ này?`,
+      nzOkText: 'Xóa',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.employeeSaleManagerService.deleteEmployeeTeamSaleLink(rowData.LinkID).subscribe({
+          next: (response: any) => {
+            if (response.status === 1) {
+              this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Xóa thành công!');
+              // Reload data
+              if (this.selectedGroupSaleId > 0) {
+                this.loadEmployeeSale(this.selectedGroupSaleId);
+              }
+            } else {
+              this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Xóa thất bại!');
+            }
+          },
+          error: (err: any) => {
+            console.error('Delete error:', err);
+            this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Có lỗi xảy ra khi xóa dữ liệu!');
+          }
+        });
+      }
+    });
   }
 
 
@@ -355,10 +389,10 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
         next: (response: any) => {
           if (response.status === 1) {
             this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Lưu thành công!');
-            
+
             // Reload data
             this.loadGroupSale();
-            
+
             // Đóng modal
             this.handleModalCancel();
           } else {
@@ -492,6 +526,7 @@ export class EmployeeSaleManagerComponent implements OnInit, AfterViewInit {
       layout: 'fitColumns',
       pagination: true,
       paginationSize: 50,
+      selectableRows: 1,
       height: '100%',
       movableColumns: true,
       resizableRows: true,

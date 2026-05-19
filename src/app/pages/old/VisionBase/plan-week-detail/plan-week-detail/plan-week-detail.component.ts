@@ -117,7 +117,7 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
     private planWeekService: PlanWeekService,
     private modal: NzModalService,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const today = new Date();
@@ -186,14 +186,14 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
           this.filterUserData = response.data;
 
 
-            this.filters.userId = this.UserID;
-            let user = this.filterUserData.find((x) => x.UserID == this.UserID);
-            console.log('User:', user);
-            this.loadMainData(
-              this.filters.startDate,
-              this.filters.endDate,
-              this.filters.userId
-            );
+          this.filters.userId = this.UserID;
+          let user = this.filterUserData.find((x) => x.UserID == this.UserID);
+          console.log('User:', user);
+          this.loadMainData(
+            this.filters.startDate,
+            this.filters.endDate,
+            this.filters.userId
+          );
 
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, response.message);
@@ -240,7 +240,7 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
         ...row,
         UserID: row?.UserID || this.filters.userId || this.UserID || 0,
       }));
-      
+
     if (DATA.length === 0) {
       this.notification.info('Thông báo', 'Không có thay đổi để lưu');
       this.activeModal.close({ success: false, reloadData: false });
@@ -259,7 +259,7 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
             response?.message || 'Không thể lưu dữ liệu'
           );
         }
-        
+
       },
       error: (error: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || 'Không thể lưu dữ liệu');

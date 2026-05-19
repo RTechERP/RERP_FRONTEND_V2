@@ -92,6 +92,8 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
   @Input() examType: number = 1;
   @Input() nameExam: string = '';
   @Input() testTime: number = 60;
+  @Input() hrRecruitmentCandidateID: number = 0;
+  @Input() hrHiringRequestID: number = 0;
 
   /** Danh sách đề thi cho chế độ thi nhiều đề */
   @Input() examList: any[] = [];
@@ -116,6 +118,14 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
   activeTabIndex = 0;
   overlayImageUrl: string | null = null;
   examResultID: number = 0;
+
+  /** Trạng thái panel Xem tổng quan câu hỏi */
+  isQuestionMapOpen = false;
+  /** Index câu vừa lưu để flash feedback */
+  lastSavedIndex: number | null = null;
+  /** Loại câu vừa lưu ('mc' | 'essay') */
+  lastSavedType: 'mc' | 'essay' = 'mc';
+  private saveFlashTimeout: any = null;
   //#endregion
 
   //#region 4. Bộ đếm thời gian (Khai báo)
@@ -153,9 +163,8 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     return h > 0 ? `${this.pad(h)}:${this.pad(m)}:${this.pad(s)}` : `${this.pad(m)}:${this.pad(s)}`;
   }
   get timerDangerLevel(): string {
-    const ratio = this.remainingSeconds / ((this.activeExam?.TestTime || this.testTime) * 60);
-    if (ratio <= 0.1) return 'danger';
-    if (ratio <= 0.25) return 'warning';
+    if (this.remainingSeconds <= 60) return 'danger';
+    if (this.remainingSeconds <= 300) return 'warning';
     return 'normal';
   }
   get currentMcQuestion(): MultipleChoiceQuestion | null {
@@ -184,6 +193,26 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     return this.examList.every(e => this.completedExamIds.has(e.ID));
   }
   get completedCount(): number { return this.completedExamIds.size; }
+
+  /**
+   * Quyết định layout 1 hay 2 cột cho danh sách đáp án.
+   * - Mobile (CSS): luôn 1 cột qua media query.
+   * - Desktop: 2 cột nếu ≤4 đáp án, không có ảnh, text ngắn.
+   */
+  answerLayoutClass(question: MultipleChoiceQuestion | null): string {
+    if (!question || question.Answers.length === 0) return 'answers-1col';
+    const hasImages = question.Answers.some(a => !!a.imagePreviewUrl);
+    const hasLongText = question.Answers.some(a => (a.AnswerText || '').length > 55);
+    if (!hasImages && !hasLongText && question.Answers.length <= 4) {
+      return 'answers-2col';
+    }
+    return 'answers-1col';
+  }
+
+  /** Mở/đóng panel tổng quan câu hỏi */
+  toggleQuestionMap(): void {
+    this.isQuestionMapOpen = !this.isQuestionMapOpen;
+  }
   //#endregion
 
   //#region 7. Khởi tạo & Vòng đời (Lifecycle)
@@ -216,6 +245,39 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
       event.returnValue = 'Bạn đang làm bài thi. Thoát sẽ không lưu bài!';
     }
   }
+
+  /** Keyboard shortcuts: Arrow prev/next, Enter = lưu & tiếp */
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    if (this.pageState !== 'taking' || this.isLoading || this.isSubmitting) return;
+    // Bỏ qua khi focus trong textarea/input/select (phần tự luận, dropdown...)
+    const tag = (document.activeElement as HTMLElement)?.tagName?.toLowerCase();
+    if (tag === 'textarea' || tag === 'input' || tag === 'select') return;
+    // Bỏ qua khi đang mở modal hoặc overlay
+    if (this.overlayImageUrl || this.isQuestionMapOpen) return;
+
+    const key = event.key;
+
+    // Arrow Right / Arrow Down → Câu tiếp
+    if (key === 'ArrowRight' || key === 'ArrowDown') {
+      event.preventDefault();
+      this.goToNextQuestion();
+      return;
+    }
+    // Arrow Left / Arrow Up → Câu trước
+    if (key === 'ArrowLeft' || key === 'ArrowUp') {
+      event.preventDefault();
+      this.goToPrevQuestion();
+      return;
+    }
+    // Enter → Lưu & Tiếp (chỉ khi không focus vào button)
+    if (key === 'Enter') {
+      const activeTag = (document.activeElement as HTMLElement)?.tagName?.toLowerCase();
+      if (activeTag === 'button' || activeTag === 'a') return;
+      event.preventDefault();
+      this.onSaveAndNext();
+    }
+  }
   //#endregion
 
   //#region 8. Lựa chọn đề thi
@@ -233,20 +295,27 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     // Slide in
     this.animateTo('taking', 'slide-in');
 
+    // Mặc định, sẽ bị ghi đè nếu resume
     this.remainingSeconds = (exam.TestTime || 60) * 60;
 
-    // Tạo bản ghi kết quả thi rỗng để lấy ID
+    // Tạo bản ghi kết quả thi
     this.isLoading = true;
     this.candidateTestService.createExamRecruitmentResult({
       RecruitmentExamID: exam.ID,
       StatusResult: 0
-    }).subscribe({
+    }, this.hrRecruitmentCandidateID, this.hrHiringRequestID).subscribe({
       next: (res: any) => {
         if (res?.status === 1) {
           this.examResultID = res.data.ID;
-          this.loadQuestions(exam.ID); // Truyền thêm ID kết quả đểResume
-          this.startTimer();
-          this.isStarted = true;
+          if (res.data.IsResume) {
+            this.restoreExamProgress(this.examResultID, exam.ID, res.data.RemainingSeconds);
+          } else {
+            this.remainingSeconds = (exam.TestTime || 60) * 60;
+            localStorage.setItem(`exam_remaining_${this.examResultID}`, this.remainingSeconds.toString());
+            this.loadQuestions(exam.ID);
+            this.startTimer();
+            this.isStarted = true;
+          }
         } else {
           this.isLoading = false;
           this.notification.error(NOTIFICATION_TITLE.error, 'Không thể khởi tạo bài thi. Vui lòng trang tải lại.');
@@ -259,7 +328,113 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     });
   }
 
+  private restoreExamProgress(examResultID: number, examID: number, dbRemainingSeconds: number | null): void {
+    this.candidateTestService.getExamProgress(examResultID).subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          const flatData = res.data || [];
+
+          // Tính thời gian còn lại (kết hợp DB và LocalStorage)
+          let finalSeconds = (dbRemainingSeconds !== null && dbRemainingSeconds !== undefined)
+            ? dbRemainingSeconds
+            : (this.activeExam?.TestTime || 60) * 60;
+
+          const localStr = localStorage.getItem(`exam_remaining_${examResultID}`);
+          if (localStr) {
+            const localSeconds = parseInt(localStr, 10);
+            if (!isNaN(localSeconds) && localSeconds < finalSeconds) {
+              finalSeconds = localSeconds;
+            }
+          }
+          this.remainingSeconds = Math.max(0, finalSeconds);
+
+          // Group flat data từ C# trả về
+          const questionMap = new Map<number, any>();
+          flatData.forEach((item: any) => {
+            if (!questionMap.has(item.RecruitmentQuestionID)) {
+              questionMap.set(item.RecruitmentQuestionID, {
+                QuestionID: item.RecruitmentQuestionID,
+                AnswerIDs: [],
+                AnswerText: item.AnswerText || '',
+                Images: []
+              });
+            }
+            const q = questionMap.get(item.RecruitmentQuestionID);
+            if (item.RecruitmentAnswerID && item.RecruitmentAnswerID > 0 && !q.AnswerIDs.includes(item.RecruitmentAnswerID)) {
+              q.AnswerIDs.push(item.RecruitmentAnswerID);
+            }
+            if (item.ImageID && !q.Images.find((img: any) => img.ID === item.ImageID)) {
+              q.Images.push({
+                ID: item.ImageID,
+                FileNameOrigin: item.FileNameOrigin,
+                ServerPath: item.ServerPath,
+                Extension: item.Extension
+              });
+            }
+          });
+          const answeredQuestions = Array.from(questionMap.values());
+
+          // Tải danh sách câu hỏi và phục hồi đáp án
+          this.loadQuestions(examID, answeredQuestions);
+        } else {
+          this.isLoading = false;
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải tiến độ bài thi.');
+        }
+      },
+      error: () => {
+        this.isLoading = false;
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi kết nối khi tải tiến độ bài thi.');
+      }
+    });
+  }
+
+  private applySavedProgress(answeredQuestions: any[]): void {
+    answeredQuestions.forEach(savedItem => {
+      // Multiple choice
+      const mcq = this.multipleChoiceQuestions.find(q => q.ID === savedItem.QuestionID);
+      if (mcq) {
+        mcq.SelectedAnswers = savedItem.AnswerIDs || [];
+        if (mcq.SelectedAnswers.length > 0) Object.assign(mcq, { _isAnswered: true });
+        return;
+      }
+
+      // Essay
+      const essay = this.essayQuestions.find(q => q.ID === savedItem.QuestionID);
+      if (essay) {
+        essay.EssayAnswer = savedItem.AnswerText || '';
+        if (essay.EssayAnswer) Object.assign(essay, { _isAnswered: true });
+
+        if (savedItem.Images && savedItem.Images.length > 0) {
+          essay.AnswerAttachments = savedItem.Images.map((img: any) => ({
+            ID: img.ID,
+            FileNameOrigin: img.FileNameOrigin,
+            ServerPath: img.ServerPath,
+            Extension: img.Extension,
+            uid: Math.random().toString(36).substring(2) + Date.now(),
+            size: 0,
+            previewUrl: null,
+            isImage: this.isImageExtension(img.Extension),
+            loading: false
+          }));
+
+          essay.AnswerAttachments.forEach((att: any) => {
+            if (att.isImage) {
+              this.candidateTestService.downloadFileNotAuth(att.ServerPath).subscribe({
+                next: (blob: Blob) => {
+                  att.previewUrl = URL.createObjectURL(blob);
+                  this.cdr.detectChanges();
+                }
+              });
+            }
+          });
+          Object.assign(essay, { _isAnswered: true });
+        }
+      }
+    });
+  }
+
   /** Quay về màn hình chọn đề sau khi hoàn thành */
+
   backToSelection(): void {
     this.stopTimer();
     this.animateTo('select', 'slide-in');
@@ -279,16 +454,21 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
 
   //#region 9. Tải dữ liệu câu hỏi & đáp án
 
-  loadQuestions(examId?: number): void {
+  loadQuestions(examId?: number, answeredQuestions?: any[]): void {
     this.isLoading = true;
     this.candidateTestService.getQuestionAnswersByExam(examId ?? this.examID).subscribe({
       next: (res: any) => {
         const data: any[] = res?.data ?? [];
-        const mcItems = data.filter(item => Number(item.QuestionType) === 1);
+        const mcItems = data.filter(item => Number(item.QuestionType) === 1 || Number(item.QuestionType) === 3);
         const essayItems = data.filter(item => Number(item.QuestionType) === 2);
 
         this.multipleChoiceQuestions = mcItems.map(item => this.mapMcQuestion(item));
         this.essayQuestions = essayItems.map(item => this.mapEssayQuestion(item));
+
+        // Phục hồi đáp án nếu có
+        if (answeredQuestions && answeredQuestions.length > 0) {
+          this.applySavedProgress(answeredQuestions);
+        }
 
         // Load images
         this.multipleChoiceQuestions.forEach(q => {
@@ -297,7 +477,17 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
         });
         this.essayQuestions.forEach(q => this.loadQuestionImage(q));
 
+        // Thiết lập tab mặc định (luôn bắt đầu từ tab đầu tiên có sẵn)
+        this.activeTabIndex = 0;
+
         this.isLoading = false;
+
+        // Nếu là resume, bật timer
+        if (answeredQuestions) {
+          this.startTimer();
+          this.isStarted = true;
+        }
+
         this.cdr.detectChanges();
       },
       error: () => {
@@ -442,15 +632,19 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
   private loadQuestionImage(q: MultipleChoiceQuestion | EssayQuestion): void {
     // Legacy image
     if (q.Image) {
-      this.examService.downloadFile(q.Image).subscribe({
+      this.candidateTestService.downloadFileNotAuth(q.Image).subscribe({
         next: (blob: Blob) => {
-          const imgTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/jfif'];
-          if (imgTypes.includes(blob.type)) {
+          console.log(`Loaded Question Image: ${q.Image}, Type: ${blob.type}, Size: ${blob.size}`);
+          if (this.isImageExtension(q.Image || '') || blob.type.startsWith('image/')) {
             q.imagePreviewUrl = URL.createObjectURL(blob);
             this.cdr.detectChanges();
           }
         },
-        error: () => { q.imagePreviewUrl = null; }
+        error: (err) => {
+          console.error(`Error loading Question Image: ${q.Image}`, err);
+          q.imagePreviewUrl = null;
+          this.cdr.detectChanges();
+        }
       });
     }
 
@@ -458,11 +652,11 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     if (q.Attachments && q.Attachments.length > 0) {
       q.Attachments.forEach(att => {
         if (!att.ServerPath) return;
-        this.examService.downloadFile(att.ServerPath).subscribe({
+        this.candidateTestService.downloadFileNotAuth(att.ServerPath).subscribe({
           next: (blob: Blob) => {
+            console.log(`Loaded Attachment: ${att.ServerPath}, Type: ${blob.type}`);
             // Check if it's an image to show preview
-            const imgTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/jfif', 'image/pjpeg', 'image/x-png'];
-            if (imgTypes.includes(blob.type) || att.ServerPath.match(/\.(jpg|jpeg|png|gif|webp|jfif)$/i)) {
+            if (this.isImageExtension(att.ServerPath || '') || blob.type.startsWith('image/')) {
               att.previewUrl = URL.createObjectURL(blob);
               this.cdr.detectChanges();
             }
@@ -477,7 +671,7 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
 
   downloadAttachment(att: QuestionAttachment): void {
     if (!att.ServerPath) return;
-    this.examService.downloadFile(att.ServerPath).subscribe({
+    this.candidateTestService.downloadFileNotAuth(att.ServerPath).subscribe({
       next: (blob: Blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -498,9 +692,19 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
 
   private loadAnswerImage(ans: AnswerOption): void {
     if (!ans.ImageLink) return;
-    this.examService.downloadFile(ans.ImageLink).subscribe({
-      next: (blob: Blob) => { ans.imagePreviewUrl = URL.createObjectURL(blob); this.cdr.detectChanges(); },
-      error: () => { ans.imagePreviewUrl = null; }
+    this.candidateTestService.downloadFileNotAuth(ans.ImageLink).subscribe({
+      next: (blob: Blob) => {
+        console.log(`Loaded Answer Image: ${ans.ImageLink}, Type: ${blob.type}`);
+        if (this.isImageExtension(ans.ImageLink || '') || blob.type.startsWith('image/')) {
+          ans.imagePreviewUrl = URL.createObjectURL(blob);
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error(`Error loading Answer Image: ${ans.ImageLink}`, err);
+        ans.imagePreviewUrl = null;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -530,14 +734,12 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     return !isNaN(Number(val)) && !isNaN(parseFloat(val));
   }
 
-  onSaveAndNext(): void {
+  autoSaveCurrentQuestion(callback?: () => void): void {
     const isMc = this.activeTabIndex === 0 && this.hasMultipleChoice;
-    const currentQ = isMc
-      ? this.multipleChoiceQuestions[this.currentMcIndex]
-      : this.essayQuestions[this.currentEssayIndex];
+    const currentQ = isMc ? this.multipleChoiceQuestions[this.currentMcIndex] : this.essayQuestions[this.currentEssayIndex];
 
     if (!currentQ) {
-      this.goToNextQuestion();
+      if (callback) callback();
       return;
     }
 
@@ -546,12 +748,12 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
       RecruitmentQuestionID: currentQ.ID,
       RecruitmentAnswerIDs: [],
       AnswerText: '',
-      litsAnswerImage: currentQ.AnswerAttachments.map(att => ({
+      litsAnswerImage: currentQ.AnswerAttachments?.map(att => ({
         ID: att.ID || 0,
         FileNameOrigin: att.FileNameOrigin,
         ServerPath: att.ServerPath,
         Extension: att.Extension,
-      }))
+      })) || []
     };
 
     if (isMc) {
@@ -564,22 +766,39 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
       payload.AnswerText = essayQ.EssayAnswer || '';
     }
 
-    this.isLoading = true;
     this.candidateTestService.saveQuestionProgress(payload).subscribe({
-      next: (res: any) => {
-        this.isLoading = false;
-        if (res?.status === 1 || res?.success || res?.status === 200) {
-          this.goToNextQuestion();
-          this.cdr.detectChanges();
-        } else {
-          this.notification.warning(NOTIFICATION_TITLE.warning, res?.message || 'Lưu câu trả lời thất bại');
-        }
-      },
-      error: (err) => {
-        this.isLoading = false;
-        console.error('Save answer error:', err);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi kết nối khi lưu câu trả lời');
+      next: () => { if (callback) callback(); },
+      error: () => { if (callback) callback(); } // Even on error, proceed
+    });
+  }
+
+  onSaveAndNext(): void {
+    // Ghi nhớ index câu hiện tại để flash feedback sau khi lưu
+    const savedIdx = this.activeTabIndex === 0 && this.hasMultipleChoice
+      ? this.currentMcIndex : this.currentEssayIndex;
+    const savedType: 'mc' | 'essay' = (this.activeTabIndex === 0 && this.hasMultipleChoice) ? 'mc' : 'essay';
+
+    this.isLoading = true;
+    this.autoSaveCurrentQuestion(() => {
+      this.isLoading = false;
+
+      // Flash feedback: pill câu vừa lưu sáng lên trong 700ms
+      this.lastSavedIndex = savedIdx;
+      this.lastSavedType = savedType;
+      if (this.saveFlashTimeout) clearTimeout(this.saveFlashTimeout);
+      this.saveFlashTimeout = setTimeout(() => {
+        this.lastSavedIndex = null;
+        this.cdr.detectChanges();
+      }, 700);
+
+      // Chuyển sang câu tiếp
+      if (this.activeTabIndex === 0 && this.hasMultipleChoice) {
+        if (this.currentMcIndex < this.multipleChoiceQuestions.length - 1) this.currentMcIndex++;
+        else if (this.hasEssay) { this.activeTabIndex = 1; this.currentEssayIndex = 0; }
+      } else if (this.activeTabIndex === (this.hasMultipleChoice ? 1 : 0) && this.hasEssay) {
+        if (this.currentEssayIndex < this.essayQuestions.length - 1) this.currentEssayIndex++;
       }
+      this.cdr.detectChanges();
     });
   }
 
@@ -623,6 +842,7 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
       loading: true
     };
 
+    // Xem trước ngay lập tức bằng FileReader (không cần chờ upload xong)
     if (isImg) {
       const reader = new FileReader();
       reader.onload = () => { newItem.previewUrl = reader.result as string; this.cdr.detectChanges(); };
@@ -632,13 +852,24 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     question.AnswerAttachments.push(newItem);
     this.cdr.detectChanges();
 
-    // Thực hiện upload ngay
-    this.examService.uploadImage(file).subscribe({
+    // Tạo subPath: ExamResultFile/yyyyMMdd/{TênBàiThi}
+    // Làm sạch tên bài thi để dùng làm tên thư mục (loại bỏ ký tự đặc biệt)
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+    const examNameSafe = (this.activeExam?.NameExam || 'UnknownExam')
+      .replace(/[\\/:*?"<>|]/g, '')   // Loại ký tự không hợp lệ trong tên thư mục
+      .replace(/\s+/g, '_')           // Thay khoảng trắng bằng _
+      .substring(0, 50);              // Giới hạn độ dài
+    const subPath = `ExamResultFile/${examNameSafe}/${dateStr}`;
+
+    // Upload lên server — không yêu cầu đăng nhập
+    this.candidateTestService.uploadFile(file, subPath).subscribe({
       next: (res: any) => {
         newItem.loading = false;
-        if (res?.status === 1 || res?.success || res?.data) {
+        if (res?.status === 1 || res?.data) {
           const data = res.data;
-          newItem.ServerPath = data?.SavedFileName || data?.FilePath || data || res.url;
+          // Lưu full path để giám khảo download được qua api/home/download?path=...
+          newItem.ServerPath = data?.FilePath || data?.SavedFileName || '';
           this.notification.success(NOTIFICATION_TITLE.success, `Đã tải lên tệp: ${file.name}`);
         } else {
           this.removeAnswerAttachment(newItem, question);
@@ -667,8 +898,10 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     return file.type.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|jfif)$/i.test(file.name);
   }
 
-  private isImageExtension(ext: string): boolean {
-    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'jfif'].includes(ext.toLowerCase().replace('.', ''));
+  private isImageExtension(path: string): boolean {
+    if (!path) return false;
+    const ext = path.split('.').pop() || '';
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'jfif', 'bmp', 'svg'].includes(ext.toLowerCase());
   }
 
   //#endregion
@@ -682,12 +915,56 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     this.timerInterval = setInterval(() => {
       if (this.remainingSeconds > 0) {
         this.remainingSeconds--;
+
+        // 1. Lưu LocalStorage mỗi giây để tránh hụt khi F5/đổi máy nhanh
+        localStorage.setItem(`exam_remaining_${this.examResultID}`, this.remainingSeconds.toString());
+
+        // 2. Lưu DB mỗi 30 giây để hỗ trợ đổi thiết bị
+        if (this.remainingSeconds % 30 === 0 && this.examResultID) {
+          this.candidateTestService.updateExamTime(this.examResultID, this.remainingSeconds).subscribe();
+        }
+
+        if (this.timerDangerLevel === 'danger') {
+          this.playTikTakSound();
+        }
       } else {
         this.stopTimer();
+        // Xóa sạch dấu vết khi hết giờ
+        localStorage.removeItem(`exam_remaining_${this.examResultID}`);
         this.notification.warning(NOTIFICATION_TITLE.warning, 'Hết thời gian làm bài! Bài thi sẽ được tự động nộp.');
         this.doSubmit(true);
       }
     }, 1000);
+  }
+
+  private playTikTakSound(): void {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      // Alternating frequency for 'tik' and 'tak'
+      const freq = this.remainingSeconds % 2 === 0 ? 800 : 600;
+      oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      oscillator.type = 'sine';
+
+      gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.15);
+
+      // Clean up to prevent memory leaks in some browsers
+      setTimeout(() => {
+        if (audioCtx.state !== 'closed') audioCtx.close();
+      }, 200);
+    } catch (e) {
+      // Audio might be blocked by browser policy until first interaction
+      console.warn('Could not play timer sound:', e);
+    }
   }
 
   stopTimer(): void {
@@ -701,9 +978,11 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
   //#region 11. Xử lý lựa chọn đáp án
 
   toggleAnswer(question: MultipleChoiceQuestion, answerId: number): void {
-    const idx = question.SelectedAnswers.indexOf(answerId);
-    if (idx >= 0) question.SelectedAnswers.splice(idx, 1);
-    else question.SelectedAnswers.push(answerId);
+    if (question.SelectedAnswers.includes(answerId)) {
+      question.SelectedAnswers = [];
+    } else {
+      question.SelectedAnswers = [answerId];
+    }
   }
 
   isAnswerSelected(question: MultipleChoiceQuestion, answerId: number): boolean {
@@ -715,28 +994,37 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
   //#region 12. Điều hướng câu hỏi
 
   jumpToQuestion(type: 'mc' | 'essay', index: number): void {
-    if (type === 'mc') { this.currentMcIndex = index; this.activeTabIndex = 0; }
-    else { this.currentEssayIndex = index; this.activeTabIndex = this.hasMultipleChoice ? 1 : 0; }
+    this.autoSaveCurrentQuestion(() => {
+      if (type === 'mc') { this.currentMcIndex = index; this.activeTabIndex = 0; }
+      else { this.currentEssayIndex = index; this.activeTabIndex = this.hasMultipleChoice ? 1 : 0; }
+      this.cdr.detectChanges();
+    });
   }
 
   toggleMobileNav(): void { this.isMobileNavOpen = !this.isMobileNavOpen; }
 
   goToPrevQuestion(): void {
-    if (this.activeTabIndex === 0 && this.hasMultipleChoice) {
-      if (this.currentMcIndex > 0) this.currentMcIndex--;
-    } else if (this.activeTabIndex === (this.hasMultipleChoice ? 1 : 0) && this.hasEssay) {
-      if (this.currentEssayIndex > 0) this.currentEssayIndex--;
-      else if (this.hasMultipleChoice) { this.activeTabIndex = 0; this.currentMcIndex = this.multipleChoiceQuestions.length - 1; }
-    }
+    this.autoSaveCurrentQuestion(() => {
+      if (this.activeTabIndex === 0 && this.hasMultipleChoice) {
+        if (this.currentMcIndex > 0) this.currentMcIndex--;
+      } else if (this.activeTabIndex === (this.hasMultipleChoice ? 1 : 0) && this.hasEssay) {
+        if (this.currentEssayIndex > 0) this.currentEssayIndex--;
+        else if (this.hasMultipleChoice) { this.activeTabIndex = 0; this.currentMcIndex = this.multipleChoiceQuestions.length - 1; }
+      }
+      this.cdr.detectChanges();
+    });
   }
 
   goToNextQuestion(): void {
-    if (this.activeTabIndex === 0 && this.hasMultipleChoice) {
-      if (this.currentMcIndex < this.multipleChoiceQuestions.length - 1) this.currentMcIndex++;
-      else if (this.hasEssay) { this.activeTabIndex = 1; this.currentEssayIndex = 0; }
-    } else if (this.activeTabIndex === (this.hasMultipleChoice ? 1 : 0) && this.hasEssay) {
-      if (this.currentEssayIndex < this.essayQuestions.length - 1) this.currentEssayIndex++;
-    }
+    this.autoSaveCurrentQuestion(() => {
+      if (this.activeTabIndex === 0 && this.hasMultipleChoice) {
+        if (this.currentMcIndex < this.multipleChoiceQuestions.length - 1) this.currentMcIndex++;
+        else if (this.hasEssay) { this.activeTabIndex = 1; this.currentEssayIndex = 0; }
+      } else if (this.activeTabIndex === (this.hasMultipleChoice ? 1 : 0) && this.hasEssay) {
+        if (this.currentEssayIndex < this.essayQuestions.length - 1) this.currentEssayIndex++;
+      }
+      this.cdr.detectChanges();
+    });
   }
 
   //#endregion
@@ -765,6 +1053,9 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
     this.isSubmitting = true;
     this.stopTimer();
 
+    // Xóa LocalStorage khi nộp bài
+    localStorage.removeItem(`exam_remaining_${this.examResultID}`);
+
     const answers: any[] = [];
 
     // Thu thập câu hỏi trắc nghiệm
@@ -783,11 +1074,18 @@ export class CandidateTestComponent implements OnInit, OnDestroy {
         RecruitmentExamResultID: this.examResultID,
         RecruitmentQuestionID: q.ID,
         RecruitmentAnswerIDs: [],
-        AnswerText: q.EssayAnswer || ''
+        AnswerText: q.EssayAnswer || '',
+        litsAnswerImage: q.AnswerAttachments?.map(att => ({
+          ID: att.ID || 0,
+          FileNameOrigin: att.FileNameOrigin,
+          ServerPath: att.ServerPath,
+          Extension: att.Extension,
+        })) || []
       });
     });
 
     const payload = {
+      hRRecruitmentCandidateID: this.hrRecruitmentCandidateID,
       ExamResultID: this.examResultID,
       Answers: answers,
       litsAnswerImage: [] // Cần xử lý gom tất cả ảnh nếu API submit hỗ trợ, hoặc để trống vì đã lưu ở saveQuestionProgress

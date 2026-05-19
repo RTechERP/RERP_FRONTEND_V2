@@ -201,6 +201,41 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                         filter: true,
                     } as MultipleSelectOption,
                 },
+                formatter: (
+                    row: number,
+                    cell: number,
+                    value: any,
+                    columnDef: Column,
+                    dataContext: any
+                ) => {
+                    const statusNew = dataContext['StatusNew'];
+                    const status = dataContext['Status'];
+                    const billExportID = dataContext['BillExportTechnicalID'] || 0;
+
+                    let bgColor = '';
+                    let textColor = 'black';
+
+                    if (statusNew == 6) {
+                        // Sắp đến ngày
+                        bgColor = 'rgb(255, 255, 74)';
+                    } else if (statusNew == 5) {
+                        // Quá hạn
+                        bgColor = 'rgb(239, 31, 62)';
+                        textColor = 'white';
+                    } else if (status == 4) {
+                        // Đăng ký trả
+                        bgColor = 'rgb(0, 255, 0)';
+                    } else if (billExportID > 0) {
+                        // Từ phiếu xuất
+                        bgColor = 'rgb(128, 255, 255)';
+                    }
+
+                    if (bgColor) {
+                        return `<span style="background-color: ${bgColor}; color: ${textColor}; display: block; width: 100%; height: 100%; padding: 3px;">${value || ''
+                            }</span>`;
+                    }
+                    return value || '';
+                },
             },
             {
                 id: 'AdminConfirm',
@@ -217,6 +252,21 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                         { value: true, label: 'Có' },
                         { value: false, label: 'Không' },
                     ],
+                    filterOptions: {
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'ProductCode',
+                field: 'ProductCode',
+                name: 'Mã sản phẩm',
+                minWidth: 160,
+                sortable: true,
+                filterable: true,
+                filter: {
+                    model: Filters['multipleSelect'],
+                    collection: [],
                     filterOptions: {
                         filter: true,
                     } as MultipleSelectOption,
@@ -252,21 +302,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                     } as MultipleSelectOption,
                 },
             },
-            {
-                id: 'ProductCode',
-                field: 'ProductCode',
-                name: 'Mã sản phẩm',
-                width: 120,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
+
             {
                 id: 'ProductQRCode',
                 field: 'ProductQRCode',
@@ -410,57 +446,23 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                     } as MultipleSelectOption,
                 },
             },
-            {
-                id: 'FullName',
-                field: 'FullName',
-                name: 'Người mượn',
-                width: 150,
-                sortable: true,
-                filterable: true,
-                filter: {
-                    model: Filters['multipleSelect'],
-                    collection: [],
-                    filterOptions: {
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-                // Custom formatter for cell coloring
-                formatter: (
-                    row: number,
-                    cell: number,
-                    value: any,
-                    columnDef: Column,
-                    dataContext: any
-                ) => {
-                    const statusNew = dataContext['StatusNew'];
-                    const status = dataContext['Status'];
-                    const billExportID = dataContext['BillExportTechnicalID'] || 0;
+            // {
+            //     id: 'FullName',
+            //     field: 'FullName',
+            //     name: 'Người mượn',
+            //     width: 150,
+            //     sortable: true,
+            //     filterable: true,
+            //     filter: {
+            //         model: Filters['multipleSelect'],
+            //         collection: [],
+            //         filterOptions: {
+            //             filter: true,
+            //         } as MultipleSelectOption,
+            //     },
+            //     // Custom formatter for cell coloring
 
-                    let bgColor = '';
-                    let textColor = 'black';
-
-                    if (statusNew == 6) {
-                        // Sắp đến ngày
-                        bgColor = 'rgb(255, 255, 74)';
-                    } else if (statusNew == 5) {
-                        // Quá hạn
-                        bgColor = 'rgb(239, 31, 62)';
-                        textColor = 'white';
-                    } else if (status == 4) {
-                        // Đăng ký trả
-                        bgColor = 'rgb(0, 255, 0)';
-                    } else if (billExportID > 0) {
-                        // Từ phiếu xuất
-                        bgColor = 'rgb(128, 255, 255)';
-                    }
-
-                    if (bgColor) {
-                        return `<span style="background-color: ${bgColor}; color: ${textColor}; display: block; width: 100%; height: 100%; padding: 3px;">${value || ''
-                            }</span>`;
-                    }
-                    return value || '';
-                },
-            },
+            // },
             {
                 id: 'DateBorrow',
                 field: 'DateBorrow',
@@ -562,6 +564,38 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                     } as MultipleSelectOption,
                 },
             },
+            {
+                id: 'WarehouseName',
+                name: 'Kho',
+                field: 'WarehouseName',
+                sortable: true,
+                filterable: true,
+                width: 150,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'ProductGroupName',
+                name: 'Loại kho',
+                field: 'ProductGroupName',
+                sortable: true,
+                filterable: true,
+                width: 150,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
         ];
     }
 
@@ -657,26 +691,80 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                 maxDecimal: 2,
                 thousandSeparator: ',',
             },
+            enableGrouping: true,
+            enableHtmlRendering: true,
+            showFooterRow: true,
+            createFooterRow: true,
+            frozenColumn: 3,
         };
     }
 
+    updateFooterRow() {
+        if (this.angularGrid && this.angularGrid.slickGrid) {
+            const items = (this.angularGrid.dataView?.getFilteredItems?.() as any[]) || this.dataset;
+            const count = (items || []).filter((item) => item.ProductCode).length;
+
+            const columns = this.angularGrid.slickGrid.getColumns();
+            columns.forEach((col: any) => {
+                const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(col.id);
+                if (!footerCell) return;
+                if (col.id === 'ProductCode') {
+                    footerCell.innerHTML = `<b>${count}</b>`;
+                }
+            });
+        }
+    }
+
+    private applyGrouping(): void {
+        // const angularGrid = this.angularGrid;
+        // if (!angularGrid || !angularGrid.dataView) return;
+
+        // setTimeout(() => {
+        //     angularGrid.dataView.setGrouping([
+        //         {
+        //             getter: 'WarehouseName',
+        //             comparer: () => 0,
+        //             formatter: (g: any) => {
+        //                 const name = g.rows?.[0]?.WarehouseName || '';
+        //                 return `Kho: <strong>${name}</strong> <span style="color:#ed502f; margin-left:0.5rem;">(${g.count} SP)</span>`;
+        //             },
+        //             aggregateCollapsed: false,
+        //             lazyTotalsCalculation: true,
+        //             collapsed: false,
+        //         },
+        //         {
+        //             getter: 'ProductGroupName',
+        //             comparer: () => 0,
+        //             formatter: (g: any) => {
+        //                 const name = g.rows?.[0]?.ProductGroupName || '(Chưa phân nhóm)';
+        //                 return `&nbsp;&nbsp;&nbsp;Nhóm: <strong>${name}</strong> <span style="color:#ed502f; margin-left:0.5rem;">(${g.count} SP)</span>`;
+        //             },
+        //             aggregateCollapsed: false,
+        //             lazyTotalsCalculation: true,
+        //             collapsed: false,
+        //         },
+        //     ]);
+
+        //     angularGrid.dataView.refresh();
+        //     angularGrid.slickGrid?.invalidate();
+        //     angularGrid.slickGrid?.render();
+        // }, 300);
+    }
+
     loadDate() {
-        const now = new Date();
+        const to = new Date();
+        const from = new Date();
+        from.setFullYear(to.getFullYear() - 6);
 
-        // Đầu tháng -1s
-        const from = new Date(
-            Date.UTC(now.getFullYear(), now.getMonth(), 1, 0, 0, 0)
-        );
-        from.setUTCSeconds(from.getUTCSeconds() - 1);
+        const formatForInput = (date: Date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
 
-        // Cuối tháng +1s
-        const to = new Date(
-            Date.UTC(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
-        );
-        to.setUTCSeconds(to.getUTCSeconds());
-
-        this.dateStart = this.borrowService.formatDateVN(from);
-        this.dateEnd = this.borrowService.formatDateVN(to);
+        this.dateStart = formatForInput(from);
+        this.dateEnd = formatForInput(to);
     }
 
     loadEmployee() {
@@ -719,14 +807,14 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
             dateEnd: this.dateEnd
                 ? this.borrowService.formatDateVN(new Date(this.dateEnd as any))
                 : '',
-            warehouseID: this.warehouseID ?? 0,
+            warehouseID: 0,
             userID: employeeID,
             status:
                 this.selectedStatus && this.selectedStatus.length > 0
                     ? this.selectedStatus.join(',')
                     : '1',
             isDeleted: 0,
-            warehouseType: this.warehouseType ?? 1,
+            warehouseType: 0,
             page: 1,
             size: 9999999, // Load all data in one call
         };
@@ -761,6 +849,8 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                     if (this.angularGrid) {
                         this.angularGrid.resizerService.resizeGrid();
                     }
+                    this.applyGrouping();
+                    this.updateFooterRow();
                 }, 100);
             },
             error: (error: any) => {
@@ -820,6 +910,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
         // Resize grid sau khi container đã render
         setTimeout(() => {
             angularGrid.resizerService.resizeGrid();
+            this.applyGrouping();
         }, 100);
     }
 
@@ -1456,13 +1547,13 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
     //#region loadMenu
     loadMenu() {
         this.historyProductMenu = [
-            {
-                label: 'Thêm mới',
-                icon: 'fa fa-plus text-success',
-                command: () => {
-                    this.productHistoryDetail();
-                },
-            },
+            // {
+            //     label: 'Thêm mới',
+            //     icon: 'fa fa-plus text-success',
+            //     command: () => {
+            //         this.productHistoryDetail();
+            //     },
+            // },
             {
                 label: 'Trả thiết bị',
                 icon: 'fa fa-recycle text-primary',
@@ -1515,27 +1606,27 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
                     this.exportSelectedProducts();
                 },
             },
-            {
-                label: 'Mượn/trả thiết bị QRCode',
-                icon: 'fa-solid fa-qrcode text-primary',
-                //visible: this.permissionService.hasPermission('N26,N1,N80'),
-                items: [
-                    {
-                        label: 'Mượn thiết bị',
-                        icon: 'fa-solid fa-box text-success',
-                        command: () => {
-                            this.onBorrowProductQRCode();
-                        },
-                    },
-                    {
-                        label: 'Trả thiết bị',
-                        icon: 'fa-solid fa-inbox text-danger',
-                        command: () => {
-                            this.onReturnProductQRCode();
-                        },
-                    },
-                ],
-            },
+            // {
+            //     label: 'Mượn/trả thiết bị QRCode',
+            //     icon: 'fa-solid fa-qrcode text-primary',
+            //     //visible: this.permissionService.hasPermission('N26,N1,N80'),
+            //     items: [
+            //         {
+            //             label: 'Mượn thiết bị',
+            //             icon: 'fa-solid fa-box text-success',
+            //             command: () => {
+            //                 this.onBorrowProductQRCode();
+            //             },
+            //         },
+            //         {
+            //             label: 'Trả thiết bị',
+            //             icon: 'fa-solid fa-inbox text-danger',
+            //             command: () => {
+            //                 this.onReturnProductQRCode();
+            //             },
+            //         },
+            //     ],
+            // },
         ];
     }
     //#endregion

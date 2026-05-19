@@ -1,0 +1,94 @@
+<div class="tab-reset-wrapper">
+  <div class="container-inner">
+    
+    <!-- Header with Steps -->
+    <div class="tab-header">
+      <div class="steps-progress">
+        <div class="step-line" [class.done]="step >= 1">1</div>
+        <div class="step-connector" [class.done]="step >= 2"></div>
+        <div class="step-line" [class.done]="step >= 2">2</div>
+        <div class="step-connector" [class.done]="isTokenVerified"></div>
+        <div class="step-line" [class.done]="isTokenVerified">3</div>
+      </div>
+      <h2 class="tab-title">🔒 Quên & Đặt lại mã PIN</h2>
+      <p class="tab-subtitle">Hãy thực hiện theo các bước bên dưới để khôi phục quyền truy cập bảng lương.</p>
+    </div>
+
+    <!-- Step 1: Send Request -->
+    <div *ngIf="step === 1" class="tab-content fade-in">
+      <div class="info-card">
+        <span nz-icon nzType="mail" nzTheme="twotone" [nzTwotoneColor]="'#764ba2'" class="icon-big"></span>
+        <h4>Gửi mã OTP</h4>
+        <p>Hệ thống sẽ gửi mã OTP bảo mật đến email của bạn. Vui lòng kiểm tra kỹ hòm thư sau khi nhấn nút.</p>
+        <button nz-button nzType="primary" [nzLoading]="loading" (click)="onRequest()" class="action-btn">
+          Gửi yêu cầu tới Email
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Validate Token -->
+    <div *ngIf="step === 2 && !isTokenVerified" class="tab-content fade-in">
+      <div class="input-form">
+        <div class="field-item">
+          <label>Nhập mã xác thực (OTP 6 số)</label>
+          <nz-input-group [nzPrefix]="prefixToken" nzSize="large" class="pill-input">
+            <input nz-input [(ngModel)]="token" placeholder="Nhập 6 số từ email" maxlength="6" />
+          </nz-input-group>
+          <ng-template #prefixToken><span nz-icon nzType="safety-certificate"></span></ng-template>
+        </div>
+
+        <div class="resend-timer-box">
+          <span>Bạn chưa nhận được mã?</span>
+          <button nz-button nzType="link" [disabled]="countdown > 0" (click)="onResend()" class="resend-link">
+            {{ countdown > 0 ? 'Gửi lại sau (' + countdown + 's)' : 'Gửi lại ngay' }}
+          </button>
+        </div>
+
+        <div class="action-footer">
+          <button nz-button nzType="primary" nzSize="large" [nzLoading]="loading" (click)="onVerifyToken()" class="action-btn">
+            Xác minh mã OTP
+          </button>
+          <button nz-button nzType="default" nzSize="large" (click)="step = 1" class="action-btn secondary">
+            Quay lại bước 1
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Set PIN -->
+    <div *ngIf="step === 2 && isTokenVerified" class="tab-content fade-in">
+      <div class="input-form">
+        <div nz-row [nzGutter]="16">
+          <div nz-col nzSpan="12">
+            <div class="field-item">
+              <label>Mã PIN mới (6 chữ số)</label>
+              <nz-input-group [nzPrefix]="prefixPin" nzSize="large" class="pill-input">
+                <input type="password" nz-input [(ngModel)]="newPin" maxlength="6" placeholder="••••••" class="centered-pin" />
+              </nz-input-group>
+              <ng-template #prefixPin><span nz-icon nzType="lock"></span></ng-template>
+            </div>
+          </div>
+          <div nz-col nzSpan="12">
+            <div class="field-item">
+              <label>Xác nhận mã PIN</label>
+              <nz-input-group [nzPrefix]="prefixConfirm" nzSize="large" class="pill-input">
+                <input type="password" nz-input [(ngModel)]="confirmPin" maxlength="6" placeholder="••••••" class="centered-pin" (keyup.enter)="onReset()" />
+              </nz-input-group>
+              <ng-template #prefixConfirm><span nz-icon nzType="check-circle" [nzTwotoneColor]="confirmPin && newPin === confirmPin ? '#52c41a' : '#d9d9d9'"></span></ng-template>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-footer" style="margin-top: 32px;">
+          <button nz-button nzType="primary" nzSize="large" [nzLoading]="loading" (click)="onReset()" class="action-btn">
+            Cập nhật mã PIN mới
+          </button>
+          <button nz-button nzType="default" nzSize="large" (click)="isTokenVerified = false" class="action-btn secondary">
+            Dùng mã OTP khác
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

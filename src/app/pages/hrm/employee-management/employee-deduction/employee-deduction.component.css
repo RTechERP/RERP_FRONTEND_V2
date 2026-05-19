@@ -1,0 +1,237 @@
+:host {
+    font-size: 12px !important;
+}
+
+.fs-12 {
+    font-size: 12px !important;
+}
+
+/* Card styles */
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body>div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: visible;
+}
+
+.card-header {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 20;
+    background: white;
+}
+
+/* Search form positioning and z-index fixes */
+.filter-bar {
+    position: relative;
+    z-index: 10;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Menubar adjustments */
+::ng-deep .p-menubar {
+    padding: 0.25rem 0.5rem !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+::ng-deep .p-menuitem-text {
+    font-size: 12px !important;
+}
+
+/* Card body with search bar height adjustment */
+.card-body.with-search-bar {
+    height: calc(100% - 100px);
+}
+
+.card-body.without-search-bar {
+    height: 100%;
+}
+
+/* Mobile modal styles */
+@media (max-width: 768px) {
+    .filter-bar.mobile-modal {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        background: white;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        max-height: 70vh;
+        overflow-y: auto;
+        margin: 16px;
+        border-radius: 8px;
+    }
+
+    .filter-backdrop {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1040;
+    }
+}
+
+/* Desktop - keep search form always visible when toggled */
+@media (min-width: 769px) {
+    .filter-backdrop {
+        display: none !important;
+    }
+
+    .filter-bar {
+        position: static !important;
+        z-index: 1 !important;
+    }
+}
+
+/* Table Section */
+.table-section {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .table-section p-table {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+:host ::ng-deep .p-datatable {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .p-datatable-wrapper {
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+
+/* PrimeNG Table font-size 12px (GLOBAL CONSTRAINT) */
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    font-size: 12px;
+    padding: 6px 8px;
+    background: #f5f5f5;
+    font-weight: 600;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tfoot>tr>td {
+    font-size: 12px;
+    padding: 6px 8px;
+    font-weight: 600;
+    background: #fafafa;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr:hover {
+    background: #e6f7ff;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr.p-highlight {
+    background: #bae7ff;
+}
+
+:host ::ng-deep .p-paginator {
+    font-size: 12px;
+}
+
+/* R.font-bold {
+    font-weight: 700 !important;
+}
+
+/* Group Headers Styling */
+::ng-deep .p-rowgroup-header {
+    background-color: #f8f9fa !important;
+    transition: background-color 0.2s;
+}
+
+::ng-deep .p-rowgroup-header:hover {
+    background-color: #f1f3f5 !important;
+}
+
+::ng-deep .group-header-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+::ng-deep .level-0 {
+    background-color: #e9ecef !important;
+    /* Darker for Department */
+}
+
+::ng-deep .level-1 {
+    background-color: #f8f9fa !important;
+    /* Lighter for Employee */
+    padding-left: 1.5rem !important;
+}
+
+::ng-deep .p-rowgroup-header td {
+    border-top: 1px solid #dee2e6 !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+:host ::ng-deep .p-rowgroup-header .font-bold {
+    font-weight: 700;
+    color: #495057;
+}
+
+:host ::ng-deep .p-rowgroup-header .p-button.p-button-text {
+    color: #495057;
+    width: 2rem;
+    height: 2rem;
+}
+
+/* Deduction calculation modal - button colors */
+/* Yellow for "Không ghi đè" (dashed button) */
+::ng-deep .deduction-calc-modal .ant-btn-dashed {
+    background-color: #faad14 !important;
+    border-color: #faad14 !important;
+    color: #fff !important;
+}
+
+::ng-deep .deduction-calc-modal .ant-btn-dashed:hover {
+    background-color: #ffc53d !important;
+    border-color: #ffc53d !important;
+    color: #fff !important;
+}
+
+/* Green for "Ghi đè dữ liệu cũ" (primary button) */
+::ng-deep .deduction-calc-modal .ant-btn-primary:last-child {
+    background-color: #4ea820 !important;
+    border-color: #4ea820 !important;
+    color: #fff !important;
+}
+
+::ng-deep .deduction-calc-modal .ant-btn-primary:last-child:hover {
+    background-color: #5cb82a !important;
+    border-color: #5cb82a !important;
+}

@@ -1,0 +1,163 @@
+.grading-container {
+    background-color: #f0f2f5;
+}
+
+.question-card {
+    transition: all 0.3s ease;
+}
+
+.question-card:hover {
+    border-color: #1890ff !important;
+}
+
+.answer-text {
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.img-wrapper {
+    transition: transform 0.2s;
+    background: #fff;
+}
+
+.img-wrapper:hover {
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.white-space-pre-wrap {
+    white-space: pre-wrap;
+}
+
+.font-weight-500 {
+    font-weight: 500;
+}
+
+.text-blue {
+    color: #1890ff;
+}
+
+.text-orange {
+    color: #fa8c16;
+}
+
+.btn-finalize {
+    background-color: #52c41a;
+    border-color: #52c41a;
+    height: 36px;
+    font-weight: 600;
+}
+
+.btn-finalize:hover {
+    background-color: #73d13d;
+    border-color: #73d13d;
+}
+
+::ng-deep .grade-modal-width {
+    max-width: 95vw !important;
+}
+
+.guidance {
+    border-left: 3px solid #fa8c16;
+    padding-left: 10px;
+}
+
+.outline-none {
+    outline: none;
+}
+
+/* Image Overlay - Adopting project pattern */
+.img-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    cursor: zoom-out;
+}
+
+.img-overlay-content {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.img-overlay-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    background-color: #fff;
+}
+
+.img-overlay-close {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.attachment-item {
+    transition: all 0.2s ease;
+    border-color: #f0f0f0;
+}
+
+.attachment-item:hover {
+    border-color: #1890ff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+}
+
+.attachment-item .thumb {
+    border-right: 1px solid #f0f0f0;
+}
+
+/* Filter Bar Styling */
+.filter-group {
+    background: #f0f2f5;
+    padding: 3px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+}
+
+::ng-deep .filter-group .ant-radio-group {
+    display: flex;
+    gap: 4px;
+}
+
+::ng-deep .filter-group .ant-radio-button-wrapper {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 6px !important;
+    color: #595959;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+::ng-deep .filter-group .ant-radio-button-wrapper:before {
+    display: none !important;
+}
+
+::ng-deep .filter-group .ant-radio-button-wrapper:hover {
+    color: #1890ff;
+}
+
+::ng-deep .filter-group .ant-radio-button-wrapper-checked {
+    background: #fff !important;
+    color: #1890ff !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+::ng-deep .filter-group .ant-radio-button-wrapper-checked:hover {
+    color: #1890ff !important;
+}

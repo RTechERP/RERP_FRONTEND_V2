@@ -62,6 +62,16 @@
                   nz-button
                   nzType="default"
                   nzSize="small"
+                  class="btn-edit"
+                  (click)="openModalSettingProductGroup()"
+                  *hasPermission="'N1'"
+                > Thiết lập nhóm
+                </button>
+
+                <button
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
                   style="
                     background-color: #ffe0e0;
                     pointer-events: none;

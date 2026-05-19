@@ -17,6 +17,7 @@ export interface ApproveByApproveTPRequestParam {
   StatusBGD?: number;
   UserTeamID?: number;
   SeniorID?: number;
+  StatusDecilineSenior?: number;
   Page?: number;
   Size?: number;
 }
@@ -41,6 +42,8 @@ export interface ApproveItemParam {
   ReasonDeciline?: string | null;
   ForceApproveSenior?: boolean | null;  // TBP can force approve even if Senior hasn't approved
   ApprovedSeniorID?: number | null;  // ID của Senior đã duyệt
+  DecilineApproveSenior?: number | null;  // 1: Đồng ý duyệt, 2: Không đồng ý duyệt
+  ReasonDecilineSenior?: string | null;  // Lý do Senior không duyệt
 }
 
 export interface ApproveRequestParam {
@@ -105,6 +108,15 @@ export class ApproveTpService {
     });
 
     return this.http.post<any>(`${this.apiUrlApprove}approve-senior-new`, request, { headers });
+  }
+
+  declineSenior(request: ApproveRequestParam): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+
+    return this.http.post<any>(`${this.apiUrlApprove}decline-senior`, request, { headers });
   }
 
   getApproveByApproveTPAjax(): string {

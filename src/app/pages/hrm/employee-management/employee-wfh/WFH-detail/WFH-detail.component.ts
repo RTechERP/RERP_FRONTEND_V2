@@ -18,6 +18,7 @@ import { WFHService } from '../WFH-service/WFH.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { EmployeeService } from '../../../employee/employee-service/employee.service';
+import { DayOffService } from '../../../day-off/day-off-service/day-off.service';
 
 
 export interface EmployeeDto {
@@ -249,7 +250,8 @@ export class WFHDetailComponent implements OnInit {
     private notification: NzNotificationService,
     private wfhService: WFHService,
     private fb: FormBuilder,
-    private employeeService: EmployeeService
+    private employeeService: EmployeeService,
+    private dayOffService: DayOffService
   ) {
     this.initForm();
   }
@@ -366,6 +368,19 @@ export class WFHDetailComponent implements OnInit {
         dateWFH: new Date(),
         timeWFH: 0,
       });
+
+      // Automatically bind closest approver for new requests
+      if (this.currentEmployeeId && this.currentEmployeeId > 0) {
+        this.dayOffService.getApproveID(this.currentEmployeeId, 'EmployeeWFH').subscribe({
+          next: (res: any) => {
+            if (res && res.status === 1 && res.data && res.data.ApproveID) {
+              this.wfhForm.patchValue({
+                approvedId: res.data.ApproveID
+              });
+            }
+          }
+        });
+      }
     }
 
     // Update validators for reasonEdit: chỉ require nếu currentEmployeeId khác với EmployeeID trong bảng

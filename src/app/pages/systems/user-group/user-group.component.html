@@ -1,0 +1,223 @@
+<div class="user-group-container h-100 d-flex flex-column bg-white">
+  <!-- Thanh Menu chính -->
+  <p-menubar [model]="menuBars" styleClass="fs-12 border-0 mb-0 shadow-sm custom-menubar">
+    <ng-template pTemplate="item" let-item>
+      <a class="p-menuitem-link" [class.p-disabled]="item.disabled">
+        <i [class]="item.icon"></i>
+        <span class="p-menuitem-text ms-1">{{ item.label }}</span>
+      </a>
+    </ng-template>
+    <ng-template pTemplate="end">
+      <div class="d-flex items-center gap-2 pe-2">
+        <button nz-button nzType="text" nzShape="circle" (click)="ToggleSearchPanelNew($event)">
+          <nz-icon nzType="search" />
+        </button>
+      </div>
+    </ng-template>
+  </p-menubar>
+
+  <!-- Backdrop overlay cho mobile -->
+  <div class="filter-backdrop" *ngIf="shouldShowSearchBar && isMobile()" (click)="ToggleSearchPanelNew()"></div>
+
+  <!-- Thanh tìm kiếm -->
+  <div class="filter-bar bg-light border-bottom p-2" *ngIf="shouldShowSearchBar" [class.mobile-modal]="isMobile()">
+    <div class="filter-bar-header d-flex justify-content-between align-items-center mb-2" *ngIf="isMobile()">
+      <span class="fw-bold" style="font-size: 12px;">Tìm kiếm</span>
+      <button nz-button nzType="text" nzShape="circle" nzSize="small" nzDanger (click)="ToggleSearchPanelNew()">
+        <nz-icon nzType="close" />
+      </button>
+    </div>
+    <form nz-form>
+      <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+        <!-- Nhân viên -->
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="6">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12" style="font-size: 12px;">Nhân viên</nz-form-label>
+            <nz-form-control>
+              <nz-select [(ngModel)]="searchParams.userId" nzPlaceHolder="Chọn nhân viên" nzShowSearch nzAllowClear
+                nzSize="small" class="w-100" name="userId" (ngModelChange)="onUserIdChange($event)">
+                <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
+                  <nz-option *ngFor="let emp of group.items" [nzLabel]="emp.FullName"
+                    [nzValue]="emp.UserID"></nz-option>
+                </nz-option-group>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <!-- Từ khóa -->
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="8">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
+            <nz-form-control>
+              <input nz-input placeholder="Mã hoặc tên nhóm..." nzSize="small" [(ngModel)]="searchParams.keyword"
+                name="keyword" class="w-100" (keyup.enter)="onSearch()" />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <!-- Nút tìm kiếm & Reset -->
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6" [nzXl]="4">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12 invisible" style="font-size: 12px;">Thao tác</nz-form-label>
+            <nz-form-control>
+              <button nz-button nzType="primary" nzSize="small" (click)="onSearch()" class="me-2">
+                <nz-icon nzType="search" /> Tìm kiếm
+              </button>
+              <button nz-button nzType="default" nzSize="small" (click)="onReset()">
+                <nz-icon nzType="reload" /> Đặt lại
+              </button>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </form>
+  </div>
+
+  <!-- Content chính với Splitter -->
+  <div class="flex-grow-1 position-relative"
+    [style.height]="showSearchBar ? 'calc(100vh - 110px)' : 'calc(100vh - 45px)'">
+    <nz-spin [nzSpinning]="loading" nzTip="Đang tải dữ liệu..." class="h-100">
+      <nz-splitter style="height: 82vh !important">
+        <!-- Master Panel: Groups -->
+        <nz-splitter-panel nzDefaultSize="35%" class="h-100">
+          <div class="h-100 d-flex flex-column border-end">
+            <div class="pane-header bg-light p-2 border-bottom fw-bold fs-12">
+              Danh sách nhóm quyền
+            </div>
+            <div class="flex-grow-1 table-wrapper p-1">
+              <p-table [value]="dataset" [(selection)]="selectedGroup" selectionMode="single" dataKey="ID"
+                (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect()"
+                styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true" scrollHeight="flex">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th style="width: 100px" class="text-center" pSortableColumn="Code">Mã nhóm <p-sortIcon
+                        field="Code" /></th>
+                    <th class="text-center" pSortableColumn="Name"> Tên nhóm <p-sortIcon field="Name" /></th>
+                  </tr>
+                  <tr>
+                    <th><p-columnFilter type="text" field="Code" [showMenu]="false" placeholder="Lọc..." /></th>
+                    <th><p-columnFilter type="text" field="Name" [showMenu]="false" placeholder="Lọc..." /></th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-item>
+                  <tr [pSelectableRow]="item">
+                    <td class="text-center">{{item.Code}}</td>
+                    <td>{{item.Name}}</td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr>
+                    <td colspan="2" class="text-center p-3 text-muted">Không có dữ liệu</td>
+                  </tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </div>
+        </nz-splitter-panel>
+
+        <!-- Detail Panel: Rights and Users -->
+        <nz-splitter-panel nzDefaultSize="65%" class="h-100">
+          <nz-splitter nzLayout="vertical" class="h-100">
+            <!-- Top Detail: Rights -->
+            <nz-splitter-panel nzDefaultSize="50%" class="h-100">
+              <div class="h-100 d-flex flex-column border-bottom">
+                <div class="pane-header bg-light p-2 border-bottom">
+                  <span class="fw-bold fs-12">Phân bổ quyền</span>
+                </div>
+                <div class="flex-grow-1 table-wrapper p-1">
+                  <p-table [value]="datasetRights" styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true"
+                    scrollHeight="flex">
+                    <ng-template pTemplate="header">
+                      <tr>
+                        <th class="text-center" style="width: 120px" pSortableColumn="Code">Mã quyền <p-sortIcon
+                            field="Code" /></th>
+                        <th class="text-center" style="width: 200px" pSortableColumn="Name">Tên quyền <p-sortIcon
+                            field="Name" /></th>
+                      </tr>
+                      <tr>
+                        <th><p-columnFilter type="text" field="Code" [showMenu]="false" placeholder="Lọc..." /></th>
+                        <th><p-columnFilter type="text" field="Name" [showMenu]="false" placeholder="Lọc..." /></th>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-item>
+                      <tr>
+                        <td>{{item.Code}}</td>
+                        <td>{{item.Name}}</td>
+
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                      <tr>
+                        <td colspan="3" class="text-center p-3 text-muted">Chọn nhóm để xem phân quyền</td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </div>
+              </div>
+            </nz-splitter-panel>
+
+            <!-- Bottom Detail: Users -->
+            <nz-splitter-panel nzDefaultSize="50%" class="h-100">
+              <div class="h-100 d-flex flex-column">
+                <div class="pane-header bg-light p-2 border-bottom d-flex justify-content-between align-items-center">
+                  <span class="fw-bold fs-12">Danh sách người dùng</span>
+                  <button nz-button nzType="link" nzSize="small" (click)="onAddUsers()" [disabled]="!selectedGroupId"
+                    class="fs-12 p-0">
+                    <i class="fa-solid fa-user-plus me-1"></i> Chọn nhân viên
+                  </button>
+                </div>
+                <div class="flex-grow-1 table-wrapper p-1">
+                  <p-table [value]="datasetUsers" styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true"
+                    scrollHeight="flex">
+                    <ng-template pTemplate="header">
+                      <tr>
+                        <th class="text-center" style="width: 100px" pSortableColumn="UserCode">Mã NV <p-sortIcon
+                            field="UserCode" /></th>
+                        <th class="text-center" style="width: 200px" pSortableColumn="FullName">Tên nhân viên
+                          <p-sortIcon field="FullName" />
+                        </th>
+                        <th class="text-center" style="width: 200px" pSortableColumn="DepartmentName">Phòng ban
+                          <p-sortIcon field="DepartmentName" />
+                        </th>
+                        <th class="text-center" pSortableColumn="PosiotionName">Chức vụ <p-sortIcon
+                            field="PosiotionName" /></th>
+                        <th style="width: 50px" class="text-center">#</th>
+                      </tr>
+                      <tr>
+                        <th><p-columnFilter type="text" field="UserCode" [showMenu]="false" placeholder="Lọc..." /></th>
+                        <th><p-columnFilter type="text" field="FullName" [showMenu]="false" placeholder="Lọc..." /></th>
+                        <th><p-columnFilter type="text" field="DepartmentName" [showMenu]="false"
+                            placeholder="Lọc..." /></th>
+                        <th><p-columnFilter type="text" field="PosiotionName" [showMenu]="false" placeholder="Lọc..." />
+                        </th>
+                        <th></th>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-item>
+                      <tr>
+                        <td class="text-center">{{item.UserCode}}</td>
+                        <td>{{item.FullName}}</td>
+                        <td>{{item.DepartmentName}}</td>
+                        <td>{{item.PosiotionName}}</td>
+                        <td class="text-center">
+                          <button nz-button nzType="text" nzDanger nzSize="small" (click)="onDeleteUser(item)">
+                            <i class="fa-solid fa-trash-can"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                      <tr>
+                        <td colspan="5" class="text-center p-3 text-muted">Không có người dùng</td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </div>
+              </div>
+            </nz-splitter-panel>
+          </nz-splitter>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </nz-spin>
+  </div>
+</div>

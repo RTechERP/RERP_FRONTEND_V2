@@ -2,8 +2,29 @@
 .modal-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    max-height: 90vh;
+    height: 99.8vh; /* Use slightly less than 100 to avoid sub-pixel scroll issues */
+    width: 100%;
+    max-height: 100vh;
+    position: relative;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box;
+}
+
+/* Force hide any scrollbars on parent modal containers (NgZorro) */
+:host ::ng-deep .ant-modal,
+:host ::ng-deep .ant-modal-content,
+:host ::ng-deep .ant-modal-body {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 100% !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+}
+
+:host ::ng-deep .ant-modal-body > * {
+    height: 100vh !important;
 }
 
 /* ==================== TOOLBAR STYLES ==================== */
@@ -32,11 +53,192 @@
 }
 
 angular-slickgrid,
-.angular-slickgrid-container {
+.angular-slickgrid-container,
+.grid-skill-details-container,
+.grid-general-details-container,
+.grid-specialization-details-container,
+.grid-master-details-container,
+.grid-rule-details-container,
+.grid-team-details-container {
     height: 100% !important;
     width: 100%;
     display: flex;
+    flex-direction: column;
 }
+
+/* ==================== ISSUE 4: LAYOUT FIX ==================== */
+/* app-custom-tree-table host phải fill 100% chiều cao của container */
+:host ::ng-deep app-custom-tree-table,
+:host ::ng-deep app-custom-table {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* p-treeTable wrapper phải fill flex container */
+:host ::ng-deep .p-treetable-wrapper,
+:host ::ng-deep .p-datatable-wrapper {
+    flex: 1;
+    overflow: auto;
+}
+
+/* Fix footer height compression: scroll mode wraps footer in these containers */
+:host ::ng-deep .p-treetable-scrollable-footer,
+:host ::ng-deep .p-datatable-scrollable-footer {
+    flex-shrink: 0 !important;
+}
+
+:host ::ng-deep .custom-footer-cell,
+:host ::ng-deep .p-treetable-tfoot>tr>td,
+:host ::ng-deep .p-datatable-tfoot>tr>td {
+    padding: 6px 8px !important;
+    height: 35px !important;
+    min-height: 35px !important;
+    vertical-align: middle;
+}
+
+/* Specific fix for KPI Rule footer to allow 2 lines */
+:host ::ng-deep .grid-rule-details-container .p-treetable-tfoot>tr>td {
+    height: auto !important;
+    min-height: 50px !important;
+    white-space: normal !important;
+    line-height: 1.4 !important;
+}
+
+/* QUAN TRỌNG: KHÔNG dùng table-layout:fixed vì nó ngăn scroll ngang.
+   PrimeNG scrollable mode tự xử lý layout */
+/* :host ::ng-deep .p-treetable-table { table-layout: fixed; } -- ĐÃ XÓA */
+
+
+
+:host ::ng-deep .p-treetable-thead>tr>th,
+:host ::ng-deep .p-datatable-thead>tr>th {
+    vertical-align: middle !important;
+    padding: 10px 4px !important;
+    line-height: 1.4 !important;
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    height: auto !important;
+}
+
+:host ::ng-deep .p-treetable-tbody>tr>td,
+:host ::ng-deep .p-datatable-tbody>tr>td {
+    vertical-align: middle !important;
+    padding: 10px 4px !important;
+    line-height: 1.4 !important;
+}
+
+/* ==================== ISSUE 1: ROW COLORS (Evaluation Tabs) ==================== */
+/* Dòng cha trong tab KPI Kỹ năng / Chung / Chuyên môn
+   SlickGrid: getItemMetadata → cssClasses 'evaluation-parent-row' → #D3D3D3 */
+::ng-deep .evaluation-parent-row {
+    background-color: #D3D3D3 !important;
+    font-weight: bold;
+}
+
+/* ==================== KPI CELL COLORS (Priority fix for TEAM/NQNL) ==================== */
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td.kpi-team-cell {
+    background-color: #d1e7dd !important;
+}
+
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td.kpi-nqnl-cell {
+    background-color: #FFFFE0 !important;
+}
+
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td.kpi-gray-cell {
+    background-color: #D3D3D3 !important;
+}
+
+/* ==================== FIX: Editable cells must always show blue highlight ==================== */
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td.editable-cell,
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td.cell-editable-active {
+    background-color: #e6f7ff !important;
+    z-index: 1;
+}
+
+/* ==================== ISSUE 1: CELL COLORS (Point input columns) ==================== */
+/* SlickGrid: customEditableInputFormatter → addClasses: 'editable-field' → #e6f7ff */
+
+/* Cột điểm không active - vàng nhạt
+   SlickGrid: cell-point-highlight */
+::ng-deep td.cell-point-highlight {
+    background-color: #FFFFE0 !important;
+    /* Vàng nhạt - điểm nhưng không edit được */
+}
+
+/* ==================== ISSUE 1: COLUMN GROUP CELL COLORS ==================== */
+/* Nhóm "Đánh giá của Nhân viên" */
+::ng-deep .col-group-nv {
+    color: #0050b3 !important;
+}
+
+/* Header group NV vẫn giữ màu xanh */
+::ng-deep th.col-group-nv {
+    background-color: #e6f7ff !important;
+}
+
+/* Nhóm "Đánh giá của TBP/PBP" */
+::ng-deep .col-group-tbp {
+    color: #135200 !important;
+}
+
+/* Header group TBP vẫn giữ màu xanh lá */
+::ng-deep th.col-group-tbp {
+    background-color: #f6ffed !important;
+}
+
+/* Nhóm "Đánh giá của BGĐ" */
+::ng-deep .col-group-bgd {
+    color: #ad6800 !important;
+}
+
+/* Header group BGĐ vẫn giữ màu cam */
+::ng-deep th.col-group-bgd {
+    background-color: #fff7e6 !important;
+}
+
+/* ==================== ISSUE 2: ROW COLORS (Rule Tab) ==================== */
+/* Dòng cha hoặc NEWLINE trong Rule grid → xám (#D3D3D3)
+   SlickGrid: getBgColor → dataContext.__hasChildren → return '#D3D3D3' */
+::ng-deep .rule-parent-row {
+    background-color: #D3D3D3 !important;
+    font-weight: bold;
+}
+
+/* ==================== SCROLLING ==================== */
+/* Fix: p-treetable khi scrollable cần min-width trên table, không phải wrapper */
+::ng-deep .p-treetable .p-treetable-scrollable-wrapper {
+    overflow-x: auto !important;
+}
+
+::ng-deep .p-treetable-scrollable-body {
+    overflow-x: auto !important;
+}
+
+/* ==================== ISSUE 3: COLUMN GROUP HEADER ROWS ==================== */
+/* Styling cho header group rows được render bởi headerGroups input */
+:host ::ng-deep .p-treetable-thead>tr:not(:last-child)>th {
+    background-color: #f0f0f0;
+    border-bottom: 2px solid #dee2e6;
+    text-align: center;
+    font-weight: bold;
+    padding: 6px 4px !important;
+    font-size: 12px;
+}
+
+/* Header group: empty cells (no group) */
+:host ::ng-deep .p-treetable-thead>tr:not(:last-child)>th:empty {
+    background-color: transparent;
+    border: none;
+}
+
+/* Force all headers to be centered regardless of body alignment */
+:host ::ng-deep .p-treetable-thead>tr>th {
+    text-align: center !important;
+}
+
+
 
 :host ::ng-deep .slickgrid-container {
     height: 100% !important;
@@ -53,6 +255,30 @@ angular-slickgrid,
 
 :host ::ng-deep .text-left {
     text-align: left !important;
+}
+
+/* Fix alignment inside PrimeNG TreeTable flex cell wrapper */
+:host ::ng-deep td.text-right>div {
+    justify-content: flex-end !important;
+    text-align: right !important;
+}
+
+:host ::ng-deep td.text-right>div>div.flex-1 {
+    text-align: right !important;
+}
+
+:host ::ng-deep td.text-right>div>div.flex-1>* {
+    text-align: right !important;
+    width: 100%;
+}
+
+:host ::ng-deep td.text-center>div {
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+:host ::ng-deep td.text-center>div>div.flex-1 {
+    text-align: center !important;
 }
 
 /* ==================== HEADER STYLES ==================== */
@@ -122,9 +348,13 @@ nz-tabset {
     background-color: #D3D3D3 !important;
 }
 
-:host ::ng-deep .evaluation-parent-row .slick-cell {
+:host ::ng-deep .evaluation-parent-row>td {
     background-color: #D3D3D3 !important;
-    font-weight: bold;
+    font-weight: bold !important;
+    color: #000 !important;
+    /* padding-top: 4px !important;
+    padding-bottom: 4px !important; */
+    line-height: 0.5 !important;
 }
 
 /* Editable cell - LightYellow background */
@@ -151,22 +381,18 @@ nz-tabset {
 
 /* ==================== MULTI-LINE TEXT WRAPPING ==================== */
 :host ::ng-deep .cell-multiline {
-    white-space: normal !important;
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
     overflow: hidden !important;
     line-height: 1.4 !important;
+    vertical-align: top !important;
 }
 
 :host ::ng-deep .cell-multiline>span {
-    display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
-    line-clamp: 2 !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    word-wrap: break-word !important;
+    display: block !important;
+    white-space: pre-wrap !important;
     word-break: break-word !important;
-    white-space: normal !important;
-    line-height: 1.4 !important;
+    overflow: hidden !important;
 }
 
 /* ==================== COLUMN GROUP STYLES (Pre-Header Panel) ==================== */

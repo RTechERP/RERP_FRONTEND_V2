@@ -1,0 +1,31 @@
+.tbl-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    padding: 2px 4px;
+    resize: none;
+    font-family: inherit;
+    line-height: 1.4;
+    height: 50px;
+}
+
+.tbl-input:focus {
+    background: #fff8e1;
+    border-bottom: 1px solid #198754;
+}
+
+/* Số: căn phải, 1 dòng, chiều cao bằng 2 dòng textarea */
+.tbl-num {
+    text-align: right;
+    height: 50px;
+    display: block;
+}
+
+.sticky-top-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: #f8f9fa;
+}

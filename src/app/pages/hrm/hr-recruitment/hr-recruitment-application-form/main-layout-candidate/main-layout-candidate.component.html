@@ -33,7 +33,6 @@
                     </div>
                     <div class="card-info">
                         <h2>Test IQ ứng viên</h2>
-                        <p>Tham gia bài kiểm tra tư duy và năng lực logic.</p>
                     </div>
 
                     <!-- Loading -->
@@ -49,12 +48,27 @@
                             <span>Chưa có bài thi nào</span>
                         </div>
 
+                        <!-- Cảnh báo chưa điền tờ khai -->
+                        <div *ngIf="!isFormComplete && examList.length > 0" class="mb-3 p-2 rounded text-danger"
+                            style="background-color: #fff1f0; border: 1px solid #ffccc7; font-size: 14px;">
+                            <span nz-icon nzType="warning" nzTheme="fill" class="mr-1"></span>
+                            Yêu cầu: Hoàn tất "Điền tờ khai thông tin" để làm bài.
+                        </div>
+
+                        <!-- Cảnh báo bài thi bị khóa bởi hệ thống/admin -->
+                        <div *ngIf="isFormComplete && examList.length > 0 && allExamsDisabled && isAllExamsLockedByAdmin"
+                            class="mb-3 p-2 rounded text-warning"
+                            style="background-color: #fffbe6; border: 1px solid #ffe58f; font-size: 14px; color: #856404;">
+                            <span nz-icon nzType="lock" nzTheme="fill" class="mr-1"></span>
+                            Thông báo: Bài thi hiện đang bị khóa. Vui lòng liên hệ bộ phận Tuyển dụng để được mở lại.
+                        </div>
+
                         <!-- Mini Cards cho từng đề thi - 2 cột -->
                         <div *ngIf="examList.length > 0" class="exam-mini-cards-grid">
                             <div *ngFor="let exam of examList" class="exam-mini-card horizontal-card"
-                                [class.status-completed]="exam.StatusResult === 2"
-                                [class.status-pending]="exam.StatusResult === 1"
-                                [class.status-inprogress]="exam.StatusResult === 0">
+                                [class.status-completed]="exam.StatusResult === 2 || exam.StatusResult === 1"
+                                [class.status-inprogress]="exam.StatusResult === 0"
+                                [class.status-locked]="!isFormComplete || exam.IsExamActive === 0 || exam.IsExamActive === false">
 
                                 <div class="card-left">
                                     <div class="exam-icon-wrapper">
@@ -64,19 +78,19 @@
                                     <div class="exam-info-text">
                                         <h3 class="exam-mini-name" [nzTooltipTitle]="exam.NameExam" nz-tooltip>{{
                                             exam.NameExam }}</h3>
-                                        <div class="exam-status-badge">{{ exam.StatusText }}</div>
+                                        <div class="exam-status-badge">{{ exam.ExamStatusText }}</div>
                                     </div>
                                 </div>
 
                                 <div class="card-right">
-                                    <div class="exam-specs" *ngIf="exam.StatusResult === 2">
+                                    <!-- <div class="exam-specs" *ngIf="exam.StatusResult === 2">
                                         <div class="spec-item score">
                                             <span class="value">{{ exam.TotalScore || 0 }}đ</span>
                                             <span class="percent">({{ exam.PercentageCorrect || 0 }}%)</span>
                                         </div>
-                                    </div>
+                                    </div> -->
 
-                                    <div class="exam-specs" *ngIf="exam.StatusResult !== 2">
+                                    <div class="exam-specs" *ngIf="exam.StatusResult === 2 || exam.StatusResult === 1">
                                         <div class="spec-item time">
                                             <span class="value">{{ exam.TestTime }}'</span>
                                         </div>
@@ -89,9 +103,8 @@
                         </div>
 
                         <div *ngIf="examList.length > 0" class="exam-start-btn" [class.btn-disabled]="allExamsDisabled">
-                            <span>{{ allExamsDisabled ? 'Đã hoàn tất bài thi' : 'Bắt đầu thi' }}</span>
-                            <span nz-icon [nzType]="allExamsDisabled ? 'check' : 'arrow-right'"
-                                nzTheme="outline"></span>
+                            <span>{{ getStartButtonText() }}</span>
+                            <span nz-icon [nzType]="getStartButtonIcon()" nzTheme="outline"></span>
                         </div>
                     </div>
                 </div>

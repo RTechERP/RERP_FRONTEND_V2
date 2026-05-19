@@ -68,7 +68,7 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HrPurchaseProposalComponent } from '../hr-purchase-proposal/hr-purchase-proposal.component';
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
-import { RecommendSupplierFormComponent } from './recommend-supplier/recommend-supplier-form/recommend-supplier-form.component';
+import { JobRequirementRecommendFormComponent } from './job-requirement-recommend/job-requirement-recommend-form/job-requirement-recommend-form.component';
 import { JobRequirementFormComponent } from './job-requirement-form/job-requirement-form.component';
 import { CancelApproveReasonFormComponent } from './cancel-approve-reason-form/cancel-approve-reason-form.component';
 import { AuthService } from '../../../auth/auth.service';
@@ -544,7 +544,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                         this.getJobrequirementDetails(this.JobrequirementID);
                         //   this.getHCNSData(this.JobrequirementID);
                     } else {
-                        this.JobrequirementID = 0;
+                        this.clearDetails();
                     }
                 }, 100);
                 this.isLoading = false;
@@ -561,7 +561,10 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
     // Handle row selection changed - đồng bộ JobrequirementID và load detail
     onSelectedRowsChanged(e: Event, args: OnSelectedRowsChangedEventArgs): void {
-        if (!args.rows || args.rows.length === 0) return;
+        if (!args.rows || args.rows.length === 0) {
+            this.clearDetails();
+            return;
+        }
 
         // Lấy dòng cuối cùng vừa được chọn (thường là dòng người dùng click)
         const lastSelectedIndex = args.rows[args.rows.length - 1];
@@ -580,9 +583,28 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
 
     /**
+     *Reset detail nếu k còn dữ liệu
+     */
+    clearDetails(): void {
+        this.JobrequirementID = 0;
+        this.JobrequirementDetailData = [];
+        this.JobrequirementFileData = [];
+        this.JobrequirementApprovedData = [];
+        this.datasetDetail = [];
+        this.datasetFile = [];
+        this.datasetApproved = [];
+        this.data = [];
+    }
+
+    /**
      * Gọi API một lần để lấy tất cả dữ liệu: details, files, approves
      */
     getJobrequirementDetails(id: number) {
+        if (!id || id <= 0) {
+            this.clearDetails();
+            return;
+        }
+
         this.JobRequirementService.getJobrequirementbyID(id).subscribe(
             (response: any) => {
                 const data = response.data || {};
@@ -675,14 +697,14 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
 
         const selected = this.getSelectedData() || [];
         const rowData = { ...selected[0] };
-        const modalRef = this.modalService.open(RecommendSupplierFormComponent, {
+        const modalRef = this.modalService.open(JobRequirementRecommendFormComponent, {
             size: 'xl',
             backdrop: 'static',
             keyboard: false,
             centered: true,
         });
-        modalRef.componentInstance.isCheckmode = this.isCheckmode;
-        modalRef.componentInstance.JobrequirementID = this.JobrequirementID;
+        modalRef.componentInstance.jobRequirementID = this.JobrequirementID;
+        modalRef.componentInstance.isEditMode = this.isCheckmode;
         modalRef.componentInstance.dataInput = rowData;
 
         modalRef.result
@@ -868,14 +890,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
                             // Refresh lại table
                             this.getJobrequirement();
                             // Reset selection
-                            this.JobrequirementID = 0;
-                            this.JobrequirementDetailData = [];
-                            this.JobrequirementFileData = [];
-                            this.JobrequirementApprovedData = [];
-                            // Reset SlickGrid datasets
-                            this.datasetDetail = [];
-                            this.datasetFile = [];
-                            this.datasetApproved = [];
+                            this.clearDetails();
                         } else {
                             this.notification.error(
                                 NOTIFICATION_TITLE.error,

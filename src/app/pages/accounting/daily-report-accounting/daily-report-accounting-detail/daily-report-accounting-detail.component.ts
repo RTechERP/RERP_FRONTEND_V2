@@ -18,7 +18,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { DailyReportAccountingService } from '../daily-report-accounting-service/daily-report-accounting.service';
 import { AppUserService } from '../../../../services/app-user.service';
-import { ID_ADMIN_SALE_LIST } from '../../../../app.config';
+import { ID_ADMIN_SALE_LIST, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 
 @Component({
   selector: 'app-daily-report-accounting-detail',
@@ -160,9 +160,14 @@ export class DailyReportAccountingDetailComponent implements OnInit {
         }
         this.isLoading = false;
       },
-      error: (error) => {
-        console.error('Error loading existing data:', error);
-        this.notification.error('Lỗi', 'Lỗi kết nối khi tải dữ liệu');
+      error: (err: any) => {
+        console.error('Error loading existing data:', err);
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
         this.isLoading = false;
       }
     });
@@ -177,9 +182,14 @@ export class DailyReportAccountingDetailComponent implements OnInit {
           this.notification.error('Lỗi', response.message || 'Không thể tải danh sách nhân viên');
         }
       },
-      error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi kết nối khi tải danh sách nhân viên');
-        console.error('Error loading employees:', error);
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+        console.error('Error loading employees:', err);
       }
     });
   }
@@ -228,9 +238,14 @@ export class DailyReportAccountingDetailComponent implements OnInit {
         }
         this.isSaving = false;
       },
-      error: (error) => {
-        console.error('Error saving data:', error);
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi lưu dữ liệu!');
+      error: (err: any) => {
+        console.error('Error saving data:', err);
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
         this.isSaving = false;
       }
     });

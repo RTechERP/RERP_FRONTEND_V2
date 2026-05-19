@@ -1,0 +1,68 @@
+<div class="drawing-project-page" [style.height]="isModalMode ? '100vh' : 'calc(100vh - 40px - 1rem)'"
+  style="display: flex; flex-direction: column; overflow: hidden; background-color: #fff;">
+  <!-- Header -->
+  <div *ngIf="isModalMode" class="bg-primary align-items-center ps-2 pe-2"
+    style="flex-shrink: 0; display: flex; justify-content: space-between; padding: 0.5rem;">
+    <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem;">
+      Bản vẽ dự án {{projectCode}}
+    </h6>
+    <button type="button" class="btn-close" (click)="onCloseModal()" aria-label="Close"></button>
+  </div>
+
+  <p-menubar [model]="menuBars" class="p-1">
+    <ng-template pTemplate="item" let-item>
+      <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command($event) : null">
+        <i [class]="item.icon"></i>
+        <span class="p-menuitem-text">{{ item.label }}</span>
+      </a>
+    </ng-template>
+  </p-menubar>
+
+  <div style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+    <app-custom-table style="height: 100%" [columns]="columns" [data]="data" [loading]="isLoading"
+      dataKey="ID" [paginator]="false" [scrollable]="true" scrollHeight="flex" [lazyRenderThreshold]="0"
+      [virtualScroll]="false" selectionMode="multiple" [(selection)]="selectedRows" [clickSelectRow]="true"
+      (cellAction)="onCellAction($event)">
+    </app-custom-table>
+  </div>
+
+  <nz-modal [(nzVisible)]="isLogModalVisible" nzTitle="Lịch sử thay đổi bản vẽ"
+    [nzWidth]="1000" [nzFooter]="null" (nzOnCancel)="closeLogModal()"
+    [nzBodyStyle]="{ padding: '12px', 'max-height': '70vh', overflow: 'hidden' }">
+    <ng-container *nzModalContent>
+      <div class="log-modal-header">
+        <div>
+          <strong>Bản vẽ:</strong>
+        </div>
+        <div class="text-muted text-truncate" [title]="selectedLogRow?.DrawingName">
+          {{ selectedLogRow?.DrawingName || '' }} - {{ selectedLogRow?.Version || '' }}
+        </div>
+      </div>
+
+      <nz-table [nzData]="drawingLogs" nzSize="small" nzBordered [nzLoading]="isLoadingLogs"
+        [nzShowPagination]="false" [nzFrontPagination]="false" [nzScroll]="{ y: '55vh' }">
+        <thead>
+          <tr>
+            <th nzWidth="55px" class="text-center">STT</th>
+            <th nzWidth="170px">Thời gian</th>
+            <th nzWidth="190px">Loại log</th>
+            <th>Nội dung</th>
+            <th nzWidth="120px">Người tạo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of drawingLogs; let i = index">
+            <td class="text-center">{{ i + 1 }}</td>
+            <td>{{ formatLogDate(log.CreatedDate) }}</td>
+            <td>{{ log.TypeLog }}</td>
+            <td class="log-content-cell">{{ log.ContentLog }}</td>
+            <td>{{ log.CreatedBy }}</td>
+          </tr>
+          <tr *ngIf="!isLoadingLogs && drawingLogs.length === 0">
+            <td colspan="5" class="text-center text-muted">Không có lịch sử thay đổi</td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </ng-container>
+  </nz-modal>
+</div>

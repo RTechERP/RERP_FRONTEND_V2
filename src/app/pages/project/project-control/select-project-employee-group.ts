@@ -15,6 +15,8 @@ import { ProjectService } from '../project-service/project.service';
       nzAutoFocus
       nzAllowClear
       nzShowSearch
+      [nzDropdownMatchSelectWidth]="false"
+      [nzDropdownStyle]="{ 'min-width': '400px' }"
     >
       @for (parent of data; track $index) {
       <nz-option-group [nzLabel]="parent.label">

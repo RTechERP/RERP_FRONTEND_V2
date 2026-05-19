@@ -1,0 +1,37 @@
+
+.detail-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px); /* Phải khớp với nzBodyStyle max-height */
+  max-height: inherit;
+  overflow: hidden;
+}
+
+.detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
+}
+
+.detail-footer {
+  flex-shrink: 0;
+  padding: 12px 24px;
+  border-top: 1px solid #f0f0f0;
+  background: #fff;
+  z-index: 10;
+}
+
+/* Giảm margin bottom của các form item */
+nz-form-item {
+  margin-bottom: 10px !important;
+}
+
+/* Giảm khoảng cách heading sections */
+h6.text-secondary {
+  margin-bottom: 10px !important;
+}
+
+/* Giảm margin top cho section Nhân sự */
+.text-secondary.mt-3 {
+  margin-top: 10px !important;
+}

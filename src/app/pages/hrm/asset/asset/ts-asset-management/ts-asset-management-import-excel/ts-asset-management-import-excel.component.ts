@@ -114,6 +114,10 @@ function formatDate(value: any): string | null {
   let dt = DateTime.fromFormat(str, 'd/M/yyyy');
   if (dt.isValid) return dt.toISODate();
 
+  // Thử d-M-yyyy
+  dt = DateTime.fromFormat(str, 'd-M-yyyy');
+  if (dt.isValid) return dt.toISODate();
+
   // Thử ISO (2024-01-01)
   dt = DateTime.fromISO(str);
   if (dt.isValid) return dt.toISODate();
@@ -245,38 +249,32 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-      // Bỏ validation file extension - chấp nhận mọi file
-      console.log('File đã chọn:', file.name); // Log để kiểm tra
       this.filePath = file.name;
       this.excelSheets = [];
       this.selectedSheet = '';
       this.dataTableExcel = [];
       this.totalRowsAfterFileRead = 0;
-      this.processedRowsForSave = 0; 
-    
+      this.processedRowsForSave = 0;
+
       this.displayProgress = 0;
       this.displayText = 'Đang đọc file...';
-      console.log('Progress bar state set to: Đang đọc file...'); 
       const reader = new FileReader();
       reader.onprogress = (event) => {
         if (event.lengthComputable) {
           this.displayProgress = Math.round((event.loaded / event.total) * 100);
           this.displayText = `Đang tải file: ${this.displayProgress}%`;
-       
+
         }
       };
-      let startTime = Date.now(); 
+      let startTime = Date.now();
       reader.onload = async (e: any) => {
         const data = e.target.result;
         try {
           const workbook = new ExcelJS.Workbook();
           await workbook.xlsx.load(data);
-          console.log('Workbook đã được tải bởi ExcelJS.'); // Log
           this.excelSheets = workbook.worksheets.map(sheet => sheet.name);
-          console.log('Danh sách sheets tìm thấy:', this.excelSheets); // Log
           if (this.excelSheets.length > 0) {
             this.selectedSheet = this.excelSheets[0];
-            console.log('Sheet mặc định được chọn:', this.selectedSheet); // Log
             await this.readExcelData(workbook, this.selectedSheet);
             const elapsedTime = Date.now() - startTime;
             const minDisplayTime = 500; // Thời gian hiển thị tối thiểu cho trạng thái tải (500ms)
@@ -289,7 +287,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
                 } else {
                   this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
                 }
-                console.log('Dữ liệu đã được đọc và bảng Excel preview đã được cập nhật (sau delay).');
               }, minDisplayTime - elapsedTime);
             } else {
               // Nếu quá trình xử lý đã đủ lâu, cập nhật ngay lập tức
@@ -299,15 +296,12 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
               } else {
                 this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
               }
-              console.log('Dữ liệu đã được đọc và bảng Excel preview đã được cập nhật.');
             }
           } else {
-            console.warn('File Excel không chứa bất kỳ sheet nào.'); // Log
             this.notification.warning(NOTIFICATION_TITLE.warning, 'File Excel không có sheet nào!');
             this.resetExcelImportState();
           }
         } catch (error) {
-          console.error('Lỗi khi đọc tệp Excel trong FileReader.onload:', error); // Log chi tiết lỗi
           this.notification.error('Thông báo', 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
           this.resetExcelImportState(); // Reset trạng thái khi có lỗi
         }
@@ -329,35 +323,39 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   // Mapping từ title Excel sang field name
   private getFieldFromHeader(headerTitle: string): string {
     const normalized = this.normalizeHeader(headerTitle);
-    
+
     // Mapping các cột từ export Excel
     if (normalized.includes('stt')) return 'STT';
-    if (normalized.includes('mã tài sản') || normalized.includes('mã ncc')) return 'TSCodeNCC';
+    if (normalized.includes('mã tài sản') && !normalized.includes('ncc')) return 'TSCodeNCC';
+    if (normalized.includes('mã tài sản ncc') || (normalized.includes('mã tài sản') && normalized.includes('ncc'))) return 'TSCodeNCC';
+    if (normalized.includes('mã ncc')) return 'SupplierCode';
+    if (normalized === 'mã tài sản') return 'TSCodeNCC';
+
     if (normalized.includes('office active')) return 'OfficeActiveStatusText';
     if (normalized.includes('windows active')) return 'WindowActiveStatusText';
     if (normalized.includes('tên tài sản')) return 'TSAssetName';
     if (normalized.includes('seri')) return 'Seri';
-    if (normalized.includes('đơn vị')) return 'UnitName';
+    if (normalized.includes('đơn vị') || normalized === 'đvt') return 'UnitName';
     if (normalized.includes('thông số')) return 'SpecificationsAsset';
     if (normalized.includes('model')) return 'Model';
-    if (normalized.includes('ngày mua')) return 'DateBuy';
-    if (normalized.includes('ngày hiệu lực')) return 'DateEffect';
+    if (normalized.includes('ngày mua') || normalized.includes('thời gian mua') || normalized.includes('thời gian ghi tăng')) return 'DateBuy';
+    if (normalized.includes('ngày hiệu lực') || normalized.includes('thời gian hiệu lực')) return 'DateEffect';
     if (normalized.includes('bảo hành')) return 'Insurance';
-    if (normalized.includes('loại tài sản')) return 'AssetType';
-    if (normalized.includes('phòng ban')) return 'Name';
-    if (normalized.includes('trạng thái')) return 'Status';
-    if (normalized.includes('nguồn gốc')) return 'SourceName';
-    if (normalized.includes('người quản lý') || normalized.includes('người sử dụng')) return 'FullName';
+    if (normalized === 'mã loại') return 'AssetCode';
+    if (normalized.includes('tên loại') || normalized.includes('loại tài sản') || normalized === 'loại') return 'AssetType';
+    if (normalized.includes('phòng ban') || normalized === 'mã phòng ban' || normalized === 'tên phòng ban' || normalized.includes('bộ phận')) return 'Name';
+    if (normalized.includes('trạng thái') || normalized.includes('tình trạng')) return 'Status';
+    if (normalized.includes('nguồn gốc') || normalized === 'mã nguồn gốc' || normalized === 'tên nguồn gốc') return 'SourceName';
+    if (normalized.includes('người quản lý') || normalized.includes('người sử dụng') || normalized.includes('nhân viên') || normalized.includes('họ tên')) return 'FullName';
     if (normalized.includes('cấp phát')) return 'IsAllocation';
     if (normalized.includes('mô tả chi tiết')) return 'SpecificationsAsset';
     if (normalized.includes('ghi chú')) return 'Note';
-    
+
     // Mặc định trả về header gốc
     return headerTitle;
   }
 
   async readExcelData(workbook: ExcelJS.Workbook, sheetName: string) {
-    console.log(`Bắt đầu đọc dữ liệu từ sheet: "${sheetName}"`);
     try {
       const worksheet = workbook.getWorksheet(sheetName);
       if (!worksheet) throw new Error(`Sheet "${sheetName}" không tồn tại.`);
@@ -366,16 +364,13 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       const headerRow = worksheet.getRow(1);
       const headers: string[] = [];
       const headerToFieldMap: Map<number, string> = new Map();
-      
+
       headerRow.eachCell((cell, colNumber) => {
         const headerText = getCellText(cell);
         headers[colNumber - 1] = headerText;
         const fieldName = this.getFieldFromHeader(headerText);
         headerToFieldMap.set(colNumber, fieldName);
       });
-
-      console.log('Headers từ Excel:', headers);
-      console.log('Mapping:', Array.from(headerToFieldMap.entries()));
 
       // Tạo columns cho Tabulator dựa trên header
       const columns: ColumnDefinition[] = headers.map((header, index) => {
@@ -411,12 +406,12 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
 
           if (!isEmptyRow) {
             const rowData: any = {};
-            
+
             // Đọc dữ liệu theo mapping
             headerToFieldMap.forEach((fieldName, colNumber) => {
               const cell = row.getCell(colNumber);
               let cellValue = getCellText(cell);
-              
+
               // Xử lý đặc biệt cho Model - nếu là số dạng scientific notation, chuyển về string
               if (fieldName === 'Model') {
                 const cellRawValue = cell.value;
@@ -433,7 +428,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
                   cellValue = String(cellValue || '');
                 }
               }
-              
+
               // Xử lý đặc biệt cho một số trường
               if (fieldName === 'IsAllocation') {
                 rowData[fieldName] = (cellValue === 'Có' || cellValue === 'Yes' || cellValue === '1' || cellValue === 'true');
@@ -448,36 +443,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
                 rowData[fieldName] = cellValue;
               }
             });
-
-            // Map các field cần thiết cho saveExcelData
-            // Nếu không có các field này, tạo từ các field khác
-            if (!rowData.TSAssetName && rowData['Tên tài sản']) {
-              rowData.TSAssetName = rowData['Tên tài sản'];
-            }
-            if (!rowData.TSCodeNCC && rowData['Mã tài sản']) {
-              rowData.TSCodeNCC = rowData['Mã tài sản'];
-            }
-            if (!rowData.UnitName && rowData['Đơn vị']) {
-              rowData.UnitName = rowData['Đơn vị'];
-            }
-            if (!rowData.SourceName && rowData['Nguồn gốc']) {
-              rowData.SourceName = rowData['Nguồn gốc'];
-            }
-            if (!rowData.AssetType && rowData['Loại tài sản']) {
-              rowData.AssetType = rowData['Loại tài sản'];
-            }
-            if (!rowData.Name && rowData['Phòng ban']) {
-              rowData.Name = rowData['Phòng ban'];
-            }
-            if (!rowData.FullName && rowData['Người quản lý']) {
-              rowData.FullName = rowData['Người quản lý'];
-            }
-            if (!rowData.EmployeeName && rowData.FullName) {
-              rowData.EmployeeName = rowData.FullName;
-            }
-            if (!rowData.DepartmentName && rowData.Name) {
-              rowData.DepartmentName = rowData.Name;
-            }
 
             data.push(rowData);
             validRecords++;
@@ -498,17 +463,13 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       } else {
         this.drawtable();
       }
-
-      console.log(`Đã load ${validRecords} bản ghi hợp lệ.`);
     } catch (error) {
-      console.error('Lỗi khi đọc dữ liệu từ sheet:', error);
       this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet!');
       this.resetExcelImportState();
     }
   }
 
   onSheetChange() {
-    console.log('Sheet đã thay đổi thành:', this.selectedSheet);
     if (this.filePath) {
       const fileInput = document.getElementById('fileInput') as HTMLInputElement;
       if (fileInput.files && fileInput.files.length > 0) {
@@ -523,9 +484,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
             // Sau khi thay đổi sheet và đọc dữ liệu, đặt lại thanh tiến trình
             this.displayProgress = 0;
             // displayText được cập nhật trong readExcelData
-            console.log('Dữ liệu đã được đọc lại sau khi thay đổi sheet.'); // Log
           } catch (error) {
-            console.error('Lỗi khi đọc tệp Excel khi thay đổi sheet:', error);
             this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet đã chọn!');
             this.resetExcelImportState(); // Reset trạng thái khi có lỗi
           }
@@ -541,73 +500,60 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   private async getAssetCodeInfo(rawDate: string): Promise<{ code: string; maxSTT: number }> {
     try {
       const iso = formatDate(rawDate) || new Date().toISOString().split('T')[0];
-  
+
       const res: any = await firstValueFrom(
         this.assetsManagementService.getAssetCode(iso)
       );
-  
+
       let apiCode = res?.data ?? '';
-      
-      console.log('🔍 API getAssetCode response:', {
-        date: iso,
-        apiCode: apiCode,
-        maxSTT: res?.maxSTT,
-        cachedCode: this.usedCodesCache.get(iso)
-      });
-  
+
       // Kiểm tra xem có code đã dùng trong cache không
       const cachedCode = this.usedCodesCache.get(iso);
       if (cachedCode && apiCode) {
         // So sánh code từ API vs code đã dùng trong cache
         const apiNumber = this.extractCodeNumber(apiCode);
         const cachedNumber = this.extractCodeNumber(cachedCode);
-        
+
         if (cachedNumber >= apiNumber) {
           // Cache có code cao hơn → dùng code tiếp theo từ cache
           const nextCode = this.incrementCode(cachedCode);
-          console.log('⚠️ Cache có code cao hơn API. Dùng code từ cache:', {
-            apiCode,
-            cachedCode,
-            nextCode
-          });
           apiCode = nextCode;
         }
       }
-  
+
       return {
         code: apiCode,
         maxSTT: res?.maxSTT ?? 0
       };
     } catch (e) {
-      console.error('Lỗi khi lấy mã tài sản (code + maxSTT):', e);
       return { code: '', maxSTT: 0 };
     }
   }
-  
+
   // Helper: Extract số từ code
   private extractCodeNumber(code: string): number {
     const match = code.match(/(\d+)$/);
     return match ? parseInt(match[1], 10) : 0;
   }
-  
+
   // Helper: Tăng code lên 1
   private incrementCode(code: string): string {
     const match = code.match(/(\d+)$/);
     if (!match) return code;
-    
+
     const numberPart = match[1];
     const prefix = code.slice(0, -numberPart.length);
     const nextNumber = parseInt(numberPart, 10) + 1;
     const padded = nextNumber.toString().padStart(numberPart.length, '0');
-    
+
     return prefix + padded;
   }
-  
+
   async generateTSAssetCode(rawDate: string): Promise<string> {
     const { code } = await this.getAssetCodeInfo(rawDate);
     return code;
   }
-  
+
   private buildAssetCode(baseCode: string, offset: number): string {
     if (!baseCode) return '';
 
@@ -630,34 +576,34 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
       return;
     }
-  
+
     const validDataToSave = this.dataTableExcel.filter(row => {
       const stt = row.STT;
       return typeof stt === 'number'
         || (typeof stt === 'string' && !isNaN(parseFloat(stt)) && isFinite(parseFloat(stt)));
     });
-  
+
     if (validDataToSave.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
       this.displayProgress = 0;
       this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
       return;
     }
-  
+
     const totalAssetsToSave = validDataToSave.length;
     this.displayProgress = 10;
     this.displayText = `Đang chuẩn bị dữ liệu: ${totalAssetsToSave} bản ghi`;
-  
+
     const notifKey = 'asset-import-progress';
     this.notification.info(
       'Đang lưu dữ liệu',
       `Đang gửi ${totalAssetsToSave} bản ghi lên server...`,
       { nzKey: notifKey, nzDuration: 0 }
     );
-  
+
     // 1) Group theo ngày ghi tăng (ISO)
     const groups = new Map<string, any[]>();
-  
+
     for (const row of validDataToSave) {
       const iso = formatDate(row.DateBuy) || new Date().toISOString().split('T')[0];
       if (!groups.has(iso)) {
@@ -665,38 +611,33 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       }
       groups.get(iso)!.push(row);
     }
-  
+
     const groupEntries = Array.from(groups.entries());
     if (groupEntries.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ để lưu!');
       return;
     }
-  
+
     const tSAssetManagements: any[] = [];
-  
+
     // 2) Lấy code + maxSTT từ group đầu tiên
     const [firstIsoDate, firstRows] = groupEntries[0];
-    
-    console.log('📅 Đang lấy code cho ngày:', firstIsoDate);
     const { code: firstBaseCode, maxSTT } = await this.getAssetCodeInfo(firstIsoDate);
-    console.log('✅ Code nhận được từ API:', firstBaseCode, '| maxSTT:', maxSTT);
-  
+
     if (!firstBaseCode) {
       this.notification.error('Thông báo', 'Không lấy được mã tài sản từ server.');
       return;
     }
-  
+
     let currentSTT = maxSTT; // DB hiện tại, sẽ ++ cho từng bản ghi
-  
+
     const processGroup = (rows: any[], baseCode: string, groupOffset: number) => {
       rows.forEach((row, idx) => {
         // Dùng groupOffset + idx để tính code cho group này
         const code = this.buildAssetCode(baseCode, groupOffset + idx);
-  
+
         currentSTT += 1; // STT: maxSTT + 1, +2, ...
-  
-        console.log(`Bản ghi: Code=${code}, STT=${currentSTT}, BaseCode=${baseCode}, Offset=${groupOffset + idx}`);
-  
+
         // Xử lý trạng thái
         let statusID = 1;
         let statusText = 'Chưa sử dụng';
@@ -753,7 +694,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         // Lấy các ID từ tên
         const unitName = row.UnitName || '';
         const sourceName = row.SourceName || '';
-        const assetType = row.AssetType || '';
+        const assetType = row.AssetType || row.AssetCode || '';
         const employeeName = row.FullName || row.EmployeeName || '';
         const departmentName = row.Name || row.DepartmentName || '';
 
@@ -784,32 +725,31 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         });
       });
     };
-  
+
     // Track offset cho từng baseCode để tránh trùng lặp
     const baseCodeOffsets = new Map<string, number>();
-    
+
     // 3) Xử lý group đầu tiên với baseCode + maxSTT vừa lấy
     baseCodeOffsets.set(firstBaseCode, 0);
     processGroup(firstRows, firstBaseCode, 0);
     baseCodeOffsets.set(firstBaseCode, firstRows.length); // Update offset sau khi xử lý
-  
+
     // 4) Các group còn lại: chỉ cần code theo ngày, STT vẫn dùng currentSTT đang tăng dần
     for (let i = 1; i < groupEntries.length; i++) {
       const [isoDate, rows] = groupEntries[i];
       const baseCode = await this.generateTSAssetCode(isoDate); // chỉ lấy code, kệ maxSTT
-  
+
       if (!baseCode) {
-        console.warn('Không lấy được mã tài sản cho ngày', isoDate);
         continue;
       }
-  
+
       // Lấy offset hiện tại cho baseCode này (nếu đã dùng trước đó)
       const currentOffset = baseCodeOffsets.get(baseCode) || 0;
       processGroup(rows, baseCode, currentOffset);
       // Cập nhật offset cho baseCode này
       baseCodeOffsets.set(baseCode, currentOffset + rows.length);
     }
-  
+
     // Cập nhật cache với code cao nhất đã dùng
     tSAssetManagements.forEach(item => {
       if (item.TSAssetCode && item.DateBuy) {
@@ -822,71 +762,49 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         }
       }
     });
-    
-    console.log('💾 Cache sau khi xử lý:', Object.fromEntries(this.usedCodesCache));
-  
+
     const payload = { tSAssetManagements };
-  
+
     this.displayProgress = 30;
     this.displayText = `Đang gửi ${totalAssetsToSave} bản ghi...`;
-    console.log('Payload import excel', payload);
-  
+
     this.assetsManagementService.saveDataAsset(payload).subscribe({
       next: (response: any) => {
-        console.log('=== Response từ API saveDataAsset ===', response);
-        console.log('response.status:', response?.status);
-        console.log('response.data:', response?.data);
-        
+
         // Đếm số bản ghi có ID trong response (đã lưu thành công)
         let successCount = 0;
         let errorCount = 0;
-        
+
         // Backend trả về status chữ thường
         if (response?.status === 1) {
           // Nếu API trả về status = 1, nghĩa là thành công
           // Kiểm tra xem response.data có tSAssetManagements không
           const assetData = response.data;
-          
+
           if (assetData && assetData.tSAssetManagements && Array.isArray(assetData.tSAssetManagements)) {
-            console.log('Tìm thấy tSAssetManagements array:', assetData.tSAssetManagements);
-            console.log('Số phần tử:', assetData.tSAssetManagements.length);
-            
+
             // Đếm số bản ghi có ID > 0 (đã được lưu vào DB)
             const itemsWithId = assetData.tSAssetManagements.filter((item: any) => {
               const hasValidId = item && item.ID && item.ID > 0;
-              if (!hasValidId) {
-                console.warn('Item không có ID hợp lệ:', item);
-              }
               return hasValidId;
             });
-            
+
             successCount = itemsWithId.length;
             errorCount = totalAssetsToSave - successCount;
-            
-            console.log('Số bản ghi có ID > 0:', successCount);
-            console.log('Chi tiết các ID:', itemsWithId.map((item: any) => item.ID));
-            console.log(`✅ Tổng kết: ${successCount}/${totalAssetsToSave} thành công, ${errorCount} thất bại`);
           } else {
-            // Nếu API trả về status = 1 nhưng không có array chi tiết
-            // Có thể backend chưa trả về data đầy đủ, coi như tất cả thành công
-            console.warn('⚠️ API trả về status = 1 nhưng không có tSAssetManagements array');
-            console.log('Cấu trúc response.data:', assetData ? Object.keys(assetData) : 'null');
-            console.log('Coi như tất cả bản ghi đã lưu thành công');
             successCount = totalAssetsToSave;
             errorCount = 0;
           }
         } else {
-          // Nếu status !== 1, coi như thất bại
-          console.error('❌ API trả về status !== 1:', response?.status);
           successCount = 0;
           errorCount = totalAssetsToSave;
         }
-  
+
         this.displayProgress = 100;
         this.displayText = `Đã xử lý ${totalAssetsToSave}/${totalAssetsToSave} bản ghi`;
-  
+
         this.notification.remove(notifKey);
-  
+
         // Hiển thị thông báo dựa trên số bản ghi có ID
         if (successCount > 0) {
           if (successCount === totalAssetsToSave) {
@@ -906,33 +824,30 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
             response?.data?.message ||
             response?.error?.message ||
             'Lưu dữ liệu thất bại.';
-  
+
           this.notification.error(
             'Thông báo',
             `${backendMsg}`
           );
         }
-  
+
         // Refresh table nếu có ít nhất 1 bản ghi thành công
         if (successCount > 0 && this.table) {
-          console.log('Refreshing table after successful import...');
           this.table.replaceData();
         }
-        
+
         this.closeExcelModal();
       },
       error: (err: any) => {
-        console.error('Lỗi API khi lưu danh sách tài sản:', err);
-  
         const backendMsg =
           err?.error?.message ||
           err?.error?.title ||
           err?.message ||
           'Lưu dữ liệu thất bại.';
-  
+
         this.displayProgress = 100;
         this.displayText = `Lỗi khi lưu ${totalAssetsToSave} bản ghi`;
-  
+
         this.notification.remove(notifKey);
         this.notification.error(
           'Thông báo',
@@ -941,11 +856,9 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       }
     });
   }
-  
+
 
   showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
-    console.log('--- Hiển thị tóm tắt kết quả lưu ---');
-    console.log(`Tổng sản phẩm: ${totalProducts}, Thành công: ${successCount}, Thất bại: ${errorCount}`);
 
     if (errorCount === 0) {
       this.notification.success(NOTIFICATION_TITLE.success, `Đã lưu ${successCount} sản phẩm thành công`);
@@ -972,20 +885,34 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     source = this.listSourceAsset.find(s => s.SourceCode === sourceNameOrCode);
     return source ? source.ID : 0;
   }
-  // Hàm helper để lấy ID của loại tài sản từ tên
-  private getTypeIdByName(typeName: string): number {
+  // Hàm helper để lấy ID của loại tài sản từ tên hoặc mã
+  getTypeIdByName(typeName: string): number {
     if (!typeName) return 0;
-    const type = this.listTypeAsset.find(t => t.TypeName === typeName);
+    const search = typeName.toString().trim().toLowerCase();
+    const type = this.listTypeAsset.find(t =>
+      (t.AssetType && t.AssetType.toString().trim().toLowerCase() === search) ||
+      (t.AssetCode && t.AssetCode.toString().trim().toLowerCase() === search)
+    );
     return type ? type.ID : 0;
   }
   private getEmployeeIDByName(Name: string) {
-    const emp = this.emPloyeeLists.find(t => t.FullName == Name);
+    if (!Name) return 0;
+    const search = Name.toString().trim().toLowerCase();
+    const emp = this.emPloyeeLists.find(t =>
+      (t.FullName && t.FullName.toString().trim().toLowerCase() === search) ||
+      (t.EmployeeCode && t.EmployeeCode.toString().trim().toLowerCase() === search)
+    );
     return emp ? emp.ID : 0;
 
   }
   private getDepartmentIDByName(dpmName: string) {
-    const dpm = this.emPloyeeLists.find(t => t.DepartmentName == dpmName);
-    return dpm ? dpm.ID : 0;
+    if (!dpmName) return 0;
+    const search = dpmName.toString().trim().toLowerCase();
+    const dpm = this.emPloyeeLists.find(t =>
+      (t.DepartmentName && t.DepartmentName.toString().trim().toLowerCase() === search) ||
+      (t.DepartmentCode && t.DepartmentCode.toString().trim().toLowerCase() === search)
+    );
+    return dpm ? (dpm.DepartmentID || dpm.ID) : 0;
 
   }
   // Hàm helper để lấy ID của Location từ tên
@@ -993,15 +920,12 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   private loadUnit() {
     this.unitService.getUnit().subscribe((res: any) => {
       this.listUnitCount = res.data;
-      console.log(this.listUnitCount);
     });
     this.soucerService.getAssets().subscribe((response: any) => {
       this.listSourceAsset = response.data;
-      console.log(this.listSourceAsset);
     });
     this.typeAssetsService.getTypeAssets().subscribe((resppon: any) => {
       this.listTypeAsset = resppon.data;
-      console.log(this.listTypeAsset);
     });
     const request = {
       status: 0,
@@ -1016,7 +940,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         this.listMaker = res.data || [];
       },
       error: (err: any) => {
-        console.error('Lỗi khi lấy danh sách hãng:', err);
       }
     });
   }
@@ -1034,7 +957,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     if (this.tableExcel) {
       this.tableExcel.replaceData([]); // Xóa dữ liệu trong Tabulator preview
     }
-    console.log('Trạng thái nhập Excel đã được reset.'); // Log
   }
   closeExcelModal() {
     this.modalService.dismissAll(true);

@@ -1,0 +1,444 @@
+/* ══════════════════════════════════════════════════════
+   PHIẾU ĐÁNH GIÁ CHUYỂN HỢP ĐỒNG – Component CSS
+   ══════════════════════════════════════════════════════ */
+
+/* Modal body */
+.review-modal-body {
+  background-color: #d0d0d0;
+  padding: 16px 20px !important;
+  overflow-y: auto;
+  height: calc(100vh - 110px);
+}
+
+/* ── Wrapper song trang ── */
+.dual-sheet-wrapper {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  max-width: 1460px;
+  margin: 0 auto;
+}
+
+.sheet-left,
+.sheet-right {
+  flex: 1;
+  background: #ffffff;
+  padding: 24px 26px 20px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
+  border-radius: 2px;
+  min-width: 0;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+/* ── Đường kẻ đỏ phân cách ── */
+.sheet-divider {
+  border-top: 2px solid #b8000c;
+  margin: 10px 0 12px;
+}
+
+/* ── Header ── */
+.form-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.header-left {
+  width: 72px;
+  flex-shrink: 0;
+}
+
+.logo-img {
+  width: 100%;
+}
+
+.header-right {
+  width: 72px;
+  flex-shrink: 0;
+}
+
+.header-center {
+  text-align: center;
+  flex: 1;
+  padding: 0 10px;
+}
+
+.form-title {
+  font-size: 13px;
+  font-weight: bold;
+  margin: 0;
+  color: #000;
+  text-transform: uppercase;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.form-subtitle {
+  font-size: 12px;
+  margin: 2px 0 0;
+  color: #222;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+/* ══ Thông tin cơ bản ══ */
+.info-section {
+  margin-bottom: 6px;
+}
+
+.info-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 2px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.info-label {
+  white-space: nowrap;
+  font-size: 12px;
+  flex-shrink: 0;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.info-sep {
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+/* Input gạch dưới kiểu giấy tờ */
+.info-value {
+  border: none;
+  border-bottom: 1px dotted #aaa;
+  background: transparent;
+  min-width: 60px;
+  padding: 0 2px 1px;
+  font-size: 12px;
+  font-family: 'Times New Roman', Times, serif;
+  outline: none;
+  color: #000;
+}
+
+.info-value:focus {
+  border-bottom-color: #1890ff !important;
+  outline: none;
+}
+
+.info-value[disabled] {
+  color: #222;
+  cursor: default;
+}
+
+/* Date picker underline style */
+.date-ul {
+  border: none !important;
+  border-bottom: 1px dotted #888 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  height: 22px !important;
+  min-width: 90px;
+}
+
+::ng-deep .date-ul .ant-picker-input>input {
+  font-size: 12px !important;
+  font-family: 'Times New Roman', Times, serif !important;
+  padding: 0 !important;
+}
+
+::ng-deep .date-ul.ant-picker-focused {
+  border-bottom-color: #1890ff !important;
+  box-shadow: none !important;
+}
+
+/* ══ Nội dung đánh giá ══ */
+.eval-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.eval-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.eval-label {
+  font-size: 12.5px;
+  font-weight: bold;
+  color: #000;
+  font-family: 'Times New Roman', Times, serif;
+  margin-bottom: 1px;
+}
+
+.eval-label-sm {
+  font-size: 12px;
+  color: #000;
+  font-family: 'Times New Roman', Times, serif;
+  margin-bottom: 2px;
+}
+
+/* Textarea kiểu trang giấy có dòng kẻ */
+.eval-textarea,
+.eval-textarea-sm {
+  width: 100% !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+
+  /* Tạo dòng kẻ lặp lại như giấy học sinh */
+  background-image: repeating-linear-gradient(transparent,
+      transparent calc(1.55em - 1px),
+      #bbb calc(1.55em - 1px),
+      #bbb 1.55em) !important;
+  line-height: 1.55em !important;
+  padding: 0 4px !important;
+  resize: none !important;
+  outline: none !important;
+  font-size: 12px !important;
+  font-family: 'Times New Roman', Times, serif !important;
+  color: #111 !important;
+  box-shadow: none !important;
+  overflow-y: auto !important;   /* ← đổi từ hidden → auto: scrollbar khi vượt max-height */
+}
+
+/* .eval-textarea {
+  min-height: calc(1.55em * 3);
+} */
+
+.eval-textarea-sm {
+  min-height: calc(1.55em * 2);
+  max-height: calc(1.55em * 3) !important;  /* hard cap: tối đa 3 dòng hiển thị */
+}
+
+/* Disabled: keep text visible */
+.eval-textarea[disabled],
+.eval-textarea-sm[disabled] {
+  color: #222 !important;
+  cursor: default;
+}
+
+/* ══ Dash-line rows (mục 2 TBP) ══ */
+.dash-line-row {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  font-size: 12px;
+  font-family: 'Times New Roman', Times, serif;
+  margin-bottom: 3px;
+}
+
+.dash-pfx {
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.dash-lbl {
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.dash-input {
+  border: none;
+  border-bottom: 1px dotted #888;
+  background: transparent;
+  min-width: 60px;
+  padding: 0 2px 1px;
+  font-size: 12px;
+  font-family: 'Times New Roman', Times, serif;
+  outline: none;
+  color: #000;
+}
+
+.dash-input:focus {
+  border-bottom-color: #1890ff;
+}
+
+.dash-input[disabled] {
+  color: #222;
+  cursor: default;
+}
+
+/* ══ Bảng tiêu chí ══ */
+.criteria-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+  font-family: 'Times New Roman', Times, serif;
+  margin-top: 4px;
+}
+
+.criteria-table th,
+.criteria-table td {
+  border: 1px solid #888;
+  padding: 3px 5px;
+  vertical-align: middle;
+}
+
+.criteria-table th {
+  background: #f0f0f0;
+  font-weight: 600;
+  text-align: center;
+}
+
+.criteria-table tbody td:first-child {
+  text-align: left;
+}
+
+.criteria-table input[type="radio"] {
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  accent-color: #b8000c;
+  display: block;
+  margin: 0 auto;
+}
+
+.note-input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 11px;
+  outline: none;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.total-row td {
+  background: #fafafa;
+  font-weight: bold;
+}
+
+/* ══ Kết luận ══ */
+.conclusion-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 4px 0;
+}
+
+.conclusion-check {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-family: 'Times New Roman', Times, serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.conclusion-check input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: #333;
+  flex-shrink: 0;
+}
+
+.conclusion-check input[type="checkbox"][disabled] {
+  cursor: default;
+}
+
+/* ══ Chữ ký ══ */
+.signature-row {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 6px;
+}
+
+.signature-block {
+  text-align: center;
+  width: 240px;
+}
+
+.signature-row-triple {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 6px;
+}
+
+.sig-triple-block {
+  text-align: center;
+  flex: 1;
+}
+
+.sig-title {
+  font-size: 12px;
+  font-weight: bold;
+  margin: 0 0 2px;
+  text-transform: uppercase;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.sig-location {
+  font-size: 12px;
+  font-style: italic;
+  margin: 0 0 2px;
+  font-family: 'Times New Roman', Times, serif;
+  white-space: nowrap;
+}
+
+.sig-location-sm,
+.sig-location-placeholder {
+  font-size: 11.5px;
+  font-style: italic;
+  margin: 0 0 2px;
+  font-family: 'Times New Roman', Times, serif;
+  white-space: nowrap;
+  height: 18px; /* Cố định chiều cao để hàng Title luôn thẳng */
+}
+
+.sig-space {
+  height: 55px;
+}
+
+/* ════ Print Styles ════ */
+@media print {
+  body>* {
+    display: none !important;
+  }
+
+  #printArea {
+    display: block !important;
+  }
+
+  .no-print,
+  .modal-header,
+  .modal-footer {
+    display: none !important;
+  }
+
+  .review-modal-body {
+    background: white !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+
+  .dual-sheet-wrapper {
+    gap: 6mm;
+    max-width: 100%;
+  }
+
+  .sheet-left,
+  .sheet-right {
+    box-shadow: none !important;
+    padding: 5mm 8mm !important;
+  }
+
+  .eval-textarea,
+  .eval-textarea-sm {
+    overflow: visible !important;
+    height: auto !important;
+  }
+}
+
+/* ══ Label alignment per sheet ══ */
+.sheet-left .info-label {
+  min-width: 155px;
+}
+
+.sheet-right .info-label {
+  min-width: 162px;
+}

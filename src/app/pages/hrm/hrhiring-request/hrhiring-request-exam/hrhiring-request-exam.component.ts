@@ -11,6 +11,17 @@ import { HRHiringRequestExamService } from './hrhiring-request-exam.service';
 import { HRHiringRequestExamDetailComponent } from './hrhiring-request-exam-detail/hrhiring-request-exam-detail.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ContextMenuModule } from 'primeng/contextmenu';
+import { ButtonModule } from 'primeng/button';
+import { SplitterModule } from 'primeng/splitter';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
+import { FormsModule } from '@angular/forms';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { DateTime } from 'luxon';
 
 @Component({
   selector: 'app-hrhiring-request-exam',
@@ -24,7 +35,15 @@ import { ContextMenuModule } from 'primeng/contextmenu';
     ToastModule,
     ConfirmDialogModule,
     CheckboxModule,
-    ContextMenuModule
+    ContextMenuModule,
+    ButtonModule,
+    HasPermissionDirective,
+    FormsModule,
+    NzInputModule,
+    NzIconModule,
+    NzFormModule,
+    NzButtonModule,
+    SplitterModule
   ],
   providers: [MessageService, ConfirmationService]
 })
@@ -36,45 +55,69 @@ export class HRHiringRequestExamComponent implements OnInit {
   selectedHiringRequest: any;
   selectedItems: any[] = [];
   loading: boolean = false;
-  contextMenuItems: MenuItem[] = [];
   selectedRow: any;
+  candidatesList: any[] = [];
+  loadingCandidates: boolean = false;
+  selectedCandidate: any;
+  contextMenuItems: MenuItem[] = [];
+  candidateContextMenuItems: MenuItem[] = [];
+  selectedCandidates: any[] = [];
+
+  // Search parameters
+  showSearchBar: boolean = true;
+  keyword: string = '';
+  dateStart: string = '';
+  dateEnd: string = '';
 
   constructor(
     private service: HRHiringRequestExamService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private notification: NzNotificationService
   ) { }
 
   ngOnInit(): void {
+    const now = DateTime.local();
+    this.dateEnd = now.toFormat('yyyy-MM-dd');
+    this.dateStart = now.minus({ days: 30 }).toFormat('yyyy-MM-dd');
+
     this.initMenu();
     this.initContextMenu();
+    this.initCandidateContextMenu();
     this.loadData();
   }
 
   initMenu(): void {
     this.items = [
+      // {
+
+      //   label: 'Thêm',
+      //   icon: 'fa-solid fa-plus text-success',
+      //   hasPermission: 'N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86,N94',
+      //   command: () => this.onAdd()
+      // },
       {
-        label: 'Thêm',
-        icon: 'fa-solid fa-plus text-success',
-        command: () => this.onAdd()
-      },
-      {
-        label: 'Sửa',
+        label: 'Thiết lập bài thi',
         icon: 'fa-solid fa-pencil text-primary',
-        command: () => this.onEdit(),
-        disabled: true
+        hasPermission: 'N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86,N94',
+        command: () => this.onEdit()
       },
-      {
-        label: 'Xóa',
-        icon: 'fa-solid fa-trash text-danger',
-        command: () => this.onDelete(),
-        disabled: true
-      },
+      // {
+      //   label: 'Xóa',
+      //   icon: 'fa-solid fa-trash text-danger',
+      //   command: () => this.onDelete(),
+      //   disabled: true
+      // },
       {
         label: 'Làm mới',
         icon: 'fa-solid fa-arrows-rotate text-info',
-        command: () => this.loadData()
+        command: () => this.onReset()
+      },
+      {
+        label: 'Tìm kiếm',
+        icon: 'fa-solid fa-search text-primary',
+        command: () => this.ToggleSearchPanelNew()
       }
     ];
   }
@@ -84,14 +127,36 @@ export class HRHiringRequestExamComponent implements OnInit {
       {
         label: 'Kích hoạt bài thi',
         icon: 'fa-solid fa-check text-success',
-        command: () => this.onActivateExam(this.selectedRow)
+        command: () => this.onActivateExam(this.selectedRow, true)
+      },
+      {
+        label: 'Hủy kích hoạt bài thi',
+        icon: 'fa-solid fa-times text-danger',
+        command: () => this.onActivateExam(this.selectedRow, false)
+      }
+    ];
+  }
+
+  initCandidateContextMenu(): void {
+    this.candidateContextMenuItems = [
+      {
+        label: 'Kích hoạt bài thi',
+        icon: 'fa-solid fa-check text-success',
+        command: () => this.onToggleCandidateExam([this.selectedCandidate], true)
+      },
+      {
+        label: 'Khóa bài thi',
+        icon: 'fa-solid fa-lock text-danger',
+        command: () => this.onToggleCandidateExam([this.selectedCandidate], false)
       }
     ];
   }
 
   loadData(): void {
     this.loading = true;
-    this.service.getHiringRequests().subscribe({
+    const ds = this.dateStart ? new Date(this.dateStart).toISOString() : '';
+    const de = this.dateEnd ? new Date(this.dateEnd).toISOString() : '';
+    this.service.getHiringRequests(ds, de, this.keyword).subscribe({
       next: (res) => {
         if (res.status === 1) {
           this.uniqueHiringRequests = res.data;
@@ -111,19 +176,37 @@ export class HRHiringRequestExamComponent implements OnInit {
         }
         this.loading = false;
       },
-      error: (err) => {
-        this.messageService.add({ severity: 'error', summary: 'Lỗi hệ thống', detail: err.message });
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
         this.loading = false;
       }
     });
   }
 
+  onSearch(): void {
+    this.loadData();
+  }
+
+  onReset(): void {
+    this.keyword = '';
+    const now = DateTime.local();
+    this.dateEnd = now.toFormat('yyyy-MM-dd');
+    this.dateStart = now.minus({ days: 30 }).toFormat('yyyy-MM-dd');
+    this.loadData();
+  }
+
+  ToggleSearchPanelNew(): void {
+    this.showSearchBar = !this.showSearchBar;
+  }
+
   updateMenuState(): void {
     const hasSelectionOnLeft = !!this.selectedHiringRequest;
     const hasSelectionOnRight = this.selectedItems && this.selectedItems.length > 0;
-
-    this.items[1].disabled = !hasSelectionOnLeft; // Edit (depends on left selection)
-    this.items[2].disabled = !hasSelectionOnRight; // Delete (depends on right selection)
   }
 
   onSelectionChange(event: any): void {
@@ -140,6 +223,7 @@ export class HRHiringRequestExamComponent implements OnInit {
 
   onHiringRequestSelect(event: any): void {
     this.filterExams();
+    this.loadCandidates(event.data.HiringRequestID);
     this.updateMenuState();
   }
 
@@ -156,15 +240,77 @@ export class HRHiringRequestExamComponent implements OnInit {
           }
           this.loading = false;
         },
-        error: () => {
+        error: (err: any) => {
           this.filteredExams = [];
           this.loading = false;
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
         }
       });
     } else {
       this.filteredExams = [];
     }
     this.selectedItems = [];
+  }
+
+  loadCandidates(hiringRequestId: number): void {
+    if (!hiringRequestId) {
+      this.candidatesList = [];
+      return;
+    }
+    this.loadingCandidates = true;
+    this.service.getCandidates(hiringRequestId).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.candidatesList = res.data;
+        } else {
+          this.candidatesList = [];
+        }
+        this.loadingCandidates = false;
+      },
+      error: (err: any) => {
+        this.candidatesList = [];
+        this.loadingCandidates = false;
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+      }
+    });
+  }
+
+  onToggleCandidateExam(candidates: any[], status: boolean): void {
+    if (!candidates || candidates.length === 0) return;
+    console.log('Toggling exam status for candidates:', candidates, status);
+    this.loadingCandidates = true;
+    const ids = candidates.map(c => c.ID || c.CandidateID);
+    this.service.updateActiveExamCandidate(ids, status).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.notification.create('success', 'Thành công', res.message || 'Cập nhật trạng thái thành công');
+          this.selectedCandidates = [];
+          this.loadCandidates(this.selectedHiringRequest.HiringRequestID);
+        } else {
+          this.notification.create('error', 'Lỗi', res.message || 'Cập nhật thất bại');
+        }
+        this.loadingCandidates = false;
+      },
+      error: (err: any) => {
+        this.loadingCandidates = false;
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+      }
+    });
   }
 
   extractUniqueHiringRequests(): void {
@@ -200,7 +346,7 @@ export class HRHiringRequestExamComponent implements OnInit {
 
       // FilteredExams now contains the exams for this request
       const examsForRequest = this.filteredExams;
-      
+
       // Use the first record or the selection itself
       const mappingRecord = examsForRequest[0];
 
@@ -234,9 +380,9 @@ export class HRHiringRequestExamComponent implements OnInit {
         accept: () => {
           this.loading = true;
           const ids = this.selectedItems.map(item => item.HiringRequestExamID || item.ID);
-          
+
           const requests = ids.map(id => this.service.deleteData(id));
-          
+
           forkJoin(requests).subscribe({
             next: (results: any[]) => {
               this.messageService.add({ severity: 'success', summary: 'Thành công', detail: 'Xóa dữ liệu thành công' });
@@ -245,7 +391,12 @@ export class HRHiringRequestExamComponent implements OnInit {
               this.updateMenuState();
             },
             error: (err: any) => {
-              this.messageService.add({ severity: 'error', summary: 'Lỗi', detail: 'Có lỗi xảy ra khi xóa dữ liệu' });
+              this.notification.create(
+                NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                err?.error?.message || `${err.error}\n${err.message}`,
+                { nzStyle: { whiteSpace: 'pre-line' } }
+              );
               this.loading = false;
             }
           });
@@ -258,10 +409,47 @@ export class HRHiringRequestExamComponent implements OnInit {
     this.selectedRow = event.data;
   }
 
-  onActivateExam(item: any): void {
+  onActivateExam(item: any, status: boolean): void {
     if (!item) return;
     // Placeholder for activation logic
-    console.log('Activating exam:', item);
-    this.messageService.add({ severity: 'info', summary: 'Thông báo', detail: `Kích hoạt bài thi: ${item.NameExam} (Chờ xử lý)` });
+    console.log('Activating exam for request:', item);
+    this.loading = true;
+    const savePayload = {
+      IsActiveExam: status,
+      HiringRequestID: item.HiringRequestID,
+      //listHiringRequestIDExam: [],
+      //deletedHiringRequestIDExam: []
+    };
+
+    this.service.saveData(savePayload).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.notification.create(
+            'success',
+            'Thành công',
+            `${status ? 'Kích hoạt' : 'Hủy kích hoạt'} bài thi cho vị trí: ${item.PositionName || item.HiringRequestCode}`,
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
+          this.loadData();
+        } else {
+          this.notification.create(
+            'error',
+            'Lỗi',
+            res.message || 'Không thể kích hoạt bài thi',
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
+        }
+        this.loading = false;
+      },
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+        this.loading = false;
+      }
+    });
   }
 }

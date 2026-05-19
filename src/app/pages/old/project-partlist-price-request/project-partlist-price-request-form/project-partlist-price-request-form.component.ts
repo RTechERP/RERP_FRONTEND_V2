@@ -85,15 +85,19 @@ export class ProjectPartlistPriceRequestFormComponent
   @Input() isVPP: boolean = false;
   @Input() noteJobRequirement: string = '';
   @Input() qty: number = 0;
+  @Input() isDP: boolean = false;
 
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
+
+  projectPartlistPriceRequestTypeID: number = 8;
 
   close(result?: any) {
     this.activeModal.close(result);
   }
   requester: Number = 0;
   requestDate: Date | null = null;
+  deadlineBuy: Date | null = null;
   priceRequestTypeID: number | null = null;
   customerID: number = 0;
 
@@ -113,7 +117,7 @@ export class ProjectPartlistPriceRequestFormComponent
   @ViewChild('table', { static: false }) tableDiv!: ElementRef;
   table!: Tabulator;
   tableData: any[] = [];
-
+  isSaving: boolean = false;
   currentUserId: number = 0;
   currentUser: any = null;
   isAdmin: boolean = false;
@@ -122,7 +126,6 @@ export class ProjectPartlistPriceRequestFormComponent
 
   // Map để lưu mapping HR Note: ProjectPartlistPriceRequestID -> { ID, Note }
   hrNotesMap: Map<number, { id: number; note: string }> = new Map();
-
   // Popup state management
   showProductPopup: boolean = false;
   showSupplierPopup: boolean = false;
@@ -254,7 +257,7 @@ export class ProjectPartlistPriceRequestFormComponent
       }
     });
 
-    this.requester = Number(this.dataInput[0]['EmployeeID']) || 0;
+    this.requester = Number(this.dataInput[0]['EmployeeID']) || Number(this.appUserService.employeeID);
     this.requestDate = this.dataInput[0]['DateRequest']
       ? new Date(this.dataInput[0]['DateRequest'])
       : new Date();
@@ -1056,7 +1059,7 @@ export class ProjectPartlistPriceRequestFormComponent
           editor: 'input',
           headerHozAlign: 'center',
           hozAlign: 'left',
-          width: 200,
+          minWidth: 200,
           editable: (cell: any) => {
             const rowData = cell.getRow().getData();
             if (this.jobRequirementID > 0) return false;
@@ -1361,7 +1364,7 @@ export class ProjectPartlistPriceRequestFormComponent
     if (deadlineDate < minDeadline) {
       const errorMsg = currentHour >= 15
         ? 'Yêu cầu từ sau 15h nên ngày Deadline tối thiểu là 2 ngày tính từ ngày hôm sau!'
-        : 'Deadline tối thiểu là 2 ngày từ ngày hiện tại!';
+        : 'Deadline sản phẩm tối thiểu là 2 ngày từ ngày hiện tại!';
 
       this.notification.warning('Thông báo', errorMsg);
       return false;
@@ -1369,6 +1372,7 @@ export class ProjectPartlistPriceRequestFormComponent
 
     return true;
   }
+
   validate(): boolean {
     const employeeID = Number(this.requester);
     if (employeeID <= 0) {
@@ -1465,7 +1469,12 @@ export class ProjectPartlistPriceRequestFormComponent
     return true;
   }
   saveAndClose() {
-    if (!this.validate()) return;
+    this.isSaving = true;
+    if (!this.validate()) {
+      this.isSaving = false;
+      return;
+    }
+
     const baseInput = Array.isArray(this.dataInput)
       ? this.dataInput[0] || {}
       : this.dataInput || {};
@@ -1487,10 +1496,11 @@ export class ProjectPartlistPriceRequestFormComponent
       );
       const isCheckPrice = !!(original['IsCheckPrice'] ?? data['IsCheckPrice']);
       if (!isNew && (oldStatus === 2 || oldStatus === 3 || isCheckPrice)) {
+        this.isSaving = false;
         return;
       }
 
-      const note = (data['RequestNote']|| '').toString();
+      const note = (data['RequestNote'] || '').toString();
       const projectPartlistId =
         Number(data['ProjectPartlistID'] ?? baseProjectPartlistId) || 0;
       const jobRequirementId =
@@ -1516,7 +1526,7 @@ export class ProjectPartlistPriceRequestFormComponent
           Deadline: data['Deadline']
             ? DateTime.fromJSDate(new Date(data['Deadline'])).toJSDate()
             : null,
-          Note: note || '',
+          //Note: note || '',
           DateRequest: this.requestDate ? new Date(this.requestDate) : null,
           EmployeeID: Number(this.requester) || null,
           IsJobRequirement: Boolean(isJobRequirement) || false,
@@ -1541,6 +1551,10 @@ export class ProjectPartlistPriceRequestFormComponent
           } else {
             record['IsJobRequirement'] = false;
             record['IsCommercialProduct'] = true;
+          }
+
+          if (this.isDP) {
+            record['IsCommercialProduct'] = false;
           }
         }
 
@@ -1602,6 +1616,7 @@ export class ProjectPartlistPriceRequestFormComponent
     );
 
     removedIds.forEach((id) => {
+      this.isSaving = false;
       if (!id) return;
 
       recordsToSave.push({
@@ -1613,7 +1628,8 @@ export class ProjectPartlistPriceRequestFormComponent
     this.priceRequestService.saveData(recordsToSave).subscribe({
       next: (response) => {
         // Lưu ghi chú nếu là loại HR (typeID = 3) hoặc loại 4, 6 (dùng RequestNote)
-        if (this.priceRequestTypeID === 3 || this.priceRequestTypeID === 4 || this.priceRequestTypeID === 6) {
+        if (this.priceRequestTypeID === 3 || this.priceRequestTypeID === 4
+          || this.priceRequestTypeID === 6 || this.priceRequestTypeID === 7) {
           this.saveHRNotes(recordsToSave, response);
         } else {
           this.notification.success(
@@ -1623,6 +1639,13 @@ export class ProjectPartlistPriceRequestFormComponent
           this.formSubmitted.emit();
           this.activeModal.close('saved');
         }
+
+        // Tạo yêu cầu mua nếu là DP
+        if (this.isDP) {
+          let dataRequest = (response as any).data;
+          this.PerformRequestBuy(dataRequest);
+        }
+        this.isSaving = false;
       },
       error: (e: any) => {
         let errorMessage = 'Lưu dữ liệu thất bại!';
@@ -1636,7 +1659,7 @@ export class ProjectPartlistPriceRequestFormComponent
             .join('; ');
           errorMessage += ` ${errorDetails}`;
         }
-
+        this.isSaving = false;
         this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       },
     });
@@ -1680,7 +1703,8 @@ export class ProjectPartlistPriceRequestFormComponent
 
     rows.forEach((row, index) => {
       const data = row.getData();
-      const noteHR = (this.priceRequestTypeID === 4 || this.priceRequestTypeID === 6)
+      const noteHR = (this.priceRequestTypeID === 4 || this.priceRequestTypeID === 6
+        || this.priceRequestTypeID === 7)
         ? (data['RequestNote'] || '').toString().trim()
         : (data['NoteHR'] || '').toString().trim();
       const requestID = data['ID'] || 0;
@@ -1735,4 +1759,137 @@ export class ProjectPartlistPriceRequestFormComponent
       },
     });
   }
+
+  //#region Hàm yêu cầu mua hàng
+  private validateRequestBuyDeadline(deadline: Date): boolean {
+    const now = new Date();
+    const d = new Date(
+      deadline.getFullYear(),
+      deadline.getMonth(),
+      deadline.getDate()
+    );
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const timeSpan =
+      Math.floor((d.getTime() - start.getTime()) / (24 * 3600 * 1000)) + 1;
+
+    if (now.getHours() < 15 && timeSpan < 2) {
+      return false;
+    }
+    if (now.getHours() >= 15 && timeSpan < 3) {
+      return false;
+    }
+    const dow = d.getDay();
+    if (dow === 6 || dow === 0) {
+      return false;
+    }
+    return true;
+  }
+
+  private getRequestBuyDeadlineErrorMessage(deadline: Date): string {
+    const now = new Date();
+    const d = new Date(
+      deadline.getFullYear(),
+      deadline.getMonth(),
+      deadline.getDate()
+    );
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const timeSpan =
+      Math.floor((d.getTime() - start.getTime()) / (24 * 3600 * 1000)) + 1;
+
+    if (now.getHours() < 15 && timeSpan < 2) {
+      return 'Deadline mua hàng tối thiểu là 2 ngày từ ngày hiện tại!';
+    }
+    if (now.getHours() >= 15 && timeSpan < 3) {
+      return 'Yêu cầu từ sau 15h nên ngày Deadline tối thiểu là 2 ngày tính từ ngày hôm sau!';
+    }
+    const dow = d.getDay();
+    if (dow === 6 || dow === 0) {
+      return 'Deadline phải là ngày làm việc (T2 - T6)!';
+    }
+    return '';
+  }
+
+  private PerformRequestBuy(dataRequest: any): boolean {
+    let data = this.table.getData();
+    console.log(dataRequest);
+
+    // Chuẩn hóa dataRequest thành mảng để tìm kiếm
+    const requestArray = Array.isArray(dataRequest)
+      ? dataRequest
+      : Array.isArray(dataRequest?.data)
+        ? dataRequest.data
+        : dataRequest
+          ? [dataRequest]
+          : [];
+
+    // Tạo bản sao để loại bỏ các dòng đã khớp
+    let tempRequestArray = [...requestArray];
+
+    const products = (data || []).map((row: any) => {
+      const productCode = String(row['ProductCode'] || '').trim();
+      const productName = String(row['ProductName'] || '').trim();
+      const quantity = Number(row['Quantity'] || 0);
+      const note = String(row['RequestNote'] || '').trim();
+
+      // Tìm vị trí dòng tương ứng trong dataRequest theo Mã SP, Tên SP và Số lượng
+      const matchedIndex = tempRequestArray.findIndex(
+        (req: any) =>
+          String(req.ProductCode || '').trim() === productCode &&
+          String(req.ProductName || '').trim() === productName &&
+          Number(req.Quantity || 0) === quantity &&
+          String(req.RequestNote || '').trim() === note
+      );
+
+      let matchedID = 0;
+      if (matchedIndex !== -1) {
+        matchedID = tempRequestArray[matchedIndex].ID || 0;
+        // Xóa dòng đã gán khỏi mảng tạm để tránh trùng lặp cho các dòng sau
+        tempRequestArray.splice(matchedIndex, 1);
+      }
+
+      return {
+        ID: Number(row['ProductSaleID'] || 0),
+        ProductCode: productCode,
+        ProductName: productName,
+        Quantity: quantity,
+        UnitName: String(
+          row['Unit'] || row['UnitName'] || row['UnitCount'] || ''
+        ).trim(),
+        NoteHR: String(
+          row['NoteHR'] || row['HRNote'] || row['NotePartlist'] || ''
+        ).trim(),
+        Maker: String(row['Maker'] || row['Manufacturer'] || '').trim(),
+        ProductNewCode: String(row['ProductNewCode'] || '').trim(),
+        Deadline: row['Deadline']
+          ? DateTime.fromJSDate(new Date(row['Deadline'])).toJSDate()
+          : null,
+        ProjectPartlistPriceRequestID: matchedID,
+      };
+    });
+
+    const payload: any = {
+      JobRequirementID: 0,
+      IsVPP: false,
+      Deadline: DateTime.fromJSDate(new Date()).toJSDate(),
+      EmployeeID: this.appUserService.employeeID,
+      ProjectPartlistPriceRequestTypeID: this.projectPartlistPriceRequestTypeID,
+      Products: products,
+    };
+
+    this.priceRequestService.requestBuyConsumable(payload).subscribe({
+      next: (res: any) => {
+        this.isSaving = false;
+      },
+      error: (err: any) => {
+        this.isSaving = false;
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`, {
+          nzStyle: { whiteSpace: 'pre-line' }
+        });
+      },
+    });
+
+    return true;
+  }
+
+  //#endregion
 }

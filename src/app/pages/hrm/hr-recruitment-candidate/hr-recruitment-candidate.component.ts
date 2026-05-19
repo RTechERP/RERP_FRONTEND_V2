@@ -62,6 +62,9 @@ import { ProjectService } from '../../project/project-service/project.service';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
 import { HomeLayoutCandidateComponent } from '../hr-recruitment/hr-recruitment-application-form/home-layout-candidate/home-layout-candidate.component';
 import { environment } from '../../../../environments/environment';
+import { HrRecruitmentInterviewAssessmentFormComponent } from '../hr-recruitment-interview-assessment/hr-recruitment-interview-assessment-form/hr-recruitment-interview-assessment-form.component';
+import { HrRecruitmentApproveFormComponent } from '../hr-recruitment-approve/hr-recruitment-approve-form/hr-recruitment-approve-form.component';
+import { HrOfferLetterComponent } from '../hr-offer-letter/hr-offer-letter.component';
 
 @Component({
     selector: 'app-hr-recruitment-candidate',
@@ -83,6 +86,7 @@ import { environment } from '../../../../environments/environment';
         NgbModalModule,
         Menubar,
         HomeLayoutCandidateComponent,
+        HrOfferLetterComponent,
     ],
     templateUrl: './hr-recruitment-candidate.component.html',
     styleUrl: './hr-recruitment-candidate.component.css'
@@ -161,7 +165,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         this.loadMenu();
         this.initAngularGrid();
         this.onSearch();
-        this.isHavePermission = this.permissionService.hasPermission('N1,N2');
+        this.isHavePermission = this.permissionService.hasPermission('N1,N2,N94');
     }
 
     ngAfterViewInit(): void {
@@ -187,25 +191,25 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             {
                 label: 'Thêm mới',
                 icon: 'fa-solid fa-plus fa-lg text-success',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 command: () => this.onAdd(),
             },
             {
                 label: 'Sửa',
                 icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 command: () => this.onEdit(),
             },
             {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 command: () => this.onDelete(),
             },
             {
                 label: 'Cập nhật trạng thái',
                 icon: 'fa-solid fa-arrow-right-arrow-left fa-lg text-success',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 items: statusItems.map(s => ({
                     label: s.label,
                     icon: 'fa-solid fa-circle-check text-success',
@@ -215,7 +219,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             {
                 label: 'Hủy trạng thái',
                 icon: 'fa-solid fa-rotate-left fa-lg text-danger',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 items: statusItems.map(s => ({
                     label: s.label,
                     icon: 'fa-solid fa-circle-xmark text-danger',
@@ -230,13 +234,13 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             },
             {
                 label: 'Tải file Cv',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 icon: 'fa-solid fa-file-arrow-down fa-lg text-warning',
                 command: () => this.onDownloadCV(),
             },
             {
                 label: 'Gửi thư mời PV',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 icon: 'fa-solid fa-envelope fa-lg text-primary',
                 items: [
                     {
@@ -251,18 +255,112 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                     },
                 ],
             },
-            // {
-            //   label: 'Gửi thư mời nhận việc',
-            //   visible: this.permissionService.hasPermission('N1,N2'),
-            //   icon: 'fa-solid fa-scroll fa-lg text-success',
-            //   command: () => this.onSendOfferLetter(),
-            // },
+            {
+                label: 'Gửi thư mời nhận việc',
+                visible: this.permissionService.hasPermission('N1,N2'),
+                icon: 'fa-solid fa-envelope fa-lg text-primary',
+                command: () => this.onSendOfferLetter(),
+            },
             {
                 label: 'Xem tờ khai UV',
                 icon: 'fa-solid fa-file-lines fa-lg text-info',
                 command: () => this.viewApplicationForm(),
             },
+            {
+                label: 'Đánh giá phỏng vấn',
+                icon: 'fa-solid fa-file-lines fa-lg text-info',
+                command: () => this.viewInterviewAssessment(), // phân quyền trưởng bộ phận tạo đánh giá pv
+                visible: this.permissionService.hasPermission('N1,N32'),
+            },
+            {
+                label: 'Tờ trình phê duyệt tuyển dụng',
+                icon: 'fa-solid fa-file-lines fa-lg text-info',
+                command: () => this.viewApproveForm(), // phân quyền hr tạo tờ trình tuyển dụng
+                visible: this.permissionService.hasPermission('N1,N2'),
+            },
         ];
+    }
+
+    viewApproveForm() {
+        const selectedRows = this.angularGrid?.slickGrid?.getSelectedRows() || [];
+        if (selectedRows.length !== 1) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 dòng để thao tác tờ trình tuyển dụng!');
+            return;
+        }
+
+        const item = this.angularGrid.slickGrid.getDataItem(selectedRows[0]);
+        if (!item) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy thông tin ứng viên!');
+            return;
+        }
+        if (item.Status < 3) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên chưa phỏng vấn!');
+            return;
+        }
+        if (item.Status == 3) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên được đánh giá sau phỏng vấn!');
+            return;
+        }
+        if (item.Status == 4) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên có kết quả phỏng vấn không đạt!');
+            return;
+        }
+
+        // hr tạo tờ trình tuyển dụng
+
+        const modalRef = this.modalService.open(HrRecruitmentApproveFormComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            size: 'xl',
+            scrollable: true,
+        });
+        modalRef.componentInstance.HRRecruitmentCandidateID = item.ID
+        modalRef.componentInstance.Status = item.Status
+        modalRef.result.then(
+            (result) => {
+                this.onSearch();
+            },
+            () => {
+            }
+        );
+    }
+    viewInterviewAssessment() {
+        const selectedRows = this.angularGrid?.slickGrid?.getSelectedRows() || [];
+        if (selectedRows.length !== 1) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 dòng để thao tác đánh giá phỏng vấn!');
+            return;
+        }
+
+        const item = this.angularGrid.slickGrid.getDataItem(selectedRows[0]);
+        if (!item) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy thông tin ứng viên!');
+            return;
+        }
+        if (item.Status < 3) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên chưa phỏng vấn!');
+            return;
+        }
+        if ((this.appUserService.employeeID != item.EmployeeRequestID && this.appUserService.employeeID != item.InterviewerID) && !this.permissionService.hasPermission('N1')) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn không phải trưởng bộ phận yêu cầu tuyển dụng hoặc người phỏng vấn!');
+            return;
+        }
+        const modalRef = this.modalService.open(HrRecruitmentInterviewAssessmentFormComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            size: 'xl',
+            scrollable: true,
+        });
+        modalRef.componentInstance.HRRecruitmentCandidateID = item.ID
+        modalRef.componentInstance.Status = item.Status
+        modalRef.result.then(
+            (result) => {
+                this.onSearch();
+            },
+            () => {
+            }
+        );
     }
 
     getPositionContract() {
@@ -317,13 +415,27 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         this.angularGrid = angularGrid;
 
         if (angularGrid && angularGrid.dataView) {
+            const previousMetadata = angularGrid.dataView.getItemMetadata;
+            angularGrid.dataView.getItemMetadata = (rowNumber: number) => {
+                const item = angularGrid.dataView.getItem(rowNumber);
+                let metadata = previousMetadata ? previousMetadata.call(angularGrid.dataView, rowNumber) : null;
+
+                if (item && item.Status === 1) {
+                    if (!metadata) metadata = { cssClasses: '' };
+                    metadata.cssClasses = (metadata.cssClasses || '') + ' highlight-status-1';
+                }
+                return metadata;
+            };
+
             angularGrid.dataView.onRowCountChanged.subscribe(() => {
                 this.updateMasterFooterRow();
             });
         }
 
         setTimeout(() => {
-            angularGrid.resizerService.resizeGrid();
+            if (angularGrid && angularGrid.resizerService) {
+                angularGrid.resizerService.resizeGrid();
+            }
             this.updateMasterFooterRow();
             this.applyDistinctFilters();
         }, 100);
@@ -470,18 +582,28 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 excelExportOptions: { width: 25 },
             },
             {
-                id: 'DateApply',
-                field: 'DateApply',
-                name: 'Ngày ứng tuyển',
+                id: 'DateInterview',
+                field: 'DateInterview',
+                name: 'Ngày phỏng vấn',
                 minWidth: 150,
                 sortable: true,
                 filterable: true,
                 formatter: Formatters.date,
                 exportCustomFormatter: Formatters.date,
                 type: 'date',
-                params: { dateFormat: 'DD/MM/YYYY' },
+                params: { dateFormat: 'DD/MM/YYYY HH:mm' },
                 filter: { model: Filters['compoundDate'] },
                 excelExportOptions: { width: 16 },
+            },
+            {
+                id: 'InterviewerFullName',
+                field: 'InterviewerFullName',
+                name: 'Người phỏng vấn',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+                excelExportOptions: { width: 18 },
             },
             {
                 id: 'UserName',
@@ -560,9 +682,9 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 excelExportOptions: { width: 40 },
             },
             {
-                id: 'DateInterview',
-                field: 'DateInterview',
-                name: 'Ngày phỏng vấn',
+                id: 'DateApply',
+                field: 'DateApply',
+                name: 'Ngày ứng tuyển',
                 minWidth: 150,
                 sortable: true,
                 filterable: true,
@@ -570,6 +692,20 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 exportCustomFormatter: Formatters.date,
                 type: 'date',
                 params: { dateFormat: 'DD/MM/YYYY' },
+                filter: { model: Filters['compoundDate'] },
+                excelExportOptions: { width: 16 },
+            },
+            {
+                id: 'DeadlineFeedbackMail',
+                field: 'DeadlineFeedbackMail',
+                name: 'Hạn phản hồi mail',
+                minWidth: 150,
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.date,
+                exportCustomFormatter: Formatters.date,
+                type: 'date',
+                params: { dateFormat: 'DD/MM/YYYY HH:mm' },
                 filter: { model: Filters['compoundDate'] },
                 excelExportOptions: { width: 16 },
             },
@@ -713,26 +849,26 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
 
             enableGrouping: true,
 
-      rowHeight: 30,
-      createFooterRow: true,
-      showFooterRow: true,
-      footerRowHeight: 28,
-      frozenColumn: 5,
-      contextMenu: {
-        hideCloseButton: false,
-        commandTitle: '',
-        commandItems: [
-          {
-            command: '', title: 'Xem file', iconCssClass: 'fa-solid fa-eye', positionOrder: 10,
-            action: (e, args) => {
-              const filePath = args.dataContext?.ServerPath || '';
-              if (filePath) {
-                const host = environment.host + 'api/share';
-                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileCVName}`;
-                const newWindow = window.open(
-                  urlImg,
-                  '_blank',
-                );
+            rowHeight: 30,
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 28,
+            frozenColumn: 5,
+            contextMenu: {
+                hideCloseButton: false,
+                commandTitle: '',
+                commandItems: [
+                    {
+                        command: '', title: 'Xem file', iconCssClass: 'fa-solid fa-eye', positionOrder: 10,
+                        action: (e, args) => {
+                            const filePath = args.dataContext?.ServerPath || '';
+                            if (filePath) {
+                                const host = environment.host + 'api/share';
+                                let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${args.dataContext?.FileCVName}`;
+                                const newWindow = window.open(
+                                    urlImg,
+                                    '_blank',
+                                );
 
                                 if (newWindow) {
                                     newWindow.onload = () => {
@@ -785,8 +921,9 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             //this.angularGrid.slickGrid.setFooterRowVisibility(true);
 
             // Set footer values cho từng column
-            const columns = this.angularGrid.slickGrid.getColumns();
+            const columns = this.angularGrid.slickGrid.getColumns() || [];
             columns.forEach((col: any) => {
+                if (!col || !col.id) return;
                 const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(
                     col.id
                 );
@@ -1057,18 +1194,21 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 statusText = "Đã phỏng vấn";
                 break;
             case 4:
-                statusText = "Kết quả phỏng vấn";
+                statusText = "Kết quả phỏng vấn không đạt";
                 break;
             case 5:
-                statusText = "Trình phê duyệt";
+                statusText = "Kết quả phỏng vấn đạt";
                 break;
             case 6:
-                statusText = "Gửi thư mời nhận việc";
+                statusText = "Trình phê duyệt";
                 break;
             case 7:
-                statusText = "Xác nhận thư mời";
+                statusText = "Gửi thư mời nhận việc";
                 break;
             case 8:
+                statusText = "Xác nhận thư mời";
+                break;
+            case 9:
                 statusText = "Nhận việc";
                 break;
         }
@@ -1126,6 +1266,9 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                                 if (status === 1 && selectedRowsTemp.length > 0 && isApprove === true) {
                                     this.sendEmail(selectedRowsTemp);
                                 }
+                                if (status === 7 && selectedRowsTemp.length > 0 && isApprove === true) {
+                                    this.sendOfferLetter(selectedRowsTemp);
+                                }
                             },
                             error: (err: any) => {
                                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
@@ -1143,6 +1286,9 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
 
                                 if (status === 1 && selectedRowsTemp.length > 0 && isApprove === true) {
                                     this.sendEmail(selectedRowsTemp);
+                                }
+                                if (status === 7 && selectedRowsTemp.length > 0 && isApprove === true) {
+                                    this.sendOfferLetter(selectedRowsTemp);
                                 }
                             },
                             error: (err: any) => {
@@ -1440,28 +1586,59 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        // const modalRef = this.modalService.open(
-        //   HrOfferLetterComponent,
-        //   {
-        //     backdrop: 'static',
-        //     keyboard: false,
-        //     centered: true,
-        //     size: 'xl',
-        //   }
-        // );
+        const modalRef = this.modalService.open(
+            HrOfferLetterComponent,
+            {
+                backdrop: 'static',
+                keyboard: false,
+                centered: false,
+                size: 'fullscreen',
+                scrollable: true,
+                windowClass: 'offer-letter-fullscreen-modal',
+                modalDialogClass: 'modal-fullscreen',
+            }
+        );
 
-        // modalRef.componentInstance.candidates = selectedRows;
 
-        // modalRef.result.then(
-        //   (result) => {
-        //     this.onSearch();
-        //   },
-        //   () => {
-        //     // Modal dismissed
-        //   }
-        // );
+        modalRef.componentInstance.candidates = selectedRows;
+
+        modalRef.result.then(
+            (result) => {
+                this.onSearch();
+            },
+            () => {
+                // Modal dismissed
+            }
+        );
     }
     //#endregion
+
+    sendOfferLetter(selectedRowsTemp: any[]) {
+        const modalRef = this.modalService.open(
+            HrOfferLetterComponent,
+            {
+                backdrop: 'static',
+                keyboard: false,
+                centered: false,
+                size: 'fullscreen',
+                scrollable: true,
+                windowClass: 'offer-letter-fullscreen-modal',
+                modalDialogClass: 'modal-fullscreen',
+            }
+        );
+
+
+        modalRef.componentInstance.candidates = selectedRowsTemp;
+
+        modalRef.result.then(
+            (result) => {
+                this.onSearch();
+            },
+            () => {
+                // Modal dismissed
+            }
+        );
+    }
 
 
 }

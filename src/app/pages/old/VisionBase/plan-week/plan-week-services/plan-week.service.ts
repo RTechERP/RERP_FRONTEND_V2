@@ -21,6 +21,14 @@ export class PlanWeekService {
     return this.http.get<any>(this._url + 'get-team');
   }
 
+  getRootTeams(): Observable<any> {
+    return this.http.get<any>(this._url + 'get-root-teams');
+  }
+
+  getMyRootTeam(employeeId: number): Observable<any> {
+    return this.http.get<any>(this._url + 'get-my-root-team?employeeId=' + employeeId);
+  }
+
   getEmployees(status: number): Observable<any> {
     return this.http.get<any>(
       environment.host + 'api/Employee/employees',
@@ -35,7 +43,7 @@ export class PlanWeekService {
     userId: number,
     groupSaleId: number
   ) {
-    return this.http.get<any>(this._url, {
+    return this.http.get<any>(this._url + 'get-data', {
       params: {
         dateStart: this.toLocalISOString(startDate),
         dateEnd: this.toLocalISOString(endDate),

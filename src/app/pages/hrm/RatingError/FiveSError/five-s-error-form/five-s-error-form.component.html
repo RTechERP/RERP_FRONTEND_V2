@@ -1,0 +1,85 @@
+<div class="modal-header bg-primary py-2">
+    <h6 class="modal-title text-uppercase text-white">
+        {{ title }}
+    </h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+<div class="modal-body fs-12 p-3">
+    <nz-spin [nzSpinning]="isLoading">
+        <form nz-form [formGroup]="form" nzLayout="vertical">
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Số thứ tự</nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number formControlName="STT" [nzMin]="1" style="width: 100%"
+                                nzSize="small"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="16">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired>Loại lỗi (5S)</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn loại lỗi">
+                            <nz-select formControlName="TypeError" style="width: 100%" nzSize="small">
+                                <nz-option *ngFor="let opt of typeErrorOptions" [nzValue]="opt.value"
+                                    [nzLabel]="opt.label"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="24">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired>Nội dung chi tiết lỗi</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập nội dung lỗi">
+                            <textarea nz-input formControlName="DetailError" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+                                placeholder="Nhập nội dung chi tiết lỗi..." nzSize="small"></textarea>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="24">
+                    <nz-form-item class="mb-0">
+                        <nz-form-label>Mức độ đánh giá</nz-form-label>
+                        <nz-form-control>
+                            <p-table [value]="ratingLevels" styleClass="p-datatable-sm p-datatable-gridlines">
+                                <ng-template pTemplate="header">
+                                    <tr>
+                                        <th style="width: 40px; text-align: center; font-size: 12px;">#</th>
+                                        <th style="width: 120px; font-size: 12px;">Mức độ</th>
+                                        <th style="font-size: 12px;">Mô tả tiêu chí</th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-level let-i="rowIndex">
+                                    <tr style="font-size: 12px;">
+                                        <td style="text-align: center;">
+                                            <label nz-checkbox [(ngModel)]="level.checked"
+                                                [ngModelOptions]="{standalone: true}"></label>
+                                        </td>
+                                        <td>{{ level.label }}</td>
+                                        <td>
+                                            <textarea nz-input [(ngModel)]="level.description"
+                                                [ngModelOptions]="{standalone: true}"
+                                                [nzAutosize]="{ minRows: 1, maxRows: 3 }" nzSize="small" class="w-100"
+                                                style="font-size: 12px;"
+                                                placeholder="Nhập mô tả cho mức độ này..."></textarea>
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </form>
+    </nz-spin>
+</div>
+<div class="modal-footer fs-12 p-2">
+    <button nz-button nzDanger type="button" nzType="default" (click)="onCancel()" [nzLoading]="isLoading">Đóng</button>
+    <button nz-button type="button" nzType="primary" (click)="onSubmit()" [nzLoading]="isLoading">Lưu dữ liệu</button>
+</div>

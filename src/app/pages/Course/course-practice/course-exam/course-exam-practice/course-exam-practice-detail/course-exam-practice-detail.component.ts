@@ -5,6 +5,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { CoursePracticeService } from '../../../course-practice.service';
+import { environment } from '../../../../../../../environments/environment';
 
 interface QuestionDetails {
   ID: number;
@@ -42,7 +43,8 @@ export class CourseExamPracticeDetailComponent implements OnInit {
   isLoading: boolean = false;
 
   // Image base URL
-  imageBaseUrl: string = 'http://113.190.234.64:8083/api/Upload/Images/Courses/';
+  // imageBaseUrl: string = 'http://113.190.234.64:8083/api/Upload/Images/Courses/';
+  imageBaseUrl: string = '';
 
   constructor(
     private activeModal: NgbActiveModal,
@@ -50,11 +52,22 @@ export class CourseExamPracticeDetailComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.getPathServer();
     if (this.questionId > 0 && this.courseId > 0) {
       this.loadQuestionDetails();
     }
-  }
 
+  }
+  getPathServer(): void {
+    let serverPath = '';
+    this.coursePracticeService.getPathServer('CourseExamExerciseImages').subscribe(res => {
+      serverPath = (res?.data ?? '') + '/';
+      const host = environment.host + 'api/share/';
+      this.imageBaseUrl = (serverPath || '').replace("\\\\192.168.1.190\\", "");
+      this.imageBaseUrl = host + this.imageBaseUrl.replace(/\\/g, '/');
+    });
+
+  }
   loadQuestionDetails(): void {
     this.isLoading = true;
     this.coursePracticeService.GetQuestionDetails(this.questionId, this.courseId).subscribe({

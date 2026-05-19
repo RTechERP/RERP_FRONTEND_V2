@@ -24,6 +24,10 @@ export class ProjectPartListService {
   saveProjectPartListVersion(payload: any): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartListVersion}/save-data`, payload);//hi
   }
+  //lấy phát sinh đã link với version đang chọn
+  getProjectHistoryProblemLinked(projectPartListVersionID: number): Observable<any> {
+    return this.http.get<any>(`${this.urlProjectPartListVersion}/get-project-history-problem-linked?projectPartListVersionID=${projectPartListVersionID}`);
+  }
   //17433,1,0,"",-1,-1,1384
   //get danh mục vật tư
   getProjectPartList(data: any): Observable<any> {
@@ -65,6 +69,10 @@ export class ProjectPartListService {
   //y/c báo giá 
   requestPrice(payload: any): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/price-request`, payload);
+  }
+  //y/c báo giá lại
+  requestPriceAgain(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/price-request-again`, payload);
   }
   //hủy yêu cầu báo giá
   cancelPriceRequest(payload: any): Observable<any> {

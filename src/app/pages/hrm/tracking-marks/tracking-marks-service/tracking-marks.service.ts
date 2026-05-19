@@ -66,7 +66,9 @@ export class TrackingMarksService {
    * Xóa tracking mark
    */
   delete(id: number): Observable<any> {
-    return this.http.post<any>(this._url + 'delete-tracking-marks', { id: id });
+    return this.http.post<any>(this._url + 'delete-tracking-marks', null, {
+      params: { id: id.toString() }
+    });
   }
 
   /**

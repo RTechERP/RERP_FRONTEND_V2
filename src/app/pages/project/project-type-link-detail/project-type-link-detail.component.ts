@@ -327,16 +327,23 @@ export class ProjectTypeLinkDetailComponent implements OnInit, AfterViewInit {
       componentRef.instance.leaderId = cell.getValue();
       componentRef.instance.leaders = this.projectUserTeams;
 
+      // Kích hoạt nhận diện thay đổi thủ công sau khi set dữ liệu
+      componentRef.changeDetectorRef.detectChanges();
+
       componentRef.instance.valueChange.subscribe((val: any) => {
         success(val);
       });
 
       container.appendChild((componentRef.hostView as any).rootNodes[0]);
       appRef.attachView(componentRef.hostView);
+
       onRendered(() => {
-        if (container.firstElementChild) {
-          (container.firstElementChild as HTMLElement).focus();
-        }
+        // Sử dụng setTimeout để đẩy việc focus ra ngoài tick hiện tại của Angular
+        setTimeout(() => {
+          if (container.firstElementChild) {
+            (container.firstElementChild as HTMLElement).focus();
+          }
+        });
       });
 
       return container;

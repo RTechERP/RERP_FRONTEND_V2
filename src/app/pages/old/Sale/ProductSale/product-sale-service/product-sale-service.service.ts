@@ -125,5 +125,20 @@ export class ProductsaleServiceService {
   getProductGroups(): Observable<any[]> {
     return this.httpclient.get<any>(`${this.productGroupUrl}/get-productgroup-purchase`);
   }
+
+
+  getdataProductGroupNew(
+    warehouseId: number,
+    isDeleted: boolean,
+    isVisible: boolean
+  ): Observable<any> {
+    return this.httpclient.get<any>(
+      `${this.productgroupUrl}/product-group-new?warehouseId=${warehouseId}&isDeleted=${isDeleted}&isVisible=${isVisible}`
+    );
+  }
+
+  visibleProductGroup(data: any) {
+    return this.httpclient.post<any>(`${this.productgroupUrl}/visible-product-group`, data);
+  }
 }
 

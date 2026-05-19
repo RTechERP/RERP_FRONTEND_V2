@@ -26,6 +26,7 @@ import { saveAs } from 'file-saver';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { EmployeeService } from '../employee/employee-service/employee.service';
+import { OverTimeService } from '../over-time/over-time-service/over-time.service';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { EarlyLateService } from './early-late-service/early-late.service';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
@@ -148,6 +149,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit, OnDestroy {
     private authService: AuthService,
     private wfhService: WFHService,
     private permissionService: PermissionService,
+    private overTimeService: OverTimeService
   ) { }
 
   ngOnInit() {
@@ -914,6 +916,20 @@ export class EarlyLateComponent implements OnInit, AfterViewInit, OnDestroy {
       Reason: '',
       ReasonHREdit: ''
     });
+
+    // Automatically bind closest approver for new requests
+    const employeeID = this.currentEmployee?.EmployeeID || 0;
+    if (employeeID > 0) {
+      this.overTimeService.getApproveID(employeeID, 'EmployeeEarlyLate').subscribe({
+        next: (res: any) => {
+          if (res && res.status === 1 && res.data && res.data.ApproveID) {
+            this.earlyLateForm.patchValue({
+              ApprovedTP: res.data.ApproveID
+            });
+          }
+        }
+      });
+    }
 
     // Chỉ disable EmployeeID nếu không có quyền N1, N2 hoặc IsAdmin
     if (!this.canEditEmployee()) {

@@ -1,25 +1,47 @@
-::ng-deep nz-splitter {
-  height: 95vh !important;
+:host {
+  font-size: 10px !important;
 }
 
-::ng-deep .ant-splitter {
-  height: 95vh !important;
+:host * {
+  font-size: 10px !important;
 }
 
-/* Fix nested modal z-index issue */
-#addEmployeeTeamModal {
-  z-index: 9999 !important;
+::ng-deep .p-menubar {
+  font-size: 10px !important;
 }
 
-#addEmployeeTeamModal .modal-dialog {
-  z-index: 10000 !important;
+::ng-deep .p-menubar .p-menuitem-text {
+  font-size: 10px !important;
 }
 
-/* Ensure modal content is always on top */
-#addEmployeeTeamModal .modal-content {
-  z-index: 10001 !important;
-  position: relative;
+::ng-deep .p-treetable {
+  font-size: 10px !important;
 }
-/* ::ng-deep .tabulator .tabulator-header .tabulator-col{
-  height: auto !important;
-} */
+
+::ng-deep .p-treetable .p-treetable-tbody > tr > td {
+  font-size: 10px !important;
+  padding: 2px 4px !important;
+}
+
+::ng-deep .p-treetable .p-treetable-thead > tr > th {
+  font-size: 10px !important;
+  padding: 2px 4px !important;
+}
+
+::ng-deep .p-datatable {
+  font-size: 10px !important;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  font-size: 10px !important;
+  padding: 2px 4px !important;
+}
+
+::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  font-size: 10px !important;
+  padding: 2px 4px !important;
+}
+
+.fs-10 {
+  font-size: 10px !important;
+}

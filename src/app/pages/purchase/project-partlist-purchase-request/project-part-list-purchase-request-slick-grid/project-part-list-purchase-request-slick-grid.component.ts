@@ -2893,6 +2893,18 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     }
   }
 
+  private resyncGridScroll(angularGrid: AngularGridInstance): void {
+    setTimeout(() => {
+      const container = (angularGrid.slickGrid as any).getContainerNode?.() as HTMLElement;
+      if (!container) return;
+      const vp = container.querySelector('.slick-viewport') as HTMLElement;
+      if (!vp || vp.scrollLeft === 0) return;
+      const sl = vp.scrollLeft;
+      vp.scrollLeft = sl + 1;
+      setTimeout(() => { vp.scrollLeft = sl; }, 0);
+    }, 0);
+  }
+
   // Update editor collections for all grids after master data is loaded
   private updateEditorCollections(): void {
     // Update columns for all tabs
@@ -3754,6 +3766,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           if (angularGrid && angularGrid.dataView) {
             angularGrid.dataView.setItems(dataWithId);
             angularGrid.dataView.refresh();
+            this.resyncGridScroll(angularGrid);
           }
         });
 

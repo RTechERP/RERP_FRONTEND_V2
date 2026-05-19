@@ -341,6 +341,7 @@ import { PurchaseQuoteSummaryMainComponent } from './pages/purchase/project-part
 import { ListProductProjectCustomerComponent } from './pages/old/Sale/list-product-project-customer/list-product-project-customer.component';
 import { ProjectTechnologyFormComponent } from './pages/project/project-application-types/project-technology-form/project-technology-form.component';
 import { ProjectApplicationTypesComponent } from './pages/project/project-application-types/project-application-types.component';
+import { TestExamComponent } from './pages/Course/test-exam/test-exam.component';
 import { ProjectTaskSettingComponent } from './pages/project_task/project-task-setting/project-task-setting.component';
 import { ProjectDeptSummaryPrimeNg2Component } from './pages/project/project-dept-summary-prime-ng2/project-dept-summary-prime-ng2.component';
 import { BillImportPrimeComponent } from './pages/old/Sale/BillImport/bill-import-prime/bill-import-prime.component';
@@ -1175,6 +1176,7 @@ export const routes: Routes = [
             { path: 'course-practice', component: CoursePracticeComponent, canActivate: [authGuard] },
             { path: 'course-exam', component: CourseExamComponent, canActivate: [authGuard] },
             { path: 'course-exam-practice', component: CourseExamPracticeComponent, canActivate: [authGuard] },
+            { path: 'test-exam', component: TestExamComponent, canActivate: [authGuard] },
             { path: 'summary-of-exam-results', component: SummaryOfExamResultsComponent, canActivate: [authGuard] },
             { path: 'exam-result-quarterly', component: ExamResultQuarterlyComponent, canActivate: [authGuard] },
 

@@ -48,6 +48,8 @@ import { ID_ADMIN_DEMO_LIST, NOTIFICATION_TITLE } from '../../../../app.config';
 import { BorrowProductHistoryEditPersonComponent } from '../../../old/inventory-demo/borrow/borrow-product-history/borrow-product-history-edit-person/borrow-product-history-edit-person.component';
 import { HistoryProductExtendModalComponent } from '../history-product-extend-modal/history-product-extend-modal.component';
 import { Menubar } from 'primeng/menubar';
+import { PermissionService } from '../../../../services/permission.service';
+
 @Component({
   selector: 'app-history-product-rtc-protective-gear-new',
   standalone: true,
@@ -74,8 +76,7 @@ import { Menubar } from 'primeng/menubar';
   styleUrls: ['./history-product-rtc-protective-gear-new.component.css'],
 })
 export class HistoryProductRtcProtectiveGearNewComponent
-  implements OnInit, OnDestroy
-{
+  implements OnInit, OnDestroy {
   // Parameters
   keyword: string = '';
   menuBars: MenuItem[] = [];
@@ -83,7 +84,7 @@ export class HistoryProductRtcProtectiveGearNewComponent
   dataset: any[] = [];
   datasetByType: Map<number, any[]> = new Map(); // Grouped by LocationType
   isLoading: boolean = false;
-
+  isAdmin: boolean = false;
   // Layout management
   selectedTab: number = 0; // 1=Tủ khóa, 2=Tủ bảo hộ, 3=Lưu layout
   isDefault: boolean = false; // Use default grid positions
@@ -104,10 +105,12 @@ export class HistoryProductRtcProtectiveGearNewComponent
     private productProtectiveGearService: ProductProtectiveGearService,
     private appUserService: AppUserService,
     private cdr: ChangeDetectorRef,
-  ) {}
+    public permissionService: PermissionService
+  ) { }
 
   ngOnInit(): void {
     this.loadData();
+    this.isAdmin = this.permissionService.hasPermission('N1,N34');
   }
   initMenuBar() {
     this.menuBars = [
@@ -115,7 +118,7 @@ export class HistoryProductRtcProtectiveGearNewComponent
         label: 'Đăng kí mượn',
         icon: 'fa-solid fa-circle-plus fa-lg text-success',
         visible: true,
-        command: () => {},
+        command: () => { },
       },
     ];
   }
@@ -187,6 +190,9 @@ export class HistoryProductRtcProtectiveGearNewComponent
 
   // Drag and drop handler - INSERT at position (1 2 3 4 5 -> drag 5 between 2&3 -> 1 2 5 3 4)
   drop(event: CdkDragDrop<any[]>) {
+    // Check permission: only admin can change positions
+    if (!this.isAdmin) return;
+
     // Get current tab's data
     const locationType = this.selectedTab + 1;
     const items = this.datasetByType.get(locationType);
@@ -682,36 +688,46 @@ export class HistoryProductRtcProtectiveGearNewComponent
                 'Trạng thái hiện tại không cho phép trả sản phẩm!',
               );
               return;
-            } else {
-              this.modal.confirm({
-                nzTitle: 'Xác nhận',
-                nzContent: `Bạn có chắc chắn muốn trả sản phẩm ${item.ProductName} không?`,
-                nzOkText: 'Đồng ý',
-                nzCancelText: 'Hủy',
-                nzOnOk: () => {
-                  this.productProtectiveGearService
-                    .postReturnProductRTC(item.HistortyID, false, 0)
-                    .subscribe({
-                      next: (response: any) => {
-                        if (response.status === 1) {
-                          this.notification.success(
-                            'Thông báo',
-                            'Trả sản phẩm thành công!',
-                          );
-                          // nếu chưa lưu layout thì hỏi
-                          this.loadData();
-                        }
-                      },
-                      error: (error: any) => {
-                        this.notification.error(
-                          NOTIFICATION_TITLE.error,
-                          'Lỗi khi trả sản phẩm: ' + (error.message || error),
-                        );
-                      },
-                    });
-                },
-              });
             }
+
+            // Check nếu không phải người mượn thì không được trả
+            const isAdmin = this.permissionService.hasPermission('N1,N34');
+            if (data.PeopleID != this.appUserService.employeeID && !isAdmin) {
+              this.notification.warning(
+                'Thông báo',
+                'Bạn không phải người mượn sản phẩm này, không được phép trả!',
+              );
+              return;
+            }
+
+            this.modal.confirm({
+              nzTitle: 'Xác nhận',
+              nzContent: `Bạn có chắc chắn muốn trả sản phẩm ${item.ProductName} không?`,
+              nzOkText: 'Đồng ý',
+              nzCancelText: 'Hủy',
+              nzOnOk: () => {
+                this.productProtectiveGearService
+                  .postReturnProductRTC(item.HistortyID, false, 0)
+                  .subscribe({
+                    next: (response: any) => {
+                      if (response.status === 1) {
+                        this.notification.success(
+                          'Thông báo',
+                          'Trả sản phẩm thành công!',
+                        );
+                        // nếu chưa lưu layout thì hỏi
+                        this.loadData();
+                      }
+                    },
+                    error: (error: any) => {
+                      this.notification.error(
+                        NOTIFICATION_TITLE.error,
+                        'Lỗi khi trả sản phẩm: ' + (error.message || error),
+                      );
+                    },
+                  });
+              },
+            });
           }
         },
         error: (error: any) => {
@@ -741,6 +757,16 @@ export class HistoryProductRtcProtectiveGearNewComponent
               this.notification.warning(
                 'Thông báo',
                 'Sản phẩm ' + item.ProductName + ' đã trả, không thể gia hạn!',
+              );
+              return;
+            }
+
+            // Check nếu không phải người mượn thì không được gia hạn
+            const isAdmin = this.permissionService.hasPermission('N1,N34');
+            if (data.PeopleID != this.appUserService.employeeID && !isAdmin) {
+              this.notification.warning(
+                'Thông báo',
+                'Bạn không phải người mượn sản phẩm này, không được phép gia hạn!',
               );
               return;
             }
@@ -787,7 +813,7 @@ export class HistoryProductRtcProtectiveGearNewComponent
                         this.notification.error(
                           'Lỗi',
                           extendResponse.message ||
-                            'Gia hạn sản phẩm thất bại!',
+                          'Gia hạn sản phẩm thất bại!',
                         );
                       }
                     },
@@ -910,7 +936,7 @@ export class HistoryProductRtcProtectiveGearNewComponent
                         this.notification.error(
                           NOTIFICATION_TITLE.error,
                           'Lỗi khi duyệt trả sản phẩm: ' +
-                            (error.message || error),
+                          (error.message || error),
                         );
                       },
                     });
@@ -966,7 +992,7 @@ export class HistoryProductRtcProtectiveGearNewComponent
                         this.notification.error(
                           NOTIFICATION_TITLE.error,
                           'Lỗi khi duyệt gia hạn sản phẩm: ' +
-                            (error.message || error),
+                          (error.message || error),
                         );
                       },
                     });
@@ -999,8 +1025,8 @@ export class HistoryProductRtcProtectiveGearNewComponent
               this.notification.error(
                 NOTIFICATION_TITLE.error,
                 'Sản phẩm ' +
-                  item.ProductName +
-                  ' đã trả, không thể sửa người mượn!',
+                item.ProductName +
+                ' đã trả, không thể sửa người mượn!',
               );
             } else {
               const modalRef = this.modalService.open(
@@ -1095,7 +1121,7 @@ export class HistoryProductRtcProtectiveGearNewComponent
           if (response.status === 1) {
             this.modal.confirm({
               nzTitle: 'Xác nhật',
-              nzContent: `Bạn có chắc muốn cập nhật thành ${item.ProductCode} vào sử dụng?`,
+              nzContent: `Bạn có chắc muốn xóa ${item.ProductCode} ?`,
               nzOkText: 'Đồng ý',
               nzCancelText: 'Hủy',
               nzOnOk: () => {

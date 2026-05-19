@@ -13,13 +13,13 @@
       <button nz-button nzType="default" (click)="loadData()">
         Tìm kiếm
       </button>
-      <button nz-button nzType="primary" (click)="saveLayout(true)">
+      <button nz-button nzType="primary" (click)="saveLayout(true)" *ngIf="isAdmin">
         Lưu layout
       </button>
     </div>
 
     <!-- Right: Layout Actions -->
-    <div class="action-section">
+    <div class="action-section" *ngIf="isAdmin">
       <nz-tag *ngIf="hasUnsavedChanges" nzColor="warning">
         <span nz-icon nzType="exclamation-circle"></span>
         Có thay đổi chưa lưu
@@ -42,7 +42,7 @@
       <div class="tab-container" cdkDropList [cdkDropListData]="datasetByType.get(1) || []"
         (cdkDropListDropped)="drop($event)" (scroll)="onContainerScroll($event)">
         <div *ngFor="let item of datasetByType.get(1); let i = index; trackBy: trackByItemId"
-          class="card-wrapper-absolute" cdkDrag [cdkDragData]="item" (cdkDragStarted)="onDragStarted()"
+          class="card-wrapper-absolute" cdkDrag [cdkDragData]="item" [cdkDragDisabled]="!isAdmin" (cdkDragStarted)="onDragStarted()"
           (cdkDragMoved)="onDragMoved($event)" (cdkDragEnded)="clearInsertionTarget()">
 
           <nz-card class="equipment-card" [nzCover]="coverTemplate1">
@@ -69,6 +69,10 @@
                 <span class="info-value">{{ item.AddressBox || item.LocationName }}</span>
               </div>
               <div class="info-row">
+                <span class="info-label">Size:</span>
+                <span class="info-value">{{ item.Size }}</span>
+              </div>
+              <div class="info-row">
                 <span class="info-label">Người mượn:</span>
                 <span class="info-value">{{ item.FullName }}</span>
               </div>
@@ -90,16 +94,22 @@
                     <li nz-menu-item (click)="handleFunctionClick('borrow', item)">Mượn</li>
                     <li nz-menu-item (click)="handleFunctionClick('return', item)">Trả</li>
                     <li nz-menu-item (click)="handleFunctionClick('extend', item)">Gia hạn</li>
-                    <li nz-menu-divider></li>
-                    <li nz-menu-item (click)="handleFunctionClick('approve-borrow', item)">Duyệt mượn</li>
-                    <li nz-menu-item (click)="handleFunctionClick('approve-return', item)">Duyệt trả</li>
-                    <li nz-menu-item (click)="handleFunctionClick('approve-extend', item)">Duyệt gia hạn</li>
-                    <li nz-menu-item (click)="handleFunctionClick('edit-borrower', item)">Sửa người mượn</li>
-                    <li nz-menu-divider></li>
-                    <li nz-menu-item (click)="handleFunctionClick('washing', item)">Đang giặt</li>
-                    <li nz-menu-item (click)="handleFunctionClick('in-use', item)">Đưa vào sử dụng</li>
-                    <li nz-menu-divider></li>
-                    <li nz-menu-item nzDanger (click)="handleFunctionClick('delete', item)">Xóa</li>
+                    <li nz-menu-divider *ngIf="permissionService.hasPermission('N1,N34')"></li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-borrow', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Duyệt mượn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-return', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Duyệt trả</li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-extend', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Duyệt gia hạn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('edit-borrower', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Sửa người mượn</li>
+                    <li nz-menu-divider *ngIf="permissionService.hasPermission('N1,N34')"></li>
+                    <li nz-menu-item (click)="handleFunctionClick('washing', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Đang giặt</li>
+                    <li nz-menu-item (click)="handleFunctionClick('in-use', item)"  *ngIf="permissionService.hasPermission('N1,N34')">Đưa vào sử dụng</li>
+                    <li nz-menu-divider *ngIf="permissionService.hasPermission('N1,N34')"></li>
+                    <li nz-menu-item nzDanger (click)="handleFunctionClick('delete', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Xóa</li>
                   </ul>
                 </nz-dropdown-menu>
               </div>
@@ -116,7 +126,7 @@
       <div class="tab-container" cdkDropList [cdkDropListData]="datasetByType.get(2) || []"
         (cdkDropListDropped)="drop($event)" (scroll)="onContainerScroll($event)">
         <div *ngFor="let item of datasetByType.get(2); let i = index; trackBy: trackByItemId"
-          class="card-wrapper-absolute" cdkDrag [cdkDragData]="item" (cdkDragStarted)="onDragStarted()"
+          class="card-wrapper-absolute" cdkDrag [cdkDragData]="item" [cdkDragDisabled]="!isAdmin" (cdkDragStarted)="onDragStarted()"
           (cdkDragMoved)="onDragMoved($event)" (cdkDragEnded)="clearInsertionTarget()">
 
           <nz-card class="equipment-card" [nzCover]="coverTemplate2">
@@ -142,6 +152,10 @@
                 <span class="info-value">{{ item.AddressBox || item.LocationName }}</span>
               </div>
               <div class="info-row">
+                <span class="info-label">Size:</span>
+                <span class="info-value">{{ item.Size }}</span>
+              </div>
+              <div class="info-row">
                 <span class="info-label">Người mượn:</span>
                 <span class="info-value">{{ item.FullName }}</span>
               </div>
@@ -163,16 +177,22 @@
                     <li nz-menu-item (click)="handleFunctionClick('borrow', item)">Mượn</li>
                     <li nz-menu-item (click)="handleFunctionClick('return', item)">Trả</li>
                     <li nz-menu-item (click)="handleFunctionClick('extend', item)">Gia hạn</li>
-                    <li nz-menu-divider></li>
-                    <li nz-menu-item (click)="handleFunctionClick('approve-borrow', item)">Duyệt mượn</li>
-                    <li nz-menu-item (click)="handleFunctionClick('approve-return', item)">Duyệt trả</li>
-                    <li nz-menu-item (click)="handleFunctionClick('approve-extend', item)">Duyệt gia hạn</li>
-                    <li nz-menu-item (click)="handleFunctionClick('edit-borrower', item)">Sửa người mượn</li>
-                    <li nz-menu-divider></li>
-                    <li nz-menu-item (click)="handleFunctionClick('washing', item)">Đang giặt</li>
-                    <li nz-menu-item (click)="handleFunctionClick('in-use', item)">Đưa vào sử dụng</li>
-                    <li nz-menu-divider></li>
-                    <li nz-menu-item nzDanger (click)="handleFunctionClick('delete', item)">Xóa</li>
+                    <li nz-menu-divider *ngIf="permissionService.hasPermission('N1,N34')"></li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-borrow', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Duyệt mượn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-return', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Duyệt trả</li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-extend', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Duyệt gia hạn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('edit-borrower', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Sửa người mượn</li>
+                    <li nz-menu-divider *ngIf="permissionService.hasPermission('N1,N34')"></li>
+                    <li nz-menu-item (click)="handleFunctionClick('washing', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Đang giặt</li>
+                    <li nz-menu-item (click)="handleFunctionClick('in-use', item)"  *ngIf="permissionService.hasPermission('N1,N34')">Đưa vào sử dụng</li>
+                    <li nz-menu-divider *ngIf="permissionService.hasPermission('N1,N34')"></li>
+                    <li nz-menu-item nzDanger (click)="handleFunctionClick('delete', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Xóa</li>
                   </ul>
                 </nz-dropdown-menu>
               </div>
@@ -189,7 +209,7 @@
       <div class="tab-container" cdkDropList [cdkDropListData]="datasetByType.get(3) || []"
         (cdkDropListDropped)="drop($event)" (scroll)="onContainerScroll($event)">
         <div *ngFor="let item of datasetByType.get(3); let i = index; trackBy: trackByItemId"
-          class="card-wrapper-absolute" cdkDrag [cdkDragData]="item" (cdkDragStarted)="onDragStarted()"
+          class="card-wrapper-absolute" cdkDrag [cdkDragData]="item" [cdkDragDisabled]="!isAdmin" (cdkDragStarted)="onDragStarted()"
           (cdkDragMoved)="onDragMoved($event)" (cdkDragEnded)="clearInsertionTarget()">
 
           <nz-card class="equipment-card" [nzCover]="coverTemplate3">
@@ -215,6 +235,10 @@
                 <span class="info-value">{{ item.AddressBox || item.LocationName }}</span>
               </div>
               <div class="info-row">
+                <span class="info-label">Size:</span>
+                <span class="info-value">{{ item.Size }}</span>
+              </div>
+              <div class="info-row">
                 <span class="info-label">Người mượn:</span>
                 <span class="info-value">{{ item.FullName }}</span>
               </div>
@@ -236,16 +260,22 @@
                     <li nz-menu-item (click)="handleFunctionClick('borrow', item)">Mượn</li>
                     <li nz-menu-item (click)="handleFunctionClick('return', item)">Trả</li>
                     <li nz-menu-item (click)="handleFunctionClick('extend', item)">Gia hạn</li>
-                    <li nz-menu-divider></li>
-                    <li nz-menu-item (click)="handleFunctionClick('approve-borrow', item)">Duyệt mượn</li>
-                    <li nz-menu-item (click)="handleFunctionClick('approve-return', item)">Duyệt trả</li>
-                    <li nz-menu-item (click)="handleFunctionClick('approve-extend', item)">Duyệt gia hạn</li>
-                    <li nz-menu-item (click)="handleFunctionClick('edit-borrower', item)">Sửa người mượn</li>
-                    <li nz-menu-divider></li>
-                    <li nz-menu-item (click)="handleFunctionClick('washing', item)">Đang giặt</li>
-                    <li nz-menu-item (click)="handleFunctionClick('in-use', item)">Đưa vào sử dụng</li>
-                    <li nz-menu-divider></li>
-                    <li nz-menu-item nzDanger (click)="handleFunctionClick('delete', item)">Xóa</li>
+                    <li nz-menu-divider *ngIf="permissionService.hasPermission('N1,N34')"></li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-borrow', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Duyệt mượn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-return', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Duyệt trả</li>
+                    <li nz-menu-item (click)="handleFunctionClick('approve-extend', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Duyệt gia hạn</li>
+                    <li nz-menu-item (click)="handleFunctionClick('edit-borrower', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Sửa người mượn</li>
+                    <li nz-menu-divider *ngIf="permissionService.hasPermission('N1,N34')"></li>
+                    <li nz-menu-item (click)="handleFunctionClick('washing', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Đang giặt</li>
+                    <li nz-menu-item (click)="handleFunctionClick('in-use', item)"  *ngIf="permissionService.hasPermission('N1,N34')">Đưa vào sử dụng</li>
+                    <li nz-menu-divider *ngIf="permissionService.hasPermission('N1,N34')"></li>
+                    <li nz-menu-item nzDanger (click)="handleFunctionClick('delete', item)"
+                      *ngIf="permissionService.hasPermission('N1,N34')">Xóa</li>
                   </ul>
                 </nz-dropdown-menu>
               </div>

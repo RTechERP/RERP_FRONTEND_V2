@@ -196,6 +196,7 @@ export class PollVoteComponent implements OnInit {
   }
 
   selectSection(index: number): void {
+    if (this.isSubmitting) return;
     if (index < 0 || index >= this.sections.length) return;
     if (!this.isSectionVisible(this.sections[index])) return;
     if (this.currentSectionIndex === index) return;
@@ -204,6 +205,7 @@ export class PollVoteComponent implements OnInit {
   }
 
   goToPreviousSection(): void {
+    if (this.isSubmitting) return;
     const indexes = this.visibleSectionIndexes;
     const position = indexes.indexOf(this.currentSectionIndex);
     if (position <= 0) return;
@@ -211,7 +213,13 @@ export class PollVoteComponent implements OnInit {
     this.scrollCurrentSectionToTop();
   }
 
-  goToNextSection(): void {
+  async goToNextSection(): Promise<void> {
+    if (this.isSubmitting) return;
+    if (!this.isVoteLocked && this.selectedPoll && this.currentSection && this.currentQuestions.length > 0) {
+      await this.submitSection();
+      return;
+    }
+
     const indexes = this.visibleSectionIndexes;
     const position = indexes.indexOf(this.currentSectionIndex);
     if (position < 0 || position >= indexes.length - 1) return;
@@ -409,10 +417,12 @@ export class PollVoteComponent implements OnInit {
   }
 
   canGoPreviousSection(): boolean {
+    if (this.isSubmitting) return false;
     return this.visibleSectionIndexes.indexOf(this.currentSectionIndex) > 0;
   }
 
   canGoNextSection(): boolean {
+    if (this.isSubmitting) return false;
     const indexes = this.visibleSectionIndexes;
     const position = indexes.indexOf(this.currentSectionIndex);
     return position >= 0 && position < indexes.length - 1;

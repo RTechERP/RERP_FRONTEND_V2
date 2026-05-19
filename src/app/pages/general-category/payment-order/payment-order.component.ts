@@ -3084,7 +3084,7 @@ export class PaymentOrderComponent implements OnInit {
 
     applyDistinctFilters(angularGrid: AngularGridInstance): void {
         if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
-        const data = angularGrid.dataView.getItems();
+        const data = angularGrid.dataView.getFilteredItems();
         if (!data || data.length === 0) return;
         const getUniqueValues = (
             items: any[],

@@ -1,3 +1,4 @@
+import { AppUserService } from './../../../../services/app-user.service';
 import {
   Component,
   OnInit,
@@ -51,8 +52,6 @@ import {
 
 // Services
 // import { ProductProtectiveGearService } from '../../borrow-service/borrow.service';
-import { AppUserService } from '../../../../services/app-user.service';
-
 // // Components
 //import { BorrowProductHistoryDetailComponent } from '../../../old/inventory-demo/borrow/borrow-product-history/borrow-product-history-detail/borrow-product-history-detail.component';
 // import { BorrowProductHistoryDetailComponent } from '../../../old/inventory-demo/borrow/borrow-product-history/borrow-product-history-detail/borrow-product-history-detail.component';
@@ -74,6 +73,8 @@ import { HistoryProductRtcProtectiveGearDetailComponent } from '../history-produ
 import { Menubar } from 'primeng/menubar';
 import { NzCardComponent } from 'ng-zorro-antd/card';
 import { BorrowProductHistoryEditPersonComponent } from '../../../old/inventory-demo/borrow/borrow-product-history/borrow-product-history-edit-person/borrow-product-history-edit-person.component';
+import { PermissionService } from '../../../../services/permission.service';
+
 
 @Component({
   imports: [
@@ -132,7 +133,7 @@ export class HistoryProductRtcProtectiveGearComponent
   columnDefinitions: Column[] = [];
   gridOptions: GridOption = {};
   isLoading: boolean = false;
-
+  isAdmin:boolean = false;
   // No pagination - load all data at once
 
   // Excel Export
@@ -154,6 +155,7 @@ export class HistoryProductRtcProtectiveGearComponent
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private ProductProtectiveGearService: ProductProtectiveGearService,
+    private permissionService: PermissionService,
   ) { }
 
   ngOnInit(): void {
@@ -165,6 +167,19 @@ export class HistoryProductRtcProtectiveGearComponent
     this.loadEmployee();
     this.initGridColumns();
     this.initGridOptions();
+    this.checkUserPermission();
+
+  }
+  checkUserPermission(): void {
+    const userPermissions = this.permissionService.hasPermission('N1,N34');
+    if(!userPermissions){
+      this.userID = this.appUserService?.id || 0;
+      this.isAdmin = true;
+    }
+    else{
+      this.userID = 0;
+      this.isAdmin = false;
+    }
   }
 
   ngAfterViewInit(): void {
@@ -189,7 +204,7 @@ export class HistoryProductRtcProtectiveGearComponent
       {
         label: 'Duyệt mượn',
         icon: 'fa-solid fa-circle-check fa-lg text-primary',
-        visible: true,
+        visible: this.permissionService.hasPermission('N1,N34'),
         command: () => {
           this.approveBorrowing();
         },
@@ -197,7 +212,7 @@ export class HistoryProductRtcProtectiveGearComponent
       {
         label: 'Duyệt gia hạn',
         icon: 'fa-solid fa-circle-check fa-lg text-primary',
-        visible: true,
+        visible: this.permissionService.hasPermission('N1,N34'),
         command: () => {
           this.extendBorrowing();
         },
@@ -213,7 +228,7 @@ export class HistoryProductRtcProtectiveGearComponent
       {
         label: 'Duyệt trả',
         icon: 'fa-solid fa-circle-check fa-lg text-primary',
-        visible: true,
+        visible: this.permissionService.hasPermission('N1,N34'),
         command: () => {
           this.returnProduct();
         },
@@ -221,7 +236,7 @@ export class HistoryProductRtcProtectiveGearComponent
       {
         label: 'Sửa người mượn',
         icon: 'fa-solid fa-file-pen fa-lg text-primary',
-        visible: true,
+        visible: this.permissionService.hasPermission('N1,N34'),
         command: () => {
           this.editBorrower();
         },
@@ -229,7 +244,7 @@ export class HistoryProductRtcProtectiveGearComponent
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: true,
+        visible: this.permissionService.hasPermission('N1,N34'),
         command: () => {
           this.deleteHistoryProductBySave();
         },
@@ -896,7 +911,8 @@ export class HistoryProductRtcProtectiveGearComponent
         'Vui lòng chọn sản phẩm cần trả!.',
       );
       return;
-    } else {
+    }
+    else {
       this.modal.confirm({
         nzTitle: 'Xác nhận trả ',
         nzContent: `Bạn có chắc chắn muốn trả sản phẩm này không?`,
@@ -1021,7 +1037,8 @@ export class HistoryProductRtcProtectiveGearComponent
         'Vui lòng chọn sản phẩm gia hạn!.',
       );
       return;
-    } else {
+    }
+    else {
       this.modal.confirm({
         nzTitle: 'Xác nhận gia hạn',
         nzContent: `Bạn có chắc chắn muốn gia hạn sản phẩm này không?`,
@@ -1034,7 +1051,7 @@ export class HistoryProductRtcProtectiveGearComponent
             this.notification.warning('Thông báo', 'Chưa chọn sản phẩm nào.');
             return;
           }
-          const dateExtend = this.dateExtend.toISOString();
+          let dateExtend = this.dateExtend.toISOString();
 
           const tasks = ids.map(async (id) => {
             try {
@@ -1042,7 +1059,10 @@ export class HistoryProductRtcProtectiveGearComponent
                 this.ProductProtectiveGearService.getHistoryProductRTCByID(id),
               );
               if (res?.status !== 1) throw new Error('Truy vấn thất bại');
-
+              if (!res.data) throw new Error('Không tìm thấy sản phẩm');
+              if (res.data.Status == 8) {
+                dateExtend = res.data.DateReturnExpected;
+              }
               const history = {
                 ...res.data,
                 DateReturnExpected: dateExtend,

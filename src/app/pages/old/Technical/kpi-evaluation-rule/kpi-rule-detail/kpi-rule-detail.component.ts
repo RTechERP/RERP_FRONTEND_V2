@@ -241,7 +241,7 @@ export class KpiRuleDetailComponent implements OnInit {
             KPIEvaluationRuleID: this.ruleId,
             STT: this.stt.trim(),
             ParentID: parseInt(this.selectedParentId) || 0,
-            KPIEvaluationID: this.selectedKPIEvaluationId || null,
+            KPIEvaluationID: this.selectedKPIEvaluationId || 0,
             MaxPercent: this.maxPercent,
             PercentageAdjustment: this.percentageAdjustment,
             MaxPercentageAdjustment: this.maxPercentageAdjustment,

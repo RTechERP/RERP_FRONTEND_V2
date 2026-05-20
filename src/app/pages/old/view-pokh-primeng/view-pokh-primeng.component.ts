@@ -400,6 +400,42 @@ export class ViewPokhPrimengComponent implements OnInit {
     return (parentRow.exportDetails || []).filter((row: any) => selectedKeys.has(row.__exportKey));
   }
 
+  isGroupSelected(rowData: any): boolean {
+    const groupRows = this.getRowsInGroup(rowData);
+    if (groupRows.length === 0) return false;
+
+    const selectedIds = new Set(this.selectedRowsAll.map((row) => row.ID));
+    return groupRows.every((row) => selectedIds.has(row.ID));
+  }
+
+  isGroupPartiallySelected(rowData: any): boolean {
+    const groupRows = this.getRowsInGroup(rowData);
+    if (groupRows.length === 0) return false;
+
+    const selectedIds = new Set(this.selectedRowsAll.map((row) => row.ID));
+    const selectedCount = groupRows.filter((row) => selectedIds.has(row.ID)).length;
+    return selectedCount > 0 && selectedCount < groupRows.length;
+  }
+
+  onGroupSelectionChange(rowData: any, checked: boolean): void {
+    const groupRows = this.getRowsInGroup(rowData);
+    if (groupRows.length === 0) return;
+
+    const groupIds = new Set(groupRows.map((row) => row.ID));
+
+    if (checked) {
+      groupRows.forEach((row) => {
+        this.upsertSelectedParent(row);
+        this.selectAllExportsForParent(row);
+      });
+    } else {
+      this.selectedRowsAll = this.selectedRowsAll.filter((row) => !groupIds.has(row.ID));
+      this.selectedExportRowsAll = this.selectedExportRowsAll.filter((row) => !groupIds.has(row.POKHDetailID));
+    }
+
+    this.syncSelectedRows();
+  }
+
   getActiveNestedTab(row: any): 'export' | 'invoice' {
     if (!this.activeNestedTabs[row.ID]) {
       this.activeNestedTabs[row.ID] = row.exportDetails?.length > 0 ? 'export' : 'invoice';
@@ -914,6 +950,13 @@ export class ViewPokhPrimengComponent implements OnInit {
     this.selectedRowsAll = this.selectedRowsAll.map((row) => datasetById.get(row.ID) || row);
     this.selectedRowsInView = this.dataset.filter((row) => selectedIds.has(row.ID));
     this.selectedRows = [...this.selectedRowsAll];
+  }
+
+  private getRowsInGroup(rowData: any): any[] {
+    const groupKey = rowData?.__POGroupSortKey;
+    if (!groupKey) return [];
+
+    return this.dataset.filter((row) => row.__POGroupSortKey === groupKey);
   }
 
   private sortForGrouping(rows: any[]): any[] {

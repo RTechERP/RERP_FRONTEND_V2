@@ -139,6 +139,7 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
     { value: 2, label: 'APR' },
     { value: 3, label: 'MVI' },
     { value: 4, label: 'Yonko' },
+    { value: 5, label: 'R-Tech' },
   ];
 
   constructor(

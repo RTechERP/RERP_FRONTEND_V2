@@ -9,7 +9,7 @@
                         Phòng ban
                     </nz-form-label>
                     <nz-form-control>
-                        <nz-select name="department" nzShowSearch nzSize="small" nzPlaceHolder="Chọn phòng ban"
+                        <nz-select name="department" nzShowSearch nzSize="small" nzPlaceHolder="Chọn phòng ban" nzDropdownClassName="select-dropdown"
                             style="width: 200px;" [(ngModel)]="selectedDepartmentId"
                             (ngModelChange)="onDepartmentChange()">
                             <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID"
@@ -24,7 +24,7 @@
                         Kỳ đánh giá
                     </nz-form-label>
                     <nz-form-control>
-                        <nz-select name="kpiSession" nzShowSearch nzAllowClear nzSize="small"
+                        <nz-select name="kpiSession" nzShowSearch nzAllowClear nzSize="small" nzDropdownClassName="select-dropdown"
                             nzPlaceHolder="Chọn kỳ đánh giá" style="width: 250px;" [(ngModel)]="selectedKPISessionId"
                             (ngModelChange)="onKPISessionChange()">
                             <nz-option *ngFor="let session of kpiSessions" [nzValue]="session.ID"

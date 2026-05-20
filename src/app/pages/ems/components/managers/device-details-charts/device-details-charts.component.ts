@@ -220,6 +220,16 @@ export class DeviceDetailsChartsComponent implements OnInit {
             textStyle: {
               fontFamily: 'Open Sans',
             },
+            label: {
+              show: true,
+              position: 'top',
+              formatter: (params: any) => {
+                return Number(params.value).toFixed(2);
+              },
+              color: '#333',
+              fontSize: 12,
+              fontWeight: 'bold',
+            },
           };
           return data;
         }),
@@ -288,6 +298,16 @@ export class DeviceDetailsChartsComponent implements OnInit {
             ],
             textStyle: {
               fontFamily: 'Open Sans',
+            },
+            label: {
+              show: true,
+              position: 'top',
+              formatter: (params: any) => {
+                return Number(params.value).toFixed(2);
+              },
+              color: '#333',
+              fontSize: 12,
+              fontWeight: 'bold',
             },
           };
           return data;

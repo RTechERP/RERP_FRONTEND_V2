@@ -28,7 +28,7 @@ import { TabsModule } from 'primeng/tabs';
 import { CustomTable } from '../../../shared/custom-table/custom-table';
 import { ColumnDef } from '../../../shared/custom-table/column-def.model';
 import { ProjectHistoryProblemDetailComponent } from './project-history-problem-detail/project-history-problem-detail.component';
-
+import { PermissionService } from '../../../services/permission.service';
 @Component({
   selector: 'app-project-history-problem-new',
   standalone: true,
@@ -86,6 +86,11 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
   linkedWorkerVersions: any[] = [];
   linkedPartListVersions: any[] = [];
 
+  isLogModalVisible: boolean = false;
+  isLoadingLogs: boolean = false;
+  selectedLogRow: any = null;
+  problemLogs: any[] = [];
+
   constructor(
     private notification: NzNotificationService,
     private message: NzMessageService,
@@ -94,7 +99,8 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
     @Optional() private activeModal: NgbActiveModal | null,
     private projectHistoryProblemNewService: ProjectHistoryProblemNewService,
     private projectService: ProjectService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private permissionService: PermissionService,
   ) { }
 
   ngOnInit(): void {
@@ -145,7 +151,12 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       {
         label: 'Tải lại',
         icon: 'fa-solid fa-rotate fa-lg text-info',
-        command: () => this.loadData(),
+        command: () => {
+          this.loadData();
+          if (this.previewRow && this.previewRow.ID > 0) {
+            this.onRowClickForPreview(this.previewRow, true);
+          }
+        },
       },
       {
         label: 'Xuất Excel',
@@ -155,41 +166,54 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       {
         label: 'Duyệt',
         icon: 'fa-solid fa-check-double fa-lg text-primary',
+        visible: this.permissionService.hasPermission("N92") || this.permissionService.hasPermission("N32"),
         items: [
           {
             label: 'PM Duyệt',
             icon: 'fa-solid fa-check text-success',
+            visible: this.permissionService.hasPermission("N92"),
             command: () => this.approveSelectedRow('PM', true),
           },
           {
             label: 'PM Hủy Duyệt',
             icon: 'fa-solid fa-xmark text-danger',
+            visible: this.permissionService.hasPermission("N92"),
             command: () => this.approveSelectedRow('PM', false),
           },
           { separator: true },
           {
             label: 'Phó Phòng Duyệt',
             icon: 'fa-solid fa-check text-success',
+            visible: this.permissionService.hasPermission("N32"),
             command: () => this.approveSelectedRow('PP', true),
           },
           {
             label: 'Phó Phòng Hủy Duyệt',
             icon: 'fa-solid fa-xmark text-danger',
+            visible: this.permissionService.hasPermission("N32"),
             command: () => this.approveSelectedRow('PP', false),
           },
           { separator: true },
           {
             label: 'Trưởng Phòng Duyệt',
             icon: 'fa-solid fa-check text-success',
+            visible: this.permissionService.hasPermission("N32"),
             command: () => this.approveSelectedRow('TP', true),
           },
           {
             label: 'Trưởng Phòng Hủy Duyệt',
             icon: 'fa-solid fa-xmark text-danger',
+            visible: this.permissionService.hasPermission("N32"),
             command: () => this.approveSelectedRow('TP', false),
           }
         ]
-      }
+      },
+      {
+        label: 'Xem lịch sử thay đổi',
+        icon: 'fa-solid fa-clock-rotate-left fa-lg text-info',
+        visible: this.permissionService.hasPermission("N32,N1"),
+        command: () => this.openChangeLogModal(),
+      },
     ];
   }
 
@@ -213,7 +237,6 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       { field: 'Reason', header: 'Nguyên nhân', width: '300px', editable: false, textWrap: true },
       { field: 'Remedies', header: 'Biện pháp khắc phục', width: '300px', editable: false, textWrap: true },
       { field: 'IssueConclusion', header: 'Kết luận', width: '300px', editable: false, textWrap: true },
-      { field: 'PIC', header: 'PIC', width: '200px', editable: false },
       { field: 'CreatorName', header: 'Người tạo', width: '180px', editable: false },
       { field: 'Image', header: 'Hình ảnh đính kèm', width: '200px', editable: false, textWrap: true }
     ];
@@ -228,7 +251,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       this.notification.warning('Thông báo', 'Chỉ được chọn duy nhất một dòng để sửa!');
       return;
     }
-    this.openDetailForm(this.selectedHistoryRows[0]);
+    this.openDetailForm(this.getLatestHistoryRow(this.selectedHistoryRows[0]));
   }
 
   deleteSelectedRow(): void {
@@ -260,6 +283,15 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
             next: (res: any) => {
               this.notification.success('Thành công', `Đã xóa ${ids.length} dòng dữ liệu thành công!`);
               this.selectedHistoryRows = [];
+              
+              if (this.previewRow && ids.includes(this.previewRow.ID)) {
+                this.previewRow = null;
+                this.previewImages = [];
+                this.linkedProjectItems = [];
+                this.linkedWorkerVersions = [];
+                this.linkedPartListVersions = [];
+              }
+
               this.loadData();
             },
             error: (err: any) => {
@@ -337,9 +369,12 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
           } else {
             this.dataHistory = [];
           }
+          this.syncSelectedRowsWithCurrentData();
+          this.syncPreviewRowWithCurrentData();
         } else {
           this.notification.warning('Thông báo', response.message || 'Không có dữ liệu lịch sử phát sinh!');
           this.dataHistory = [];
+          this.selectedHistoryRows = [];
         }
       },
       error: (error) => {
@@ -347,6 +382,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
         console.error('Error loading history problem:', error);
         this.notification.error('Lỗi', 'Không thể tải dữ liệu lịch sử phát sinh!');
         this.dataHistory = [];
+        this.selectedHistoryRows = [];
       },
     });
   }
@@ -405,10 +441,106 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
     });
 
     modalRef.afterClose.subscribe(result => {
-      if (result === true) {
+      if (result === true || result?.saved === true) {
+        if (result?.data) {
+          this.patchHistoryRowAfterSave(result.data);
+        }
         this.loadData();
+        // Reload dữ liệu các bảng chi tiết bên dưới nếu đang chọn 1 dòng
+        if (this.previewRow && this.previewRow.ID > 0) {
+          this.onRowClickForPreview(this.previewRow, true);
+        }
       }
     });
+  }
+
+  private getLatestHistoryRow(row: any): any {
+    if (!row?.ID) return row;
+    return this.dataHistory.find((item: any) => item.ID === row.ID) || row;
+  }
+
+  private syncSelectedRowsWithCurrentData(): void {
+    if (!this.selectedHistoryRows?.length) return;
+
+    const selectedIds = new Set(this.selectedHistoryRows.map((row: any) => row.ID).filter((id: number) => id > 0));
+    this.selectedHistoryRows = this.dataHistory.filter((row: any) => selectedIds.has(row.ID));
+  }
+
+  private syncPreviewRowWithCurrentData(): void {
+    if (!this.previewRow?.ID) return;
+    const latestPreviewRow = this.dataHistory.find((row: any) => row.ID === this.previewRow.ID);
+    if (latestPreviewRow) {
+      this.previewRow = latestPreviewRow;
+    }
+  }
+
+  private patchHistoryRowAfterSave(savedData: any): void {
+    if (!savedData?.ID) return;
+
+    const currentRow = this.dataHistory.find((row: any) => row.ID === savedData.ID);
+    if (!currentRow) return;
+
+    const patchedRow = this.mapMasterDataToTable({ ...currentRow, ...savedData });
+    this.dataHistory = this.dataHistory.map((row: any) => row.ID === patchedRow.ID ? patchedRow : row);
+    this.selectedHistoryRows = this.selectedHistoryRows.map((row: any) => row.ID === patchedRow.ID ? patchedRow : row);
+
+    if (this.previewRow?.ID === patchedRow.ID) {
+      this.previewRow = patchedRow;
+    }
+  }
+
+  openChangeLogModal(): void {
+    if (this.selectedHistoryRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một dòng để xem lịch sử thay đổi!');
+      return;
+    }
+
+    if (this.selectedHistoryRows.length > 1) {
+      this.notification.warning('Thông báo', 'Chỉ được chọn duy nhất một dòng để xem lịch sử thay đổi!');
+      return;
+    }
+
+    const selectedRow = this.getLatestHistoryRow(this.selectedHistoryRows[0]);
+    if (!selectedRow?.ID || selectedRow.ID <= 0) {
+      this.notification.warning('Thông báo', 'Dòng được chọn chưa có ID hợp lệ!');
+      return;
+    }
+
+    this.selectedLogRow = selectedRow;
+    this.problemLogs = [];
+    this.isLogModalVisible = true;
+    this.isLoadingLogs = true;
+
+    this.projectHistoryProblemNewService.getProblemLogs(selectedRow.ID).subscribe({
+      next: (res: any) => {
+        this.isLoadingLogs = false;
+        if (res.status === 1) {
+          this.problemLogs = Array.isArray(res.data) ? res.data : [];
+        } else {
+          this.problemLogs = [];
+          this.notification.warning('Thông báo', res.message || 'Không lấy được lịch sử thay đổi!');
+        }
+      },
+      error: (error: any) => {
+        this.isLoadingLogs = false;
+        this.problemLogs = [];
+        console.error('Error loading problem logs:', error);
+        this.notification.error('Lỗi', 'Không thể tải lịch sử thay đổi!');
+      }
+    });
+  }
+
+  closeChangeLogModal(): void {
+    this.isLogModalVisible = false;
+    this.isLoadingLogs = false;
+    this.selectedLogRow = null;
+    this.problemLogs = [];
+  }
+
+  formatLogDate(value: any): string {
+    if (!value) return '';
+    const dateTime = value instanceof Date ? DateTime.fromJSDate(value) : DateTime.fromISO(value);
+    return dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy HH:mm') : '';
   }
 
   // Thêm dòng vào bảng 1
@@ -558,7 +690,11 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
   }
 
   // Preview: click vào dòng để xem ảnh đính kèm
-  onRowClickForPreview(rowData: any): void {
+  onRowClickForPreview(rowData: any, forceReload: boolean = false): void {
+    if (!forceReload && this.previewRow && this.previewRow.ID === rowData?.ID) {
+      return; // Không reload nếu click lại cùng một dòng
+    }
+
     this.previewRow = rowData;
     this.selectedPreviewImage = null;
     this.previewImages = [];

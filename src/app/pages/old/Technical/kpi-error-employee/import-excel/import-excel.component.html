@@ -58,9 +58,10 @@
         <button class="fs-12 btn" nz-button (click)="downloadTemplate()">
             <nz-icon nzType="download" nzTheme="outline"></nz-icon> Tải mẫu
         </button>
-        <button nz-button nzType="primary" (click)="importData()" [disabled]="tableData.length === 0">
-            <nz-icon nzType="upload" nzTheme="outline" class="me-1"></nz-icon>
-            Nhập dữ liệu
+        <button nz-button nzType="primary" (click)="importData()" [disabled]="tableData.length === 0 || isSaving"
+            [nzLoading]="isSaving">
+            <nz-icon *ngIf="!isSaving" nzType="upload" nzTheme="outline" class="me-1"></nz-icon>
+            {{ isSaving ? 'Đang lưu...' : 'Nhập dữ liệu' }}
         </button>
     </div>
 </div>

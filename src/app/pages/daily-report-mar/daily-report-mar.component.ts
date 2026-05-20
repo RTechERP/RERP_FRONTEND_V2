@@ -29,6 +29,7 @@ import { Subject } from 'rxjs';
 import { DailyReportMarDetailComponent } from './daily-report-mar-detail/daily-report-mar-detail.component';
 import { MenuItem, PrimeIcons } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
+import { AppUserService } from '../../services/app-user.service';
 
 @Component({
   selector: 'app-daily-report-mar',
@@ -51,6 +52,7 @@ import { Menubar } from 'primeng/menubar';
     NzSpinModule,
     Menubar,
   ],
+
   templateUrl: './daily-report-mar.component.html',
   styleUrl: './daily-report-mar.component.css'
 })
@@ -60,6 +62,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
 
   private searchSubject = new Subject<string>();
 
+  isChangeDepartment: boolean = false;
   // Search panel state
   sizeSearch: string = '22%';
   showSearchBar: boolean = true; // Mặc định ẩn, sẽ được set trong ngOnInit
@@ -93,6 +96,7 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private nzModal: NzModalService,
+    private appUserService: AppUserService,
   ) {
     this.searchSubject
       .pipe(debounceTime(800))
@@ -107,9 +111,12 @@ export class DailyReportMarComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    debugger;
+    if (this.appUserService.currentUser?.IsAdmin) {
+      this.isChangeDepartment = true;
+    }
     this.updateResponsiveState();
     this.initMenuBar();
-
     // Load theo thứ tự: getCurrentUser -> loadDepartments -> set departmentId -> loadTeams -> loadUsers -> getDailyReportHrData
     this.getCurrentUser();
   }

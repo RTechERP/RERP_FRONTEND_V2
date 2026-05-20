@@ -1,0 +1,24 @@
+:host ::ng-deep .ant-splitter {
+    height: 100% !important;
+}
+
+::ng-deep .modal-dialog-scrollable .modal-body {
+    overflow-y: auto !important;
+    padding: 0 !important;
+}
+
+/* Tùy chỉnh màu hover cho danh sách nhân viên */
+::ng-deep .tabulator-edit-list {
+    overflow-x: hidden !important;
+    width: 200px !important;
+}
+
+::ng-deep .tabulator-edit-list .tabulator-edit-list-item:hover {
+
+    background-color: #f0f5ff !important;
+    cursor: pointer;
+}
+
+::ng-deep .tabulator-edit-list .tabulator-edit-list-item.active {
+    background-color: #e6f7ff !important;
+}

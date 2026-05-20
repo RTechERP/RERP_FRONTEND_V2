@@ -463,13 +463,15 @@ angular-slickgrid,
   background-image: url("/assets/icon/update_status2_16.png");
 }
 
-/* Status column filter: p-select fits the column */
+/* Status column filter: p-select and p-multiselect fit the column */
 :host ::ng-deep .status-filter-select {
   width: 100% !important;
   font-size: 12px !important;
 }
 
-:host ::ng-deep .status-filter-select .p-select-label {
+:host ::ng-deep .status-filter-select .p-select-label,
+:host ::ng-deep .status-filter-select .p-multiselect-label,
+:host ::ng-deep .status-filter-select .p-multiselect-label-container {
   font-size: 12px !important;
   padding: 2px 6px !important;
 }
@@ -494,6 +496,53 @@ angular-slickgrid,
   min-width: 0;
 }
 
+:host ::ng-deep .p-column-filter input,
+:host ::ng-deep .p-column-filter select,
+:host ::ng-deep .p-column-filter .p-inputtext,
+:host ::ng-deep .p-column-filter .p-select,
+:host ::ng-deep .p-column-filter .p-select-label,
+:host ::ng-deep .p-column-filter .p-multiselect,
+:host ::ng-deep .p-column-filter .p-multiselect-label,
+:host ::ng-deep .p-column-filter .p-datepicker-input,
+:host ::ng-deep .p-column-filter-element input,
+:host ::ng-deep .p-column-filter-element select,
+:host ::ng-deep .p-column-filter-element .p-inputtext,
+:host ::ng-deep .p-column-filter-element .p-select,
+:host ::ng-deep .p-column-filter-element .p-select-label,
+:host ::ng-deep .p-column-filter-element .p-multiselect,
+:host ::ng-deep .p-column-filter-element .p-multiselect-label,
+:host ::ng-deep .p-datatable th input,
+:host ::ng-deep .p-datatable th select,
+:host ::ng-deep .p-datatable th .p-inputtext,
+:host ::ng-deep .p-datatable th .p-select,
+:host ::ng-deep .p-datatable th .p-select-label,
+:host ::ng-deep .p-datatable th .p-multiselect,
+:host ::ng-deep .p-datatable th .p-multiselect-label,
+:host ::ng-deep .p-datatable th .p-multiselect-label-container,
+:host ::ng-deep .p-datatable th .p-datepicker-input {
+  font-size: 12px !important;
+}
+
+/* Ensure the filter row header cells have minimal padding and take full width */
+:host ::ng-deep .p-datatable-thead > tr:nth-child(2) > th {
+  padding: 3px 4px !important;
+}
+
+/* Force all column filter elements to span 100% width of the header cell */
+:host ::ng-deep .p-datatable th p-columnfilter,
+:host ::ng-deep .p-datatable th .p-column-filter,
+:host ::ng-deep .p-datatable th .p-column-filter-element,
+:host ::ng-deep .p-datatable th .p-column-filter-element > *,
+:host ::ng-deep .p-datatable th input,
+:host ::ng-deep .p-datatable th select,
+:host ::ng-deep .p-datatable th .p-inputtext,
+:host ::ng-deep .p-datatable th .p-select,
+:host ::ng-deep .p-datatable th .p-multiselect,
+:host ::ng-deep .p-datatable th .status-filter-select {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
 :host ::ng-deep .p-datatable-inline-filter {
   justify-content: space-between !important;
 }
@@ -502,7 +551,7 @@ angular-slickgrid,
   width: 100% !important;
 }
 
-::host ::ng-deep p-virtualscroller p-virtualscroller-inline ng-star-inserted:host::ng-deep .p-fluid {
+:host ::ng-deep .p-fluid {
   width: 100% !important;
 }
 
@@ -540,6 +589,35 @@ angular-slickgrid,
 
 :host ::ng-deep .p-datatable table {
   width: max-content !important;
+}
+
+:host ::ng-deep .project-master-table.p-datatable-flex-scrollable,
+:host ::ng-deep .project-master-table .p-datatable-table-container,
+:host ::ng-deep .project-master-table .p-virtualscroller {
+  min-height: 0;
+}
+
+:host ::ng-deep .project-master-table .p-virtualscroller {
+  flex: 1 1 auto;
+  overflow: auto !important;
+}
+
+:host ::ng-deep .project-master-table .p-datatable-tbody > tr {
+  height: 44px !important;
+  max-height: 44px !important;
+}
+
+:host ::ng-deep .project-master-table .p-datatable-tbody > tr > td {
+  height: 44px !important;
+  max-height: 44px !important;
+  line-height: 16px !important;
+  overflow: hidden !important;
+  vertical-align: middle !important;
+}
+
+:host ::ng-deep .project-master-table .p-datatable-tbody > tr > td.cell-wrap {
+  white-space: normal !important;
+  word-break: break-word !important;
 }
 
 ::ng-deep th {

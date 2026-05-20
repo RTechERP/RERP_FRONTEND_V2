@@ -166,7 +166,7 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
             {
                 label: 'Thêm',
                 icon: 'fa-solid fa-circle-plus fa-lg text-success',
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
+                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86,N94'),
                 command: () => {
                     this.onAddExam();
                 },
@@ -174,7 +174,7 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
             {
                 label: 'Sửa',
                 icon: 'fa-solid fa-file-pen fa-lg text-primary',
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
+                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86,N94'),
                 command: () => {
                     this.onEditExam();
                 },
@@ -182,7 +182,7 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
             {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
+                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86,N94'),
                 command: () => {
                     this.onDeleteExam();
                 },
@@ -200,7 +200,7 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
             {
                 label: 'Thêm',
                 icon: 'fa-solid fa-circle-plus fa-lg text-success',
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
+                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86,N94'),
                 command: () => {
                     this.onAddQuestion();
                 },
@@ -208,7 +208,7 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
             {
                 label: 'Sửa',
                 icon: 'fa-solid fa-file-pen fa-lg text-primary',
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
+                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86,N94'),
                 command: () => {
                     this.onEditQuestion();
                 },
@@ -216,7 +216,7 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
             {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
+                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86,N94'),
                 command: () => {
                     this.onDeleteQuestion();
                 },
@@ -224,7 +224,7 @@ export class HRRecruitmentExamComponent implements OnInit, AfterViewInit {
             {
                 label: 'Sao chép câu hỏi',
                 icon: 'fa-solid fa-copy fa-lg text-warning',
-                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86'),
+                visible: this.permissionService.hasPermission('N1,N2,N32,N33,N38,N51,N52,N56,N61,N79,N81,N86,N94'),
                 command: () => {
                     this.onCopyQuestion();
                 },

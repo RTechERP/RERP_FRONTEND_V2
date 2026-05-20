@@ -95,6 +95,29 @@
     width: 100% !important;
 }
 
+/* Allow project/parent-task selected text to wrap in the sidebar */
+.sidebar-content nz-select.w-100 ::ng-deep .ant-select-selector {
+    height: 30px !important;
+    overflow: hidden !important;
+}
+
+.sidebar-content nz-select.w-100 ::ng-deep .ant-select-selection-item {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    height: 100% !important;
+    line-height: 28px !important;
+    padding: 0 !important;
+}
+
+/* Also target the search input to match height if needed */
+.sidebar-content nz-select.w-100 ::ng-deep .ant-select-selection-search {
+    height: auto !important;
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+}
+
 .sidebar-divider {
     border-top: 1px solid #f0f0f0;
 }
@@ -122,7 +145,6 @@
     border-radius: 6px;
     padding: 4px 8px;
     min-width: 0;
-    overflow: hidden;
 }
 
 .project-icon {
@@ -340,7 +362,6 @@
     border: 1px solid #d3d3d3;
     border-radius: 6px;
     height: 34px;
-    /* Reduced slightly to match internal height better */
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -352,7 +373,7 @@
     height: 34px !important;
     display: flex !important;
     align-items: center !important;
-    overflow: hidden;
+    overflow: hidden !important;
     border: none !important;
     box-shadow: none !important;
 }
@@ -369,6 +390,8 @@
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden;
+    white-space: nowrap !important;
+    text-overflow: ellipsis;
 }
 
 /* Allow text selection in the options list as well */
@@ -381,6 +404,22 @@
     word-wrap: break-word;
     line-height: 1.4;
     padding: 6px 0;
+}
+
+/* Force wrap for project/parent task option text in dropdown list */
+::ng-deep .project-parent-dropdown .ant-select-item {
+    height: auto !important;
+    min-height: 32px !important;
+    line-height: 1.4 !important;
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+}
+
+::ng-deep .project-parent-dropdown .ant-select-item-option-content {
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
 }
 
 .project-select ::ng-deep .ant-select-selection-placeholder {

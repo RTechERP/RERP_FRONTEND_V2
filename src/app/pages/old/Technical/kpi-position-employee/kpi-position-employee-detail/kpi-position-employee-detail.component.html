@@ -3,10 +3,57 @@
     <button type="button" class="btn-close" (click)="cancel()" aria-label="Close"></button>
 </div>
 
-<div class="modal-body p-2" style="height: 500px; overflow: hidden;">
-    <angular-slickgrid gridId="employeeGrid" [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
-        (onAngularGridCreated)="angularGridReady($event)">
-    </angular-slickgrid>
+<div class="modal-body p-2" style="height: 500px; overflow: hidden; display: flex; flex-direction: column;">
+    <p-table [value]="dataset" [columns]="visibleColumns(columnDefinitions)" dataKey="id" [scrollable]="true"
+        scrollHeight="flex" styleClass="p-datatable-sm p-datatable-gridlines kpi-prime-table"
+        rowGroupMode="subheader" groupRowsBy="DepartmentName" [sortField]="'DepartmentName'" [sortOrder]="1"
+        [loading]="isLoading" loadingIcon="pi pi-spin pi-spinner" [resizableColumns]="true" columnResizeMode="expand">
+        <ng-template pTemplate="header" let-columns>
+            <tr>
+                <th *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field" [pSortableColumnDisabled]="!col.sortable"
+                    [style.min-width]="getColumnWidth(col)" [style.width]="getColumnWidth(col)">
+                    <div class="table-header-cell d-flex align-items-center justify-content-between">
+                        <span>{{ col.name }}</span>
+                        <p-sortIcon *ngIf="col.sortable" [field]="col.field"></p-sortIcon>
+                    </div>
+                </th>
+            </tr>
+            <tr>
+                <th *ngFor="let col of columns" [style.min-width]="getColumnWidth(col)" [style.width]="getColumnWidth(col)" class="filter-cell">
+                    <p-columnFilter *ngIf="col.filterable" [type]="getColumnFilterType(col)" [field]="col.field"
+                        display="row" [showMenu]="false" matchMode="contains" placeholder="Tìm kiếm"></p-columnFilter>
+                </th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="groupheader" let-rowData>
+            <tr pRowGroupHeader class="group-row">
+                <td [attr.colspan]="visibleColumns(columnDefinitions).length">
+                    <span class="group-title fw-bold text-success">Phòng ban: {{ rowData.DepartmentName }}</span>
+                    <span class="group-count text-muted ms-2">({{ getDetailGroupCount(rowData.DepartmentName) }} nhân viên)</span>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowData let-columns="columns">
+            <tr class="data-row">
+                <td *ngFor="let col of columns" [ngClass]="getCellClass(col)"
+                    [style.min-width]="getColumnWidth(col)" [style.width]="getColumnWidth(col)">
+                    <ng-container *ngIf="col.field === 'IsCheck'; else dataCell">
+                        <input type="checkbox" [(ngModel)]="rowData.IsCheck" (click)="$event.preventDefault(); onCheckboxClick(rowData)" />
+                    </ng-container>
+                    <ng-template #dataCell>
+                        <span class="cell-content" [title]="getCellTitle(rowData, col)">
+                            {{ formatCell(rowData, col) }}
+                        </span>
+                    </ng-template>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td [attr.colspan]="visibleColumns(columnDefinitions).length" class="text-center text-muted py-3">Không có dữ liệu</td>
+            </tr>
+        </ng-template>
+    </p-table>
 </div>
 
 <div class="modal-footer p-1">

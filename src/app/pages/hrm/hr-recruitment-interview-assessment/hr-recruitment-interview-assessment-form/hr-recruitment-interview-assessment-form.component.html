@@ -1,0 +1,175 @@
+<div class="modal-header bg-primary align-items-center ps-3">
+  <h6 class="text-light text-uppercase m-0 fw-bold">Phiếu Đánh Giá Phỏng Vấn</h6>
+
+  <button type="button" class="btn-close position-absolute end-0 m-3" aria-label="Close"
+    (click)="activeModal.dismiss()"></button>
+</div>
+
+<div class="modal-body assessment-modal-body" id="printArea">
+  <div class="assessment-paper">
+
+    <!-- ===== HEADER ===== -->
+    <div class="form-header">
+      <div class="header-left">
+        <img src="assets/images/logo-RTC-2023-1200-banchuan.png" alt="RTC" class="logo-img">
+      </div>
+      <div class="header-center">
+        <h2 class="form-title">PHIẾU ĐÁNH GIÁ PHỎNG VẤN</h2>
+        <p class="form-subtitle"><i>Interview Assessment Form</i></p>
+        <p class="form-code">(BM04-RTC.HR-QT01)</p>
+      </div>
+      <div class="header-right"></div>
+    </div>
+
+    <!-- ===== THÔNG TIN ỨNG VIÊN ===== -->
+    <!-- <div class="contact-card"> -->
+    <div class="">
+      <div class="info-row">
+        <span class="info-label">Họ và tên / <i>Name of Candidate</i>:</span>
+        <input class="info-value" [(ngModel)]="candidateName" placeholder="..." [disabled]="Status > 5" />
+        <span class="info-label ms-4">Ngày sinh / <i>DOB</i>:</span>
+        <nz-date-picker class="info-value date-picker-underline" [(ngModel)]="dateOfBirth" nzFormat="dd/MM/yyyy"
+          nzPlaceHolder="Chọn ngày sinh" [nzDisabled]="Status > 5"></nz-date-picker>
+      </div>
+      <div class="info-row mt-2">
+        <span class="info-label">Vị trí dự tuyển / <i>Position</i>:</span>
+        <input class="info-value flex-grow-1" [(ngModel)]="position" placeholder="..." [disabled]="Status > 5" />
+      </div>
+      <div class="info-row mt-2">
+        <span class="info-label">Người phỏng vấn / <i>Interviewer</i>:</span>
+        <input class="info-value" [(ngModel)]="interviewer" placeholder="..." [disabled]="Status > 5" />
+        <span class="info-label ms-4">Chức danh / <i>Position</i>:</span>
+        <input class="info-value flex-grow-1" [(ngModel)]="interviewerTitle" placeholder="..."
+          [disabled]="Status > 5" />
+      </div>
+      <div class="info-row mt-2">
+        <span class="info-label">Ngày phỏng vấn / <i>Date of interview</i>:</span>
+        <nz-date-picker class="info-value date-picker-underline" [(ngModel)]="DateOfInterview" nzFormat="dd/MM/yyyy"
+          nzPlaceHolder="Chọn ngày" [nzDisabled]="Status > 5"></nz-date-picker>
+      </div>
+    </div>
+
+    <!-- ===== BẢNG TIÊU CHÍ ===== -->
+    <h5 class="section-title mt-3">Tiêu chí đánh giá / <i>Performance Factors</i></h5>
+
+    <div *ngFor="let c of PerformanceCriteria" class="contact-card criteria-card"
+      [class.criteria-card-error]="isSubmitted && (ratings.get(c.ID) === null || ratings.get(c.ID) === undefined)">
+      <div class="contact-card-header">
+        <span class="fw-bold" style="font-size:13px;">
+          {{ c.STT }}. {{ c.NameVI }}
+          <span *ngIf="c.SubTitleVI" class="fw-normal text-muted">({{ c.SubTitleVI }})</span>
+        </span>
+        <span *ngIf="isSubmitted && (ratings.get(c.ID) === null || ratings.get(c.ID) === undefined)" class="text-error">
+          Vui lòng chọn tiêu chí đánh giá!
+        </span>
+      </div>
+
+      <div class="criteria-desc-vn small mb-1">{{ c.DescriptionVI }}</div>
+      <div class="criteria-desc-en mb-2">
+        <em>
+          <strong>{{ c.NameEN }}</strong>
+          <span *ngIf="c.SubTitleEN"> ({{ c.SubTitleEN }})</span>
+          <span *ngIf="c.DescriptionEN"> – {{ c.DescriptionEN }}</span>
+        </em>
+      </div>
+
+      <!-- Rating + Comment cạnh nhau -->
+      <div class="d-flex gap-3 flex-wrap">
+        <!-- Điểm đánh giá -->
+        <div class="rating-col">
+          <div class="contact-field">
+            <label>Điểm đánh giá / <i>Rating</i></label>
+            <nz-form-control
+              [nzValidateStatus]="isSubmitted && (ratings.get(c.ID) === null || ratings.get(c.ID) === undefined) ? 'error' : ''">
+              <nz-radio-group [ngModel]="ratings.get(c.ID)" (ngModelChange)="ratings.set(c.ID, $event)"
+                [name]="'rating_' + c.ID" class="d-flex flex-column gap-1" [nzDisabled]="Status > 5">
+                <label *ngFor="let r of RATINGS" nz-radio [nzValue]="r.value" style="font-size:12px;">
+                  {{ r.labelVn }} / <i>{{ r.labelEn }}</i>
+                </label>
+              </nz-radio-group>
+            </nz-form-control>
+          </div>
+        </div>
+
+        <!-- Ghi chú -->
+        <div class="flex-grow-1 contact-field">
+          <label>Ghi chú / <i>Supporting Details or Comments</i></label>
+          <textarea nz-input [ngModel]="comments.get(c.ID)" (ngModelChange)="comments.set(c.ID, $event)"
+            [name]="'comment_' + c.ID" [nzAutosize]="{ minRows: 3, maxRows: 6 }" placeholder="Nhận xét..."
+            [disabled]="Status > 5">
+            </textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MỤC 6: NHẬN XÉT KHÁC ===== -->
+    <div class="contact-card">
+      <div class="contact-card-header">
+        <span class="fw-bold" style="font-size:13px;">6. Nhận xét khác / <i>Other comments</i></span>
+      </div>
+      <textarea nz-input [(ngModel)]="otherComments" name="otherComments" [nzAutosize]="{ minRows: 4, maxRows: 8 }"
+        placeholder="Nhập nhận xét khác..." [disabled]="Status > 5">
+        </textarea>
+    </div>
+
+    <!-- ===== ĐÁNH GIÁ SAU PHỎNG VẤN ===== -->
+    <h5 class="section-title mt-3">Đánh giá sau phỏng vấn / <i>Interview assessment results</i></h5>
+    <div class="contact-card"
+      [class.criteria-card-error]="isSubmitted && (overallResult === null || overallResult === undefined)">
+      <div class="contact-card-header mb-0">
+        <span class="fw-bold" style="font-size:13px;">Hồ sơ của ứng viên / <i>This applicant is:</i></span>
+        <span *ngIf="isSubmitted && (overallResult === null || overallResult === undefined)" class="text-error">
+          Vui lòng chọn kết quả đánh giá!
+        </span>
+      </div>
+      <nz-form-control
+        [nzValidateStatus]="isSubmitted && (overallResult === null || overallResult === undefined) ? 'error' : ''">
+        <nz-radio-group [(ngModel)]="overallResult" (ngModelChange)="onOverallResultChange($event)" name="overallResult"
+          class="d-flex flex-column gap-2 mt-2" [nzDisabled]="Status > 5">
+          <label nz-radio [nzValue]="1" style="font-size:12px;">
+            Phù hợp, chuyển vào vòng tiếp theo / <i>A strong candidate, move to next round</i>
+          </label>
+
+          <div *ngIf="overallResult === 1" class="ms-4 d-flex align-items-center gap-2 flex-wrap">
+            <span style="font-size:12px; font-weight:bold; font-style:italic;">
+              Mức lương đề xuất:
+            </span>
+
+            <nz-input-number [(ngModel)]="suggestedSalary" [nzMin]="0" [nzStep]="100000" [nzFormatter]="formatterSalary"
+              [nzParser]="parserSalary" name="suggestedSalary" placeholder="Nhập mức lương đề xuất..."
+              style="width:200px; font-size:12px;" [nzDisabled]="Status > 5"></nz-input-number>
+          </div>
+
+          <label nz-radio [nzValue]="2" style="font-size:12px;">
+            Có thể phù hợp, lưu hồ sơ / <i>A possible candidate, application for filing</i>
+          </label>
+          <label nz-radio [nzValue]="3" style="font-size:12px;">
+            Không phù hợp / <i>Of no further interest</i>
+          </label>
+        </nz-radio-group>
+      </nz-form-control>
+    </div>
+
+    <!-- ===== KÝ TÊN ===== -->
+    <div class="contact-card signature-section">
+
+
+      <div class="signature-box">
+        <div class="fw-bold mb-3" style="font-size:13px;">Người phỏng vấn / <i>Interviewer</i></div>
+        <div style="height: 60px;"></div>
+        <p class="fw-bold mb-0 interviewer-name">{{interviewer}}</p>
+      </div>
+    </div>
+
+  </div><!-- /assessment-paper -->
+</div><!-- /modal-body -->
+<div class="modal-footer py-1 no-print">
+  <div class="ms-auto d-flex gap-2">
+    <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
+      <span nz-icon nzType="close"></span> Đóng
+    </button>
+    <button *ngIf="Status <= 5" nz-button nzType="primary" (click)="onSave()" [nzLoading]="isLoading" [disabled]="isLoading">
+      <span nz-icon nzType="save"></span> Lưu
+    </button>
+  </div>
+</div>

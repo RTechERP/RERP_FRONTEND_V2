@@ -3,13 +3,16 @@
 }
 
 .timeline-container {
+    --timeline-table-font-family: 'Inter', sans-serif;
+    --timeline-table-font-size: 10px;
+
     display: flex;
     flex-direction: column;
     height: calc(100vh - 64px);
     background-color: #f4f7f9;
     padding: 0px;
     overflow: hidden;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--timeline-table-font-family);
 }
 
 /* ===== SEARCH FORM ===== */
@@ -27,6 +30,27 @@
     font-size: 12px;
     color: #595959;
     font-weight: 500;
+}
+
+.form-field-vertical input,
+.form-field-vertical nz-select {
+    font-size: 12px !important;
+}
+
+:host ::ng-deep .form-field-vertical .timeline-combo-select .ant-select-selection-item,
+:host ::ng-deep .form-field-vertical .timeline-combo-select .ant-select-selection-placeholder,
+:host ::ng-deep .form-field-vertical .timeline-combo-select .ant-select-selection-search-input {
+    font-family: var(--timeline-table-font-family) !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+}
+
+::ng-deep .timeline-combo-dropdown,
+::ng-deep .timeline-combo-dropdown .ant-select-item,
+::ng-deep .timeline-combo-dropdown .ant-select-item-option-content {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
 }
 
 .legend-bar {
@@ -79,7 +103,8 @@
     border-spacing: 0;
     width: max-content;
     min-width: 100%;
-    font-size: 10px;
+    font-family: var(--timeline-table-font-family);
+    font-size: var(--timeline-table-font-size);
     table-layout: fixed;
 }
 
@@ -227,7 +252,7 @@ thead .sticky-col {
 }
 
 .sunday {
-    background-color: #fff1f2 !important;
+    background-color: #f1f5f9 !important;
 }
 
 .date-header.sunday,
@@ -278,6 +303,18 @@ thead .sticky-col {
 /* ===== ROW STYLING ===== */
 .row-actual td {
     border-bottom: 2px solid #cbd5e1;
+}
+
+.row-overdue td:not(.filled-planned):not(.filled-actual) {
+    background-color: #fff1f2 !important;
+}
+
+.row-overdue td.sunday:not(.filled-planned):not(.filled-actual) {
+    background-color: #f1f5f9 !important;
+}
+
+.row-overdue .sticky-col {
+    background-color: #fff1f2 !important;
 }
 
 .cell-group-end {
@@ -339,12 +376,18 @@ thead .sticky-col {
 
 /* ===== STATUS TAGS ===== */
 .status-tag {
-    padding: 2px 8px;
+    display: inline-block;
+    padding: 2px 10px;
     border-radius: 12px;
     font-size: 11px;
     font-weight: 600;
     background: #f1f5f9;
     color: #475569;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.4;
+    min-width: 70px;
+    max-width: 100%;
 }
 
 .status-tag[data-status="0"] {
@@ -370,6 +413,12 @@ thead .sticky-col {
 .status-tag[data-status="4"] {
     background: #fff1f2;
     color: #e11d48;
+}
+
+.status-tag.overdue {
+    background: #fee2e2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fca5a5;
 }
 
 /* ===== FILTER INPUT ===== */
@@ -452,11 +501,65 @@ tfoot td {
 
 :host ::ng-deep .timeline-status-multi .p-multiselect-label {
     padding: 0 4px;
-    font-size: 11px;
+    font-family: var(--timeline-table-font-family);
+    font-size: var(--timeline-table-font-size);
+    font-weight: 400;
     line-height: normal;
 }
 
 :host ::ng-deep .timeline-status-multi .p-multiselect-trigger {
     width: 20px;
     height: 22px;
+}
+
+::ng-deep .timeline-status-multi-panel,
+::ng-deep .timeline-status-multi-panel .p-multiselect-item,
+::ng-deep .timeline-status-multi-panel .p-multiselect-option,
+::ng-deep .timeline-status-multi-panel .p-multiselect-option-label {
+    font-family: 'Inter', sans-serif !important;
+    font-size: 10px !important;
+    font-weight: 400 !important;
+}
+
+/* ===== CUSTOM CONTEXT MENU ===== */
+.custom-context-menu {
+    position: fixed;
+    z-index: 1050;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    min-width: 200px;
+    padding: 4px 0;
+}
+
+.custom-context-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.custom-context-menu li {
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s;
+}
+
+.custom-context-menu li:hover {
+    background: #f0f5ff;
+    color: #1890ff;
+}
+
+.context-menu-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1049;
 }

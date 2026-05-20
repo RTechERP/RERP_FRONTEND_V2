@@ -1,0 +1,144 @@
+<div style="display:flex; flex-direction:column; height:100%; min-height:0;">
+  <div class="card border-0 rounded-0 d-flex flex-column" style="flex: 1 1 auto; min-height: 0;">
+  <div class="card-header bg-white p-2 d-flex justify-content-between align-items-center" style="flex-shrink:0;">
+    <h6 class="m-0 fw-bold">Nhân công dự án</h6>
+  </div>
+
+  <div class="card-header search-bar" style="flex-shrink:0;">
+    <div class="search-item">
+      <label>Project</label>
+      <nz-select
+        nzShowSearch
+        nzAllowClear
+        nzPlaceHolder="Chọn project"
+        nzSize="small"
+        style="width: 260px"
+        [(ngModel)]="selectedProjectId"
+        (ngModelChange)="onProjectChange($event)"
+      >
+        <nz-option *ngFor="let item of projects" [nzValue]="item.ID" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
+      </nz-select>
+    </div>
+
+    <div class="search-item">
+      <label>Giải pháp</label>
+      <nz-select
+        nzShowSearch
+        nzAllowClear
+        nzPlaceHolder="Chọn giải pháp"
+        nzSize="small"
+        style="width: 220px"
+        [(ngModel)]="selectedSolutionId"
+        (ngModelChange)="onSolutionChange($event)"
+      >
+        <nz-option *ngFor="let item of solutions" [nzValue]="item.ID" [nzLabel]="item.CodeSolution || item.ContentSolution || ('Giải pháp ' + item.ID)"></nz-option>
+      </nz-select>
+    </div>
+
+    <div class="search-item">
+      <label>Phiên bản giải pháp</label>
+      <nz-select
+        nzShowSearch
+        nzAllowClear
+        nzPlaceHolder="Chọn phiên bản"
+        nzSize="small"
+        style="width: 220px"
+        [(ngModel)]="selectedVersionId"
+        (ngModelChange)="onVersionChange($event)"
+      >
+        <nz-option *ngFor="let item of solutionVersions" [nzValue]="item.ID" [nzLabel]="item.Code + ' - ' + (item.DescriptionVersion || '')"></nz-option>
+      </nz-select>
+    </div>
+
+    <div class="search-item">
+      <label>Trạng thái TBP</label>
+      <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small" style="width: 130px" [(ngModel)]="isApprovedTBP">
+        <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+        <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+        <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+      </nz-select>
+    </div>
+
+    <div class="search-item">
+      <label>Trạng thái</label>
+      <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" nzSize="small" style="width: 120px" [(ngModel)]="isDeleted">
+        <nz-option [nzValue]="0" nzLabel="Chưa xóa"></nz-option>
+        <nz-option [nzValue]="1" nzLabel="Đã xóa"></nz-option>
+      </nz-select>
+    </div>
+
+    <div class="search-item">
+      <label>Từ khóa</label>
+      <input nz-input nzSize="small" style="width: 180px" placeholder="Nhập từ khóa" [(ngModel)]="keyword" (keyup.enter)="previewProjectWorker()" />
+    </div>
+
+    <button nz-button nzType="primary" nzSize="small" class="btn-preview fs-12" (click)="previewProjectWorker()" [nzLoading]="isLoading">
+      Preview
+    </button>
+    <button nz-button nzSize="small" class="btn-create-task fs-12" (click)="createProjectTaskFromWorker()">
+      Tạo công việc
+    </button>
+  </div>
+
+  <!-- Data Table -->
+  <div class="card-body p-0 flex-grow-1 overflow-auto" style="position: relative; min-height: 0;">
+    <!-- Loading overlay -->
+    <div *ngIf="isLoading"
+      class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75"
+      style="z-index: 10">
+      <nz-spin nzSimple></nz-spin>
+    </div>
+
+    <table class="worker-table">
+      <thead>
+        <tr>
+          <th class="col-tt">TT</th>
+          <th class="col-approved">TBP duyệt</th>
+          <th class="col-content">Nội dung công việc</th>
+          <th class="col-number">Số người</th>
+          <th class="col-number">Số ngày</th>
+          <th class="col-money">Tổng nhân công</th>
+          <th class="col-money">Đơn giá</th>
+          <th class="col-money">Thành tiền</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of dataProjectWorker; let i = index"
+            [class.row-parent]="row._hasChildren"
+            [class.row-deleted]="row.IsDeleted">
+          <td class="text-center">{{ row.TT }}</td>
+          <td class="text-center">
+            <span class="badge-approval" [class.approved]="row.IsApprovedTBP" [class.not-approved]="!row.IsApprovedTBP">
+              {{ row.IsApprovedTBPText }}
+            </span>
+          </td>
+          <td class="col-content-cell">{{ row.WorkContent }}</td>
+          <td class="text-center">{{ row._hasChildren ? '' : row.AmountPeople }}</td>
+          <td class="text-center">{{ row._hasChildren ? '' : row.NumberOfDay }}</td>
+          <td class="text-right">{{ formatMoney(row.TotalWorkforce) }}</td>
+          <td class="text-right">{{ row._hasChildren ? '' : formatMoney(row.Price) }}</td>
+          <td class="text-right">{{ formatMoney(row.TotalPrice) }}</td>
+        </tr>
+
+        <!-- Empty state -->
+        <tr *ngIf="dataProjectWorker.length === 0 && !isLoading">
+          <td colspan="8" class="empty-cell">
+            <div class="empty-state">
+              <span nz-icon nzType="inbox" nzTheme="outline" style="font-size: 40px; color: #d9d9d9;"></span>
+              <p>Chưa có dữ liệu. Vui lòng chọn Project, Giải pháp, Phiên bản rồi nhấn Preview.</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot *ngIf="dataProjectWorker.length > 0">
+        <tr class="footer-row">
+          <td colspan="5" class="text-right fw-bold">Tổng cộng:</td>
+          <td class="text-right fw-bold">{{ formatMoney(totalWorkforce) }}</td>
+          <td></td>
+          <td class="text-right fw-bold">{{ formatMoney(totalPrice) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  </div>
+</div>

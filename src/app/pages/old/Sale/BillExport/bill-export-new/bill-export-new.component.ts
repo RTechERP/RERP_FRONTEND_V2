@@ -1,6 +1,6 @@
 
 
-import { Component, OnInit, OnDestroy, ViewChild, Inject, Optional, HostListener } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, Inject, Optional, HostListener, ElementRef, NgZone } from '@angular/core';
 import {
     AngularGridInstance,
     AngularSlickgridModule,
@@ -9,6 +9,7 @@ import {
     Filters,
     Formatters,
     GridOption,
+    MultipleSelectOption,
     OnEventArgs,
 } from 'angular-slickgrid';
 import { BillExportService } from './../bill-export-service/bill-export.service';
@@ -17,7 +18,6 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { DateTime } from 'luxon';
-import * as ExcelJS from 'exceljs';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -70,7 +70,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
         MenubarModule
     ],
 })
-export class BillExportNewComponent implements OnInit, OnDestroy {
+export class BillExportNewComponent implements OnInit, AfterViewInit, OnDestroy {
     // ========================================
     // Grid Instances & Properties
     // ========================================
@@ -94,7 +94,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     isDetailLoad: boolean = false;
     isCheckmode: boolean = false;
     newBillExport: boolean = false;
-    isModalOpening: boolean = false; // Flag để ngăn mở modal 2 lần
+    private savedSelectedRows: number[] = [];
     sizeTbDetail: number | string = '0';
     warehouseCode: string = '';
     readonly componentId: string =
@@ -144,6 +144,8 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     // Để cleanup subscriptions
     private destroy$ = new Subject<void>();
     private isInitialized = false;
+    private resizeObserver: ResizeObserver | null = null;
+    private lastVisibleWidth: number = 0;
 
     isMobile: boolean = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
     isShowModal: boolean = false;
@@ -165,19 +167,25 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         private clipboardService: ClipboardService,
         private message: NzMessageService,
         @Optional() @Inject('tabData') private tabData: any,
-        private permissionService: PermissionService
+        private permissionService: PermissionService,
+        private elementRef: ElementRef,
+        private ngZone: NgZone
     ) { }
 
     ngOnInit() {
-        // Đọc wareHouseCode từ query params và reinit khi thay đổi
-        this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-            // const newWarehouseCode = params['warehouseCode'] || 'HN';
-            const newWarehouseCode =
-                params['warehouseCode']
-                ?? this.tabData?.warehouseCode
-                ?? 'HN';
+        if (this.tabData) {
+            // tabData mode: mỗi tab là 1 instance riêng, không subscribe queryParams
+            // để tránh bị reinit khi tab khác thay đổi route
+            this.warehouseCode = this.tabData.warehouseCode ?? 'HN';
+            this.searchParams.warehousecode = this.warehouseCode;
+            this.initializeComponent();
+            return;
+        }
 
-            // Nếu warehouseCode thay đổi và đã được init trước đó, cần destroy grid cũ và reinit
+        // Route mode: subscribe queryParams để detect thay đổi warehouse
+        this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
+            const newWarehouseCode = params['warehouseCode'] ?? 'HN';
+
             if (this.isInitialized && this.warehouseCode !== newWarehouseCode) {
                 this.destroyGrids();
             }
@@ -185,15 +193,51 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             this.warehouseCode = newWarehouseCode;
             this.searchParams.warehousecode = this.warehouseCode;
 
-            // Init hoặc reinit
             this.initializeComponent();
         });
+    }
+
+    ngAfterViewInit() {
+        this.setupResizeObserver();
     }
 
     ngOnDestroy() {
         this.destroy$.next();
         this.destroy$.complete();
         this.destroyGrids();
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = null;
+        }
+    }
+
+    private resizeGrids(): void {
+        try {
+            if (this.angularGridMaster?.resizerService) {
+                this.angularGridMaster.resizerService.resizeGrid();
+            }
+        } catch (e) { }
+        try {
+            if (this.angularGridDetail?.resizerService) {
+                this.angularGridDetail.resizerService.resizeGrid();
+            }
+        } catch (e) { }
+    }
+
+    private setupResizeObserver(): void {
+        const element = this.elementRef.nativeElement;
+        this.resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const currentWidth = entry.contentRect.width;
+                if (this.lastVisibleWidth === 0 && currentWidth > 0) {
+                    this.ngZone.run(() => {
+                        setTimeout(() => this.resizeGrids(), 50);
+                    });
+                }
+                this.lastVisibleWidth = currentWidth;
+            }
+        });
+        this.resizeObserver.observe(element);
     }
 
     private initializeComponent() {
@@ -203,9 +247,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         this.canShippedOut = this.permissionService.hasPermission('N27,N1');
         this.canExcelKT = this.permissionService.hasPermission('N10,N11,N27,N29,N1');
         this.canDocumentFile = this.permissionService.hasPermission('N52,N36,N1,N34');
-        this.initMasterGrid();
-        this.initDetailGrid();
-        this.initializeMenu();
+
+        if (!this.isInitialized) {
+            this.initMasterGrid();
+            this.initDetailGrid();
+            this.initializeMenu();
+        }
+
         this.getProductGroup();
         this.loadDataBillExport();
         this.isInitialized = true;
@@ -223,6 +271,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         // Clear datasets
         this.datasetMaster = [];
         this.datasetDetail = [];
+        this.isInitialized = false;
     }
 
     // ========================================
@@ -269,7 +318,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 200,
             },
@@ -315,7 +370,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 150,
             },
@@ -326,7 +387,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 200,
             },
@@ -409,7 +476,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 200,
             },
@@ -420,7 +493,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 200,
             },
@@ -431,7 +510,13 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 120,
             },
@@ -442,60 +527,88 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                 sortable: true,
                 filterable: true,
                 filter: {
-                    model: Filters['compoundInput'],
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    collectionOptions: { addBlankEntry: true },
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
                 },
                 minWidth: 200,
             },
         ];
 
-        this.gridOptionsMaster = {
-            autoResize: {
-                container: '.grid-container-master-' + this.componentId,
-                calculateAvailableSizeBy: 'container',
-                resizeDetection: 'container',
+    this.gridOptionsMaster = {
+      autoResize: {
+        container: '.grid-container-master-' + this.componentId,
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
+      enableAutoResize: true,
+      enableSorting: true,
+      enableFiltering: true,
+      enablePagination: false,
+      enableRowSelection: true,
+      enableCheckboxSelector: true,
+      enableRowMoveManager: false,
+      checkboxSelector: {
+        hideSelectAllCheckbox: false,
+        hideInFilterHeaderRow: false,
+        hideInColumnTitleRow: true,
+      },
+      rowSelectionOptions: {
+        selectActiveRow: false,
+      },
+      enableColumnPicker: true,
+      enableGridMenu: true,
+      autoHeight: false,
+      gridHeight: 450,
+      rowHeight: 66, // Height for 3 lines: 12px * 1.5 * 3 + padding
+      enableCellMenu: true,
+      cellMenu: {
+        commandItems: [
+          {
+            command: 'copy',
+            title: 'Sao chép (Copy)',
+            iconCssClass: 'fa fa-copy',
+            positionOrder: 2,
+            action: (_e, args) => {
+              this.clipboardService.copy(args.value);
             },
-            gridWidth: '100%',
-            enableAutoResize: true,
-            enableSorting: true,
-            enableFiltering: true,
-            enablePagination: false,
-            enableRowSelection: true,
-            enableCheckboxSelector: true,
-            enableRowMoveManager: false,
-            checkboxSelector: {
-                hideSelectAllCheckbox: false,
-                hideInFilterHeaderRow: false,
-                hideInColumnTitleRow: true,
+          },
+        ],
+      },
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'log',
+            title: 'Lịch sử thay đổi',
+            iconCssClass: 'fa-solid fa-clock-rotate-left text-primary',
+            positionOrder: 1,
+            action: (_e, args) => {
+              this.viewLogHistory(args.dataContext);
             },
-            rowSelectionOptions: {
-                selectActiveRow: false,
+          },
+          {
+            command: 'copy',
+            title: 'Sao chép (Copy)',
+            iconCssClass: 'fa fa-copy',
+            positionOrder: 2,
+            action: (_e, args) => {
+              this.clipboardService.copy(args.value);
             },
-            enableColumnPicker: true,
-            enableGridMenu: true,
-            autoHeight: false,
-            gridHeight: 450,
-            rowHeight: 66, // Height for 3 lines: 12px * 1.5 * 3 + padding
-            enableCellMenu: true,
-            cellMenu: {
-                commandItems: [
-                    {
-                        command: 'copy',
-                        title: 'Sao chép (Copy)',
-                        iconCssClass: 'fa fa-copy',
-                        positionOrder: 1,
-                        action: (_e, args) => {
-                            this.clipboardService.copy(args.value);
-                        },
-                    },
-                ],
-            },
-            // Footer row configuration
-            createFooterRow: true,
-            showFooterRow: true,
-            footerRowHeight: 28,
-        };
-
-    }
+          },
+        ],
+      },
+      // Footer row configuration
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 28,
+    };
+  }
 
     initDetailGrid() {
         this.columnDefinitionsDetail = [
@@ -781,6 +894,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     }
 
     onMasterRowSelectionChanged(e: Event, args: any) {
+        this.savedSelectedRows = [...(args?.rows || [])];
         if (args && Array.isArray(args.rows) && args.rows.length > 0) {
             const selectedRowIndex = args.rows[0];
             const selectedData = args.dataContext || this.angularGridMaster?.dataView?.getItem(selectedRowIndex);
@@ -816,24 +930,6 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
 
     onMasterCellClick(e: Event, args: OnEventArgs) {
         // Handle cell click if needed
-    }
-
-    onMasterDoubleClick(event: any) {
-        // Ngăn mở modal 2 lần khi double click
-        if (this.isModalOpening) {
-            return;
-        }
-
-        // Lấy data từ event của Angular SlickGrid
-        const args = event?.detail?.args;
-        if (args && args.dataContext) {
-            const item = args.dataContext;
-            this.isModalOpening = true;
-            this.id = item.ID || 0;
-            this.selectedRow = item;
-            this.data = [item];
-            this.openModalBillExportDetail(true);
-        }
     }
 
     onDetailCellClick(e: Event, args: OnEventArgs) {
@@ -1032,8 +1128,10 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
                         id: item.ID
                     }));
 
-                    this.applyDistinctFiltersToMaster();
-                    this.updateMasterFooterRow();
+                    setTimeout(() => {
+                        this.applyDistinctFiltersToMaster();
+                        this.updateMasterFooterRow();
+                    }, 100);
                 }
                 this.id = 0;
                 this.selectedRow = null;
@@ -1145,13 +1243,39 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     // Actions
     // ========================================
 
-    openModalBillExportDetail(isCheckmode: boolean) {
-
-        this.isCheckmode = isCheckmode;
-        if (this.isCheckmode === true && this.id === 0) {
-            this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
-            return;
+  viewLogHistory(rowData: any): void {
+    if (!rowData || !rowData.ID) {
+      this.notification.warning('Thông báo', 'Dữ liệu phiếu không hợp lệ!');
+      return;
+    }
+    import('../Modal/bill-export-sale-log/bill-export-sale-log.component').then(
+      (m) => {
+        const modalRef = this.modal.create({
+          nzTitle: 'Lịch sử thay đổi phiếu xuất ' + (rowData.Code || ''),
+          nzContent: m.BillExportSaleLogComponent,
+          nzWidth: '1000px',
+          nzFooter: null,
+          nzStyle: { top: '20px' },
+          nzBodyStyle: {
+            height: 'calc(100vh - 100px)',
+            overflowY: 'auto',
+            padding: '0 !important',
+          },
+        });
+        // Gắn Input cho component
+        if (modalRef.componentInstance) {
+          modalRef.componentInstance.billExportID = rowData.ID;
         }
+      },
+    );
+  }
+
+  openModalBillExportDetail(isCheckmode: boolean) {
+    this.isCheckmode = isCheckmode;
+    if (this.isCheckmode === true && this.id === 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
+      return;
+    }
 
         const modalRef = this.modalService.open(BillExportDetailNewComponent, {
             centered: true,
@@ -1163,14 +1287,20 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
         modalRef.componentInstance.isCheckmode = this.isCheckmode;
         modalRef.componentInstance.id = isCheckmode ? this.id : 0; // Chỉ truyền id khi sửa
         modalRef.componentInstance.wareHouseCode = this.warehouseCode;
-        modalRef.result.then((result) => {
-            this.isModalOpening = false;
-            if (result === true) {
-                this.id = 0;
-                this.loadDataBillExport();
-            }
-        }).catch(() => {
-            this.isModalOpening = false;
+        modalRef.result.finally(() => {
+            this.loadDataBillExport();
+            setTimeout(() => {
+                if (this.angularGridMaster && this.savedSelectedRows.length > 0) {
+                    this.angularGridMaster.slickGrid.setSelectedRows(this.savedSelectedRows);
+                    const firstRowIndex = this.savedSelectedRows[0];
+                    const rowData = this.angularGridMaster.dataView.getItem(firstRowIndex);
+                    this.id = rowData?.ID || 0;
+                    this.selectedRow = rowData;
+                } else {
+                    this.id = 0;
+                    this.selectedRow = null;
+                }
+            }, 300);
         });
     }
 
@@ -1411,7 +1541,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     async exportExcel() {
         if (!this.angularGridMaster?.slickGrid) return;
 
-        const data = this.angularGridMaster.slickGrid.getData() as any[];
+        const data = this.angularGridMaster.dataView?.getFilteredItems() || [];
         if (!data || data.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
@@ -1420,7 +1550,12 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             return;
         }
 
-        const workbook = new ExcelJS.Workbook();
+        const ExcelJSModule = await import('exceljs');
+        const WorkbookClass: any =
+            (ExcelJSModule as any).Workbook ??
+            (ExcelJSModule as any).default?.Workbook ??
+            (ExcelJSModule as any).default;
+        const workbook = new WorkbookClass();
         const worksheet = workbook.addWorksheet('Danh sách phiếu xuất');
 
         const columns = this.angularGridMaster.slickGrid.getColumns();
@@ -1453,9 +1588,9 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             worksheet.views = [{ state: 'frozen', ySplit: 1 }];
         });
 
-        worksheet.eachRow((row, rowNumber) => {
+        worksheet.eachRow((row: any, rowNumber: any) => {
             if (rowNumber === 1) return;
-            row.eachCell((cell, colNumber) => {
+            row.eachCell((cell: any) => {
                 if (cell.value instanceof Date) {
                     cell.numFmt = 'dd/mm/yyyy';
                 }
@@ -1974,74 +2109,53 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
     // =================================================================
 
     private applyDistinctFiltersToMaster(): void {
-        // Use this.datasetMaster directly since this method is called
-        // before Angular updates the dataView
-        const data = this.datasetMaster;
-        if (!data || data.length === 0) return;
+        if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView) return;
 
-        // Wait for grid to be ready
-        if (!this.angularGridMaster?.slickGrid) {
-            // If grid not ready, retry after a short delay
-            setTimeout(() => this.applyDistinctFiltersToMaster(), 100);
-            return;
-        }
+    const data = this.angularGridMaster.dataView.getItems() as any[];
+    if (!data || data.length === 0) return;
 
-        // Lấy các giá trị unique của nameStatus
-        const statusMap = new Map<string, string>();
-        data.forEach((row: any) => {
-            const value = String(row?.nameStatus ?? '');
-            if (value && !statusMap.has(value)) {
-                statusMap.set(value, value);
+        const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
+            const map = new Map<string, string>();
+            dataArray.forEach((row: any) => {
+                const value = String(row?.[field] ?? '');
+                if (value && !map.has(value)) {
+                    map.set(value, value);
+                }
+            });
+            return Array.from(map.entries())
+                .map(([value, label]) => ({ value, label }))
+                .sort((a, b) => a.label.localeCompare(b.label));
+        };
+
+        const columns = this.angularGridMaster.slickGrid.getColumns();
+        if (!columns) return;
+
+        columns.forEach((column: any) => {
+            if (column?.filter && column.filter.model === Filters['multipleSelect']) {
+                const field = column.field;
+                if (!field) return;
+                column.filter.collection = getUniqueValues(data, field);
             }
         });
 
-        const statusCollection = Array.from(statusMap.entries())
-            .map(([value, label]) => ({ value, label }))
-            .sort((a, b) => a.label.localeCompare(b.label));
+        this.columnDefinitionsMaster.forEach((colDef: any) => {
+            if (colDef?.filter && colDef.filter.model === Filters['multipleSelect']) {
+                const field = colDef.field;
+                if (!field) return;
+                colDef.filter.collection = getUniqueValues(data, field);
+            }
+        });
 
-        // Lưu lại selected rows trước khi update columns
-        const selectedRows = this.angularGridMaster.slickGrid.getSelectedRows() || [];
-        const selectedIds = selectedRows.map(rowIndex => {
-            const item = this.angularGridMaster.slickGrid.getDataItem(rowIndex);
-            return item?.ID;
-        }).filter(id => id != null);
-
-        // Cập nhật filter collection cho cột nameStatus
-        const columns = this.angularGridMaster.slickGrid.getColumns();
-        const statusColumn = columns.find((col: any) => col.id === 'nameStatus');
-        if (statusColumn?.filter) {
-            statusColumn.filter.collection = statusCollection;
-        }
-
-        // Cập nhật trong columnDefinitions
-        const statusColDef = this.columnDefinitionsMaster.find((col) => col.id === 'nameStatus');
-        if (statusColDef?.filter) {
-            statusColDef.filter.collection = statusCollection;
-        }
-
-        this.angularGridMaster.slickGrid.setColumns(columns);
-
-        // Restore selected rows dựa trên ID
-        if (selectedIds.length > 0) {
-            setTimeout(() => {
-                const rowsToSelect: number[] = [];
-                this.datasetMaster.forEach((item: any, index: number) => {
-                    if (selectedIds.includes(item.ID)) {
-                        rowsToSelect.push(index);
-                    }
-                });
-                if (rowsToSelect.length > 0) {
-                    this.angularGridMaster.slickGrid?.setSelectedRows(rowsToSelect);
-                }
-            }, 0);
-        }
+        this.angularGridMaster.slickGrid.setColumns(this.angularGridMaster.slickGrid.getColumns());
+        this.angularGridMaster.slickGrid.invalidate();
+        this.angularGridMaster.slickGrid.render();
     }
 
     private applyDistinctFiltersToDetail(): void {
         if (!this.angularGridDetail?.slickGrid || !this.angularGridDetail?.dataView) return;
 
-        const data = this.angularGridDetail.dataView.getItems();
-        if (!data || data.length === 0) return;
+    const data = this.angularGridDetail.dataView.getItems();
+    if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
             const map = new Map<string, string>();
@@ -2450,6 +2564,7 @@ export class BillExportNewComponent implements OnInit, OnDestroy {
             // Set footer values cho từng column
             const columns = this.angularGridDetail.slickGrid.getColumns();
             columns.forEach((col: any) => {
+                if (!col) return;
                 const footerCell = this.angularGridDetail.slickGrid.getFooterRowColumn(
                     col.id
                 );

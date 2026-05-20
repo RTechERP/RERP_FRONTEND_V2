@@ -28,7 +28,8 @@
   word-break: break-word;
 }
 
-::ng-deep div[id^="gridMaster-"][id*="billimport"] .slick-cell {
+::ng-deep div[id^="gridMaster-"][id*="billimport"] .slick-cell,
+::ng-deep div[id^="gridDetail-"][id*="billimport"] .slick-cell {
   overflow: visible !important;
   white-space: normal !important;
 }

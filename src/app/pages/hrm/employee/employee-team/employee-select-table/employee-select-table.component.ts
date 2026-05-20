@@ -42,7 +42,7 @@ export class EmployeeSelectTableComponent implements OnInit {
     // Pre-select employees if needed
     if (this.selectedEmployeeIds && this.selectedEmployeeIds.length > 0) {
       this.selectedEmployees = this.employeeList.filter(emp => 
-        this.selectedEmployeeIds.includes(emp.ID)
+        this.selectedEmployeeIds.includes(emp.UserID || emp.ID)
       );
     }
   }

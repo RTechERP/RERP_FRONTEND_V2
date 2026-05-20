@@ -39,6 +39,7 @@ import { environment } from '../../../../../../environments/environment';
 // import { BillImportDetailNewComponent } from './bill-import-detail-new/bill-import-detail-new.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { BillImportDetailNewComponent } from './bill-import-detail-new/bill-import-detail-new.component';
+import { BillImportSyntheticNewComponent } from '../Modal/bill-import-synthetic-new/bill-import-synthetic-new.component';
 
 interface BillImport {
     Id?: number;
@@ -101,6 +102,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     private resizeObserver: ResizeObserver | null = null;
     private filterPatchObserver: MutationObserver | null = null;
     private lastVisibleWidth: number = 0;
+    private tooltipEl: HTMLElement | null = null;
 
     // Column definitions
     columnDefinitionsMaster: Column[] = [];
@@ -253,6 +255,10 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         if (this.filterPatchObserver) {
             this.filterPatchObserver.disconnect();
             this.filterPatchObserver = null;
+        }
+        if (this.tooltipEl) {
+            document.body.removeChild(this.tooltipEl);
+            this.tooltipEl = null;
         }
     }
 
@@ -472,11 +478,74 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         value: any
     ): string {
         if (!value) return '';
-        const escapedValue = String(value)
+        const escaped = String(value)
+            .replace(/&/g, '&amp;')
             .replace(/"/g, '&quot;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
-        return `<div class="cell-multiline" title="${escapedValue}">${escapedValue}</div>`;
+        return `<div class="cell-multiline" data-tooltip="${escaped}">${escaped}</div>`;
+    }
+
+    private initDetailGridTooltip(): void {
+        const gridContainer = this.elementRef.nativeElement.querySelector(
+            '.grid-container-detail-' + this.componentId
+        );
+        if (!gridContainer) return;
+
+        const tooltip = document.createElement('div');
+        tooltip.style.cssText = [
+            'display:none', 'position:fixed', 'z-index:99999',
+            'background:#fff', 'border:1px solid #d9d9d9', 'border-radius:6px',
+            'padding:8px 12px', 'max-width:420px', 'white-space:pre-wrap',
+            'word-break:break-word', 'line-height:1.6', 'font-size:13px',
+            'box-shadow:0 4px 16px rgba(0,0,0,0.15)', 'pointer-events:auto',
+            'user-select:text', '-webkit-user-select:text', 'cursor:text',
+        ].join(';');
+        document.body.appendChild(tooltip);
+        this.tooltipEl = tooltip;
+
+        let isOverTooltip = false;
+        let hideTimer: any = null;
+
+        const showTooltip = (text: string, anchorEl: Element) => {
+            if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+            tooltip.textContent = text;
+            tooltip.style.display = 'block';
+            const rect = anchorEl.getBoundingClientRect();
+            let left = rect.left;
+            let top = rect.bottom + 4;
+            if (left + 420 > window.innerWidth) left = Math.max(8, window.innerWidth - 428);
+            if (top + 150 > window.innerHeight) top = rect.top - 154;
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        };
+
+        const hideTooltip = () => {
+            hideTimer = setTimeout(() => {
+                if (!isOverTooltip) tooltip.style.display = 'none';
+            }, 80);
+        };
+
+        tooltip.addEventListener('mouseenter', () => {
+            isOverTooltip = true;
+            if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+        });
+        tooltip.addEventListener('mouseleave', () => {
+            isOverTooltip = false;
+            tooltip.style.display = 'none';
+        });
+
+        gridContainer.addEventListener('mouseover', (e: Event) => {
+            const el = (e as MouseEvent).target as HTMLElement;
+            const target = el.closest('[data-tooltip]') as HTMLElement | null;
+            if (target) showTooltip(target.getAttribute('data-tooltip') || '', target);
+        });
+
+        gridContainer.addEventListener('mouseout', (e: Event) => {
+            const related = (e as MouseEvent).relatedTarget as Node | null;
+            if (related && tooltip.contains(related)) return;
+            hideTooltip();
+        });
     }
 
     initGrids(): void {
@@ -775,21 +844,44 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             },
             enablePagination: false,
 
-            frozenColumn: 2,
-            enableCellMenu: true,
-            cellMenu: {
-                commandItems: [
-                    {
-                        command: 'copy',
-                        title: 'Sao chép (Copy)',
-                        iconCssClass: 'fa fa-copy',
-                        positionOrder: 1,
-                        action: (_e, args) => {
-                            //this.clipboardService.copy(args.value);
-                        },
-                    },
-                ],
+      frozenColumn: 2,
+      enableCellMenu: true,
+      cellMenu: {
+        commandItems: [
+          {
+            command: 'copy',
+            title: 'Sao chép (Copy)',
+            iconCssClass: 'fa fa-copy',
+            positionOrder: 2,
+            action: (_e, args) => {
+              //this.clipboardService.copy(args.value);
             },
+          },
+        ],
+      },
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'log',
+            title: 'Lịch sử thay đổi',
+            iconCssClass: 'fa-solid fa-clock-rotate-left text-primary',
+            positionOrder: 1,
+            action: (_e, args) => {
+              this.viewLogHistory(args.dataContext);
+            },
+          },
+          {
+            command: 'copy',
+            title: 'Sao chép (Copy)',
+            iconCssClass: 'fa fa-copy',
+            positionOrder: 2,
+            action: (_e, args) => {
+              //this.clipboardService.copy(args.value);
+            },
+          },
+        ],
+      },
 
             // Excel export configuration
             externalResources: [this.excelExportService],
@@ -828,7 +920,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'ProductCode' + this.wareHouseCode,
@@ -837,7 +930,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'ProductName' + this.wareHouseCode,
@@ -846,7 +940,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 300,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'SerialNumber' + this.wareHouseCode,
@@ -855,7 +950,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 300,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'Unit' + this.wareHouseCode,
@@ -865,7 +961,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 filterable: true,
                 width: 80,
                 filter: { model: Filters['compoundInputText'] },
-                cssClass: 'text-center'
+                cssClass: 'text-center',
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'ProjectCode' + this.wareHouseCode,
@@ -874,7 +971,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'Qty' + this.wareHouseCode,
@@ -895,7 +993,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'DateSomeBill' + this.wareHouseCode,
@@ -918,7 +1017,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'ProjectCodeText' + this.wareHouseCode,
@@ -927,7 +1027,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'ProjectNameText' + this.wareHouseCode,
@@ -936,7 +1037,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 200,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'CustomerFullName' + this.wareHouseCode,
@@ -945,7 +1047,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 400,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'BillCode' + this.wareHouseCode,
@@ -954,7 +1057,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'Note' + this.wareHouseCode,
@@ -963,7 +1067,8 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
             },
             {
                 id: 'DealineQC' + this.wareHouseCode,
@@ -985,7 +1090,18 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 sortable: true,
                 filterable: true,
                 width: 150,
-                filter: { model: Filters['compoundInputText'] }
+                filter: { model: Filters['compoundInputText'] },
+                formatter: this.formatTextWithTooltip.bind(this),
+            },
+            {
+                id: 'ProcessedGoods' + this.wareHouseCode,
+                name: 'Hàng gia công',
+                field: 'ProcessedGoods',
+                sortable: true,
+                filterable: false,
+                width: 100,
+                cssClass: 'text-center',
+                formatter: Formatters['checkmarkMaterial'],
             },
         ];
 
@@ -1000,6 +1116,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             enableCellNavigation: true,
             enableRowSelection: true,
             frozenColumn: 3,
+            rowHeight: 55,
 
             // Footer row configuration
             createFooterRow: true,
@@ -1097,6 +1214,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         setTimeout(() => {
             this.resizeGrids();
             this.updateDetailFooterRow();
+            this.initDetailGridTooltip();
         }, 100);
     }
 
@@ -1512,7 +1630,10 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
 
         const billsWithDetails = selectedRows.map((bill: any) => ({
             ...bill,
-            billImportDetails: this.datasetDetail,
+            billImportDetails: this.datasetDetail.map((d: any) => ({
+                ...d,
+                ProcessedGoods: d.ProcessedGoods ? 1 : 0,
+            })),
         }));
 
         this.billImportService.approved(billsWithDetails, apr).subscribe({
@@ -1894,9 +2015,37 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
         }
     }
 
-    // =================================================================
-    // MODAL AND ACTION METHODS
-    // =================================================================
+  // =================================================================
+  // MODAL AND ACTION METHODS
+  // =================================================================
+
+  viewLogHistory(rowData: any): void {
+    if (!rowData || !rowData.ID) {
+      this.notification.warning('Thông báo', 'Dữ liệu phiếu không hợp lệ!');
+      return;
+    }
+    import('../Modal/bill-import-sale-log/bill-import-sale-log.component').then(
+      (m) => {
+        const modalRef = this.modal.create({
+          nzTitle:
+            'Lịch sử thay đổi phiếu nhập ' + (rowData.BillImportCode || ''),
+          nzContent: m.BillImportSaleLogComponent,
+          nzWidth: '1000px',
+          nzFooter: null, // Không hiện các nút Ok/Cancel mặc định
+          nzStyle: { top: '20px' },
+          nzBodyStyle: {
+            height: 'calc(100vh - 100px)',
+            overflowY: 'auto',
+            padding: '0 !important',
+          },
+        });
+        // Gắn Input cho component
+        if (modalRef.componentInstance) {
+          modalRef.componentInstance.billImportId = rowData.ID;
+        }
+      },
+    );
+  }
 
     openModalScanBill() {
         import('../Modal/scan-bill-import/scan-bill-import.component').then(m => {
@@ -1956,8 +2105,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     }
 
     openModalBillImportSynthetic() {
-        import('../Modal/bill-import-synthetic-new/bill-import-synthetic-new.component').then(m => {
-            const modalRef = this.modalService.open(m.BillImportSyntheticNewComponent, {
+        const modalRef = this.modalService.open(BillImportSyntheticNewComponent, {
                 centered: true,
                 backdrop: 'static',
                 keyboard: false,
@@ -1968,7 +2116,6 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
                 if (result == true) {
                     this.loadDataBillImport();
                 }
-            });
         });
     }
 
@@ -2352,9 +2499,9 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
     private applyDistinctFiltersToMaster(): void {
         if (!this.angularGridMaster?.slickGrid || !this.angularGridMaster?.dataView) return;
 
-        // Lấy toàn bộ data (không phải chỉ filtered view) - giống project-slick-grid2
-        const data = this.angularGridMaster.dataView.getItems() as any[];
-        if (!data || data.length === 0) return;
+    // Lấy toàn bộ data (không phải chỉ filtered view) - giống project-slick-grid2
+    const data = this.angularGridMaster.dataView.getItems() as any[];
+    if (!data || data.length === 0) return;
 
         const getUniqueValues = (dataArray: any[], field: string): Array<{ value: string; label: string }> => {
             const map = new Map<string, string>();

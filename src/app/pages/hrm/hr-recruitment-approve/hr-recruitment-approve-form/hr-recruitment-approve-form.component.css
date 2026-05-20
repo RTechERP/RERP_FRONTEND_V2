@@ -1,0 +1,482 @@
+/* ══════════════════════════════════════════════════════
+   TỜ TRÌNH PHÊ DUYỆT TUYỂN DỤNG – CSS
+   Font: Times New Roman (giống văn bản hành chính VN)
+   ══════════════════════════════════════════════════════ */
+
+
+/* ── Wrapper ────────────────────────────────────────── */
+.ttr-modal-body {
+  background: #ddd;
+  padding: 24px !important;
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Paper ──────────────────────────────────────────── */
+.ttr-paper,
+.ttr-paper * {
+  font-family: 'Times New Roman', Times, serif !important;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
+.ttr-paper {
+  background: #fff;
+  width: 100%;
+  max-width: 800px;
+  padding: 30px 45px 35px;
+  font-size: 16px !important;
+  color: #000;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
+  line-height: 1.6;
+  height: 100%;
+}
+
+/* ══════════════════════════════════════════════════════
+   HEADER 2 CỘT
+   ══════════════════════════════════════════════════════ */
+.ttr-header-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2px;
+}
+
+.ttr-col-left {
+  width: 40%;
+  text-align: center;
+  vertical-align: top;
+  font-size: 16px !important;
+  font-weight: bold;
+  padding-right: 30px;
+}
+
+.ttr-the {
+  margin: 2px 0 -7px;
+}
+
+.ttr-col-right {
+  width: 60%;
+  text-align: center;
+  vertical-align: top;
+  font-size: 16px !important;
+}
+
+/* Gạch chân dưới "Độc lập – Tự do – Hạnh phúc" */
+.cdoc-underline {
+  border-top: 1px solid #000;
+  height: 0;
+  width: 35%;
+  margin: 1px 145px 10px;
+}
+
+.cdoc-underline1 {
+  border-top: 1px solid #000;
+  height: 0;
+  width: 55%;
+  margin: 2px auto 0;
+}
+
+.cdoc-underline2 {
+  border-top: 1px solid #000;
+  height: 0;
+  width: 61%;
+  margin: 2px auto 0;
+}
+
+/* ══════════════════════════════════════════════════════
+   SỐ VĂN BẢN + NGÀY
+   ══════════════════════════════════════════════════════ */
+.ttr-ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0 6px;
+  font-size: 16px !important;
+}
+
+.ttr-so {
+  text-align: left;
+  padding-left: 59px;
+}
+
+.ttr-ngay {
+  text-align: right;
+  font-style: italic;
+}
+
+/* ══════════════════════════════════════════════════════
+   TIÊU ĐỀ
+   ══════════════════════════════════════════════════════ */
+.ttr-title-block {
+  text-align: center;
+  margin: 10px 0 12px;
+}
+
+.ttr-title {
+  font-weight: bold;
+  font-size: 19px !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.ttr-subtitle {
+  font-size: 16px !important;
+  /* font-style: italic; */
+  margin: 1px 0 0;
+}
+
+/* ══════════════════════════════════════════════════════
+   CĂN CỨ (indent trái)
+   ══════════════════════════════════════════════════════ */
+.ttr-can-cu {
+  margin: 2px 0 2px 20px;
+  font-size: 16px !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   ĐOẠN VĂN
+   ══════════════════════════════════════════════════════ */
+.ttr-body-para {
+  margin: 2px 0 2px 0px;
+
+  /* text-indent: 28px; */
+  text-align: justify;
+  font-size: 16px !important;
+}
+
+.ttr-body-para.no-indent {
+  text-indent: 0;
+  padding-left: 20px;
+}
+
+/* ══════════════════════════════════════════════════════
+   MỤC SỐ (3, 4, 5)
+   ══════════════════════════════════════════════════════ */
+.ttr-num-para {
+  margin: 4px 0;
+  font-size: 16px !important;
+  line-height: 1.7;
+}
+
+/* ══════════════════════════════════════════════════════
+   SECTION HEADING (1., 2.)
+   ══════════════════════════════════════════════════════ */
+.ttr-section-h {
+  font-size: 16px !important;
+  margin: 8px 0 4px;
+}
+
+/* ══════════════════════════════════════════════════════
+   BẢNG THÔNG TIN NHÂN SỰ
+   ══════════════════════════════════════════════════════ */
+.ttr-info-table {
+  border-collapse: collapse;
+  margin: 0 0 6px 0px;
+  font-size: 16px !important;
+  width: calc(100% - 20px);
+}
+
+.ttr-info-table td {
+  padding: 2px 4px;
+  vertical-align: middle;
+}
+
+.info-lbl {
+  white-space: nowrap;
+  width: 160px;
+  vertical-align: middle;
+}
+
+.info-sep {
+  width: 16px;
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════════════════
+   INPUT GẠC CHÂN (inline, kiểu văn bản)
+   ══════════════════════════════════════════════════════ */
+.iput {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 16px !important;
+  color: #000;
+  padding: 0 1px;
+  min-width: 10px;
+}
+
+.iput-grow {
+  width: 100%;
+}
+
+.iput:focus {
+  border-bottom-color: #1976d2;
+}
+
+.iput::placeholder {
+  color: #aaa;
+  font-style: italic;
+  letter-spacing: 0;
+}
+
+/* Date mask input: do rong co dinh, chu so cach deu */
+.date-mask {
+  width: 100px;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ══════════════════════════════════════════════════════
+   BẢNG KINH NGHIỆM
+   ══════════════════════════════════════════════════════ */
+.ttr-exp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px !important;
+  margin: 0 0 8px;
+}
+
+.ttr-exp-table th,
+.ttr-exp-table td {
+  border: 1px solid #000;
+  padding: 4px 6px;
+  vertical-align: middle;
+}
+
+.ttr-exp-table th {
+  text-align: center;
+  font-weight: bold;
+  background: #fff;
+}
+
+.tbl-iput {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 16px !important;
+  color: #000;
+  padding: 0;
+  display: block;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* ══════════════════════════════════════════════════════
+   CHẾ ĐỘ HƯỞNG (danh sách gạch đầu dòng "-")
+   ══════════════════════════════════════════════════════ */
+.ttr-benefit-list {
+  list-style: none;
+  padding: 0 0 0 0px;
+  margin: 2px 0 6px;
+}
+
+.ttr-benefit-list>li {
+  position: relative;
+  padding-left: 18px;
+  font-size: 16px !important;
+  margin-bottom: 3px;
+  line-height: 1.75;
+  text-align: justify;
+}
+
+.ttr-benefit-list>li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* ══════════════════════════════════════════════════════
+   CHỮ KÝ 3 CỘT
+   ══════════════════════════════════════════════════════ */
+/* CHU KY 3 COT */
+.ttr-sig-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18px;
+}
+
+.ttr-sig-col {
+  flex: 1;
+  text-align: center;
+  padding: 0 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Box bao quanh ten + vach ke: dam bao ten luon can giua vach */
+.ttr-sig-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.ttr-sig-name-input {
+  text-align: center;
+  font-weight: bold;
+  text-transform: uppercase;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.ttr-sig-title {
+  font-weight: bold;
+  font-size: 16px !important;
+  text-transform: uppercase;
+  margin: 0 0 2px;
+}
+
+.ttr-sig-space {
+  height: 72px;
+}
+
+.ttr-sig-name {
+  font-size: 16px !important;
+  font-weight: bold;
+  text-transform: uppercase;
+  min-height: 18px;
+  margin: 0 0 4px;
+}
+
+.ttr-sig-line {
+  border-top: 1px solid #555;
+  width: 100%;
+  margin: 0 0 4px;
+}
+
+.ttr-sig-note {
+  font-size: 12px !important;
+  font-style: italic;
+  color: #444;
+}
+
+/* ══════════════════════════════════════════════════════
+   FORCE FONT INHERITANCE VÀO INPUT (browser không tự kế thừa)
+   ══════════════════════════════════════════════════════ */
+.ttr-paper ::ng-deep input,
+.ttr-paper ::ng-deep textarea,
+.ttr-paper ::ng-deep select {
+  font-family: 'Times New Roman', Times, serif !important;
+  font-size: 16px !important;
+  color: #000 !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   IN ẤN
+   ══════════════════════════════════════════════════════ */
+@media print {
+  ::ng-deep body * {
+    visibility: hidden;
+  }
+
+  ::ng-deep .ttr-modal-body,
+  ::ng-deep .ttr-modal-body * {
+    visibility: visible;
+  }
+
+  ::ng-deep ngb-modal-window {
+    position: absolute !important;
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+  }
+
+  ::ng-deep .modal-dialog,
+  ::ng-deep .modal-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    align-items: flex-start !important;
+    transform: none !important;
+    min-height: 0 !important;
+  }
+
+  ::ng-deep .ttr-modal-body {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  ::ng-deep .no-print,
+  ::ng-deep .modal-header,
+  ::ng-deep .modal-footer {
+    display: none !important;
+  }
+
+  ::ng-deep .ttr-paper {
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    page-break-after: auto;
+  }
+
+  /* Đảm bảo bảng không bị cắt ngang ở giữa dòng khi sang trang 2 */
+  ::ng-deep .ttr-exp-table tr {
+    page-break-inside: avoid;
+  }
+
+  ::ng-deep .ttr-sig-row {
+    page-break-inside: avoid;
+  }
+
+  /* Prevent inputs from having borders and backgrounds in print */
+  ::ng-deep .iput,
+  ::ng-deep .tbl-iput {
+    border: none !important;
+    background: transparent !important;
+    color: #000 !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  /* Đưa toàn bộ font chữ về chuẩn 15pt của Word khi In */
+  ::ng-deep .ttr-paper,
+  ::ng-deep .ttr-col-left,
+  ::ng-deep .ttr-col-right,
+  ::ng-deep .ttr-ref-table,
+  ::ng-deep .ttr-can-cu,
+  ::ng-deep .ttr-body-para,
+  ::ng-deep .ttr-num-para,
+  ::ng-deep .ttr-section-h,
+  ::ng-deep .ttr-info-table,
+  ::ng-deep .iput,
+  ::ng-deep .tbl-iput,
+  ::ng-deep .ttr-exp-table,
+  ::ng-deep .ttr-benefit-list>li,
+  ::ng-deep .ttr-sig-title,
+  ::ng-deep .ttr-sig-name,
+  ::ng-deep .ttr-sig-note,
+  ::ng-deep .ttr-paper ::ng-deep input,
+  ::ng-deep .ttr-paper ::ng-deep textarea,
+  ::ng-deep .ttr-paper ::ng-deep select {
+    font-size: 15pt !important;
+  }
+
+  ::ng-deep .ttr-title {
+    font-size: 18pt !important;
+  }
+}

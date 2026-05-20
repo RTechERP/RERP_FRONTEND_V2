@@ -344,7 +344,7 @@
                 }
               </nz-select>
 
-              <input nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 220px" [(ngModel)]="keyword"
+              <input #keywordInput nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 220px" [(ngModel)]="keyword"
                 [ngModelOptions]="{ standalone: true }" (keyup.enter)="searchProjects(1, pageSize)" />
 
               <button nz-button nzType="primary" nzSize="small" (click)="searchProjects(1, pageSize)">
@@ -377,11 +377,13 @@
               <nz-splitter-panel [nzCollapsible]="true" [nzResizable]="true" [nzSize]="sizeTbMaster">
                 <div class="table-container" style="height: 100%">
                   <p-table #dtProjects [value]="dataset" selectionMode="single" [(selection)]="selectedRow" dataKey="ID"
-                    [scrollable]="true" scrollHeight="flex" [paginator]="true" [rows]="pageSize"
+                    [scrollable]="true" scrollHeight="flex" [virtualScroll]="true"
+                    [virtualScrollItemSize]="projectVirtualRowHeight" [virtualScrollOptions]="projectVirtualScrollOptions"
+                    [rowTrackBy]="trackProjectById" [paginator]="true" [rows]="pageSize"
                     [totalRecords]="totalRecords" [lazy]="true" (onLazyLoad)="loadProjectsLazy($event)"
-                    [rowsPerPageOptions]="[100, 200, 300,99999]" [resizableColumns]="true" columnResizeMode="expand"
-                    styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped" [contextMenu]="cm"
-                    [loading]="isLoading" (onRowContextMenu)="onRowContextMenu($event)"
+                    [rowsPerPageOptions]="projectRowsPerPageOptions" [resizableColumns]="true" columnResizeMode="expand"
+                    styleClass="project-master-table p-datatable-sm p-datatable-gridlines p-datatable-striped"
+                    [contextMenu]="cm" [loading]="isLoading" (onRowContextMenu)="onRowContextMenu($event)"
                     (onFilter)="handleTableFilter($event)">
 
                     <ng-template pTemplate="header">

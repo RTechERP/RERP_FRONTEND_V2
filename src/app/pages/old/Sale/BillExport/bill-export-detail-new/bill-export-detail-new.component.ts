@@ -264,7 +264,7 @@ export class BillExportDetailNewComponent
         private appUserService: AppUserService
     ) {
         this.validateForm = this.fb.group({
-            Code: [{ value: '', disabled: true }],
+            Code: [''],
             UserID: [{ value: 0 }, [Validators.required, Validators.min(1)]],
             SenderID: [{ value: 0 }, [Validators.required, Validators.min(1)]],
             CustomerID: [0, [Validators.required, Validators.min(1)]],
@@ -867,19 +867,39 @@ export class BillExportDetailNewComponent
                         minLength: 0,
                         forceUserInput: false,
                         openSearchListOnFocus: true,
+                        debounceWaitMs: 0,
                         labelField: 'ProductCode',
+                        customize: (_input: HTMLInputElement, inputRect: DOMRect, container: HTMLDivElement, _maxHeight: number) => {
+                            const spaceBelow = window.innerHeight - inputRect.bottom;
+                            const spaceAbove = inputRect.top;
+                            const dropdownHeight = 300;
+                            if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+                                const availableAbove = Math.min(spaceAbove - 8, dropdownHeight);
+                                container.style.top = 'auto';
+                                container.style.bottom = `${window.innerHeight - inputRect.top}px`;
+                                container.style.maxHeight = `${availableAbove}px`;
+                            } else {
+                                container.style.top = `${inputRect.bottom}px`;
+                                container.style.bottom = 'auto';
+                                container.style.maxHeight = `${Math.min(spaceBelow - 8, dropdownHeight)}px`;
+                            }
+                        },
                         fetch: (searchTerm: string, callback: (items: false | any[]) => void) => {
                             const products = this.productGridCollection || [];
                             if (!searchTerm || searchTerm.length === 0) {
-                                callback(products);
+                                callback(products.slice(0, 50));
                             } else {
-                                const filtered = products.filter((product: any) => {
+                                const term = searchTerm.toLowerCase();
+                                const filtered: any[] = [];
+                                for (const product of products) {
+                                    if (filtered.length >= 50) break;
                                     const code = (product.ProductCode || '').toLowerCase();
                                     const newCode = (product.ProductNewCode || '').toLowerCase();
                                     const name = (product.ProductName || '').toLowerCase();
-                                    const term = searchTerm.toLowerCase();
-                                    return code.includes(term) || newCode.includes(term) || name.includes(term);
-                                });
+                                    if (code.includes(term) || newCode.includes(term) || name.includes(term)) {
+                                        filtered.push(product);
+                                    }
+                                }
                                 callback(filtered);
                             }
                         },
@@ -939,7 +959,8 @@ export class BillExportDetailNewComponent
                 editor: { model: Editors['text'] },
                 formatter: (_row, _cell, value) => {
                     if (!value) return '';
-                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
                 },
             },
             {
@@ -952,7 +973,8 @@ export class BillExportDetailNewComponent
                 filter: { model: Filters['compoundInputText'] },
                 formatter: (_row, _cell, value) => {
                     if (!value) return '';
-                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
                 },
             },
             {
@@ -1045,6 +1067,10 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'] }, // nvarchar(max) - không giới hạn
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'ExpectReturnDate',
@@ -1063,13 +1089,7 @@ export class BillExportDetailNewComponent
                     const year = date.getFullYear();
                     return `${day}/${month}/${year}`;
                 },
-                editor: {
-                    model: Editors['date'],
-                    editorOptions: {
-                        minDate: 'today',
-                        maxDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
-                    },
-                },
+                editor: { model: Editors['date'] },
             },
             {
                 id: 'UnitPricePOKH',
@@ -1113,6 +1133,11 @@ export class BillExportDetailNewComponent
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
+                },
             },
             {
                 id: 'Specifications',
@@ -1123,6 +1148,10 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'], maxLength: 550 }, // nvarchar(550)
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="white-space: pre-wrap; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${value}</div>`;
+                },
             },
             {
                 id: 'GroupExport',
@@ -1143,6 +1172,11 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'] }, // Không có trong DB schema, cần kiểm tra
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
+                },
             },
             {
                 id: 'CustomerResponse',
@@ -1153,6 +1187,11 @@ export class BillExportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'], maxLength: 550 }, // nvarchar(550)
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
+                },
             },
             {
                 id: 'SerialNumber',
@@ -1167,15 +1206,42 @@ export class BillExportDetailNewComponent
                 excludeFromHeaderMenu: true,
                 hidden: true,
                 editor: { model: Editors['text'], maxLength: 50 }, // nvarchar(50)
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+                    const html = String(value).replace(/\n/g, '<br>');
+                    return `<div title="${String(value).replace(/"/g, '&quot;')}" style="line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; word-break: break-word;">${html}</div>`;
+                },
             },
             {
                 id: 'PONumber',
                 name: 'Số PO',
                 field: 'PONumber',
-                width: 120,
+                width: 300,
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => {
+                    if (!value) return '';
+
+                    const html = String(value).replace(/\n/g, '<br>');
+
+                    return `
+                    <div 
+                        title="${String(value).replace(/"/g, '&quot;')}" 
+                        style="
+                            line-height: 1.3;
+                            overflow: hidden;
+                            display: -webkit-box;
+                            -webkit-line-clamp: 3;
+                            -webkit-box-orient: vertical;
+                            overflow-wrap: anywhere;
+                            word-break: break-all;
+                        "
+                    >
+                        ${html}
+                    </div>
+                `;
+                }
             },
             {
                 id: 'AddSerial',
@@ -2016,7 +2082,7 @@ export class BillExportDetailNewComponent
 
         if (billExportID <= 0 || !isTransfer) return;
 
-        this.billExportService.getBillImportByBillExportID(billExportID,1).subscribe({
+        this.billExportService.getBillImportByBillExportID(billExportID, 1).subscribe({
             next: (res: any) => {
                 if (res?.status === 1 && res?.data) {
                     const billImport = res.data;
@@ -3131,13 +3197,13 @@ export class BillExportDetailNewComponent
         }
 
         // Check if the bill is approved - if so, don't allow editing
-        if (this.newBillExport.IsApproved) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                'Phiếu đã được duyệt, không thể chỉnh sửa Serial!'
-            );
-            return;
-        }
+        // if (this.newBillExport.IsApproved) {
+        //     this.notification.warning(
+        //         NOTIFICATION_TITLE.warning,
+        //         'Phiếu đã được duyệt, không thể chỉnh sửa Serial!'
+        //     );
+        //     return;
+        // }
 
         // Get quantity and product code from row data
         const quantity = rowData.Qty || 0;
@@ -3168,6 +3234,7 @@ export class BillExportDetailNewComponent
             modalRef.componentInstance.existingSerials = existingSerials;
             modalRef.componentInstance.type = type;
             modalRef.componentInstance.dataBillDetail = rowData;
+            modalRef.componentInstance.isApproved = !!this.newBillExport.IsApproved;
 
             // Handle modal result
             modalRef.result.then(

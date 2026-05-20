@@ -301,7 +301,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         const departmentString =
             this.department.length > 0
                 ? this.department.join(',')
-                : '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24';
+                : '';
 
         const request = {
             filterText: this.filterText || '',
@@ -535,7 +535,6 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             },
         });
     }
-
     onAddAsset() {
         const initialData = {
             ID: 0,
@@ -843,7 +842,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             { header: 'Mô tả chi tiết', key: 'SpecificationsAsset', width: 30, field: 'SpecificationsAsset' },
             { header: 'Đơn vị', key: 'UnitName', width: 10, field: 'UnitName' },
             { header: 'Mã phòng ban', key: 'DepartmentCode', width: 15, field: 'DepartmentCode' },
-            { header: 'Phòng ban', key: 'DepartmentName', width: 20, field: 'DepartmentName' },
+            { header: 'Phòng ban', key: 'Name', width: 20, field: 'Name' },
             { header: 'Mã nhân viên', key: 'EmployeeCode', width: 15, field: 'EmployeeCode' },
             { header: 'Người quản lý', key: 'FullName', width: 20, field: 'FullName' },
             { header: 'Thời gian mua', key: 'DateBuy', width: 15, field: 'DateBuy' },

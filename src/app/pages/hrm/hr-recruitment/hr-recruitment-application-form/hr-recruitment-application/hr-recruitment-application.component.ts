@@ -157,7 +157,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
-                visible: this.permissionService.hasPermission('N1,N2'),
+                visible: this.permissionService.hasPermission('N1,N2,N94'),
                 command: () => {
                     this.onDelete();
                 },

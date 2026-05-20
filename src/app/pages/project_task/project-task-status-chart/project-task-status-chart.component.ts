@@ -306,6 +306,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
     const done = data.map(item => item.Done);
     const doneLate = data.map(item => item.DoneLate);
     const pending = data.map(item => item.Pending);
+    const cancel = data.map(item => item.Cancel);
     const total = data.map(item => item.TotalTasks);
 
     this.chartOptions = {
@@ -336,7 +337,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
         }
       },
       legend: {
-        data: ['Chưa làm', 'Đang làm', 'Đang làm quá hạn', 'Hoàn thành', 'Hoàn thành quá hạn', 'Pending', 'Tổng công việc'],
+        data: ['Chưa làm', 'Đang làm', 'Đang làm quá hạn', 'Hoàn thành', 'Hoàn thành quá hạn', 'Pending', 'Hủy', 'Tổng công việc'],
         bottom: 0,
         type: 'scroll'
       },
@@ -403,6 +404,13 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
           stack: 'status',
           data: pending,
           itemStyle: { color: '#8b5cf6' }
+        },
+        {
+          name: 'Hủy',
+          type: 'bar',
+          stack: 'status',
+          data: cancel,
+          itemStyle: { color: '#f43f5e' }
         },
         {
           name: 'Tổng công việc',

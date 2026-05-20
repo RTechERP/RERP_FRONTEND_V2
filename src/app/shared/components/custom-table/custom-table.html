@@ -310,7 +310,7 @@
             [pReorderableRow]="rowIndex" 
             [ngClass]="rowClass ? rowClass(rowData) : ''"
             [class.row-click-selected]="isRowClicked(rowData) || isRowSelected(rowData)"
-            (click)="onRowClick(rowData)">
+            (click)="onRowClick(rowData)" (dblclick)="onRowDblClick(rowData)">
             <!-- Drag handle for row reorder -->
             <td *ngIf="reorderableRows">
                 <span class="pi pi-bars" pReorderableRowHandle style="cursor: move;"></span>

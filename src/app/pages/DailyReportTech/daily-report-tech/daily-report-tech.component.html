@@ -68,9 +68,10 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
                             <nz-form-control>
-                                <nz-select [(ngModel)]="departmentId" name="departmentId" nzShowSearch nzAllowClear
-                                    nzSize="small" nzPlaceHolder="Chọn phòng ban" class="w-100"
-                                    (ngModelChange)="onDepartmentChange()">
+                                <nz-select nzDropdownClassName="select-dropdown" [(ngModel)]="departmentId"
+                                    name="departmentId" nzShowSearch nzAllowClear="false" nzSize="small"
+                                    nzPlaceHolder="Chọn phòng ban" class="w-100" (ngModelChange)="onDepartmentChange()"
+                                    [nzDisabled]="!isChangeDepartment">
                                     <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
                                         [nzLabel]="item.Name">
                                         {{ item.Name }}
@@ -85,8 +86,9 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Team</nz-form-label>
                             <nz-form-control>
-                                <nz-select [(ngModel)]="teamId" name="teamId" nzShowSearch nzAllowClear nzSize="small"
-                                    nzPlaceHolder="Chọn team" class="w-100" (ngModelChange)="onTeamChange()">
+                                <nz-select nzDropdownClassName="select-dropdown" [(ngModel)]="teamId" name="teamId"
+                                    nzShowSearch nzAllowClear="false" nzSize="small" nzPlaceHolder="Chọn team"
+                                    class="w-100" (ngModelChange)="onTeamChange()">
                                     <nz-option *ngFor="let item of teams" [nzValue]="item.ID" [nzLabel]="item.Name">
                                         {{ item.Name }}
                                     </nz-option>
@@ -100,8 +102,9 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Nhân viên</nz-form-label>
                             <nz-form-control>
-                                <nz-select [(ngModel)]="userId" name="userId" nzShowSearch nzAllowClear nzSize="small"
-                                    nzPlaceHolder="Chọn nhân viên" class="w-100">
+                                <nz-select nzDropdownClassName="select-dropdown" [(ngModel)]="userId" name="userId"
+                                    nzShowSearch nzAllowClear="false" nzSize="small" nzPlaceHolder="Chọn nhân viên"
+                                    class="w-100">
                                     <nz-option [nzValue]="0" nzLabel="Tất cả">Tất cả</nz-option>
                                     <nz-option-group *ngFor="let parent of users" [nzLabel]="parent.label">
                                         <nz-option *ngFor="let child of parent.options" nzCustomContent="true"

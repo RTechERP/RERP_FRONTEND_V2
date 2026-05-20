@@ -48,7 +48,8 @@
 
                     <!-- Question Image (if any) -->
                     <div class="question-image" *ngIf="currentQuestion.Image">
-                        <img [src]="currentQuestionImage" alt="Question Image" />
+                        <img [src]="currentQuestionImage" alt="Question Image"
+                            (click)="onViewFile(currentQuestionImage)" />
                     </div>
                 </div>
 

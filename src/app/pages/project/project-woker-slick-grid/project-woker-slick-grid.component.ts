@@ -4,6 +4,8 @@ import {
   AfterViewInit,
   OnDestroy,
   Input,
+  Inject,
+  Optional,
   ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -41,6 +43,7 @@ import { ProjectSolutionDetailComponent } from '../project-department-summary/pr
 import { ProjectSolutionVersionDetailComponent } from '../project-department-summary/project-department-summary-form/project-solution-version-detail/project-solution-version-detail.component';
 import { ProjectWorkerDetailComponent } from '../project-department-summary/project-department-summary-form/project-worker-detail/project-worker-detail.component';
 import { ImportExcelProjectWorkerComponent } from '../project-department-summary/project-department-summary-form/import-excel-project-worker/import-excel-project-worker.component';
+import { AppUserService } from '../../../services/app-user.service';
 @Component({
   selector: 'app-project-woker-slick-grid',
   templateUrl: './project-woker-slick-grid.component.html',
@@ -111,6 +114,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   versionID: number = 0;
   type: number = 0;
   isLoading: boolean = false;
+  isTab: boolean = false;
 
   // Selection tracking
   lastClickedWorkerRow: any = null;
@@ -128,12 +132,24 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
     private projectWorkerService: ProjectWorkerService,
     private notification: NzNotificationService,
     private modal: NzModalService,
-    public activeModal: NgbActiveModal,
+    @Optional() public activeModal: NgbActiveModal,
     private ngbModal: NgbModal,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private appUserService: AppUserService,
+    @Optional() @Inject('tabData') private tabData?: any
   ) { }
 
   ngOnInit(): void {
+    // Nhận data khi được mở qua TabService
+    if (this.tabData) {
+      this.isTab = true;
+      if (this.tabData.projectId !== undefined) {
+        this.projectId = this.tabData.projectId;
+      }
+      if (this.tabData.projectCodex !== undefined) {
+        this.projectCodex = this.tabData.projectCodex;
+      }
+    }
     this.isDeleted = 0;
     this.isApprovedTBP = -1;
     this.initializeGrids();
@@ -224,6 +240,11 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
           // useRegularTooltipFromCellTextOnly: true,
         },
       },
+      {
+        id: 'IsApprovedTBP', field: 'IsApprovedTBP', name: 'Duyệt', width: 70,
+        formatter: (row, cell, value) => `<input type="checkbox" ${value === true ? 'checked' : ''} disabled style="pointer-events: none;" />`,
+        cssClass: 'text-center',
+      },
       { id: 'UpdatedBy', field: 'UpdatedBy', name: 'Người duyệt', width: 100 },
     ];
 
@@ -274,11 +295,11 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
     this.poVersionColumns = [
       { id: 'STT', field: 'STT', name: 'STT', width: 50, cssClass: 'text-center' },
       {
-        id: 'IsActive', field: 'IsActive', name: 'Sử dụng', width: 70,
+        id: 'IsActive', field: 'IsActive', name: 'Sử dụng', width: 50,
         formatter: (row, cell, value) => `<input type="checkbox" ${value === true ? 'checked' : ''} disabled style="pointer-events: none;" />`,
         cssClass: 'text-center',
       },
-      { id: 'Code', field: 'Code', name: 'Mã', width: 80 },
+      { id: 'Code', field: 'Code', name: 'Mã', width: 50 },
       {
         id: 'DescriptionVersion', field: 'DescriptionVersion', name: 'Mô tả', width: 200,
         formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
@@ -297,7 +318,18 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
           // useRegularTooltipFromCellTextOnly: true,
         },
       },
+      {
+        id: 'IsApprovedTBP', field: 'IsApprovedTBP', name: 'Duyệt', width: 50,
+        formatter: (row, cell, value) => `<input type="checkbox" ${value === true ? 'checked' : ''} disabled style="pointer-events: none;" />`,
+        cssClass: 'text-center',
+      },
       { id: 'UpdatedBy', field: 'UpdatedBy', name: 'Người duyệt', width: 100 },
+      {
+        id: 'IsProblem', field: 'IsProblem', name: 'Phát sinh', width: 50,
+        formatter: (row, cell, value) => `<input type="checkbox" ${value === true ? 'checked' : ''} disabled style="pointer-events: none;" />`,
+        cssClass: 'text-center',
+      },
+      { id: 'ContentError', field: 'ContentError', name: 'Nội dung phát sinh', width: 200 },
     ];
 
     this.poVersionGridOptions = {
@@ -539,6 +571,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
             this.selectionProjectSolutionName = rowData.CodeSolution;
             // Chỉ gọi loadDataSolutionVersion(), nó sẽ tự gọi loadDataPOVersion() nếu cần
             this.loadDataSolutionVersion();
+            this.loadDataPOVersion();
             this.clearWorkerTable();
           }
         }
@@ -740,6 +773,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         this.selectionProjectSolutionName = rowData.CodeSolution;
         // Chỉ gọi loadDataSolutionVersion(), nó sẽ tự gọi loadDataPOVersion() nếu cần
         this.loadDataSolutionVersion();
+        this.loadDataPOVersion();
         this.clearWorkerTable();
       }
     }
@@ -840,7 +874,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         if (response.status === 1) {
           this.dataSolution = (response.data || []).map((item: any, index: number) => ({
             ...item,
-            id: item.ID ? item.ID : `sol_${index}_${Date.now()}`,
+            id: `sol_${item.ID || 0}_${index}_${Date.now()}`,
           }));
 
           this.clearVersionTables();
@@ -914,7 +948,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         if (response.status === 1) {
           this.dataSolutionVersion = (response.data || []).map((item: any, index: number) => ({
             ...item,
-            id: item.ID ? item.ID : `sol_ver_${index}_${Date.now()}`,
+            id: `sol_ver_${item.ID || 0}_${index}_${Date.now()}`,
           }));
 
           // KHÔNG auto-select dòng nào, chỉ load dữ liệu
@@ -941,7 +975,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         if (response.status === 1) {
           this.dataPOVersion = (response.data || []).map((item: any, index: number) => ({
             ...item,
-            id: item.ID ? item.ID : `po_ver_${index}_${Date.now()}`,
+            id: `po_ver_${item.ID || 0}_${index}_${Date.now()}`,
           }));
 
           // KHÔNG auto-select dòng nào, chỉ load dữ liệu
@@ -1114,6 +1148,61 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       },
     });
   }
+
+  //#region cập nhật trạng thái duyệt phiên bản giải pháp / PO
+  updateApproveVersion(typeNumber: number, action: number): void {
+    const grid = typeNumber === 1 ? this.angularGridSolutionVersion : this.angularGridPOVersion;
+    if (!grid?.slickGrid) return;
+    
+    const selectedRows = grid.slickGrid.getSelectedRows() || [];
+    if (selectedRows.length === 0) {
+      this.notification.warning(
+        'Thông báo',
+        `Vui lòng chọn phiên bản ${typeNumber === 1 ? 'giải pháp' : 'PO'} cần cập nhật`
+      );
+      return;
+    }
+
+    const rowIdx = selectedRows[0];
+    const rowData = grid.dataView?.getItem(rowIdx);
+    if (!rowData) return;
+
+    const employeeId = this.appUserService.employeeID || 0;
+
+    const payload = { ...rowData };
+    delete payload.id; // Remove slickgrid specific property
+    payload.IsApprovedTBP = action === 1 ? true : false;
+    payload.ApprovedTBPDate = action === 1 ? new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString() : null;
+    payload.ApprovedTBPID = action === 1 ? employeeId : null;
+
+    const workerPayload = {
+      ProjectWorkerVersion: payload,
+      ProjectHistoryProblemIds: rowData.ProjectHistoryProblemIds ? rowData.ProjectHistoryProblemIds : []
+    };
+
+    this.projectWorkerService.saveSolutionVersion(workerPayload).subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          this.notification.success(
+            'Thành công',
+            'Cập nhật trạng thái duyệt phiên bản thành công!'
+          );
+          if (typeNumber === 1) {
+            this.loadDataSolutionVersion();
+          } else {
+            this.loadDataPOVersion();
+          }
+        } else {
+          this.notification.error('Lỗi', response.message);
+        }
+      },
+      error: (error: any) => {
+        console.error('Error updating approve version:', error);
+        this.notification.error('Lỗi', 'Không thể cập nhật trạng thái duyệt phiên bản');
+      },
+    });
+  }
+  //#endregion
 
   toggleTBPColumn(): void {
     // SlickGrid column visibility handled differently - could hide/show column if needed
@@ -1323,7 +1412,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
 
     const modalRef = this.ngbModal.open(ProjectSolutionVersionDetailComponent, {
       centered: true,
-      size: 'md',
+      size: 'xl',
       backdrop: 'static',
       keyboard: false,
     });

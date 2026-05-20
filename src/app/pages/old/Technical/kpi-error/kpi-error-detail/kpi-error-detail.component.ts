@@ -10,6 +10,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { KpiErrorService } from '../kpi-error-service/kpi-error.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { KpiErrorTypeDetailComponent } from '../kpi-error-type/kpi-error-type-detail/kpi-error-type-detail.component';
+import { finalize } from 'rxjs';
 
 @Component({
     selector: 'app-kpi-error-detail',
@@ -54,6 +55,7 @@ export class KpiErrorDetailComponent implements OnInit {
     parserNumber = (value: string): number => parseInt(value.replace(/,/g, ''), 10) || 0;
 
     errors: any = {};
+    isSaving: boolean = false;
 
     constructor(
         public activeModal: NgbActiveModal,
@@ -163,6 +165,10 @@ export class KpiErrorDetailComponent implements OnInit {
     }
 
     save(): void {
+        if (this.isSaving) {
+            return;
+        }
+
         if (!this.validate()) {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng kiểm tra lại thông tin');
             return;
@@ -180,7 +186,10 @@ export class KpiErrorDetailComponent implements OnInit {
             DepartmentID: this.departmentId
         };
 
-        this.kpiErrorService.saveKPIError(data).subscribe({
+        this.isSaving = true;
+        this.kpiErrorService.saveKPIError(data).pipe(
+            finalize(() => this.isSaving = false)
+        ).subscribe({
             next: (response: any) => {
                 if (response?.status === 1) {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Lưu thành công');

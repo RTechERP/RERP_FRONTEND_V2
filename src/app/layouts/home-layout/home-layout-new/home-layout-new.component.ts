@@ -78,7 +78,7 @@ import { ProjectTaskService } from '../../../pages/project_task/project-task/pro
 export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     private eventSource: EventSource | null = null;
     currentAppVersion: string = '';
-    userAppVersion: string = localStorage.getItem('currentAppVersion') || '0.0.0';
+    userAppVersion: string = localStorage.getItem('currentAppVersion') || '1.0.3';
     lixis: LiXi[] = [];
     showLixiRain: boolean = false;
     hasNewVersion: boolean = false;
@@ -118,6 +118,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     quantityOverdueProjectTask: number = 0;
     hasBorrowSale: boolean = true;
     hasBorrowDemo: boolean = true;
+    contractExpiryInfo: { daysLeft: number | null; contractEndDate: string | null } = { daysLeft: null, contractEndDate: null };
+    pendingReview = { asEmployee: 0, asEvaluator: 0, asTBP: 0, asHR: 0, asBGD: 0 };
 
     isHoliday(date: Date): boolean {
         let isHoliday = this.holidays.some(
@@ -205,7 +207,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             this.getQuantityBorrow(),
             this.getQuantityBorrowSale(),
             this.getQuantityOverdueProjectTask(),
-            this.loadNewsletters()
+            this.loadNewsletters(),
+            this.getPendingContractReview(),
         ]).subscribe({
             next: () => {
                 console.log('Tất cả API quan trọng đã load xong. Khởi tạo SSE và check version...');
@@ -219,6 +222,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             }
         });
 
+        // mở new tab
 
     }
     getQuantityApprove() {
@@ -391,16 +395,18 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 var pesons = this.menus.find((x) => x.key == 'person');
                 var tasks = this.menus.find((x) => x.key == 'M03');// Công việc
                 this.menuPersons = pesons.children.filter((x: any) => menuPersonCodes.includes(x.key));
-                const menuWeekplans = pesons.children.find((x: any) => x.key === 'planweek');
-                const menuProjectTask = tasks.children.find((x: any) => x.key === 'M10005');
+                // const menuWeekplans = pesons.children.find((x: any) => x.key === 'planweek');
+                const menuWeekplans = tasks.children.find((x: any) => x.key === 'M10005');
+                const menuProjectTask = tasks.children.find((x: any) => x.key === 'M10002');
+                const menuTimeLine = menuProjectTask.children.find((x: any) => x.key === 'M10304');
+                menuWeekplans.children.unshift(menuTimeLine);
+                // if (menuWeekplans && menuProjectTask) {
+                //     menuWeekplans.children = menuWeekplans.children || [];
 
-                if (menuWeekplans && menuProjectTask) {
-                    menuWeekplans.children = menuWeekplans.children || [];
-
-                    menuProjectTask.children.forEach((item: any) => {
-                        menuWeekplans.children.push({ ...item });
-                    });
-                }
+                //     menuProjectTask.children.forEach((item: any) => {
+                //         menuWeekplans.children.push({ ...item });
+                //     });
+                // }
                 this.menuWeekplans = menuWeekplans;
                 this.menuQickAcesss = this.menus.find((x) => x.key == 'M4');
             }),
@@ -474,6 +480,79 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 );
                 return of(null);
             })
+        );
+    }
+
+
+    getContractExpiry() {
+        return this.homepageService.getContractExpiryDays().pipe(
+            tap((res: any) => {
+                if (res?.status !== 1 || !res?.data) return;
+                const daysLeft: number = res.data.daysLeft;
+                const contractEndDate: string = res.data.contractEndDate;
+
+                this.contractExpiryInfo = { daysLeft, contractEndDate };
+
+                if (daysLeft <= 0) {
+                    // Đã hết hạn hoặc hết hạn hôm nay
+                    this.notifService.addItem({
+                        id: 10,
+                        time: new Date().toISOString(),
+                        title: 'Hợp đồng đã hết hạn!',
+                        text: daysLeft === 0
+                            ? `Hợp đồng của bạn hết hạn hôm nay (${contractEndDate})!`
+                            : `Hợp đồng của bạn đã hết hạn ${Math.abs(daysLeft)} ngày trước (${contractEndDate})!`,
+                        group: 'today',
+                        icon: 'close-circle',
+                        route: '',
+                        queryParams: {}
+                    });
+                } else if (daysLeft <= 10) {
+                    // Sắp hết hạn
+                    this.notifService.addItem({
+                        id: 10,
+                        time: new Date().toISOString(),
+                        title: 'Hợp đồng sắp hết hạn',
+                        text: `Hợp đồng của bạn còn ${daysLeft} ngày nữa sẽ hết hạn (${contractEndDate})!`,
+                        group: 'today',
+                        icon: 'warning',
+                        route: '',
+                        queryParams: {}
+                    });
+                }
+            }),
+            catchError(() => of(null)) // Bỏ qua lỗi, không ảnh hưởng các API khác
+        );
+    }
+
+    /** Lấy số phiếu đánh giá chuyển HĐLĐ đang chờ xử lý của người dùng hiện tại */
+    getPendingContractReview() {
+        return this.homepageService.getPendingContractReviewCount().pipe(
+            tap((res: any) => {
+                if (res?.status !== 1 || !res?.data) return;
+                this.pendingReview = {
+                    asEmployee: res.data.AsEmployee || 0,
+                    asEvaluator: res.data.AsEvaluator || 0,
+                    asTBP: res.data.AsTBP || 0,
+                    asHR: res.data.AsHR || 0,
+                    asBGD: res.data.AsBGD || 0,
+                };
+                const total = this.pendingReview.asEmployee + this.pendingReview.asEvaluator
+                    + this.pendingReview.asTBP + this.pendingReview.asHR + this.pendingReview.asBGD;
+                if (total > 0) {
+                    this.notifService.addItem({
+                        id: 11,
+                        time: new Date().toISOString(),
+                        title: 'Phiếu đánh giá chuyển HĐLĐ',
+                        text: `Bạn có ${total} phiếu chờ xử lý`,
+                        group: 'today',
+                        icon: 'file-done',
+                        route: 'contract-transfer-review',
+                        queryParams: {}
+                    });
+                }
+            }),
+            catchError(() => of(null))
         );
     }
 

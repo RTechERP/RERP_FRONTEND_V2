@@ -4,12 +4,14 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HttpResponse } from '@angular/common/http';
 import { environment } from '../../../../../../../environments/environment';
+import { HttpParams } from '@angular/common/http';
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectWorkerService {
   private _url = environment.host + 'api/';
   private _urlProjectWorker = this._url + 'projectworker/';
+  private _urlProjectTask = this._url + 'projecttask/';
   private _urlProjectWorkerVersion = this._url + 'projectwokervesion/';
   private _urlProjectSolution = this._url + 'projectsolution/';
   constructor(private http: HttpClient) { }
@@ -61,7 +63,7 @@ export class ProjectWorkerService {
   }
   //hàm get nhân công dự án 
   getProjectWorker(data: any): Observable<any> {
-    return this.http.post<any>(this._urlProjectWorker + 'get-project-worker' , data);
+    return this.http.post<any>(this._urlProjectWorker + 'get-project-worker', data);
   }
   //hàm save nhân công dự án (thêm/sửa) - theo API backend
   saveWorker(data: any): Observable<any> {
@@ -81,7 +83,7 @@ export class ProjectWorkerService {
     if (subPath && subPath.trim()) {
       formData.append('subPath', subPath.trim());
     }
-    return this.http.post<any>(this._url +`home/upload-multiple`, formData);
+    return this.http.post<any>(this._url + `home/upload-multiple`, formData);
   }
   //LƯU MẪU EXCEL
   downloadTemplate(fileName: string): Observable<Blob> {
@@ -102,5 +104,25 @@ export class ProjectWorkerService {
       IsActive: isActive
     };
     return this.http.post<any>(this._url + `projectworkerversion/approved-active`, requestBody);
+  }
+
+  // Lấy phát sinh đã link
+  getProjectHistoryProblemLinked(projectWorkerVersionID: number): Observable<any> {
+    return this.http.get<any>(this._urlProjectWorkerVersion + `get-project-history-problem-linked?projectWorkerVersionID=${projectWorkerVersionID}`);
+  }
+
+  // Lấy danh sách phát sinh theo dự án
+  getProjectHistoryProblem(projectId: number): Observable<any> {
+    return this.http.get<any>(this._urlProjectWorker + `get-project-history-problem?projectID=${projectId}`);
+  }
+
+  // Get all project cho task
+  getAllProjectTask(): Observable<any> {
+    return this.http.get<any>(this._urlProjectSolution + 'get-all-project');
+  }
+
+  // Tạo task từ nhân công
+  createProjectWorkerTask(data: any): Observable<any> {
+    return this.http.post<any>(this._urlProjectTask + 'project-worker', data);
   }
 }

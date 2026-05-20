@@ -9,7 +9,8 @@
                         ban</nz-form-label>
                     <nz-form-control>
                         <nz-select name="departmentId" nzShowSearch nzSize="small" nzPlaceHolder="Chọn phòng ban"
-                            style="width: 200px;" [(ngModel)]="filters.departmentId" [nzDisabled]="true">
+                            nzDropdownClassName="select-dropdown" style="width: 200px;"
+                            [(ngModel)]="filters.departmentId">
                             <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
                                 [nzLabel]="item.Name"></nz-option>
                         </nz-select>
@@ -64,14 +65,61 @@
                                     </div>
                                 </div>
                                 <div class="card-body p-0 flex-grow-1 grid-container-session" style="overflow: hidden;">
-                                    <nz-spin [nzSpinning]="isLoadingSession" nzTip="Đang tải..." class="h-100 w-100">
-                                        <angular-slickgrid [gridId]="gridSessionId" [columns]="columnDefinitionsSession"
-                                            [options]="gridOptionsSession" [dataset]="datasetSession"
-                                            (onAngularGridCreated)="angularGridReadySession($event.detail)"
-                                            (onClick)="onSessionRowClick($event.detail.eventData, $event.detail.args)"
-                                            (onDblClick)="onSessionRowDblClick($event.detail.eventData, $event.detail.args)">
-                                        </angular-slickgrid>
-                                    </nz-spin>
+                                    <p-table [value]="datasetSession"
+                                        [columns]="visibleColumns(columnDefinitionsSession)" dataKey="ID"
+                                        [scrollable]="true" scrollHeight="flex"
+                                        styleClass="p-datatable-sm p-datatable-gridlines kpi-prime-table"
+                                        [loading]="isLoadingSession" loadingIcon="pi pi-spin pi-spinner"
+                                        [resizableColumns]="true" columnResizeMode="expand">
+
+                                        <ng-template pTemplate="header" let-columns>
+                                            <tr>
+                                                <th *ngFor="let col of columns" pResizableColumn
+                                                    [pSortableColumn]="col.field"
+                                                    [pSortableColumnDisabled]="!col.sortable"
+                                                    [style.min-width]="getColumnWidth(col)"
+                                                    [style.width]="getColumnWidth(col)">
+                                                    <div class="table-header-cell">
+                                                        <span>{{ col.name }}</span>
+                                                        <p-sortIcon *ngIf="col.sortable"
+                                                            [field]="col.field"></p-sortIcon>
+                                                    </div>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <th *ngFor="let col of columns" class="filter-cell"
+                                                    [style.min-width]="getColumnWidth(col)"
+                                                    [style.width]="getColumnWidth(col)">
+                                                    <p-columnFilter *ngIf="col.filterable"
+                                                        [type]="getColumnFilterType(col)" [field]="col.field"
+                                                        display="row" [showMenu]="false" matchMode="contains"
+                                                        placeholder="Tìm"></p-columnFilter>
+                                                </th>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="body" let-rowData let-columns="columns">
+                                            <tr class="data-row" (click)="onSessionRowClick(rowData)"
+                                                (dblclick)="onSessionRowDblClick(rowData)"
+                                                [ngClass]="{ 'selected-row': selectedSession?.ID === rowData.ID }">
+                                                <td *ngFor="let col of columns" [ngClass]="getCellClass(col)"
+                                                    [style.min-width]="getColumnWidth(col)"
+                                                    [style.width]="getColumnWidth(col)">
+                                                    <span class="cell-content" [title]="getCellTitle(rowData, col)">
+                                                        {{ formatCell(rowData, col) }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="emptymessage" let-columns>
+                                            <tr>
+                                                <td [attr.colspan]="columns.length" class="text-center text-muted py-3">
+                                                    Không có dữ liệu
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+                                    </p-table>
                                 </div>
                             </div>
                         </nz-splitter-panel>
@@ -102,14 +150,74 @@
                                     </div>
                                 </div>
                                 <div class="card-body p-0 flex-grow-1 grid-container-rule" style="overflow: hidden;">
-                                    <nz-spin [nzSpinning]="isLoadingRule" nzTip="Đang tải..." class="h-100 w-100">
-                                        <angular-slickgrid [gridId]="gridRuleId" [columns]="columnDefinitionsRule"
-                                            [options]="gridOptionsRule" [dataset]="datasetRule"
-                                            (onAngularGridCreated)="angularGridReadyRule($event.detail)"
-                                            (onClick)="onRuleRowClick($event.detail.eventData, $event.detail.args)"
-                                            (onDblClick)="onRuleRowDblClick($event.detail.eventData, $event.detail.args)">
-                                        </angular-slickgrid>
-                                    </nz-spin>
+                                    <p-table [value]="datasetRule" [columns]="visibleColumns(columnDefinitionsRule)"
+                                        dataKey="ID" [scrollable]="true" scrollHeight="flex"
+                                        styleClass="p-datatable-sm p-datatable-gridlines kpi-prime-table"
+                                        [loading]="isLoadingRule" loadingIcon="pi pi-spin pi-spinner"
+                                        [resizableColumns]="true" columnResizeMode="expand" rowGroupMode="subheader"
+                                        groupRowsBy="TypePositionName" sortField="TypePositionName" sortMode="single">
+
+                                        <ng-template pTemplate="header" let-columns>
+                                            <tr>
+                                                <th *ngFor="let col of columns" pResizableColumn
+                                                    [pSortableColumn]="col.field"
+                                                    [pSortableColumnDisabled]="!col.sortable"
+                                                    [style.min-width]="getColumnWidth(col)"
+                                                    [style.width]="getColumnWidth(col)">
+                                                    <div class="table-header-cell">
+                                                        <span>{{ col.name }}</span>
+                                                        <p-sortIcon *ngIf="col.sortable"
+                                                            [field]="col.field"></p-sortIcon>
+                                                    </div>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <th *ngFor="let col of columns" class="filter-cell"
+                                                    [style.min-width]="getColumnWidth(col)"
+                                                    [style.width]="getColumnWidth(col)">
+                                                    <p-columnFilter *ngIf="col.filterable"
+                                                        [type]="getColumnFilterType(col)" [field]="col.field"
+                                                        display="row" [showMenu]="false" matchMode="contains"
+                                                        placeholder="Tìm"></p-columnFilter>
+                                                </th>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="groupheader" let-rowData let-columns="columns">
+                                            <tr pRowGroupHeader class="group-row">
+                                                <td [attr.colspan]="columns.length">
+                                                    <span class="group-title">
+                                                        Chức vụ: {{ getRuleGroupHeader(rowData) }}
+                                                    </span>
+                                                    <span class="group-count">
+                                                        ({{ getRuleGroupCount(rowData?.TypePositionName) }} rule)
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="body" let-rowData let-columns="columns">
+                                            <tr class="data-row" (click)="onRuleRowClick(rowData)"
+                                                (dblclick)="onRuleRowDblClick(rowData)"
+                                                [ngClass]="{ 'selected-row': selectedRule?.ID === rowData.ID }">
+                                                <td *ngFor="let col of columns" [ngClass]="getCellClass(col)"
+                                                    [style.min-width]="getColumnWidth(col)"
+                                                    [style.width]="getColumnWidth(col)">
+                                                    <span class="cell-content" [title]="getCellTitle(rowData, col)">
+                                                        {{ formatCell(rowData, col) }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+
+                                        <ng-template pTemplate="emptymessage" let-columns>
+                                            <tr>
+                                                <td [attr.colspan]="columns.length" class="text-center text-muted py-3">
+                                                    Không có dữ liệu
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+                                    </p-table>
                                 </div>
                             </div>
                         </nz-splitter-panel>
@@ -120,30 +228,97 @@
                 <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
                     <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                         <div class="card-header bg-white p-1" style="flex-shrink: 0;">
-                            <div class="btn-toolbar">
-                                <button nz-button nzType="primary" nzSize="small" class="me-1"
-                                    (click)="onAddRuleDetail()">
-                                    <span nz-icon nzType="plus"></span> Thêm
-                                </button>
-                                <button nz-button nzType="default" nzSize="small" class="me-1"
-                                    (click)="onEditRuleDetail()">
-                                    <span nz-icon nzType="edit"></span> Sửa
-                                </button>
-                                <button nz-button nzType="default" nzSize="small" nzDanger
-                                    (click)="onDeleteRuleDetail()">
-                                    <span nz-icon nzType="delete"></span> Xóa
-                                </button>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h6 class="m-0 ms-2 fw-bold">CHI TIẾT RULE</h6>
+                                <div class="btn-toolbar">
+                                    <button nz-button nzType="primary" nzSize="small" class="me-1"
+                                        (click)="onAddRuleDetail()">
+                                        <span nz-icon nzType="plus"></span> Thêm
+                                    </button>
+                                    <button nz-button nzType="default" nzSize="small" class="me-1"
+                                        (click)="onEditRuleDetail()">
+                                        <span nz-icon nzType="edit"></span> Sửa
+                                    </button>
+                                    <button nz-button nzType="default" nzSize="small" nzDanger
+                                        (click)="onDeleteRuleDetail()">
+                                        <span nz-icon nzType="delete"></span> Xóa
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div class="card-body p-0 flex-grow-1 grid-container-rule-detail" style="overflow: hidden;">
-                            <nz-spin [nzSpinning]="isLoadingRuleDetail" nzTip="Đang tải..." class="h-100 w-100">
-                                <angular-slickgrid [gridId]="gridRuleDetailId" [columns]="columnDefinitionsRuleDetail"
-                                    [options]="gridOptionsRuleDetail" [dataset]="datasetRuleDetail"
-                                    (onAngularGridCreated)="angularGridReadyRuleDetail($event.detail)"
-                                    (onClick)="onRuleDetailRowClick($event.detail.eventData, $event.detail.args)"
-                                    (onDblClick)="onRuleDetailRowDblClick($event.detail.eventData, $event.detail.args)">
-                                </angular-slickgrid>
-                            </nz-spin>
+                            <p-treeTable #ttRuleDetail [value]="treeDatasetRuleDetail"
+                                [columns]="visibleColumns(columnDefinitionsRuleDetail)" dataKey="ID"
+                                selectionMode="single" [(selection)]="selectedRuleDetailNode"
+                                (onNodeSelect)="onRuleDetailNodeSelect($event)" [scrollable]="true" scrollHeight="flex"
+                                styleClass="p-treetable-sm p-treetable-gridlines kpi-prime-tree-table"
+                                [loading]="isLoadingRuleDetail" [resizableColumns]="true" columnResizeMode="expand"
+                                [filterMode]="'lenient'">
+
+                                <ng-template pTemplate="colgroup" let-columns>
+                                    <colgroup>
+                                        <col *ngFor="let col of columns" [style.width]="getColumnWidth(col)">
+                                    </colgroup>
+                                </ng-template>
+
+                                <ng-template pTemplate="header" let-columns>
+                                    <tr>
+                                        <th *ngFor="let col of columns" ttResizableColumn [ttSortableColumn]="col.field"
+                                            [ttSortableColumnDisabled]="!col.sortable"
+                                            [style.width]="getColumnWidth(col)">
+                                            <div class="table-header-cell">
+                                                <span>{{ col.name }}</span>
+                                                <p-treeTableSortIcon *ngIf="col.sortable"
+                                                    [field]="col.field"></p-treeTableSortIcon>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th *ngFor="let col of columns" class="filter-cell"
+                                            [style.width]="getColumnWidth(col)">
+                                            <input *ngIf="col.filterable" type="text"
+                                                class="p-inputtext p-component p-inputtext-sm w-100" placeholder="Tìm"
+                                                (input)="ttRuleDetail.filter($any($event.target).value, col.field, 'contains')"
+                                                (blur)="ttRuleDetail.filter($any($event.target).value?.trim(), col.field, 'contains')" />
+                                        </th>
+                                    </tr>
+                                </ng-template>
+
+                                <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
+                                    <tr [ttRow]="rowNode" [ttSelectableRow]="rowNode" class="data-row"
+                                        (click)="onRuleDetailRowClick(rowData)"
+                                        (dblclick)="onRuleDetailRowDblClick(rowData)" [ngClass]="{
+                                            'selected-row': selectedRuleDetail?.ID === rowData.ID,
+                                            'parent-row-highlight': rowData.hasChildren
+                                        }">
+                                        <td *ngFor="let col of columns" [ngClass]="getCellClass(col)"
+                                            [style.width]="getColumnWidth(col)">
+                                            <ng-container *ngIf="col.field === 'STT'; else ruleDetailCell">
+                                                <div class="tree-cell">
+                                                    <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                                                    <span class="cell-content" [title]="getCellTitle(rowData, col)">
+                                                        {{ formatCell(rowData, col) }}
+                                                    </span>
+                                                </div>
+                                            </ng-container>
+                                            <ng-template #ruleDetailCell>
+                                                <span class="cell-content" [title]="getCellTitle(rowData, col)">
+                                                    {{ formatCell(rowData, col) }}
+                                                </span>
+                                            </ng-template>
+                                        </td>
+                                    </tr>
+                                </ng-template>
+
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td [attr.colspan]="visibleColumns(columnDefinitionsRuleDetail).length"
+                                            class="text-center text-muted py-3">
+                                            Không có dữ liệu
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                            </p-treeTable>
                         </div>
                     </div>
                 </nz-splitter-panel>

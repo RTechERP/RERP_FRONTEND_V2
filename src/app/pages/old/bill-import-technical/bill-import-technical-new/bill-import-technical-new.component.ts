@@ -99,6 +99,7 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
     ];
     warehouseType: number = 1;
     isLoading: boolean = false;
+    billImportId: number = 0;
     private subscriptions: Subscription[] = [];
     private ngbModal = inject(NgbModal);
 private gridResizeObserver!: ResizeObserver;
@@ -414,6 +415,29 @@ private detailResizeObserver!: ResizeObserver;
                     },
                 ],
             },
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: [
+                    {
+                        command: 'log',
+                        title: 'Lịch sử thay đổi',
+                        iconCssClass: 'fa-solid fa-clock-rotate-left text-primary',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.viewLogHistory(args.dataContext);
+                        },
+                    },
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 2,
+                        action: (_e, args) => {
+                            // this.clipboardService.copy(args.value);
+                        },
+          },
+        ],
+      },
         };
     }
     openSummaryModal() {
@@ -883,6 +907,34 @@ private detailResizeObserver!: ResizeObserver;
         });
         this.subscriptions.push(sub);
     }
+
+     viewLogHistory(rowData: any): void {
+    if (!rowData || !rowData.ID) {
+      this.notification.warning('Thông báo', 'Dữ liệu phiếu không hợp lệ!');
+      return;
+    }
+    import('../bill-import-technical-audit-log/bill-import-technical-audit-log.component').then(
+      (m) => {
+        const modalRef = this.modal.create({
+          nzTitle:
+            'Lịch sử thay đổi phiếu nhập ' + (rowData.BillCode || ''),
+          nzContent: m.BillImportTechnicalAuditLogComponent,
+          nzWidth: '1000px',
+          nzFooter: null, // Không hiện các nút Ok/Cancel mặc định
+          nzStyle: { top: '20px' },
+          nzBodyStyle: {
+            height: 'calc(100vh - 100px)',
+            overflowY: 'auto',
+            padding: '0 !important',
+          },
+        });
+        // Gắn Input cho component
+        if (modalRef.componentInstance) {
+          modalRef.componentInstance.billImportId = rowData.ID;
+        }
+      },
+    );
+  }
 
     // Approve multiple bills
     onApprove() {

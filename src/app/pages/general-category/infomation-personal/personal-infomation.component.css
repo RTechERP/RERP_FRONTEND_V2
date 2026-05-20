@@ -39,11 +39,26 @@
 
 .quick-contact {
     margin-top: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.contact-title {
+    font-weight: 600;
+    color: #262626;
+    font-size: 13px;
 }
 
 .contact-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
     margin-bottom: 16px;
     color: #595959;
@@ -51,8 +66,25 @@
 }
 
 .contact-item span[nz-icon] {
+    margin-top: 2px;
     font-size: 16px;
     color: #1677ff;
+}
+
+.contact-item input, 
+.contact-item textarea {
+    font-size: 12px !important;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+.edit-actions button {
+    font-size: 12px;
 }
 
 .card-title-icon {

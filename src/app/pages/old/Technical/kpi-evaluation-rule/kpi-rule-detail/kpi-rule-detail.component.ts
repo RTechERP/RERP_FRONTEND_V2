@@ -241,7 +241,7 @@ export class KpiRuleDetailComponent implements OnInit {
             KPIEvaluationRuleID: this.ruleId,
             STT: this.stt.trim(),
             ParentID: parseInt(this.selectedParentId) || 0,
-            KPIEvaluationID: this.selectedKPIEvaluationId || null,
+            KPIEvaluationID: this.selectedKPIEvaluationId || 0,
             MaxPercent: this.maxPercent,
             PercentageAdjustment: this.percentageAdjustment,
             MaxPercentageAdjustment: this.maxPercentageAdjustment,
@@ -269,7 +269,7 @@ export class KpiRuleDetailComponent implements OnInit {
             },
             error: (err) => {
                 this.isSaving = false;
-                const errorMessage = err?.error?.message || err?.message || 'Có lỗi xảy ra khi lưu dữ liệu';
+                const errorMessage = typeof err?.error === 'string' ? err.error : (err?.error?.message || err?.message || 'Có lỗi xảy ra khi lưu dữ liệu');
                 this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
             }
         });

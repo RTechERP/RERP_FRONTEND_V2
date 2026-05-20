@@ -203,6 +203,7 @@ export class CustomTable implements OnChanges {
     showColumnChooser: boolean = false;
     chooserColumns: ColumnDef[] = [];
     @Output() rowClick = new EventEmitter<any>();
+    @Output() onRowDoubleClick = new EventEmitter<any>();
     clickedRowKey: any = null;
 
     onRowClick(rowData: any) {
@@ -220,6 +221,10 @@ export class CustomTable implements OnChanges {
         }
         this.clickedRowKey = newKey;
         this.rowClick.emit(rowData);
+    }
+
+    onRowDblClick(rowData: any): void {
+        this.onRowDoubleClick.emit(rowData);
     }
 
     isRowClicked(rowData: any): boolean {
@@ -306,6 +311,9 @@ export class CustomTable implements OnChanges {
         }
         if (changes['columns'] && this.columns) {
             this._allColumns = [...this.columns];
+        }
+        if (changes['data'] || changes['groupRowsBy'] || changes['rowGroupMode'] || changes['expandableRowGroups']) {
+            this.syncExpandedGroups();
         }
     }
 
@@ -465,6 +473,25 @@ export class CustomTable implements OnChanges {
 
     isGroupExpanded(group: string): boolean {
         return !!this.expandedRows[group];
+    }
+
+    private syncExpandedGroups() {
+        if (!this.expandableRowGroups || this.rowGroupMode !== 'subheader' || !this.groupRowsBy) return;
+
+        const groups = new Set(
+            (this.data || [])
+                .map((row: any) => row?.[this.groupRowsBy])
+                .filter((g: any) => g !== null && g !== undefined && String(g).trim() !== '')
+                .map((g: any) => String(g))
+        );
+
+        const nextExpandedRows: { [key: string]: boolean } = {};
+        groups.forEach((group) => {
+            // Lần đầu mở sẽ auto expand, các lần sau giữ trạng thái đã toggle.
+            nextExpandedRows[group] = this.expandedRows[group] ?? true;
+        });
+
+        this.expandedRows = nextExpandedRows;
     }
 
     onContextMenuSelect(event: any) {

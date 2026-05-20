@@ -42,6 +42,7 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
   private appUserService = inject(AppUserService);
 
   form!: FormGroup;
+  isSubmitting: boolean = false;
 
   priorityOptions = [
     { label: 'Thấp', value: 1 },
@@ -63,6 +64,7 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
   isProjectLocked: boolean = false;
 
   attachedFiles: any[] = [];
+  deletedFileIds: number[] = [];
 
   issueLogTypeOptions = [
     { label: 'Khách hàng', value: 1 },
@@ -167,6 +169,7 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
   initForm(): void {
     this.form = this.fb.group({
       ID: [0],
+      STT: [{ value: null, disabled: true }],
       ProjectID: [null, [Validators.required]],
       TeamDepartment: [[], [Validators.required]],
       IssueLogType: [null, [Validators.required]],
@@ -182,7 +185,7 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
       CreatorID: [null, [Validators.required]],
       PerformerID: [null, [Validators.required]],
       EmployeeID: [null],
-      PIC: [null, [Validators.required]],
+      PIC: [null],
       ReceiverID: [[], [Validators.required]],
 
       PriorityLevel: [null, [Validators.required]],
@@ -202,6 +205,16 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
 
       if (projectId && projectId > 0) {
         this.loadProjectItems(projectId);
+
+        // Tự động lấy STT mới = maxSTT + 1 khi THÊM MỚI
+        if (!this.data?.ID) {
+          this.projectHistoryProblemNewService.getMaxSTTByProject(projectId).subscribe((res: any) => {
+            if (res.status === 1 && res.data) {
+              const nextSTT = (res.data.maxSTT || 0) + 1;
+              this.form.patchValue({ STT: nextSTT }, { emitEvent: false });
+            }
+          });
+        }
 
         // Tự động Gợi ý chọn các trưởng dự án (IsLeader = true) vào Người tiếp nhận khi THÊM MỚI
         if (!this.data?.ID) {
@@ -241,7 +254,10 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
   }
 
   submitForm(): void {
+    if (this.isSubmitting) return;
+
     if (this.form.valid) {
+      this.isSubmitting = true;
       const formValue = this.form.getRawValue();
       const isNew = (!formValue.ID || formValue.ID === 0);
       const payloadItem = this.mapFormDataToApi(formValue);
@@ -250,7 +266,8 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
         projectHistoryProblem: payloadItem,
         receiverIds: formValue.ReceiverID || [],
         projectItemIds: formValue.ProjectItemIds || [],
-        deleteIdsMaster: []
+        deleteIdsMaster: [],
+        deleteFileIds: this.deletedFileIds
       }];
 
       this.projectHistoryProblemNewService.saveData(payload).subscribe({
@@ -267,14 +284,20 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
             }
             
             this.message.success('Lưu dữ liệu thành công!');
-            this.modalRef.close(true);
+            this.modalRef.close({
+              saved: true,
+              id: savedId,
+              data: { ...payloadItem, ID: savedId }
+            });
           } else {
             this.message.error(res.message || 'Lỗi khi lưu dữ liệu!');
+            this.isSubmitting = false;
           }
         },
         error: (err: any) => {
           console.error(err);
           this.message.error('Có lỗi xảy ra khi lưu!');
+          this.isSubmitting = false;
         }
       });
     } else {
@@ -335,6 +358,11 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
   }
 
   removeFile(index: number): void {
+    const file = this.attachedFiles[index];
+    // Nếu là file đã có trên server, lưu ID vào list tạm để xóa khi bấm Lưu
+    if (file && file.serverFile && file.id) {
+      this.deletedFileIds.push(file.id);
+    }
     this.attachedFiles = this.attachedFiles.filter((_, i) => i !== index);
   }
 
@@ -358,7 +386,7 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
     newFiles.forEach((fileObj: any) => {
       formData.append('files', fileObj.file);
     });
-    formData.append('key', 'TuanBeoTest');
+    formData.append('key', 'ProjectHistoryProblemFile');
 
     this.projectHistoryProblemNewService.uploadFiles(formData, problemId, 1).subscribe({
       next: (response: any) => {

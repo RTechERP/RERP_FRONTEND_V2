@@ -870,18 +870,18 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
         paginationMode: 'local',
         reactiveData: false,
         groupBy: [
-          (data: any) => data.__catalogOrder,
           (data: any) => data.NameDepartment || 'Chưa có phòng ban',
+          (data: any) => data.__catalogOrder,
         ],
         groupStartOpen: [true, true],
         groupHeader: [
           (value: any, count: number, data: any) => {
+            return `<strong>Phòng ban: ${value}</strong>`;
+          },
+          (value: any, count: number, data: any) => {
             const labelMap: Record<number, string> = { 1: 'CƠ BẢN', 2: 'NÂNG CAO' };
             const text = labelMap[value] || 'Chưa phân loại';
             return `<strong>Loại: ${text}</strong> (${count} danh mục)`;
-          },
-          (value: any, count: number, data: any) => {
-            return `<strong>Phòng ban: ${value}</strong>`;
           },
         ],
         columns: [

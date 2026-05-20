@@ -11,7 +11,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { Fluid } from 'primeng/fluid';
 import { SplitterModule } from 'primeng/splitter';
-import { PaymentOrderService } from './payment-order.service';
+import { DownloadPaymentOrderDTO, PaymentOrderService } from './payment-order.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PaymentOrderDetailComponent } from './payment-order-detail/payment-order-detail.component';
 import {
@@ -185,6 +185,7 @@ export class PaymentOrderComponent implements OnInit {
     datasetFiles: any[] = [];
     datasetFileBankslip: any[] = [];
     datasetLog: any[] = [];
+    currentPaymentOrder: PaymentOrder | null = null;
 
     activeDetailTab = '0';
 
@@ -211,6 +212,14 @@ export class PaymentOrderComponent implements OnInit {
         if (value === false) return '';
         return '';
     };
+    transferTypes = [
+        { ID: 5, Text: 'Chuyển khoản cá nhân' },
+        { ID: 1, Text: 'Chuyển khoản RTC' },
+        { ID: 2, Text: 'Chuyển khoản MVI' },
+        { ID: 3, Text: 'Chuyển khoản APR' },
+        { ID: 4, Text: 'Chuyển khoản Yonko' },
+        { ID: 6, Text: 'Chuyển khoản R-Tech' },
+    ];
 
     isPermisstion: boolean = false;
     isPermisstionDB: boolean = false;
@@ -257,6 +266,7 @@ export class PaymentOrderComponent implements OnInit {
         const permissionCodeHR = "N59";
         const permissionCodeTbpHR = "N56";
         const permissionCodeKT = "N55";
+        const permissionCodeKTView = "N95";
         const permissionCodeKTT = "N61";
         const permissionCodeBGD = "N58";
         const permissionCodeSale = "N83";
@@ -267,6 +277,7 @@ export class PaymentOrderComponent implements OnInit {
             this.appUserService.currentUser?.Permissions.includes(permissionCodeKT) ||
             this.appUserService.currentUser?.Permissions.includes(permissionCodeKTT) ||
             this.appUserService.currentUser?.Permissions.includes(permissionCodeBGD) ||
+            this.appUserService.currentUser?.Permissions.includes(permissionCodeKTView) ||
 
             this.appUserService.currentUser?.IsAdmin) || false;
 
@@ -594,6 +605,24 @@ export class PaymentOrderComponent implements OnInit {
                                 ButtonActionGroup: 'btnKTTT', ButtonActionName: 'btnUnPayment', ButtonActionText: 'Kế toán xác nhận',
                             });
                         }
+                    },
+                    {
+                        separator: true,
+                    },
+                    {
+                        label: 'Cập nhật loại chuyển khoản',
+                        icon: 'fa-solid fa-money-bill-transfer fa-lg text-primary',
+                        visible: this.permissionService.hasPermission("N55,N61"),
+                        items: this.transferTypes.map(type => ({
+                            label: type.Text,
+                            icon: 'fa-solid fa-money-bill-transfer fa-lg text-primary',
+                            command: () => {
+                                this.onUpdateTransferType(type.ID);
+                            }
+                        }))
+                    },
+                    {
+                        separator: true,
                     },
                     {
                         label: 'Đính kèm file Bank slip',
@@ -1044,23 +1073,6 @@ export class PaymentOrderComponent implements OnInit {
                     } as MultipleSelectOption,
                 },
             },
-             {
-                id: PaymentOrderField.TaxCompanyName.field,
-                name: 'Công ty',
-                field: PaymentOrderField.TaxCompanyName.field,
-                type: PaymentOrderField.TaxCompanyName.type,
-                sortable: true, filterable: true,
-                width: 150,
-                // formatter: Formatters.icon,
-                filter: {
-                    collection: [],
-                    model: Filters['multipleSelect'],
-                    filterOptions: {
-                        autoAdjustDropHeight: true,
-                        filter: true,
-                    } as MultipleSelectOption,
-                },
-            },
             {
                 id: PaymentOrderField.ContentBankTransfer.field,
                 name: 'Nội dung chuyển khoản',
@@ -1121,6 +1133,23 @@ export class PaymentOrderComponent implements OnInit {
                 type: PaymentOrderField.DocumentName.type,
                 sortable: true, filterable: true,
                 width: 200,
+                // formatter: Formatters.icon,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: PaymentOrderField.TaxCompanyName.field,
+                name: 'Công ty',
+                field: PaymentOrderField.TaxCompanyName.field,
+                type: PaymentOrderField.TaxCompanyName.type,
+                sortable: true, filterable: true,
+                width: 150,
                 // formatter: Formatters.icon,
                 filter: {
                     collection: [],
@@ -1303,7 +1332,22 @@ export class PaymentOrderComponent implements OnInit {
                 //     } as MultipleSelectOption,
                 // },
             },
-
+            {
+                id: PaymentOrderField.TransferTypeText.field,
+                name: PaymentOrderField.TransferTypeText.name,
+                field: PaymentOrderField.TransferTypeText.field,
+                type: PaymentOrderField.TransferTypeText.type,
+                sortable: true, filterable: true,
+                width: 190,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
             {
                 id: 'HRNote',
                 name: 'Ghi chú HR',
@@ -1313,9 +1357,6 @@ export class PaymentOrderComponent implements OnInit {
                 width: 200,
                 filter: { model: Filters['compoundInputText'] },
             },
-
-
-
             {
                 id: PaymentOrderField.POCode.field,
                 name: 'Số PO',
@@ -2370,6 +2411,22 @@ export class PaymentOrderComponent implements OnInit {
                     } as MultipleSelectOption,
                 },
             },
+            {
+                id: PaymentOrderField.TransferTypeText.field,
+                name: PaymentOrderField.TransferTypeText.name,
+                field: PaymentOrderField.TransferTypeText.field,
+                type: PaymentOrderField.TransferTypeText.type,
+                sortable: true, filterable: true,
+                width: 190,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
 
             {
                 id: PaymentOrderField.StepName.field,
@@ -2791,6 +2848,20 @@ export class PaymentOrderComponent implements OnInit {
             this.loadDataSpecial();
     }
 
+    private getTransferTypeText(transferType: any): string {
+        const type = this.transferTypes.find(x => x.ID === Number(transferType));
+        return type?.Text ?? '';
+    }
+
+    private normalizePaymentOrderRow(item: any): any {
+        const transferTypeText = String(item?.TransferTypeText ?? '').trim();
+        return {
+            ...item,
+            TransferTypeText: transferTypeText || this.getTransferTypeText(item?.TransferType),
+            id: item.ID   // dành riêng cho SlickGrid
+        };
+    }
+
     loadDataNormal() {
         this.isLoading = true;
 
@@ -2813,10 +2884,7 @@ export class PaymentOrderComponent implements OnInit {
                 // console.log(response);
                 this.dataset = response.data;
 
-                this.dataset = this.dataset.map((x, i) => ({
-                    ...x,
-                    id: x.ID   // dành riêng cho SlickGrid
-                }));
+                this.dataset = this.dataset.map(x => this.normalizePaymentOrderRow(x));
 
                 // this.applyDistinctFilters(this.angularGrid);
 
@@ -2874,10 +2942,7 @@ export class PaymentOrderComponent implements OnInit {
                 // console.log(response);
                 this.datasetSpecial = response.data;
 
-                this.datasetSpecial = this.datasetSpecial.map((x, i) => ({
-                    ...x,
-                    id: x.ID   // dành riêng cho SlickGrid
-                }));
+                this.datasetSpecial = this.datasetSpecial.map(x => this.normalizePaymentOrderRow(x));
 
 
                 this.rowStyle(this.angularGridSpecial);
@@ -2906,8 +2971,14 @@ export class PaymentOrderComponent implements OnInit {
         })
     }
 
+    private getPaymentOrderFromCurrentDataset(id: number): PaymentOrder | null {
+        const dataSource = this.activeTab == '1' ? this.datasetSpecial : this.dataset;
+        return (dataSource.find((item: any) => Number(item.ID) === Number(id)) as PaymentOrder | undefined) ?? null;
+    }
+
     loadDetail(id: number) {
         // console.log('loadDetail id:', id);
+        this.currentPaymentOrder = this.getPaymentOrderFromCurrentDataset(id) ?? this.currentPaymentOrder;
         this.paymentService.getDetail(id).subscribe({
             next: (response) => {
                 // console.log('loadDetail response:', response);
@@ -3167,8 +3238,9 @@ export class PaymentOrderComponent implements OnInit {
         // however, we don't want to interfere with multiple row selection checkbox which is on 1st column cell
         if (args.cell !== 0) {
             this.gridData.setSelectedRows([args.row]);
-            const item = args.grid.getDataItem(args.row)
+            const item = args.grid.getDataItem(args.row) as PaymentOrder;
             // console.log('selected item:', item);
+            this.currentPaymentOrder = item;
             this.loadDetail(item.ID);
 
             this.defaultSizeSplit = '60%';
@@ -4315,18 +4387,42 @@ export class PaymentOrderComponent implements OnInit {
             filteredData.push(...(isSpecial ? this.datasetSpecial : this.dataset));
         }
 
-        // ===== Dòng 1: tên các cột =====
-        const HEADERS = [
-            'Người nhận tiền', 'Số tài khoản', 'Ngân hàng',
-            'STT', 'Thanh toán gấp', 'Ngày đề nghị', 'Deadline', 'Tình trạng phiếu', 'Số đề nghị',
-            'Người đề nghị', 'Bộ phận', 'Phân loại chính', 'Nội dung chính của đề nghị', 'Lý do thanh toán',
-            'Số tiền', 'Số tiền thanh toán', 'Số tiền thanh toán thực tế', 'ĐVT', 'Bỏ qua HR',
-            'Hình thức thanh toán', 'Nội dung chuyển khoản', 'Nhà cung cấp',
-            'Trạng thái hợp đồng', 'Số hợp đồng', 'Dự án',
-            'Có hóa đơn', 'Điểm đi', 'Điểm đến', 'Trạng thái Bank Slip',
-            'Lịch sử duyệt / hủy duyệt', 'Lý do hủy duyệt', 'Ghi chú / Chứng từ kèm theo',
-            'Ghi chú kế toán', 'Số PO', 'Lý do KT Y/c bổ sung', 'Lý do HR Y/c bổ sung',
-        ];
+        // ===== Cấu hình cột theo loại đề nghị =====
+        let HEADERS: string[] = [];
+        let MONEY_COLS: number[] = [];
+        let CENTER_COLS: number[] = [];
+        let COL_WIDTHS: number[] = [];
+
+        if (isSpecial) {
+            HEADERS = [
+                'STT', 'Thanh toán gấp', 'Ngày đề nghị', 'Deadline thanh toán', 'Số đề nghị',
+                'Người đề nghị', 'Team kinh doanh', 'Phân loại thanh toán', 'Lý do thanh toán', 'Khách hàng',
+                'Số PO', 'Số hóa đơn', 'Số tiền', 'ĐVT', 'Hình thức thanh toán', 'Loại chuyển khoản',
+                'Tình trạng phiếu', 'Lịch sử duyệt / hủy duyệt', 'Lý do hủy duyệt', 'Ghi chú / Chứng từ kèm theo'
+            ];
+            MONEY_COLS = [12];
+            CENTER_COLS = [0, 1, 2, 3, 13];
+            COL_WIDTHS = [8, 15, 14, 22, 20, 20, 25, 30, 35, 25, 15, 20, 18, 8, 25, 25, 25, 45, 35, 45];
+        } else {
+            HEADERS = [
+                'Người nhận tiền', 'Số tài khoản', 'Ngân hàng',
+                'STT', 'Thanh toán gấp', 'Ngày đề nghị', 'Deadline', 'Tình trạng phiếu', 'Số đề nghị',
+                'Người đề nghị', 'Bộ phận', 'Phân loại chính', 'Nội dung chính của đề nghị', 'Lý do thanh toán',
+                'Số tiền', 'Số tiền thanh toán', 'Số tiền thanh toán thực tế', 'ĐVT', 'Bỏ qua HR',
+                'Hình thức thanh toán', 'Loại chuyển khoản', 'Nội dung chuyển khoản', 'Nhà cung cấp',
+                'Trạng thái hợp đồng', 'Số hợp đồng', 'Dự án',
+                'Có hóa đơn', 'Điểm đi', 'Điểm đến', 'Trạng thái Bank Slip',
+                'Lịch sử duyệt / hủy duyệt', 'Lý do hủy duyệt', 'Ghi chú / Chứng từ kèm theo',
+                'Ghi chú kế toán', 'Số PO', 'Lý do KT Y/c bổ sung', 'Lý do HR Y/c bổ sung',
+            ];
+            MONEY_COLS = [14, 15, 16];
+            CENTER_COLS = [3, 4, 5, 6, 17, 18, 26];
+            COL_WIDTHS = [
+                20, 18, 15, 8, 15, 14, 22, 25, 20, 22, 20, 22, 35, 45,
+                18, 18, 20, 8, 12, 25, 25, 35, 25, 25, 25, 35, 12, 35, 35, 25,
+                45, 35, 45, 35, 15, 35, 35
+            ];
+        }
 
         const headerRow1 = sheet.getRow(1);
         HEADERS.forEach((h, idx) => {
@@ -4343,51 +4439,74 @@ export class PaymentOrderComponent implements OnInit {
         headerRow1.height = 30;
 
         // ===== Dữ liệu =====
-        // 0-indexed: TotalMoney=14, TotalPayment=15, TotalPaymentActual=16
-        const MONEY_COLS = [14, 15, 16];
-        // 0-indexed: STT=3, IsUrgent=4, DateOrder=5, Deadline=6, Unit=17, IsIgnoreHR=18, IsBill=25
-        const CENTER_COLS = [3, 4, 5, 6, 17, 18, 25];
-
         filteredData.forEach((item, rowIdx) => {
             const row = sheet.getRow(rowIdx + 2);
-            const vals: any[] = [
-                item.ReceiverInfo ?? '',
-                item.AccountNumber ?? '',
-                item.Bank ?? '',
-                item.RowNum ?? '',
-                boolStr(item.IsUrgent),
-                fmtDate(item.DateOrder),
-                fmtDateTime(item.DeadlinePayment),
-                item.StepName ?? '',
-                item.Code ?? '',
-                item.FullName ?? '',
-                item.DepartmentName ?? '',
-                item.TypeOrderText ?? '',
-                item.TypeName ?? '',
-                item.ReasonOrder ?? '',
-                item.TotalMoney ?? 0,
-                item.TotalPayment ?? 0,
-                item.TotalPaymentActual ?? 0,
-                (item.Unit ?? '').toUpperCase(),
-                boolStr(item.IsIgnoreHR),
-                item.TypeBankTransferText ?? '',
-                item.ContentBankTransfer ?? '',
-                item.SuplierName ?? '',
-                item.StatusContractText ?? '',
-                item.DocumentName ?? '',
-                item.ProjectFullName ?? '',
-                boolStr(item.IsBill),
-                item.StartLocation ?? '',
-                item.EndLocation ?? '',
-                item.StatusBankSlip ?? '',
-                item.ContentLog ?? '',
-                item.ReasonCancel ?? '',
-                item.Note ?? '',
-                item.AccountingNote ?? '',
-                item.POCode ?? '',
-                item.ReasonRequestAppendFileAC ?? '',
-                item.ReasonRequestAppendFileHR ?? '',
-            ];
+            let vals: any[] = [];
+
+            if (isSpecial) {
+                vals = [
+                    item.RowNum ?? '',
+                    boolStr(item.IsUrgent),
+                    fmtDate(item.DateOrder),
+                    fmtDateTime(item.DeadlinePayment),
+                    item.Code ?? '',
+                    item.FullName ?? '',
+                    item.UserTeamNameJoin ?? '',
+                    item.TypeName ?? '',
+                    item.ReasonOrder ?? '',
+                    item.CustomerName ?? '',
+                    item.POCodes ?? '',
+                    item.BillNumbers ?? '',
+                    item.TotalMoney ?? 0,
+                    (item.Unit ?? '').toUpperCase(),
+                    item.PaymentMethodsJoin ?? '',
+                    item.TransferTypeText || this.getTransferTypeText(item.TransferType),
+                    item.StepName ?? '',
+                    item.ContentLog ?? '',
+                    item.ReasonCancel ?? '',
+                    item.Note ?? '',
+                ];
+            } else {
+                vals = [
+                    item.ReceiverInfo ?? '',
+                    item.AccountNumber ?? '',
+                    item.Bank ?? '',
+                    item.RowNum ?? '',
+                    boolStr(item.IsUrgent),
+                    fmtDate(item.DateOrder),
+                    fmtDateTime(item.DeadlinePayment),
+                    item.StepName ?? '',
+                    item.Code ?? '',
+                    item.FullName ?? '',
+                    item.DepartmentName ?? '',
+                    item.TypeOrderText ?? '',
+                    item.TypeName ?? '',
+                    item.ReasonOrder ?? '',
+                    item.TotalMoney ?? 0,
+                    item.TotalPayment ?? 0,
+                    item.TotalPaymentActual ?? 0,
+                    (item.Unit ?? '').toUpperCase(),
+                    boolStr(item.IsIgnoreHR),
+                    item.TypeBankTransferText ?? '',
+                    item.TransferTypeText || this.getTransferTypeText(item.TransferType),
+                    item.ContentBankTransfer ?? '',
+                    item.SuplierName ?? '',
+                    item.StatusContractText ?? '',
+                    item.DocumentName ?? '',
+                    item.ProjectFullName ?? '',
+                    boolStr(item.IsBill),
+                    item.StartLocation ?? '',
+                    item.EndLocation ?? '',
+                    item.StatusBankSlip ?? '',
+                    item.ContentLog ?? '',
+                    item.ReasonCancel ?? '',
+                    item.Note ?? '',
+                    item.AccountingNote ?? '',
+                    item.POCode ?? '',
+                    item.ReasonRequestAppendFileAC ?? '',
+                    item.ReasonRequestAppendFileHR ?? '',
+                ];
+            }
 
             vals.forEach((v, ci) => {
                 const cell = row.getCell(ci + 1);
@@ -4409,16 +4528,6 @@ export class PaymentOrderComponent implements OnInit {
         });
 
         // ===== Độ rộng cột =====
-        const COL_WIDTHS = [
-            20, 18, 15,              // Người nhận tiền, Số tài khoản, Ngân hàng
-            8, 15, 14, 22, 25, 20,   // STT, Thanh toán gấp, Ngày đề nghị, Deadline, Tình trạng phiếu, Số đề nghị
-            22, 20, 22, 35, 45,      // Người đề nghị, Bộ phận, Phân loại chính, Nội dung chính, Lý do thanh toán
-            18, 18, 20, 8, 12,       // Số tiền, TT, TT thực tế, ĐVT, Bỏ qua HR
-            25, 35, 25, 25, 25, 35,  // Hình thức TT, ND chuyển khoản, NCC, Trạng thái HĐ, Số HĐ, Dự án
-            12, 35, 35, 25,          // Có HĐ, Điểm đi, Điểm đến, Trạng thái Bank Slip
-            45, 35, 45, 35,          // Lịch sử, Lý do hủy, Ghi chú CT, Ghi chú KT
-            15, 35, 35,              // Số PO, Lý do KT, Lý do HR
-        ];
         COL_WIDTHS.forEach((w, i) => { sheet.getColumn(i + 1).width = w; });
 
         // ===== Helper: số cột → chữ cột Excel (1=A, 26=Z, 27=AA, ...) =====
@@ -4433,7 +4542,7 @@ export class PaymentOrderComponent implements OnInit {
             return s;
         };
 
-        const totalCols = 36; // 36 cột cố định
+        const totalCols = HEADERS.length;
         const dataStartRow = 2;
         const lastDataRow = filteredData.length + 1; // row 1=col header, data từ row 2
 
@@ -4464,17 +4573,17 @@ export class PaymentOrderComponent implements OnInit {
             labelCell.font = { bold: true, color: { argb: 'FF1F4E79' }, size: 10 };
             labelCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-            // COUNT dòng dữ liệu (cột STT = cột 4 = D)
-            const cntCol = 4;
-            const cntCell = totalRow.getCell(cntCol);
-            cntCell.value = { formula: `COUNTA(${colLetter(cntCol)}${dataStartRow}:${colLetter(cntCol)}${lastDataRow})` };
+            // COUNT dòng dữ liệu (cột STT)
+            const cntColIdx = isSpecial ? 0 : 3; // Index của cột STT
+            const cntCell = totalRow.getCell(cntColIdx + 1);
+            cntCell.value = { formula: `COUNTA(${colLetter(cntColIdx + 1)}${dataStartRow}:${colLetter(cntColIdx + 1)}${lastDataRow})` };
             cntCell.font = { bold: true, color: { argb: 'FF1F4E79' } };
             cntCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-            // SUM 3 cột tiền: TotalMoney=15(O), TotalPayment=16(P), TotalPaymentActual=17(Q)
-            [15, 16, 17].forEach(ci => {
-                const cell = totalRow.getCell(ci);
-                cell.value = { formula: `SUM(${colLetter(ci)}${dataStartRow}:${colLetter(ci)}${lastDataRow})` };
+            // SUM các cột tiền
+            MONEY_COLS.forEach(ci => {
+                const cell = totalRow.getCell(ci + 1);
+                cell.value = { formula: `SUM(${colLetter(ci + 1)}${dataStartRow}:${colLetter(ci + 1)}${lastDataRow})` };
                 cell.numFmt = '#,##0';
                 cell.font = { bold: true, color: { argb: 'FF1F4E79' } };
                 cell.alignment = { horizontal: 'right', vertical: 'middle' };
@@ -5219,6 +5328,82 @@ export class PaymentOrderComponent implements OnInit {
         }
     }
 
+    private buildServerFilePath(item: any): string {
+        const serverPath = String(item?.ServerPath || item?.FilePath || '').trim();
+        const fileName = String(item?.FileName || '').trim();
+
+        if (!serverPath) return '';
+        if (!fileName || serverPath.toLowerCase().endsWith(fileName.toLowerCase())) return serverPath;
+
+        const separator = serverPath.endsWith('\\') || serverPath.endsWith('/') ? '' : '\\';
+        return `${serverPath}${separator}${fileName}`;
+    }
+
+    private buildShareDownloadUrl(item: any): string {
+        const serverPath = String(item?.ServerPath || item?.FilePath || '').trim();
+        const fileName = String(item?.FileName || '').trim();
+
+        if (!serverPath) return '';
+
+        const host = environment.host + 'api/share';
+        const url = serverPath.replace("\\\\192.168.1.190", host);
+
+        if (!fileName || url.toLowerCase().endsWith(fileName.toLowerCase())) return url;
+        return `${url}/${fileName}`;
+    }
+
+    private sanitizeFileName(fileName: string): string {
+        return fileName.replace(/[\\/:*?"<>|]+/g, '_').trim() || 'PaymentOrder';
+    }
+
+    private saveBlob(blob: Blob, fileName: string): void {
+        const a = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
+
+        a.href = objectUrl;
+        a.download = fileName;
+        a.click();
+
+        URL.revokeObjectURL(objectUrl);
+    }
+
+    private downloadZipFileAttach(selectedItems: any[]): void {
+        const filePaths = selectedItems
+            .map((item: any) => this.buildServerFilePath(item))
+            .filter((path: string) => !!path);
+
+        if (filePaths.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Không tìm thấy đường dẫn file để tải!");
+            return;
+        }
+
+        const firstItem = selectedItems[0];
+        const paymentOrderCode = String(
+            firstItem?.PaymentOrderCode
+            || this.currentPaymentOrder?.Code
+            || firstItem?.Code
+            || 'PaymentOrder'
+        );
+        const payload: DownloadPaymentOrderDTO = {
+            PaymentOrderId: Number(firstItem?.PaymentOrderID || firstItem?.PaymentOrderId || this.currentPaymentOrder?.ID || 0),
+            PaymentOrderCode: paymentOrderCode,
+            FilePath: filePaths,
+        };
+
+        this.paymentService.downloadZip(payload).subscribe({
+            next: (blob: Blob) => {
+                const fileName = `${this.sanitizeFileName(paymentOrderCode)}_${DateTime.now().toFormat('yyyyMMddHHmmss')}.zip`;
+                this.saveBlob(blob, fileName);
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                    {
+                        nzStyle: { whiteSpace: 'pre-line' }
+                    });
+            },
+        });
+    }
+
     onDownloadFileAttach(e: Event, args: any, angularGrid: AngularGridInstance) {
         // console.log(args);
         if (this.isPriceRequest) return;
@@ -5226,25 +5411,29 @@ export class PaymentOrderComponent implements OnInit {
         if (selectedRows.length <= 0) selectedRows.push(args.row);
 
         let selectedItems = selectedRows
-            .map((i: any) => angularGrid.dataView?.getItem(i));
+            .map((i: any) => angularGrid.dataView?.getItem(i))
+            .filter((item: any) => !!item);
+
+        if (selectedItems.length <= 0) return;
+
+        if (selectedItems.length > 5) {
+            this.downloadZipFileAttach(selectedItems);
+            return;
+        }
 
         selectedItems.forEach((item: any) => {
-            const filePath = item?.ServerPath || '';
-            if (filePath) {
-                const host = environment.host + 'api/share';
-                let url = filePath.replace("\\\\192.168.1.190", host) + `/${item?.FileName}`;
+            const url = this.buildShareDownloadUrl(item);
+            if (!url) return;
 
-                this.http.get(url, { responseType: 'blob' }).subscribe(blob => {
-                    const a = document.createElement('a');
-                    const objectUrl = URL.createObjectURL(blob);
-
-                    a.href = objectUrl;
-                    a.download = item?.FileName;
-                    a.click();
-
-                    URL.revokeObjectURL(objectUrl);
-                });
-            }
+            this.http.get(url, { responseType: 'blob' }).subscribe({
+                next: (blob: Blob) => this.saveBlob(blob, item?.FileName || 'download'),
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
+                },
+            });
         });
 
     }
@@ -5257,6 +5446,55 @@ export class PaymentOrderComponent implements OnInit {
         console.log('this.activeTab tabValueChange:', this.activeTab);
         this.getSteps();
         this.loadData();
+    }
+
+    onUpdateTransferType(transferType: number) {
+        let gridInstance = this.angularGrid;
+        if (this.activeTab == '1') gridInstance = this.angularGridSpecial;
+
+        const grid = gridInstance.slickGrid;
+        const dataView = gridInstance.dataView;
+        const rowIndexes = grid.getSelectedRows();
+        const selectedItems = rowIndexes
+            .map(i => dataView.getItem(i))
+            .filter((item: any) => !!item);
+
+        if (selectedItems.length <= 0) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn đề nghị!");
+            return;
+        }
+
+        const transferTypeText = this.getTransferTypeText(transferType);
+        Swal.fire({
+            title: 'Cập nhật loại chuyển khoản?',
+            text: `Bạn có chắc muốn cập nhật ${selectedItems.length} đề nghị sang "${transferTypeText}" không?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745 ',
+            cancelButtonColor: '#dc3545 ',
+            confirmButtonText: 'Cập nhật',
+            cancelButtonText: 'Hủy',
+        }).then((result: any) => {
+            if (!result.isConfirmed) return;
+
+            const payments = selectedItems.map((item: any) => ({
+                ID: item.ID,
+                TransferType: transferType
+            }));
+
+            this.paymentService.updateTransferType(payments).subscribe({
+                next: (response) => {
+                    this.notification.success(NOTIFICATION_TITLE.success, response.message);
+                    this.loadData();
+                },
+                error: (err) => {
+                    this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,
+                        {
+                            nzStyle: { whiteSpace: 'pre-line' }
+                        });
+                },
+            });
+        });
     }
 
     onUpdateTotalMoney() {

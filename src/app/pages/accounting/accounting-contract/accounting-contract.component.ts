@@ -63,6 +63,7 @@ import { setupTabulatorCellCopy } from '../../../shared/utils/tabulator-cell-cop
 import { AccountingContractService } from './accounting-contract-service/accounting-contract.service';
 import { AccountingContractDetailComponent } from './accounting-contract-detail/accounting-contract-detail.component';
 import { AccountingContractLogComponent } from './accounting-contract-log/accounting-contract-log.component';
+import { ImportExcelAccountingContractComponent } from './import-excel-accounting-contract/import-excel-accounting-contract.component';
 
 @Component({
   selector: 'app-accounting-contract',
@@ -112,6 +113,12 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
   dataSuppliers: any[] = [];
   dataAccountingContractFiles: any[] = [];
   selectedRow: any = null;
+
+  // Bulk Receive Contract modal
+  showBulkReceiveModal: boolean = false;
+  bulkDateReceived: Date | null = null;
+  bulkQuantityDocument: number = 0;
+  isBulkSaving: boolean = false;
 
   filters: any = {
     startDate: (() => {
@@ -245,7 +252,18 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
   }
 
   onEdit() {
-    if (!this.selectedRow || !this.selectedRow.ID) {
+    const selectedData = this.tb_AccountingContract.getSelectedData();
+    if (selectedData.length > 1) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn duy nhất 1 hợp đồng để sửa'
+      );
+      return;
+    }
+
+    const rowToEdit = selectedData.length === 1 ? selectedData[0] : this.selectedRow;
+
+    if (!rowToEdit || !rowToEdit.ID) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
         'Vui lòng chọn hợp đồng để sửa'
@@ -259,8 +277,8 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       centered: true,
     });
 
-    modalRef.componentInstance.editId = this.selectedRow.ID;
-    modalRef.componentInstance.isReceivedContractMode = this.selectedRow.IsReceivedContract === true;
+    modalRef.componentInstance.editId = rowToEdit.ID;
+    modalRef.componentInstance.isReceivedContractMode = rowToEdit.IsReceivedContract === true;
 
     modalRef.result.then(
       (result) => {
@@ -393,6 +411,87 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
     );
   }
 
+  onBulkReceiveContract() {
+    const selectedRows = this.tb_AccountingContract.getSelectedData();
+
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn ít nhất một hợp đồng để nhận chứng từ hàng loạt'
+      );
+      return;
+    }
+
+    const contractIds = selectedRows
+      .map((row: any) => row.ID)
+      .filter((id: any) => id && id > 0);
+
+    if (contractIds.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không tìm thấy ID hợp đồng hợp lệ'
+      );
+      return;
+    }
+
+    // Reset modal fields
+    this.bulkDateReceived = null;
+    this.bulkQuantityDocument = 0;
+    this.showBulkReceiveModal = true;
+  }
+
+  onBulkReceiveConfirm() {
+    if (!this.bulkDateReceived) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập Ngày trả hồ sơ gốc');
+      return;
+    }
+    if (!this.bulkQuantityDocument || this.bulkQuantityDocument <= 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập SL hồ sơ > 0');
+      return;
+    }
+
+    const selectedRows = this.tb_AccountingContract.getSelectedData();
+    const contractIds = selectedRows
+      .map((row: any) => row.ID)
+      .filter((id: any) => id && id > 0);
+
+    const formatLocalDate = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}T00:00:00`;
+    };
+
+    this.isBulkSaving = true;
+    this.accountingContractService.bulkReceiveContract(
+      contractIds,
+      formatLocalDate(this.bulkDateReceived),
+      this.bulkQuantityDocument
+    ).subscribe({
+      next: (response: any) => {
+        this.isBulkSaving = false;
+        if (response && (response.status === 1 || response.Status === 1)) {
+          this.notification.success(NOTIFICATION_TITLE.success, response.message || response.Message || 'Nhận chứng từ hàng loạt thành công');
+          this.showBulkReceiveModal = false;
+          this.loadData();
+        } else {
+          const errorMessage = response?.message || response?.Message || 'Có lỗi xảy ra';
+          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+        }
+      },
+      error: (error: any) => {
+        this.isBulkSaving = false;
+        console.error('Error in onBulkReceiveConfirm:', error);
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Có lỗi xảy ra khi nhận chứng từ hàng loạt';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+      }
+    });
+  }
+
+  onBulkReceiveCancel() {
+    this.showBulkReceiveModal = false;
+  }
+
   onCancelReceiveContract() {
     if (!this.selectedRow) {
       this.notification.warning(
@@ -448,10 +547,21 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
   }
 
   onCopy() {
-    if (!this.selectedRow || !this.selectedRow.ID) {
+    const selectedData = this.tb_AccountingContract.getSelectedData();
+    if (selectedData.length > 1) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Vui lòng chọn hợp đồng để sửa'
+        'Vui lòng chọn duy nhất 1 hợp đồng để copy'
+      );
+      return;
+    }
+
+    const rowToEdit = selectedData.length === 1 ? selectedData[0] : this.selectedRow;
+
+    if (!rowToEdit || !rowToEdit.ID) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn hợp đồng để copy'
       );
       return;
     }
@@ -462,7 +572,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       centered: true,
     });
 
-    modalRef.componentInstance.editId = this.selectedRow.ID;
+    modalRef.componentInstance.editId = rowToEdit.ID;
     modalRef.componentInstance.isCopyMode = true;
     modalRef.componentInstance.isReceivedContractMode = false;
 
@@ -470,6 +580,25 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       (result) => {
         if (result === 'saved' || result === 'success') {
           this.loadData();
+        }
+      },
+      () => {
+        // Modal dismissed
+      }
+    );
+  }
+
+  onImportExcel() {
+    const modalRef = this.modalService.open(ImportExcelAccountingContractComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      centered: true,
+    });
+
+    modalRef.result.then(
+      (result) => {
+        if (result === 'saved' || result === 'success') {
+          this.search();
         }
       },
       () => {
@@ -508,7 +637,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       dataTree: true,
       dataTreeStartExpanded: true,
       dataTreeChildField: '_children',
-      selectableRows: 1,
+      selectableRows: true,
       pagination: true,
       paginationMode: 'remote',
       paginationSize: 50,

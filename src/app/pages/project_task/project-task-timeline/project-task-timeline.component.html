@@ -17,17 +17,17 @@
                 <div class="search-field">
                     <label class="search-label">Từ ngày</label>
                     <input type="date" [(ngModel)]="dateStart"
-                        style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                        style="width: 140px; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
                 </div>
                 <div class="search-field">
                     <label class="search-label">Đến ngày</label>
                     <input type="date" [(ngModel)]="dateEnd"
-                        style="width: 140px; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                        style="width: 140px; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
                 </div>
                 <div class="search-field">
                     <label class="search-label">Trạng thái</label>
-                    <nz-select nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small" 
-                        nzMode="multiple" [nzMaxTagCount]="1" nzAllowClear style="width: 200px;">
+                    <nz-select nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
+                        nzMode="multiple" [nzMaxTagCount]="4" nzAllowClear style="width: 400px;">
                         <nz-option *ngFor="let opt of statusOptions" [nzLabel]="opt.label" [nzValue]="opt.value">
                         </nz-option>
                     </nz-select>
@@ -68,12 +68,12 @@
                         </th>
                         <th rowspan="2" class="sticky-col col-status">
                             Trạng Thái
-                            <p-multiSelect [options]="statusOptions" [(ngModel)]="filterStatusColumn" placeholder="Tất cả"
-                                [showHeader]="false" [filter]="false" (onChange)="applyFilters()"
-                                styleClass="timeline-status-multi" [maxSelectedLabels]="1"
+                            <p-multiSelect [options]="statusOptions" [(ngModel)]="filterStatusColumn"
+                                placeholder="Tất cả" [showHeader]="false" [filter]="false" (onChange)="applyFilters()"
+                                styleClass="timeline-status-multi" [maxSelectedLabels]="3"
                                 selectedItemsLabel="{0} trạng thái" appendTo="body" />
                         </th>
-                        <th rowspan="2" class="sticky-col col-time">Thời gian (h)</th>
+                        <th rowspan="2" class="sticky-col col-time">Thời gian <br>(giờ/ngày)</th>
                         <th rowspan="2" class="sticky-col col-type">Loại</th>
                         <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday" class="date-header">
                             {{ col.dayName }}
@@ -99,7 +99,7 @@
                                     <td *ngIf="ti === 0 && ri === 0" [attr.rowspan]="group.tasks.length * 2"
                                         class="sticky-col col-proj cell-group cell-group-end">
                                         <div class="project-info">
-                                            <span class="fw-bold">{{ group.ProjectCode }}</span>
+                                            <span class="fw-bold">{{ group.ProjectCode }}<span *ngIf="group.ProjectStatusName"> ({{ group.ProjectStatusName }})</span></span>
                                             <div class="project-name text-wrap">{{ group.ProjectName }}</div>
                                         </div>
                                     </td>
@@ -109,7 +109,8 @@
                                         [class.cell-group-end]="ti === group.tasks.length - 1"
                                         (contextmenu)="onContextMenu($event, cm, task)">
                                         <div class="task-info">
-                                            <div class="d-flex align-items-center gap-1 text-nowrap w-100 overflow-hidden">
+                                            <div
+                                                class="d-flex align-items-center gap-1 text-nowrap w-100 overflow-hidden">
                                                 <a class="task-code-link"
                                                     (click)="openTaskDetail(task); $event.stopPropagation()">
                                                     {{ task.ProjectTaskCode || 'N/A' }}
@@ -141,7 +142,8 @@
                                     <!-- Thời gian -->
                                     <td class="sticky-col col-time text-center fw-bold"
                                         [class.cell-group-end]="ri === 1 && ti === group.tasks.length - 1">
-                                        {{ calculateRowTime(row) }}
+                                        ({{ row.SumTotalHour != null ? row.SumTotalHour : 0 }} / {{ row.DurationDays !=
+                                        null ? row.DurationDays : 0 }})
                                     </td>
 
                                     <!-- Loại -->
@@ -157,9 +159,9 @@
                                         [class.filled-planned]="row.TypeDate === 1 && (getValue(row, col.dateStr) === 1 || getValue(row, col.dateStr) === 3)"
                                         [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
                                         <!-- Dự kiến: 2 hoặc 3 hiển thị icon check -->
-                                        <ng-container *ngIf="row.TypeDate === 1 && (getValue(row, col.dateStr) === 2 || getValue(row, col.dateStr) === 3)">
-                                            <span nz-icon nzType="check" nzTheme="outline"
-                                                class="check-icon"></span>
+                                        <ng-container
+                                            *ngIf="row.TypeDate === 1 && (getValue(row, col.dateStr) === 2 || getValue(row, col.dateStr) === 3)">
+                                            <span nz-icon nzType="check" nzTheme="outline" class="check-icon"></span>
                                         </ng-container>
                                         <!-- Thực tế: > 0 hiển thị số giờ -->
                                         <ng-container *ngIf="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">

@@ -54,6 +54,16 @@
     white-space: nowrap;
 }
 
+.search-field input,
+.search-field nz-select {
+    font-size: 12px !important;
+}
+
+:host ::ng-deep .search-field .ant-select-selection-item,
+:host ::ng-deep .search-field .ant-select-selection-placeholder {
+    font-size: 12px !important;
+}
+
 .legend-bar {
     display: flex;
     gap: 16px;

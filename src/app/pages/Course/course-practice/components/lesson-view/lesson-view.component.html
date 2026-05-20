@@ -6,16 +6,16 @@
         <!-- Lesson Detail View -->
         <div class="card h-100 border-0 rounded-0">
             <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-start">
-                <button nz-button nzType="text" nzSize="small" (click)="goBackToCourses()"
+                <!-- <button nz-button nzType="text" nzSize="small" (click)="goBackToCourses()"
                     title="Quay lại danh sách khóa học">
                     <span nz-icon nzType="arrow-left"></span>
-                </button>
+                </button>-->
                 <h6 class="mb-0">{{ currentLesson?.LessonTitle || 'Chi tiết bài học' }}</h6>
             </div>
-            <div class="card-body p-3" style="overflow-y: auto;">
+            <div *ngIf="!hiddenVideo" class="card-body p-3" style="overflow-y: auto;">
                 <div *ngIf="currentLesson">
                     <!-- Video Section -->
-                    <div *ngIf="videoUrl; else videoUnavailable" class="video-section">
+                    <div *ngIf="!hiddenVideo && videoUrl; else videoUnavailable" class="video-section">
                         <div class="player-wrapper" #playerWrapper [class.vg-inactive]="!isUserActive">
                             <vg-player (onPlayerReady)="onPlayerReady($event)">
                                 <vg-overlay-play></vg-overlay-play>
@@ -68,16 +68,16 @@
                                     </div>
                                 </div>
 
-                                <video [vgMedia]="$any(media)" #media id="singleVideo" preload="metadata"
+                                <video *ngIf="!hiddenVideo" [vgMedia]="$any(media)" #media id="singleVideo" preload="metadata"
                                     [src]="videoUrl">
                                 </video>
                             </vg-player>
                         </div>
-                        <div *ngIf="isYoutubeLink(currentLesson.VideoURL || '')" class="mt-2 youtube-link-hint">
+                        <div *ngIf="isYoutubeLink(currentLesson?.VideoURL || '')" class="mt-2 youtube-link-hint">
                             <span class="text-muted" style="font-size: 13px;">Link Video: </span>
-                            <a [href]="currentLesson.VideoURL" target="_blank"
+                            <a [href]="currentLesson?.VideoURL" target="_blank"
                                 style="font-size: 13px; text-decoration: underline;">{{
-                                currentLesson.VideoURL || ''}}</a>
+                                currentLesson?.VideoURL || ''}}</a>
                         </div>
                     </div>
 
@@ -96,9 +96,44 @@
 
 
                 </div>
+               
             </div>
+            <div  *ngIf="(isYoutubeLink(currentLesson?.VideoURL || ''))&&currentLesson" style="padding-left: 17px;" class="mt-2 youtube-link-hint">
+                <span class="text-muted" style="font-size: 13px;">Link Video: </span>
+                <a [href]="currentLesson?.VideoURL" target="_blank"
+                    style="font-size: 13px; text-decoration: underline;">{{
+                    currentLesson?.VideoURL || ''}}</a>
+            </div>
+            <!-- File Attachments Section -->
+            <div *ngIf="checkedFiles.length > 0" class="files-section">
+                <div class="section-subtitle mb-3">Download tài liệu đính kèm:</div>
+                <ng-container *ngFor="let file of checkedFiles">
+                    <div class="file-item">
+                        <a [href]="file.ServerPath" target="_blank">
+                            <span nz-icon nzType="file" nzTheme="outline"></span>
+                            {{ file.NameFile }}
+                        </a>
+                    </div>
+                </ng-container>
+            </div>
+            <div *ngIf="urlPDF && pdfFileExists && hiddenVideo" class="pdf-section mb-4">
+                <div>
+                    <!-- <embed [src]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%" height="600"> -->
+                    <!-- <iframe src="{{getUrlPDFFile(currentLesson?.UrlPDF)}}" width="600" height="780" style="border: none;">
+                </iframe> -->
+                    <!--
+                <object [data]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%"
+                    height="600"></object> -->
+                    <!-- <object data="{{getUrlPDFFile(currentLesson?.UrlPDF)}}"  type="application/pdf" width="100%"
+                    height="600"></object> -->
+                    <embed [src]="urlPDF" type="application/pdf" width="100%" height="800" frameborder="0"
+                        sandbox="allow-same-origin allow-scripts" allowfullscreen>
+    
+                </div>
+            </div>
+
             <!-- Chapters List -->
-            <div class="chapters-section px-3 pb-4" *ngIf="chapters && chapters.length > 0">
+            <div  class="chapters-section px-3 pb-4" *ngIf="(chapters && chapters.length > 0) && !hiddenVideo">
                 <h6 class="section-title border-bottom pb-2">
                     <i nz-icon nzType="book" nzTheme="outline" class="text-primary"></i>
                     Phân đoạn Video
@@ -202,37 +237,29 @@
     <!-- Content Section -->
     <div class="content-section mb-4">
         <h5 class="section-title">{{ currentLesson?.LessonTitle }}</h5>
+        <!-- PDF Section -->
+        <div *ngIf="urlPDF && pdfFileExists && !hiddenVideo" class="pdf-section mb-4">
+            <div>
+                <!-- <embed [src]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%" height="600"> -->
+                <!-- <iframe src="{{getUrlPDFFile(currentLesson?.UrlPDF)}}" width="600" height="780" style="border: none;">
+            </iframe> -->
+                <!--
+            <object [data]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%"
+                height="600"></object> -->
+                <!-- <object data="{{getUrlPDFFile(currentLesson?.UrlPDF)}}"  type="application/pdf" width="100%"
+                height="600"></object> -->
+                <embed [src]="urlPDF" type="application/pdf" width="100%" height="800" frameborder="0"
+                    sandbox="allow-same-origin allow-scripts" allowfullscreen>
+
+            </div>
+        </div>
         <div class="section-subtitle mb-3">Nội dung</div>
         <div class="lesson-content-html" [innerHTML]="processHtmlContent(currentLesson?.LessonContent)">
         </div>
         <!-- <object id="pdf" [data]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%" height="600"></object> -->
     </div>
 
-    <!-- PDF Section -->
-    <div *ngIf="urlPDF" class="pdf-section mb-4">
-        <div *ngIf="true">
-            <!-- <embed [src]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%" height="600"> -->
-            <!-- <iframe src="{{getUrlPDFFile(currentLesson?.UrlPDF)}}" width="600" height="780" style="border: none;">
-            </iframe> -->
-            <!--
-            <object [data]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%"
-                height="600"></object> -->
-            <!-- <object data="{{getUrlPDFFile(currentLesson?.UrlPDF)}}"  type="application/pdf" width="100%"
-                height="600"></object> -->
-            <embed [src]="urlPDF" type="application/pdf" width="100%" height="800" frameborder="0"
-                sandbox="allow-same-origin allow-scripts" allowfullscreen>
 
-        </div>
-    </div>
 
-    <!-- File Attachments Section -->
-    <div *ngIf="currentLessonFiles.length > 0" class="files-section">
-        <div class="section-subtitle mb-3">Download tài liệu đính kèm:</div>
-        <div *ngFor="let file of currentLessonFiles" class="file-item">
-            <a [href]="getUrlPDFFile(file.ServerPath)" target="_blank">
-                <span nz-icon nzType="file" nzTheme="outline"></span>
-                {{ file.NameFile }}
-            </a>
-        </div>
-    </div>
+
 </div>

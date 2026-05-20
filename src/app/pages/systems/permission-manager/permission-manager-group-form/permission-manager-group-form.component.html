@@ -1,0 +1,58 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-uppercase text-white">
+    {{ isEdit ? 'SỬA NHÓM CHỨC NĂNG' : 'THÊM NHÓM CHỨC NĂNG' }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body fs-12">
+  <form nz-form [formGroup]="form" nzLayout="vertical">
+
+    <nz-form-item class="mb-2">
+      <nz-form-label [nzSpan]="24" class="p-0">
+        Mã nhóm <span class="text-danger ps-1">*</span>
+      </nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã nhóm">
+        <input nz-input formControlName="Code" placeholder="Nhập mã nhóm" style="font-size: 12px;" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="mb-2">
+      <nz-form-label [nzSpan]="24" class="p-0">
+        Tên nhóm <span class="text-danger ps-1">*</span>
+      </nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên nhóm">
+        <input nz-input formControlName="Name" placeholder="Nhập tên nhóm" style="font-size: 12px;" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="mb-2">
+      <nz-form-label [nzSpan]="24" class="p-0">Mô tả</nz-form-label>
+      <nz-form-control [nzSpan]="24">
+        <textarea nz-input formControlName="Description" placeholder="Nhập mô tả"
+          [nzAutosize]="{ minRows: 2, maxRows: 4 }" style="font-size: 12px;"></textarea>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="mb-2">
+      <nz-form-label [nzSpan]="24" class="p-0">Nhóm cha</nz-form-label>
+      <nz-form-control [nzSpan]="24">
+        <nz-tree-select formControlName="ParentID" nzPlaceHolder="Chọn nhóm cha" style="width: 100%; font-size: 12px;"
+          nzShowSearch [nzNodes]="parentGroupTree" nzDefaultExpandAll
+          [nzDropdownStyle]="{ 'max-height': '300px', 'overflow': 'auto', 'font-size': '12px' }"
+          nzPlacement="bottomLeft">
+        </nz-tree-select>
+      </nz-form-control>
+    </nz-form-item>
+
+  </form>
+</div>
+
+<div class="modal-footer fs-12 py-2">
+  <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onCancel()">
+    Đóng
+  </button>
+  <button type="button" class="btn btn-primary btn-sm" (click)="onSubmit()">
+    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
+  </button>
+</div>

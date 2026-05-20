@@ -20,6 +20,9 @@ export interface TimelineByTeamItem {
     ProjectTaskParentTitle: string | null;
     Status: number;
     TypeDate: number; // 1: Dự kiến, 2: Thực tế
+    PlanStartDate: string | null;
+    PlanEndDate: string | null;
+    ActualEndDate: string | null;
     [key: string]: any; // Dynamic date keys (e.g. "2026-04-03": 1)
 }
 

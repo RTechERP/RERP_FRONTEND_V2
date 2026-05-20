@@ -1,0 +1,29 @@
+.bank-list-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px;
+  background: #f4f7f6;
+}
+
+.menubar-container {
+  margin-bottom: 10px;
+}
+
+.table-container {
+  flex: 1;
+  overflow: hidden;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+:host ::ng-deep .p-menubar {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+:host ::ng-deep .p-menubar .p-menubar-root-list > .p-menuitem > .p-menuitem-content .p-menuitem-link {
+  padding: 0.5rem 1rem;
+}

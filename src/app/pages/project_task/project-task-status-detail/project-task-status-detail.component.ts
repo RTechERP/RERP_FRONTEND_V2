@@ -98,7 +98,8 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
     { label: 'Hoàn thành quá hạn', value: 21 },
     { label: 'Đã duyệt', value: 22 },
     { label: 'Đã hủy duyệt', value: 23 },
-    { label: 'Pending', value: 3 }
+    { label: 'Pending', value: 3 },
+    { label: 'Hủy', value: 4 }
   ];
 
   ngOnInit() {
@@ -199,6 +200,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
     if (task.Status === 1 && isOverdue) return 11;
     if (task.Status === 1) return 1;
     if (task.Status === 3) return 3;
+    if (task.Status === 4) return 4;
     return 0;
   }
 
@@ -213,7 +215,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
     if (dueDate) dueDate.setHours(0, 0, 0, 0);
 
     if (dueDate && planEnd && dueDate > planEnd) return true;
-    if (!dueDate && planEnd && planEnd < now && task.Status !== 3) return true;
+    if (!dueDate && planEnd && planEnd < now && task.Status !== 3 && task.Status !== 4) return true;
     return false;
   }
 
@@ -228,6 +230,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
       case 22: return { label: 'Đã duyệt', severity: 'success' };
       case 23: return { label: 'Đã hủy duyệt', severity: 'danger' };
       case 3: return { label: 'Pending', severity: 'warn' };
+      case 4: return { label: 'Hủy', severity: 'contrast' };
       default: return { label: 'Chưa xác định', severity: 'secondary' };
     }
   }
@@ -471,6 +474,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
         case 22: color = '28A745'; fontColor = 'FFFFFF'; break; // Green
         case 23: color = 'DC3545'; fontColor = 'FFFFFF'; break; // Red
         case 3: color = 'FFC107'; fontColor = '000000'; break; // Orange/Yellow
+        case 4: color = '000000'; fontColor = 'FFFFFF'; break; // Black for Cancel
       }
 
       return {

@@ -111,25 +111,38 @@
                                         (click)="onDelete()" *hasPermission="'N52,N53,N1'">
                                         <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
                                     </button>
-                                    <button class="fs-12" nz-button nzType="default"
-                                        nzSize="small" title="Nhận chứng từ" (click)="onReceiveContract()" *hasPermission="'N52,N53,N1'">
-                                        <img src="assets/icon/action_approved_16.png" alt="Nhận chứng từ" /> Nhận chứng từ
+                                    <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                        title="Nhận chứng từ" (click)="onReceiveContract()"
+                                        *hasPermission="'N52,N53,N1'">
+                                        <img src="assets/icon/action_approved_16.png" alt="Nhận chứng từ" /> Nhận chứng
+                                        từ
                                     </button>
-                                    <button class="fs-12" nz-button nzType="default"
-                                        nzSize="small" title="Hủy nhận chứng từ" (click)="onCancelReceiveContract()" *hasPermission="'N52,N53,N1'">
-                                        <img src="assets/icon/action_unapproved_16.png" alt="Hủy nhận chứng từ" /> Hủy nhận chứng từ
+                                    <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                        title="Hủy nhận chứng từ" (click)="onCancelReceiveContract()"
+                                        *hasPermission="'N52,N53,N1'">
+                                        <img src="assets/icon/action_unapproved_16.png" alt="Hủy nhận chứng từ" /> Hủy
+                                        nhận chứng từ
+                                    </button>
+                                    <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                        title="Nhận chứng từ hàng loạt" (click)="onBulkReceiveContract()"
+                                        *hasPermission="'N52,N53,N1'">
+                                        <img src="assets/icon/action_approved_16.png" alt="Nhận chứng từ hàng loạt" /> Nhận CT hàng loạt
                                     </button>
                                     <button class="fs-12" nz-button nzType="default" nzSize="small" title="Copy"
                                         (click)="onCopy()">
                                         <nz-icon nzType="copy"></nz-icon> Copy
                                     </button>
-                                    <button class="fs-12" nz-button nzType="default"
-                                        nzSize="small" title="Duyệt" (click)="handleApproval(true)" *hasPermission="'N52,N1'">
+                                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Duyệt"
+                                        (click)="handleApproval(true)" *hasPermission="'N52,N1'">
                                         <img src="assets/icon/action_approved_16.png" alt="Duyệt" /> Duyệt
                                     </button>
-                                    <button class="fs-12" nz-button nzType="default"
-                                        nzSize="small" title="Hủy Duyệt" (click)="handleApproval(false)" *hasPermission="'N52,N1'">
+                                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Hủy Duyệt"
+                                        (click)="handleApproval(false)" *hasPermission="'N52,N1'">
                                         <img src="assets/icon/action_unapproved_16.png" alt="Hủy Duyệt" /> Hủy Duyệt
+                                    </button>
+                                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Nhập Excel"
+                                        (click)="onImportExcel()" *hasPermission="'N52,N53,N1'">
+                                        <img src="assets/icon/action_export_excel_16.png" alt="Nhập Excel" /> Nhập Excel
                                     </button>
                                     <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất PO"
                                         (click)="exportToExcel()">
@@ -149,4 +162,29 @@
             </div>
         </nz-splitter-panel>
     </nz-splitter>
+
+    <!-- Modal Nhận chứng từ hàng loạt -->
+    <nz-modal [(nzVisible)]="showBulkReceiveModal" nzTitle="Nhận chứng từ hàng loạt" [nzWidth]="420"
+        (nzOnCancel)="onBulkReceiveCancel()" [nzOkLoading]="isBulkSaving" nzOkText="Xác nhận" nzCancelText="Hủy"
+        (nzOnOk)="onBulkReceiveConfirm()">
+        <ng-container *nzModalContent>
+            <form nz-form nzLayout="vertical">
+                <nz-form-item>
+                    <nz-form-label [nzSpan]="24">Ngày trả hồ sơ gốc <span class="text-danger">(*)</span></nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <nz-date-picker class="w-100" nzFormat="dd/MM/yyyy" [(ngModel)]="bulkDateReceived"
+                            [ngModelOptions]="{standalone: true}" nzPlaceHolder="Chọn ngày"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+                <nz-form-item class="mt-2">
+                    <nz-form-label [nzSpan]="24">SL hồ sơ <span class="text-danger">(*)</span></nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <nz-input-number class="w-100" [(ngModel)]="bulkQuantityDocument"
+                            [ngModelOptions]="{standalone: true}" [nzMin]="0" [nzStep]="1"
+                            nzPlaceHolder="Nhập số lượng hồ sơ"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+            </form>
+        </ng-container>
+    </nz-modal>
 </ng-container>

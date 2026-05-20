@@ -51,6 +51,7 @@ export class ChooseEmployeeComponent implements OnInit {
 
     // Loading state
     isLoading: boolean = false;
+    isSaving: boolean = false;
 
     constructor(
         public activeModal: NgbActiveModal,
@@ -246,10 +247,14 @@ export class ChooseEmployeeComponent implements OnInit {
     }
 
     save(): void {
+        if (this.isSaving) return;
+
         if (this.selectedEmployeeIds.length === 0) {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một nhân viên');
             return;
         }
+
+        this.isSaving = true;
 
         // Build payload like WinForm
         const payload = this.selectedEmployeeIds.map(id => ({
@@ -263,6 +268,7 @@ export class ChooseEmployeeComponent implements OnInit {
 
         this.kpiEmployeeTeamService.saveEmployeeTeamLinks(payload).subscribe({
             next: (response) => {
+                this.isSaving = false;
                 if (response?.status === 1) {
                     this.notification.success(NOTIFICATION_TITLE.success, 'Đã thêm nhân viên thành công');
                     this.onSaved.emit(response.data);
@@ -272,7 +278,8 @@ export class ChooseEmployeeComponent implements OnInit {
                 }
             },
             error: (error) => {
-                const errorMessage = error?.error?.message || error?.message || 'Có lỗi xảy ra';
+                this.isSaving = false;
+                const errorMessage = typeof error?.error === 'string' ? error.error : (error?.error?.message || error?.message || 'Có lỗi xảy ra');
                 this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
             }
         });

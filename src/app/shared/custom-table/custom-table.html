@@ -49,12 +49,14 @@
             <h4 class="m-0" *ngIf="title">{{ title }}</h4>
             <div class="flex gap-1 align-items-center">
                 <!-- View mode toggle -->
-                <p-button icon="pi pi-id-card" [text]="true" size="small"
-                    [severity]="isCardView ? 'primary' : 'secondary'" title="Card View" (click)="setViewMode('card')">
-                </p-button>
-                <p-button icon="pi pi-table" [text]="true" size="small"
-                    [severity]="isGridView ? 'primary' : 'secondary'" title="Grid View" (click)="setViewMode('grid')">
-                </p-button>
+                <ng-container *ngIf="showViewModeSwitcher">
+                    <p-button icon="pi pi-id-card" [text]="true" size="small"
+                        [severity]="isCardView ? 'primary' : 'secondary'" title="Card View" (click)="setViewMode('card')">
+                    </p-button>
+                    <p-button icon="pi pi-table" [text]="true" size="small"
+                        [severity]="isGridView ? 'primary' : 'secondary'" title="Grid View" (click)="setViewMode('grid')">
+                    </p-button>
+                </ng-container>
                 <p-button *ngIf="exportable" icon="pi pi-download" severity="success" [text]="true" size="small"
                     (click)="exportCSV()">
                 </p-button>

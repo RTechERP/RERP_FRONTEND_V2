@@ -29,6 +29,16 @@
     font-weight: 500;
 }
 
+.form-field-vertical input,
+.form-field-vertical nz-select {
+    font-size: 12px !important;
+}
+
+:host ::ng-deep .form-field-vertical .ant-select-selection-item,
+:host ::ng-deep .form-field-vertical .ant-select-selection-placeholder {
+    font-size: 12px !important;
+}
+
 .legend-bar {
     display: flex;
     gap: 16px;

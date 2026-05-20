@@ -1,0 +1,57 @@
+:host {
+  font-size: 12px !important;
+}
+
+::ng-deep .p-treetable {
+  font-size: 12px !important;
+}
+
+::ng-deep .p-treetable .p-treetable-thead > tr > th {
+  padding: 8px 12px !important;
+  background: #f8f9fa !important;
+  color: #333 !important;
+  font-weight: 600 !important;
+  border: 1px solid #dee2e6 !important;
+}
+
+::ng-deep .p-treetable .p-treetable-tbody > tr > td {
+  padding: 4px 12px !important; /* Bé lại khoảng cách dòng */
+  border: 1px solid #dee2e6 !important;
+}
+
+.tree-container {
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+.fw-bold {
+  font-weight: 600;
+}
+
+.bg-light {
+  background-color: #fafafa !important;
+}
+
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-3 { margin-bottom: 1rem; }
+.ms-2 { margin-left: 0.5rem; }
+.me-2 { margin-right: 0.5rem; }
+
+::ng-deep .ant-select {
+  font-size: 12px !important;
+}
+
+::ng-deep .ant-select-item {
+  font-size: 12px !important;
+}
+
+::ng-deep .p-treetable .p-treetable-thead > tr > th .p-inputtext {
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  width: 100% !important;
+  border-radius: 4px !important;
+}
+
+::ng-deep .p-column-filter-row .p-column-filter-element {
+  padding: 2px 4px !important;
+}

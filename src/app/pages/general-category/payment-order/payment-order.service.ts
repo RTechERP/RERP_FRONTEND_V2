@@ -61,6 +61,14 @@ export class PaymentOrderService {
         return this.http.post<any>(`${this.url}/update-totalmoney`, payment);
     }
 
+    updateTransferType(payments: any[]): Observable<any> {
+        return this.http.post<any>(`${this.url}/update-transfer-type`, payments);
+    }
+
+    downloadZip(file: DownloadPaymentOrderDTO): Observable<Blob> {
+        return this.http.post(`${this.url}/download-zip`, file, { responseType: 'blob' });
+    }
+
     uploadFile(files: File[], paymentOrderID: number, paymentOrderFileID: string): Observable<any> {
         const formData = new FormData();
         if (files) {
@@ -143,6 +151,10 @@ export class PaymentOrderService {
 
     getStep(): Observable<any> {
         return this.http.get<any>(`${this.url}/get-step`);
+    }
+
+    getBankList(): Observable<any> {
+        return this.http.get<any>(`${this.url}/get-bank-list`);
     }
     // ====== 4. Đọc 3 chữ số ======
     private readThreeDigits(num: number): string {
@@ -252,6 +264,12 @@ export interface CurrencyConfig {
     subUnit?: string;    // xu, cent...
 }
 
+export interface DownloadPaymentOrderDTO {
+    PaymentOrderId: number;
+    PaymentOrderCode: string;
+    FilePath: string[];
+}
+
 export const CURRENCY_CONFIGS: CurrencyConfig[] = [
     { id: 'vnd', text: 'VND', unit: 'đồng', subUnit: 'xu' },
     { id: 'usd', text: 'USD', unit: 'đô', subUnit: 'cent' },
@@ -261,4 +279,6 @@ export const CURRENCY_CONFIGS: CurrencyConfig[] = [
     { id: 'cny', text: 'CNY', unit: 'nhân dân tệ', subUnit: '' },
     { id: 'inr', text: 'INR', unit: 'rupee', subUnit: 'paise' },
     { id: 'myr', text: 'MYR', unit: 'ringgit', subUnit: 'sen' },
+    { id: 'idr', text: 'IDR', unit: 'rupiah', subUnit: 'sen' },
+
 ];

@@ -16,20 +16,20 @@
             </div>
             <nz-row [nzGutter]="[8, 8]" nzAlign="bottom" nzJustify="space-between">
                 <!-- Từ ngày -->
-                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="3">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="2">
                     <div class="form-field-vertical">
                         <label>Từ ngày</label>
-                        <input type="date" [(ngModel)]="dateStart" name="dateStart"
-                            style="width: 100%; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                        <input type="date" [(ngModel)]="dateStart" name="dateStart" (ngModelChange)="loadTimeline()"
+                            style="width: 100%; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
                     </div>
                 </nz-col>
 
                 <!-- Đến ngày -->
-                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="3">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="2">
                     <div class="form-field-vertical">
                         <label>Đến ngày</label>
-                        <input type="date" [(ngModel)]="dateEnd" name="dateEnd"
-                            style="width: 100%; padding: 4px 8px; font-size: 12px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+                        <input type="date" [(ngModel)]="dateEnd" name="dateEnd" (ngModelChange)="loadTimeline()"
+                            style="width: 100%; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
                     </div>
                 </nz-col>
 
@@ -37,10 +37,11 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Phòng ban</label>
-                        <nz-select nzPlaceHolder="Phòng ban" [(ngModel)]="departmentId" nzSize="small" nzShowSearch
-                            nzAllowClear (ngModelChange)="onDepartmentChange()" style="width: 100%;">
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Phòng ban" [(ngModel)]="departmentId" nzSize="small" nzShowSearch nzAllowClear
+                            (ngModelChange)="onDepartmentChange()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
-                            <nz-option *ngFor="let item of departmentList" [nzLabel]="item.Name || ''"
+                            <nz-option *ngFor="let item of departmentList; trackBy: trackByRow" [nzLabel]="item.Name || ''"
                                 [nzValue]="item.ID">
                             </nz-option>
                         </nz-select>
@@ -51,10 +52,11 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Team</label>
-                        <nz-select nzPlaceHolder="Team" [(ngModel)]="teamId" nzSize="small" nzShowSearch nzAllowClear
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Team" [(ngModel)]="teamId" nzSize="small" nzShowSearch nzAllowClear
                             (ngModelChange)="onTeamChange()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
-                            <nz-option *ngFor="let item of teamList" [nzLabel]="item.Name || ''" [nzValue]="item.ID">
+                            <nz-option *ngFor="let item of teamList; trackBy: trackByRow" [nzLabel]="item.Name || ''" [nzValue]="item.ID">
                             </nz-option>
                         </nz-select>
                     </div>
@@ -64,10 +66,11 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Nhân viên</label>
-                        <nz-select nzPlaceHolder="Nhân viên" [(ngModel)]="userId" nzSize="small" nzShowSearch
-                            nzAllowClear style="width: 100%;">
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Nhân viên" [(ngModel)]="userId" nzSize="small" nzShowSearch nzAllowClear
+                            (ngModelChange)="loadTimeline()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
-                            <nz-option *ngFor="let item of userList" [nzLabel]="item.FullName || ''"
+                            <nz-option *ngFor="let item of userList; trackBy: trackByRow" [nzLabel]="item.FullName || ''"
                                 [nzValue]="item.UserID">
                             </nz-option>
                         </nz-select>
@@ -78,10 +81,11 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="4">
                     <div class="form-field-vertical">
                         <label>Dự án</label>
-                        <nz-select nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch
-                            nzAllowClear style="width: 100%;">
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch nzAllowClear
+                            (ngModelChange)="loadTimeline()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
-                            <nz-option *ngFor="let item of projectList"
+                            <nz-option *ngFor="let item of projectList; trackBy: trackByRow"
                                 [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
                             </nz-option>
                         </nz-select>
@@ -89,19 +93,20 @@
                 </nz-col>
 
                 <!-- Trạng thái -->
-                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="6">
                     <div class="form-field-vertical">
                         <label>Trạng thái</label>
-                        <nz-select nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small" 
-                            nzMode="multiple" [nzMaxTagCount]="1" nzAllowClear style="width: 100%;">
-                            <nz-option *ngFor="let opt of statusOptions" [nzLabel]="opt.label" [nzValue]="opt.value">
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
+                            nzMode="multiple" [nzMaxTagCount]="4" nzAllowClear (ngModelChange)="loadTimeline()" style="width: 100%;">
+                            <nz-option *ngFor="let opt of statusOptions; trackBy: trackByRow" [nzLabel]="opt.label" [nzValue]="opt.value">
                             </nz-option>
                         </nz-select>
                     </div>
                 </nz-col>
 
                 <!-- Nút hành động -->
-                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="2">
+                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="1">
                     <div class="form-field-vertical">
                         <label>&nbsp;</label>
                         <div class="d-flex gap-2">
@@ -148,31 +153,33 @@
 
                         <th rowspan="2" class="sticky-col col-status">
                             Trạng Thái
-                            <p-multiSelect [options]="statusOptions" [(ngModel)]="filterStatusColumn" placeholder="Tất cả"
-                                [showHeader]="false" [filter]="false" (onChange)="onColumnFilter()"
-                                styleClass="timeline-status-multi" [maxSelectedLabels]="1"
-                                selectedItemsLabel="{0} trạng thái" appendTo="body" />
+                            <p-multiSelect [options]="statusOptions" [(ngModel)]="filterStatusColumn"
+                                placeholder="Tất cả" [showHeader]="false" [filter]="false" (onChange)="onColumnFilter()"
+                                styleClass="timeline-status-multi" [maxSelectedLabels]="3"
+                                panelStyleClass="timeline-status-multi-panel" selectedItemsLabel="{0} trạng thái"
+                                appendTo="body" />
                         </th>
-                        <th rowspan="2" class="sticky-col col-time">Thời gian (h)</th>
+                        <th rowspan="2" class="sticky-col col-time">Thời gian <br>(giờ/ngày)</th>
                         <th rowspan="2" class="sticky-col col-type">Loại</th>
-                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday"
+                        <th *ngFor="let col of dateColumns; trackBy: trackByColumn" [class.sunday]="col.isSunday"
                             [class.today-col]="col.isToday" class="date-header">
                             {{ col.dayName }}
                         </th>
                     </tr>
                     <tr>
-                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday"
+                        <th *ngFor="let col of dateColumns; trackBy: trackByColumn" [class.sunday]="col.isSunday"
                             [class.today-col]="col.isToday" class="date-subheader">
                             {{ col.dateDisplay }}
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <ng-container *ngFor="let group of filteredData(); let gi = index">
-                        <ng-container *ngFor="let project of group.projects; let pi = index">
-                            <ng-container *ngFor="let task of project.tasks; let ti = index">
-                                <ng-container *ngFor="let row of task.rows; let ri = index">
+                    <ng-container *ngFor="let group of filteredData(); let gi = index; trackBy: trackByGroup">
+                        <ng-container *ngFor="let project of group.projects; let pi = index; trackBy: trackByProject">
+                            <ng-container *ngFor="let task of project.tasks; let ti = index; trackBy: trackByTask">
+                                <ng-container *ngFor="let row of task.rows; let ri = index; trackBy: trackByRow">
                                     <tr [class.row-actual]="ri === 1"
+                                        [class.row-overdue]="task.isOverdue"
                                         [class.row-group-end]="ri === 1 && ti === project.tasks.length - 1 && pi === group.projects.length - 1">
                                         <!-- STT: chỉ ở dòng đầu tiên của nhóm nhân viên -->
                                         <td *ngIf="pi === 0 && ti === 0 && ri === 0"
@@ -191,8 +198,8 @@
                                         <td *ngIf="ti === 0 && ri === 0" [attr.rowspan]="project.tasks.length * 2"
                                             class="sticky-col col-proj"
                                             [class.cell-group-end]="pi === group.projects.length - 1">
-                                            <div class="project-info">
-                                                <span class="fw-bold">{{ project.ProjectCode }}</span>
+                                            <div class="project-info" (contextmenu)="onContextMenu($event, project, 0)">
+                                                <span class="fw-bold">{{ project.ProjectCode }}<span *ngIf="project.ProjectStatusName"> ({{ project.ProjectStatusName }})</span></span>
                                                 <div class="project-name text-wrap">{{ project.ProjectName }}</div>
                                             </div>
                                         </td>
@@ -204,7 +211,8 @@
                                                 <div
                                                     class="d-flex align-items-center gap-1 text-nowrap w-100 overflow-hidden">
                                                     <a class="task-code-link"
-                                                        (click)="openTaskDetail(task); $event.stopPropagation()">
+                                                        (click)="openTaskDetail(task); $event.stopPropagation()"
+                                                        (contextmenu)="onContextMenu($event, project, task.ProjectTaskID)">
                                                         {{ task.ProjectTaskCode || '' }}
                                                     </a>
                                                     <span *ngIf="task.ProjectTaskParentCode"
@@ -212,7 +220,8 @@
                                                         [nzTooltipTitle]="task.ProjectTaskParentTitle"
                                                         style="max-width: 130px;">
                                                         - <a class="task-code-link"
-                                                            (click)="openTaskDetail(task.ProjectTaskParentID); $event.stopPropagation()">{{
+                                                            (click)="openTaskDetail(task.ProjectTaskParentID); $event.stopPropagation()"
+                                                            (contextmenu)="onContextMenu($event, project, task.ProjectTaskParentID)">{{
                                                             task.ProjectTaskParentCode || '' }}</a>
                                                     </span>
                                                 </div>
@@ -223,7 +232,7 @@
                                         <!-- Trạng thái: span 2 dòng -->
                                         <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-status text-center"
                                             [class.cell-group-end]="ti === project.tasks.length - 1 && pi === group.projects.length - 1">
-                                            <span class="status-tag" [attr.data-status]="task.Status">
+                                            <span class="status-tag" [attr.data-status]="task.Status" [class.overdue]="task.isOverdue">
                                                 {{ task.StatusName }}
                                             </span>
                                         </td>
@@ -231,7 +240,8 @@
                                         <!-- Thời gian -->
                                         <td class="sticky-col col-time text-center fw-bold"
                                             [class.cell-group-end]="ri === 1 && ti === project.tasks.length - 1 && pi === group.projects.length - 1">
-                                            {{ calculateRowTime(row) }}
+                                            ({{ row.SumTotalHour != null ? row.SumTotalHour : 0 }} / {{ row.DurationDays
+                                            != null ? row.DurationDays : 0 }})
                                         </td>
 
                                         <!-- Loại -->
@@ -241,13 +251,14 @@
                                         </td>
 
                                         <!-- Các ô ngày -->
-                                        <td *ngFor="let col of dateColumns" class="gantt-cell"
+                                        <td *ngFor="let col of dateColumns; trackBy: trackByColumn" class="gantt-cell"
                                             [class.cell-group-end]="ri === 1 && ti === project.tasks.length - 1 && pi === group.projects.length - 1"
                                             [class.sunday]="col.isSunday" [class.today-col]="col.isToday"
                                             [class.filled-planned]="row.TypeDate === 1 && (getValue(row, col.dateStr) === 1 || getValue(row, col.dateStr) === 3)"
                                             [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
                                             <!-- Dự kiến: 2 hoặc 3 hiển thị icon check -->
-                                            <ng-container *ngIf="row.TypeDate === 1 && (getValue(row, col.dateStr) === 2 || getValue(row, col.dateStr) === 3)">
+                                            <ng-container
+                                                *ngIf="row.TypeDate === 1 && (getValue(row, col.dateStr) === 2 || getValue(row, col.dateStr) === 3)">
                                                 <span nz-icon nzType="check" nzTheme="outline"
                                                     class="check-icon"></span>
                                             </ng-container>
@@ -288,3 +299,15 @@
         </div>
     </div>
 </div>
+<!-- Custom Context Menu cho công việc -->
+<div class="custom-context-menu" *ngIf="contextMenuVisible" [style.left.px]="contextMenuX"
+    [style.top.px]="contextMenuY">
+    <ul>
+        <li (click)="openProjectReport()">
+            <span nz-icon nzType="project" nzTheme="outline"></span>
+            Báo cáo công việc dự án
+        </li>
+    </ul>
+</div>
+<div class="context-menu-backdrop" *ngIf="contextMenuVisible" (click)="closeContextMenu()"
+    (contextmenu)="closeContextMenu()"></div>

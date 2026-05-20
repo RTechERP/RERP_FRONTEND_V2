@@ -63,6 +63,7 @@ import { BillImportQcDetailComponent } from '../../../bill-import-qc/bill-import
 import { BillImportQcService } from '../../../bill-import-qc/bill-import-qc-service/bill-import-qc-service.service';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { log } from 'ng-zorro-antd/core/logger';
+import { Formatter } from 'tabulator-tables';
 
 interface ProductSale {
     Id?: number;
@@ -130,6 +131,7 @@ export class BillImportDetailNewComponent
     isSaving: boolean = false;
     isFormDisabled: boolean = false;
     isApproved: boolean = false;
+    isBillApproved: boolean = false; // raw status, không loại trừ admin, dùng để truyền vào serial modal
     activePur: boolean = false;
     isEditPM: boolean = true;
     activeTabIndex: number = 0;
@@ -258,7 +260,7 @@ export class BillImportDetailNewComponent
         private billImportQcService: BillImportQcService
     ) {
         this.validateForm = this.fb.group({
-            BillImportCode: [{ value: '', disabled: true }, [Validators.required]],
+            BillImportCode: ['', [Validators.required]],
             BillTypeNew: [0, [Validators.required]],
             ReciverID: [0, [Validators.required, Validators.min(1)]],
             WarehouseName: [{ value: 'HN', disabled: true }],
@@ -394,6 +396,7 @@ export class BillImportDetailNewComponent
 
     private updateReceiverDeliver(): void {
         if (this.isCheckmode && this.id > 0) return;
+        if (this.poNCCId > 0) return; // API đã cung cấp sẵn ReciverID/DeliverID từ PONCC
 
         const khoTypeId = this.validateForm.controls['KhoTypeID'].value || 0;
         const warehouseId = this.validateForm.controls['WarehouseID'].value || 0;
@@ -790,19 +793,39 @@ export class BillImportDetailNewComponent
                         minLength: 0,
                         forceUserInput: false,
                         openSearchListOnFocus: true,
+                        debounceWaitMs: 0,
                         labelField: 'ProductCode',
+                        customize: (_input: HTMLInputElement, inputRect: DOMRect, container: HTMLDivElement, _maxHeight: number) => {
+                            const spaceBelow = window.innerHeight - inputRect.bottom;
+                            const spaceAbove = inputRect.top;
+                            const dropdownHeight = 300;
+                            if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+                                const availableAbove = Math.min(spaceAbove - 8, dropdownHeight);
+                                container.style.top = 'auto';
+                                container.style.bottom = `${window.innerHeight - inputRect.top}px`;
+                                container.style.maxHeight = `${availableAbove}px`;
+                            } else {
+                                container.style.top = `${inputRect.bottom}px`;
+                                container.style.bottom = 'auto';
+                                container.style.maxHeight = `${Math.min(spaceBelow - 8, dropdownHeight)}px`;
+                            }
+                        },
                         fetch: (searchTerm: string, callback: (items: false | any[]) => void) => {
                             const products = this.productGridCollection || [];
                             if (!searchTerm || searchTerm.length === 0) {
-                                callback(products);
+                                callback(products.slice(0, 50));
                             } else {
-                                const filtered = products.filter((product: any) => {
+                                const term = searchTerm.toLowerCase();
+                                const filtered: any[] = [];
+                                for (const product of products) {
+                                    if (filtered.length >= 50) break;
                                     const code = (product.ProductCode || '').toLowerCase();
                                     const newCode = (product.ProductNewCode || '').toLowerCase();
                                     const name = (product.ProductName || '').toLowerCase();
-                                    const term = searchTerm.toLowerCase();
-                                    return code.includes(term) || newCode.includes(term) || name.includes(term);
-                                });
+                                    if (code.includes(term) || newCode.includes(term) || name.includes(term)) {
+                                        filtered.push(product);
+                                    }
+                                }
                                 callback(filtered);
                             }
                         },
@@ -849,10 +872,21 @@ export class BillImportDetailNewComponent
                 id: 'ProjectCode',
                 name: 'Mã theo dự án',
                 field: 'ProjectCode',
-                width: 120,
+                width: 250,
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+                    if (!value) return '';
+                    return `
+                    <span
+                        title="${String(value).replace(/"/g, '&quot;')}"
+                        style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.3;"
+                    >
+                        ${value}
+                    </span>
+                    `;
+                },
                 editor: { model: Editors['text'], maxLength: 150 }, // nvarchar(150)
             },
             {
@@ -896,6 +930,17 @@ export class BillImportDetailNewComponent
                 name: 'Không giữ',
                 field: 'IsNotKeep',
                 width: 80,
+                sortable: true,
+                filterable: false,
+                cssClass: 'text-center',
+                formatter: Formatters['checkmarkMaterial'],
+                editor: { model: Editors['checkbox'] },
+            },
+            {
+                id: 'ProcessedGoods',
+                name: 'Hàng gia công',
+                field: 'ProcessedGoods',
+                width: 100,
                 sortable: true,
                 filterable: false,
                 cssClass: 'text-center',
@@ -954,6 +999,7 @@ export class BillImportDetailNewComponent
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => this.formatTextWithTooltip(value),
             },
             {
                 id: 'PONumber',
@@ -963,6 +1009,8 @@ export class BillImportDetailNewComponent
                 sortable: true,
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
+                formatter: (_row, _cell, value) => this.formatTextWithTooltip(value),
+
             },
             {
                 id: 'Note',
@@ -984,6 +1032,8 @@ export class BillImportDetailNewComponent
                 filterable: true,
                 filter: { model: Filters['compoundInputText'] },
                 editor: { model: Editors['text'], maxLength: 150 }, // nvarchar(150)
+                formatter: (_row, _cell, value) => this.formatTextWithTooltip(value),
+
             },
             {
                 id: 'POKHDetailID',
@@ -1384,6 +1434,7 @@ export class BillImportDetailNewComponent
             QtyRequest: 0,
             Qty: 0,
             IsNotKeep: false,
+            ProcessedGoods: false,
             ProjectID: 0,
             ProjectCode: '',
             ProjectNameText: '',
@@ -1462,13 +1513,13 @@ export class BillImportDetailNewComponent
         }
 
         // 2. Kiểm tra phiếu đã được duyệt chưa
-        if (this.isApproved) {
-            this.notification.warning(
-                NOTIFICATION_TITLE.warning,
-                'Phiếu đã được duyệt, không thể chỉnh sửa Serial!'
-            );
-            return;
-        }
+        // if (this.isApproved) {
+        //     this.notification.warning(
+        //         NOTIFICATION_TITLE.warning,
+        //         'Phiếu đã được duyệt, không thể chỉnh sửa Serial!'
+        //     );
+        //     return;
+        // }
 
         // 3. Lấy thông tin từ dòng
         const quantity = rowData.Qty || 0;
@@ -1501,6 +1552,7 @@ export class BillImportDetailNewComponent
             modalRef.componentInstance.type = type;
             modalRef.componentInstance.dataBillDetail = rowData;
             modalRef.componentInstance.isBillImport = true;
+            modalRef.componentInstance.isApproved = this.isBillApproved;
 
             // Xử lý kết quả từ modal
             modalRef.result.then(
@@ -1648,6 +1700,10 @@ export class BillImportDetailNewComponent
             this.warehouseID = resolvedId;
 
             this.getDataCbbProductGroup();
+
+            // if (this.poNCCId > 0) {
+            //     this.updateReceiverDeliver();
+            // }
         });
     }
 
@@ -1679,6 +1735,10 @@ export class BillImportDetailNewComponent
                             : null,
                         RulePayID: data.RulePayID,
                     };
+
+                    if (data && (data.Status === true || data.Status === 1)) {
+                        this.isBillApproved = true;
+                    }
 
                     if (
                         data &&
@@ -1796,6 +1856,7 @@ export class BillImportDetailNewComponent
                             QtyRequest: item.QtyRequest || 0,
                             Qty: item.Qty || 0,
                             IsNotKeep: item.IsNotKeep || false,
+                            ProcessedGoods: item.ProcessedGoods || false,
                             ProjectID: item.ProjectID || 0,
                             ProjectCode: item.ProjectCode || '',
                             ProjectNameText: item.ProjectNameText || '',
@@ -1964,8 +2025,9 @@ export class BillImportDetailNewComponent
                 ProductName: item.ProductName || productInfo.ProductName || '',
                 Unit: item.UnitName || item.Unit || productInfo.Unit || '',
                 QtyRequest: item.QtyRequest || 0,
-                Qty: item.QtyRequest || item.QuantityRemain || 0,
+                Qty: item.QuantityRemain || 0,
                 IsNotKeep: false,
+                ProcessedGoods: false,
                 ProjectID: item.ProjectID || 0,
                 ProjectCode: item.ProductCodeOfSupplier || '',
                 ProjectNameText: item.ProjectName || projectInfo.label || '',
@@ -2009,6 +2071,7 @@ export class BillImportDetailNewComponent
                 QtyRequest: 0,
                 Qty: item.BorrowQty || 0,
                 IsNotKeep: false,
+                ProcessedGoods: false,
                 ProjectID: item.ProjectID || 0,
                 ProjectCode: '',
                 ProjectNameText: item.ProjectNameText || projectInfo.ProjectName || '',
@@ -2198,10 +2261,10 @@ export class BillImportDetailNewComponent
     }
     //#endregion
 
-  //#region Save & Close
-  closeModal(): void {
-    this.activeModal.dismiss(false);
-  }
+    //#region Save & Close
+    closeModal(): void {
+        this.activeModal.dismiss(false);
+    }
 
     private mapTableDataToBillImportDetails(tableData: any[]): any[] {
         const parsePOKHList = (
@@ -2267,14 +2330,15 @@ export class BillImportDetailNewComponent
                 ReturnedStatus: row.ReturnedStatus || false,
                 InventoryProjectID: row.InventoryProjectID || 0,
                 DateSomeBill: row.DateSomeBill
-                    ? this.toLocalISOString(new Date(row.DateSomeBill))
+                    ? this.formatDateForServer(row.DateSomeBill)
                     : null,
                 isDeleted: row.isDeleted || false,
                 DPO: row.DPO || 0,
-                DueDate: row.DueDate ? this.toLocalISOString(new Date(row.DueDate)) : null,
+                DueDate: row.DueDate ? this.formatDateForServer(row.DueDate) : null,
                 TaxReduction: row.TaxReduction || 0,
                 COFormE: row.COFormE || 0,
                 IsNotKeep: row.IsNotKeep || false,
+                ProcessedGoods: row.ProcessedGoods ? 1 : 0,
                 UnitName: row.Unit || '',
                 POKHDetailID: pokhDetailID,
                 POKHDetailQuantity: row.POKHDetailQuantity || null,
@@ -2494,33 +2558,33 @@ export class BillImportDetailNewComponent
                         this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!'
                     );
 
-          if (this.isEmbedded) {
-            this.saveSuccess.emit();
-          } else {
-            this.activeModal.close(true);
-          }
-        } else {
-          this.notification.warning(
-            NOTIFICATION_TITLE.warning,
-            res.message ||
-            (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
-          );
-        }
-        this.isSaving = false;
-      },
-      error: (err: any) => {
-        console.error('Save error:', err);
-        let errorMessage =
-          'Có lỗi xảy ra khi ' + (this.isCheckmode ? 'cập nhật!' : 'thêm mới!');
-        if (err.error && err.error.message) {
-          errorMessage += ' Chi tiết: ' + err.error.message;
-        }
-        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
-        this.isSaving = false;
-      },
-    });
-  }
-  //#endregion
+                    if (this.isEmbedded) {
+                        this.saveSuccess.emit();
+                    } else {
+                        this.activeModal.close(true);
+                    }
+                } else {
+                    this.notification.warning(
+                        NOTIFICATION_TITLE.warning,
+                        res.message ||
+                        (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
+                    );
+                }
+                this.isSaving = false;
+            },
+            error: (err: any) => {
+                console.error('Save error:', err);
+                let errorMessage =
+                    'Có lỗi xảy ra khi ' + (this.isCheckmode ? 'cập nhật!' : 'thêm mới!');
+                if (err.error && err.error.message) {
+                    errorMessage += ' Chi tiết: ' + err.error.message;
+                }
+                this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+                this.isSaving = false;
+            },
+        });
+    }
+    //#endregion
 
     //#region Document Import Grid
     initDocumentGridOptions(): void {
@@ -2901,16 +2965,17 @@ export class BillImportDetailNewComponent
         return true;
     }
 
-  async closeModalWithCheck(): Promise<void> {
-    const isValid = await this.checkSerial();
-    if (!isValid) {
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        'Số lượng serial không khớp với số lượng sản phẩm!'
-      );
-      return;
+    async closeModalWithCheck(): Promise<void> {
+        const isValid = await this.checkSerial();
+        if (!isValid) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Số lượng serial không khớp với số lượng sản phẩm!'
+            );
+            return;
+        }
+        this.activeModal.close(true);
     }
-    this.activeModal.close(true);
-  }
-  //#endregion
+    //#endregion
+
 }

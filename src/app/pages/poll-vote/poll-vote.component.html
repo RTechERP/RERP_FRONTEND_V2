@@ -38,7 +38,11 @@
     </ng-template>
   </aside>
 
-  <main class="vote-workspace">
+  <main
+    class="vote-workspace"
+    [class.has-background]="!!selectedPollBackgroundUrl"
+    [style.background-image]="selectedPollBackgroundStyle"
+  >
     <nz-spin [nzSpinning]="isLoadingDetail">
       <ng-container *ngIf="selectedPoll as poll; else selectPollEmpty">
         <div class="vote-shell" *ngIf="!isCompleted; else completedTpl">

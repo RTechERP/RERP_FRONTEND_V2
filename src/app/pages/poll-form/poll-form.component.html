@@ -109,6 +109,40 @@
             <span>Xuất bản cho nhân viên</span>
             <nz-switch formControlName="isPublic" nzSize="small"></nz-switch>
           </label>
+          <label class="background-path-line">
+            <span>Ảnh nền phiếu</span>
+            <input
+              type="text"
+              formControlName="backgroundImagePath"
+              placeholder="/api/share/software/Upload/PollForm/Background/poll-bg.jpg hoặc URL ảnh"
+            />
+          </label>
+          <div class="poll-background-tools">
+            <label class="background-upload-button">
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,image/*"
+                [disabled]="isUploadingBackground || isSaving"
+                (change)="uploadBackgroundImage($event)"
+              />
+              <span>
+                <i class="fa-solid fa-image" *ngIf="!isUploadingBackground"></i>
+                {{ isUploadingBackground ? 'Đang upload...' : 'Upload ảnh nền' }}
+              </span>
+            </label>
+            <button
+              nz-button
+              nzSize="small"
+              type="button"
+              [disabled]="isUploadingBackground || isSaving || !pollForm.get('backgroundImagePath')?.value"
+              (click)="clearBackgroundImage()"
+            >
+              Xóa ảnh nền
+            </button>
+            <div class="background-preview" *ngIf="currentPollBackgroundUrl">
+              <img [src]="currentPollBackgroundUrl" alt="" />
+            </div>
+          </div>
         </div>
       </form>
 
@@ -537,7 +571,11 @@
         </nz-tab>
 
         <nz-tab nzTitle="Xem trước">
-          <div class="preview-shell">
+          <div
+            class="preview-shell"
+            [class.has-background]="!!currentPollBackgroundUrl"
+            [style.background-image]="currentPollBackgroundStyle"
+          >
             <nz-alert
               class="preview-alert"
               [nzType]="canSubmitPreview ? 'success' : 'warning'"

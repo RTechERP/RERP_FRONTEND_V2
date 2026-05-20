@@ -17,6 +17,7 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { environment } from '../../../environments/environment';
 import { NOTIFICATION_TITLE } from '../../app.config';
 import { AppUserService } from '../../services/app-user.service';
 import { PollFormService } from './poll-form.service';
@@ -44,6 +45,7 @@ interface PollFormSummary {
   id: number;
   title: string;
   description: string;
+  backgroundImagePath: string | null;
   startDate: string | null;
   endDate: string | null;
   isPublic: boolean;
@@ -323,6 +325,7 @@ export class PollFormComponent implements OnInit {
   isResponseDetailVisible = false;
   isSaving = false;
   isSubmitting = false;
+  isUploadingBackground = false;
   private sectionSequence = 0;
   private deletedSectionIds: number[] = [];
   private deletedQuestionIds: number[] = [];
@@ -345,6 +348,7 @@ export class PollFormComponent implements OnInit {
       id: [0],
       title: ['', [Validators.required, Validators.maxLength(255)]],
       description: [''],
+      backgroundImagePath: [''],
       startDate: [''],
       endDate: [''],
       isPublic: [false],
@@ -364,7 +368,7 @@ export class PollFormComponent implements OnInit {
       keyword,
       this.statusFilter,
       timeBucket,
-      this.polls.map((poll) => `${poll.id}:${poll.title}:${poll.description}:${poll.createdBy}:${poll.startDate}:${poll.endDate}:${poll.isPublic}`).join('|'),
+      this.polls.map((poll) => `${poll.id}:${poll.title}:${poll.description}:${poll.backgroundImagePath}:${poll.createdBy}:${poll.startDate}:${poll.endDate}:${poll.isPublic}`).join('|'),
     ].join('::');
 
     if (this.filteredPollsSignature === signature) {
@@ -395,6 +399,15 @@ export class PollFormComponent implements OnInit {
   get currentPollTitle(): string {
     const title = String(this.pollForm.get('title')?.value ?? '').trim();
     return title || 'Phiếu bình chọn chưa đặt tên';
+  }
+
+  get currentPollBackgroundUrl(): string {
+    return this.resolveBackgroundImageUrl(this.pollForm.get('backgroundImagePath')?.value);
+  }
+
+  get currentPollBackgroundStyle(): string | null {
+    const url = this.currentPollBackgroundUrl;
+    return url ? `linear-gradient(rgba(238, 241, 245, 0.78), rgba(238, 241, 245, 0.88)), url("${this.escapeCssUrl(url)}")` : null;
   }
 
   get currentSection(): PollSectionModel | null {
@@ -505,6 +518,7 @@ export class PollFormComponent implements OnInit {
       id: 0,
       title: '',
       description: '',
+      backgroundImagePath: '',
       startDate,
       endDate: '',
       isPublic: false,
@@ -526,6 +540,7 @@ export class PollFormComponent implements OnInit {
         id: pollId,
         title: String(formValue.title).trim(),
         description: String(formValue.description ?? '').trim(),
+        backgroundImagePath: String(formValue.backgroundImagePath ?? '').trim(),
         startDate: this.toApiDate(formValue.startDate),
         endDate: this.toApiDate(formValue.endDate),
         isPublic: Boolean(formValue.isPublic),
@@ -538,6 +553,7 @@ export class PollFormComponent implements OnInit {
         const response = await firstValueFrom(this.pollFormService.createPollForm({
           title: pollPayload.title,
           description: pollPayload.description,
+          backgroundImagePath: pollPayload.backgroundImagePath,
           startDate: pollPayload.startDate,
           endDate: pollPayload.endDate,
           isPublic: pollPayload.isPublic,
@@ -689,6 +705,39 @@ export class PollFormComponent implements OnInit {
     } finally {
       this.isSaving = false;
     }
+  }
+
+  async uploadBackgroundImage(event: Event): Promise<void> {
+    if (this.isUploadingBackground) return;
+
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    input.value = '';
+
+    if (!file) return;
+    if (!this.validateBackgroundFile(file)) return;
+
+    this.isUploadingBackground = true;
+    try {
+      const response = await firstValueFrom(this.pollFormService.uploadBackgroundImage(file));
+      this.assertSuccess(response);
+      const data = this.unwrap<any>(response, {});
+      const backgroundImagePath = this.readNullableString(data, 'backgroundImagePath', 'BackgroundImagePath');
+      if (!backgroundImagePath) {
+        throw new Error('API không trả về đường dẫn ảnh nền');
+      }
+
+      this.pollForm.patchValue({ backgroundImagePath });
+      this.notification.success(NOTIFICATION_TITLE.success, 'Upload ảnh nền thành công');
+    } catch (error) {
+      this.notifyError(error, 'Không upload được ảnh nền');
+    } finally {
+      this.isUploadingBackground = false;
+    }
+  }
+
+  clearBackgroundImage(): void {
+    this.pollForm.patchValue({ backgroundImagePath: '' });
   }
 
   deleteCurrentPoll(): void {
@@ -1496,6 +1545,7 @@ export class PollFormComponent implements OnInit {
         id: summary.id,
         title: summary.title,
         description: summary.description,
+        backgroundImagePath: summary.backgroundImagePath ?? '',
         startDate: this.toDateTimeLocal(summary.startDate),
         endDate: this.toDateTimeLocal(summary.endDate),
         isPublic: summary.isPublic,
@@ -2295,6 +2345,7 @@ export class PollFormComponent implements OnInit {
       id: this.readId(item),
       title: String(this.readValue(item, 'title', 'Title') ?? 'Phiếu không tên'),
       description: String(this.readValue(item, 'description', 'Description') ?? ''),
+      backgroundImagePath: this.readNullableString(item, 'backgroundImagePath', 'BackgroundImagePath'),
       startDate: this.readNullableString(item, 'startDate', 'StartDate'),
       endDate: this.readNullableString(item, 'endDate', 'EndDate'),
       isPublic: this.toBoolean(this.readValue(item, 'isPublic', 'IsPublic'), false),
@@ -2583,6 +2634,41 @@ export class PollFormComponent implements OnInit {
   private toApiDate(value: string | null | undefined): string | null {
     if (!value) return null;
     return value.length === 16 ? `${value}:00` : value;
+  }
+
+  private validateBackgroundFile(file: File): boolean {
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+    const extension = file.name.split('.').pop()?.toLowerCase() ?? '';
+    const maxSize = 10 * 1024 * 1024;
+
+    if (!allowedExtensions.includes(extension)) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chỉ hỗ trợ ảnh .jpg, .jpeg, .png, .gif, .bmp, .webp');
+      return false;
+    }
+
+    if (file.size > maxSize) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Ảnh nền không được vượt quá 10MB');
+      return false;
+    }
+
+    return true;
+  }
+
+  private resolveBackgroundImageUrl(value: string | null | undefined): string {
+    const path = String(value ?? '').trim().replace(/\\/g, '/').replace(/^\/\/192\.168\.1\.190\//i, '');
+    if (!path) return '';
+    if (/^(https?:|data:image\/|blob:)/i.test(path)) return path;
+    if (/^\/?assets\//i.test(path)) return path;
+
+    const host = environment.host.replace(/\/+$/, '');
+    if (path.startsWith('/')) return `${host}${path}`;
+    if (/^api\//i.test(path)) return `${host}/${path}`;
+
+    return `${host}/api/share/${path.replace(/^\/+/, '')}`;
+  }
+
+  private escapeCssUrl(value: string): string {
+    return value.replace(/["\\]/g, '\\$&');
   }
 
   private getDateTime(value: string | null | undefined): number {

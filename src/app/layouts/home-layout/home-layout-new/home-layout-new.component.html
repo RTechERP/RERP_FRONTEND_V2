@@ -174,12 +174,12 @@
                             *ngIf="(item.router || '') != '#' && (item.router || '') != ''" (click)="
                   handleClickLink($event, item.router, item.Title, item.data)
                 ">
-                            <img [src]="item.icon" />
+                            <img [src]="item.icon" style="width: 20px; height: 20px;" />
                             <span>{{ item.title }}</span>
                         </a>
 
                         <a class="text-dark" *ngIf="(item.router || '') == '#' || (item.router || '') == ''">
-                            <img [src]="item.icon" />
+                            <img [src]="item.icon" style="width: 20px; height: 20px;" />
                             <span> {{ item.title }}</span>
                         </a>
                         <ul class="list-group">
@@ -191,7 +191,7 @@
                                 <a [attr.href]="c.router ? c.router : null" (click)="
                         handleClickLink($event, c.router, c.title, c.data)
                       ">
-                                    <img [src]="c.icon" />
+                                    <img [src]="c.icon" style="width: 20px; height: 20px;" />
                                     <span> {{ c.title }}</span>
                                 </a>
                             </li>
@@ -364,7 +364,8 @@
 
                                 <!-- HR -->
                                 <ng-container *ngIf="pendingReview.asHR > 0">
-                                    <br *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0 || pendingReview.asTBP > 0" />
+                                    <br
+                                        *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0 || pendingReview.asTBP > 0" />
                                     <i nz-icon nzType="solution" nzTheme="outline" style="color:#fd7e14"></i>
                                     Bạn có <span class="text-danger fw-bold">{{ pendingReview.asHR }}</span>
                                     phiếu đánh giá chuyển hợp đồng <strong>chờ HR xác nhận</strong>.
@@ -376,7 +377,8 @@
 
                                 <!-- BGD -->
                                 <ng-container *ngIf="pendingReview.asBGD > 0">
-                                    <br *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0 || pendingReview.asTBP > 0 || pendingReview.asHR > 0" />
+                                    <br
+                                        *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0 || pendingReview.asTBP > 0 || pendingReview.asHR > 0" />
                                     <i nz-icon nzType="crown" nzTheme="outline" style="color:#6f42c1"></i>
                                     Bạn có <span class="text-danger fw-bold">{{ pendingReview.asBGD }}</span>
                                     phiếu đánh giá chuyển hợp đồng <strong>chờ BGĐ phê duyệt</strong>.

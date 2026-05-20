@@ -34,6 +34,12 @@ export class PollFormService {
     return this.http.put<PollApiResponse<any>>(`${this.apiUrl}/update`, data);
   }
 
+  uploadBackgroundImage(file: File): Observable<PollApiResponse<any>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<PollApiResponse<any>>(`${this.apiUrl}/background/upload`, formData);
+  }
+
   deletePollForm(id: number): Observable<PollApiResponse<any>> {
     return this.http.delete<PollApiResponse<any>>(`${this.apiUrl}/delete/${id}`);
   }

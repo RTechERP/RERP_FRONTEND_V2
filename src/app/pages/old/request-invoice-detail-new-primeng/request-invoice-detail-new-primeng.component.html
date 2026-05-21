@@ -12,8 +12,15 @@
                         <div class="row">
                             <div class="col-md-6 mb-2">
                                 <label class="mb-0 fs-12">Số phiếu</label>
-                                <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="formData.Code"
-                                    name="Code" disabled>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm fs-12"
+                                        [(ngModel)]="formData.Code" name="Code" disabled>
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                        (click)="generateBillNumber(selectedId)" 
+                                        title="Làm mới số phiếu">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label class="mb-0 fs-12">Công ty bán</label>

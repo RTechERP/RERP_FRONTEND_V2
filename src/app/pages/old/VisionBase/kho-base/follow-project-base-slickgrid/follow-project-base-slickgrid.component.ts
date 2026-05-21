@@ -478,7 +478,7 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
         const formatDateStr = (dateStr: string, isStartDate: boolean = true): string => {
             const dt = DateTime.fromISO(dateStr);
             const adjusted = isStartDate ? dt.startOf('day') : dt.endOf('day');
-            return adjusted.toISO() || '';
+            return adjusted.toFormat("yyyy-MM-dd'T'HH:mm:ss");
         };
 
         const startDate = this.filters.startDate || DateTime.local().toFormat('yyyy-MM-dd');

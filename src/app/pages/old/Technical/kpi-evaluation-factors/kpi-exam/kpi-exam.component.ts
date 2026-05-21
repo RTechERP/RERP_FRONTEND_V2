@@ -275,12 +275,24 @@ export class KpiExamComponent implements OnInit {
 
         this.isLoading = true;
 
+        let formattedDeadline: string | Date = this.deadline;
+        if (this.deadline) {
+            const deadlineDate = new Date(this.deadline);
+            deadlineDate.setHours(23, 59, 59, 0);
+            this.deadline = deadlineDate;
+
+            const year = deadlineDate.getFullYear();
+            const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
+            const day = String(deadlineDate.getDate()).padStart(2, '0');
+            formattedDeadline = `${year}-${month}-${day}T23:59:59`;
+        }
+
         const kpiExam: KPIExam = {
             ID: this.examId,
             KPISessionID: this.selectedSessionId,
             ExamCode: this.examCode.trim(),
             ExamName: this.examName.trim(),
-            Deadline: this.deadline,
+            Deadline: formattedDeadline,
             IsActive: this.isActive,
         };
 

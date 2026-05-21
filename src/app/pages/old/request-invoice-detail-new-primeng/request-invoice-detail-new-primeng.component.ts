@@ -352,6 +352,7 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
       (response) => {
         if (response.status === 1) {
           this.formData.Code = response.data;
+          this.notification.success('Thành công', 'Tạo số phiếu thành công!');
         } else {
           this.notification.create(
             NOTIFICATION_TYPE_MAP[response.status] || 'error',

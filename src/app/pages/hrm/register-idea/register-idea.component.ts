@@ -17,6 +17,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import {
   NzUploadModule,
   NzUploadFile,
@@ -65,6 +66,7 @@ import { DateTime } from 'luxon';
     NzTableModule,
     NzModalModule,
     NzFormModule,
+    NzTreeSelectModule,
   ],
   templateUrl: './register-idea.component.html',
   styleUrl: './register-idea.component.css'
@@ -87,6 +89,7 @@ export class RegisterIdeaComponent implements OnInit, AfterViewInit {
 
   // Data
   departments: any[] = [];
+  departmentNodes: any[] = [];
   employees: any[] = [];
   registerTypes: any[] = [];
   
@@ -154,6 +157,7 @@ export class RegisterIdeaComponent implements OnInit, AfterViewInit {
       next: (data: any) => {
         if (data?.status === 1) {
           this.departments = data.data || [];
+          this.departmentNodes = this.buildTreeNodes([...this.departments]);
           // Tìm HeadofDepartment từ department hiện tại
           const currentDept = this.departments.find(d => d.ID === this.currentDepartmentId);
           if (currentDept) {
@@ -167,6 +171,26 @@ export class RegisterIdeaComponent implements OnInit, AfterViewInit {
         console.error('Lỗi khi tải danh sách phòng ban:', error);
       }
     });
+  }
+
+  private buildTreeNodes(data: any[]): any[] {
+    const tree: any[] = [];
+    const lookup: any = {};
+
+    data.forEach(item => {
+      lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+    });
+
+    data.forEach(item => {
+      if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+        lookup[item.ParentID].children.push(lookup[item.ID]);
+        lookup[item.ParentID].isLeaf = false;
+      } else {
+        tree.push(lookup[item.ID]);
+      }
+    });
+
+    return tree;
   }
 
   applyFilterRestrictions() {

@@ -12,6 +12,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
@@ -59,7 +60,8 @@ import { EmployeeDeductionTypeService } from './employee-deduction-type/employee
     TooltipModule,
     MenubarModule,
     RippleModule,
-    NzModalModule
+    NzModalModule,
+    NzTreeSelectModule
   ],
   providers: [ConfirmationService],
   templateUrl: './employee-deduction.component.html',
@@ -77,6 +79,7 @@ export class EmployeeDeductionComponent implements OnInit, OnDestroy {
   employees: any[] = [];
   groupedEmployees: any[] = [];
   departments: any[] = [];
+  departmentNodes: any[] = [];
   deductionTypes: any[] = [];
 
   // Table data
@@ -279,6 +282,7 @@ export class EmployeeDeductionComponent implements OnInit, OnDestroy {
       next: (res: any) => {
         if (res?.status === 1) {
           this.departments = res.data || [];
+          this.departmentNodes = this.buildTreeNodes(this.departments);
           const currentUser = this.userService.getUser();
           if (!this.isN1N2 && currentUser) {
             this.selectedEmployeeID = currentUser.EmployeeID;
@@ -298,6 +302,26 @@ export class EmployeeDeductionComponent implements OnInit, OnDestroy {
         );
       },
     });
+  }
+
+  buildTreeNodes(data: any[], parentId: number | null = null): any[] {
+    const nodes: any[] = [];
+    const children = data.filter(item => (item.ParentID === parentId) || (parentId === null && !item.ParentID));
+    for (const child of children) {
+      const node: any = {
+        title: child.Name,
+        value: child.ID,
+        key: child.ID,
+        isLeaf: true
+      };
+      const childNodes = this.buildTreeNodes(data, child.ID);
+      if (childNodes.length > 0) {
+        node.children = childNodes;
+        node.isLeaf = false;
+      }
+      nodes.push(node);
+    }
+    return nodes;
   }
 
   onSearch(): void {

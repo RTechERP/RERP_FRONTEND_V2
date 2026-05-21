@@ -188,3 +188,7 @@ angular-slickgrid,
 ::ng-deep .ant-layout {
     height: 98% !important;
 }
+
+::ng-deep .type-select-dropdown {
+    min-width: 35vh !important;
+}

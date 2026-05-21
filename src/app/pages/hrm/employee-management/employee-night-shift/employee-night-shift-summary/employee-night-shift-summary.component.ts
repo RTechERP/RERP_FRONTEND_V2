@@ -11,6 +11,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TabulatorFull as Tabulator, ColumnDefinition } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -35,6 +36,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
     NzSelectModule,
     NzFormModule,
     NzSpinModule,
+    NzTreeSelectModule
   ],
   templateUrl: './employee-night-shift-summary.component.html',
   styleUrl: './employee-night-shift-summary.component.css'
@@ -48,6 +50,7 @@ export class EmployeeNightShiftSummaryComponent implements OnInit, AfterViewInit
 
   // Master data
   departments: any[] = [];
+  departmentNodes: any[] = [];
   allEmployees: any[] = [];
   employees: any[] = [];
 
@@ -107,11 +110,34 @@ export class EmployeeNightShiftSummaryComponent implements OnInit, AfterViewInit
   loadDepartments(): void {
     this.employeeAttendanceService.getDepartment().subscribe({
       next: (res: any) => {
-        if (res?.status === 1) this.departments = res.data || [];
+        if (res?.status === 1) {
+          this.departments = res.data || [];
+          this.departmentNodes = this.buildTreeNodes(this.departments);
+        }
       },
       error: (res: any) =>
         this.notification.error('Lỗi', res.error.message || 'Không thể tải danh sách phòng ban'),
     });
+  }
+
+  buildTreeNodes(data: any[], parentId: number | null = null): any[] {
+    const nodes: any[] = [];
+    const children = data.filter(item => (item.ParentID === parentId) || (parentId === null && !item.ParentID));
+    for (const child of children) {
+      const node: any = {
+        title: child.Name,
+        value: child.ID,
+        key: child.ID,
+        isLeaf: true
+      };
+      const childNodes = this.buildTreeNodes(data, child.ID);
+      if (childNodes.length > 0) {
+        node.children = childNodes;
+        node.isLeaf = false;
+      }
+      nodes.push(node);
+    }
+    return nodes;
   }
 
   loadEmployees(): void {

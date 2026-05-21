@@ -30,3 +30,7 @@
   background-color: #bff2aa !important;
   font-weight: 500;
 }
+
+::ng-deep .type-select-dropdown {
+  min-width: 35vh !important;
+}

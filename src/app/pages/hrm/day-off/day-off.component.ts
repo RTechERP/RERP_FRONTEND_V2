@@ -16,6 +16,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { DateTime } from 'luxon';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -74,7 +75,8 @@ import {
     NgIf,
     NzSpinModule,
     Menubar,
-    AngularSlickgridModule
+    AngularSlickgridModule,
+    NzTreeSelectModule
   ]
 })
 export class DayOffComponent implements OnInit {
@@ -85,6 +87,7 @@ export class DayOffComponent implements OnInit {
   employeeList: any[] = [];
   approverList: any[] = [];
   departmentList: any[] = [];
+  departmentNodes: any[] = [];
   dayOffList: any[] = [];
   showSearchBar: boolean = typeof window !== 'undefined' ? window.innerWidth > 768 : true;
 
@@ -892,7 +895,8 @@ export class DayOffComponent implements OnInit {
   loadDepartments() {
     this.departmentService.getDepartments().subscribe({
       next: (data: any) => {
-        this.departmentList = data.data;
+        this.departmentList = data.data || [];
+        this.departmentNodes = this.buildTreeNodes([...this.departmentList]);
       },
       error: (err: any) => {
         this.notification.create(
@@ -905,6 +909,26 @@ export class DayOffComponent implements OnInit {
         );
       }
     });
+  }
+
+  private buildTreeNodes(data: any[]): any[] {
+    const tree: any[] = [];
+    const lookup: any = {};
+
+    data.forEach(item => {
+      lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+    });
+
+    data.forEach(item => {
+      if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+        lookup[item.ParentID].children.push(lookup[item.ID]);
+        lookup[item.ParentID].isLeaf = false;
+      } else {
+        tree.push(lookup[item.ID]);
+      }
+    });
+
+    return tree;
   }
 
   updateReasonHREditValidation(): void {

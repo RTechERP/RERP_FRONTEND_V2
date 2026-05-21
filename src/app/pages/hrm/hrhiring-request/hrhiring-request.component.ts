@@ -25,6 +25,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 
 // PrimeNG modules
 import { TableModule } from 'primeng/table';
@@ -73,6 +74,7 @@ import { PermissionService } from '../../../services/permission.service';
     NzGridModule,
     NzDropDownModule,
     NzTabsModule,
+    NzTreeSelectModule,
     TableModule,
     ButtonModule,
     ConfirmDialogModule,
@@ -131,6 +133,7 @@ export class HrhiringRequestComponent
   selectedIsCompletedFilter: number = 0; // 0.Chưa hoàn thành, 1.Hoàn thành, -1.Tất cả
 
   departmentList: any[] = [];
+  departmentNodes: any[] = [];
 
   // Approval status
   approvalStatus: any = null;
@@ -220,6 +223,7 @@ export class HrhiringRequestComponent
         } else {
           this.departmentList = [];
         }
+        this.departmentNodes = this.buildTreeNodes([...this.departmentList]);
       },
       error: (err: any) => {
         this.notification.create(
@@ -232,6 +236,25 @@ export class HrhiringRequestComponent
     });
   }
 
+  private buildTreeNodes(data: any[]): any[] {
+    const tree: any[] = [];
+    const lookup: any = {};
+
+    data.forEach(item => {
+      lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+    });
+
+    data.forEach(item => {
+      if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+        lookup[item.ParentID].children.push(lookup[item.ID]);
+        lookup[item.ParentID].isLeaf = false;
+      } else {
+        tree.push(lookup[item.ID]);
+      }
+    });
+
+    return tree;
+  }
 
   private getAjaxParams(): any {
     return {

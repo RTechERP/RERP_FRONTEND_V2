@@ -9,14 +9,8 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzNotificationModule } from 'ng-zorro-antd/notification';
-import {
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-} from '@angular/forms';
+import { NzNotificationService, NzNotificationModule } from 'ng-zorro-antd/notification';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DepartmentServiceService } from './department-service/department-service.service';
@@ -30,6 +24,7 @@ import { ProjectService } from '../../project/project-service/project.service';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { DepartmentEmployeeSelectTableComponent } from './department-employee-select-table/department-employee-select-table.component';
+import { DepartmentFormComponent } from './department-form/department-form.component';
 
 @Component({
   selector: 'app-department',
@@ -46,12 +41,12 @@ import { DepartmentEmployeeSelectTableComponent } from './department-employee-se
     NzFormModule,
     NzInputModule,
     NzNotificationModule,
-    ReactiveFormsModule,
     NgIf,
     NzSpinModule,
     HasPermissionDirective,
     NzGridModule,
     NgbModalModule,
+    NzTreeSelectModule,
     DepartmentEmployeeSelectTableComponent,
   ],
 })
@@ -61,10 +56,8 @@ export class DepartmentComponent implements OnInit {
   isEditMode: boolean = false;
   selectedDepartmentId: number = 0;
   selectedDepartment: any = null;
-  isVisible = false;
-  isSubmitting = false;
-  departmentForm!: FormGroup;
   employeeList: any[] = [];
+  departmentNodes: any[] = [];
   searchText: string = '';
   isLoading = false;
 
@@ -77,25 +70,11 @@ export class DepartmentComponent implements OnInit {
   constructor(
     private employeeService: EmployeeService,
     private departmentService: DepartmentServiceService,
-    private fb: FormBuilder,
     private modal: NzModalService,
     private notification: NzNotificationService,
     private projectService: ProjectService,
     private ngbModal: NgbModal
   ) {
-    this.initForm();
-  }
-
-  private initForm() {
-    this.departmentForm = this.fb.group({
-      ID: [0],
-      STT: [0],
-      Code: ['', [Validators.required]],
-      Name: ['', [Validators.required]],
-      Status: [1],
-      Email: [''],
-      HeadofDepartment: [null, [Validators.required]],
-    });
   }
 
   ngOnInit(): void {
@@ -111,7 +90,10 @@ export class DepartmentComponent implements OnInit {
       data: this.departments,
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
-      selectableRows: true,
+      selectableRows: 1,
+      dataTree: true,
+      dataTreeStartExpanded: true,
+      dataTreeChildField: "_children",
       columns: [
         {
           title: 'STT',
@@ -221,7 +203,14 @@ export class DepartmentComponent implements OnInit {
     this.departmentService.getDepartments().subscribe({
       next: (data: any) => {
         this.departments = data.data;
-        this.tabulator.setData(this.departments);
+        
+        // Build tree for tabulator
+        const treeData = this.buildTree([...this.departments]);
+        this.tabulator.setData(treeData);
+
+        // Build tree for TreeSelect
+        this.departmentNodes = this.buildTreeNodes([...this.departments]);
+        
         this.isLoading = false;
       },
       error: (error) => {
@@ -229,6 +218,56 @@ export class DepartmentComponent implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  private buildTree(data: any[]): any[] {
+    const tree: any[] = [];
+    const lookup: any = {};
+
+    data.forEach(item => {
+      lookup[item.ID] = { ...item, _children: [] };
+    });
+
+    data.forEach(item => {
+      if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+        lookup[item.ParentID]._children.push(lookup[item.ID]);
+      } else {
+        tree.push(lookup[item.ID]);
+      }
+    });
+
+    const cleanEmptyChildren = (nodes: any[]) => {
+      nodes.forEach(node => {
+        if (node._children && node._children.length === 0) {
+          delete node._children;
+        } else if (node._children) {
+          cleanEmptyChildren(node._children);
+        }
+      });
+    };
+    cleanEmptyChildren(tree);
+
+    return tree;
+  }
+
+  private buildTreeNodes(data: any[]): any[] {
+    const tree: any[] = [];
+    const lookup: any = {};
+
+    data.forEach(item => {
+      lookup[item.ID] = { title: `${item.Code} - ${item.Name}`, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+    });
+
+    data.forEach(item => {
+      if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+        lookup[item.ParentID].children.push(lookup[item.ID]);
+        lookup[item.ParentID].isLeaf = false;
+      } else {
+        tree.push(lookup[item.ID]);
+      }
+    });
+
+    return tree;
   }
 
   loadAllEmployees(callback?: () => void) {
@@ -299,22 +338,29 @@ export class DepartmentComponent implements OnInit {
   }
 
   openAddModal() {
-    this.isEditMode = false;
     const nextSTT =
       this.departments.length > 0
         ? Math.max(...this.departments.map((item) => item.STT)) + 1
         : 1;
 
-    this.departmentForm.patchValue({
-      ID: 0,
-      STT: nextSTT,
-      Code: '',
-      Name: '',
-      Status: 1,
-      Email: '',
-      HeadofDepartment: null,
+    const modalRef = this.ngbModal.open(DepartmentFormComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
     });
-    this.isVisible = true;
+    modalRef.componentInstance.mode = 'add';
+    modalRef.componentInstance.departmentData = null;
+    modalRef.componentInstance.employeeList = this.employeeList;
+    modalRef.componentInstance.departmentNodes = this.departmentNodes;
+    modalRef.componentInstance.nextSTT = nextSTT;
+
+    modalRef.result.then((result: any) => {
+      if (result?.action === 'save') {
+        this.notification.success(NOTIFICATION_TITLE.success, 'Thêm phòng ban thành công');
+        this.loadDepartments();
+      }
+    }).catch(() => { });
   }
 
   openEditModal() {
@@ -323,26 +369,25 @@ export class DepartmentComponent implements OnInit {
       this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn 1 phòng ban cần sửa!");
       return;
     }
-    this.isEditMode = true;
     this.selectedDepartment = selectedRows[0].getData();
 
-    // Reset form before setting new values
-    this.departmentForm.reset();
-
-    // Set form values with proper type conversion
-    debugger
-    this.departmentForm.patchValue({
-      ID: this.selectedDepartment.ID,
-      STT: this.selectedDepartment.STT,
-      Code: this.selectedDepartment.Code,
-      Name: this.selectedDepartment.Name,
-      Status: this.selectedDepartment.Status,
-      Email: this.selectedDepartment.Email || '',
-      HeadofDepartment: Number(this.selectedDepartment.HeadofDepartment), // Convert to number
+    const modalRef = this.ngbModal.open(DepartmentFormComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
     });
+    modalRef.componentInstance.mode = 'edit';
+    modalRef.componentInstance.departmentData = { ...this.selectedDepartment };
+    modalRef.componentInstance.employeeList = this.employeeList;
+    modalRef.componentInstance.departmentNodes = this.departmentNodes;
 
-    console.log('Form values after patch:', this.departmentForm.value); // Debug log
-    this.isVisible = true;
+    modalRef.result.then((result: any) => {
+      if (result?.action === 'save') {
+        this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật phòng ban thành công');
+        this.loadDepartments();
+      }
+    }).catch(() => { });
   }
 
   openDeleteModal() {
@@ -365,12 +410,10 @@ export class DepartmentComponent implements OnInit {
   }
 
   deleteDepartment() {
-    debugger
     const selectedRows = this.tabulator.getSelectedRows();
 
-    // Lấy data thực tế từ row
     const deleteRequests = selectedRows
-      .map((row: any) => row.getData()) // row.getData() trả về object dữ liệu
+      .map((row: any) => row.getData())
       .filter((data: any) => data.ID > 0)
       .map((data: any) => this.departmentService.deleteDepartment(data.ID));
 
@@ -382,84 +425,9 @@ export class DepartmentComponent implements OnInit {
         this.loadDepartments();
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || error.message);
       },
     });
-  }
-
-  onSubmit() {
-    if (this.departmentForm.invalid) {
-      Object.values(this.departmentForm.controls).forEach((control) => {
-        if (control.invalid) {
-          control.markAsTouched();
-          control.updateValueAndValidity({ onlySelf: true });
-        }
-      });
-      this.notification.warning(
-        NOTIFICATION_TITLE.warning,
-        'Vui lòng điền đầy đủ thông tin bắt buộc'
-      );
-      return;
-    }
-
-    this.isSubmitting = true;
-    const formData = this.departmentForm.value;
-
-    if (this.isEditMode) {
-      this.departmentService.createDepartment(formData).subscribe({
-        next: () => {
-          this.notification.success(
-            NOTIFICATION_TITLE.success,
-            'Cập nhật phòng ban thành công'
-          );
-          this.closeModal();
-          this.loadDepartments();
-        },
-        error: (error) => {
-
-          this.notification.error(
-            NOTIFICATION_TITLE.error,
-            'Cập nhật phòng ban thất bại: ' + error.error.message
-          );
-          this.isSubmitting = false;
-        },
-        complete: () => {
-          this.isSubmitting = false;
-        },
-      });
-    } else {
-      this.departmentService.createDepartment(formData).subscribe({
-        next: () => {
-          this.notification.success(NOTIFICATION_TITLE.success, 'Thêm phòng ban thành công');
-          this.closeModal();
-          this.loadDepartments();
-        },
-        error: (response) => {
-          this.notification.error(
-            'Lỗi',
-            'Thêm phòng ban thất bại: ' + response.error.message
-          );
-          this.isSubmitting = false;
-        },
-        complete: () => {
-          this.isSubmitting = false;
-        },
-      });
-    }
-  }
-
-  closeModal() {
-    this.isVisible = false;
-    this.departmentForm.reset();
-    this.isSubmitting = false;
-  }
-
-  handleCancel() {
-    this.closeModal();
-  }
-
-  handleOk() {
-    this.onSubmit();
   }
 
   addMember() {

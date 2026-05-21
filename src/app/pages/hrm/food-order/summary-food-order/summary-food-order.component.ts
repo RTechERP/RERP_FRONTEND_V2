@@ -18,6 +18,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { DateTime } from 'luxon';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { FormControl } from '@angular/forms';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
@@ -49,6 +50,7 @@ import { ProjectService } from '../../../project/project-service/project.service
     NzDatePickerModule,
     NzTabsModule,
     NzSpinModule,
+    NzTreeSelectModule,
     NgIf
   ]
 })
@@ -59,6 +61,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
 
 
   departmentList: any[] = [];
+  departmentNodes: any[] = [];
   employeeList: any[] = [];
   foodOrderList: any[] = [];
   reportOrderList: any[] = [];
@@ -132,13 +135,32 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
     this.departmentService.getDepartments().subscribe({
       next: (data: any) => {
         this.departmentList = data.data;
-        console.log(this.departmentList);
+        this.departmentNodes = this.buildTreeNodes([...this.departmentList]);
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
       }
     });
+  }
+
+  private buildTreeNodes(data: any[]): any[] {
+    const tree: any[] = [];
+    const lookup: any = {};
+
+    data.forEach(item => {
+      lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+    });
+
+    data.forEach(item => {
+      if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+        lookup[item.ParentID].children.push(lookup[item.ID]);
+        lookup[item.ParentID].isLeaf = false;
+      } else {
+        tree.push(lookup[item.ID]);
+      }
+    });
+
+    return tree;
   }
 
   loadEmployees() {

@@ -8,3 +8,5 @@
 .tabulator {
     font-size: 12px;
 }
+
+::ng-deep .type-select-dropdown { min-width: 35vh !important; }

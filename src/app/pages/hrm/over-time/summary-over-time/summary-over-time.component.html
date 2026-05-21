@@ -25,10 +25,11 @@
           <div class="d-flex">
             <nz-form-label>Phòng ban</nz-form-label>
             <nz-form-control>
-              <nz-select formControlName="departmentId" nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch
-                nzSize="small" style="width: 10vw;">
-                <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name"></nz-option>
-              </nz-select>
+              <nz-tree-select formControlName="departmentId" nzPlaceHolder="Chọn phòng ban" nzAllowClear
+                nzShowSearch nzSize="small" style="width: 10vw;"
+                [nzNodes]="departmentNodes" nzDropdownClassName="sot-dept-dropdown" nzDefaultExpandAll
+                [nzDropdownStyle]="{ 'max-height': '250px', 'overflow': 'auto', 'font-size': '12px' }">
+              </nz-tree-select>
             </nz-form-control>
           </div>
           <div class="d-flex">

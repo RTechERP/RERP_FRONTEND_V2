@@ -184,3 +184,5 @@
     color: #3b82f6;
     margin-bottom: 12px;
 }
+
+::ng-deep .type-select-dropdown { min-width: 35vh !important; }

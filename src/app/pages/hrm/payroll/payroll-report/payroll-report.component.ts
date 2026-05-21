@@ -107,6 +107,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
 
     employees: any[] = [];
     departments: any[] = [];
+    departmentNodes: any[] = [];
     selectedEmployeePayrollDetail: Set<any> = new Set<any>();
     isLoadTable: any = true;
     //#endregion
@@ -154,11 +155,32 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
         this.projectService.getDepartment().subscribe({
             next: (response: any) => {
                 this.departments = response.data;
+                this.departmentNodes = this.buildTreeNodes([...this.departments]);
             },
             error: (error: any) => {
                 console.error('Lỗi:', error);
             },
         });
+    }
+
+    private buildTreeNodes(data: any[]): any[] {
+        const tree: any[] = [];
+        const lookup: any = {};
+    
+        data.forEach(item => {
+            lookup[item.ID] = { title: item.Code + ' - ' + item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+        });
+    
+        data.forEach(item => {
+            if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+                lookup[item.ParentID].children.push(lookup[item.ID]);
+                lookup[item.ParentID].isLeaf = false;
+            } else {
+                tree.push(lookup[item.ID]);
+            }
+        });
+    
+        return tree;
     }
 
     getPayrollByID() {

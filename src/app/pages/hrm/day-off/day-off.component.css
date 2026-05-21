@@ -192,3 +192,7 @@
         z-index: 1 !important;
     }
 }
+
+::ng-deep .type-select-dropdown {
+    min-width: 35vh !important;
+}

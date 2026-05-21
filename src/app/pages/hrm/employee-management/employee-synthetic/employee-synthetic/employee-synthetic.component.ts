@@ -15,6 +15,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -52,6 +53,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
     NzInputModule,
     NzSpinModule,
     NzFormModule,
+    NzTreeSelectModule,
     // HasPermissionDirective,
   ],
   templateUrl: './employee-synthetic.component.html',
@@ -88,6 +90,7 @@ export class EmployeeSyntheticComponent
   }
 
   departments: any[] = [];
+  departmentNodes: any[] = [];
   allEmployees: any[] = [];
   employees: any[] = [];
 
@@ -123,7 +126,10 @@ export class EmployeeSyntheticComponent
   loadDepartments(): void {
     this.projectService.getDepartment().subscribe({
       next: (res: any) => {
-        if (res?.status === 1) this.departments = res.data || [];
+        if (res?.status === 1) {
+          this.departments = res.data || [];
+          this.departmentNodes = this.buildTreeNodes(this.departments);
+        }
       },
       error: (res: any) =>
         this.notification.error(
@@ -131,6 +137,26 @@ export class EmployeeSyntheticComponent
           res.error?.message || 'Không thể tải danh sách phòng ban'
         ),
     });
+  }
+
+  buildTreeNodes(data: any[], parentId: number | null = null): any[] {
+    const nodes: any[] = [];
+    const children = data.filter(item => (item.ParentID === parentId) || (parentId === null && !item.ParentID));
+    for (const child of children) {
+      const node: any = {
+        title: child.Name,
+        value: child.ID,
+        key: child.ID,
+        isLeaf: true
+      };
+      const childNodes = this.buildTreeNodes(data, child.ID);
+      if (childNodes.length > 0) {
+        node.children = childNodes;
+        node.isLeaf = false;
+      }
+      nodes.push(node);
+    }
+    return nodes;
   }
 
   loadEmployees(): void {

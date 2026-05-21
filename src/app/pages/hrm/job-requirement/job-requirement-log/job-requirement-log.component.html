@@ -1,0 +1,30 @@
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
+  <h6 class="modal-title text-white">Lịch sử thay đổi</h6>
+  <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+  <nz-table #logTable [nzData]="logs" [nzLoading]="loading" [nzFrontPagination]="false" [nzShowPagination]="false"
+    nzSize="small">
+    <thead>
+      <tr>
+        <th nzWidth="150px">Thời gian</th>
+        <th nzWidth="150px">Người thực hiện</th>
+        <th nzWidth="150px">Loại</th>
+        <th>Nội dung</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of logTable.data">
+        <td>{{ (item.CreatedDate || item.DateLog) | date: 'dd/MM/yyyy HH:mm' }}</td>
+        <td>{{ item.CreatedBy }}</td>
+        <td>
+          <span class="type-badge">{{ item.TypeLog }}</span>
+        </td>
+        <td style="white-space: pre-line">{{ item.LogContent }}</td>
+      </tr>
+    </tbody>
+  </nz-table>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="closeModal()">Đóng</button>
+</div>

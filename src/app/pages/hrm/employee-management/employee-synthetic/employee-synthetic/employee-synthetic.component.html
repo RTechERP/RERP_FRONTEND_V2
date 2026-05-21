@@ -38,13 +38,13 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
                             <nz-form-control>
-                                <nz-select name="departmentId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban" [(ngModel)]="departmentId" (ngModelChange)="onDepartmentChange()" (nzOnSearch)="deptSelectSearch = $event" nzSize="small">
-                                    @for (item of departments; track $index) {
-                                    <nz-option nzCustomContent="true" [nzLabel]="item.Name" [nzValue]="item.ID">
-                                        <span [innerHTML]="highlightOption(item.Name, deptSelectSearch)"></span>
-                                    </nz-option>
-                                    }
-                                </nz-select>
+                                <nz-tree-select name="departmentId" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn phòng ban" [(ngModel)]="departmentId"
+                                    (ngModelChange)="onDepartmentChange()" nzSize="small"
+                                    [nzNodes]="departmentNodes" nzDropdownClassName="es-dept-dropdown"
+                                    nzDefaultExpandAll
+                                    [nzDropdownStyle]="{ 'max-height': '250px', 'overflow': 'auto', 'font-size': '12px' }">
+                                </nz-tree-select>
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>

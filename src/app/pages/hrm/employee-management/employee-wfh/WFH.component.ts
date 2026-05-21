@@ -16,6 +16,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -27,6 +28,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import * as XLSX from 'xlsx';
 import { WFHService, WFHDto, DepartmentDto } from './WFH-service/WFH.service';
+import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { WFHDetailComponent } from './WFH-detail/WFH-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
@@ -54,7 +56,8 @@ import { PermissionService } from '../../../../services/permission.service';
     NzDropDownModule,
     NzMenuModule,
     HasPermissionDirective,
-    Menubar
+    Menubar,
+    NzTreeSelectModule
   ],
   templateUrl: './WFH.component.html',
   styleUrls: ['./WFH.component.css'],
@@ -92,6 +95,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedTBPStatusFilter: number = -1;
   searchValue: string = '';
   departmentList: DepartmentDto[] = [];
+  departmentNodes: any[] = [];
   selectedWFH: WFHDto | null = null;
   selectedRows: WFHDto[] = [];
   lastSelectedWFH: WFHDto | null = null;
@@ -106,6 +110,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
     private notification: NzNotificationService,
     private message: NzMessageService,
     private wfhService: WFHService,
+    private departmentService: DepartmentServiceService,
     private ngbModal: NgbModal,
     private nzModal: NzModalService,
     private authService: AuthService,
@@ -209,19 +214,36 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private loadDepartments(): void {
-    this.wfhService.getDepartments().subscribe({
+    this.departmentService.getDepartments().subscribe({
       next: (response: any) => {
-        if (response.status === 1) {
-          this.departmentList = response.data || [];
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách phòng ban');
-        }
+        this.departmentList = response.data || [];
+        this.departmentNodes = this.buildTreeNodes([...this.departmentList]);
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban');
         this.departmentList = [];
       },
     });
+  }
+
+  private buildTreeNodes(data: any[]): any[] {
+    const tree: any[] = [];
+    const lookup: any = {};
+
+    data.forEach(item => {
+      lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+    });
+
+    data.forEach(item => {
+      if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+        lookup[item.ParentID].children.push(lookup[item.ID]);
+        lookup[item.ParentID].isLeaf = false;
+      } else {
+        tree.push(lookup[item.ID]);
+      }
+    });
+
+    return tree;
   }
 
   private initializeTable(): void {

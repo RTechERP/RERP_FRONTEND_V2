@@ -40,6 +40,7 @@ import {
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { DateTime } from 'luxon';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { DocumentService } from './document-service/document.service';
@@ -102,7 +103,8 @@ interface DocumentFile {
     NgbModalModule,
     NzFormModule,
     NzInputNumberModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    NzTreeSelectModule
   ],
   templateUrl: './document.component.html',
   styleUrl: './document.component.css',
@@ -156,6 +158,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
   documentFileData: any[] = [];
 
   dataDepartment: any[] = [];
+  departmentNodes: any[] = [];
 
   isCheckmode: boolean = false;
   keyword: string = '';
@@ -256,8 +259,29 @@ export class DocumentComponent implements OnInit, AfterViewInit {
         ID: 0,
         Name: 'Văn bản chung',
       });
+      this.departmentNodes = this.buildTreeNodes(this.dataDepartment);
       this.getDocument();
     });
+  }
+
+  buildTreeNodes(data: any[], parentId: number | null = null): any[] {
+    const nodes: any[] = [];
+    const children = data.filter(item => (item.ParentID === parentId) || (parentId === null && !item.ParentID));
+    for (const child of children) {
+      const node: any = {
+        title: child.Name,
+        value: child.ID,
+        key: child.ID,
+        isLeaf: true
+      };
+      const childNodes = this.buildTreeNodes(data, child.ID);
+      if (childNodes.length > 0) {
+        node.children = childNodes;
+        node.isLeaf = false;
+      }
+      nodes.push(node);
+    }
+    return nodes;
   }
 
   searchData() {
@@ -295,8 +319,8 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     );
   };
 
-  onDepartmentChange(value: -1) {
-    this.searchParams.departmentID = value;
+  onDepartmentChange(value: any) {
+    this.searchParams.departmentID = value ?? -1;
     this.getDocument();
   }
 

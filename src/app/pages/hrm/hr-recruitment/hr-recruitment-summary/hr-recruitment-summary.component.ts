@@ -12,6 +12,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 
 // ECharts
 import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
@@ -56,6 +57,7 @@ echarts.use([
     NzInputModule,
     NzCheckboxModule,
     NzSpinModule,
+    NzTreeSelectModule,
     NgxEchartsDirective
   ],
   providers: [provideEchartsCore({ echarts })],
@@ -67,6 +69,7 @@ export class HrRecruitmentSummaryComponent implements OnInit {
   dateEnd: Date | null = null;
   departmentID: number = 0;
   departments: any[] = [];
+  departmentNodes: any[] = [];
 
   positionOptions: { label: string, value: string, selected: boolean }[] = [];
   rawData: any = null;
@@ -114,6 +117,7 @@ export class HrRecruitmentSummaryComponent implements OnInit {
     this.summaryService.getDepartment().subscribe({
       next: (res) => {
         this.departments = res.data || [];
+        this.departmentNodes = this.buildTreeNodes(this.departments);
       },
       error: (err: any) => {
         this.notification.create(
@@ -126,6 +130,26 @@ export class HrRecruitmentSummaryComponent implements OnInit {
         );
       }
     });
+  }
+
+  buildTreeNodes(data: any[], parentId: number | null = null): any[] {
+    const nodes: any[] = [];
+    const children = data.filter(item => (item.ParentID === parentId) || (parentId === null && !item.ParentID));
+    for (const child of children) {
+      const node: any = {
+        title: child.Name || child.name,
+        value: child.ID || child.id,
+        key: child.ID || child.id,
+        isLeaf: true
+      };
+      const childNodes = this.buildTreeNodes(data, child.ID || child.id);
+      if (childNodes.length > 0) {
+        node.children = childNodes;
+        node.isLeaf = false;
+      }
+      nodes.push(node);
+    }
+    return nodes;
   }
 
   formatDate(d: Date | null): string | null {

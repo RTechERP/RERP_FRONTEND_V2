@@ -125,6 +125,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
 
     departmentId: any = -1;
     departmentList: any[] = [];
+    departmentNodes: any[] = [];
 
     isHavePermission: any = false;
 
@@ -399,6 +400,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             next: (data: any) => {
                 console.log(data);
                 this.departmentList = data.data;
+                this.departmentNodes = this.buildTreeNodes([...this.departmentList]);
             },
             error: (error) => {
                 this.notification.error(
@@ -407,6 +409,26 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 );
             },
         });
+    }
+
+    private buildTreeNodes(data: any[]): any[] {
+        const tree: any[] = [];
+        const lookup: any = {};
+    
+        data.forEach(item => {
+            lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+        });
+    
+        data.forEach(item => {
+            if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+                lookup[item.ParentID].children.push(lookup[item.ID]);
+                lookup[item.ParentID].isLeaf = false;
+            } else {
+                tree.push(lookup[item.ID]);
+            }
+        });
+    
+        return tree;
     }
 
     //#endregion

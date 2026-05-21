@@ -21,6 +21,7 @@ import { TeamServiceService } from './team-service/team-service.service';
 // import { EmployeeService } from '../employees/employee-service/employee.service';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { ProjectService } from '../../project/project-service/project.service';
@@ -45,7 +46,8 @@ import { PermissionService } from '../../../services/permission.service';
     FormsModule,
     NgIf,
     NzSpinModule, HasPermissionDirective,
-    Menubar
+    Menubar,
+    NzTreeSelectModule
   ],
   standalone: true
 })
@@ -60,6 +62,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
   employeeCombo: any[] = [];
   employeeTeamList: any[] = [];
   departmentList: any[] = [];
+  departmentNodes: any[] = [];
   departmentEmployeeList: any[] = [];
   projectTypeList: any[] = [];
   isEditMode: boolean = false;
@@ -170,6 +173,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
     this.departmentService.getDepartments().subscribe({
       next: (data: any) => {
         this.departmentList = data.data;
+        this.departmentNodes = this.buildTreeNodes(this.departmentList);
         console.log(this.departmentList);
       },
       error: (error) => {
@@ -177,6 +181,26 @@ export class TeamComponent implements OnInit, AfterViewInit {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
       }
     });
+  }
+
+  buildTreeNodes(data: any[], parentId: number | null = null): any[] {
+    const nodes: any[] = [];
+    const children = data.filter(item => (item.ParentID === parentId) || (parentId === null && !item.ParentID));
+    for (const child of children) {
+      const node: any = {
+        title: child.Name,
+        value: child.ID,
+        key: child.ID,
+        isLeaf: true
+      };
+      const childNodes = this.buildTreeNodes(data, child.ID);
+      if (childNodes.length > 0) {
+        node.children = childNodes;
+        node.isLeaf = false;
+      }
+      nodes.push(node);
+    }
+    return nodes;
   }
   //#endregion
 

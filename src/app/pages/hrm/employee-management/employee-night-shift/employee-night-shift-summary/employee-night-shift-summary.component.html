@@ -43,12 +43,11 @@
               <nz-form-item class="mt-2">
                 <nz-form-label class="fs-12" [nzSpan]="24">Phòng ban</nz-form-label>
                 <nz-form-control [nzSpan]="24">
-                  <nz-select class="w-100 fs-12" nzSize="default" nzShowSearch nzAllowClear
+                  <nz-tree-select class="w-100 fs-12" nzSize="default" nzShowSearch nzAllowClear
                     nzPlaceHolder="Chọn phòng ban..." [(ngModel)]="departmentID" (ngModelChange)="onDepartmentChange()"
-                    name="departmentID">
-                    <nz-option *ngFor="let dept of departments" [nzLabel]="dept.Name "
-                      [nzValue]="dept.ID"></nz-option>
-                  </nz-select>
+                    name="departmentID" [nzNodes]="departmentNodes" nzDropdownClassName="type-select-dropdown"  nzDefaultExpandAll
+                    [nzDropdownStyle]="{ 'max-height': '250px', 'overflow': 'auto', 'font-size': '12px' }">
+                  </nz-tree-select>
                 </nz-form-control>
               </nz-form-item>
 

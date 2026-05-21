@@ -416,33 +416,38 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
   }
 
   private setupAutoFillAddress() {
+    const buildAddress = (fields: string[]): string => {
+      const parts = fields
+        .map(f => (this.employeeForm.get(f)?.value || '').trim())
+        .filter(v => v.length > 0);
+      return parts.join(', ');
+    };
+
     // Permanent Address
-    const addressFields = ['TinhDcThuongTru', 'QuanDcThuongTru', 'PhuongDcThuongTru'];
-    addressFields.forEach(field => {
+    const permanentFields = [
+      'SoNhaDcThuongTru', 'DuongDcThuongTru',
+      'PhuongDcThuongTru', 'QuanDcThuongTru', 'TinhDcThuongTru'
+    ];
+    permanentFields.forEach(field => {
       this.employeeForm.get(field)?.valueChanges.subscribe(() => {
-        const tinh = this.employeeForm.get('TinhDcThuongTru')?.value || '';
-        const quan = this.employeeForm.get('QuanDcThuongTru')?.value || '';
-        const phuong = this.employeeForm.get('PhuongDcThuongTru')?.value || '';
-
-        const parts = [phuong, quan, tinh].filter(val => val && val.trim().length > 0);
-        const fullAddress = parts.join(', ');
-
-        this.employeeForm.patchValue({ DcThuongTru: fullAddress }, { emitEvent: false });
+        this.employeeForm.patchValue(
+          { DcThuongTru: buildAddress(permanentFields) },
+          { emitEvent: false }
+        );
       });
     });
 
     // Temporary Address
-    const tempAddressFields = ['TinhDcTamTru', 'QuanDcTamTru', 'PhuongDcTamTru'];
-    tempAddressFields.forEach(field => {
+    const tempFields = [
+      'SoNhaDcTamTru', 'DuongDcTamTru',
+      'PhuongDcTamTru', 'QuanDcTamTru', 'TinhDcTamTru'
+    ];
+    tempFields.forEach(field => {
       this.employeeForm.get(field)?.valueChanges.subscribe(() => {
-        const tinh = this.employeeForm.get('TinhDcTamTru')?.value || '';
-        const quan = this.employeeForm.get('QuanDcTamTru')?.value || '';
-        const phuong = this.employeeForm.get('PhuongDcTamTru')?.value || '';
-
-        const parts = [phuong, quan, tinh].filter(val => val && val.trim().length > 0);
-        const fullAddress = parts.join(', ');
-
-        this.employeeForm.patchValue({ DcTamTru: fullAddress }, { emitEvent: false });
+        this.employeeForm.patchValue(
+          { DcTamTru: buildAddress(tempFields) },
+          { emitEvent: false }
+        );
       });
     });
   }

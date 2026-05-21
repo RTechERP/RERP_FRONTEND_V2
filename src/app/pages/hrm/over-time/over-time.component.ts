@@ -16,6 +16,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { DateTime } from 'luxon';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { FormControl } from '@angular/forms';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
@@ -81,7 +82,8 @@ import {
     HasPermissionDirective,
     NzDropDownModule,
     Menubar,
-    AngularSlickgridModule
+    AngularSlickgridModule,
+    NzTreeSelectModule
   ]
 })
 export class OverTimeComponent implements OnInit {
@@ -91,6 +93,7 @@ export class OverTimeComponent implements OnInit {
   searchForm!: FormGroup;
   overTimeForm!: FormGroup;
   departmentList: any[] = [];
+  departmentNodes: any[] = [];
   overTimeList: any[] = [];
   selectedOverTime: any = null;
   overTimeDetailData: any[] = [];
@@ -288,12 +291,33 @@ export class OverTimeComponent implements OnInit {
   loadDepartment() {
     this.departmentService.getDepartments().subscribe({
       next: (data) => {
-        this.departmentList = data.data;
+        this.departmentList = data.data || [];
+        this.departmentNodes = this.buildTreeNodes([...this.departmentList]);
       },
       error: (error) => {
         this.notification.error("Lỗi", "Lỗi tải danh sách phòng ban");
       }
     })
+  }
+
+  private buildTreeNodes(data: any[]): any[] {
+    const tree: any[] = [];
+    const lookup: any = {};
+
+    data.forEach(item => {
+      lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+    });
+
+    data.forEach(item => {
+      if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+        lookup[item.ParentID].children.push(lookup[item.ID]);
+        lookup[item.ParentID].isLeaf = false;
+      } else {
+        tree.push(lookup[item.ID]);
+      }
+    });
+
+    return tree;
   }
 
   loadEmployeeOverTime() {

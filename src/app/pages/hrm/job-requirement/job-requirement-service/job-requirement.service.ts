@@ -228,4 +228,10 @@ export class JobRequirementService {
       params
     );
   }
+
+  getJobLogs(jobId: number): Observable<any> {
+    return this.http.get<any>(
+      environment.host + `api/jobrequirement/get-job-logs/${jobId}`
+    );
+  }
 }

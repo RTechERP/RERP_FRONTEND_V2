@@ -180,3 +180,7 @@
   text-align: right !important;
   padding-right: 8px !important;
 }
+
+::ng-deep .type-select-dropdown {
+  min-width: 35vh !important;
+}

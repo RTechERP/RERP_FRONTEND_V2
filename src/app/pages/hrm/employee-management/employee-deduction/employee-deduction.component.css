@@ -235,3 +235,4 @@
     background-color: #5cb82a !important;
     border-color: #5cb82a !important;
 }
+::ng-deep .type-select-dropdown { min-width: 35vh !important; }

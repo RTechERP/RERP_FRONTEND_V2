@@ -61,3 +61,4 @@ nz-form-label .ant-form-item-label {
   padding-bottom: 12px !important;
 }
 
+::ng-deep .type-select-dropdown { min-width: 35vh !important; }

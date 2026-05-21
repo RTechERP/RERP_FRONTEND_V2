@@ -48,14 +48,19 @@
             <nz-form-item class="mb-0">
               <nz-form-label class="fs-12">Phòng ban</nz-form-label>
               <nz-form-control>
-                <nz-select name="departmentId" [(ngModel)]="departmentId" nzPlaceHolder="Tất cả phòng ban"
-                  nzSize="small" class="w-100" nzAllowClear nzShowSearch nzCustomContent>
-                  <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name">
-                    <span style="white-space: normal; word-break: break-word; display: block;">
-                      {{ dept.Name }}
-                    </span>
-                  </nz-option>
-                </nz-select>
+                <nz-tree-select
+                  name="departmentId"
+                  [(ngModel)]="departmentId"
+                  nzPlaceHolder="Tất cả phòng ban"
+                  nzSize="small"
+                  class="w-100"
+                  nzAllowClear
+                  nzShowSearch
+                   nzDefaultExpandAll
+                  [nzNodes]="departmentNodes"
+                  nzDropdownClassName="type-select-dropdown"
+                  [nzDropdownStyle]="{ 'max-height': '250px', 'overflow': 'auto', 'font-size': '12px' }">
+                </nz-tree-select>
               </nz-form-control>
             </nz-form-item>
           </nz-col>
@@ -130,11 +135,17 @@
               <nz-form-item>
                 <nz-form-label>Phòng ban</nz-form-label>
                 <nz-form-control>
-                  <nz-select name="departmentId_m" [(ngModel)]="departmentId" nzPlaceHolder="Tất cả phòng ban"
-                    class="w-100" nzAllowClear nzShowSearch>
-                    <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
-                      [nzLabel]="dept.Name"></nz-option>
-                  </nz-select>
+                  <nz-tree-select
+                    name="departmentId_m"
+                    [(ngModel)]="departmentId"
+                    nzPlaceHolder="Tất cả phòng ban"
+                    class="w-100"
+                    nzAllowClear
+                    nzShowSearch
+                    [nzNodes]="departmentNodes"
+                    nzDropdownClassName="type-select-dropdown"
+                    [nzDropdownStyle]="{ 'max-height': '250px', 'overflow': 'auto', 'font-size': '12px' }">
+                  </nz-tree-select>
                 </nz-form-control>
               </nz-form-item>
             </div>

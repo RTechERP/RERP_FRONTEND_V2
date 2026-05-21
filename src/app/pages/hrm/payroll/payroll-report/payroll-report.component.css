@@ -11,3 +11,7 @@
 ::ng-deep .full-screen-modal .modal-content app-payroll-report {
     height: 100vh !important;
 } */
+
+::ng-deep .type-select-dropdown {
+  min-width: 35vh !important;
+}

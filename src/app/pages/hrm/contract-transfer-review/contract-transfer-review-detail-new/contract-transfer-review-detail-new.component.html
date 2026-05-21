@@ -149,31 +149,54 @@
             <table class="kpi-table mt-1">
                 <thead>
                     <tr>
-                        <th rowspan="2" style="width:50px">STT</th>
-                        <th rowspan="2">Nội dung đánh giá</th>
-                        <th rowspan="2" style="width:120px">Trọng số</th>
+                        <th rowspan="2" style="width:50px"><b>STT</b></th>
+                        <th rowspan="2"><b>Nội dung đánh giá</b></th>
+                        <th rowspan="2" style="width:120px"><b>Trọng số</b></th>
 
                         <!-- NLĐ tự đánh giá -->
-                        <th colspan="2" class="text-center">NLĐ tự đánh giá</th>
+                        <th colspan="2" class="text-center" style="color:#b8000c"><b>NLĐ tự đánh giá
+              </b>
+                        </th>
 
                         <!-- TBP đánh giá -->
-                        <th colspan="2" class="text-center">TBP đánh giá</th>
+                        <th colspan="2" class="text-center" style="color:#b8000c"><b>TBP đánh giá</b></th>
                     </tr>
                     <tr>
                         <!-- NLĐ -->
-                        <th class="text-center" style="width:120px">Điểm đánh giá</th>
+                        <th class="text-center" style="width:120px"><b>Điểm đánh giá</b>
+
+                            <br />
+                            <i> (Nhập % đạt được</i>
+                            <br />
+                            <i> vào ô trắng)</i>
+                        </th>
                         <th class="text-center" style="width:120px">
-                            Điểm quy đổi =<br />Điểm đánh giá (%) *<br />Trọng số
+                            <b> Điểm quy đổi</b> =<br />Điểm đánh giá (%) *<br />Trọng số
                         </th>
                         <!-- TBP -->
-                        <th class="text-center" style="width:120px">Điểm đánh giá</th>
+                        <th class="text-center" style="width:120px"><b>Điểm đánh giá</b>
+
+                            <br />
+                            <i> (Nhập % đạt được</i>
+                            <br />
+                            <i> vào ô trắng)</i>
+                        </th>
                         <th class="text-center" style="width:120px">
-                            Điểm quy đổi =<br />Điểm đánh giá (%) *<br />Trọng số
+                            <b>Điểm quy đổi</b> =<br />Điểm đánh giá (%) *<br />Trọng số
                         </th>
                     </tr>
                 </thead>
 
                 <tbody>
+                    <tr class="example-row">
+                        <td class="text-center">Ví dụ</td>
+                        <td>Nội dung đánh giá 1</td>
+                        <td class="text-center">15%</td>
+                        <td class="text-center">80.0%</td>
+                        <td class="text-center">12.0%</td>
+                        <td class="text-center">80.0%</td>
+                        <td class="text-center">12.0%</td>
+                    </tr>
                     <ng-container *ngFor="let it of items; let i = index">
                         <!-- ── Hàng NHÓM (A/B/C/D) ── -->
                         <tr *ngIf="it.isGroup" class="group-row">
@@ -272,11 +295,13 @@
                         <tr>
                             <td class="comment-sub"><strong>Điểm mạnh:</strong></td>
                             <td>
-                                <textarea nz-input appSyncTextareaHeight="strengths" [appSyncTextareaHeightValue]="form.Strengths" [(ngModel)]="form.Strengths" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [class.box-error]="isSubmitted && canEditNLD && !form.Strengths?.trim()" [readonly]="!canEditNLD">
+                                <textarea nz-input appSyncTextareaHeight="strengths" [appSyncTextareaHeightValue]="form.Strengths" [(ngModel)]="form.Strengths" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [class.box-error]="isSubmitted && canEditNLD && !form.Strengths?.trim()"
+                                    [readonly]="!canEditNLD">
                 </textarea>
                             </td>
                             <td>
-                                <textarea nz-input appSyncTextareaHeight="strengths" [appSyncTextareaHeightValue]="form.TBPStrengths" [(ngModel)]="form.TBPStrengths" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [class.box-error]="isSubmitted && canEditTBP && !form.TBPStrengths?.trim()" [readonly]="!canEditTBP">
+                                <textarea nz-input appSyncTextareaHeight="strengths" [appSyncTextareaHeightValue]="form.TBPStrengths" [(ngModel)]="form.TBPStrengths" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [class.box-error]="isSubmitted && canEditTBP && !form.TBPStrengths?.trim()"
+                                    [readonly]="!canEditTBP">
                 </textarea>
                             </td>
                         </tr>
@@ -284,11 +309,13 @@
                         <tr>
                             <td class="comment-sub"><strong>Điểm cần cải thiện:</strong></td>
                             <td>
-                                <textarea nz-input appSyncTextareaHeight="improvements" [appSyncTextareaHeightValue]="form.AreasForImprovement" [(ngModel)]="form.AreasForImprovement" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [class.box-error]="isSubmitted && canEditNLD && !form.AreasForImprovement?.trim()" [readonly]="!canEditNLD">
+                                <textarea nz-input appSyncTextareaHeight="improvements" [appSyncTextareaHeightValue]="form.AreasForImprovement" [(ngModel)]="form.AreasForImprovement" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [class.box-error]="isSubmitted && canEditNLD && !form.AreasForImprovement?.trim()"
+                                    [readonly]="!canEditNLD">
                 </textarea>
                             </td>
                             <td>
-                                <textarea nz-input appSyncTextareaHeight="improvements" [appSyncTextareaHeightValue]="form.TBPAreasForImprovement" [(ngModel)]="form.TBPAreasForImprovement" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [class.box-error]="isSubmitted && canEditTBP && !form.TBPAreasForImprovement?.trim()" [readonly]="!canEditTBP">
+                                <textarea nz-input appSyncTextareaHeight="improvements" [appSyncTextareaHeightValue]="form.TBPAreasForImprovement" [(ngModel)]="form.TBPAreasForImprovement" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [class.box-error]="isSubmitted && canEditTBP && !form.TBPAreasForImprovement?.trim()"
+                                    [readonly]="!canEditTBP">
                 </textarea>
                             </td>
                         </tr>
@@ -338,12 +365,16 @@
                     <div class="sig-location-placeholder"></div>
                     <p class="sig-title">TRƯỞNG BỘ PHẬN</p>
                     <div class="sig-space">{{form.TBPApproveName || ''}}</div>
+                    <div *ngIf="form.TBPApprovedDate" class="sig-space-date">{{ formatDateTimeISO(form.TBPApprovedDate)}}
+                    </div>
                 </div>
                 <!-- Cột 2: Trưởng phòng HCNS -->
                 <div class="sig-triple-block">
                     <div class="sig-location-placeholder"></div>
                     <p class="sig-title">TRƯỞNG PHÒNG HCNS</p>
                     <div class="sig-space">{{form.HCNSApproveName || ''}}</div>
+                    <div *ngIf="form.HRApprovedDate" class="sig-space-date">{{ formatDateTimeISO(form.HRApprovedDate)}}
+                    </div>
                 </div>
                 <!-- Cột 3: Phê duyệt -->
                 <div class="sig-triple-block">
@@ -353,6 +384,8 @@
                     </p>
                     <p class="sig-title">PHÊ DUYỆT</p>
                     <div class="sig-space">{{form.BGDApproveName || ''}}</div>
+                    <div *ngIf="form.BGDApprovedDate" class="sig-space-date">{{ formatDateTimeISO(form.BGDApprovedDate)}}
+                    </div>
                 </div>
             </div>
 

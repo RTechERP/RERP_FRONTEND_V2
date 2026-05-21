@@ -327,8 +327,8 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
     Chức danh: ${mail.positionName}<br>
     ${mail.periodLabel}: ${trialPeriod}<br>
     Đề nghị ${empSal} ${mail.employeeName} làm bản tự đánh giá
-    và ${'phòng ' + mail.departmentName || 'bộ phận liên quan'} làm đánh giá chuyển hợp đồng
-    <i>(trên phần mềm)</i> trước ${deadlineStr} để P. HCNS trình Ban Giám đốc
+    và ${ mail.departmentName || 'bộ phận liên quan'} làm đánh giá chuyển hợp đồng
+    <i>(trên web nội bộ)</i> trước ${deadlineStr} để P. HCNS trình Ban Giám đốc
     phê duyệt và căn cứ để làm các thủ tục tiếp theo cho người lao động.<br>
     Cá nhân nhấn vào <a href="${mail.personalReviewUrl}" target="_blank"><b>link này</b></a> để đánh giá chuyển hợp đồng.
   </p>
@@ -347,7 +347,7 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
   }
 
   private getMailBody(mail: ContractReviewMail): string {
-    return `<!DOCTYPE html><html><body style="font-family:'Times New Roman',serif;font-size:14px;color:#222;max-width:800px;margin:0 auto;padding:20px;">${this.buildContent(mail)}</body></html>`;
+    return `<!DOCTYPE html><html><body style="font-family:'Times New Roman',serif;font-size:14px;color:#222;margin:0 auto;padding:20px;">${this.buildContent(mail)}</body></html>`;
   }
 
   // ─── Send ────────────────────────────────────────────────────────────────────
@@ -385,7 +385,7 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
 
     const payload = this.mails.map(mail => {
       return {
-        ID: mail.recordId,  
+        ID: mail.recordId,
         Subject: mail.subject,
         EmailTo: mail.toEmail,
         EmailCC: [mail.ccEmail, mail.ccEmailBgd].filter(Boolean).join(';'),

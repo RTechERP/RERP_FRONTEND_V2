@@ -140,6 +140,9 @@ export interface CbqlFormModel {
   TBPRecommendationsOrOther: string;
   TBPStrengths: string;
   TBPAreasForImprovement: string;
+  TBPApprovedDate: string;
+  HRApprovedDate: string;
+  BGDApprovedDate: string;
 }
 
 // ─── Hard-coded master data ─────────────────────────────────────────────────
@@ -214,7 +217,7 @@ const DEFAULT_ITEMS: CbqlItem[] = [
   templateUrl: './contract-transfer-review-personal-detail.component.html',
   styleUrl: './contract-transfer-review-personal-detail.component.css'
 })
-export class ContractTransferReviewPersonalDetailComponent  implements OnInit {
+export class ContractTransferReviewPersonalDetailComponent implements OnInit {
 
   @Input() id: number = 0;
   @Input() step: number = 0;
@@ -540,7 +543,9 @@ export class ContractTransferReviewPersonalDetailComponent  implements OnInit {
         this.form.TBPStrengths = d.TBPStrengths ?? null;
         this.form.TBPAreasForImprovement = d.TBPAreasForImprovement ?? null;
 
-
+        this.form.TBPApprovedDate = d.TBPApprovedDate ?? null;
+        this.form.HRApprovedDate = d.HRApprovedDate ?? null;
+        this.form.BGDApprovedDate = d.BGDApprovedDate ?? null;
 
         // Load items
         this.syncItemsFromForm();
@@ -735,6 +740,10 @@ export class ContractTransferReviewPersonalDetailComponent  implements OnInit {
       TBPRecommendationsOrOther: '',
       TBPStrengths: '',
       TBPAreasForImprovement: '',
+
+      TBPApprovedDate: '',
+      HRApprovedDate: '',
+      BGDApprovedDate: ''
     };
   }
 
@@ -743,6 +752,22 @@ export class ContractTransferReviewPersonalDetailComponent  implements OnInit {
     const d = new Date(date);
     if (isNaN(d.getTime())) return '';
     return d.toLocaleDateString('en-CA');
+  }
+  formatDateTimeISO(date: any): string {
+    if (!date) return '';
+
+    const d = new Date(date);
+
+    if (isNaN(d.getTime())) return '';
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
   }
 
   onTextareaKeydown(event: KeyboardEvent, currentValue: string | null | undefined, maxLines = 4): void {
@@ -812,17 +837,17 @@ export class ContractTransferReviewPersonalDetailComponent  implements OnInit {
         const names = invalidNld.map(it => `<b>${it.name}</b>`).join(', ');
         errors.push(`Điểm tự đánh giá phải từ 0–100: ${names}.`);
       }
-// 3. Điểm mạnh (Strengths)
-if (!this.form.Strengths?.trim() || this.form.Strengths?.trim() === '')
-  errors.push('Vui lòng nhập <b>Điểm mạnh</b>.');
+      // 3. Điểm mạnh (Strengths)
+      if (!this.form.Strengths?.trim() || this.form.Strengths?.trim() === '')
+        errors.push('Vui lòng nhập <b>Điểm mạnh</b>.');
 
-// 4. Điểm cần cải thiện (AreasForImprovement)
-if (!this.form.AreasForImprovement?.trim() || this.form.AreasForImprovement?.trim() === '')
-  errors.push('Vui lòng nhập <b>Điểm cần cải thiện</b>.');
+      // 4. Điểm cần cải thiện (AreasForImprovement)
+      if (!this.form.AreasForImprovement?.trim() || this.form.AreasForImprovement?.trim() === '')
+        errors.push('Vui lòng nhập <b>Điểm cần cải thiện</b>.');
 
-// 5. Kết luận của NLD
-if (this.form.ConclusionEmployeeLoaiHDID === null || this.form.ConclusionEmployeeLoaiHDID === undefined || this.form.ConclusionEmployeeLoaiHDID === 0)
-  errors.push('Vui lòng chọn <b>Kết luận</b> cho phần tự đánh giá.');
+      // 5. Kết luận của NLD
+      if (this.form.ConclusionEmployeeLoaiHDID === null || this.form.ConclusionEmployeeLoaiHDID === undefined || this.form.ConclusionEmployeeLoaiHDID === 0)
+        errors.push('Vui lòng chọn <b>Kết luận</b> cho phần tự đánh giá.');
     }
 
     return errors;

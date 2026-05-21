@@ -110,6 +110,7 @@
   overflow: hidden;
   color: #0f172a;
   font-weight: 700;
+  white-space: pre-line;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
@@ -119,6 +120,7 @@
   overflow: hidden;
   min-height: 34px;
   line-height: 17px;
+  white-space: pre-line;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
@@ -185,11 +187,15 @@
 .vote-header h2 {
   font-size: 22px;
   line-height: 1.25;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .vote-header p {
   margin: 0;
   line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .vote-time-grid {
@@ -290,6 +296,8 @@
 
 .vote-section-title p {
   margin: 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .vote-question {
@@ -356,11 +364,12 @@
 
 .date-input {
   width: min(260px, 100%);
+}
+
+:host ::ng-deep .date-input.ant-picker,
+:host ::ng-deep .date-input .ant-picker {
+  width: min(260px, 100%);
   height: 32px;
-  padding: 4px 10px;
-  border: 1px solid #d9d9d9;
-  border-radius: 6px;
-  background: #ffffff;
 }
 
 .choice-list {
@@ -384,6 +393,8 @@
 .vote-workspace.has-background .choice-line,
 .vote-workspace.has-background .mapped-answer,
 .vote-workspace.has-background .date-input,
+:host ::ng-deep .vote-workspace.has-background .date-input.ant-picker,
+:host ::ng-deep .vote-workspace.has-background .date-input .ant-picker,
 :host ::ng-deep .vote-workspace.has-background .answer-control .ant-input {
   border-color: rgba(203, 213, 225, 0.9);
   background: rgba(255, 255, 255, 0.86);
@@ -445,7 +456,8 @@
 
 .rating-button:disabled,
 .choice-line input:disabled,
-.date-input:disabled,
+:host ::ng-deep .date-input.ant-picker-disabled,
+:host ::ng-deep .date-input .ant-picker-disabled,
 .clear-answer-button:disabled {
   cursor: not-allowed;
   opacity: 0.62;

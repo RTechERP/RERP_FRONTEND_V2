@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup,
 import { firstValueFrom } from 'rxjs';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -46,6 +47,7 @@ interface PollFormSummary {
   title: string;
   description: string;
   backgroundImagePath: string | null;
+  titleColor: string;
   startDate: string | null;
   endDate: string | null;
   isPublic: boolean;
@@ -239,6 +241,7 @@ interface PollStatusView {
     ReactiveFormsModule,
     NzAlertModule,
     NzButtonModule,
+    NzDatePickerModule,
     NzEmptyModule,
     NzFormModule,
     NzIconModule,
@@ -349,6 +352,7 @@ export class PollFormComponent implements OnInit {
       title: ['', [Validators.required, Validators.maxLength(255)]],
       description: [''],
       backgroundImagePath: [''],
+      titleColor: ['#111827'],
       startDate: [''],
       endDate: [''],
       isPublic: [false],
@@ -368,7 +372,7 @@ export class PollFormComponent implements OnInit {
       keyword,
       this.statusFilter,
       timeBucket,
-      this.polls.map((poll) => `${poll.id}:${poll.title}:${poll.description}:${poll.backgroundImagePath}:${poll.createdBy}:${poll.startDate}:${poll.endDate}:${poll.isPublic}`).join('|'),
+      this.polls.map((poll) => `${poll.id}:${poll.title}:${poll.description}:${poll.backgroundImagePath}:${poll.titleColor}:${poll.createdBy}:${poll.startDate}:${poll.endDate}:${poll.isPublic}`).join('|'),
     ].join('::');
 
     if (this.filteredPollsSignature === signature) {
@@ -408,6 +412,10 @@ export class PollFormComponent implements OnInit {
   get currentPollBackgroundStyle(): string | null {
     const url = this.currentPollBackgroundUrl;
     return url ? `linear-gradient(rgba(238, 241, 245, 0.78), rgba(238, 241, 245, 0.88)), url("${this.escapeCssUrl(url)}")` : null;
+  }
+
+  get currentPollTitleColor(): string {
+    return this.normalizeHexColor(this.pollForm.get('titleColor')?.value, '#111827');
   }
 
   get currentSection(): PollSectionModel | null {
@@ -519,6 +527,7 @@ export class PollFormComponent implements OnInit {
       title: '',
       description: '',
       backgroundImagePath: '',
+      titleColor: '#111827',
       startDate,
       endDate: '',
       isPublic: false,
@@ -541,6 +550,7 @@ export class PollFormComponent implements OnInit {
         title: String(formValue.title).trim(),
         description: String(formValue.description ?? '').trim(),
         backgroundImagePath: String(formValue.backgroundImagePath ?? '').trim(),
+        titleColor: this.normalizeHexColor(formValue.titleColor, '#111827'),
         startDate: this.toApiDate(formValue.startDate),
         endDate: this.toApiDate(formValue.endDate),
         isPublic: Boolean(formValue.isPublic),
@@ -554,6 +564,7 @@ export class PollFormComponent implements OnInit {
           title: pollPayload.title,
           description: pollPayload.description,
           backgroundImagePath: pollPayload.backgroundImagePath,
+          titleColor: pollPayload.titleColor,
           startDate: pollPayload.startDate,
           endDate: pollPayload.endDate,
           isPublic: pollPayload.isPublic,
@@ -1049,7 +1060,112 @@ export class PollFormComponent implements OnInit {
     if (value === null || value === undefined || String(value).trim() === '') {
       return 'API sẽ tự lấy theo nhân viên đăng nhập khi gửi';
     }
+    if (this.isEmployeeMappedDateQuestion(question)) {
+      return this.formatDateOnly(value);
+    }
     return String(value);
+  }
+
+  private isEmployeeMappedDateQuestion(question: PollQuestionModel): boolean {
+    if (!this.isEmployeeMappedQuestion(question)) return false;
+    if (question.questionType === 'Date') return true;
+
+    const option = this.employeeFieldOptions.find((item) => item.fieldKey === question.dataSourceField);
+    if (option?.dataType === 'date') return true;
+
+    const key = `${question.dataSourceField} ${question.dataSourceLabel} ${question.questionText}`
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D')
+      .toLowerCase();
+
+    return key.includes('ngay') || key.includes('date') || key.includes('dob') || key.includes('birth') || key.includes('sinh');
+  }
+
+  private formatDateOnly(value: any): string {
+    if (value instanceof Date) {
+      return this.formatDateParts(value.getFullYear(), value.getMonth() + 1, value.getDate()) ?? String(value);
+    }
+
+    const text = String(value ?? '').trim();
+    if (!text) return '';
+
+    const isoMatch = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s].*)?$/);
+    if (isoMatch) {
+      return this.formatDateParts(Number(isoMatch[1]), Number(isoMatch[2]), Number(isoMatch[3])) ?? text;
+    }
+
+    const numericDateMatch = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})(?:\s.*)?$/);
+    if (numericDateMatch) {
+      const parts = this.resolveNumericDateParts(Number(numericDateMatch[1]), Number(numericDateMatch[2]), Number(numericDateMatch[3]));
+      return parts ? this.formatDateParts(parts.year, parts.month, parts.day) ?? text : text;
+    }
+
+    const date = new Date(text);
+    if (Number.isNaN(date.getTime())) return text;
+
+    return this.formatDateParts(date.getFullYear(), date.getMonth() + 1, date.getDate()) ?? text;
+  }
+
+  private toApiDateValue(value: any): string | null {
+    if (value instanceof Date) {
+      return this.formatDateForApi(value.getFullYear(), value.getMonth() + 1, value.getDate());
+    }
+
+    const text = String(value ?? '').trim();
+    if (!text) return null;
+
+    const isoMatch = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s].*)?$/);
+    if (isoMatch) {
+      return this.formatDateForApi(Number(isoMatch[1]), Number(isoMatch[2]), Number(isoMatch[3]));
+    }
+
+    const numericDateMatch = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})(?:\s.*)?$/);
+    if (numericDateMatch) {
+      const parts = this.resolveNumericDateParts(Number(numericDateMatch[1]), Number(numericDateMatch[2]), Number(numericDateMatch[3]));
+      return parts ? this.formatDateForApi(parts.year, parts.month, parts.day) : null;
+    }
+
+    const date = new Date(text);
+    if (Number.isNaN(date.getTime())) return null;
+
+    return this.formatDateForApi(date.getFullYear(), date.getMonth() + 1, date.getDate());
+  }
+
+  private formatDateParts(year: number, month: number, day: number): string | null {
+    const date = new Date(year, month - 1, day);
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+      return null;
+    }
+
+    return [
+      String(day).padStart(2, '0'),
+      String(month).padStart(2, '0'),
+      String(year),
+    ].join('/');
+  }
+
+  private formatDateForApi(year: number, month: number, day: number): string | null {
+    if (!this.formatDateParts(year, month, day)) return null;
+    return [
+      String(year),
+      String(month).padStart(2, '0'),
+      String(day).padStart(2, '0'),
+    ].join('-');
+  }
+
+  private resolveNumericDateParts(first: number, second: number, year: number): { year: number; month: number; day: number } | null {
+    const candidates = second > 12
+      ? [{ year, month: first, day: second }]
+      : first > 12
+        ? [{ year, month: second, day: first }]
+        : [
+          { year, month: second, day: first },
+          { year, month: first, day: second },
+        ];
+
+    return candidates.find((item) => this.formatDateParts(item.year, item.month, item.day)) ?? null;
   }
 
   getShowIfQuestionOptions(section: PollSectionModel): RuleQuestionOption[] {
@@ -1398,8 +1514,9 @@ export class PollFormComponent implements OnInit {
   }
 
   formatAnswer(answer: PollResponseAnswerModel): string {
+    const question = this.findQuestionById(answer.questionId);
     if (answer.displayText && answer.displayText.trim()) {
-      return answer.displayText;
+      return question?.questionType === 'Date' ? this.formatDateOnly(answer.displayText) : answer.displayText;
     }
 
     if (answer.answerJson) {
@@ -1414,6 +1531,9 @@ export class PollFormComponent implements OnInit {
       }
     }
     if (!answer.answerText) return '-';
+    if (question?.questionType === 'Date') {
+      return this.formatDateOnly(answer.answerText);
+    }
     return this.getOptionText(answer.questionId, answer.answerText);
   }
 
@@ -1473,16 +1593,31 @@ export class PollFormComponent implements OnInit {
   }
 
   formatDateTime(value: string | null | undefined): string {
-    if (!value) return '-';
-    const date = new Date(value);
+    const text = String(value ?? '').trim();
+    if (!text) return '-';
+
+    const isoMatch = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s](\d{1,2}):(\d{1,2}))?/);
+    if (isoMatch) {
+      const dateText = this.formatDateParts(Number(isoMatch[1]), Number(isoMatch[2]), Number(isoMatch[3]));
+      if (!dateText) return '-';
+      if (!isoMatch[4] || !isoMatch[5]) return dateText;
+      return `${dateText} ${String(Number(isoMatch[4])).padStart(2, '0')}:${String(Number(isoMatch[5])).padStart(2, '0')}`;
+    }
+
+    const numericDateMatch = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})(?:[T\s]+(\d{1,2}):(\d{1,2}))?/);
+    if (numericDateMatch) {
+      const parts = this.resolveNumericDateParts(Number(numericDateMatch[1]), Number(numericDateMatch[2]), Number(numericDateMatch[3]));
+      const dateText = parts ? this.formatDateParts(parts.year, parts.month, parts.day) : null;
+      if (!dateText) return '-';
+      if (!numericDateMatch[4] || !numericDateMatch[5]) return dateText;
+      return `${dateText} ${String(Number(numericDateMatch[4])).padStart(2, '0')}:${String(Number(numericDateMatch[5])).padStart(2, '0')}`;
+    }
+
+    const date = new Date(text);
     if (Number.isNaN(date.getTime())) return '-';
-    return date.toLocaleString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const dateText = this.formatDateParts(date.getFullYear(), date.getMonth() + 1, date.getDate());
+    if (!dateText) return '-';
+    return `${dateText} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   }
 
   trackByPollId(_index: number, poll: PollFormSummary): number {
@@ -1546,6 +1681,7 @@ export class PollFormComponent implements OnInit {
         title: summary.title,
         description: summary.description,
         backgroundImagePath: summary.backgroundImagePath ?? '',
+        titleColor: summary.titleColor,
         startDate: this.toDateTimeLocal(summary.startDate),
         endDate: this.toDateTimeLocal(summary.endDate),
         isPublic: summary.isPublic,
@@ -1669,6 +1805,14 @@ export class PollFormComponent implements OnInit {
         questionId: question.id,
         answerText: null,
         answerJson: JSON.stringify(Array.isArray(value) ? value : []),
+      };
+    }
+
+    if (question.questionType === 'Date') {
+      return {
+        questionId: question.id,
+        answerText: this.toApiDateValue(value),
+        answerJson: null,
       };
     }
 
@@ -2346,6 +2490,7 @@ export class PollFormComponent implements OnInit {
       title: String(this.readValue(item, 'title', 'Title') ?? 'Phiếu không tên'),
       description: String(this.readValue(item, 'description', 'Description') ?? ''),
       backgroundImagePath: this.readNullableString(item, 'backgroundImagePath', 'BackgroundImagePath'),
+      titleColor: this.normalizeHexColor(this.readNullableString(item, 'titleColor', 'TitleColor', 'formTitleColor', 'FormTitleColor'), '#111827'),
       startDate: this.readNullableString(item, 'startDate', 'StartDate'),
       endDate: this.readNullableString(item, 'endDate', 'EndDate'),
       isPublic: this.toBoolean(this.readValue(item, 'isPublic', 'IsPublic'), false),
@@ -2669,6 +2814,16 @@ export class PollFormComponent implements OnInit {
 
   private escapeCssUrl(value: string): string {
     return value.replace(/["\\]/g, '\\$&');
+  }
+
+  private normalizeHexColor(value: unknown, fallback: string): string {
+    const text = String(value ?? '').trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(text)) return text;
+    const shortHex = text.match(/^#([0-9a-fA-F]{3})$/);
+    if (shortHex) {
+      return `#${shortHex[1].split('').map((char) => char + char).join('')}`;
+    }
+    return fallback;
   }
 
   private getDateTime(value: string | null | undefined): number {

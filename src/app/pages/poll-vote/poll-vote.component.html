@@ -55,8 +55,8 @@
               <nz-tag [nzColor]="getPollStatus(poll).color">{{ getPollStatus(poll).label }}</nz-tag>
             </div>
 
-            <h2>{{ poll.title }}</h2>
-            <p>{{ poll.description || 'Không có mô tả' }}</p>
+            <h2 [style.color]="selectedPollTitleColor">{{ poll.title }}</h2>
+            <p [style.color]="selectedPollTitleColor">{{ poll.description || 'Không có mô tả' }}</p>
 
             <div class="vote-time-grid">
               <span>
@@ -136,13 +136,16 @@
                     [(ngModel)]="answers[answerKey(question)]"
                   ></textarea>
 
-                  <input
+                  <nz-date-picker
                     *ngSwitchCase="'Date'"
                     class="date-input"
-                    type="date"
-                    [disabled]="isVoteLocked || isSubmitting"
+                    nzFormat="dd/MM/yyyy"
+                    nzPlaceHolder="dd/MM/yyyy"
+                    [nzInputReadOnly]="false"
+                    [nzAllowClear]="!question.isRequired"
+                    [nzDisabled]="isVoteLocked || isSubmitting"
                     [(ngModel)]="answers[answerKey(question)]"
-                  />
+                  ></nz-date-picker>
 
                   <div *ngSwitchCase="'SingleChoice'" class="choice-list">
                     <label class="choice-line" *ngFor="let option of question.options; trackBy: trackByOption">

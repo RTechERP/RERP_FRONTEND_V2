@@ -83,17 +83,20 @@
           </div>
         </div>
 
-        <input
+        <textarea
           class="poll-title-input"
           formControlName="title"
           placeholder="Tiêu đề phiếu bình chọn"
           [class.invalid]="pollForm.get('title')?.invalid && pollForm.get('title')?.touched"
-        />
+          [style.color]="currentPollTitleColor"
+          rows="2"
+        ></textarea>
         <textarea
           class="poll-description-input"
           formControlName="description"
           rows="2"
           placeholder="Mô tả ngắn"
+          [style.color]="currentPollTitleColor"
         ></textarea>
 
         <div class="poll-settings">
@@ -108,6 +111,10 @@
           <label class="switch-line">
             <span>Xuất bản cho nhân viên</span>
             <nz-switch formControlName="isPublic" nzSize="small"></nz-switch>
+          </label>
+          <label class="title-color-line">
+            <span>Màu tiêu đề form</span>
+            <input class="title-color-input" type="color" formControlName="titleColor" />
           </label>
           <label class="background-path-line">
             <span>Ảnh nền phiếu</span>
@@ -584,8 +591,8 @@
             ></nz-alert>
 
             <section class="preview-header">
-              <h2>{{ currentPollTitle }}</h2>
-              <p>{{ pollForm.get('description')?.value || 'Không có mô tả' }}</p>
+              <h2 [style.color]="currentPollTitleColor">{{ currentPollTitle }}</h2>
+              <p [style.color]="currentPollTitleColor">{{ pollForm.get('description')?.value || 'Không có mô tả' }}</p>
               <div class="preview-time">
                 <span>Bắt đầu: {{ formatDateTime(pollForm.get('startDate')?.value) }}</span>
                 <span>Kết thúc: {{ formatDateTime(pollForm.get('endDate')?.value) }}</span>
@@ -627,12 +634,15 @@
                       [(ngModel)]="answers[answerKey(question, getQuestionIndex(question))]"
                       placeholder="Câu trả lời"
                     ></textarea>
-                    <input
+                    <nz-date-picker
                       *ngSwitchCase="'Date'"
-                      type="date"
                       class="date-answer"
+                      nzFormat="dd/MM/yyyy"
+                      nzPlaceHolder="dd/MM/yyyy"
+                      [nzInputReadOnly]="false"
+                      [nzAllowClear]="!question.isRequired"
                       [(ngModel)]="answers[answerKey(question, getQuestionIndex(question))]"
-                    />
+                    ></nz-date-picker>
 
                     <div class="answer-options" *ngSwitchCase="'SingleChoice'">
                       <label *ngFor="let option of question.options; trackBy: trackByOption">

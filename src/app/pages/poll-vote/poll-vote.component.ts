@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
@@ -23,6 +24,7 @@ interface PollFormSummary {
     title: string;
     description: string;
     backgroundImagePath: string | null;
+    titleColor: string;
     startDate: string | null;
     endDate: string | null;
     isPublic: boolean;
@@ -112,6 +114,7 @@ interface BranchDecision {
         FormsModule,
         NzAlertModule,
         NzButtonModule,
+        NzDatePickerModule,
         NzEmptyModule,
         NzInputModule,
         NzNotificationModule,
@@ -168,6 +171,10 @@ export class PollVoteComponent implements OnInit {
         return url ? `linear-gradient(rgba(238, 242, 246, 0.1), rgba(238, 242, 246, 0.18)), url("${this.escapeCssUrl(url)}")` : null;
     }
 
+    get selectedPollTitleColor(): string {
+        return this.normalizeHexColor(this.selectedPoll?.titleColor, '#111827');
+    }
+
     get currentSection(): PollSectionModel | null {
         return this.sections[this.currentSectionIndex] ?? null;
     }
@@ -177,9 +184,7 @@ export class PollVoteComponent implements OnInit {
     }
 
     get visibleSectionIndexes(): number[] {
-        return this.sections
-            .map((_section, index) => index)
-            .filter((index) => this.isSectionVisible(this.sections[index]));
+        return this.getEffectiveVisibleSectionIndexes();
     }
 
     get currentVisibleSectionPosition(): number {
@@ -283,6 +288,7 @@ export class PollVoteComponent implements OnInit {
 
         this.isSubmitting = true;
         try {
+            const visibilityPayload = this.buildVisibilityPayload();
             const payload = {
                 pollResponseId: this.pollResponseId,
                 sectionId: submittedSection.id,
@@ -290,16 +296,19 @@ export class PollVoteComponent implements OnInit {
                 answers: this.currentQuestions
                     .filter((question) => !this.isEmployeeMappedQuestion(question))
                     .map((question) => this.buildAnswerPayload(question)),
+                ...visibilityPayload,
             };
 
             const response = await firstValueFrom(this.pollFormService.submitSection(this.selectedPoll.id, payload));
             this.assertSuccess(response);
             const result = this.normalizeSubmitResult(this.unwrap<any>(response, {}));
             this.pollResponseId = result.pollResponseId || this.pollResponseId;
+            this.clearHiddenSectionAnswers();
 
             const nextSectionIndex = this.resolveNextSectionIndex(submittedSection, submittedSectionIndex, result);
             if (nextSectionIndex === null) {
                 await this.loadMyResponse(this.selectedPoll.id);
+                this.clearHiddenSectionAnswers();
                 this.currentSectionIndex = submittedSectionIndex;
                 this.notification.success(NOTIFICATION_TITLE.success, 'Gửi bình chọn thành công');
                 return;
@@ -378,6 +387,9 @@ export class PollVoteComponent implements OnInit {
         if (value === null || value === undefined || String(value).trim() === '') {
             return 'API sẽ tự lấy theo nhân viên đăng nhập khi gửi';
         }
+        if (this.isEmployeeMappedDateQuestion(question)) {
+            return this.formatDateOnly(value);
+        }
         return String(value);
     }
 
@@ -444,16 +456,31 @@ export class PollVoteComponent implements OnInit {
     }
 
     formatDateTime(value: string | null | undefined): string {
-        if (!value) return '-';
-        const date = new Date(value);
+        const text = String(value ?? '').trim();
+        if (!text) return '-';
+
+        const isoMatch = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s](\d{1,2}):(\d{1,2}))?/);
+        if (isoMatch) {
+            const dateText = this.formatDateParts(Number(isoMatch[1]), Number(isoMatch[2]), Number(isoMatch[3]));
+            if (!dateText) return '-';
+            if (!isoMatch[4] || !isoMatch[5]) return dateText;
+            return `${dateText} ${String(Number(isoMatch[4])).padStart(2, '0')}:${String(Number(isoMatch[5])).padStart(2, '0')}`;
+        }
+
+        const numericDateMatch = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})(?:[T\s]+(\d{1,2}):(\d{1,2}))?/);
+        if (numericDateMatch) {
+            const parts = this.resolveNumericDateParts(Number(numericDateMatch[1]), Number(numericDateMatch[2]), Number(numericDateMatch[3]));
+            const dateText = parts ? this.formatDateParts(parts.year, parts.month, parts.day) : null;
+            if (!dateText) return '-';
+            if (!numericDateMatch[4] || !numericDateMatch[5]) return dateText;
+            return `${dateText} ${String(Number(numericDateMatch[4])).padStart(2, '0')}:${String(Number(numericDateMatch[5])).padStart(2, '0')}`;
+        }
+
+        const date = new Date(text);
         if (Number.isNaN(date.getTime())) return '-';
-        return date.toLocaleString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
+        const dateText = this.formatDateParts(date.getFullYear(), date.getMonth() + 1, date.getDate());
+        if (!dateText) return '-';
+        return `${dateText} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
     }
 
     trackByPollId(_index: number, poll: PollFormSummary): number {
@@ -644,6 +671,7 @@ export class PollVoteComponent implements OnInit {
             title: String(this.readValue(item, 'title', 'Title') ?? 'Phiếu không tên'),
             description: String(this.readValue(item, 'description', 'Description') ?? ''),
             backgroundImagePath: this.readNullableString(item, 'backgroundImagePath', 'BackgroundImagePath'),
+            titleColor: this.normalizeHexColor(this.readNullableString(item, 'titleColor', 'TitleColor', 'formTitleColor', 'FormTitleColor'), '#111827'),
             startDate: this.readNullableString(item, 'startDate', 'StartDate'),
             endDate: this.readNullableString(item, 'endDate', 'EndDate'),
             isPublic: this.toBoolean(this.readValue(item, 'isPublic', 'IsPublic'), false),
@@ -686,9 +714,15 @@ export class PollVoteComponent implements OnInit {
     private validateAnswers(): boolean {
         for (let index = 0; index < this.currentQuestions.length; index += 1) {
             const question = this.currentQuestions[index];
-            if (this.isEmployeeMappedQuestion(question) || !question.isRequired) continue;
-            if (this.isAnswerEmpty(this.answers[this.answerKey(question)])) {
+            const value = this.answers[this.answerKey(question)];
+            if (this.isEmployeeMappedQuestion(question)) continue;
+            if (this.isAnswerEmpty(value)) {
+                if (!question.isRequired) continue;
                 this.notification.warning(NOTIFICATION_TITLE.warning, `Vui lòng trả lời câu hỏi ${index + 1}`);
+                return false;
+            }
+            if (question.questionType === 'Date' && !this.toApiDateValue(value)) {
+                this.notification.warning(NOTIFICATION_TITLE.warning, `Vui long nhap ngay o cau hoi ${index + 1} theo dinh dang dd/MM/yyyy`);
                 return false;
             }
         }
@@ -705,11 +739,71 @@ export class PollVoteComponent implements OnInit {
             };
         }
 
+        if (question.questionType === 'Date') {
+            return {
+                questionId: question.id,
+                answerText: this.toApiDateValue(value),
+                answerJson: null,
+            };
+        }
+
         return {
             questionId: question.id,
             answerText: value === null || value === undefined ? null : String(value),
             answerJson: null,
         };
+    }
+
+    private buildVisibilityPayload(): {
+        visibleSectionIds: number[];
+        hiddenSectionIds: number[];
+        visibleQuestionIds: number[];
+        hiddenQuestionIds: number[];
+        clearSectionIds: number[];
+        clearQuestionIds: number[];
+    } {
+        const visibleIndexes = new Set(this.getEffectiveVisibleSectionIndexes());
+        const visibleSections = this.sections.filter((_section, index) => visibleIndexes.has(index));
+        const hiddenSections = this.sections.filter((_section, index) => !visibleIndexes.has(index));
+        const visibleSectionIds = this.getPersistedSectionIds(visibleSections);
+        const hiddenSectionIds = this.getPersistedSectionIds(hiddenSections);
+        const visibleQuestionIds = this.getPersistedQuestionIds(visibleSections);
+        const hiddenQuestionIds = this.getPersistedQuestionIds(hiddenSections);
+
+        return {
+            visibleSectionIds,
+            hiddenSectionIds,
+            visibleQuestionIds,
+            hiddenQuestionIds,
+            clearSectionIds: hiddenSectionIds,
+            clearQuestionIds: hiddenQuestionIds,
+        };
+    }
+
+    private clearHiddenSectionAnswers(): void {
+        const visibleIndexes = new Set(this.getEffectiveVisibleSectionIndexes());
+        this.sections
+            .filter((_section, index) => !visibleIndexes.has(index))
+            .forEach((section) => this.clearQuestionsFromAnswerMap(section.questions, this.answers));
+    }
+
+    private clearQuestionsFromAnswerMap(questions: PollQuestionModel[], answers: Record<string, any>): void {
+        questions.forEach((question) => {
+            answers[this.answerKey(question)] = question.questionType === 'MultipleChoice' ? [] : null;
+        });
+    }
+
+    private getPersistedSectionIds(sections: PollSectionModel[]): number[] {
+        return sections
+            .map((section) => section.id)
+            .filter((id) => id > 0);
+    }
+
+    private getPersistedQuestionIds(sections: PollSectionModel[]): number[] {
+        return sections
+            .flatMap((section) => section.questions)
+            .map((question) => question.id)
+            .filter((id) => id > 0);
     }
 
     private resetAnswers(): void {
@@ -747,7 +841,7 @@ export class PollVoteComponent implements OnInit {
 
         const value = answer.answerText ?? this.answerJsonToText(answer.answerJson);
         if (question.questionType === 'Date') {
-            return this.toDateInputValue(value);
+            return this.toDateDisplayValue(value);
         }
 
         if (question.questionType === 'Rating') {
@@ -758,17 +852,132 @@ export class PollVoteComponent implements OnInit {
         return value;
     }
 
-    private toDateInputValue(value: string | null): string | null {
+    private toDateDisplayValue(value: string | null): Date | null {
         if (!value) return null;
-        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+        return this.toDatePickerValue(value);
+    }
 
-        const date = new Date(value);
-        if (Number.isNaN(date.getTime())) return value;
+    private toApiDateValue(value: any): string | null {
+        if (value instanceof Date) {
+            return this.formatDateForApi(value.getFullYear(), value.getMonth() + 1, value.getDate());
+        }
 
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        const text = String(value ?? '').trim();
+        if (!text) return null;
+
+        const isoMatch = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s].*)?$/);
+        if (isoMatch) {
+            return this.formatDateForApi(Number(isoMatch[1]), Number(isoMatch[2]), Number(isoMatch[3]));
+        }
+
+        const numericDateMatch = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})(?:\s.*)?$/);
+        if (numericDateMatch) {
+            const parts = this.resolveNumericDateParts(Number(numericDateMatch[1]), Number(numericDateMatch[2]), Number(numericDateMatch[3]));
+            return parts ? this.formatDateForApi(parts.year, parts.month, parts.day) : null;
+        }
+
+        const date = new Date(text);
+        if (Number.isNaN(date.getTime())) return null;
+
+        return this.formatDateForApi(date.getFullYear(), date.getMonth() + 1, date.getDate());
+    }
+
+    private toDatePickerValue(value: unknown): Date | null {
+        if (value instanceof Date) {
+            return Number.isNaN(value.getTime()) ? null : value;
+        }
+
+        const text = String(value ?? '').trim();
+        if (!text) return null;
+
+        const isoMatch = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s].*)?$/);
+        if (isoMatch) {
+            return this.createDateValue(Number(isoMatch[1]), Number(isoMatch[2]), Number(isoMatch[3]));
+        }
+
+        const numericDateMatch = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})(?:\s.*)?$/);
+        if (numericDateMatch) {
+            const parts = this.resolveNumericDateParts(Number(numericDateMatch[1]), Number(numericDateMatch[2]), Number(numericDateMatch[3]));
+            return parts ? this.createDateValue(parts.year, parts.month, parts.day) : null;
+        }
+
+        const date = new Date(text);
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    private isEmployeeMappedDateQuestion(question: PollQuestionModel): boolean {
+        if (!this.isEmployeeMappedQuestion(question)) return false;
+        if (question.questionType === 'Date') return true;
+
+        const key = `${question.dataSourceField} ${question.dataSourceLabel} ${question.questionText}`
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd')
+            .replace(/Đ/g, 'D')
+            .toLowerCase();
+
+        return key.includes('ngay') || key.includes('date') || key.includes('dob') || key.includes('birth') || key.includes('sinh');
+    }
+
+    private formatDateOnly(value: string): string {
+        const text = String(value ?? '').trim();
+        if (!text) return '';
+
+        const isoMatch = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s].*)?$/);
+        if (isoMatch) {
+            return this.formatDateParts(Number(isoMatch[1]), Number(isoMatch[2]), Number(isoMatch[3])) ?? text;
+        }
+
+        const numericDateMatch = text.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})(?:\s.*)?$/);
+        if (numericDateMatch) {
+            const parts = this.resolveNumericDateParts(Number(numericDateMatch[1]), Number(numericDateMatch[2]), Number(numericDateMatch[3]));
+            return parts ? this.formatDateParts(parts.year, parts.month, parts.day) ?? text : text;
+        }
+
+        const date = new Date(text);
+        if (Number.isNaN(date.getTime())) return text;
+
+        return this.formatDateParts(date.getFullYear(), date.getMonth() + 1, date.getDate()) ?? text;
+    }
+
+    private formatDateParts(year: number, month: number, day: number): string | null {
+        const date = new Date(year, month - 1, day);
+        if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+            return null;
+        }
+
+        return [
+            String(day).padStart(2, '0'),
+            String(month).padStart(2, '0'),
+            String(year),
+        ].join('/');
+    }
+
+    private formatDateForApi(year: number, month: number, day: number): string | null {
+        if (!this.formatDateParts(year, month, day)) return null;
+        return [
+            String(year),
+            String(month).padStart(2, '0'),
+            String(day).padStart(2, '0'),
+        ].join('-');
+    }
+
+    private createDateValue(year: number, month: number, day: number): Date | null {
+        if (!this.formatDateParts(year, month, day)) return null;
+        return new Date(year, month - 1, day);
+    }
+
+    private resolveNumericDateParts(first: number, second: number, year: number): { year: number; month: number; day: number } | null {
+        const candidates = second > 12
+            ? [{ year, month: first, day: second }]
+            : first > 12
+                ? [{ year, month: second, day: first }]
+                : [
+                    { year, month: second, day: first },
+                    { year, month: first, day: second },
+                ];
+
+        return candidates.find((item) => this.formatDateParts(item.year, item.month, item.day)) ?? null;
     }
 
     private parseAnswerJsonArray(value: string | null): string[] {
@@ -796,14 +1005,14 @@ export class PollVoteComponent implements OnInit {
     private resolveNextSectionIndex(section: PollSectionModel, submittedIndex: number, result: SubmitSectionResultModel): number | null {
         if (result.nextSectionId && result.nextSectionId > 0) {
             const apiNextIndex = this.sections.findIndex((item) => item.id === result.nextSectionId);
-            if (apiNextIndex >= 0) return apiNextIndex;
+            if (apiNextIndex >= 0 && this.isSectionVisible(this.sections[apiNextIndex])) return apiNextIndex;
         }
 
         const localDecision = this.evaluateBranchDecision(section);
         if (localDecision.hasDecision) {
             if (localDecision.nextSectionId && localDecision.nextSectionId > 0) {
                 const ruleNextIndex = this.sections.findIndex((item) => item.id === localDecision.nextSectionId);
-                if (ruleNextIndex >= 0) return ruleNextIndex;
+                if (ruleNextIndex >= 0 && this.isSectionVisible(this.sections[ruleNextIndex])) return ruleNextIndex;
             }
             if (localDecision.isExplicitEnd) return null;
         }
@@ -856,6 +1065,28 @@ export class PollVoteComponent implements OnInit {
     }
 
     private isSectionVisible(section: PollSectionModel): boolean {
+        const index = this.sections.indexOf(section);
+        if (index < 0) return this.evaluateSectionVisibility(section, this.answers);
+        return this.getEffectiveVisibleSectionIndexes().includes(index);
+    }
+
+    private getEffectiveVisibleSectionIndexes(): number[] {
+        const visibleIndexes: number[] = [];
+        const answerSnapshot = { ...this.answers };
+
+        this.sections.forEach((section, index) => {
+            if (this.evaluateSectionVisibility(section, answerSnapshot)) {
+                visibleIndexes.push(index);
+                return;
+            }
+
+            this.clearQuestionsFromAnswerMap(section.questions, answerSnapshot);
+        });
+
+        return visibleIndexes;
+    }
+
+    private evaluateSectionVisibility(section: PollSectionModel, answers: Record<string, any>): boolean {
         const text = String(section.showIfJson ?? '').trim();
         if (!text) return true;
 
@@ -864,20 +1095,20 @@ export class PollVoteComponent implements OnInit {
             const logic = String(parsed?.logic ?? 'and').toLowerCase() === 'or' ? 'or' : 'and';
             const conditions = this.readConditionArray(parsed);
             if (conditions.length === 0) return true;
-            const matches = conditions.map((condition) => this.evaluateCondition(condition));
+            const matches = conditions.map((condition) => this.evaluateCondition(condition, answers));
             return logic === 'or' ? matches.some(Boolean) : matches.every(Boolean);
         } catch {
             return true;
         }
     }
 
-    private evaluateCondition(condition: any): boolean {
+    private evaluateCondition(condition: any, answers: Record<string, any> = this.answers): boolean {
         const fieldKey = String(condition?.fieldKey ?? condition?.questionKey ?? condition?.key ?? '');
         const questionId = Number(condition?.questionId ?? condition?.questionID ?? 0);
         const question = this.sections.flatMap((section) => section.questions).find((item) =>
             (!!fieldKey && item.fieldKey === fieldKey) || (questionId > 0 && item.id === questionId)
         );
-        const answerValue = question ? this.answers[this.answerKey(question)] : undefined;
+        const answerValue = question ? answers[this.answerKey(question)] : undefined;
         const expectedValue = condition?.value;
         const operator = String(condition?.operator ?? 'equals');
 
@@ -954,6 +1185,16 @@ export class PollVoteComponent implements OnInit {
 
     private escapeCssUrl(value: string): string {
         return value.replace(/["\\]/g, '\\$&');
+    }
+
+    private normalizeHexColor(value: unknown, fallback: string): string {
+        const text = String(value ?? '').trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(text)) return text;
+        const shortHex = text.match(/^#([0-9a-fA-F]{3})$/);
+        if (shortHex) {
+            return `#${shortHex[1].split('').map((char) => char + char).join('')}`;
+        }
+        return fallback;
     }
 
     private parseConfig(configJson: string | null): Record<string, any> {

@@ -83,12 +83,15 @@
 }
 
 .poll-title {
+  display: -webkit-box;
   overflow: hidden;
   color: #111827;
   font-size: 13px;
   font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.35;
+  white-space: pre-line;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .poll-description {
@@ -96,6 +99,7 @@
   overflow: hidden;
   color: #667085;
   line-height: 1.35;
+  white-space: pre-line;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -186,6 +190,10 @@
   font-size: 24px;
   font-weight: 700;
   line-height: 1.2;
+  min-height: 64px;
+  resize: vertical;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .poll-title-input.invalid {
@@ -196,6 +204,8 @@
   resize: vertical;
   min-height: 38px;
   line-height: 1.45;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .poll-title-input:focus,
@@ -219,6 +229,20 @@
 
 .background-path-line {
   grid-column: 1 / -1;
+}
+
+.title-color-line {
+  min-width: 0;
+}
+
+.title-color-input {
+  width: 52px !important;
+  height: 32px;
+  padding: 0 !important;
+  border: 1px solid #d0d5dd !important;
+  border-radius: 6px;
+  background: #ffffff !important;
+  cursor: pointer;
 }
 
 .poll-background-tools {
@@ -691,11 +715,15 @@
   margin: 0 0 6px;
   font-size: 24px;
   font-weight: 700;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .preview-header p {
   margin: 0 0 10px;
   color: #475467;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .preview-section-title {
@@ -709,6 +737,11 @@
 
 .preview-section-title strong {
   color: #111827;
+}
+
+.preview-section-title span {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .preview-question h6 {
@@ -741,6 +774,13 @@
 .date-answer {
   max-width: 240px;
   padding: 6px 0;
+}
+
+:host ::ng-deep .date-answer.ant-picker,
+:host ::ng-deep .date-answer .ant-picker {
+  width: 100%;
+  max-width: 240px;
+  padding: 4px 11px;
 }
 
 .rating-answer {

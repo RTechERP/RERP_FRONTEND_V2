@@ -465,14 +465,14 @@
                       " (click)="
                         handleClickLink($event, c1.router, c1.title, c1.data)
                       ">
-                                    <img [src]="c1.icon" />
+                                    <img [src]="c1.icon" style="width: 20px; height: 20px;" />
                                     <span> {{ c1.title }}</span>
                                 </a>
 
                                 <a class="text-dark" *ngIf="
                         (c1.router || '') == '#' || (c1.router || '') == ''
                       ">
-                                    <img [src]="c1.icon" />
+                                    <img [src]="c1.icon" style="width: 20px; height: 20px;" />
                                     <span> {{ c1.title }}</span>
                                 </a>
                                 <ul class="list-group">
@@ -489,7 +489,7 @@
                                 c2.data
                               )
                             ">
-                                            <img [src]="c2.icon" />
+                                            <img [src]="c2.icon" style="width: 20px; height: 20px;" />
                                             <span> {{ c2.title }}</span>
                                         </a>
                                     </li>

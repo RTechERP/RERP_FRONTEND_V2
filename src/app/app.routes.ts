@@ -1166,6 +1166,7 @@ export const routes: Routes = [
             { path: 'bill-export-tech-protective-gear', component: BillExportTechnicalProtectiveGearComponent, canActivate: [authGuard] },
             { path: 'history-product-rtc-protective-gear', component: HistoryProductRtcProtectiveGearComponent, canActivate: [authGuard] },
             { path: 'history-product-rtc-protective-gear-new', component: HistoryProductRtcProtectiveGearNewComponent, canActivate: [authGuard] },
+            { path: 'history-product-rtc-protective-gear-new-personal', component: HistoryProductRtcProtectiveGearNewComponent, canActivate: [authGuard] },
 
             { path: 'inventory-borrow-ncc', component: InventoryBorrowNCCComponent, canActivate: [authGuard] },
 

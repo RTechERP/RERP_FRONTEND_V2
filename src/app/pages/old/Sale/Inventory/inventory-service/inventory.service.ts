@@ -34,7 +34,25 @@ export class InventoryService {
       params
     );
   }
-
+  getInventoryAll(
+    checkAll: boolean,
+    Find: string,
+    WarehouseCode: string,
+    IsStock: boolean,
+    productGroupID: number
+  ): Observable<any> {
+    const params: any = {
+      checkAll: checkAll,
+      Find: Find.trim(),
+      productGroupID: productGroupID.toString(),
+      WarehouseCode: '',
+      IsStock: IsStock
+    };
+    return this.httpclient.post(
+      environment.host + `api/inventory/get-inventory-all`,
+      params
+    );
+  }
   getInventoryPagination(
     checkAll: boolean,
     Find: string,

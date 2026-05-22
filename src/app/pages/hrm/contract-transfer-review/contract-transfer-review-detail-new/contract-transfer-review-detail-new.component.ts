@@ -140,6 +140,10 @@ export interface CbqlFormModel {
   TBPRecommendationsOrOther: string;
   TBPStrengths: string;
   TBPAreasForImprovement: string;
+  TBPApprovedDate: string;
+  HRApprovedDate: string;
+  BGDApprovedDate: string;
+
 }
 
 // ─── Hard-coded master data ─────────────────────────────────────────────────
@@ -354,14 +358,14 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
       Number(this.step) === 2 &&
       Number(this.statusApprove) === 0 &&
       this.form.TBPApproveID === this.appUserService.employeeID) {
-    return true;
-  }
-   if (this.role === 'bgd' &&
+      return true;
+    }
+    if (this.role === 'bgd' &&
       Number(this.step) === 2 &&
       Number(this.statusApprove) === 0 &&
       this.form.TBPApproveID === this.appUserService.employeeID) {
-    return true;
-  }
+      return true;
+    }
 
     return this.role === 'manager' || this.role === 'tbp' || this.appUserService.isAdmin;
   }
@@ -660,6 +664,10 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
         this.form.TBPStrengths = d.TBPStrengths ?? null;
         this.form.TBPAreasForImprovement = d.TBPAreasForImprovement ?? null;
 
+        this.form.TBPApprovedDate = d.TBPApprovedDate ?? null;
+        this.form.HRApprovedDate = d.HRApprovedDate ?? null;
+        this.form.BGDApprovedDate = d.BGDApprovedDate ?? null;
+
         // ── Load items[] bảng đánh giá: NLĐ luôn từ cột gốc, TBP từ cột TBP* ──
         const setNLD = (code: string, val: number | null) => {
           const it = this.items.find(i => i.code === code);
@@ -907,6 +915,10 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
       TBPRecommendationsOrOther: '',
       TBPStrengths: '',
       TBPAreasForImprovement: '',
+
+      TBPApprovedDate: '',
+      HRApprovedDate: '',
+      BGDApprovedDate: ''
     };
   }
 
@@ -916,6 +928,22 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
     const d = new Date(date);
     if (isNaN(d.getTime())) return '';
     return d.toLocaleDateString('en-CA'); // YYYY-MM-DD
+  }
+  formatDateTimeISO(date: any): string {
+    if (!date) return '';
+
+    const d = new Date(date);
+
+    if (isNaN(d.getTime())) return '';
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
   }
 
   /** Validate YYYY-MM-DD — dùng cho <input type="date"> */

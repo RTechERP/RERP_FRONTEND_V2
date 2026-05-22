@@ -234,7 +234,12 @@ export class ContractTransferReviewComponent implements OnInit {
         visible: role === 'hr',
         command: () => this.onDelete(),
       },
-
+      {
+        label: 'Đánh giá',
+        icon: 'fa-solid fa-file-lines fa-lg text-info',
+        visible: this.permissionService.hasPermission('N93'),
+        command: () => this.onEdit(),
+      },
 
       // ─── TBP xác nhận ───────────────────────────────────────────────────────
       {

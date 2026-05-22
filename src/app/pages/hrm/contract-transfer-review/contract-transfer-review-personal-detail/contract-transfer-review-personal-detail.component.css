@@ -2,26 +2,45 @@
    PHIẾU ĐÁNH GIÁ CÁN BỘ QUẢN LÝ (Employee View)
    ══════════════════════════════════════════════════════ */
 
+
 /* ── Modal body ── */
+
 .cbql-modal-body {
     background-color: #d0d0d0;
     padding: 16px 20px !important;
     overflow-y: auto;
     height: calc(100vh - 110px);
-  }
-  
-  /* ── Sheet wrapper ── */
-  input[type="date"]::-webkit-calendar-picker-indicator {
+}
+
+
+/* ── Sheet wrapper ── */
+
+input[type="date"]::-webkit-calendar-picker-indicator {
     display: none;
     -webkit-appearance: none;
-  }
-  
-  .date-mask {
+}
+
+.example-row {
+    background-color: #F8CBAD;
+    color: red;
+    font-style: italic;
+    font-size: 11.5px;
+    font-family: 'Be Vietnam Pro', sans-serif;
+}
+
+.sig-space-date {
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-family: 'Be Vietnam Pro', sans-serif;
+}
+
+.date-mask {
     letter-spacing: 1px;
     font-variant-numeric: tabular-nums;
-  }
-  
-  .cbql-sheet {
+}
+
+.cbql-sheet {
     --cbql-font-family: 'Be Vietnam Pro', sans-serif;
     background: #ffffff;
     padding: 24px 28px 24px;
@@ -30,60 +49,66 @@
     max-width: 1100px;
     margin: 0 auto;
     font-family: var(--cbql-font-family);
-  }
-  
-  /* ── Đường kẻ đỏ phân cách ── */
-  .sheet-divider {
+}
+
+
+/* ── Đường kẻ đỏ phân cách ── */
+
+.sheet-divider {
     border-top: 2px solid #b8000c;
     margin: 10px 0 12px;
-  }
-  
-  /* ── Header ── */
-  .form-header {
+}
+
+
+/* ── Header ── */
+
+.form-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 4px;
-  }
-  
-  .header-left {
+}
+
+.header-left {
     width: 80px;
     flex-shrink: 0;
-  }
-  
-  .logo-img {
+}
+
+.logo-img {
     width: 100%;
-  }
-  
-  .header-right {
+}
+
+.header-right {
     width: 80px;
     flex-shrink: 0;
-  }
-  
-  .header-center {
+}
+
+.header-center {
     text-align: center;
     flex: 1;
     padding: 0 10px;
-  }
-  
-  .form-title {
+}
+
+.form-title {
     font-size: 14px;
     font-weight: bold;
     margin: 0;
     color: #000;
     text-transform: uppercase;
     font-family: 'Be Vietnam Pro', sans-serif;
-  }
-  
-  .form-subtitle {
+}
+
+.form-subtitle {
     font-size: 12px;
     margin: 2px 0 0;
     color: #222;
     font-family: 'Be Vietnam Pro', sans-serif;
-  }
-  
-  /* ── Section header ── */
-  .section-header {
+}
+
+
+/* ── Section header ── */
+
+.section-header {
     background-color: #dce6f1;
     font-weight: bold;
     font-size: 12px;
@@ -93,33 +118,35 @@
     text-transform: uppercase;
     font-family: var(--cbql-font-family);
     letter-spacing: 0.3px;
-  }
-  
-  .section-header-with-select {
+}
+
+.section-header-with-select {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-  }
-  
-  .section-header-title {
+}
+
+.section-header-title {
     white-space: nowrap;
     flex-shrink: 0;
     font-family: var(--cbql-font-family);
-  }
-  
-  .section-inline-select {
+}
+
+.section-inline-select {
     min-width: 260px;
     max-width: 420px;
     flex: 1;
-  }
-  
-  /* ── Info rows ── */
-  .info-section {
+}
+
+
+/* ── Info rows ── */
+
+.info-section {
     margin-bottom: 6px;
-  }
-  
-  .info-row {
+}
+
+.info-row {
     display: flex;
     align-items: baseline;
     flex-wrap: nowrap;
@@ -127,44 +154,44 @@
     margin-bottom: 5px;
     font-size: 12px;
     font-family: 'Be Vietnam Pro', sans-serif;
-  }
-  
-  .info-row-error {
+}
+
+.info-row-error {
     background-color: #fff1f0;
     border: 1px solid #ffb3b3;
     border-radius: 4px;
     padding: 3px 4px;
-  }
-  
-  .info-stt {
+}
+
+.info-stt {
     display: inline-block;
     width: 18px;
     flex-shrink: 0;
     font-size: 12px;
     text-align: center;
-  }
-  
-  .info-label {
+}
+
+.info-label {
     white-space: nowrap;
     font-size: 12px;
     flex-shrink: 0;
     font-family: 'Be Vietnam Pro', sans-serif;
-  }
-  
-  .info-sep {
+}
+
+.info-sep {
     flex-shrink: 0;
     margin: 0 2px;
-  }
-  
-  .info-hint-sm {
+}
+
+.info-hint-sm {
     font-size: 12.5px;
     color: #555;
     white-space: nowrap;
     flex-shrink: 0;
     font-family: 'Be Vietnam Pro', sans-serif;
-  }
-  
-  .info-value {
+}
+
+.info-value {
     border: none;
     border-bottom: 1px dotted #aaa;
     background: transparent;
@@ -174,18 +201,18 @@
     font-family: 'Be Vietnam Pro', sans-serif;
     outline: none;
     color: #000;
-  }
-  
-  .info-value:focus {
+}
+
+.info-value:focus {
     border-bottom-color: #1890ff !important;
-  }
-  
-  .info-value[readonly] {
+}
+
+.info-value[readonly] {
     color: #222;
     cursor: default;
-  }
-  
-  .date-ul {
+}
+
+.date-ul {
     border: none !important;
     border-bottom: 1px dotted #888 !important;
     background: transparent !important;
@@ -193,17 +220,14 @@
     padding: 0 !important;
     height: 22px !important;
     min-width: 100px;
-  }
-  
-  .eval-textarea-sm {
+}
+
+.eval-textarea-sm {
     width: 100% !important;
     border: none !important;
     border-radius: 0 !important;
     background-color: transparent !important;
-    background-image: repeating-linear-gradient(transparent,
-        transparent calc(1.55em - 1px),
-        #ccc calc(1.55em - 1px),
-        #ccc 1.55em) !important;
+    background-image: repeating-linear-gradient(transparent, transparent calc(1.55em - 1px), #ccc calc(1.55em - 1px), #ccc 1.55em) !important;
     background-position: 0 2px !important;
     line-height: 1.55em !important;
     padding: 2px 4px 6px !important;
@@ -215,80 +239,84 @@
     box-shadow: none !important;
     overflow: hidden !important;
     min-height: calc(1.55em * 2 + 8px);
-  }
-  
-  /* ══ BẢNG XẾP LOẠI ══ */
-  .rank-table {
+}
+
+
+/* ══ BẢNG XẾP LOẠI ══ */
+
+.rank-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 11.5px;
     font-family: 'Be Vietnam Pro', sans-serif;
-  }
-  
-  .rank-table th,
-  .rank-table td {
+}
+
+.rank-table th,
+.rank-table td {
     border: 1px solid #b8cce4;
     padding: 4px 8px;
     vertical-align: middle;
-  }
-  
-  .rank-table thead th {
+}
+
+.rank-table thead th {
     background: #dce6f1;
     font-weight: 700;
     text-align: center;
     color: #1f3864;
-  }
-  
-  /* ══ BẢNG KPI ══ */
-  .kpi-table {
+}
+
+
+/* ══ BẢNG KPI ══ */
+
+.kpi-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 11.5px;
     font-family: 'Be Vietnam Pro', sans-serif;
-  }
-  
-  .kpi-table th,
-  .kpi-table td {
+}
+
+.kpi-table th,
+.kpi-table td {
     border: 1px solid #b0b0b0;
     padding: 3px 5px;
     vertical-align: middle;
-  }
-  
-  .kpi-table thead th {
+}
+
+.kpi-table thead th {
     background: #dce6f1;
     font-weight: 600;
     text-align: center;
     color: #1f3864;
     font-size: 11px;
-  }
-  
-  .group-row td {
+}
+
+.group-row td {
     background-color: #dce6f1;
     font-weight: bold;
-  }
-  
-  .group-code {
+}
+
+.group-code {
     font-weight: 700;
     font-size: 12px;
     color: #1f3864;
-  }
-  
-  .leaf-row:nth-child(even) td {
+}
+
+.leaf-row:nth-child(even) td {
     background-color: #f9f9f9;
-  }
-  
-  .total-row td,
-  .rank-row td {
+}
+
+.total-row td,
+.rank-row td {
     background-color: #fff;
     font-weight: bold;
-  }
-  
-  .total-score {
+}
+
+.total-score {
     color: #c00000;
     font-weight: bold;
-  }
-  
-  .score-input {
+}
+
+.score-input {
     border: none;
     border-bottom: 1px dotted #888;
     background: transparent;
@@ -300,207 +328,206 @@
     color: #000;
     padding: 1px 2px;
     -moz-appearance: textfield;
-  }
-  
-  .score-input::-webkit-outer-spin-button,
-  .score-input::-webkit-inner-spin-button {
+}
+
+.score-input::-webkit-outer-spin-button,
+.score-input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
-  }
-  
-  .score-input:focus {
+}
+
+.score-input:focus {
     border-bottom-color: #1890ff;
-  }
-  
-  .score-input[readonly] {
+}
+
+.score-input[readonly] {
     color: #444;
     cursor: default;
-  }
-  
-  .score-invalid {
+}
+
+.score-invalid {
     border-bottom: 2px solid #dc3545 !important;
     background-color: #fff5f5 !important;
     color: #dc3545 !important;
-  }
-  
-  .border-danger {
+}
+
+.border-danger {
     border-bottom: 2px solid #dc3545 !important;
     background-color: #fff5f5 !important;
-  }
-  
-  .score-auto {
+}
+
+.score-auto {
     font-size: 11px;
     color: #333;
-  }
-  
-  .score-readonly {
+}
+
+.score-readonly {
     display: inline-block;
     font-size: 11.5px;
     font-family: 'Be Vietnam Pro', sans-serif;
     color: #222;
     min-width: 36px;
     text-align: center;
-  }
-  
-  tr.row-error td,
-  td.row-error {
+}
+
+tr.row-error td,
+td.row-error {
     background-color: #fff1f0 !important;
     border-top: 1px solid #ff4d4f !important;
     border-bottom: 1px solid #ff4d4f !important;
-  }
-  
-  tr.row-error td:first-child,
-  td.row-error:first-child {
+}
+
+tr.row-error td:first-child,
+td.row-error:first-child {
     border-left: 2px solid #ff4d4f !important;
-  }
-  
-  tr.row-error td:last-child,
-  td.row-error:last-child {
+}
+
+tr.row-error td:last-child,
+td.row-error:last-child {
     border-right: 2px solid #ff4d4f !important;
-  }
-  
-  .box-error {
+}
+
+.box-error {
     border: 2px solid #ff4d4f !important;
     background-color: #fff1f0 !important;
-  }
-  
-  .box-error .eval-textarea-sm {
+}
+
+.box-error .eval-textarea-sm {
     background-color: transparent !important;
-  }
+}
 
-  .td-error {
+.td-error {
     background-color: #fff1f0 !important;
-  }
+}
 
-  .select-error {
+.select-error {
     border: 2px solid #ff4d4f !important;
     border-radius: 4px;
-  }
+}
 
-  /* ══ BẢNG NHẬN XÉT / KẾT LUẬN ══ */
-  .comment-section {
+
+/* ══ BẢNG NHẬN XÉT / KẾT LUẬN ══ */
+
+.comment-section {
     /* margin-top: 12px; */
-  }
-  
-  .comment-table {
+}
+
+.comment-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 12px;
     font-family: 'Be Vietnam Pro', sans-serif;
-  }
-  
-  .comment-table td {
+}
+
+.comment-table td {
     border: 1px solid #b0b0b0;
     padding: 5px 8px;
     vertical-align: top;
-  }
-  
-  .comment-code {
+}
+
+.comment-code {
     width: 28px;
     text-align: center;
     font-weight: bold;
     background-color: #dce6f1;
     color: #1f3864;
     vertical-align: middle !important;
-  }
-  
-  .comment-label {
+}
+
+.comment-label {
     width: 130px;
     font-weight: bold;
     vertical-align: middle !important;
     white-space: nowrap;
-  }
-  
-  .comment-sub {
+}
+
+.comment-sub {
     width: 160px;
     vertical-align: top;
     padding-top: 6px !important;
     white-space: nowrap;
-  }
-  
-  .comment-head {
+}
+
+.comment-head {
     text-align: center;
     vertical-align: middle;
     font-weight: 600;
     background-color: #f0f0f0;
-  }
-  
-  /* ══ CHỮ KÝ ══ */
-  .signature-row-triple {
+}
+
+
+/* ══ CHỮ KÝ ══ */
+
+.signature-row-triple {
     display: flex;
     justify-content: space-between;
     padding-top: 6px;
     margin-top: 16px;
-  }
-  
-  .sig-triple-block {
+}
+
+.sig-triple-block {
     text-align: center;
     flex: 1;
-  }
-  
-  .sig-title {
+}
+
+.sig-title {
     font-size: 13.5px;
     font-weight: bold;
     margin: 0 0 4px;
     text-transform: uppercase;
     font-family: 'Be Vietnam Pro', sans-serif;
-  }
-  
-  .sig-location-sm,
-  .sig-location-placeholder {
+}
+
+.sig-location-sm,
+.sig-location-placeholder {
     font-size: 11.5px;
     font-style: italic;
     margin: 0 0 2px;
     font-family: 'Be Vietnam Pro', sans-serif;
     white-space: nowrap;
     height: 18px;
-  }
-  
-  .sig-space {
+}
+
+.sig-space {
     min-height: 55px;
     padding-top: 40px;
     font-size: 14px;
     font-weight: bold;
     text-transform: uppercase;
     font-family: 'Be Vietnam Pro', sans-serif;
-  }
-  
-  /* ════ PRINT STYLES ════ */
-  @media print {
+}
+
+
+/* ════ PRINT STYLES ════ */
+
+@media print {
     body>* {
-      display: none !important;
+        display: none !important;
     }
-  
     #cbqlPrintArea {
-      display: block !important;
+        display: block !important;
     }
-  
     .no-print,
     .modal-header,
     .modal-footer {
-      display: none !important;
+        display: none !important;
     }
-  
     .cbql-modal-body {
-      background: white !important;
-      padding: 0 !important;
-      height: auto !important;
+        background: white !important;
+        padding: 0 !important;
+        height: auto !important;
     }
-  
     .cbql-sheet {
-      box-shadow: none !important;
-      padding: 5mm 8mm !important;
-      max-width: 100%;
+        box-shadow: none !important;
+        padding: 5mm 8mm !important;
+        max-width: 100%;
     }
-  
     .eval-textarea-sm {
-      overflow: visible !important;
-      height: auto !important;
-      max-height: none !important;
+        overflow: visible !important;
+        height: auto !important;
+        max-height: none !important;
     }
-  
     .score-input {
-      border: none !important;
+        border: none !important;
     }
-  }
-  
+}

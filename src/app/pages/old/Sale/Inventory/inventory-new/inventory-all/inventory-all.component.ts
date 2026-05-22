@@ -1,0 +1,2135 @@
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+  ChangeDetectorRef,
+  NgZone,
+  Inject,
+  Optional,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzProgressModule } from 'ng-zorro-antd/progress';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import {
+  AngularGridInstance,
+  AngularSlickgridModule,
+  Column,
+  Filters,
+  Formatter,
+  Formatters,
+  GridOption,
+  MultipleSelectOption,
+  OnSelectedRowsChangedEventArgs,
+  MenuCommandItemCallbackArgs,
+} from 'angular-slickgrid';
+import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import * as ExcelJS from 'exceljs';
+import { Subscription } from 'rxjs';
+
+import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
+import { InventoryService } from '../../inventory-service/inventory.service';
+import { ProductGroupDetailComponent } from '../../../ProductSale/product-group-detail/product-group-detail.component';
+import { BillExportDetailComponent } from '../../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../../app.config';
+import { BillExportDetailNewComponent } from '../../../BillExport/bill-export-detail-new/bill-export-detail-new.component';
+import { TabServiceService } from '../../../../../../layouts/tab-service.service';
+import { ChiTietSanPhamSaleComponent } from '../../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
+import { ChiTietSanPhamSaleNewComponent } from '../../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale-new/chi-tiet-san-pham-sale-new.component';
+import { ProjectPartlistPriceRequestNewComponent } from '../../../../../purchase/project-partlist-price-request-new/project-partlist-price-request-new.component';
+import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../../../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
+import { AppUserService } from '../../../../../../services/app-user.service';
+import { ProjectPartlistPriceRequestFormComponent } from '../../../../project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
+import { ProductLocationService } from '../../../../../general-category/product-location/product-location-service/product-location.service';
+import { HasPermissionDirective } from '../../../../../../directives/has-permission.directive';
+
+interface ProductGroup {
+  ID?: number;
+  ProductGroupID: string;
+  ProductGroupName: string;
+  IsVisible: boolean;
+  EmployeeID: number;
+  WareHouseID: number;
+  ParentID: number;
+}
+
+@Component({
+  selector: 'app-inventory-all',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NzModalModule,
+    NzSelectModule,
+    NzSplitterModule,
+    NzIconModule,
+    NzButtonModule,
+    NzProgressModule,
+    NzInputModule,
+    NzFormModule,
+    NzInputNumberModule,
+    NzCheckboxModule,
+    NzSpinModule,
+    NgbModule,
+    AngularSlickgridModule,
+    HasPermissionDirective
+  ],
+  templateUrl: './inventory-all.component.html',
+  styleUrl: './inventory-all.component.css'
+})
+export class InventoryAllComponent {
+  warehouseCode: string = 'HN';
+  warehouseId: number = 1;
+  componentId: string = '';
+  productGroupID: number = 0;
+
+  // Data
+  dataProductGroup: any[] = [];
+  dataInventory: any[] = [];
+
+  // AngularSlickGrid instances
+  angularGridProductGroup!: AngularGridInstance;
+  angularGridInventory!: AngularGridInstance;
+
+  // Column definitions
+  columnDefinitionsProductGroup: Column[] = [];
+  columnDefinitionsInventory: Column[] = [];
+
+  // Grid options
+  gridOptionsProductGroup: GridOption = {};
+  gridOptionsInventory: GridOption = {};
+
+  // Datasets
+  datasetProductGroup: any[] = [];
+  datasetInventory: any[] = [];
+
+  // Loading states
+  isLoadingProductGroup: boolean = false;
+  isLoadingInventory: boolean = false;
+
+  // Excel Export Service
+  excelExportService = new ExcelExportService();
+
+  // Search parameters
+  searchParam = {
+    checkedAll: true,
+    Find: '',
+    checkedStock: false,
+  };
+
+  isWareHouseDP: boolean = false;
+
+  newProductGroup: ProductGroup = {
+    ProductGroupID: '',
+    ProductGroupName: '',
+    EmployeeID: 0,
+    IsVisible: false,
+    WareHouseID: 0,
+    ParentID: 0
+  };
+
+
+
+  private subscriptions: Subscription[] = [];
+
+  // ResizeObserver để detect khi tab được hiển thị lại
+  private resizeObserver: ResizeObserver | null = null;
+  private filterPatchObserver: MutationObserver | null = null;
+  private lastVisibleWidth: number = 0;
+  //nhat them set location cho san pham
+  locations: any[] = [];
+  locationID: number = 0;
+
+  constructor(
+    private productsaleSV: ProductsaleServiceService,
+    private inventoryService: InventoryService,
+    private notification: NzNotificationService,
+    private modalService: NgbModal,
+    private modal: NzModalService,
+    private zone: NgZone,
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
+    private appUserService: AppUserService,
+    @Optional() @Inject('tabData') private tabData: any,
+    private elementRef: ElementRef,
+    private tabService: TabServiceService,
+    private productLocationService: ProductLocationService,
+  ) { }
+
+  ngOnInit(): void {
+    this.componentId = this.generateUUIDv4();
+    if (this.tabData) {
+      this.warehouseCode = this.tabData.warehouseCode ?? 'HN';
+      this.warehouseId = this.tabData.warehouseID ?? 1;
+      this.isWareHouseDP = this.warehouseCode.toUpperCase() === 'DP';
+      this.initGridColumns();
+      this.initGridOptions();
+      this.cdr.detectChanges();
+      this.getProductGroup();
+      this.getLocation();
+      return;
+    }
+
+    // Chạy trong router-outlet: react khi queryParams thay đổi
+    const sub = this.route.queryParams.subscribe((params) => {
+      const newWarehouseCode = params['warehouseCode'] ?? '';
+      this.warehouseId = params['warehouseID'] ?? 1;
+      const paramsChanged = this.warehouseCode !== newWarehouseCode;
+
+      this.warehouseCode = newWarehouseCode;
+      this.isWareHouseDP = this.warehouseCode.toUpperCase() === 'DP';
+
+      if (paramsChanged && this.angularGridProductGroup) {
+        this.productGroupID = 0;
+        this.searchParam.Find = '';
+        this.datasetProductGroup = [];
+        this.datasetInventory = [];
+        this.dataProductGroup = [];
+        this.dataInventory = [];
+
+        if (this.angularGridProductGroup?.slickGrid) {
+          this.angularGridProductGroup.slickGrid.setSelectedRows([]);
+          this.angularGridProductGroup.filterService?.clearFilters();
+          this.angularGridProductGroup.dataView?.setItems([], 'id');
+          this.angularGridProductGroup.slickGrid.invalidate();
+          this.angularGridProductGroup.slickGrid.render();
+          this.angularGridProductGroup.slickGrid.scrollRowToTop(0);
+        }
+        if (this.angularGridInventory?.slickGrid) {
+          this.angularGridInventory.slickGrid.setSelectedRows([]);
+          this.angularGridInventory.filterService?.clearFilters();
+          this.angularGridInventory.dataView?.setItems([], 'id');
+          this.angularGridInventory.slickGrid.invalidate();
+          this.angularGridInventory.slickGrid.render();
+          this.angularGridInventory.slickGrid.scrollRowToTop(0);
+        }
+      }
+
+      this.initGridColumns();
+      this.initGridOptions();
+      this.cdr.detectChanges();
+      this.getProductGroup();
+      this.getLocation();
+    });
+    this.subscriptions.push(sub);
+    // console.log("Warehouseid", this.warehouseId);
+  }
+
+  ngAfterViewInit(): void {
+    // Data đã được load trong ngOnInit qua queryParams subscribe
+    // Sử dụng ResizeObserver để detect khi component được hiển thị lại (tab switch)
+    this.setupResizeObserver();
+    // Fix: Ctrl+X / Delete / Backspace khi bôi đen không trigger filter trong SlickGrid
+    setTimeout(() => this.patchSlickGridFilterInputs(), 600);
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+
+    // Cleanup ResizeObserver khi component bị destroy
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+    if (this.filterPatchObserver) {
+      this.filterPatchObserver.disconnect();
+      this.filterPatchObserver = null;
+    }
+  }
+
+  /**
+   * Setup ResizeObserver để detect khi tab được hiển thị lại
+   * Khi tab bị ẩn (hidden), width = 0. Khi hiện lại, width > 0
+   * Lúc đó cần trigger resize grid để SlickGrid tính toán lại kích thước
+   */
+  private setupResizeObserver(): void {
+    const element = this.elementRef.nativeElement;
+
+    this.resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const currentWidth = entry.contentRect.width;
+
+        // Detect khi chuyển từ hidden (width = 0) sang visible (width > 0)
+        if (this.lastVisibleWidth === 0 && currentWidth > 0) {
+          // Tab vừa được hiển thị lại, cần resize grids
+          this.zone.run(() => {
+            setTimeout(() => {
+              this.resizeGrids();
+            }, 50);
+          });
+        }
+
+        this.lastVisibleWidth = currentWidth;
+      }
+    });
+
+    this.resizeObserver.observe(element);
+  }
+
+  /**
+   * Fix: SlickGrid filter inputs không nhận change khi Ctrl+X, Delete, Backspace trên text đang bôi đen.
+   */
+  private patchSlickGridFilterInputs(): void {
+    const container = this.elementRef.nativeElement as HTMLElement;
+
+    const applyPatch = (input: HTMLInputElement) => {
+      if (input.dataset['filterPatched']) return;
+      input.dataset['filterPatched'] = '1';
+
+      input.addEventListener('cut', () => {
+        setTimeout(() => input.dispatchEvent(new Event('input', { bubbles: true })), 10);
+      });
+
+      input.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          const hasSelection = (input.selectionStart ?? 0) !== (input.selectionEnd ?? 0);
+          if (hasSelection) {
+            setTimeout(
+              () => input.dispatchEvent(new Event('input', { bubbles: true })),
+              10
+            );
+          }
+        }
+      });
+    };
+
+    container
+      .querySelectorAll<HTMLInputElement>('.slick-headerrow-column input')
+      .forEach(applyPatch);
+
+    this.filterPatchObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of Array.from(mutation.addedNodes)) {
+          if (node instanceof HTMLElement) {
+            node.querySelectorAll<HTMLInputElement>(
+              '.slick-headerrow-column input'
+            ).forEach(applyPatch);
+            if (node instanceof HTMLInputElement && node.closest('.slick-headerrow-column')) {
+              applyPatch(node);
+            }
+          }
+        }
+      }
+    });
+    this.filterPatchObserver.observe(container, { childList: true, subtree: true });
+  }
+
+  //#region Grid Initialization
+
+  // Formatter cho phép wrap text tối đa 3 dòng với tooltip
+  wrapTextFormatter: Formatter = (_row, _cell, value, _column, dataContext) => {
+    if (!value) return '';
+    return `
+            <span
+                title="${String(value).replace(/"/g, '&quot;')}"
+                style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.3;"
+            >
+                ${value}
+            </span>
+        `;
+  };
+
+  // Tree formatter for hierarchical display
+  treeFormatter: Formatter = (_row, _cell, value, _column, dataContext, grid) => {
+    if (!value || !dataContext) return '';
+
+    const gridOptions = grid?.getOptions();
+    const treeLevelPropName = gridOptions?.treeDataOptions?.levelPropName || '__treeLevel';
+    const treeLevel = dataContext[treeLevelPropName] || 0;
+
+    const dataView = grid?.getData();
+    const data = dataView?.getItems?.() || [];
+    const identifierPropName = dataView?.getIdPropertyName?.() || 'id';
+    const idx = dataView?.getIdxById?.(dataContext[identifierPropName]) ?? -1;
+
+    const spacer = `<span style="display:inline-block; width:${15 * treeLevel}px;"></span>`;
+
+    // Check if item has children
+    const hasChildren = idx >= 0 && idx < data.length - 1 &&
+      (data[idx + 1]?.[treeLevelPropName] > treeLevel || dataContext.__hasChildren);
+
+    if (hasChildren) {
+      const toggleClass = dataContext.__collapsed ? 'collapsed' : 'expanded';
+      return `${spacer}<span class="slick-group-toggle ${toggleClass}" level="${treeLevel}"></span> ${value}`;
+    } else {
+      return `${spacer}<span class="slick-group-toggle" level="${treeLevel}"></span> ${value}`;
+    }
+  };
+
+  private initGridColumns(): void {
+    // Product Group columns
+    this.columnDefinitionsProductGroup = [
+      {
+        id: 'ProductGroupID' + this.warehouseCode,
+        field: 'ProductGroupID',
+        name: 'Mã nhóm',
+        width: 50,
+        sortable: true,
+        filterable: true,
+        formatter: this.treeFormatter,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'ProductGroupName' + this.warehouseCode,
+        field: 'ProductGroupName',
+        name: 'Tên nhóm',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+    ];
+
+    // Inventory columns
+    this.columnDefinitionsInventory = this.buildPGWarehouseColumns(this.warehouseCode);
+  }
+
+  private initGridOptions(): void {
+    // Product Group grid options - Sử dụng ID selector unique
+    this.gridOptionsProductGroup = {
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container-product-group-' + this.componentId,
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
+      datasetIdPropertyName: 'id',
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: true,
+      },
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: true,
+      forceFitColumns: true,
+      enableAutoSizeColumns: true,
+      enableHeaderMenu: false,
+      enableTreeData: true,
+      multiColumnSort: false,
+      treeDataOptions: {
+        columnId: 'ProductGroupName',
+        parentPropName: 'parentId',
+        indentMarginLeft: 15,
+        initiallyCollapsed: false
+      },
+    };
+
+    // Inventory grid options - Sử dụng ID selector unique
+    this.gridOptionsInventory = {
+      enableAutoResize: true,
+      autoResize: {
+        container: '.grid-container-inventory-' + this.componentId,
+        calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container',
+      },
+      gridWidth: '100%',
+      datasetIdPropertyName: 'id',
+      enableRowSelection: true,
+      rowSelectionOptions: {
+        selectActiveRow: false,
+      },
+      checkboxSelector: {
+        hideInFilterHeaderRow: false,
+        hideInColumnTitleRow: true,
+        applySelectOnAllPages: true,
+      },
+      enableCheckboxSelector: true,
+      enableCellNavigation: true,
+      enableFiltering: true,
+      autoFitColumnsOnFirstLoad: false,
+      enableAutoSizeColumns: false,
+      frozenColumn: 4,
+      enableHeaderMenu: false,
+      enableContextMenu: true,
+      rowHeight: 55, // Điều chỉnh row height cho 3 dòng text (khoảng 18px/dòng + padding)
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'view-detail',
+            title: 'Xem chi tiết',
+            iconCssClass: 'fa fa-external-link',
+            action: (_e: any, args: MenuCommandItemCallbackArgs) => {
+              const dataContext = args.dataContext;
+              if (dataContext) {
+                this.openChiTietSanPhamSale(dataContext);
+              }
+            },
+          },
+        ],
+      },
+      // Footer row configuration
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 28,
+
+      // Excel export configuration
+      enableExcelExport: true,
+      externalResources: [this.excelExportService],
+      excelExportOptions: {
+        sanitizeDataExport: true,
+        exportWithFormatter: true,
+      },
+      enableGrouping: true,
+    };
+  }
+
+  //#endregion
+
+  //#region Grid Ready Events
+  updateMasterFooterRow() {
+    if (!this.angularGridInventory?.slickGrid) {
+      return;
+    }
+
+    // Lấy dữ liệu đã lọc
+    const items =
+      (this.angularGridInventory.dataView?.getFilteredItems?.() as any[]) ||
+      this.datasetInventory;
+
+    // Đếm số lượng ProductCode
+    const productCodeCount = items.length || 0;
+
+    // Tính tổng cho các cột số
+    const totals: { [key: string]: number } = {};
+    const numericFields = [
+      'TotalQuantityFirst',
+      'Import',
+      'Export',
+      'TotalQuantityLastActual',
+      'QuantityRequestExport',
+      'TotalQuantityKeep',
+      'TotalQuantityLast',
+      'QuantityUse',
+      'MinQuantity',
+      'MinQuantityActual',
+      'TotalQuantityReturnNCC',
+      'ImportPT',
+      'ExportPM',
+      'StillBorrowed'
+    ];
+
+    numericFields.forEach((field: string) => {
+      totals[field] = (items || []).reduce(
+        (sum, item) => sum + (Number(item[field]) || 0),
+        0
+      );
+    });
+
+    this.angularGridInventory.slickGrid.setFooterRowVisibility(true);
+
+    // Set footer values
+    const columns = this.angularGridInventory.slickGrid.getColumns();
+
+    columns.forEach((col: any) => {
+      const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn(
+        col.id
+      );
+      if (!footerCell) {
+        return;
+      }
+
+      if (col.id === 'ProductCode' + this.warehouseCode) {
+        footerCell.innerHTML = `<b>${productCodeCount}</b>`;
+      } else if (totals[col.field] !== undefined) {
+        const formattedValue = new Intl.NumberFormat('en-US', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 2,
+        }).format(totals[col.field]);
+        footerCell.innerHTML = `<b>${formattedValue}</b>`;
+      } else {
+        footerCell.innerHTML = '';
+      }
+    });
+  }
+  private applyGrouping(): void {
+    if (this.isWareHouseDP == false) return;
+    const angularGrid = this.angularGridInventory;
+    if (!angularGrid || !angularGrid.dataView) return;
+    angularGrid.dataView.setGrouping([
+      {
+        getter: 'ProductGroupName',
+        comparer: () => 0,
+        formatter: (g: any) => {
+          const productGroupName = g.value || 'Không xác định';
+          return `Nhóm: <strong>${productGroupName}</strong> <span style="color:#ed502f;">(${g.count})</span>`;
+        },
+        aggregateCollapsed: false,
+        lazyTotalsCalculation: true,
+        collapsed: false,
+      },
+      {
+        getter: 'ProductGroupType',
+        comparer: () => 0,
+        formatter: (g: any) => {
+          const productGroupType = g.value || '<span class="text-danger">Không có</span>';
+          return `Nhóm vật tư: <strong>${productGroupType}</strong> <span style="color:#2b4387;">(${g.count})</span>`;
+        },
+        aggregateCollapsed: false,
+        lazyTotalsCalculation: true,
+        collapsed: false,
+      },
+    ]);
+
+    angularGrid.dataView.refresh();
+    angularGrid.slickGrid?.render();
+  }
+
+  resizeGrids(): void {
+    try {
+      if (this.angularGridProductGroup?.resizerService) {
+        this.angularGridProductGroup.resizerService.resizeGrid();
+      }
+    } catch (e) {
+      // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
+    }
+    try {
+      if (this.angularGridInventory?.resizerService) {
+        this.angularGridInventory.resizerService.resizeGrid();
+      }
+    } catch (e) {
+      // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
+    }
+  }
+
+  angularGridReadyProductGroup(angularGrid: AngularGridInstance) {
+    this.angularGridProductGroup = angularGrid;
+    setTimeout(() => {
+      this.resizeGrids();
+    }, 100);
+  }
+
+  angularGridReadyInventory(angularGrid: AngularGridInstance) {
+    this.angularGridInventory = angularGrid;
+    this.applyGrouping();
+    setTimeout(() => {
+      this.resizeGrids();
+      // Update footer row
+      this.updateMasterFooterRow();
+    }, 100);
+
+    // Subscribe to dataView.onRowCountChanged để update footer khi data thay đổi (bao gồm filter)
+    // Không dùng setTimeout và onRendered để tránh re-render gây mất focus khỏi ô filter
+    if (angularGrid.dataView) {
+      angularGrid.dataView.onRowCountChanged.subscribe(() => {
+        this.updateInventoryFooterRow();
+
+      });
+    }
+  }
+
+
+  //#endregion
+
+  //#region Row Selection Events
+
+  // Wrapper methods to handle Angular SlickGrid events
+  handleRowSelectionChangedProductGroup(event: any): void {
+    const customEvent = event as CustomEvent;
+    if (customEvent?.detail) {
+      this.onRowSelectionChangedProductGroup(
+        customEvent.detail.eventData,
+        customEvent.detail.args
+      );
+    }
+  }
+
+  handleRowDoubleClickProductGroup(event: any): void {
+    const customEvent = event as CustomEvent;
+    if (customEvent?.detail) {
+      this.onRowDoubleClickProductGroup(
+        customEvent.detail.eventData,
+        customEvent.detail.args
+      );
+    }
+  }
+
+  onRowSelectionChangedProductGroup(eventData: any, args: OnSelectedRowsChangedEventArgs) {
+    if (!this.angularGridProductGroup) return;
+
+    const selectedIndexes = this.angularGridProductGroup.slickGrid.getSelectedRows();
+    if (!selectedIndexes || selectedIndexes.length === 0) {
+      this.productGroupID = 0;
+      return;
+    }
+
+    const selectedRow = this.angularGridProductGroup.dataView.getItem(selectedIndexes[0]);
+    if (selectedRow) {
+      this.productGroupID = selectedRow.ID || 0;
+      this.getInventory();
+    }
+  }
+
+  onRowDoubleClickProductGroup(event: any, args: any) {
+    const selectedRow = args.dataContext;
+    if (selectedRow) {
+      this.productGroupID = selectedRow.ID || 0;
+      this.zone.run(() => {
+        this.openModalProductGroup();
+      });
+    }
+  }
+
+  //#endregion
+
+  //#region Data Loading
+
+  //#region old
+  // getProductGroup() {
+  //     this.isLoadingProductGroup = true;
+  //     const sub = this.productsaleSV
+  //         .getdataProductGroup(this.warehouseCode, true)
+  //         .subscribe({
+  //             next: (res) => {
+
+  //                 this.isLoadingProductGroup = false;
+  //                 if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+  //                     this.dataProductGroup = res.data;
+
+  //                     // Map data với id unique cho SlickGrid
+  //                     let mappedData = this.dataProductGroup.map((item: any, index: number) => ({
+  //                         ...item,
+  //                         id: item.ID,
+  //                         parentId: item.ParentID && item.ParentID !== 0 ? item.ParentID : null
+  //                     }));
+
+  //                     if (this.isWareHouseDP) {
+  //                         mappedData = mappedData.filter(
+  //                             (item: any) => item.ID === 4 || item.ID === 13
+  //                                 || item.parentId === 4 || item.parentId === 13
+  //                                 || item.ProductGroupID === 'D');
+  //                     }
+
+  //                     this.datasetProductGroup = mappedData;
+
+  //                     // Update filter collections
+  //                     this.updateFilterCollections('productGroup');
+
+  //                     this.cdr.detectChanges();
+
+  //                     // Resize grids after data is loaded
+  //                     setTimeout(() => {
+  //                         this.resizeGrids();
+
+  //                     }, 50);
+
+  //                     // Auto select first row if not checkedAll, hoặc load inventory nếu checkedAll = true
+  //                     setTimeout(() => {
+  //                         if (this.searchParam.checkedAll) {
+  //                             // Nếu checkedAll = true, load inventory ngay lập tức
+  //                             this.getInventory();
+  //                         } else if (this.angularGridProductGroup) {
+  //                             // Nếu checkedAll = false, chọn row đầu tiên
+  //                             const firstItem = this.angularGridProductGroup.dataView.getItem(0);
+  //                             if (firstItem) {
+  //                                 this.angularGridProductGroup.slickGrid.setSelectedRows([0]);
+  //                                 this.productGroupID = firstItem.ID || 0;
+  //                                 this.getInventory();
+  //                                 this.getDataProductGroupWareHouse(this.productGroupID);
+  //                             }
+  //                         }
+
+  //                         this.applyGrouping();
+  //                         this.angularGridInventory?.slickGrid?.invalidate();
+  //                         this.angularGridInventory?.slickGrid?.render();
+  //                     }, 100);
+
+
+  //                 }
+  //             },
+  //             error: (err) => {
+  //                 this.isLoadingProductGroup = false;
+  //                 console.error('Lỗi khi lấy nhóm vật tư:', err);
+  //             },
+  //         });
+  //     this.subscriptions.push(sub);
+  // }
+  //#endregion
+  //#region New
+  getProductGroup() {
+    this.isLoadingProductGroup = true;
+    const sub = this.productsaleSV
+      .getdataProductGroupNew(this.warehouseId, false, true)
+      .subscribe({
+        next: (res) => {
+
+          this.isLoadingProductGroup = false;
+
+          this.dataProductGroup = res.data.data1;
+
+          // Map data với id unique cho SlickGrid
+          let mappedData = this.dataProductGroup.map((item: any, index: number) => ({
+            ...item,
+            id: item.ID,
+            parentId: item.ParentID && item.ParentID !== 0 ? item.ParentID : null
+          }));
+
+          // if (this.isWareHouseDP) {
+          //     mappedData = mappedData.filter(
+          //         (item: any) => item.ID === 4 || item.ID === 13
+          //             || item.parentId === 4 || item.parentId === 13
+          //             || item.ProductGroupID === 'D');
+          // }
+
+          this.datasetProductGroup = mappedData;
+
+          // Update filter collections
+          this.updateFilterCollections('productGroup');
+
+          this.cdr.detectChanges();
+
+          // Resize grids after data is loaded
+          setTimeout(() => {
+            this.resizeGrids();
+
+          }, 50);
+
+          // Auto select first row if not checkedAll, hoặc load inventory nếu checkedAll = true
+          setTimeout(() => {
+            if (this.searchParam.checkedAll) {
+              // Nếu checkedAll = true, load inventory ngay lập tức
+              this.getInventory();
+
+              if (this.angularGridProductGroup) {
+                this.angularGridProductGroup.slickGrid.setSelectedRows([0]);
+              }
+
+            } else if (this.angularGridProductGroup) {
+              // Nếu checkedAll = false, chọn row đầu tiên
+              const firstItem = this.angularGridProductGroup.dataView.getItem(0);
+              if (firstItem) {
+                this.angularGridProductGroup.slickGrid.setSelectedRows([0]);
+                this.productGroupID = firstItem.ID || 0;
+                this.getInventory();
+              }
+            }
+
+            this.applyGrouping();
+            this.angularGridInventory?.slickGrid?.invalidate();
+            this.angularGridInventory?.slickGrid?.render();
+          }, 100);
+
+
+
+        },
+        error: (err) => {
+          this.isLoadingProductGroup = false;
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
+        },
+      });
+    this.subscriptions.push(sub);
+  }
+  //#endregion
+
+  getInventory() {
+    this.isLoadingInventory = true;
+    const sub = this.inventoryService
+      .getInventoryAll(
+        this.searchParam.checkedAll,
+        this.searchParam.Find,
+        this.warehouseCode,
+        this.searchParam.checkedStock,
+        this.productGroupID
+      )
+      .subscribe({
+        next: (res) => {
+          this.isLoadingInventory = false;
+          if (res?.data) {
+            this.dataInventory = res.data;
+            // Map data với id unique cho SlickGrid
+            let mappedData = this.dataInventory.map((item: any, index: number) => ({
+              ...item,
+              id: item.ID,
+            }));
+
+            // if (this.isWareHouseDP) {
+            //     mappedData = mappedData.filter(
+            //         (item: any) => item.ProductGroupID === 4 || item.ProductGroupID === 13 ||
+            //             item.ProductGroupID === 83 || item.ProductGroupID === 81 ||
+            //             item.ParentID === 4 || item.ParentID === 13 || item.ParentID === 83);
+            // }
+
+            this.datasetInventory = mappedData;
+
+            // Update filter collections
+            this.updateFilterCollections('inventory');
+
+            this.cdr.detectChanges();
+
+            setTimeout(() => {
+              this.resizeGrids();
+              // Update footer row sau khi dữ liệu được load
+              this.updateMasterFooterRow();
+              this.applyGrouping();
+            }, 100);
+          }
+
+        },
+        error: (err) => {
+          this.isLoadingInventory = false;
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            { nzStyle: { whiteSpace: 'pre-line' } }
+          );
+        },
+      });
+    this.subscriptions.push(sub);
+  }
+
+  //#endregion
+
+  //#region Filter Collections Update
+
+  private updateFilterCollections(gridType: 'productGroup' | 'inventory'): void {
+    if (gridType === 'productGroup' && this.angularGridProductGroup && this.angularGridProductGroup.slickGrid) {
+      this.updateGridFilterCollections(
+        this.angularGridProductGroup,
+        this.datasetProductGroup
+      );
+    } else if (gridType === 'inventory' && this.angularGridInventory && this.angularGridInventory.slickGrid) {
+      this.updateGridFilterCollections(
+        this.angularGridInventory,
+        this.datasetInventory
+      );
+    }
+  }
+
+  private updateGridFilterCollections(angularGrid: AngularGridInstance, dataset: any[]): void {
+    const columns = angularGrid.slickGrid.getColumns();
+
+    // Helper function to get unique values for a field
+    const getUniqueValues = (field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      dataset.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && !map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    // Update collections for each filterable column
+    columns.forEach((column: any) => {
+      if (column.filter && column.filter.model === Filters['multipleSelect']) {
+        const field = column.field;
+        if (field && field !== 'IsFix') {
+          const collection = getUniqueValues(field);
+          if (column.filter) {
+            column.filter.collection = collection;
+          }
+        }
+      }
+    });
+
+    // Update grid columns
+    angularGrid.slickGrid.setColumns(columns);
+    angularGrid.slickGrid.render();
+  }
+
+  /**
+   * Update footer row cho inventory grid
+   * Các cột: ProductName:count, và sum cho các cột số
+   * Sử dụng textContent thay vì innerHTML để tránh re-render gây mất focus
+   */
+  updateInventoryFooterRow(): void {
+    // Kiểm tra tất cả các điều kiện cần thiết trước khi tiếp tục
+    if (!this.angularGridInventory) return;
+    if (!this.angularGridInventory.slickGrid) return;
+
+    // Kiểm tra thêm để đảm bảo grid vẫn tồn tại (khi mở nhiều instance)
+    try {
+      const testColumns = this.angularGridInventory.slickGrid.getColumns();
+      if (!testColumns || testColumns.length === 0) return;
+    } catch (e) {
+      // Grid có thể đã bị destroy
+      return;
+    }
+
+    // Lấy dữ liệu đã lọc trên view
+    const items =
+      (this.angularGridInventory.dataView?.getFilteredItems?.() as any[]) ||
+      this.datasetInventory ||
+      [];
+
+    // Đếm số lượng sản phẩm (ProductName)
+    const productCount = items.length;
+
+    // Các cột cần tính tổng
+    const sumFields = [
+      'TotalQuantityFirst',    // Tồn đầu kỳ
+      'Import',                // Nhập
+      'Export',                // Xuất
+      'TotalQuantityLastActual', // SL tồn thực tế
+      'QuantityRequestExport', // SL yêu cầu xuất
+      'TotalQuantityKeep',     // SL giữ
+      'TotalQuantityLast',     // Tồn CK(được sử dụng)
+      'QuantityUse',           // Tồn sử dụng
+      'MinQuantity',           // Tồn tối thiểu Y/c
+      'MinQuantityActual',     // Tồn tối thiểu thực tế
+      'TotalQuantityReturnNCC', // SL phải trả NCC
+      'ImportPT',              // Tổng mượn
+      'ExportPM',              // Tổng trả
+      'StillBorrowed',         // Đang mượn
+    ];
+
+    // Tính tổng cho từng cột
+    const sums: { [key: string]: number } = {};
+    sumFields.forEach(field => {
+      sums[field] = items.reduce(
+        (sum, item) => sum + (Number(item?.[field]) || 0),
+        0
+      );
+    });
+
+    try {
+      // Update footer trực tiếp bằng textContent thay vì innerHTML để tránh re-render
+      const productNameFooter = this.angularGridInventory.slickGrid.getFooterRowColumn('ProductName' + this.warehouseCode);
+      if (productNameFooter) {
+        productNameFooter.textContent = `${productCount}`;
+      }
+
+      // Update sum cho các cột số
+      sumFields.forEach(field => {
+        const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn(field + this.warehouseCode);
+        if (footerCell) {
+          const formattedValue = new Intl.NumberFormat('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          }).format(sums[field] || 0);
+          footerCell.textContent = formattedValue;
+        }
+      });
+    } catch (e) {
+      // Ignore errors khi grid đã bị destroy hoặc không sẵn sàng
+      console.warn('updateInventoryFooterRow: Grid may have been destroyed', e);
+    }
+  }
+
+  //#endregion
+
+
+  //#region Search and Filter Functions
+
+  getAllProductSale() {
+    this.getInventory();
+
+    // Enable/disable product group selection based on checkedAll
+    if (this.angularGridProductGroup) {
+      if (this.searchParam.checkedAll) {
+        // Deselect all rows when checkedAll is true
+        this.angularGridProductGroup.slickGrid.setSelectedRows([]);
+        this.productGroupID = 0;
+      } else {
+        // Auto select first row when checkedAll is false
+        setTimeout(() => {
+          const firstItem = this.angularGridProductGroup.dataView.getItem(0);
+          if (firstItem) {
+            this.angularGridProductGroup.slickGrid.setSelectedRows([0]);
+            this.productGroupID = firstItem.ID || 0;
+          }
+        }, 100);
+      }
+    }
+  }
+
+  getdataFind() {
+    this.getInventory();
+  }
+
+  //#endregion
+
+  //#region Modal Functions
+
+  openModalProductGroup() {
+    if (this.productGroupID === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn 1 nhóm sản phẩm để sửa!');
+      return;
+    }
+
+    // Reset lại dữ liệu trước khi gán
+    this.newProductGroup = {
+      ProductGroupID: '',
+      ProductGroupName: '',
+      EmployeeID: 0,
+      IsVisible: false,
+      WareHouseID: 0,
+      ParentID: 0
+    };
+
+    const sub = this.productsaleSV
+      .getdataProductGroupWareHouse(this.productGroupID, 1)
+      .subscribe({
+        next: (res) => {
+          if (res?.data && res.data.length > 0) {
+            this.newProductGroup.EmployeeID = res.data[0].EmployeeID ?? 0;
+            this.newProductGroup.ParentID = res.data[0].ParentID ?? 0;
+          }
+          this.newProductGroup.WareHouseID = 1;
+          const modalRef = this.modalService.open(ProductGroupDetailComponent, {
+            centered: true,
+            size: 'lg',
+            backdrop: 'static',
+            keyboard: false,
+          });
+
+          modalRef.componentInstance.newProductGroup = this.newProductGroup;
+          modalRef.componentInstance.isCheckmode = true;
+          modalRef.componentInstance.id = this.productGroupID;
+          modalRef.componentInstance.isFromParent = true;
+
+          modalRef.result.catch((result) => {
+            if (result == true) {
+              // reload lại dữ liệu
+              this.getProductGroup();
+              this.productGroupID = 0;
+            }
+          });
+        },
+      });
+    this.subscriptions.push(sub);
+  }
+
+  openModalInventoryBorrowNCC() {
+    window.open(
+      '/inventory-borrow-ncc',
+      '_blank',
+      'width=1200,height=800,scrollbars=yes,resizable=yes'
+    );
+  }
+
+  //#endregion
+
+  //#region Borrow Request
+
+  requestBorrow() {
+    try {
+      const selectedData = this.getSelectedInventoryRows();
+      if (!selectedData || selectedData.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn ít nhất 1 sản phẩm để mượn!'
+        );
+        return;
+      }
+
+      // Check if any selected product has TotalQuantityLast <= 0
+      const invalidProducts = selectedData.filter((row: any) => {
+        const totalQuantityLast = row.TotalQuantityLast || 0;
+        return totalQuantityLast <= 0;
+      });
+
+      // Filter valid products (TotalQuantityLast > 0)
+      const validProducts = selectedData.filter((row: any) => {
+        const totalQuantityLast = row.TotalQuantityLast || 0;
+        return totalQuantityLast > 0;
+      });
+
+      // Show warning for invalid products
+      if (invalidProducts.length > 0) {
+        const productNames = invalidProducts
+          .map((p: any) => p.ProductCode || p.ProductName)
+          .join(', ');
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Các sản phẩm sau có tồn cuối kỳ <= 0 và sẽ không được mượn:\n${productNames}`
+        );
+      }
+
+      // If no valid products remaining, stop
+      if (validProducts.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không có sản phẩm nào hợp lệ để mượn!'
+        );
+        return;
+      }
+
+      // Group valid selected rows by warehouse and product group
+      const groupedData = new Map<string, any[]>();
+
+      validProducts.forEach((row: any) => {
+        const warehouseID = row.WarehouseID || 0;
+        const khoTypeID = row.ProductGroupID || 0;
+        const key = `${warehouseID}_${khoTypeID}`;
+
+        if (!groupedData.has(key)) {
+          groupedData.set(key, []);
+        }
+        groupedData.get(key)!.push(row);
+      });
+
+      if (groupedData.size > 1) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Bạn chọn sản phẩm từ ${groupedData.size} kho.\nPhần mềm sẽ tự động tạo ${groupedData.size} phiếu mượn`
+        );
+      }
+
+      // Open bill-export-detail modal for each group
+      groupedData.forEach((groupRows: any[], key: string) => {
+        const [warehouseID, khoTypeID] = key.split('_').map((x) => parseInt(x));
+
+        // Prepare data table with selected rows
+        const dtDetail = this.prepareDetailData(groupRows);
+
+        // Prepare lstTonCk
+        const lstTonCk = this.prepareTonCkData(groupRows);
+
+        // Open modal
+        this.openBillExportDetailModal(dtDetail, lstTonCk, warehouseID, khoTypeID);
+      });
+    } catch (error: any) {
+      this.notification.create(
+        NOTIFICATION_TYPE_MAP[error?.status] || 'error',
+        NOTIFICATION_TITLE_MAP[error?.status as RESPONSE_STATUS] || 'Lỗi',
+        error?.error?.message || `${error?.error}\n${error?.message}`,
+        { nzStyle: { whiteSpace: 'pre-line' } }
+      );
+    }
+  }
+
+  private getSelectedInventoryRows(): any[] {
+    if (!this.angularGridInventory) return [];
+    const selectedIndexes = this.angularGridInventory.slickGrid.getSelectedRows();
+    if (!selectedIndexes || selectedIndexes.length === 0) return [];
+    return selectedIndexes
+      .map((index: number) => this.angularGridInventory.dataView.getItem(index))
+      .filter((item: any) => item);
+  }
+
+  private prepareDetailData(selectedRows: any[]): any[] {
+    return selectedRows.map((row: any, index: number) => ({
+      STT: index + 1,
+      ProductCode: row.ProductCode,
+      ProductName: row.ProductName,
+      ProductNewCode: row.ProductNewCode,
+      ProductID: row.ProductSaleID || row.ProductID,
+      ProductSaleID: row.ProductSaleID,
+      Qty: 0,
+      Unit: row.Unit,
+      ProductGroupID: row.KhoTypeID,
+      ProductGroupName: row.ProductGroupName,
+      WarehouseID: row.WarehouseID,
+      WarehouseCode: row.WarehouseCode,
+      TotalQuantityLast: row.TotalQuantityLast,
+      TotalInventory: row.TotalQuantityLast,
+      Maker: row.Maker,
+      NameNCC: row.NameNCC,
+      AddressBox: row.AddressBox,
+    }));
+  }
+
+  private prepareTonCkData(selectedRows: any[]): any[] {
+    return selectedRows.map((row: any) => ({
+      ProductSaleID: row.ProductSaleID || row.ProductID,
+      TotalQuantityLast: row.TotalQuantityLast,
+    }));
+  }
+
+  private openBillExportDetailModal(
+    dtDetail: any[],
+    lstTonCk: any[],
+    warehouseID: number,
+    khoTypeID: number
+  ) {
+    const modalRef = this.modalService.open(BillExportDetailNewComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      fullscreen: true,
+    });
+
+    modalRef.componentInstance.isBorrow = true;
+    modalRef.componentInstance.selectedList = dtDetail;
+    modalRef.componentInstance.lstTonCk = lstTonCk;
+    modalRef.componentInstance.KhoTypeID = khoTypeID;
+    modalRef.componentInstance.wareHouseCode = this.warehouseCode || 'HN';
+
+    modalRef.componentInstance.newBillExport = {
+      ...modalRef.componentInstance.newBillExport,
+      WarehouseID: warehouseID,
+      KhoTypeID: khoTypeID,
+    };
+
+    modalRef.result
+      .then((result) => {
+        if (result === true) {
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Phiếu mượn đã được tạo thành công!'
+          );
+          this.getAllProductSale();
+        }
+      })
+      .catch((error) => { });
+  }
+
+  //#endregion
+
+  //#region Export Excel
+
+  exportExcel() {
+    const today = new Date();
+    const formattedDatee = `${today.getDate().toString().padStart(2, '0')}${(
+      today.getMonth() + 1
+    )
+      .toString()
+      .padStart(2, '0')}${today.getFullYear().toString().slice(-2)}`;
+
+    if (!this.angularGridInventory || !this.datasetInventory || this.datasetInventory.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu xuất excel!'
+      );
+      return;
+    }
+
+    try {
+      // Get filtered data from grid, exclude grouping rows
+      const rawItems = this.angularGridInventory.dataView?.getFilteredItems?.() || this.datasetInventory;
+      const items = rawItems.filter((item: any) => !item.__group && !item.__groupTotals);
+
+      // Create workbook
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Tồn Kho');
+
+      // Define columns with headers
+      const columns = [
+        { header: 'STT', key: 'stt', width: 8 },
+        { header: 'Tên nhóm', key: 'ProductGroupName', width: 20 },
+        { header: 'Tích xanh', key: 'IsFix', width: 10 },
+        { header: 'Mã sản phẩm', key: 'ProductCode', width: 15 },
+        { header: 'Tên sản phẩm', key: 'ProductName', width: 30 },
+        { header: 'Mã nội bộ', key: 'ProductNewCode', width: 15 },
+        { header: 'NCC', key: 'NameNCC', width: 20 },
+        { header: 'Người nhập', key: 'Deliver', width: 15 },
+        { header: 'Hãng', key: 'Maker', width: 15 },
+        { header: 'ĐVT', key: 'Unit', width: 10 },
+        { header: 'Tồn đầu kỳ', key: 'TotalQuantityFirst', width: 12 },
+        { header: 'Nhập', key: 'Import', width: 10 },
+        { header: 'Xuất', key: 'Export', width: 10 },
+        { header: 'SL tồn thực tế', key: 'TotalQuantityLastActual', width: 15 },
+        { header: 'SL yêu cầu xuất', key: 'QuantityRequestExport', width: 15 },
+        { header: 'SL giữ', key: 'TotalQuantityKeep', width: 10 },
+        { header: 'Tồn CK (được sử dụng)', key: 'TotalQuantityLast', width: 18 },
+        { header: 'Tồn sử dụng', key: 'QuantityUse', width: 12 },
+        { header: 'Tồn tối thiểu Y/c', key: 'MinQuantity', width: 15 },
+        { header: 'Tồn tối thiểu thực tế', key: 'MinQuantityActual', width: 18 },
+        { header: 'SL phải trả NCC', key: 'TotalQuantityReturnNCC', width: 15 },
+        { header: 'Tổng mượn', key: 'ImportPT', width: 12 },
+        { header: 'Tổng trả', key: 'ExportPM', width: 10 },
+        { header: 'Đang mượn', key: 'StillBorrowed', width: 12 },
+        { header: 'Vị trí', key: 'AddressBox', width: 20 },
+        { header: 'Chi tiết nhập', key: 'Detail', width: 25 },
+        { header: 'Ghi chú', key: 'Note', width: 25 },
+      ];
+
+      worksheet.columns = columns;
+
+      // Style header row
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true, size: 11 };
+      headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFD9E1F2' }
+      };
+      headerRow.height = 25;
+
+      // Add border to header
+      headerRow.eachCell((cell: any) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+
+      // Initialize sum variables for footer
+      const sums = {
+        TotalQuantityFirst: 0,
+        Import: 0,
+        Export: 0,
+        TotalQuantityLastActual: 0,
+        QuantityRequestExport: 0,
+        TotalQuantityKeep: 0,
+        TotalQuantityLast: 0,
+      };
+
+      // Add data rows
+      items.forEach((item: any, index: number) => {
+        const row = worksheet.addRow({
+          stt: index + 1,
+          ProductGroupName: item.ProductGroupName || '',
+          IsFix: item.IsFix ? 'Có' : 'Không',
+          ProductCode: item.ProductCode || '',
+          ProductName: item.ProductName || '',
+          ProductNewCode: item.ProductNewCode || '',
+          NameNCC: item.NameNCC || '',
+          Deliver: item.Deliver || '',
+          Maker: item.Maker || '',
+          Unit: item.Unit || '',
+          TotalQuantityFirst: item.TotalQuantityFirst || 0,
+          Import: item.Import || 0,
+          Export: item.Export || 0,
+          TotalQuantityLastActual: item.TotalQuantityLastActual || 0,
+          QuantityRequestExport: item.QuantityRequestExport || 0,
+          TotalQuantityKeep: item.TotalQuantityKeep || 0,
+          TotalQuantityLast: item.TotalQuantityLast || 0,
+          QuantityUse: item.QuantityUse || 0,
+          MinQuantity: item.MinQuantity || 0,
+          MinQuantityActual: item.MinQuantityActual || 0,
+          TotalQuantityReturnNCC: item.TotalQuantityReturnNCC || 0,
+          ImportPT: item.ImportPT || 0,
+          ExportPM: item.ExportPM || 0,
+          StillBorrowed: item.StillBorrowed || 0,
+          AddressBox: item.AddressBox || '',
+          Detail: item.Detail || '',
+          Note: item.Note || '',
+        });
+
+        // Add borders to data cells
+        row.eachCell((cell: any) => {
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+
+        // Center align specific columns
+        row.getCell('stt').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('IsFix').alignment = { horizontal: 'center', vertical: 'middle' };
+        row.getCell('Unit').alignment = { horizontal: 'center', vertical: 'middle' };
+
+        // Number columns alignment
+        const numberCells = ['TotalQuantityFirst', 'Import', 'Export', 'TotalQuantityLastActual',
+          'QuantityRequestExport', 'TotalQuantityKeep', 'TotalQuantityLast',
+          'QuantityUse', 'MinQuantity', 'MinQuantityActual', 'TotalQuantityReturnNCC',
+          'ImportPT', 'ExportPM', 'StillBorrowed'];
+        numberCells.forEach(key => {
+          const cell = row.getCell(key);
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          const v = cell.value as number;
+          cell.numFmt = (typeof v === 'number' && !Number.isInteger(v)) ? '#,##0.##' : '#,##0';
+        });
+
+        // Accumulate sums for footer
+        sums.TotalQuantityFirst += item.TotalQuantityFirst || 0;
+        sums.Import += item.Import || 0;
+        sums.Export += item.Export || 0;
+        sums.TotalQuantityLastActual += item.TotalQuantityLastActual || 0;
+        sums.QuantityRequestExport += item.QuantityRequestExport || 0;
+        sums.TotalQuantityKeep += item.TotalQuantityKeep || 0;
+        sums.TotalQuantityLast += item.TotalQuantityLast || 0;
+      });
+
+      // Add footer row with totals
+      const footerRow = worksheet.addRow({
+        stt: '',
+        ProductGroupName: '',
+        IsFix: '',
+        ProductCode: '',
+        ProductName: 'TỔNG',
+        ProductNewCode: '',
+        NameNCC: '',
+        Deliver: '',
+        Maker: '',
+        Unit: '',
+        TotalQuantityFirst: sums.TotalQuantityFirst,
+        Import: sums.Import,
+        Export: sums.Export,
+        TotalQuantityLastActual: sums.TotalQuantityLastActual,
+        QuantityRequestExport: sums.QuantityRequestExport,
+        TotalQuantityKeep: sums.TotalQuantityKeep,
+        TotalQuantityLast: sums.TotalQuantityLast,
+        QuantityUse: '',
+        MinQuantity: '',
+        MinQuantityActual: '',
+        TotalQuantityReturnNCC: '',
+        ImportPT: '',
+        ExportPM: '',
+        StillBorrowed: '',
+        AddressBox: '',
+        Detail: '',
+        Note: '',
+      });
+
+      // Style footer row
+      footerRow.font = { bold: true, size: 11 };
+      footerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFFD966' }
+      };
+
+      const sumKeys = new Set(Object.keys(sums));
+      // Add borders and alignment to footer
+      footerRow.eachCell((cell: any, colNumber: any) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+
+        const colDef = columns[colNumber - 1];
+        if (colDef && sumKeys.has(colDef.key)) {
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          const v = cell.value as number;
+          cell.numFmt = (typeof v === 'number' && !Number.isInteger(v)) ? '#,##0.##' : '#,##0';
+        } else {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+      });
+
+      // Save workbook
+      workbook.xlsx.writeBuffer().then((buffer: any) => {
+        const blob = new Blob([buffer], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `DanhSachTonKho_${this.warehouseCode}_${formattedDatee}.xlsx`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
+          'Xuất file Excel thành công!',
+          { nzDuration: 1000 }
+        );
+      });
+    } catch (error: any) {
+      this.notification.create(
+        NOTIFICATION_TYPE_MAP[error?.status] || 'error',
+        NOTIFICATION_TITLE_MAP[error?.status as RESPONSE_STATUS] || 'Lỗi',
+        error?.error?.message || `${error?.error}\n${error?.message}`,
+        { nzStyle: { whiteSpace: 'pre-line' } }
+      );
+    }
+  }
+
+  //#endregion
+
+  //#region Context Menu
+
+  openChiTietSanPhamSale(productData: any) {
+    const productCode = productData.ProductCode || '';
+
+    this.tabService.openTabComp({
+      comp: ChiTietSanPhamSaleNewComponent,
+      title: `Chi tiết SP - ${productCode}`,
+      key: `chi-tiet-san-pham-sale-${productData.ProductSaleID || 0}`,
+      data: {
+        code: productCode,
+        suplier: productData.Supplier || '',
+        productName: productData.ProductName || '',
+        numberDauKy: productData.NumberInStoreDauky?.toString() || '0',
+        numberCuoiKy: productData.NumberInStoreCuoiKy?.toString() || '0',
+        import: productData.Import?.toString() || '0',
+        export: productData.Export?.toString() || '0',
+        productSaleID: productData.ProductSaleID || 0,
+        wareHouseCode: this.warehouseCode || 'HN',
+      }
+    });
+  }
+
+  //#endregion
+
+  //#region Lt.anh mapping cột theo warehouse
+  buildPGWarehouseColumns(warehouseCode: string): Column[] {
+    // console.log('buildPGWarehouseColumns warehouseCode:', warehouseCode);
+    let columns: Column[] = [
+      {
+        id: 'IsFix' + warehouseCode,
+        field: 'IsFix',
+        name: 'Tích xanh',
+        width: 80,
+        cssClass: 'text-center',
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.iconBoolean,
+        params: { cssClass: 'mdi mdi-check' },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [
+            { value: true, label: 'Có' },
+            { value: false, label: 'Không' },
+          ],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'WarehouseName' + warehouseCode,
+        field: 'WarehouseName',
+        name: 'Tên kho',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'ProductCode' + warehouseCode,
+        field: 'ProductCode',
+        name: 'Mã sản phẩm',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        formatter: this.wrapTextFormatter,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
+        exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
+      },
+      {
+        id: 'ProductName' + warehouseCode,
+        field: 'ProductName',
+        name: 'Tên sản phẩm',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        formatter: this.wrapTextFormatter,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        filter: {
+          model: Filters['compoundInput'],
+        },
+        exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
+      },
+      {
+        id: 'ProductNewCode' + warehouseCode,
+        field: 'ProductNewCode',
+        name: 'Mã nội bộ',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'NameNCC' + warehouseCode,
+        field: 'NameNCC',
+        name: 'NCC',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        formatter: this.wrapTextFormatter,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        filter: {
+          model: Filters['compoundInput'],
+        },
+        exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
+      },
+      {
+        id: 'Deliver' + warehouseCode,
+        field: 'Deliver',
+        name: 'Người nhập',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'Maker' + warehouseCode,
+        field: 'Maker',
+        name: 'Hãng',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'Unit' + warehouseCode,
+        field: 'Unit',
+        name: 'ĐVT',
+        width: 80,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: { filter: true } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'TotalQuantityFirst' + warehouseCode,
+        field: 'TotalQuantityFirst',
+        name: 'Tồn đầu kỳ',
+        cssClass: 'text-end',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'Import' + warehouseCode,
+        field: 'Import',
+        name: 'Nhập',
+        cssClass: 'text-end',
+        width: 80,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'Export' + warehouseCode,
+        field: 'Export',
+        name: 'Xuất',
+        cssClass: 'text-end',
+        width: 80,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'TotalQuantityLastActual' + warehouseCode,
+        field: 'TotalQuantityLastActual',
+        name: 'SL tồn thực tế',
+        cssClass: 'text-end',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'QuantityRequestExport' + warehouseCode,
+        field: 'QuantityRequestExport',
+        name: 'SL yêu cầu xuất',
+        cssClass: 'text-end',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'TotalQuantityKeep' + warehouseCode,
+        field: 'TotalQuantityKeep',
+        name: 'SL giữ',
+        cssClass: 'text-end',
+        width: 80,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'TotalQuantityLast' + warehouseCode,
+        field: 'TotalQuantityLast',
+        name: 'Tồn CK(được sử dụng)',
+        cssClass: 'text-end',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'QuantityUse' + warehouseCode,
+        field: 'QuantityUse',
+        name: 'Tồn sử dụng',
+        cssClass: 'text-end',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'MinQuantity' + warehouseCode,
+        field: 'MinQuantity',
+        name: 'Tồn tối thiểu Y/c',
+        cssClass: 'text-end',
+        width: 130,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'MinQuantityActual' + warehouseCode,
+        field: 'MinQuantityActual',
+        name: 'Tồn tối thiểu thực tế',
+        cssClass: 'text-end',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'TotalQuantityReturnNCC' + warehouseCode,
+        field: 'TotalQuantityReturnNCC',
+        name: 'SL phải trả NCC',
+        cssClass: 'text-end',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'ImportPT' + warehouseCode,
+        field: 'ImportPT',
+        name: 'Tổng mượn',
+        cssClass: 'text-end',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'ExportPM' + warehouseCode,
+        field: 'ExportPM',
+        name: 'Tổng trả',
+        cssClass: 'text-end',
+        width: 90,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInputNumber'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'StillBorrowed' + warehouseCode,
+        field: 'StillBorrowed',
+        name: 'Đang mượn',
+        cssClass: 'text-end',
+        width: 100,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['compoundInput'],
+        },
+        type: 'number',
+      },
+      {
+        id: 'AddressBox' + warehouseCode,
+        field: 'AddressBox',
+        name: 'Vị trí',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
+        exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
+      },
+      {
+        id: 'Detail' + warehouseCode,
+        field: 'Detail',
+        name: 'Chi tiết nhập',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        formatter: this.wrapTextFormatter,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        filter: {
+          model: Filters['compoundInput'],
+        },
+        exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
+      },
+      {
+        id: 'Note' + warehouseCode,
+        field: 'Note',
+        name: 'Ghi chú',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        formatter: this.wrapTextFormatter,
+        customTooltip: {
+          useRegularTooltip: true,
+        },
+        filter: {
+          model: Filters['compoundInput'],
+        },
+        exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
+      },
+    ];
+    if (this.isWareHouseDP == false) {
+      columns.unshift(
+        {
+          id: 'ProductGroupName' + warehouseCode,
+          field: 'ProductGroupName',
+          name: 'Tên nhóm',
+          width: 120,
+          sortable: true,
+          filterable: true,
+          filter: {
+            model: Filters['compoundInput'],
+          },
+          exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
+        },
+      );
+    }
+    return columns;
+  }
+
+  //#endregion
+
+
+  cleanXml(value: any): string {
+    if (value === null || value === undefined) return '';
+
+    return String(value)
+      // remove invalid XML chars
+      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
+      // remove nbsp
+      .replace(/\u00A0/g, ' ')
+      // remove emoji (optional nhưng nên)
+      .replace(/[\u{1F300}-\u{1FAFF}]/gu, '');
+  }
+
+  generateUUIDv4(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  //#region Yêu cầu báo giá
+  openPriceRequest() {
+    const modalRef = this.modalService.open(
+      ProjectPartlistPriceRequestNewComponent,
+      {
+        centered: true,
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+        windowClass: 'full-screen-modal',
+      }
+    );
+
+    modalRef.componentInstance.projectPartlistPriceRequestTypeID = 7;
+
+    modalRef.result.then(
+      (result) => {
+        console.log('Modal closed with result:', result);
+      },
+      (reason) => {
+        console.log('Modal dismissed:', reason);
+      }
+    );
+  }
+  //#endregion
+
+  //#region Danh sách yêu cầu báo giá
+  openPurchaseRequest(): void {
+    const modalRef = this.modalService.open(ProjectPartListPurchaseRequestSlickGridComponent, {
+      centered: true,
+      windowClass: 'full-screen-modal',
+      backdrop: 'static',
+    });
+    modalRef.componentInstance.isFromConsumables = true;
+  }
+  //#endregion
+
+  //#region Yêu cầu báo giá
+  projectPartlistPriceRequestTypeID: number = 7;
+  openAddPurchaseRequest(): void {
+
+    const angularGrid = this.angularGridInventory;
+    if (!angularGrid) return;
+
+    const selectedRows = angularGrid.slickGrid.getSelectedRows().map((rowIndex: number) =>
+      angularGrid.dataView.getItem(rowIndex)
+    ).filter((item: any) => item && !item.__group && !item.__groupTotals);
+
+    if (selectedRows.length === 0) {
+      this.notification.info(
+        'Thông báo',
+        'Vui lòng chọn ít nhất 1 sản phẩm cần yêu cầu báo giá!'
+      );
+      return;
+    }
+
+    const empID = this.appUserService.employeeID;
+
+    // Gán STT và map các field cần thiết cho từng dòng được chọn
+    const processedRows = selectedRows.map((row, index) => {
+      let productNewCode = row.ProductNewCode;
+      return {
+        ...row,
+        ID: 0,
+        STT: index + 1,
+        ProductNewCode: productNewCode || row.ProductNewCode || null,
+        Maker: row.Maker || row.Manufacturer || '',
+        Unit: row.Unit || row.UnitCount || '',
+        ProjectPartlistPriceRequestTypeID: this.projectPartlistPriceRequestTypeID,
+      };
+    });
+
+    console.log("Processed Rows:", processedRows);
+
+    const modalRef = this.modalService.open(
+      ProjectPartlistPriceRequestFormComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+      }
+    );
+    modalRef.componentInstance.dataInput = processedRows;
+    modalRef.componentInstance.jobRequirementID = 0;
+    modalRef.componentInstance.projectTypeID = -5;
+    modalRef.componentInstance.initialPriceRequestTypeID = 7;
+    modalRef.componentInstance.isDP = this.isWareHouseDP;
+
+    modalRef.result.then(
+      (result) => {
+        if (result === 'saved') {
+          this.getdataFind();
+        }
+      },
+      (dismissed) => {
+        console.log('Modal dismissed');
+      }
+    );
+  }
+  //#endregion
+
+  //#region Set Location
+  getLocation() {
+    this.productLocationService.getProductLocations().subscribe((res: any) => {
+      this.locations = res.data;
+      console.log('location', this.locations);
+    });
+  }
+  onSetLocation() {
+    const selectedRows = this.getSelectedInventoryRows();
+    if (selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn sản phẩm để set vị trí!');
+      return;
+    }
+
+    if (this.locationID === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn vị trí!');
+      return;
+    }
+
+    const lstIDs = selectedRows.map((row: any) => row.ProductSaleID || row.ID);
+
+    this.inventoryService.setLocationList(this.locationID, lstIDs, this.warehouseId).subscribe({
+      next: (res) => {
+        if (res.status == 1) {
+          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật vị trí thành công');
+          this.getInventory();
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Cập nhật vị trí thất bại');
+        }
+      },
+      error: (err) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+      }
+    });
+  }
+  //#endregion
+}

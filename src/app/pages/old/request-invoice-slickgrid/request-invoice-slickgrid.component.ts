@@ -400,6 +400,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 250, minWidth: 250, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Address', name: 'Địa chỉ', field: 'Address', width: 300, minWidth: 300, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Name', name: 'Công ty bán', field: 'Name', width: 140, minWidth: 140, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+            { id: 'TypeName', name: 'Loại hợp đồng', field: 'TypeName', width: 300, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
             { id: 'AmendReason', name: 'Lý do yêu cầu bổ sung', field: 'AmendReason', width: 215, minWidth: 215, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Note', name: 'Ghi chú', field: 'Note', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
         ];
@@ -736,7 +737,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                     }));
                     // Apply distinct filters after data is loaded
                     setTimeout(() => {
-                        this.applyDistinctFiltersToGrid(this.angularGridMain, this.columnDefinitionsMain, ['Name', 'StatusText'], this.datasetMain);
+                        this.applyDistinctFiltersToGrid(this.angularGridMain, this.columnDefinitionsMain, ['Name', 'StatusText', 'TypeName'], this.datasetMain);
                     }, 500);
                     this.isLoadingMain = false;
                 } else {
@@ -1235,6 +1236,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             { header: 'Khách hàng', key: 'CustomerName', width: 30 },
             { header: 'Địa chỉ', key: 'Address', width: 30 },
             { header: 'Công ty bán', key: 'Name', width: 20 },
+            { header: 'Loại hợp đồng', key: 'TypeName', width: 20 },
             { header: 'Lý do yêu cầu bổ sung', key: 'AmendReason', width: 30 },
             { header: 'Ghi chú', key: 'Note', width: 30 },
         ];
@@ -1254,6 +1256,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 CustomerName: row.CustomerName || '',
                 Address: row.Address || '',
                 Name: row.Name || '',
+                TypeName: row.TypeName || '',
                 AmendReason: row.AmendReason || '',
                 Note: row.Note || '',
             });

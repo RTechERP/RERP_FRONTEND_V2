@@ -221,7 +221,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     currencyId: 0,
     isBigAccount: false,
     isApproved: false,
-    accountType: 0,
+    accountType: 2,
     totalMoneyDiscount: 0,
     discount: 0,
     moneyDiscount: 0,
@@ -699,7 +699,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             discount: pokhData.Discount || 0,
             totalMoneyDiscount: pokhData.TotalMoneyDiscount || 0,
             moneyDiscount: pokhData.MoneyDiscount || 0,
-            accountType: pokhData.AccountType || 0,
+            accountType: pokhData.AccountType !== undefined && pokhData.AccountType !== null ? pokhData.AccountType : 2,
           };
 
           this.selectedCustomer = this.dataCustomers.find(
@@ -1539,7 +1539,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       totalMoneyDiscount: 0,
       discount: 0,
       moneyDiscount: 0,
-      accountType: 0,
+      accountType: 2,
     };
     this.selectedCustomer = null;
     this.dataPOKHProduct = [];

@@ -110,16 +110,20 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
   //Data arrays
   deletedRequestInvoiceDetailIds: number[] = [];
   customers: any[] = [];
+  accountingContractTypeOptions: any[] = [];
   projects: any[] = [];
   employees: any[] = [];
   taxCompanies: any[] = [];
   products: any[] = [];
   files: any[] = [];
+  contractFiles: any[] = []; // File Hợp đồng (FileType = 2)
   POFiles: any[] = [];
   deletedFileIds: number[] = [];
+  deletedContractFileIds: number[] = []; // IDs của File Hợp đồng đã xóa
   details: any[] = [];
   isLoading: boolean = true;
   selectedInvoiceFile: any = null;
+  selectedContractFile: any = null; // File Hợp đồng đang chọn
   selectedPOFile: any = null;
   selectedDetailRows: any[] = [];
   productOptions: any[] = [];
@@ -129,6 +133,7 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
   private detailRowKeySequence = 0;
   private invoiceFileKeySequence = 0;
   private poFileKeySequence = 0;
+  private contractFileKeySequence = 0;
   statuses: any[] = [
     { value: 1, label: 'Yêu cầu xuất hóa đơn' },
     { value: 2, label: 'Đã xuất nháp' },
@@ -158,6 +163,7 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
   ngOnInit(): void {
     this.formData = this.getDefaultFormData();
     this.loadCustomer();
+    this.loadAccountingContractType();
     this.loadEmployee();
     this.loadProductSale();
     this.loadPOKHFile();
@@ -177,10 +183,10 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
   ngAfterViewInit(): void {
     this.updateDataTable();
     // Cập nhật dữ liệu bảng nếu có dữ liệu từ POKH
-    
+
 
     // Cập nhật dữ liệu bảng nếu ở chế độ edit
-    
+
   }
 
   //#region Load dữ liệu từ API
@@ -199,6 +205,36 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
             NOTIFICATION_TYPE_MAP[response.status] || 'error',
             NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
             response.message || 'Lỗi khi tải khách hàng',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
+        }
+      },
+      (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
+      }
+    );
+  }
+
+  loadAccountingContractType(): void {
+    this.RIDService.getAccountingContractType().subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.accountingContractTypeOptions = response.data;
+
+        } else {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[response.status] || 'error',
+            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+            response.message || 'Lỗi khi tải loại HĐ',
             {
               nzStyle: { whiteSpace: 'pre-line' }
             }
@@ -394,6 +430,44 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
   }
 
   saveAndClose(): void {
+    // Validate header fields
+    if (!this.formData.taxCompanyId) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn Công ty bán');
+      return;
+    }
+    if (!this.formData.customerId) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn Khách hàng');
+      return;
+    }
+    if (!this.formData.userId) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn Người yêu cầu');
+      return;
+    }
+    if (!this.formData.requestDate) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn Ngày yêu cầu');
+      return;
+    }
+    if (!this.formData.exportDate) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn Ngày xuất');
+      return;
+    }
+    if (!this.formData.accountingContractType) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn Loại hợp đồng');
+      return;
+    }
+
+    const requiredContractTypeIds = [2, 3, 15];
+    if (requiredContractTypeIds.includes(this.formData.accountingContractType)) {
+      if (!this.contractFiles || this.contractFiles.length === 0) {
+        this.notification.warning('Thông báo', 'Vui lòng đính kèm file hợp đồng cho loại hợp đồng này');
+        return;
+      }
+    }
+
+    if (!this.formData.status) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn Trạng thái');
+      return;
+    }
     if (!this.validateDetails()) {
       return;
     }
@@ -409,6 +483,7 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
       IsUrgency: this.formData.isUrgency,
       IsCustomsDeclared: this.formData.isCustomsDeclared,
       DealineUrgency: this.formData.deadline,
+      AccountingContractTypeID: this.formData.accountingContractType,
       UpdatedDate: this.toLocalISOString(new Date()),
     };
 
@@ -498,8 +573,11 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
   }
   handleSuccess(response: any) {
     const ID = response.data.id;
-    if (this.files.length > 0) {
+    if (this.files.length > 0 || this.deletedFileIds.length > 0) {
       this.uploadFiles(ID);
+    }
+    if (this.contractFiles.length > 0 || this.deletedContractFileIds.length > 0) {
+      this.uploadContractFiles(ID);
     }
     this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công');
     this.selectedId = 0;
@@ -658,6 +736,112 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
       });
     }
   }
+
+  uploadContractFiles(RIID: number) {
+    const newFiles = this.contractFiles.filter(
+      (fileObj: any) => fileObj.file
+    );
+    const hasDeletedFiles = this.deletedContractFileIds.length > 0;
+
+    if (newFiles.length === 0 && !hasDeletedFiles) {
+      return;
+    }
+
+    if (newFiles.length > 0) {
+      const formData = new FormData();
+
+      newFiles.forEach((fileObj: any) => {
+        formData.append('files', fileObj.file);
+      });
+
+      formData.append('key', 'RequestInvoiceFile');
+
+      this.requestInvoiceService.getRequestInvoiceById(RIID).subscribe((data: any) => {
+        const requestInvoice = data;
+
+        const createdDate = new Date(requestInvoice.data.CreatedDate);
+        const year = createdDate.getFullYear().toString();
+        const month = ('0' + (createdDate.getMonth() + 1)).slice(-2);
+        const code = requestInvoice.data.Code || '';
+
+        const sanitize = (s: string) =>
+          s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
+
+        const subPath = [
+          sanitize(year),
+          `T${sanitize(month)}`,
+          sanitize(code)
+        ].join('/');
+
+        formData.append('subPath', subPath);
+
+        this.RIDService.uploadFiles(formData, RIID, 2).subscribe({
+          next: (response) => {
+            if (response.status === 1) {
+              const uploadedFiles = response.data as any[];
+              const totalRequested = newFiles.length;
+              const totalUploaded = uploadedFiles.length;
+
+              if (totalUploaded === totalRequested) {
+                this.notification.success('Thông báo', `${totalUploaded} file hợp đồng đã được upload thành công!`);
+              } else {
+                this.notification.warning('Thông báo', `${totalUploaded}/${totalRequested} file hợp đồng upload thành công.`);
+              }
+
+              this.contractFiles = [
+                ...this.contractFiles.filter((f: any) => !f.file),
+                ...uploadedFiles.map((f: any) => ({
+                  fileName: f.FileName,
+                  ServerPath: f.ServerPath,
+                  ID: f.ID,
+                  IsDeleted: false,
+                }))
+              ];
+              this.contractFiles = this.normalizeContractFiles(this.contractFiles);
+            } else {
+              this.notification.create(
+                NOTIFICATION_TYPE_MAP[response.status] || 'error',
+                NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Thông báo',
+                response.message || 'Upload file hợp đồng thất bại!',
+                {
+                  nzStyle: { whiteSpace: 'pre-line' }
+                }
+              );
+            }
+          },
+          error: (err: any) => {
+            this.notification.create(
+              NOTIFICATION_TYPE_MAP[err.status] || 'error',
+              NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Thông báo',
+              err?.error?.message || `${err.error}\n${err.message}`,
+              {
+                nzStyle: { whiteSpace: 'pre-line' }
+              }
+            );
+          },
+        });
+      });
+    }
+
+    if (hasDeletedFiles) {
+      this.RIDService.deleteFiles(this.deletedContractFileIds).subscribe({
+        next: () => {
+          this.deletedContractFileIds = [];
+        },
+        error: (err: any) => {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Thông báo',
+            err?.error?.message || `${err.error}\n${err.message}`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
+        },
+      });
+    }
+  }
+
   onFileSelected(event: any) {
     const files = event.target.files;
     if (files && files.length > 0) {
@@ -678,6 +862,28 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
         this.addFileToTable(fileObj);
       });
       // this.fileInput.nativeElement.value = '';
+    }
+  }
+
+  onContractFileSelected(event: any) {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const MAX_FILE_SIZE = 50 * 1024 * 1024;
+      Array.from(files).forEach((file) => {
+        const fileObj = file as File;
+        if (fileObj.size > MAX_FILE_SIZE) {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+            NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
+            `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`,
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
+          return;
+        }
+        this.addContractFileToTable(fileObj);
+      });
     }
   }
   // Trả về chuỗi ISO 8601 theo giờ local (UTC+7) thay vì UTC
@@ -706,6 +912,18 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
       ServerPath: ''
     };
     this.files = this.normalizeInvoiceFiles([...this.files, newFile]);
+  }
+
+  addContractFileToTable(file: File): void {
+    const newFile = {
+      fileName: file.name,
+      fileSize: this.formatFileSize(file.size),
+      fileType: this.getFileType(file.name),
+      uploadDate: new Date().toLocaleDateString('vi-VN'),
+      file: file,
+      ServerPath: ''
+    };
+    this.contractFiles = this.normalizeContractFiles([...this.contractFiles, newFile]);
   }
 
   private buildFullFilePath(file: any): string {
@@ -879,505 +1097,9 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
       isUrgency: false,
       isCustomsDeclared: false,
       deadline: null,
+      accountingContractType: null,
     };
   }
-  //#region Các hàm vẽ bảng
-  /*
-  initInvoiceFile(): void {
-    const contextMenuItems = [
-      {
-        label: 'Tải xuống',
-        action: () => {
-          if (this.selectedInvoiceFile) {
-            this.downloadInvoiceFile(this.selectedInvoiceFile);
-          } else {
-            this.notification.warning(
-              'Thông báo',
-              'Vui lòng chọn file để tải xuống!'
-            );
-          }
-        },
-      },
-    ];
-
-    this.tb_InvoiceFile = new Tabulator(
-      this.tb_InvoiceFileElement.nativeElement,
-      {
-        ...DEFAULT_TABLE_CONFIG,
-        data: this.files,
-        pagination: false,
-        layout: 'fitColumns',
-        movableColumns: true,
-        height: '26.5vh',
-        rowHeader: false,
-        selectableRows: 1,
-        rowContextMenu: contextMenuItems,
-        columns: [
-          {
-            title: '',
-            field: 'addRow',
-            hozAlign: 'center',
-            width: 40,
-            frozen: true,
-            headerSort: false,
-            formatter: (cell) => {
-              const data = cell.getRow().getData();
-              let isDeleted = data['IsDeleted'];
-              return !isDeleted
-                ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
-                : '';
-            },
-            cellClick: (e, cell) => {
-              let data = cell.getRow().getData();
-              let id = data['ID'];
-              let fileName = data['fileName'];
-              let isDeleted = data['IsDeleted'];
-              if (isDeleted) {
-                return;
-              }
-              this.modal.confirm({
-                nzTitle: `Bạn có chắc chắn muốn xóa file`,
-                nzContent: `${fileName}?`,
-                nzOkText: 'Xóa',
-                nzOkType: 'primary',
-                nzCancelText: 'Hủy',
-                nzOkDanger: true,
-                nzOnOk: () => {
-                  // thêm id của file đã xóa vào mảng deletedFileIds
-                  if (id > 0) {
-                    if (!this.deletedFileIds.includes(id)) {
-                      this.deletedFileIds.push(id);
-                    }
-                  }
-                  this.tb_InvoiceFile.deleteRow(cell.getRow());
-                  this.files = this.tb_InvoiceFile.getData();
-                },
-              });
-            },
-          },
-          {
-            title: 'Tên file',
-            field: 'fileName',
-            sorter: 'string',
-            width: '100%',
-            formatter: (cell) => {
-              const value = cell.getValue();
-              return value
-                ? `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`
-                : '';
-            },
-          },
-        ],
-      }
-    );
-
-    this.tb_InvoiceFile.on('rowSelected', (row: RowComponent) => {
-      this.selectedInvoiceFile = row.getData();
-    });
-
-    this.tb_InvoiceFile.on('rowDeselected', () => {
-      const selectedRows = this.tb_InvoiceFile.getSelectedRows();
-      if (selectedRows.length === 0) {
-        this.selectedInvoiceFile = null;
-      }
-    });
-
-    this.tb_InvoiceFile.on('rowDblClick', (_e, row: RowComponent) => {
-      this.selectedInvoiceFile = row.getData();
-      this.downloadInvoiceFile(this.selectedInvoiceFile);
-    });
-  }
-
-  initPOFile(): void {
-    const contextMenuItems = [
-      {
-        label: 'Tải xuống',
-        action: () => {
-          if (this.selectedPOFile) {
-            this.downloadPOFile(this.selectedPOFile);
-          } else {
-            this.notification.warning(
-              'Thông báo',
-              'Vui lòng chọn file để tải xuống!'
-            );
-          }
-        },
-      },
-    ];
-
-    this.tb_POFile = new Tabulator(this.tb_POFileElement.nativeElement, {
-      ...DEFAULT_TABLE_CONFIG,
-      data: this.POFiles,
-      pagination: false,
-      layout: 'fitColumns',
-      movableColumns: true,
-      height: '42vh',
-      rowHeader: false,
-      selectableRows: 1,
-      rowContextMenu: contextMenuItems,
-      columns: [
-        {
-          title: 'Tên file',
-          field: 'FileName',
-          sorter: 'string',
-          width: '100%',
-          formatter: (cell) => {
-            const value = cell.getValue();
-            return value
-              ? `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`
-              : '';
-          },
-        },
-      ],
-    });
-
-    this.tb_POFile.on('rowSelected', (row: RowComponent) => {
-      this.selectedPOFile = row.getData();
-    });
-
-    this.tb_POFile.on('rowDeselected', () => {
-      const selectedRows = this.tb_POFile.getSelectedRows();
-      if (selectedRows.length === 0) {
-        this.selectedPOFile = null;
-      }
-    });
-
-    this.tb_POFile.on('rowDblClick', (_e, row: RowComponent) => {
-      this.selectedPOFile = row.getData();
-      this.downloadPOFile(this.selectedPOFile);
-    });
-  }
-
-  initDataTable(): void {
-    this.tb_DataTable = new Tabulator(this.tb_DataTableElement.nativeElement, {
-      ...DEFAULT_TABLE_CONFIG,
-      data: this.details,
-      layout: 'fitDataFill',
-      movableColumns: true,
-      paginationMode: 'local',
-      pagination: true,
-      height: '42vh',
-      paginationSize: 20,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-      },
-      columns: [
-        {
-          title: '',
-          field: '',
-          columns: [
-            {
-              title: '',
-              field: 'addRow',
-              hozAlign: 'center',
-              width: 40,
-              frozen: true,
-              headerSort: false,
-              titleFormatter: () =>
-                `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus cursor-pointer" style="color: #22c55e;" title="Thêm dòng"></i></div>`,
-              headerClick: () => {
-                this.addNewRow();
-              },
-              formatter: (cell) => {
-                const data = cell.getRow().getData();
-                let isDeleted = data['IsDeleted'];
-                return !isDeleted
-                  ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
-                  : '';
-              },
-              cellClick: (e, cell) => {
-                let data = cell.getRow().getData();
-                let id = data['ID'];
-                let isDeleted = data['IsDeleted'];
-                if (isDeleted) {
-                  return;
-                }
-                this.modal.confirm({
-                  nzTitle: `Bạn có chắc chắn muốn xóa dòng này?`,
-                  nzOkText: 'Xóa',
-                  nzOkType: 'primary',
-                  nzCancelText: 'Hủy',
-                  nzOkDanger: true,
-                  nzOnOk: () => {
-                    if (id > 0) {
-                      if (!this.deletedRequestInvoiceDetailIds.includes(id)) {
-                        this.deletedRequestInvoiceDetailIds.push(id);
-                      }
-                    }
-                    this.tb_DataTable.deleteRow(cell.getRow());
-                    this.details = this.tb_DataTable.getData();
-                  },
-                });
-              },
-            },
-            {
-              title: 'STT',
-              field: 'STT',
-              sorter: 'number',
-              width: '5%',
-              hozAlign: 'center',
-              frozen: true,
-            },
-            {
-              title: 'Mã nội bộ',
-              field: 'ProductNewCode',
-              sorter: 'string',
-              width: 200,
-              frozen: true,
-            },
-            {
-              title: 'Mã sản phẩm',
-              field: 'ProductSaleID',
-              sorter: 'string',
-              width: 200,
-              editor: 'list',
-              frozen: true,
-              editorParams: {
-                values: this.products.map((product) => ({
-                  label: product.ProductCode,
-                  value: product.ID,
-                })),
-              },
-              formatter: (cell) => {
-                const value = cell.getValue();
-                const product = this.products.find((p) => p.ID === value);
-                return product ? product.ProductCode : value;
-              },
-              cellEdited: (cell: CellComponent) => {
-                this.onProductSaleIDChanged(cell);
-              },
-            },
-            {
-              title: 'Mã theo khách',
-              field: 'GuestCode',
-              sorter: 'string',
-              width: 200,
-            },
-            {
-              title: 'Tên sản phẩm',
-              field: 'ProductName',
-              sorter: 'string',
-              width: 200,
-            },
-            { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 100 },
-            {
-              title: 'Số lượng',
-              field: 'Quantity',
-              sorter: 'number',
-              width: 150,
-              hozAlign: 'right',
-              editor: 'number',
-            },
-            {
-              title: 'Mã dự án',
-              field: 'ProjectCode',
-              sorter: 'string',
-              width: 200,
-            },
-            {
-              title: 'Dự án',
-              field: 'ProjectID',
-              sorter: 'string',
-              width: '15%',
-              editor: 'list',
-              editorParams: {
-                values: this.projects.map((project) => ({
-                  label: project.ProjectName,
-                  value: project.ID,
-                })),
-              },
-              formatter: (cell) => {
-                const value = cell.getValue();
-                const project = this.projects.find((p) => p.ID === value);
-                return project ? project.ProjectName : value;
-              },
-              cellEdited: (cell: CellComponent) => {
-                this.onProjectChanged(cell);
-              },
-            },
-            // { title: 'Số PO', field: 'POCode', sorter: 'string', width: "8%" },
-            {
-              title: 'Ghi chú',
-              field: 'Note',
-              sorter: 'string',
-              width: 200,
-              editor: 'textarea',
-            },
-            {
-              title: 'Số POKH',
-              field: 'PONumber',
-              sorter: 'string',
-              width: 100,
-            },
-            {
-              title: 'Thông số kỹ thuật',
-              field: 'Specifications',
-              sorter: 'string',
-              width: '10%',
-              editor: 'input',
-              visible: false,
-            },
-            {
-              title: 'Số hóa đơn',
-              field: 'InvoiceNumber',
-              sorter: 'string',
-              width: 200,
-              editor: 'input',
-            },
-            {
-              title: 'Ngày hóa đơn',
-              field: 'InvoiceDate',
-              sorter: 'date',
-              width: '10%',
-              editor: 'date',
-              formatter: (cell) => {
-                const date = cell.getValue();
-                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
-              },
-            },
-            {
-              title: 'Tồn kho',
-              field: 'IsStock',
-              sorter: 'boolean',
-              width: 80,
-              hozAlign: 'center',
-              editor: undefined,
-              formatter: (cell) => {
-                const checked = cell.getValue() ? 'checked' : '';
-                return `<div style="text-align: center;">
-            <input type="checkbox" ${checked} style="width: 16px; height: 16px;"/>
-          </div>`;
-              },
-              cellClick: (e, cell) => {
-                cell.setValue(!cell.getValue());
-              },
-            },
-            {
-              title: 'Mã phiếu xuất',
-              field: 'BillExportCode',
-              sorter: 'string',
-              width: 200,
-            },
-          ]
-        },
-        {
-          title: 'Thông tin đầu vào',
-          field: '',
-          sorter: 'string',
-          width: 200,
-          columns: [
-            {
-              title: 'Ngày đặt hàng',
-              field: 'RequestDate',
-              sorter: 'string',
-              width: 150,
-              formatter: (cell: any) => {
-                const value = cell.getValue();
-                if (!value) return '';
-                const date = new Date(value);
-                if (isNaN(date.getTime())) return value;
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                return `${day}/${month}/${year}`;
-              },
-            },
-            {
-              title: 'Ngày hàng về',
-              field: 'DateRequestImport',
-              sorter: 'string',
-              width: 150,
-              formatter: (cell: any) => {
-                const value = cell.getValue();
-                if (!value) return '';
-                const date = new Date(value);
-                if (isNaN(date.getTime())) return value;
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                return `${day}/${month}/${year}`;
-              },
-            },
-            {
-              title: 'Nhà cung cấp',
-              field: 'SupplierName',
-              sorter: 'string',
-              formatter: 'textarea',
-              width: 250,
-            },
-            {
-              title: 'Hóa đơn đầu vào',
-              field: 'SomeBill',
-              sorter: 'string',
-              width: 250,
-            },
-            {
-              title: 'Ngày hàng về dự kiến',
-              field: 'ExpectedDate',
-              sorter: 'string',
-              width: 150,
-              formatter: (cell: any) => {
-                const value = cell.getValue();
-                if (!value) return '';
-                const date = new Date(value);
-                if (isNaN(date.getTime())) return value;
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                return `${day}/${month}/${year}`;
-              },
-            },
-            {
-              title: 'PNK',
-              field: 'BillImportCode',
-              sorter: 'string',
-              width: 250,
-            },
-          ]
-        }
-
-      ],
-    });
-
-    // Thêm event listener để xử lý khi edit cell - tự động cập nhật các dòng đã chọn
-    this.tb_DataTable.on('cellEdited', (cell: CellComponent) => {
-      this.handleCellEditForSelectedRows(cell);
-    });
-  }
-
-  // Hàm xử lý khi edit cell - tự động cập nhật các dòng đã chọn (cho cột Số hóa đơn, Ngày hóa đơn và Tồn kho)
-  handleCellEditForSelectedRows(cell: CellComponent): void {
-    const editedRow = cell.getRow();
-    const editedField = cell.getColumn().getField();
-    const newValue = cell.getValue();
-
-    // Chỉ xử lý cho 3 cột: Số hóa đơn, Ngày hóa đơn và Tồn kho
-    if (editedField !== 'InvoiceNumber' && editedField !== 'InvoiceDate' && editedField !== 'IsStock') {
-      return;
-    }
-
-    const selectedRows = this.tb_DataTable.getSelectedRows();
-
-    // Nếu có nhiều hơn 1 dòng được chọn (bao gồm cả dòng vừa edit)
-    if (selectedRows.length > 1) {
-      selectedRows.forEach((row: RowComponent) => {
-        // Bỏ qua dòng vừa được edit (đã được cập nhật rồi)
-        if (row === editedRow) {
-          return;
-        }
-
-        // Cập nhật giá trị cho các dòng đã chọn
-        const rowData = row.getData();
-        rowData[editedField] = newValue;
-        row.update(rowData);
-      });
-    }
-  }
-  //#endregion
-
-  // Hàm xử lý dữ liệu từ POKH
-  */
 
   prepareProductEditor(rowData: any): void {
     this.productEditorOptions = this.getLimitedProductOptions('', rowData?.ProductSaleID);
@@ -1456,14 +1178,21 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
     }));
   }
 
-  private createFileKey(type: 'invoice' | 'po', file: any): string {
+  private normalizeContractFiles(files: any[]): any[] {
+    return (files || []).map((file) => ({
+      ...file,
+      __fileKey: file.__fileKey || this.createFileKey('contract', file),
+    }));
+  }
+
+  private createFileKey(type: 'invoice' | 'po' | 'contract', file: any): string {
     const persistedKey = file?.ID || file?.FileID || file?.RequestInvoiceFileID;
     if (persistedKey) {
       return `${type}-file-${persistedKey}`;
     }
-    return type === 'invoice'
-      ? `${type}-file-new-${++this.invoiceFileKeySequence}`
-      : `${type}-file-new-${++this.poFileKeySequence}`;
+    if (type === 'invoice') return `${type}-file-new-${++this.invoiceFileKeySequence}`;
+    if (type === 'contract') return `${type}-file-new-${++this.contractFileKeySequence}`;
+    return `${type}-file-new-${++this.poFileKeySequence}`;
   }
 
   updateDataTable(): void {
@@ -1556,6 +1285,33 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
     });
   }
 
+  deleteContractFile(file: any): void {
+    if (!file || file.IsDeleted) {
+      return;
+    }
+
+    const fileName = this.getContractFileName(file);
+    this.modal.confirm({
+      nzTitle: `Bạn có chắc muốn xóa file hợp đồng`,
+      nzContent: `${fileName}?`,
+      nzOkText: 'Xóa',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOkDanger: true,
+      nzOnOk: () => {
+        const id = file.ID;
+        if (id > 0 && !this.deletedContractFileIds.includes(id)) {
+          this.deletedContractFileIds.push(id);
+        }
+
+        this.contractFiles = this.contractFiles.filter((item) => item.__fileKey !== file.__fileKey);
+        if (this.selectedContractFile?.__fileKey === file.__fileKey) {
+          this.selectedContractFile = null;
+        }
+      },
+    });
+  }
+
   onProductSaleIDChanged(rowData: any, value: any): void {
     rowData.ProductSaleID = value ?? '';
     const product = this.products.find((p) => p.ID == value);
@@ -1628,6 +1384,32 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
 
   getPOFileName(file: any): string {
     return file?.FileName || file?.fileName || file?.FileNameOrigin || '';
+  }
+
+  getContractFileName(file: any): string {
+    return file?.fileName || file?.FileName || file?.FileNameOrigin || '';
+  }
+
+  downloadContractFile(file: any): void {
+    if (!file) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn file hợp đồng để tải xuống!');
+      return;
+    }
+    const fullPath = this.buildFullFilePath(file);
+    const fileName =
+      file.FileName || file.fileName || file.FileNameOrigin || 'downloaded_file';
+    if (!fullPath) {
+      this.notification.create(
+        NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+        NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Thông báo',
+        'Không xác định được đường dẫn file!',
+        {
+          nzStyle: { whiteSpace: 'pre-line' }
+        }
+      );
+      return;
+    }
+    this.downloadFromServer(fullPath, fileName);
   }
 
   getProductCode(rowData: any): string {
@@ -1757,6 +1539,8 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
         }
         //END Update 0112
 
+        this.formData.accountingContractType = data.MainData.AccountingContractTypeID || null;
+
         this.selectedId = data.ID || 0;
       }
 
@@ -1784,7 +1568,8 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
 
       // Cập nhật files nếu có
       if (data.files && data.files.length > 0) {
-        this.files = this.normalizeInvoiceFiles(data.files.map((file: any) => ({
+        const invoiceFiles = data.files.filter((f: any) => f.FileType === 1 || !f.FileType);
+        this.files = this.normalizeInvoiceFiles(invoiceFiles.map((file: any) => ({
           ID: file.ID,
           fileName: file.FileName || file.fileName,
           FileName: file.FileName || file.fileName,
@@ -1796,75 +1581,27 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
           ServerPath: file.ServerPath || '',
         })));
         this.selectedInvoiceFile = null;
+
+        const cFiles = data.files.filter((f: any) => f.FileType === 2);
+        this.contractFiles = this.normalizeContractFiles(cFiles.map((file: any) => ({
+          ID: file.ID,
+          fileName: file.FileName || file.fileName,
+          FileName: file.FileName || file.fileName,
+          fileSize: file.FileSize ? this.formatFileSize(file.FileSize) : '',
+          fileType: file.FileName ? this.getFileType(file.FileName) : '',
+          uploadDate: file.UploadDate
+            ? new Date(file.UploadDate).toLocaleDateString('vi-VN')
+            : new Date().toLocaleDateString('vi-VN'),
+          ServerPath: file.ServerPath || '',
+        })));
+        this.selectedContractFile = null;
       } else {
         this.files = [];
         this.selectedInvoiceFile = null;
+        this.contractFiles = [];
+        this.selectedContractFile = null;
       }
     }
   }
 
-  // Hàm cập nhật bảng dữ liệu
-  /*
-  updateDataTable(): void {
-    if (this.tb_DataTable && this.details.length > 0) {
-      this.tb_DataTable.setData(this.details);
-    }
-  }
-
-  // Thêm dòng mới vào bảng sản phẩm
-  addNewRow(): void {
-    // Tạo sản phẩm mới với các trường mặc định
-    const newProduct = {
-      STT: this.details.length + 1,
-      ProductNewCode: '',
-      ProductSaleID: '',
-      ProductName: '',
-      Unit: '',
-      Quantity: null,
-      ProjectCode: '',
-      ProjectName: '',
-      POCode: '',
-      Note: '',
-      Specifications: '',
-      InvoiceNumber: '',
-      InvoiceDate: null,
-    };
-    this.details = [...this.details, newProduct];
-    // Cập nhật lại STT cho tất cả sản phẩm
-    this.details = this.details.map((item, idx) => ({ ...item, STT: idx + 1 }));
-    // Nếu bảng đã khởi tạo thì cập nhật lại dữ liệu
-    if (this.tb_DataTable) {
-      this.tb_DataTable.setData(this.details);
-    }
-  }
-
-  onProductSaleIDChanged(cell: CellComponent): void {
-    const row = cell.getRow();
-    const rowData = row.getData();
-    const newValue = cell.getValue();
-    const product = this.products.find((p) => p.ID === newValue);
-
-    if (product) {
-      rowData['ProductNewCode'] = product.ProductCode;
-      rowData['ProductName'] = product.ProductName;
-      rowData['Unit'] = product.Unit;
-
-      row.update(rowData);
-    }
-  }
-
-  onProjectChanged(cell: CellComponent): void {
-    const row = cell.getRow();
-    const rowData = row.getData();
-    const newValue = cell.getValue();
-    const project = this.projects.find((p) => p.ID === newValue);
-
-    if (project) {
-      rowData['ProjectCode'] = project.ProjectCode;
-      rowData['ProjectName'] = project.ProjectName;
-
-      row.update(rowData);
-    }
-  }
-  */
 }

@@ -22,6 +22,9 @@ export class RequestInvoiceDetailService {
   generateBillNumber(id: number): Observable<any> {
     return this.http.post<any>(this._url + 'generate-bill-number', id);
   }
+  getAccountingContractType(): Observable<any> {
+    return this.http.get<any>(this._url + 'get-accouting-contract-types');
+  }
   saveData(data: any): Observable<any> {
     return this.http.post<any>(this._url + 'save-data', data);
   }

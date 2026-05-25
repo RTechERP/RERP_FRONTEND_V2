@@ -245,6 +245,7 @@ export class KpiSyntheticYearsComponent implements OnInit {
       rowSelectionOptions: {
         selectActiveRow: true
       },
+      forceFitColumns: true,
       createPreHeaderPanel: true,
       showPreHeaderPanel: true,
       preHeaderPanelHeight: 35,

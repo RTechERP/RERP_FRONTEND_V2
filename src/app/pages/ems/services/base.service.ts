@@ -6,10 +6,10 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root',
 })
 export class BaseService {
-  baseUrl = environment.ems_baseURL;
+  baseUrl = environment.host;
   constructor(
     protected http: HttpClient,
-  ) {}
+  ) { }
   protected buildTree(data: TreeNode[]) {
     const map: { [key: number]: TreeNode } = {};
     const roots: TreeNode[] = [];

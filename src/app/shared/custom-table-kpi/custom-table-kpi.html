@@ -29,10 +29,10 @@
 
 <p-table #dt *ngIf="isGridView" [value]="data" [columns]="columns" [tableStyle]="tableStyleObj"
     [resizableColumns]="resizable" [columnResizeMode]="effectiveResizeMode" [showGridlines]="showGridlines"
-    [styleClass]="'p-datatable-gridlines p-datatable-sm' + ((showCaption && (title || showGlobalFilter || exportable)) ? '' : ' hide-header-caption')" [globalFilterFields]="actualGlobalFilterFields"
-    [scrollable]="isScrollable" [scrollHeight]="resolvedScrollHeight" [paginator]="paginator" [rows]="rows"
-    [rowsPerPageOptions]="rowsPerPageOptions" [rowGroupMode]="rowGroupMode" [groupRowsBy]="groupRowsBy"
-    [sortMode]="sortMode" [selectionMode]="selectionMode" [(selection)]="selection"
+    [styleClass]="'p-datatable-gridlines p-datatable-sm' + ((showCaption && (title || showGlobalFilter || exportable)) ? '' : ' hide-header-caption')"
+    [globalFilterFields]="actualGlobalFilterFields" [scrollable]="isScrollable" [scrollHeight]="resolvedScrollHeight"
+    [paginator]="paginator" [rows]="rows" [rowsPerPageOptions]="rowsPerPageOptions" [rowGroupMode]="rowGroupMode"
+    [groupRowsBy]="groupRowsBy" [sortMode]="sortMode" [selectionMode]="selectionMode" [(selection)]="selection"
     (selectionChange)="onSelectionChange($event)" [dataKey]="dataKey" [loading]="loading"
     [contextMenu]="contextMenuItems.length > 0 ? cm : null" [(contextMenuSelection)]="selectedContextRow"
     (onContextMenuSelect)="onContextMenuSelect($event)" [rowHover]="true" [stripedRows]="stripedRows"
@@ -89,7 +89,8 @@
                         [ngClass]="h.cssClass" [ngStyle]="h.style" class="text-center font-bold">
                         {{ h.header }}
                     </th>
-                </ng-container>            </tr>
+                </ng-container>
+            </tr>
         </ng-container>
 
         <tr>
@@ -364,14 +365,21 @@
     <!-- Group Header (for subheader mode) -->
     <ng-template pTemplate="groupheader" let-rowData let-rowIndex="rowIndex">
         <tr *ngIf="rowGroupMode === 'subheader'" pRowGroupHeader>
-            <td
-                [attr.colspan]="columns.length + (selectionMode === 'multiple' ? 1 : 0) + (expandable ? 1 : 0) + (reorderableRows ? 1 : 0)">
-                <p-button *ngIf="expandableRowGroups" (click)="toggleGroup(rowData[groupRowsBy])" [text]="true"
-                    [rounded]="true" severity="secondary"
-                    [icon]="isGroupExpanded(rowData[groupRowsBy]) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-                    styleClass="mr-2">
-                </p-button>
-                <span class="font-bold ml-2">{{ rowData[groupRowsBy] }}</span>
+            <td [attr.colspan]="columns.length + (selectionMode === 'multiple' ? 1 : 0) + (expandable ? 1 : 0) + (reorderableRows ? 1 : 0)"
+                style="background-color: #f1f3f5; font-weight: 700; padding: 0.5rem 1rem;">
+
+                <i *ngIf="expandableRowGroups" class="mr-2 cursor-pointer"
+                    style="font-size: 0.875rem; color: #495057; padding: 4px;"
+                    [ngClass]="isGroupExpanded(rowData[groupRowsBy]) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                    (click)="toggleGroup(rowData[groupRowsBy])">
+                </i>
+
+                <span class="font-bold ml-2">
+                    {{ rowData[groupRowsBy] }}
+                    <ng-container *ngIf="showGroupCount && groupCounts[rowData[groupRowsBy]]">
+                        ({{ groupCounts[rowData[groupRowsBy]] }})
+                    </ng-container>
+                </span>
             </td>
         </tr>
     </ng-template>
@@ -379,10 +387,10 @@
     <!-- Body Row -->
     <ng-template pTemplate="body" let-rowData let-rowIndex="rowIndex" let-expanded="expanded">
         <tr *ngIf="!expandableRowGroups || isGroupExpanded(rowData[groupRowsBy])" [pSelectableRow]="rowData"
-            [pSelectableRowIndex]="rowIndex" [pSelectableRowDisabled]="clickSelectRow"
+            [pSelectableRowIndex]="rowIndex"
             [pContextMenuRow]="contextMenuItems.length > 0 ? rowData : null" [pReorderableRow]="rowIndex"
             [ngClass]="getRowClass(rowData)"
-            [class.row-click-selected]="clickSelectRow && clickedRowKey === (dataKey ? rowData[dataKey] : rowData)"
+            [class.row-click-selected]="isRowClicked(rowData)"
             (click)="onRowClick(rowData)" (dblclick)="onRowDblClick(rowData)">
             <!-- Drag handle for row reorder -->
             <td *ngIf="reorderableRows">

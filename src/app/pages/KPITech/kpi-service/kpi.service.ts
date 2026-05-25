@@ -10,6 +10,7 @@ import { AppUserService } from '../../../services/app-user.service';
 export class KPIService {
   private apiUrl = environment.host + 'api/KPIEvaluationEmployee/';
   private apiUrlFactorScoring = environment.host + 'api/KPIEvaluationFactorScoring/';
+  private apiUrlFactorScoringDetails = environment.host + 'api/KPIEvaluationFactorScoringDetails/';
 
   constructor(
     private http: HttpClient,
@@ -282,10 +283,11 @@ export class KPIService {
    * @param departmentId - ID phòng ban
    * @returns Blob file ZIP
    */
-  exportExcelByTeam(kpiSessionId: number, departmentId: number): Observable<Blob> {
+  exportExcelByTeam(kpiSessionId: number, departmentId: number, userTeamId: number = 0): Observable<Blob> {
     const params = new HttpParams()
       .set('kpiSessionId', kpiSessionId.toString())
-      .set('departmentId', departmentId.toString());
+      .set('departmentId', departmentId.toString())
+      .set('userTeamId', userTeamId.toString());
     return this.http.get(this.apiUrlFactorScoring + 'export-excel-by-team', {
       params,
       responseType: 'blob'
@@ -545,6 +547,14 @@ export class KPIService {
       .set('employeeID', employeeID.toString())
       .set('sessionID', sessionID.toString());
     return this.http.get<any>(this.apiUrl + 'get-ispublish', { params });
+  }
+
+  /**
+   * Tính toán lại điểm KPI hàng loạt cho bộ lọc
+   * API: POST api/KPIEvaluationFactorScoringDetails/batch-recalculate-kpi
+   */
+  batchRecalculateKPI(request: { KpiSessionID: number, DepartmentID: number, TeamID: number }): Observable<any> {
+    return this.http.post<any>(this.apiUrlFactorScoringDetails + 'batch-recalculate-kpi', request);
   }
 }
 

@@ -2338,7 +2338,16 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
       },
-      // BillCode
+      // Mã PONCC
+      {
+        id: 'PONCCCode',
+        field: 'PONCCCode',
+        name: 'Mã PONCC',
+        width: 180,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
       {
         id: 'BillCode',
         field: 'BillCode',
@@ -2542,6 +2551,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       );
       if (unitPricePOKHIndex !== -1) {
         columns.splice(unitPricePOKHIndex, 1);
+      }
+    }
+
+    // Chỉ hiển thị cột PONCCCode ở tab hàng thương mại (typeId === 5)
+    if (typeId !== 5) {
+      const poncCCodeIndex = columns.findIndex((col) => col.id === 'PONCCCode');
+      if (poncCCodeIndex !== -1) {
+        columns.splice(poncCCodeIndex, 1);
       }
     }
 
@@ -2951,15 +2968,19 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   }
 
   private resyncGridScroll(angularGrid: AngularGridInstance): void {
-    setTimeout(() => {
-      const container = (angularGrid.slickGrid as any).getContainerNode?.() as HTMLElement;
-      if (!container) return;
-      const vp = container.querySelector('.slick-viewport') as HTMLElement;
-      if (!vp || vp.scrollLeft === 0) return;
-      const sl = vp.scrollLeft;
-      vp.scrollLeft = sl + 1;
-      setTimeout(() => { vp.scrollLeft = sl; }, 0);
-    }, 0);
+    // Use double-rAF to ensure browser has completed layout/paint after setItems+refresh
+    // before nudging the scroll to re-sync header, filter-row, and viewport.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const container = (angularGrid.slickGrid as any).getContainerNode?.() as HTMLElement;
+        if (!container) return;
+        const vp = container.querySelector('.slick-viewport') as HTMLElement;
+        if (!vp || vp.scrollLeft === 0) return;
+        const sl = vp.scrollLeft;
+        vp.scrollLeft = sl + 1;
+        requestAnimationFrame(() => { vp.scrollLeft = sl; });
+      });
+    });
   }
 
   // Update editor collections for all grids after master data is loaded

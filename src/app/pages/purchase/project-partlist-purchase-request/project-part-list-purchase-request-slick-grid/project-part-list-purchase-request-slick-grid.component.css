@@ -79,3 +79,51 @@
   padding: 0.25rem 0.5rem;
   height: calc(1.5em + 0.5rem + 2px);
 }
+
+/* Filter dropdown multipleSelect - fix tràn ngang, checkbox bị ẩn */
+::ng-deep .ms-drop {
+  width: auto !important;
+  min-width: 250px !important;
+  max-width: 400px !important;
+  overflow: hidden !important;
+}
+
+::ng-deep .ms-drop .ms-list {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+}
+
+::ng-deep .ms-drop .ms-list li {
+  white-space: nowrap !important;
+}
+
+::ng-deep .ms-drop .ms-list li label {
+  display: flex !important;
+  align-items: center !important;
+  padding: 4px 10px !important;
+  cursor: pointer !important;
+  width: max-content !important;
+  min-width: 100% !important;
+}
+
+/* Checkbox luôn hiển thị, không bị co lại */
+::ng-deep .ms-drop .ms-list li label .icon-checkbox-container {
+  flex-shrink: 0 !important;
+  margin-right: 6px !important;
+}
+
+/* Text hiển thị đầy đủ, scroll ngang để xem */
+::ng-deep .ms-drop .ms-list li label span {
+  white-space: nowrap !important;
+  font-size: 12px !important;
+}
+
+::ng-deep .ms-drop .ms-select-all label {
+  display: flex !important;
+  align-items: center !important;
+}
+
+::ng-deep .ms-drop .ms-select-all label .icon-checkbox-container {
+  flex-shrink: 0 !important;
+  margin-right: 6px !important;
+}

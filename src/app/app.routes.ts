@@ -361,6 +361,7 @@ import { JobRequirementRecommendComponent } from './pages/hrm/job-requirement/jo
 import { MakertrainingComponent } from './pages/makertraining/makertraining.component';
 import { PollFormComponent } from './pages/poll-form/poll-form.component';
 import { PollVoteComponent } from './pages/poll-vote/poll-vote.component';
+import { InventoryAllComponent } from './pages/old/Sale/Inventory/inventory-new/inventory-all/inventory-all.component';
 export const routes: Routes = [
 
     {
@@ -1253,6 +1254,7 @@ export const routes: Routes = [
             { path: 'poll-form', component: PollFormComponent, canActivate: [authGuard] },
             { path: 'poll-vote/:id', component: PollVoteComponent, canActivate: [authGuard] },
             { path: 'poll-vote', component: PollVoteComponent, canActivate: [authGuard] },
+            { path: 'inventory-all', component: InventoryAllComponent, canActivate: [authGuard] },
 
         ],
     },

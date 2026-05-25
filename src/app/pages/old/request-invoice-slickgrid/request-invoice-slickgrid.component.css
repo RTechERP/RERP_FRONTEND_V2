@@ -224,6 +224,19 @@ angular-slickgrid,
     height: 100% !important;
 }
 
+.grid-container-contractfile {
+    height: 100%;
+}
+
+:host ::ng-deep .grid-container-contractfile nz-spin,
+:host ::ng-deep .grid-container-contractfile .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-contractfile .ant-spin-container,
+:host ::ng-deep .grid-container-contractfile angular-slickgrid,
+:host ::ng-deep .grid-container-contractfile .slickgrid-container,
+:host ::ng-deep .grid-container-contractfile .gridPane {
+    height: 100% !important;
+}
+
 /* Footer Row căn sang phải */
 :host ::ng-deep .slick-state-default .slick-footerrow-column {
     justify-content: end !important;

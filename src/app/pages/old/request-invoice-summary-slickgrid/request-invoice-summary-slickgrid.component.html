@@ -101,6 +101,16 @@
                                 </angular-slickgrid>
                             </div>
                         </nz-tab>
+                        <nz-tab nzTitle="File Hợp đồng">
+                            <div class="grid-container-contractfile h-100" *ngIf="isContractFileGridRendered">
+                                <angular-slickgrid gridId="gridContractFile" [columns]="columnDefinitionsContractFile"
+                                    [options]="gridOptionsContractFile" [dataset]="datasetContractFile"
+                                    (onAngularGridCreated)="angularGridReadyContractFile($event.detail)"
+                                    (onClick)="onContractFileRowClick($event.detail.eventData, $event.detail.args)"
+                                    (onDblClick)="onContractFileRowDblClick($event.detail.eventData, $event.detail.args)">
+                                </angular-slickgrid>
+                            </div>
+                        </nz-tab>
                         <nz-tab nzTitle="File PO">
                             <div class="grid-container-pofile h-100" *ngIf="isPOFileGridRendered">
                                 <angular-slickgrid gridId="gridPOFile" [columns]="columnDefinitionsPOFile"

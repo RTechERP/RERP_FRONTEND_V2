@@ -359,6 +359,7 @@ import { JobRequirementRecommendComponent } from './pages/hrm/job-requirement/jo
 import { MakertrainingComponent } from './pages/makertraining/makertraining.component';
 import { PollFormComponent } from './pages/poll-form/poll-form.component';
 import { PollVoteComponent } from './pages/poll-vote/poll-vote.component';
+import { EslTestRegistrationComponent } from './pages/esl-test-registration/esl-test-registration.component';
 export const routes: Routes = [
 
     {
@@ -396,6 +397,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
         children: [
             { path: 'welcome', component: WelcomeComponent, canActivate: [authGuard] },
+            { path: 'esl-test-registration', component: EslTestRegistrationComponent, canActivate: [authGuard] },
 
             //#region hệ thống
             { path: 'menu-app', component: MenuAppComponent, canActivate: [authGuard] },

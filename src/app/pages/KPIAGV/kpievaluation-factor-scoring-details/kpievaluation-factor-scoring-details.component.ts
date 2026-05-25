@@ -1629,9 +1629,25 @@ export class KPIAGVEvaluationFactorScoringDetailsComponent implements OnInit, Af
         cssClass: 'text-right',
         sortable: true,
         resizable: true
+      },
+      {
+        id: 'KPIPLC',
+        field: 'KPIPLC',
+        name: 'PLC',
+        minWidth: 100,
+        cssClass: 'text-right',
+        sortable: true,
+        columnGroup: 'Chuyên môn'
+      },
+      {
+        id: 'KPIAMR',
+        field: 'KPIAMR',
+        name: 'AMR/AGV',
+        minWidth: 100,
+        cssClass: 'text-right',
+        sortable: true,
+        columnGroup: 'Chuyên môn'
       }
-      // ========== gridBand7: Chuyên môn (HIDDEN trong WinForm) ==========
-      // KPIPLC, KPIVision, KPISoftware - không hiển thị
     ];
 
     this.teamGridOptions = {
@@ -1768,7 +1784,7 @@ export class KPIAGVEvaluationFactorScoringDetailsComponent implements OnInit, Af
     if (totalRows === 0) return;
 
     // Các cột cần tính trung bình
-    const avgColumns = ['TimeWork', 'FiveS', 'ReportWork', 'ComplaneAndMissing', 'DeadlineDelay', 'KPIKyNang', 'KPIChung', 'KPIChuyenMon'];
+    const avgColumns = ['TimeWork', 'FiveS', 'ReportWork', 'ComplaneAndMissing', 'DeadlineDelay', 'KPIKyNang', 'KPIChung', 'KPIChuyenMon', 'KPIPLC', 'KPIAMR'];
 
     // Tính tổng cho tất cả các cột điểm
     const sums: { [key: string]: number } = {};
@@ -3388,8 +3404,7 @@ export class KPIAGVEvaluationFactorScoringDetailsComponent implements OnInit, Af
     const teamKPIKyNang = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIKyNang') || 0, 2);
     const teanKPIChung = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIChung') || 0, 2);
     const teamKPIPLC = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIPLC') || 0, 2);
-    const teamKPIVISION = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIVision') || 0, 2);
-    const teamKPISOFTWARE = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPISoftware') || 0, 2);
+    const teamKPIAMR = this.formatDecimalNumber(this.getGridSummaryByFields(this.angularGridTeam, ['KPIAMR', 'KPIAGV', 'KPIAgv', 'KPIVision', 'KPISoftware']) || 0, 2);
     const missingTool = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'MissingTool') || 0, 2);
     const teamKPIChuyenMon = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIChuyenMon') || 0, 2);
 
@@ -3413,8 +3428,10 @@ export class KPIAGVEvaluationFactorScoringDetailsComponent implements OnInit, Af
       { EvaluationCode: 'TEAMKPIKYNANG', ThirdMonth: this.formatDecimalNumber(teamKPIKyNang, 2) },
       { EvaluationCode: 'TEAMKPIChung', ThirdMonth: this.formatDecimalNumber(teanKPIChung, 2) },
       { EvaluationCode: 'TEAMKPIPLC', ThirdMonth: this.formatDecimalNumber(teamKPIPLC, 2) },
-      { EvaluationCode: 'TEAMKPIVISION', ThirdMonth: this.formatDecimalNumber(teamKPIVISION, 2) },
-      { EvaluationCode: 'TEAMKPISOFTWARE', ThirdMonth: this.formatDecimalNumber(teamKPISOFTWARE, 2) },
+      { EvaluationCode: 'TEAMKPIAMR', ThirdMonth: this.formatDecimalNumber(teamKPIAMR, 2) },
+      { EvaluationCode: 'TEAMKPIAGV', ThirdMonth: this.formatDecimalNumber(teamKPIAMR, 2) },
+      { EvaluationCode: 'TEAMKPIVISION', ThirdMonth: this.formatDecimalNumber(teamKPIAMR, 2) },
+      { EvaluationCode: 'TEAMKPISOFTWARE', ThirdMonth: this.formatDecimalNumber(teamKPIAMR, 2) },
       { EvaluationCode: 'TEAMKPICHUYENMON', ThirdMonth: this.formatDecimalNumber(teamKPIChuyenMon, 2) },
       { EvaluationCode: 'MA11', ThirdMonth: this.formatDecimalNumber(totalErrorTBP, 2) }
     ];
@@ -3449,6 +3466,14 @@ export class KPIAGVEvaluationFactorScoringDetailsComponent implements OnInit, Af
       const value = Number(row[fieldName]) || 0;
       return sum + value;
     }, 0);
+  }
+
+  private getGridSummaryByFields(gridInstance: AngularGridInstance | undefined, fieldNames: string[]): number {
+    for (const fieldName of fieldNames) {
+      const total = this.getGridSummary(gridInstance, fieldName);
+      if (total !== 0) return total;
+    }
+    return 0;
   }
   //#endregion
 
@@ -3635,8 +3660,7 @@ export class KPIAGVEvaluationFactorScoringDetailsComponent implements OnInit, Af
         const teamKPIKyNang = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIKyNang') || 0, 2);
         const teanKPIChung = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIChung') || 0, 2);
         const teamKPIPLC = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIPLC') || 0, 2);
-        const teamKPIVISION = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPIVision') || 0, 2);
-        const teamKPISOFTWARE = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'KPISoftware') || 0, 2);
+        const teamKPIAMR = this.formatDecimalNumber(this.getGridSummaryByFields(this.angularGridTeam, ['KPIAMR', 'KPIAGV', 'KPIAgv', 'KPIVision', 'KPISoftware']) || 0, 2);
         const missingTool = this.formatDecimalNumber(this.getGridSummary(this.angularGridTeam, 'MissingTool') || 0, 2);
         //#endregion
 
@@ -3659,8 +3683,10 @@ export class KPIAGVEvaluationFactorScoringDetailsComponent implements OnInit, Af
           { EvaluationCode: 'TEAMKPIKYNANG', ThirdMonth: teamKPIKyNang },
           { EvaluationCode: 'TEAMKPIChung', ThirdMonth: teanKPIChung },
           { EvaluationCode: 'TEAMKPIPLC', ThirdMonth: teamKPIPLC },
-          { EvaluationCode: 'TEAMKPIVISION', ThirdMonth: teamKPIVISION },
-          { EvaluationCode: 'TEAMKPISOFTWARE', ThirdMonth: teamKPISOFTWARE },
+          { EvaluationCode: 'TEAMKPIAMR', ThirdMonth: teamKPIAMR },
+          { EvaluationCode: 'TEAMKPIAGV', ThirdMonth: teamKPIAMR },
+          { EvaluationCode: 'TEAMKPIVISION', ThirdMonth: teamKPIAMR },
+          { EvaluationCode: 'TEAMKPISOFTWARE', ThirdMonth: teamKPIAMR },
           { EvaluationCode: 'MA11', ThirdMonth: this.formatDecimalNumber(totalErrorTBP, 2) }
         );
         //#endregion

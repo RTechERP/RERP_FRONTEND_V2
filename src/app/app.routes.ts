@@ -251,6 +251,8 @@ import { EconomicContractTypeComponent } from './pages/hrm/economic-contract/eco
 import { EconomicContractComponent } from './pages/hrm/economic-contract/economic-contract.component';
 import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/frmKPIEvaluationEmployee/kpievaluation-employee.component';
 import { KPIEvaluationFactorScoringComponent } from './pages/KPITech/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
+import { KPIAGVEvaluationEmployeeComponent } from './pages/KPIAGV/kpievaluation-employee/frmKPIEvaluationEmployee/kpievaluation-employee.component';
+import { KPIAGVEvaluationFactorScoringComponent } from './pages/KPIAGV/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
 import { SettingHrConfigComponent } from './pages/hrm/setting/setting-hr-config/setting-hr-config.component';
 import { KpiErrorComponent } from './pages/old/Technical/kpi-error/kpi-error.component';
 import { KpiErrorEmployeeComponent } from './pages/old/Technical/kpi-error-employee/kpi-error-employee.component';
@@ -768,6 +770,10 @@ export const routes: Routes = [
             { path: 'kpi-tech-factor-scoring', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring-tbp', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-tech-factor-scoring-bgd', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
+            { path: 'kpi-agv', component: KPIAGVEvaluationEmployeeComponent, canActivate: [authGuard] },
+            { path: 'kpi-agv-factor-scoring', component: KPIAGVEvaluationFactorScoringComponent, canActivate: [authGuard] },
+            { path: 'kpi-agv-factor-scoring-tbp', component: KPIAGVEvaluationFactorScoringComponent, canActivate: [authGuard] },
+            { path: 'kpi-agv-factor-scoring-bgd', component: KPIAGVEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
 
 

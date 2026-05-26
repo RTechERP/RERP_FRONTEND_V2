@@ -15,6 +15,9 @@
         <div class="ms-auto d-flex gap-2">
             <button *ngIf="activeModal" nz-button nzType="default" nzDanger="true" nzSize="default"
                 (click)="closeModal()">Đóng</button>
+            <button nz-button nzType="default" nzSize="default" (click)="exportExcel()" class="me-2">
+                <i class="fas fa-file-excel text-success me-1"></i> Xuất Excel
+            </button>
             <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
         </div>
     </div>
@@ -180,6 +183,12 @@
                                         <p-sortIcon field="MoneyVAT"></p-sortIcon>
                                     </div>
                                 </th>
+                                <th pResizableColumn pSortableColumn="UserID" style="min-width: 150px; width: 150px;">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        Người phụ trách
+                                        <p-sortIcon field="UserID"></p-sortIcon>
+                                    </div>
+                                </th>
                                 <th pResizableColumn style="min-width: 60px; width: 60px;">
                                     <div class="table-header-cell">
                                         <span>Film</span>
@@ -283,6 +292,21 @@
                                     </p-cellEditor>
                                 </td>
 
+                                <!-- UserID (editable - dropdown) -->
+                                <td [pEditableColumn]="rowData" pEditableColumnField="UserID">
+                                    <p-cellEditor>
+                                        <ng-template pTemplate="input">
+                                            <p-select [options]="salesEmployeeOptions" optionLabel="label"
+                                                optionValue="value" [filter]="true" [showClear]="true" appendTo="body"
+                                                styleClass="w-100" [(ngModel)]="rowData.UserID"
+                                                [ngModelOptions]="{ standalone: true }">
+                                            </p-select>
+                                        </ng-template>
+                                        <ng-template pTemplate="output">{{ getEmployeeName(rowData.UserID)
+                                            }}</ng-template>
+                                    </p-cellEditor>
+                                </td>
+
                                 <!-- IsFilm (checkbox) -->
                                 <td class="text-center">
                                     <input type="checkbox" class="form-check-input table-checkbox"
@@ -307,6 +331,9 @@
     <!-- <div class="modal-footer py-1">
         <button *ngIf="activeModal" nz-button nzType="default" nzDanger="true" nzSize="default"
             (click)="closeModal()">Đóng</button>
+        <button nz-button nzType="default" nzSize="default" (click)="exportExcel()" class="me-2">
+            <i class="fas fa-file-excel text-success me-1"></i> Xuất Excel
+        </button>
         <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
     </div> -->
 </div>

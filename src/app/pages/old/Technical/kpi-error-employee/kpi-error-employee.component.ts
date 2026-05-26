@@ -77,7 +77,7 @@ export class KpiErrorEmployeeComponent implements OnInit {
     selectedFileRow: any = null;
 
     menuBars: any[] = [];
-    private readonly actionPermissionCodes = 'N26,N38,N1';
+    private readonly actionPermissionCodes = 'N26,N38,N1,N79';
 
     keyword: string = '';
     startDate: string | null = null;

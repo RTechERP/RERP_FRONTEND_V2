@@ -16,8 +16,8 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { HRRecruitmentCandidateService } from '../hr-recruitment-candidate/hr-recruitment-candidate.service';
-import { HrRecruitmentApproveService } from '../hr-recruitment-approve/hr-recruitment-approve.service';
+import { HRRecruitmentCandidateService } from '../hr-recruitment-candidate.service';
+import { HrRecruitmentApproveService } from '../../hr-recruitment-approve/hr-recruitment-approve.service';
 
 export interface CandidateOfferMail {
   candidateId: any;
@@ -103,9 +103,6 @@ export class HrOfferLetterComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     const today = new Date();
     this.mails = this.candidates.map((c) => {
-      // Ngày nhận việc tự điền
-      // const startD = new Date();
-      // startD.setDate(today.getDate() + 7);
 
       // Deadline mặc định là 3 ngày sau
       const deadlineD = new Date();

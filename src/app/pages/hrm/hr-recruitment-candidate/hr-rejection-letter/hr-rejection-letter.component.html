@@ -1,0 +1,117 @@
+<div class="email-composer">
+  <!-- HEADER -->
+  <div class="email-header">
+    <div class="header-icon">
+      <i class="fa-solid fa-envelope-open-text"></i>
+    </div>
+    <div class="header-text">
+      <h4>Soạn thư từ chối tuyển dụng (Kết quả không đạt)</h4>
+      <span class="form-code">BM04-RTC.HR-QT01</span>
+    </div>
+    <div class="header-meta">
+      <span class="candidate-count">
+        <i class="fa-solid fa-users"></i> {{ mails.length }} ứng viên
+      </span>
+      <button class="modal-close-btn" (click)="onCancel()" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <nz-spin [nzSpinning]="isSending" nzTip="Đang gửi thư thông báo..." style="height:87vh !important">
+    <!-- TABS PER ỨNG VIÊN -->
+    <nz-tabset [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="activeTabIndex = $any($event)" nzType="card"
+      class="candidate-tabs">
+      <nz-tab *ngFor="let mail of mails; let i = index" [nzTitle]="tabTitle">
+        <ng-template #tabTitle>
+          <i class="fa-solid fa-user-xmark" style="margin-right: 5px; color: #c0392b"></i>
+          {{ mail.candidateName }}
+        </ng-template>
+
+        <div class="tab-body">
+          <!-- LEFT: FORM -->
+          <div class="form-panel">
+            <!-- Email -->
+            <div class="field-group">
+              <label class="field-label"><i class="fa-solid fa-at text-primary"></i> Đến (Email) <span
+                  style="color: red">(*)</span></label>
+              <input nz-input [(ngModel)]="mail.toEmail" placeholder="email@domain.com" />
+            </div>
+
+            <!-- Subject -->
+            <div class="field-group">
+              <label class="field-label"><i class="fa-solid fa-heading text-warning"></i> Tiêu đề <span
+                  style="color: red">(*)</span></label>
+              <input nz-input [(ngModel)]="mail.subject" />
+            </div>
+
+            <!-- Candidate Name & Position -->
+            <div class="field-group">
+              <label class="field-label">Tên ứng viên <span style="color: red">(*)</span></label>
+              <input nz-input [(ngModel)]="mail.candidateName" (ngModelChange)="updateSubject(mail)" />
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Vị trí ứng tuyển <span style="color: red">(*)</span></label>
+              <input nz-input [(ngModel)]="mail.position" (ngModelChange)="updateSubject(mail)" />
+            </div>
+
+            <!-- Extra HTML content (Rich Text or plain text area) -->
+            <div class="field-group">
+              <label class="field-label">Nội dung ghi chú thêm (nếu có)</label>
+              <div #editorRef class="editor-container" contenteditable="true" (input)="onEditorInput(i, $event)"
+                placeholder="Nhập thêm nội dung gửi ứng viên tại đây...">
+              </div>
+            </div>
+
+            <!-- Signature -->
+            <div class="field-group">
+              <label class="field-label">Chữ ký email</label>
+              <textarea nz-input [(ngModel)]="mail.signature" [nzAutosize]="{ minRows: 2, maxRows: 3 }"></textarea>
+            </div>
+          </div>
+          <!-- /form-panel -->
+
+          <!-- RIGHT: PREVIEW EMAIL -->
+          <div class="preview-panel">
+            <div class="preview-label">
+              <i class="fa-solid fa-eye"></i> Xem trước thư từ chối
+            </div>
+            <div class="email-preview-card">
+              <div class="preview-meta">
+                <div class="meta-row">
+                  <span class="meta-key">Đến:</span>
+                  <span class="meta-val">{{ mail.toEmail || "(chưa nhập email)" }}</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-key">Tiêu đề:</span>
+                  <span class="meta-val bold">{{ mail.subject }}</span>
+                </div>
+              </div>
+              <nz-divider></nz-divider>
+              <div class="email-body-preview" [innerHTML]="getPreviewBody(mail)"></div>
+            </div>
+          </div>
+        </div>
+        <!-- /tab-body -->
+      </nz-tab>
+    </nz-tabset>
+  </nz-spin>
+
+  <!-- FOOTER -->
+  <div class="email-footer">
+    <span class="footer-hint">
+      <i class="fa-solid fa-circle-info text-primary"></i>
+      Hệ thống sẽ tự động cập nhật trạng thái ứng viên sang <b>Kết quả không đạt</b> sau khi gửi thành công.
+    </span>
+    <div class="footer-right">
+      <button nz-button nzType="default" (click)="onCancel()" nzDanger>
+        Đóng
+      </button>
+      <button nz-button nzType="primary" (click)="onSend()" [nzLoading]="isSending">
+        <i class="fa-solid fa-paper-plane" style="margin-right: 5px;"></i>
+        Gửi thư từ chối
+      </button>
+    </div>
+  </div>
+</div>

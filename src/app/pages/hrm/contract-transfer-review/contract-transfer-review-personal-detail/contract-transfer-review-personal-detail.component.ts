@@ -143,6 +143,7 @@ export interface CbqlFormModel {
   TBPApprovedDate: string;
   HRApprovedDate: string;
   BGDApprovedDate: string;
+  PERApprovedDate: string;
 }
 
 // ─── Hard-coded master data ─────────────────────────────────────────────────
@@ -546,6 +547,7 @@ export class ContractTransferReviewPersonalDetailComponent implements OnInit {
         this.form.TBPApprovedDate = d.TBPApprovedDate ?? null;
         this.form.HRApprovedDate = d.HRApprovedDate ?? null;
         this.form.BGDApprovedDate = d.BGDApprovedDate ?? null;
+        this.form.PERApprovedDate = d.PERApprovedDate ?? null;
 
         // Load items
         this.syncItemsFromForm();
@@ -743,7 +745,8 @@ export class ContractTransferReviewPersonalDetailComponent implements OnInit {
 
       TBPApprovedDate: '',
       HRApprovedDate: '',
-      BGDApprovedDate: ''
+      BGDApprovedDate: '',
+      PERApprovedDate: ''
     };
   }
 

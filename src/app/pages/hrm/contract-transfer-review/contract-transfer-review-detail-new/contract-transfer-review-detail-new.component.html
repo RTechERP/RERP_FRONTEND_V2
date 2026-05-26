@@ -3,9 +3,10 @@
     <h6 class="text-light text-uppercase m-0 fw-bold">Phiếu Đánh Giá Cán Bộ Quản Lý</h6>
     <div class="ms-auto d-flex gap-2 align-items-center no-print">
 
-        <button type="button" class="btn text-white border-0 p-1" style="background:transparent;box-shadow:none" (click)="activeModal.dismiss()">
-      <i class="fas fa-times fa-lg"></i>
-    </button>
+        <button type="button" class="btn text-white border-0 p-1" style="background:transparent;box-shadow:none"
+            (click)="activeModal.dismiss()">
+            <i class="fas fa-times fa-lg"></i>
+        </button>
     </div>
 </div>
 
@@ -31,24 +32,30 @@
             <div class="info-section">
                 <div class="info-row">
                     <span class="info-label fw-bold" style="min-width:130px">
-            Loại đánh giá:
-            <span *ngIf="canHrCreate" class="text-danger ms-1" title="Bắt buộc">*</span>
+                        Loại đánh giá:
+                        <span *ngIf="canHrCreate" class="text-danger ms-1" title="Bắt buộc">*</span>
                     </span>
                     <span class="info-sep"></span>
-                    <nz-select class="ms-2" style="min-width:300px" nzShowSearch nzAllowClear nzPlaceHolder="-- Chọn loại đánh giá --" [(ngModel)]="form.EvaluationEmployeeLoaiHDID" [nzDisabled]="!canHrCreate" [nzStatus]="(canHrCreate && isEvaluationLoaiUnset) ? 'error' : ''">
+                    <nz-select class="ms-2" style="min-width:300px" nzShowSearch nzAllowClear
+                        nzPlaceHolder="-- Chọn loại đánh giá --" [(ngModel)]="form.EvaluationEmployeeLoaiHDID"
+                        [nzDisabled]="!canHrCreate" [nzStatus]="(canHrCreate && isEvaluationLoaiUnset) ? 'error' : ''">
                         <nz-option *ngFor="let t of evalTypes" [nzValue]="t.id" [nzLabel]="t.name"></nz-option>
                     </nz-select>
                 </div>
                 <div class="info-row">
                     <span class="info-label fw-bold" style="min-width:130px">
-            Thời gian đánh giá:
-            <span *ngIf="canHrCreate" class="text-danger ms-1" title="Bắt buộc">*</span>
+                        Thời gian đánh giá:
+                        <span *ngIf="canHrCreate" class="text-danger ms-1" title="Bắt buộc">*</span>
                     </span>
                     <span class="info-sep"></span>
                     <span class="info-hint-sm me-1">Từ</span>
-                    <input type="date" class="iput date-mask date-ul info-value" [(ngModel)]="form.DateStart" [disabled]="!canEditEvaluationPeriod" [class.border-danger]="canHrCreate && !form.DateStart" min="1900-01-01" max="2100-12-31" />
+                    <input type="date" class="iput date-mask date-ul info-value" [(ngModel)]="form.DateStart"
+                        [disabled]="!canEditEvaluationPeriod" [class.border-danger]="canHrCreate && !form.DateStart"
+                        min="1900-01-01" max="2100-12-31" />
                     <span class="mx-2 info-hint-sm">Đến</span>
-                    <input type="date" class="iput date-mask date-ul info-value" [(ngModel)]="form.DateEnd" [disabled]="!canEditEvaluationPeriod" [class.border-danger]="canHrCreate && !form.DateEnd" min="1900-01-01" max="2100-12-31" />
+                    <input type="date" class="iput date-mask date-ul info-value" [(ngModel)]="form.DateEnd"
+                        [disabled]="!canEditEvaluationPeriod" [class.border-danger]="canHrCreate && !form.DateEnd"
+                        min="1900-01-01" max="2100-12-31" />
                 </div>
             </div>
 
@@ -57,10 +64,13 @@
             <!-- ══════════════════════════════════════════════════════════ -->
             <div class="section-header section-header-with-select">
                 <span class="section-header-title">
-          I.&nbsp;&nbsp;CÁN BỘ QUẢN LÝ
-          <span *ngIf="canHrCreate" class="text-danger ms-1" title="Bắt buộc">*</span>
+                    I.&nbsp;&nbsp;CÁN BỘ QUẢN LÝ
+                    <span *ngIf="canHrCreate" class="text-danger ms-1" title="Bắt buộc">*</span>
                 </span>
-                <nz-select *ngIf="canHrCreate" class="section-inline-select" nzShowSearch nzAllowClear nzPlaceHolder="-- Chọn cán bộ quản lý --" [nzLoading]="isLoadingEmployees" [(ngModel)]="form.EmployeeEvaluationID" (ngModelChange)="onEvaluatorChange($event)" [nzStatus]="((canHrCreate || isSubmitted) && !form.EmployeeEvaluationID) ? 'error' : ''">
+                <nz-select *ngIf="canHrCreate" class="section-inline-select" nzShowSearch nzAllowClear
+                    nzPlaceHolder="-- Chọn cán bộ quản lý --" [nzLoading]="isLoadingEmployees"
+                    [(ngModel)]="form.EmployeeEvaluationID" (ngModelChange)="onEvaluatorChange($event)"
+                    [nzStatus]="((canHrCreate || isSubmitted) && !form.EmployeeEvaluationID) ? 'error' : ''">
                     <nz-option *ngFor="let e of employeeOptions" [nzValue]="e.value" [nzLabel]="e.label"></nz-option>
                 </nz-select>
             </div>
@@ -82,10 +92,13 @@
             <!-- ══════════════════════════════════════════════════════════ -->
             <div class="section-header section-header-with-select mt-2">
                 <span class="section-header-title">
-          II.&nbsp;&nbsp;NGƯỜI ĐƯỢC ĐÁNH GIÁ
-          <span *ngIf="canHrCreate" class="text-danger ms-1" title="Bắt buộc">*</span>
+                    II.&nbsp;&nbsp;NGƯỜI ĐƯỢC ĐÁNH GIÁ
+                    <span *ngIf="canHrCreate" class="text-danger ms-1" title="Bắt buộc">*</span>
                 </span>
-                <nz-select *ngIf="canHrCreate" class="section-inline-select" nzShowSearch nzAllowClear nzPlaceHolder="-- Chọn người được đánh giá --" [nzLoading]="isLoadingEmployees" [(ngModel)]="form.EmployeeID" (ngModelChange)="onEmployeeChange($event)" [nzStatus]="((canHrCreate || isSubmitted) && !form.EmployeeID) ? 'error' : ''">
+                <nz-select *ngIf="canHrCreate" class="section-inline-select" nzShowSearch nzAllowClear
+                    nzPlaceHolder="-- Chọn người được đánh giá --" [nzLoading]="isLoadingEmployees"
+                    [(ngModel)]="form.EmployeeID" (ngModelChange)="onEmployeeChange($event)"
+                    [nzStatus]="((canHrCreate || isSubmitted) && !form.EmployeeID) ? 'error' : ''">
                     <nz-option *ngFor="let e of employeeOptions" [nzValue]="e.value" [nzLabel]="e.label"></nz-option>
                 </nz-select>
             </div>
@@ -105,11 +118,15 @@
                     <span class="info-label" style="min-width:80px">Bộ phận:</span>
                     <input class="info-value flex-grow-1" [(ngModel)]="form.DepartmentName" [readonly]="true" />
                 </div>
-                <div class="info-row" style="align-items:flex-start" [class.info-row-error]="isSubmitted && canEditNLD && (!form.MainJobmainResponsibilities || !form.MainJobmainResponsibilities.trim())">
+                <div class="info-row" style="align-items:flex-start"
+                    [class.info-row-error]="isSubmitted && canEditNLD && (!form.MainJobmainResponsibilities || !form.MainJobmainResponsibilities.trim())">
                     <span class="info-stt" style="padding-top:2px">4</span>
                     <span class="info-label" style="min-width:80px; padding-top:2px">Công việc chính:</span>
-                    <textarea nz-input [(ngModel)]="form.MainJobmainResponsibilities" [nzAutosize]="{ minRows: 2 }" class="eval-textarea-sm flex-grow-1" [class.box-error]="isSubmitted && canEditNLD && (!form.MainJobmainResponsibilities || !form.MainJobmainResponsibilities.trim())"
-                        [readonly]="!canEditGeneralInfo" [nzStatus]="(isSubmitted && canEditNLD && (!form.MainJobmainResponsibilities || !form.MainJobmainResponsibilities.trim())) ? 'error' : ''"></textarea>
+                    <textarea nz-input [(ngModel)]="form.MainJobmainResponsibilities" [nzAutosize]="{ minRows: 2 }"
+                        class="eval-textarea-sm flex-grow-1"
+                        [class.box-error]="isSubmitted && canEditNLD && (!form.MainJobmainResponsibilities || !form.MainJobmainResponsibilities.trim())"
+                        [readonly]="!canEditGeneralInfo"
+                        [nzStatus]="(isSubmitted && canEditNLD && (!form.MainJobmainResponsibilities || !form.MainJobmainResponsibilities.trim())) ? 'error' : ''"></textarea>
                 </div>
             </div>
 
@@ -155,7 +172,7 @@
 
                         <!-- NLĐ tự đánh giá -->
                         <th colspan="2" class="text-center" style="color:#b8000c"><b>NLĐ tự đánh giá
-              </b>
+                            </b>
                         </th>
 
                         <!-- TBP đánh giá -->
@@ -224,33 +241,47 @@
                             <!-- NLĐ: input -->
                             <td class="text-center" [class.row-error]="isRowInvalid(it)">
                                 <ng-container *ngIf="canHrCreate; else nldDisplay">
-                                    <input type="number" min="0" max="100" class="score-input" [(ngModel)]="it.nldScore" [id]="'nld-score-' + i" (keydown.arrowdown)="moveFocus($any($event), i, 'down', 'nld')" (keydown.arrowup)="moveFocus($any($event), i, 'up', 'nld')" (blur)="clampScore(it, 'nld')"
-                                        [class.score-invalid]="it.nldScore !== null && it.nldScore !== undefined && (it.nldScore < 0 || it.nldScore > 100)" placeholder="-" />
+                                    <input type="number" min="0" max="100" class="score-input" [(ngModel)]="it.nldScore"
+                                        [id]="'nld-score-' + i"
+                                        (keydown.arrowdown)="moveFocus($any($event), i, 'down', 'nld')"
+                                        (keydown.arrowup)="moveFocus($any($event), i, 'up', 'nld')"
+                                        (blur)="clampScore(it, 'nld')"
+                                        [class.score-invalid]="it.nldScore !== null && it.nldScore !== undefined && (it.nldScore < 0 || it.nldScore > 100)"
+                                        placeholder="-" />
                                 </ng-container>
                                 <ng-template #nldDisplay>
                                     <span class="score-readonly">
-                    {{ it.nldScore !== null && it.nldScore !== undefined ? it.nldScore + '%' : '–' }}
-                  </span>
+                                        {{ it.nldScore !== null && it.nldScore !== undefined ? it.nldScore + '%' : '–'
+                                        }}
+                                    </span>
                                 </ng-template>
                             </td>
                             <!-- NLĐ: quy đổi -->
-                            <td class="text-center score-auto" [class.row-error]="isRowInvalid(it)">{{nldConverted(it) | number:'1.2-2'}}%
+                            <td class="text-center score-auto" [class.row-error]="isRowInvalid(it)">{{nldConverted(it) |
+                                number:'1.2-2'}}%
                             </td>
 
                             <!-- TBP: input -->
                             <td class="text-center" [class.row-error]="isRowInvalid(it)">
                                 <ng-container *ngIf="canEditTBPScores; else tbpDisplay">
-                                    <input type="number" min="0" max="100" class="score-input" [(ngModel)]="it.tbpScore" [id]="'tbp-score-' + i" (keydown.arrowdown)="moveFocus($any($event), i, 'down', 'tbp')" (keydown.arrowup)="moveFocus($any($event), i, 'up', 'tbp')" (blur)="clampScore(it, 'tbp')"
-                                        [class.score-invalid]="it.tbpScore !== null && it.tbpScore !== undefined && (it.tbpScore < 0 || it.tbpScore > 100)" placeholder="–" />
+                                    <input type="number" min="0" max="100" class="score-input" [(ngModel)]="it.tbpScore"
+                                        [id]="'tbp-score-' + i"
+                                        (keydown.arrowdown)="moveFocus($any($event), i, 'down', 'tbp')"
+                                        (keydown.arrowup)="moveFocus($any($event), i, 'up', 'tbp')"
+                                        (blur)="clampScore(it, 'tbp')"
+                                        [class.score-invalid]="it.tbpScore !== null && it.tbpScore !== undefined && (it.tbpScore < 0 || it.tbpScore > 100)"
+                                        placeholder="–" />
                                 </ng-container>
                                 <ng-template #tbpDisplay>
                                     <span class="score-readonly">
-                    {{ it.tbpScore !== null && it.tbpScore !== undefined ? it.tbpScore + '%' : '–' }}
-                  </span>
+                                        {{ it.tbpScore !== null && it.tbpScore !== undefined ? it.tbpScore + '%' : '–'
+                                        }}
+                                    </span>
                                 </ng-template>
                             </td>
                             <!-- TBP: quy đổi -->
-                            <td class="text-center score-auto" [class.row-error]="isRowInvalid(it)">{{tbpConverted(it) | number:'1.2-2'}}%
+                            <td class="text-center score-auto" [class.row-error]="isRowInvalid(it)">{{tbpConverted(it) |
+                                number:'1.2-2'}}%
                             </td>
                         </tr>
                     </ng-container>
@@ -295,12 +326,18 @@
                         <tr>
                             <td class="comment-sub"><strong>Điểm mạnh:</strong></td>
                             <td>
-                                <textarea nz-input appSyncTextareaHeight="strengths" [appSyncTextareaHeightValue]="form.Strengths" [(ngModel)]="form.Strengths" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [class.box-error]="isSubmitted && canEditNLD && !form.Strengths?.trim()"
+                                <textarea nz-input appSyncTextareaHeight="strengths"
+                                    [appSyncTextareaHeightValue]="form.Strengths" [(ngModel)]="form.Strengths"
+                                    [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100"
+                                    [class.box-error]="isSubmitted && canEditNLD && !form.Strengths?.trim()"
                                     [readonly]="!canEditNLD">
                 </textarea>
                             </td>
                             <td>
-                                <textarea nz-input appSyncTextareaHeight="strengths" [appSyncTextareaHeightValue]="form.TBPStrengths" [(ngModel)]="form.TBPStrengths" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [class.box-error]="isSubmitted && canEditTBP && !form.TBPStrengths?.trim()"
+                                <textarea nz-input appSyncTextareaHeight="strengths"
+                                    [appSyncTextareaHeightValue]="form.TBPStrengths" [(ngModel)]="form.TBPStrengths"
+                                    [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100"
+                                    [class.box-error]="isSubmitted && canEditTBP && !form.TBPStrengths?.trim()"
                                     [readonly]="!canEditTBP">
                 </textarea>
                             </td>
@@ -309,12 +346,20 @@
                         <tr>
                             <td class="comment-sub"><strong>Điểm cần cải thiện:</strong></td>
                             <td>
-                                <textarea nz-input appSyncTextareaHeight="improvements" [appSyncTextareaHeightValue]="form.AreasForImprovement" [(ngModel)]="form.AreasForImprovement" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [class.box-error]="isSubmitted && canEditNLD && !form.AreasForImprovement?.trim()"
+                                <textarea nz-input appSyncTextareaHeight="improvements"
+                                    [appSyncTextareaHeightValue]="form.AreasForImprovement"
+                                    [(ngModel)]="form.AreasForImprovement" [nzAutosize]="{ minRows: 2, maxRows: 40 }"
+                                    class="eval-textarea-sm w-100"
+                                    [class.box-error]="isSubmitted && canEditNLD && !form.AreasForImprovement?.trim()"
                                     [readonly]="!canEditNLD">
                 </textarea>
                             </td>
                             <td>
-                                <textarea nz-input appSyncTextareaHeight="improvements" [appSyncTextareaHeightValue]="form.TBPAreasForImprovement" [(ngModel)]="form.TBPAreasForImprovement" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [class.box-error]="isSubmitted && canEditTBP && !form.TBPAreasForImprovement?.trim()"
+                                <textarea nz-input appSyncTextareaHeight="improvements"
+                                    [appSyncTextareaHeightValue]="form.TBPAreasForImprovement"
+                                    [(ngModel)]="form.TBPAreasForImprovement" [nzAutosize]="{ minRows: 2, maxRows: 40 }"
+                                    class="eval-textarea-sm w-100"
+                                    [class.box-error]="isSubmitted && canEditTBP && !form.TBPAreasForImprovement?.trim()"
                                     [readonly]="!canEditTBP">
                 </textarea>
                             </td>
@@ -328,13 +373,19 @@
                             </td>
 
                             <td class="comment-head">
-                                <nz-select style="min-width:220px" nzShowSearch nzPlaceHolder="-- Chọn kết luận --" [(ngModel)]="form.ConclusionEmployeeLoaiHDID" [nzDisabled]="!canEditNLD" [class.select-error]="isSubmitted && canEditNLD && (form.ConclusionEmployeeLoaiHDID === null || form.ConclusionEmployeeLoaiHDID === undefined)">
-                                    <nz-option *ngFor="let c of employeeConclusions" [nzValue]="c.id" [nzLabel]="c.name"></nz-option>
+                                <nz-select style="min-width:220px" nzShowSearch nzPlaceHolder="-- Chọn kết luận --"
+                                    [(ngModel)]="form.ConclusionEmployeeLoaiHDID" [nzDisabled]="!canEditNLD"
+                                    [class.select-error]="isSubmitted && canEditNLD && (form.ConclusionEmployeeLoaiHDID === null || form.ConclusionEmployeeLoaiHDID === undefined)">
+                                    <nz-option *ngFor="let c of employeeConclusions" [nzValue]="c.id"
+                                        [nzLabel]="c.name"></nz-option>
                                 </nz-select>
                             </td>
                             <td class="comment-head">
-                                <nz-select style="min-width:220px" nzShowSearch nzPlaceHolder="-- Chọn kết luận --" [(ngModel)]="form.TBPConclusionEmployeeLoaiHDID" [nzDisabled]="!canEditTBP" [class.select-error]="isSubmitted && canEditTBP && (form.TBPConclusionEmployeeLoaiHDID === null || form.TBPConclusionEmployeeLoaiHDID === undefined)">
-                                    <nz-option *ngFor="let c of conclusions" [nzValue]="c.id" [nzLabel]="c.name"></nz-option>
+                                <nz-select style="min-width:220px" nzShowSearch nzPlaceHolder="-- Chọn kết luận --"
+                                    [(ngModel)]="form.TBPConclusionEmployeeLoaiHDID" [nzDisabled]="!canEditTBP"
+                                    [class.select-error]="isSubmitted && canEditTBP && (form.TBPConclusionEmployeeLoaiHDID === null || form.TBPConclusionEmployeeLoaiHDID === undefined)">
+                                    <nz-option *ngFor="let c of conclusions" [nzValue]="c.id"
+                                        [nzLabel]="c.name"></nz-option>
                                 </nz-select>
                             </td>
                         </tr>
@@ -344,11 +395,18 @@
                             <td class="comment-code">G</td>
                             <td class="comment-label" colspan="2">Kiến nghị/Khác</td>
                             <td>
-                                <textarea nz-input appSyncTextareaHeight="recommendations" [appSyncTextareaHeightValue]="form.RecommendationsOrOther" [(ngModel)]="form.RecommendationsOrOther" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [readonly]="!canEditNLD">
+                                <textarea nz-input appSyncTextareaHeight="recommendations"
+                                    [appSyncTextareaHeightValue]="form.RecommendationsOrOther"
+                                    [(ngModel)]="form.RecommendationsOrOther" [nzAutosize]="{ minRows: 2, maxRows: 40 }"
+                                    class="eval-textarea-sm w-100" [readonly]="!canEditNLD">
                 </textarea>
                             </td>
                             <td>
-                                <textarea nz-input appSyncTextareaHeight="recommendations" [appSyncTextareaHeightValue]="form.TBPRecommendationsOrOther" [(ngModel)]="form.TBPRecommendationsOrOther" [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100" [readonly]="!canEditTBP">
+                                <textarea nz-input appSyncTextareaHeight="recommendations"
+                                    [appSyncTextareaHeightValue]="form.TBPRecommendationsOrOther"
+                                    [(ngModel)]="form.TBPRecommendationsOrOther"
+                                    [nzAutosize]="{ minRows: 2, maxRows: 40 }" class="eval-textarea-sm w-100"
+                                    [readonly]="!canEditTBP">
                 </textarea>
                             </td>
                         </tr>
@@ -360,12 +418,21 @@
             <!-- KÝ TÊN – 3 cột                                           -->
             <!-- ══════════════════════════════════════════════════════════ -->
             <div class="signature-row-triple mt-4">
-                <!-- Cột 1: Trưởng bộ phận -->
+                <!-- Cột 1: Người được đánh giá -->
+                <div class="sig-triple-block">
+                    <div class="sig-location-placeholder"></div>
+                    <p class="sig-title">NGƯỜI ĐƯỢC ĐÁNH GIÁ</p>
+                    <div class="sig-space">{{form.EmployeeName || ''}}</div>
+                    <div *ngIf="form.PERApprovedDate" class="sig-space-date">{{ formatDateTimeISO(form.PERApprovedDate)}}
+                    </div>
+                </div>
+                <!-- Cột 2: Trưởng bộ phận -->
                 <div class="sig-triple-block">
                     <div class="sig-location-placeholder"></div>
                     <p class="sig-title">TRƯỞNG BỘ PHẬN</p>
                     <div class="sig-space">{{form.TBPApproveName || ''}}</div>
-                    <div *ngIf="form.TBPApprovedDate" class="sig-space-date">{{ formatDateTimeISO(form.TBPApprovedDate)}}
+                    <div *ngIf="form.TBPApprovedDate" class="sig-space-date">{{
+                        formatDateTimeISO(form.TBPApprovedDate)}}
                     </div>
                 </div>
                 <!-- Cột 2: Trưởng phòng HCNS -->
@@ -380,11 +447,12 @@
                 <div class="sig-triple-block">
                     <p class="sig-location-sm">
                         <i>{{form.LocationEvaluation || 'Hà Nội'}}, ngày {{evaluationDateParts.d}} tháng
-              {{evaluationDateParts.m}} năm {{evaluationDateParts.y}}</i>
+                            {{evaluationDateParts.m}} năm {{evaluationDateParts.y}}</i>
                     </p>
                     <p class="sig-title">PHÊ DUYỆT</p>
                     <div class="sig-space">{{form.BGDApproveName || ''}}</div>
-                    <div *ngIf="form.BGDApprovedDate" class="sig-space-date">{{ formatDateTimeISO(form.BGDApprovedDate)}}
+                    <div *ngIf="form.BGDApprovedDate" class="sig-space-date">{{
+                        formatDateTimeISO(form.BGDApprovedDate)}}
                     </div>
                 </div>
             </div>
@@ -398,16 +466,18 @@
 <div class="modal-footer py-1 no-print">
     <div class="ms-auto d-flex gap-2">
         <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
-      <span nz-icon nzType="close"></span> Đóng
-    </button>
+            <span nz-icon nzType="close"></span> Đóng
+        </button>
         <button nz-button nzType="primary" [nzLoading]="isSaving" (click)="onSave()" *ngIf="canShowSave">
-      <span nz-icon nzType="save"></span> Lưu
-    </button>
-        <button nz-button nzType="primary" class="bg-success border-0" [nzLoading]="isSaving" (click)="onConfirm()" *ngIf="canConfirm">
-      <span nz-icon nzType="check-circle"></span> Xác nhận
-    </button>
-        <button nz-button nzType="default" class="bg-warning text-dark border-0" [nzLoading]="isSaving" (click)="onCancelConfirm()" *ngIf="canCancelConfirm">
-      <span nz-icon nzType="rollback"></span> Hủy xác nhận
-    </button>
+            <span nz-icon nzType="save"></span> Lưu
+        </button>
+        <button nz-button nzType="primary" class="bg-success border-0" [nzLoading]="isSaving" (click)="onConfirm()"
+            *ngIf="canConfirm">
+            <span nz-icon nzType="check-circle"></span> Xác nhận
+        </button>
+        <button nz-button nzType="default" class="bg-warning text-dark border-0" [nzLoading]="isSaving"
+            (click)="onCancelConfirm()" *ngIf="canCancelConfirm">
+            <span nz-icon nzType="rollback"></span> Hủy xác nhận
+        </button>
     </div>
 </div>

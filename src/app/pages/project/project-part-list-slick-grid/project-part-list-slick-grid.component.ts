@@ -5217,7 +5217,12 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
           ReasonDeleted: this.reasonDeletedVersion.trim()
         };
 
-        this.projectPartListService.saveProjectPartListVersion(payload).subscribe({
+        const payloadfinal = {
+          ProjectPartListVersion: payload,
+          ProjectHistoryProblemIds: []
+        }
+
+        this.projectPartListService.saveProjectPartListVersion(payloadfinal).subscribe({
           next: (response: any) => {
             if (response.status === 1) {
               this.notification.success('Thành công', response.message || 'Xóa phiên bản thành công!');

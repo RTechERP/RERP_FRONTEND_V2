@@ -105,6 +105,7 @@ import { InventoryByDateComponent } from './pages/accounting/inventory-by-date/i
 import { DailyReportSaleAdminComponent } from './pages/old/KPISale/daily-report-sale-admin/daily-report-sale-admin.component';
 import { DailyReportSaleComponent } from './pages/old/KPISale/daily-report-sale/daily-report-sale.component';
 import { EmployeeSaleManagerComponent } from './pages/old/KPISale/employee-sale-manager/employee-sale-manager.component';
+import { KpiSaleManagementComponent } from './pages/old/KPISale/kpi-sale-management/kpi-sale-management.component';
 import { PokhHistoryComponent } from './pages/old/pokh-history/pokh-history.component';
 import { PokhKpiComponent } from './pages/old/pokh-kpi/pokh-kpi.component';
 import { PokhComponent } from './pages/old/pokh/pokh.component';
@@ -363,6 +364,7 @@ import { JobRequirementRecommendComponent } from './pages/hrm/job-requirement/jo
 import { MakertrainingComponent } from './pages/makertraining/makertraining.component';
 import { PollFormComponent } from './pages/poll-form/poll-form.component';
 import { PollVoteComponent } from './pages/poll-vote/poll-vote.component';
+import { InventoryAllComponent } from './pages/old/Sale/Inventory/inventory-new/inventory-all/inventory-all.component';
 export const routes: Routes = [
 
     {
@@ -562,6 +564,7 @@ export const routes: Routes = [
             { path: 'follow-project-base', component: FollowProjectBaseSlickgridComponent, canActivate: [authGuard] },
             { path: 'bonus-coefficient', component: BonusCoefficientComponent, canActivate: [authGuard] },
             { path: 'employee-sale-manager', component: EmployeeSaleManagerComponent, canActivate: [authGuard] },
+            { path: 'kpi-sale-management', component: KpiSaleManagementComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale', component: DailyReportSaleSlickgridComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale-admin', component: DailyReportSaleAdminSlickgridComponent, canActivate: [authGuard] },
             { path: 'request-invoice-old', component: RequestInvoiceComponent, canActivate: [authGuard] },
@@ -1259,6 +1262,7 @@ export const routes: Routes = [
             { path: 'poll-form', component: PollFormComponent, canActivate: [authGuard] },
             { path: 'poll-vote/:id', component: PollVoteComponent, canActivate: [authGuard] },
             { path: 'poll-vote', component: PollVoteComponent, canActivate: [authGuard] },
+            { path: 'inventory-all', component: InventoryAllComponent, canActivate: [authGuard] },
 
         ],
     },

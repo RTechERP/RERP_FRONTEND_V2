@@ -61,7 +61,7 @@
           <div class="card h-100 border-0 rounded-0 d-flex flex-column">
             <div class="card-body p-0 flex-grow-1 grid-container-main" style="overflow: hidden;">
               <nz-spin [nzSpinning]="isLoadingMain" nzTip="Đang tải dữ liệu..." class="h-100 w-100">
-                <angular-slickgrid gridId="gridMain" [columns]="columnDefinitionsMain" [options]="gridOptionsMain"
+                <angular-slickgrid [gridId]="'gridMain_' + uniqueId" [columns]="columnDefinitionsMain" [options]="gridOptionsMain"
                   [dataset]="datasetMain" (onAngularGridCreated)="angularGridReadyMain($event.detail)"
                   (onClick)="onMainRowClick($event.detail.eventData, $event.detail.args)"
                   (onDblClick)="onMainRowDblClick($event.detail.eventData, $event.detail.args)">
@@ -78,7 +78,7 @@
                 <div class="card-body p-0 flex-grow-1 grid-container-detail"
                   style="overflow: hidden; position: relative; min-height: 0;">
                   <nz-spin [nzSpinning]="isLoadingDetail" nzTip="Đang tải..." class="h-100 w-100">
-                    <angular-slickgrid gridId="gridDetail" [columns]="columnDefinitionsDetail"
+                    <angular-slickgrid [gridId]="'gridDetail_' + uniqueId" [columns]="columnDefinitionsDetail"
                       [options]="gridOptionsDetail" [dataset]="datasetDetail"
                       (onAngularGridCreated)="angularGridReadyDetail($event.detail)"
                       (onClick)="onDetailRowClick($event.detail.eventData, $event.detail.args)">
@@ -93,7 +93,7 @@
                 <nz-tab nzTitle="Danh sách file">
                   <div class="card-body p-0 flex-grow-1 grid-container-file" style="min-height: 200px;">
                     <nz-spin [nzSpinning]="isLoadingFile" nzTip="Đang tải..." class="h-100 w-100">
-                      <angular-slickgrid gridId="gridFile" [columns]="columnDefinitionsFile" [options]="gridOptionsFile"
+                      <angular-slickgrid [gridId]="'gridFile_' + uniqueId" [columns]="columnDefinitionsFile" [options]="gridOptionsFile"
                         [dataset]="datasetFile" (onAngularGridCreated)="angularGridReadyFile($event.detail)"
                         (onClick)="onFileRowClick($event.detail.eventData, $event.detail.args)"
                         (onDblClick)="onFileRowDblClick($event.detail.eventData, $event.detail.args)">
@@ -101,10 +101,22 @@
                     </nz-spin>
                   </div>
                 </nz-tab>
+                <nz-tab nzTitle="File Hợp đồng">
+                  <div class="card-body p-0 flex-grow-1 grid-container-contractfile" style="min-height: 200px;">
+                    <nz-spin [nzSpinning]="isLoadingContractFile" nzTip="Đang tải..." class="h-100 w-100">
+                      <angular-slickgrid *ngIf="isContractFileGridRendered" [gridId]="'gridContractFile_' + uniqueId"
+                        [columns]="columnDefinitionsContractFile" [options]="gridOptionsContractFile" [dataset]="datasetContractFile"
+                        (onAngularGridCreated)="angularGridReadyContractFile($event.detail)"
+                        (onClick)="onContractFileRowClick($event.detail.eventData, $event.detail.args)"
+                        (onDblClick)="onContractFileRowDblClick($event.detail.eventData, $event.detail.args)">
+                      </angular-slickgrid>
+                    </nz-spin>
+                  </div>
+                </nz-tab>
                 <nz-tab nzTitle="File PO">
                   <div class="card-body p-0 flex-grow-1 grid-container-pofile" style="min-height: 200px;">
                     <nz-spin [nzSpinning]="isLoadingPOFile" nzTip="Đang tải..." class="h-100 w-100">
-                      <angular-slickgrid *ngIf="isPOFileGridRendered" gridId="gridPOFile"
+                      <angular-slickgrid *ngIf="isPOFileGridRendered" [gridId]="'gridPOFile_' + uniqueId"
                         [columns]="columnDefinitionsPOFile" [options]="gridOptionsPOFile" [dataset]="datasetPOFile"
                         (onAngularGridCreated)="angularGridReadyPOFile($event.detail)"
                         (onClick)="onPOFileRowClick($event.detail.eventData, $event.detail.args)"

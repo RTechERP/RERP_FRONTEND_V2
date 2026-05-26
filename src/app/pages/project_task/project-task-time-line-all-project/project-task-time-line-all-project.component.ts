@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, Optional, Inject, AfterViewChecked, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 
 // Ng-Zorro
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -21,6 +22,7 @@ import { AppUserService } from '../../../services/app-user.service';
 import { ProjectService } from '../../project/project-service/project.service';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
+import { ProjectTaskService } from '../project-task/project-task.service';
 
 export interface TreeTaskNode {
     ProjectTaskID: number;
@@ -30,6 +32,7 @@ export interface TreeTaskNode {
     ProjectTaskParentCode: string | null;
     ProjectTaskParentTitle: string | null;
     Status: number;
+    IsApproved: number | boolean | string | null;
     StatusName: string;
     isOverdue: boolean;
     FullName: string;
@@ -68,6 +71,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     private projectService = inject(ProjectService);
     private tabService = inject(TabServiceService);
     private elementRef = inject(ElementRef);
+    private projectTaskService = inject(ProjectTaskService);
 
     // ===== Bộ tìm kiếm =====
     dateStart: string = '';
@@ -86,11 +90,13 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     dateColumns: any[] = [];
     treeData: TreeTaskNode[] = [];
     flatVisibleData: TreeTaskNode[] = [];
+    dayOffList: string[] = [];
+    allStatuses: any[] = [];
 
     // ===== Bộ lọc cột =====
     filterTaskKeyword = '';
     filterStatusColumn: number[] = [];
-    selectedStatuses: number[] = [0, 1];
+    selectedStatuses: number[] = [];
 
     // New multi-select filters
     filterMemberColumn: string[] = [];
@@ -101,13 +107,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     deptOptions: any[] = [];
     categoryOptions: any[] = [];
 
-    statusOptions = [
-        { label: 'Chưa làm', value: 0 },
-        { label: 'Đang làm', value: 1 },
-        { label: 'Hoàn thành', value: 2 },
-        { label: 'Pending', value: 3 },
-        { label: 'Hủy', value: 4 }
-    ];
+    statusOptions: any[] = [];
 
     // ===== Focus =====
     focusTaskId: number = 0;
@@ -141,12 +141,27 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
 
         this.loadDepartments();
         this.loadProjects();
+        this.loadProjectTaskStatuses();
 
         if (this.departmentId > 0) {
             this.loadTeamsByDepartment(this.departmentId);
         }
 
         this.loadTimeline();
+    }
+
+    loadProjectTaskStatuses(): void {
+        this.timelineService.getProjectTaskStatuses().subscribe({
+            next: (statuses) => {
+                this.allStatuses = statuses;
+                const type1Statuses = statuses.filter((s: any) => s.Type === 1);
+                this.statusOptions = type1Statuses.map((s: any) => ({
+                    label: s.Title,
+                    value: s.No
+                }));
+            },
+            error: (err) => console.error('Error loading project task statuses:', err)
+        });
     }
 
     ngAfterViewChecked() {
@@ -237,7 +252,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         this.dateEnd = this.getDefaultDateEnd();
         this.departmentId = this.appUserService.departmentID || 0;
         this.teamId = this.appUserService.currentUser?.TeamOfUser || 0;
-        this.selectedStatuses = [0, 1];
+        this.selectedStatuses = [];
         this.filterTaskKeyword = '';
         this.filterStatusColumn = [];
         this.filterMemberColumn = [];
@@ -260,7 +275,6 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         setTimeout(() => {
             const startDate = new Date(this.dateStart);
             const endDate = new Date(this.dateEnd);
-            this.generateDateColumns(startDate, endDate);
 
             let statusStr = '';
             if (this.selectedStatuses.length === 0 || this.selectedStatuses.length === this.statusOptions.length) {
@@ -269,17 +283,22 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
                 statusStr = this.selectedStatuses.join(',');
             }
 
-            this.timelineService.getProjectTaskTimeLineByProject({
-                dateStart: this.dateStart,
-                dateEnd: this.dateEnd,
-                departmentID: this.departmentId || 0,
-                teamID: this.teamId || 0,
-                projectID: this.projectId || 0,
-                status: statusStr
+            forkJoin({
+                timelineData: this.timelineService.getProjectTaskTimeLineByProject({
+                    dateStart: this.dateStart,
+                    dateEnd: this.dateEnd,
+                    departmentID: this.departmentId || 0,
+                    teamID: this.teamId || 0,
+                    projectID: this.projectId || 0,
+                    status: statusStr
+                }),
+                dayOffData: this.timelineService.getProjectTaskGetDayOff(this.dateStart, this.dateEnd)
             }).subscribe({
-                next: (data) => {
+                next: ({ timelineData, dayOffData }) => {
                     setTimeout(() => {
-                        this.buildTree(data);
+                        this.dayOffList = dayOffData;
+                        this.generateDateColumns(startDate, endDate);
+                        this.buildTree(timelineData);
                         this.applyFilters();
                         this.loading.set(false);
                         // Kích hoạt scroll đến focus task
@@ -290,7 +309,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
                     }, 10);
                 },
                 error: (err) => {
-                    console.error('Error loading timeline:', err);
+                    console.error('Error loading timeline data:', err);
                     this.loading.set(false);
                     this.message.error('Không thể tải dữ liệu timeline');
                 }
@@ -306,6 +325,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         while (current <= end) {
             const d = new Date(current);
             const dateStr = this.formatDate(d);
+            const isDayOff = this.dayOffList.includes(dateStr);
             dates.push({
                 fullDate: d,
                 dateStr: dateStr,
@@ -313,7 +333,8 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
                 dateDisplay: d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0'),
                 isWeekend: d.getDay() === 0 || d.getDay() === 6,
                 isSunday: d.getDay() === 0,
-                isToday: dateStr === this.formatDate(new Date())
+                isToday: dateStr === this.formatDate(new Date()),
+                isDayOff: isDayOff
             });
             current.setDate(current.getDate() + 1);
         }
@@ -368,8 +389,9 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
                 ProjectTaskTitle: item.ProjectTaskTitle,
                 ProjectTaskParentID: item.ProjectTaskParentID,
                 ProjectTaskParentCode: item.ProjectTaskParentCode,
-                ProjectTaskParentTitle: item.ProjectTaskParentTitle,
+                ProjectTaskParentTitle: item.ProjectTaskParentTitle || '',
                 Status: item.Status,
+                IsApproved: item['IsApprove'] !== undefined && item['IsApprove'] !== null ? item['IsApprove'] : null,
                 isOverdue: this.isTaskOverdue(item),
                 StatusName: this.getStatusDisplayName(item),
                 FullName: item['FullName'] || '',
@@ -586,8 +608,83 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
 
     // ===== HIỂN THỊ Ô NGÀY =====
 
-    getValue(row: any, dateStr: string): number {
-        return row?.[dateStr] || 0;
+    getValue(row: any, dateStr: string): string {
+        return row?.[dateStr]?.toString() || '0';
+    }
+
+    /** Kiểm tra ô ngày thuộc hàng Dự kiến có work ngoài VP RTC không */
+    isOutsideWork(row: any, dateStr: string): boolean {
+        if (row?.TypeDate !== 1) return false;
+        const val = this.getValue(row, dateStr);
+        return val === '11' || val === '31';
+    }
+
+    /** Kiểm tra ô Dự kiến có nằm trong khoảng kế hoạch (cần tô nền) */
+    isPlannedFilled(row: any, dateStr: string): boolean {
+        if (row?.TypeDate !== 1) return false;
+        const val = this.getValue(row, dateStr);
+        // '10', '11' = trong ngày, ko điểm danh
+        // '30', '31' = trong ngày, có điểm danh
+        return val === '10' || val === '11' || val === '30' || val === '31';
+    }
+
+    /** Kiểm tra ô Dự kiến có icon check (đã điểm danh hoặc điểm danh ngoài ngày) */
+    hasCheckMark(row: any, dateStr: string): boolean {
+        if (row?.TypeDate !== 1) return false;
+        const val = this.getValue(row, dateStr);
+        // '2' = điểm danh ngoài ngày
+        // '30', '31' = trong ngày + điểm danh
+        return val === '2' || val === '30' || val === '31';
+    }
+
+    /**
+     * Decode chuỗi thực tế (TypeDate=2): "<hours>|<isOutside>|<leaveTime>|<leaveType>"
+     * Ví dụ: "4|0|1|2" → 4 giờ, trong VP, buổi sáng, nghỉ phép (P)
+     * Nếu không có '|' (giá trị thần) → chỉ parse hours, các trường khác = 0
+     */
+    parseActualValue(row: any, dateStr: string): {
+        hours: number; isOutside: number; leaveTime: number; leaveType: number;
+    } {
+        const raw = row?.[dateStr];
+        if (raw == null || raw === '') return { hours: 0, isOutside: 0, leaveTime: 0, leaveType: 0 };
+        const rawStr = raw.toString();
+        if (rawStr.includes('|')) {
+            const parts = rawStr.split('|');
+            return {
+                hours: parseFloat(parts[0]) || 0,
+                isOutside: parseInt(parts[1], 10) || 0,
+                leaveTime: parseInt(parts[2], 10) || 0,
+                leaveType: parseInt(parts[3], 10) || 0
+            };
+        }
+        return { hours: parseFloat(rawStr) || 0, isOutside: 0, leaveTime: 0, leaveType: 0 };
+    }
+
+    /**
+     * Trả về nhãn nghỉ ngắn: "Ro", "P/S", "R/C"...
+     * leaveType: 1=Ro (không lương), 2=P (nghỉ phép), 3=R (việc riêng có lương)
+     * leaveTime: 1=Sáng, 2=Chiều, 3=Cả ngày (→ không thêm hậu tố)
+     */
+    getLeaveLabel(leaveType: number, leaveTime: number): string {
+        const typeMap: Record<number, string> = { 1: 'Ro', 2: 'P', 3: 'R' };
+        const timeMap: Record<number, string> = { 1: 'S', 2: 'C' }; // 3 = cả ngày → không thêm
+        const typePart = typeMap[leaveType] || '';
+        if (!typePart) return '';
+        const timePart = timeMap[leaveTime] || '';
+        return timePart ? `${typePart}/${timePart}` : typePart;
+    }
+
+    /**
+     * Trả về mô tả đầy đủ để hiển thị tooltip khi hover ô có nghỉ
+     * Ví dụ: "Buổi sáng – Nghỉ phép (P)"
+     */
+    getLeaveTooltip(leaveTime: number, leaveType: number): string {
+        const timeMap: Record<number, string> = { 1: 'Buổi sáng', 2: 'Buổi chiều', 3: 'Cả ngày' };
+        const typeMap: Record<number, string> = { 1: 'Nghỉ không lương (Ro)', 2: 'Nghỉ phép (P)', 3: 'Việc riêng có lương (R)' };
+        const parts = [];
+        if (timeMap[leaveTime]) parts.push(timeMap[leaveTime]);
+        if (typeMap[leaveType]) parts.push(typeMap[leaveType]);
+        return parts.join(' – ');
     }
 
     calculateRowTime(row: any): number {
@@ -615,6 +712,11 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     // ===== TRẠNG THÁI =====
 
     private isTaskOverdue(task: any): boolean {
+        const approved = task.IsApproved ?? task.IsApprove;
+        if (approved === 1 || approved === true || approved === '1') {
+            return false;
+        }
+
         const now = new Date();
         now.setHours(0, 0, 0, 0);
 
@@ -637,14 +739,27 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         return false;
     }
 
-    getStatusDisplayName(task: any): string {
-        const isOverdue = this.isTaskOverdue(task);
-        const baseName = this.getStatusName(task.Status);
+    getTaskStatusConfig(task: any): any {
+        const approved = task.IsApproved ?? task.IsApprove;
+        if (approved === 0 || approved === false || approved === '0') {
+            // Reject (Type 2, No 0)
+            return this.allStatuses.find(s => s.Type === 2 && s.No === 0);
+        } else if (approved === 1 || approved === true || approved === '1') {
+            // Approval (Type 2, No 1)
+            return this.allStatuses.find(s => s.Type === 2 && s.No === 1);
+        } else {
+            // Trạng thái công việc (Type 1, No khớp với task.Status)
+            return this.allStatuses.find(s => s.Type === 1 && s.No === task.Status);
+        }
+    }
 
+    getStatusDisplayName(task: any): string {
+        const statusConfig = this.getTaskStatusConfig(task);
+        const baseName = statusConfig ? statusConfig.Title : this.getStatusName(task.Status);
+
+        const isOverdue = this.isTaskOverdue(task);
         if (isOverdue) {
-            if (task.Status === 0) return 'Chưa làm quá hạn';
-            if (task.Status === 1) return 'Đang làm quá hạn';
-            if (task.Status === 2) return 'Hoàn thành quá hạn';
+            return baseName + '\nOverdue';
         }
 
         return baseName;
@@ -659,6 +774,20 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
             case 4: return 'Hủy';
             default: return '';
         }
+    }
+
+    getStatusStyle(node: any): { [key: string]: string } {
+        if (node.isOverdue) {
+            return {}; // Quá hạn sẽ dùng CSS của .overdue mặc định
+        }
+        const statusConfig = this.getTaskStatusConfig(node);
+        if (statusConfig) {
+            return {
+                'background-color': statusConfig.ColorBackground ? statusConfig.ColorBackground.trim() : '#f1f5f9',
+                'color': statusConfig.ColorFont ? statusConfig.ColorFont.trim() : '#475569'
+            };
+        }
+        return {};
     }
 
     // ===== TỔNG SỐ TASK =====
@@ -677,11 +806,186 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         }
 
         const taskCode = task?.ProjectTaskCode || task?.Code || `Task-${taskId}`;
+        const approvalStatus = task?.IsApproved !== undefined && task?.IsApproved !== null ? task.IsApproved : undefined;
         this.tabService.openTabComp({
             comp: TaskDetailComponent,
             title: taskCode,
             key: `project-task-detail-${taskId}`,
-            data: { id: taskId }
+            data: { id: taskId, ApprovalStatus: approvalStatus }
         });
+    }
+
+    // ===== XUẤT EXCEL =====
+
+    async exportToExcel() {
+        const plannedColor = '38BDF8';
+        const actualColor = 'F472B6';
+
+        const cols: any[] = [
+            { header: 'STT', field: 'employeeSTT', width: 10 },
+            { header: 'Mã Công Việc', field: 'Code', width: 20 },
+            { header: 'Tên Công Việc', field: 'Title', width: 50 },
+            { header: 'Nhân viên', field: 'FullName', width: 25 },
+            { header: 'Phòng ban', field: 'DepartmentName', width: 20 },
+            { header: 'Hạng mục', field: 'ProjectTypeName', width: 20 },
+            { header: 'Trạng Thái', field: 'StatusName', width: 15, align: 'center' },
+            { header: 'T.Gian\n(giờ/ngày)', field: 'TotalHours', width: 15, align: 'center' },
+            { header: 'Loại', field: 'TypeLabel', width: 12, align: 'center' }
+        ];
+
+        // Thêm các cột ngày tháng
+        this.dateColumns.forEach(dateCol => {
+            cols.push({
+                header: `${dateCol.dayName}\n${dateCol.dateDisplay}`,
+                field: dateCol.dateStr,
+                width: 6,
+                align: 'center',
+                renderValue: (item: any) => {
+                    if (item.TypeDate === 1 && this.hasCheckMark(item, dateCol.dateStr)) {
+                        return '✔';
+                    }
+                    if (item.TypeDate === 2) {
+                        const raw = item[dateCol.dateStr];
+                        if (raw == null) return '';
+                        const rawStr = raw.toString();
+                        if (rawStr === '0' || rawStr === '') return '';
+                        // Parse cấu trúc "hours|isOutside|leaveTime|leaveType"
+                        const act = rawStr.includes('|') ? rawStr.split('|') : [rawStr];
+                        const hours = parseFloat(act[0]) || 0;
+                        const leaveTime = act.length > 2 ? parseInt(act[2], 10) || 0 : 0;
+                        const leaveType = act.length > 3 ? parseInt(act[3], 10) || 0 : 0;
+                        let label = '';
+                        if (hours > 0) label = hours.toString();
+                        if (leaveTime > 0 && leaveType > 0) {
+                            const leaveLabel = this.getLeaveLabel(leaveType, leaveTime);
+                            if (leaveLabel) label = label ? `${label} (${leaveLabel})` : leaveLabel;
+                        }
+                        return label;
+                    }
+                    return '';
+                },
+                cellStyle: (item: any) => {
+                    if (item.TypeDate === 1 && item[dateCol.dateStr] != null) {
+                        const val = item[dateCol.dateStr].toString();
+                        const isPlanned = ['10', '11', '30', '31'].includes(val);
+                        const isOutside = ['11', '31'].includes(val);
+                        if (isPlanned) {
+                            const fontStyle = this.hasCheckMark(item, dateCol.dateStr) ? { color: { argb: 'FFFFFFFF' }, bold: true } : undefined;
+                            if (isOutside) {
+                                return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFB923C' } }, font: fontStyle };
+                            }
+                            return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + plannedColor } }, font: fontStyle };
+                        }
+                    }
+                    if (item.TypeDate === 2 && item[dateCol.dateStr] != null) {
+                        const val = item[dateCol.dateStr].toString();
+                        if (val !== '0') {
+                            // Parse isOutside để xác định màu nền: cam = nhà máy, hồng = VP
+                            const act = val.includes('|') ? val.split('|') : [val];
+                            const hours = parseFloat(act[0]) || 0;
+                            const isOutside = act.length > 1 ? parseInt(act[1], 10) || 0 : 0;
+                            if (hours > 0) {
+                                if (isOutside === 1) {
+                                    return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFB923C' } } }; // Nhà máy
+                                }
+                                return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + actualColor } } }; // VP
+                            }
+                        }
+                    }
+                    if (dateCol.isSunday || dateCol.isDayOff) {
+                        return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F5F5' } } };
+                    }
+                    return {};
+                }
+            });
+        });
+
+        // Chuẩn bị dữ liệu phẳng
+        const flattenedData: any[] = [];
+        const mergeRanges: any[] = [];
+        const outlineLevels: { row: number, level: number }[] = [];
+
+        this.flatVisibleData.forEach((task: any, index: number) => {
+            const taskStartRow = flattenedData.length + 2; // +1 cho header, +1 vì index 0
+
+            // Lưu cấp độ (outline level) cho 2 dòng của task
+            const level = task.level || 0;
+            outlineLevels.push({ row: taskStartRow, level });
+            outlineLevels.push({ row: taskStartRow + 1, level });
+
+            // Tạo indent cho Tên công việc dựa vào level (nếu muốn)
+            const indent = '  '.repeat(level);
+            const titleWithIndent = indent + (level > 0 ? '- ' : '') + task.ProjectTaskTitle;
+
+            // Dòng Dự kiến
+            flattenedData.push({
+                ...task.rows[0],
+                employeeSTT: index + 1,
+                Code: task.ProjectTaskCode,
+                Title: titleWithIndent,
+                FullName: task.FullName,
+                DepartmentName: task.DepartmentName,
+                ProjectTypeName: task.ProjectTypeName,
+                StatusName: task.StatusName,
+                TotalHours: '(' + (task.rows[0].SumTotalHour != null ? task.rows[0].SumTotalHour : 0) + ' / ' + (task.rows[0].DurationDays != null ? task.rows[0].DurationDays : 0) + ')',
+                TypeLabel: 'Dự kiến'
+            });
+
+            // Dòng Thực tế
+            flattenedData.push({
+                ...task.rows[1],
+                employeeSTT: index + 1,
+                Code: task.ProjectTaskCode,
+                Title: titleWithIndent,
+                FullName: task.FullName,
+                DepartmentName: task.DepartmentName,
+                ProjectTypeName: task.ProjectTypeName,
+                StatusName: task.StatusName,
+                TotalHours: '(' + (task.rows[1].SumTotalHour != null ? task.rows[1].SumTotalHour : 0) + ' / ' + (task.rows[1].DurationDays != null ? task.rows[1].DurationDays : 0) + ')',
+                TypeLabel: 'Thực tế'
+            });
+
+            // Đánh dấu merge cho Task (cá cột luôn chung 2 dòng: STT, Mã CV, Tên CV, NV, Phòng, Hạng mục, Trạng thái)
+            mergeRanges.push({ s: { r: taskStartRow, c: 1 }, e: { r: taskStartRow + 1, c: 1 } }); // STT
+            mergeRanges.push({ s: { r: taskStartRow, c: 2 }, e: { r: taskStartRow + 1, c: 2 } }); // Code
+            mergeRanges.push({ s: { r: taskStartRow, c: 3 }, e: { r: taskStartRow + 1, c: 3 } }); // Title
+            mergeRanges.push({ s: { r: taskStartRow, c: 4 }, e: { r: taskStartRow + 1, c: 4 } }); // NV
+            mergeRanges.push({ s: { r: taskStartRow, c: 5 }, e: { r: taskStartRow + 1, c: 5 } }); // Phòng
+            mergeRanges.push({ s: { r: taskStartRow, c: 6 }, e: { r: taskStartRow + 1, c: 6 } }); // Hạng mục
+            mergeRanges.push({ s: { r: taskStartRow, c: 7 }, e: { r: taskStartRow + 1, c: 7 } }); // Status
+        });
+
+        const tempTable = {
+            value: flattenedData,
+            filteredValue: null
+        } as any;
+
+        await this.projectTaskService.exportExcelPrimeNG(
+            tempTable,
+            cols,
+            'Báo cáo công việc dự án',
+            'Timeline_BaoCaoDuAn',
+            (ws) => {
+                // Định dạng nút bấm (+) của Tree nằm ở dòng mẹ
+                ws.properties.outlineProperties = {
+                    summaryBelow: false,
+                    summaryRight: false
+                };
+
+                // Thiết lập cấp bậc cho từng dòng
+                outlineLevels.forEach(item => {
+                    if (item.level > 0) {
+                        ws.getRow(item.row).outlineLevel = item.level;
+                    }
+                });
+
+                // Gộp ô (Merge cells)
+                mergeRanges.forEach(range => {
+                    ws.mergeCells(range.s.r, range.s.c, range.e.r, range.e.c);
+                    const cell = ws.getCell(range.s.r, range.s.c);
+                    cell.alignment = { vertical: 'middle', horizontal: range.s.c === 1 ? 'center' : 'left', wrapText: true };
+                });
+            }
+        );
     }
 }

@@ -68,6 +68,13 @@
     display: flex;
     gap: 16px;
     align-items: center;
+    flex-wrap: wrap;
+}
+
+.legend-sep {
+    color: #cbd5e1;
+    font-size: 16px;
+    line-height: 1;
 }
 
 .legend-item {
@@ -91,6 +98,10 @@
 
 .box.actual {
     background-color: #f472b6;
+}
+
+.box.outside-work {
+    background-color: #fb923c;
 }
 
 /* ===== TABLE ===== */
@@ -149,7 +160,7 @@ thead tr:nth-child(2) th {
 .col-stt { width: 30px; min-width: 30px; max-width: 30px; }
 .col-proj { width: 120px; min-width: 120px; max-width: 120px; }
 .col-job { width: 180px; min-width: 180px; max-width: 180px; }
-.col-status { width: 90px; min-width: 90px; max-width: 90px; }
+.col-status { width: 110px; min-width: 110px; max-width: 110px; }
 .col-time { width: 80px; min-width: 80px; max-width: 80px; }
 .col-type { 
     width: 60px; 
@@ -177,8 +188,8 @@ thead .sticky-col {
 .col-proj.sticky-col { left: 30px; }
 .col-job.sticky-col { left: 150px; }
 .col-status.sticky-col { left: 330px; }
-.col-time.sticky-col { left: 420px; }
-.col-type.sticky-col { left: 500px; }
+.col-time.sticky-col { left: 440px; }
+.col-type.sticky-col { left: 520px; }
 
 /* ===== DATE COLUMNS ===== */
 .date-header,
@@ -235,6 +246,22 @@ thead .sticky-col {
     background-color: #f472b6 !important;
 }
 
+.filled-planned-outside {
+    background-color: #fb923c !important;
+}
+
+.filled-actual-outside {
+    background-color: #fb923c !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.leave-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #7c3aed;
+    line-height: 1;
+}
+
 .check-icon {
     color: #15803d; /* xanh lá đậm */
     font-size: 22px;
@@ -255,6 +282,13 @@ thead .sticky-col {
 
 /* ===== ROW STYLING ===== */
 .row-actual td {
+    border-bottom: 2px solid #cbd5e1;
+}
+
+/* Rowspan cells (Công việc, Trạng thái) span both planned + actual rows,
+   so they must also have the same separator border as .row-actual */
+td.col-job[rowspan],
+td.col-status[rowspan] {
     border-bottom: 2px solid #cbd5e1;
 }
 
@@ -281,7 +315,18 @@ thead .sticky-col {
     padding: 2px 0;
 }
 
-.task-title,
+.task-title {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.3em;
+    height: 2.6em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .project-name {
     font-size: 11px;
     color: #64748b;
@@ -316,12 +361,24 @@ thead .sticky-col {
 
 /* ===== STATUS TAGS ===== */
 .status-tag {
-    padding: 2px 8px;
+    display: inline-block;
+    padding: 2px 10px;
     border-radius: 12px;
     font-size: 11px;
     font-weight: 600;
     background: #f1f5f9;
     color: #475569;
+    white-space: pre-line;
+    word-break: break-word;
+    line-height: 1.4;
+    min-width: 70px;
+    max-width: 100%;
+}
+
+.status-tag.overdue {
+    background: #fee2e2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fca5a5;
 }
 
 .status-tag[data-status="1"] {

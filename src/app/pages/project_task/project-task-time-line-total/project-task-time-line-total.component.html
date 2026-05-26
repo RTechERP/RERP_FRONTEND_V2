@@ -12,6 +12,15 @@
                     <div class="legend-item">
                         <span class="box actual"></span> Thực tế
                     </div>
+                    <div class="legend-item">
+                        <span class="box outside-work"></span> Nhà máy
+                    </div>
+                    <div class="legend-item"><span class="legend-sep">|</span></div>
+                    <div class="legend-item"><strong>Ro</strong>&nbsp;= Nghỉ không lương</div>
+                    <div class="legend-item"><strong>P</strong>&nbsp;= Nghỉ phép</div>
+                    <div class="legend-item"><strong>R</strong>&nbsp;= Việc riêng có lương</div>
+                    <div class="legend-item"><span class="legend-sep">|</span></div>
+                    <div class="legend-item"><strong>/S</strong>&nbsp;= Buổi sáng &nbsp; <strong>/C</strong>&nbsp;= Buổi chiều &nbsp; (không có hậu tố = cả ngày)</div>
                 </div>
             </div>
             <nz-row [nzGutter]="[8, 8]" nzAlign="bottom" nzJustify="space-between">
@@ -86,7 +95,11 @@
                             (ngModelChange)="loadTimeline()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
                             <nz-option *ngFor="let item of projectList; trackBy: trackByRow"
+                                nzCustomContent
                                 [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
+                                <div class="multiline-dropdown-option">
+                                    {{ item.ProjectCode }} - {{ item.ProjectName }}
+                                </div>
                             </nz-option>
                         </nz-select>
                     </div>
@@ -99,7 +112,7 @@
                         <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
                             nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
                             nzMode="multiple" [nzMaxTagCount]="4" nzAllowClear (ngModelChange)="loadTimeline()" style="width: 100%;">
-                            <nz-option *ngFor="let opt of statusOptions; trackBy: trackByRow" [nzLabel]="opt.label" [nzValue]="opt.value">
+                            <nz-option *ngFor="let opt of statusOptions" [nzLabel]="opt.label" [nzValue]="opt.value">
                             </nz-option>
                         </nz-select>
                     </div>
@@ -118,6 +131,10 @@
                                 nzTooltipTitle="Tìm kiếm">
                                 <span nz-icon nzType="search"></span>
                             </button>
+                            <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" nz-tooltip
+                                nzTooltipTitle="Xuất Excel">
+                                <span nz-icon nzType="file-excel" nzTheme="outline" style="color: #107c41;"></span>
+                            </button>
                         </div>
                     </div>
                 </nz-col>
@@ -135,8 +152,11 @@
                         <th rowspan="2" class="sticky-col col-stt">STT</th>
                         <th rowspan="2" class="sticky-col col-name">
                             Họ và tên
-                            <input type="text" class="filter-input" [(ngModel)]="filterFullName"
-                                (keyup)="onColumnFilter()" placeholder="Tìm kiếm...">
+                            <p-multiSelect [options]="employeeColumnOptions" [(ngModel)]="filterEmployeeColumn"
+                                placeholder="Tất cả" [showHeader]="false" [filter]="true" filterPlaceHolder="Tìm..." 
+                                (onChange)="onColumnFilter()"
+                                styleClass="timeline-status-multi" [maxSelectedLabels]="1"
+                                selectedItemsLabel="{0} người" appendTo="body" />
                         </th>
 
                         <th rowspan="2" class="sticky-col col-proj">
@@ -161,13 +181,13 @@
                         </th>
                         <th rowspan="2" class="sticky-col col-time">Thời gian <br>(giờ/ngày)</th>
                         <th rowspan="2" class="sticky-col col-type">Loại</th>
-                        <th *ngFor="let col of dateColumns; trackBy: trackByColumn" [class.sunday]="col.isSunday"
+                        <th *ngFor="let col of dateColumns; trackBy: trackByColumn" [class.sunday]="col.isSunday || col.isDayOff"
                             [class.today-col]="col.isToday" class="date-header">
                             {{ col.dayName }}
                         </th>
                     </tr>
                     <tr>
-                        <th *ngFor="let col of dateColumns; trackBy: trackByColumn" [class.sunday]="col.isSunday"
+                        <th *ngFor="let col of dateColumns; trackBy: trackByColumn" [class.sunday]="col.isSunday || col.isDayOff"
                             [class.today-col]="col.isToday" class="date-subheader">
                             {{ col.dateDisplay }}
                         </th>
@@ -232,7 +252,7 @@
                                         <!-- Trạng thái: span 2 dòng -->
                                         <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-status text-center"
                                             [class.cell-group-end]="ti === project.tasks.length - 1 && pi === group.projects.length - 1">
-                                            <span class="status-tag" [attr.data-status]="task.Status" [class.overdue]="task.isOverdue">
+                                            <span class="status-tag" [attr.data-status]="task.Status" [class.overdue]="task.isOverdue" [ngStyle]="getStatusStyle(task)">
                                                 {{ task.StatusName }}
                                             </span>
                                         </td>
@@ -253,20 +273,30 @@
                                         <!-- Các ô ngày -->
                                         <td *ngFor="let col of dateColumns; trackBy: trackByColumn" class="gantt-cell"
                                             [class.cell-group-end]="ri === 1 && ti === project.tasks.length - 1 && pi === group.projects.length - 1"
-                                            [class.sunday]="col.isSunday" [class.today-col]="col.isToday"
-                                            [class.filled-planned]="row.TypeDate === 1 && (getValue(row, col.dateStr) === 1 || getValue(row, col.dateStr) === 3)"
-                                            [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
-                                            <!-- Dự kiến: 2 hoặc 3 hiển thị icon check -->
+                                            [class.sunday]="col.isSunday || col.isDayOff" [class.today-col]="col.isToday"
+                                            [class.filled-planned]="row.TypeDate === 1 && isPlannedFilled(row, col.dateStr) && !isOutsideWork(row, col.dateStr)"
+                                            [class.filled-planned-outside]="row.TypeDate === 1 && isPlannedFilled(row, col.dateStr) && isOutsideWork(row, col.dateStr)"
+                                            [class.filled-actual]="row.TypeDate === 2 && parseActualValue(row, col.dateStr).hours > 0 && parseActualValue(row, col.dateStr).isOutside === 0"
+                                            [class.filled-actual-outside]="row.TypeDate === 2 && parseActualValue(row, col.dateStr).hours > 0 && parseActualValue(row, col.dateStr).isOutside === 1"
+                                            [nz-tooltip]="row.TypeDate === 2 && parseActualValue(row, col.dateStr).leaveTime > 0 ? getLeaveTooltip(parseActualValue(row, col.dateStr).leaveTime, parseActualValue(row, col.dateStr).leaveType) : null">
+                                            <!-- Dự kiến: hiển thị icon check -->
                                             <ng-container
-                                                *ngIf="row.TypeDate === 1 && (getValue(row, col.dateStr) === 2 || getValue(row, col.dateStr) === 3)">
+                                                *ngIf="row.TypeDate === 1 && hasCheckMark(row, col.dateStr)">
                                                 <span nz-icon nzType="check" nzTheme="outline"
                                                     class="check-icon"></span>
                                             </ng-container>
-                                            <!-- Thực tế: > 0 hiển thị số giờ -->
-                                            <ng-container *ngIf="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
-                                                <span class="actual-hours">
-                                                    {{ getValue(row, col.dateStr) }}
-                                                </span>
+                                            <!-- Thực tế: parseActualValue -->
+                                            <ng-container *ngIf="row.TypeDate === 2">
+                                                <ng-container *ngIf="parseActualValue(row, col.dateStr) as act">
+                                                    <!-- Hiển thị số giờ làm thực tế nếu > 0 -->
+                                                    <span *ngIf="act.hours > 0" class="actual-hours">
+                                                        {{ act.hours }}
+                                                    </span>
+                                                    <!-- Hiển thị nhãn nghỉ nếu có đăng ký nghỉ -->
+                                                    <span *ngIf="act.leaveTime > 0 && act.leaveType > 0" class="leave-label">
+                                                        {{ getLeaveLabel(act.leaveType, act.leaveTime) }}
+                                                    </span>
+                                                </ng-container>
                                             </ng-container>
                                         </td>
                                     </tr>

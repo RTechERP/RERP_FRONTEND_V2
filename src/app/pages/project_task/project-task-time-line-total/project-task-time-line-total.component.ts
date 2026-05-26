@@ -97,11 +97,16 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   filterEmployeeColumn: number[] = [];
   filterTaskKeyword = '';
   filterProjectKeyword = '';
-  selectedStatuses: number[] = [];
+  selectedStatuses: number[] = [0, 1];
   filterStatusColumn: number[] = [];
 
   statusOptions: any[] = [];
   employeeColumnOptions: any[] = [];
+
+  // Infinite Scroll state
+  visibleData = signal<any[]>([]);
+  private CHUNK_SIZE = 20;
+  private currentVisibleCount = this.CHUNK_SIZE;
 
   // ===== LIFECYCLE =====
 
@@ -257,20 +262,20 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   resetSearch(): void {
     this.dateStart = this.getDefaultDateStart();
     this.dateEnd = this.getDefaultDateEnd();
-    const userDeptId = this.appUserService.departmentID;
-    this.departmentId = userDeptId && userDeptId > 0 ? userDeptId : 0;
+    this.departmentId = 0;
     this.teamId = 0;
     this.userId = 0;
     this.projectId = 0;
+    this.selectedStatuses = [0, 1];
     this.filterEmployeeColumn = [];
     this.filterTaskKeyword = '';
     this.filterProjectKeyword = '';
     this.filterStatusColumn = [];
-    this.filterStatusColumn = [];
     this.teamList = [];
     this.userList = [];
     this.loadEmployees();
-    if (this.departmentId > 0) {
+    if (this.appUserService?.departmentID && this.appUserService.departmentID > 0) {
+      this.departmentId = this.appUserService.departmentID;
       this.loadTeamsByDepartment(this.departmentId);
     }
     this.loadTimeline();
@@ -283,12 +288,10 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
     this.loading.set(true);
 
-    // Nhường luồng để Angular kịp render biểu tượng loading trước khi tính toán nặng
     setTimeout(() => {
       const startDate = new Date(this.dateStart);
       const endDate = new Date(this.dateEnd);
 
-      // Build status string: "0,1" hoặc "-1" nếu chọn tất cả hoặc không chọn gì
       let statusStr = '';
       if (this.selectedStatuses.length === 0 || this.selectedStatuses.length === this.statusOptions.length) {
         statusStr = '-1';
@@ -310,7 +313,6 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
         dayOffData: this.timelineService.getProjectTaskGetDayOff(this.dateStart, this.dateEnd)
       }).subscribe({
         next: ({ timelineData, dayOffData }) => {
-          // Tiếp tục nhường luồng trước khi xử lý dữ liệu nặng để không làm đơ vòng quay loading
           setTimeout(() => {
             this.dayOffList = dayOffData;
             this.dayOffSet = new Set(dayOffData);
@@ -338,7 +340,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     while (current <= end) {
       const d = new Date(current);
       const dateStr = this.formatDate(d);
-      const isDayOff = this.dayOffSet.has(dateStr); // O(1) instead of O(n)
+      const isDayOff = this.dayOffSet.has(dateStr);
       dates.push({
         fullDate: d,
         dateStr: dateStr,
@@ -369,13 +371,12 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   // ===== XỬ LÝ DỮ LIỆU =====
 
   transformData(raw: TimelineByTeamItem[]) {
-    // Bước 1: Gộp theo EmployeeID -> Project -> ProjectTaskID
     const employeeMap = new Map<number, any>();
 
     raw.forEach(item => {
-      const empId = item.ID; // Mã nhân viên
+      const empId = item.ID;
       const projectKey = `${item.ProjectCode}_${item.ProjectName}`;
-      const taskId = item.ProjectTaskID; // Mã công việc
+      const taskId = item.ProjectTaskID;
 
       if (!employeeMap.has(empId)) {
         employeeMap.set(empId, {
@@ -410,7 +411,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
           Status: item.Status,
           IsApproved: item['IsApprove'] !== undefined && item['IsApprove'] !== null ? item['IsApprove'] : null,
           isOverdue: this.isTaskOverdue(item),
-          StatusName: '', // Gán sau khi đã có isOverdue và IsApprove
+          StatusName: '',
           planned: null,
           actual: null
         });
@@ -422,7 +423,6 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       else if (item.TypeDate === 2) taskEntry.actual = item;
     });
 
-    // Bước 2: Chuyển đổi Map thành mảng dữ liệu phân cấp Employee -> Project -> Task
     this.groupedData = Array.from(employeeMap.values()).map(emp => ({
       employeeId: emp.employeeId,
       FullName: emp.FullName,
@@ -434,7 +434,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
         tasks: Array.from(p.tasksMap.values()).map((t: any) => {
           const taskObj = {
             ...t,
-            _statusStyle: this.getStatusStyle(t), // Pre-compute status style
+            _statusStyle: this.getStatusStyle(t),
             rows: [
               t.planned || { TypeDate: 1 },
               t.actual || { TypeDate: 2 }
@@ -445,21 +445,14 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       }))
     }));
 
-    // Bước 3: Pre-compute cell data cho mỗi row để tránh gọi hàm trong template
     this.preComputeCellData();
 
-    // Tạo danh sách nhân viên cho filter column dựa trên groupedData hiện tại
     this.employeeColumnOptions = this.groupedData.map(g => ({
       value: g.employeeId,
       label: g.FullName
     }));
   }
 
-  /**
-   * Pre-compute tất cả cell data (class CSS, tooltip, label) cho mỗi ô ngày.
-   * Thay vì gọi isPlannedFilled(), isOutsideWork(), hasCheckMark(), parseActualValue()
-   * hàng trăm nghìn lần trong template, tính 1 lần ở đây.
-   */
   private preComputeCellData(): void {
     const dateStrs = this.dateColumns.map(c => c.dateStr);
     for (const group of this.groupedData) {
@@ -527,12 +520,10 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       projects: g.projects.map((p: any) => ({ ...p, tasks: [...p.tasks] }))
     }));
 
-    // Lọc theo Họ và tên
     if (this.filterEmployeeColumn && this.filterEmployeeColumn.length > 0) {
       groups = groups.filter(g => this.filterEmployeeColumn.includes(g.employeeId));
     }
 
-    // Lọc theo Dự án
     if (this.filterProjectKeyword) {
       const fpk = this.filterProjectKeyword.toLowerCase();
       groups = groups.map(g => ({
@@ -544,7 +535,6 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       })).filter(g => g.projects.length > 0);
     }
 
-    // Lọc theo Công việc (Con & Cha)
     if (this.filterTaskKeyword) {
       const fk = this.filterTaskKeyword.toLowerCase();
       groups = groups.map(g => ({
@@ -561,7 +551,6 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       })).filter(g => g.projects.length > 0);
     }
 
-    // Lọc theo Trạng thái (inline filter)
     if (this.filterStatusColumn && this.filterStatusColumn.length > 0) {
       groups = groups.map(g => ({
         ...g,
@@ -572,7 +561,6 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       })).filter(g => g.projects.length > 0);
     }
 
-    // Pre-compute _rowspan for each group (avoid calling calculateGroupRowspan in template)
     let totalTasks = 0;
     groups.forEach(g => {
       const tasksCount = g.projects.reduce((sum: number, p: any) => sum + p.tasks.length, 0);
@@ -582,6 +570,25 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
 
     this.totalTaskCount.set(totalTasks);
     this.filteredData.set(groups);
+
+    // Reset Infinite Scroll
+    this.currentVisibleCount = this.CHUNK_SIZE;
+    this.updateVisibleData();
+  }
+
+  private updateVisibleData() {
+    this.visibleData.set(this.filteredData().slice(0, this.currentVisibleCount));
+  }
+
+  onScroll(event: Event) {
+    const target = event.target as HTMLElement;
+    // Check if scrolled near bottom (within 200px)
+    if (target.scrollHeight - target.scrollTop - target.clientHeight < 200) {
+      if (this.currentVisibleCount < this.filteredData().length) {
+        this.currentVisibleCount += this.CHUNK_SIZE;
+        this.updateVisibleData();
+      }
+    }
   }
 
   onColumnFilter() {

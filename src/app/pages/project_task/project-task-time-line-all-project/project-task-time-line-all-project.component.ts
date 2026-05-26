@@ -91,6 +91,11 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     dateColumns: any[] = [];
     treeData: TreeTaskNode[] = [];
     flatVisibleData: TreeTaskNode[] = [];
+    
+    // Infinite Scroll state
+    visibleData = signal<TreeTaskNode[]>([]);
+    private CHUNK_SIZE = 30;
+    private currentVisibleCount = this.CHUNK_SIZE;
     dayOffList: string[] = [];
     dayOffSet = new Set<string>();
     allStatuses: any[] = [];
@@ -99,7 +104,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     // ===== Bộ lọc cột =====
     filterTaskKeyword = '';
     filterStatusColumn: number[] = [];
-    selectedStatuses: number[] = [];
+    selectedStatuses: number[] = [0, 1];
 
     // New multi-select filters
     filterMemberColumn: string[] = [];
@@ -259,7 +264,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         this.dateEnd = this.getDefaultDateEnd();
         this.departmentId = this.appUserService.departmentID || 0;
         this.teamId = this.appUserService.currentUser?.TeamOfUser || 0;
-        this.selectedStatuses = [];
+        this.selectedStatuses = [0, 1];
         this.filterTaskKeyword = '';
         this.filterStatusColumn = [];
         this.filterMemberColumn = [];
@@ -563,7 +568,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
 
     // ===== BỘ LỌC =====
 
-    applyFilters() {
+    applyFilters(resetScroll: boolean = true) {
         let filtered = this.deepCloneTree(this.treeData);
 
         // Lọc theo Công việc
@@ -593,6 +598,37 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         }
 
         this.flatVisibleData = this.flattenTree(filtered);
+
+        if (resetScroll) {
+            this.currentVisibleCount = this.CHUNK_SIZE;
+        } else {
+            // Đảm bảo list mới vẫn hiển thị đủ nếu list trước đó đang cuộn dài
+            // nhưng không được vượt quá độ dài tối đa của list mới.
+            this.currentVisibleCount = Math.max(this.CHUNK_SIZE, this.currentVisibleCount);
+        }
+        this.updateVisibleData();
+    }
+
+    private updateVisibleData() {
+        this.visibleData.set(this.flatVisibleData.slice(0, this.currentVisibleCount));
+    }
+
+    onScroll(event: Event) {
+        const target = event.target as HTMLElement;
+        if (target.scrollHeight - target.scrollTop - target.clientHeight < 200) {
+            if (this.currentVisibleCount < this.flatVisibleData.length) {
+                this.currentVisibleCount += this.CHUNK_SIZE;
+                this.updateVisibleData();
+            }
+        }
+    }
+
+    trackByNode(index: number, node: TreeTaskNode) {
+        return node.ProjectTaskID;
+    }
+
+    trackByRow(index: number, row: any) {
+        return row.TypeDate;
     }
 
     private deepCloneTree(nodes: TreeTaskNode[]): TreeTaskNode[] {
@@ -659,7 +695,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         if (originalNode) {
             originalNode.expand = !originalNode.expand;
         }
-        this.applyFilters();
+        this.applyFilters(false);
     }
 
     setFocus(taskId: number) {

@@ -144,7 +144,7 @@
 
     <!-- ===== BẢNG TIMELINE ===== -->
     <div class="timeline-content" [class.loading]="loading()">
-        <div class="table-container">
+        <div class="table-container" (scroll)="onScroll($event)">
             <table class="grid-table">
                 <thead>
                     <!-- Hàng 1: Tên cột + Tên ngày -->
@@ -194,7 +194,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <ng-container *ngFor="let group of filteredData(); let gi = index; trackBy: trackByGroup">
+                    <ng-container *ngFor="let group of visibleData(); let gi = index; trackBy: trackByGroup">
                         <ng-container *ngFor="let project of group.projects; let pi = index; trackBy: trackByProject">
                             <ng-container *ngFor="let task of project.tasks; let ti = index; trackBy: trackByTask">
                                 <ng-container *ngFor="let row of task.rows; let ri = index; trackBy: trackByRow">

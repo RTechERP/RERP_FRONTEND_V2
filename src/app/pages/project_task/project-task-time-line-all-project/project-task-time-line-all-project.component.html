@@ -127,8 +127,8 @@
 
     <!-- ===== BẢNG TIMELINE DẠNG TREE ===== -->
     <div class="timeline-content" [class.loading]="loading()">
-        <div class="table-container">
-            <table class="grid-table">
+        <div class="table-container" (scroll)="onScroll($event)">
+            <table class="grid-table tree-table">
                 <thead>
                     <!-- Hàng 1: Tên cột + Tên ngày -->
                     <tr>
@@ -184,9 +184,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <ng-container *ngFor="let node of flatVisibleData; let i = index">
+                    <ng-container *ngFor="let node of visibleData(); let i = index; trackBy: trackByNode">
                         <!-- Mỗi task sinh ra 2 dòng: Dự kiến (ri=0) + Thực tế (ri=1) -->
-                        <ng-container *ngFor="let row of node.rows; let ri = index">
+                        <ng-container *ngFor="let row of node.rows; let ri = index; trackBy: trackByRow">
                             <tr [class.highlight-row]="node.ProjectTaskID === focusTaskId"
                                 [class.parent-row]="node.children.length > 0"
                                 [class.root-parent-row]="node.level === 0 && node.children.length > 0"
@@ -279,15 +279,15 @@
                     </ng-container>
 
                     <!-- Trống -->
-                    <tr *ngIf="flatVisibleData.length === 0 && !loading()">
-                        <td [attr.colspan]="5 + dateColumns.length" class="empty-cell">
-                            Không có dữ liệu cho khoảng thời gian này
+                    <tr *ngIf="visibleData().length === 0 && !loading()">
+                        <td [attr.colspan]="6 + dateColumns.length" class="text-center py-4">
+                            Không có dữ liệu
                         </td>
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td [attr.colspan]="5 + dateColumns.length" class="table-footer-total">
+                        <td [attr.colspan]="6 + dateColumns.length" class="table-footer-total">
                             Tổng số công việc: <span class="total-count">{{ flatVisibleData.length }}</span>
                         </td>
                     </tr>

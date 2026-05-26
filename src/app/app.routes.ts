@@ -365,6 +365,9 @@ import { MakertrainingComponent } from './pages/makertraining/makertraining.comp
 import { PollFormComponent } from './pages/poll-form/poll-form.component';
 import { PollVoteComponent } from './pages/poll-vote/poll-vote.component';
 import { InventoryAllComponent } from './pages/old/Sale/Inventory/inventory-new/inventory-all/inventory-all.component';
+import { ProjectTaskEfficiencyByProjectComponent } from './pages/project_task/project-task-efficiency-by-project/project-task-efficiency-by-project.component';
+import { ProjectTaskTimeLineNullComponent } from './pages/project_task/project-task-time-line-null/project-task-time-line-null.component';
+import { ProjectTaskEfficiencyByTaskComponent } from './pages/project_task/project-task-efficiency-by-task/project-task-efficiency-by-task.component';
 export const routes: Routes = [
 
     {
@@ -1263,6 +1266,9 @@ export const routes: Routes = [
             { path: 'poll-vote/:id', component: PollVoteComponent, canActivate: [authGuard] },
             { path: 'poll-vote', component: PollVoteComponent, canActivate: [authGuard] },
             { path: 'inventory-all', component: InventoryAllComponent, canActivate: [authGuard] },
+            { path: 'project-task-efficiency-by-project', component: ProjectTaskEfficiencyByProjectComponent, canActivate: [authGuard] },
+            { path: 'project-task-time-line-null', component: ProjectTaskTimeLineNullComponent, canActivate: [authGuard] },
+            { path: 'project-task-efficiency-by-task', component: ProjectTaskEfficiencyByTaskComponent, canActivate: [authGuard] },
 
         ],
     },

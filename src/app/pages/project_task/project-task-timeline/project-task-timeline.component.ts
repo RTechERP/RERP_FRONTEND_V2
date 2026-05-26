@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -67,15 +67,11 @@ export class ProjectTaskTimelineComponent implements OnInit {
   dateColumns: any[] = [];
   groupedTasks: any[] = [];
   filteredTasks = signal<any[]>([]);
-  totalTaskCount = computed(() => {
-    let count = 0;
-    this.filteredTasks().forEach(group => {
-      count += (group.tasks || []).length;
-    });
-    return count;
-  });
+  totalTaskCount = signal(0);
   dayOffList: string[] = [];
+  dayOffSet = new Set<string>();
   allStatuses: any[] = [];
+  private statusMap = new Map<string, any>();
 
   // Column Filters
   filterKeyword = '';
@@ -100,6 +96,10 @@ export class ProjectTaskTimelineComponent implements OnInit {
     this.timelineService.getProjectTaskStatuses().subscribe({
       next: (statuses) => {
         this.allStatuses = statuses;
+        this.statusMap.clear();
+        statuses.forEach((s: any) => {
+          this.statusMap.set(`${s.Type}_${s.No}`, s);
+        });
         const type1Statuses = statuses.filter((s: any) => s.Type === 1);
         this.statusOptions = type1Statuses.map((s: any) => ({
           label: s.Title,
@@ -180,6 +180,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
         next: ({ timelineData, dayOffData }) => {
           setTimeout(() => {
             this.dayOffList = dayOffData;
+            this.dayOffSet = new Set(dayOffData);
             this.generateDateColumns(startDate, endDate);
             this.transformData(timelineData);
             this.applyFilters();
@@ -202,7 +203,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
     while (current <= end) {
       const d = new Date(current);
       const dateStr = this.formatDate(d);
-      const isDayOff = this.dayOffList.includes(dateStr);
+      const isDayOff = this.dayOffSet.has(dateStr); // O(1) instead of O(n)
       dates.push({
         fullDate: d,
         dateStr: dateStr,
@@ -357,12 +358,75 @@ export class ProjectTaskTimelineComponent implements OnInit {
       ...p,
       tasks: Array.from(p.tasksMap.values()).map((t: any) => ({
         ...t,
+        _statusStyle: this.getStatusStyle(t), // Pre-compute status style
         rows: [
           t.planned || { TypeDate: 1, SumTotalHour: null, DurationDays: null },
           t.actual || { TypeDate: 2, SumTotalHour: null, DurationDays: null }
         ]
       }))
     }));
+
+    // Pre-compute cell data for all rows
+    this.preComputeCellData();
+  }
+
+  /**
+   * Pre-compute tất cả cell data (class CSS, tooltip, label) cho mỗi ô ngày.
+   * Thay vì gọi isPlannedFilled(), isOutsideWork(), hasCheckMark(), parseActualValue()
+   * hàng trăm nghìn lần trong template, tính 1 lần ở đây.
+   */
+  private preComputeCellData(): void {
+    const dateStrs = this.dateColumns.map(c => c.dateStr);
+    for (const group of this.groupedTasks) {
+      for (const task of group.tasks) {
+        for (const row of task.rows) {
+          const cellData: Record<string, any> = {};
+          const isPlanned = row.TypeDate === 1;
+          const isActual = row.TypeDate === 2;
+
+          for (const dateStr of dateStrs) {
+            const cell: any = {};
+
+            if (isPlanned) {
+              const val = row[dateStr]?.toString() || '0';
+              cell.isPlannedFilled = val === '10' || val === '11' || val === '30' || val === '31';
+              cell.isOutsideWork = val === '11' || val === '31';
+              cell.hasCheckMark = val === '2' || val === '30' || val === '31';
+            }
+
+            if (isActual) {
+              const raw = row[dateStr];
+              let hours = 0, isOutside = 0, leaveTime = 0, leaveType = 0;
+              if (raw != null && raw !== '') {
+                const rawStr = raw.toString();
+                if (rawStr.includes('|')) {
+                  const parts = rawStr.split('|');
+                  hours = parseFloat(parts[0]) || 0;
+                  isOutside = parseInt(parts[1], 10) || 0;
+                  leaveTime = parseInt(parts[2], 10) || 0;
+                  leaveType = parseInt(parts[3], 10) || 0;
+                } else {
+                  hours = parseFloat(rawStr) || 0;
+                }
+              }
+              cell.actualHours = hours;
+              cell.isFilledActual = hours > 0 && isOutside === 0;
+              cell.isFilledActualOutside = hours > 0 && isOutside === 1;
+              cell.hasLeave = leaveTime > 0 && leaveType > 0;
+              if (cell.hasLeave) {
+                cell.leaveLabel = this.getLeaveLabel(leaveType, leaveTime);
+                cell.tooltip = this.getLeaveTooltip(leaveTime, leaveType);
+              } else {
+                cell.tooltip = null;
+              }
+            }
+
+            cellData[dateStr] = cell;
+          }
+          row._cellData = cellData;
+        }
+      }
+    }
   }
 
   /**
@@ -519,11 +583,11 @@ export class ProjectTaskTimelineComponent implements OnInit {
   getTaskStatusConfig(task: any): any {
     const approved = task.IsApproved ?? task.IsApprove;
     if (approved === 0 || approved === false || approved === '0') {
-      return this.allStatuses.find(s => s.Type === 2 && s.No === 0);
+      return this.statusMap.get('2_0') || this.allStatuses.find(s => s.Type === 2 && s.No === 0);
     } else if (approved === 1 || approved === true || approved === '1') {
-      return this.allStatuses.find(s => s.Type === 2 && s.No === 1);
+      return this.statusMap.get('2_1') || this.allStatuses.find(s => s.Type === 2 && s.No === 1);
     } else {
-      return this.allStatuses.find(s => s.Type === 1 && s.No === task.Status);
+      return this.statusMap.get(`1_${task.Status}`) || this.allStatuses.find(s => s.Type === 1 && s.No === task.Status);
     }
   }
 
@@ -554,7 +618,10 @@ export class ProjectTaskTimelineComponent implements OnInit {
   }
 
   applyFilters() {
-    let projectGroups = JSON.parse(JSON.stringify(this.groupedTasks));
+    let projectGroups = this.groupedTasks.map(g => ({
+      ...g,
+      tasks: [...g.tasks]
+    }));
 
     // Lọc Dự án/Công việc chung
     if (this.filterProjectKeyword) {
@@ -582,6 +649,13 @@ export class ProjectTaskTimelineComponent implements OnInit {
         tasks: p.tasks.filter((t: any) => this.filterStatusColumn.includes(t.Status))
       })).filter((p: any) => p.tasks.length > 0);
     }
+
+    // Pre-compute total task count
+    let totalTasks = 0;
+    projectGroups.forEach(g => {
+      totalTasks += (g.tasks || []).length;
+    });
+    this.totalTaskCount.set(totalTasks);
 
     this.filteredTasks.set(projectGroups);
   }

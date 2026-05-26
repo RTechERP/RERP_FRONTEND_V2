@@ -1074,6 +1074,16 @@ export class PaymentOrderComponent implements OnInit {
                 },
             },
             {
+                id: PaymentOrderField.ReceiverInfo.field,
+                name: 'Thông tin người nhận',
+                field: PaymentOrderField.ReceiverInfo.field,
+                type: PaymentOrderField.ReceiverInfo.type,
+                width: 100,
+                sortable: true, filterable: true,
+                // formatter: Formatters.iconBoolean,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
                 id: PaymentOrderField.ContentBankTransfer.field,
                 name: 'Nội dung chuyển khoản',
                 field: PaymentOrderField.ContentBankTransfer.field,

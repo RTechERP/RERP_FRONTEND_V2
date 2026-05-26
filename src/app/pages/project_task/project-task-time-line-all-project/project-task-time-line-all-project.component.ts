@@ -44,6 +44,7 @@ export interface TreeTaskNode {
     expand: boolean;
     children: TreeTaskNode[];
     rows: any[]; // [planned (TypeDate=1), actual (TypeDate=2)]
+    _statusStyle?: any; // Pre-computed status style
 }
 
 @Component({
@@ -91,7 +92,9 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     treeData: TreeTaskNode[] = [];
     flatVisibleData: TreeTaskNode[] = [];
     dayOffList: string[] = [];
+    dayOffSet = new Set<string>();
     allStatuses: any[] = [];
+    private statusMap = new Map<string, any>();
 
     // ===== Bộ lọc cột =====
     filterTaskKeyword = '';
@@ -154,6 +157,10 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         this.timelineService.getProjectTaskStatuses().subscribe({
             next: (statuses) => {
                 this.allStatuses = statuses;
+                this.statusMap.clear();
+                statuses.forEach((s: any) => {
+                    this.statusMap.set(`${s.Type}_${s.No}`, s);
+                });
                 const type1Statuses = statuses.filter((s: any) => s.Type === 1);
                 this.statusOptions = type1Statuses.map((s: any) => ({
                     label: s.Title,
@@ -297,6 +304,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
                 next: ({ timelineData, dayOffData }) => {
                     setTimeout(() => {
                         this.dayOffList = dayOffData;
+                        this.dayOffSet = new Set(dayOffData);
                         this.generateDateColumns(startDate, endDate);
                         this.buildTree(timelineData);
                         this.applyFilters();
@@ -322,10 +330,11 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     generateDateColumns(start: Date, end: Date) {
         const dates: any[] = [];
         let current = new Date(start);
+        const todayStr = this.formatDate(new Date());
         while (current <= end) {
             const d = new Date(current);
             const dateStr = this.formatDate(d);
-            const isDayOff = this.dayOffList.includes(dateStr);
+            const isDayOff = this.dayOffSet.has(dateStr); // O(1) instead of O(n)
             dates.push({
                 fullDate: d,
                 dateStr: dateStr,
@@ -333,7 +342,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
                 dateDisplay: d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0'),
                 isWeekend: d.getDay() === 0 || d.getDay() === 6,
                 isSunday: d.getDay() === 0,
-                isToday: dateStr === this.formatDate(new Date()),
+                isToday: dateStr === todayStr,
                 isDayOff: isDayOff
             });
             current.setDate(current.getDate() + 1);
@@ -430,6 +439,68 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
 
         this.treeData = roots;
         this.generateFilterOptions(raw);
+
+        // Pre-compute _statusStyle and _cellData for all nodes
+        this.preComputeTreeData(roots);
+    }
+
+    /**
+     * Pre-compute _statusStyle và _cellData cho tất cả nodes trong tree.
+     */
+    private preComputeTreeData(nodes: TreeTaskNode[]): void {
+        const dateStrs = this.dateColumns.map(c => c.dateStr);
+        for (const node of nodes) {
+            (node as any)._statusStyle = this.getStatusStyle(node);
+            for (const row of node.rows) {
+                const cellData: Record<string, any> = {};
+                const isPlanned = row.TypeDate === 1;
+                const isActual = row.TypeDate === 2;
+
+                for (const dateStr of dateStrs) {
+                    const cell: any = {};
+
+                    if (isPlanned) {
+                        const val = row[dateStr]?.toString() || '0';
+                        cell.isPlannedFilled = val === '10' || val === '11' || val === '30' || val === '31';
+                        cell.isOutsideWork = val === '11' || val === '31';
+                        cell.hasCheckMark = val === '2' || val === '30' || val === '31';
+                    }
+
+                    if (isActual) {
+                        const raw = row[dateStr];
+                        let hours = 0, isOutside = 0, leaveTime = 0, leaveType = 0;
+                        if (raw != null && raw !== '') {
+                            const rawStr = raw.toString();
+                            if (rawStr.includes('|')) {
+                                const parts = rawStr.split('|');
+                                hours = parseFloat(parts[0]) || 0;
+                                isOutside = parseInt(parts[1], 10) || 0;
+                                leaveTime = parseInt(parts[2], 10) || 0;
+                                leaveType = parseInt(parts[3], 10) || 0;
+                            } else {
+                                hours = parseFloat(rawStr) || 0;
+                            }
+                        }
+                        cell.actualHours = hours;
+                        cell.isFilledActual = hours > 0 && isOutside === 0;
+                        cell.isFilledActualOutside = hours > 0 && isOutside === 1;
+                        cell.hasLeave = leaveTime > 0 && leaveType > 0;
+                        if (cell.hasLeave) {
+                            cell.leaveLabel = this.getLeaveLabel(leaveType, leaveTime);
+                            cell.tooltip = this.getLeaveTooltip(leaveTime, leaveType);
+                        } else {
+                            cell.tooltip = null;
+                        }
+                    }
+
+                    cellData[dateStr] = cell;
+                }
+                row._cellData = cellData;
+            }
+            if (node.children.length > 0) {
+                this.preComputeTreeData(node.children);
+            }
+        }
     }
 
     private generateFilterOptions(raw: ProjectTaskTimelineByProjectItem[]) {
@@ -742,14 +813,11 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     getTaskStatusConfig(task: any): any {
         const approved = task.IsApproved ?? task.IsApprove;
         if (approved === 0 || approved === false || approved === '0') {
-            // Reject (Type 2, No 0)
-            return this.allStatuses.find(s => s.Type === 2 && s.No === 0);
+            return this.statusMap.get('2_0') || this.allStatuses.find(s => s.Type === 2 && s.No === 0);
         } else if (approved === 1 || approved === true || approved === '1') {
-            // Approval (Type 2, No 1)
-            return this.allStatuses.find(s => s.Type === 2 && s.No === 1);
+            return this.statusMap.get('2_1') || this.allStatuses.find(s => s.Type === 2 && s.No === 1);
         } else {
-            // Trạng thái công việc (Type 1, No khớp với task.Status)
-            return this.allStatuses.find(s => s.Type === 1 && s.No === task.Status);
+            return this.statusMap.get(`1_${task.Status}`) || this.allStatuses.find(s => s.Type === 1 && s.No === task.Status);
         }
     }
 

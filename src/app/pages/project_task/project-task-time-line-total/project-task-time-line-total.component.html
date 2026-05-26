@@ -203,13 +203,13 @@
                                         [class.row-group-end]="ri === 1 && ti === project.tasks.length - 1 && pi === group.projects.length - 1">
                                         <!-- STT: chỉ ở dòng đầu tiên của nhóm nhân viên -->
                                         <td *ngIf="pi === 0 && ti === 0 && ri === 0"
-                                            [attr.rowspan]="calculateGroupRowspan(group)"
+                                            [attr.rowspan]="group._rowspan"
                                             class="sticky-col col-stt text-center cell-group cell-group-end">
                                             {{ gi + 1 }}
                                         </td>
                                         <!-- Họ và tên: chỉ ở dòng đầu tiên của nhóm nhân viên -->
                                         <td *ngIf="pi === 0 && ti === 0 && ri === 0"
-                                            [attr.rowspan]="calculateGroupRowspan(group)"
+                                            [attr.rowspan]="group._rowspan"
                                             class="sticky-col col-name cell-group cell-name-text cell-group-end">
                                             {{ group.FullName }}
                                         </td>
@@ -252,7 +252,7 @@
                                         <!-- Trạng thái: span 2 dòng -->
                                         <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-status text-center"
                                             [class.cell-group-end]="ti === project.tasks.length - 1 && pi === group.projects.length - 1">
-                                            <span class="status-tag" [attr.data-status]="task.Status" [class.overdue]="task.isOverdue" [ngStyle]="getStatusStyle(task)">
+                                            <span class="status-tag" [attr.data-status]="task.Status" [class.overdue]="task.isOverdue" [ngStyle]="task._statusStyle">
                                                 {{ task.StatusName }}
                                             </span>
                                         </td>
@@ -270,33 +270,31 @@
                                             {{ row.TypeDate === 1 ? 'Dự kiến' : 'Thực tế' }}
                                         </td>
 
-                                        <!-- Các ô ngày -->
+                                        <!-- Các ô ngày - Sử dụng pre-computed _cellData thay vì gọi hàm -->
                                         <td *ngFor="let col of dateColumns; trackBy: trackByColumn" class="gantt-cell"
                                             [class.cell-group-end]="ri === 1 && ti === project.tasks.length - 1 && pi === group.projects.length - 1"
                                             [class.sunday]="col.isSunday || col.isDayOff" [class.today-col]="col.isToday"
-                                            [class.filled-planned]="row.TypeDate === 1 && isPlannedFilled(row, col.dateStr) && !isOutsideWork(row, col.dateStr)"
-                                            [class.filled-planned-outside]="row.TypeDate === 1 && isPlannedFilled(row, col.dateStr) && isOutsideWork(row, col.dateStr)"
-                                            [class.filled-actual]="row.TypeDate === 2 && parseActualValue(row, col.dateStr).hours > 0 && parseActualValue(row, col.dateStr).isOutside === 0"
-                                            [class.filled-actual-outside]="row.TypeDate === 2 && parseActualValue(row, col.dateStr).hours > 0 && parseActualValue(row, col.dateStr).isOutside === 1"
-                                            [nz-tooltip]="row.TypeDate === 2 && parseActualValue(row, col.dateStr).leaveTime > 0 ? getLeaveTooltip(parseActualValue(row, col.dateStr).leaveTime, parseActualValue(row, col.dateStr).leaveType) : null">
+                                            [class.filled-planned]="row.TypeDate === 1 && row._cellData[col.dateStr]?.isPlannedFilled && !row._cellData[col.dateStr]?.isOutsideWork"
+                                            [class.filled-planned-outside]="row.TypeDate === 1 && row._cellData[col.dateStr]?.isPlannedFilled && row._cellData[col.dateStr]?.isOutsideWork"
+                                            [class.filled-actual]="row.TypeDate === 2 && row._cellData[col.dateStr]?.isFilledActual"
+                                            [class.filled-actual-outside]="row.TypeDate === 2 && row._cellData[col.dateStr]?.isFilledActualOutside"
+                                            [nz-tooltip]="row._cellData[col.dateStr]?.tooltip">
                                             <!-- Dự kiến: hiển thị icon check -->
                                             <ng-container
-                                                *ngIf="row.TypeDate === 1 && hasCheckMark(row, col.dateStr)">
+                                                *ngIf="row.TypeDate === 1 && row._cellData[col.dateStr]?.hasCheckMark">
                                                 <span nz-icon nzType="check" nzTheme="outline"
                                                     class="check-icon"></span>
                                             </ng-container>
-                                            <!-- Thực tế: parseActualValue -->
+                                            <!-- Thực tế: dùng pre-computed data -->
                                             <ng-container *ngIf="row.TypeDate === 2">
-                                                <ng-container *ngIf="parseActualValue(row, col.dateStr) as act">
-                                                    <!-- Hiển thị số giờ làm thực tế nếu > 0 -->
-                                                    <span *ngIf="act.hours > 0" class="actual-hours">
-                                                        {{ act.hours }}
-                                                    </span>
-                                                    <!-- Hiển thị nhãn nghỉ nếu có đăng ký nghỉ -->
-                                                    <span *ngIf="act.leaveTime > 0 && act.leaveType > 0" class="leave-label">
-                                                        {{ getLeaveLabel(act.leaveType, act.leaveTime) }}
-                                                    </span>
-                                                </ng-container>
+                                                <!-- Hiển thị số giờ làm thực tế nếu > 0 -->
+                                                <span *ngIf="row._cellData[col.dateStr]?.actualHours > 0" class="actual-hours">
+                                                    {{ row._cellData[col.dateStr].actualHours }}
+                                                </span>
+                                                <!-- Hiển thị nhãn nghỉ nếu có đăng ký nghỉ -->
+                                                <span *ngIf="row._cellData[col.dateStr]?.hasLeave" class="leave-label">
+                                                    {{ row._cellData[col.dateStr].leaveLabel }}
+                                                </span>
                                             </ng-container>
                                         </td>
                                     </tr>
@@ -315,7 +313,7 @@
                 <tfoot>
                     <tr>
                         <td [attr.colspan]="8 + dateColumns.length" class="table-footer-total">
-                            Tổng số công việc: <span class="total-count">{{ getTotalTasks() }}</span>
+                            Tổng số công việc: <span class="total-count">{{ totalTaskCount() }}</span>
                         </td>
                     </tr>
                 </tfoot>

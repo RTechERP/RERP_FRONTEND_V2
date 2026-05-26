@@ -25,6 +25,7 @@ import { SelectModule as PrimeSelectModule } from 'primeng/select';
 import { InputTextModule as PrimeInputTextModule } from 'primeng/inputtext';
 
 import { HistoryMoneyService } from '../history-money/history-money-service/history-money.service';
+import { PokhService } from '../pokh/pokh-service/pokh.service';
 
 @Component({
   selector: 'app-history-money-primeng',
@@ -57,6 +58,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
   mainData: any[] = [];
   bankNames: any[] = [];
   bankNameOptions: any[] = [];
+  salesEmployeeOptions: any[] = [];
 
   // Selection
   selectedProduct: any = null;
@@ -75,7 +77,8 @@ export class HistoryMoneyPrimengComponent implements OnInit {
     @Optional() @Inject('tabData') private tabData: any,
     private modal: NzModalService,
     private notification: NzNotificationService,
-    private historyMoneyService: HistoryMoneyService
+    private historyMoneyService: HistoryMoneyService,
+    private pokhService: PokhService
   ) { }
 
   ngOnInit(): void {
@@ -83,6 +86,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       this.filterText = this.tabData.filterText;
     }
     this.loadBankNames();
+    this.loadEmployeeManagers();
     this.loadProduct(this.filterText);
   }
 
@@ -114,6 +118,38 @@ export class HistoryMoneyPrimengComponent implements OnInit {
         this.notification.error('Lỗi kết nối khi tải tên ngân hàng:', error);
       }
     );
+  }
+
+  loadEmployeeManagers(): void {
+    this.pokhService.loadEmployeeManagers(0, 0, 0).subscribe(
+      (response) => {
+        if (response.status === 1) {
+          let dataUsers = response.data.result || [];
+          if (response.data && Array.isArray(response.data.list)) {
+            const list0 = response.data.list[0] || [];
+            const list3 = response.data.list[3] || [];
+            const allUsers = [...list0, ...list3];
+            dataUsers = allUsers.filter((u: any) => u.TeamType === 2);
+          }
+
+          this.salesEmployeeOptions = dataUsers.map((user: any) => ({
+            label: user.FullName,
+            value: user.UserID
+          }));
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Lỗi khi tải nhân viên');
+        }
+      },
+      (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Lỗi kết nối khi tải nhân viên');
+      }
+    );
+  }
+
+  getEmployeeName(id: any): string {
+    if (!id) return '';
+    const emp = this.salesEmployeeOptions.find(opt => opt.value === id);
+    return emp ? emp.label : '';
   }
 
   loadProduct(text: string): void {
@@ -177,6 +213,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       InvoiceNo: '',
       VAT: 0,
       MoneyVAT: 0,
+      UserID: null,
       IsFilm: false,
       IsDeleted: false,
     };
@@ -259,14 +296,44 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       },
     });
   }
+
+  exportExcel() {
+    if (!this.rowSelectedPokhDetailId) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 dòng PO trước khi xuất Excel');
+      return;
+    }
+
+    this.historyMoneyService.exportHistoryMoneyExcel(this.rowSelectedPokhDetailId).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `LichSuTienVe_${new Date().getTime()}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      },
+      error: (err) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xuất Excel');
+      }
+    });
+  }
   //#endregion
 
   //#region Helpers - Row key normalization
   private normalizeDataRows(rows: any[]): any[] {
-    return (rows || []).map((row) => ({
-      ...row,
-      __rowKey: row.__rowKey || this.createDataRowKey(row),
-    }));
+    return (rows || []).map((row) => {
+      if (row.userID !== undefined && row.UserID === undefined) {
+        row.UserID = row.userID;
+      } else if (row.userId !== undefined && row.UserID === undefined) {
+        row.UserID = row.userId;
+      }
+      return {
+        ...row,
+        __rowKey: row.__rowKey || this.createDataRowKey(row),
+      };
+    });
   }
 
   private createDataRowKey(row: any): string {

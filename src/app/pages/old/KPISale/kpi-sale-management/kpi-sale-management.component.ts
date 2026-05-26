@@ -747,9 +747,8 @@ export class KpiSaleManagementComponent implements OnInit {
     }));
 
     if (response.mappings?.status === 1 && Array.isArray(response.mappings.data)) {
-      const idsOutsideSelectedIndex = new Set(this.mappings.filter((item) => item.kpiIndexId !== this.selectedIndexId).map((item) => item.id));
       this.mappings = [
-        ...this.mappings.filter((item) => idsOutsideSelectedIndex.has(item.id)),
+        ...this.mappings.filter((item) => item.kpiIndexId !== this.selectedIndexId),
         ...response.mappings.data.map((item) => this.normalizeMapping(item)),
       ];
       this.selectedMappingId = this.mappingsForSelectedIndex[0]?.id || 0;

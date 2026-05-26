@@ -43,6 +43,13 @@
     display: flex;
     gap: 16px;
     align-items: center;
+    flex-wrap: wrap;
+}
+
+.legend-sep {
+    color: #cbd5e1;
+    font-size: 16px;
+    line-height: 1;
 }
 
 .legend-item {
@@ -66,6 +73,10 @@
 
 .box.actual {
     background-color: #f472b6;
+}
+
+.box.outside-work {
+    background-color: #fb923c;
 }
 
 /* ===== TABLE ===== */
@@ -135,9 +146,9 @@ thead tr:nth-child(2) th {
 }
 
 .col-status {
-    width: 90px;
-    min-width: 90px;
-    max-width: 90px;
+    width: 110px;
+    min-width: 110px;
+    max-width: 110px;
 }
 
 .col-time {
@@ -214,11 +225,11 @@ thead .sticky-col {
 }
 
 .col-time.sticky-col {
-    left: 666px;
+    left: 686px;
 }
 
 .col-type.sticky-col {
-    left: 746px;
+    left: 766px;
 }
 
 /* ===== DATE COLUMNS ===== */
@@ -278,6 +289,23 @@ thead .sticky-col {
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
+.filled-planned-outside {
+    background-color: #fb923c !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.filled-actual-outside {
+    background-color: #fb923c !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.leave-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #7c3aed;
+    line-height: 1;
+}
+
 /* Icon check trong ô Dự kiến */
 .check-icon {
     color: #15803d;
@@ -304,18 +332,25 @@ thead .sticky-col {
     border-bottom: 2px solid #cbd5e1;
 }
 
-/* ===== ROW OVERDUE STYLING ===== */
-.row-overdue td:not(.filled-planned):not(.filled-actual) {
-    background-color: #fff1f2 !important;
+/* Rowspan cells (Công việc, Trạng thái) span both planned + actual rows,
+   so they must also have the same separator border as .row-actual */
+td.col-job[rowspan],
+td.col-status[rowspan] {
+    border-bottom: 2px solid #cbd5e1;
 }
 
-.row-overdue td.sunday:not(.filled-planned):not(.filled-actual) {
+/* ===== ROW OVERDUE STYLING (disabled) ===== */
+/* .row-overdue td:not(.filled-planned):not(.filled-planned-outside):not(.filled-actual) {
+    background-color: #fff1f2 !important;
+} */
+
+/* .row-overdue td.sunday:not(.filled-planned):not(.filled-actual) {
     background-color: #f1f5f9 !important;
-}
+} */
 
-.row-overdue .sticky-col {
+/* .row-overdue .sticky-col {
     background-color: #fff1f2 !important;
-}
+} */
 
 .cell-group-end {
     border-bottom: 2px solid #b4b4b4 !important;
@@ -375,7 +410,16 @@ thead .sticky-col {
 .task-title {
     font-size: 11px;
     color: #64748b;
-    line-height: normal;
+    line-height: 1.3em;
+    height: 2.6em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal !important;
+    word-break: break-word;
+    max-width: 220px;
 }
 
 .text-wrap {
@@ -398,9 +442,18 @@ thead .sticky-col {
     font-weight: 700;
 }
 
+/* ===== ROOT PARENT ROW (level 0) ===== */
+.root-parent-row td.col-stt,
+.root-parent-row td.col-job,
+.root-parent-row td.col-member,
+.root-parent-row td.col-dept,
+.root-parent-row td.col-category {
+    background-color: #eff8ff !important; /* Xanh dương rất nhạt, chỉ đến cột Hạng mục */
+}
+
 /* ===== HIGHLIGHT ROW (FOCUS) ===== */
 .highlight-row td.sticky-col,
-.highlight-row td.gantt-cell:not(.filled-planned):not(.filled-actual) {
+.highlight-row td.gantt-cell:not(.filled-planned):not(.filled-planned-outside):not(.filled-actual):not(.filled-actual-outside) {
     background-color: #e6f7ff !important;
     border-bottom-color: #91d5ff !important;
 }
@@ -417,7 +470,7 @@ thead .sticky-col {
 
 /* ===== HOVER EFFECT CHO ROW ===== */
 tbody tr:hover td.sticky-col,
-tbody tr:hover td.gantt-cell:not(.filled-planned):not(.filled-actual) {
+tbody tr:hover td.gantt-cell:not(.filled-planned):not(.filled-planned-outside):not(.filled-actual):not(.filled-actual-outside) {
     background-color: #f1f5f9 !important;
     cursor: pointer;
 }
@@ -433,6 +486,7 @@ tbody tr:hover td.gantt-cell:not(.filled-planned):not(.filled-actual) {
     word-break: break-word;
     background: #f1f5f9;
     color: #475569;
+    white-space: pre-line;
 }
 
 .status-tag[data-status="0"] {
@@ -553,4 +607,12 @@ tfoot td {
 :host ::ng-deep .timeline-status-multi .p-multiselect-trigger {
     width: 20px;
     height: 22px;
+}
+
+/* ===== DROPDOWN OPTIONS ===== */
+.multiline-dropdown-option {
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.4;
+    padding: 4px 0;
 }

@@ -168,15 +168,21 @@
                     style="max-width: 120px;">
                     @for (s of statusList; track s.value) {
                     <nz-option [nzValue]="s.value" nzCustomContent [nzLabel]="s.label">
-                        <span class="status-dot" [style.background]="s.color"></span>
-                        {{ s.label }}
+                        <span class="status-tag-inline"
+                            [style.background]="s.color"
+                            [style.color]="s.colorFont">
+                            <i nz-icon [nzType]="s.icon" style="margin-right:4px;"></i>{{ s.label }}
+                        </span>
                     </nz-option>
                     }
                 </nz-select>
                 <ng-template #statusSelectedTpl let-selected>
-                    <span class="status-dot" [style.background]="getStatusInfo(selected.nzValue).color"></span>
-                    <span class="text-truncate d-inline-block" style="max-width: 70px; vertical-align: bottom;">{{
-                        selected.nzLabel }}</span>
+                    <span class="status-tag-inline"
+                        [style.background]="getStatusInfo(selected.nzValue).color"
+                        [style.color]="getStatusInfo(selected.nzValue).colorFont">
+                        <i nz-icon [nzType]="getStatusInfo(selected.nzValue).icon" style="margin-right:3px;"></i>
+                        <span class="text-truncate d-inline-block" style="max-width: 65px; vertical-align: bottom;">{{ selected.nzLabel }}</span>
+                    </span>
                 </ng-template>
 
                 <!-- Custom Templates for Project and Parent Task -->
@@ -232,10 +238,10 @@
                             </div>
                             <div class="rd-header-right">
                                 <span class="rd-status-badge"
-                                    [style.background]="getStatusInfo(taskStatus).color + '18'"
-                                    [style.color]="getStatusInfo(taskStatus).color">
+                                    [style.background]="getStatusInfo(taskStatus).color"
+                                    [style.color]="getStatusInfo(taskStatus).colorFont">
                                     <span class="rd-status-dot"
-                                        [style.background]="getStatusInfo(taskStatus).color"></span>
+                                        [style.background]="getStatusInfo(taskStatus).colorFont"></span>
                                     {{ getStatusInfo(taskStatus).label }}
                                 </span>
                                 @if (isSaving) {
@@ -443,6 +449,7 @@
                                         MÔ TẢ CHI TIẾT
                                     </div>
                                     <textarea nz-input [(ngModel)]="description"
+                                        spellcheck="false"
                                         placeholder="Thêm mô tả chi tiết cho công việc này..."
                                         class="rd-textarea">
                                     </textarea>
@@ -455,6 +462,7 @@
                                         KẾT QUẢ CÔNG VIỆC
                                     </div>
                                     <textarea nz-input [(ngModel)]="projectTaskResult"
+                                        spellcheck="false"
                                         placeholder="Nhập kết quả đạt được sau khi hoàn thành..."
                                         class="rd-textarea">
                                     </textarea>
@@ -481,7 +489,7 @@
                                 không tính khoảng trắng)</small>
                         </div>
 
-                        <textarea nz-input [(ngModel)]="descriptionSolution"
+                        <textarea nz-input [(ngModel)]="descriptionSolution" spellcheck="false"
                             placeholder="Nhập nguyên nhân lỗi và phương án xử lý..."
                             class="description-textarea solution-full-height">
                         </textarea>
@@ -544,7 +552,7 @@
                                     </td>
                                     <td>
                                         <ng-container *ngIf="item.ID < 0">
-                                            <textarea nz-input [(ngModel)]="item.Mission" placeholder="Nhập nội dung..."
+                                            <textarea nz-input [(ngModel)]="item.Mission" placeholder="Nhập nội dung..." spellcheck="false"
                                                 rows="2" nzSize="small" style="width: 100%;"></textarea>
                                         </ng-container>
                                         <ng-container *ngIf="item.ID >= 0">
@@ -648,7 +656,7 @@
                                 <div class="col-12">
                                     <label class="small fw-semibold mb-1">Nội dung công việc <span
                                             class="text-danger">*</span></label>
-                                    <textarea nz-input [(ngModel)]="newChildTask.Mission"
+                                    <textarea nz-input [(ngModel)]="newChildTask.Mission" spellcheck="false"
                                         placeholder="Nhập tên/nội dung công việc..." rows="2" autofocus></textarea>
                                 </div>
                             </div>
@@ -1002,7 +1010,7 @@
                                         {{item.Description}}
                                     </div>
                                     <div *ngIf="editingAdditionalId === item.ID" class="edit-mode-container">
-                                        <textarea nz-input [(ngModel)]="editingAdditionalDescription" rows="3"
+                                        <textarea nz-input [(ngModel)]="editingAdditionalDescription" rows="3" spellcheck="false"
                                             class="mb-2 rounded" placeholder="Nhập mô tả vấn đề..."></textarea>
                                         <div class="d-flex justify-content-end gap-2">
                                             <button nz-button nzSize="small" (click)="cancelEditAdditional()">Hủy</button>
@@ -1030,7 +1038,7 @@
 
                             <div *ngIf="isAddingAdditional" class="add-additional-form p-3 border rounded bg-light">
                                 <h6 class="mb-2 small fw-bold text-muted">VẤN ĐỀ PHÁT SINH MỚI</h6>
-                                <textarea nz-input [(ngModel)]="newAdditionalItem"
+                                <textarea nz-input [(ngModel)]="newAdditionalItem" spellcheck="false"
                                     placeholder="Nhập nội dung vấn đề phát sinh tại đây..." rows="3" class="mb-3 rounded"
                                     (keydown.enter)="onAdditionalEnter($event)"></textarea>
                                 <div class="d-flex justify-content-end gap-2">
@@ -1046,12 +1054,148 @@
                 </ng-template>
             </nz-tab>
 
+            <!-- Tab: Lịch làm việc (chỉ hiện khi có cả ngày BĐ và KT dự kiến) -->
+            @if (showTaskWorkTab) {
+            <nz-tab nzTitle="Lịch làm việc">
+                <ng-template nz-tab>
+                    <div class="tab-content p-3">
+                        <!-- Header -->
+                        <div class="section-title d-flex align-items-center justify-content-between mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <i nz-icon nzType="schedule" nzTheme="outline"></i>
+                                <span>Lịch làm việc
+                                    <small class="text-muted">({{ planStartDateStr }} → {{ planEndDateStr }})</small>
+                                </span>
+                            </div>
+                            <nz-tag nzColor="blue">{{ getActiveTaskWorkCount() }} ngày</nz-tag>
+                        </div>
+
+                        <!-- Loading state -->
+                        @if (isLoadingTaskWork) {
+                        <div class="text-center py-4">
+                            <i nz-icon nzType="loading" class="fs-24 text-primary"></i>
+                            <p class="text-muted mt-2">Đang tải lịch làm việc...</p>
+                        </div>
+                        } @else if (getActiveTaskWorkCount() === 0) {
+                        <!-- Empty state -->
+                        <div class="text-center py-5 text-muted border rounded bg-light">
+                            <i nz-icon nzType="calendar" class="fs-32 mb-2"></i>
+                            <p>Chưa có lịch làm việc. Vui lòng chọn ngày bắt đầu và kết thúc dự kiến.</p>
+                        </div>
+                        } @else {
+                        <!-- Table -->
+                        <nz-table #taskWorkTable
+                            [nzData]="taskWorkList"
+                            nzSize="small"
+                            [nzFrontPagination]="false"
+                            [nzShowPagination]="false"
+                            nzBordered>
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px; text-align: center;">
+                                        <label nz-checkbox
+                                            [nzChecked]="isAllTaskWorkChecked"
+                                            [nzIndeterminate]="isIndeterminate"
+                                            (nzCheckedChange)="toggleSelectAllTaskWork($event)"
+                                            [nzDisabled]="isReadOnly">
+                                        </label>
+                                    </th>
+                                    <th style="width: calc((100% - 150px) / 3);">Ngày</th>
+                                    <th style="width: calc((100% - 150px) / 3);">TG dự kiến (h) <span class="text-danger">*</span></th>
+                                    <th style="width: calc((100% - 150px) / 3);">Địa điểm</th>
+                                    <th style="width: 100px; text-align: center;">Làm việc</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (row of taskWorkTable.data; track row.Date) {
+                                @if (!row.IsDeleted) {
+                                <tr [class.task-work-row-off]="!row.IsWork"
+                                    [class.task-work-row-sunday]="isSunday(row.Date)"
+                                    [class.task-work-row-dayoff]="isDayOff(row.Date)"
+                                    [class.task-work-row-selected]="row._selected">
+                                    
+                                    <!-- Cột Checkbox -->
+                                    <td style="text-align: center;">
+                                        <label nz-checkbox
+                                            [(ngModel)]="row._selected"
+                                            [nzDisabled]="isReadOnly">
+                                        </label>
+                                    </td>
+                                    <!-- Cột Date (read-only) -->
+                                    <td>
+                                        <span class="fw-500">{{ row.Date | date:'dd/MM/yyyy' }}</span>
+                                        <small class="d-block"
+                                            [class.text-danger]="isSunday(row.Date) || isDayOff(row.Date)"
+                                            [class.text-muted]="!isSunday(row.Date) && !isDayOff(row.Date)">
+                                            {{ getDayName(row.Date) }}
+                                            @if (isDayOff(row.Date)) {
+                                                <nz-tag nzColor="red" style="font-size: 10px; padding: 0 4px; line-height: 16px;">Nghỉ</nz-tag>
+                                            }
+                                        </small>
+                                    </td>
+
+                                    <!-- Cột EstimatedTime -->
+                                    <td>
+                                        <nz-input-number
+                                            [(ngModel)]="row.EstimatedTime"
+                                            [nzMin]="0.1"
+                                            [nzMax]="24"
+                                            [nzStep]="0.1"
+                                            nzSize="small"
+                                            style="width: 100%;"
+                                            (ngModelChange)="onEstimatedTimeChange(row)"
+                                            [nzDisabled]="isReadOnly">
+                                        </nz-input-number>
+                                    </td>
+
+                                    <!-- Cột Location (editable dropdown) -->
+                                    <td>
+                                        <div class="d-flex flex-column gap-1">
+                                            <nz-select [(ngModel)]="row._locationSelect"
+                                                nzSize="small"
+                                                style="width: 150px;"
+                                                (ngModelChange)="onLocationChange(row)"
+                                                [disabled]="isReadOnly">
+                                                @for (loc of locationOptions; track loc.value) {
+                                                <nz-option [nzValue]="loc.value" [nzLabel]="loc.label"></nz-option>
+                                                }
+                                            </nz-select>
+                                            @if (row._locationSelect === 'Khác') {
+                                            <input nz-input nzSize="small"
+                                                [(ngModel)]="row._customLocation"
+                                                (ngModelChange)="onCustomLocationChange(row)"
+                                                placeholder="Nhập địa điểm..."
+                                                style="width: 150px;"
+                                                [disabled]="isReadOnly" />
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <!-- Cột IsWork (editable checkbox) -->
+                                    <td style="text-align: center;">
+                                        <label nz-checkbox
+                                            [(ngModel)]="row.IsWork"
+                                            (ngModelChange)="onIsWorkChange(row)"
+                                            [nzDisabled]="isReadOnly">
+                                        </label>
+                                    </td>
+                                </tr>
+                                }
+                                }
+                            </tbody>
+                        </nz-table>
+                        }
+                    </div>
+                </ng-template>
+            </nz-tab>
+            }
+
             <ng-template #pendingReasonTpl>
                 <div class="p-2">
                     <p class="mb-2 text-muted">
                         {{ targetStatus === 4 ? 'Vui lòng cung cấp lý do hủy công việc này:' : 'Vui lòng cung cấp lý do hoặc vấn đề phát sinh khiến công việc này tạm dừng:' }}
                     </p>
-                    <textarea nz-input rows="4" [(ngModel)]="pendingReasonText"
+                    <textarea nz-input rows="4" [(ngModel)]="pendingReasonText" spellcheck="false"
                         [placeholder]="targetStatus === 4 ? 'Nhập lý do hủy...' : 'Nhập nội dung chi tiết lý do tạm dừng...'"></textarea>
                 </div>
             </ng-template>
@@ -1170,6 +1314,29 @@
                     <label nz-checkbox [(ngModel)]="needApprove" class="sidebar-checkbox">
                         Cần phê duyệt
                     </label>
+                </div>
+
+                <div class="mb-3">
+                    <label class="sidebar-label">Địa điểm làm việc</label>
+                    <div class="d-flex flex-column gap-1">
+                        <nz-select [(ngModel)]="taskLocationSelect"
+                            nzSize="small"
+                            class="w-100"
+                            (ngModelChange)="onTaskLocationChange()"
+                            [nzDisabled]="isReadOnly">
+                            @for (loc of locationOptions; track loc.value) {
+                            <nz-option [nzValue]="loc.value" [nzLabel]="loc.label"></nz-option>
+                            }
+                        </nz-select>
+                        @if (taskLocationSelect === 'Khác') {
+                        <input nz-input nzSize="small"
+                            [(ngModel)]="taskCustomLocation"
+                            (ngModelChange)="onTaskCustomLocationChange()"
+                            placeholder="Nhập địa điểm..."
+                            class="w-100"
+                            [disabled]="isReadOnly" />
+                        }
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -1361,6 +1528,29 @@
                             <nz-input-number [(ngModel)]="estimatedTimeHours" [nzMin]="0" [nzStep]="0.5"
                                 class="complexity-input-drawer"
                                 nzPlaceHolder="0"></nz-input-number>
+                        </div>
+
+                        <div class="d-flex flex-column">
+                            <label class="drawer-label">Địa điểm làm việc</label>
+                            <div class="d-flex flex-column gap-1">
+                                <nz-select [(ngModel)]="taskLocationSelect"
+                                    nzSize="small"
+                                    class="w-100"
+                                    (ngModelChange)="onTaskLocationChange()"
+                                    [nzDisabled]="isReadOnly">
+                                    @for (loc of locationOptions; track loc.value) {
+                                    <nz-option [nzValue]="loc.value" [nzLabel]="loc.label"></nz-option>
+                                    }
+                                </nz-select>
+                                @if (taskLocationSelect === 'Khác') {
+                                <input nz-input nzSize="small"
+                                    [(ngModel)]="taskCustomLocation"
+                                    (ngModelChange)="onTaskCustomLocationChange()"
+                                    placeholder="Nhập địa điểm..."
+                                    class="w-100"
+                                    [disabled]="isReadOnly" />
+                                }
+                            </div>
                         </div>
 
                         <div class="d-flex flex-column">

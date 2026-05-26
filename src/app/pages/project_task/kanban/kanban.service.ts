@@ -249,5 +249,18 @@ export class KanbanService {
     getProjectTaskLeaders(projectTaskID: number): Observable<any> {
         return this.http.get<any>(`${this.apiUrl}/project-task-leaders?projectTaskID=${projectTaskID}`);
     }
+
+    // --- Project Task Work (Lịch làm việc) ---
+    getProjectTaskWork(projectTaskID: number): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/project-task-work?projectTaskID=${projectTaskID}`);
+    }
+
+    saveProjectTaskWorkList(data: any[]): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/project-task-work`, data);
+    }
+
+    getDayOff(dateStart: string, dateEnd: string): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/day-off?dateStart=${dateStart}&dateEnd=${dateEnd}`, {});
+    }
 }
 

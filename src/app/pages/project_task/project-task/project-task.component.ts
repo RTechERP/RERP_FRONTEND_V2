@@ -68,6 +68,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
   @ViewChild('approveModalTpl') approveModalTpl!: TemplateRef<any>;
   @ViewChild('rejectModalTpl') rejectModalTpl!: TemplateRef<any>;
   @ViewChild('unfollowModalTpl') unfollowModalTpl!: TemplateRef<any>;
+  @ViewChild('changeStatusModalTpl') changeStatusModalTpl!: TemplateRef<any>;
   @ViewChild('dt') dt!: Table;
 
   // Approval modal state
@@ -75,6 +76,8 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
   approveCompletionRating: number = 5;
   rejectReviewText: string = '';
   rejectReviewError: boolean = false;
+  changeStatusReason: string = '';
+  changeStatusReasonError: boolean = false;
   isApproving: boolean = false;
   isOpeningDetail: boolean = false; // Guard against spam-click opening multiple modals
   selectedTaskForCopy: ProjectTaskItem | null = null;
@@ -92,8 +95,17 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
   dateStart: string = this.getDefaultDateStart();
   dateEnd: string = this.getDefaultDateEnd();
 
-  // Status filter: -1 = Tất cả, 0 = Chưa duyệt, 1 = Đã duyệt
-  filterStatus: number = 0;
+  // Status filter (Type = 1)
+  filterStatus: string[] = [];
+  taskStatusOptions: any[] = []; // Nạp từ API
+
+  // Approval filter (Type = 2): -1 = All, 0 = Pending, 1 = Approved
+  filterIsApprove: number = -1;
+  approvalStatusOptions: any[] = [
+    { label: 'All', value: -1 },
+    { label: 'Pending', value: 0 },
+    { label: 'Approved', value: 1 }
+  ];
 
   constructor(
     private modal: NzModalService,
@@ -350,6 +362,7 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
     this.setVietnameseLocale();
     this.registerCustomFilters();
     this.currentUserId.set(this.appUserService.employeeID || 0);
+    this.loadTaskStatuses();
     this.loadTasks();
     this.loadTaskTypes();
 
@@ -360,6 +373,28 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
         }
       })
     );
+  }
+
+  allStatuses: any[] = [];
+  statusConfigMap: Record<number, { label: string; bgColor: string; color: string }> = {};
+
+  loadTaskStatuses(): void {
+    this.projectTaskService.getProjectTaskStatuses().subscribe({
+      next: (statuses) => {
+        this.allStatuses = statuses || [];
+        this.statusConfigMap = {}; // Reset cache khi load lại statuses
+        // Type = 1: Statuses for work
+        let type1Statuses = statuses.filter((s: any) => s.Type === 1);
+        type1Statuses.sort((a: any, b: any) => a.No - b.No);
+        this.taskStatusOptions = type1Statuses.map((s: any) => ({
+          label: s.Title,
+          value: s.No
+        }));
+        // Update the hardcoded statusOptions for table column filters too
+        this.statusOptions = this.taskStatusOptions;
+      },
+      error: (err) => console.error('Error loading project task statuses:', err)
+    });
   }
 
   ngOnDestroy(): void {
@@ -523,7 +558,9 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
     const [start, end] = this.getFormattedDateRange();
     const viewNumber = this.viewNumberMap[tab];
 
-    this.projectTaskService.getProjectTasks(start, end, this.filterStatus, viewNumber).subscribe({
+    const statusStr = (!this.filterStatus || this.filterStatus.length === 0) ? '-1' : this.filterStatus.join(',');
+
+    this.projectTaskService.getProjectTasks(start, end, statusStr, this.filterIsApprove, viewNumber).subscribe({
       next: (response) => {
         const rawTasks = response.ProjectTask || [];
         
@@ -732,21 +769,74 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
     return (task.TotalActualHours / plannedHours) * 100;
   }
 
-  getDisplayStatus(task: any): { label: string; severity: 'info' | 'success' | 'danger' | 'warn' | 'secondary' | 'contrast' | undefined } {
+  getDisplayStatus(task: any): { label: string; bgColor: string; color: string } {
     const ds = task.DisplayStatus ?? task.Status;
-    switch (ds) {
-      case 0: return { label: 'Chưa làm', severity: 'secondary' };
-      case 10: return { label: 'Chưa làm\nquá hạn', severity: 'danger' };
-      case 1: return { label: 'Đang làm', severity: 'info' };
-      case 11: return { label: 'Đang làm\nquá hạn', severity: 'danger' };
-      case 2: return { label: 'Hoàn thành', severity: 'success' };
-      case 21: return { label: 'Hoàn thành\nquá hạn', severity: 'warn' };
-      case 22: return { label: 'Đã duyệt', severity: 'success' };
-      case 23: return { label: 'Đã hủy duyệt', severity: 'danger' };
-      case 3: return { label: 'Pending', severity: 'warn' };
-      case 4: return { label: 'Hủy', severity: 'contrast' };
-      default: return { label: 'Chưa xác định', severity: 'secondary' };
+    
+    if (this.statusConfigMap[ds]) {
+      return this.statusConfigMap[ds];
     }
+
+    const findStatus = (type: number, no: number) => this.allStatuses.find(s => s.Type === type && s.No === no);
+    const overdueBg = '#fff1f2';
+    const overdueColor = '#e11d48';
+
+    let result = { label: 'Chưa xác định', bgColor: '#f5f5f5', color: '#595959' };
+
+    switch (ds) {
+      case 0: {
+        const s = findStatus(1, 0);
+        result = { label: s?.Title || 'Chưa làm', bgColor: s?.ColorBackground || '#f5f5f5', color: s?.ColorFont || '#595959' };
+        break;
+      }
+      case 10: {
+        const s = findStatus(1, 0);
+        result = { label: (s?.Title || 'Chưa làm') + '\nOverdue', bgColor: overdueBg, color: overdueColor };
+        break;
+      }
+      case 1: {
+        const s = findStatus(1, 1);
+        result = { label: s?.Title || 'Đang làm', bgColor: s?.ColorBackground || '#e6f7ff', color: s?.ColorFont || '#1890ff' };
+        break;
+      }
+      case 11: {
+        const s = findStatus(1, 1);
+        result = { label: (s?.Title || 'Đang làm') + '\nOverdue', bgColor: overdueBg, color: overdueColor };
+        break;
+      }
+      case 2: {
+        const s = findStatus(1, 2);
+        result = { label: s?.Title || 'Hoàn thành', bgColor: s?.ColorBackground || '#f6ffed', color: s?.ColorFont || '#52c41a' };
+        break;
+      }
+      case 21: {
+        const s = findStatus(1, 2);
+        result = { label: (s?.Title || 'Hoàn thành') + '\nOverdue', bgColor: overdueBg, color: overdueColor };
+        break;
+      }
+      case 22: {
+        const s = findStatus(2, 1); // Đã duyệt
+        result = { label: s?.Title || 'Đã duyệt', bgColor: s?.ColorBackground || '#f6ffed', color: s?.ColorFont || '#52c41a' };
+        break;
+      }
+      case 23: {
+        const s = findStatus(2, 0); // Chưa duyệt / Hủy duyệt
+        result = { label: s?.Title || 'Đã hủy duyệt', bgColor: s?.ColorBackground || '#fff2f0', color: s?.ColorFont || '#ff4d4f' };
+        break;
+      }
+      case 3: {
+        const s = findStatus(1, 3);
+        result = { label: s?.Title || 'Pending', bgColor: s?.ColorBackground || '#fffbe6', color: s?.ColorFont || '#faad14' };
+        break;
+      }
+      case 4: {
+        const s = findStatus(1, 4);
+        result = { label: s?.Title || 'Hủy', bgColor: s?.ColorBackground || '#fff1f2', color: s?.ColorFont || '#e11d48' };
+        break;
+      }
+    }
+    
+    this.statusConfigMap[ds] = result;
+    return result;
   }
 
   getPriorityColor(priority: number | null): string {
@@ -1280,6 +1370,24 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
         });
       }
 
+      // Change status option (Việc giao cho tôi / Việc tôi giao)
+      const currentUserId = this.appUserService.employeeID;
+      const isAssignee = task.AsigneeEmployeeID === currentUserId;
+      const isAssigner = task.EmployeeIDRequest === currentUserId;
+      
+      if (this.activeTab() === 'assigned' || this.activeTab() === 'myApproval') {
+        if (isAssignee || isAssigner) {
+          this.contextMenuItems.push({
+            label: 'Thay đổi trạng thái',
+            icon: 'pi pi-sync',
+            items: this.taskStatusOptions.map(status => ({
+              label: status.label,
+              command: () => this.handleChangeTaskStatus(task, status.value)
+            }))
+          });
+        }
+      }
+
       // Attendance option
       if (this.activeTab() === 'assigned') {
         this.contextMenuItems.push({
@@ -1303,11 +1411,64 @@ export class ProjectTaskComponent implements OnInit, OnDestroy {
       }
 
       if (this.contextMenuItems.length > 0) {
+        cm.model = this.contextMenuItems; // Force update primeNG model
+        this.cdr.detectChanges();
         cm.show(event);
       }
     }
     event.preventDefault();
     event.stopPropagation();
+  }
+
+  handleChangeTaskStatus(task: ProjectTaskItem, newStatusNo: number) {
+    if (task.ApprovalStatus !== null && task.ApprovalStatus !== undefined) {
+      this.message.error('Không thể thay đổi trạng thái công việc đã duyệt hoặc từ chối.');
+      return;
+    }
+
+    if (newStatusNo === 1 || newStatusNo === 2) {
+      if (!task.PlanEndDate) {
+        this.message.error('Không thể chuyển trạng thái (Đang làm/Hoàn thành) vì công việc chưa có Ngày kết thúc dự kiến.');
+        return;
+      }
+      this.executeChangeStatus(task, newStatusNo, '');
+    } else if (newStatusNo > 2) {
+      this.changeStatusReason = '';
+      this.changeStatusReasonError = false;
+      this.modal.confirm({
+        nzTitle: 'Nhập lý do thay đổi trạng thái',
+        nzContent: this.changeStatusModalTpl,
+        nzOnOk: () => {
+          if (!this.changeStatusReason || this.changeStatusReason.trim() === '') {
+            this.changeStatusReasonError = true;
+            return false;
+          }
+          this.executeChangeStatus(task, newStatusNo, this.changeStatusReason.trim());
+          return true;
+        },
+        nzOkText: 'Xác nhận',
+        nzCancelText: 'Hủy'
+      });
+    } else {
+      this.executeChangeStatus(task, newStatusNo, '');
+    }
+  }
+
+  executeChangeStatus(task: ProjectTaskItem, newStatusNo: number, reason: string) {
+    this.projectTaskService.changeProjectTaskStatus(newStatusNo, task.ID, reason).subscribe({
+      next: (res) => {
+        if (res.status === 200 || res.status === 1) {
+          this.message.success('Thay đổi trạng thái thành công');
+          this.loadTasks();
+        } else {
+          this.message.error(res.message || 'Thay đổi trạng thái thất bại');
+        }
+      },
+      error: (err) => {
+        const errorMsg = err.error?.message || err.message || 'Có lỗi xảy ra khi thay đổi trạng thái';
+        this.message.error(errorMsg);
+      }
+    });
   }
 
   saveAttendance(task: ProjectTaskItem) {

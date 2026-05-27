@@ -368,6 +368,7 @@ import { InventoryAllComponent } from './pages/old/Sale/Inventory/inventory-new/
 import { ProjectTaskEfficiencyByProjectComponent } from './pages/project_task/project-task-efficiency-by-project/project-task-efficiency-by-project.component';
 import { ProjectTaskTimeLineNullComponent } from './pages/project_task/project-task-time-line-null/project-task-time-line-null.component';
 import { ProjectTaskEfficiencyByTaskComponent } from './pages/project_task/project-task-efficiency-by-task/project-task-efficiency-by-task.component';
+import { PaymentOrderPrimeComponent } from './pages/general-category/payment-order/payment-order-prime/payment-order-prime.component';
 export const routes: Routes = [
 
     {
@@ -619,7 +620,7 @@ export const routes: Routes = [
 
 
             //TBP duyệt
-            { path: 'tbp-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
+            { path: 'tbp-payment-order', component: PaymentOrderPrimeComponent, canActivate: [authGuard] },
             { path: 'tbp-job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
             { path: 'tbp-project-partlist', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
             { path: 'tbp-project-partlist-purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },

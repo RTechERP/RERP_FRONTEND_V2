@@ -55,7 +55,7 @@
 /* Header Section */
 .header-section {
   display: flex;
-  justify-content: flex-end;
+  /* justify-content: flex-end; */
   align-items: center;
   margin-bottom: 20px;
 }
@@ -170,6 +170,11 @@
 /* Text Center Class */
 ::ng-deep .text-center {
   text-align: center !important;
+}
+
+/* Text Right Class */
+::ng-deep .text-right {
+  text-align: right !important;
 }
 
 /* Row Warning - Bôi màu cam cho dòng có IsSuccess = 0 */

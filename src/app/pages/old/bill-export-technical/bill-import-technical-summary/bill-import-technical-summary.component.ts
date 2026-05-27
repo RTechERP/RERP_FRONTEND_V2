@@ -15,6 +15,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { AppUserService } from '../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import * as ExcelJS from 'exceljs';
 
 // Angular SlickGrid imports
 import {
@@ -91,8 +92,7 @@ interface BillImportTechnicalSummary {
   styleUrls: ['./bill-import-technical-summary.component.css'],
 })
 export class BillImportTechnicalSummaryComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   @Input() warehouseId: number = 0;
 
   // Grid
@@ -144,7 +144,7 @@ export class BillImportTechnicalSummaryComponent
     private billImportTechnicalService: BillImportTechnicalService,
     private ngbModal: NgbModal,
     public activeModal: NgbActiveModal
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.isAdmin = this.appUserService.isAdmin;
@@ -175,9 +175,9 @@ export class BillImportTechnicalSummaryComponent
       autoCommitEdit: true,
       enableColumnReorder: true,
       enableGridMenu: true,
-      gridHeight: 600,
+      gridHeight: window.innerHeight - 250,
       gridWidth: '100%',
-      rowHeight: 35,
+      rowHeight: 30,
       headerRowHeight: 40,
       frozenColumn: 5, // Frozen đến cột Mã NCC (index 5, tính từ 0)
       forceFitColumns: false, // Tắt auto-fit columns
@@ -185,6 +185,8 @@ export class BillImportTechnicalSummaryComponent
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
       enableCheckboxSelector: true,
+      // showFooterRow: true,
+      // footerRowHeight: 40,
       rowSelectionOptions: {
         selectActiveRow: false,
       },
@@ -201,6 +203,7 @@ export class BillImportTechnicalSummaryComponent
       autoResize: {
         container: '#gridContainer',
         calculateAvailableSizeBy: 'container',
+        resizeDetection: 'container'
       },
       // Enable context menu for double-click detail view
       enableContextMenu: true,
@@ -271,6 +274,16 @@ export class BillImportTechnicalSummaryComponent
         }
       }
     });
+
+    // Cập nhật footer khi filter thay đổi
+    this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
+      this.updateMasterFooterRow();
+    });
+
+    // Cập nhật footer lần đầu sau khi grid sẵn sàng
+    setTimeout(() => {
+      this.updateMasterFooterRow();
+    }, 300);
   }
 
   onCheckAllChange(checked: boolean): void {
@@ -288,8 +301,8 @@ export class BillImportTechnicalSummaryComponent
     const dateStart = this.searchParams.checkAll
       ? null
       : DateTime.fromJSDate(new Date(this.searchParams.dateStart))
-          .startOf('day')
-          .toISO();
+        .startOf('day')
+        .toISO();
 
     const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd))
       .endOf('day')
@@ -333,6 +346,7 @@ export class BillImportTechnicalSummaryComponent
             if (this.angularGrid && this.angularGrid.dataView) {
               this.angularGrid.dataView.setItems(this.dataset);
               this.gridObj.invalidate();
+              setTimeout(() => this.updateMasterFooterRow(), 100);
             }
           } else {
             this.notification.error(
@@ -373,8 +387,10 @@ export class BillImportTechnicalSummaryComponent
         field: 'CreatedDate',
         sortable: true,
         filterable: true,
-        formatter: Formatters.dateIso,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         width: 120,
+        cssClass: 'text-center',
       },
       {
         id: 'BillTypeText',
@@ -383,6 +399,7 @@ export class BillImportTechnicalSummaryComponent
         sortable: true,
         filterable: true,
         width: 150,
+        cssClass: 'text-center',
       },
       {
         id: 'DateRequestImport',
@@ -390,8 +407,10 @@ export class BillImportTechnicalSummaryComponent
         field: 'DateRequestImport',
         sortable: true,
         filterable: true,
-        formatter: Formatters.dateIso,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         width: 130,
+        cssClass: 'text-center',
       },
       {
         id: 'BillCode',
@@ -467,8 +486,10 @@ export class BillImportTechnicalSummaryComponent
         field: 'CreatDate',
         sortable: true,
         filterable: true,
-        formatter: Formatters.dateIso,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         width: 130,
+        cssClass: 'text-center',
       },
       {
         id: 'ProductCode',
@@ -496,8 +517,8 @@ export class BillImportTechnicalSummaryComponent
       },
       {
         id: 'UnitCode',
-        name: 'DVT',
-        field: 'UnitCode',
+        name: 'ĐVT',
+        field: 'UnitName',
         sortable: true,
         filterable: true,
         width: 80,
@@ -516,17 +537,18 @@ export class BillImportTechnicalSummaryComponent
         field: 'Quantity',
         sortable: true,
         filterable: true,
-        formatter: Formatters.decimal,
+        formatter: (_row: number, _cell: number, value: any) => Number(value).toLocaleString('en-US'),
         width: 100,
+        cssClass: 'text-end',
       },
-      {
-        id: 'ProductGroupRTCID',
-        name: 'Loại hàng',
-        field: 'ProductGroupName',
-        sortable: true,
-        filterable: true,
-        width: 100,
-      },
+      // {
+      //   id: 'ProductGroupRTCID',
+      //   name: 'Loại hàng',
+      //   field: 'ProductGroupName',
+      //   sortable: true,
+      //   filterable: true,
+      //   width: 100,
+      // },
       {
         id: 'IsBill',
         name: 'Hóa đơn',
@@ -556,7 +578,8 @@ export class BillImportTechnicalSummaryComponent
         field: 'DateSomeBill',
         sortable: true,
         filterable: true,
-        formatter: Formatters.dateIso,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         editor: {
           model: Editors['date'],
         },
@@ -572,6 +595,7 @@ export class BillImportTechnicalSummaryComponent
           model: Editors['integer'],
         },
         width: 150,
+        cssClass: 'text-end',
       },
       {
         id: 'DueDate',
@@ -579,8 +603,10 @@ export class BillImportTechnicalSummaryComponent
         field: 'DueDate',
         sortable: true,
         filterable: true,
-        formatter: Formatters.dateIso,
+        formatter: Formatters.date,
+        params: { dateFormat: 'DD/MM/YYYY' },
         width: 150,
+        cssClass: 'text-center',
       },
       {
         id: 'TaxReduction',
@@ -588,12 +614,13 @@ export class BillImportTechnicalSummaryComponent
         field: 'TaxReduction',
         sortable: true,
         filterable: true,
-        formatter: Formatters.decimal,
+        formatter: (_row: number, _cell: number, value: any) => Number(value).toLocaleString('en-US'),
         editor: {
           model: Editors['float'],
           decimal: 2,
         },
         width: 150,
+        cssClass: 'text-end',
       },
       {
         id: 'COFormE',
@@ -601,12 +628,13 @@ export class BillImportTechnicalSummaryComponent
         field: 'COFormE',
         sortable: true,
         filterable: true,
-        formatter: Formatters.decimal,
+        formatter: (_row: number, _cell: number, value: any) => Number(value).toLocaleString('en-US'),
         editor: {
           model: Editors['float'],
           decimal: 2,
         },
         width: 150,
+        cssClass: 'text-end',
       },
       {
         id: 'DoccumentReceiver',
@@ -638,8 +666,9 @@ export class BillImportTechnicalSummaryComponent
         field: 'Price',
         sortable: true,
         filterable: true,
-        formatter: Formatters.decimal,
+        formatter: (_row: number, _cell: number, value: any) => Number(value).toLocaleString('en-US'),
         width: 120,
+        cssClass: 'text-end',
       },
       {
         id: 'TotalPrice',
@@ -647,8 +676,9 @@ export class BillImportTechnicalSummaryComponent
         field: 'TotalPrice',
         sortable: true,
         filterable: true,
-        formatter: Formatters.decimal,
+        formatter: (_row: number, _cell: number, value: any) => Number(value).toLocaleString('en-US'),
         width: 150,
+        cssClass: 'text-end',
       },
       {
         id: 'UnitPricePO',
@@ -656,8 +686,9 @@ export class BillImportTechnicalSummaryComponent
         field: 'UnitPricePO',
         sortable: true,
         filterable: true,
-        formatter: Formatters.decimal,
+        formatter: (_row: number, _cell: number, value: any) => Number(value).toLocaleString('en-US'),
         width: 120,
+        cssClass: 'text-end',
       },
       {
         id: 'VATPO',
@@ -665,8 +696,9 @@ export class BillImportTechnicalSummaryComponent
         field: 'VATPO',
         sortable: true,
         filterable: true,
-        formatter: Formatters.decimal,
+        formatter: (_row: number, _cell: number, value: any) => Number(value).toLocaleString('en-US'),
         width: 100,
+        cssClass: 'text-end',
       },
       {
         id: 'TotalPricePO',
@@ -674,13 +706,22 @@ export class BillImportTechnicalSummaryComponent
         field: 'TotalPricePO',
         sortable: true,
         filterable: true,
-        formatter: Formatters.decimal,
+        formatter: (_row: number, _cell: number, value: any) => Number(value).toLocaleString('en-US'),
         width: 150,
+        cssClass: 'text-end',
       },
       {
         id: 'CurrencyCode',
         name: 'Loại tiền',
         field: 'CurrencyCode',
+        sortable: true,
+        filterable: true,
+        width: 100,
+      },
+      {
+        id: 'SerialNumber',
+        name: 'Serial Number',
+        field: 'SerialNumber',
         sortable: true,
         filterable: true,
         width: 100,
@@ -764,7 +805,9 @@ export class BillImportTechnicalSummaryComponent
         IDDetail: id,
         DeliverID: deliverID,
         SomeBill: row.SomeBill || '',
-        DateSomeBill: row.DateSomeBill || null,
+        DateSomeBill: row.DateSomeBill
+          ? DateTime.fromISO(row.DateSomeBill).toFormat('yyyy-MM-dd')
+          : null,
         DPO: dpo,
         TaxReduction: row.TaxReduction || 0,
         COFormE: row.COFormE || 0,
@@ -815,19 +858,224 @@ export class BillImportTechnicalSummaryComponent
   }
 
   exportExcel(): void {
-    if (!this.dataset || this.dataset.length === 0) {
+    const today = new Date();
+    const formattedDate = `${today.getDate().toString().padStart(2, '0')}${(
+      today.getMonth() + 1
+    ).toString().padStart(2, '0')}${today.getFullYear().toString().slice(-2)}`;
+
+    if (!this.angularGrid || !this.dataset || this.dataset.length === 0) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Không có dữ liệu để xuất Excel'
+        'Không có dữ liệu xuất excel!'
       );
       return;
     }
 
-    // Hướng dẫn người dùng sử dụng Grid Menu để export
-    this.notification.info(
-      'Xuất Excel',
-      'Vui lòng sử dụng Grid Menu (icon ⚙ ở góc phải header) → chọn "Export to Excel"'
-    );
+    try {
+      // Lấy dữ liệu đã filter từ grid
+      const items = this.angularGrid.dataView?.getFilteredItems?.() || this.dataset;
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Tổng hợp phiếu nhập KT');
+
+      // Columns theo đúng thứ tự cột trong gridView
+      const columns: any[] = [
+        { header: 'STT', key: 'stt', width: 6 },
+        { header: 'Nhận chứng từ', key: 'Status', width: 12 },
+        { header: 'Ngày nhận', key: 'CreatedDate', width: 15 },
+        { header: 'Loại phiếu', key: 'BillTypeText', width: 15 },
+        { header: 'Ngày Y/C nhập', key: 'DateRequestImport', width: 15 },
+        { header: 'Số phiếu', key: 'BillCode', width: 20 },
+        { header: 'Mã NCC', key: 'CodeNCC', width: 15 },
+        { header: 'Nhà cung cấp / Bộ phận', key: 'NameNCC', width: 30 },
+        { header: 'Phòng ban', key: 'DepartmentName', width: 20 },
+        { header: 'Mã NV', key: 'Code', width: 12 },
+        { header: 'Người giao / Người trả', key: 'Deliver', width: 22 },
+        { header: 'Người nhận', key: 'Receiver', width: 18 },
+        { header: 'Ngày nhập kho', key: 'CreatDate', width: 15 },
+        { header: 'Mã hàng', key: 'ProductCode', width: 15 },
+        { header: 'Kho', key: 'WarehouseName', width: 12 },
+        { header: 'Mã nội bộ', key: 'ProductCodeRTC', width: 15 },
+        { header: 'ĐVT', key: 'UnitName', width: 10 },
+        { header: 'Hãng', key: 'Maker', width: 15 },
+        { header: 'SL thực tế', key: 'Quantity', width: 12 },
+        { header: 'Hóa đơn', key: 'IsBill', width: 10 },
+        { header: 'Số hóa đơn', key: 'SomeBill', width: 15 },
+        { header: 'Ngày hóa đơn', key: 'DateSomeBill', width: 15 },
+        { header: 'Số ngày công nợ', key: 'DPO', width: 15 },
+        { header: 'Ngày tới hạn', key: 'DueDate', width: 15 },
+        { header: 'Tiền thuế giảm', key: 'TaxReduction', width: 15 },
+        { header: 'Chi phí FE', key: 'COFormE', width: 15 },
+        { header: 'Người giao CT', key: 'DoccumentReceiver', width: 18 },
+        { header: 'Tên sản phẩm', key: 'ProductName', width: 30 },
+        { header: 'Đơn mua hàng', key: 'BillCodePO', width: 15 },
+        { header: 'Đơn giá', key: 'Price', width: 15 },
+        { header: 'Tổng tiền', key: 'TotalPrice', width: 15 },
+        { header: 'Đơn giá PO', key: 'UnitPricePO', width: 15 },
+        { header: 'Thuế', key: 'VATPO', width: 12 },
+        { header: 'Tổng tiền PO', key: 'TotalPricePO', width: 15 },
+        { header: 'Loại tiền', key: 'CurrencyCode', width: 12 },
+        { header: 'Serial Number', key: 'SerialNumber', width: 20 },
+        { header: 'Ghi chú', key: 'Note', width: 25 },
+        { header: 'Trạng thái chứng từ', key: 'IsSuccessText', width: 25 },
+      ];
+
+      // Thêm cột chứng từ động
+      if (this.documents && this.documents.length > 0) {
+        this.documents.forEach((doc) => {
+          columns.push({ header: doc.DocumentImportName || `D${doc.ID}`, key: `D${doc.ID}`, width: 25 });
+        });
+      }
+
+      worksheet.columns = columns;
+
+      // Style header
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true, name: 'Tahoma', size: 8.5 };
+      headerRow.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+      headerRow.height = 25;
+      headerRow.eachCell((cell: any) => {
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      });
+
+      // Khởi tạo biến tính tổng
+      const sums = { Quantity: 0, DPO: 0, TaxReduction: 0, COFormE: 0, Price: 0, TotalPrice: 0, UnitPricePO: 0, VATPO: 0, TotalPricePO: 0 };
+      const numberKeys = ['Quantity', 'DPO', 'TaxReduction', 'COFormE', 'Price', 'TotalPrice', 'UnitPricePO', 'VATPO', 'TotalPricePO'];
+      const dateFmt = (val: any) => val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : null;
+      const v = (val: any) => val || null;
+
+      // Thêm dữ liệu
+      items.forEach((item: any, index: number) => {
+        const rowData: any = {
+          stt: index + 1,
+          Status: item.Status ? 'V' : '',
+          CreatedDate: dateFmt(item.CreatedDate),
+          BillTypeText: v(item.BillTypeText),
+          DateRequestImport: dateFmt(item.DateRequestImport),
+          BillCode: v(item.BillCode),
+          CodeNCC: v(item.CodeNCC),
+          NameNCC: v(item.NameNCC),
+          DepartmentName: v(item.DepartmentName),
+          Code: v(item.Code),
+          Deliver: v(item.Deliver),
+          Receiver: v(item.Receiver),
+          CreatDate: dateFmt(item.CreatDate),
+          ProductCode: v(item.ProductCode),
+          WarehouseName: v(item.WarehouseName),
+          ProductCodeRTC: v(item.ProductCodeRTC),
+          UnitName: v(item.UnitName),
+          Maker: v(item.Maker),
+          Quantity: Number(item.Quantity) || 0,
+          IsBill: item.IsBill ? 'V' : '',
+          SomeBill: v(item.SomeBill),
+          DateSomeBill: dateFmt(item.DateSomeBill),
+          DPO: Number(item.DPO) || 0,
+          DueDate: dateFmt(item.DueDate),
+          TaxReduction: Number(item.TaxReduction) || 0,
+          COFormE: Number(item.COFormE) || 0,
+          DoccumentReceiver: v(item.DoccumentReceiver),
+          ProductName: v(item.ProductName),
+          BillCodePO: v(item.BillCodePO),
+          Price: Number(item.Price) || 0,
+          TotalPrice: Number(item.TotalPrice) || 0,
+          UnitPricePO: Number(item.UnitPricePO) || 0,
+          VATPO: Number(item.VATPO) || 0,
+          TotalPricePO: Number(item.TotalPricePO) || 0,
+          CurrencyCode: v(item.CurrencyCode),
+          SerialNumber: v(item.SerialNumber),
+          Note: v(item.Note),
+          IsSuccessText: v(item.IsSuccessText),
+        };
+
+        // Cột chứng từ động
+        if (this.documents && this.documents.length > 0) {
+          this.documents.forEach((doc) => {
+            rowData[`D${doc.ID}`] = v(item[`D${doc.ID}`]);
+          });
+        }
+
+        const row = worksheet.addRow(rowData);
+        row.font = { name: 'Tahoma', size: 8.5 };
+        row.eachCell((cell: any) => {
+          cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+          cell.alignment = { ...cell.alignment, wrapText: true };
+        });
+
+        // Căn giữa cột ngày/checkbox
+        ['stt', 'Status', 'CreatedDate', 'DateRequestImport', 'CreatDate', 'DateSomeBill', 'DueDate', 'UnitName', 'IsBill']
+          .forEach(k => { try { row.getCell(k).alignment = { horizontal: 'center', vertical: 'middle' }; } catch { } });
+
+        // Căn phải + format số cho cột tiền
+        numberKeys.forEach(k => {
+          try {
+            row.getCell(k).alignment = { horizontal: 'right', vertical: 'middle' };
+            row.getCell(k).numFmt = '#,##0';
+          } catch { }
+        });
+
+        // Text format cho Số hóa đơn
+        try { row.getCell('SomeBill').numFmt = '@'; } catch { }
+
+        // Cộng số
+        sums.Quantity += Number(item.Quantity) || 0;
+        sums.DPO += Number(item.DPO) || 0;
+        sums.TaxReduction += Number(item.TaxReduction) || 0;
+        sums.COFormE += Number(item.COFormE) || 0;
+        sums.Price += Number(item.Price) || 0;
+        sums.TotalPrice += Number(item.TotalPrice) || 0;
+        sums.UnitPricePO += Number(item.UnitPricePO) || 0;
+        sums.VATPO += Number(item.VATPO) || 0;
+        sums.TotalPricePO += Number(item.TotalPricePO) || 0;
+      });
+
+      // Dòng tổng
+      const footerData: any = {
+        stt: '', Status: '', CreatedDate: '', BillTypeText: '', DateRequestImport: '',
+        BillCode: 'TỔNG', CodeNCC: '', NameNCC: '', DepartmentName: '', Code: '',
+        Deliver: '', Receiver: '', CreatDate: '', ProductCode: '', WarehouseName: '',
+        ProductCodeRTC: '', UnitName: '', Maker: '',
+        Quantity: sums.Quantity, IsBill: '', SomeBill: '', DateSomeBill: '',
+        DPO: sums.DPO, DueDate: '',
+        TaxReduction: sums.TaxReduction, COFormE: sums.COFormE,
+        DoccumentReceiver: '', ProductName: '', BillCodePO: '',
+        Price: sums.Price, TotalPrice: sums.TotalPrice,
+        UnitPricePO: sums.UnitPricePO, VATPO: sums.VATPO, TotalPricePO: sums.TotalPricePO,
+        CurrencyCode: '', SerialNumber: '', Note: '', IsSuccessText: '',
+      };
+      if (this.documents && this.documents.length > 0) {
+        this.documents.forEach((doc) => { footerData[`D${doc.ID}`] = ''; });
+      }
+
+      const footerRow = worksheet.addRow(footerData);
+      footerRow.font = { bold: true, name: 'Tahoma', size: 8.5 };
+      footerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFD966' } };
+      footerRow.eachCell((cell: any) => {
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      });
+      numberKeys.forEach(k => {
+        try {
+          footerRow.getCell(k).alignment = { horizontal: 'right', vertical: 'middle' };
+          footerRow.getCell(k).numFmt = '#,##0';
+        } catch { }
+      });
+
+      // Xuất file
+      workbook.xlsx.writeBuffer().then((buffer: any) => {
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `TongHopPhieuNhapKT_${formattedDate}.xlsx`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xuất file Excel thành công!', { nzDuration: 1500 });
+      });
+    } catch (error) {
+      console.error('Lỗi khi xuất Excel:', error);
+      this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xuất file Excel');
+    }
   }
 
   /**
@@ -868,6 +1116,71 @@ export class BillImportTechnicalSummaryComponent
         // Modal dismissed (cancelled)
       }
     );
+  }
+
+  /**
+   * Cập nhật footer row với các giá trị COUNT và SUM
+   */
+  updateMasterFooterRow(): void {
+    if (this.angularGrid && this.angularGrid.slickGrid) {
+      const dataView = this.angularGrid.dataView;
+      const filteredItems = dataView.getFilteredItems() || [];
+      const codeCount = filteredItems.length;
+
+      const totals = filteredItems.reduce(
+        (acc, item) => {
+          acc.Quantity += Number(item.Quantity) || 0;
+          acc.DPO += Number(item.DPO) || 0;
+          acc.COFormE += Number(item.COFormE) || 0;
+          acc.UnitPricePO += Number(item.UnitPricePO) || 0;
+          acc.VATPO += Number(item.VATPO) || 0;
+          acc.TotalPricePO += Number(item.TotalPricePO) || 0;
+          acc.TaxReduction += Number(item.TaxReduction) || 0;
+          acc.TotalPrice += Number(item.TotalPrice) || 0;
+          acc.Price += Number(item.Price) || 0;
+          return acc;
+        },
+        {
+          Quantity: 0,
+          DPO: 0,
+          COFormE: 0,
+          UnitPricePO: 0,
+          VATPO: 0,
+          TotalPricePO: 0,
+          TaxReduction: 0,
+          TotalPrice: 0,
+          Price: 0,
+        }
+      );
+
+      const columns = this.angularGrid.slickGrid.getColumns();
+      columns.forEach((col: any) => {
+        const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(col.id);
+        if (!footerCell) return;
+
+        if (col.id === 'BillCode') {
+          footerCell.innerHTML = `<b style="color:#1890ff">${codeCount.toLocaleString('en-US')}</b>`;
+        } else if (col.id === 'Quantity') {
+          footerCell.innerHTML = `<b>${Math.round(totals.Quantity).toLocaleString('en-US')}</b>`;
+        } else if (col.id === 'DPO') {
+          footerCell.innerHTML = `<b>${Math.round(totals.DPO).toLocaleString('en-US')}</b>`;
+        } else if (col.id === 'TaxReduction') {
+          footerCell.innerHTML = `<b>${totals.TaxReduction.toLocaleString('en-US')}</b>`;
+        } else if (col.id === 'COFormE') {
+          footerCell.innerHTML = `<b>${totals.COFormE.toLocaleString('en-US')}</b>`;
+        } else if (col.id === 'Price') {
+          footerCell.innerHTML = `<b>${totals.Price.toLocaleString('en-US')}</b>`;
+        } else if (col.id === 'TotalPrice') {
+          footerCell.innerHTML = `<b>${totals.TotalPrice.toLocaleString('en-US')}</b>`;
+        } else if (col.id === 'UnitPricePO') {
+          footerCell.innerHTML = `<b>${totals.UnitPricePO.toLocaleString('en-US')}</b>`;
+        } else if (col.id === 'VATPO') {
+          footerCell.innerHTML = `<b>${totals.VATPO.toLocaleString('en-US')}</b>`;
+        } else if (col.id === 'TotalPricePO') {
+          footerCell.innerHTML = `<b>${totals.TotalPricePO.toLocaleString('en-US')}</b>`;
+        }
+      });
+    }
   }
 
   /**

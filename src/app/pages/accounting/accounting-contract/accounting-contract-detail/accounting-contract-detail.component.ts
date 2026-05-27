@@ -9,6 +9,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -35,6 +36,7 @@ import { CustomerDetailComponent } from '../../../crm/customers/customer-detail/
     NzDatePickerModule,
     NzTableModule,
     NzIconModule,
+    NzRadioModule,
   ],
   templateUrl: './accounting-contract-detail.component.html',
   styleUrl: './accounting-contract-detail.component.css'
@@ -62,6 +64,8 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
   unit: string = 'VND';
   dateContract: Date | null = null;
   dateExpired: Date | null = null;
+  isUnlimitedContract: boolean = false;
+  accountingNote: string = '';
   customerId: number | null = null;
   supplierId: number | null = null;
   dateIsApprovedGroup: Date | null = null;
@@ -105,6 +109,8 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
     contractContent: '',
     contentPayment: '',
     note: '',
+    dateExpired: '',
+    accountingNote: '',
   };
 
   constructor(
@@ -161,6 +167,7 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
           this.unit = data.Unit || 'VND';
           this.dateContract = data.DateContract ? new Date(data.DateContract) : null;
           this.dateExpired = data.DateExpired ? new Date(data.DateExpired) : null;
+          this.isUnlimitedContract = data.IsUnlimitedContract || false;
           this.customerId = data.CustomerID || null;
           this.supplierId = data.SupplierSaleID || null;
           this.dateIsApprovedGroup = data.DateIsApprovedGroup ? new Date(data.DateIsApprovedGroup) : null;
@@ -169,6 +176,7 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
           this.contractContent = data.ContractContent || '';
           this.contentPayment = data.ContentPayment || '';
           this.note = data.Note || '';
+          this.accountingNote = data.AccountingNote || '';
 
           // Lưu giá trị ban đầu để so sánh khi save
           this.originalContract = {
@@ -188,6 +196,8 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
             ParentID: this.contractId,
             DateContract: this.dateContract,
             Unit: this.unit,
+            AccountingNote: this.accountingNote,
+            IsUnlimitedContract: this.isUnlimitedContract
           };
           this.originalNote = this.note;
 
@@ -369,6 +379,13 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       this.isSupplierDisabled = false;
       this.errors.customerId = '';
       this.errors.supplierId = '';
+    }
+  }
+
+  onUnlimitedChange(isUnlimited: boolean): void {
+    if (isUnlimited) {
+      this.dateExpired = null;
+      this.errors.dateExpired = '';
     }
   }
 
@@ -835,6 +852,8 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       ParentID: 'Thuộc HĐ',
       DateContract: 'Ngày HĐ',
       Unit: 'ĐVT',
+      AccountingNote: 'Ghi chú',
+      IsUnlimitedContract: 'Hiệu lực HĐ'
     };
     return labels[fieldName] || fieldName;
   }
@@ -851,6 +870,8 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       supplierId: '',
       contractContent: '',
       contentPayment: '',
+      dateExpired: '',
+      accountingNote: '',
     };
 
     // Company validation - required
@@ -926,6 +947,14 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       }
     }
 
+    // DateExpired validation - bắt buộc nếu chọn "Khác"
+    if (!this.isUnlimitedContract) {
+      if (!this.dateExpired) {
+        this.errors.dateExpired = 'Vui lòng nhập Hiệu lực HĐ';
+        isValid = false;
+      }
+    }
+
     // Validate thay đổi thông tin - yêu cầu nhập nội dung thay đổi
     if (this.editId > 0 && this.originalContract) {
       const currentContract = {
@@ -945,6 +974,8 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
         ParentID: this.contractId,
         DateContract: this.dateContract,
         Unit: this.unit?.trim() || '',
+        AccountingNote: this.accountingNote?.trim() || '',
+        IsUnlimitedContract: this.isUnlimitedContract
       };
 
       const resultCompare = this.deepEquals(this.originalContract, currentContract);
@@ -984,17 +1015,19 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       SupplierSaleID: this.supplierId || null,
       ContractNumber: this.contractNumber?.trim() || '',
       ContractValue: this.contractValue || 0,
-      DateExpired: this.formatLocalDate(this.dateExpired),
+      DateExpired: this.isUnlimitedContract ? null : this.formatLocalDate(this.dateExpired),
       DateIsApprovedGroup: this.formatLocalDate(this.dateIsApprovedGroup),
       EmployeeID: this.employeeId || 0,
       ContractContent: this.contractContent?.trim() || '',
       ContentPayment: this.contentPayment?.trim() || '',
       Note: this.note?.trim() || '',
+      AccountingNote: this.accountingNote?.trim() || '',
       ParentID: this.contractId && this.contractId > 0 ? this.contractId : 0,
       DateReceived: this.formatLocalDate(this.dateReceived),
       QuantityDocument: this.quantityDocument || 0,
       DateContract: this.formatLocalDate(this.dateContract),
-      IsReceivedContract: this.isReceivedContractMode || false
+      IsReceivedContract: this.isReceivedContractMode || false,
+      IsUnlimitedContract: this.isUnlimitedContract || false,
     };
 
     // Gọi API save
@@ -1036,6 +1069,7 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
     this.unit = 'VND';
     this.dateContract = null;
     this.dateExpired = null;
+    this.isUnlimitedContract = false;
     this.customerId = null;
     this.supplierId = null;
     this.dateIsApprovedGroup = null;
@@ -1044,6 +1078,7 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
     this.contractContent = '';
     this.contentPayment = '';
     this.note = '';
+    this.accountingNote = '';
     this.files = [];
     this.deletedFileIds = [];
     this.selectedContractFile = null;
@@ -1061,6 +1096,8 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       contractContent: '',
       contentPayment: '',
       note: '',
+      dateExpired: '',
+      accountingNote: '',
     };
     this.originalContract = null;
     this.originalNote = '';

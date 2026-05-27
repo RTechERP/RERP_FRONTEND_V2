@@ -251,7 +251,6 @@ import { EconimicContractTermComponent } from './pages/hrm/economic-contract/eco
 import { EconomicContractTypeComponent } from './pages/hrm/economic-contract/economic-contract-type/economic-contract-type.component';
 import { EconomicContractComponent } from './pages/hrm/economic-contract/economic-contract.component';
 import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/frmKPIEvaluationEmployee/kpievaluation-employee.component';
-import { KPIEvaluationFactorScoringComponent } from './pages/KPITech/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
 import { KPIAGVEvaluationEmployeeComponent } from './pages/KPIAGV/kpievaluation-employee/frmKPIEvaluationEmployee/kpievaluation-employee.component';
 import { KPIAGVEvaluationFactorScoringComponent } from './pages/KPIAGV/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
 import { SettingHrConfigComponent } from './pages/hrm/setting/setting-hr-config/setting-hr-config.component';
@@ -353,6 +352,7 @@ import { ProjectTaskTimeLineProjectComponent } from './pages/project_task/projec
 import { ProjectTaskPojectWorkerComponent } from './pages/project_task/project-task-poject-worker/project-task-poject-worker.component';
 import { HrRecruitmentSummaryComponent } from './pages/hrm/hr-recruitment/hr-recruitment-summary/hr-recruitment-summary.component';
 import { BillImportSyntheticAllComponent } from './pages/old/Sale/BillImport/Modal/bill-import-synthetic-all/bill-import-synthetic-all.component';
+import { KPIEvaluationFactorScoringMain } from './pages/KPITech/kpievaluation-factor-scoring/kpievaluation-factor-scoring-main.component';
 import { ProjectHistoryProblemNewComponent } from './pages/project/project-history-problem-new/project-history-problem-new.component';
 import { ProjectHistoryProblemDashboardComponent } from './pages/project/project-history-problem-new/project-history-problem-dashboard/project-history-problem-dashboard.component';
 
@@ -773,9 +773,9 @@ export const routes: Routes = [
 
             //kpi
             { path: 'kpi-tech', component: KPIEvaluationEmployeeComponent, canActivate: [authGuard] },
-            { path: 'kpi-tech-factor-scoring', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
-            { path: 'kpi-tech-factor-scoring-tbp', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
-            { path: 'kpi-tech-factor-scoring-bgd', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
+            { path: 'kpi-tech-factor-scoring', component: KPIEvaluationFactorScoringMain, canActivate: [authGuard] },
+            { path: 'kpi-tech-factor-scoring-tbp', component: KPIEvaluationFactorScoringMain, canActivate: [authGuard] },
+            { path: 'kpi-tech-factor-scoring-bgd', component: KPIEvaluationFactorScoringMain, canActivate: [authGuard] },
             { path: 'kpi-agv', component: KPIAGVEvaluationEmployeeComponent, canActivate: [authGuard] },
             { path: 'kpi-agv-factor-scoring', component: KPIAGVEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-agv-factor-scoring-tbp', component: KPIAGVEvaluationFactorScoringComponent, canActivate: [authGuard] },

@@ -138,6 +138,7 @@ export class CustomTableKpi implements OnChanges, AfterViewInit, OnDestroy {
         this.cellValueCache.clear();
         this.rebuildRowClassCache();
         this.scheduleBuildFilterOptionsCache();
+        this.buildGroupCounts();
     }
     get data(): any[] {
         return this._data;
@@ -248,7 +249,11 @@ export class CustomTableKpi implements OnChanges, AfterViewInit, OnDestroy {
     @Input() groupRowsBy: string = '';
     @Input() rowGroupShowFooter: boolean = false;
     @Input() expandableRowGroups: boolean = false;
+    @Input() expandAllGroups: boolean = false;
+    @Input() showGroupCount: boolean = true;
+    @Input() autoSelectFirstRow: boolean = false;
     expandedRowKeys: { [key: string]: boolean } = {};
+    groupCounts: { [key: string]: number } = {};
     /** Field used as the key for cell rowspan merging. Consecutive rows with the same value will be merged for columns marked rowSpan=true */
     @Input() rowSpanBy: string = '';
 
@@ -388,7 +393,7 @@ export class CustomTableKpi implements OnChanges, AfterViewInit, OnDestroy {
             const fmt = col.footerFormat;
             switch (col.footerType) {
                 case 'sum': return vals.reduce((s, v) => s + v, 0).toLocaleString(undefined, fmt);
-                case 'avg': return vals.length ? (vals.reduce((s, v) => s + v, 0) / vals.length).toLocaleString(undefined, fmt) : '';
+                case 'avg': return this.data.length ? (vals.reduce((s, v) => s + v, 0) / this.data.length).toLocaleString(undefined, fmt) : '';
                 case 'count': return this.data.length.toString();
                 case 'min': return vals.length ? Math.min(...vals).toLocaleString(undefined, fmt) : '';
                 case 'max': return vals.length ? Math.max(...vals).toLocaleString(undefined, fmt) : '';
@@ -457,6 +462,31 @@ export class CustomTableKpi implements OnChanges, AfterViewInit, OnDestroy {
         if (changes['data'] || changes['columns']) {
             this.scheduleBuildFilterOptionsCache();
         }
+        
+        if (changes['data'] || changes['groupRowsBy'] || changes['rowGroupMode']) {
+            this.buildGroupCounts();
+        }
+
+        if (changes['expandAllGroups'] && changes['expandAllGroups'].currentValue) {
+            this.expandAllGroupsInternal();
+        }
+        if (changes['data'] && this.rowGroupMode === 'subheader' && this.groupRowsBy && this.expandableRowGroups && this.expandAllGroups) {
+            this.expandAllGroupsInternal();
+        }
+
+        if (changes['selection'] && this.clickSelectRow) {
+            const sel = changes['selection'].currentValue;
+            if (sel) {
+                this.clickedRowKey = this.dataKey ? sel[this.dataKey] : sel;
+            } else {
+                this.clickedRowKey = null;
+            }
+        }
+
+        if (changes['data'] && this.autoSelectFirstRow) {
+            setTimeout(() => this.selectFirstRowOnView());
+        }
+
         if (changes['textWrap']) {
             this.rebuildColCaches();
         }
@@ -785,6 +815,43 @@ export class CustomTableKpi implements OnChanges, AfterViewInit, OnDestroy {
 
     isGroupExpanded(group: string): boolean {
         return !!this.expandedRows[group];
+    }
+
+    private buildGroupCounts() {
+        this.groupCounts = {};
+        if (this.rowGroupMode === 'subheader' && this.groupRowsBy && this._data) {
+            this._data.forEach(item => {
+                const key = item[this.groupRowsBy];
+                if (key !== undefined && key !== null) {
+                    this.groupCounts[key] = (this.groupCounts[key] || 0) + 1;
+                }
+            });
+        }
+    }
+
+    private expandAllGroupsInternal() {
+        if (!this._data || this._data.length === 0 || !this.groupRowsBy) return;
+        const newExpandedRows = { ...this.expandedRows };
+        const uniqueGroups = [...new Set(this._data.map(item => item[this.groupRowsBy]))];
+        uniqueGroups.forEach(groupKey => {
+            if (groupKey !== undefined && groupKey !== null) {
+                newExpandedRows[groupKey as string] = true;
+            }
+        });
+        this.expandedRows = newExpandedRows;
+    }
+
+    selectFirstRowOnView() {
+        if (!this.dt || !this._data || this._data.length === 0) return;
+        const dataOnView = this.dt.filteredValue || this.dt.value;
+        if (dataOnView && dataOnView.length > 0) {
+            const firstRow = dataOnView[0];
+            this.selection = firstRow;
+            this.clickedRowKey = this.dataKey ? firstRow[this.dataKey] : firstRow;
+            this.selectionChange.emit(this.selection);
+            this.rowClick.emit(this.selection);
+            this.cdr.markForCheck();
+        }
     }
 
     onContextMenuSelect(event: any) {

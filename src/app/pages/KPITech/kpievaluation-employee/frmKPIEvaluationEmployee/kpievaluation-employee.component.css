@@ -16,6 +16,27 @@
     height: 100%;
 }
 
+.grid-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.6);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: all;
+}
+
+nz-spin {
+    display: flex !important;
+    flex-direction: column;
+    height: auto !important;
+    width: auto !important;
+}
+
 angular-slickgrid,
 .angular-slickgrid-container {
     height: 100% !important;
@@ -122,23 +143,19 @@ nz-tabset {
 
 /* ==================== EXAM GRID ROW STYLES ==================== */
 /* Status = 0 and expired deadline - OrangeRed background */
-:host ::ng-deep .kpi-employee-wrapper .exam-row-expired {
-    background-color: #FF4500 !important;
-    color: #F5F5F5 !important;
-}
-
-:host ::ng-deep .kpi-employee-wrapper .exam-row-expired .slick-cell {
+:host ::ng-deep .kpi-employee-wrapper .p-datatable-tbody>tr.exam-row-expired>td,
+:host ::ng-deep .kpi-employee-wrapper .exam-row-expired .slick-cell,
+:host ::ng-deep .kpi-employee-wrapper .exam-row-expired td {
     background-color: #FF4500 !important;
     color: #F5F5F5 !important;
 }
 
 /* Status > 0 - LightGreen background (completed) */
-:host ::ng-deep .kpi-employee-wrapper .exam-row-completed {
+:host ::ng-deep .kpi-employee-wrapper .p-datatable-tbody>tr.exam-row-completed>td,
+:host ::ng-deep .kpi-employee-wrapper .exam-row-completed .slick-cell,
+:host ::ng-deep .kpi-employee-wrapper .exam-row-completed td {
     background-color: #90EE90 !important;
-}
-
-:host ::ng-deep .kpi-employee-wrapper .exam-row-completed .slick-cell {
-    background-color: #90EE90 !important;
+    color: #333 !important;
 }
 
 /* ==================== EVALUATION GRID STYLES ==================== */

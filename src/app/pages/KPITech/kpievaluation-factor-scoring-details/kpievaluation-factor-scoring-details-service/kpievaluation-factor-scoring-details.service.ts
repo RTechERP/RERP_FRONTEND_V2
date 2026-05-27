@@ -190,6 +190,32 @@ export class KPIEvaluationFactorScoringDetailsService {
   }
 
   /**
+   * Lấy dữ liệu training cho THUONG02 (tham gia training) và THUONG03 (tổ chức training)
+   * Mapping WinForms: LoadPointRuleLastMonth() và LoadDataView() trong frmKPIEvaluationFactorScoringDetails
+   * - THUONG03: Tổ chức training (dtTraining.Tables[0])
+   * - THUONG02: Tích cực tham gia training (dtTraining.Tables[1])
+   * API: GET api/KPIEvaluationFactorScoringDetails/get-course-training
+   * @param year - Năm đánh giá
+   * @param quarter - Quý đánh giá
+   * @param employeeID - ID nhân viên
+   */
+  getCourseTraining(year: number, quarter: number, employeeID: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}api/KPIEvaluationFactorScoringDetails/get-course-training`, {
+      params: {
+        year: year.toString(),
+        quarter: quarter.toString(),
+        employeeID: employeeID.toString()
+      }
+    }).pipe(
+      map(response => response?.data || null),
+      catchError(error => {
+        console.error('Error loading course training data:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
    * Lấy thông tin team của user hiện tại (Leader)
    * API: GET api/KPIEvaluationFactorScoringDetails/get-team
    */
@@ -203,4 +229,3 @@ export class KPIEvaluationFactorScoringDetailsService {
     );
   }
 }
-

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { KPIEvaluationFactorScoringComponent } from './kpievaluation-factor-scoring.component';
+import { KPIEvaluationFactorScoringComponent } from './kpievaluation-factor-scoring2.component.ts';
 
 describe('KPIEvaluationFactorScoringComponent', () => {
   let component: KPIEvaluationFactorScoringComponent;
@@ -10,7 +10,7 @@ describe('KPIEvaluationFactorScoringComponent', () => {
     await TestBed.configureTestingModule({
       imports: [KPIEvaluationFactorScoringComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(KPIEvaluationFactorScoringComponent);
     component = fixture.componentInstance;

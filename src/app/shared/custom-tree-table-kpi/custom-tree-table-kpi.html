@@ -210,10 +210,13 @@
                                                     <input pInputText
                                                         [type]="col.editType === 'number' ? 'number' : 'text'"
                                                         [ngModel]="rowData[col.field]"
-                                                        (ngModelChange)="emitCellValueChange(rowData, col.field, $event)"
+                                                        (ngModelChange)="emitCellValueChange(rowData, col.field, col.editMin !== undefined && +$event < col.editMin ? col.editMin : $event)"
                                                         (blur)="onCellEditComplete(rowData, col.field)"
                                                         (keydown.enter)="onCellEditComplete(rowData, col.field)"
                                                         (focus)="onInputFocus($event)"
+                                                        (keydown)="col.editMin !== undefined && col.editMin >= 0 && $event.key === '-' ? $event.preventDefault() : null"
+                                                        [min]="col.editMin !== undefined ? col.editMin : null"
+                                                        [max]="col.editMax !== undefined ? col.editMax : null"
                                                         style="width: 100%;" />
                                                 </ng-template>
                                             </ng-template>

@@ -9,7 +9,7 @@ export class BaseService {
   baseUrl = environment.ems_baseURL;
   constructor(
     protected http: HttpClient,
-  ) {}
+  ) { }
   protected buildTree(data: TreeNode[]) {
     const map: { [key: number]: TreeNode } = {};
     const roots: TreeNode[] = [];

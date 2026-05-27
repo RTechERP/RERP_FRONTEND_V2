@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, inject, ChangeDetectorRef, Input, OnChanges, SimpleChanges, Inject, Optional } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, ChangeDetectorRef, Input, Inject, Optional, OnDestroy, ViewChild, SimpleChange } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -14,7 +14,16 @@ import {
     MultipleSelectOption
 } from 'angular-slickgrid';
 import { Subject, forkJoin } from 'rxjs';
-import { takeUntil, finalize } from 'rxjs/operators'; // Added
+import { finalize, takeUntil } from 'rxjs/operators';
+
+// PrimeNG / Custom Components
+import { CustomTableKpi } from '../../../shared/custom-table-kpi/custom-table-kpi';
+import { CustomTreeTableKpi } from '../../../shared/custom-tree-table-kpi/custom-tree-table-kpi';
+import { ColumnDef } from '../../../shared/custom-table-kpi/column-def.model';
+import { TreeColumnDef } from '../../../shared/custom-tree-table-kpi/tree-column-def.model';
+import { TreeNode } from 'primeng/api';
+
+// NZ Modules
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -29,9 +38,10 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzTreeNodeOptions } from 'ng-zorro-antd/tree';
+
+// Services
 import { KPIService } from '../kpi-service/kpi.service';
 import { AppUserService } from '../../../services/app-user.service';
-import { ReadOnlyLongTextEditor } from '../kpievaluation-employee/frmKPIEvaluationEmployee/readonly-long-text-editor';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { KpiRuleSumarizeTeamChooseEmployeeComponent } from '../kpi-rule-sumarize-team-choose-employee/kpi-rule-sumarize-team-choose-employee.component';
 import { KPIEvaluationFactorScoringDetailsComponent } from '../kpievaluation-factor-scoring-details/kpievaluation-factor-scoring-details.component';
@@ -56,10 +66,10 @@ import { KPIEvaluationFactorScoringDetailsComponent } from '../kpievaluation-fac
         NzDividerModule,
         NzTreeSelectModule
     ],
-    templateUrl: './kpievaluation-factor-scoring.component.html',
+    templateUrl: './kpievaluation-factor-scoring2.component.html',
     styleUrl: './kpievaluation-factor-scoring.component.css'
 })
-export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewInit {
+export class KPIEvaluationFactorScoringComponent2 implements OnInit, AfterViewInit {
     // Grid instances
     angularGridExam!: AngularGridInstance;
     angularGridEmployee!: AngularGridInstance;
@@ -3208,8 +3218,7 @@ export class KPIEvaluationFactorScoringComponent implements OnInit, AfterViewIni
             { nzDuration: 0 } // Không tự động đóng
         );
 
-        // 5. Gọi API export Excel
-        const userTeamID = parseInt(this.selectedUserTeamID) || 0;
+        // 5. Gọi API export Excel (chỉ truyền kpiSessionId và departmentId)
         this.kpiService.exportExcelByTeam(this.selectedKPISessionID, this.selectedDepartmentID)
             .pipe(takeUntil(this.destroy$))
             .subscribe({

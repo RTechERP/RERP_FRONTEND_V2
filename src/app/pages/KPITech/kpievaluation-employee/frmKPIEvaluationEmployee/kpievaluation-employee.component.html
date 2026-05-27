@@ -29,7 +29,7 @@
 
             <nz-divider nzType="vertical" style="height: 24px;"></nz-divider>
 
-            <button nz-button nzType="default" nzSize="small" (click)="btnEmployeeApproved_Click()" class="fs-12"
+            <button nz-button nzType="default" nzSize="small" (click)="btnEmployeeApprovedTab_Click()" class="fs-12"
                 [disabled]="isTBPView">
                 <i nz-icon nzType="form"></i>
                 Đánh giá KPI
@@ -80,11 +80,17 @@
                                 <div [id]="gridIdPrefix + '-session-container'"
                                     class="card-body p-0 flex-grow-1 overflow-hidden grid-session-container"
                                     style="min-height: 0;">
-                                    <angular-slickgrid [gridId]="gridIdPrefix + '-session'" [columns]="sessionColumns"
+                                    <!-- <angular-slickgrid [gridId]="gridIdPrefix + '-session'" [columns]="sessionColumns"
                                         [options]="sessionGridOptions" [dataset]="dataSession"
                                         (onAngularGridCreated)="onSessionGridReady($event)"
                                         (onSelectedRowsChanged)="onSessionRowSelectionChanged($event)">
-                                    </angular-slickgrid>
+                                    </angular-slickgrid> -->
+                                    <app-custom-table-kpi [columns]="sessionColumnsPrimeng" [data]="dataSession"
+                                        [clickSelectRow]="true" [scrollable]="true" scrollHeight="flex"
+                                        (rowClick)="onSessionRowSelectionChanged($event)" selectionMode="single"
+                                        [(selection)]="selectedSession" dataKey="ID" [autoSelectFirstRow]="true"
+                                        [showColumnFilter]="false" [loading]="loadingSession">
+                                    </app-custom-table-kpi>
                                 </div>
                             </div>
                         </nz-splitter-panel>
@@ -99,11 +105,18 @@
                                 <div [id]="gridIdPrefix + '-exam-container'"
                                     class="card-body p-0 flex-grow-1 overflow-hidden grid-exam-container"
                                     style="min-height: 0;">
-                                    <angular-slickgrid [gridId]="gridIdPrefix + '-exam'" [columns]="examColumns"
+                                    <!-- <angular-slickgrid [gridId]="gridIdPrefix + '-exam'" [columns]="examColumns"
                                         [options]="examGridOptions" [dataset]="dataExam"
                                         (onAngularGridCreated)="onExamGridReady($event)"
                                         (onSelectedRowsChanged)="onExamRowSelectionChanged($event)">
-                                    </angular-slickgrid>
+                                    </angular-slickgrid> -->
+                                    <app-custom-table-kpi [columns]="examColumnsPrimeng" [data]="dataExam"
+                                        [clickSelectRow]="true" [scrollable]="true" scrollHeight="flex"
+                                        (rowClick)="onExamRowSelectionChanged($event)" selectionMode="single"
+                                        [(selection)]="selectedExam" dataKey="ID"
+                                        [autoSelectFirstRow]="autoSelectFirstExam" [rowClass]="getExamRowClass"
+                                        [showColumnFilter]="false" [loading]="loadingExam">
+                                    </app-custom-table-kpi>
                                 </div>
                             </div>
                         </nz-splitter-panel>
@@ -122,6 +135,9 @@
                                 <nz-tab nzTitle="ĐÁNH GIÁ KỸ NĂNG">
                                     <div [id]="gridIdPrefix + '-evaluation-container'" class="grid-evaluation-container"
                                         style="height: 100%; position: relative;">
+                                        <div class="grid-loading-overlay" *ngIf="loadingTab1">
+                                            <nz-spin nzSimple nzTip="Đang tải..."></nz-spin>
+                                        </div>
                                         <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 0"
                                             [gridId]="gridIdPrefix + '-evaluation'" [columns]="evaluationColumns"
                                             [options]="evaluationGridOptions" [dataset]="dataEvaluation"
@@ -134,6 +150,9 @@
                                 <nz-tab nzTitle="ĐÁNH GIÁ CHUNG" *ngIf="showTabGeneral">
                                     <div [id]="gridIdPrefix + '-evaluation4-container'"
                                         class="grid-evaluation4-container" style="height: 100%; position: relative;">
+                                        <div class="grid-loading-overlay" *ngIf="loadingOtherTabs">
+                                            <nz-spin nzSimple nzTip="Đang tải..."></nz-spin>
+                                        </div>
                                         <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 1"
                                             [gridId]="gridIdPrefix + '-evaluation4'" [columns]="evaluation4Columns"
                                             [options]="evaluation4GridOptions" [dataset]="dataEvaluation4"
@@ -146,6 +165,9 @@
                                 <nz-tab nzTitle="ĐÁNH GIÁ CHUYÊN MÔN" *ngIf="showTabChuyenMon">
                                     <div [id]="gridIdPrefix + '-evaluation2-container'"
                                         class="grid-evaluation2-container" style="height: 100%; position: relative;">
+                                        <div class="grid-loading-overlay" *ngIf="loadingOtherTabs">
+                                            <nz-spin nzSimple nzTip="Đang tải..."></nz-spin>
+                                        </div>
                                         <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 2"
                                             [gridId]="gridIdPrefix + '-evaluation2'" [columns]="evaluation2Columns"
                                             [options]="evaluation2GridOptions" [dataset]="dataEvaluation2"
@@ -158,6 +180,9 @@
                                 <nz-tab nzTitle="TỔNG HỢP ĐÁNH GIÁ">
                                     <div [id]="gridIdPrefix + '-master-container'" class="grid-master-container"
                                         style="height: 100%; position: relative;">
+                                        <div class="grid-loading-overlay" *ngIf="loadingOtherTabs">
+                                            <nz-spin nzSimple nzTip="Đang tải..."></nz-spin>
+                                        </div>
                                         <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 3"
                                             [gridId]="gridIdPrefix + '-master'" [columns]="masterColumns"
                                             [options]="masterGridOptions" [dataset]="dataMaster"
@@ -170,6 +195,9 @@
                                 <nz-tab nzTitle="KPI RULE" *ngIf="showTabRule">
                                     <div [id]="gridIdPrefix + '-rule-container'" class="grid-rule-container"
                                         style="height: 100%; position: relative;">
+                                        <div class="grid-loading-overlay" *ngIf="loadingOtherTabs">
+                                            <nz-spin nzSimple nzTip="Đang tải..."></nz-spin>
+                                        </div>
                                         <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 4"
                                             [gridId]="gridIdPrefix + '-rule'" [columns]="ruleColumns"
                                             [options]="ruleGridOptions" [dataset]="dataRule"
@@ -182,6 +210,9 @@
                                 <nz-tab nzTitle="TEAM RULE" *ngIf="showTabTeam">
                                     <div [id]="gridIdPrefix + '-team-container'" class="grid-team-container"
                                         style="height: 100%; position: relative;">
+                                        <div class="grid-loading-overlay" *ngIf="loadingOtherTabs">
+                                            <nz-spin nzSimple nzTip="Đang tải..."></nz-spin>
+                                        </div>
                                         <angular-slickgrid *ngIf="gridsInitialized && logicalTabIndex === 5"
                                             [gridId]="gridIdPrefix + '-team'" [columns]="teamColumns"
                                             [options]="teamGridOptions" [dataset]="dataTeam"

@@ -6,7 +6,7 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root',
 })
 export class BaseService {
-  baseUrl = environment.host;
+  baseUrl = environment.ems_baseURL;
   constructor(
     protected http: HttpClient,
   ) { }

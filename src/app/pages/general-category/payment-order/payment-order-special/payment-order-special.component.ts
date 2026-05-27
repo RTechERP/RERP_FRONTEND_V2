@@ -17,11 +17,8 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { AppUserService } from '../../../../services/app-user.service';
 import { CURRENCY_CONFIGS, PaymentOrderService } from '../payment-order.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
-import { map, Observable, shareReplay, Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../../environments/environment';
-import { NzOptionSelectionChange } from 'ng-zorro-antd/auto-complete';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -47,12 +44,13 @@ import Swal from 'sweetalert2';
     standalone: true
 })
 export class PaymentOrderSpecialComponent implements OnInit {
-    private url = environment.host + 'api/paymentorder';
     @Input() paymentOrder = new PaymentOrder();
+    @Input() isCopy = false;
     private destroy$ = new Subject<void>();
 
     validateForm !: FormGroup;
     paymentOrderField = PaymentOrderField;
+    originalTypeIDs: number[] = [];
 
     //Khai báo biến combo
     customers: any[] = [];
@@ -116,24 +114,11 @@ export class PaymentOrderSpecialComponent implements OnInit {
         private notification: NzNotificationService,
         private appUserService: AppUserService,
         private paymentService: PaymentOrderService,
-        private http: HttpClient,
         private cdr: ChangeDetectorRef
     ) { }
 
     ngOnInit(): void {
-        // this.userTeamNames$ = this.http.get<any>(`${this.url}/get-data-combo`).pipe(
-        //     map(res => res.data.userTeamNames),
-        //     map(list =>
-        //         list.map((x: any) => ({
-        //             value: x.ID,   // ⚠️ phải trùng field trong row
-        //             label: x.Name
-        //         }))
-        //     ),
-        //     shareReplay(1)
-        // );
-
-        // console.log('this.userTeamNames$:', this.userTeamNames$);
-
+        console.log('[special] ngOnInit — isCopy:', this.isCopy, '| paymentOrder.ID:', this.paymentOrder.ID);
 
         this.initDataCombo();
         this.initForm();
@@ -328,24 +313,54 @@ export class PaymentOrderSpecialComponent implements OnInit {
         };
 
 
-        if (this.paymentOrder.ID > 0) {
-            this.paymentService.getDetail(this.paymentOrder.ID).subscribe({
+        const idToLoad = (this.isCopy && (this.paymentOrder as any).CopyFromID > 0)
+            ? (this.paymentOrder as any).CopyFromID
+            : this.paymentOrder.ID;
+
+        if (idToLoad > 0) {
+            this.paymentService.getDetail(idToLoad).subscribe({
                 next: (response) => {
                     // console.log(response);
 
-                    this.dataset = response.data.details;
-                    this.dataset = this.dataset.map((x, i) => ({
+                    this.dataset = (response.data.details ?? []);
+                    this.dataset = this.dataset.map((x: any, i: number) => ({
                         ...x,
-                        id: x.Id,
+                        STT: x.Stt ?? x.STT,
+                        id: this.isCopy ? i + 1 : x.Id,
+                        Id: this.isCopy ? 0 : x.Id,
+                        ID: this.isCopy ? 0 : x.ID,
+                        PaymentOrderID: this.isCopy ? 0 : x.PaymentOrderID,
                         PaymentMethods: x.PaymentMethods + 1
                     }));
 
-                    this.datasetFile = response.data.files;
-                    this.datasetFile = this.datasetFile.map((x, i) => ({
-                        ...x,
-                        id: i + 1
-                    }));
+                    if (!this.isCopy) {
+                        this.datasetFile = (response.data.files ?? []).map((x: any, i: number) => ({
+                            ...x,
+                            id: i + 1
+                        }));
+                    }
 
+                    const po = Array.isArray(response.data.paymentOrder)
+                        ? response.data.paymentOrder[0]
+                        : response.data.paymentOrder;
+
+                    console.log('[special] getDetail paymentOrder raw:', po);
+
+                    if (po) {
+                        const toLD = (v: any) => v ? new Date(String(v).replace('Z', '').replace(/\+\d{2}:\d{2}$/, '')) : null;
+                        if (po.DeadlinePayment) this.validateForm.get('DeadlinePayment')?.setValue(toLD(po.DeadlinePayment));
+                        if (po.DatePayment) this.validateForm.get('DatePayment')?.setValue(toLD(po.DatePayment));
+
+                        const orderTypeIDsStr = po.OrderTypeIDs;
+                        if (orderTypeIDsStr) {
+                            const typeIDs = String(orderTypeIDsStr)
+                                .split(',')
+                                .map((s: string) => parseInt(s.trim(), 10))
+                                .filter((id: number) => !isNaN(id) && id > 0);
+                            this.originalTypeIDs = this.isCopy ? [] : [...typeIDs];
+                            this.validateForm.get('PaymentOrderTypeID')?.setValue(typeIDs);
+                        }
+                    }
 
                     this.updateTotalByData(3, this.dataset);
                 }
@@ -433,8 +448,12 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
     initForm() {
 
-        // console.log('this.paymentOrder edit:', this.paymentOrder);
-        const dateOrder = this.paymentOrder.DateOrder || new Date();
+        const toLocalDate = (v: any): Date | null => {
+            if (!v) return null;
+            if (v instanceof Date) return v;
+            return new Date(String(v).replace('Z', '').replace(/\+\d{2}:\d{2}$/, ''));
+        };
+        const dateOrder = toLocalDate(this.paymentOrder.DateOrder) ?? new Date();
         const paymentOrderPOs: number[] = (this.paymentOrder.PaymentOrderPOss || '')
             .split(',')
             .map(x => Number(x.trim()));
@@ -452,17 +471,31 @@ export class PaymentOrderSpecialComponent implements OnInit {
 
         // console.log('paymentOrderBillNumbers:', paymentOrderBillNumbers);
 
+        const typeIDsFromString = (this.paymentOrder.OrderTypeIDs || '')
+            .split(',')
+            .map((s: string) => parseInt(s.trim(), 10))
+            .filter((id: number) => !isNaN(id) && id > 0);
+
+        const resolvedTypeIDs = this.paymentOrder.PaymentOrderTypeIDs?.length
+            ? this.paymentOrder.PaymentOrderTypeIDs.filter(x => !x.IsDeleted).map(x => x.PaymentOrderTypeID)
+            : typeIDsFromString.length
+                ? typeIDsFromString
+                : (this.paymentOrder.PaymentOrderTypeID ? [this.paymentOrder.PaymentOrderTypeID] : []);
+
+        this.originalTypeIDs = [...resolvedTypeIDs];
+        console.log('originalTypeIDs (loaded):', this.originalTypeIDs);
+
         this.validateForm = this.fb.group({
             FullName: this.fb.control({ value: this.appUserService.currentUser?.FullName, disabled: true }),
             DepartmentName: this.fb.control({ value: this.appUserService.currentUser?.DepartmentName, disabled: true }),
             IsUrgent: this.fb.control(this.paymentOrder.IsUrgent),
-            DeadlinePayment: this.fb.control(this.paymentOrder.DeadlinePayment),
+            DeadlinePayment: this.fb.control(toLocalDate(this.paymentOrder.DeadlinePayment)),
             CustomerID: this.fb.control(this.paymentOrder.CustomerID, [Validators.required]),
             ApprovedTBPID: this.fb.control(this.paymentOrder.ApprovedTBPID, [Validators.required]),
             ApprovedBGDID: this.fb.control(this.paymentOrder.ApprovedBGDID, [Validators.required]),
             DateOrder: this.fb.control(dateOrder, [Validators.required]),
-            DatePayment: this.fb.control(this.paymentOrder.DatePayment),
-            PaymentOrderTypeID: this.fb.control(this.paymentOrder.PaymentOrderTypeID, [Validators.required]),
+            DatePayment: this.fb.control(toLocalDate(this.paymentOrder.DatePayment)),
+            PaymentOrderTypeID: this.fb.control(resolvedTypeIDs, [Validators.required]),
             PaymentOrderPOs: this.fb.control(paymentOrderPOs),
             PaymentOrderBillNumbers: this.fb.control(paymentOrderBillNumbers),
             ReasonOrder: this.fb.control(this.paymentOrder.ReasonOrder, [Validators.required]),
@@ -566,8 +599,15 @@ export class PaymentOrderSpecialComponent implements OnInit {
             const formData = this.validateForm.getRawValue();
             const detailDatas = this.angularGrid.dataView.getItems();
 
+            console.log('[special] submitForm — isCopy:', this.isCopy, '| paymentOrder.ID:', this.paymentOrder.ID);
+            console.log('[special] detailDatas (raw):', detailDatas.map(x => ({ id: x.id, Id: x.Id, ID: x.ID, PaymentOrderID: x.PaymentOrderID })));
+
             let paymentOrderDetails = detailDatas.map((x) => ({
                 ...x,
+                Id: this.isCopy ? 0 : (x.Id || 0),
+                ID: this.isCopy ? 0 : (x.ID || 0),
+                PaymentOrderId: this.isCopy ? 0 : (x.PaymentOrderId || 0),
+                PaymentOrderID: this.isCopy ? 0 : (x.PaymentOrderID || 0),
                 PaymentMethods: x.PaymentMethods - 1,
                 PaymentOrderDetailUserTeamSales: [
                     {
@@ -575,6 +615,8 @@ export class PaymentOrderSpecialComponent implements OnInit {
                     }
                 ]
             }));
+
+            console.log('[special] paymentOrderDetails (after map):', paymentOrderDetails.map(x => ({ id: x.id, Id: x.Id, ID: x.ID, PaymentOrderID: x.PaymentOrderID })));
 
             let paymentOrderPOs: any[] = [];
 
@@ -603,12 +645,17 @@ export class PaymentOrderSpecialComponent implements OnInit {
             this.paymentOrder = {
                 ...this.paymentOrder,
                 ...this.validateForm.getRawValue(),
+                ID: this.isCopy ? 0 : this.paymentOrder.ID,
+                id: this.isCopy ? 0 : (this.paymentOrder as any).id,
+                PaymentOrderTypeID: 0,
+                PaymentOrderTypeIDs: this.buildTypeIDsPayload(formData.PaymentOrderTypeID ?? []),
                 PaymentOrderDetails: paymentOrderDetails,
                 TotalMoney: parseFloat((columnElement.textContent ?? '').replace(/,/g, '')),
                 TotalMoneyText: this.paymentService.readMoney(parseFloat((columnElement.textContent ?? '').replace(/,/g, '')), this.validateForm.value.Unit),
                 PaymentOrderPOs: paymentOrderPOs,
             };
-            // console.log('submit data', this.paymentOrder);
+            console.log('[special] submit — final ID:', this.paymentOrder.ID, '| isCopy:', this.isCopy);
+            console.log('[special] submit data full:', this.paymentOrder);
 
             this.paymentService.save(this.paymentOrder).subscribe({
                 next: (response) => {
@@ -624,6 +671,15 @@ export class PaymentOrderSpecialComponent implements OnInit {
                 },
             });
         }
+    }
+
+    buildTypeIDsPayload(selectedIDs: number[]): { PaymentOrderTypeID: number; IsDeleted: boolean }[] {
+        const selected = selectedIDs.map(id => ({ PaymentOrderTypeID: id, IsDeleted: false }));
+        if (this.isCopy) return selected;
+        const deleted = this.originalTypeIDs
+            .filter(id => !selectedIDs.includes(id))
+            .map(id => ({ PaymentOrderTypeID: id, IsDeleted: true }));
+        return [...selected, ...deleted];
     }
 
     uploadFile(paymentOrderID: number) {
@@ -726,22 +782,34 @@ export class PaymentOrderSpecialComponent implements OnInit {
         };
 
         this.angularGrid.gridService.addItem(newItem, { position: 'bottom' });
-        // this.dataset = [...this.dataset, newItem];
-
+        this.recalcTotal();
     }
 
     deleteItem(e: Event, args: OnEventArgs) {
-
         const metadata = this.angularGrid.gridService.getColumnFromEventArguments(args);
-        // console.log(metadata);
         this.angularGrid.gridService.deleteItemById(metadata.dataContext.id);
+        this.recalcTotal();
     }
 
 
     onCellChanged(e: Event, args: any) {
-
-        // console.log(args);
         this.updateTotal(args.cell);
+    }
+
+    private recalcTotal(): void {
+        if (!this.angularGrid?.dataView || !this.angularGrid?.slickGrid) return;
+        const fieldName = PaymentOrderField.TotalMoney.field;
+        const data = this.angularGrid.dataView.getItems();
+        const total = data.reduce((sum: number, row: any) => sum + (parseFloat(row[fieldName]) || 0), 0);
+        const columnElement = this.angularGrid.slickGrid.getFooterRowColumn(fieldName);
+        if (columnElement) {
+            columnElement.textContent = new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }).format(total);
+        }
+        this.paymentOrder.TotalMoneyText = this.paymentService.readMoney(total, this.validateForm?.value?.Unit ?? '');
+        this.cdr.detectChanges();
     }
 
 

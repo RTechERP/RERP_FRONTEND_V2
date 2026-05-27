@@ -79,8 +79,8 @@
                                 [ngModelOptions]="{ standalone: true }" />
                         </nz-input-group>
                         <ng-template #suffixIconButton>
-                            <button nz-button nzType="primary" nzSearch nzSize="small"><span nz-icon nzType="search"
-                                    (click)="loadData()"></span></button>
+                            <button nz-button (click)="loadData()" nzType="primary" nzSearch nzSize="small"><span
+                                    nz-icon nzType="search"></span></button>
                         </ng-template>
                     </nz-form-control>
 
@@ -346,7 +346,8 @@
     <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false">
         <nz-splitter>
             <nz-splitter-panel nzMin="20%" [nzCollapsible]="false" nzDefaultSize="70%">
-                <p-tabs [(value)]="activeDetailTab" class="tabs-full" style="height:100%;display:flex;flex-direction:column;">
+                <p-tabs [(value)]="activeDetailTab" class="tabs-full"
+                    style="height:100%;display:flex;flex-direction:column;">
                     <p-tablist>
                         <p-tab value="0" class="p-2">Chi tiết</p-tab>
                         <p-tab value="1" class="p-2">Bước duyệt</p-tab>

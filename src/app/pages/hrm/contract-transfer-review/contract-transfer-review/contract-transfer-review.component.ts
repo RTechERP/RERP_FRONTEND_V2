@@ -28,6 +28,20 @@ import { AppUserService } from '../../../../services/app-user.service';
 import { PermissionService } from '../../../../services/permission.service';
 import Swal from 'sweetalert2';
 import * as ExcelJS from 'exceljs';
+import pdfMake from 'pdfmake/build/pdfmake';
+import vfs from '../../../../shared/pdf/vfs_fonts_custom.js';
+import { LOGO_RTC_BASE64 } from '../../../../shared/pdf/logo-base64';
+
+(pdfMake as any).vfs = vfs;
+(pdfMake as any).fonts = {
+  Times: {
+    normal: 'TIMES.ttf',
+    bold: 'TIMESBD.ttf',
+    bolditalics: 'TIMESBI.ttf',
+    italics: 'TIMESI.ttf',
+  },
+};
+
 @Component({
   selector: 'app-contract-transfer-review',
   standalone: true,
@@ -329,6 +343,12 @@ export class ContractTransferReviewComponent implements OnInit {
         icon: 'fa-solid fa-file-excel fa-lg text-success',
         visible: true,
         command: () => this.onExport(),
+      },
+      {
+        label: 'In phiếu',
+        icon: 'fa-solid fa-print fa-lg text-info',
+        visible: true,
+        command: () => this.printReviewForm(),
       },
       { separator: true },
     ];
@@ -1179,5 +1199,496 @@ export class ContractTransferReviewComponent implements OnInit {
     const date = typeof d === 'string' ? new Date(d) : d;
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T00:00:00`;
+  }
+
+  printReviewForm(): void {
+    let listToProcess: any[] = this.selectedRequests?.length > 0 ? this.selectedRequests : [];
+    if (listToProcess.length === 0 && this.selectedRow) {
+      listToProcess = [this.selectedRow];
+    }
+    if (listToProcess.length !== 1) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn 1 dòng để in phiếu!');
+      return;
+    }
+    const row = listToProcess[0];
+    this.isLoading = true;
+
+    this.service.getDetailNew(row.ID).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        const d = res?.data ?? res ?? null;
+        if (!d) {
+          this.notification.error('Lỗi', 'Không lấy được chi tiết phiếu!');
+          return;
+        }
+        // Fallback names/positions from row if not populated in d
+        d.EmployeeEvaluationName = d.EmployeeEvaluationName || row.EmployeeEvaluationName || '';
+        d.EvaluationPosition = d.EvaluationPosition || row.EvaluationPosition || '';
+        d.EmployeeName = d.EmployeeName || row.EmployeeName || '';
+        d.EmployeePosition = d.EmployeePosition || row.EmployeePosition || '';
+        d.DepartmentName = d.DepartmentName || row.DepartmentName || '';
+        this.drawPDF(d);
+      },
+      error: (err: any) => {
+        this.isLoading = false;
+        this.notification.error('Lỗi', err?.error?.message || 'Lỗi khi tải chi tiết phiếu!');
+      }
+    });
+  }
+
+  drawPDF(d: any) {
+    const addZeroWidthSpace = (str: string) => {
+      if (!str) return '';
+      return str.replace(/([^\s]{15})/g, '$1\u200B');
+    };
+
+    const evalTypes = [
+      { id: 0, name: 'Đánh giá thực tập' },
+      { id: 1, name: 'Đánh giá thử việc' },
+      { id: 4, name: 'Đánh giá HĐLĐ XĐTH (12T) Lần 1' },
+      { id: 7, name: 'Đánh giá HĐLĐ XĐTH (12T) Lần 2' },
+      { id: 8, name: 'Đánh giá nghỉ việc' }
+    ];
+    const conclusions = [
+      { id: 1, name: 'Ký HĐ Thử Việc' },
+      { id: 4, name: 'Ký HĐLĐ XĐTH (12T) Lần 1' },
+      { id: 7, name: 'Ký HĐLĐ XĐTH (12T) Lần 2' },
+      { id: 5, name: 'Ký HĐLĐ KXĐ thời hạn' },
+      { id: 8, name: 'Chấm dứt HĐ' }
+    ];
+
+    const evalTypeName = evalTypes.find(t => t.id === d.EvaluationEmployeeLoaiHDID)?.name || '';
+    const conclusionName = conclusions.find(c => c.id === d.ConclusionEmployeeLoaiHDID)?.name || '';
+
+    const fmtDate = (dateStr: any) => {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '';
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
+
+    /** Format datetime: dd/MM/yyyy HH:mm */
+    const fmtDateTime = (dateStr: any) => {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '';
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const hh = date.getHours().toString().padStart(2, '0');
+      const mm = date.getMinutes().toString().padStart(2, '0');
+      return `${day}/${month}/${year} ${hh}:${mm}`;
+    };
+
+    // Thời gian duyệt của từng bên (backend có thể trả TBPApproveDate / HCNSApproveDate / BGDApproveDate)
+    const employeeApprovedDate = fmtDateTime(d.PERApprovedDate ?? null);
+    const tbpApproveDate = fmtDateTime(d.TBPApproveDate ?? d.DateApprovedTBP ?? null);
+    const hcnsApproveDate = fmtDateTime(d.HCNSApproveDate ?? d.DateApprovedHCNS ?? null);
+    const bgdApproveDate = fmtDateTime(d.BGDApproveDate ?? d.DateApprovedBGD ?? d.DateApproved ?? null);
+
+    const evaluatorName = d.EmployeeEvaluationName || '';
+    const evaluatorPosition = d.EvaluationPosition || '';
+    const employeeName = d.EmployeeName || '';
+    const employeePosition = d.EmployeePosition || '';
+    const departmentName = d.DepartmentName || '';
+
+    // Initialize items
+    const items: any[] = [
+      { code: 'A', isGroup: true, name: 'Năng lực chuyên môn', weight: 25, nldScore: null, tbpScore: null },
+      { code: '1', isGroup: false, name: 'Kiến thức chuyên môn nghiệp vụ', weight: 10, nldScore: null, tbpScore: null },
+      { code: '2', isGroup: false, name: 'Kỹ năng sử dụng công cụ, hệ thống', weight: 5, nldScore: null, tbpScore: null },
+      { code: '3', isGroup: false, name: 'Chất lượng công việc (độ chính xác, ít sai sót)', weight: 5, nldScore: null, tbpScore: null },
+      { code: '4', isGroup: false, name: 'Tiến độ & khả năng đáp ứng công việc', weight: 3, nldScore: null, tbpScore: null },
+      { code: '5', isGroup: false, name: 'Khả năng xử lý tình huống', weight: 2, nldScore: null, tbpScore: null },
+      { code: 'B', isGroup: true, name: 'Hiệu quả công việc & phối hợp', weight: 50, nldScore: null, tbpScore: null },
+      { code: '6', isGroup: false, name: 'Tính chủ động trong công việc', weight: 10, nldScore: null, tbpScore: null },
+      { code: '7', isGroup: false, name: 'Khả năng phối hợp & hỗ trợ phòng ban', weight: 10, nldScore: null, tbpScore: null },
+      { code: '8', isGroup: false, name: 'Kỹ năng giao tiếp & làm việc nhóm', weight: 5, nldScore: null, tbpScore: null },
+      { code: '9', isGroup: false, name: 'Kết quả đầu ra công việc (Output/KPI chính)', weight: 25, nldScore: null, tbpScore: null },
+      { code: 'C', isGroup: true, name: 'Kỷ luật, tác phong & thái độ', weight: 15, nldScore: null, tbpScore: null },
+      { code: '10', isGroup: false, name: 'Tuân thủ nội quy, quy định Công ty & Phòng', weight: 4, nldScore: null, tbpScore: null },
+      { code: '11', isGroup: false, name: 'Chuyên cần (Đi làm đúng giờ, không nghỉ quá phép)', weight: 3, nldScore: null, tbpScore: null },
+      { code: '12', isGroup: false, name: 'Tác phong làm việc (Chỉn chu, chuyên nghiệp)', weight: 3, nldScore: null, tbpScore: null },
+      { code: '13', isGroup: false, name: 'Thái độ & tinh thần trách nhiệm', weight: 5, nldScore: null, tbpScore: null },
+      { code: 'D', isGroup: true, name: 'Văn hóa, phát triển & gắn bó', weight: 10, nldScore: null, tbpScore: null },
+      { code: '14', isGroup: false, name: 'Mức độ phù hợp với văn hóa RTC', weight: 4, nldScore: null, tbpScore: null },
+      { code: '15', isGroup: false, name: 'Tinh thần học hỏi & cầu tiến', weight: 3, nldScore: null, tbpScore: null },
+      { code: '16', isGroup: false, name: 'Mức độ gắn bó với Công ty', weight: 3, nldScore: null, tbpScore: null }
+    ];
+
+    const setNLD = (code: string, val: number | null) => {
+      const it = items.find(i => i.code === code);
+      if (it) it.nldScore = val;
+    };
+    const setTBP = (code: string, val: number | null) => {
+      const it = items.find(i => i.code === code);
+      if (it) it.tbpScore = val;
+    };
+
+    setNLD('1', d.ProfessionalKnowledge ?? null);
+    setNLD('2', d.ToolAndSystemSkills ?? null);
+    setNLD('3', d.WorkQuality ?? null);
+    setNLD('4', d.WorkProgress ?? null);
+    setNLD('5', d.ProblemSolvingAbility ?? null);
+    setNLD('6', d.Proactiveness ?? null);
+    setNLD('7', d.CollaborationAndSupport ?? null);
+    setNLD('8', d.CommunicationAndTeamwork ?? null);
+    setNLD('9', d.WorkOutputKPI ?? null);
+    setNLD('10', d.ComplianceWithRegulations ?? null);
+    setNLD('11', d.Attendance ?? null);
+    setNLD('12', d.WorkStyle ?? null);
+    setNLD('13', d.AttitudeAndResponsibility ?? null);
+    setNLD('14', d.CulturalFitRTC ?? null);
+    setNLD('15', d.LearningAndGrowthMindset ?? null);
+    setNLD('16', d.CompanyCommitment ?? null);
+
+    setTBP('1', d.TBPProfessionalKnowledge ?? null);
+    setTBP('2', d.TBPToolAndSystemSkills ?? null);
+    setTBP('3', d.TBPWorkQuality ?? null);
+    setTBP('4', d.TBPWorkProgress ?? null);
+    setTBP('5', d.TBPProblemSolvingAbility ?? null);
+    setTBP('6', d.TBPProactiveness ?? null);
+    setTBP('7', d.TBPCollaborationAndSupport ?? null);
+    setTBP('8', d.TBPCommunicationAndTeamwork ?? null);
+    setTBP('9', d.TBPWorkOutputKPI ?? null);
+    setTBP('10', d.TBPComplianceWithRegulations ?? null);
+    setTBP('11', d.TBPAttendance ?? null);
+    setTBP('12', d.TBPWorkStyle ?? null);
+    setTBP('13', d.TBPAttitudeAndResponsibility ?? null);
+    setTBP('14', d.TBPCulturalFitRTC ?? null);
+    setTBP('15', d.TBPLearningAndGrowthMindset ?? null);
+    setTBP('16', d.TBPCompanyCommitment ?? null);
+
+    const nldConverted = (it: any): number => {
+      if (it.nldScore === null || it.nldScore === undefined) return 0;
+      return +(it.nldScore * it.weight / 100).toFixed(2);
+    };
+
+    const tbpConverted = (it: any): number => {
+      if (it.tbpScore === null || it.tbpScore === undefined) return 0;
+      return +(it.tbpScore * it.weight / 100).toFixed(2);
+    };
+
+    const getGroupNLD = (groupCode: string): number => {
+      const groupIdx = items.findIndex(it => it.isGroup && it.code === groupCode);
+      if (groupIdx === -1) return 0;
+      let sum = 0;
+      for (let i = groupIdx + 1; i < items.length; i++) {
+        if (items[i].isGroup) break;
+        sum += nldConverted(items[i]);
+      }
+      return +sum.toFixed(2);
+    };
+
+    const getGroupTBP = (groupCode: string): number => {
+      const groupIdx = items.findIndex(it => it.isGroup && it.code === groupCode);
+      if (groupIdx === -1) return 0;
+      let sum = 0;
+      for (let i = groupIdx + 1; i < items.length; i++) {
+        if (items[i].isGroup) break;
+        sum += tbpConverted(items[i]);
+      }
+      return +sum.toFixed(2);
+    };
+
+    const leafItems = items.filter(it => !it.isGroup);
+    const nldTotal = leafItems.reduce((sum, it) => sum + nldConverted(it), 0);
+    const tbpTotal = leafItems.reduce((sum, it) => sum + tbpConverted(it), 0);
+
+    const getRank = (total: number): string => {
+      if (total >= 95) return 'Xuất sắc';
+      if (total >= 85) return 'Tốt';
+      if (total >= 70) return 'Khá';
+      if (total >= 60) return 'Đạt';
+      return 'Không đạt';
+    };
+
+    const nldRank = getRank(nldTotal);
+    const tbpRank = getRank(tbpTotal);
+
+    const tableBody = [];
+    tableBody.push([
+      { text: 'STT', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8] },
+      { text: 'Nội dung đánh giá', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8] },
+      { text: 'Trọng số', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8] },
+      { text: 'NLĐ tự đánh giá', colSpan: 2, bold: true, alignment: 'center' },
+      '',
+      { text: 'TBP đánh giá', colSpan: 2, bold: true, alignment: 'center' },
+      ''
+    ]);
+    tableBody.push([
+      '',
+      '',
+      '',
+      { text: 'Điểm đánh giá', bold: true, alignment: 'center', fontSize: 9 },
+      { text: 'Điểm quy đổi = Điểm đánh giá (%) * Trọng số', bold: true, alignment: 'center', fontSize: 8 },
+      { text: 'Điểm đánh giá', bold: true, alignment: 'center', fontSize: 9 },
+      { text: 'Điểm quy đổi = Điểm đánh giá (%) * Trọng số', bold: true, alignment: 'center', fontSize: 8 }
+    ]);
+
+    items.forEach(it => {
+      if (it.isGroup) {
+        tableBody.push([
+          { text: it.code, bold: true, alignment: 'center', fillColor: '#f2f2f2' },
+          { text: it.name, bold: true, fillColor: '#f2f2f2' },
+          { text: it.weight.toFixed(1) + '%', bold: true, alignment: 'center', fillColor: '#f2f2f2' },
+          { text: '', fillColor: '#f2f2f2' },
+          { text: getGroupNLD(it.code).toFixed(2) + '%', bold: true, alignment: 'center', fillColor: '#f2f2f2' },
+          { text: '', fillColor: '#f2f2f2' },
+          { text: getGroupTBP(it.code).toFixed(2) + '%', bold: true, alignment: 'center', fillColor: '#f2f2f2' }
+        ]);
+      } else {
+        tableBody.push([
+          { text: it.code, alignment: 'center' },
+          { text: it.name },
+          { text: it.weight.toFixed(1) + '%', alignment: 'center' },
+          { text: it.nldScore !== null && it.nldScore !== undefined ? it.nldScore + '%' : '–', alignment: 'center' },
+          { text: nldConverted(it).toFixed(2) + '%', alignment: 'center' },
+          { text: it.tbpScore !== null && it.tbpScore !== undefined ? it.tbpScore + '%' : '–', alignment: 'center' },
+          { text: tbpConverted(it).toFixed(2) + '%', alignment: 'center' }
+        ]);
+      }
+    });
+
+    tableBody.push([
+      { text: 'Tổng điểm:', colSpan: 2, bold: true, alignment: 'right' },
+      '',
+      { text: '100.0%', bold: true, alignment: 'center' },
+      '',
+      { text: nldTotal.toFixed(2) + '%', bold: true, alignment: 'center' },
+      '',
+      { text: tbpTotal.toFixed(2) + '%', bold: true, alignment: 'center' }
+    ]);
+
+    tableBody.push([
+      { text: 'Xếp loại:', colSpan: 2, bold: true, alignment: 'right' },
+      '',
+      '',
+      '',
+      { text: nldRank, bold: true, alignment: 'center' },
+      '',
+      { text: tbpRank, bold: true, alignment: 'center' }
+    ]);
+
+    const commentTableBody = [
+      [
+        { text: 'E', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 10] },
+        { text: 'Nhận xét chung', rowSpan: 2, bold: true, margin: [0, 10] },
+        { text: 'Điểm mạnh:', bold: true },
+        { text: addZeroWidthSpace(d.Strengths) }
+      ],
+      [
+        '',
+        '',
+        { text: 'Điểm cần cải thiện:', bold: true },
+        { text: addZeroWidthSpace(d.AreasForImprovement) }
+      ],
+      [
+        { text: 'F', bold: true, alignment: 'center' },
+        { text: 'Kiến nghị/Khác', bold: true },
+        { text: addZeroWidthSpace(d.RecommendationsOrOther), colSpan: 2 },
+        ''
+      ],
+      [
+        { text: 'G', bold: true, alignment: 'center' },
+        { text: 'Kết luận', bold: true },
+        {
+          text: [
+            { text: conclusionName, bold: true },
+            d.OtherConclusion ? { text: ` (Khác: ${addZeroWidthSpace(d.OtherConclusion)})` } : ''
+          ],
+          colSpan: 2
+        },
+        ''
+      ]
+    ];
+
+    const evalDate = d.DateEvaluation ? new Date(d.DateEvaluation) : new Date();
+    const dateD = evalDate.getDate().toString().padStart(2, '0');
+    const dateM = (evalDate.getMonth() + 1).toString().padStart(2, '0');
+    const dateY = evalDate.getFullYear();
+
+    const docDefinition: any = {
+      pageSize: 'A4',
+      pageMargins: [35, 30, 35, 30],
+      defaultStyle: { font: 'Times', fontSize: 10.5, lineHeight: 1.3 },
+      content: [
+        {
+          columns: [
+            {
+              image: LOGO_RTC_BASE64,
+              width: 110,
+            },
+            {
+              stack: [
+                { text: 'PHIẾU ĐÁNH GIÁ', bold: true, alignment: 'center', fontSize: 16, margin: [0, 5, 0, 2] },
+                { text: '(Dành cho Cán bộ Quản lý)', italic: true, alignment: 'center', fontSize: 11 }
+              ],
+              width: '*'
+            },
+            {
+              text: '',
+              width: 110
+            }
+          ],
+          margin: [0, 0, 0, 10]
+        },
+        {
+          canvas: [{ type: 'line', x1: 0, y1: 0, x2: 525, y2: 0, lineWidth: 1 }],
+          margin: [0, 0, 0, 10]
+        },
+        {
+          columns: [
+            { text: [{ text: 'Loại đánh giá: ', bold: true }, evalTypeName], width: '50%' },
+            { text: [{ text: 'Thời gian đánh giá: ', bold: true }, `Từ ${fmtDate(d.DateStart)} Đến ${fmtDate(d.DateEnd)}`], width: '50%' }
+          ],
+          margin: [0, 0, 0, 10]
+        },
+        { text: 'I. CÁN BỘ QUẢN LÝ', bold: true, margin: [0, 5, 0, 3] },
+        {
+          columns: [
+            { text: [{ text: '1. Họ và tên: ', bold: true }, evaluatorName], width: '50%' },
+            { text: [{ text: '2. Chức vụ: ', bold: true }, evaluatorPosition], width: '50%' }
+          ],
+          margin: [10, 0, 0, 10]
+        },
+        { text: 'II. NGƯỜI ĐƯỢC ĐÁNH GIÁ', bold: true, margin: [0, 5, 0, 3] },
+        {
+          columns: [
+            { text: [{ text: '1. Họ và tên: ', bold: true }, employeeName], width: '35%' },
+            { text: [{ text: '2. Chức vụ: ', bold: true }, employeePosition], width: '35%' },
+            { text: [{ text: '3. Bộ phận: ', bold: true }, departmentName], width: '30%' }
+          ],
+          margin: [10, 0, 0, 5]
+        },
+        {
+          text: [{ text: '4. Công việc chính: ', bold: true }, addZeroWidthSpace(d.MainJobmainResponsibilities) || ''],
+          margin: [10, 0, 0, 10]
+        },
+        { text: 'III. XẾP LOẠI', bold: true, margin: [0, 5, 0, 3] },
+        {
+          table: {
+            widths: [35, 120, 70, '*'],
+            body: [
+              [
+                { text: 'STT', bold: true, alignment: 'center' },
+                { text: 'Điểm %', bold: true, alignment: 'center' },
+                { text: 'Xếp loại', bold: true, alignment: 'center' },
+                { text: 'Chú thích', bold: true, alignment: 'center' }
+              ],
+              [
+                { text: '1', alignment: 'center' },
+                { text: 'KQ ≥ 95%', alignment: 'center' },
+                { text: 'Xuất sắc', bold: true, alignment: 'center' },
+                { text: 'Hoàn thành xuất sắc' }
+              ],
+              [
+                { text: '2', alignment: 'center' },
+                { text: '85% ≤ KQ < 95%', alignment: 'center' },
+                { text: 'Tốt', bold: true, alignment: 'center' },
+                { text: 'Hoàn thành tốt KPI, ổn định, thái độ & năng lực tốt' }
+              ],
+              [
+                { text: '3', alignment: 'center' },
+                { text: '70% ≤ KQ < 85%', alignment: 'center' },
+                { text: 'Khá', bold: true, alignment: 'center' },
+                { text: 'Hoàn thành phần lớn công việc, còn điểm cần cải thiện' }
+              ],
+              [
+                { text: '4', alignment: 'center' },
+                { text: '60% ≤ KQ < 70%', alignment: 'center' },
+                { text: 'Đạt', bold: true, alignment: 'center' },
+                { text: 'Hoàn thành mức tối thiểu, cần theo dõi & hỗ trợ' }
+              ],
+              [
+                { text: '5', alignment: 'center' },
+                { text: 'KQ < 60%', alignment: 'center' },
+                { text: 'Không đạt', bold: true, alignment: 'center' },
+                { text: 'Không đạt yêu cầu' }
+              ]
+            ]
+          },
+          margin: [10, 0, 0, 10]
+        },
+        { text: 'IV. ĐÁNH GIÁ', bold: true, margin: [0, 5, 0, 3] },
+        {
+          table: {
+            widths: [20, '*', 45, 55, 60, 55, 60],
+            body: tableBody
+          },
+          margin: [10, 0, 0, 10]
+        },
+        {
+          table: {
+            widths: [20, 80, 100, '*'],
+            body: commentTableBody
+          },
+          margin: [10, 5, 0, 10],
+          unbreakable: true
+        },
+        {
+          text: `${d.LocationEvaluation || 'Hà Nội'}, ngày ${dateD} tháng ${dateM} năm ${dateY}`,
+          alignment: 'right',
+          italic: true,
+          margin: [0, 15, 0, 0]
+        },
+        {
+          columns: [
+            {
+              stack: [
+                { text: 'NGƯỜI ĐƯỢC ĐÁNH GIÁ', bold: true, alignment: 'center' },
+                { text: '\n\n\n\n' },
+                { text: d.EmployeeName || '', bold: true, alignment: 'center' },
+
+              ],
+              width: '25%'
+            },
+            {
+              stack: [
+                { text: 'TRƯỞNG BỘ PHẬN', bold: true, alignment: 'center' },
+                { text: '\n\n\n\n' },
+                { text: d.TBPApproveName || '', bold: true, alignment: 'center' },
+                tbpApproveDate
+                  ? { text: `(Đã duyệt: ${tbpApproveDate})`, italics: true, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
+                  : { text: '' }
+              ],
+              width: '25%'
+            },
+            {
+              stack: [
+                { text: 'TRƯỞNG PHÒNG HCNS', bold: true, alignment: 'center' },
+                { text: '\n\n\n\n' },
+                { text: d.HCNSApproveName || '', bold: true, alignment: 'center' },
+                hcnsApproveDate
+                  ? { text: `(Đã duyệt: ${hcnsApproveDate})`, italics: true, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
+                  : { text: '' }
+              ],
+              width: '25%'
+            },
+            {
+              stack: [
+                { text: 'PHÊ DUYỆT', bold: true, alignment: 'center' },
+                { text: '\n\n\n\n' },
+                { text: d.BGDApproveName || '', bold: true, alignment: 'center' },
+                bgdApproveDate
+                  ? { text: `(Đã duyệt: ${bgdApproveDate})`, italics: true, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
+                  : { text: '' }
+              ],
+              width: '25%'
+            }
+          ],
+          margin: [0, 10, 0, 0],
+          unbreakable: true
+        }
+      ]
+    };
+
+    pdfMake.createPdf(docDefinition).getBlob((blob: any) => {
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    });
   }
 }

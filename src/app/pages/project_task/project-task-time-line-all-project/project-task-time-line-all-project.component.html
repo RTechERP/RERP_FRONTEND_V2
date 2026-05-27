@@ -14,6 +14,15 @@
                     <div class="legend-item">
                         <span class="box actual"></span> Thực tế
                     </div>
+                    <div class="legend-item">
+                        <span class="box outside-work"></span> Nhà máy
+                    </div>
+                    <div class="legend-item"><span class="legend-sep">|</span></div>
+                    <div class="legend-item"><strong>Ro</strong>&nbsp;= Nghỉ không lương</div>
+                    <div class="legend-item"><strong>P</strong>&nbsp;= Nghỉ phép</div>
+                    <div class="legend-item"><strong>R</strong>&nbsp;= Việc riêng có lương</div>
+                    <div class="legend-item"><span class="legend-sep">|</span></div>
+                    <div class="legend-item"><strong>/S</strong>&nbsp;= Buổi sáng &nbsp; <strong>/C</strong>&nbsp;= Buổi chiều &nbsp; (không có hậu tố = cả ngày)</div>
                 </div>
             </div>
             <nz-row [nzGutter]="[8, 8]" nzAlign="bottom" nzJustify="space-between">
@@ -70,7 +79,11 @@
                             nzAllowClear style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
                             <nz-option *ngFor="let item of projectList"
+                                nzCustomContent
                                 [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
+                                <div class="multiline-dropdown-option">
+                                    {{ item.ProjectCode }} - {{ item.ProjectName }}
+                                </div>
                             </nz-option>
                         </nz-select>
                     </div>
@@ -80,7 +93,7 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="5">
                     <div class="form-field-vertical">
                         <label>Trạng thái</label>
-                        <nz-select nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
+                        <nz-select nzPlaceHolder="Tất cả trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
                             nzMode="multiple" [nzMaxTagCount]="3" nzAllowClear style="width: 100%;">
                             <nz-option *ngFor="let opt of statusOptions" [nzLabel]="opt.label" [nzValue]="opt.value">
                             </nz-option>
@@ -101,6 +114,10 @@
                                 nzTooltipTitle="Tìm kiếm">
                                 <span nz-icon nzType="search"></span>
                             </button>
+                            <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" nz-tooltip
+                                nzTooltipTitle="Xuất Excel">
+                                <span nz-icon nzType="file-excel" nzTheme="outline" style="color: #107c41;"></span>
+                            </button>
                         </div>
                     </div>
                 </nz-col>
@@ -110,8 +127,8 @@
 
     <!-- ===== BẢNG TIMELINE DẠNG TREE ===== -->
     <div class="timeline-content" [class.loading]="loading()">
-        <div class="table-container">
-            <table class="grid-table">
+        <div class="table-container" (scroll)="onScroll($event)">
+            <table class="grid-table tree-table">
                 <thead>
                     <!-- Hàng 1: Tên cột + Tên ngày -->
                     <tr>
@@ -154,25 +171,26 @@
                             <span style="font-size: 9px; font-weight: normal; color: #64748b;">(Giờ / Ngày)</span>
                         </th>
                         <th rowspan="2" class="sticky-col col-type">Loại</th>
-                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday"
+                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday || col.isDayOff"
                             [class.today-col]="col.isToday" class="date-header">
                             {{ col.dayName }}
                         </th>
                     </tr>
                     <tr>
-                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday"
+                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday || col.isDayOff"
                             [class.today-col]="col.isToday" class="date-subheader">
                             {{ col.dateDisplay }}
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <ng-container *ngFor="let node of flatVisibleData; let i = index">
+                    <ng-container *ngFor="let node of visibleData(); let i = index; trackBy: trackByNode">
                         <!-- Mỗi task sinh ra 2 dòng: Dự kiến (ri=0) + Thực tế (ri=1) -->
-                        <ng-container *ngFor="let row of node.rows; let ri = index">
+                        <ng-container *ngFor="let row of node.rows; let ri = index; trackBy: trackByRow">
                             <tr [class.highlight-row]="node.ProjectTaskID === focusTaskId"
-                                [class.parent-row]="node.children.length > 0" [class.row-actual]="ri === 1"
-                                [class.row-overdue]="node.isOverdue"
+                                [class.parent-row]="node.children.length > 0"
+                                [class.root-parent-row]="node.level === 0 && node.children.length > 0"
+                                [class.row-actual]="ri === 1" [class.row-overdue]="node.isOverdue"
                                 (click)="setFocus(node.ProjectTaskID)">
 
                                 <!-- STT: chỉ ở dòng đầu (Dự kiến), span 2 dòng -->
@@ -193,7 +211,7 @@
                                             <a class="task-code-link" (click)="openTaskDetail(node)">
                                                 {{ node.ProjectTaskCode }}
                                             </a>
-                                            <span class="task-title text-wrap" nz-tooltip
+                                            <span class="task-title" nz-tooltip
                                                 [nzTooltipTitle]="node.ProjectTaskTitle">
                                                 {{ node.ProjectTaskTitle }}
                                             </span>
@@ -218,7 +236,9 @@
 
                                 <!-- Trạng thái: chỉ ở dòng đầu, span 2 dòng -->
                                 <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-status text-center">
-                                    <span class="status-tag" [attr.data-status]="node.Status" [class.overdue]="node.isOverdue">
+                                    <span class="status-tag" [attr.data-status]="node.Status"
+                                        [class.overdue]="node.isOverdue"
+                                        [ngStyle]="node._statusStyle">
                                         {{ node.StatusName }}
                                     </span>
                                 </td>
@@ -234,20 +254,23 @@
                                     {{ row.TypeDate === 1 ? 'Dự kiến' : 'Thực tế' }}
                                 </td>
 
-                                <!-- Các ô ngày -->
+                                <!-- Các ô ngày - Sử dụng pre-computed _cellData -->
                                 <td *ngFor="let col of dateColumns" class="gantt-cell" [class.cell-group-end]="ri === 1"
-                                    [class.sunday]="col.isSunday" [class.today-col]="col.isToday"
-                                    [class.filled-planned]="row.TypeDate === 1 && (getValue(row, col.dateStr) === 1 || getValue(row, col.dateStr) === 3)"
-                                    [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
-                                    <!-- Dự kiến: 2 hoặc 3 hiển thị icon check -->
-                                    <ng-container
-                                        *ngIf="row.TypeDate === 1 && (getValue(row, col.dateStr) === 2 || getValue(row, col.dateStr) === 3)">
+                                    [class.sunday]="col.isSunday || col.isDayOff" [class.today-col]="col.isToday"
+                                    [class.filled-planned]="row._cellData[col.dateStr]?.isPlannedFilled && !row._cellData[col.dateStr]?.isOutsideWork"
+                                    [class.filled-planned-outside]="row._cellData[col.dateStr]?.isPlannedFilled && row._cellData[col.dateStr]?.isOutsideWork"
+                                    [class.filled-actual]="row.TypeDate === 2 && row._cellData[col.dateStr]?.isFilledActual"
+                                    [class.filled-actual-outside]="row.TypeDate === 2 && row._cellData[col.dateStr]?.isFilledActualOutside"
+                                    [nz-tooltip]="row._cellData[col.dateStr]?.tooltip">
+                                    <!-- Dự kiến: hiển thị icon check khi đã điểm danh -->
+                                    <ng-container *ngIf="row._cellData[col.dateStr]?.hasCheckMark">
                                         <span nz-icon nzType="check" nzTheme="outline" class="check-icon"></span>
                                     </ng-container>
-                                    <!-- Thực tế: > 0 hiển thị số giờ -->
-                                    <ng-container *ngIf="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
-                                        <span class="actual-hours">
-                                            {{ getValue(row, col.dateStr) }}
+                                    <!-- Thực tế: dùng pre-computed data -->
+                                    <ng-container *ngIf="row.TypeDate === 2">
+                                        <span *ngIf="row._cellData[col.dateStr]?.actualHours > 0" class="actual-hours">{{ row._cellData[col.dateStr].actualHours }}</span>
+                                        <span *ngIf="row._cellData[col.dateStr]?.hasLeave" class="leave-label">
+                                            {{ row._cellData[col.dateStr].leaveLabel }}
                                         </span>
                                     </ng-container>
                                 </td>
@@ -256,16 +279,16 @@
                     </ng-container>
 
                     <!-- Trống -->
-                    <tr *ngIf="flatVisibleData.length === 0 && !loading()">
-                        <td [attr.colspan]="5 + dateColumns.length" class="empty-cell">
-                            Không có dữ liệu cho khoảng thời gian này
+                    <tr *ngIf="visibleData().length === 0 && !loading()">
+                        <td [attr.colspan]="6 + dateColumns.length" class="text-center py-4">
+                            Không có dữ liệu
                         </td>
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td [attr.colspan]="5 + dateColumns.length" class="table-footer-total">
-                            Tổng số công việc: <span class="total-count">{{ getTotalTasks() }}</span>
+                        <td [attr.colspan]="6 + dateColumns.length" class="table-footer-total">
+                            Tổng số công việc: <span class="total-count">{{ flatVisibleData.length }}</span>
                         </td>
                     </tr>
                 </tfoot>

@@ -1,0 +1,434 @@
+/* ===========================
+   FULLSCREEN MODAL override
+   Bootstrap 5 size:'fullscreen' + modalDialogClass:'modal-fullscreen'
+   đã tự xử lý width/height 100vw/100vh.
+   Chỉ cần đảm bảo modal-body fill phần còn lại.
+ =========================== */
+::ng-deep .rejection-letter-fullscreen-modal .modal-body {
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+::ng-deep .rejection-letter-fullscreen-modal .modal-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ===========================
+   WRAPPER
+ =========================== */
+::ng-deep .email-composer {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  background: #f0f4fa;
+  overflow: hidden;
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 12px;
+}
+
+/* nz-spin cần là flex child để fill phần giữa */
+::ng-deep .email-composer > nz-spin,
+::ng-deep .email-composer > nz-spin > .ant-spin-container {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ===========================
+   HEADER
+ =========================== */
+.email-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #78281f, #c0392b);
+  color: white;
+  flex-shrink: 0;
+}
+
+.header-icon {
+  font-size: 24px;
+  opacity: 0.9;
+}
+
+.header-text h4 {
+  margin: 0;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.form-code {
+  font-size: 11px;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.header-meta {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 0, 0, 0.5);
+  background: rgb(255, 0, 0);
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.modal-close-btn:hover {
+  background: #cc0000;
+  border-color: #cc0000;
+  transform: scale(1.1);
+}
+
+.candidate-count {
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ===========================
+   TABS
+ =========================== */
+.candidate-tabs {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-content-holder {
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-content {
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-tabpane {
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-nav {
+  background: #e8f0fb;
+  margin: 0;
+  padding: 0 12px;
+  padding-top: 6px;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-tab {
+  border-radius: 6px 6px 0 0 !important;
+  font-size: 12px;
+  padding: 6px 14px !important;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-tab-active {
+  background: #78281f !important;
+  font-weight: 600;
+}
+
+::ng-deep .ant-tabs-dropdown {
+  background: white !important;
+  border-radius: 6px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  padding: 4px 0 !important;
+}
+
+::ng-deep .ant-tabs-dropdown-menu {
+  background: white !important;
+}
+
+::ng-deep .ant-tabs-dropdown-menu-item {
+  color: #333 !important;
+  font-size: 12px !important;
+  padding: 7px 16px !important;
+}
+
+::ng-deep .ant-tabs-dropdown-menu-item:hover {
+  background: #e8f0fb !important;
+  color: #78281f !important;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: white !important;
+}
+
+::ng-deep .candidate-tabs .ant-tabs-tab-active .ant-tabs-tab-btn i {
+  color: white !important;
+}
+
+/* ===========================
+   TAB BODY: 2 CỘT
+ =========================== */
+.tab-body {
+  display: flex;
+  gap: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ===========================
+   FORM PANEL (trái) — 38%
+ =========================== */
+.form-panel {
+  flex: 0 0 38%;
+  width: 38%;
+  padding: 12px 16px;
+  overflow-y: auto;
+  border-right: 1px solid #d6e4f7;
+  background: white;
+  min-width: 320px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.field-group {
+  margin-bottom: 8px;
+}
+
+.field-group label.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a4a6a;
+  margin-bottom: 4px;
+}
+
+.fields-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.flex1 {
+  flex: 1;
+}
+.flex2 {
+  flex: 2;
+}
+
+/* ===========================
+   PREVIEW PANEL (phải) — 62%
+ =========================== */
+.preview-panel {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 14px 20px;
+  overflow-y: auto;
+  background: #f2f5fa;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.preview-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #c0392b;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 10px;
+}
+
+.email-preview-card {
+  background: white;
+  border: 1px solid #d6e4f7;
+  border-radius: 8px;
+  padding: 24px 32px;
+  box-shadow: 0 2px 12px rgba(192, 57, 43, 0.1);
+  /* A4-like width constraint for proper rendering */
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.preview-meta {
+  margin-bottom: 0;
+}
+
+.meta-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+.meta-key {
+  font-weight: 700;
+  color: #555;
+  min-width: 70px;
+}
+
+.meta-val {
+  color: #333;
+  flex: 1;
+  word-break: break-all;
+}
+
+.meta-val.bold {
+  font-weight: 600;
+  color: #78281f;
+}
+
+.email-body-preview {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 12px;
+  line-height: 1.75;
+  color: #111;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* ===========================
+   FOOTER (STICKY)
+ =========================== */
+.email-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 20px;
+  background: white;
+  border-top: 1px solid #dde4f0;
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+.footer-hint {
+  font-size: 12px;
+  color: #888;
+}
+
+.footer-right {
+  display: flex;
+  gap: 8px;
+}
+
+/* Scrollbars */
+.form-panel::-webkit-scrollbar,
+.preview-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.form-panel::-webkit-scrollbar-thumb,
+.preview-panel::-webkit-scrollbar-thumb {
+  background: #c8d8f0;
+  border-radius: 3px;
+}
+
+/* Editable Area */
+.editor-container {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 8px 12px;
+  min-height: 120px;
+  max-height: 250px;
+  overflow-y: auto;
+  font-size: 12px;
+  outline: none;
+}
+
+.editor-container:focus {
+  border-color: #c0392b;
+  box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.2);
+}
+
+/* ===========================
+   RESPONSIVE MOBILE
+ =========================== */
+@media (max-width: 768px) {
+  .tab-body {
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+
+  .form-panel {
+    flex: none;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #d6e4f7;
+  }
+
+  .preview-panel {
+    flex: none;
+    width: 100%;
+    padding: 10px;
+  }
+
+  .fields-row {
+    flex-wrap: wrap;
+  }
+
+  .fields-row .field-group {
+    min-width: 0;
+    flex: 1 1 45%;
+  }
+
+  .email-footer {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 12px;
+  }
+
+  .footer-hint {
+    display: none;
+  }
+
+  .footer-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .email-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .header-text h4 {
+    font-size: 13px;
+  }
+
+  .candidate-count {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+}

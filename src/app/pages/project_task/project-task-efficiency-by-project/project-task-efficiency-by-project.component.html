@@ -1,0 +1,128 @@
+<div class="page-title ms-2 me-3" style="padding: 10px 0; font-size: 16px; font-weight: 500;">
+  Hiệu Suất Theo Dự Án
+</div>
+
+<!-- ═══ SEARCH BAR ═══ -->
+<div class="card border-0 rounded-0 search-header">
+  <div class="card-header bg-white p-2">
+    <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+      <!-- Từ ngày -->
+      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="2">
+        <div class="form-field-vertical">
+          <label>Từ ngày</label>
+          <input type="date" [(ngModel)]="dateStart" name="dateStart" (ngModelChange)="loadData()"
+            style="width: 100%; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+        </div>
+      </nz-col>
+
+      <!-- Đến ngày -->
+      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="4" [nzXl]="2">
+        <div class="form-field-vertical">
+          <label>Đến ngày</label>
+          <input type="date" [(ngModel)]="dateEnd" name="dateEnd" (ngModelChange)="loadData()"
+            style="width: 100%; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box;" />
+        </div>
+      </nz-col>
+
+      <!-- Phòng ban -->
+      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
+        <div class="form-field-vertical">
+          <label>Phòng ban</label>
+          <nz-select nzPlaceHolder="Phòng ban" [(ngModel)]="departmentId" nzSize="small" nzShowSearch nzAllowClear
+            (ngModelChange)="onDepartmentChange()" style="width: 100%;">
+            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+            <nz-option *ngFor="let dept of departmentList" [nzLabel]="dept.Name || ''" [nzValue]="dept.ID"></nz-option>
+          </nz-select>
+        </div>
+      </nz-col>
+
+      <!-- Team -->
+      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
+        <div class="form-field-vertical">
+          <label>Team</label>
+          <nz-select nzPlaceHolder="Team" [(ngModel)]="teamId" nzSize="small" nzShowSearch nzAllowClear
+            (ngModelChange)="onTeamChange()" style="width: 100%;">
+            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+            <nz-option *ngFor="let team of teamList" [nzLabel]="team.Name || ''" [nzValue]="team.ID"></nz-option>
+          </nz-select>
+        </div>
+      </nz-col>
+
+      <!-- Nhân viên -->
+      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="4">
+        <div class="form-field-vertical">
+          <label>Nhân viên</label>
+          <nz-select nzPlaceHolder="Nhân viên" [(ngModel)]="employeeId" nzSize="small" nzShowSearch nzAllowClear
+            (ngModelChange)="loadData()" style="width: 100%;">
+            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+            <nz-option *ngFor="let emp of employeeList" [nzValue]="emp.UserID"
+              [nzLabel]="emp.FullName || ''"></nz-option>
+          </nz-select>
+        </div>
+      </nz-col>
+
+      <!-- Dự án -->
+      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="5">
+        <div class="form-field-vertical">
+          <label>Dự án</label>
+          <nz-select nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch nzAllowClear
+            (ngModelChange)="loadData()" style="width: 100%;">
+            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+            <nz-option *ngFor="let proj of projectList" [nzValue]="proj.ID"
+              nzCustomContent
+              [nzLabel]="proj.ProjectCode + ' - ' + proj.ProjectName">
+              <div class="multiline-dropdown-option">
+                {{ proj.ProjectCode }} - {{ proj.ProjectName }}
+              </div>
+            </nz-option>
+          </nz-select>
+        </div>
+      </nz-col>
+
+
+      <!-- Nút hành động -->
+      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6" [nzXl]="2">
+        <div class="form-field-vertical">
+          <label>&nbsp;</label>
+          <div class="d-flex gap-2">
+            <button nz-button nzType="default" nzSize="small" (click)="resetSearch()" nz-tooltip nzTooltipTitle="Đặt lại">
+              <span nz-icon nzType="reload"></span>
+            </button>
+            <button nz-button nzType="default" nzSize="small" (click)="onExport()" nz-tooltip nzTooltipTitle="Xuất Excel">
+              <span nz-icon nzType="file-excel" nzTheme="outline" style="color: #28a745;"></span>
+            </button>
+            <button nz-button nzType="primary" nzSize="small" (click)="loadData()" nz-tooltip nzTooltipTitle="Tìm kiếm">
+              <span nz-icon nzType="search"></span>
+            </button>
+          </div>
+        </div>
+      </nz-col>
+    </nz-row>
+  </div>
+</div>
+
+<!-- ═══ TABLE ═══ -->
+<div class="table-wrapper position-relative" style="width: 100%; border-top: 1px solid #ddd; background: #fff;">
+  <div *ngIf="isLoading" style="position: absolute; top:0; left:0; width:100%; height:100%;
+     background: rgba(255,255,255,0.4); z-index: 999; display: flex; align-items: center; justify-content: center;">
+    <nz-spin nzSimple></nz-spin>
+  </div>
+
+  <app-custom-table [data]="tableData" [textWrap]="false" [columns]="columns" [loading]="isLoading"
+    dataKey="ProjectID" [scrollable]="true" scrollHeight="flex" [showGlobalFilter]="false" [paginator]="false"
+    [rows]="50" [rowsPerPageOptions]="[20, 50, 100]" fontSize="12px" [clickSelectRow]="true"
+    (rowClick)="selectedRow = $event" (cellContextMenu)="onCellContextMenu($event)">
+  </app-custom-table>
+</div>
+
+<p-contextMenu #cm [model]="contextMenuItems" appendTo="body"></p-contextMenu>
+
+<!-- ═══ TABLE FOOTER ═══ -->
+<div class="table-footer-bar">
+  Tổng số dòng: <span class="total-count">{{ getTotalRows() }}</span>
+</div>
+
+<!-- ═══ STICKY SCROLLBAR ═══ -->
+<div class="sticky-scrollbar" #stickyScrollbar (scroll)="onStickyScroll($event)">
+  <div class="sticky-scrollbar-inner" #stickyScrollbarInner></div>
+</div>

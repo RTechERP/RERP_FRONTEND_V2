@@ -95,14 +95,27 @@ export class ProjectTaskService {
 
     constructor(private http: HttpClient) { }
 
-    getProjectTasks(dateStart: string, dateEnd: string, status: number = 0, viewNumber: number = 1): Observable<ProjectTaskResponse> {
+    getProjectTasks(dateStart: string, dateEnd: string, status: string = '-1', isApprove: number = -1, viewNumber: number = 1): Observable<ProjectTaskResponse> {
         const params = new HttpParams()
             .set('dateStart', dateStart)
             .set('dateEnd', dateEnd)
-            .set('status', status.toString())
+            .set('status', status)
+            .set('isApprove', isApprove.toString())
             .set('viewNumber', viewNumber.toString());
-        return this.http.get<IAPIResponse<ProjectTaskResponse>>(`${this.apiUrl}`, { params }).pipe(
-            map(response => response.data as ProjectTaskResponse)
+
+        return this.http.get<IAPIResponse<ProjectTaskResponse>>(this.apiUrl, { params }).pipe(
+            map(response => response.data)
+        );
+    }
+
+    getProjectTaskStatuses(): Observable<any[]> {
+        return this.http.get<IAPIResponse<any>>(`${this.apiUrl}/project-task-status`).pipe(
+            map(response => {
+                if (response && response.status === 1 && response.data && response.data.projectTaskStatuses) {
+                    return response.data.projectTaskStatuses;
+                }
+                return [];
+            })
         );
     }
 
@@ -137,7 +150,7 @@ export class ProjectTaskService {
 
         data.forEach((item: any) => {
             const rowValues = cols.map(col => {
-                let val = item[col.field];
+                let val = col.renderValue ? col.renderValue(item) : item[col.field];
                 if (col.type === 'date' && val) {
                     return val instanceof Date ? val : new Date(val);
                 }
@@ -161,7 +174,8 @@ export class ProjectTaskService {
 
         // Borders for ALL cells (including empty ones)
         worksheet.eachRow({ includeEmpty: true }, (row) => {
-            row.eachCell({ includeEmpty: true }, (cell) => {
+            row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                const colConfig = cols[colNumber - 1];
                 cell.border = {
                     top: { style: 'thin' },
                     left: { style: 'thin' },
@@ -171,7 +185,7 @@ export class ProjectTaskService {
                 cell.alignment = {
                     vertical: 'middle',
                     wrapText: true,
-                    horizontal: cell.alignment?.horizontal || 'left'
+                    horizontal: cell.alignment?.horizontal || (colConfig && colConfig.align) || 'left'
                 };
                 if (cell.value instanceof Date) {
                     cell.numFmt = 'dd/mm/yyyy';
@@ -235,6 +249,14 @@ export class ProjectTaskService {
             .set('projectTaskID', projectTaskID.toString())
             .set('isCheck', isCheck.toString());
         return this.http.post<IAPIResponse<any>>(`${this.apiUrl}/attendance`, {}, { params });
+    }
+
+    changeProjectTaskStatus(status: number, projectTaskID: number, reason: string): Observable<IAPIResponse<any>> {
+        const params = new HttpParams()
+            .set('status', status.toString())
+            .set('projectTaskID', projectTaskID.toString())
+            .set('reason', reason || '');
+        return this.http.put<IAPIResponse<any>>(`${this.apiUrl}/change-status`, {}, { params });
     }
 
     getNumberOverdue(): Observable<IAPIResponse<any>> {

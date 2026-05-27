@@ -77,6 +77,14 @@
       nz-button
       nzType="default"
       nzSize="small"
+      (click)="exportExcel()"
+    >
+      <i class="fas fa-file-excel me-1" style="color:#1d6f42"></i> Xuất Excel
+    </button>
+    <button
+      nz-button
+      nzType="default"
+      nzSize="small"
       [nzLoading]="false"
       [disabled]="isAddSerial"
       (click)="addSerial()"

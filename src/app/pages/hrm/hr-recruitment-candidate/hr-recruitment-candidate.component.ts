@@ -64,7 +64,8 @@ import { HomeLayoutCandidateComponent } from '../hr-recruitment/hr-recruitment-a
 import { environment } from '../../../../environments/environment';
 import { HrRecruitmentInterviewAssessmentFormComponent } from '../hr-recruitment-interview-assessment/hr-recruitment-interview-assessment-form/hr-recruitment-interview-assessment-form.component';
 import { HrRecruitmentApproveFormComponent } from '../hr-recruitment-approve/hr-recruitment-approve-form/hr-recruitment-approve-form.component';
-import { HrOfferLetterComponent } from '../hr-offer-letter/hr-offer-letter.component';
+import { HrOfferLetterComponent } from './hr-offer-letter/hr-offer-letter.component';
+import { HrRejectionLetterComponent } from './hr-rejection-letter/hr-rejection-letter.component';
 
 @Component({
     selector: 'app-hr-recruitment-candidate',
@@ -87,6 +88,7 @@ import { HrOfferLetterComponent } from '../hr-offer-letter/hr-offer-letter.compo
         Menubar,
         HomeLayoutCandidateComponent,
         HrOfferLetterComponent,
+        HrRejectionLetterComponent,
     ],
     templateUrl: './hr-recruitment-candidate.component.html',
     styleUrl: './hr-recruitment-candidate.component.css'
@@ -260,7 +262,18 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 label: 'Gửi thư mời nhận việc',
                 visible: this.permissionService.hasPermission('N1,N2'),
                 icon: 'fa-solid fa-envelope fa-lg text-primary',
-                command: () => this.onSendOfferLetter(),
+                items: [
+                    {
+                        label: 'Kết quả đạt',
+                        icon: 'fa-solid fa-circle-check text-success',
+                        command: () => this.onSendOfferLetter(),
+                    },
+                    {
+                        label: 'Kết quả không đạt',
+                        icon: 'fa-solid fa-circle-xmark text-danger',
+                        command: () => this.onSendRejectionLetter(),
+                    },
+                ],
             },
             {
                 label: 'Xem tờ khai UV',
@@ -414,11 +427,11 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
     private buildTreeNodes(data: any[]): any[] {
         const tree: any[] = [];
         const lookup: any = {};
-    
+
         data.forEach(item => {
             lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
         });
-    
+
         data.forEach(item => {
             if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
                 lookup[item.ParentID].children.push(lookup[item.ID]);
@@ -427,7 +440,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
                 tree.push(lookup[item.ID]);
             }
         });
-    
+
         return tree;
     }
 
@@ -1662,5 +1675,45 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
         );
     }
 
+    //#region Gửi thư từ chối tuyển dụng (Kết quả không đạt)
+    onSendRejectionLetter() {
+        const angularGrid = this.angularGrid;
+        if (!angularGrid) return;
+
+        const selectedRowIndexes = angularGrid.slickGrid.getSelectedRows();
+        const selectedRows = selectedRowIndexes
+            .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
+            .filter((item: any) => item);
+
+        if (selectedRows.length === 0) {
+            this.notification.info(NOTIFICATION_TITLE.success, 'Vui lòng chọn ít nhất 1 ứng viên để gửi thư từ chối!');
+            return;
+        }
+
+        const modalRef = this.modalService.open(
+            HrRejectionLetterComponent,
+            {
+                backdrop: 'static',
+                keyboard: false,
+                centered: false,
+                size: 'fullscreen',
+                scrollable: true,
+                windowClass: 'rejection-letter-fullscreen-modal',
+                modalDialogClass: 'modal-fullscreen',
+            }
+        );
+
+        modalRef.componentInstance.candidates = selectedRows;
+
+        modalRef.result.then(
+            (result) => {
+                this.onSearch();
+            },
+            () => {
+                // Modal dismissed
+            }
+        );
+    }
+    //#endregion
 
 }

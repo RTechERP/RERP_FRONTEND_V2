@@ -1,0 +1,1035 @@
+<ng-container class="w-100 h-100">
+  <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+    <div class="kpi-sale-page">
+      <div class="kpi-toolbar">
+        <div class="toolbar-actions">
+          <button nz-button nzType="default" nzSize="small" class="btn-add" (click)="addTemplate()">
+            <img src="assets/icon/action_add_item_16.png" alt="" /> Thêm mẫu KPI
+          </button>
+          <button nz-button nzType="default" nzSize="small" class="btn-copy" (click)="copyTemplate()">
+            <img src="assets/icon/btn_copy_16.png" alt="" /> Sao chép mẫu
+          </button>
+          <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="runCalculate()">
+            <img src="assets/icon/btn_refresh.png" alt="" /> Tính KPI
+          </button>
+          <button nz-button nzType="default" nzSize="small" (click)="exportCsv()">
+            <img src="assets/icon/action_export_excel_16.png" alt="" /> Xuất CSV
+          </button>
+          <button nz-button nzType="default" nzSize="small" (click)="reloadFromApi()">
+            <img src="assets/icon/btn_refresh.png" alt="" /> Tải API
+          </button>
+        </div>
+
+        <form nz-form nzLayout="inline" class="toolbar-filters">
+          <nz-form-item>
+            <nz-form-control>
+              <nz-select
+                name="selectedTemplateId"
+                nzSize="small"
+                nzShowSearch
+                [(ngModel)]="selectedTemplateId"
+                (ngModelChange)="onTemplateChange($event)">
+                <nz-option
+                  *ngFor="let item of templates; trackBy: trackById"
+                  [nzValue]="item.id"
+                  [nzLabel]="item.templateName">
+                </nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-control>
+              <nz-select
+                name="selectedEmployeeId"
+                nzSize="small"
+                nzShowSearch
+                [(ngModel)]="selectedEmployeeId"
+                (ngModelChange)="onResultFilterChange()">
+                <nz-option
+                  *ngFor="let item of employees; trackBy: trackById"
+                  [nzValue]="item.id"
+                  [nzLabel]="item.code + ' - ' + item.fullName">
+                </nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-control>
+              <nz-select
+                name="selectedPeriodId"
+                nzSize="small"
+                [(ngModel)]="selectedPeriodId"
+                (ngModelChange)="onResultFilterChange()">
+                <nz-option
+                  *ngFor="let item of periods; trackBy: trackById"
+                  [nzValue]="item.id"
+                  [nzLabel]="item.periodCode">
+                </nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-control>
+              <input nz-input name="searchText" nzSize="small" placeholder="Tìm KPI" [(ngModel)]="searchText" />
+            </nz-form-control>
+          </nz-form-item>
+        </form>
+      </div>
+
+      <div class="api-status" [class.api-live]="isApiMode">
+        <span>{{ apiStatusMessage }}</span>
+        <span>Đường dẫn API: /api/kpi</span>
+      </div>
+
+      <div class="summary-strip">
+        <div class="summary-item">
+          <span>Mẫu KPI</span>
+          <strong>{{ templates.length }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Chỉ tiêu KPI</span>
+          <strong>{{ indexesForTemplate.length }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Nguồn dữ liệu</span>
+          <strong>{{ dataSources.length }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Ánh xạ</span>
+          <strong>{{ mappings.length }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Trọng số</span>
+          <strong>{{ totalWeight | number: '1.0-2' }}%</strong>
+        </div>
+        <div class="summary-item">
+          <span>Điểm cuối</span>
+          <strong>{{ totalFinalScore | number: '1.0-2' }}</strong>
+        </div>
+      </div>
+
+      <nz-tabset [(nzSelectedIndex)]="activeTabIndex" nzSize="small" class="kpi-tabs">
+        <nz-tab nzTitle="Kỳ KPI">
+          <div class="tab-layout">
+            <section class="panel panel-form">
+              <h6>Kỳ KPI</h6>
+              <form nz-form nzLayout="vertical" class="compact-form">
+                <div class="field">
+                  <span>Mã kỳ</span>
+                  <input nz-input nzSize="small" name="periodCode" [(ngModel)]="periodDraft.periodCode" />
+                </div>
+                <div class="field">
+                  <span>Tên kỳ</span>
+                  <input nz-input nzSize="small" name="periodName" [(ngModel)]="periodDraft.periodName" />
+                </div>
+                <div class="form-grid">
+                  <div class="field">
+                    <span>Loại kỳ</span>
+                    <nz-select nzSize="small" name="periodType" [(ngModel)]="periodDraft.periodType">
+                      <nz-option *ngFor="let item of periodTypes" [nzValue]="item" [nzLabel]="getPeriodTypeLabel(item)"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Kỳ cha</span>
+                    <nz-select nzSize="small" name="parentPeriodId" nzAllowClear [(ngModel)]="periodDraft.parentPeriodId">
+                      <nz-option *ngFor="let item of periods; trackBy: trackById" [nzValue]="item.id" [nzLabel]="item.periodCode"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Ngày bắt đầu</span>
+                    <nz-date-picker nzSize="small" name="dateStart" [(ngModel)]="periodDraft.dateStart"></nz-date-picker>
+                  </div>
+                  <div class="field">
+                    <span>Ngày kết thúc</span>
+                    <nz-date-picker nzSize="small" name="dateEnd" [(ngModel)]="periodDraft.dateEnd"></nz-date-picker>
+                  </div>
+                </div>
+                <div class="inline-control">
+                  <span>Đã khóa</span>
+                  <nz-switch nzSize="small" name="periodClosed" [(ngModel)]="periodDraft.isClosed"></nz-switch>
+                </div>
+                <div class="form-actions">
+                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addPeriod()">
+                    {{ periodDraft.id ? 'Cập nhật kỳ KPI' : 'Lưu kỳ KPI' }}
+                  </button>
+                  <button nz-button nzSize="small" type="button" (click)="resetPeriodForm()">Tạo mới</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel panel-table">
+              <nz-table #periodTable [nzData]="periods" [nzFrontPagination]="false" nzSize="small" nzBordered>
+                <thead>
+                  <tr>
+                    <th>Mã kỳ</th>
+                    <th>Tên kỳ</th>
+                    <th>Loại kỳ</th>
+                    <th>Ngày bắt đầu</th>
+                    <th>Ngày kết thúc</th>
+                    <th>Kỳ cha</th>
+                    <th>Đã khóa</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    class="editable-row"
+                    *ngFor="let item of periodTable.data; trackBy: trackById"
+                    [class.selected-row]="item.id === periodDraft.id"
+                    (click)="onPeriodSelect(item)">
+                    <td class="mono">{{ item.periodCode }}</td>
+                    <td>{{ item.periodName }}</td>
+                    <td><nz-tag [nzColor]="item.periodType === 'QUARTER' ? 'green' : 'blue'">{{ getPeriodTypeLabel(item.periodType) }}</nz-tag></td>
+                    <td>{{ item.dateStart | date: 'dd/MM/yyyy' }}</td>
+                    <td>{{ item.dateEnd | date: 'dd/MM/yyyy' }}</td>
+                    <td>{{ item.parentPeriodId ? getPeriodName(item.parentPeriodId) : '' }}</td>
+                    <td (click)="$event.stopPropagation()">
+                      <nz-switch nzSize="small" [(ngModel)]="item.isClosed" [ngModelOptions]="{ standalone: true }"></nz-switch>
+                    </td>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </section>
+          </div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Dữ liệu được phép">
+          <div class="tab-layout">
+            <section class="panel panel-form">
+              <h6>Bảng dữ liệu được phép</h6>
+              <form nz-form nzLayout="vertical" class="compact-form">
+                <div class="field">
+                  <span>Tên bảng</span>
+                  <input nz-input nzSize="small" name="allowedTableName" [(ngModel)]="allowedTableDraft.tableName" />
+                </div>
+                <div class="field">
+                  <span>Tên hiển thị</span>
+                  <input nz-input nzSize="small" name="allowedDisplayName" [(ngModel)]="allowedTableDraft.displayName" />
+                </div>
+                <div class="field">
+                  <span>Lược đồ</span>
+                  <input nz-input nzSize="small" name="allowedSchemaName" [(ngModel)]="allowedTableDraft.schemaName" />
+                </div>
+                <div class="inline-control">
+                  <span>Đang dùng</span>
+                  <nz-switch nzSize="small" name="allowedTableActive" [(ngModel)]="allowedTableDraft.isActive"></nz-switch>
+                </div>
+                <button nz-button nzType="primary" nzSize="small" type="button" (click)="addAllowedTable()">Lưu bảng</button>
+              </form>
+
+              <div class="divider-line"></div>
+
+              <h6>Cột dữ liệu được phép</h6>
+              <form nz-form nzLayout="vertical" class="compact-form">
+                <div class="field">
+                  <span>Bảng được phép</span>
+                  <nz-select
+                    nzSize="small"
+                    name="allowedColumnTable"
+                    [(ngModel)]="selectedAllowedTableId"
+                    (ngModelChange)="onAllowedTableSelect($event)">
+                    <nz-option
+                      *ngFor="let item of allowedTables; trackBy: trackById"
+                      [nzValue]="item.id"
+                      [nzLabel]="item.schemaName + '.' + item.tableName">
+                    </nz-option>
+                  </nz-select>
+                </div>
+                <div class="form-grid">
+                  <div class="field">
+                    <span>Tên cột</span>
+                    <input nz-input nzSize="small" name="allowedColumnName" [(ngModel)]="allowedColumnDraft.columnName" />
+                  </div>
+                  <div class="field">
+                    <span>Tên hiển thị</span>
+                    <input nz-input nzSize="small" name="allowedColumnDisplayName" [(ngModel)]="allowedColumnDraft.displayName" />
+                  </div>
+                  <div class="field">
+                    <span>Kiểu dữ liệu</span>
+                    <nz-select nzSize="small" name="allowedColumnDataType" [(ngModel)]="allowedColumnDraft.dataType">
+                      <nz-option *ngFor="let item of columnDataTypes" [nzValue]="item" [nzLabel]="getColumnDataTypeLabel(item)"></nz-option>
+                    </nz-select>
+                  </div>
+                </div>
+                <div class="inline-control checkbox-grid">
+                  <label nz-checkbox name="canFilter" [(ngModel)]="allowedColumnDraft.canFilter">Cho phép lọc</label>
+                  <label nz-checkbox name="canAggregate" [(ngModel)]="allowedColumnDraft.canAggregate">Cho phép tổng hợp</label>
+                  <label nz-checkbox name="canDistinct" [(ngModel)]="allowedColumnDraft.canDistinct">Cho phép đếm không trùng</label>
+                  <label nz-checkbox name="isEmployeeColumn" [(ngModel)]="allowedColumnDraft.isEmployeeColumn">Cột nhân viên</label>
+                  <label nz-checkbox name="isDateColumn" [(ngModel)]="allowedColumnDraft.isDateColumn">Cột ngày</label>
+                  <label nz-checkbox name="isValueColumn" [(ngModel)]="allowedColumnDraft.isValueColumn">Cột giá trị</label>
+                </div>
+                <button nz-button nzType="primary" nzSize="small" type="button" (click)="addAllowedColumn()">Lưu cột</button>
+              </form>
+            </section>
+
+            <section class="panel panel-table metadata-tables">
+              <div class="table-title">
+                <h6>Bảng được phép</h6>
+                <span>{{ allowedTables.length }} bảng</span>
+              </div>
+              <nz-table #allowedTable [nzData]="allowedTables" [nzFrontPagination]="false" nzSize="small" nzBordered>
+                <thead>
+                  <tr>
+                    <th>Lược đồ</th>
+                    <th>Tên bảng</th>
+                    <th>Tên hiển thị</th>
+                    <th>Đang dùng</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngFor="let item of allowedTable.data; trackBy: trackById"
+                    [class.selected-row]="item.id === selectedAllowedTableId"
+                    (click)="onAllowedTableSelect(item.id)">
+                    <td class="mono">{{ item.schemaName }}</td>
+                    <td class="mono">{{ item.tableName }}</td>
+                    <td>{{ item.displayName }}</td>
+                    <td>
+                      <nz-switch nzSize="small" [(ngModel)]="item.isActive" [ngModelOptions]="{ standalone: true }"></nz-switch>
+                    </td>
+                  </tr>
+                </tbody>
+              </nz-table>
+
+              <div class="divider-line"></div>
+
+              <div class="table-title">
+                <h6>{{ selectedAllowedTable?.displayName }}</h6>
+                <span>{{ columnsForSelectedAllowedTable.length }} cột</span>
+              </div>
+              <nz-table #allowedColumn [nzData]="columnsForSelectedAllowedTable" [nzFrontPagination]="false" nzSize="small" nzBordered>
+                <thead>
+                  <tr>
+                    <th>Tên cột</th>
+                    <th>Tên hiển thị</th>
+                    <th>Kiểu dữ liệu</th>
+                    <th>Lọc</th>
+                    <th>Tổng hợp</th>
+                    <th>Không trùng</th>
+                    <th>Nhân viên</th>
+                    <th>Ngày</th>
+                    <th>Giá trị</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of allowedColumn.data; trackBy: trackById">
+                    <td class="mono">{{ item.columnName }}</td>
+                    <td>{{ item.displayName }}</td>
+                    <td><nz-tag nzColor="blue">{{ getColumnDataTypeLabel(item.dataType) }}</nz-tag></td>
+                    <td><label nz-checkbox [ngModel]="item.canFilter" [ngModelOptions]="{ standalone: true }"></label></td>
+                    <td><label nz-checkbox [ngModel]="item.canAggregate" [ngModelOptions]="{ standalone: true }"></label></td>
+                    <td><label nz-checkbox [ngModel]="item.canDistinct" [ngModelOptions]="{ standalone: true }"></label></td>
+                    <td><label nz-checkbox [ngModel]="item.isEmployeeColumn" [ngModelOptions]="{ standalone: true }"></label></td>
+                    <td><label nz-checkbox [ngModel]="item.isDateColumn" [ngModelOptions]="{ standalone: true }"></label></td>
+                    <td><label nz-checkbox [ngModel]="item.isValueColumn" [ngModelOptions]="{ standalone: true }"></label></td>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </section>
+          </div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Mẫu & chỉ tiêu">
+          <div class="tab-layout">
+            <section class="panel panel-form">
+              <h6>Mẫu KPI</h6>
+              <form nz-form nzLayout="vertical" class="compact-form">
+                <div class="field">
+                  <span>Mã mẫu</span>
+                  <input nz-input nzSize="small" name="templateCode" [(ngModel)]="templateDraft.templateCode" />
+                </div>
+                <div class="field">
+                  <span>Tên mẫu</span>
+                  <input nz-input nzSize="small" name="templateName" [(ngModel)]="templateDraft.templateName" />
+                </div>
+                <div class="field">
+                  <span>Mô tả</span>
+                  <textarea nz-input name="templateDescription" rows="2" [(ngModel)]="templateDraft.description"></textarea>
+                </div>
+                <div class="inline-control">
+                  <span>Đang dùng</span>
+                  <nz-switch nzSize="small" name="templateActive" [(ngModel)]="templateDraft.isActive"></nz-switch>
+                </div>
+                <button nz-button nzType="primary" nzSize="small" type="button" (click)="addTemplate()">Lưu mẫu</button>
+              </form>
+
+              <div class="divider-line"></div>
+
+              <h6>Chỉ tiêu KPI</h6>
+              <form nz-form nzLayout="vertical" class="compact-form">
+                <div class="field">
+                  <span>Mã chỉ tiêu</span>
+                  <input nz-input nzSize="small" name="indexCode" [(ngModel)]="indexDraft.indexCode" />
+                </div>
+                <div class="field">
+                  <span>Tên chỉ tiêu</span>
+                  <input nz-input nzSize="small" name="indexName" [(ngModel)]="indexDraft.indexName" />
+                </div>
+                <div class="field">
+                  <span>Chỉ tiêu cha</span>
+                  <nz-select nzSize="small" name="parentIndexId" nzAllowClear [(ngModel)]="indexDraft.parentId">
+                    <nz-option
+                      *ngFor="let item of indexesForTemplate; trackBy: trackById"
+                      [nzValue]="item.id"
+                      [nzLabel]="item.indexCode + ' - ' + item.indexName">
+                    </nz-option>
+                  </nz-select>
+                </div>
+                <div class="form-grid">
+                  <div class="field">
+                    <span>Loại chỉ tiêu</span>
+                    <nz-select nzSize="small" name="indexType" [(ngModel)]="indexDraft.indexType">
+                      <nz-option *ngFor="let item of indexTypes" [nzValue]="item" [nzLabel]="getIndexTypeLabel(item)"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Đơn vị</span>
+                    <nz-select nzSize="small" name="unitType" [(ngModel)]="indexDraft.unitType">
+                      <nz-option *ngFor="let item of unitTypes" [nzValue]="item" [nzLabel]="getUnitTypeLabel(item)"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Trọng số (%)</span>
+                    <nz-input-number nzSize="small" name="weightPercent" [(ngModel)]="indexDraft.weightPercent" [nzMin]="0" [nzMax]="100"></nz-input-number>
+                  </div>
+                  <div class="field">
+                    <span>Thứ tự</span>
+                    <nz-input-number nzSize="small" name="sortOrder" [(ngModel)]="indexDraft.sortOrder" [nzMin]="0"></nz-input-number>
+                  </div>
+                  <div class="field">
+                    <span>Cách tính mục tiêu quý</span>
+                    <nz-select nzSize="small" name="quarterGoalCalculateType" [(ngModel)]="indexDraft.quarterGoalCalculateType">
+                      <nz-option *ngFor="let item of quarterCalculateTypes" [nzValue]="item" [nzLabel]="getQuarterCalculateTypeLabel(item)"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Cách tính kết quả quý</span>
+                    <nz-select nzSize="small" name="quarterResultCalculateType" [(ngModel)]="indexDraft.quarterResultCalculateType">
+                      <nz-option *ngFor="let item of quarterCalculateTypes" [nzValue]="item" [nzLabel]="getQuarterCalculateTypeLabel(item)"></nz-option>
+                    </nz-select>
+                  </div>
+                </div>
+                <div class="inline-control">
+                  <label nz-checkbox name="isMainIndex" [(ngModel)]="indexDraft.isMainIndex">Chỉ tiêu chính</label>
+                  <label nz-checkbox name="isBold" [(ngModel)]="indexDraft.isBold">In đậm</label>
+                  <label nz-checkbox name="indexActive" [(ngModel)]="indexDraft.isActive">Đang dùng</label>
+                </div>
+                <button nz-button nzType="primary" nzSize="small" type="button" (click)="addIndex()">Lưu chỉ tiêu KPI</button>
+              </form>
+            </section>
+
+            <section class="panel panel-table">
+              <div class="table-title">
+                <h6>{{ selectedTemplate?.templateName }}</h6>
+                <span>{{ totalWeight | number: '1.0-2' }}%</span>
+              </div>
+              <nz-table #indexTable [nzData]="indexesForTemplate" [nzFrontPagination]="false" nzSize="small" nzBordered>
+                <thead>
+                  <tr>
+                    <th>Thứ tự</th>
+                    <th>Mã chỉ tiêu</th>
+                    <th>Tên chỉ tiêu</th>
+                    <th>Chỉ tiêu cha</th>
+                    <th>Loại</th>
+                    <th>Đơn vị</th>
+                    <th>Trọng số</th>
+                    <th>Công thức</th>
+                    <th>Đang dùng</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngFor="let item of indexTable.data; trackBy: trackById"
+                    [class.selected-row]="item.id === selectedIndexId"
+                    [class.main-index-row]="item.isMainIndex"
+                    (click)="onIndexSelect(item.id)">
+                    <td class="text-end">{{ item.sortOrder }}</td>
+                    <td class="mono">{{ item.indexCode }}</td>
+                    <td [class.fw-bold]="item.isBold">{{ item.indexName }}</td>
+                    <td>{{ item.parentIndexName || (item.parentId ? getIndexName(item.parentId) : '') }}</td>
+                    <td><nz-tag [nzColor]="getTypeColor(item.indexType)">{{ getIndexTypeLabel(item.indexType) }}</nz-tag></td>
+                    <td>{{ getUnitLabel(item.unitType) }}</td>
+                    <td class="text-end">{{ item.weightPercent | number: '1.0-2' }}%</td>
+                    <td>{{ getFormulaText(item) }}</td>
+                    <td>
+                      <nz-switch nzSize="small" [(ngModel)]="item.isActive" [ngModelOptions]="{ standalone: true }"></nz-switch>
+                    </td>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </section>
+          </div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Nguồn dữ liệu">
+          <div class="tab-layout">
+            <section class="panel panel-form">
+              <h6>Nguồn dữ liệu</h6>
+              <form nz-form nzLayout="vertical" class="compact-form">
+                <div class="field">
+                  <span>Mã nguồn</span>
+                  <input nz-input nzSize="small" name="sourceCode" [(ngModel)]="dataSourceDraft.sourceCode" />
+                </div>
+                <div class="field">
+                  <span>Tên nguồn</span>
+                  <input nz-input nzSize="small" name="sourceName" [(ngModel)]="dataSourceDraft.sourceName" />
+                </div>
+                <div class="field">
+                  <span>Bảng được phép</span>
+                  <nz-select
+                    nzSize="small"
+                    name="allowedTableId"
+                    [(ngModel)]="dataSourceDraft.allowedTableId"
+                    (ngModelChange)="onDataSourceDraftTableChange($event)">
+                    <nz-option
+                      *ngFor="let item of allowedTables; trackBy: trackById"
+                      [nzValue]="item.id"
+                      [nzLabel]="item.schemaName + '.' + item.tableName">
+                    </nz-option>
+                  </nz-select>
+                </div>
+                <div class="form-grid">
+                  <div class="field">
+                    <span>Cột ngày</span>
+                    <nz-select nzSize="small" name="dateColumn" [(ngModel)]="dataSourceDraft.dateColumn">
+                      <nz-option *ngFor="let item of columnsForDraftSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Cột nhân viên</span>
+                    <nz-select nzSize="small" name="employeeColumn" nzAllowClear [(ngModel)]="dataSourceDraft.employeeColumn">
+                      <nz-option *ngFor="let item of columnsForDraftSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Cột giá trị</span>
+                    <nz-select nzSize="small" name="valueColumn" nzAllowClear [(ngModel)]="dataSourceDraft.valueColumn">
+                      <nz-option *ngFor="let item of columnsForDraftSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
+                    </nz-select>
+                  </div>
+                </div>
+                <div class="inline-control">
+                  <span>Đang dùng</span>
+                  <nz-switch nzSize="small" name="sourceActive" [(ngModel)]="dataSourceDraft.isActive"></nz-switch>
+                </div>
+              <button nz-button nzType="primary" nzSize="small" type="button" (click)="addDataSource()">Lưu nguồn</button>
+              </form>
+            </section>
+
+            <section class="panel panel-table">
+              <nz-table #sourceTable [nzData]="dataSources" [nzFrontPagination]="false" nzSize="small" nzBordered>
+                <thead>
+                  <tr>
+                  <th>Mã nguồn</th>
+                  <th>Tên nguồn</th>
+                  <th>Bảng được phép</th>
+                  <th>Cột ngày</th>
+                  <th>Cột nhân viên</th>
+                  <th>Cột giá trị</th>
+                  <th>Đang dùng</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of sourceTable.data; trackBy: trackById">
+                    <td class="mono">{{ item.sourceCode }}</td>
+                    <td>{{ item.sourceName }}</td>
+                    <td>{{ getDataSourceTableName(item) }}</td>
+                    <td class="mono">{{ item.dateColumn }}</td>
+                    <td class="mono">{{ item.employeeColumn }}</td>
+                    <td class="mono">{{ item.valueColumn }}</td>
+                    <td>
+                      <nz-switch nzSize="small" [(ngModel)]="item.isActive" [ngModelOptions]="{ standalone: true }"></nz-switch>
+                    </td>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </section>
+          </div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Ánh xạ & bộ lọc">
+          <div class="tab-layout">
+            <section class="panel panel-form">
+              <h6>Ánh xạ dữ liệu chỉ tiêu</h6>
+              <form nz-form nzLayout="vertical" class="compact-form">
+                <div class="field">
+                  <span>Chỉ tiêu KPI</span>
+                  <nz-select nzSize="small" name="mappingIndexId" nzShowSearch [(ngModel)]="mappingDraft.kpiIndexId">
+                    <nz-option
+                      *ngFor="let item of detailIndexesForTemplate; trackBy: trackById"
+                      [nzValue]="item.id"
+                      [nzLabel]="item.indexCode + ' - ' + item.indexName">
+                    </nz-option>
+                  </nz-select>
+                </div>
+                <div class="field">
+                  <span>Nguồn dữ liệu</span>
+                  <nz-select
+                    nzSize="small"
+                    name="mappingSourceId"
+                    [(ngModel)]="mappingDraft.dataSourceId"
+                    (ngModelChange)="onMappingSourceChange($event)">
+                    <nz-option
+                      *ngFor="let item of activeDataSources; trackBy: trackById"
+                      [nzValue]="item.id"
+                      [nzLabel]="item.sourceCode + ' - ' + item.sourceName">
+                    </nz-option>
+                  </nz-select>
+                </div>
+                <div class="form-grid">
+                  <div class="field">
+                    <span>Kiểu tổng hợp</span>
+                    <nz-select nzSize="small" name="aggregateType" [(ngModel)]="mappingDraft.aggregateType">
+                      <nz-option *ngFor="let item of aggregateTypes" [nzValue]="item" [nzLabel]="getAggregateTypeLabel(item)"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Cột giá trị</span>
+                    <nz-select nzSize="small" name="mappingValueColumn" nzAllowClear [(ngModel)]="mappingDraft.valueColumn">
+                      <nz-option *ngFor="let item of columnsForMappingSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Cột không trùng</span>
+                    <nz-select nzSize="small" name="mappingDistinctColumn" nzAllowClear [(ngModel)]="mappingDraft.distinctColumn">
+                      <nz-option *ngFor="let item of columnsForMappingSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
+                    </nz-select>
+                  </div>
+                </div>
+                <button nz-button nzType="primary" nzSize="small" type="button" (click)="addMapping()">Lưu ánh xạ</button>
+              </form>
+
+              <div class="divider-line"></div>
+
+              <h6>Thiết lập bộ lọc</h6>
+              <form nz-form nzLayout="vertical" class="compact-form" *ngIf="selectedMapping as mapping">
+                <nz-radio-group
+                  *ngIf="mapping.filterGroups.length"
+                  [(ngModel)]="mapping.filterGroups[0].logicOperator"
+                  name="filterLogic"
+                  nzSize="small">
+                  <label *ngFor="let item of logicOperators" nz-radio-button [nzValue]="item">{{ getLogicOperatorLabel(item) }}</label>
+                </nz-radio-group>
+                <div class="form-grid">
+                  <div class="field">
+                    <span>Tên cột</span>
+                    <nz-select nzSize="small" name="filterColumn" [(ngModel)]="filterDraft.columnName">
+                      <nz-option
+                        *ngFor="let item of columnsForSelectedMapping"
+                        [nzValue]="item.columnName"
+                        [nzLabel]="item.columnName">
+                      </nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Toán tử</span>
+                    <nz-select nzSize="small" name="filterOperator" [(ngModel)]="filterDraft.operator">
+                      <nz-option *ngFor="let item of operators" [nzValue]="item" [nzLabel]="getOperatorLabel(item)"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Loại giá trị</span>
+                    <nz-select nzSize="small" name="filterValueType" [(ngModel)]="filterDraft.valueType">
+                      <nz-option *ngFor="let item of valueTypes" [nzValue]="item" [nzLabel]="getValueTypeLabel(item)"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Giá trị 1</span>
+                    <nz-select
+                      *ngIf="filterDraft.valueType === 'PARAM'; else staticValue"
+                      nzSize="small"
+                      name="filterParamValue"
+                      [(ngModel)]="filterDraft.value1">
+                      <nz-option *ngFor="let item of systemParameters" [nzValue]="item" [nzLabel]="getSystemParameterLabel(item)"></nz-option>
+                    </nz-select>
+                    <ng-template #staticValue>
+                      <input nz-input nzSize="small" name="filterValue1" [(ngModel)]="filterDraft.value1" />
+                    </ng-template>
+                  </div>
+                  <div class="field">
+                    <span>Giá trị 2</span>
+                    <input nz-input nzSize="small" name="filterValue2" [(ngModel)]="filterDraft.value2" />
+                  </div>
+                </div>
+                <button nz-button nzType="primary" nzSize="small" type="button" (click)="addFilterCondition()">Thêm điều kiện</button>
+              </form>
+            </section>
+
+            <section class="panel panel-table">
+              <div class="table-title">
+                <h6>{{ selectedIndex?.indexName }}</h6>
+                <span>{{ mappingsForSelectedIndex.length }} ánh xạ</span>
+              </div>
+              <nz-table #mappingTable [nzData]="mappingsForSelectedIndex" [nzFrontPagination]="false" nzSize="small" nzBordered>
+                <thead>
+                  <tr>
+                    <th>Nguồn dữ liệu</th>
+                    <th>Kiểu tổng hợp</th>
+                    <th>Cột giá trị</th>
+                    <th>Cột không trùng</th>
+                    <th>Đang dùng</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngFor="let item of mappingTable.data; trackBy: trackById"
+                    [class.selected-row]="item.id === selectedMappingId"
+                    (click)="onMappingSelect(item.id)">
+                    <td>{{ getSourceName(item.dataSourceId) }}</td>
+                    <td><nz-tag nzColor="blue">{{ getAggregateTypeLabel(item.aggregateType) }}</nz-tag></td>
+                    <td class="mono">{{ item.valueColumn }}</td>
+                    <td class="mono">{{ item.distinctColumn }}</td>
+                    <td>
+                      <nz-switch nzSize="small" [(ngModel)]="item.isActive" [ngModelOptions]="{ standalone: true }"></nz-switch>
+                    </td>
+                  </tr>
+                </tbody>
+              </nz-table>
+
+              <div class="divider-line"></div>
+
+              <ng-container *ngIf="selectedMapping as mapping">
+                <nz-table
+                  #filterTable
+                  [nzData]="mapping.filterGroups[0]?.conditions || []"
+                  [nzFrontPagination]="false"
+                  nzSize="small"
+                  nzBordered>
+                  <thead>
+                    <tr>
+                      <th>Nhóm điều kiện</th>
+                      <th>Tên cột</th>
+                      <th>Toán tử</th>
+                      <th>Loại giá trị</th>
+                      <th>Giá trị 1</th>
+                      <th>Giá trị 2</th>
+                      <th>Kiểu dữ liệu</th>
+                      <th>Đang dùng</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of filterTable.data; trackBy: trackById">
+                      <td>{{ getLogicOperatorLabel(mapping.filterGroups[0]?.logicOperator) }}</td>
+                      <td class="mono">{{ item.columnName }}</td>
+                      <td>{{ getOperatorLabel(item.operator) }}</td>
+                      <td>{{ getValueTypeLabel(item.valueType) }}</td>
+                      <td>{{ item.value1 }}</td>
+                      <td>{{ item.value2 }}</td>
+                      <td>{{ getColumnDataTypeLabel(item.dataType) }}</td>
+                      <td>
+                        <nz-switch nzSize="small" [(ngModel)]="item.isActive" [ngModelOptions]="{ standalone: true }"></nz-switch>
+                      </td>
+                    </tr>
+                  </tbody>
+                </nz-table>
+              </ng-container>
+            </section>
+          </div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Công thức & chấm điểm">
+          <div class="tab-layout">
+            <section class="panel panel-form">
+              <h6>Thành phần công thức</h6>
+              <form nz-form nzLayout="vertical" class="compact-form">
+                <div class="field">
+                  <span>Chỉ tiêu cha</span>
+                  <nz-select nzSize="small" name="formulaParent" nzShowSearch [(ngModel)]="formulaDraft.parentKpiIndexId">
+                    <nz-option
+                      *ngFor="let item of indexesForTemplate; trackBy: trackById"
+                      [nzValue]="item.id"
+                      [nzLabel]="item.indexCode + ' - ' + item.indexName">
+                    </nz-option>
+                  </nz-select>
+                </div>
+                <div class="field">
+                  <span>Chỉ tiêu con</span>
+                  <nz-select nzSize="small" name="formulaChild" nzShowSearch [(ngModel)]="formulaDraft.childKpiIndexId">
+                    <nz-option
+                      *ngFor="let item of indexesForTemplate; trackBy: trackById"
+                      [nzValue]="item.id"
+                      [nzLabel]="item.indexCode + ' - ' + item.indexName">
+                    </nz-option>
+                  </nz-select>
+                </div>
+                <div class="form-grid">
+                  <div class="field">
+                    <span>Toán tử</span>
+                    <nz-select nzSize="small" name="formulaOperator" [(ngModel)]="formulaDraft.operator">
+                      <nz-option *ngFor="let item of formulaOperators" [nzValue]="item" [nzLabel]="item"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Thứ tự</span>
+                    <nz-input-number nzSize="small" name="formulaSortOrder" [(ngModel)]="formulaDraft.sortOrder" [nzMin]="0"></nz-input-number>
+                  </div>
+                </div>
+                <button nz-button nzType="primary" nzSize="small" type="button" (click)="addFormulaItem()">Lưu thành phần công thức</button>
+              </form>
+
+              <div class="divider-line"></div>
+
+              <h6>Quy tắc chấm điểm</h6>
+              <form nz-form nzLayout="vertical" class="compact-form">
+                <div class="field">
+                  <span>Chỉ tiêu KPI</span>
+                  <nz-select nzSize="small" name="scoringIndex" nzShowSearch [(ngModel)]="scoringRuleDraft.kpiIndexId">
+                    <nz-option
+                      *ngFor="let item of indexesForTemplate; trackBy: trackById"
+                      [nzValue]="item.id"
+                      [nzLabel]="item.indexCode + ' - ' + item.indexName">
+                    </nz-option>
+                  </nz-select>
+                </div>
+                <div class="form-grid">
+                  <div class="field">
+                    <span>Kiểu tính điểm</span>
+                    <nz-select nzSize="small" name="scoreType" [(ngModel)]="scoringRuleDraft.scoreType">
+                      <nz-option *ngFor="let item of scoreTypes" [nzValue]="item" [nzLabel]="getScoreTypeLabel(item)"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
+                    <span>Tỷ lệ đạt tối đa</span>
+                    <nz-input-number nzSize="small" name="maxAchievedPercent" [(ngModel)]="scoringRuleDraft.maxAchievedPercent" [nzMin]="0"></nz-input-number>
+                  </div>
+                </div>
+                <div class="field">
+                  <span>Công thức JSON</span>
+                  <textarea nz-input name="formulaJson" rows="3" [(ngModel)]="scoringRuleDraft.formulaJson"></textarea>
+                </div>
+                <button nz-button nzType="primary" nzSize="small" type="button" (click)="addScoringRule()">Lưu quy tắc chấm điểm</button>
+              </form>
+            </section>
+
+            <section class="panel panel-table metadata-tables">
+              <div class="table-title">
+                <h6>{{ selectedIndex?.indexName }}</h6>
+                <span>{{ formulaItemsForSelectedIndex.length }} thành phần</span>
+              </div>
+              <nz-table #formulaTable [nzData]="formulaItemsForSelectedIndex" [nzFrontPagination]="false" nzSize="small" nzBordered>
+                <thead>
+                  <tr>
+                    <th>Chỉ tiêu cha</th>
+                    <th>Toán tử</th>
+                    <th>Chỉ tiêu con</th>
+                    <th>Thứ tự</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of formulaTable.data; trackBy: trackById">
+                    <td>{{ item.parentIndexName || getIndexName(item.parentKpiIndexId) }}</td>
+                    <td class="text-end">{{ item.operator }}</td>
+                    <td>{{ item.childIndexName || getIndexName(item.childKpiIndexId) }}</td>
+                    <td class="text-end">{{ item.sortOrder }}</td>
+                  </tr>
+                </tbody>
+              </nz-table>
+
+              <div class="divider-line"></div>
+
+              <div class="table-title">
+                <h6>Quy tắc chấm điểm</h6>
+                <span>{{ scoringRulesForSelectedIndex.length }} quy tắc</span>
+              </div>
+              <nz-table #scoringTable [nzData]="scoringRulesForSelectedIndex" [nzFrontPagination]="false" nzSize="small" nzBordered>
+                <thead>
+                  <tr>
+                    <th>Chỉ tiêu KPI</th>
+                    <th>Kiểu tính điểm</th>
+                    <th>Tỷ lệ đạt tối đa</th>
+                    <th>Công thức JSON</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of scoringTable.data; trackBy: trackById">
+                    <td>{{ getIndexName(item.kpiIndexId) }}</td>
+                    <td><nz-tag nzColor="blue">{{ getScoreTypeLabel(item.scoreType) }}</nz-tag></td>
+                    <td class="text-end">{{ item.maxAchievedPercent | number: '1.0-2' }}</td>
+                    <td class="mono">{{ item.formulaJson }}</td>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </section>
+          </div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Mục tiêu">
+          <div class="tab-layout">
+            <section class="panel panel-form">
+              <h6>Mục tiêu KPI</h6>
+              <form nz-form nzLayout="vertical" class="compact-form">
+                <div class="field">
+                  <span>Nhân viên</span>
+                  <nz-select nzSize="small" name="targetEmployee" nzShowSearch [(ngModel)]="targetDraft.employeeId">
+                    <nz-option
+                      *ngFor="let item of employees; trackBy: trackById"
+                      [nzValue]="item.id"
+                      [nzLabel]="item.code + ' - ' + item.fullName">
+                    </nz-option>
+                  </nz-select>
+                </div>
+                <div class="field">
+                  <span>Kỳ KPI</span>
+                  <nz-select nzSize="small" name="targetPeriod" [(ngModel)]="targetDraft.periodId">
+                    <nz-option
+                      *ngFor="let item of periods; trackBy: trackById"
+                      [nzValue]="item.id"
+                      [nzLabel]="item.periodCode">
+                    </nz-option>
+                  </nz-select>
+                </div>
+                <div class="field">
+                  <span>Chỉ tiêu KPI</span>
+                  <nz-select nzSize="small" name="targetIndex" nzShowSearch [(ngModel)]="targetDraft.kpiIndexId">
+                    <nz-option
+                      *ngFor="let item of indexesForTemplate; trackBy: trackById"
+                      [nzValue]="item.id"
+                      [nzLabel]="item.indexCode + ' - ' + item.indexName">
+                    </nz-option>
+                  </nz-select>
+                </div>
+                <div class="field">
+                  <span>Giá trị mục tiêu</span>
+                  <nz-input-number nzSize="small" name="goalValue" [(ngModel)]="targetDraft.goalValue" [nzMin]="0"></nz-input-number>
+                </div>
+                <button nz-button nzType="primary" nzSize="small" type="button" (click)="addTarget()">Lưu mục tiêu</button>
+              </form>
+            </section>
+
+            <section class="panel panel-table">
+              <nz-table #targetTable [nzData]="targets" [nzFrontPagination]="false" nzSize="small" nzBordered>
+                <thead>
+                  <tr>
+                    <th>Nhân viên</th>
+                    <th>Kỳ KPI</th>
+                    <th>Chỉ tiêu KPI</th>
+                    <th>Giá trị mục tiêu</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of targetTable.data; trackBy: trackById">
+                    <td>{{ item.employeeName || getEmployeeName(item.employeeId) }}</td>
+                    <td>{{ item.periodCode || getPeriodName(item.periodId) }}</td>
+                    <td>{{ item.indexCode ? item.indexCode + ' - ' + (item.indexName || getIndexName(item.kpiIndexId)) : getIndexName(item.kpiIndexId) }}</td>
+                    <td class="text-end">{{ item.goalValue | number: '1.0-0' }}</td>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </section>
+          </div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Tính toán & kết quả">
+          <div class="result-layout">
+            <section class="panel result-filter">
+              <form nz-form nzLayout="inline" class="result-form">
+                <nz-form-item>
+                  <nz-form-label>Nhân viên</nz-form-label>
+                  <nz-form-control>
+                    <nz-select
+                      nzSize="small"
+                      name="calculateEmployee"
+                      nzShowSearch
+                      [(ngModel)]="selectedEmployeeId"
+                      (ngModelChange)="onResultFilterChange()">
+                      <nz-option
+                        *ngFor="let item of employees; trackBy: trackById"
+                        [nzValue]="item.id"
+                        [nzLabel]="item.code + ' - ' + item.fullName">
+                      </nz-option>
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item>
+                  <nz-form-label>Kỳ KPI</nz-form-label>
+                  <nz-form-control>
+                    <nz-select
+                      nzSize="small"
+                      name="calculatePeriod"
+                      [(ngModel)]="selectedPeriodId"
+                      (ngModelChange)="onResultFilterChange()">
+                      <nz-option
+                        *ngFor="let item of periods; trackBy: trackById"
+                        [nzValue]="item.id"
+                        [nzLabel]="item.periodCode">
+                      </nz-option>
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item>
+                  <nz-form-label>Mẫu KPI</nz-form-label>
+                  <nz-form-control>
+                    <nz-select nzSize="small" name="calculateTemplate" [(ngModel)]="selectedTemplateId" (ngModelChange)="onTemplateChange($event)">
+                      <nz-option
+                        *ngFor="let item of templates; trackBy: trackById"
+                        [nzValue]="item.id"
+                        [nzLabel]="item.templateName">
+                      </nz-option>
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+                <label nz-checkbox name="calculateSaveSnapshot" [(ngModel)]="saveSnapshot">Lưu bản ghi kết quả</label>
+                <button nz-button nzType="primary" nzSize="small" type="button" (click)="runCalculate()">Tính KPI</button>
+              </form>
+              <div class="snapshot-info">
+                <span>Bản ghi: {{ lastCalculatedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                <span>{{ selectedTemplate?.templateName }}</span>
+              </div>
+            </section>
+
+            <section class="panel result-table">
+              <nz-table
+                #resultTable
+                [nzData]="resultRowsFiltered"
+                [nzFrontPagination]="false"
+                nzSize="small"
+                nzBordered
+                [nzScroll]="{ x: '1180px', y: 'calc(100vh - 350px)' }">
+                <thead>
+                  <tr>
+                    <th nzLeft>Kỳ KPI</th>
+                    <th nzLeft>Mã chỉ tiêu</th>
+                    <th>Tên chỉ tiêu</th>
+                    <th>Đơn vị</th>
+                    <th>Giá trị mục tiêu</th>
+                    <th>Giá trị kết quả</th>
+                    <th>Tỷ lệ đạt</th>
+                    <th>Trọng số</th>
+                    <th>Điểm cuối</th>
+                    <th>Chính</th>
+                    <th>Ngày tính</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngFor="let item of resultTable.data; trackBy: trackById"
+                    [class.main-index-row]="item.isMainIndex"
+                    [class.fw-bold]="item.isBold">
+                    <td nzLeft>{{ item.periodCode || getPeriodName(item.periodId || selectedPeriodId) }}</td>
+                    <td nzLeft class="mono">{{ item.indexCode }}</td>
+                    <td>{{ item.indexName }}</td>
+                    <td>{{ getUnitTypeLabel(item.unitType) }}</td>
+                    <td class="text-end">{{ formatMetric(item.goalValue, item.unitType) }}</td>
+                    <td class="text-end">{{ formatMetric(item.resultValue, item.unitType) }}</td>
+                    <td class="text-end">{{ formatPercent(item.achievedPercent) }}</td>
+                    <td class="text-end">{{ item.weightPercent | number: '1.0-2' }}%</td>
+                    <td class="text-end">{{ item.finalScore | number: '1.0-2' }}</td>
+                    <td><label nz-checkbox [ngModel]="item.isMainIndex" [ngModelOptions]="{ standalone: true }"></label></td>
+                    <td>{{ item.calculatedDate | date: 'dd/MM/yyyy HH:mm' }}</td>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </section>
+
+            <section class="panel calculation-log">
+              <h6>Nhật ký tính toán</h6>
+              <ol>
+                <li *ngFor="let item of calculationLogs">{{ item }}</li>
+              </ol>
+            </section>
+          </div>
+        </nz-tab>
+      </nz-tabset>
+    </div>
+  </nz-spin>
+</ng-container>

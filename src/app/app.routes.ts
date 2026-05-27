@@ -105,6 +105,7 @@ import { InventoryByDateComponent } from './pages/accounting/inventory-by-date/i
 import { DailyReportSaleAdminComponent } from './pages/old/KPISale/daily-report-sale-admin/daily-report-sale-admin.component';
 import { DailyReportSaleComponent } from './pages/old/KPISale/daily-report-sale/daily-report-sale.component';
 import { EmployeeSaleManagerComponent } from './pages/old/KPISale/employee-sale-manager/employee-sale-manager.component';
+import { KpiSaleManagementComponent } from './pages/old/KPISale/kpi-sale-management/kpi-sale-management.component';
 import { PokhHistoryComponent } from './pages/old/pokh-history/pokh-history.component';
 import { PokhKpiComponent } from './pages/old/pokh-kpi/pokh-kpi.component';
 import { PokhComponent } from './pages/old/pokh/pokh.component';
@@ -250,6 +251,9 @@ import { EconimicContractTermComponent } from './pages/hrm/economic-contract/eco
 import { EconomicContractTypeComponent } from './pages/hrm/economic-contract/economic-contract-type/economic-contract-type.component';
 import { EconomicContractComponent } from './pages/hrm/economic-contract/economic-contract.component';
 import { KPIEvaluationEmployeeComponent } from './pages/KPITech/kpievaluation-employee/frmKPIEvaluationEmployee/kpievaluation-employee.component';
+import { KPIEvaluationFactorScoringComponent } from './pages/KPITech/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
+import { KPIAGVEvaluationEmployeeComponent } from './pages/KPIAGV/kpievaluation-employee/frmKPIEvaluationEmployee/kpievaluation-employee.component';
+import { KPIAGVEvaluationFactorScoringComponent } from './pages/KPIAGV/kpievaluation-factor-scoring/kpievaluation-factor-scoring.component';
 import { SettingHrConfigComponent } from './pages/hrm/setting/setting-hr-config/setting-hr-config.component';
 import { KpiErrorComponent } from './pages/old/Technical/kpi-error/kpi-error.component';
 import { KpiErrorEmployeeComponent } from './pages/old/Technical/kpi-error-employee/kpi-error-employee.component';
@@ -362,6 +366,9 @@ import { MakertrainingComponent } from './pages/makertraining/makertraining.comp
 import { PollFormComponent } from './pages/poll-form/poll-form.component';
 import { PollVoteComponent } from './pages/poll-vote/poll-vote.component';
 import { InventoryAllComponent } from './pages/old/Sale/Inventory/inventory-new/inventory-all/inventory-all.component';
+import { ProjectTaskEfficiencyByProjectComponent } from './pages/project_task/project-task-efficiency-by-project/project-task-efficiency-by-project.component';
+import { ProjectTaskTimeLineNullComponent } from './pages/project_task/project-task-time-line-null/project-task-time-line-null.component';
+import { ProjectTaskEfficiencyByTaskComponent } from './pages/project_task/project-task-efficiency-by-task/project-task-efficiency-by-task.component';
 export const routes: Routes = [
 
     {
@@ -561,6 +568,7 @@ export const routes: Routes = [
             { path: 'follow-project-base', component: FollowProjectBaseSlickgridComponent, canActivate: [authGuard] },
             { path: 'bonus-coefficient', component: BonusCoefficientComponent, canActivate: [authGuard] },
             { path: 'employee-sale-manager', component: EmployeeSaleManagerComponent, canActivate: [authGuard] },
+            { path: 'kpi-sale-management', component: KpiSaleManagementComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale', component: DailyReportSaleSlickgridComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale-admin', component: DailyReportSaleAdminSlickgridComponent, canActivate: [authGuard] },
             { path: 'request-invoice-old', component: RequestInvoiceComponent, canActivate: [authGuard] },
@@ -766,9 +774,13 @@ export const routes: Routes = [
 
             //kpi
             { path: 'kpi-tech', component: KPIEvaluationEmployeeComponent, canActivate: [authGuard] },
-            { path: 'kpi-tech-factor-scoring', component: KPIEvaluationFactorScoringMain, canActivate: [authGuard] },
-            { path: 'kpi-tech-factor-scoring-tbp', component: KPIEvaluationFactorScoringMain, canActivate: [authGuard] },
-            { path: 'kpi-tech-factor-scoring-bgd', component: KPIEvaluationFactorScoringMain, canActivate: [authGuard] },
+            { path: 'kpi-tech-factor-scoring', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
+            { path: 'kpi-tech-factor-scoring-tbp', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
+            { path: 'kpi-tech-factor-scoring-bgd', component: KPIEvaluationFactorScoringComponent, canActivate: [authGuard] },
+            { path: 'kpi-agv', component: KPIAGVEvaluationEmployeeComponent, canActivate: [authGuard] },
+            { path: 'kpi-agv-factor-scoring', component: KPIAGVEvaluationFactorScoringComponent, canActivate: [authGuard] },
+            { path: 'kpi-agv-factor-scoring-tbp', component: KPIAGVEvaluationFactorScoringComponent, canActivate: [authGuard] },
+            { path: 'kpi-agv-factor-scoring-bgd', component: KPIAGVEvaluationFactorScoringComponent, canActivate: [authGuard] },
             { path: 'kpi-criteria', component: KpiCriteriaComponent, canActivate: [authGuard] },
 
 
@@ -1255,6 +1267,9 @@ export const routes: Routes = [
             { path: 'poll-vote/:id', component: PollVoteComponent, canActivate: [authGuard] },
             { path: 'poll-vote', component: PollVoteComponent, canActivate: [authGuard] },
             { path: 'inventory-all', component: InventoryAllComponent, canActivate: [authGuard] },
+            { path: 'project-task-efficiency-by-project', component: ProjectTaskEfficiencyByProjectComponent, canActivate: [authGuard] },
+            { path: 'project-task-time-line-null', component: ProjectTaskTimeLineNullComponent, canActivate: [authGuard] },
+            { path: 'project-task-efficiency-by-task', component: ProjectTaskEfficiencyByTaskComponent, canActivate: [authGuard] },
 
         ],
     },

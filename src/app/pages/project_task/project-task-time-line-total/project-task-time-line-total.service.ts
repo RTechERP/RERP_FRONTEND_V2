@@ -23,6 +23,8 @@ export interface TimelineByTeamItem {
     PlanStartDate: string | null;
     PlanEndDate: string | null;
     ActualEndDate: string | null;
+    IsApprove?: boolean | null;
+    IsApproved?: number | boolean | string | null;
     [key: string]: any; // Dynamic date keys (e.g. "2026-04-03": 1)
 }
 
@@ -73,6 +75,31 @@ export class ProjectTaskTimeLineTotalService {
             `${this.apiUrl}/project-task-timeline-by-team`, { params: httpParams }
         ).pipe(
             map(response => response.data || [])
+        );
+    }
+
+    getProjectTaskGetDayOff(dateStart: string, dateEnd: string): Observable<string[]> {
+        const httpParams = new HttpParams()
+            .set('dateStart', dateStart)
+            .set('dateEnd', dateEnd);
+
+        return this.http.post<IAPIResponse<any[]>>(
+            `${this.apiUrl}/day-off`, {}, { params: httpParams }
+        ).pipe(
+            map(response => {
+                if (response && response.status === 1 && response.data) {
+                    return response.data.map(item => item.DateOff.split('T')[0]);
+                }
+                return [];
+            })
+        );
+    }
+
+    getProjectTaskStatuses(): Observable<any[]> {
+        return this.http.get<IAPIResponse<any>>(
+            `${this.apiUrl}/project-task-status`
+        ).pipe(
+            map(response => response.data?.projectTaskStatuses || [])
         );
     }
 }

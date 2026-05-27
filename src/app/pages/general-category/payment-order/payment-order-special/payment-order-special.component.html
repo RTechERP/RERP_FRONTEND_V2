@@ -116,7 +116,8 @@
                                 class="text-danger ps-1">(*)</span></nz-form-label>
                         <nz-form-control nzErrorTip="Chọn loại">
                             <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
-                                [formControlName]="paymentOrderField.PaymentOrderTypeID.field" nzSize="small">
+                                [formControlName]="paymentOrderField.PaymentOrderTypeID.field"
+                                nzMode="multiple" nzSize="small">
                                 <nz-option nzLabel="Thanh toán trước" [nzValue]="31"></nz-option>
                                 <nz-option nzLabel="Thanh toán sau" [nzValue]="32"></nz-option>
                             </nz-select>

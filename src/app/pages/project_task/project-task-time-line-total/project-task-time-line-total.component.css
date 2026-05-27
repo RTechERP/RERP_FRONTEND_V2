@@ -57,6 +57,13 @@
     display: flex;
     gap: 16px;
     align-items: center;
+    flex-wrap: wrap;
+}
+
+.legend-sep {
+    color: #cbd5e1;
+    font-size: 16px;
+    line-height: 1;
 }
 
 .legend-item {
@@ -80,6 +87,10 @@
 
 .box.actual {
     background-color: #f472b6;
+}
+
+.box.outside-work {
+    background-color: #fb923c;
 }
 
 /* ===== TABLE ===== */
@@ -161,9 +172,9 @@ thead tr:nth-child(2) th {
 }
 
 .col-status {
-    width: 90px;
-    min-width: 90px;
-    max-width: 90px;
+    width: 110px;
+    min-width: 110px;
+    max-width: 110px;
 }
 
 .col-time {
@@ -215,11 +226,11 @@ thead .sticky-col {
 }
 
 .col-time.sticky-col {
-    left: 520px;
+    left: 540px;
 }
 
 .col-type.sticky-col {
-    left: 600px;
+    left: 620px;
 }
 
 /* ===== DATE COLUMNS ===== */
@@ -252,7 +263,7 @@ thead .sticky-col {
 }
 
 .sunday {
-    background-color: #f1f5f9 !important;
+    background-color: #fff1f2 !important;
 }
 
 .date-header.sunday,
@@ -277,6 +288,23 @@ thead .sticky-col {
 .filled-actual {
     background-color: #f472b6 !important;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.filled-planned-outside {
+    background-color: #fb923c !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.filled-actual-outside {
+    background-color: #fb923c !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.leave-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #7c3aed;
+    line-height: 1;
 }
 
 /* Icon check trong ô Dự kiến */
@@ -305,7 +333,15 @@ thead .sticky-col {
     border-bottom: 2px solid #cbd5e1;
 }
 
-.row-overdue td:not(.filled-planned):not(.filled-actual) {
+/* Rowspan cells (Công việc, Trạng thái) span both planned + actual rows,
+   so they must also have the same separator border as .row-actual */
+td.col-job[rowspan],
+td.col-status[rowspan] {
+    border-bottom: 2px solid #cbd5e1;
+}
+
+/* Row overdue styling disabled to avoid coloring the entire row */
+/* .row-overdue td:not(.filled-planned):not(.filled-actual) {
     background-color: #fff1f2 !important;
 }
 
@@ -315,7 +351,7 @@ thead .sticky-col {
 
 .row-overdue .sticky-col {
     background-color: #fff1f2 !important;
-}
+} */
 
 .cell-group-end {
     border-bottom: 2px solid #b4b4b4 !important;
@@ -347,7 +383,18 @@ thead .sticky-col {
     padding: 2px 0;
 }
 
-.task-title,
+.task-title {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.3em;
+    height: 2.6em;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .project-name {
     font-size: 11px;
     color: #64748b;
@@ -383,7 +430,7 @@ thead .sticky-col {
     font-weight: 600;
     background: #f1f5f9;
     color: #475569;
-    white-space: normal;
+    white-space: pre-line;
     word-break: break-word;
     line-height: 1.4;
     min-width: 70px;
@@ -562,4 +609,12 @@ tfoot td {
     right: 0;
     bottom: 0;
     z-index: 1049;
+}
+
+/* ===== DROPDOWN OPTIONS ===== */
+.multiline-dropdown-option {
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.4;
+    padding: 4px 0;
 }

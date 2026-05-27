@@ -143,7 +143,7 @@ export interface CbqlFormModel {
   TBPApprovedDate: string;
   HRApprovedDate: string;
   BGDApprovedDate: string;
-
+  PERApprovedDate: string;
 }
 
 // ─── Hard-coded master data ─────────────────────────────────────────────────
@@ -663,11 +663,10 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
         this.form.TBPRecommendationsOrOther = d.TBPRecommendationsOrOther ?? null;
         this.form.TBPStrengths = d.TBPStrengths ?? null;
         this.form.TBPAreasForImprovement = d.TBPAreasForImprovement ?? null;
-
         this.form.TBPApprovedDate = d.TBPApprovedDate ?? null;
         this.form.HRApprovedDate = d.HRApprovedDate ?? null;
         this.form.BGDApprovedDate = d.BGDApprovedDate ?? null;
-
+        this.form.PERApprovedDate = d.PERApprovedDate ?? null;
         // ── Load items[] bảng đánh giá: NLĐ luôn từ cột gốc, TBP từ cột TBP* ──
         const setNLD = (code: string, val: number | null) => {
           const it = this.items.find(i => i.code === code);
@@ -918,7 +917,8 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
 
       TBPApprovedDate: '',
       HRApprovedDate: '',
-      BGDApprovedDate: ''
+      BGDApprovedDate: '',
+      PERApprovedDate: ''
     };
   }
 

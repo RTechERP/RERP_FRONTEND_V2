@@ -14,12 +14,7 @@
             Ngày nhập
             <span class="text-danger">(*)</span>
           </label>
-          <nz-date-picker 
-            class="w-100" 
-            nzSize="small" 
-            nzFormat="dd/MM/yyyy"
-            [(ngModel)]="dateInput" 
-            name="dateInput"
+          <nz-date-picker class="w-100" nzSize="small" nzFormat="dd/MM/yyyy" [(ngModel)]="dateInput" name="dateInput"
             [nzDisabled]="true">
           </nz-date-picker>
         </div>
@@ -30,28 +25,18 @@
             Ngày trả hồ sơ gốc
             <span class="text-danger" *ngIf="isReceivedContractMode || errors.dateReceived">(*)</span>
           </label>
-          <nz-date-picker 
-            class="w-100" 
-            nzSize="small" 
-            nzFormat="dd/MM/yyyy"
-            [(ngModel)]="dateReceived" 
-            name="dateReceived"
-            (ngModelChange)="errors.dateReceived = ''">
+          <nz-date-picker class="w-100" nzSize="small" nzFormat="dd/MM/yyyy" [(ngModel)]="dateReceived"
+            name="dateReceived" (ngModelChange)="errors.dateReceived = ''">
           </nz-date-picker>
-          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.dateReceived">{{ errors.dateReceived }}</span>
+          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.dateReceived">{{ errors.dateReceived
+            }}</span>
         </div>
 
         <!-- SL hồ sơ -->
         <div class="form-group mb-1">
           <label class="m-0">SL hồ sơ</label>
-          <nz-input-number 
-            class="w-100" 
-            nzSize="small"
-            [(ngModel)]="quantityDocument" 
-            name="quantityDocument"
-            [nzMin]="0"
-            [nzFormatter]="numberFormatter"
-            [nzParser]="numberParser">
+          <nz-input-number class="w-100" nzSize="small" [(ngModel)]="quantityDocument" name="quantityDocument"
+            [nzMin]="0" [nzFormatter]="numberFormatter" [nzParser]="numberParser">
           </nz-input-number>
         </div>
 
@@ -61,11 +46,7 @@
             Công ty
             <span class="text-danger">(*)</span>
           </label>
-          <nz-select 
-            class="w-100" 
-            nzSize="small" 
-            [(ngModel)]="company" 
-            name="company"
+          <nz-select class="w-100" nzSize="small" [(ngModel)]="company" name="company"
             (ngModelChange)="errors.company = ''">
             <nz-option [nzValue]="0" [nzLabel]="'--Chọn công ty--'"></nz-option>
             <nz-option [nzValue]="1" [nzLabel]="'RTC'"></nz-option>
@@ -82,17 +63,14 @@
             Phân loại HĐ chính
             <span class="text-danger">(*)</span>
           </label>
-          <nz-select 
-            class="w-100" 
-            nzSize="small" 
-            [(ngModel)]="contractGroup" 
-            name="contractGroup"
+          <nz-select class="w-100" nzSize="small" [(ngModel)]="contractGroup" name="contractGroup"
             (ngModelChange)="errors.contractGroup = ''; onContractGroupChange()">
             <nz-option [nzValue]="0" [nzLabel]="'--Chọn phân loại HĐ chính--'"></nz-option>
             <nz-option [nzValue]="1" [nzLabel]="'Hợp đồng mua vào'"></nz-option>
             <nz-option [nzValue]="2" [nzLabel]="'Hợp đồng bán ra'"></nz-option>
           </nz-select>
-          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.contractGroup">{{ errors.contractGroup }}</span>
+          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.contractGroup">{{ errors.contractGroup
+            }}</span>
         </div>
       </div>
 
@@ -103,22 +81,18 @@
           <label class="m-0 d-inline">
             <span>Loại HĐ</span>
             <span class="text-danger">(*)</span>
-            <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
-              title="Thêm loại HĐ" (click)="onAddType()">
+            <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm loại HĐ"
+              (click)="onAddType()">
               <i class="fas fa-plus"></i>
             </button>
           </label>
-          <nz-select 
-            class="w-100" 
-            nzSize="small" 
-            nzShowSearch
-            nzAllowClear
-            [(ngModel)]="accountingContractTypeId" 
-            name="accountingContractTypeId"
-            (ngModelChange)="errors.accountingContractTypeId = ''">
-            <nz-option *ngFor="let type of accountingContractTypes" [nzValue]="type.value" [nzLabel]="type.label"></nz-option>
+          <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="accountingContractTypeId"
+            name="accountingContractTypeId" (ngModelChange)="errors.accountingContractTypeId = ''">
+            <nz-option *ngFor="let type of accountingContractTypes" [nzValue]="type.value"
+              [nzLabel]="type.label"></nz-option>
           </nz-select>
-          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.accountingContractTypeId">{{ errors.accountingContractTypeId }}</span>
+          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.accountingContractTypeId">{{
+            errors.accountingContractTypeId }}</span>
         </div>
 
         <!-- Số HĐ/PL -->
@@ -127,14 +101,10 @@
             Số HĐ/PL
             <span class="text-danger">(*)</span>
           </label>
-          <input 
-            nz-input 
-            type="text" 
-            nzSize="small" 
-            [(ngModel)]="contractNumber" 
-            name="contractNumber"
+          <input nz-input type="text" nzSize="small" [(ngModel)]="contractNumber" name="contractNumber"
             (blur)="errors.contractNumber = ''" />
-          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.contractNumber">{{ errors.contractNumber }}</span>
+          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.contractNumber">{{ errors.contractNumber
+            }}</span>
         </div>
 
         <!-- Giá trị HĐ -->
@@ -143,14 +113,8 @@
             Giá trị HĐ
             <span class="text-danger">(*)</span>
           </label>
-          <nz-input-number 
-            class="w-100" 
-            nzSize="small"
-            [(ngModel)]="contractValue" 
-            name="contractValue"
-            [nzMin]="0"
-            [nzFormatter]="currencyFormatter"
-            [nzParser]="currencyParser">
+          <nz-input-number class="w-100" nzSize="small" [(ngModel)]="contractValue" name="contractValue" [nzMin]="0"
+            [nzFormatter]="currencyFormatter" [nzParser]="currencyParser">
           </nz-input-number>
         </div>
 
@@ -162,12 +126,7 @@
                 ĐVT
                 <span class="text-danger">(*)</span>
               </label>
-              <input 
-                nz-input 
-                type="text" 
-                nzSize="small" 
-                [(ngModel)]="unit" 
-                name="unit" />
+              <input nz-input type="text" nzSize="small" [(ngModel)]="unit" name="unit" />
             </div>
           </div>
           <div class="col-sm-6 p-0 ps-1">
@@ -176,11 +135,7 @@
                 Ngày HĐ
                 <span class="text-danger">(*)</span>
               </label>
-              <nz-date-picker 
-                class="w-100" 
-                nzSize="small" 
-                nzFormat="dd/MM/yyyy"
-                [(ngModel)]="dateContract" 
+              <nz-date-picker class="w-100" nzSize="small" nzFormat="dd/MM/yyyy" [(ngModel)]="dateContract"
                 name="dateContract">
               </nz-date-picker>
             </div>
@@ -191,15 +146,23 @@
         <div class="form-group mb-1">
           <label class="m-0">
             Hiệu lực HĐ
-            <span class="text-danger">(*)</span>
+            <span class="text-danger" *ngIf="!isUnlimitedContract">(*)</span>
           </label>
-          <nz-date-picker 
-            class="w-100" 
-            nzSize="small" 
-            nzFormat="dd/MM/yyyy"
-            [(ngModel)]="dateExpired" 
-            name="dateExpired">
-          </nz-date-picker>
+          <div class="d-flex">
+            <nz-radio-group [(ngModel)]="isUnlimitedContract" name="isUnlimitedContract"
+              (ngModelChange)="onUnlimitedChange($event)">
+              <label nz-radio [nzValue]="true">Không giới hạn</label>
+              <label nz-radio [nzValue]="false">Khác</label>
+            </nz-radio-group>
+
+            <div *ngIf="!isUnlimitedContract" class="flex-grow-1">
+              <nz-date-picker class="w-100" nzSize="small" nzFormat="dd/MM/yyyy" [(ngModel)]="dateExpired"
+                name="dateExpired" (ngModelChange)="errors.dateExpired = ''">
+              </nz-date-picker>
+              <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.dateExpired">{{ errors.dateExpired
+                }}</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -210,22 +173,15 @@
           <label class="m-0 d-inline">
             <span>Khách hàng</span>
             <span class="text-danger" *ngIf="isCustomerRequired">(*)</span>
-            <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
-              title="Thêm khách hàng" (click)="onAddCustomer()"
-              [disabled]="isCustomerDisabled">
+            <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm khách hàng"
+              (click)="onAddCustomer()" [disabled]="isCustomerDisabled">
               <i class="fas fa-plus"></i>
             </button>
           </label>
-          <nz-select 
-            class="w-100" 
-            nzSize="small" 
-            nzShowSearch
-            nzAllowClear
-            [(ngModel)]="customerId" 
-            name="customerId"
-            [nzDisabled]="isCustomerDisabled"
-            (ngModelChange)="errors.customerId = ''">
-            <nz-option *ngFor="let customer of customers" [nzValue]="customer.value" [nzLabel]="customer.label"></nz-option>
+          <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="customerId" name="customerId"
+            [nzDisabled]="isCustomerDisabled" (ngModelChange)="errors.customerId = ''">
+            <nz-option *ngFor="let customer of customers" [nzValue]="customer.value"
+              [nzLabel]="customer.label"></nz-option>
           </nz-select>
           <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.customerId">{{ errors.customerId }}</span>
         </div>
@@ -235,22 +191,15 @@
           <label class="m-0 d-inline">
             <span>Nhà cung cấp</span>
             <span class="text-danger" *ngIf="isSupplierRequired">(*)</span>
-            <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
-              title="Thêm nhà cung cấp" (click)="onAddSupplier()"
-              [disabled]="isSupplierDisabled">
+            <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm nhà cung cấp"
+              (click)="onAddSupplier()" [disabled]="isSupplierDisabled">
               <i class="fas fa-plus"></i>
             </button>
           </label>
-          <nz-select 
-            class="w-100" 
-            nzSize="small" 
-            nzShowSearch
-            nzAllowClear
-            [(ngModel)]="supplierId" 
-            name="supplierId"
-            [nzDisabled]="isSupplierDisabled"
-            (ngModelChange)="errors.supplierId = ''">
-            <nz-option *ngFor="let supplier of suppliers" [nzValue]="supplier.value" [nzLabel]="supplier.label"></nz-option>
+          <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="supplierId" name="supplierId"
+            [nzDisabled]="isSupplierDisabled" (ngModelChange)="errors.supplierId = ''">
+            <nz-option *ngFor="let supplier of suppliers" [nzValue]="supplier.value"
+              [nzLabel]="supplier.label"></nz-option>
           </nz-select>
           <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.supplierId">{{ errors.supplierId }}</span>
         </div>
@@ -261,11 +210,7 @@
             Ngày duyệt trên nhóm
             <span class="text-danger" *ngIf="showDateIsApprovedGroupRequired">(*)</span>
           </label>
-          <nz-date-picker 
-            class="w-100" 
-            nzSize="small" 
-            nzFormat="dd/MM/yyyy"
-            [(ngModel)]="dateIsApprovedGroup" 
+          <nz-date-picker class="w-100" nzSize="small" nzFormat="dd/MM/yyyy" [(ngModel)]="dateIsApprovedGroup"
             name="dateIsApprovedGroup">
           </nz-date-picker>
         </div>
@@ -276,15 +221,10 @@
             NV phụ trách
             <span class="text-danger">(*)</span>
           </label>
-          <nz-select 
-            class="w-100" 
-            nzSize="small" 
-            nzShowSearch
-            nzAllowClear
-            [(ngModel)]="employeeId" 
-            name="employeeId">
+          <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="employeeId" name="employeeId">
             <nz-option-group *ngFor="let group of employeesGrouped" [nzLabel]="group.department">
-              <nz-option *ngFor="let emp of group.list" [nzValue]="emp.ID" [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+              <nz-option *ngFor="let emp of group.list" [nzValue]="emp.ID"
+                [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
             </nz-option-group>
           </nz-select>
         </div>
@@ -292,14 +232,9 @@
         <!-- Thuộc HĐ -->
         <div class="form-group mb-1">
           <label class="m-0">Thuộc HĐ</label>
-          <nz-select 
-            class="w-100" 
-            nzSize="small" 
-            nzShowSearch
-            nzAllowClear
-            [(ngModel)]="contractId" 
-            name="contractId">
-            <nz-option *ngFor="let contract of contracts" [nzValue]="contract.value" [nzLabel]="contract.label"></nz-option>
+          <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear [(ngModel)]="contractId" name="contractId">
+            <nz-option *ngFor="let contract of contracts" [nzValue]="contract.value"
+              [nzLabel]="contract.label"></nz-option>
           </nz-select>
         </div>
       </div>
@@ -307,36 +242,39 @@
 
     <!-- Nội dung HĐ và Nội dung thanh toán -->
     <div class="row m-0">
-      <div class="col-sm-6 p-1">
+      <div class="col-sm-4 p-1">
         <div class="form-group mb-1">
           <label class="m-0">
             Nội dung HĐ
             <span class="text-danger">(*)</span>
           </label>
-          <textarea 
-            nz-input 
-            nzSize="small" 
-            [(ngModel)]="contractContent" 
-            name="contractContent"
-            rows="8"
+          <textarea nz-input nzSize="small" [(ngModel)]="contractContent" name="contractContent" rows="8"
             (blur)="errors.contractContent = ''"></textarea>
-          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.contractContent">{{ errors.contractContent }}</span>
+          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.contractContent">{{ errors.contractContent
+            }}</span>
         </div>
       </div>
-      <div class="col-sm-6 p-1">
+      <div class="col-sm-4 p-1">
         <div class="form-group mb-1">
           <label class="m-0">
             Nội dung thanh toán
             <span class="text-danger">(*)</span>
           </label>
-          <textarea 
-            nz-input 
-            nzSize="small" 
-            [(ngModel)]="contentPayment" 
-            name="contentPayment"
-            rows="8"
+          <textarea nz-input nzSize="small" [(ngModel)]="contentPayment" name="contentPayment" rows="8"
             (blur)="errors.contentPayment = ''"></textarea>
-          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.contentPayment">{{ errors.contentPayment }}</span>
+          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.contentPayment">{{ errors.contentPayment
+            }}</span>
+        </div>
+      </div>
+      <div class="col-sm-4 p-1">
+        <div class="form-group mb-1">
+          <label class="m-0">
+            Ghi chú
+          </label>
+          <textarea nz-input nzSize="small" [(ngModel)]="accountingNote" name="accountingNote" rows="8"
+            (blur)="errors.accountingNote = ''"></textarea>
+          <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.accountingNote">{{ errors.accountingNote
+            }}</span>
         </div>
       </div>
     </div>
@@ -346,12 +284,7 @@
       <div class="col-sm-8 p-1">
         <div class="form-group mb-1">
           <label class="m-0">Nội dung thay đổi</label>
-          <textarea 
-            nz-input 
-            nzSize="small" 
-            [(ngModel)]="note" 
-            name="note"
-            rows="8"
+          <textarea nz-input nzSize="small" [(ngModel)]="note" name="note" rows="8"
             (blur)="errors.note = ''"></textarea>
           <span class="text-danger" style="font-size: 0.75rem;" *ngIf="errors.note">{{ errors.note }}</span>
         </div>
@@ -359,16 +292,8 @@
       <div class="col-sm-4 p-1">
         <div class="form-group mb-1">
           <label class="m-0">File hợp đồng</label>
-          <input 
-            type="file" 
-            #fileInput
-            (change)="onFileSelected($event)"
-            multiple 
-            style="display: none;" />
-          <button 
-            type="button" 
-            class="btn btn-sm btn-outline-primary w-100 mb-1"
-            (click)="onChooseFile()">
+          <input type="file" #fileInput (change)="onFileSelected($event)" multiple style="display: none;" />
+          <button type="button" class="btn btn-sm btn-outline-primary w-100 mb-1" (click)="onChooseFile()">
             Chọn file
           </button>
           <div class="border rounded" style="height: 140px;">

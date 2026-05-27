@@ -120,8 +120,12 @@ export class ImportExcelAccountingContractComponent implements OnInit {
             let value = row[key];
 
             // Convert Excel date serial number to readable format
-            const keyLower = key.toLowerCase();
-            const isDateColumn = keyLower.includes('ngày') || keyLower.includes('date') || keyLower.includes('thời gian');
+            const keyLower = key.toLowerCase().trim();
+            const isDateColumn = this.dateColumns.some(d => d.toLowerCase() === keyLower) ||
+              keyLower.includes('ngày') ||
+              keyLower.includes('date') ||
+              keyLower.includes('thời gian') ||
+              keyLower.includes('hiệu lực');
             if (typeof value === 'number' && value > 20000 && isDateColumn) {
               const parsed = XLSX.SSF.parse_date_code(value);
               if (parsed) {
@@ -165,7 +169,13 @@ export class ImportExcelAccountingContractComponent implements OnInit {
     // Các cột dữ liệu
     const dataColumns: any[] = this.tableHeaders.map(col => {
       let align: "left" | "center" | "right" = "left";
-      if (col.toLowerCase().includes("ngày") || col.toLowerCase().includes("date")) align = "center";
+      const colLower = col.toLowerCase().trim();
+      const isDateCol = this.dateColumns.some(d => d.toLowerCase() === colLower) ||
+        colLower.includes("ngày") ||
+        colLower.includes("date") ||
+        colLower.includes("hiệu lực") ||
+        colLower.includes("thời gian");
+      if (isDateCol) align = "center";
       else if (this.tableData.length > 0 && typeof this.tableData[0][col] === "number") align = "right";
       return {
         title: col,

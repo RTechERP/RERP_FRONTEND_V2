@@ -105,6 +105,7 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef,
         private ClipboardService: ClipboardService,
+        private nzModalService: NzModalService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -429,6 +430,29 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
                     },
                 ],
             },
+             enableContextMenu: true,
+            contextMenu: {
+                commandItems: [
+                    {
+                        command: 'log',
+                        title: 'Lịch sử thay đổi',
+                        iconCssClass: 'fa-solid fa-clock-rotate-left text-primary',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.viewLogHistory(args.dataContext);
+                        },
+                    },
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 2,
+                        action: (_e, args) => {
+                            // this.clipboardService.copy(args.value);
+                        },
+          },
+        ],
+      },
         };
     }
 
@@ -713,6 +737,37 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
     toggleSearchPanel(): void {
         this.isSearchVisible = !this.isSearchVisible;
     }
+
+  viewLogHistory(rowData: any): void {
+    if (!rowData || !rowData.ID) {
+      this.notification.warning('Thông báo', 'Dữ liệu phiếu không hợp lệ!');
+      return;
+    }
+    import('../bill-export-technical-audit-log/bill-export-technical-audit-log.component').then(
+      (m) => {
+        const modalRef = this.nzModalService.create({
+          nzTitle: 'Lịch sử thay đổi phiếu xuất ' + (rowData.Code || ''),
+          nzContent: m.BillExportTechnicalAuditLogComponent,
+          nzData: {
+            billExportId: rowData.ID,
+          },
+          nzWidth: '1000px',
+          nzFooter: null,
+          nzStyle: { top: '20px' },
+          nzBodyStyle: {
+            height: 'calc(100vh - 100px)',
+            overflowY: 'auto',
+            padding: '0 !important',
+          },
+        });
+        
+        // Also support older versions of ng-zorro if nzData doesn't work directly
+        if (modalRef.componentInstance) {
+          modalRef.componentInstance.billExportId = rowData.ID;
+        }
+      },
+    );
+  }
 
     onDeleteBillImportTechnical() {
         const selectedRows = this.getSelectedRows();

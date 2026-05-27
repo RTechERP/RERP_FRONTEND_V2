@@ -41,7 +41,8 @@
                         viên</nz-form-label>
                     <nz-form-control>
                         <nz-select name="employeeId" nzShowSearch nzAllowClear nzSize="small"
-                            nzPlaceHolder="Chọn nhân viên" style="width: 200px;" [(ngModel)]="filters.employeeId">
+                            nzPlaceHolder="Chọn nhân viên" style="width: 200px;" [(ngModel)]="filters.employeeId"
+                            [nzDisabled]="!isEmployeeSelectEnabled">
                             <nz-option *ngFor="let item of employees" [nzValue]="item.ID"
                                 [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
                         </nz-select>

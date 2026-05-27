@@ -249,30 +249,30 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
             return;
           }
 
-          // Open the KPI Evaluation Factor Scoring Details modal
-          const modalRef = this.ngbModal.open(KPIEvaluationFactorScoringDetailsComponent, {
-            centered: true,
-            backdrop: 'static',
-            keyboard: false,
-            windowClass: 'full-screen-modal',
-          });
+          const tabKey = `kpi-factor-scoring-details-bgd-${empId}-${kpiExamID}`;
 
-          // Set modal parameters
-          modalRef.componentInstance.typePoint = 3; // BGĐ view 
-          modalRef.componentInstance.departmentID = 2; // Set to 2 
-          modalRef.componentInstance.employeeID = empId;
-          modalRef.componentInstance.kpiExam = kpiExam;
-          modalRef.componentInstance.isAdminConfirm = item.IsAdminConfirm || false;
-
-          // Handle modal close
-          modalRef.result.then(
-            (result: any) => {
-              if (result?.success) {
-                this.search(); // Reload data
+          if (this.tabService) {
+            this.tabService.openTabComp({
+              comp: KPIEvaluationFactorScoringDetailsComponent,
+              title: `BGĐ đánh giá - ${item?.FullName || ''}`,
+              key: tabKey,
+              data: {
+                tabKey: tabKey,
+                typePoint: 3, // BGĐ view
+                employeeID: empId,
+                kpiExam: kpiExam,
+                status: item.StatusKPIExam || 0,
+                departmentID: this.departmentId || 2,
+                isAdminConfirm: item.IsAdminConfirm || false,
+                canSave: false, // Chặn lưu
+                onSavedCallback: () => {
+                  this.search(); // Reload data
+                }
               }
-            },
-            () => { }
-          );
+            });
+          } else {
+            this.notification.error('Lỗi', 'Không tìm thấy TabService!');
+          }
         } else {
           this.notification.error('Lỗi', response.message || 'Không thể tải thông tin bài đánh giá');
         }

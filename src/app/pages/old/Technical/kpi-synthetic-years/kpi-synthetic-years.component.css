@@ -84,3 +84,7 @@
 .grid-container ::ng-deep .bg-q4 {
     background-color: #fff7e6 !important;
 }
+
+.grid-container ::ng-deep .slick-row.slick-group .slick-cell {
+    text-align: left !important;
+}

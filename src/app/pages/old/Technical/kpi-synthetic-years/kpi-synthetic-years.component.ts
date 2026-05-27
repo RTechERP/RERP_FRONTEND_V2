@@ -68,6 +68,7 @@ export class KpiSyntheticYearsComponent implements OnInit {
   departments: any[] = [];
   employees: any[] = [];
   isLoading: boolean = false;
+  isEmployeeSelectEnabled: boolean = false; // Bật/tắt combobox nhân viên theo quyền N38
 
   constructor(
     private kpiService: KpiSyntheticYearsService,
@@ -262,6 +263,18 @@ export class KpiSyntheticYearsComponent implements OnInit {
 
   angularGridReady(angularGrid: AngularGridInstance): void {
     this.angularGrid = angularGrid;
+    setTimeout(() => {
+      if (this.angularGrid && this.angularGrid.dataView) {
+        this.angularGrid.dataView.setGrouping([
+          {
+            getter: 'DepartmentName',
+            formatter: (g: any) => `Phòng ban: <strong>${g.value || '(Không xác định)'}</strong> <span style="color:red">(${g.count} nhân viên)</span>`,
+            aggregateCollapsed: false,
+            lazyTotalsCalculation: true,
+          },
+        ]);
+      }
+    }, 100);
   }
 
   loadDepartments(): void {
@@ -281,7 +294,16 @@ export class KpiSyntheticYearsComponent implements OnInit {
     this.kpiService.getEmployee().subscribe({
       next: (response: any) => {
         if (response.status === 1) {
-          this.employees = response.data;
+          this.employees = response.data.data || [];
+          const vUserGroupLinks = response.data.vUserGroupLinks || [];
+
+          // Kiểm tra xem người dùng có quyền N38 hay không
+          this.isEmployeeSelectEnabled = vUserGroupLinks.length > 0;
+
+          // Nếu không có quyền N38 (Disabled), khóa cứng giá trị là employeeID hiện tại
+          if (!this.isEmployeeSelectEnabled) {
+            this.filters.employeeId = this.userService.employeeID;
+          }
         }
       },
       error: (err) => {

@@ -315,10 +315,11 @@ export class KPIService {
    * Load KPI Kỹ năng (Factor Scoring)
    * API: GET api/KPIEvaluationFactorScoring/load-kpi-kynang
    */
-  loadKPIKyNangFactorScoring(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+  loadKPIKyNangFactorScoring(kpiExamID: number, isPublicTBP: boolean, isPublicBGD: boolean, employeeID: number): Observable<any> {
     const params = new HttpParams()
       .set('kpiExamID', kpiExamID.toString())
-      .set('isPublic', isPublic.toString())
+      .set('isPublicTBP', isPublicTBP.toString())
+      .set('isPublicBGD', isPublicBGD.toString())
       .set('employeeID', employeeID.toString());
     return this.http.get<any>(this.apiUrlFactorScoring + 'load-kpi-kynang', { params });
   }
@@ -327,10 +328,11 @@ export class KPIService {
    * Load KPI Chung (Factor Scoring)
    * API: GET api/KPIEvaluationFactorScoring/load-kpi-chung
    */
-  loadKPIChungFactorScoring(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+  loadKPIChungFactorScoring(kpiExamID: number, isPublicTBP: boolean, isPublicBGD: boolean, employeeID: number): Observable<any> {
     const params = new HttpParams()
       .set('kpiExamID', kpiExamID.toString())
-      .set('isPublic', isPublic.toString())
+      .set('isPublicTBP', isPublicTBP.toString())
+      .set('isPublicBGD', isPublicBGD.toString())
       .set('employeeID', employeeID.toString());
     return this.http.get<any>(this.apiUrlFactorScoring + 'load-kpi-chung', { params });
   }
@@ -339,10 +341,11 @@ export class KPIService {
    * Load KPI Chuyên môn (Factor Scoring)
    * API: GET api/KPIEvaluationFactorScoring/load-kpi-chuyenmon
    */
-  loadKPIChuyenMonFactorScoring(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+  loadKPIChuyenMonFactorScoring(kpiExamID: number, isPublicTBP: boolean, isPublicBGD: boolean, employeeID: number): Observable<any> {
     const params = new HttpParams()
       .set('kpiExamID', kpiExamID.toString())
-      .set('isPublic', isPublic.toString())
+      .set('isPublicTBP', isPublicTBP.toString())
+      .set('isPublicBGD', isPublicBGD.toString())
       .set('employeeID', employeeID.toString());
     return this.http.get<any>(this.apiUrlFactorScoring + 'load-kpi-chuyenmon', { params });
   }
@@ -376,10 +379,11 @@ export class KPIService {
    * @param isPublic - Whether the data is public
    * @param employeeID - Employee ID
    */
-  loadKPIKyNang(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+  loadKPIKyNang(kpiExamID: number, isPublicTBP: boolean, isPublicBGD: boolean, employeeID: number): Observable<any> {
     const params = new HttpParams()
       .set('kpiExamID', kpiExamID.toString())
-      .set('isPublic', isPublic.toString())
+      .set('isPublicTBP', isPublicTBP.toString())
+      .set('isPublicBGD', isPublicBGD.toString())
       .set('employeeID', employeeID.toString());
     return this.http.get<any>(this.apiUrl + 'load-kpi-kynang', { params });
   }
@@ -391,10 +395,11 @@ export class KPIService {
    * @param isPublic - Whether the data is public
    * @param employeeID - Employee ID
    */
-  loadKPIChung(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+  loadKPIChung(kpiExamID: number, isPublicTBP: boolean, isPublicBGD: boolean, employeeID: number): Observable<any> {
     const params = new HttpParams()
       .set('kpiExamID', kpiExamID.toString())
-      .set('isPublic', isPublic.toString())
+      .set('isPublicTBP', isPublicTBP.toString())
+      .set('isPublicBGD', isPublicBGD.toString())
       .set('employeeID', employeeID.toString());
     return this.http.get<any>(this.apiUrl + 'load-kpi-chung', { params });
   }
@@ -406,10 +411,11 @@ export class KPIService {
    * @param isPublic - Whether the data is public
    * @param employeeID - Employee ID
    */
-  loadKPIChuyenMon(kpiExamID: number, isPublic: boolean, employeeID: number): Observable<any> {
+  loadKPIChuyenMon(kpiExamID: number, isPublicTBP: boolean, isPublicBGD: boolean, employeeID: number): Observable<any> {
     const params = new HttpParams()
       .set('kpiExamID', kpiExamID.toString())
-      .set('isPublic', isPublic.toString())
+      .set('isPublicTBP', isPublicTBP.toString())
+      .set('isPublicBGD', isPublicBGD.toString())
       .set('employeeID', employeeID.toString());
     return this.http.get<any>(this.apiUrl + 'load-kpi-chuyenmon', { params });
   }

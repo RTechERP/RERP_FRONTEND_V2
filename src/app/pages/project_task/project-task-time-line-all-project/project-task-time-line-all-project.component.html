@@ -93,7 +93,7 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="5">
                     <div class="form-field-vertical">
                         <label>Trạng thái</label>
-                        <nz-select nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
+                        <nz-select nzPlaceHolder="Tất cả trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
                             nzMode="multiple" [nzMaxTagCount]="3" nzAllowClear style="width: 100%;">
                             <nz-option *ngFor="let opt of statusOptions" [nzLabel]="opt.label" [nzValue]="opt.value">
                             </nz-option>

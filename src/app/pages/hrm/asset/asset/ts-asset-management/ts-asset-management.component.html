@@ -79,9 +79,11 @@
                     <!-- Bảng Master -->
                     <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="60%">
                         <div class="table-container" style="height: 100%;">
+                            <p-contextMenu #cm [model]="contextMenuItems" appendTo="body"></p-contextMenu>
                             <p-table #dt [value]="dataset" sortMode="multiple" dataKey="ID"
                                 [globalFilterFields]="['TSCodeNCC', 'TSAssetName', 'AssetCode', 'AssetType', 'Status']"
                                 selectionMode="multiple" [(selection)]="selectedRows" [selectionPageOnly]="true"
+                                [(contextMenuSelection)]="selectedContextRow" [contextMenu]="cm"
                                 (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect()"
                                 [scrollable]="true" scrollHeight="flex" [paginator]="true" [rows]="50"
                                 [rowsPerPageOptions]="[50, 100, 200, 500]" paginatorDropdownAppendTo="body"
@@ -405,7 +407,7 @@
                                 </ng-template>
 
                                 <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
-                                    <tr [pSelectableRow]="row">
+                                    <tr [pSelectableRow]="row" [pContextMenuRow]="row">
                                         <td style="width: 50px; min-width: 50px; max-width: 50px; text-align: center;">
                                             <p-tableCheckbox [value]="row"></p-tableCheckbox>
                                         </td>

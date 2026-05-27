@@ -49,6 +49,10 @@ export interface TreeColumnDef {
     cellStyle?: (rowData: any) => { [klass: string]: any } | null;
     /** Edit type. Default: 'text' */
     editType?: 'text' | 'number' | 'date' | 'lookup' | 'table-lookup' | 'textarea' | 'progressbar' | 'badge' | 'multiselect';
+    /** Minimum value for number input (editType='number'). Default: no limit. */
+    editMin?: number;
+    /** Maximum value for number input (editType='number'). Default: no limit. */
+    editMax?: number;
     /** Dynamic severity for badge type based on row data. */
     badgeSeverity?: (rowData: any) => 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' | undefined;
     /** Date format for date picker (PrimeNG format). Default: 'dd/mm/yy' */

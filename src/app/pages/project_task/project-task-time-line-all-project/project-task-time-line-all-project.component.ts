@@ -104,7 +104,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     // ===== Bộ lọc cột =====
     filterTaskKeyword = '';
     filterStatusColumn: number[] = [];
-    selectedStatuses: number[] = [0, 1];
+    selectedStatuses: number[] = [];
 
     // New multi-select filters
     filterMemberColumn: string[] = [];
@@ -264,7 +264,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         this.dateEnd = this.getDefaultDateEnd();
         this.departmentId = this.appUserService.departmentID || 0;
         this.teamId = this.appUserService.currentUser?.TeamOfUser || 0;
-        this.selectedStatuses = [0, 1];
+        this.selectedStatuses = [];
         this.filterTaskKeyword = '';
         this.filterStatusColumn = [];
         this.filterMemberColumn = [];

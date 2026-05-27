@@ -523,6 +523,14 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 format: fmtMoney,
                 cssClass: 'text-right',
             },
+            {
+                field: 'TotalMoneyWithInvoice',
+                header: 'Tổng tiền có HĐ',
+                width: '130px',
+                filterType: 'numeric',
+                format: fmtMoney,
+                cssClass: 'text-right',
+            },
             { field: 'Note', header: 'Ghi chú / Chứng từ', width: '300px' },
         ];
 
@@ -567,7 +575,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
             },
             { field: 'FullName', header: 'Người đề nghị', width: '150px', filterMode: 'multiselect' },
             { field: 'UserTeamNameJoin', header: 'Team kinh doanh', width: '200px', filterMode: 'multiselect' },
-            { field: 'TypeName', header: 'Phân loại thanh toán', width: '300px', filterMode: 'multiselect' },
+            { field: 'OrderType', header: 'Phân loại thanh toán', width: '300px', filterMode: 'multiselect' },
             { field: 'CustomerName', header: 'Khách hàng', width: '300px' },
             { field: 'POCode', header: 'Số PO', width: '120px', filterMode: 'multiselect' },
             { field: 'BillNumbers', header: 'Số hóa đơn', width: '300px', filterMode: 'multiselect' },
@@ -729,6 +737,9 @@ export class PaymentOrderEmployeeComponent implements OnInit {
     onCopy() {
         if (!this.selectedItem) return;
         let item = { ...this.selectedItem }; // data object
+        item.CopyFromID = this.selectedItem.ID; // preserve original ID for detail loading
+        item.ID = 0;
+        item.id = 0;
         item.DateOrder = new Date();
         item.FullName = this.appUserService.currentUser?.FullName || '';
         item.DepartmentName = this.appUserService.currentUser?.DepartmentName || '';
@@ -738,7 +749,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
         item.HRNote = '';
         item.Note = '';
         item = item as PaymentOrder;
-        console.log(item);
+        console.log('[onCopy] item after clear:', item);
         this.initModal(item, true);
     }
     onOpenPaymentOrderLog(row: any) {

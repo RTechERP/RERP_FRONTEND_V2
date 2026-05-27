@@ -126,6 +126,23 @@ export class ProjectPartlistPriceRequestFormComponent
 
   // Map để lưu mapping HR Note: ProjectPartlistPriceRequestID -> { ID, Note }
   hrNotesMap: Map<number, { id: number; note: string }> = new Map();
+
+  // Mapping departmentID -> productGroupID để lọc danh sách sản phẩm
+  private readonly deptToProductGroupMap: Record<number, number> = {
+    8: 79,
+  };
+
+  filteredProductSale: any[] = [];
+
+  private updateFilteredProductSale(): void {
+    const user = this.users.find((u: any) => Number(u.ID) === Number(this.requester));
+    const deptId = Number(user?.DepartmentID ?? 0);
+    const groupId = this.deptToProductGroupMap[deptId] ?? null;
+    this.filteredProductSale = groupId
+      ? this.dtProductSale.filter((p: any) => Number(p.ProductGroupID) === groupId)
+      : this.dtProductSale;
+  }
+
   // Popup state management
   showProductPopup: boolean = false;
   showSupplierPopup: boolean = false;
@@ -433,6 +450,10 @@ export class ProjectPartlistPriceRequestFormComponent
     const labels = this.labelMaps.get(labelName);
     return labels ? labels[key] || '' : '';
   }
+  onRequesterChange(): void {
+    this.updateFilteredProductSale();
+  }
+
   getProductSale() {
     this.priceRequestService.getProductSale().subscribe({
       next: (response) => {
@@ -443,6 +464,7 @@ export class ProjectPartlistPriceRequestFormComponent
           'ID',
           'ProductNewCode'
         );
+        this.updateFilteredProductSale();
         setTimeout(() => {
           this.drawTable();
         }, 0);
@@ -763,6 +785,7 @@ export class ProjectPartlistPriceRequestFormComponent
     if (status === 2 || status === 3 || isCheckPrice) return false;
 
     if (
+      this.currentUserId > 0 &&
       !this.isAdmin &&
       this.requester &&
       this.requester !== this.currentUserId
@@ -1243,7 +1266,6 @@ export class ProjectPartlistPriceRequestFormComponent
         ProductName: selectedProduct.ProductName,
         Unit: selectedProduct.Unit,
         Maker: selectedProduct.Maker,
-        StatusRequest: selectedProduct.StatusRequest,
       });
     } else {
       // Xử lý cho ProductSale
@@ -1270,7 +1292,6 @@ export class ProjectPartlistPriceRequestFormComponent
         ProductName: selectedProduct.ProductName,
         Unit: selectedProduct.Unit,
         Maker: selectedProduct.Maker,
-        StatusRequest: selectedProduct.StatusRequest,
       });
     }
 

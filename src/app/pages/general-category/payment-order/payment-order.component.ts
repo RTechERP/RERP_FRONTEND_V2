@@ -1343,6 +1343,24 @@ export class PaymentOrderComponent implements OnInit {
                 // },
             },
             {
+                id: PaymentOrderField.AccountingLeaderNote.field,
+                name: 'Ghi chú kế toán trưởng',
+                field: PaymentOrderField.AccountingLeaderNote.field,
+                type: PaymentOrderField.AccountingLeaderNote.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+                // filter: {
+                //     collection: [],
+                //     model: Filters['multipleSelect'],
+                //     filterOptions: {
+                //         autoAdjustDropHeight: true,
+                //         filter: true,
+                //     } as MultipleSelectOption,
+                // },
+            },
+            {
                 id: PaymentOrderField.TransferTypeText.field,
                 name: PaymentOrderField.TransferTypeText.name,
                 field: PaymentOrderField.TransferTypeText.field,
@@ -1882,6 +1900,17 @@ export class PaymentOrderComponent implements OnInit {
                 cssClass: 'text-end'
             },
             {
+                id: PaymentOrderDetailField.TotalMoneyWithInvoice.field,
+                name: PaymentOrderDetailField.TotalMoneyWithInvoice.name,
+                field: PaymentOrderDetailField.TotalMoneyWithInvoice.field,
+                type: PaymentOrderDetailField.TotalMoneyWithInvoice.type,
+                width: 150,
+                sortable: true, filterable: true,
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-end'
+            },
+            {
                 id: PaymentOrderDetailField.Note.field,
                 name: PaymentOrderDetailField.Note.name,
                 field: PaymentOrderDetailField.Note.field,
@@ -2304,9 +2333,9 @@ export class PaymentOrderComponent implements OnInit {
             },
 
             {
-                id: 'TypeName',
+                id: 'OrderType',
                 name: 'Phân loại thanh toán',
-                field: 'TypeName',
+                field: 'OrderType',
                 type: 'string',
                 sortable: true, filterable: true,
                 width: 250,
@@ -2657,6 +2686,7 @@ export class PaymentOrderComponent implements OnInit {
                 // formatter: Formatters.iconBoolean,
                 filter: { model: Filters['compoundInputText'] },
             },
+           
             {
                 id: PaymentOrderDetailField.PaymentInfor.field,
                 name: 'Thông tin thanh toán',
@@ -4730,10 +4760,10 @@ export class PaymentOrderComponent implements OnInit {
             totalQuantity = totalQuantity == 0 ? '' : totalQuantity;
 
             let totalUnitPrice = details.reduce((sum: number, x: any) => sum + x.UnitPrice, 0);
-            totalUnitPrice = totalUnitPrice == 0 ? '' : (isVND ? this.formatNumber(totalUnitPrice, 0) : this.formatNumber(totalUnitPrice));
+            totalUnitPrice = totalUnitPrice == 0 ? '' : (isVND ? this.formatNumber(totalUnitPrice, Number.isInteger(totalUnitPrice) ? 0 : 2) : this.formatNumber(totalUnitPrice));
 
             let totalMoney = details.reduce((sum: number, x: any) => sum + x.TotalMoney, 0);
-            totalMoney = totalMoney == 0 ? '' : (isVND ? this.formatNumber(totalMoney, 0) : this.formatNumber(totalMoney));
+            totalMoney = totalMoney == 0 ? '' : (isVND ? this.formatNumber(totalMoney, Number.isInteger(totalMoney) ? 0 : 2) : this.formatNumber(totalMoney));
 
             sumTotalFooter = [
                 [
@@ -4776,10 +4806,10 @@ export class PaymentOrderComponent implements OnInit {
 
             const detail = details[i];
             const quantity = detail.Quantity == 0 ? '' : this.formatNumber(detail.Quantity);
-            const unitPrice = detail.UnitPrice == 0 ? '' : (isVND ? this.formatNumber(detail.UnitPrice, 0) : this.formatNumber(detail.UnitPrice));
-            const totalMoney = detail.TotalMoney == 0 ? '' : (isVND ? this.formatNumber(detail.TotalMoney, 0) : this.formatNumber(detail.TotalMoney));
+            const unitPrice = detail.UnitPrice == 0 ? '' : (isVND ? this.formatNumber(detail.UnitPrice, Number.isInteger(detail.UnitPrice) ? 0 : 2) : this.formatNumber(detail.UnitPrice));
+            const totalMoney = detail.TotalMoney == 0 ? '' : (isVND ? this.formatNumber(detail.TotalMoney, Number.isInteger(detail.TotalMoney) ? 0 : 2) : this.formatNumber(detail.TotalMoney));
             const paymentPercentage = detail.PaymentPercentage == 0 ? '' : detail.PaymentPercentage;
-            const totalPaymentAmount = detail.TotalPaymentAmount == 0 ? '' : (isVND ? this.formatNumber(detail.TotalPaymentAmount, 0) : this.formatNumber(detail.TotalPaymentAmount));
+            const totalPaymentAmount = detail.TotalPaymentAmount == 0 ? '' : (isVND ? this.formatNumber(detail.TotalPaymentAmount, Number.isInteger(detail.TotalPaymentAmount) ? 0 : 2) : this.formatNumber(detail.TotalPaymentAmount));
             let item = [
                 { text: detail.Stt, alignment: 'center' },
                 { text: detail.ContentPayment, alignment: '' },
@@ -5111,7 +5141,7 @@ export class PaymentOrderComponent implements OnInit {
 
         const isVND = (paymentOrder.Unit?.toUpperCase() ?? '') == 'VND';
         let totalMoneys = details.reduce((sum: number, x: any) => sum + x.TotalMoney, 0);
-        totalMoneys = totalMoneys == 0 ? '' : (isVND ? this.formatNumber(totalMoneys, 0) : this.formatNumber(totalMoneys));
+        totalMoneys = totalMoneys == 0 ? '' : (isVND ? this.formatNumber(totalMoneys, Number.isInteger(totalMoneys) ? 0 : 2) : this.formatNumber(totalMoneys));
 
         let items: any = [];
         for (let i = 0; i < details.length; i++) {
@@ -5119,7 +5149,7 @@ export class PaymentOrderComponent implements OnInit {
             const detail = details[i];
             // const quantity = detail.Quantity <= 0 ? '' : this.formatNumber(detail.Quantity);
             // const unitPrice = detail.UnitPrice <= 0 ? '' : (isVND ? this.formatNumber(detail.UnitPrice, 0) : this.formatNumber(detail.UnitPrice));
-            const totalMoney = detail.TotalMoney <= 0 ? '' : (isVND ? this.formatNumber(detail.TotalMoney, 0) : this.formatNumber(detail.TotalMoney));
+            const totalMoney = detail.TotalMoney <= 0 ? '' : (isVND ? this.formatNumber(detail.TotalMoney, Number.isInteger(detail.TotalMoney) ? 0 : 2) : this.formatNumber(detail.TotalMoney));
             // const paymentPercentage = detail.PaymentPercentage <= 0 ? '' : detail.PaymentPercentage;
             // const totalPaymentAmount = detail.TotalPaymentAmount <= 0 ? '' : (isVND ? this.formatNumber(detail.TotalPaymentAmount, 0) : this.formatNumber(detail.TotalPaymentAmount));
             let item = [

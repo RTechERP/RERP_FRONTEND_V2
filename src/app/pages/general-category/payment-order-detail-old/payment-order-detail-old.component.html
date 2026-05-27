@@ -195,6 +195,16 @@
                 </div>
             </div>
 
+            <!-- IsBill checkbox for types with IsBill=true (type 22 already has it inline above) -->
+            <div class="row m-0" *ngIf="showIsBillCheckbox && validateForm.get('PaymentOrderTypeID')?.value != 22">
+                <div class="form-group col-md-12 m-0 p-1">
+                    <div class="d-flex align-items-center">
+                        <input type="checkbox" formControlName="IsBill" id="isbill_type" />
+                        <label class="m-0 ms-1" for="isbill_type" style="font-size:12px;">Có hóa đơn?</label>
+                    </div>
+                </div>
+            </div>
+
             <!-- Row 4: Hình thức | Thời gian thanh toán | Hình thức CK -->
             <div class="row m-0">
                 <div class="form-group col-md-4 m-0 p-1">
@@ -306,34 +316,43 @@
             </div>
         </form>
 
+        <!-- Note: IsBill column description -->
+        <div class="px-1 py-0" *ngIf="showIsBillCheckbox">
+            <small class="text-danger fst-italic">
+                <strong>Lưu ý cột "Tổng tiền có hóa đơn":</strong>
+                Chỉ tính Hóa đơn điện tử xuất về công ty, không tính bill viết tay, Hóa đơn xuất tên cá nhân.
+                Nếu không có hóa đơn thì điền = 0.
+            </small>
+        </div>
+
         <!-- ==================== BẢNG CHI TIẾT ==================== -->
         <div class="table-responsive" style="height:50vh;">
 
             <!-- TYPE 1, 3: bảng đơn giản -->
             <table class="table table-hover table-bordered table-sm m-0" *ngIf="paymentOrder.TypeOrder != 2">
                 <thead>
-                    <tr class="sticky-top-table">
-                        <th class="text-center" style="min-width:60px;">
+                    <tr class="sticky-top-table text-center align-items-center">
+                        <th class="text-center align-items-center" style="min-width:60px;">
                             <button class="btn btn-primary btn-sm" type="button" (click)="addRow()">
                                 <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
                             </button>
                         </th>
                         <th style="min-width:50px;">STT</th>
                         <th style="min-width:200px;">Nội dung thanh toán <span class="text-danger">(*)</span></th>
-                        <th style="min-width:70px;">ĐVT</th>
-                        <th style="min-width:90px;">Số lượng</th>
-                        <th style="min-width:120px;">Đơn giá</th>
-                        <th style="min-width:130px;">Thành tiền <span class="text-danger">(*)</span></th>
-                        <th style="min-width:100px;">% Thanh toán</th>
-                        <th style="min-width:130px;">Tổng tiền TT</th>
-                        <!-- <th style="min-width:150px;">
-              Tổng tiền có HĐ
-              <span class="text-danger" *ngIf="validateForm.get('IsBill')?.value"> (*)</span>
-              <nz-icon nzType="info-circle" nzTheme="outline" nz-tooltip [nzTooltipTitle]="tooltipContent"
-                nzTooltipPlacement="top" style="cursor:help;margin-left:4px;color:#1890ff;font-size:16px;">
-              </nz-icon> 
-            </th>-->
-                        <th style="min-width:180px;">Ghi chú / Chứng từ kèm theo</th>
+                        <th style="width:50px;min-width:50px;max-width:55px;">ĐVT</th>
+                        <th style="width:65px;min-width:65px;max-width:70px;">Số lượng</th>
+                        <th style="min-width:80px;max-width: 100px;">Đơn giá</th>
+                        <th style="min-width:80px;max-width: 100px;">Thành tiền <span class="text-danger">(*)</span>
+                        </th>
+                        <th style="width:65px;min-width:65px;max-width:70px;">% TT</th>
+                        <th style="min-width:100px;max-width: 120px;">Tổng tiền TT</th>
+                        <th style="min-width:80px;max-width: 100px;" *ngIf="showIsBillCheckbox">
+                            Tổng tiền có HĐ
+                            <span class="text-danger"> (*)</span>
+                            <nz-icon nzType="info-circle" nzTheme="outline" class="text-primary cursor-pointer ms-1"
+                                nz-tooltip [nzTooltipTitle]="tooltipContent"></nz-icon>
+                        </th>
+                        <th style="min-width:400px;">Ghi chú / Chứng từ kèm theo</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -354,13 +373,13 @@
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.Quantity | number:'1.2-2'"
                                 appCurrencyFormatRealtime
-                                (blur)="row.Quantity = parseNum($any($event.target).value); calcTotalMoney(row)"
+                                (blur)="onQuantityBlur(row, $event)"
                                 type="text" />
                         </td>
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.UnitPrice | number:'1.2-2'"
                                 appCurrencyFormatRealtime
-                                (blur)="row.UnitPrice = parseNum($any($event.target).value); calcTotalMoney(row)"
+                                (blur)="onUnitPriceBlur(row, $event)"
                                 type="text" />
                         </td>
                         <td>
@@ -376,11 +395,13 @@
                         </td>
                         <td class="text-end text-nowrap fw-bold">{{ (row.TotalMoney * ((row.PaymentPercentage || 0) /
                             100)) | number:'1.2-2' }}</td>
-                        <!-- <td>
-              <input class="tbl-input tbl-num" [value]="row.TotalMoneyWithInvoice | number:'1.2-2'" appCurrencyFormatRealtime
-                (blur)="row.TotalMoneyWithInvoice = parseNum($any($event.target).value)" type="text"
-                [style.background]="validateForm.get('IsBill')?.value && (row.TotalMoneyWithInvoice === null || row.TotalMoneyWithInvoice === undefined || row.TotalMoneyWithInvoice === '') ? '#fff3cd' : ''" />
-            </td> -->
+                        <td *ngIf="showIsBillCheckbox">
+                            <input class="tbl-input tbl-num"
+                                [value]="row.TotalMoneyWithInvoice != null ? (row.TotalMoneyWithInvoice | number:'1.2-2') : ''"
+                                appCurrencyFormatRealtime
+                                (blur)="row.TotalMoneyWithInvoice = ($any($event.target).value.trim() === '' ? null : parseNum($any($event.target).value))"
+                                type="text" />
+                        </td>
                         <td>
                             <textarea class="tbl-input" [(ngModel)]="row.Note" rows="2"></textarea>
                         </td>
@@ -389,7 +410,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="10" class="fw-bold">
+                        <td [attr.colspan]="showIsBillCheckbox ? 11 : 10" class="fw-bold">
                             Số tiền bằng chữ: <span>{{ totalMoneyText }}</span>
                         </td>
                     </tr>
@@ -399,28 +420,28 @@
             <!-- TYPE 2: bảng quyết toán (I / II / III) -->
             <table class="table table-hover table-bordered table-sm m-0" *ngIf="paymentOrder.TypeOrder == 2">
                 <thead>
-                    <tr class="sticky-top-table">
+                    <tr class="sticky-top-table text-center">
                         <th class="text-center" style="min-width:60px;">
                             <button class="btn btn-primary btn-sm" type="button" (click)="addDetailRow()">
                                 <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
                             </button>
                         </th>
-                        <th style="min-width:50px;">STT</th>
+                        <th style="max-width:30px;">STT</th>
                         <th style="min-width:200px;">Nội dung thanh toán <span class="text-danger">(*)</span></th>
-                        <th style="min-width:70px;">ĐVT</th>
-                        <th style="min-width:90px;">Số lượng</th>
-                        <th style="min-width:120px;">Đơn giá</th>
-                        <th style="min-width:130px;">Thành tiền <span class="text-danger">(*)</span></th>
-                        <th style="min-width:100px;">% Thanh toán</th>
+                        <th style="width:50px;min-width:50px;max-width:55px;">ĐVT</th>
+                        <th style="width:65px;min-width:65px;max-width:70px;">Số lượng</th>
+                        <th style="min-width:80px;max-width: 100px;">Đơn giá</th>
+                        <th style="min-width:80px;max-width: 100px;">Thành tiền <span class="text-danger">(*)</span>
+                        </th>
+                        <th style="width:65px;min-width:65px;max-width:70px;">% TT</th>
                         <th style="min-width:130px;">Tổng tiền TT</th>
-                        <!-- <th style="min-width:150px;">
-              Tổng tiền có hóa đơn
-              <span class="text-danger" *ngIf="validateForm.get('IsBill')?.value"> (*)</span>
-              <nz-icon nzType="info-circle" nzTheme="outline" nz-tooltip [nzTooltipTitle]="tooltipContent"
-                nzTooltipPlacement="top" style="cursor:help;margin-left:4px;color:#1890ff;font-size:16px;">
-              </nz-icon>
-            </th> -->
-                        <th style="min-width:180px;">Ghi chú / Chứng từ kèm theo</th>
+                        <th style="min-width:100px; max-width: 130px;" *ngIf="showIsBillCheckbox">
+                            Tổng tiền có HĐ
+                            <span class="text-danger"> (*)</span>
+                            <nz-icon nzType="info-circle" nzTheme="outline" class="text-primary cursor-pointer ms-1"
+                                nz-tooltip [nzTooltipTitle]="tooltipContent"></nz-icon>
+                        </th>
+                        <th style="min-width:400px;">Ghi chú / Chứng từ kèm theo</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -432,11 +453,11 @@
                         <td><textarea class="tbl-input" [(ngModel)]="t2RowI.Unit" rows="2"></textarea></td>
                         <td><input class="tbl-input tbl-num" [value]="t2RowI.Quantity | number:'1.2-2'"
                                 appCurrencyFormatRealtime
-                                (blur)="t2RowI.Quantity = parseNum($any($event.target).value); t2RowI.TotalMoney = (t2RowI.Quantity||0) * (t2RowI.UnitPrice||0)"
+                                (blur)="onQuantityBlur(t2RowI, $event)"
                                 type="text" /></td>
                         <td><input class="tbl-input tbl-num" [value]="t2RowI.UnitPrice | number:'1.2-2'"
                                 appCurrencyFormatRealtime
-                                (blur)="t2RowI.UnitPrice = parseNum($any($event.target).value); t2RowI.TotalMoney = (t2RowI.Quantity||0) * (t2RowI.UnitPrice||0)"
+                                (blur)="onUnitPriceBlur(t2RowI, $event)"
                                 type="text" /></td>
                         <td>
                             <input class="tbl-input tbl-num fw-bold" [value]="t2RowI.TotalMoney | number:'1.2-2'"
@@ -445,6 +466,7 @@
                         </td>
                         <td></td>
                         <td></td>
+                        <td *ngIf="showIsBillCheckbox"></td>
                         <td><textarea class="tbl-input" [(ngModel)]="t2RowI.Note" rows="2"></textarea></td>
                     </tr>
 
@@ -458,12 +480,8 @@
                         <td></td>
                         <td class="text-end fw-bold">{{ totalIIThanhTien | number:'1.2-2' }}</td>
                         <td></td>
-                        <!-- <td>
-              <input class="tbl-input tbl-num fw-bold" [value]="t2RowII.TotalMoneyWithInvoice | number:'1.2-2'" appCurrencyFormatRealtime
-                (blur)="t2RowII.TotalMoneyWithInvoice = parseNum($any($event.target).value)" type="text"
-                [style.background]="validateForm.get('IsBill')?.value && (t2RowII.TotalMoneyWithInvoice === null || t2RowII.TotalMoneyWithInvoice === undefined || t2RowII.TotalMoneyWithInvoice === '') ? '#fff3cd' : ''" />
-            </td> -->
                         <td class="text-end text-nowrap fw-bold">{{ totalII | number:'1.2-2' }}</td>
+                        <td *ngIf="showIsBillCheckbox"></td>
                         <td></td>
                     </tr>
 
@@ -485,13 +503,13 @@
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.Quantity | number:'1.2-2'"
                                 appCurrencyFormatRealtime
-                                (blur)="row.Quantity = parseNum($any($event.target).value); calcTotalMoney(row)"
+                                (blur)="onQuantityBlur(row, $event)"
                                 type="text" />
                         </td>
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.UnitPrice | number:'1.2-2'"
                                 appCurrencyFormatRealtime
-                                (blur)="row.UnitPrice = parseNum($any($event.target).value); calcTotalMoney(row)"
+                                (blur)="onUnitPriceBlur(row, $event)"
                                 type="text" />
                         </td>
                         <td>
@@ -507,6 +525,13 @@
                         </td>
                         <td class="text-end text-nowrap fw-bold">{{ (row.TotalMoney * ((row.PaymentPercentage || 0) /
                             100)) | number:'1.2-2' }}</td>
+                        <td *ngIf="showIsBillCheckbox">
+                            <input class="tbl-input tbl-num"
+                                [value]="row.TotalMoneyWithInvoice != null ? (row.TotalMoneyWithInvoice | number:'1.2-2') : ''"
+                                appCurrencyFormatRealtime
+                                (blur)="row.TotalMoneyWithInvoice = ($any($event.target).value.trim() === '' ? null : parseNum($any($event.target).value))"
+                                type="text" />
+                        </td>
                         <td>
                             <textarea class="tbl-input" [(ngModel)]="row.Note" rows="2"></textarea>
                         </td>
@@ -524,6 +549,7 @@
                         <td></td>
                         <td></td>
                         <td class="text-end text-nowrap fw-bold">{{ totalDiff | number:'1.2-2' }}</td>
+                        <td *ngIf="showIsBillCheckbox"></td>
                         <td></td>
                     </tr>
 
@@ -538,6 +564,7 @@
                         <td></td>
                         <td></td>
                         <td class="text-end text-nowrap fw-bold">{{ diff1 | number:'1.2-2' }}</td>
+                        <td *ngIf="showIsBillCheckbox"></td>
                         <td>
                             <textarea class="tbl-input" [(ngModel)]="t2RowDiff1.Note" rows="2"></textarea>
                         </td>
@@ -554,6 +581,7 @@
                         <td></td>
                         <td></td>
                         <td class="text-end text-nowrap fw-bold">{{ diff2 | number:'1.2-2' }}</td>
+                        <td *ngIf="showIsBillCheckbox"></td>
                         <td>
                             <textarea class="tbl-input" [(ngModel)]="t2RowDiff2.Note" rows="2"></textarea>
                         </td>
@@ -561,7 +589,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="10" class="fw-bold">
+                        <td [attr.colspan]="showIsBillCheckbox ? 11 : 10" class="fw-bold">
                             Số tiền bằng chữ: <span>{{ totalMoneyText }}</span>
                         </td>
                     </tr>

@@ -869,10 +869,10 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
           }
         },
         { title: 'Tồn CK', field: 'TotalQuantityLast', editor: "number", width: 150, headerSort: false, frozen: true },
-        { title: 'Tên sản phẩm', field: 'ProductName', editor: "input", width: 300, headerSort: false, formatter: 'textarea' },
-        { title: 'Mã nội bộ', field: 'ProductNewCode', editor: "input", width: 150, headerSort: false, formatter: 'textarea' },
-        { title: 'Tên nhóm', field: 'ProductGroupName', editor: "input", width: 150, headerSort: false, formatter: 'textarea' },
-        { title: 'Mã sản phẩm NCC', field: 'ProductCodeOfSupplier', editor: "input", width: 150, headerSort: false, formatter: 'textarea' },
+        { title: 'Tên sản phẩm', field: 'ProductName', editor: "textarea", width: 300, headerSort: false, formatter: 'textarea' },
+        { title: 'Mã nội bộ', field: 'ProductNewCode', editor: "textarea", width: 150, headerSort: false, formatter: 'textarea' },
+        { title: 'Tên nhóm', field: 'ProductGroupName', editor: "textarea", width: 150, headerSort: false, formatter: 'textarea' },
+        { title: 'Mã sản phẩm NCC', field: 'ProductCodeOfSupplier', editor: "textarea", width: 150, headerSort: false, formatter: 'textarea' },
         {
           title: 'Mã dự án',
           field: 'ProjectID',

@@ -462,10 +462,11 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
     }
 
     loadDetailData(): void {
+        const rawId = this.paymentOrder.ID || (this.paymentOrder as any).Id || 0;
         const idToLoad = (this.isCopy && (this.paymentOrder as any).CopyFromID > 0)
             ? (this.paymentOrder as any).CopyFromID
-            : this.paymentOrder.ID;
-        if (idToLoad <= 0) return;
+            : rawId;
+        if (!(idToLoad > 0)) return;
         this.paymentService.getDetail(idToLoad).subscribe({
             next: (res) => {
                 const details: any[] = res.data.details || [];

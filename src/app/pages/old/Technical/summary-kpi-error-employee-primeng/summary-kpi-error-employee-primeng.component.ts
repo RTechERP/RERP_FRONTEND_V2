@@ -18,6 +18,7 @@ import { ChartModule } from 'primeng/chart';
 import { finalize } from 'rxjs';
 import * as ExcelJS from 'exceljs';
 import { SummaryKpiErrorEmployeeService } from '../summary-kpi-error-employee/summary-kpi-error-employee-service/summary-kpi-error-employee.service';
+import { environment } from '../../../../../environments/environment';
 
 type KpiColumnType = 'text' | 'number' | 'money' | 'date' | 'totalError' | 'coefficient' | 'week';
 type LoadingKey = 'th' | 'file' | 'tk' | 'chart' | 'employee';
@@ -270,7 +271,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
         const day = d.getDate().toString().padStart(2, '0');
         const month = (d.getMonth() + 1).toString().padStart(2, '0');
         const path = `${d.getFullYear()}/T${d.getMonth() + 1}/N${day}.${month}.${d.getFullYear()}`;
-        return `http://113.190.234.64:8083/api/kpi/${path}/${item.FileName}`;
+        return `${environment.host}api/kpi/${path}/${item.FileName}`;
     }
 
     loadImage(item: any): void {

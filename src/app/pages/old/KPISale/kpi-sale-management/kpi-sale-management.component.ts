@@ -11,12 +11,14 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { KpiApiResponse, KpiSaleManagementService } from './kpi-sale-management.service';
 
 type PeriodType = 'MONTH' | 'QUARTER' | 'YEAR';
@@ -35,6 +37,13 @@ interface KpiSalePeriod {
   dateEnd: Date;
   parentPeriodId?: number;
   isClosed: boolean;
+}
+
+interface PeriodTreeRow {
+  period: KpiSalePeriod;
+  level: number;
+  expandable: boolean;
+  expanded: boolean;
 }
 
 interface KpiSaleTemplate {
@@ -201,12 +210,14 @@ interface KpiResultRow {
     NzInputModule,
     NzInputNumberModule,
     NzRadioModule,
+    NzIconModule,
     NzSelectModule,
     NzSpinModule,
     NzSwitchModule,
     NzTableModule,
     NzTabsModule,
     NzTagModule,
+    NzTreeSelectModule,
   ],
   templateUrl: './kpi-sale-management.component.html',
   styleUrl: './kpi-sale-management.component.css',
@@ -226,7 +237,12 @@ export class KpiSaleManagementComponent implements OnInit {
   apiStatusMessage = 'Đang dùng dữ liệu mẫu. Khi API /api/kpi sẵn sàng, màn hình sẽ tự động tải dữ liệu thật.';
   saveSnapshot = true;
 
-  readonly periodTypes: PeriodType[] = ['MONTH', 'QUARTER', 'YEAR'];
+  readonly periodTypes: PeriodType[] = ['QUARTER', 'YEAR'];
+  periodYear: number = new Date().getFullYear();
+  periodQuarter: number = Math.ceil((new Date().getMonth() + 1) / 3);
+  readonly availableYears: number[] = Array.from({ length: 7 }, (_, i) => new Date().getFullYear() - 2 + i);
+  periodTreeRows: PeriodTreeRow[] = [];
+  periodExpandState: Record<number, boolean> = {};
   readonly indexTypes: IndexType[] = ['DETAIL', 'GROUP', 'FORMULA'];
   readonly unitTypes: UnitType[] = ['MONEY', 'NUMBER', 'PERCENT'];
   readonly aggregateTypes: AggregateType[] = ['SUM', 'COUNT', 'COUNT_DISTINCT', 'SUM_DISTINCT', 'AVG', 'MAX', 'MIN'];
@@ -537,7 +553,7 @@ export class KpiSaleManagementComponent implements OnInit {
     id: 0,
     periodCode: '',
     periodName: '',
-    periodType: 'MONTH',
+    periodType: 'QUARTER',
     dateStart: new Date(),
     dateEnd: new Date(),
     parentPeriodId: undefined,
@@ -659,6 +675,7 @@ export class KpiSaleManagementComponent implements OnInit {
 
       if (response.periods?.status === 1 && Array.isArray(response.periods.data)) {
         this.periods = response.periods.data.map((item) => this.normalizePeriod(item));
+        this.rebuildPeriodTreeRows();
       }
       if (response.templates?.status === 1 && Array.isArray(response.templates.data)) {
         this.templates = response.templates.data.map((item) => this.normalizeTemplate(item));
@@ -874,12 +891,42 @@ export class KpiSaleManagementComponent implements OnInit {
     return this.indexesForTemplate.reduce((sum, item) => sum + (item.isActive ? item.weightPercent : 0), 0);
   }
 
+  get periodNodes(): any[] {
+    const byParent = new Map<number, KpiSalePeriod[]>();
+    for (const p of this.periods) {
+      const parentId = p.parentPeriodId || 0;
+      if (!byParent.has(parentId)) byParent.set(parentId, []);
+      byParent.get(parentId)!.push(p);
+    }
+
+    const buildTree = (parentId: number): any[] => {
+      const children = byParent.get(parentId) || [];
+      return children.map(p => {
+        const hasChildren = byParent.has(p.id) && byParent.get(p.id)!.length > 0;
+        return {
+          key: p.id.toString(),
+          title: p.periodCode,
+          isLeaf: !hasChildren,
+          children: hasChildren ? buildTree(p.id) : [],
+          expanded: true
+        };
+      });
+    };
+    return buildTree(0);
+  }
+
   get totalFinalScore(): number {
     return this.resultRowsFiltered.reduce((sum, item) => sum + item.finalScore, 0);
   }
 
   async onTemplateChange(templateId: number): Promise<void> {
     this.selectedTemplateId = templateId;
+    const template = this.templates.find(t => t.id === templateId);
+    if (template) {
+      this.templateDraft = { ...template };
+    } else {
+      this.resetTemplateDraft();
+    }
     const firstIndex = this.indexesForTemplate[0];
     if (firstIndex) {
       this.selectedIndexId = firstIndex.id;
@@ -895,6 +942,10 @@ export class KpiSaleManagementComponent implements OnInit {
 
   async onIndexSelect(indexId: number): Promise<void> {
     this.selectedIndexId = indexId;
+    const index = this.indexes.find(i => i.id === indexId);
+    if (index) {
+      this.indexDraft = { ...index };
+    }
     this.mappingDraft.kpiIndexId = indexId;
     this.formulaDraft.parentKpiIndexId = indexId;
     this.scoringRuleDraft.kpiIndexId = indexId;
@@ -909,6 +960,10 @@ export class KpiSaleManagementComponent implements OnInit {
 
   async onAllowedTableSelect(tableId: number): Promise<void> {
     this.selectedAllowedTableId = tableId;
+    const table = this.allowedTables.find(t => t.id === tableId);
+    if (table) {
+      this.allowedTableDraft = { ...table };
+    }
     this.allowedColumnDraft.tableId = tableId;
     if (this.isApiMode && !this.columnsForSelectedAllowedTable.length) {
       const response = await firstValueFrom(this.safeApi<any[]>(this.kpiSaleService.getAllowedColumns(tableId)));
@@ -923,9 +978,33 @@ export class KpiSaleManagementComponent implements OnInit {
 
   async onMappingSelect(mappingId: number): Promise<void> {
     this.selectedMappingId = mappingId;
+    const mapping = this.mappings.find(m => m.id === mappingId);
+    if (mapping) {
+      this.mappingDraft = { ...mapping };
+    }
     if (this.isApiMode) {
       await this.loadFilterTree(mappingId);
     }
+  }
+
+  onAllowedColumnSelect(column: AllowedColumn): void {
+    this.allowedColumnDraft = { ...column };
+  }
+
+  onDataSourceSelect(source: KpiSaleDataSource): void {
+    this.dataSourceDraft = { ...source };
+  }
+
+  onFilterConditionSelect(condition: FilterCondition): void {
+    this.filterDraft = { ...condition };
+  }
+
+  onFormulaItemSelect(formula: KpiSaleFormulaItem): void {
+    this.formulaDraft = { ...formula };
+  }
+
+  onScoringRuleSelect(rule: KpiSaleScoringRule): void {
+    this.scoringRuleDraft = { ...rule };
   }
 
   async onResultFilterChange(): Promise<void> {
@@ -946,40 +1025,243 @@ export class KpiSaleManagementComponent implements OnInit {
     this.resetPeriodDraft();
   }
 
+  onPeriodTypeOrYearChange(): void {
+    const year = this.periodYear;
+    const quarter = this.periodQuarter;
+    if (this.periodDraft.periodType === 'YEAR') {
+      this.periodDraft.periodCode = `Y${year}`;
+      this.periodDraft.periodName = `Năm ${year}`;
+      this.periodDraft.dateStart = new Date(year, 0, 1);
+      this.periodDraft.dateEnd = new Date(year, 11, 31);
+    } else {
+      this.periodDraft.periodCode = `Q${quarter}-${year}`;
+      this.periodDraft.periodName = `Quý ${quarter}/${year}`;
+      const startMonth = (quarter - 1) * 3;
+      this.periodDraft.dateStart = new Date(year, startMonth, 1);
+      this.periodDraft.dateEnd = new Date(year, startMonth + 3, 0);
+    }
+  }
+
+  rebuildPeriodTreeRows(): void {
+    this.periodTreeRows = this.flattenPeriodTree(this.periods);
+  }
+
+  private flattenPeriodTree(periods: KpiSalePeriod[]): PeriodTreeRow[] {
+    const rows: PeriodTreeRow[] = [];
+    const byParent = new Map<number | undefined, KpiSalePeriod[]>();
+    for (const p of periods) {
+      const key = p.parentPeriodId || 0;
+      if (!byParent.has(key)) byParent.set(key, []);
+      byParent.get(key)!.push(p);
+    }
+    const walk = (parentId: number, level: number) => {
+      const children = byParent.get(parentId) || [];
+      const sorted = children.sort((a, b) => {
+        const typeOrder: Record<string, number> = { YEAR: 0, QUARTER: 1, MONTH: 2 };
+        const ta = typeOrder[a.periodType] ?? 3;
+        const tb = typeOrder[b.periodType] ?? 3;
+        if (ta !== tb) return ta - tb;
+        return a.periodCode.localeCompare(b.periodCode);
+      });
+      for (const p of sorted) {
+        const hasChildren = byParent.has(p.id) && (byParent.get(p.id)!.length > 0);
+        const expanded = this.periodExpandState[p.id] ?? (p.periodType !== 'QUARTER');
+        rows.push({ period: p, level, expandable: hasChildren, expanded });
+        if (hasChildren && expanded) {
+          walk(p.id, level + 1);
+        }
+      }
+    };
+    walk(0, 0);
+    return rows;
+  }
+
+  togglePeriodExpand(row: PeriodTreeRow, event: Event): void {
+    event.stopPropagation();
+    this.periodExpandState[row.period.id] = !row.expanded;
+    this.rebuildPeriodTreeRows();
+  }
+
+  private generateChildPeriods(parentId: number, parentType: PeriodType, year: number, quarter?: number): KpiSalePeriod[] {
+    const children: KpiSalePeriod[] = [];
+    if (parentType === 'YEAR') {
+      for (let q = 1; q <= 4; q++) {
+        const qStart = new Date(year, (q - 1) * 3, 1);
+        const qEnd = new Date(year, q * 3, 0);
+        children.push({
+          id: 0,
+          periodCode: `Q${q}-${year}`,
+          periodName: `Quý ${q}/${year}`,
+          periodType: 'QUARTER',
+          dateStart: qStart,
+          dateEnd: qEnd,
+          parentPeriodId: parentId,
+          isClosed: false,
+        });
+      }
+      for (let m = 1; m <= 12; m++) {
+        const mStart = new Date(year, m - 1, 1);
+        const mEnd = new Date(year, m, 0);
+        const mQuarter = Math.ceil(m / 3);
+        children.push({
+          id: 0,
+          periodCode: `M${String(m).padStart(2, '0')}-${year}`,
+          periodName: `Tháng ${String(m).padStart(2, '0')}/${year}`,
+          periodType: 'MONTH',
+          dateStart: mStart,
+          dateEnd: mEnd,
+          parentPeriodId: 0,
+          isClosed: false,
+          _parentQuarter: mQuarter,
+        } as any);
+      }
+    } else if (parentType === 'QUARTER' && quarter) {
+      const startMonth = (quarter - 1) * 3 + 1;
+      for (let i = 0; i < 3; i++) {
+        const m = startMonth + i;
+        const mStart = new Date(year, m - 1, 1);
+        const mEnd = new Date(year, m, 0);
+        children.push({
+          id: 0,
+          periodCode: `M${String(m).padStart(2, '0')}-${year}`,
+          periodName: `Tháng ${String(m).padStart(2, '0')}/${year}`,
+          periodType: 'MONTH',
+          dateStart: mStart,
+          dateEnd: mEnd,
+          parentPeriodId: parentId,
+          isClosed: false,
+        });
+      }
+    }
+    return children;
+  }
+
   async addPeriod(): Promise<void> {
+    this.onPeriodTypeOrYearChange();
+
     if (!this.periodDraft.periodCode.trim() || !this.periodDraft.periodName.trim()) {
       return;
     }
 
+    const allToCreate = [this.periodDraft, ...this.generateChildPeriods(
+      0, this.periodDraft.periodType, this.periodYear,
+      this.periodDraft.periodType === 'QUARTER' ? this.periodQuarter : undefined
+    )];
+
+    const duplicates = allToCreate.filter(p =>
+      this.periods.some(existing => existing.periodCode === p.periodCode)
+    );
+    if (duplicates.length > 0) {
+      const names = duplicates.map(d => d.periodName).join(', ');
+      this.notification.error('Lỗi trùng', `Các kỳ sau đã tồn tại: ${names}`);
+      return;
+    }
+
     if (this.isApiMode) {
-      const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.savePeriod(this.periodToApi(this.periodDraft))));
-      if (response?.status === 1) {
-        this.notification.success('Thông báo', response.message || 'Lưu kỳ KPI thành công');
-        const savedPeriodId = this.read<number>(response.data, 'ID', 'id') || this.periodDraft.id;
+      try {
+        const parentResponse = await firstValueFrom(this.safeApi<any>(
+          this.kpiSaleService.savePeriod(this.periodToApi(this.periodDraft))
+        ));
+        if (parentResponse?.status !== 1) {
+          this.notification.error('Lỗi', parentResponse?.message || 'Không thể lưu kỳ KPI');
+          return;
+        }
+        const parentId = this.read<number>(parentResponse.data, 'ID', 'id') || 0;
+
+        const children = this.generateChildPeriods(
+          parentId, this.periodDraft.periodType, this.periodYear,
+          this.periodDraft.periodType === 'QUARTER' ? this.periodQuarter : undefined
+        );
+
+        if (this.periodDraft.periodType === 'YEAR') {
+          const quarterIds: Record<number, number> = {};
+          const quarters = children.filter(c => c.periodType === 'QUARTER');
+          const months = children.filter(c => c.periodType === 'MONTH');
+
+          for (const q of quarters) {
+            const qNum = parseInt(q.periodCode.replace(`Q`, '').replace(`-${this.periodYear}`, ''), 10);
+            const existingYear = this.periods.find(p => p.periodCode === `Y${this.periodYear}`);
+            q.parentPeriodId = existingYear?.id || parentId;
+            const qResp = await firstValueFrom(this.safeApi<any>(
+              this.kpiSaleService.savePeriod(this.periodToApi(q))
+            ));
+            if (qResp?.status === 1) {
+              quarterIds[qNum] = this.read<number>(qResp.data, 'ID', 'id') || 0;
+            }
+          }
+
+          for (const m of months) {
+            const mQuarter = (m as any)._parentQuarter as number;
+            m.parentPeriodId = quarterIds[mQuarter] || 0;
+            await firstValueFrom(this.safeApi<any>(
+              this.kpiSaleService.savePeriod(this.periodToApi(m))
+            ));
+          }
+        } else {
+          for (const child of children) {
+            child.parentPeriodId = parentId;
+            await firstValueFrom(this.safeApi<any>(
+              this.kpiSaleService.savePeriod(this.periodToApi(child))
+            ));
+          }
+        }
+
+        this.notification.success('Thông báo', `Đã tạo ${1 + children.length} kỳ KPI thành công`);
         const periodsResponse = await firstValueFrom(this.safeApi<any[]>(this.kpiSaleService.getPeriods()));
         if (periodsResponse?.status === 1 && Array.isArray(periodsResponse.data)) {
           this.periods = periodsResponse.data.map((item) => this.normalizePeriod(item));
+          this.rebuildPeriodTreeRows();
         }
-        if (savedPeriodId) {
-          this.selectedPeriodId = savedPeriodId;
-          this.targetDraft.periodId = savedPeriodId;
-        }
+        this.selectedPeriodId = parentId;
+        this.targetDraft.periodId = parentId;
         this.resetPeriodDraft();
-      } else {
-        this.notification.error('Lỗi', response?.message || 'Không thể lưu kỳ KPI');
+      } catch (e: any) {
+        this.notification.error('Lỗi', e?.message || 'Không thể tạo kỳ KPI');
       }
       return;
     }
 
+    let nextIdCounter = this.nextId(this.periods);
     const period: KpiSalePeriod = {
       ...this.periodDraft,
-      id: this.periodDraft.id || this.nextId(this.periods),
+      id: nextIdCounter++,
       periodCode: this.periodDraft.periodCode.trim(),
       periodName: this.periodDraft.periodName.trim(),
     };
-    this.periods = this.periodDraft.id
-      ? this.periods.map((item) => item.id === period.id ? period : item)
-      : [...this.periods, period];
+    const newPeriods = [period];
+    const children = this.generateChildPeriods(
+      period.id, this.periodDraft.periodType, this.periodYear,
+      this.periodDraft.periodType === 'QUARTER' ? this.periodQuarter : undefined
+    );
+
+    if (this.periodDraft.periodType === 'YEAR') {
+      const quarterIds: Record<number, number> = {};
+      const quarters = children.filter(c => c.periodType === 'QUARTER');
+      const months = children.filter(c => c.periodType === 'MONTH');
+      for (const q of quarters) {
+        q.id = nextIdCounter++;
+        q.parentPeriodId = period.id;
+        const qNum = parseInt(q.periodCode.replace(`Q`, '').replace(`-${this.periodYear}`, ''), 10);
+        quarterIds[qNum] = q.id;
+        newPeriods.push(q);
+      }
+      for (const m of months) {
+        m.id = nextIdCounter++;
+        const mQuarter = (m as any)._parentQuarter as number;
+        m.parentPeriodId = quarterIds[mQuarter] || 0;
+        delete (m as any)._parentQuarter;
+        newPeriods.push(m);
+      }
+    } else {
+      for (const child of children) {
+        child.id = nextIdCounter++;
+        child.parentPeriodId = period.id;
+        newPeriods.push(child);
+      }
+    }
+
+    this.periods = [...this.periods, ...newPeriods];
+    this.rebuildPeriodTreeRows();
     this.selectedPeriodId = period.id;
     this.targetDraft.periodId = period.id;
     this.resultRows = this.buildResultRows();
@@ -1009,7 +1291,7 @@ export class KpiSaleManagementComponent implements OnInit {
       if (response?.status === 1) {
         this.notification.success('Thông báo', response.message || 'Lưu mẫu KPI thành công');
         await this.loadInitialData();
-        this.templateDraft = { id: 0, templateCode: '', templateName: '', description: '', isActive: true };
+        this.resetTemplateDraft();
       } else {
         this.notification.error('Lỗi', response?.message || 'Không thể lưu mẫu KPI');
       }
@@ -1018,13 +1300,15 @@ export class KpiSaleManagementComponent implements OnInit {
 
     const template = {
       ...this.templateDraft,
-      id: this.nextId(this.templates),
+      id: this.templateDraft.id || this.nextId(this.templates),
       templateCode: this.templateDraft.templateCode.trim().toUpperCase(),
       templateName: this.templateDraft.templateName.trim(),
     };
-    this.templates = [...this.templates, template];
+    this.templates = this.templateDraft.id
+      ? this.templates.map((item) => item.id === template.id ? template : item)
+      : [...this.templates, template];
     await this.onTemplateChange(template.id);
-    this.templateDraft = { id: 0, templateCode: '', templateName: '', description: '', isActive: true };
+    this.resetTemplateDraft();
   }
 
   async copyTemplate(): Promise<void> {
@@ -1089,13 +1373,15 @@ export class KpiSaleManagementComponent implements OnInit {
     const nextSortOrder = this.indexesForTemplate.length ? Math.max(...this.indexesForTemplate.map((item) => item.sortOrder)) + 10 : 10;
     const index: KpiSaleIndex = {
       ...this.indexDraft,
-      id: this.nextId(this.indexes),
+      id: this.indexDraft.id || this.nextId(this.indexes),
       templateId: this.selectedTemplateId,
       indexCode: this.indexDraft.indexCode.trim().toUpperCase(),
       indexName: this.indexDraft.indexName.trim(),
       sortOrder: this.indexDraft.sortOrder || nextSortOrder,
     };
-    this.indexes = [...this.indexes, index];
+    this.indexes = this.indexDraft.id
+      ? this.indexes.map((item) => item.id === index.id ? index : item)
+      : [...this.indexes, index];
     await this.onIndexSelect(index.id);
     this.resultRows = this.buildResultRows();
     this.resetIndexDraft(nextSortOrder + 10);
@@ -1114,7 +1400,7 @@ export class KpiSaleManagementComponent implements OnInit {
         if (tablesResponse?.status === 1 && Array.isArray(tablesResponse.data)) {
           this.allowedTables = tablesResponse.data.map((item) => this.normalizeAllowedTable(item));
         }
-        this.allowedTableDraft = { id: 0, tableName: '', displayName: '', schemaName: 'dbo', isActive: true };
+        this.resetAllowedTableDraft();
       } else {
         this.notification.error('Lỗi', response?.message || 'Không thể lưu bảng được phép');
       }
@@ -1123,14 +1409,16 @@ export class KpiSaleManagementComponent implements OnInit {
 
     const table = {
       ...this.allowedTableDraft,
-      id: this.nextId(this.allowedTables),
+      id: this.allowedTableDraft.id || this.nextId(this.allowedTables),
       tableName: this.allowedTableDraft.tableName.trim(),
       displayName: this.allowedTableDraft.displayName.trim(),
     };
-    this.allowedTables = [...this.allowedTables, table];
+    this.allowedTables = this.allowedTableDraft.id
+      ? this.allowedTables.map((item) => item.id === table.id ? table : item)
+      : [...this.allowedTables, table];
     this.selectedAllowedTableId = table.id;
     this.allowedColumnDraft.tableId = table.id;
-    this.allowedTableDraft = { id: 0, tableName: '', displayName: '', schemaName: 'dbo', isActive: true };
+    this.resetAllowedTableDraft();
   }
 
   async addAllowedColumn(): Promise<void> {
@@ -1157,7 +1445,10 @@ export class KpiSaleManagementComponent implements OnInit {
       return;
     }
 
-    this.allowedColumns = [...this.allowedColumns, { ...column, id: this.nextId(this.allowedColumns) }];
+    column.id = column.id || this.nextId(this.allowedColumns);
+    this.allowedColumns = this.allowedColumnDraft.id
+      ? this.allowedColumns.map((item) => item.id === column.id ? { ...column } : item)
+      : [...this.allowedColumns, { ...column }];
     this.resetAllowedColumnDraft();
   }
 
@@ -1181,15 +1472,15 @@ export class KpiSaleManagementComponent implements OnInit {
       return;
     }
 
-    this.dataSources = [
-      ...this.dataSources,
-      {
-        ...this.dataSourceDraft,
-        id: this.nextId(this.dataSources),
-        sourceCode: this.dataSourceDraft.sourceCode.trim().toUpperCase(),
-        sourceName: this.dataSourceDraft.sourceName.trim(),
-      },
-    ];
+    const source = {
+      ...this.dataSourceDraft,
+      id: this.dataSourceDraft.id || this.nextId(this.dataSources),
+      sourceCode: this.dataSourceDraft.sourceCode.trim().toUpperCase(),
+      sourceName: this.dataSourceDraft.sourceName.trim(),
+    };
+    this.dataSources = this.dataSourceDraft.id
+      ? this.dataSources.map((item) => item.id === source.id ? source : item)
+      : [...this.dataSources, source];
     this.resetDataSourceDraft();
   }
 
@@ -1205,7 +1496,7 @@ export class KpiSaleManagementComponent implements OnInit {
       }))));
       if (response?.status === 1) {
         const mappingId = this.read<number>(response.data, 'ID', 'id') || 0;
-        if (mappingId) {
+        if (mappingId && !this.mappingDraft.id) {
           await firstValueFrom(this.safeApi<any>(this.kpiSaleService.saveFilterGroup({
             ID: 0,
             MappingID: mappingId,
@@ -1216,6 +1507,7 @@ export class KpiSaleManagementComponent implements OnInit {
         }
         this.notification.success('Thông báo', response.message || 'Lưu ánh xạ thành công');
         await this.loadIndexDetails();
+        this.resetMappingDraft();
       } else {
         this.notification.error('Lỗi', response?.message || 'Không thể lưu ánh xạ');
       }
@@ -1224,18 +1516,23 @@ export class KpiSaleManagementComponent implements OnInit {
 
     const mapping: KpiSaleMapping = {
       ...this.mappingDraft,
-      id: this.nextId(this.mappings),
+      id: this.mappingDraft.id || this.nextId(this.mappings),
       kpiIndexId: this.selectedIndexId,
-      filterGroups: [
-        {
-          id: this.nextFilterGroupId(),
-          logicOperator: 'AND',
-          conditions: [],
-        },
-      ],
+      filterGroups: this.mappingDraft.id
+        ? (this.mappings.find((m) => m.id === this.mappingDraft.id)?.filterGroups || [])
+        : [
+            {
+              id: this.nextFilterGroupId(),
+              logicOperator: 'AND',
+              conditions: [],
+            },
+          ],
     };
-    this.mappings = [...this.mappings, mapping];
+    this.mappings = this.mappingDraft.id
+      ? this.mappings.map((item) => item.id === mapping.id ? mapping : item)
+      : [...this.mappings, mapping];
     this.selectedMappingId = mapping.id;
+    this.resetMappingDraft();
   }
 
   async addFilterCondition(): Promise<void> {
@@ -1254,13 +1551,14 @@ export class KpiSaleManagementComponent implements OnInit {
       const condition = this.filterConditionToApi({
         ...this.filterDraft,
         filterGroupId: groupId,
-        sortOrder: (mapping.filterGroups[0]?.conditions.length || 0) + 1,
+        sortOrder: this.filterDraft.id ? undefined : (mapping.filterGroups[0]?.conditions.length || 0) + 1,
         dataType: this.columnsForSelectedMapping.find((item) => item.columnName === this.filterDraft.columnName)?.dataType || 'STRING',
       });
       const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.saveFilterCondition(condition)));
       if (response?.status === 1) {
         this.notification.success('Thông báo', response.message || 'Thêm điều kiện lọc thành công');
         await this.loadFilterTree(mapping.id);
+        this.resetFilterDraft();
       } else {
         this.notification.error('Lỗi', response?.message || 'Không thể thêm điều kiện lọc');
       }
@@ -1270,14 +1568,118 @@ export class KpiSaleManagementComponent implements OnInit {
     const group = mapping.filterGroups[0] || { id: this.nextFilterGroupId(), logicOperator: 'AND' as LogicOperator, conditions: [] };
     const condition: FilterCondition = {
       ...this.filterDraft,
-      id: this.nextFilterConditionId(),
+      id: this.filterDraft.id || this.nextFilterConditionId(),
       dataType: this.columnsForSelectedMapping.find((item) => item.columnName === this.filterDraft.columnName)?.dataType || 'STRING',
     };
-    group.conditions = [...group.conditions, condition];
+    if (this.filterDraft.id) {
+      group.conditions = group.conditions.map((c) => c.id === condition.id ? condition : c);
+    } else {
+      group.conditions = [...group.conditions, condition];
+    }
     if (!mapping.filterGroups.length) {
       mapping.filterGroups = [group];
     }
     this.mappings = this.mappings.map((item) => item.id === mapping.id ? { ...mapping } : item);
+    this.resetFilterDraft();
+  }
+
+  onTargetPeriodChange(val: string): void {
+    if (val) {
+      this.targetDraft.periodId = Number(val);
+      this.onTargetDraftChange();
+    }
+  }
+
+  onTargetSelect(item: any): void {
+    this.targetDraft = {
+      id: item.id || 0,
+      employeeId: item.employeeId,
+      periodId: item.periodId,
+      kpiIndexId: item.kpiIndexId,
+      goalValue: item.goalValue || 0,
+    };
+  }
+
+  async onTargetDraftChange(): Promise<void> {
+    if (!this.targetDraft.employeeId || !this.targetDraft.kpiIndexId || !this.targetDraft.periodId) {
+      return;
+    }
+
+    const period = this.periods.find(p => p.id === this.targetDraft.periodId);
+    if (!period) return;
+
+    if (this.isApiMode) {
+      try {
+        this.isLoading = true;
+        const allTargetsResponse = await firstValueFrom(this.safeApi<any[]>(
+          this.kpiSaleService.getTargets(this.targetDraft.employeeId, undefined, this.selectedTemplateId)
+        ));
+
+        let sumOfChildren = 0;
+        let existingTargetValue: number | undefined;
+
+        if (allTargetsResponse?.status === 1 && Array.isArray(allTargetsResponse.data)) {
+          const allTargets = allTargetsResponse.data.map((item) => this.normalizeTarget(item));
+          
+          const existing = allTargets.find(t => t.kpiIndexId === this.targetDraft.kpiIndexId && t.periodId === this.targetDraft.periodId);
+          if (existing) {
+            existingTargetValue = existing.goalValue;
+          }
+
+          if (period.periodType === 'QUARTER' || period.periodType === 'YEAR') {
+            let childMonthIds: number[] = [];
+            if (period.periodType === 'QUARTER') {
+              childMonthIds = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId === period.id).map(p => p.id);
+            } else if (period.periodType === 'YEAR') {
+              const quarterIds = this.periods.filter(p => p.periodType === 'QUARTER' && p.parentPeriodId === period.id).map(p => p.id);
+              childMonthIds = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId && quarterIds.includes(p.parentPeriodId)).map(p => p.id);
+            }
+
+            const childrenTargets = allTargets.filter(t => t.kpiIndexId === this.targetDraft.kpiIndexId && childMonthIds.includes(t.periodId));
+            sumOfChildren = childrenTargets.reduce((sum, t) => sum + (t.goalValue || 0), 0);
+
+            if (sumOfChildren > 0 || !existingTargetValue) {
+              this.targetDraft.goalValue = sumOfChildren;
+            } else if (existingTargetValue) {
+              this.targetDraft.goalValue = existingTargetValue;
+            }
+          } else {
+             this.targetDraft.goalValue = existingTargetValue || 0;
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        this.isLoading = false;
+      }
+    } else {
+       const existing = this.targets.find((item) =>
+          item.employeeId === this.targetDraft.employeeId &&
+          item.periodId === this.targetDraft.periodId &&
+          item.kpiIndexId === this.targetDraft.kpiIndexId
+       );
+       
+       if (period.periodType === 'QUARTER' || period.periodType === 'YEAR') {
+          let childMonthIds: number[] = [];
+          if (period.periodType === 'QUARTER') {
+            childMonthIds = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId === period.id).map(p => p.id);
+          } else if (period.periodType === 'YEAR') {
+            const quarterIds = this.periods.filter(p => p.periodType === 'QUARTER' && p.parentPeriodId === period.id).map(p => p.id);
+            childMonthIds = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId && quarterIds.includes(p.parentPeriodId)).map(p => p.id);
+          }
+
+          const childrenTargets = this.targets.filter(t => t.employeeId === this.targetDraft.employeeId && t.kpiIndexId === this.targetDraft.kpiIndexId && childMonthIds.includes(t.periodId));
+          const sumOfChildren = childrenTargets.reduce((sum, t) => sum + (t.goalValue || 0), 0);
+          
+          if (sumOfChildren > 0 || !existing) {
+             this.targetDraft.goalValue = sumOfChildren;
+          } else if (existing) {
+             this.targetDraft.goalValue = existing.goalValue;
+          }
+       } else {
+          this.targetDraft.goalValue = existing ? existing.goalValue : 0;
+       }
+    }
   }
 
   async addTarget(): Promise<void> {
@@ -1321,13 +1723,18 @@ export class KpiSaleManagementComponent implements OnInit {
       if (response?.status === 1) {
         this.notification.success('Thông báo', response.message || 'Lưu công thức thành công');
         await this.loadIndexDetails();
+        this.resetFormulaDraft();
       } else {
         this.notification.error('Lỗi', response?.message || 'Không thể lưu công thức');
       }
       return;
     }
 
-    this.formulaItems = [...this.formulaItems, { ...this.formulaDraft, id: this.nextId(this.formulaItems) }];
+    this.formulaDraft.id = this.formulaDraft.id || this.nextId(this.formulaItems);
+    this.formulaItems = this.formulaDraft.id
+      ? this.formulaItems.map((item) => item.id === this.formulaDraft.id ? { ...this.formulaDraft } : item)
+      : [...this.formulaItems, { ...this.formulaDraft }];
+    this.resetFormulaDraft();
   }
 
   async addScoringRule(): Promise<void> {
@@ -1340,13 +1747,18 @@ export class KpiSaleManagementComponent implements OnInit {
       if (response?.status === 1) {
         this.notification.success('Thông báo', response.message || 'Lưu quy tắc chấm điểm thành công');
         await this.loadIndexDetails();
+        this.resetScoringRuleDraft();
       } else {
         this.notification.error('Lỗi', response?.message || 'Không thể lưu quy tắc chấm điểm');
       }
       return;
     }
 
-    this.scoringRules = [...this.scoringRules, { ...this.scoringRuleDraft, id: this.nextId(this.scoringRules) }];
+    this.scoringRuleDraft.id = this.scoringRuleDraft.id || this.nextId(this.scoringRules);
+    this.scoringRules = this.scoringRuleDraft.id
+      ? this.scoringRules.map((item) => item.id === this.scoringRuleDraft.id ? { ...this.scoringRuleDraft } : item)
+      : [...this.scoringRules, { ...this.scoringRuleDraft }];
+    this.resetScoringRuleDraft();
   }
 
   async runCalculate(): Promise<void> {
@@ -1697,7 +2109,7 @@ export class KpiSaleManagementComponent implements OnInit {
     return groupId;
   }
 
-  private resetIndexDraft(sortOrder?: number): void {
+  resetIndexDraft(sortOrder?: number): void {
     this.indexDraft = {
       id: 0,
       templateId: this.selectedTemplateId,
@@ -1715,20 +2127,23 @@ export class KpiSaleManagementComponent implements OnInit {
     };
   }
 
-  private resetPeriodDraft(): void {
+  resetPeriodDraft(): void {
+    this.periodYear = new Date().getFullYear();
+    this.periodQuarter = Math.ceil((new Date().getMonth() + 1) / 3);
     this.periodDraft = {
       id: 0,
       periodCode: '',
       periodName: '',
-      periodType: 'MONTH',
+      periodType: 'QUARTER',
       dateStart: new Date(),
       dateEnd: new Date(),
       parentPeriodId: undefined,
       isClosed: false,
     };
+    this.onPeriodTypeOrYearChange();
   }
 
-  private resetAllowedColumnDraft(): void {
+  resetAllowedColumnDraft(): void {
     this.allowedColumnDraft = {
       id: 0,
       tableId: this.selectedAllowedTableId,
@@ -1744,7 +2159,31 @@ export class KpiSaleManagementComponent implements OnInit {
     };
   }
 
-  private resetDataSourceDraft(): void {
+  resetTemplateDraft(): void {
+    this.templateDraft = { id: 0, templateCode: '', templateName: '', description: '', isActive: true };
+  }
+
+  resetAllowedTableDraft(): void {
+    this.allowedTableDraft = { id: 0, tableName: '', displayName: '', schemaName: 'dbo', isActive: true };
+  }
+
+  resetMappingDraft(): void {
+    this.mappingDraft = { id: 0, kpiIndexId: this.selectedIndexId, dataSourceId: this.dataSources[0]?.id || 0, valueColumn: '', distinctColumn: '', aggregateType: 'SUM', isActive: true, filterGroups: [] };
+  }
+
+  resetFilterDraft(): void {
+    this.filterDraft = { id: 0, columnName: '', operator: '=', valueType: 'STATIC', value1: '', value2: '', dataType: 'STRING', isActive: true };
+  }
+
+  resetFormulaDraft(): void {
+    this.formulaDraft = { id: 0, parentKpiIndexId: this.selectedIndexId, childKpiIndexId: 0, sortOrder: 10, operator: '+' };
+  }
+
+  resetScoringRuleDraft(): void {
+    this.scoringRuleDraft = { id: 0, kpiIndexId: this.selectedIndexId, scoreType: 'NORMAL_PERCENT', maxAchievedPercent: 100, formulaJson: '' };
+  }
+
+  resetDataSourceDraft(): void {
     this.dataSourceDraft = {
       id: 0,
       sourceCode: '',

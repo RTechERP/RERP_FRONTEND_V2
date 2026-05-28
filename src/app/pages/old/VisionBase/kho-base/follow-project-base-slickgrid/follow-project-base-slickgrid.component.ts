@@ -56,6 +56,7 @@ import { ImportExcelComponent } from '../follow-project-base/import-excel/import
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE, ID_ADMIN_SALE_LIST } from '../../../../../app.config';
 import { AppUserService } from '../../../../../services/app-user.service';
+import { PermissionService } from '../../../../../services/permission.service';
 import { IUser } from '../../../../../models/user.interface';
 import { ActivatedRoute } from '@angular/router';
 import { Menubar } from 'primeng/menubar';
@@ -177,32 +178,38 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
         private modalService: NgbModal,
         private khoBaseService: KhoBaseService,
         private appUserService: AppUserService,
+        private permissionService: PermissionService,
         private route: ActivatedRoute,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
     //#region Menubar
     initMenuBar() {
+        const hasPerm = this.permissionService.hasPermission('N1,N27,N31,N100');
         this.menuBars = [
             {
                 label: 'Thêm',
                 icon: 'fa-solid fa-circle-plus fa-lg text-success',
-                command: () => { this.handleAction('create'); }
+                command: () => { this.handleAction('create'); },
+                visible: hasPerm
             },
             {
                 label: 'Sửa',
                 icon: 'fa-solid fa-file-pen fa-lg text-primary',
-                command: () => { this.handleAction('update'); }
+                command: () => { this.handleAction('update'); },
+                visible: hasPerm
             },
             {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
-                command: () => { this.handleAction('delete'); }
+                command: () => { this.handleAction('delete'); },
+                visible: hasPerm
             },
             {
                 label: 'Nhập Excel',
                 icon: 'fa-solid fa-file-import fa-lg text-success',
-                command: () => { this.handleAction('importexcel'); }
+                command: () => { this.handleAction('importexcel'); },
+                visible: hasPerm
             },
             {
                 label: 'Xuất Excel',
@@ -591,6 +598,10 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
     //#region Actions
     handleAction(action: string) {
         if (action == 'create') {
+            if (!this.permissionService.hasPermission('N1,N27,N31,N100')) {
+                this.notification.warning('Cảnh báo', 'Bạn không có quyền thực hiện chức năng này!');
+                return;
+            }
             const modalRef = this.modalService.open(FollowProjectBaseDetailComponent, {
                 backdrop: 'static',
                 keyboard: false,
@@ -607,6 +618,10 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
             return;
         }
         if (action == 'update') {
+            if (!this.permissionService.hasPermission('N1,N27,N31,N100')) {
+                this.notification.warning('Cảnh báo', 'Bạn không có quyền sửa dự án!');
+                return;
+            }
             if (!this.selectedRow) {
                 this.notification.create('warning', 'Thông báo', 'Vui lòng chọn 1 dự án để xem chi tiết!');
                 return;
@@ -628,6 +643,10 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
             return;
         }
         if (action == 'delete') {
+            if (!this.permissionService.hasPermission('N1,N27,N31,N100')) {
+                this.notification.warning('Cảnh báo', 'Bạn không có quyền xóa dự án!');
+                return;
+            }
             if (!this.selectedRow) {
                 this.notification.create('warning', 'Thông báo', 'Vui lòng chọn 1 dự án để xóa!');
                 return;
@@ -665,6 +684,10 @@ export class FollowProjectBaseSlickgridComponent implements OnInit, AfterViewIni
             return;
         }
         if (action == 'importexcel') {
+            if (!this.permissionService.hasPermission('N1,N27,N31,N100')) {
+                this.notification.warning('Cảnh báo', 'Bạn không có quyền nhập excel!');
+                return;
+            }
             const modalRef = this.modalService.open(ImportExcelComponent, {
                 backdrop: 'static',
                 keyboard: false,

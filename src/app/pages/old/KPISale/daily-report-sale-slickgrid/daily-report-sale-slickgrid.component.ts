@@ -68,6 +68,7 @@ import { Menubar } from 'primeng/menubar';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE, ID_ADMIN_SALE_LIST } from '../../../../app.config';
 import { AppUserService } from '../../../../services/app-user.service';
+import { PermissionService } from '../../../../services/permission.service';
 
 import { DailyReportSaleService } from '../daily-report-sale/daily-report-sale-service/daily-report-sale.service';
 import { DailyReportSaleDetailComponent } from '../daily-report-sale/daily-report-sale-detail/daily-report-sale-detail.component';
@@ -165,26 +166,31 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     };
 
     initMenuBar(): void {
+        const hasPerm = this.permissionService.hasPermission('N1,N27,N31,N100');
         this.menuBars = [
             {
                 label: 'Thêm',
                 icon: 'fa-solid fa-circle-plus fa-lg text-success',
-                command: () => this.openModal()
+                command: () => this.openModal(),
+                visible: hasPerm
             },
             {
                 label: 'Sửa',
                 icon: 'fa-solid fa-file-pen fa-lg text-primary',
-                command: () => this.openEditModal()
+                command: () => this.openEditModal(),
+                visible: hasPerm
             },
             {
                 label: 'Xóa',
                 icon: 'fa-solid fa-trash fa-lg text-danger',
-                command: () => this.onDeleteDailyReportSale()
+                command: () => this.onDeleteDailyReportSale(),
+                visible: hasPerm
             },
             {
                 label: 'Nhập Excel',
                 icon: 'fa-solid fa-file-import fa-lg text-success',
-                command: () => this.openImportExcel()
+                command: () => this.openImportExcel(),
+                visible: hasPerm
             },
             {
                 label: 'Xuất Excel',
@@ -201,6 +207,7 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
         private modalService: NgbModal,
         private nzModalService: NzModalService,
         private route: ActivatedRoute,
+        private permissionService: PermissionService,
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
@@ -388,6 +395,10 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     }
 
     openModal(editId: number = 0): void {
+        if (!this.permissionService.hasPermission('N1,N27,N31,N100')) {
+            this.notification.warning('Cảnh báo', 'Bạn không có quyền thực hiện chức năng này!');
+            return;
+        }
         const modalRef = this.modalService.open(DailyReportSaleDetailComponent, {
             centered: true,
             size: 'xl',
@@ -410,6 +421,10 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     }
 
     openEditModal(): void {
+        if (!this.permissionService.hasPermission('N1,N27,N31,N100')) {
+            this.notification.warning('Cảnh báo', 'Bạn không có quyền sửa báo cáo!');
+            return;
+        }
         if (!this.selectedRowId || this.selectedRowId <= 0) {
             this.notification.warning('Cảnh báo', 'Vui lòng chọn một dòng để sửa!');
             return;
@@ -418,6 +433,10 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     }
 
     onDeleteDailyReportSale(): void {
+        if (!this.permissionService.hasPermission('N1,N27,N31,N100')) {
+            this.notification.warning('Cảnh báo', 'Bạn không có quyền xóa báo cáo!');
+            return;
+        }
         if (!this.selectedRowId || this.selectedRowId <= 0) {
             this.notification.warning('Cảnh báo', 'Vui lòng chọn một dòng để xóa!');
             return;
@@ -543,6 +562,10 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
     }
 
     openImportExcel(): void {
+        if (!this.permissionService.hasPermission('N1,N27,N31,N100')) {
+            this.notification.warning('Cảnh báo', 'Bạn không có quyền nhập excel!');
+            return;
+        }
         const modalRef = this.modalService.open(ImportExcelDailyReportComponent, {
             centered: true,
             size: 'xl',
@@ -646,7 +669,11 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
         const item = args?.dataContext;
         if (item) {
             this.selectedRowId = item['ID'];
-            this.openModal(this.selectedRowId);
+            if (this.permissionService.hasPermission('N1,N27,N31,N100')) {
+                this.openModal(this.selectedRowId);
+            } else {
+                this.notification.warning('Cảnh báo', 'Bạn không có quyền sửa báo cáo!');
+            }
         }
     }
 

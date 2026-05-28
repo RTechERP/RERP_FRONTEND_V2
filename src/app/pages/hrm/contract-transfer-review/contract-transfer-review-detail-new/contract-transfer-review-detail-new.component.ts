@@ -16,6 +16,7 @@ import { ProjectService } from '../../../project/project-service/project.service
 import Swal from 'sweetalert2';
 import { PermissionService } from '../../../../services/permission.service';
 import { AppUserService } from '../../../../services/app-user.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 // ─── Interfaces ─────────────────────────────────────────────────────────────
 
 export interface CbqlItem {
@@ -618,7 +619,8 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
         this.form.OtherConclusion = d.OtherConclusion ?? '';
 
         // Thời gian & địa điểm
-        this.form.DateEvaluation = this.formatDateISO(d.DateEvaluation);
+        const parsedEvalDate = d.DateEvaluation ? new Date(d.DateEvaluation) : null;
+        this.form.DateEvaluation = (parsedEvalDate && parsedEvalDate.getFullYear() >= 1920) ? this.formatDateISO(d.DateEvaluation) : '';
         this.form.LocationEvaluation = d.LocationEvaluation ?? 'Hà Nội';
         this.form.DateStart = this.formatDateISO(d.DateStart);
         this.form.DateEnd = this.formatDateISO(d.DateEnd);
@@ -1150,6 +1152,11 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
   }
 
   onSave(): void {
+    const evalDate = this.form.DateEvaluation ? new Date(this.form.DateEvaluation) : null;
+    if (!evalDate || isNaN(evalDate.getTime()) || evalDate.getFullYear() < 1920) {
+      this.form.DateEvaluation = this.formatDateISO(new Date());
+    }
+
     this.isSubmitted = true;
     const errors = this.validateForm();
     if (errors.length > 0) {
@@ -1170,7 +1177,7 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
       next: (res: any) => {
         this.isSaving = false;
         if (res?.status === 1) {
-          this.notification.success('Thành công', res.message || 'Lưu phiếu đánh giá thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Lưu phiếu đánh giá thành công!');
           const savedId = Number(res?.data?.ID ?? res?.data ?? 0);
           if (savedId > 0) {
             this.form.ID = savedId;
@@ -1182,12 +1189,12 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
             this.activeModal.close('saved');
           }
         } else {
-          this.notification.error('Lỗi', res?.message || 'Lưu phiếu đánh giá thất bại!');
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Lưu phiếu đánh giá thất bại!');
         }
       },
       error: (err: any) => {
         this.isSaving = false;
-        this.notification.error('Lỗi', err?.error?.message || 'Có lỗi khi lưu phiếu!');
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Có lỗi khi lưu phiếu!');
       },
     });
   }
@@ -1202,6 +1209,11 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
   }
 
   onConfirm(): void {
+    const evalDate = this.form.DateEvaluation ? new Date(this.form.DateEvaluation) : null;
+    if (!evalDate || isNaN(evalDate.getTime()) || evalDate.getFullYear() < 1920) {
+      this.form.DateEvaluation = this.formatDateISO(new Date());
+    }
+
     this.isSubmitted = true;
     if (!this.id) return;
 
@@ -1232,7 +1244,7 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
         next: (saveRes: any) => {
           if (saveRes?.status !== 1) {
             this.isSaving = false;
-            this.notification.error('Lỗi', saveRes?.message || 'Lưu thất bại, không thể xác nhận!');
+            this.notification.error(NOTIFICATION_TITLE.error, saveRes?.message || 'Lưu thất bại, không thể xác nhận!');
             return;
           }
           // Cập nhật ID nếu vừa tạo mới
@@ -1246,15 +1258,15 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
             next: (res: any) => {
               this.isSaving = false;
               if (res?.status === 1) {
-                this.notification.success('Thành công', res.message || 'Xác nhận thành công!');
+                this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Xác nhận thành công!');
                 this.activeModal.close('confirmed');
               } else {
-                this.notification.error('Lỗi', res?.message || 'Xác nhận thất bại!');
+                this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Xác nhận thất bại!');
               }
             },
             error: (err: any) => {
               this.isSaving = false;
-              this.notification.error('Lỗi', err?.error?.message || 'Có lỗi khi xác nhận!');
+              this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Có lỗi khi xác nhận!');
             },
           });
         },

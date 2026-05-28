@@ -1,0 +1,98 @@
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white text-uppercase m-0">{{ modalTitle }}</h6>
+    <button type="button" class="btn-close" aria-label="Đóng" (click)="closeModal()"></button>
+</div>
+
+<div class="modal-body">
+    <nz-spin [nzSpinning]="saving" nzTip="Đang lưu...">
+        <div class="container-fluid p-0">
+            <div class="row g-3">
+                <!-- Nhân viên -->
+                <div class="col-12">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12">Nhân viên <span class="text-danger">*</span></nz-form-label>
+                        <nz-form-control>
+                            <nz-select name="selectedEmployeeCode" class="w-100"
+                                nzShowSearch nzAllowClear
+                                nzPlaceHolder="Chọn nhân viên"
+                                [(ngModel)]="selectedEmployeeCode"
+                                [nzDisabled]="isEditMode"
+                                nzDropdownClassName="type-select-dropdown">
+                                <nz-option-group *ngFor="let group of employeeGroups" [nzLabel]="group.DepartmentName">
+                                    <nz-option *ngFor="let item of group.items"
+                                        [nzValue]="item.Code"
+                                        [nzLabel]="item.Code + ' - ' + item.FullName">
+                                    </nz-option>
+                                </nz-option-group>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <!-- Ngày chấm công -->
+                <div class="col-md-6">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12">Ngày chấm công <span class="text-danger">*</span></nz-form-label>
+                        <nz-form-control>
+                            <input type="date" name="attendanceDate"
+                                [(ngModel)]="attendanceDate"
+                                (ngModelChange)="onDateChange()"
+                                class="w-100 form-input" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <!-- Thứ trong tuần (read-only) -->
+                <div class="col-md-6">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12">Thứ</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input name="dayWeek"
+                                [(ngModel)]="dayWeek"
+                                [readOnly]="true"
+                                placeholder="Tự động tính"
+                                class="readonly-input" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div class="col-md-6">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12">Giờ vào</nz-form-label>
+                        <nz-form-control>
+                            <nz-time-picker class="w-100"
+                                [(ngModel)]="checkInDate"
+                                nzFormat="HH:mm"
+                                nzPlaceHolder="Chọn giờ vào"
+                                [nzMinuteStep]="1"
+                                [nzUse12Hours]="false">
+                            </nz-time-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div class="col-md-6">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12">Giờ ra</nz-form-label>
+                        <nz-form-control>
+                            <nz-time-picker class="w-100"
+                                [(ngModel)]="checkOutDate"
+                                nzFormat="HH:mm"
+                                nzPlaceHolder="Chọn giờ ra"
+                                [nzMinuteStep]="1"
+                                [nzUse12Hours]="false">
+                            </nz-time-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+        </div>
+    </nz-spin>
+</div>
+
+<div class="modal-footer">
+    <button nz-button nzType="default" nzDanger (click)="closeModal()" [disabled]="saving">Đóng</button>
+    <button nz-button nzType="primary" (click)="save()" [nzLoading]="saving">
+        {{ saving ? 'Đang lưu...' : 'Lưu' }}
+    </button>
+</div>

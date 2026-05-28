@@ -318,8 +318,15 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
     return `
 <div style="font-family:'Times New Roman',serif;font-size:11.5pt;line-height:160%;color:#000;">
 
-  <p style="margin:0 0 4pt 0;"><i><b>Kính gửi:&nbsp; ${evaluatorLine}</b></i></p>
-  ${employeeLine ? `<p style="margin:0 0 12pt 40pt;"><i>${employeeLine}</i></p>` : ''}
+  <table style="border-collapse:collapse;border:none;margin:0 0 ${employeeLine ? '25pt' : '4pt'} 0;font-family:'Times New Roman',serif;font-size:11.5pt;line-height:160%;color:#000;">
+    <tr>
+      <td style="vertical-align:top;white-space:nowrap;padding:0;font-weight:bold;font-style:italic;">Kính gửi:&nbsp;</td>
+      <td style="vertical-align:top;padding:0;font-style:italic;">
+        ${evaluatorLine}
+        ${employeeLine ? `<br>${employeeLine}` : ''}
+      </td>
+    </tr>
+  </table>
 
   <p>
     Về việc đánh giá chuyển HĐLĐ nhân sự, P. HCNS xin gửi thông tin CBNV như sau:<br>
@@ -327,7 +334,7 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
     Chức danh: ${mail.positionName}<br>
     ${mail.periodLabel}: ${trialPeriod}<br>
     Đề nghị ${empSal} ${mail.employeeName} làm bản tự đánh giá
-    và ${ mail.departmentName || 'bộ phận liên quan'} làm đánh giá chuyển hợp đồng
+    và ${mail.departmentName || 'bộ phận liên quan'} làm đánh giá chuyển hợp đồng
     <i>(trên web nội bộ)</i> trước ${deadlineStr} để P. HCNS trình Ban Giám đốc
     phê duyệt và căn cứ để làm các thủ tục tiếp theo cho người lao động.<br>
     Cá nhân nhấn vào <a href="${mail.personalReviewUrl}" target="_blank"><b>link này</b></a> để đánh giá chuyển hợp đồng.

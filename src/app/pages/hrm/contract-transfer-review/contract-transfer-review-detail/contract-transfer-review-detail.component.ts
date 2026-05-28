@@ -15,6 +15,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { ContractTransferReviewService } from '../contract-transfer-review.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { ProjectService } from '../../../project/project-service/project.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 import Swal from 'sweetalert2';
 
 export interface JobPerformanceCriteria {
@@ -438,12 +439,13 @@ export class ContractTransferReviewDetailComponent implements OnInit {
         const d = Array.isArray(raw) ? raw[0] : raw;
 
         if (res.status === 1 && d) {
+          const parsedEvalDate = d.DateEvaluation ? new Date(d.DateEvaluation) : null;
           this.form = {
             ...this.emptyForm(),
             ...d,
             DateStart: d.DateStart ? new Date(d.DateStart) : null,
             DateEnd: d.DateEnd ? new Date(d.DateEnd) : null,
-            DateEvaluation: d.DateEvaluation ? new Date(d.DateEvaluation) : null,
+            DateEvaluation: (parsedEvalDate && parsedEvalDate.getFullYear() >= 1920) ? parsedEvalDate : null,
           };
 
           console.log('LoadDetail Debug:', { role: this.role, step: this.step, statusApprove: this.statusApprove });
@@ -667,6 +669,11 @@ export class ContractTransferReviewDetailComponent implements OnInit {
   }
 
   onSave(closeAfter = true, callback?: Function): void {
+    const evalDate = this.form.DateEvaluation ? new Date(this.form.DateEvaluation) : null;
+    if (!evalDate || isNaN(evalDate.getTime()) || evalDate.getFullYear() < 1920) {
+      this.form.DateEvaluation = new Date();
+    }
+
     if (!this.validateForm()) return;
     this.isSaving = true;
 
@@ -690,17 +697,17 @@ export class ContractTransferReviewDetailComponent implements OnInit {
               this.form.ID = res.data ?? 0;
               this.activeModal.close({ action: 'send_mail', form: { ...this.form } });
             } else {
-              this.notification.success('Thành công', res.message || 'Lưu phiếu thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Lưu phiếu thành công!');
               this.activeModal.close('saved');
             }
           }
         } else {
-          this.notification.error('Lỗi', res.message);
+          this.notification.error(NOTIFICATION_TITLE.error, res.message);
         }
       },
       error: (err: any) => {
         this.isSaving = false;
-        this.notification.error('Lỗi', err?.error?.message || err?.message || 'Có lỗi khi lưu!');
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err?.message || 'Có lỗi khi lưu!');
       }
     });
   }
@@ -712,8 +719,9 @@ export class ContractTransferReviewDetailComponent implements OnInit {
     // 1. Validate dữ liệu theo Role
     if (!this.validateForConfirm()) return;
 
-    // 2. Tự động gán ngày Đánh giá nếu chưa có (đưa vào form trước khi lưu)
-    if (!this.form.DateEvaluation) {
+    // 2. Tự động gán ngày Đánh giá nếu chưa có hoặc là minDate (đưa vào form trước khi lưu)
+    const evalDate = this.form.DateEvaluation ? new Date(this.form.DateEvaluation) : null;
+    if (!evalDate || isNaN(evalDate.getTime()) || evalDate.getFullYear() < 1920) {
       this.form.DateEvaluation = new Date();
     }
 
@@ -737,15 +745,15 @@ export class ContractTransferReviewDetailComponent implements OnInit {
             next: (res: any) => {
               this.isSaving = false;
               if (res.status === 1) {
-                this.notification.success('Thành công', 'Xác nhận thành công!');
+                this.notification.success(NOTIFICATION_TITLE.success, 'Xác nhận thành công!');
                 this.activeModal.close('confirmed');
               } else {
-                this.notification.error('Lỗi', res.message);
+                this.notification.error(NOTIFICATION_TITLE.error, res.message);
               }
             },
             error: (err: any) => {
               this.isSaving = false;
-              this.notification.error('Lỗi API', err?.error?.message || 'Lỗi khi xác nhận!');
+              this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Lỗi khi xác nhận!');
             }
           });
         });

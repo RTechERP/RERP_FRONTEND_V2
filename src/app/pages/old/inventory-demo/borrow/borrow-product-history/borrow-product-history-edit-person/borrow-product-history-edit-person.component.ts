@@ -254,7 +254,7 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
         Code: this.BillNumber,
         Status: 0,
         ReceiverID: this.NewPeopleID,
-        Deliver: "Vũ Kim Ngân",
+        Deliver: "Mai Thị Tú Oanh",
         ExpectedDate: this.dateExtend,
         Receiver: this.NewPeopleName,
         CreatedDate: new Date().toISOString(),
@@ -328,6 +328,7 @@ export class BorrowProductHistoryEditPersonComponent implements OnInit {
               this.borrowService.postSaveHistoryProduct(newBorrow).subscribe();
 
               data.Status = 0;
+              data.DateReturn = new Date().toISOString();
             }
 
             this.borrowService.postSaveHistoryProduct(data).subscribe();

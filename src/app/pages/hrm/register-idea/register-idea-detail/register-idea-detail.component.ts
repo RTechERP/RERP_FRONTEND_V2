@@ -516,6 +516,14 @@ export class RegisterIdeaDetailComponent implements OnInit, AfterViewInit {
     this.downloadFromServer(fullPath, fileName);
   }
 
+  toLocalISOString(date: Date | string | null | undefined): string | null {
+    if (!date) return null;
+    const d = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(d.getTime())) return null;
+    const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    return localDate.toISOString().slice(0, 19);
+  }
+
   save() {
     if (this.form.invalid) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin');
@@ -557,8 +565,8 @@ export class RegisterIdeaDetailComponent implements OnInit, AfterViewInit {
         Category: d.Category,
         Description: d.Description,
         Note: d.Note || '',
-        DateStart: formValue.dateStart,
-        DateEnd: formValue.dateEnd,
+        DateStart: this.toLocalISOString(formValue.dateStart),
+        DateEnd: this.toLocalISOString(formValue.dateEnd),
       })),
       deletedFileIds: this.deletedFileIds.length > 0 ? this.deletedFileIds : null,
     };

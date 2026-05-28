@@ -245,8 +245,16 @@ export class RegisterIdeaComponent implements OnInit, AfterViewInit {
     const dateEnd = new Date(this.filters.dateEnd || new Date());
     dateEnd.setHours(23, 59, 59, 999);
 
+    let targetHeadOfDepartment = this.headOfDepartment;
+    if (this.filters.departmentId > 0 && this.departments?.length > 0) {
+      const selectedDept = this.departments.find(d => d.ID === this.filters.departmentId);
+      if (selectedDept && selectedDept.HeadofDepartment !== undefined) {
+        targetHeadOfDepartment = selectedDept.HeadofDepartment || 0;
+      }
+    }
+
     this.registerIdeaService.getIdeas(
-      this.currentEmployeeId,
+      targetHeadOfDepartment,
       dateStart,
       dateEnd,
       this.filters.keyword || '',

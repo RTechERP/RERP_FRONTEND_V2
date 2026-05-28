@@ -125,7 +125,7 @@
                         </nz-select>
                       </div>
                       <div nz-col [nzSpan]="4">
-                        <button nz-button nzType="default" style="width: 100%" (click)="openFirmBaseDetail()">
+                        <button *hasPermission="'N1,N27,N31,N100'" nz-button nzType="default" style="width: 100%" (click)="openFirmBaseDetail()">
                           <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
                         </button>
                       </div>
@@ -149,7 +149,7 @@
                         </nz-select>
                       </div>
                       <div nz-col [nzSpan]="4">
-                        <button nz-button nzType="default" style="width: 100%" (click)="openProjectTypeBaseDetail()">
+                        <button *hasPermission="'N1,N27,N31,N100'" nz-button nzType="default" style="width: 100%" (click)="openProjectTypeBaseDetail()">
                           <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
                         </button>
                       </div>

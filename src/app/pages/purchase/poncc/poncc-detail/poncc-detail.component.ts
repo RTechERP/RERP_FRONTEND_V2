@@ -1337,9 +1337,9 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
       // Tính ngược VAT% từ VATMoney
       vat = thanhTien > 0 ? (vatMoney / thanhTien) * 100 : 0;
     } else {
-      // Tính VATMoney từ VAT%
+      // Tính VATMoney từ VAT%, làm tròn 2 chữ số để sum bottomCalc khớp với hiển thị
       vat = Number(data['VAT']) || 0;
-      vatMoney = thanhTien * (vat / 100);
+      vatMoney = Math.round(thanhTien * (vat / 100) * 100) / 100;
     }
 
     const totalPrice = thanhTien + vatMoney - discount + feeShip;

@@ -26,6 +26,7 @@ import { MenuItem } from 'primeng/api';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { AppUserService } from '../../../../services/app-user.service';
 import { PermissionService } from '../../../../services/permission.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 import Swal from 'sweetalert2';
 import * as ExcelJS from 'exceljs';
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -1207,7 +1208,7 @@ export class ContractTransferReviewComponent implements OnInit {
       listToProcess = [this.selectedRow];
     }
     if (listToProcess.length !== 1) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn 1 dòng để in phiếu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 dòng để in phiếu!');
       return;
     }
     const row = listToProcess[0];
@@ -1218,7 +1219,7 @@ export class ContractTransferReviewComponent implements OnInit {
         this.isLoading = false;
         const d = res?.data ?? res ?? null;
         if (!d) {
-          this.notification.error('Lỗi', 'Không lấy được chi tiết phiếu!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không lấy được chi tiết phiếu!');
           return;
         }
         // Fallback names/positions from row if not populated in d
@@ -1231,7 +1232,7 @@ export class ContractTransferReviewComponent implements OnInit {
       },
       error: (err: any) => {
         this.isLoading = false;
-        this.notification.error('Lỗi', err?.error?.message || 'Lỗi khi tải chi tiết phiếu!');
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Lỗi khi tải chi tiết phiếu!');
       }
     });
   }
@@ -1284,10 +1285,10 @@ export class ContractTransferReviewComponent implements OnInit {
     };
 
     // Thời gian duyệt của từng bên (backend có thể trả TBPApproveDate / HCNSApproveDate / BGDApproveDate)
-    const employeeApprovedDate = fmtDateTime(d.PERApprovedDate ?? null);
-    const tbpApproveDate = fmtDateTime(d.TBPApproveDate ?? d.DateApprovedTBP ?? null);
-    const hcnsApproveDate = fmtDateTime(d.HCNSApproveDate ?? d.DateApprovedHCNS ?? null);
-    const bgdApproveDate = fmtDateTime(d.BGDApproveDate ?? d.DateApprovedBGD ?? d.DateApproved ?? null);
+    const employeeApprovedDate = fmtDateTime(d.PERApprovedDate ?? d.PERApproveDate ?? null);
+    const tbpApproveDate = fmtDateTime(d.TBPApprovedDate ?? d.TBPApproveDate ?? d.DateApprovedTBP ?? null);
+    const hcnsApproveDate = fmtDateTime(d.HRApprovedDate ?? d.HCNSApproveDate ?? d.DateApprovedHCNS ?? null);
+    const bgdApproveDate = fmtDateTime(d.BGDApprovedDate ?? d.BGDApproveDate ?? d.DateApprovedBGD ?? d.DateApproved ?? null);
 
     const evaluatorName = d.EmployeeEvaluationName || '';
     const evaluatorPosition = d.EvaluationPosition || '';
@@ -1506,7 +1507,10 @@ export class ContractTransferReviewComponent implements OnInit {
       ]
     ];
 
-    const evalDate = d.DateEvaluation ? new Date(d.DateEvaluation) : new Date();
+    let evalDate = d.DateEvaluation ? new Date(d.DateEvaluation) : null;
+    if (!evalDate || isNaN(evalDate.getTime()) || evalDate.getFullYear() < 1920) {
+      evalDate = new Date();
+    }
     const dateD = evalDate.getDate().toString().padStart(2, '0');
     const dateM = (evalDate.getMonth() + 1).toString().padStart(2, '0');
     const dateY = evalDate.getFullYear();
@@ -1642,7 +1646,9 @@ export class ContractTransferReviewComponent implements OnInit {
                 { text: 'NGƯỜI ĐƯỢC ĐÁNH GIÁ', bold: true, alignment: 'center' },
                 { text: '\n\n\n\n' },
                 { text: d.EmployeeName || '', bold: true, alignment: 'center' },
-
+                employeeApprovedDate
+                  ? { text: `(${employeeApprovedDate})`, italics: true, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
+                  : { text: '' }
               ],
               width: '25%'
             },
@@ -1652,7 +1658,7 @@ export class ContractTransferReviewComponent implements OnInit {
                 { text: '\n\n\n\n' },
                 { text: d.TBPApproveName || '', bold: true, alignment: 'center' },
                 tbpApproveDate
-                  ? { text: `(Đã duyệt: ${tbpApproveDate})`, italics: true, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
+                  ? { text: `${tbpApproveDate}`, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
                   : { text: '' }
               ],
               width: '25%'
@@ -1663,7 +1669,7 @@ export class ContractTransferReviewComponent implements OnInit {
                 { text: '\n\n\n\n' },
                 { text: d.HCNSApproveName || '', bold: true, alignment: 'center' },
                 hcnsApproveDate
-                  ? { text: `(Đã duyệt: ${hcnsApproveDate})`, italics: true, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
+                  ? { text: `${hcnsApproveDate}`, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
                   : { text: '' }
               ],
               width: '25%'
@@ -1674,7 +1680,7 @@ export class ContractTransferReviewComponent implements OnInit {
                 { text: '\n\n\n\n' },
                 { text: d.BGDApproveName || '', bold: true, alignment: 'center' },
                 bgdApproveDate
-                  ? { text: `(Đã duyệt: ${bgdApproveDate})`, italics: true, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
+                  ? { text: `${bgdApproveDate}`, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
                   : { text: '' }
               ],
               width: '25%'

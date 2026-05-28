@@ -19,6 +19,15 @@
                         [nzLoading]="isExport" *hasPermission="'N1,N2'">
                         <img src="assets/icon/action_import_16.png" alt="Nhập excel" /> Nhập excel
                     </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small"
+                        (click)="addManualAttendance()" *hasPermission="'N1,N2'">
+                        <nz-icon nzType="plus" /> Thêm thủ công
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small"
+                        (click)="editManualAttendance()" *hasPermission="'N1,N2'"
+                        [disabled]="selectedAttendance.length !== 1">
+                        <nz-icon nzType="edit" /> Sửa thủ công
+                    </button>
                     <button class="fs-12" class="btn-delete" nz-button nzType="default" nzSize="small"
                         (click)="deleteItems()" *hasPermission="'N1,N2'">
                         <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa

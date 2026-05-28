@@ -33,6 +33,7 @@ import { DateTime } from 'luxon';
 
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EmployeeAttendanceImportExcelComponent } from './employee-attendance-import-excel/employee-attendance-import-excel.component';
+import { EmployeeAttendanceManualFormComponent } from './employee-attendance-manual-form/employee-attendance-manual-form.component';
 import { EmployeeAttendanceService } from './employee-attendance.service';
 import { VehicleRepairService } from '../../vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
 import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../app.config';
@@ -835,6 +836,48 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
         });
       },
     });
+  }
+
+  // ======================= MANUAL ADD/EDIT =======================
+  addManualAttendance(): void {
+    const modalRef = this.ngbModal.open(
+      EmployeeAttendanceManualFormComponent,
+      { size: 'lg', backdrop: 'static', keyboard: false, centered: true }
+    );
+    modalRef.componentInstance.mode = 'add';
+    modalRef.componentInstance.allEmployees = this.allEmployees;
+
+    modalRef.result.then(
+      (res) => {
+        if (res === 'success') this.getEmployeeAttendace();
+      },
+      () => {} // dismissed
+    );
+  }
+
+  editManualAttendance(): void {
+    if (!this.selectedAttendance || this.selectedAttendance.length !== 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đúng 1 dòng để sửa');
+      return;
+    }
+
+    const modalRef = this.ngbModal.open(
+      EmployeeAttendanceManualFormComponent,
+      { size: 'lg', backdrop: 'static', keyboard: false, centered: true }
+    );
+    modalRef.componentInstance.mode = 'edit';
+    modalRef.componentInstance.editData = this.selectedAttendance[0];
+    modalRef.componentInstance.allEmployees = this.allEmployees;
+
+    modalRef.result.then(
+      (res) => {
+        if (res === 'success') {
+          this.getEmployeeAttendace();
+          this.selectedAttendance = [];
+        }
+      },
+      () => {} // dismissed
+    );
   }
 
   // ======================= IMPORT EXCEL =======================

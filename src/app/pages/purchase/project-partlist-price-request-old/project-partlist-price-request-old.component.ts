@@ -91,6 +91,9 @@ export class ProjectPartlistPriceRequestOldComponent
     { id: 1, name: 'Yêu cầu báo giá' },
     { id: 2, name: 'Đã báo giá' },
     { id: 3, name: 'Đã hoàn thành' },
+    { id: 6, name: 'Yêu cầu báo giá lại' },
+    { id: 7, name: 'Đã báo giá lại' },
+
   ];
 
   statusDeletedData: any[] = [
@@ -397,11 +400,6 @@ export class ProjectPartlistPriceRequestOldComponent
         'TotalImportPrice',
         'TotalDayLeadTime',
         'CurrencyRate',
-        'TotalHN',
-        'TotalHCM',
-        'TotalBN',
-        'TotalHP',
-        'TotalDP',
       ];
 
       const convertedItem = { ...item, id: uniqueId };
@@ -584,26 +582,6 @@ export class ProjectPartlistPriceRequestOldComponent
         (sum, item) => sum + (Number(item.UnitImportPrice) || 0),
         0
       );
-      const totalHNSum = (items || []).reduce(
-        (sum, item) => sum + (Number(item.TotalHN) || 0),
-        0
-      );
-      const totalHCMSum = (items || []).reduce(
-        (sum, item) => sum + (Number(item.TotalHCM) || 0),
-        0
-      );
-      const totalBNSum = (items || []).reduce(
-        (sum, item) => sum + (Number(item.TotalBN) || 0),
-        0
-      );
-      const totalHPSum = (items || []).reduce(
-        (sum, item) => sum + (Number(item.TotalHP) || 0),
-        0
-      );
-      const totalDPSum = (items || []).reduce(
-        (sum, item) => sum + (Number(item.TotalDP) || 0),
-        0
-      );
 
       this.angularGrid.slickGrid.setFooterRowVisibility(true);
 
@@ -670,21 +648,6 @@ export class ProjectPartlistPriceRequestOldComponent
             footerCell.innerHTML = `<b>${totalImportPrice.toLocaleString(
               'en-US'
             )}</b>`;
-            break;
-          case 'TotalHN':
-            footerCell.innerHTML = `<b>${totalHNSum.toLocaleString('en-US')}</b>`;
-            break;
-          case 'TotalHCM':
-            footerCell.innerHTML = `<b>${totalHCMSum.toLocaleString('en-US')}</b>`;
-            break;
-          case 'TotalBN':
-            footerCell.innerHTML = `<b>${totalBNSum.toLocaleString('en-US')}</b>`;
-            break;
-          case 'TotalHP':
-            footerCell.innerHTML = `<b>${totalHPSum.toLocaleString('en-US')}</b>`;
-            break;
-          case 'TotalDP':
-            footerCell.innerHTML = `<b>${totalDPSum.toLocaleString('en-US')}</b>`;
             break;
           default:
             footerCell.innerHTML = '';
@@ -1045,6 +1008,20 @@ export class ProjectPartlistPriceRequestOldComponent
         filter: { model: Filters['compoundDate'] },
       },
       {
+        id: 'EffectiveDate',
+        name: 'Hạn hiệu lực',
+        field: 'EffectiveDate',
+        width: 130,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+      },
+
+      {
         id: 'TotalPrice',
         name: 'Thành tiền chưa VAT',
         field: 'TotalPrice',
@@ -1113,6 +1090,36 @@ export class ProjectPartlistPriceRequestOldComponent
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'TargetPrice',
+        name: 'Giá Target',
+        field: 'TargetPrice',
+        cssClass: 'text-end',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        filter: { model: Filters['compoundInputText'] },
+        formatter: (_row, _cell, value) => {
+          if (!value) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
+      },
+      {
+        id: 'LeadTimeTechnical',
+        name: 'LeadTime cần hàng',
+        field: 'LeadTimeTechnical',
+        cssClass: 'text-end',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        filter: { model: Filters['compoundInputText'] },
+        formatter: (_row, _cell, value) => {
+          if (!value) return '0';
+          return Number(value).toLocaleString('en-US');
+        },
       },
       {
         id: 'TotalDayLeadTime',
@@ -1257,76 +1264,6 @@ export class ProjectPartlistPriceRequestOldComponent
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
-      },
-      {
-        id: 'TotalHN',
-        field: 'TotalHN',
-        name: 'Tồn cuối kỳ sử dụng kho HN',
-        width: 180,
-        sortable: true,
-        filterable: true,
-        type: 'number',
-        formatter: (_row, _cell, value: any) => {
-          if (value == null) return '0';
-          return Number(value).toLocaleString('en-US');
-        },
-        filter: { model: Filters['compoundInputNumber'] },
-      },
-      {
-        id: 'TotalHCM',
-        field: 'TotalHCM',
-        name: 'Tồn cuối kỳ sử dụng kho HCM',
-        width: 180,
-        sortable: true,
-        filterable: true,
-        type: 'number',
-        formatter: (_row, _cell, value: any) => {
-          if (value == null) return '0';
-          return Number(value).toLocaleString('en-US');
-        },
-        filter: { model: Filters['compoundInputNumber'] },
-      },
-      {
-        id: 'TotalBN',
-        field: 'TotalBN',
-        name: 'Tồn cuối kỳ sử dụng kho BN',
-        width: 180,
-        sortable: true,
-        filterable: true,
-        type: 'number',
-        formatter: (_row, _cell, value: any) => {
-          if (value == null) return '0';
-          return Number(value).toLocaleString('en-US');
-        },
-        filter: { model: Filters['compoundInputNumber'] },
-      },
-      {
-        id: 'TotalHP',
-        field: 'TotalHP',
-        name: 'Tồn cuối kỳ sử dụng kho HP',
-        width: 180,
-        sortable: true,
-        filterable: true,
-        type: 'number',
-        formatter: (_row, _cell, value: any) => {
-          if (value == null) return '0';
-          return Number(value).toLocaleString('en-US');
-        },
-        filter: { model: Filters['compoundInputNumber'] },
-      },
-      {
-        id: 'TotalDP',
-        field: 'TotalDP',
-        name: 'Tồn cuối kỳ sử dụng kho DP',
-        width: 180,
-        sortable: true,
-        filterable: true,
-        type: 'number',
-        formatter: (_row, _cell, value: any) => {
-          if (value == null) return '0';
-          return Number(value).toLocaleString('en-US');
-        },
-        filter: { model: Filters['compoundInputNumber'] },
       },
     ];
   }

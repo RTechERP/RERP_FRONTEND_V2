@@ -74,7 +74,7 @@
                         <nz-select name="userId" nzShowSearch nzAllowClear nzSize="small" class="w-100"
                           nzDropdownClassName="select-dropdown" nzPlaceHolder="Người phụ trách"
                           [(ngModel)]="filters.userId">
-                          <nz-option *ngFor="let item of filterUserData" [nzValue]="item.ID"
+                          <nz-option *ngFor="let item of filterUserData" [nzValue]="item.UserID"
                             [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
                         </nz-select>
                       </nz-form-control>

@@ -142,8 +142,14 @@ export class ProjectPartlistPriceRequestOldDetailComponent implements OnInit {
       DateExpected: [null],
       SupplierSaleID: [null],
       Note: [''],
+      EffectiveDate: [null],
     });
   }
+
+  disabledWeekend = (date: Date): boolean => {
+    const day = date.getDay();
+    return day === 0 || day === 6;
+  };
 
   moneyFormatter = (value: number | string): string => {
     if (value === null || value === undefined) return '';
@@ -445,6 +451,10 @@ export class ProjectPartlistPriceRequestOldDetailComponent implements OnInit {
     const maxSupplierSaleID = Math.max(
       ...this.dataDetail.map((item: any) => Number(item.SupplierSaleID) || 0)
     );
+    const effectiveDateRaw = this.dataDetail.find((item: any) => item.EffectiveDate)?.EffectiveDate || null;
+    const maxEffectiveDate = effectiveDateRaw
+      ? (effectiveDateRaw instanceof Date ? effectiveDateRaw : new Date(effectiveDateRaw))
+      : null;
 
     // Lấy date và note từ item đầu tiên
     const datePriceQuote = this.dataDetail[0]?.DatePriceQuote || new Date();
@@ -463,6 +473,7 @@ export class ProjectPartlistPriceRequestOldDetailComponent implements OnInit {
       SupplierSaleID: maxSupplierSaleID,
       DateExpected: dateExpected,
       Note: note,
+      EffectiveDate: maxEffectiveDate,
     });
 
     // Update CurrencyRate nếu có CurrencyID
@@ -738,6 +749,12 @@ export class ProjectPartlistPriceRequestOldDetailComponent implements OnInit {
       this.informationForm.get('CurrencyRate')?.value || 0
     );
     const dateExpected = this.informationForm.get('DateExpected')?.value;
+    const effectiveDateVal = this.informationForm.get('EffectiveDate')?.value;
+    const effectiveDate = effectiveDateVal
+      ? (effectiveDateVal instanceof Date
+          ? DateTime.fromJSDate(effectiveDateVal).toISO()
+          : DateTime.fromISO(effectiveDateVal).toISO())
+      : null;
 
     const data = this.angularGrid.slickGrid.getSelectedRows();
 
@@ -833,6 +850,7 @@ export class ProjectPartlistPriceRequestOldDetailComponent implements OnInit {
         TotaMoneyVAT: totalMoneyVAT,
         UpdatedDate: DateTime.local().toISO(),
         UpdatedBy: loginName,
+        EffectiveDate: effectiveDate,
         DateExpected: dateExpected
           ? dateExpected instanceof Date
             ? DateTime.fromJSDate(dateExpected).toISO()
@@ -888,6 +906,12 @@ export class ProjectPartlistPriceRequestOldDetailComponent implements OnInit {
       this.informationForm.get('CurrencyRate')?.value || 0
     );
     const dateExpected = this.informationForm.get('DateExpected')?.value;
+    const effectiveDateVal = this.informationForm.get('EffectiveDate')?.value;
+    const effectiveDate = effectiveDateVal
+      ? (effectiveDateVal instanceof Date
+          ? DateTime.fromJSDate(effectiveDateVal).toISO()
+          : DateTime.fromISO(effectiveDateVal).toISO())
+      : null;
 
     // Chuẩn bị data update cho từng row
     const updateData: any[] = [];
@@ -913,6 +937,7 @@ export class ProjectPartlistPriceRequestOldDetailComponent implements OnInit {
         TotaMoneyVAT: totalMoneyVAT,
         UpdatedDate: DateTime.local().toISO(),
         UpdatedBy: loginName,
+        EffectiveDate: effectiveDate,
         DateExpected: dateExpected
           ? dateExpected instanceof Date
             ? DateTime.fromJSDate(dateExpected).toISO()

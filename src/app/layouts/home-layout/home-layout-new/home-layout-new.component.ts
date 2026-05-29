@@ -50,6 +50,7 @@ interface LiXi {
 }
 import { HistoryBorrowSaleService } from '../../../pages/old/Sale/HistoryBorrowSale/history-borrow-sale-service/history-borrow-sale.service';
 import { ProjectTaskService } from '../../../pages/project_task/project-task/project-task.service';
+import { PollFormService } from '../../../pages/poll-form/poll-form.service';
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -170,6 +171,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         private nzModal: NzModalService,
         public notifService: NotificationService,
         private projectTaskService: ProjectTaskService,
+        private pollFormService: PollFormService,
     ) { }
 
     get notifItems(): NotifyItem[] { return this.notifService.items; }
@@ -209,6 +211,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             this.getQuantityOverdueProjectTask(),
             this.loadNewsletters(),
             this.getPendingContractReview(),
+            this.getPendingPollCount(),
         ]).subscribe({
             next: () => {
                 console.log('Tất cả API quan trọng đã load xong. Khởi tạo SSE và check version...');
@@ -551,6 +554,26 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                         queryParams: {}
                     });
                 }
+            }),
+            catchError(() => of(null))
+        );
+    }
+
+    getPendingPollCount() {
+        return this.pollFormService.getPendingCount().pipe(
+            tap((res: any) => {
+                if (res?.status !== 1 || res?.data <= 0) return;
+                const count = res.data;
+                this.notifService.addItem({
+                    id: 12,
+                    time: new Date().toISOString(),
+                    title: ' Bình chọn',
+                    text: `Bạn có ${count} bình chọn chưa hoàn thành`,
+                    group: 'today',
+                    icon: 'form',
+                    route: 'poll-form',
+                    queryParams: {}
+                });
             }),
             catchError(() => of(null))
         );

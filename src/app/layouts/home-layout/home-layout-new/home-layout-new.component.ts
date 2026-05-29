@@ -412,6 +412,9 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 // }
                 this.menuWeekplans = menuWeekplans;
                 this.menuQickAcesss = this.menus.find((x) => x.key == 'M4');
+                let quickAccessChildren = this.menuPersons.find((x) => x.key == 'registercommon').children.find((x: any) => x.key === 'M11205');
+                this.menuQickAcesss.children.push(quickAccessChildren);
+
             }),
             catchError((err) => {
                 return of(null);

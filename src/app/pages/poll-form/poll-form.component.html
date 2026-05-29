@@ -766,8 +766,19 @@
                 </section>
               </div>
 
-              <section class="response-list" *ngIf="responses.length > 0">
-                <h6>Phản hồi gần đây</h6>
+              <section class="response-list" *ngIf="responses.length > 0 || responseKeyword">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                  <h6 style="margin: 0;">Phản hồi gần đây</h6>
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <input nz-input nzSize="small" placeholder="Tìm kiếm phản hồi..." [(ngModel)]="responseKeyword" (keyup.enter)="searchResponses()" style="width: 250px;" />
+                    <button nz-button nzType="primary" nzSize="small" (click)="searchResponses()">
+                      <i class="fa-solid fa-search"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <nz-empty *ngIf="responses.length === 0" nzNotFoundContent="Không tìm thấy phản hồi nào"></nz-empty>
+
                 <div
                   class="response-item response-clickable"
                   *ngFor="let response of responses; trackBy: trackByResponse"

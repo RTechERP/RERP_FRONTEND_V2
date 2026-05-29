@@ -22,6 +22,10 @@ export class PollFormService {
     return this.http.get<PollApiResponse<any[]>>(`${this.apiUrl}/all`);
   }
 
+  getPendingCount(): Observable<PollApiResponse<number>> {
+    return this.http.get<PollApiResponse<number>>(`${this.apiUrl}/pending-count`);
+  }
+
   getDetail(id: number): Observable<PollApiResponse<any>> {
     return this.http.get<PollApiResponse<any>>(`${this.apiUrl}/${id}`);
   }
@@ -100,8 +104,12 @@ export class PollFormService {
     return this.http.get<PollApiResponse<any>>(`${this.apiUrl}/${pollFormId}/my-response`);
   }
 
-  getResponses(pollFormId: number): Observable<PollApiResponse<any[]>> {
-    return this.http.get<PollApiResponse<any[]>>(`${this.apiUrl}/${pollFormId}/responses`);
+  getResponses(pollFormId: number, keyword: string = ''): Observable<PollApiResponse<any[]>> {
+    let params = new HttpParams();
+    if (keyword) {
+      params = params.set('keyword', keyword);
+    }
+    return this.http.get<PollApiResponse<any[]>>(`${this.apiUrl}/${pollFormId}/responses`, { params });
   }
 
   exportResponsesExcel(pollFormId: number, includeIncomplete = false): Observable<Blob> {

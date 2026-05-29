@@ -2261,87 +2261,84 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         const totalSameMaker = Number(item.IsSameMaker) || 0;
         const totalSameUnit = Number(item.IsSameUnit) || 0;
 
-        const isOverQty = item.IsOverQty || false;
+    const isOverQty = item.IsOverQty || false;
+    
+    let rowCssClass = '';
 
-        // let rowCssClass = '';
-
-        // // 1. Ưu tiên cao nhất: Dòng bị xóa → Red
-        // if (isDeleted) {
-        //   cssClasses.push('row-deleted');
-        // }
-        // // 2. Số lượng trả về > 0 → LightGreen (Ưu tiên cao hơn màu cam)
-        // else if (quantityReturn > 0) {
-        //   cssClasses.push('row-return');
-        // }
-        // // 3. Dòng có vấn đề → Orange
-        // else if (isProblem) {
-        //   cssClasses.push('row-problem');
-        // }
-        // // 4. Node cha (có children) → LightGray + Bold
-        // else if (hasChildren) {
-        //   cssClasses.push('row-parent');
-        // }
-
-        // // 5. Dòng hết hiệu lực → Sọc đỏ nhạt (Kết hợp với các màu khác)
-        // if (isExpired) {
-        //   cssClasses.push('row-expired');
-        // }
-
-        // let rowCssClass = cssClasses.join(' ').trim();
+    // 1. Ưu tiên cao nhất: Dòng bị xóa → Red
+    if (isDeleted) {
+      rowCssClass = 'row-deleted';
+    }
+    // 2. Số lượng trả về > 0 → LightGreen (Ưu tiên cao hơn màu cam)
+    else if (quantityReturn > 0) {
+      rowCssClass = 'row-return';
+    }
+    // 3. Dòng có vấn đề → Orange
+    else if (isProblem) {
+      rowCssClass = 'row-problem';
+    }
+    // 4. Node cha (có children) → LightGray + Bold
+    else if (hasChildren) {
+      rowCssClass = 'row-parent';
+    }
 
         // Tạo column metadata cho tô màu cell cụ thể
         // Màu cell sẽ đè lên màu dòng (giống logic Tabulator gốc)
         const columns: Record<string, { cssClass?: string }> = {};
 
-        // Chỉ áp dụng màu cell cho node lá (không phải parent)
-        if (!hasChildren) {
-            // === Logic màu HỒNG: IsNewCode = true VÀ totalSame = 0 ===
-            if (isNewCode) {
-                // Cột GroupMaterial - màu hồng nếu IsSameProductName = 0
-                if (totalSameProductName === 0) {
-                    columns['GroupMaterial'] = { cssClass: 'cell-pink' };
-                }
-                // Cột ProductCode - ưu tiên: IsFix > IsProductSale > màu hồng
-                if (isFix) {
-                    columns['ProductCode'] = { cssClass: 'cell-is-fix' }; // Xanh nước biển
-                } else if (isProductSale) {
-                    columns['ProductCode'] = { cssClass: 'cell-product-sale' }; // Light yellow
-                } else if (totalSameProductCode === 0) {
-                    columns['ProductCode'] = { cssClass: 'cell-pink' }; // Màu hồng
-                }
-                // Cột Manufacturer - màu hồng nếu IsSameMaker = 0
-                if (totalSameMaker === 0) {
-                    columns['Manufacturer'] = { cssClass: 'cell-pink' };
-                }
-                // Cột Unit - màu hồng nếu IsSameUnit = 0
-                if (totalSameUnit === 0) {
-                    columns['Unit'] = { cssClass: 'cell-pink' };
-                }
-            } else {
-                // Không phải IsNewCode - áp dụng màu IsFix/IsProductSale cho ProductCode
-                if (isFix) {
-                    columns['ProductCode'] = { cssClass: 'cell-is-fix' };
-                } else if (isProductSale) {
-                    columns['ProductCode'] = { cssClass: 'cell-product-sale' };
-                }
-            }
+    // Chỉ áp dụng màu cell cho node lá (không phải parent)
+    if (!hasChildren) {
+      // === Logic màu HỒNG: IsNewCode = true VÀ totalSame = 0 ===
+      if (isNewCode) {
+        // Cột GroupMaterial - màu hồng nếu IsSameProductName = 0
+        if (totalSameProductName === 0) {
+          columns['GroupMaterial'] = { cssClass: 'cell-pink' };
         }
+        // Cột ProductCode - ưu tiên: IsFix > IsProductSale > màu hồng
+        if (isFix) {
+          columns['ProductCode'] = { cssClass: 'cell-is-fix' }; // Xanh nước biển
+        } else if (isProductSale) {
+          columns['ProductCode'] = { cssClass: 'cell-product-sale' }; // Light yellow
+        } else if (totalSameProductCode === 0) {
+          columns['ProductCode'] = { cssClass: 'cell-pink' }; // Màu hồng
+        }
+        // Cột Manufacturer - màu hồng nếu IsSameMaker = 0
+        if (totalSameMaker === 0) {
+          columns['Manufacturer'] = { cssClass: 'cell-pink' };
+        }
+        // Cột Unit - màu hồng nếu IsSameUnit = 0
+        if (totalSameUnit === 0) {
+          columns['Unit'] = { cssClass: 'cell-pink' };
+        }
+      } else {
+        // Không phải IsNewCode - áp dụng màu IsFix/IsProductSale cho ProductCode
+        if (isFix) {
+          columns['ProductCode'] = { cssClass: 'cell-is-fix' };
+        } else if (isProductSale) {
+          columns['ProductCode'] = { cssClass: 'cell-product-sale' };
+        }
+      }
 
-        // === Logic màu đỏ cho cell EffectiveDate khi hết hiệu lực ===
-        if (!hasChildren && isExpired) {
-            columns['EffectiveDate'] = { cssClass: 'cell-effective-expired' };
-        }
+      if (isOverQty && this.isConsumable) {
+        columns['QtyFull'] = { cssClass: 'cell-over-qty' };
+      }
+
+      // === Logic màu đỏ cho cell EffectiveDate khi hết hiệu lực ===
+      if (isExpired) {
+        columns['EffectiveDate'] = { cssClass: 'cell-effective-expired' };
+      }
+    }
 
         // Chỉ log khi có cell coloring thực sự để giảm noise
         // if (Object.keys(columns).length > 0) {
         //   console.log(`[ROW METADATA] Row ${row}: TT=${item.TT}, IsNewCode=${isNewCode}, IsFix=${isFix}, hasChildren=${hasChildren}, rowClass=${rowCssClass}, columns=`, Object.keys(columns));
         // }
 
-        return {
-            cssClasses: isExpired ? 'row-expired' : undefined,
-            columns: Object.keys(columns).length > 0 ? columns : undefined,
-        };
-    }
+    return {
+      cssClasses: rowCssClass,
+      columns: Object.keys(columns).length > 0 ? columns : undefined,
+    };
+  }
 
     // Handler cho checkbox selection - TỰ ĐỘNG CHỌN CON KHI CHỌN CHA (giống component cũ)
     // Logic: Khi chọn cha → tự động chọn tất cả con, khi bỏ chọn cha → bỏ chọn tất cả con

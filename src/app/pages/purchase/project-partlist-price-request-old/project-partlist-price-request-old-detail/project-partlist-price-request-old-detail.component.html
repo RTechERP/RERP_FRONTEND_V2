@@ -196,6 +196,19 @@
                       </nz-form-control>
                     </nz-form-item>
                   </div>
+                  <div nz-col [nzSpan]="3">
+                    <nz-form-item>
+                      <nz-form-label>Hạn hiệu lực</nz-form-label>
+                      <nz-form-control>
+                        <nz-date-picker
+                          class="w-100"
+                          formControlName="EffectiveDate"
+                          nzFormat="dd/MM/yyyy"
+                          [nzDisabledDate]="disabledWeekend"
+                        ></nz-date-picker>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
                   <div nz-col [nzSpan]="6">
                     <nz-form-item>
                       <nz-form-label>Lead Time (Ngày làm việc)</nz-form-label>

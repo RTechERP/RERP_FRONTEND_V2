@@ -41,4 +41,8 @@ export class AssetAllocationService {
       }
     );
   }
+
+   getAssetLogs(allocationID: number): Observable<any> {
+    return this.http.get<any>(`${this.url}get-asset-allocation-log/${allocationID}`);
+  }
 }

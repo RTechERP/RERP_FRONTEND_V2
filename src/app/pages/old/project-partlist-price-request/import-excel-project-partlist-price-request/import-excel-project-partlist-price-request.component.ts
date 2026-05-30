@@ -415,7 +415,7 @@ export class ImportExcelProjectPartlistPriceRequestComponent implements OnInit {
 
     this.priceService.saveRequestNote(notes).subscribe({
       next: (res: any) => {
-        this.notification.success('Thông báo', res?.message || 'Lưu thành công');
+        // this.notification.success('Thông báo', res?.message || 'Lưu thành công');
         this.closeExcelModal();
       },
       error: (err: any) => {

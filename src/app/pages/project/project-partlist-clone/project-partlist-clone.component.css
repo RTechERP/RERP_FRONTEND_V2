@@ -1,0 +1,43 @@
+.reset {
+  all: revert;
+}
+
+::ng-deep [id^="clonePartListGrid_"] {
+  height: 55vh !important;
+}
+
+::ng-deep [id^="clonePartListGrid_"] .slick-cell.cell-wrap-text {
+  white-space: normal !important;
+  word-break: break-word;
+  overflow: hidden;
+  line-height: 1.4;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+::ng-deep .slick-row.row-parent {
+  background-color: #d3d3d3 !important;
+  font-weight: bold !important;
+}
+
+::ng-deep .slick-row.row-parent .slick-cell {
+  background-color: #d3d3d3 !important;
+  font-weight: bold !important;
+}
+
+::ng-deep .slick-row.row-error {
+  background-color: #fff1f0 !important;
+}
+
+::ng-deep .slick-row.row-error .slick-cell {
+  background-color: #fff1f0 !important;
+  border-bottom: 1px solid #ff4d4f !important;
+  color: #cf1322 !important;
+}
+
+::ng-deep .slick-row.row-error.active .slick-cell {
+  background-color: #ffccc7 !important;
+}

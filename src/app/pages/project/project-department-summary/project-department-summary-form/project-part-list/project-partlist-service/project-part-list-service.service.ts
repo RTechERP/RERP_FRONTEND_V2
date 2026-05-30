@@ -124,6 +124,11 @@ export class ProjectPartListService {
   deletePartList(payload: any[]): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/delete-partlist`, payload);
   }
+
+  cloneProjectPartList(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/clone-projectpartlist`, payload);
+  }
+
   // Lấy lịch sử giá và sản phẩm trong kho
   getHistoryPartList(productCode: string, keyword?: string): Observable<any> {
     const requestBody = {
@@ -193,5 +198,9 @@ export class ProjectPartListService {
     return this.http.get(url, {
       responseType: 'blob',
     });
+  }
+
+  checkPartlistConsumable(payload: any[], projectTypeID: number): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/check-partlist-consumable?projectTypeID=${projectTypeID}`, payload);
   }
 }

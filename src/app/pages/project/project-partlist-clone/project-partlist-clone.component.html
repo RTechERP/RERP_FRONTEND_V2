@@ -1,0 +1,129 @@
+<div class="modal-body p-3">
+    <!-- Dự án gốc -->
+    <fieldset class="reset border p-2 mb-3">
+        <legend class="reset w-auto px-2 fs-14 fw-bold">Phiên bản gốc</legend>
+        <div class="row">
+            <div class="col-md-6">
+                <label class="form-label mb-1">Dự án</label>
+                <nz-select [disabled]="true" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án"
+                    (ngModelChange)="loadDataSolution(1, $event)" [(ngModel)]="sourceProjectId">
+                    @for (item of projects; track $index) {
+                    <nz-option nzCustomContent="true" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"
+                        [nzValue]="item.ID">
+                        {{ item.ProjectCode }} - {{ item.ProjectName }}
+                    </nz-option>
+                    }
+                </nz-select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label mb-1">Giải pháp</label>
+                <nz-select [disabled]="true" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn giải pháp"
+                    (ngModelChange)="getProjectVersions(1, $event)" [(ngModel)]="sourceSolutionId">
+                    @for (item of sourceSolutionResponse; track $index) {
+                    <nz-option nzCustomContent="true" [nzLabel]="item.CodeRequest + ' - ' + item.CodeSolution"
+                        [nzValue]="item.ID">
+                        {{ item.CodeRequest }} - {{ item.CodeSolution }}
+                    </nz-option>
+                    }
+                </nz-select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label mb-1">Phiên bản</label>
+                <nz-select [disabled]="true" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái"
+                    [(ngModel)]="sourceStatus">
+                    @for (item of projectVersions; track $index) {
+                    <nz-option nzCustomContent="true" [nzLabel]="item.CodeNew" [nzValue]="item.originalId">
+                        {{ item.CodeNew }}
+                    </nz-option>
+                    }
+                </nz-select>
+            </div>
+        </div>
+    </fieldset>
+
+    <!-- Dự án đích -->
+    <fieldset class="reset border p-2 mb-3">
+        <legend class="reset w-auto px-2 fs-14 fw-bold">Phiên bản đích</legend>
+        <div class="row">
+            <div class="col-md-6">
+                <label class="form-label mb-1">Dự án <span class="text-danger ms-1">(*)</span></label>
+                <nz-select class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án"
+                    (ngModelChange)="loadDataSolution(2, $event)" [(ngModel)]="targetProjectId">
+                    <!-- @for (item of projects; track $index) {
+                    <nz-option nzCustomContent="true" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"
+                        [nzValue]="item.ID">
+                        {{ item.ProjectCode }} - {{ item.ProjectName }}
+                    </nz-option>
+                    } -->
+
+                    @if (recentProjects.length > 0) {
+                    <nz-option-group nzLabel="⏱ Đã tìm gần đây">
+                        @for (item of recentProjects; track $index) {
+                        <nz-option [nzValue]="item.ID"
+                            [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
+                        }
+                    </nz-option-group>
+                    }
+                    <nz-option-group nzLabel="Tất cả dự án">
+                        @for (item of projects; track $index) {
+                        <nz-option [nzValue]="item.ID"
+                            [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
+                        }
+                    </nz-option-group>
+                </nz-select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label mb-1">Giải pháp <span class="text-danger ms-1">(*)</span></label>
+                <div class="d-flex gap-1">
+                    <nz-select class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn giải pháp"
+                        (ngModelChange)="getProjectVersions(2, $event)" [(ngModel)]="targetSolutionId">
+                        @for (item of targetSolutionResponse; track $index) {
+                        <nz-option nzCustomContent="true" [nzLabel]="item.CodeRequest + ' - ' + item.CodeSolution"
+                            [nzValue]="item.ID">
+                            {{ item.CodeRequest }} - {{ item.CodeSolution }}
+                        </nz-option>
+                        }
+                    </nz-select>
+                    <button nz-button nzType="primary" (click)="addDestinationSolution()"><i
+                            class="fas fa-plus"></i></button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label mb-1">Phiên bản <span class="text-danger ms-1">(*)</span></label>
+                <div class="d-flex gap-1">
+                    <nz-select class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái"
+                        [(ngModel)]="targetStatus">
+                        @for (item of targetprojectVersions; track $index) {
+                        <nz-option nzCustomContent="true" [nzLabel]="item.VersionName" [nzValue]="item.originalId">
+                            {{ item.VersionName }}
+                        </nz-option>
+                        }
+                    </nz-select>
+                    <button type="button" nz-button nzType="primary" nz-dropdown [nzDropdownMenu]="menuAddVersion"><i
+                            class="fas fa-plus"></i></button>
+                    <nz-dropdown-menu #menuAddVersion="nzDropdownMenu">
+                        <ul nz-menu>
+                            <li nz-menu-item (click)="addDestinationVersion(1)">Thêm giải pháp</li>
+                            <li nz-menu-item (click)="addDestinationVersion(2)">Thêm PO</li>
+                        </ul>
+                    </nz-dropdown-menu>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <!-- Chi tiết sản phẩm -->
+    <fieldset class="reset border p-2">
+        <legend class="reset w-auto px-2 fs-14 fw-bold">Chi tiết sản phẩm</legend>
+        <div class="grid-container-clone-partlist w-100">
+            <angular-slickgrid [gridId]="slickgridId" [columns]="columnDefinitions" [options]="gridOptions"
+                [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">
+            </angular-slickgrid>
+        </div>
+    </fieldset>
+</div>
+
+<div class="modal-footer py-2">
+    <button nz-button nzDanger class="btn fs-12" (click)="closeModal()">Đóng</button>
+    <button nz-button nzType="primary" class="btn fs-12 ms-2" (click)="saveClone()" [nzLoading]="isLoadingSave">Lưu</button>
+</div>

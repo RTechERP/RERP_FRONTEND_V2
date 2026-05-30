@@ -22,17 +22,11 @@
             <li nz-menu-item (click)="onChangePassword()"> <img src="assets/icon/padlock.png"
                     class="user-icon me-2" />Đổi mật khẩu</li>
             <li nz-menu-divider></li>
-            <!-- <li nz-menu-item>
-                <div class="menu-item-flex-row">
-                    <div class="label">
-                        <img src="assets/icon/mail.png" class="user-icon me-2" />
-                        <span>Nhận thông báo email</span>
-                    </div>
-                    <nz-switch></nz-switch>
-                </div>
-            </li> -->
-
+            <li nz-menu-item (click)="settingPersonal()"> <img src="assets/icon/icon_setting.svg"
+                    class="user-icon me-2" />Setting cá nhân</li>
             <li nz-menu-divider></li>
+
+
             <li nz-menu-item (click)="onLogout()">
                 <img src="assets/icon/power.png" class="user-icon me-2" />Đăng xuất
             </li>

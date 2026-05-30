@@ -370,6 +370,8 @@ import { ProjectTaskTimeLineNullComponent } from './pages/project_task/project-t
 import { ProjectTaskEfficiencyByTaskComponent } from './pages/project_task/project-task-efficiency-by-task/project-task-efficiency-by-task.component';
 import { PaymentOrderPrimeComponent } from './pages/general-category/payment-order/payment-order-prime/payment-order-prime.component';
 import { InventoryOveragedComponent } from './pages/old/Sale/Inventory/inventory-overaged/inventory-overaged.component';
+import { ConfigNotificationKeyManagementComponent } from './pages/systems/app-user/config-notification-key/config-notification-key-management/config-notification-key-management.component';
+import { ConfigNotificationKeyPersonalComponent } from './pages/systems/app-user/config-notification-key/config-notification-key-personal/config-notification-key-personal.component';
 export const routes: Routes = [
 
     {
@@ -1272,6 +1274,9 @@ export const routes: Routes = [
             { path: 'project-task-time-line-null', component: ProjectTaskTimeLineNullComponent, canActivate: [authGuard] },
             { path: 'project-task-efficiency-by-task', component: ProjectTaskEfficiencyByTaskComponent, canActivate: [authGuard] },
             { path: 'inventory-overaged', component: InventoryOveragedComponent, canActivate: [authGuard] },
+            { path: 'config-notification-key', component: ConfigNotificationKeyManagementComponent, canActivate: [authGuard] },
+            { path: 'config-notification-key-personal', component: ConfigNotificationKeyPersonalComponent, canActivate: [authGuard] },
+
 
         ],
     },

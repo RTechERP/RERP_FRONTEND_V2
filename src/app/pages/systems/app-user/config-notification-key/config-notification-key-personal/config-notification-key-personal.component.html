@@ -1,0 +1,42 @@
+<div class="setting-page" style="height: 80vh !important;">
+  <div class="setting-header">
+    <div class="header-content">
+      <i nz-icon nzType="setting" nzTheme="outline" class="header-icon"></i>
+      <div class="header-text">
+        <h1>Cài đặt thông báo cá nhân</h1>
+        <p>Quản lý các tùy chỉnh nhận thông báo từ hệ thống R-ERP</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span *ngIf="loading" class="autosave-indicator">
+        <i nz-icon nzType="loading" nzTheme="outline"></i> Đang tải...
+      </span>
+    </div>
+  </div>
+
+  <nz-spin [nzSpinning]="loading">
+    <div class="setting-content">
+      <div class="setting-group">
+        <div class="group-header">
+          <i nz-icon nzType="bell" nzTheme="outline"></i>
+          <span>Cấu hình nhận thông báo</span>
+        </div>
+
+        <nz-card class="setting-card">
+          <div class="setting-item" *ngFor="let item of settings">
+            <div class="item-info">
+              <h3>{{ item.KeyName }}</h3>
+              <p>{{ item.KeyContent }}</p>
+            </div>
+            <nz-switch [(ngModel)]="item.IsActive" (ngModelChange)="onToggleSetting(item, $event)"></nz-switch>
+          </div>
+
+          <div class="setting-placeholder" *ngIf="settings.length === 0 && !loading">
+            <i nz-icon nzType="inbox" nzTheme="outline"></i>
+            <span>Chưa có cài đặt thông báo nào được thiết lập.</span>
+          </div>
+        </nz-card>
+      </div>
+    </div>
+  </nz-spin>
+</div>

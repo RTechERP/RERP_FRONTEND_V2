@@ -132,6 +132,7 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private dateRangeSubscription?: Subscription;
   private isUpdatingFromStore = false;
+  private apiTimeout: any;
 
   private readonly TIME_SLOTS: TimeSlot[] = [
     { field: '08:00', time: '08:00' },
@@ -451,33 +452,39 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
   getAllBookingRoom(): void {
     if (!this.dateStart || !this.dateEnd) return;
 
-    this.isDataLoading = true;
-    this.bookingRoomService
-      .getBookingRooms(this.dateStart, this.dateEnd, true)
-      .subscribe({
-        next: (result: any) => {
-          if (result.status === 1 && result.data) {
-            const data = result.data;
-            this.roomData = {
-              room1: data.room1 || data.Item1 || [],
-              room2: data.room2 || data.Item2 || [],
-              room3: data.room3 || data.Item3 || [],
-            };
-            this.hydrateCalendarsFromResult();
-          } else {
-            this.roomData = { room1: [], room2: [], room3: [] };
-            this.hydrateCalendarsFromResult();
-          }
-          this.isDataLoading = false;
-        },
-        error: (err) => {
-          this.isDataLoading = false;
-          this.notification.error(
-            NOTIFICATION_TITLE.error,
-            err?.error?.message || 'Không thể tải dữ liệu đặt phòng'
-          );
-        },
-      });
+    if (this.apiTimeout) {
+      clearTimeout(this.apiTimeout);
+    }
+
+    this.apiTimeout = setTimeout(() => {
+      this.isDataLoading = true;
+      this.bookingRoomService
+        .getBookingRooms(this.dateStart!, this.dateEnd!, true)
+        .subscribe({
+          next: (result: any) => {
+            if (result.status === 1 && result.data) {
+              const data = result.data;
+              this.roomData = {
+                room1: data.room1 || data.Item1 || [],
+                room2: data.room2 || data.Item2 || [],
+                room3: data.room3 || data.Item3 || [],
+              };
+              this.hydrateCalendarsFromResult();
+            } else {
+              this.roomData = { room1: [], room2: [], room3: [] };
+              this.hydrateCalendarsFromResult();
+            }
+            this.isDataLoading = false;
+          },
+          error: (err) => {
+            this.isDataLoading = false;
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              err?.error?.message || 'Không thể tải dữ liệu đặt phòng'
+            );
+          },
+        });
+    }, 300);
   }
 
   private hydrateCalendarsFromResult(): void {
@@ -669,7 +676,10 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
       keyboard: false
     });
 
-    modalRef.componentInstance.data = null;
+    // Provide default room based on active tab
+    modalRef.componentInstance.data = {
+      MeetingRoomId: this.activeTabIndex + 1
+    };
     modalRef.componentInstance.isEditMode = false;
 
     modalRef.result.then(
@@ -918,7 +928,10 @@ export class BookingRoomComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  activeTabIndex: number = 0;
+
   onTabChange(index: number): void {
+    this.activeTabIndex = index;
     setTimeout(() => {
       this.roomCalendars.forEach((cal) => cal.updateSize());
     }, 100);

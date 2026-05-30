@@ -24,6 +24,9 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 })
 export class SummaryAssetPersionalComponent implements OnInit {
   activeTabIndex: number = 0;
+  personalCount: number | null = null;
+  saleCount: number | null = null;
+  demoCount: number | null = null;
 
   constructor(private route: ActivatedRoute) {}
 

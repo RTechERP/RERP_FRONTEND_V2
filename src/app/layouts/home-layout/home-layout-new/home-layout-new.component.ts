@@ -574,7 +574,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                     text: `Bạn có ${count} bình chọn chưa hoàn thành`,
                     group: 'today',
                     icon: 'form',
-                    route: 'poll-form',
+                    route: 'poll-vote',
                     queryParams: {}
                 });
             }),

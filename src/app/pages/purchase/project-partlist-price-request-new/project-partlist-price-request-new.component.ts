@@ -4727,6 +4727,11 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         centered: true,
       }
     );
+    // Tab HCNS (activeTabId = -2) → typeID = 3, Tab Hàng demo (activeTabId = -4) → typeID = 6
+    let typeID = 0;
+    if (this.activeTabId === -2) typeID = 3;
+    else if (this.activeTabId === -4) typeID = 6;
+    modalRef.componentInstance.projectPartlistPriceRequestTypeID = typeID;
   }
 
   OpenAddSupplierModal(): void {

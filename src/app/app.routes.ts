@@ -369,6 +369,7 @@ import { ProjectTaskEfficiencyByProjectComponent } from './pages/project_task/pr
 import { ProjectTaskTimeLineNullComponent } from './pages/project_task/project-task-time-line-null/project-task-time-line-null.component';
 import { ProjectTaskEfficiencyByTaskComponent } from './pages/project_task/project-task-efficiency-by-task/project-task-efficiency-by-task.component';
 import { PaymentOrderPrimeComponent } from './pages/general-category/payment-order/payment-order-prime/payment-order-prime.component';
+import { InventoryOveragedComponent } from './pages/old/Sale/Inventory/inventory-overaged/inventory-overaged.component';
 export const routes: Routes = [
 
     {
@@ -1270,6 +1271,7 @@ export const routes: Routes = [
             { path: 'project-task-efficiency-by-project', component: ProjectTaskEfficiencyByProjectComponent, canActivate: [authGuard] },
             { path: 'project-task-time-line-null', component: ProjectTaskTimeLineNullComponent, canActivate: [authGuard] },
             { path: 'project-task-efficiency-by-task', component: ProjectTaskEfficiencyByTaskComponent, canActivate: [authGuard] },
+            { path: 'inventory-overaged', component: InventoryOveragedComponent, canActivate: [authGuard] },
 
         ],
     },

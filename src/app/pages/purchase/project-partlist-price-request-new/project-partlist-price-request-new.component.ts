@@ -2464,14 +2464,13 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       showFooterRow: true,
       footerRowHeight: 28,
 
-      // Ngăn chỉnh sửa các hàng đã báo giá (StatusRequest = 2) hoặc đã hoàn thành (StatusRequest = 3)
       editCommandHandler: (item: any, _column: any, editCommand: any) => {
         // Tab VTTH (typeId = 15) không cho phép sửa trực tiếp trên bảng
         if (typeId === -10) {
           return;
         }
 
-        const statusRequest = Number(item?.StatusRequestID ?? item?.StatusRequest ?? 0);
+        const statusRequest = Number(item?.StatusRequest || 0);
         // Chỉ block status = 3 (hoàn thành), status = 2 (đã báo giá) vẫn cho sửa
         if (statusRequest === 3) {
           // Không thực hiện edit command, revert lại giá trị cũ

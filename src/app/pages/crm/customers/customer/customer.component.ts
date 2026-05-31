@@ -135,6 +135,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         label: 'Thêm',
         icon: 'fa-solid fa-plus fa-lg text-success',
+        visible: this.permissionService.hasPermission('N1,N38,N27,N31,N53,N69'),
         command: () => {
           this.openModal();
         }
@@ -142,6 +143,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         label: 'Sửa',
         icon: 'fa-solid fa-pen fa-lg text-primary',
+        visible: this.permissionService.hasPermission('N1,N38,N27,N31,N53,N69'),
         command: () => {
           this.onEdit();
         }
@@ -149,6 +151,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash fa-lg text-danger',
+        visible: this.permissionService.hasPermission('N1,N38,N27,N31,N53,N69'),
         command: () => {
           this.onDelete();
         }
@@ -156,6 +159,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         label: 'Ngành nghề',
         icon: 'fa-solid fa-industry fa-lg text-info',
+        visible: this.permissionService.hasPermission('N1,N38,N27,N31,N53,N69'),
         command: () => {
           this.openMajorModal();
         }
@@ -163,7 +167,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         label: 'Lĩnh vực',
         icon: 'fa-solid fa-briefcase text-info',
-        visible: this.permissionService.hasPermission('N13,N1,N27,N31'),
+        visible: this.permissionService.hasPermission('N1,N38'),
         command: () => {
           this.openCustomerIndustryModal();
         }
@@ -354,7 +358,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     );
   }
 
-    openCustomerIndustryModal() {
+  openCustomerIndustryModal() {
     const modalRef = this.modalService.open(CustomerIndustryComponent, {
       centered: true,
       backdrop: 'static',
@@ -607,6 +611,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       //   },
       columns: [
         { title: 'ID', field: 'ID', visible: false, frozen: true },
+        { title: 'STT', field: 'STT', frozen: true, width: '50' },
         { title: 'Mã khách', field: 'CustomerCode', frozen: true, width: '150' },
         { title: 'Tên kí hiệu', field: 'CustomerShortName', frozen: true, width: '100' },
         {

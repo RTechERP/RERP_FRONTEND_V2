@@ -12,6 +12,15 @@
                     <div class="legend-item">
                         <span class="box actual"></span> Thực tế
                     </div>
+                    <div class="legend-item">
+                        <span class="box outside-work"></span> Nhà máy
+                    </div>
+                    <div class="legend-item"><span class="legend-sep">|</span></div>
+                    <div class="legend-item"><strong>Ro</strong>&nbsp;= Nghỉ không lương</div>
+                    <div class="legend-item"><strong>P</strong>&nbsp;= Nghỉ phép</div>
+                    <div class="legend-item"><strong>R</strong>&nbsp;= Việc riêng có lương</div>
+                    <div class="legend-item"><span class="legend-sep">|</span></div>
+                    <div class="legend-item"><strong>/S</strong>&nbsp;= Buổi sáng &nbsp; <strong>/C</strong>&nbsp;= Buổi chiều &nbsp; (không có hậu tố = cả ngày)</div>
                 </div>
             </div>
             <nz-row [nzGutter]="[8, 8]" nzAlign="bottom" nzJustify="space-between">
@@ -37,8 +46,9 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Phòng ban</label>
-                        <nz-select nzPlaceHolder="Phòng ban" [(ngModel)]="departmentId" nzSize="small" nzShowSearch
-                            nzAllowClear (ngModelChange)="onDepartmentChange()" style="width: 100%;">
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Phòng ban" [(ngModel)]="departmentId" nzSize="small" nzShowSearch nzAllowClear
+                            (ngModelChange)="onDepartmentChange()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
                             <nz-option *ngFor="let item of departmentList; trackBy: trackByRow" [nzLabel]="item.Name || ''"
                                 [nzValue]="item.ID">
@@ -51,7 +61,8 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Team</label>
-                        <nz-select nzPlaceHolder="Team" [(ngModel)]="teamId" nzSize="small" nzShowSearch nzAllowClear
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Team" [(ngModel)]="teamId" nzSize="small" nzShowSearch nzAllowClear
                             (ngModelChange)="onTeamChange()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
                             <nz-option *ngFor="let item of teamList; trackBy: trackByRow" [nzLabel]="item.Name || ''" [nzValue]="item.ID">
@@ -64,8 +75,9 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="3">
                     <div class="form-field-vertical">
                         <label>Nhân viên</label>
-                        <nz-select nzPlaceHolder="Nhân viên" [(ngModel)]="userId" nzSize="small" nzShowSearch
-                            nzAllowClear (ngModelChange)="loadTimeline()" style="width: 100%;">
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Nhân viên" [(ngModel)]="userId" nzSize="small" nzShowSearch nzAllowClear
+                            (ngModelChange)="loadTimeline()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
                             <nz-option *ngFor="let item of userList; trackBy: trackByRow" [nzLabel]="item.FullName || ''"
                                 [nzValue]="item.UserID">
@@ -78,11 +90,16 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="4">
                     <div class="form-field-vertical">
                         <label>Dự án</label>
-                        <nz-select nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch
-                            nzAllowClear (ngModelChange)="loadTimeline()" style="width: 100%;">
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch nzAllowClear
+                            (ngModelChange)="loadTimeline()" style="width: 100%;">
                             <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
                             <nz-option *ngFor="let item of projectList; trackBy: trackByRow"
+                                nzCustomContent
                                 [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
+                                <div class="multiline-dropdown-option">
+                                    {{ item.ProjectCode }} - {{ item.ProjectName }}
+                                </div>
                             </nz-option>
                         </nz-select>
                     </div>
@@ -92,9 +109,10 @@
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="6">
                     <div class="form-field-vertical">
                         <label>Trạng thái</label>
-                        <nz-select nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
+                        <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
+                            nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
                             nzMode="multiple" [nzMaxTagCount]="4" nzAllowClear (ngModelChange)="loadTimeline()" style="width: 100%;">
-                            <nz-option *ngFor="let opt of statusOptions; trackBy: trackByRow" [nzLabel]="opt.label" [nzValue]="opt.value">
+                            <nz-option *ngFor="let opt of statusOptions" [nzLabel]="opt.label" [nzValue]="opt.value">
                             </nz-option>
                         </nz-select>
                     </div>
@@ -113,6 +131,10 @@
                                 nzTooltipTitle="Tìm kiếm">
                                 <span nz-icon nzType="search"></span>
                             </button>
+                            <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" nz-tooltip
+                                nzTooltipTitle="Xuất Excel">
+                                <span nz-icon nzType="file-excel" nzTheme="outline" style="color: #107c41;"></span>
+                            </button>
                         </div>
                     </div>
                 </nz-col>
@@ -122,7 +144,7 @@
 
     <!-- ===== BẢNG TIMELINE ===== -->
     <div class="timeline-content" [class.loading]="loading()">
-        <div class="table-container">
+        <div class="table-container" (scroll)="onScroll($event)">
             <table class="grid-table">
                 <thead>
                     <!-- Hàng 1: Tên cột + Tên ngày -->
@@ -130,8 +152,11 @@
                         <th rowspan="2" class="sticky-col col-stt">STT</th>
                         <th rowspan="2" class="sticky-col col-name">
                             Họ và tên
-                            <input type="text" class="filter-input" [(ngModel)]="filterFullName"
-                                (keyup)="onColumnFilter()" placeholder="Tìm kiếm...">
+                            <p-multiSelect [options]="employeeColumnOptions" [(ngModel)]="filterEmployeeColumn"
+                                placeholder="Tất cả" [showHeader]="false" [filter]="true" filterPlaceHolder="Tìm..." 
+                                (onChange)="onColumnFilter()"
+                                styleClass="timeline-status-multi" [maxSelectedLabels]="1"
+                                selectedItemsLabel="{0} người" appendTo="body" />
                         </th>
 
                         <th rowspan="2" class="sticky-col col-proj">
@@ -151,24 +176,25 @@
                             <p-multiSelect [options]="statusOptions" [(ngModel)]="filterStatusColumn"
                                 placeholder="Tất cả" [showHeader]="false" [filter]="false" (onChange)="onColumnFilter()"
                                 styleClass="timeline-status-multi" [maxSelectedLabels]="3"
-                                selectedItemsLabel="{0} trạng thái" appendTo="body" />
+                                panelStyleClass="timeline-status-multi-panel" selectedItemsLabel="{0} trạng thái"
+                                appendTo="body" />
                         </th>
                         <th rowspan="2" class="sticky-col col-time">Thời gian <br>(giờ/ngày)</th>
                         <th rowspan="2" class="sticky-col col-type">Loại</th>
-                        <th *ngFor="let col of dateColumns; trackBy: trackByColumn" [class.sunday]="col.isSunday"
+                        <th *ngFor="let col of dateColumns; trackBy: trackByColumn" [class.sunday]="col.isSunday || col.isDayOff"
                             [class.today-col]="col.isToday" class="date-header">
                             {{ col.dayName }}
                         </th>
                     </tr>
                     <tr>
-                        <th *ngFor="let col of dateColumns; trackBy: trackByColumn" [class.sunday]="col.isSunday"
+                        <th *ngFor="let col of dateColumns; trackBy: trackByColumn" [class.sunday]="col.isSunday || col.isDayOff"
                             [class.today-col]="col.isToday" class="date-subheader">
                             {{ col.dateDisplay }}
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <ng-container *ngFor="let group of filteredData(); let gi = index; trackBy: trackByGroup">
+                    <ng-container *ngFor="let group of visibleData(); let gi = index; trackBy: trackByGroup">
                         <ng-container *ngFor="let project of group.projects; let pi = index; trackBy: trackByProject">
                             <ng-container *ngFor="let task of project.tasks; let ti = index; trackBy: trackByTask">
                                 <ng-container *ngFor="let row of task.rows; let ri = index; trackBy: trackByRow">
@@ -177,13 +203,13 @@
                                         [class.row-group-end]="ri === 1 && ti === project.tasks.length - 1 && pi === group.projects.length - 1">
                                         <!-- STT: chỉ ở dòng đầu tiên của nhóm nhân viên -->
                                         <td *ngIf="pi === 0 && ti === 0 && ri === 0"
-                                            [attr.rowspan]="calculateGroupRowspan(group)"
+                                            [attr.rowspan]="group._rowspan"
                                             class="sticky-col col-stt text-center cell-group cell-group-end">
                                             {{ gi + 1 }}
                                         </td>
                                         <!-- Họ và tên: chỉ ở dòng đầu tiên của nhóm nhân viên -->
                                         <td *ngIf="pi === 0 && ti === 0 && ri === 0"
-                                            [attr.rowspan]="calculateGroupRowspan(group)"
+                                            [attr.rowspan]="group._rowspan"
                                             class="sticky-col col-name cell-group cell-name-text cell-group-end">
                                             {{ group.FullName }}
                                         </td>
@@ -226,7 +252,7 @@
                                         <!-- Trạng thái: span 2 dòng -->
                                         <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-status text-center"
                                             [class.cell-group-end]="ti === project.tasks.length - 1 && pi === group.projects.length - 1">
-                                            <span class="status-tag" [attr.data-status]="task.Status" [class.overdue]="task.isOverdue">
+                                            <span class="status-tag" [attr.data-status]="task.Status" [class.overdue]="task.isOverdue" [ngStyle]="task._statusStyle">
                                                 {{ task.StatusName }}
                                             </span>
                                         </td>
@@ -244,22 +270,30 @@
                                             {{ row.TypeDate === 1 ? 'Dự kiến' : 'Thực tế' }}
                                         </td>
 
-                                        <!-- Các ô ngày -->
+                                        <!-- Các ô ngày - Sử dụng pre-computed _cellData thay vì gọi hàm -->
                                         <td *ngFor="let col of dateColumns; trackBy: trackByColumn" class="gantt-cell"
                                             [class.cell-group-end]="ri === 1 && ti === project.tasks.length - 1 && pi === group.projects.length - 1"
-                                            [class.sunday]="col.isSunday" [class.today-col]="col.isToday"
-                                            [class.filled-planned]="row.TypeDate === 1 && (getValue(row, col.dateStr) === 1 || getValue(row, col.dateStr) === 3)"
-                                            [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
-                                            <!-- Dự kiến: 2 hoặc 3 hiển thị icon check -->
+                                            [class.sunday]="col.isSunday || col.isDayOff" [class.today-col]="col.isToday"
+                                            [class.filled-planned]="row.TypeDate === 1 && row._cellData[col.dateStr]?.isPlannedFilled && !row._cellData[col.dateStr]?.isOutsideWork"
+                                            [class.filled-planned-outside]="row.TypeDate === 1 && row._cellData[col.dateStr]?.isPlannedFilled && row._cellData[col.dateStr]?.isOutsideWork"
+                                            [class.filled-actual]="row.TypeDate === 2 && row._cellData[col.dateStr]?.isFilledActual"
+                                            [class.filled-actual-outside]="row.TypeDate === 2 && row._cellData[col.dateStr]?.isFilledActualOutside"
+                                            [nz-tooltip]="row._cellData[col.dateStr]?.tooltip">
+                                            <!-- Dự kiến: hiển thị icon check -->
                                             <ng-container
-                                                *ngIf="row.TypeDate === 1 && (getValue(row, col.dateStr) === 2 || getValue(row, col.dateStr) === 3)">
+                                                *ngIf="row.TypeDate === 1 && row._cellData[col.dateStr]?.hasCheckMark">
                                                 <span nz-icon nzType="check" nzTheme="outline"
                                                     class="check-icon"></span>
                                             </ng-container>
-                                            <!-- Thực tế: > 0 hiển thị số giờ -->
-                                            <ng-container *ngIf="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
-                                                <span class="actual-hours">
-                                                    {{ getValue(row, col.dateStr) }}
+                                            <!-- Thực tế: dùng pre-computed data -->
+                                            <ng-container *ngIf="row.TypeDate === 2">
+                                                <!-- Hiển thị số giờ làm thực tế nếu > 0 -->
+                                                <span *ngIf="row._cellData[col.dateStr]?.actualHours > 0" class="actual-hours">
+                                                    {{ row._cellData[col.dateStr].actualHours }}
+                                                </span>
+                                                <!-- Hiển thị nhãn nghỉ nếu có đăng ký nghỉ -->
+                                                <span *ngIf="row._cellData[col.dateStr]?.hasLeave" class="leave-label">
+                                                    {{ row._cellData[col.dateStr].leaveLabel }}
                                                 </span>
                                             </ng-container>
                                         </td>
@@ -279,7 +313,7 @@
                 <tfoot>
                     <tr>
                         <td [attr.colspan]="8 + dateColumns.length" class="table-footer-total">
-                            Tổng số công việc: <span class="total-count">{{ getTotalTasks() }}</span>
+                            Tổng số công việc: <span class="total-count">{{ totalTaskCount() }}</span>
                         </td>
                     </tr>
                 </tfoot>

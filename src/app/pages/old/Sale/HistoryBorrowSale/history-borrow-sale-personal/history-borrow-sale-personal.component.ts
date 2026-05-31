@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, Optional } from '@angular/core';
+import { Component, Inject, OnInit, Optional, Output, EventEmitter } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { CommonModule } from '@angular/common';
@@ -61,6 +61,7 @@ import { AppUserService } from '../../../../../services/app-user.service';
   styleUrl: './history-borrow-sale-personal.component.css'
 })
 export class HistoryBorrowSalePersonalComponent implements OnInit {
+  @Output() dataCountChange = new EventEmitter<number>();
   constructor(
     private historyBorrowSaleService: HistoryBorrowSaleService,
     private notification: NzNotificationService,
@@ -816,6 +817,7 @@ export class HistoryBorrowSalePersonalComponent implements OnInit {
               id: index++
             };
           });
+          this.dataCountChange.emit(this.dataset.length);
 
           setTimeout(() => {
             // Update filter collections from dataset

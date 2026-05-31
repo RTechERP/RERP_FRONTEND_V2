@@ -125,7 +125,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
     if (!this.dateStart || !this.dateEnd) return;
  
     this.loading.set(true);
-    this.projectTaskService.getProjectTasks(this.dateStart, this.dateEnd, -1).subscribe({
+    this.projectTaskService.getProjectTasks(this.dateStart, this.dateEnd, '-1', -1).subscribe({
       next: (res) => {
         const rawTasks = res.ProjectTask || [];
         

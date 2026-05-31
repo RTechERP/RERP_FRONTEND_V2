@@ -58,6 +58,8 @@ import { DailyReportSaleService } from '../daily-report-sale-service/daily-repor
 import { AppUserService } from '../../../../../services/app-user.service';
 import { ProjectService } from '../../../../project/project-service/project.service';
 import { FirmService } from '../../../../general-category/firm/firm-service/firm.service';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { PermissionService } from '../../../../../services/permission.service';
 import { FirmBaseDetailComponent } from '../../../../project/firmbase-detail/firm-base-detail.component';
 import { CustomerDetailComponent } from '../../../../crm/customers/customer-detail/customer-detail.component';
 import { ProjectTypeBaseDetailComponent } from '../../../VisionBase/kho-base/follow-project-base/project-type-base-detail/project-type-base-detail.component';
@@ -91,6 +93,7 @@ import { CustomerPartComponent } from '../../../customer-part/customer-part.comp
     NzCheckboxModule,
     NzFormModule,
     CommonModule,
+    HasPermissionDirective,
   ],
   templateUrl: './daily-report-sale-detail.component.html',
   styleUrl: './daily-report-sale-detail.component.css'
@@ -155,6 +158,7 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     private appUserService: AppUserService,
     private projectService: ProjectService,
     private firmService: FirmService,
+    private permissionService: PermissionService,
   ) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -565,6 +569,10 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   }
 
   onAddFirm(): void {
+    if (!this.permissionService.hasPermission('N1,N27,N31,N100')) {
+      this.notification.warning('Cảnh báo', 'Bạn không có quyền thực hiện chức năng này!');
+      return;
+    }
     const modalRef = this.modalService.open(FirmBaseDetailComponent, {
       centered: true,
       size: 'xl',
@@ -582,6 +590,10 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
   }
 
   onAddProjectType(): void {
+    if (!this.permissionService.hasPermission('N1,N27,N31,N100')) {
+      this.notification.warning('Cảnh báo', 'Bạn không có quyền thực hiện chức năng này!');
+      return;
+    }
     const modalRef = this.modalService.open(ProjectTypeBaseDetailComponent, {
       centered: true,
       size: 'xl',

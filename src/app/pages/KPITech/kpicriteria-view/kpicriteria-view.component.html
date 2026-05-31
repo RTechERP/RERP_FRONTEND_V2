@@ -12,7 +12,7 @@
         <!-- Năm -->
         <div style="display: flex; align-items: center; gap: 8px;">
             <label style="font-weight: 600; color: #333;">Năm:</label>
-            <nz-input-number nzSize="small" [(ngModel)]="criteriaYear" [nzMin]="2024" [nzMax]="2100" [nzDisabled]="true"
+            <nz-input-number nzSize="small" [(ngModel)]="criteriaYear" (ngModelChange)="onYearChange($event)" [nzMin]="2024" [nzMax]="2100"
                 [nzStep]="1" style="width: 100px;">
             </nz-input-number>
         </div>
@@ -20,7 +20,7 @@
         <!-- Quý -->
         <div style="display: flex; align-items: center; gap: 8px;">
             <label style="font-weight: 600; color: #333;">Quý:</label>
-            <nz-input-number nzSize="small" [(ngModel)]="criteriaQuarter" [nzMin]="1" [nzMax]="4" [nzDisabled]="true"
+            <nz-input-number nzSize="small" [(ngModel)]="criteriaQuarter" (ngModelChange)="onQuarterChange($event)" [nzMin]="1" [nzMax]="4"
                 [nzStep]="1" style="width: 100px;">
             </nz-input-number>
         </div>
@@ -29,11 +29,11 @@
 
 <!-- Grid hiển thị thang điểm đánh giá -->
 <div class="evaluate-point-section" style="padding: 8px;">
-    <div class="grid-evaluate-point-container" style="width: 100%; height: 100px;" *ngIf="gridsInitialized">
-        <angular-slickgrid gridId="grid-evaluate-point" [columns]="evaluatePointColumns"
-            [options]="evaluatePointGridOptions" [dataset]="dataEvaluatePoint"
-            (onAngularGridCreated)="onEvaluatePointGridReady($event.detail)">
-        </angular-slickgrid>
+    <div class="grid-evaluate-point-container" style="width: 100%;" *ngIf="gridsInitialized">
+        <app-custom-table-kpi #gridEvaluatePoint [columns]="evaluatePointColumns" [data]="dataEvaluatePoint"
+            [height]="'100px'" [showCaption]="false" [showColumnFilter]="false" [resizable]="true"
+            [columnAutoWidth]="true" [scrollable]="true">
+        </app-custom-table-kpi>
     </div>
 </div>
 
@@ -42,22 +42,22 @@
     <nz-tabset [(nzSelectedIndex)]="selectedTabIndex">
         <!-- Tab 1: Bảng tiêu chí -->
         <nz-tab nzTitle="BẢNG TIÊU CHÍ">
-            <div class="grid-criteria-container" style="width: 100%; height: 500px;"
+            <div class="grid-criteria-container" style="width: 100%;"
                 *ngIf="gridsInitialized && selectedTabIndex === 0">
-                <angular-slickgrid gridId="grid-criteria" [columns]="criteriaColumns" [options]="criteriaGridOptions"
-                    [dataset]="dataCriteria" (onAngularGridCreated)="onCriteriaGridReady($event.detail)">
-                </angular-slickgrid>
+                <app-custom-table-kpi #gridCriteria [columns]="criteriaColumns" [data]="dataCriteria"
+                    [headerGroups]="criteriaHeaderGroups" [height]="'500px'" [dataKey]="'id'" [resizable]="true"
+                    [scrollable]="true">
+                </app-custom-table-kpi>
             </div>
         </nz-tab>
 
         <!-- Tab 2: Loại dự án -->
         <nz-tab nzTitle="LOẠI DỰ ÁN">
-            <div class="grid-project-type-container" style="width: 100%; height: 500px;"
+            <div class="grid-project-type-container" style="width: 100%;"
                 *ngIf="gridsInitialized && selectedTabIndex === 1">
-                <angular-slickgrid gridId="grid-project-type" [columns]="projectTypeColumns"
-                    [options]="projectTypeGridOptions" [dataset]="dataProjectType"
-                    (onAngularGridCreated)="onProjectTypeGridReady($event.detail)">
-                </angular-slickgrid>
+                <app-custom-table-kpi #gridProjectType [columns]="projectTypeColumns" [data]="dataProjectType"
+                    [height]="'500px'" [dataKey]="'id'" [resizable]="true" [scrollable]="true">
+                </app-custom-table-kpi>
             </div>
         </nz-tab>
     </nz-tabset>

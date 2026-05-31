@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -37,6 +37,7 @@ export class KpiEvaluationFactorsDetailComponent implements OnInit {
     @Input() departmentId: number = 0;
     @Input() selectedFactor: any = null; // Khi edit
     @Input() parentFactor: any = null;   // Khi thêm từ node cha
+    @Output() onSaved = new EventEmitter<any>();
 
     // Form fields
     id: number = 0;
@@ -52,6 +53,7 @@ export class KpiEvaluationFactorsDetailComponent implements OnInit {
 
     // Dropdown data
     parentGroups: any[] = [];
+    parentGroupNodes: any[] = [];
     evaluationTypes: any[] = [
         { ID: 0, EValuationType: '---Chọn yếu tố ---' },
         { ID: 1, EValuationType: 'Đánh giá kỹ năng' },
@@ -116,11 +118,16 @@ export class KpiEvaluationFactorsDetailComponent implements OnInit {
         this.kpiService.getParentGroup(this.kpiExamId, this.selectedEvaluationType, this.id).subscribe({
             next: (response: any) => {
                 if (response?.status === 1) {
-                    // Thêm option "Không có nhóm cha" vào đầu
                     const data = response.data || [];
                     this.parentGroups = [
                         { ID: 0, STT: '', EvaluationDetails: 'Không có nhóm cha' },
                         ...data
+                    ];
+
+                    // Build tree nodes for nz-tree-select
+                    this.parentGroupNodes = [
+                        { title: 'Không có nhóm cha', value: 0, key: 0, isLeaf: true },
+                        ...this.buildTreeNodes(data, 0)
                     ];
                 }
             },
@@ -128,6 +135,29 @@ export class KpiEvaluationFactorsDetailComponent implements OnInit {
                 this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhóm cha');
             }
         });
+    }
+
+    buildTreeNodes(flatData: any[], parentId: number): any[] {
+        const nodes: any[] = [];
+        const children = flatData.filter(item => (item.ParentID || 0) === parentId);
+
+        for (const child of children) {
+            const title = child.STT ? `${child.EvaluationDetails}` : child.EvaluationDetails;
+            const nodeChildren = this.buildTreeNodes(flatData, child.ID);
+            const node: any = {
+                title: title,
+                value: child.ID,
+                key: child.ID,
+                isLeaf: nodeChildren.length === 0,
+                expanded: true
+            };
+            if (nodeChildren.length > 0) {
+                node.children = nodeChildren;
+            }
+            nodes.push(node);
+        }
+
+        return nodes;
     }
 
     loadSpecializationTypes(): void {
@@ -268,6 +298,7 @@ export class KpiEvaluationFactorsDetailComponent implements OnInit {
                 this.isSaving = false;
                 if (response?.status === 1) {
                     this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Lưu thành công');
+                    this.onSaved.emit(response.data);
 
                     if (resetAfterSave) {
                         this.resetForm();
@@ -280,7 +311,7 @@ export class KpiEvaluationFactorsDetailComponent implements OnInit {
             },
             error: (err) => {
                 this.isSaving = false;
-                const errorMessage = err?.error?.message || err?.message || 'Có lỗi xảy ra khi lưu dữ liệu';
+                const errorMessage = typeof err?.error === 'string' ? err.error : (err?.error?.message || err?.message || 'Có lỗi xảy ra khi lưu dữ liệu');
                 this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
             }
         });

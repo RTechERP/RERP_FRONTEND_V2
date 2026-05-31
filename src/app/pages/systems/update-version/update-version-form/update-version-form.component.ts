@@ -129,8 +129,8 @@ export class UpdateVersionFormComponent implements OnInit, AfterViewInit {
 
     onSave(): void {
         // Validate dữ liệu
-        if (!this.isEditMode && !this.formData.Code) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, 'Mã phiên bản chưa được tạo, vui lòng thử lại!');
+        if (!this.formData.Code || this.formData.Code.trim() === '') {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập mã phiên bản!');
             return;
         }
 

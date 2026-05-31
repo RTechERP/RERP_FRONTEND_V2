@@ -2,11 +2,7 @@
     <!-- ============================================================ -->
     <!-- LEFT PANEL: Category Table OR Tree View                      -->
     <!-- ============================================================ -->
-    <nz-splitter-panel [nzSize]="isCategoryVisible ? '40%' : '0%'"
-        [nzDefaultSize]="isCategoryVisible ? '40%' : '0%'"
-        [nzMin]="'0'"
-        [nzMax]="isAllCoursesView ? '40%' : '50%'"
-        [nzResizable]="false">
+    <nz-splitter-panel [nzDefaultSize]="isCategoryVisible ? '30%' : '0%'" [nzMin]="'20%'" [nzMax]="'40%'" [nzResizable]="true">
 
         <div class="box">
             <ng-container class="w-100">
@@ -24,13 +20,10 @@
                                     <h6 class="mb-0">Danh mục khóa học</h6>
                                     <div class="d-flex align-items-center gap-2">
                                         <!-- Toggle sang Tree View -->
-                                        <button nz-button nzType="default" nzSize="small"
-                                            nz-tooltip nzTooltipTitle="Xem tất cả khóa học"
-                                            (click)="toggleViewMode()">
+                                        <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="Xem tất cả khóa học" (click)="toggleViewMode()">
                                             <span nz-icon nzType="appstore"></span>
                                         </button>
-                                        <button nz-button nzType="text" nzSize="small" (click)="toggleCategoryTable()"
-                                            title="Thu gọn">
+                                        <button nz-button nzType="text" nzSize="small" (click)="toggleCategoryTable()" title="Thu gọn">
                                             <span nz-icon nzType="menu"></span>
                                         </button>
                                     </div>
@@ -48,8 +41,7 @@
                                             (click)="toggleViewMode()">
                                             <span nz-icon nzType="folder"></span>
                                         </button> -->
-                                        <button nz-button nzType="text" nzSize="small" (click)="toggleCategoryTable()"
-                                            title="Thu gọn">
+                                        <button nz-button nzType="text" nzSize="small" (click)="toggleCategoryTable()" title="Thu gọn">
                                             <span nz-icon nzType="menu"></span>
                                         </button>
                                     </div>
@@ -59,14 +51,14 @@
                             <!-- ======================================== -->
                             <!-- BODY: Nội dung thay đổi theo view mode -->
                             <!-- ======================================== -->
-                            <div class="card-body p-0">
+                            <div class="card-body p-0" [class.tree-view-body]="isAllCoursesView">
 
                                 <!-- VIEW: Table Danh mục (chế độ cũ) -->
                                 <div *ngIf="!isAllCoursesView" class="category-table-view">
                                     <div #CategoryTable style="width: 100%; height: 100%"></div>
                                 </div>
 
-                                <!-- VIEW: Tree View (chế độ mới) - 4 Cấp -->
+                                <!-- VIEW: Tree View (chế độ mới) - 4 Cấp: Department → CatalogType → Catalog → Course -->
                                 <div *ngIf="isAllCoursesView" class="course-tree-view">
                                     <div class="tree-loading" *ngIf="courseTreeData.length === 0">
                                         <nz-spin nzSimple></nz-spin>
@@ -80,11 +72,8 @@
                                         <ng-container *ngFor="let deptNode of courseTreeData">
 
                                             <!-- Department Header -->
-                                            <div class="tree-node department-node"
-                                                [class.collapsed]="deptNode.isCollapsed"
-                                                (click)="toggleTreeNode(deptNode, $event)">
-                                                <span nz-icon [nzType]="deptNode.isCollapsed ? 'right' : 'down'"
-                                                    nzTheme="outline"></span>
+                                            <div class="tree-node department-node" [class.collapsed]="deptNode.isCollapsed" (click)="toggleTreeNode(deptNode, $event)">
+                                                <span nz-icon [nzType]="deptNode.isCollapsed ? 'right' : 'down'" nzTheme="outline"></span>
                                                 <strong>Phòng ban: {{ deptNode.name }}</strong>
                                                 <nz-tag nzColor="blue">{{ deptNode.courseCount }} Khoá học</nz-tag>
                                             </div>
@@ -96,12 +85,9 @@
                                                 <ng-container *ngFor="let catalogNode of deptNode.children">
 
                                                     <!-- Catalog Type Header -->
-                                                    <div class="tree-node catalog-type-node"
-                                                        [class.collapsed]="catalogNode.isCollapsed"
-                                                        (click)="toggleTreeNode(catalogNode, $event)">
+                                                    <div class="tree-node catalog-type-node" [class.collapsed]="catalogNode.isCollapsed" (click)="toggleTreeNode(catalogNode, $event)">
                                                         <!-- <span class="indent-1"></span> -->
-                                                        <span nz-icon [nzType]="catalogNode.isCollapsed ? 'right' : 'down'"
-                                                            nzTheme="outline"></span>
+                                                        <span nz-icon [nzType]="catalogNode.isCollapsed ? 'right' : 'down'" nzTheme="outline"></span>
                                                         <strong>Loại: {{ catalogNode.name }}</strong>
                                                         <nz-tag [nzColor]="getCatalogTagColor(catalogNode.catalogType)">
                                                             {{ catalogNode.courseCount }}
@@ -115,12 +101,9 @@
                                                         <ng-container *ngFor="let catalogGroupNode of catalogNode.children">
 
                                                             <!-- Catalog Group Header (Code + Name) -->
-                                                            <div class="tree-node catalog-node"
-                                                                [class.collapsed]="catalogGroupNode.isCollapsed"
-                                                                (click)="toggleTreeNode(catalogGroupNode, $event)">
+                                                            <div class="tree-node catalog-node" [class.collapsed]="catalogGroupNode.isCollapsed" (click)="toggleTreeNode(catalogGroupNode, $event)">
                                                                 <!-- <span class="indent-2"></span> -->
-                                                                <span nz-icon [nzType]="catalogGroupNode.isCollapsed ? 'right' : 'down'"
-                                                                    nzTheme="outline"></span>
+                                                                <span nz-icon [nzType]="catalogGroupNode.isCollapsed ? 'right' : 'down'" nzTheme="outline"></span>
                                                                 <strong class="catalog-code">Danh mục: {{ catalogGroupNode.name }} - {{ catalogGroupNode.catalogName }}</strong>
                                                                 <!-- <span class="catalog-full-name"></span> -->
                                                                 <nz-tag nzColor="purple">{{ catalogGroupNode.courseCount }}</nz-tag>
@@ -128,93 +111,63 @@
 
                                                             <div class="tree-children" *ngIf="!catalogGroupNode.isCollapsed">
                                                                 <!-- ============================================================ -->
-                                                                <!-- CẤP 4: TECH TYPE (C#, SQL, Java...)                    -->
+                                                                <!-- CẤP 4: COURSE (Khóa học - chạy thẳng từ Catalog)         -->
                                                                 <!-- ============================================================ -->
-                                                                <ng-container *ngFor="let techNode of catalogGroupNode.children">
+                                                                <ng-container *ngFor="let courseNode of catalogGroupNode.children">
 
-                                                                    <!-- Tech Type Header -->
-                                                                    <div class="tree-node tech-type-node"
-                                                                        [class.collapsed]="techNode.isCollapsed"
-                                                                        (click)="toggleTreeNode(techNode, $event)">
-                                                                        <!-- <span class="indent-3"></span> -->
-                                                                        <span nz-icon [nzType]="techNode.isCollapsed ? 'right' : 'down'"
-                                                                            nzTheme="outline"></span>
-                                                                        <span class="tech-name">Loại khoá học: {{ techNode.name }}</span>
-                                                                        <nz-tag nzColor="default">{{ techNode.courseCount }}</nz-tag>
-                                                                    </div>
+                                                                    <!-- Course Item với layout card mới -->
+                                                                    <div class="course-node" [class.selected]="isNodeSelected(courseNode)" [class.locked]="isCourseLocked(courseNode.course)" (click)="onTreeCourseClick(courseNode, $event)">
 
-                                                                    <div class="tree-children" *ngIf="!techNode.isCollapsed">
-                                                                        <!-- ============================================================ -->
-                                                                        <!-- CẤP 5: COURSE (Khóa học)                               -->
-                                                                        <!-- ============================================================ -->
-                                                                        <ng-container *ngFor="let courseNode of techNode.children">
-
-                                                                            <!-- Course Item với layout card mới -->
-                                                                            <div class="course-node"
-                                                                                [class.selected]="isNodeSelected(courseNode)"
-                                                                                [class.locked]="isCourseLocked(courseNode.course)"
-                                                                                (click)="onTreeCourseClick(courseNode, $event)">
-
-                                                                                <!-- Tên khóa học + Check icon bên cạnh -->
-                                                                                <div class="course-title">
-                                                                                    <!-- Check icon: Chỉ hiện khi Đạt -->
-                                                                                    <span *ngIf="courseNode.course?.EvaluateText === 'Đạt'"
-                                                                                        class="check-icon passed">
+                                                                        <!-- Tên khóa học + Check icon bên cạnh -->
+                                                                        <div class="course-title">
+                                                                            <!-- Check icon: Chỉ hiện khi Đạt -->
+                                                                            <span *ngIf="courseNode.course?.EvaluateText === 'Đạt'" class="check-icon passed">
                                                                                         <span nz-icon nzType="check-circle" nzTheme="fill">
                                                                                         </span>
+                                                                            </span>
+                                                                            <span class="course-name-text">{{ courseNode.name }}</span>
+
+                                                                            <!-- Lock icon ở bên phải với tooltip -->
+                                                                            <span *ngIf="isCourseLocked(courseNode.course)" class="lock-icon" nz-icon nzType="lock" nzTheme="fill" [nz-tooltip]="getLockTooltip(courseNode.course)" nzTooltipPlacement="left">
                                                                                     </span>
-                                                                                    <span class="course-name-text">{{ courseNode.name }}</span>
+                                                                        </div>
 
-                                                                                    <!-- Lock icon ở bên phải với tooltip -->
-                                                                                    <span *ngIf="isCourseLocked(courseNode.course)"
-                                                                                        class="lock-icon" nz-icon nzType="lock" nzTheme="fill"
-                                                                                        [nz-tooltip]="getLockTooltip(courseNode.course)"
-                                                                                        nzTooltipPlacement="left">
-                                                                                    </span>
-                                                                                </div>
-
-                                                                                <!-- Stats row: Số bài + Thời gian + Điểm thi -->
-                                                                                <div class="course-stats-row">
-                                                                                    <!-- Số bài học -->
-                                                                                    <div class="course-stat">
-                                                                                        <span nz-icon nzType="read" nzTheme="outline"></span>
-                                                                                        {{ courseNode.course?.TotalHistoryLession || 0 }}/{{ courseNode.course?.NumberLesson || 0 }} bài
-                                                                                    </div>
-
-                                                                                    <!-- Thời gian học -->
-                                                                                    <div class="course-stat">
-                                                                                        <span nz-icon nzType="clock-circle" nzTheme="outline"></span>
-                                                                                        {{ formatDecimal(courseNode.course?.TotalTimeLearned) }}/{{ formatDecimal(courseNode.course?.LeadTime) }} ngày
-                                                                                    </div>
-
-                                                                                    <!-- Điểm thi - hiện đầy đủ -->
-                                                                                    <div class="course-scores" *ngIf="hasAnyScore(courseNode.course)">
-                                                                                        <span nz-icon nzType="file-text" nzTheme="outline"></span>
-                                                                                        <span>Điểm thi:</span>
-                                                                                        <span *ngIf="courseNode.course?.GoalMultiChoice > 0">
-                                                                                            Trắc nghiệm {{ formatDecimal(courseNode.course?.QuizPoints) }}/{{ formatDecimal(courseNode.course?.GoalMultiChoice) }}
-                                                                                        </span>
-                                                                                        <span *ngIf="courseNode.course?.GoalPractice > 0">
-                                                                                            Thực hành {{ formatDecimal(courseNode.course?.PracticePoints) }}/{{ formatDecimal(courseNode.course?.GoalPractice) }}
-                                                                                        </span>
-                                                                                        <span *ngIf="courseNode.course?.GoalExercise > 0">
-                                                                                            Bài tập {{ formatDecimal(courseNode.course?.ExcercisePoints) }}/{{ formatDecimal(courseNode.course?.GoalExercise) }}
-                                                                                        </span>
-                                                                                    </div>
-                                                                                </div>
+                                                                        <!-- Stats row: Số bài + Thời gian + Điểm thi -->
+                                                                        <div class="course-stats-row">
+                                                                            <!-- Số bài học -->
+                                                                            <div class="course-stat">
+                                                                                <span nz-icon nzType="read" nzTheme="outline"></span> {{ courseNode.course?.TotalHistoryLession || 0 }}/{{ courseNode.course?.NumberLesson || 0 }} bài
                                                                             </div>
 
-                                                                        </ng-container>
+                                                                            <!-- Thời gian học -->
+                                                                            <div class="course-stat">
+                                                                                <span nz-icon nzType="clock-circle" nzTheme="outline"></span> {{ formatDecimal(courseNode.course?.TotalTimeLearned) }}/{{ formatDecimal(courseNode.course?.LeadTime) }} ngày
+                                                                            </div>
 
-                                                                        <!-- Empty Tech Type -->
-                                                                        <div *ngIf="techNode.children.length === 0" class="empty-children">
-                                                                            <span class="indent-4"></span>
-                                                                            <span nz-icon nzType="inbox" nzTheme="outline"></span>
-                                                                            <span>Không có khóa học</span>
+                                                                            <!-- Điểm thi - hiện đầy đủ -->
+                                                                            <div class="course-scores" *ngIf="hasAnyScore(courseNode.course)">
+                                                                                <span nz-icon nzType="file-text" nzTheme="outline"></span>
+                                                                                <span>Điểm thi:</span>
+                                                                                <span style="font-size: 11px;" *ngIf="courseNode.course?.GoalMultiChoice > 0">
+                                                                                            TN {{ formatDecimal(courseNode.course?.QuizPoints) }}/{{ formatDecimal(courseNode.course?.GoalMultiChoice) }}
+                                                                                        </span>
+                                                                                <span style="font-size: 11px;" *ngIf="courseNode.course?.GoalPractice > 0">
+                                                                                            TH {{ formatDecimal(courseNode.course?.PracticePoints) }}/{{ formatDecimal(courseNode.course?.GoalPractice) }}
+                                                                                        </span>
+                                                                                <span style="font-size: 11px;" *ngIf="courseNode.course?.GoalExercise > 0">
+                                                                                            BT {{ formatDecimal(courseNode.course?.ExcercisePoints) }}/{{ formatDecimal(courseNode.course?.GoalExercise) }}
+                                                                                        </span>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
 
                                                                 </ng-container>
+
+                                                                <!-- Empty Catalog -->
+                                                                <div *ngIf="catalogGroupNode.children.length === 0" class="empty-children">
+                                                                    <span nz-icon nzType="inbox" nzTheme="outline"></span>
+                                                                    <span>Không có khóa học</span>
+                                                                </div>
                                                             </div>
 
                                                         </ng-container>
@@ -237,77 +190,43 @@
     <!-- ============================================================ -->
     <!-- RIGHT PANEL: Courses or Lessons                            -->
     <!-- ============================================================ -->
-    <nz-splitter-panel [nzSize]="isCategoryVisible ? '63%' : '100%'"
-        [nzDefaultSize]="isCategoryVisible ? '63%' : '100%'">
+    <nz-splitter-panel [nzDefaultSize]="isCategoryVisible ? '70%' : '100%'">
 
         <div class="box position-relative" [class.with-hamburger]="!isCategoryVisible && !isAllCoursesView" [class.with-tree-btn]="!isCategoryVisible && isAllCoursesView">
 
             <!-- Hamburger button when category is hidden (chế độ cũ) -->
-            <button *ngIf="!isCategoryVisible && !isAllCoursesView" nz-button nzType="default" nzSize="small"
-                class="hamburger-toggle" (click)="toggleCategoryTable()" title="Hiện danh mục">
+            <button *ngIf="!isCategoryVisible && !isAllCoursesView" nz-button nzType="default" nzSize="small" class="hamburger-toggle" (click)="toggleCategoryTable()" title="Hiện danh mục">
                 <span nz-icon nzType="menu"></span>
             </button>
 
             <!-- Floating button khi Tree View bị ẩn -->
-            <button *ngIf="!isCategoryVisible && isAllCoursesView" nz-button nzType="default" nzSize="small"
-                class="expand-tree-btn" (click)="toggleCategoryTable()" title="Hiện cây khóa học">
+            <button *ngIf="!isCategoryVisible && isAllCoursesView" nz-button nzType="default" nzSize="small" class="expand-tree-btn" (click)="toggleCategoryTable()" title="Hiện cây khóa học">
                 <span nz-icon nzType="menu-fold"></span>
             </button>
 
             <!-- ======================================== -->
             <!-- VIEW: Course List Cards (chế độ cũ)     -->
             <!-- ======================================== -->
-            <app-course-list
-                *ngIf="viewMode === 'courses' && !isAllCoursesView"
-                [courseData]="courseData"
-                [splitterLayout]="splitterLayout"
-                [courseExamData]="courseExamData"
-                (courseSelected)="onCourseSelected($event)">
+            <app-course-list *ngIf="viewMode === 'courses' && !isAllCoursesView" [courseData]="courseData" [splitterLayout]="splitterLayout" [courseExamData]="courseExamData" (courseSelected)="onCourseSelected($event)">
             </app-course-list>
 
             <!-- ======================================== -->
             <!-- VIEW: Lessons (khi đã chọn khóa học)   -->
             <!-- ======================================== -->
-            <app-lesson-view
-                *ngIf="viewMode === 'lessons'"
-                [selectedCourseID]="selectedCourseID"
-                [courseExamData]="courseExamData"
-                [lessonData]="courseLessonData"
-                [selectedCourseName]="selectedCourseName"
-                [splitterLayout]="splitterLayout"
-                (backToCourses)="onBackToCourses()"
-                (lessonSelected)="onLessonSelected($event)"
-                (openExamResult)="onOpenExamResult()"
-                (openLessonExamResult)="onOpenLessonExamResult($event)"
-                (openPractice)="onOpenPracticeResult()"
-                (openQuiz)="onOpenQuizResult()"
-                (lessonCompleted)="onLessonCompleted($event)">
+            <app-lesson-view *ngIf="viewMode === 'lessons'" [selectedCourseID]="selectedCourseID" [courseExamData]="courseExamData" [lessonData]="courseLessonData" [selectedCourseName]="selectedCourseName" [splitterLayout]="splitterLayout" (backToCourses)="onBackToCourses()"
+                (lessonSelected)="onLessonSelected($event)" (openExamResult)="onOpenExamResult()" (openLessonExamResult)="onOpenLessonExamResult($event)" (openPractice)="onOpenPracticeResult()" (openQuiz)="onOpenQuizResult()" (lessonCompleted)="onLessonCompleted($event)">
             </app-lesson-view>
 
             <!-- ======================================== -->
             <!-- VIEW: Exam Result (Trắc nghiệm)         -->
             <!-- ======================================== -->
-            <app-course-exam-result
-                *ngIf="viewMode === 'examResult'"
-                [courseID]="selectedCourseID"
-                [courseName]="selectedCourseName"
-                [courseExamID]="currentCourseExamIDForView"
-                [testTime]="currentTestTimeForView"
-                [lessonID]="selectedLessonID"
-                (backToLesson)="onBackFromExamResult()">
+            <app-course-exam-result *ngIf="viewMode === 'examResult'" [courseID]="selectedCourseID" [courseName]="selectedCourseName" [courseExamID]="currentCourseExamIDForView" [testTime]="currentTestTimeForView" [lessonID]="selectedLessonID" (backToLesson)="onBackFromExamResult()">
             </app-course-exam-result>
 
             <!-- ======================================== -->
             <!-- VIEW: Practice Result (Thực hành)       -->
             <!-- ======================================== -->
-            <app-course-exam-result-practice
-                *ngIf="viewMode === 'practiceResult'"
-                [courseID]="selectedCourseID"
-                [courseName]="selectedCourseName"
-                [courseExamID]="currentCourseExamIDForView"
-                [testTime]="currentTestTimeForView"
-                [lessonID]="selectedLessonID"
-                [examType]="currentExamType"
+            <app-course-exam-result-practice *ngIf="viewMode === 'practiceResult'" [courseID]="selectedCourseID" [courseName]="selectedCourseName" [courseExamID]="currentCourseExamIDForView" [testTime]="currentTestTimeForView" [lessonID]="selectedLessonID" [examType]="currentExamType"
                 (backToLesson)="onBackFromExamResult()">
             </app-course-exam-result-practice>
 

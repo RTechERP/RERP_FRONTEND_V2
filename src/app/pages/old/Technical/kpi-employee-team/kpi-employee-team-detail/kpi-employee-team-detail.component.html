@@ -77,7 +77,7 @@
     <button nz-button nzType="default" (click)="cancel()">
         <i class="fas fa-times"></i> Đóng
     </button>
-    <button nz-button nzType="primary" (click)="save()">
-        <i class="fas fa-save"></i> Lưu
+    <button nz-button nzType="primary" (click)="save()" [nzLoading]="isSaving" [disabled]="isSaving">
+        <i class="fas fa-save" *ngIf="!isSaving"></i> Lưu
     </button>
 </div>

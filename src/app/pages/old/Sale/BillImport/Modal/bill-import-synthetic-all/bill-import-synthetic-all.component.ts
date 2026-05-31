@@ -121,6 +121,7 @@ export class BillImportSyntheticAllComponent {
   activeFilters: { columnName: string; operator: string; searchTerm: string }[] = [];
   showFilterPopup = false;
   filterPopupPosition: 'top' | 'bottom' = 'top';
+  private filterCollectionUpdateTimer: any = null;
 
   contextMenu: any[] = [];
   // Formatter cho date
@@ -1040,6 +1041,7 @@ export class BillImportSyntheticAllComponent {
     this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
       this.updateMasterFooterRow();
       this.updateActiveFilters();
+      this.updateFilterCollectionsFromFilteredData();
     });
 
     // Apply filters on initial load
@@ -1065,15 +1067,15 @@ export class BillImportSyntheticAllComponent {
     if (this.angularGrid && this.angularGrid.slickGrid) {
       const dataView = this.angularGrid.dataView;
       const filteredItems = dataView.getFilteredItems() || [];
-      console.log(filteredItems);
-      // Đếm số lượng sản phẩm (đã bỏ qua group)
-      const codeCount = filteredItems.length;
 
-      // Tính tổng các cột số liệu
-      const totals = (filteredItems || []).reduce(
-        (acc, item) => {
+      const rowCount = filteredItems.length;
+      const productCodeCount = new Set(
+        filteredItems.map((item: any) => item.ProductCode).filter((v: any) => v)
+      ).size;
+
+      const totals = filteredItems.reduce(
+        (acc: any, item: any) => {
           acc.Qty += Number(item.Qty) || 0;
-          acc.DPO += Number(item.DPO) || 0;
           acc.COFormE += Number(item.COFormE) || 0;
           acc.UnitPricePO += Number(item.UnitPricePO) || 0;
           acc.VATPO += Number(item.VATPO) || 0;
@@ -1081,60 +1083,27 @@ export class BillImportSyntheticAllComponent {
           acc.TaxReduction += Number(item.TaxReduction) || 0;
           return acc;
         },
-        {
-          Qty: 0,
-          DPO: 0,
-          COFormE: 0,
-          UnitPricePO: 0,
-          VATPO: 0,
-          TotalPricePO: 0,
-          TaxReduction: 0,
-        }
+        { Qty: 0, COFormE: 0, UnitPricePO: 0, VATPO: 0, TotalPricePO: 0, TaxReduction: 0 }
       );
 
-      // Set footer values cho từng column
+      const fmt = (n: number) => n.toLocaleString('en-US');
+
+      const footerMap: Record<string, string> = {
+        BillImportCode: `<b>${fmt(rowCount)}</b>`,
+        ProductCode: `<b>${fmt(productCodeCount)}</b>`,
+        Qty: `<b>${fmt(totals.Qty)}</b>`,
+        COFormE: `<b>${fmt(totals.COFormE)}</b>`,
+        UnitPricePO: `<b>${fmt(totals.UnitPricePO)}</b>`,
+        VATPO: `<b>${fmt(totals.VATPO)}</b>`,
+        TotalPricePO: `<b>${fmt(totals.TotalPricePO)}</b>`,
+        TaxReduction: `<b>${fmt(totals.TaxReduction)}</b>`,
+      };
+
       const columns = this.angularGrid.slickGrid.getColumns();
       columns.forEach((col: any) => {
-        const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(
-          col.id
-        );
+        const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(col.id);
         if (!footerCell) return;
-
-        // Đếm cho cột Code
-        if (col.id === 'BillImportCode') {
-          footerCell.innerHTML = `<b>${codeCount.toLocaleString('en-US')}</b>`;
-        }
-        // Tổng các cột số liệu
-        else if (col.id === 'Qty') {
-          footerCell.innerHTML = `<b>${totals.Qty.toLocaleString(
-            'en-US'
-          )}</b>`;
-        } else if (col.id === 'DPO') {
-          footerCell.innerHTML = `<b>${totals.DPO.toLocaleString(
-            'en-US'
-          )}</b>`;
-        } else if (col.id === 'COFormE') {
-          footerCell.innerHTML = `<b>${totals.COFormE.toLocaleString(
-            'en-US'
-          )}</b>`;
-        } else if (col.id === 'UnitPricePO') {
-          footerCell.innerHTML = `<b>${totals.UnitPricePO.toLocaleString(
-            'en-US'
-          )}</b>`;
-        } else if (col.id === 'VATPO') {
-          footerCell.innerHTML = `<b>${totals.VATPO.toLocaleString(
-            'en-US'
-          )}</b>`;
-        } else if (col.id === 'TotalPricePO') {
-          footerCell.innerHTML = `<b>${totals.TotalPricePO.toLocaleString(
-            'en-US'
-          )}</b>`;
-        }
-        else if (col.id === 'TaxReduction') {
-          footerCell.innerHTML = `<b>${totals.TaxReduction.toLocaleString(
-            'en-US'
-          )}</b>`;
-        }
+        footerCell.innerHTML = footerMap[col.id] ?? '';
       });
     }
   }
@@ -1824,6 +1793,63 @@ export class BillImportSyntheticAllComponent {
     // Set lại columns để filter collection được cập nhật
     if (hasChanges) {
       this.angularGrid.slickGrid.setColumns(columns);
+    }
+  }
+  private updateFilterCollectionsFromFilteredData(): void {
+    clearTimeout(this.filterCollectionUpdateTimer);
+    this.filterCollectionUpdateTimer = setTimeout(() => {
+      this.applyFilterCollections();
+    }, 400);
+  }
+
+  private applyFilterCollections(): void {
+    if (!this.angularGrid || !this.angularGrid.slickGrid) return;
+
+    const columns = this.angularGrid.slickGrid.getColumns();
+    const filteredItems = this.angularGrid.dataView.getFilteredItems() || [];
+
+    const activeFilterColumnIds = new Set(
+      (this.angularGrid.filterService?.getCurrentLocalFilters() || [])
+        .filter((f: any) => f.searchTerms?.length && String(f.searchTerms[0]) !== '')
+        .map((f: any) => f.columnId)
+    );
+
+    const getUniqueValuesFromData = (data: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      data.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && value.trim() !== '' && !map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const multiSelectFields = [
+      'BillTypeText', 'BillImportCode', 'CodeNCC', 'NameNCC', 'DepartmentName',
+      'Code', 'Deliver', 'Reciver', 'KhoType', 'WarehouseName', 'ProjectCodeText',
+      'BillCodePO', 'ProductCode', 'Unit', 'ProductNewCode', 'Maker', 'SomeBill',
+      'DeliverFullName', 'ProductName', 'ProjectCode', 'ProjectNameText',
+    ];
+
+    let hasChanges = false;
+    columns.forEach((column: any) => {
+      if (
+        column.filter &&
+        column.filter.model === Filters['multipleSelect'] &&
+        multiSelectFields.includes(column.field)
+      ) {
+        const sourceData = activeFilterColumnIds.has(column.id) ? this.dataset : filteredItems;
+        column.filter.collection = getUniqueValuesFromData(sourceData, column.field);
+        hasChanges = true;
+      }
+    });
+
+    if (hasChanges) {
+      this.angularGrid.slickGrid.setColumns(columns);
+      this.updateMasterFooterRow();
     }
   }
   // #endregion

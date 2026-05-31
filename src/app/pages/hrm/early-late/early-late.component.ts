@@ -20,6 +20,7 @@ import { DateTime } from 'luxon';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { FormControl } from '@angular/forms';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
@@ -84,7 +85,8 @@ import {
     NzDropDownModule,
     FormsModule,
     Menubar,
-    AngularSlickgridModule
+    AngularSlickgridModule,
+    NzTreeSelectModule
   ]
 })
 export class EarlyLateComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -121,6 +123,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit, OnDestroy {
   searchForm!: FormGroup;
   earlyLateForm!: FormGroup;
   departmentList: any[] = [];
+  departmentNodes: any[] = [];
   earlyLateList: any[] = [];
   employeeList: any[] = [];
   approverList: any[] = [];
@@ -257,12 +260,33 @@ export class EarlyLateComponent implements OnInit, AfterViewInit, OnDestroy {
   loadDepartment() {
     this.departmentService.getDepartments().subscribe({
       next: (data) => {
-        this.departmentList = data.data;
+        this.departmentList = data.data || [];
+        this.departmentNodes = this.buildTreeNodes([...this.departmentList]);
       },
       error: (error) => {
         this.notification.error("Lỗi", "Lỗi tải danh sách phòng ban");
       }
     })
+  }
+
+  private buildTreeNodes(data: any[]): any[] {
+    const tree: any[] = [];
+    const lookup: any = {};
+
+    data.forEach(item => {
+      lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+    });
+
+    data.forEach(item => {
+      if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+        lookup[item.ParentID].children.push(lookup[item.ID]);
+        lookup[item.ParentID].isLeaf = false;
+      } else {
+        tree.push(lookup[item.ID]);
+      }
+    });
+
+    return tree;
   }
 
   loadEarlyLate() {

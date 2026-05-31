@@ -1,0 +1,108 @@
+:host {
+  display: block;
+  height: 93vh;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.supplier-sale-link-form-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-size: 12px !important;
+}
+
+:host ::ng-deep * {
+  font-size: 12px !important;
+}
+
+.custom-menubar {
+  background-color: #f8f9fa;
+}
+
+.filter-bar {
+  padding: 10px 15px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.flex-grow-1 {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fix ng-zorro spin to take full height and be a flex container */
+:host ::ng-deep .ant-spin-nested-loading {
+    height: 100%;
+}
+
+:host ::ng-deep .ant-spin-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.table-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  background-color: #f0f2f5;
+  overflow: hidden;
+}
+
+.table-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    overflow: hidden;
+}
+
+/* Ép table primeNG chiếm hết chiều cao và scroll nội bộ */
+:host ::ng-deep .p-datatable {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+:host ::ng-deep .p-datatable-wrapper {
+  flex: 1;
+}
+
+/* Đảm bảo paginator luôn hiển thị */
+:host ::ng-deep .p-paginator {
+    flex-shrink: 0;
+}
+
+.fs-12 { font-size: 12px !important; }
+
+/* Gridlines cho bảng */
+:host ::ng-deep .p-datatable.p-datatable-gridlines .p-datatable-thead > tr > th,
+:host ::ng-deep .p-datatable.p-datatable-gridlines .p-datatable-tbody > tr > td {
+    border-width: 1px;
+}
+
+:host ::ng-deep .p-datatable-sm .p-datatable-tbody > tr > td {
+    padding: 4px 8px !important;
+}
+
+:host ::ng-deep .p-menubar .p-menuitem-link {
+    padding: 0.5rem 0.75rem !important;
+}
+
+:host ::ng-deep .p-menubar .p-menuitem-text {
+    font-size: 12px;
+}
+
+:host ::ng-deep .custom-textarea {
+    resize: none;
+    min-height: 24px !important;
+    padding: 3px 7px !important;
+    line-height: 1.5;
+    word-break: break-word;
+}

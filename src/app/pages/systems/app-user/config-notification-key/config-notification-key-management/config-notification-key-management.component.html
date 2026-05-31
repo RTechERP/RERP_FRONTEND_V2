@@ -1,0 +1,91 @@
+<div class="h-100 d-flex flex-column bg-white" style="height: 93vh !important;">
+  <!-- Thanh Menu chính -->
+  <p-menubar [model]="menuBars" styleClass="fs-12 border-0 mb-0 shadow-sm custom-menubar">
+    <ng-template pTemplate="item" let-item>
+      <a class="p-menuitem-link" [class.p-disabled]="item.disabled">
+        <i [class]="item.icon"></i>
+        <span class="p-menuitem-text ms-1" style="font-size: 12px;">{{ item.label }}</span>
+      </a>
+    </ng-template>
+    <ng-template pTemplate="end">
+      <div class="d-flex items-center gap-2 pe-2">
+        <button nz-button nzType="text" nzShape="circle" (click)="toggleSearchPanel()">
+          <nz-icon nzType="search" />
+        </button>
+      </div>
+    </ng-template>
+  </p-menubar>
+
+  <!-- Thanh tìm kiếm (Filter bar) -->
+  <div class="filter-bar bg-light border-bottom p-2" *ngIf="showSearchBar">
+    <form nz-form>
+      <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12" style="font-size: 12px; font-weight: 600;">Từ khóa tìm kiếm</nz-form-label>
+            <nz-form-control>
+              <input nz-input placeholder="Nhập mã key, tên key, nội dung..." nzSize="small" [(ngModel)]="searchKeyword"
+                name="searchKeyword" class="w-100" (keyup.enter)="onSearch()" />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8">
+          <nz-form-item class="mb-0">
+            <nz-form-control>
+              <button nz-button nzType="primary" nzSize="small" (click)="onSearch()" class="me-2">
+                <i class="fa-solid fa-magnifying-glass me-1"></i> Tìm kiếm
+              </button>
+              <button nz-button nzType="default" nzSize="small" (click)="onReset()">
+                <i class="fa-solid fa-arrows-rotate me-1"></i> Đặt lại
+              </button>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </form>
+  </div>
+
+  <!-- Content chính -->
+  <div class="flex-grow-1 overflow-hidden p-2 bg-light">
+    <nz-spin [nzSpinning]="loading" nzTip="Đang tải dữ liệu..." class="h-100">
+      <div class="table-wrapper h-100 bg-white border rounded">
+        <p-table #dt [value]="filteredDataset" [(selection)]="selectedItems" selectionMode="multiple" dataKey="ID"
+          (onRowSelect)="updateMenuState()" (onRowUnselect)="updateMenuState()"
+          (onHeaderCheckboxToggle)="updateMenuState()" styleClass="p-datatable-sm p-datatable-gridlines fs-12"
+          [scrollable]="true" scrollHeight="flex" [paginator]="true" [rows]="50" paginatorPosition="bottom"
+          [rowsPerPageOptions]="[50, 100, 200, 500]">
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 3rem; text-align: center;">
+                <p-tableHeaderCheckbox />
+              </th>
+              <th *ngFor="let col of columns" [pSortableColumn]="col.field" [style.width]="col.width"
+                class="text-center">
+                {{col.header}} <p-sortIcon [field]="col.field" />
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-item>
+            <tr [pSelectableRow]="item" [ngClass]="{'bg-light': selectedItems.includes(item)}">
+              <td class="text-center">
+                <p-tableCheckbox [value]="item" />
+              </td>
+              <td *ngFor="let col of columns">
+                <span style="font-size: 12px; white-space: pre-wrap;">{{item[col.field]}}</span>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="4" class="text-center p-3 text-muted">Không có dữ liệu</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </nz-spin>
+  </div>
+</div>

@@ -18,6 +18,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -31,6 +32,7 @@ import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 
 // Services and Components
 import { EmployeeNofingerprintService } from './employee-no-fingerprint-service/employee-no-fingerprint.service';
+import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { ENFDetailComponent } from './ENF-detail/ENF-detail.component';
 import { AuthService } from '../../../../auth/auth.service';
 import { PermissionService } from '../../../../services/permission.service';
@@ -74,7 +76,8 @@ import {
     HasPermissionDirective,
     NzDropDownModule,
     Menubar,
-    AngularSlickgridModule
+    AngularSlickgridModule,
+    NzTreeSelectModule
   ],
   templateUrl: './employee-no-fingerprint.component.html',
   styleUrls: ['./employee-no-fingerprint.component.css'],
@@ -131,6 +134,7 @@ export class EmployeeNoFingerprintComponent
   }
   // Data
   departmentList: any[] = [];
+  departmentNodes: any[] = [];
 
   // Selection tracking
   selectedENF: any | null = null;
@@ -149,6 +153,7 @@ export class EmployeeNoFingerprintComponent
     private notification: NzNotificationService,
     private message: NzMessageService,
     private enfService: EmployeeNofingerprintService,
+    private departmentService: DepartmentServiceService,
     private ngbModal: NgbModal,
     private nzModal: NzModalService,
     private authService: AuthService,
@@ -239,18 +244,11 @@ export class EmployeeNoFingerprintComponent
 
   // #region Data Loading
   private loadDepartments(): void {
-    this.enfService.getDepartments().subscribe({
+    this.departmentService.getDepartments().subscribe({
       next: (response: any) => {
-        if (response.status === 1) {
-          this.departmentList = response.data || [];
-          console.log('Departments loaded:', this.departmentList.length);
-        } else {
-          this.notification.error(
-            'Lỗi',
-            response.message || 'Không thể tải danh sách phòng ban'
-          );
-          this.departmentList = [];
-        }
+        this.departmentList = response.data || [];
+        this.departmentNodes = this.buildTreeNodes([...this.departmentList]);
+        console.log('Departments loaded:', this.departmentList.length);
       },
       error: (error: any) => {
         console.error('Load departments error:', error);
@@ -262,6 +260,26 @@ export class EmployeeNoFingerprintComponent
         this.departmentList = [];
       },
     });
+  }
+
+  private buildTreeNodes(data: any[]): any[] {
+    const tree: any[] = [];
+    const lookup: any = {};
+
+    data.forEach(item => {
+      lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+    });
+
+    data.forEach(item => {
+      if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+        lookup[item.ParentID].children.push(lookup[item.ID]);
+        lookup[item.ParentID].isLeaf = false;
+      } else {
+        tree.push(lookup[item.ID]);
+      }
+    });
+
+    return tree;
   }
   // #endregion
 

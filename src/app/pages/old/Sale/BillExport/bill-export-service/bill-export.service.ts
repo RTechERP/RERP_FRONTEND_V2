@@ -408,9 +408,10 @@ export class BillExportService {
 
     // Download POKH File
     downloadPOKHFile(poNumber: string, fileName: string): Observable<Blob> {
-        const url = `${environment.host}api/BillExport/download-pokh-file/${encodeURIComponent(poNumber)}/${encodeURIComponent(fileName)}`;
+        const url = `${environment.host}api/BillExport/download-pokh-file/${encodeURIComponent(poNumber)}`;
         return this.http.get(url, {
             responseType: 'blob',
+            params: { fileName },
         });
     }
     getInventoryProjectImportExport(

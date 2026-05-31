@@ -32,4 +32,13 @@ export class HistoryMoneyService {
       },
     });
   }
+
+  exportHistoryMoneyExcel(pokhDetailId: number): Observable<Blob> {
+    return this.http.get(`${this._url}export-excel`, {
+      params: {
+        pokhDetailId: pokhDetailId.toString(),
+      },
+      responseType: 'blob'
+    });
+  }
 }

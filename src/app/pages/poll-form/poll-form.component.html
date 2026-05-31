@@ -1,0 +1,859 @@
+<div class="poll-page">
+  <aside class="poll-sidebar">
+    <div class="sidebar-header">
+      <div>
+        <h5>Quản lý bình chọn</h5>
+        <span>{{ polls.length }} phiếu</span>
+      </div>
+      <button nz-button nzType="primary" nzSize="small" (click)="newPoll()" nz-tooltip nzTooltipTitle="Tạo phiếu">
+        <i class="fa-solid fa-plus"></i>
+      </button>
+    </div>
+
+    <div class="sidebar-filters">
+      <input nz-input nzSize="small" placeholder="Tìm theo tiêu đề, mô tả..." [(ngModel)]="searchText" />
+      <nz-select nzSize="small" [(ngModel)]="statusFilter">
+        <nz-option *ngFor="let status of statusOptions; trackBy: trackByValue" [nzValue]="status.value" [nzLabel]="status.label"></nz-option>
+      </nz-select>
+    </div>
+
+    <nz-spin [nzSpinning]="isLoadingPolls">
+      <div class="poll-list" *ngIf="filteredPolls.length > 0; else emptyPollList">
+        <button
+          type="button"
+          class="poll-list-item"
+          *ngFor="let poll of filteredPolls; trackBy: trackByPollId"
+          [class.active]="isSelectedPoll(poll)"
+          (click)="selectPoll(poll)"
+        >
+          <div class="poll-item-main">
+            <span class="poll-title">{{ poll.title }}</span>
+            <span class="poll-description">{{ poll.description || 'Không có mô tả' }}</span>
+          </div>
+          <div class="poll-item-meta">
+            <nz-tag [nzColor]="getPollStatus(poll).color">{{ getPollStatus(poll).label }}</nz-tag>
+            <span>{{ poll.isPublic ? 'Đã xuất bản' : 'Bản nháp' }}</span>
+          </div>
+          <button
+            type="button"
+            class="poll-delete"
+            nz-button
+            nzType="text"
+            nzSize="small"
+            nz-tooltip
+            nzTooltipTitle="Xóa"
+            (click)="deletePollFromList(poll, $event)"
+          >
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </button>
+      </div>
+    </nz-spin>
+
+    <ng-template #emptyPollList>
+      <div class="sidebar-empty">
+        <nz-empty nzNotFoundContent="Chưa có phiếu bình chọn"></nz-empty>
+      </div>
+    </ng-template>
+  </aside>
+
+  <main class="poll-workspace">
+    <nz-spin [nzSpinning]="isLoadingDetail">
+      <form class="poll-header" [formGroup]="pollForm">
+        <div class="poll-header-actions">
+          <div class="status-group">
+            <nz-tag [nzColor]="getCurrentPollStatus().color">{{ getCurrentPollStatus().label }}</nz-tag>
+            <nz-tag [nzColor]="pollForm.get('isPublic')?.value ? 'blue' : 'default'">
+              {{ pollForm.get('isPublic')?.value ? 'Đã xuất bản' : 'Bản nháp' }}
+            </nz-tag>
+          </div>
+          <div class="button-group">
+            <button nz-button nzSize="small" type="button" (click)="newPoll()">
+              <i class="fa-regular fa-file-lines"></i>
+              Mới
+            </button>
+            <button nz-button nzType="primary" nzSize="small" type="button" [nzLoading]="isSaving" (click)="savePoll()">
+              <i class="fa-solid fa-floppy-disk" *ngIf="!isSaving"></i>
+              Lưu
+            </button>
+            <button nz-button nzDanger nzSize="small" type="button" (click)="deleteCurrentPoll()">
+              <i class="fa-solid fa-trash"></i>
+              Xóa
+            </button>
+          </div>
+        </div>
+
+        <textarea
+          class="poll-title-input"
+          formControlName="title"
+          placeholder="Tiêu đề phiếu bình chọn"
+          [class.invalid]="pollForm.get('title')?.invalid && pollForm.get('title')?.touched"
+          [style.color]="currentPollTitleColor"
+          rows="2"
+        ></textarea>
+        <textarea
+          class="poll-description-input"
+          formControlName="description"
+          rows="2"
+          placeholder="Mô tả ngắn"
+          [style.color]="currentPollTitleColor"
+        ></textarea>
+
+        <div class="poll-settings">
+          <label>
+            <span>Bắt đầu</span>
+            <input type="datetime-local" formControlName="startDate" />
+          </label>
+          <label>
+            <span>Kết thúc</span>
+            <input type="datetime-local" formControlName="endDate" />
+          </label>
+          <label class="switch-line">
+            <span>Xuất bản cho nhân viên</span>
+            <nz-switch formControlName="isPublic" nzSize="small"></nz-switch>
+          </label>
+          <label class="title-color-line">
+            <span>Màu tiêu đề form</span>
+            <input class="title-color-input" type="color" formControlName="titleColor" />
+          </label>
+          <label class="background-path-line">
+            <span>Ảnh nền phiếu</span>
+            <input
+              type="text"
+              formControlName="backgroundImagePath"
+              placeholder="/api/share/software/Upload/PollForm/Background/poll-bg.jpg hoặc URL ảnh"
+            />
+          </label>
+          <div class="poll-background-tools">
+            <label class="background-upload-button">
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,image/*"
+                [disabled]="isUploadingBackground || isSaving"
+                (change)="uploadBackgroundImage($event)"
+              />
+              <span>
+                <i class="fa-solid fa-image" *ngIf="!isUploadingBackground"></i>
+                {{ isUploadingBackground ? 'Đang upload...' : 'Upload ảnh nền' }}
+              </span>
+            </label>
+            <button
+              nz-button
+              nzSize="small"
+              type="button"
+              [disabled]="isUploadingBackground || isSaving || !pollForm.get('backgroundImagePath')?.value"
+              (click)="clearBackgroundImage()"
+            >
+              Xóa ảnh nền
+            </button>
+            <div class="background-preview" *ngIf="currentPollBackgroundUrl">
+              <img [src]="currentPollBackgroundUrl" alt="" />
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <nz-tabset class="poll-tabs" [(nzSelectedIndex)]="activeTabIndex">
+        <nz-tab nzTitle="Thiết kế">
+          <div class="section-strip">
+            <div class="section-pill-wrap" *ngFor="let section of sections; let sectionIndex = index; trackBy: trackBySection">
+              <button
+                type="button"
+                class="section-pill"
+                [class.active]="isSelectedSection(sectionIndex)"
+                (click)="selectSection(sectionIndex)"
+              >
+                <strong>{{ section.sortOrder }}. {{ section.title || 'Section' }}</strong>
+                <span>{{ getSectionQuestionCount(section) }} câu hỏi</span>
+              </button>
+              <button
+                nz-button
+                nzType="text"
+                nzSize="small"
+                type="button"
+                class="section-pill-copy"
+                nz-tooltip
+                nzTooltipTitle="Sao chép section"
+                (click)="duplicateSection(sectionIndex, $event)"
+              >
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </div>
+            <button nz-button nzSize="small" type="button" (click)="addSection()">
+              <i class="fa-solid fa-plus"></i>
+              Section
+            </button>
+          </div>
+
+          <section class="section-editor" *ngIf="currentSection as section">
+            <div class="section-editor-top">
+              <span>Section {{ selectedSectionIndex + 1 }}</span>
+              <div class="question-actions">
+                <button nz-button nzType="text" nzSize="small" type="button" [disabled]="selectedSectionIndex === 0" (click)="moveSection(selectedSectionIndex, -1)">
+                  <i class="fa-solid fa-arrow-up"></i>
+                </button>
+                <button nz-button nzType="text" nzSize="small" type="button" [disabled]="selectedSectionIndex === sections.length - 1" (click)="moveSection(selectedSectionIndex, 1)">
+                  <i class="fa-solid fa-arrow-down"></i>
+                </button>
+                <button nz-button nzSize="small" type="button" nz-tooltip nzTooltipTitle="Sao chép toàn bộ section này" (click)="duplicateSection(selectedSectionIndex)">
+                  <i class="fa-regular fa-copy"></i>
+                  Sao chép
+                </button>
+                <button nz-button nzType="text" nzDanger nzSize="small" type="button" (click)="removeSection(selectedSectionIndex)">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </div>
+            <input class="section-title-input" [(ngModel)]="section.title" placeholder="Tên section" />
+            <textarea class="section-description-input" rows="2" [(ngModel)]="section.description" placeholder="Mô tả section"></textarea>
+            <div class="section-flow-grid">
+              <div class="section-flow-panel">
+                <div class="flow-panel-header">
+                  <div>
+                    <strong>Điều kiện hiển thị</strong>
+                    <span>{{ section.showIfConditions.length || 'Luôn hiển thị' }}</span>
+                  </div>
+                  <div class="flow-header-actions">
+                    <nz-select
+                      nzSize="small"
+                      [(ngModel)]="section.showIfLogic"
+                      [disabled]="section.showIfConditions.length <= 1"
+                    >
+                      <nz-option
+                        *ngFor="let logic of conditionLogicOptions; trackBy: trackByValue"
+                        [nzValue]="logic.value"
+                        [nzLabel]="logic.label"
+                      ></nz-option>
+                    </nz-select>
+                    <button
+                      nz-button
+                      nzSize="small"
+                      type="button"
+                      [disabled]="getShowIfQuestionOptions(section).length === 0"
+                      (click)="addShowIfCondition(section)"
+                    >
+                      <i class="fa-solid fa-plus"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="empty-rule" *ngIf="section.showIfConditions.length === 0">
+                  Section này luôn hiển thị.
+                </div>
+
+                <div class="condition-list" *ngIf="section.showIfConditions.length > 0">
+                  <div class="condition-row" *ngFor="let condition of section.showIfConditions; let conditionIndex = index">
+                    <nz-select
+                      class="condition-field"
+                      nzSize="small"
+                      nzShowSearch
+                      [(ngModel)]="condition.fieldKey"
+                      (ngModelChange)="onConditionFieldChange(condition)"
+                    >
+                      <nz-option
+                        *ngFor="let option of getShowIfQuestionOptions(section); trackBy: trackByValue"
+                        [nzValue]="option.value"
+                        [nzLabel]="option.label"
+                      ></nz-option>
+                    </nz-select>
+                    <nz-select
+                      class="condition-operator"
+                      nzSize="small"
+                      [(ngModel)]="condition.operator"
+                      (ngModelChange)="onConditionOperatorChange(condition)"
+                    >
+                      <nz-option
+                        *ngFor="let operator of conditionOperatorOptions; trackBy: trackByValue"
+                        [nzValue]="operator.value"
+                        [nzLabel]="operator.label"
+                      ></nz-option>
+                    </nz-select>
+                    <nz-select
+                      *ngIf="shouldUseOptionSelect(condition); else showIfValueInput"
+                      class="condition-value"
+                      nzSize="small"
+                      [(ngModel)]="condition.value"
+                    >
+                      <nz-option
+                        *ngFor="let option of getConditionOptionChoices(condition); trackBy: trackByOption"
+                        [nzValue]="option.optionValue"
+                        [nzLabel]="option.optionText"
+                      ></nz-option>
+                    </nz-select>
+                    <ng-template #showIfValueInput>
+                      <input
+                        *ngIf="conditionNeedsValue(condition); else showIfNoValue"
+                        class="condition-value"
+                        nz-input
+                        nzSize="small"
+                        [(ngModel)]="condition.value"
+                        [placeholder]="getConditionValuePlaceholder(condition)"
+                      />
+                      <ng-template #showIfNoValue>
+                        <span class="condition-no-value">Không cần giá trị</span>
+                      </ng-template>
+                    </ng-template>
+                    <button nz-button nzType="text" nzDanger nzSize="small" type="button" (click)="removeShowIfCondition(section, conditionIndex)">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-flow-panel">
+                <div class="flow-panel-header">
+                  <div>
+                    <strong>Luồng sau section</strong>
+                    <span>{{ section.branchingRules.length || 'Theo thứ tự' }}</span>
+                  </div>
+                  <div class="flow-header-actions">
+                    <nz-select class="default-target-select" nzSize="small" [(ngModel)]="section.defaultNextSectionTarget">
+                      <nz-option
+                        *ngFor="let target of getDefaultTargetOptions(section); trackBy: trackByValue"
+                        [nzValue]="target.value"
+                        [nzLabel]="target.label"
+                      ></nz-option>
+                    </nz-select>
+                    <button
+                      nz-button
+                      nzSize="small"
+                      type="button"
+                      [disabled]="getBranchQuestionOptions(section).length === 0"
+                      (click)="addBranchRule(section)"
+                    >
+                      <i class="fa-solid fa-code-branch"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="empty-rule" *ngIf="section.branchingRules.length === 0">
+                  Không có nhánh riêng, dùng luồng mặc định.
+                </div>
+
+                <div class="branch-rule-list" *ngIf="section.branchingRules.length > 0">
+                  <div class="branch-rule" *ngFor="let rule of section.branchingRules; let ruleIndex = index">
+                    <div class="branch-rule-header">
+                      <strong>Nhánh {{ ruleIndex + 1 }}</strong>
+                      <nz-select nzSize="small" [(ngModel)]="rule.logic" [disabled]="rule.conditions.length <= 1">
+                        <nz-option
+                          *ngFor="let logic of conditionLogicOptions; trackBy: trackByValue"
+                          [nzValue]="logic.value"
+                          [nzLabel]="logic.label"
+                        ></nz-option>
+                      </nz-select>
+                      <nz-select class="branch-target-select" nzSize="small" [(ngModel)]="rule.nextSectionTarget">
+                        <nz-option
+                          *ngFor="let target of getBranchTargetOptions(section); trackBy: trackByValue"
+                          [nzValue]="target.value"
+                          [nzLabel]="target.label"
+                        ></nz-option>
+                      </nz-select>
+                      <button nz-button nzType="text" nzDanger nzSize="small" type="button" (click)="removeBranchRule(section, ruleIndex)">
+                        <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </div>
+
+                    <div class="condition-row" *ngFor="let condition of rule.conditions; let conditionIndex = index">
+                      <nz-select
+                        class="condition-field"
+                        nzSize="small"
+                        nzShowSearch
+                        [(ngModel)]="condition.fieldKey"
+                        (ngModelChange)="onConditionFieldChange(condition)"
+                      >
+                        <nz-option
+                          *ngFor="let option of getBranchQuestionOptions(section); trackBy: trackByValue"
+                          [nzValue]="option.value"
+                          [nzLabel]="option.label"
+                        ></nz-option>
+                      </nz-select>
+                      <nz-select
+                        class="condition-operator"
+                        nzSize="small"
+                        [(ngModel)]="condition.operator"
+                        (ngModelChange)="onConditionOperatorChange(condition)"
+                      >
+                        <nz-option
+                          *ngFor="let operator of conditionOperatorOptions; trackBy: trackByValue"
+                          [nzValue]="operator.value"
+                          [nzLabel]="operator.label"
+                        ></nz-option>
+                      </nz-select>
+                      <nz-select
+                        *ngIf="shouldUseOptionSelect(condition); else branchValueInput"
+                        class="condition-value"
+                        nzSize="small"
+                        [(ngModel)]="condition.value"
+                      >
+                        <nz-option
+                          *ngFor="let option of getConditionOptionChoices(condition); trackBy: trackByOption"
+                          [nzValue]="option.optionValue"
+                          [nzLabel]="option.optionText"
+                        ></nz-option>
+                      </nz-select>
+                      <ng-template #branchValueInput>
+                        <input
+                          *ngIf="conditionNeedsValue(condition); else branchNoValue"
+                          class="condition-value"
+                          nz-input
+                          nzSize="small"
+                          [(ngModel)]="condition.value"
+                          [placeholder]="getConditionValuePlaceholder(condition)"
+                        />
+                        <ng-template #branchNoValue>
+                          <span class="condition-no-value">Không cần giá trị</span>
+                        </ng-template>
+                      </ng-template>
+                      <button nz-button nzType="text" nzDanger nzSize="small" type="button" (click)="removeBranchCondition(section, rule, conditionIndex)">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+
+                    <button nz-button nzType="link" nzSize="small" type="button" (click)="addBranchCondition(section, rule)">
+                      Thêm điều kiện
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="builder-toolbar">
+            <button nz-button nzSize="small" type="button" (click)="addQuestion('SingleChoice')">
+              <i class="fa-regular fa-circle-dot"></i>
+              Một lựa chọn
+            </button>
+            <button nz-button nzSize="small" type="button" (click)="addQuestion('MultipleChoice')">
+              <i class="fa-regular fa-square-check"></i>
+              Nhiều lựa chọn
+            </button>
+            <button nz-button nzSize="small" type="button" (click)="addQuestion('Text')">
+              <i class="fa-solid fa-minus"></i>
+              Trả lời ngắn
+            </button>
+            <button nz-button nzSize="small" type="button" (click)="addQuestion('Textarea')">
+              <i class="fa-solid fa-align-left"></i>
+              Đoạn văn
+            </button>
+            <button nz-button nzSize="small" type="button" (click)="addQuestion('Rating')">
+              <i class="fa-regular fa-star"></i>
+              Đánh giá
+            </button>
+            <button nz-button nzSize="small" type="button" (click)="addQuestion('Date')">
+              <i class="fa-regular fa-calendar"></i>
+              Ngày
+            </button>
+          </div>
+
+          <div class="builder-list">
+            <section
+              class="question-card"
+              *ngFor="let question of currentSectionQuestions; let questionIndex = index; trackBy: trackByQuestion"
+              [class.active]="isSelectedQuestion(getQuestionIndex(question))"
+              (click)="selectedQuestionIndex = getQuestionIndex(question)"
+            >
+              <div class="question-card-top">
+                <span class="question-index">Câu {{ getQuestionDisplayIndex(question) }}</span>
+                <nz-select
+                  class="question-type-select"
+                  nzSize="small"
+                  [nzDisabled]="isEmployeeMappedQuestion(question)"
+                  [(ngModel)]="question.questionType"
+                  (ngModelChange)="onQuestionTypeChange(question)"
+                >
+                  <nz-option
+                    *ngFor="let type of questionTypes; trackBy: trackByValue"
+                    [nzValue]="type.value"
+                    [nzLabel]="type.label"
+                  ></nz-option>
+                </nz-select>
+                <div class="question-actions">
+                  <button nz-button nzType="text" nzSize="small" type="button" [disabled]="questionIndex === 0" (click)="moveQuestion(getQuestionIndex(question), -1)">
+                    <i class="fa-solid fa-arrow-up"></i>
+                  </button>
+                  <button nz-button nzType="text" nzSize="small" type="button" [disabled]="questionIndex === currentSectionQuestions.length - 1" (click)="moveQuestion(getQuestionIndex(question), 1)">
+                    <i class="fa-solid fa-arrow-down"></i>
+                  </button>
+                  <button nz-button nzType="text" nzSize="small" type="button" (click)="duplicateQuestion(getQuestionIndex(question))">
+                    <i class="fa-regular fa-copy"></i>
+                  </button>
+                  <button nz-button nzType="text" nzDanger nzSize="small" type="button" (click)="removeQuestion(getQuestionIndex(question))">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              <textarea
+                class="question-title-input"
+                [(ngModel)]="question.questionText"
+                (blur)="ensureQuestionFieldKey(question, getQuestionIndex(question))"
+                placeholder="Nhập câu hỏi"
+                rows="2"
+              ></textarea>
+
+              <div class="question-meta-row">
+                <label class="required-switch">
+                  Bắt buộc
+                  <nz-switch nzSize="small" [(ngModel)]="question.isRequired"></nz-switch>
+                </label>
+              </div>
+
+              <div class="question-source-row">
+                <label>
+                  Tự điền từ nhân viên
+                  <nz-select
+                    nzSize="small"
+                    nzShowSearch
+                    nzAllowClear
+                    nzPlaceHolder="Không tự điền"
+                    [nzLoading]="isLoadingEmployeeFields"
+                    [(ngModel)]="question.dataSourceField"
+                    (ngModelChange)="onQuestionEmployeeFieldChange(question, $event)"
+                  >
+                    <nz-option
+                      *ngFor="let field of employeeFieldOptions; trackBy: trackByEmployeeField"
+                      [nzValue]="field.fieldKey"
+                      [nzLabel]="field.label"
+                    ></nz-option>
+                  </nz-select>
+                </label>
+                <div class="employee-mapping-summary" *ngIf="isEmployeeMappedQuestion(question)">
+                  <nz-tag nzColor="blue">{{ getEmployeeFieldLabel(question) }}</nz-tag>
+                  <nz-tag nzColor="warning" *ngIf="isEmployeeFieldSensitive(question)">Dữ liệu nhạy cảm</nz-tag>
+                  <span>{{ getEmployeeFieldDataType(question) || 'Employee' }}</span>
+                  <button nz-button nzType="text" nzSize="small" type="button" (click)="clearQuestionEmployeeMapping(question)">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="question-body" [ngSwitch]="question.questionType">
+                <div class="option-list" *ngSwitchCase="'SingleChoice'">
+                  <div class="option-row" *ngFor="let option of question.options; let optionIndex = index; trackBy: trackByOption">
+                    <i class="fa-regular fa-circle"></i>
+                    <input [(ngModel)]="option.optionText" placeholder="Lựa chọn" />
+                    <button nz-button nzType="text" nzSize="small" type="button" [disabled]="optionIndex === 0" (click)="moveOption(question, optionIndex, -1)">
+                      <i class="fa-solid fa-arrow-up"></i>
+                    </button>
+                    <button nz-button nzType="text" nzSize="small" type="button" [disabled]="optionIndex === question.options.length - 1" (click)="moveOption(question, optionIndex, 1)">
+                      <i class="fa-solid fa-arrow-down"></i>
+                    </button>
+                    <button nz-button nzType="text" nzDanger nzSize="small" type="button" (click)="removeOption(question, optionIndex)">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                  <button nz-button nzType="link" nzSize="small" type="button" (click)="addOption(question)">Thêm lựa chọn</button>
+                </div>
+
+                <div class="option-list" *ngSwitchCase="'MultipleChoice'">
+                  <div class="option-row" *ngFor="let option of question.options; let optionIndex = index; trackBy: trackByOption">
+                    <i class="fa-regular fa-square"></i>
+                    <input [(ngModel)]="option.optionText" placeholder="Lựa chọn" />
+                    <button nz-button nzType="text" nzSize="small" type="button" [disabled]="optionIndex === 0" (click)="moveOption(question, optionIndex, -1)">
+                      <i class="fa-solid fa-arrow-up"></i>
+                    </button>
+                    <button nz-button nzType="text" nzSize="small" type="button" [disabled]="optionIndex === question.options.length - 1" (click)="moveOption(question, optionIndex, 1)">
+                      <i class="fa-solid fa-arrow-down"></i>
+                    </button>
+                    <button nz-button nzType="text" nzDanger nzSize="small" type="button" (click)="removeOption(question, optionIndex)">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                  <button nz-button nzType="link" nzSize="small" type="button" (click)="addOption(question)">Thêm lựa chọn</button>
+                </div>
+
+                <div class="text-placeholder" *ngSwitchCase="'Text'">Câu trả lời ngắn</div>
+                <div class="textarea-placeholder" *ngSwitchCase="'Textarea'">Câu trả lời dạng đoạn văn</div>
+                <div class="rating-config" *ngSwitchCase="'Rating'">
+                  <span>Thang điểm</span>
+                  <input type="number" min="2" max="10" [(ngModel)]="question.ratingMax" />
+                  <div class="rating-preview">
+                    <i class="fa-regular fa-star" *ngFor="let score of ratingScale(question); trackBy: trackByNumber"></i>
+                  </div>
+                </div>
+                <div class="text-placeholder" *ngSwitchCase="'Date'">Người bình chọn chọn ngày</div>
+              </div>
+            </section>
+          </div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Xem trước">
+          <div
+            class="preview-shell"
+            [class.has-background]="!!currentPollBackgroundUrl"
+            [style.background-image]="currentPollBackgroundStyle"
+          >
+            <nz-alert
+              class="preview-alert"
+              [nzType]="canSubmitPreview ? 'success' : 'warning'"
+              [nzMessage]="getPollAvailabilityText()"
+              nzShowIcon
+            ></nz-alert>
+
+            <section class="preview-header">
+              <h2 [style.color]="currentPollTitleColor">{{ currentPollTitle }}</h2>
+              <p [style.color]="currentPollTitleColor">{{ pollForm.get('description')?.value || 'Không có mô tả' }}</p>
+              <div class="preview-time">
+                <span>Bắt đầu: {{ formatDateTime(pollForm.get('startDate')?.value) }}</span>
+                <span>Kết thúc: {{ formatDateTime(pollForm.get('endDate')?.value) }}</span>
+              </div>
+            </section>
+
+            <section class="preview-section" *ngFor="let section of previewSections; let sectionIndex = index; trackBy: trackBySection">
+              <div class="preview-section-title">
+                <strong>Section {{ sectionIndex + 1 }}: {{ section.title }}</strong>
+                <span *ngIf="section.description">{{ section.description }}</span>
+              </div>
+
+              <section class="preview-question" *ngFor="let question of getQuestionsBySection(section); let questionIndex = index; trackBy: trackByQuestion">
+                <h6>
+                  {{ questionIndex + 1 }}. {{ question.questionText || 'Câu hỏi chưa có nội dung' }}
+                  <span *ngIf="question.isRequired">*</span>
+                </h6>
+
+                <div class="mapped-answer" *ngIf="isEmployeeMappedQuestion(question); else manualAnswerInput">
+                  <div>
+                    <span>{{ getEmployeeFieldLabel(question) }}</span>
+                    <nz-tag nzColor="warning" *ngIf="isEmployeeFieldSensitive(question)">Dữ liệu nhạy cảm</nz-tag>
+                  </div>
+                  <strong>{{ getMappedQuestionValue(question) }}</strong>
+                </div>
+
+                <ng-template #manualAnswerInput>
+                  <div [ngSwitch]="question.questionType">
+                    <input
+                      *ngSwitchCase="'Text'"
+                      nz-input
+                      [(ngModel)]="answers[answerKey(question, getQuestionIndex(question))]"
+                      placeholder="Câu trả lời"
+                    />
+                    <textarea
+                      *ngSwitchCase="'Textarea'"
+                      nz-input
+                      rows="3"
+                      [(ngModel)]="answers[answerKey(question, getQuestionIndex(question))]"
+                      placeholder="Câu trả lời"
+                    ></textarea>
+                    <nz-date-picker
+                      *ngSwitchCase="'Date'"
+                      class="date-answer"
+                      nzFormat="dd/MM/yyyy"
+                      nzPlaceHolder="dd/MM/yyyy"
+                      [nzInputReadOnly]="false"
+                      [nzAllowClear]="!question.isRequired"
+                      [(ngModel)]="answers[answerKey(question, getQuestionIndex(question))]"
+                    ></nz-date-picker>
+
+                    <div class="answer-options" *ngSwitchCase="'SingleChoice'">
+                      <label *ngFor="let option of question.options; trackBy: trackByOption">
+                        <input
+                          type="radio"
+                          [name]="'question-' + answerKey(question, getQuestionIndex(question))"
+                          [value]="option.optionValue"
+                          [(ngModel)]="answers[answerKey(question, getQuestionIndex(question))]"
+                        />
+                        <span>{{ option.optionText }}</span>
+                      </label>
+                    </div>
+
+                    <div class="answer-options" *ngSwitchCase="'MultipleChoice'">
+                      <label *ngFor="let option of question.options; trackBy: trackByOption">
+                        <input
+                          type="checkbox"
+                          [checked]="isOptionChecked(question, getQuestionIndex(question), option)"
+                          (change)="toggleMultipleAnswer(question, getQuestionIndex(question), option, $any($event.target).checked)"
+                        />
+                        <span>{{ option.optionText }}</span>
+                      </label>
+                    </div>
+
+                    <div class="rating-answer" *ngSwitchCase="'Rating'">
+                      <button
+                        type="button"
+                        *ngFor="let score of ratingScale(question); trackBy: trackByNumber"
+                        [class.active]="isRatingSelected(question, getQuestionIndex(question), score)"
+                        (click)="setRatingAnswer(question, getQuestionIndex(question), score)"
+                      >
+                        {{ score }}
+                      </button>
+                    </div>
+                  </div>
+                </ng-template>
+              </section>
+            </section>
+
+            <div class="preview-footer">
+              <button
+                nz-button
+                nzType="primary"
+                type="button"
+                [nzLoading]="isSubmitting"
+                [disabled]="!canSubmitPreview || isSubmitting"
+                (click)="submitVote()"
+              >
+                {{ getPreviewButtonText() }}
+              </button>
+            </div>
+          </div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Kết quả">
+          <div class="result-shell">
+            <div class="result-header">
+              <div>
+                <h6>Kết quả bình chọn</h6>
+                <span>{{ totalResponses }} lượt phản hồi</span>
+              </div>
+              <div class="result-actions">
+                <button nz-button nzSize="small" type="button" [disabled]="selectedPollId <= 0" (click)="refreshResults()">
+                  <i class="fa-solid fa-rotate-right"></i>
+                  Làm mới
+                </button>
+                <button
+                  nz-button
+                  nzType="primary"
+                  nzSize="small"
+                  type="button"
+                  [nzLoading]="exportingExcelMode === 'completed'"
+                  [disabled]="selectedPollId <= 0 || isExportingExcel"
+                  (click)="exportResponsesExcel(false)"
+                >
+                  <i class="fa-solid fa-file-export" *ngIf="exportingExcelMode !== 'completed'"></i>
+                  Xuất Excel
+                </button>
+                <button
+                  nz-button
+                  nzSize="small"
+                  type="button"
+                  [nzLoading]="exportingExcelMode === 'all'"
+                  [disabled]="selectedPollId <= 0 || isExportingExcel"
+                  (click)="exportResponsesExcel(true)"
+                >
+                  <i class="fa-solid fa-table-list" *ngIf="exportingExcelMode !== 'all'"></i>
+                  Xuất cả phản hồi
+                </button>
+              </div>
+            </div>
+
+            <nz-alert
+              *ngIf="selectedPollId <= 0"
+              nzType="info"
+              nzMessage="Lưu phiếu để xem kết quả"
+              nzShowIcon
+            ></nz-alert>
+
+            <nz-spin [nzSpinning]="isLoadingResults">
+              <div class="statistics-list" *ngIf="statistics && selectedPollId > 0">
+                <section class="stat-question" *ngFor="let statQuestion of statistics.questions; trackBy: trackByStatisticQuestion">
+                  <div class="stat-question-title">
+                    <strong>{{ statQuestion.questionText }}</strong>
+                    <span>{{ getQuestionTypeLabel(statQuestion.questionType) }} · {{ statQuestion.totalAnswers }} trả lời</span>
+                  </div>
+
+                  <div class="stat-options" *ngIf="statQuestion.options.length > 0; else textStat">
+                    <div class="stat-option" *ngFor="let option of statQuestion.options; trackBy: trackByStatisticOption">
+                      <div class="stat-option-line">
+                        <span>{{ option.optionText }}</span>
+                        <strong>{{ option.count }}</strong>
+                      </div>
+                      <nz-progress [nzPercent]="getStatisticPercent(option, statQuestion)" [nzShowInfo]="false"></nz-progress>
+                    </div>
+                  </div>
+
+                  <ng-template #textStat>
+                    <div class="text-stat">Xem câu trả lời chi tiết trong danh sách phản hồi.</div>
+                  </ng-template>
+                </section>
+              </div>
+
+              <section class="response-list" *ngIf="responses.length > 0 || responseKeyword">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                  <h6 style="margin: 0;">Phản hồi gần đây</h6>
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <input nz-input nzSize="small" placeholder="Tìm kiếm phản hồi..." [(ngModel)]="responseKeyword" (keyup.enter)="searchResponses()" style="width: 250px;" />
+                    <button nz-button nzType="primary" nzSize="small" (click)="searchResponses()">
+                      <i class="fa-solid fa-search"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <nz-empty *ngIf="responses.length === 0" nzNotFoundContent="Không tìm thấy phản hồi nào"></nz-empty>
+
+                <div
+                  class="response-item response-clickable"
+                  *ngFor="let response of responses; trackBy: trackByResponse"
+                  role="button"
+                  tabindex="0"
+                  (click)="openResponseDetail(response)"
+                  (keydown.enter)="openResponseDetail(response)"
+                >
+                  <div class="response-meta">
+                    <strong>#{{ response.id }}</strong>
+                    <span>Nhân viên: {{ getResponseEmployeeName(response) }}</span>
+                    <span>{{ formatDateTime(response.createdDate) }}</span>
+                  </div>
+
+                  <div class="response-section" *ngFor="let group of getResponseSectionGroups(response); trackBy: trackByResponseSectionGroup">
+                    <div class="response-section-heading">
+                      <strong>{{ group.title }}</strong>
+                      <span>{{ group.answers.length }} câu trả lời</span>
+                    </div>
+                    <div class="response-answer" *ngFor="let answer of group.answers; trackBy: trackByResponseAnswer">
+                      <span>{{ getQuestionText(answer.questionId) }}</span>
+                      <strong>{{ formatAnswer(answer) }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <nz-empty
+                *ngIf="selectedPollId > 0 && !isLoadingResults && !statistics && responses.length === 0"
+                nzNotFoundContent="Chưa có dữ liệu kết quả"
+              ></nz-empty>
+            </nz-spin>
+          </div>
+        </nz-tab>
+      </nz-tabset>
+    </nz-spin>
+  </main>
+</div>
+
+<nz-modal
+  [(nzVisible)]="isResponseDetailVisible"
+  nzTitle="Chi tiết phản hồi"
+  [nzFooter]="null"
+  [nzWidth]="760"
+  (nzOnCancel)="closeResponseDetail()"
+>
+  <ng-container *nzModalContent>
+    <nz-spin [nzSpinning]="isLoadingResponseDetail">
+      <div class="response-detail-modal" *ngIf="selectedResponse as response">
+        <div class="response-detail-summary">
+          <div>
+            <span>Mã phản hồi</span>
+            <strong>#{{ response.id }}</strong>
+          </div>
+          <div>
+            <span>Nhân viên</span>
+            <strong>{{ getResponseEmployeeName(response) }}</strong>
+          </div>
+          <div>
+            <span>Thời gian gửi</span>
+            <strong>{{ formatDateTime(response.createdDate) }}</strong>
+          </div>
+        </div>
+
+        <div class="response-detail-section" *ngFor="let group of getResponseSectionGroups(response); trackBy: trackByResponseSectionGroup">
+          <div class="response-section-heading">
+            <strong>{{ group.title }}</strong>
+            <span>{{ group.answers.length }} câu trả lời</span>
+          </div>
+          <div class="response-detail-answer" *ngFor="let answer of group.answers; trackBy: trackByResponseAnswer">
+            <span>{{ getQuestionText(answer.questionId) }}</span>
+            <strong>{{ formatAnswer(answer) }}</strong>
+          </div>
+        </div>
+      </div>
+    </nz-spin>
+  </ng-container>
+</nz-modal>

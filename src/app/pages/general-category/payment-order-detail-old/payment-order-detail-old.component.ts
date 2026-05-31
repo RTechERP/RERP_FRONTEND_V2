@@ -45,6 +45,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         { value: 4, label: 'YONKO' },
         { value: 5, label: 'R-Tech' },
     ];
+    isBill = false;
     paymentOrderTypes: any[] = [];
     approvedTBPs: any[] = [];
     supplierSalesAll: any[] = [];
@@ -67,36 +68,29 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
     // Type 1, 3 data
     dataset: any[] = [
         {
-            _id: 1, ID: 0, Stt: '1', ContentPayment: '', Unit: '', Quantity: 0, UnitPrice: 0, TotalMoney: 0, Note: '', ParentID: null, PaymentPercentage: 100,
-            //  TotalMoneyWithInvoice: 0 
+            _id: 1, ID: 0, Stt: '1', ContentPayment: '', Unit: '', Quantity: 0, UnitPrice: 0, TotalMoney: 0, Note: '', ParentID: null, PaymentPercentage: 100, TotalMoneyWithInvoice: null
         }
     ];
 
     // Type 2 data (I / II+details / III+diffs)
     dataset2: any[] = [
         {
-            _id: 1, ID: 0, Stt: 'I', ContentPayment: 'Số tiền tạm ứng', TotalMoney: 0, Unit: '', Quantity: 0, UnitPrice: 0, Note: '', ParentID: null, PaymentPercentage: 0,
-            //  TotalMoneyWithInvoice: 0 
+            _id: 1, ID: 0, Stt: 'I', ContentPayment: 'Số tiền tạm ứng', TotalMoney: 0, Unit: '', Quantity: 0, UnitPrice: 0, Note: '', ParentID: null, PaymentPercentage: 0, TotalMoneyWithInvoice: null
         },
         {
-            _id: 2, ID: 0, Stt: 'II', ContentPayment: 'Số tiền thanh toán', TotalMoney: 0, Unit: '', Quantity: 0, UnitPrice: 0, Note: '', ParentID: null, PaymentPercentage: 0,
-            //  TotalMoneyWithInvoice: 0 
+            _id: 2, ID: 0, Stt: 'II', ContentPayment: 'Số tiền thanh toán', TotalMoney: 0, Unit: '', Quantity: 0, UnitPrice: 0, Note: '', ParentID: null, PaymentPercentage: 0, TotalMoneyWithInvoice: null
         },
         {
-            _id: 6, ID: 0, Stt: '1', ContentPayment: '', TotalMoney: 0, Unit: '', Quantity: 0, UnitPrice: 0, Note: '', ParentID: 2, PaymentPercentage: 100,
-            //  TotalMoneyWithInvoice: 0 
+            _id: 6, ID: 0, Stt: '1', ContentPayment: '', TotalMoney: 0, Unit: '', Quantity: 0, UnitPrice: 0, Note: '', ParentID: 2, PaymentPercentage: 100, TotalMoneyWithInvoice: null
         },
         {
-            _id: 3, ID: 0, Stt: 'III', ContentPayment: 'Chênh lệch', TotalMoney: 0, Unit: '', Quantity: 0, UnitPrice: 0, Note: '', ParentID: null, PaymentPercentage: 0,
-            //  TotalMoneyWithInvoice: 0 
+            _id: 3, ID: 0, Stt: 'III', ContentPayment: 'Chênh lệch', TotalMoney: 0, Unit: '', Quantity: 0, UnitPrice: 0, Note: '', ParentID: null, PaymentPercentage: 0, TotalMoneyWithInvoice: null
         },
         {
-            _id: 4, ID: 0, Stt: '1', ContentPayment: 'Tạm ứng chi không hết (I-II)', TotalMoney: 0, Unit: '', Quantity: 0, UnitPrice: 0, Note: '', ParentID: 3, PaymentPercentage: 0,
-            //  TotalMoneyWithInvoice: 0 
+            _id: 4, ID: 0, Stt: '1', ContentPayment: 'Tạm ứng chi không hết (I-II)', TotalMoney: 0, Unit: '', Quantity: 0, UnitPrice: 0, Note: '', ParentID: 3, PaymentPercentage: 0, TotalMoneyWithInvoice: null
         },
         {
-            _id: 5, ID: 0, Stt: '2', ContentPayment: 'Số chi quá tạm ứng (II-I)', TotalMoney: 0, Unit: '', Quantity: 0, UnitPrice: 0, Note: '', ParentID: 3, PaymentPercentage: 0,
-            //  TotalMoneyWithInvoice: 0 
+            _id: 5, ID: 0, Stt: '2', ContentPayment: 'Số chi quá tạm ứng (II-I)', TotalMoney: 0, Unit: '', Quantity: 0, UnitPrice: 0, Note: '', ParentID: 3, PaymentPercentage: 0, TotalMoneyWithInvoice: null
         },
     ];
 
@@ -154,7 +148,19 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         }, 0);
         return this.round2(total);
     }
+    get showIsBillCheckbox(): boolean {
+        const typeId = this.validateForm?.get('PaymentOrderTypeID')?.value;
+        const selectedType = this.paymentOrderTypes?.find((t: any) => t.ID == typeId);
+        return !!selectedType?.IsBill;
+    }
+
     get currentTotal(): number {
+        // const isBill = !!this.validateForm?.getRawValue()?.IsBill;
+        // if (isBill) {
+        //     return this.paymentOrder.TypeOrder === 2
+        //         ? this.parseNum(this.t2RowII.TotalMoneyWithInvoice)
+        //         : this.round2(this.dataset.reduce((s, r) => s + this.parseNum(r.TotalMoneyWithInvoice), 0));
+        // }
         return this.paymentOrder.TypeOrder === 2
             ? (this.totalDiff !== 0 ? this.totalDiff : this.totalII)
             : this.totalType1;
@@ -247,6 +253,13 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                             ? (this.paymentOrder?.BankListID || 187)
                             : this.paymentOrder?.BankListID
                     }, { emitEvent: false });
+                    if (this.paymentOrder.PaymentOrderTypeID && this.paymentOrder.PaymentOrderTypeID != 22) {
+                        const selectedType = this.paymentOrderTypes.find(t => t.ID == this.paymentOrder.PaymentOrderTypeID);
+                        if (selectedType?.IsBill && isNewOrCopy) {
+                            this.validateForm.patchValue({ IsBill: true }, { emitEvent: false });
+                            this.isBill = true;
+                        }
+                    }
                     console.log(this.paymentOrder?.SupplierSaleID);
                     console.log((this.paymentOrder?.SupplierSaleID || 0) > 0
                         ? (this.paymentOrder?.BankListID || 187)
@@ -310,6 +323,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             TaxCompanyID: this.fb.control({ value: (this.paymentOrder.ID <= 0 || this.isCopy) ? this.appUserService.currentUser?.TaxCompanyID : this.paymentOrder.TaxCompanyID, disabled: true }),
 
         });
+        this.isBill = !!this.validateForm.get('IsBill')?.value;
         console.log(this.validateForm);
         this.validateForm.get('TypeOrder')?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((v: number) => {
@@ -347,6 +361,25 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                     v == 22 ? ctrl?.setValidators([Validators.required]) : ctrl?.clearValidators();
                     ctrl?.updateValueAndValidity();
                 });
+                if (v != 22) {
+                    const selectedType = this.paymentOrderTypes.find(t => t.ID == v);
+                    const newVal = !!selectedType?.IsBill;
+                    this.validateForm.get('IsBill')?.setValue(newVal, { emitEvent: false });
+                    this.isBill = newVal;
+                    if (!newVal) {
+                        this.dataset.forEach(r => r.TotalMoneyWithInvoice = null);
+                        this.dataset2.forEach(r => r.TotalMoneyWithInvoice = null);
+                    }
+                }
+            });
+
+        this.validateForm.get('IsBill')?.valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe((v: boolean) => {
+                this.isBill = !!v;
+                if (!v) {
+                    this.dataset.forEach(r => r.TotalMoneyWithInvoice = null);
+                    this.dataset2.forEach(r => r.TotalMoneyWithInvoice = null);
+                }
             });
 
         this.validateForm.get('SupplierSaleID')?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -429,8 +462,12 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
     }
 
     loadDetailData(): void {
-        if (this.paymentOrder.ID <= 0) return;
-        this.paymentService.getDetail(this.paymentOrder.ID).subscribe({
+        const rawId = this.paymentOrder.ID || (this.paymentOrder as any).Id || 0;
+        const idToLoad = (this.isCopy && (this.paymentOrder as any).CopyFromID > 0)
+            ? (this.paymentOrder as any).CopyFromID
+            : rawId;
+        if (!(idToLoad > 0)) return;
+        this.paymentService.getDetail(idToLoad).subscribe({
             next: (res) => {
                 const details: any[] = res.data.details || [];
                 if (this.paymentOrder.TypeOrder != 2) {
@@ -509,6 +546,10 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                 }
                 if (!this.isCopy) {
                     this.dataFiles = (res.data.files || []).map((x: any, i: number) => ({ ...x, _rowId: i + 1 }));
+                    const po = Array.isArray(res.data.paymentOrder) ? res.data.paymentOrder[0] : res.data.paymentOrder;
+                    if (po?.RegisterContractID) {
+                        this.validateForm.patchValue({ RegisterContractID: po.RegisterContractID }, { emitEvent: false });
+                    }
                 }
                 this.cdr.detectChanges();
             },
@@ -568,8 +609,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         this.dataset = [...this.dataset, {
             _id: maxId + 1, ID: 0, Stt: `${maxStt + 1}`,
             ContentPayment: '', Unit: '', Quantity: 0, UnitPrice: 0, TotalMoney: 0, Note: '', ParentID: null,
-            PaymentPercentage: 100,
-            // TotalMoneyWithInvoice: 0,
+            PaymentPercentage: 100, TotalMoneyWithInvoice: null,
         }];
     }
 
@@ -580,6 +620,24 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
     calcTotalMoney(row: any): void {
         row.TotalMoney = (this.parseNum(row.Quantity)) * (this.parseNum(row.UnitPrice));
         this.calcTotalPayment(row);
+    }
+
+    onQuantityBlur(row: any, event: Event): void {
+        const newVal = this.parseNum((event.target as HTMLInputElement).value);
+        const oldVal = this.parseNum(row.Quantity);
+        row.Quantity = newVal;
+        if (newVal !== oldVal) {
+            this.calcTotalMoney(row);
+        }
+    }
+
+    onUnitPriceBlur(row: any, event: Event): void {
+        const newVal = this.parseNum((event.target as HTMLInputElement).value);
+        const oldVal = this.parseNum(row.UnitPrice);
+        row.UnitPrice = newVal;
+        if (newVal !== oldVal) {
+            this.calcTotalMoney(row);
+        }
     }
 
     calcTotalPayment(row: any): void {
@@ -593,8 +651,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         const newRow = {
             _id: maxId + 1, ID: 0, Stt: `${maxStt + 1}`,
             ContentPayment: '', Unit: '', Quantity: 0, UnitPrice: 0, TotalMoney: 0, Note: '', ParentID: 2,
-            PaymentPercentage: 100,
-            // TotalMoneyWithInvoice: 0,
+            PaymentPercentage: 100, TotalMoneyWithInvoice: null,
         };
         const iiiIdx = this.dataset2.findIndex(r => r.Stt === 'III');
         if (iiiIdx >= 0) {
@@ -631,7 +688,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                 DeadlinePayment: 'Deadline thanh toán',
                 ReasonOrder: 'Lý do',
                 ReceiverInfo: 'Thông tin người nhận tiền',
-                IsBill: 'Có hóa đơn',
+                // IsBill: 'Có hóa đơn',
                 StartLocation: 'Điểm đi',
                 EndLocation: 'Điểm đến',
                 TypePayment: 'Hình thức thanh toán',
@@ -652,19 +709,19 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             return;
         }
         if (this.validateForm.getRawValue().IsBill) {
-            // if (this.paymentOrder.TypeOrder != 2) {
-            //     const hasEmpty = this.dataset.some(r => r.TotalMoneyWithInvoice === null || r.TotalMoneyWithInvoice === undefined || r.TotalMoneyWithInvoice === '');
-            //     if (hasEmpty) {
-            //         this.notification.warning('Vui lòng kiểm tra lại', 'Khi có hóa đơn, cột Tổng tiền TT có HĐ bắt buộc phải điền (nếu không có hóa đơn cho dòng đó thì điền = 0)');
-            //         return;
-            //     }
-            // } else {
-            //     const v = this.t2RowII.TotalMoneyWithInvoice;
-            //     if (v === null || v === undefined || v === '') {
-            //         this.notification.warning('Vui lòng kiểm tra lại', 'Khi có hóa đơn, cột Tổng tiền TT có HĐ (dòng II) bắt buộc phải điền');
-            //         return;
-            //     }
-            // }
+            if (this.paymentOrder.TypeOrder != 2) {
+                const hasEmpty = this.dataset.some(r => r.TotalMoneyWithInvoice === null || r.TotalMoneyWithInvoice === undefined || r.TotalMoneyWithInvoice === '');
+                if (hasEmpty) {
+                    this.notification.warning('Vui lòng kiểm tra lại', 'Khi có hóa đơn, cột "Tổng tiền có hóa đơn" bắt buộc phải điền cho tất cả các dòng (nếu không có hóa đơn thì điền = 0)');
+                    return;
+                }
+            } else {
+                const hasEmpty2 = this.t2DetailRows.some(r => r.TotalMoneyWithInvoice === null || r.TotalMoneyWithInvoice === undefined || r.TotalMoneyWithInvoice === '');
+                if (hasEmpty2) {
+                    this.notification.warning('Vui lòng kiểm tra lại', 'Khi có hóa đơn, cột "Tổng tiền có hóa đơn" bắt buộc phải điền cho tất cả các dòng chi tiết (nếu không có hóa đơn thì điền = 0)');
+                    return;
+                }
+            }
         }
 
         this.isSubmit = true;
@@ -674,7 +731,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             ...overrides,
             Stt: String(overrides.Stt ?? r.Stt ?? ''),
             PaymentPercentage: this.parseNum(r.PaymentPercentage),
-            // TotalMoneyWithInvoice: parseFloat(r.TotalMoneyWithInvoice) || 0,
+            TotalMoneyWithInvoice: parseFloat(r.TotalMoneyWithInvoice) || 0,
             ...(this.isCopy ? { Id: 0, ID: 0, PaymentOrderId: 0, PaymentOrderID: 0 } : {}),
         });
 

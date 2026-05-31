@@ -1448,15 +1448,63 @@ export class PonccSummaryNewComponent {
     }
 
     try {
-      let columns = this.columnDefinitionsMaster || [];
-      columns = columns.filter((col: any) => col.hidden !== true);
+      const columns: { field: string; name: string }[] = [
+        { field: 'RequestDate', name: 'Ngày đơn hàng' },
+        { field: 'CompanyText', name: 'Công ty nhập' },
+        { field: 'BillCode', name: 'Số đơn hàng' },
+        { field: 'Note', name: 'Diễn giải' },
+        { field: 'DeliveryDate', name: 'Ngày giao hàng' },
+        { field: 'CodeNCC', name: 'Mã nhà cung cấp' },
+        { field: 'NameNCC', name: 'Tên nhà cung cấp' },
+        { field: 'ProjectCode', name: 'Mã dự án' },
+        { field: 'ProjectName', name: 'Tên dự án' },
+        { field: 'POCode', name: 'Số PO' },
+        { field: 'ProductNewCode', name: 'Mã nội bộ' },
+        { field: 'ProductName', name: 'Tên hàng' },
+        { field: 'ProductCode', name: 'Mã sản phẩm' },
+        { field: 'ProductCodeOfSupplier', name: 'Mã sản phẩm NCC' },
+        { field: 'Maker', name: 'Hãng' },
+        { field: 'UnitName', name: 'Đơn vị tính' },
+        { field: 'CurrencyName', name: 'Loại tiền' },
+        { field: 'UnitPrice', name: 'Đơn giá mua chưa VAT' },
+        { field: 'UnitPriceVAT', name: 'Đơn giá mua có VAT' },
+        { field: 'QtyRequest', name: 'Số lượng đặt hàng' },
+        { field: 'QuantityReturn', name: 'Số lượng đã nhận' },
+        { field: 'QuantityRemain', name: 'Số lượng còn lại' },
+        { field: 'TotalMoneyChangePO', name: 'Giá trị đặt hàng quy đổi' },
+        { field: 'TotalPrice', name: 'Giá trị đặt hàng' },
+        { field: 'StatusText', name: 'Tình trạng' },
+        { field: 'FullName', name: 'Nhân viên mua hàng' },
+        { field: 'NCCNew', name: 'Phân loại NCC/NCC mới' },
+        { field: 'DeptSupplier', name: 'Công nợ' },
+        { field: 'RulePayName', name: 'Điều khoản thanh toán' },
+        { field: 'FeeShip', name: 'Phí vận chuyển' },
+        { field: 'PriceSale', name: 'Giá bán' },
+        { field: 'DeadlineDelivery', name: 'Deadline giao hàng' },
+        { field: 'PriceHistory', name: 'Giá lịch sử' },
+        { field: 'BiddingPrice', name: 'Giá chào thầu' },
+        { field: 'SupplierVoucher', name: 'NCC xử lí chứng từ' },
+        { field: 'TotalQuantityLast', name: 'Stock kho hiện tại' },
+        { field: 'MinQuantity', name: 'Ghi chú stock kho' },
+        { field: 'VAT', name: 'Thuế VAT' },
+        { field: 'IsBill', name: 'Hóa đơn' },
+        { field: 'CurrencyRate', name: 'Tỷ giá' },
+        { field: 'DateRequestImport', name: 'Ngày yc nhập kho' },
+        { field: 'BillImportCode', name: 'Số phiếu nhập' },
+        { field: 'UnitPricePOKH', name: 'Đơn giá bán Admin' },
+        { field: 'OrderQualityNotMet', name: 'Không đạt chất lượng' },
+        { field: 'ReasonForFailure', name: 'Lý do không đạt chất lượng' },
+        { field: 'TaxReduction', name: 'Tiền thuế giảm' },
+        { field: 'COFormE', name: 'Chi phí FE' },
+        { field: 'SomeBill', name: 'Số hóa đơn' },
+      ];
 
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Tổng hợp PONCC');
 
       // Thêm header
       const headerRow = worksheet.addRow(
-        columns.map((col: Column) => col.name || col.field)
+        columns.map((col: any) => col.name || col.field)
       );
       headerRow.font = {
         bold: true,
@@ -1557,7 +1605,7 @@ export class PonccSummaryNewComponent {
       });
 
       // Footer tổng
-      const footerRowData = columns.map((col: Column) => {
+      const footerRowData = columns.map((col: any) => {
         if (col.field === 'BillCode') {
           return `${rawData.length}`;
         }

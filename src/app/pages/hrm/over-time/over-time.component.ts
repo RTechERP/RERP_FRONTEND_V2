@@ -16,6 +16,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { DateTime } from 'luxon';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { FormControl } from '@angular/forms';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
@@ -81,7 +82,8 @@ import {
     HasPermissionDirective,
     NzDropDownModule,
     Menubar,
-    AngularSlickgridModule
+    AngularSlickgridModule,
+    NzTreeSelectModule
   ]
 })
 export class OverTimeComponent implements OnInit {
@@ -91,6 +93,7 @@ export class OverTimeComponent implements OnInit {
   searchForm!: FormGroup;
   overTimeForm!: FormGroup;
   departmentList: any[] = [];
+  departmentNodes: any[] = [];
   overTimeList: any[] = [];
   selectedOverTime: any = null;
   overTimeDetailData: any[] = [];
@@ -288,7 +291,8 @@ export class OverTimeComponent implements OnInit {
   loadDepartment() {
     this.departmentService.getDepartments().subscribe({
       next: (data) => {
-        this.departmentList = data.data;
+        this.departmentList = data.data || [];
+        this.departmentNodes = this.buildTreeNodes([...this.departmentList]);
       },
       error: (error) => {
         this.notification.error("Lỗi", "Lỗi tải danh sách phòng ban");
@@ -296,17 +300,42 @@ export class OverTimeComponent implements OnInit {
     })
   }
 
+  private buildTreeNodes(data: any[]): any[] {
+    const tree: any[] = [];
+    const lookup: any = {};
+
+    data.forEach(item => {
+      lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+    });
+
+    data.forEach(item => {
+      if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+        lookup[item.ParentID].children.push(lookup[item.ID]);
+        lookup[item.ParentID].isLeaf = false;
+      } else {
+        tree.push(lookup[item.ID]);
+      }
+    });
+
+    return tree;
+  }
+
   loadEmployeeOverTime() {
     this.isLoading = true;
-    // Convert date strings to Date objects for backend compatibility
-    const formValue = { ...this.searchForm.value };
-    if (formValue.dateStart) {
-      formValue.dateStart = new Date(formValue.dateStart);
-    }
-    if (formValue.dateEnd) {
-      formValue.dateEnd = new Date(formValue.dateEnd);
-    }
-    this.overTimeService.getEmployeeOverTime(formValue).subscribe({
+    const formValue = this.searchForm.value;
+
+    // Construct the payload with exact field casing matching the backend EmployeeOverTimeSummaryParam
+    const payload = {
+      DateStart: formValue.dateStart ? new Date(formValue.dateStart) : new Date(),
+      DateEnd: formValue.dateEnd ? new Date(formValue.dateEnd) : new Date(),
+      Keyword: formValue.keyWord || '',
+      EmployeeID: 0,
+      IsApproved: formValue.status ?? 0,
+      Type: 0,
+      DepartmentID: formValue.departmentId || 0
+    };
+
+    this.overTimeService.getEmployeeOverTime(payload).subscribe({
       next: (data) => {
         this.overTimeList = data.data;
         // Add unique id property for SlickGrid (use index to ensure uniqueness)
@@ -377,27 +406,27 @@ export class OverTimeComponent implements OnInit {
         },
         cssClass: 'text-center'
       },
-      {
-        id: 'IsApprovedBGD',
-        name: 'BGD duyệt',
-        field: 'IsApprovedBGD',
-        sortable: true,
-        filterable: true,
-        width: 100,
-        formatter: Formatters.checkmarkMaterial,
-        filter: {
-          collection: [
-            { value: '', label: 'Tất cả' },
-            { value: true, label: 'Đã duyệt' },
-            { value: false, label: 'Chưa duyệt' },
-          ],
-          model: Filters['singleSelect'],
-          filterOptions: {
-            autoAdjustDropHeight: true,
-          } as MultipleSelectOption,
-        },
-        cssClass: 'text-center'
-      },
+      // {
+      //   id: 'IsApprovedBGD',
+      //   name: 'BGD duyệt',
+      //   field: 'IsApprovedBGD',
+      //   sortable: true,
+      //   filterable: true,
+      //   width: 100,
+      //   formatter: Formatters.checkmarkMaterial,
+      //   filter: {
+      //     collection: [
+      //       { value: '', label: 'Tất cả' },
+      //       { value: true, label: 'Đã duyệt' },
+      //       { value: false, label: 'Chưa duyệt' },
+      //     ],
+      //     model: Filters['singleSelect'],
+      //     filterOptions: {
+      //       autoAdjustDropHeight: true,
+      //     } as MultipleSelectOption,
+      //   },
+      //   cssClass: 'text-center'
+      // },
       {
         id: 'FullName',
         name: 'Tên',
@@ -416,27 +445,27 @@ export class OverTimeComponent implements OnInit {
         width: 200,
         filter: { model: Filters['compoundInputText'] },
       },
-      {
-        id: 'IsProblem',
-        name: 'Bổ sung',
-        field: 'IsProblem',
-        sortable: true,
-        filterable: true,
-        width: 90,
-        formatter: Formatters.checkmarkMaterial,
-        filter: {
-          collection: [
-            { value: '', label: 'Tất cả' },
-            { value: true, label: 'Có' },
-            { value: false, label: 'Không' },
-          ],
-          model: Filters['singleSelect'],
-          filterOptions: {
-            autoAdjustDropHeight: true,
-          } as MultipleSelectOption,
-        },
-        cssClass: 'text-center'
-      },
+      // {
+      //   id: 'IsProblem',
+      //   name: 'Bổ sung',
+      //   field: 'IsProblem',
+      //   sortable: true,
+      //   filterable: true,
+      //   width: 90,
+      //   formatter: Formatters.checkmarkMaterial,
+      //   filter: {
+      //     collection: [
+      //       { value: '', label: 'Tất cả' },
+      //       { value: true, label: 'Có' },
+      //       { value: false, label: 'Không' },
+      //     ],
+      //     model: Filters['singleSelect'],
+      //     filterOptions: {
+      //       autoAdjustDropHeight: true,
+      //     } as MultipleSelectOption,
+      //   },
+      //   cssClass: 'text-center'
+      // },
       {
         id: 'DateRegister',
         name: 'Ngày',
@@ -964,7 +993,7 @@ export class OverTimeComponent implements OnInit {
         const safe = (val: any) => (val && typeof val === 'object' && Object.keys(val).length === 0 ? '' : val);
         const formatDate = (val: any) => val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
         const formatDateTime = (val: any) => val ? DateTime.fromISO(val).toFormat('HH:mm dd/MM/yyyy') : '';
-        
+
         const location = item.LocationText || '';
         const isHome = location.toLowerCase().includes('nhà');
         const timeStr = safe(item.TimeReality);
@@ -1003,7 +1032,7 @@ export class OverTimeComponent implements OnInit {
       const location = item.LocationText || '';
       const isHome = location.toLowerCase().includes('nhà');
       const hours = parseFloat(item.TimeReality) || 0;
-      
+
       if (isHome) {
         totalHome += hours;
       } else {

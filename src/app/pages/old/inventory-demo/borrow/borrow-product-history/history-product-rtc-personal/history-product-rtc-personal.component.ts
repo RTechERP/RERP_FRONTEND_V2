@@ -104,6 +104,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
     // INTEGRATION: Input/Output để hoạt động như modal
     @Input() isModalMode: boolean = false;
     @Output() productsExported = new EventEmitter<any[]>();
+    @Output() dataCountChange = new EventEmitter<number>();
     public activeModal = inject(NgbActiveModal, { optional: true });
     // Menu
     historyProductMenu: MenuItem[] = [];
@@ -823,9 +824,12 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
             next: (response: any) => {
                 const data = response.data || [];
 
-                // Map data with unique id for SlickGrid
-                // Ensure each item has a unique id (handle duplicate IDs)
-                const mappedData = data.map((item: any, index: number) => {
+                let fillData = data.filter((item: any) =>
+                    item.ProductGroupRTCID != 140 && item.ProductGroupRTCID != 143 &&
+                    item.ProductGroupRTCID != 144 && item.ProductGroupRTCID != 145
+                );
+
+                const mappedData = fillData.map((item: any, index: number) => {
                     const originalId = item.ID || 0;
                     // Always create unique ID by combining original ID with index
                     // This ensures uniqueness even if original IDs are duplicated
@@ -839,6 +843,7 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
 
                 this.dataset = mappedData;
                 this.isLoading = false;
+                this.dataCountChange.emit(mappedData.length);
                 this.cdr.detectChanges();
 
                 // Update filter collections after data is loaded

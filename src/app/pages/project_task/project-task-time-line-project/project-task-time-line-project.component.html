@@ -71,6 +71,10 @@
                                 nzTooltipTitle="Tìm kiếm">
                                 <span nz-icon nzType="search"></span>
                             </button>
+                            <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" nz-tooltip
+                                nzTooltipTitle="Xuất Excel">
+                                <span nz-icon nzType="file-excel" nzTheme="outline" style="color: #107c41;"></span>
+                            </button>
                         </div>
                     </div>
                 </nz-col>
@@ -107,13 +111,13 @@
                         </th>
                         <th rowspan="2" class="sticky-col col-time">Thời gian <br>(giờ/ngày)</th>
                         <th rowspan="2" class="sticky-col col-type">Loại</th>
-                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday"
+                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday || col.isDayOff"
                             [class.today-col]="col.isToday" class="date-header">
                             {{ col.dayName }}
                         </th>
                     </tr>
                     <tr>
-                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday"
+                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday || col.isDayOff"
                             [class.today-col]="col.isToday" class="date-subheader">
                             {{ col.dateDisplay }}
                         </th>
@@ -184,7 +188,7 @@
                                     <!-- Các ô ngày -->
                                     <td *ngFor="let col of dateColumns" class="gantt-cell"
                                         [class.cell-group-end]="ri === 1 && ti === group.tasks.length - 1"
-                                        [class.sunday]="col.isSunday" [class.today-col]="col.isToday"
+                                        [class.sunday]="col.isSunday || col.isDayOff" [class.today-col]="col.isToday"
                                         [class.filled-planned]="row.TypeDate === 1 && (getValue(row, col.dateStr) === 1 || getValue(row, col.dateStr) === 3)"
                                         [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
                                         <!-- Dự kiến: 2 hoặc 3 hiển thị icon check -->

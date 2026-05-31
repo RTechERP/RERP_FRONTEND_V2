@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { ProjectTaskTimeLineTotalService, TimelineByTeamItem } from '../project-task-time-line-total/project-task-time-line-total.service';
 
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -66,36 +67,47 @@ export class ProjectTaskTimelineComponent implements OnInit {
   dateColumns: any[] = [];
   groupedTasks: any[] = [];
   filteredTasks = signal<any[]>([]);
-  totalTaskCount = computed(() => {
-    let count = 0;
-    this.filteredTasks().forEach(group => {
-      count += (group.tasks || []).length;
-    });
-    return count;
-  });
+  totalTaskCount = signal(0);
+  dayOffList: string[] = [];
+  dayOffSet = new Set<string>();
+  allStatuses: any[] = [];
+  private statusMap = new Map<string, any>();
 
   // Column Filters
   filterKeyword = '';
   filterProjectKeyword = '';
   filterParentCode = '';
-  selectedStatuses: number[] = [0, 1];
+  selectedStatuses: number[] = [];
   filterStatusColumn: number[] = [];
   contextMenuItems: MenuItem[] = [];
 
-  statusOptions = [
-    { label: 'Chưa làm', value: 0 },
-    { label: 'Đang làm', value: 1 },
-    { label: 'Hoàn thành', value: 2 },
-    { label: 'Pending', value: 3 },
-    { label: 'Hủy', value: 4 }
-  ];
+  statusOptions: any[] = [];
 
   ngOnInit() {
     this.selectedDepartment = this.appUserService.departmentID || 0;
     this.selectedTeam = this.appUserService.currentUser?.TeamOfUser || 0;
     this.selectedEmployee = this.appUserService.id || 0;
     this.loadDropdownData();
+    this.loadProjectTaskStatuses();
     this.loadTimeline();
+  }
+
+  loadProjectTaskStatuses(): void {
+    this.timelineService.getProjectTaskStatuses().subscribe({
+      next: (statuses) => {
+        this.allStatuses = statuses;
+        this.statusMap.clear();
+        statuses.forEach((s: any) => {
+          this.statusMap.set(`${s.Type}_${s.No}`, s);
+        });
+        const type1Statuses = statuses.filter((s: any) => s.Type === 1);
+        this.statusOptions = type1Statuses.map((s: any) => ({
+          label: s.Title,
+          value: s.No
+        }));
+      },
+      error: (err) => console.error('Error loading project task statuses:', err)
+    });
   }
 
   loadDropdownData() {
@@ -143,7 +155,6 @@ export class ProjectTaskTimelineComponent implements OnInit {
     setTimeout(() => {
       const startDate = new Date(this.dateStart);
       const endDate = new Date(this.dateEnd);
-      this.generateDateColumns(startDate, endDate);
 
       // Build status string: "0,1" hoặc "-1" nếu chọn tất cả hoặc không chọn gì
       let statusStr = '';
@@ -153,20 +164,25 @@ export class ProjectTaskTimelineComponent implements OnInit {
         statusStr = this.selectedStatuses.join(',');
       }
 
-      this.timelineService.getTimelineByTeam({
-        dateStart: this.dateStart,
-        dateEnd: this.dateEnd,
-        departmentID: this.selectedDepartment || undefined,
-        teamID: this.selectedTeam || undefined,
-        userID: this.selectedEmployee || this.appUserService.id || undefined,
-        projectID: undefined,
-        status: statusStr,
-        typeSearch: 1
+      forkJoin({
+        timelineData: this.timelineService.getTimelineByTeam({
+          dateStart: this.dateStart,
+          dateEnd: this.dateEnd,
+          departmentID: this.selectedDepartment || undefined,
+          teamID: this.selectedTeam || undefined,
+          userID: this.selectedEmployee || this.appUserService.id || undefined,
+          projectID: undefined,
+          status: statusStr,
+          typeSearch: 1
+        }),
+        dayOffData: this.timelineService.getProjectTaskGetDayOff(this.dateStart, this.dateEnd)
       }).subscribe({
-        next: (data) => {
-          // Tiếp tục nhường luồng trước khi xử lý dữ liệu nặng để không làm đơ vòng quay loading
+        next: ({ timelineData, dayOffData }) => {
           setTimeout(() => {
-            this.transformData(data);
+            this.dayOffList = dayOffData;
+            this.dayOffSet = new Set(dayOffData);
+            this.generateDateColumns(startDate, endDate);
+            this.transformData(timelineData);
             this.applyFilters();
             this.loading.set(false);
           }, 10);
@@ -186,18 +202,74 @@ export class ProjectTaskTimelineComponent implements OnInit {
     let current = new Date(start);
     while (current <= end) {
       const d = new Date(current);
+      const dateStr = this.formatDate(d);
+      const isDayOff = this.dayOffSet.has(dateStr); // O(1) instead of O(n)
       dates.push({
         fullDate: d,
-        dateStr: this.formatDate(d),
+        dateStr: dateStr,
         dayName: this.getDayShortName(d),
-        dateDisplay: (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getDate().toString().padStart(2, '0'),
+        dateDisplay: d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0'),
         isWeekend: d.getDay() === 0 || d.getDay() === 6,
         isSunday: d.getDay() === 0,
-        isToday: d.toDateString() === todayStr
+        isToday: d.toDateString() === todayStr,
+        isDayOff: isDayOff
       });
       current.setDate(current.getDate() + 1);
     }
     this.dateColumns = dates;
+  }
+
+  combineCodes(a: string, b: string): string {
+    const isPlanned = (val: string) => ['10', '11', '30', '31'].includes(val);
+    const isOutside = (val: string) => ['11', '31'].includes(val);
+    const hasCheck = (val: string) => ['2', '30', '31'].includes(val);
+
+    const plan = isPlanned(a) || isPlanned(b);
+    const outside = isOutside(a) || isOutside(b);
+    const check = hasCheck(a) || hasCheck(b);
+
+    if (plan) {
+      if (check) {
+        return outside ? '31' : '30';
+      } else {
+        return outside ? '11' : '10';
+      }
+    } else {
+      return check ? '2' : '0';
+    }
+  }
+
+  combineActuals(currentVal: any, newVal: any): string {
+    const parse = (v: any) => {
+      if (v == null || v === '') return { h: 0, out: 0, lt: 0, ltype: 0 };
+      const s = v.toString();
+      if (s === '0') return { h: 0, out: 0, lt: 0, ltype: 0 };
+      if (s.includes('|')) {
+        const p = s.split('|');
+        return {
+          h: parseFloat(p[0]) || 0,
+          out: parseInt(p[1], 10) || 0,
+          lt: parseInt(p[2], 10) || 0,
+          ltype: parseInt(p[3], 10) || 0
+        };
+      }
+      return { h: parseFloat(s) || 0, out: 0, lt: 0, ltype: 0 };
+    };
+
+    const c = parse(currentVal);
+    const n = parse(newVal);
+
+    const h = c.h + n.h;
+    if (h === 0 && c.lt === 0 && n.lt === 0) return '0';
+
+    const out = c.out || n.out;
+    const lt = c.lt || n.lt;
+    const ltype = c.ltype || n.ltype;
+
+    if (out > 0 || lt > 0 || ltype > 0) {
+      return `${h}|${out}|${lt}|${ltype}`;
+    }
+    return h.toString();
   }
 
   transformData(raw: TimelineByTeamItem[]) {
@@ -230,15 +302,23 @@ export class ProjectTaskTimelineComponent implements OnInit {
           ProjectTaskParentCode: item['ProjectTaskParentCode'] || '',
           ProjectTaskParentTitle: item['ProjectTaskParentTitle'] || '',
           Status: item['Status'],
-          StatusName: this.getStatusName(item['Status']),
-          planned: { TypeDate: 1, SumTotalHour: null, DurationDays: null },
-          actual: { TypeDate: 2, SumTotalHour: null, DurationDays: null }
+          IsApproved: item['IsApprove'] !== undefined && item['IsApprove'] !== null ? item['IsApprove'] : null,
+          isOverdue: this.isTaskOverdue(item),
+          StatusName: '', // Gán sau khi có cả config và overdue
+          planned: null,
+          actual: null
         });
       }
 
       const taskEntry = projectRecord.tasksMap.get(taskId);
       
-      // Tổng hợp dữ liệu theo ngày
+      // Khởi tạo planned và actual nếu chưa có
+      if (item['TypeDate'] === 1 && !taskEntry.planned) {
+        taskEntry.planned = { TypeDate: 1, SumTotalHour: null, DurationDays: null };
+      } else if (item['TypeDate'] === 2 && !taskEntry.actual) {
+        taskEntry.actual = { TypeDate: 2, SumTotalHour: null, DurationDays: null };
+      }
+
       const targetRow = item['TypeDate'] === 1 ? taskEntry.planned : taskEntry.actual;
       
       if (item['SumTotalHour'] != null) {
@@ -249,15 +329,28 @@ export class ProjectTaskTimelineComponent implements OnInit {
       // Cộng dồn các ô ngày
       Object.keys(item).forEach(key => {
         if (/^\d{4}-\d{2}-\d{2}$/.test(key)) {
-          targetRow[key] = (targetRow[key] || 0) + (item[key] || 0);
+          if (item['TypeDate'] === 1) {
+            const currentVal = targetRow[key]?.toString() || '0';
+            const newVal = item[key]?.toString() || '0';
+            targetRow[key] = this.combineCodes(currentVal, newVal);
+          } else {
+            // Thực tế: cộng dồn số giờ (hỗ trợ định dạng "hours|isOutside|leaveTime|leaveType")
+            targetRow[key] = this.combineActuals(targetRow[key], item[key]);
+          }
         }
       });
 
-      // Nếu là dòng planned, giữ lại PlanStartDate/PlanEndDate cho công thức tính (lấy từ bản ghi đầu tiên có dữ liệu)
       if (item['TypeDate'] === 1) {
         if (!targetRow['PlanStartDate']) targetRow['PlanStartDate'] = item['PlanStartDate'];
         if (!targetRow['PlanEndDate']) targetRow['PlanEndDate'] = item['PlanEndDate'];
       }
+    });
+
+    // Sau khi gom xong, thiết lập StatusName bằng hàm getStatusDisplayName
+    projectMap.forEach(project => {
+      project.tasksMap.forEach((task: any) => {
+        task.StatusName = this.getStatusDisplayName(task);
+      });
     });
 
     // Bước 2: Chuyển đổi sang mảng phân cấp Project -> Task
@@ -265,9 +358,75 @@ export class ProjectTaskTimelineComponent implements OnInit {
       ...p,
       tasks: Array.from(p.tasksMap.values()).map((t: any) => ({
         ...t,
-        rows: [t.planned, t.actual]
+        _statusStyle: this.getStatusStyle(t), // Pre-compute status style
+        rows: [
+          t.planned || { TypeDate: 1, SumTotalHour: null, DurationDays: null },
+          t.actual || { TypeDate: 2, SumTotalHour: null, DurationDays: null }
+        ]
       }))
     }));
+
+    // Pre-compute cell data for all rows
+    this.preComputeCellData();
+  }
+
+  /**
+   * Pre-compute tất cả cell data (class CSS, tooltip, label) cho mỗi ô ngày.
+   * Thay vì gọi isPlannedFilled(), isOutsideWork(), hasCheckMark(), parseActualValue()
+   * hàng trăm nghìn lần trong template, tính 1 lần ở đây.
+   */
+  private preComputeCellData(): void {
+    const dateStrs = this.dateColumns.map(c => c.dateStr);
+    for (const group of this.groupedTasks) {
+      for (const task of group.tasks) {
+        for (const row of task.rows) {
+          const cellData: Record<string, any> = {};
+          const isPlanned = row.TypeDate === 1;
+          const isActual = row.TypeDate === 2;
+
+          for (const dateStr of dateStrs) {
+            const cell: any = {};
+
+            if (isPlanned) {
+              const val = row[dateStr]?.toString() || '0';
+              cell.isPlannedFilled = val === '10' || val === '11' || val === '30' || val === '31';
+              cell.isOutsideWork = val === '11' || val === '31';
+              cell.hasCheckMark = val === '2' || val === '30' || val === '31';
+            }
+
+            if (isActual) {
+              const raw = row[dateStr];
+              let hours = 0, isOutside = 0, leaveTime = 0, leaveType = 0;
+              if (raw != null && raw !== '') {
+                const rawStr = raw.toString();
+                if (rawStr.includes('|')) {
+                  const parts = rawStr.split('|');
+                  hours = parseFloat(parts[0]) || 0;
+                  isOutside = parseInt(parts[1], 10) || 0;
+                  leaveTime = parseInt(parts[2], 10) || 0;
+                  leaveType = parseInt(parts[3], 10) || 0;
+                } else {
+                  hours = parseFloat(rawStr) || 0;
+                }
+              }
+              cell.actualHours = hours;
+              cell.isFilledActual = hours > 0 && isOutside === 0;
+              cell.isFilledActualOutside = hours > 0 && isOutside === 1;
+              cell.hasLeave = leaveTime > 0 && leaveType > 0;
+              if (cell.hasLeave) {
+                cell.leaveLabel = this.getLeaveLabel(leaveType, leaveTime);
+                cell.tooltip = this.getLeaveTooltip(leaveTime, leaveType);
+              } else {
+                cell.tooltip = null;
+              }
+            }
+
+            cellData[dateStr] = cell;
+          }
+          row._cellData = cellData;
+        }
+      }
+    }
   }
 
   /**
@@ -324,12 +483,145 @@ export class ProjectTaskTimelineComponent implements OnInit {
     return total;
   }
 
-  getValue(row: any, dateStr: string): number {
-    return row[dateStr] || 0;
+  getValue(row: any, dateStr: string): string {
+    return row?.[dateStr]?.toString() || '0';
+  }
+
+  isPlannedFilled(row: any, dateStr: string): boolean {
+    if (row?.TypeDate !== 1) return false;
+    const val = this.getValue(row, dateStr);
+    return val === '10' || val === '11' || val === '30' || val === '31';
+  }
+
+  isOutsideWork(row: any, dateStr: string): boolean {
+    if (row?.TypeDate !== 1) return false;
+    const val = this.getValue(row, dateStr);
+    return val === '11' || val === '31';
+  }
+
+  hasCheckMark(row: any, dateStr: string): boolean {
+    if (row?.TypeDate !== 1) return false;
+    const val = this.getValue(row, dateStr);
+    return val === '2' || val === '30' || val === '31';
+  }
+
+  parseActualValue(row: any, dateStr: string): {
+    hours: number;
+    isOutside: number;
+    leaveTime: number;
+    leaveType: number;
+  } {
+    const raw = row?.[dateStr];
+    if (raw == null || raw === '') {
+      return { hours: 0, isOutside: 0, leaveTime: 0, leaveType: 0 };
+    }
+    const rawStr = raw.toString();
+    if (rawStr.includes('|')) {
+      const parts = rawStr.split('|');
+      return {
+        hours: parseFloat(parts[0]) || 0,
+        isOutside: parseInt(parts[1], 10) || 0,
+        leaveTime: parseInt(parts[2], 10) || 0,
+        leaveType: parseInt(parts[3], 10) || 0
+      };
+    } else {
+      return {
+        hours: parseFloat(rawStr) || 0,
+        isOutside: 0,
+        leaveTime: 0,
+        leaveType: 0
+      };
+    }
+  }
+
+  getLeaveLabel(leaveType: number, leaveTime: number): string {
+    const typeMap: Record<number, string> = { 1: 'Ro', 2: 'P', 3: 'R' };
+    const timeMap: Record<number, string> = { 1: 'S', 2: 'C' }; // 3 = cả ngày -> không thêm
+    const typePart = typeMap[leaveType] || '';
+    if (!typePart) return '';
+    const timePart = timeMap[leaveTime] || '';
+    return timePart ? `${typePart}/${timePart}` : typePart;
+  }
+
+  getLeaveTooltip(leaveTime: number, leaveType: number): string {
+    const timeMap: Record<number, string> = { 1: 'Buổi sáng', 2: 'Buổi chiều', 3: 'Cả ngày' };
+    const typeMap: Record<number, string> = { 1: 'Nghỉ không lương (Ro)', 2: 'Nghỉ phép (P)', 3: 'Việc riêng có lương (R)' };
+    const parts = [];
+    if (timeMap[leaveTime]) parts.push(timeMap[leaveTime]);
+    if (typeMap[leaveType]) parts.push(typeMap[leaveType]);
+    return parts.join(' – ');
+  }
+
+  private isTaskOverdue(task: any): boolean {
+    const approved = task.IsApproved ?? task.IsApprove;
+    if (approved === 1 || approved === true || approved === '1') {
+      return false;
+    }
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
+    if (planEnd) planEnd.setHours(0, 0, 0, 0);
+
+    const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
+    if (dueDate) dueDate.setHours(0, 0, 0, 0);
+
+    // Nếu đã hoàn thành (Status 2): quá hạn nếu ngày thực tế > ngày dự kiến
+    if (task.Status === 2) {
+      return !!(dueDate && planEnd && dueDate > planEnd);
+    }
+
+    // Nếu chưa hoàn thành (Status 0, 1): quá hạn nếu ngày hiện tại > ngày dự kiến
+    if (task.Status === 0 || task.Status === 1) {
+      return !!(planEnd && planEnd < now);
+    }
+
+    return false;
+  }
+
+  getTaskStatusConfig(task: any): any {
+    const approved = task.IsApproved ?? task.IsApprove;
+    if (approved === 0 || approved === false || approved === '0') {
+      return this.statusMap.get('2_0') || this.allStatuses.find(s => s.Type === 2 && s.No === 0);
+    } else if (approved === 1 || approved === true || approved === '1') {
+      return this.statusMap.get('2_1') || this.allStatuses.find(s => s.Type === 2 && s.No === 1);
+    } else {
+      return this.statusMap.get(`1_${task.Status}`) || this.allStatuses.find(s => s.Type === 1 && s.No === task.Status);
+    }
+  }
+
+  getStatusDisplayName(task: any): string {
+    const statusConfig = this.getTaskStatusConfig(task);
+    const baseName = statusConfig ? statusConfig.Title : this.getStatusName(task.Status);
+    const isOverdue = this.isTaskOverdue(task);
+    
+    if (isOverdue) {
+      return baseName + '\nOverdue';
+    }
+    
+    return baseName;
+  }
+
+  getStatusStyle(node: any): { [key: string]: string } {
+    if (node.isOverdue) {
+        return {}; // Quá hạn sẽ dùng CSS của .overdue mặc định
+    }
+    const statusConfig = this.getTaskStatusConfig(node);
+    if (statusConfig) {
+        return {
+            'background-color': statusConfig.ColorBackground ? statusConfig.ColorBackground.trim() : '#f1f5f9',
+            'color': statusConfig.ColorFont ? statusConfig.ColorFont.trim() : '#475569'
+        };
+    }
+    return {};
   }
 
   applyFilters() {
-    let projectGroups = JSON.parse(JSON.stringify(this.groupedTasks));
+    let projectGroups = this.groupedTasks.map(g => ({
+      ...g,
+      tasks: [...g.tasks]
+    }));
 
     // Lọc Dự án/Công việc chung
     if (this.filterProjectKeyword) {
@@ -358,6 +650,13 @@ export class ProjectTaskTimelineComponent implements OnInit {
       })).filter((p: any) => p.tasks.length > 0);
     }
 
+    // Pre-compute total task count
+    let totalTasks = 0;
+    projectGroups.forEach(g => {
+      totalTasks += (g.tasks || []).length;
+    });
+    this.totalTaskCount.set(totalTasks);
+
     this.filteredTasks.set(projectGroups);
   }
 
@@ -384,11 +683,12 @@ export class ProjectTaskTimelineComponent implements OnInit {
     }
     
     const taskCode = task?.ProjectTaskCode || task?.Code || `Task-${taskID}`;
+    const approvalStatus = task?.IsApproved !== undefined && task?.IsApproved !== null ? task.IsApproved : undefined;
     this.tabService.openTabComp({
       comp: TaskDetailComponent,
       title: taskCode,
       key: `project-task-detail-${taskID}`,
-      data: { id: taskID }
+      data: { id: taskID, ApprovalStatus: approvalStatus }
     });
   }
 
@@ -466,9 +766,9 @@ export class ProjectTaskTimelineComponent implements OnInit {
       { header: 'Tên Dự Án', field: 'ProjectName', width: 25 },
       { header: 'Mã Công Việc', field: 'Code', width: 20 },
       { header: 'Tên Công Việc', field: 'Title', width: 40 },
-      { header: 'Trạng Thái', field: 'StatusName', width: 15 },
-      { header: 'T.Gian\n(giờ/ngày)', field: 'TotalHours', width: 15 },
-      { header: 'Loại', field: 'TypeLabel', width: 12 }
+      { header: 'Trạng Thái', field: 'StatusName', width: 15, align: 'center' },
+      { header: 'T.Gian\n(giờ/ngày)', field: 'TotalHours', width: 15, align: 'center' },
+      { header: 'Loại', field: 'TypeLabel', width: 12, align: 'center' }
     ];
 
     // Thêm các cột ngày tháng
@@ -477,12 +777,66 @@ export class ProjectTaskTimelineComponent implements OnInit {
         header: `${dateCol.dayName}\n${dateCol.dateDisplay}`,
         field: dateCol.dateStr,
         width: 6,
-        cellStyle: (item: any) => {
-          if (item.TypeDate === 1 && item[dateCol.dateStr] >= 1) {
-            return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + plannedColor } } };
+        align: 'center',
+        renderValue: (item: any) => {
+          if (item.TypeDate === 1 && this.hasCheckMark(item, dateCol.dateStr)) {
+            return '✔';
           }
-          if (item.TypeDate === 2 && item[dateCol.dateStr] > 0) {
-            return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + actualColor } } };
+          if (item.TypeDate === 2 && item[dateCol.dateStr] != null) {
+            const val = item[dateCol.dateStr].toString();
+            if (val !== '0') {
+              let label = '';
+              const act = val.includes('|') ? val.split('|') : [val];
+              const hours = parseFloat(act[0]) || 0;
+              const leaveTime = act.length > 2 ? parseInt(act[2], 10) || 0 : 0;
+              const leaveType = act.length > 3 ? parseInt(act[3], 10) || 0 : 0;
+              if (hours > 0) {
+                label = hours.toString();
+              }
+              if (leaveTime > 0 && leaveType > 0) {
+                const typeMap: Record<number, string> = { 1: 'Ro', 2: 'P', 3: 'R' };
+                const timeMap: Record<number, string> = { 1: 'S', 2: 'C' };
+                const typePart = typeMap[leaveType] || '';
+                if (typePart) {
+                  const timePart = timeMap[leaveTime] || '';
+                  const leaveLabel = timePart ? `${typePart}/${timePart}` : typePart;
+                  label = label ? `${label} (${leaveLabel})` : leaveLabel;
+                }
+              }
+              return label;
+            }
+          }
+          return '';
+        },
+        cellStyle: (item: any) => {
+          if (item.TypeDate === 1 && item[dateCol.dateStr] != null) {
+            const val = item[dateCol.dateStr].toString();
+            const isPlanned = ['10', '11', '30', '31'].includes(val);
+            const isOutside = ['11', '31'].includes(val);
+            if (isPlanned) {
+              const fontStyle = this.hasCheckMark(item, dateCol.dateStr) ? { color: { argb: 'FFFFFFFF' }, bold: true } : undefined;
+              if (isOutside) {
+                return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFB923C' } }, font: fontStyle }; // Factory work color (#fb923c)
+              }
+              return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + plannedColor } }, font: fontStyle };
+            }
+          }
+          if (item.TypeDate === 2 && item[dateCol.dateStr] != null) {
+            const val = item[dateCol.dateStr].toString();
+            if (val !== '0') {
+              const act = val.includes('|') ? val.split('|') : [val];
+              const hours = parseFloat(act[0]) || 0;
+              const isOutside = act.length > 1 ? parseInt(act[1], 10) || 0 : 0;
+              if (hours > 0) {
+                if (isOutside === 1) {
+                  return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFB923C' } } }; // Factory work color (#fb923c)
+                }
+                return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + actualColor } } };
+              }
+            }
+          }
+          if (dateCol.isSunday || dateCol.isDayOff) {
+            return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F5F5' } } };
           }
           return {};
         }

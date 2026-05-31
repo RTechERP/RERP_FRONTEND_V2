@@ -97,6 +97,8 @@ import { ViewPokhSlickgridComponent } from '../view-pokh-slickgrid/view-pokh-sli
 import { Menubar } from 'primeng/menubar';
 import { ActivityLogCrmComponent } from '../../crm/activity-log-crm/activity-log-crm.component';
 import { ViewPokhPrimengComponent } from '../view-pokh-primeng/view-pokh-primeng.component';
+import { HistoryMoneyPrimengComponent } from '../history-money-primeng/history-money-primeng.component';
+import { TabServiceService } from '../../../layouts/tab-service.service';
 @Component({
     selector: 'app-pokh-slickgrid',
     imports: [
@@ -304,7 +306,8 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         private notification: NzNotificationService,
         private viewPOKHService: ViewPokhService,
         private route: ActivatedRoute,
-        @Optional() @Inject('tabData') private tabData: any
+        @Optional() @Inject('tabData') private tabData: any,
+        private tabService: TabServiceService
     ) { }
 
     //#region : Khai báo
@@ -1311,24 +1314,16 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             );
             return;
         }
-        const modalRef = this.modalService.open(HistoryMoneyComponent, {
-            centered: true,
-            size: 'xl',
-            backdrop: 'static',
-        });
+        const poCode = this.selectedRow?.['POCode'] || this.selectedId;
 
-        if (this.selectedRow && this.selectedRow['POCode']) {
-            modalRef.componentInstance.filterText = this.selectedRow['POCode'];
-        }
-
-        modalRef.result.then(
-            (result: any) => {
-                console.log('History money modal closed:', result);
-            },
-            (reason: any) => {
-                console.log('History money modal dismissed:', reason);
+        this.tabService.openTabComp({
+            comp: HistoryMoneyPrimengComponent,
+            title: `Lịch sử tiền về - ${poCode}`,
+            key: `history-money-${this.selectedId}`,
+            data: {
+                filterText: this.selectedRow?.['POCode']
             }
-        );
+        });
     }
 
     openProjectPartlistPurchaseRequest(): void {
@@ -1879,6 +1874,12 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         this.modalRef.componentInstance.selectedId = this.selectedId;
         this.modalRef.componentInstance.warehouseId = this.filters.warehouseId;
         this.modalRef.componentInstance.isCopy = this.isCopy;
+        if (this.isCopy && this.selectedId > 0) {
+            this.modalRef.componentInstance.startCopyFromSource(
+                this.selectedId,
+                this.filters.warehouseId
+            );
+        }
 
         this.modalRef.result.then(
             (result: any) => {

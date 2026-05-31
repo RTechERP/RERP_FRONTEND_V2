@@ -15,12 +15,11 @@
           <nz-form-item class="mt-2">
             <nz-form-label class="fs-12" [nzSpan]="24">Phòng ban</nz-form-label>
             <nz-form-control [nzSpan]="24">
-              <nz-select [(ngModel)]="searchParams.departmentID" (ngModelChange)="onDepartmentChange($event)"
+              <nz-tree-select [(ngModel)]="searchParams.departmentID" (ngModelChange)="onDepartmentChange($event)"
                 nzAllowClear [nzPlaceHolder]="'Chọn phòng ban'" style="width: 100%" name="departmentID" nzShowSearch
-                [nzFilterOption]="filterOption">
-                <nz-option *ngFor="let item of dataDepartment" [nzLabel]="item.Name" [nzValue]="item.ID">
-                </nz-option>
-              </nz-select>
+                [nzNodes]="departmentNodes" nzDropdownClassName="type-select-dropdown"
+                [nzDropdownStyle]="{ 'max-height': '250px', 'overflow': 'auto', 'font-size': '12px' }">
+              </nz-tree-select>
             </nz-form-control>
           </nz-form-item>
           <nz-form-item class="mt-2">

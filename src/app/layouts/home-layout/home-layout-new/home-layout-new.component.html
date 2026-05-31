@@ -95,7 +95,7 @@
                 item.key == 'M79' ||
                 item.key == 'M136' ||
                 item.key == 'M137' ||
-                item.key == 'M139'
+                item.key == 'M139' || item.key == 'M11205'
               ">
                         <a [attr.href]="item.router ? item.router : null"
                             (click)="handleClickLink($event, item.router, item.title)">
@@ -174,12 +174,12 @@
                             *ngIf="(item.router || '') != '#' && (item.router || '') != ''" (click)="
                   handleClickLink($event, item.router, item.Title, item.data)
                 ">
-                            <img [src]="item.icon" />
+                            <img [src]="item.icon" style="width: 20px; height: 20px;" />
                             <span>{{ item.title }}</span>
                         </a>
 
                         <a class="text-dark" *ngIf="(item.router || '') == '#' || (item.router || '') == ''">
-                            <img [src]="item.icon" />
+                            <img [src]="item.icon" style="width: 20px; height: 20px;" />
                             <span> {{ item.title }}</span>
                         </a>
                         <ul class="list-group">
@@ -191,7 +191,7 @@
                                 <a [attr.href]="c.router ? c.router : null" (click)="
                         handleClickLink($event, c.router, c.title, c.data)
                       ">
-                                    <img [src]="c.icon" />
+                                    <img [src]="c.icon" style="width: 20px; height: 20px;" />
                                     <span> {{ c.title }}</span>
                                 </a>
                             </li>
@@ -348,7 +348,7 @@
                                     phiếu đánh giá chuyển hợp đồng <strong>cần tự đánh giá</strong>.
                                     <span class="text-primary fw-bold"
                                         style="text-decoration:underline;cursor:pointer;margin-left:4px"
-                                        (click)="newTab('contract-transfer-review', 'Đánh giá chuyển hợp đồng')">Xem
+                                        (click)="newTab('contract-transfer-review-personal', 'Đánh giá chuyển hợp đồng')">Xem
                                         ngay</span>
                                 </ng-container>
 
@@ -360,7 +360,7 @@
                                     phiếu đánh giá chuyển hợp đồng <strong>cần đánh giá</strong>.
                                     <span class="text-primary fw-bold"
                                         style="text-decoration:underline;cursor:pointer;margin-left:4px"
-                                        (click)="newTab('contract-transfer-review', 'Đánh giá chuyển hợp đồng')">Xem
+                                        (click)="newTab('contract-transfer-review-tbp', 'Đánh giá chuyển hợp đồng')">Xem
                                         ngay</span>
                                 </ng-container>
 
@@ -372,7 +372,7 @@
                                     phiếu đánh giá chuyển hợp đồng <strong>cần duyệt (TBP)</strong>.
                                     <span class="text-primary fw-bold"
                                         style="text-decoration:underline;cursor:pointer;margin-left:4px"
-                                        (click)="newTab('contract-transfer-review', 'Đánh giá chuyển hợp đồng')">Xem
+                                        (click)="newTab('contract-transfer-review-tbp', 'Đánh giá chuyển hợp đồng')">Xem
                                         ngay</span>
                                 </ng-container>
 
@@ -398,7 +398,7 @@
                                     phiếu đánh giá chuyển hợp đồng <strong>chờ BGĐ phê duyệt</strong>.
                                     <span class="text-primary fw-bold"
                                         style="text-decoration:underline;cursor:pointer;margin-left:4px"
-                                        (click)="newTab('contract-transfer-review', 'Đánh giá chuyển hợp đồng')">Xem
+                                        (click)="newTab('contract-transfer-review-bgd', 'Đánh giá chuyển hợp đồng')">Xem
                                         ngay</span>
                                 </ng-container>
                             </ng-container>
@@ -450,9 +450,7 @@
                             </div>
                         </div>
                     </li>
-                    }
-
-                    @if (newsletters.length === 0) {
+                    } @if (newsletters.length === 0) {
                     <li class="list-group-item text-center text-muted py-4">
                         <small>Chưa có thông báo mới</small>
                     </li>
@@ -479,14 +477,14 @@
                       " (click)="
                         handleClickLink($event, c1.router, c1.title, c1.data)
                       ">
-                                    <img [src]="c1.icon" />
+                                    <img [src]="c1.icon" style="width: 20px; height: 20px;" />
                                     <span> {{ c1.title }}</span>
                                 </a>
 
                                 <a class="text-dark" *ngIf="
                         (c1.router || '') == '#' || (c1.router || '') == ''
                       ">
-                                    <img [src]="c1.icon" />
+                                    <img [src]="c1.icon" style="width: 20px; height: 20px;" />
                                     <span> {{ c1.title }}</span>
                                 </a>
                                 <ul class="list-group">
@@ -503,7 +501,7 @@
                                 c2.data
                               )
                             ">
-                                            <img [src]="c2.icon" />
+                                            <img [src]="c2.icon" style="width: 20px; height: 20px;" />
                                             <span> {{ c2.title }}</span>
                                         </a>
                                     </li>
@@ -554,14 +552,11 @@
                     <nz-tab [nzTitle]="titleTemplateWFH"></nz-tab>
                 </nz-tabset>
                 <ng-template class="panel-title" #titleTemplateOnleave>
-                    NGHỈ PHÉP
-                    {{ totalEmployeeOnleave == 0 ? "" : `(${totalEmployeeOnleave})` }} -
-                    {{ today | date: "dd/MM/yyyy" }}
+                    NGHỈ PHÉP {{ totalEmployeeOnleave == 0 ? "" : `(${totalEmployeeOnleave})` }} - {{ today | date:
+                    "dd/MM/yyyy" }}
                 </ng-template>
                 <ng-template class="panel-title" #titleTemplateWFH>WFH {{ totalEmployeeWfh == 0 ? "" :
-                    `(${totalEmployeeWfh})`
-                    }} -
-                    {{ today | date: "dd/MM/yyyy" }}
+                    `(${totalEmployeeWfh})` }} - {{ today | date: "dd/MM/yyyy" }}
                 </ng-template>
             </div>
 

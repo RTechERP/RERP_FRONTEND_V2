@@ -47,7 +47,7 @@
                                 <label class="mb-0 fs-12 d-inline">
                                     <span>Hãng</span>
                                     <span class="text-danger">*</span>
-                                    <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
+                                    <button *hasPermission="'N1,N27,N31,N100'" class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
                                         title="Thêm hãng" (click)="onAddFirm()">
                                         <i class="fas fa-plus"></i>
                                     </button>
@@ -65,7 +65,7 @@
                                 <label class="mb-0 fs-12 d-inline">
                                     <span>Loại dự án</span>
                                     <span class="text-danger">*</span>
-                                    <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
+                                    <button *hasPermission="'N1,N27,N31,N100'" class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
                                         title="Thêm loại dự án" (click)="onAddProjectType()">
                                         <i class="fas fa-plus"></i>
                                     </button>

@@ -1,28 +1,37 @@
 <div class="page-wrapper">
   <nz-tabset [(nzSelectedIndex)]="activeTabIndex">
     <!-- Tab 1 -->
-    <nz-tab nzTitle="TÀI SẢN CÁ NHÂN">
+    <nz-tab [nzTitle]="personalTabTitle">
+      <ng-template #personalTabTitle>
+        TÀI SẢN CÁ NHÂN{{ personalCount !== null ? ' (' + personalCount + ')' : '' }}
+      </ng-template>
       <ng-template nz-tab>
         <div class="tab-content">
-          <app-asset-personal></app-asset-personal>
+          <app-asset-personal (dataCountChange)="personalCount = $event"></app-asset-personal>
         </div>
       </ng-template>
     </nz-tab>
 
     <!-- Tab 2 -->
-    <nz-tab nzTitle="LỊCH SỬ MƯỢN KHO SALE">
+    <nz-tab [nzTitle]="saleTabTitle">
+      <ng-template #saleTabTitle>
+        LỊCH SỬ MƯỢN KHO SALE{{ saleCount !== null ? ' (' + saleCount + ')' : '' }}
+      </ng-template>
       <ng-template nz-tab>
         <div class="tab-content">
-          <app-history-borrow-sale-personal></app-history-borrow-sale-personal>
+          <app-history-borrow-sale-personal (dataCountChange)="saleCount = $event"></app-history-borrow-sale-personal>
         </div>
       </ng-template>
     </nz-tab>
 
     <!-- Tab 3 -->
-    <nz-tab nzTitle="LỊCH SỬ MƯỢN KHO DEMO">
+    <nz-tab [nzTitle]="demoTabTitle">
+      <ng-template #demoTabTitle>
+        LỊCH SỬ MƯỢN KHO DEMO{{ demoCount !== null ? ' (' + demoCount + ')' : '' }}
+      </ng-template>
       <ng-template nz-tab>
         <div class="tab-content">
-          <app-history-product-rtc-personal></app-history-product-rtc-personal>
+          <app-history-product-rtc-personal (dataCountChange)="demoCount = $event"></app-history-product-rtc-personal>
         </div>
       </ng-template>
     </nz-tab>

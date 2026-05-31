@@ -24,6 +24,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import {
   AngularGridInstance,
@@ -82,7 +83,8 @@ import { Menubar } from 'primeng/menubar';
     NzFormModule,
     NzSpinModule,
     Menubar,
-    AngularSlickgridModule
+    AngularSlickgridModule,
+    NzTreeSelectModule
   ],
   selector: 'app-employee-night-shift',
   templateUrl: './employee-night-shift.component.html',
@@ -128,6 +130,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
 
   // Master data
   departments: any[] = [];
+  departmentNodes: any[] = [];
   allEmployees: any[] = [];
   employees: any[] = [];
 
@@ -304,12 +307,35 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
   loadDepartments(): void {
     this.employeeAttendanceService.getDepartment().subscribe({
       next: (res: any) => {
-        if (res?.status === 1) this.departments = res.data || [];
+        if (res?.status === 1) {
+          this.departments = res.data || [];
+          this.departmentNodes = this.buildTreeNodes([...this.departments]);
+        }
         console.log('Departments:', this.departments);
       },
       error: (res: any) =>
         this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể tải danh sách phòng ban'),
     });
+  }
+
+  private buildTreeNodes(data: any[]): any[] {
+    const tree: any[] = [];
+    const lookup: any = {};
+
+    data.forEach(item => {
+      lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+    });
+
+    data.forEach(item => {
+      if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+        lookup[item.ParentID].children.push(lookup[item.ID]);
+        lookup[item.ParentID].isLeaf = false;
+      } else {
+        tree.push(lookup[item.ID]);
+      }
+    });
+
+    return tree;
   }
 
   loadEmployees(): void {

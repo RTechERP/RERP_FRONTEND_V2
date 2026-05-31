@@ -1,0 +1,218 @@
+﻿:host {
+    display: block;
+    height: 100%;
+}
+
+/* === p-tabs height chain === */
+:host ::ng-deep p-tabs {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+:host ::ng-deep p-tabpanels {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep p-tabpanel {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+:host ::ng-deep p-tabpanel>div {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+}
+
+/* === p-splitter panels === */
+:host ::ng-deep .p-splitter-panel {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .p-splitter-gutter {
+    background: #e9ecef;
+}
+
+/* === p-table compact === */
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    padding: 4px 8px;
+    font-size: 12px;
+    background: #f8f9fa;
+    font-weight: 600;
+    white-space: nowrap;
+    border-bottom: 2px solid #dee2e6;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    padding: 3px 8px;
+    font-size: 12px;
+    white-space: nowrap;
+    border: 1px solid #dee2e6;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    border: 1px solid #dee2e6;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr:hover {
+    background: #e8f4fd;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr.row-urgent {
+    background: #fff3cd !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr.row-rejected {
+    background: #f8d7da !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr.row-type2 {
+    background: #d1ecf1 !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr.p-highlight {
+    background: #cce5ff !important;
+}
+
+:host ::ng-deep .p-datatable-scrollable .p-datatable-thead,
+:host ::ng-deep .p-datatable-scrollable .p-datatable-tbody,
+:host ::ng-deep .p-datatable-scrollable .p-datatable-tfoot {
+    font-size: 12px;
+}
+
+.text-end {
+    text-align: right;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-uppercase {
+    text-transform: uppercase;
+}
+
+.filter-header input,
+.filter-header .p-multiselect {
+    width: 100%;
+    font-size: 11px;
+}
+
+:host ::ng-deep .p-menubar {
+    padding: 2px 8px;
+}
+
+:host ::ng-deep .p-tablist .p-tab {
+    font-size: 12px;
+    padding: 6px 12px;
+}
+
+.search-card {
+    padding: 8px 12px;
+    margin-bottom: 4px;
+}
+
+.search-card label {
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    display: block;
+}
+
+.spinner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.grid-wrapper {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.grid-wrapper p-table {
+    flex: 1;
+    min-height: 0;
+}
+
+/* Force row height to match virtualScrollItemSize="30" so PrimeNG scroll position calc is accurate */
+:host ::ng-deep .prime-table .p-datatable-tbody > tr {
+    height: 30px;
+    box-sizing: border-box;
+}
+
+:host ::ng-deep .prime-table .p-datatable-tbody > tr > td {
+    height: 30px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+:host ::ng-deep .grid-wrapper .p-datatable {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .grid-wrapper .p-datatable-wrapper {
+    flex: 1;
+    min-height: 0;
+}
+
+.footer-total {
+    font-weight: 600;
+    text-align: right;
+    padding: 4px 8px;
+    font-size: 12px;
+    background: #f0f0f0;
+}
+
+:host .ant-form-item {
+    margin-bottom: 0;
+}
+
+:host ::ng-deep .ant-card-body {
+    padding: 0 !important;
+}
+
+:host ::ng-deep tr.active-row>td {
+    background-color: #e6f7ff !important;
+}
+
+:host ::ng-deep tr.row-type2>td {
+    background-color: #ffcccc !important;
+}
+
+:host ::ng-deep tr.row-rejected>td {
+    background-color: #e0e0e0 !important;
+}
+
+:host ::ng-deep tr.row-urgent>td {
+    background-color: #ffb3b3 !important;
+}
+
+:host ::ng-deep td.active-cell {
+    border: 2px solid #0056b3 !important;
+}
+
+:host .p-component .p-inputtext {
+    padding: 8px 12px !important;
+}

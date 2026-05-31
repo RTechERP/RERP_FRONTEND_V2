@@ -15,7 +15,6 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -23,15 +22,10 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 // NgBootstrap Modal
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
-// Angular SlickGrid
-import {
-  AngularGridInstance,
-  AngularSlickgridModule,
-  Column,
-  Filters,
-  Formatters,
-  GridOption,
-} from 'angular-slickgrid';
+// PrimeNG
+import { TreeNode } from 'primeng/api';
+import { TableModule } from 'primeng/table';
+import { TreeTableModule } from 'primeng/treetable';
 
 // Service
 import { KpiEvaluationRuleService } from './kpi-evaluation-rule-service/kpi-evaluation-rule.service';
@@ -40,6 +34,22 @@ import { ActivatedRoute } from '@angular/router';
 import { KpiSessionDetailComponent } from './kpi-session-detail/kpi-session-detail.component';
 import { KpiEvaluationRuleDetailComponent } from './kpi-evaluation-rule-detail/kpi-evaluation-rule-detail.component';
 import { KpiRuleDetailComponent } from './kpi-rule-detail/kpi-rule-detail.component';
+
+type PrimeColumnType = 'text' | 'number' | 'boolean';
+
+interface PrimeColumn {
+  id: string;
+  name: string;
+  field: string;
+  width?: number;
+  minWidth?: number;
+  hidden?: boolean;
+  sortable?: boolean;
+  filterable?: boolean;
+  type?: PrimeColumnType;
+  align?: 'left' | 'center' | 'right';
+  cssClass?: string;
+}
 
 @Component({
   selector: 'app-kpi-evaluation-rule',
@@ -53,10 +63,10 @@ import { KpiRuleDetailComponent } from './kpi-rule-detail/kpi-rule-detail.compon
     NzSplitterModule,
     NzSelectModule,
     NzInputNumberModule,
-    NzSpinModule,
     NzModalModule,
     NzFormModule,
-    AngularSlickgridModule,
+    TableModule,
+    TreeTableModule,
   ],
   templateUrl: './kpi-evaluation-rule.component.html',
   styleUrl: './kpi-evaluation-rule.component.css'
@@ -73,36 +83,22 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
   departments: any[] = [];
   positions: any[] = [];
 
-  // Grid IDs
-  private uuid = Math.random().toString(36).substring(2, 9);
-  gridSessionId = `gridSession_${this.uuid}`;
-  gridRuleId = `gridRule_${this.uuid}`;
-  gridRuleDetailId = `gridRuleDetail_${this.uuid}`;
-
-  // SlickGrid instances
-  angularGridSession!: AngularGridInstance;
-  angularGridRule!: AngularGridInstance;
-  angularGridRuleDetail!: AngularGridInstance;
-
   // Column definitions
-  columnDefinitionsSession: Column[] = [];
-  columnDefinitionsRule: Column[] = [];
-  columnDefinitionsRuleDetail: Column[] = [];
-
-  // Grid options
-  gridOptionsSession: GridOption = {};
-  gridOptionsRule: GridOption = {};
-  gridOptionsRuleDetail: GridOption = {};
+  columnDefinitionsSession: PrimeColumn[] = [];
+  columnDefinitionsRule: PrimeColumn[] = [];
+  columnDefinitionsRuleDetail: PrimeColumn[] = [];
 
   // Datasets
   datasetSession: any[] = [];
   datasetRule: any[] = [];
   datasetRuleDetail: any[] = [];
+  treeDatasetRuleDetail: TreeNode[] = [];
 
   // Selected items
   selectedSession: any = null;
   selectedRule: any = null;
   selectedRuleDetail: any = null;
+  selectedRuleDetailNode: TreeNode | null = null;
 
   // Loading states
   isLoadingSession = false;
@@ -138,14 +134,13 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
       next: (response) => {
         if (response.status === 1) {
           this.departments = response.data || [];
-          // Get departmentId from tabData or route
           const deptId = this.tabData?.departmentID ?? this.route.snapshot.queryParams['departmentId'] ?? 0;
           this.filters.departmentId = Number(deptId) || (this.departments[0]?.ID ?? 0);
           this.departmentName = this.departments.find((d: any) => d.ID === this.filters.departmentId)?.Name ?? '';
           this.loadSessions();
         }
       },
-      error: (err) => {
+      error: () => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban');
       }
     });
@@ -158,7 +153,7 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
           this.positions = response.data || [];
         }
       },
-      error: (err) => {
+      error: () => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách vị trí');
       }
     });
@@ -169,16 +164,16 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
     this.kpiService.getSessions(this.filters.year, this.filters.departmentId).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          this.datasetSession = (response.data || []).map((item: any, idx: number) => ({
+          this.datasetSession = (response.data || []).map((item: any) => ({
             ...item,
             id: item.ID,
           }));
 
-          // Auto-select current quarter session
           const currentQuarter = Math.ceil((new Date().getMonth() + 1) / 3);
           const currentSession = this.datasetSession.find(
             (s: any) => s.YearEvaluation === this.filters.year && s.QuarterEvaluation === currentQuarter
           );
+
           if (currentSession) {
             this.selectedSession = currentSession;
             setTimeout(() => this.loadRules(), 100);
@@ -186,13 +181,13 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
             this.selectedSession = this.datasetSession[0];
             setTimeout(() => this.loadRules(), 100);
           } else {
-            this.datasetRule = [];
-            this.datasetRuleDetail = [];
+            this.selectedSession = null;
+            this.clearRuleData();
           }
         }
         this.isLoadingSession = false;
       },
-      error: (err) => {
+      error: () => {
         this.isLoadingSession = false;
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách kỳ đánh giá');
       }
@@ -201,29 +196,30 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
 
   loadRules(): void {
     if (!this.selectedSession?.ID) {
-      this.datasetRule = [];
-      this.datasetRuleDetail = [];
+      this.clearRuleData();
       return;
     }
+
     this.isLoadingRule = true;
     this.kpiService.getDataDetails(this.selectedSession.ID).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          this.datasetRule = (response.data || []).map((item: any, idx: number) => ({
+          this.datasetRule = (response.data || []).map((item: any) => ({
             ...item,
             id: item.ID,
           }));
+
           if (this.datasetRule.length > 0) {
             this.selectedRule = this.datasetRule[0];
             setTimeout(() => this.loadRuleDetails(), 100);
           } else {
             this.selectedRule = null;
-            this.datasetRuleDetail = [];
+            this.clearRuleDetailData();
           }
         }
         this.isLoadingRule = false;
       },
-      error: (err) => {
+      error: () => {
         this.isLoadingRule = false;
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách Rule đánh giá');
       }
@@ -232,23 +228,22 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
 
   loadRuleDetails(): void {
     if (!this.selectedRule?.ID) {
-      this.datasetRuleDetail = [];
+      this.clearRuleDetailData();
       return;
     }
+
     this.isLoadingRuleDetail = true;
     this.kpiService.loadDataRule(this.selectedRule.ID).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          // Convert to tree format
-          this.datasetRuleDetail = (response.data || []).map((item: any) => ({
-            ...item,
-            id: item.ID,
-            parentId: item.ParentID === 0 ? null : item.ParentID,
-          }));
+          this.datasetRuleDetail = this.prepareRuleDetailDataset(response.data || []);
+          this.treeDatasetRuleDetail = this.buildRuleDetailTreeNodes(this.datasetRuleDetail);
+          this.selectedRuleDetail = null;
+          this.selectedRuleDetailNode = null;
         }
         this.isLoadingRuleDetail = false;
       },
-      error: (err) => {
+      error: () => {
         this.isLoadingRuleDetail = false;
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải chi tiết Rule');
       }
@@ -263,175 +258,79 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
   //#region Grid Initialization
   initGridSession(): void {
     this.columnDefinitionsSession = [
-      { id: 'Code', name: 'Mã kỳ', field: 'Code', width: 120, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'Name', name: 'Tên kỳ', field: 'Name', width: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'YearEvaluation', name: 'Năm', field: 'YearEvaluation', width: 80, sortable: true, cssClass: 'text-end' },
-      { id: 'QuarterEvaluation', name: 'Quý', field: 'QuarterEvaluation', width: 80, sortable: true, cssClass: 'text-end' },
+      this.textCol('Code', 'Mã kỳ', 'Code', 120),
+      this.textCol('Name', 'Tên kỳ', 'Name', 200),
+      this.textCol('YearEvaluation', 'Năm', 'YearEvaluation', 80, { align: 'right', filterable: false }),
+      this.textCol('QuarterEvaluation', 'Quý', 'QuarterEvaluation', 80, { align: 'right', filterable: false }),
     ];
-
-    this.gridOptionsSession = {
-      enableAutoResize: true,
-      autoResize: {
-        container: '.grid-container-session',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container',
-      },
-      gridWidth: '100%',
-      forceFitColumns: true,
-      enableCellNavigation: true,
-      enableFiltering: true,
-      enableRowSelection: true,
-      rowSelectionOptions: { selectActiveRow: true },
-      enableCheckboxSelector: false,
-    };
   }
 
   initGridRule(): void {
     this.columnDefinitionsRule = [
-      { id: 'RuleCode', name: 'Mã đánh giá', field: 'RuleCode', width: 120, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'RuleName', name: 'Tên đánh giá', field: 'RuleName', width: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'TypePositionName', name: 'Chức vụ', field: 'TypePositionName', width: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
+      this.textCol('RuleCode', 'Mã đánh giá', 'RuleCode', 120),
+      this.textCol('RuleName', 'Tên đánh giá', 'RuleName', 200),
+      this.textCol('TypePositionName', 'Chức vụ', 'TypePositionName', 150),
     ];
-
-    this.gridOptionsRule = {
-      enableAutoResize: true,
-      autoResize: {
-        container: '.grid-container-rule',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container',
-      },
-      gridWidth: '100%',
-      forceFitColumns: true,
-      enableCellNavigation: true,
-      enableFiltering: true,
-      enableRowSelection: true,
-      rowSelectionOptions: { selectActiveRow: true },
-      enableCheckboxSelector: false,
-      enableGrouping: true,
-    };
-  }
-
-  numberFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
-    if (value === null || value === undefined || value === 0) return '';
-    return new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
   }
 
   initGridRuleDetail(): void {
     this.columnDefinitionsRuleDetail = [
-      { id: 'STT', name: 'STT', field: 'STT', width: 150, sortable: true, formatter: Formatters.tree },
-      { id: 'EvaluationCode', name: 'Mã Rule', field: 'EvaluationCode', width: 120, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'RuleContent', name: 'Nội dung đánh giá', field: 'RuleContent', width: 300, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'MaxPercent', name: 'Tổng % thưởng tối đa', field: 'MaxPercent', width: 150, sortable: true, cssClass: 'text-end', formatter: this.numberFormatter },
-      { id: 'PercentageAdjustment', name: 'Số % trừ (cộng) 1 lần', field: 'PercentageAdjustment', width: 150, sortable: true, cssClass: 'text-end', formatter: this.numberFormatter },
-      { id: 'MaxPercentageAdjustment', name: 'Số % trừ (cộng) lớn nhất', field: 'MaxPercentageAdjustment', width: 170, sortable: true, cssClass: 'text-end', formatter: this.numberFormatter },
-      { id: 'RuleNote', name: 'Rule', field: 'RuleNote', width: 250, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'Note', name: 'Ghi chú', field: 'Note', width: 250, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
+      this.textCol('STT', 'STT', 'STT', 120, { filterable: false }),
+      this.textCol('EvaluationCode', 'Mã Rule', 'EvaluationCode', 120),
+      this.textCol('RuleContent', 'Nội dung đánh giá', 'RuleContent', 300),
+      this.numberCol('MaxPercent', 'Tổng % thưởng tối đa', 'MaxPercent', 150),
+      this.numberCol('PercentageAdjustment', 'Số % trừ (cộng) 1 lần', 'PercentageAdjustment', 150),
+      this.numberCol('MaxPercentageAdjustment', 'Số % trừ (cộng) lớn nhất', 'MaxPercentageAdjustment', 170),
+      this.textCol('RuleNote', 'Rule', 'RuleNote', 250),
+      this.textCol('Note', 'Ghi chú', 'Note', 250),
     ];
-
-    this.gridOptionsRuleDetail = {
-      enableAutoResize: true,
-      autoResize: {
-        container: '.grid-container-rule-detail',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container',
-      },
-      gridWidth: '100%',
-      forceFitColumns: true,
-      enableCellNavigation: true,
-      enableFiltering: true,
-      enableTreeData: true,
-      multiColumnSort: false, // Required: Tree Data doesn't support multi-column sorting
-      treeDataOptions: {
-        columnId: 'STT',
-        parentPropName: 'parentId',
-        levelPropName: 'treeLevel',
-        indentMarginLeft: 15,
-        initiallyCollapsed: false,
-      },
-      enableRowSelection: true,
-      rowSelectionOptions: { selectActiveRow: true },
-      enableCheckboxSelector: false,
-    };
   }
   //#endregion
 
   //#region Grid Events
-  angularGridReadySession(angularGrid: AngularGridInstance): void {
-    this.angularGridSession = angularGrid;
+  onSessionRowClick(item: any): void {
+    if (!item?.ID) return;
+    this.selectedSession = item;
+    this.clearRuleData();
+    this.loadRules();
   }
 
-  angularGridReadyRule(angularGrid: AngularGridInstance): void {
-    this.angularGridRule = angularGrid;
-  }
-
-  angularGridReadyRuleDetail(angularGrid: AngularGridInstance): void {
-    this.angularGridRuleDetail = angularGrid;
-
-    if (this.angularGridRuleDetail.dataView) {
-      const originalMetadata = this.angularGridRuleDetail.dataView.getItemMetadata?.bind(this.angularGridRuleDetail.dataView);
-      this.angularGridRuleDetail.dataView.getItemMetadata = (row: number) => {
-        const item = this.angularGridRuleDetail.dataView.getItem(row);
-        let metadata = originalMetadata ? originalMetadata(row) : {};
-
-        if (item) {
-          // Check if this row has children (is a parent node)
-          const hasChildren = this.datasetRuleDetail.some((r: any) => r.parentId === item.id);
-          if (hasChildren) {
-            metadata = metadata || {};
-            metadata.cssClasses = (metadata.cssClasses || '') + ' parent-row-highlight';
-          }
-        }
-
-        return metadata;
-      };
-    }
-  }
-
-  onSessionRowClick(e: any, args: any): void {
-    const item = args?.grid?.getDataItem(args?.row);
-    if (item) {
-      this.selectedSession = item;
-      this.loadRules();
-    }
-  }
-
-  onSessionRowDblClick(e: any, args: any): void {
-    const item = args?.dataContext;
+  onSessionRowDblClick(item: any): void {
     if (item) {
       this.selectedSession = item;
       this.onEditSession();
     }
   }
 
-  onRuleRowClick(e: any, args: any): void {
-    const item = args?.grid?.getDataItem(args?.row);
-    if (item) {
-      this.selectedRule = item;
-      this.loadRuleDetails();
-    }
+  onRuleRowClick(item: any): void {
+    if (!item?.ID) return;
+    this.selectedRule = item;
+    this.clearRuleDetailData();
+    this.loadRuleDetails();
   }
 
-  onRuleRowDblClick(e: any, args: any): void {
-    const item = args?.dataContext;
+  onRuleRowDblClick(item: any): void {
     if (item) {
       this.selectedRule = item;
       this.onEditRule();
     }
   }
 
-  onRuleDetailRowClick(e: any, args: any): void {
-    const item = args?.grid?.getDataItem(args?.row);
+  onRuleDetailRowClick(item: any): void {
     if (item) {
       this.selectedRuleDetail = item;
     }
   }
 
-  onRuleDetailRowDblClick(e: any, args: any): void {
-    const item = args?.dataContext;
+  onRuleDetailRowDblClick(item: any): void {
     if (item) {
       this.selectedRuleDetail = item;
       this.onEditRuleDetail();
     }
+  }
+
+  onRuleDetailNodeSelect(event: any): void {
+    this.onRuleDetailRowClick(event?.node?.data);
   }
   //#endregion
 
@@ -502,7 +401,7 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
               this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Lỗi khi xóa');
             }
           },
-          error: (err) => {
+          error: () => {
             this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xóa Kỳ đánh giá');
           }
         });
@@ -586,7 +485,7 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
               this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Lỗi khi xóa');
             }
           },
-          error: (err) => {
+          error: () => {
             this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xóa Rule đánh giá');
           }
         });
@@ -629,14 +528,14 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Determine parentId based on selected row
     let parentId = 0;
     if (this.selectedRuleDetail) {
-      const hasChildren = this.datasetRuleDetail.some((r: any) => r.parentId === this.selectedRuleDetail.id);
+      const selectedId = this.getRuleDetailId(this.selectedRuleDetail);
+      const hasChildren = this.datasetRuleDetail.some((r: any) => Number(r.parentId) === selectedId);
       if (hasChildren) {
-        parentId = this.selectedRuleDetail.ID;
+        parentId = selectedId;
       } else if (this.selectedRuleDetail.parentId) {
-        parentId = this.selectedRuleDetail.parentId;
+        parentId = Number(this.selectedRuleDetail.parentId);
       }
     }
 
@@ -707,7 +606,7 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
               this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Lỗi khi xóa');
             }
           },
-          error: (err) => {
+          error: () => {
             this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xóa Chi tiết Rule');
           }
         });
@@ -716,36 +615,152 @@ export class KpiEvaluationRuleComponent implements OnInit, OnDestroy {
   }
   //#endregion
 
-  // Helper function to escape HTML special characters for title attributes
-  private escapeHtml(text: string | null | undefined): string {
-    if (!text) return '';
-    return String(text)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+  visibleColumns(columns: PrimeColumn[]): PrimeColumn[] {
+    return columns.filter(col => !col.hidden);
   }
 
-  private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
-    if (!value) return '';
-    const escaped = this.escapeHtml(value);
-    return `
-                <span
-                title="${escaped}"
-                style="
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    word-wrap: break-word;
-                    word-break: break-word;
-                    line-height: 1.4;
-                "
-                >
-                ${value}
-                </span>
-            `;
-  };
+  getColumnWidth(col: PrimeColumn): string {
+    return `${col.width || col.minWidth || 120}px`;
+  }
+
+  getColumnFilterType(_col: PrimeColumn): string {
+    return 'text';
+  }
+
+  getCellClass(col: PrimeColumn): Record<string, boolean> {
+    return {
+      'text-end': col.align === 'right' || col.type === 'number' || col.cssClass === 'text-end',
+      'text-center': col.align === 'center' || col.type === 'boolean',
+    };
+  }
+
+  formatCell(row: any, col: PrimeColumn): string {
+    const value = row?.[col.field];
+    if (value === null || value === undefined || value === '') return '';
+    if (col.type === 'number') return this.formatNumber(value);
+    if (col.type === 'boolean') return value ? '✓' : '';
+    return String(value);
+  }
+
+  getCellTitle(row: any, col: PrimeColumn): string {
+    if (col.type === 'boolean') return row?.[col.field] ? 'Có' : 'Không';
+    return this.formatCell(row, col);
+  }
+
+  getRuleGroupHeader(rowData: any): string {
+    return rowData?.TypePositionName || '(Không có chức vụ)';
+  }
+
+  getRuleGroupCount(typePositionName: string | null | undefined): number {
+    return this.datasetRule.filter((item: any) => {
+      const itemGroup = item?.TypePositionName || '';
+      const group = typePositionName || '';
+      return itemGroup === group;
+    }).length;
+  }
+
+  trackById(_index: number, row: any): any {
+    return row?.ID ?? row?.id ?? row;
+  }
+
+  private clearRuleData(): void {
+    this.datasetRule = [];
+    this.selectedRule = null;
+    this.clearRuleDetailData();
+  }
+
+  private clearRuleDetailData(): void {
+    this.datasetRuleDetail = [];
+    this.treeDatasetRuleDetail = [];
+    this.selectedRuleDetail = null;
+    this.selectedRuleDetailNode = null;
+  }
+
+  private prepareRuleDetailDataset(source: any[]): any[] {
+    return (source || []).map((item: any) => ({
+      ...item,
+      id: item.ID,
+      parentId: item.ParentID === 0 ? null : item.ParentID,
+    }));
+  }
+
+  private buildRuleDetailTreeNodes(rows: any[]): TreeNode[] {
+    const nodeMap = new Map<number, TreeNode>();
+    const roots: TreeNode[] = [];
+
+    rows.forEach((row: any) => {
+      const rowId = this.getRuleDetailId(row);
+      nodeMap.set(rowId, {
+        key: String(rowId),
+        data: row,
+        children: [],
+        expanded: true,
+      });
+      row.hasChildren = false;
+    });
+
+    rows.forEach((row: any) => {
+      const rowId = this.getRuleDetailId(row);
+      const node = nodeMap.get(rowId);
+      if (!node) return;
+
+      const parentId = row.parentId === null || row.parentId === undefined ? null : Number(row.parentId);
+      const parentNode = parentId ? nodeMap.get(parentId) : null;
+      if (parentNode) {
+        parentNode.children = parentNode.children || [];
+        parentNode.children.push(node);
+        parentNode.data.hasChildren = true;
+      } else {
+        roots.push(node);
+      }
+    });
+
+    rows.forEach((row: any) => {
+      const node = nodeMap.get(this.getRuleDetailId(row));
+      if (node?.children && node.children.length === 0) {
+        delete node.children;
+      }
+    });
+
+    return roots;
+  }
+
+  private getRuleDetailId(row: any): number {
+    return Number(row?.ID ?? row?.id ?? 0);
+  }
+
+  private formatNumber(value: any): string {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue) || numericValue === 0) return '';
+    return new Intl.NumberFormat('vi-VN', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).format(numericValue);
+  }
+
+  private textCol(id: string, name: string, field: string, width: number, extra: Partial<PrimeColumn> = {}): PrimeColumn {
+    return {
+      id,
+      name,
+      field,
+      width,
+      sortable: true,
+      filterable: true,
+      type: 'text',
+      ...extra,
+    };
+  }
+
+  private numberCol(id: string, name: string, field: string, width: number): PrimeColumn {
+    return {
+      id,
+      name,
+      field,
+      width,
+      sortable: true,
+      filterable: true,
+      type: 'number',
+      align: 'right',
+    };
+  }
 }

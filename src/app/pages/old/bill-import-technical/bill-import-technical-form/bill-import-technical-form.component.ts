@@ -1598,7 +1598,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       billImportTechnical: {
         ID: formValue.ID || 0,
         BillCode: formValue.BillCode,
-        CreatDate: formValue.CreatDate,
+        CreatDate: this.toLocalISOString(formValue.CreatDate),
         Deliver: deliverText,
         Receiver: receiverText,
         Status: formValue.Status || false,
@@ -1616,7 +1616,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         IsBorrowSupplier: formValue.IsBorrowSupplier || 0,
         CustomerID: formValue.CustomerID || 0,
         BillDocumentImportType: formValue.BillDocumentImportType || 0,
-        DateRequestImport: formValue.DateRequestImport,
+        DateRequestImport: this.toLocalISOString(formValue.DateRequestImport),
         RulePayID: formValue.RulePayID,
         IsNormalize: formValue.IsNormalize || false,
         ApproverID: formValue.ApproverID || 0,
@@ -2185,5 +2185,22 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     // }
 
     return true;
+  }
+
+  // Trả về ISO string với offset múi giờ local, tránh lệch ngày khi dùng toISOString() (UTC)
+  private toLocalISOString(date: Date | string | null): string | null {
+    if (!date) return null;
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return null;
+    const tzo = -d.getTimezoneOffset();
+    const sign = tzo >= 0 ? '+' : '-';
+    const pad = (n: number) => String(Math.floor(Math.abs(n))).padStart(2, '0');
+    return d.getFullYear() + '-' +
+      pad(d.getMonth() + 1) + '-' +
+      pad(d.getDate()) + 'T' +
+      pad(d.getHours()) + ':' +
+      pad(d.getMinutes()) + ':' +
+      pad(d.getSeconds()) +
+      sign + pad(tzo / 60) + ':' + pad(tzo % 60);
   }
 }

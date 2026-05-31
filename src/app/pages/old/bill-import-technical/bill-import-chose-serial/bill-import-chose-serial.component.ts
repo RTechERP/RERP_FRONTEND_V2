@@ -57,6 +57,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BillImportChoseSerialService } from './bill-import-chose-serial.service';
 import { BillImportTechnicalService } from '../bill-import-technical-service/bill-import-technical.service';
 import { BillImportAddSerialComponent } from './bill-import-add-serial/bill-import-add-serial.component';
+import { ExcelExportService } from '@slickgrid-universal/excel-export';
 
 //#region Customselect
 class GroupSelectEditor {
@@ -479,6 +480,7 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
   @Input() existingSerials: { ID: number; Serial: string }[] = []; // Serials đã tồn tại (cho auto-bind)
   @Input() skipSaveDB: boolean = false; // Nếu true, modal chỉ trả về list serial, không lưu vào DB
   @Input() isApproved: boolean = false; // Phiếu đã duyệt → chỉ xem, không chỉnh sửa
+  excelExportService = new ExcelExportService();
   modularGrid: any = [];
   isAddSerial: boolean = true;
   serialData: any = [];
@@ -707,10 +709,20 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
       enableFiltering: true,
       autoFitColumnsOnFirstLoad: true,
       enableAutoSizeColumns: true,
+      externalResources: [this.excelExportService],
       enableExcelExport: true,
       excelExportOptions: {
         filename: 'Danh sách serial',
         exportWithFormatter: true,
+        columnHeaderStyle: {
+          font: { bold: true, size: 11 },
+          fill: { type: 'pattern', patternType: 'solid', fgColor: 'FFBDD7EE' },
+          alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+          border: {
+            top: { style: 'thin' }, bottom: { style: 'thin' },
+            left: { style: 'thin' }, right: { style: 'thin' },
+          },
+        },
       },
       editable: !this.isApproved,
       autoEdit: !this.isApproved,
@@ -727,6 +739,7 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
         sortable: false,
         filterable: false,
         excludeFromHeaderMenu: true,
+        excludeFromExport: true,
         formatter: (_row, _cell, _value, _column, _dataContext) => {
           return `<div style="text-align:center;"><i class="fas fa-trash" style="cursor:pointer; color:#ff4d4f;" title="Xóa file"></i></div>`;
         },
@@ -735,20 +748,19 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
         id: 'STT',
         name: 'STT',
         field: 'STT',
-        width: 100,
+        width: 60,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        exportWithFormatter: false,
+        exportCustomFormatter: (_row: number, _cell: number, value: any) => value ?? '',
+        excelExportOptions: {
+          width: 8,
+          style: { alignment: { horizontal: 'center', vertical: 'center' }, border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } } },
+        },
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
-          return `
-                <span
-                  title="${dataContext.StatusText ?? ''}"
-                  style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center;"
-                >
-                  ${value}
-                </span>
-              `;
+          return `<span title="${dataContext.StatusText ?? ''}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center;">${value}</span>`;
         },
       },
       {
@@ -759,27 +771,18 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
+        exportWithFormatter: false,
+        exportCustomFormatter: (_row: number, _cell: number, value: any) => value ?? '',
+        excelExportOptions: {
+          width: 30,
+          style: { alignment: { horizontal: 'left', vertical: 'center' }, border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } } },
+        },
+        customTooltip: { useRegularTooltip: true, useRegularTooltipFromCellTextOnly: true },
+        editor: { model: Editors['text'] },
         formatter: (_row, _cell, value, _column, dataContext) => {
           if (!value) return '';
-          return `
-                        <span
-                          title="${dataContext.StatusText}"
-                          style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
-                        >
-                          ${value}
-                        </span>
-                      `;
+          return `<span title="${dataContext.StatusText}" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${value}</span>`;
         },
-
-        customTooltip: {
-          useRegularTooltip: true,
-          useRegularTooltipFromCellTextOnly: true,
-        },
-
-        editor: {
-          model: Editors['text'],
-        },
-        exportWithFormatter: false,
       },
     ];
 
@@ -847,6 +850,11 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
           model: Editors['text'],
         },
         exportWithFormatter: false,
+        exportCustomFormatter: (_row: number, _cell: number, value: any) => value ?? '',
+        excelExportOptions: {
+          width: 30,
+          style: { alignment: { horizontal: 'left', vertical: 'center' }, border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } } },
+        },
       });
     }
 
@@ -1046,6 +1054,13 @@ export class BillImportChoseSerialComponent implements OnInit, AfterViewInit {
     } catch (error) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lưu serial!');
     }
+  }
+
+  exportExcel() {
+    this.excelExportService.exportToExcel({
+      filename: 'Danh sách serial',
+      format: 'xlsx',
+    });
   }
 
   addSerial() {

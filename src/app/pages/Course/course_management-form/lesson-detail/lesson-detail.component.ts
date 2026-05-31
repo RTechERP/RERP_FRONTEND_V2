@@ -197,7 +197,7 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
         // Nếu có ID bài học thì dùng API stream
         if (this.dataInput?.[0]?.ID || this.dataInput?.ID) {
             const id = this.dataInput?.[0]?.ID || this.dataInput?.ID;
-            return environment.host + 'api/course/stream/' + id;
+            return environment.host + 'api/streamvideo/stream/' + id;
         }
 
         return null;

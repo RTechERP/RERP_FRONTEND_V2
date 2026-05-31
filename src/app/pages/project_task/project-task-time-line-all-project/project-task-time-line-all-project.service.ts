@@ -20,7 +20,9 @@ export interface ProjectTaskTimelineByProjectItem {
     TypeDate: number; // 1: Dự kiến, 2: Thực tế
     PlanStartDate: string | null;
     PlanEndDate: string | null;
-    [key: string]: any; // Dynamic date keys (e.g. "2026-04-03": 0 | 1)
+    IsApprove?: boolean | null;
+    IsApproved?: number | boolean | string | null;
+    [key: string]: any; // Dynamic date keys (e.g. "2026-04-03": '0' | '10' | '11' | '2' | '30' | '31')
 }
 
 export interface TimelineByProjectParams {
@@ -62,6 +64,31 @@ export class ProjectTaskTimeLineAllProjectService {
             `${this.apiUrl}/project-task-timeline-by-project`, { params: httpParams }
         ).pipe(
             map(response => response.data || [])
+        );
+    }
+
+    getProjectTaskGetDayOff(dateStart: string, dateEnd: string): Observable<string[]> {
+        const httpParams = new HttpParams()
+            .set('dateStart', dateStart)
+            .set('dateEnd', dateEnd);
+
+        return this.http.post<IAPIResponse<any[]>>(
+            `${this.apiUrl}/day-off`, {}, { params: httpParams }
+        ).pipe(
+            map(response => {
+                if (response && response.status === 1 && response.data) {
+                    return response.data.map(item => item.DateOff.split('T')[0]);
+                }
+                return [];
+            })
+        );
+    }
+
+    getProjectTaskStatuses(): Observable<any[]> {
+        return this.http.get<IAPIResponse<any>>(
+            `${this.apiUrl}/project-task-status`
+        ).pipe(
+            map(response => response.data?.projectTaskStatuses || [])
         );
     }
 }

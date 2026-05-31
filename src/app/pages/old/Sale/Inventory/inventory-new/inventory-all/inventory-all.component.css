@@ -1,0 +1,85 @@
+/* Footer row styling */
+:host ::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
+    border-right: 1px solid #ddd !important;
+    padding: 4px 6px;
+    font-size: 0.75rem;
+}
+
+:host ::ng-deep div[id^="grid-inventory-"] {
+    min-height: 90vh !important;
+}
+
+::ng-deep div[id^="grid-container-inventory-"] {
+    height: 86vh !important;
+}
+
+::ng-deep div[id^="grid-product-group-"] {
+    height: 86vh !important;
+}
+
+/* Product Group grid - Selected row với màu mặc định */
+:host ::ng-deep div[id^="grid-product-group-"] .slick-row.active {
+    background-color: #789cce !important;
+    color: white !important;
+}
+
+/* Product Group grid - Hover row với màu khác */
+/* ::ng-deep div[id^="grid-product-group-"] .slick-row:hover { */
+/* background-color: #2f9deb !important; Màu xanh nhạt khi hover/ */
+/* color: white !important; */
+/* } */
+
+/* Đảm bảo các cell trong row cũng có màu tương ứng */
+:host ::ng-deep div[id^="grid-product-group-"] .slick-row.active .slick-cell {
+    background-color: inherit !important;
+}
+
+/* Filter dropdown multipleSelect - hiện scroll ngang */
+::ng-deep .ms-drop {
+  width: auto !important;
+  min-width: 250px !important;
+  max-width: 400px !important;
+  overflow: hidden !important;
+}
+
+::ng-deep .ms-drop .ms-list {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+}
+
+::ng-deep .ms-drop .ms-list li {
+  white-space: nowrap !important;
+}
+
+::ng-deep .ms-drop .ms-list li label {
+  display: flex !important;
+  align-items: center !important;
+  padding: 4px 10px !important;
+  cursor: pointer !important;
+  width: max-content !important;
+  min-width: 100% !important;
+}
+
+::ng-deep .ms-drop .ms-list li label .icon-checkbox-container {
+  flex-shrink: 0 !important;
+  margin-right: 6px !important;
+}
+
+::ng-deep .ms-drop .ms-list li label span {
+  white-space: nowrap !important;
+  font-size: 12px !important;
+}
+
+::ng-deep .ms-drop .ms-select-all label {
+  display: flex !important;
+  align-items: center !important;
+}
+
+::ng-deep .ms-drop .ms-select-all label .icon-checkbox-container {
+  flex-shrink: 0 !important;
+  margin-right: 6px !important;
+}
+
+/* ::ng-deep div[id^="grid-product-group-"] .slick-row:hover .slick-cell {
+  background-color: inherit !important;
+} */

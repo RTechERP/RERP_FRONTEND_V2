@@ -1,0 +1,71 @@
+/* ==================== GENERAL STYLES ==================== */
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+/* ==================== GRID CONTAINER STYLES ==================== */
+.grid-employee-container {
+    width: 100%;
+    height: 100%;
+}
+
+angular-slickgrid,
+.angular-slickgrid-container {
+    height: 100% !important;
+    width: 100%;
+    display: flex;
+}
+
+:host ::ng-deep .slickgrid-container {
+    height: 100% !important;
+}
+
+/* ==================== HEADER STYLES ==================== */
+:host ::ng-deep .slick-header-column {
+    background-color: #fafafa;
+    border-right: 1px solid #ddd !important;
+    font-weight: 600;
+    text-align: center !important;
+}
+
+:host ::ng-deep .slick-header-columns {
+    height: 40px !important;
+}
+
+/* ==================== ROW STYLES ==================== */
+:host ::ng-deep .slick-row {
+    cursor: pointer;
+}
+
+:host ::ng-deep .slick-row:hover {
+    background-color: #e6f7ff;
+}
+
+:host ::ng-deep .slick-row.selected {
+    background-color: #bae7ff !important;
+}
+
+/* ==================== CELL STYLES ==================== */
+:host ::ng-deep .slick-cell {
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+}
+
+/* ==================== CHECKBOX SELECTOR STYLES ==================== */
+:host ::ng-deep .slick-cell-checkboxsel {
+    justify-content: center;
+}
+
+/* ==================== TEXT ALIGNMENT ==================== */
+:host ::ng-deep .text-center {
+    text-align: center !important;
+}
+
+:host ::ng-deep .text-right {
+    text-align: right !important;
+}
+
+:host ::ng-deep .text-left {
+    text-align: left !important;
+}

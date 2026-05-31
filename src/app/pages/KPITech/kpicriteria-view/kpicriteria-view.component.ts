@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, inject, ChangeDetectorRef, Injector } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, inject, ChangeDetectorRef, Injector } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzModalRef, NZ_MODAL_DATA } from 'ng-zorro-antd/modal';
@@ -8,14 +8,8 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
-import {
-  AngularGridInstance,
-  AngularSlickgridModule,
-  Column,
-  Formatters,
-  GridOption,
-  EditCommand,
-} from 'angular-slickgrid';
+import { CustomTableKpi } from '../../../shared/custom-table-kpi/custom-table-kpi';
+import { ColumnDef } from '../../../shared/custom-table-kpi/column-def.model';
 
 import { KpiCriteriaViewService } from './kpicriteria-view-service/kpicriteria-view.service';
 import { ReadOnlyLongTextEditor } from '../kpievaluation-employee/frmKPIEvaluationEmployee/readonly-long-text-editor';
@@ -26,10 +20,10 @@ import { ReadOnlyLongTextEditor } from '../kpievaluation-employee/frmKPIEvaluati
   imports: [
     CommonModule,
     FormsModule,
+    NzFormModule,
     NzTabsModule,
     NzInputNumberModule,
-    NzFormModule,
-    AngularSlickgridModule,
+    CustomTableKpi,
   ],
   templateUrl: './kpicriteria-view.component.html',
   styleUrl: './kpicriteria-view.component.css'
@@ -56,29 +50,25 @@ export class KPICriteriaViewComponent implements OnInit, AfterViewInit {
   selectedTabIndex = 0;
   //#endregion
 
-  //#region Grid instances
-  angularGridEvaluatePoint!: AngularGridInstance;
-  angularGridCriteria!: AngularGridInstance;
-  angularGridProjectType!: AngularGridInstance;
+  //#region Grid instances (PrimeNG)
+  @ViewChild('gridEvaluatePoint') gridEvaluatePoint!: CustomTableKpi;
+  @ViewChild('gridCriteria') gridCriteria!: CustomTableKpi;
+  @ViewChild('gridProjectType') gridProjectType!: CustomTableKpi;
   //#endregion
 
   //#region Định nghĩa cột
-  evaluatePointColumns: Column[] = [];
-  criteriaColumns: Column[] = [];
-  projectTypeColumns: Column[] = [];
-  //#endregion
+  evaluatePointColumns: ColumnDef[] = [];
+  criteriaColumns: ColumnDef[] = [];
+  projectTypeColumns: ColumnDef[] = [];
 
-  //#region Grid options
-  evaluatePointGridOptions: GridOption = {};
-  criteriaGridOptions: GridOption = {};
-  projectTypeGridOptions: GridOption = {};
+  // Header Groups cho bảng tiêu chí
+  criteriaHeaderGroups: any[][] = [];
   //#endregion
 
   //#region Datasets
   dataEvaluatePoint: any[] = [];
   dataCriteria: any[] = [];
   dataProjectType: any[] = [];
-  editCommandQueue: EditCommand[] = [];
   //#endregion
 
   constructor() { }
@@ -104,12 +94,8 @@ export class KPICriteriaViewComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    //#region Delay để đảm bảo DOM đã sẵn sàng cho SlickGrid
-    setTimeout(() => {
-      this.gridsInitialized = true;
-      this.cdr.detectChanges();
-    }, 100);
-    //#endregion
+    this.gridsInitialized = true;
+    this.cdr.detectChanges();
   }
 
   //#region Khởi tạo Grid Configurations
@@ -119,235 +105,103 @@ export class KPICriteriaViewComponent implements OnInit, AfterViewInit {
     this.initProjectTypeGrid();
   }
 
-  /**
-   * Khởi tạo grid hiển thị thang điểm đánh giá (A, B+, B, B-, C, D)
-   */
   private initEvaluatePointGrid(): void {
     this.evaluatePointColumns = [
       {
-        id: 'point1',
         field: 'point1',
-        name: 'A',
-        width: 150,
-        sortable: false,
-        cssClass: 'cell-multiline text-center',
+        header: 'A',
+        width: '150px',
+        cssClass: 'text-center',
       },
       {
-        id: 'point2',
         field: 'point2',
-        name: 'B+',
-        width: 150,
-        sortable: false,
-        cssClass: 'cell-multiline text-center',
+        header: 'B+',
+        width: '150px',
+        cssClass: 'text-center',
       },
       {
-        id: 'point3',
         field: 'point3',
-        name: 'B',
-        width: 150,
-        sortable: false,
-        cssClass: 'cell-multiline text-center',
+        header: 'B',
+        width: '150px',
+        cssClass: 'text-center',
       },
       {
-        id: 'point4',
         field: 'point4',
-        name: 'B-',
-        width: 150,
-        sortable: false,
-        cssClass: 'cell-multiline text-center',
+        header: 'B-',
+        width: '150px',
+        cssClass: 'text-center',
       },
       {
-        id: 'point5',
         field: 'point5',
-        name: 'C',
-        width: 150,
-        sortable: false,
-        cssClass: 'cell-multiline text-center',
+        header: 'C',
+        width: '150px',
+        cssClass: 'text-center',
       },
       {
-        id: 'point6',
         field: 'point6',
-        name: 'D',
-        width: 200,
-        sortable: false,
-        cssClass: 'cell-multiline text-center',
+        header: 'D',
+        width: '200px',
+        cssClass: 'text-center',
       },
     ];
-
-    this.evaluatePointGridOptions = {
-      enableAutoResize: true,
-      autoResize: {
-        container: '.grid-evaluate-point-container',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container'
-      },
-      gridWidth: '100%',
-      gridHeight: 80,
-      enableCellNavigation: false,
-      enableSorting: false,
-      enablePagination: false,
-      enableFiltering: false,
-      forceFitColumns: true,
-      editable: false,
-      autoCommitEdit: true,
-      autoEdit: true,
-    };
   }
 
-  /**
-   * Khởi tạo grid hiển thị bảng tiêu chí
-   */
   private initCriteriaGrid(): void {
-    //#region Cột cố định: Điểm và Điểm %
     this.criteriaColumns = [
       {
-        id: 'Point',
         field: 'Point',
-        name: 'Điểm',
-        width: 80,
-        minWidth: 80,
+        header: 'Điểm',
+        width: '60px',
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Mức điểm',
+        format: (val) => val != null && val !== '' ? Number(val).toFixed(2) : '',
       },
       {
-        id: 'PointPercent',
         field: 'PointPercent',
-        name: 'Điểm %',
-        width: 80,
-        minWidth: 80,
+        header: 'Điểm %',
+        width: '60px',
         cssClass: 'text-right',
         sortable: true,
-        formatter: Formatters.decimal,
-        params: { decimalPlaces: 2 },
-        columnGroup: 'Mức điểm',
+        format: (val) => val != null ? Number(val).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '',
       },
     ];
-    //#endregion
-
-    this.criteriaGridOptions = {
-      enableAutoResize: true,
-      autoResize: {
-        container: '.grid-criteria-container',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container'
-      },
-      gridWidth: '100%',
-      enableCellNavigation: true,
-      enableSorting: true,
-      enablePagination: false,
-      enableFiltering: false,
-      forceFitColumns: false,
-      editable: true,
-      createPreHeaderPanel: true,
-      showPreHeaderPanel: true,
-      preHeaderPanelHeight: 30,
-      rowHeight: 60,
-      autoCommitEdit: true,
-      autoEdit: true,
-      editCommandHandler: (_item: any, _column: Column, editCommand: EditCommand) => {
-        this.editCommandQueue.push(editCommand);
-        editCommand.execute();
-      },
-    };
   }
 
-  /**
-   * Khởi tạo grid hiển thị loại dự án
-   */
   private initProjectTypeGrid(): void {
     this.projectTypeColumns = [
       {
-        id: 'ProjectType',
         field: 'ProjectType',
-        name: 'Loại dự án',
-        width: 200,
+        header: 'Loại dự án',
+        width: '200px',
         sortable: true,
-        cssClass: 'cell-multiline',
-        editor: {
-          model: ReadOnlyLongTextEditor,
-          required: false,
-          alwaysSaveOnEnterKey: false,
-          minLength: 5,
-          maxLength: 1000,
-        },
+        textWrap: true,
       },
       {
-        id: 'PLC',
         field: 'PLC',
-        name: 'PLC Robot',
-        width: 400,
+        header: 'PLC Robot',
+        width: '160px',
         sortable: true,
-        cssClass: 'cell-multiline',
-        editor: {
-          model: ReadOnlyLongTextEditor,
-          required: false,
-          alwaysSaveOnEnterKey: false,
-          minLength: 5,
-          maxLength: 1000,
-        },
+        textWrap: true,
       },
       {
-        id: 'Vision',
         field: 'Vision',
-        name: 'Vision',
-        width: 400,
+        header: 'Vision',
+        width: '160px',
         sortable: true,
-        cssClass: 'cell-multiline',
-        editor: {
-          model: ReadOnlyLongTextEditor,
-          required: false,
-          alwaysSaveOnEnterKey: false,
-          minLength: 5,
-          maxLength: 1000,
-        },
+        textWrap: true,
       },
       {
-        id: 'SoftWare',
         field: 'SoftWare',
-        name: 'Phần mềm',
-        width: 400,
+        header: 'Phần mềm',
+        width: '160px',
         sortable: true,
-        cssClass: 'cell-multiline',
-        editor: {
-          model: ReadOnlyLongTextEditor,
-          required: false,
-          alwaysSaveOnEnterKey: false,
-          minLength: 5,
-          maxLength: 1000,
-        },
+        textWrap: true,
       },
     ];
-
-    this.projectTypeGridOptions = {
-      enableAutoResize: true,
-      autoResize: {
-        container: '.grid-project-type-container',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container'
-      },
-      gridWidth: '100%',
-      enableCellNavigation: true,
-      enableSorting: true,
-      enablePagination: false,
-      enableFiltering: false,
-      forceFitColumns: false,
-      editable: true,
-      autoCommitEdit: true,
-      autoEdit: true,
-      rowHeight: 60,
-      editCommandHandler: (_item: any, _column: Column, editCommand: EditCommand) => {
-        this.editCommandQueue.push(editCommand);
-        editCommand.execute();
-      },
-    };
   }
   //#endregion
 
   //#region Load dữ liệu
-  /**
-   * Load thang điểm đánh giá (hardcoded như WinForm)
-   */
   private loadEvaluatePoint(): void {
     this.dataEvaluatePoint = [
       {
@@ -360,14 +214,8 @@ export class KPICriteriaViewComponent implements OnInit, AfterViewInit {
         point6: '< 60% (Không có thưởng)'
       }
     ];
-    if (this.angularGridEvaluatePoint) {
-      this.updateGrid(this.angularGridEvaluatePoint, this.dataEvaluatePoint);
-    }
   }
 
-  /**
-   * Load thông tin loại dự án (hardcoded như WinForm)
-   */
   private loadProjectType(): void {
     this.dataProjectType = [
       {
@@ -385,130 +233,67 @@ export class KPICriteriaViewComponent implements OnInit, AfterViewInit {
         SoftWare: '- Nghiệp vụ phức tạp, database lớn, dữ liệu lưu trữ rất nhiều, liên tục\n- Hệ thống báo cáo nhiều, phức tạp, lấy lên từ nhiều bảng\n- Làm việc vời nhiều thiết bị truyền thông, việc truyền nhận diễn ra liên tục, cần xử lý bất đồng bộ nhiều'
       }
     ];
-    if (this.angularGridProjectType) {
-      this.updateGrid(this.angularGridProjectType, this.dataProjectType);
-    }
   }
 
-  /**
-   * Load dữ liệu bảng tiêu chí từ API
-   */
   private loadCriteriaData(): void {
-    //#region Gọi API để lấy danh sách tiêu chí theo năm và quý
     this.service.getKPICriteriaList(this.criteriaYear, this.criteriaQuarter).subscribe({
       next: (res: any) => {
         const criteria = Array.isArray(res) ? res : (res?.data || []);
 
-        //#region Thêm cột động cho mỗi tiêu chí
+        // Reset columns to base columns
+        this.initCriteriaGrid();
+
+        const dynamicFields: string[] = [];
         criteria.forEach((item: any) => {
-          const col: Column = {
-            id: item.CriteriaCode,
+          const col: ColumnDef = {
             field: item.CriteriaCode,
-            name: `${item.CriteriaCode}: ${item.CriteriaName}`,
-            width: 300,
+            header: `${item.CriteriaCode}: ${item.CriteriaName}`,
+            width: '180px',
             sortable: true,
-            cssClass: 'cell-multiline',
-            columnGroup: 'Tiêu chí',
+            textWrap: true,
           };
           this.criteriaColumns.push(col);
+          dynamicFields.push(item.CriteriaCode);
         });
-        //#endregion
 
-        // Cập nhật lại danh sách cột cho Grid nếu đã khởi tạo
-        if (this.angularGridCriteria?.slickGrid) {
-          this.angularGridCriteria.slickGrid.setColumns(this.criteriaColumns);
-        }
+        // Cấu hình Header Groups
+        this.criteriaHeaderGroups = [
+          [
+            { header: 'Mức điểm', fields: ['Point', 'PointPercent'], rowspan: 1 },
+            { header: 'Tiêu chí', fields: dynamicFields, rowspan: 1 }
+          ]
+        ];
 
-        //#region Gọi API để lấy dữ liệu pivot
         this.service.getKPICriteriaPivot(this.criteriaYear, this.criteriaQuarter).subscribe({
           next: (resPivot: any) => {
             const data = Array.isArray(resPivot) ? resPivot : (resPivot?.data || []);
-            // Map ID to id for SlickGrid
             this.dataCriteria = data.map((item: any, idx: number) => ({
               ...item,
               id: item.id ?? item.ID ?? idx
             }));
             this.cdr.detectChanges();
-            if (this.angularGridCriteria) {
-              this.updateGrid(this.angularGridCriteria, this.dataCriteria);
-            }
           },
           error: (error) => {
             this.notification.error('Thông báo', 'Lỗi khi tải dữ liệu bảng tiêu chí!');
             console.error('Lỗi:', error);
           }
         });
-        //#endregion
       },
       error: (error) => {
         this.notification.error('Thông báo', 'Lỗi khi tải danh sách tiêu chí!');
         console.error('Lỗi:', error);
       }
     });
-    //#endregion
   }
 
-  /**
-   * Xử lý khi thay đổi năm
-   */
   onYearChange(value: number): void {
     this.criteriaYear = value;
-    this.reloadCriteriaData();
+    this.loadCriteriaData();
   }
 
-  /**
-   * Xử lý khi thay đổi quý
-   */
   onQuarterChange(value: number): void {
     this.criteriaQuarter = value;
-    this.reloadCriteriaData();
-  }
-
-  /**
-   * Reload lại dữ liệu bảng tiêu chí
-   */
-  private reloadCriteriaData(): void {
-    //#region Reset cột động
-    this.criteriaColumns = this.criteriaColumns.filter(col =>
-      col.id === 'Point' || col.id === 'PointPercent'
-    );
-    //#endregion
-
-    //#region Load lại data
     this.loadCriteriaData();
-    //#endregion
-  }
-  //#endregion
-
-  //#region Event handlers cho grids
-  onEvaluatePointGridReady(angularGrid: AngularGridInstance): void {
-    this.angularGridEvaluatePoint = angularGrid;
-    if (this.dataEvaluatePoint && this.dataEvaluatePoint.length > 0) {
-      this.updateGrid(this.angularGridEvaluatePoint, this.dataEvaluatePoint);
-    }
-  }
-
-  onCriteriaGridReady(angularGrid: AngularGridInstance): void {
-    this.angularGridCriteria = angularGrid;
-    if (this.dataCriteria && this.dataCriteria.length > 0) {
-      this.updateGrid(this.angularGridCriteria, this.dataCriteria);
-    }
-  }
-
-  onProjectTypeGridReady(angularGrid: AngularGridInstance): void {
-    this.angularGridProjectType = angularGrid;
-    if (this.dataProjectType && this.dataProjectType.length > 0) {
-      this.updateGrid(this.angularGridProjectType, this.dataProjectType);
-    }
-  }
-
-  private updateGrid(grid: AngularGridInstance, data: any[]): void {
-    if (grid && grid.dataView && grid.slickGrid) {
-      grid.dataView.setItems(data || []);
-      grid.slickGrid.invalidate();
-      grid.slickGrid.render();
-      grid.resizerService?.resizeGrid();
-    }
   }
   //#endregion
 

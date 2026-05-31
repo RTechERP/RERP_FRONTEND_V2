@@ -116,4 +116,10 @@ export class BillExportTechnicalService {
       .set('warehouseType', String(warehouseType));
     return this.http.get<any>(`${this.url}load-product`, { params });
   }
+
+  getTechnicalLogs(billExportId: number): Observable<any> {
+    return this.http.get<any>(
+      this.url + `get-technical-logs/${billExportId}`
+    );
+  }
 }

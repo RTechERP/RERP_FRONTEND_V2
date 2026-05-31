@@ -21,8 +21,10 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { HandoverService } from '../../handover/handover-service/handover.service';
+
 import { AuthService } from '../../../../auth/auth.service';
+import { DepartmentServiceService } from '../../department/department-service/department-service.service';
+import { EmployeeService } from '../../employee/employee-service/employee.service';
 import { JobRequirementService } from '../job-requirement-service/job-requirement.service';
 import { NzUploadFile } from 'ng-zorro-antd/upload';
 import { DateTime } from 'luxon';
@@ -69,7 +71,8 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   constructor(
     private fb: FormBuilder,
     private activeModal: NgbActiveModal,
-    private handoverService: HandoverService,
+    private departmentService: DepartmentServiceService,
+    private employeeService: EmployeeService,
     private authService: AuthService,
     private jobRequirementService: JobRequirementService,
     private message: NzMessageService,
@@ -207,7 +210,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
     }
   }
   getdataEmployee() {
-    this.handoverService.getAllEmployee().subscribe((response: any) => {
+    this.employeeService.getAllEmployee().subscribe((response: any) => {
       const data = response.data || [];
       this.cbbEmployee = data;
 
@@ -267,7 +270,7 @@ export class JobRequirementFormComponent implements OnInit, AfterViewInit {
   }
 
   getdataDepartment() {
-    this.handoverService.getDataDepartment().subscribe((response: any) => {
+    this.departmentService.getDepartments().subscribe((response: any) => {
       this.dataDepartment = response.data || [];
     });
   }

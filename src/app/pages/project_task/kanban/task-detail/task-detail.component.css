@@ -289,6 +289,17 @@
     flex-shrink: 0;
 }
 
+.status-tag-inline {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    line-height: 1.5;
+}
+
 /* Task Type Selector */
 .task-type-select {
     min-width: 136px;
@@ -3416,4 +3427,28 @@ nz-date-picker ::ng-deep .ant-picker-input>input {
         min-height: 200px !important;
         height: auto !important;
     }
+}
+
+/* === Tab Lịch làm việc === */
+.task-work-row-off {
+    background-color: #fafafa !important;
+}
+.task-work-row-off td {
+    color: #8c8c8c;
+}
+.task-work-row-sunday {
+    background-color: #fffbe6 !important;
+}
+.task-work-row-dayoff {
+    background-color: #fff2f0 !important;
+}
+
+/* Selected row highlight */
+.task-work-row-selected {
+    background-color: #e6f7ff !important;
+    border-left: 3px solid #1890ff;
+}
+
+.task-work-row-selected td:first-child {
+    padding-left: 5px;
 }

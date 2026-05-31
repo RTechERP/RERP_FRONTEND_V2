@@ -263,7 +263,7 @@ export class KpiEvaluationRuleDetailComponent implements OnInit {
             },
             error: (err) => {
                 this.isLoading = false;
-                const errorMessage = err?.error?.message || err?.message || 'Có lỗi xảy ra khi lưu dữ liệu';
+                const errorMessage = typeof err?.error === 'string' ? err.error : (err?.error?.message || err?.message || 'Có lỗi xảy ra khi lưu dữ liệu');
                 this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
             }
         });

@@ -1,0 +1,260 @@
+<div class="poll-vote-page">
+  <aside class="vote-list-panel">
+    <div class="vote-list-header">
+      <div>
+        <h5>Phiếu bình chọn</h5>
+        <span>{{ availablePolls.length }} phiếu đã xuất bản đang mở</span>
+      </div>
+      <button nz-button nzSize="small" type="button" [nzLoading]="isLoadingPolls" (click)="refreshPolls()">
+        <i class="fa-solid fa-rotate-right" *ngIf="!isLoadingPolls"></i>
+      </button>
+    </div>
+
+    <input nz-input nzSize="small" placeholder="Tìm phiếu bình chọn..." [(ngModel)]="searchText" />
+
+    <nz-spin [nzSpinning]="isLoadingPolls">
+      <div class="vote-poll-list" *ngIf="availablePolls.length > 0; else emptyPollList">
+        <button
+          type="button"
+          class="vote-poll-item"
+          *ngFor="let poll of availablePolls; trackBy: trackByPollId"
+          [class.active]="selectedPoll?.id === poll.id"
+          (click)="selectPoll(poll)"
+        >
+          <span class="poll-item-title">{{ poll.title }}</span>
+          <span class="poll-item-description">{{ poll.description || 'Không có mô tả' }}</span>
+          <span class="poll-item-footer">
+            <nz-tag [nzColor]="getPollStatus(poll).color">{{ getPollStatus(poll).label }}</nz-tag>
+            <span>{{ formatDateTime(poll.endDate) }}</span>
+          </span>
+        </button>
+      </div>
+    </nz-spin>
+
+    <ng-template #emptyPollList>
+      <div class="vote-empty-side">
+        <nz-empty nzNotFoundContent="Không có phiếu đã xuất bản đang mở"></nz-empty>
+      </div>
+    </ng-template>
+  </aside>
+
+  <main
+    class="vote-workspace"
+    [class.has-background]="!!selectedPollBackgroundUrl"
+    [style.background-image]="selectedPollBackgroundStyle"
+  >
+    <nz-spin [nzSpinning]="isLoadingDetail">
+      <ng-container *ngIf="selectedPoll as poll; else selectPollEmpty">
+        <div class="vote-shell" *ngIf="!isCompleted; else completedTpl">
+          <section class="vote-header">
+            <div class="vote-header-top">
+              <button nz-button nzSize="small" type="button" (click)="backToList()">
+                <i class="fa-solid fa-arrow-left"></i>
+                Danh sách
+              </button>
+              <nz-tag [nzColor]="getPollStatus(poll).color">{{ getPollStatus(poll).label }}</nz-tag>
+            </div>
+
+            <h2 [style.color]="selectedPollTitleColor">{{ poll.title }}</h2>
+            <p [style.color]="selectedPollTitleColor">{{ poll.description || 'Không có mô tả' }}</p>
+
+            <div class="vote-time-grid">
+              <span>
+                <strong>Bắt đầu</strong>
+                {{ formatDateTime(poll.startDate) }}
+              </span>
+              <span>
+                <strong>Kết thúc</strong>
+                {{ formatDateTime(poll.endDate) }}
+              </span>
+            </div>
+          </section>
+
+          <nz-alert
+            class="vote-alert"
+            [nzType]="canSubmit ? 'success' : 'warning'"
+            [nzMessage]="getPollAvailabilityText(poll)"
+            nzShowIcon
+          ></nz-alert>
+
+          <div class="section-review-strip" *ngIf="visibleSectionIndexes.length > 1">
+            <button
+              type="button"
+              class="review-section-pill"
+              *ngFor="let sectionIndex of visibleSectionIndexes"
+              [class.active]="sectionIndex === currentSectionIndex"
+              (click)="selectSection(sectionIndex)"
+            >
+              <strong>{{ sections[sectionIndex].sortOrder || sectionIndex + 1 }}</strong>
+              <span>{{ sections[sectionIndex].title || 'Section' }}</span>
+              <em>{{ getSectionAnswerCount(sections[sectionIndex]) }}/{{ sections[sectionIndex].questions.length }}</em>
+            </button>
+          </div>
+
+          <section class="vote-section" #voteSection *ngIf="currentSection as section; else noQuestionTpl">
+            <div class="vote-section-title">
+              <div>
+                <span>Section {{ currentVisibleSectionPosition || currentSectionIndex + 1 }} / {{ visibleSectionIndexes.length || sections.length }}</span>
+                <h3>{{ section.title || 'Nội dung bình chọn' }}</h3>
+              </div>
+              <p *ngIf="section.description">{{ section.description }}</p>
+            </div>
+
+            <div
+              class="vote-question"
+              *ngFor="let question of currentQuestions; let questionIndex = index; trackBy: trackByQuestion"
+            >
+              <div class="question-title">
+                <span>{{ questionIndex + 1 }}</span>
+                <h6>
+                  {{ question.questionText || 'Câu hỏi chưa có nội dung' }}
+                  <em *ngIf="question.isRequired">*</em>
+                </h6>
+              </div>
+
+              <div class="mapped-answer" *ngIf="isEmployeeMappedQuestion(question); else manualAnswerTpl">
+                <span>{{ getEmployeeMappingLabel(question) }}</span>
+                <strong>{{ getMappedQuestionValue(question) }}</strong>
+              </div>
+
+              <ng-template #manualAnswerTpl>
+                <div class="answer-control" [ngSwitch]="question.questionType">
+                  <input
+                    *ngSwitchCase="'Text'"
+                    nz-input
+                    placeholder="Nhập câu trả lời"
+                    [disabled]="isVoteLocked || isSubmitting"
+                    [(ngModel)]="answers[answerKey(question)]"
+                  />
+
+                  <textarea
+                    *ngSwitchCase="'Textarea'"
+                    nz-input
+                    rows="4"
+                    placeholder="Nhập câu trả lời"
+                    [disabled]="isVoteLocked || isSubmitting"
+                    [(ngModel)]="answers[answerKey(question)]"
+                  ></textarea>
+
+                  <nz-date-picker
+                    *ngSwitchCase="'Date'"
+                    class="date-input"
+                    nzFormat="dd/MM/yyyy"
+                    nzPlaceHolder="dd/MM/yyyy"
+                    [nzInputReadOnly]="false"
+                    [nzAllowClear]="!question.isRequired"
+                    [nzDisabled]="isVoteLocked || isSubmitting"
+                    [(ngModel)]="answers[answerKey(question)]"
+                  ></nz-date-picker>
+
+                  <div *ngSwitchCase="'SingleChoice'" class="choice-list">
+                    <label class="choice-line" *ngFor="let option of question.options; trackBy: trackByOption">
+                      <input
+                        type="radio"
+                        [name]="'question-' + question.id"
+                        [value]="option.optionValue"
+                        [disabled]="isVoteLocked || isSubmitting"
+                        [(ngModel)]="answers[answerKey(question)]"
+                      />
+                      <span>{{ option.optionText || option.optionValue }}</span>
+                    </label>
+                  </div>
+
+                  <div *ngSwitchCase="'MultipleChoice'" class="choice-list">
+                    <label class="choice-line" *ngFor="let option of question.options; trackBy: trackByOption">
+                      <input
+                        type="checkbox"
+                        [checked]="isOptionChecked(question, option)"
+                        [disabled]="isVoteLocked || isSubmitting"
+                        (change)="toggleMultipleAnswer(question, option, $any($event.target).checked)"
+                      />
+                      <span>{{ option.optionText || option.optionValue }}</span>
+                    </label>
+                  </div>
+
+                  <div *ngSwitchCase="'Rating'" class="rating-list">
+                    <button
+                      type="button"
+                      class="rating-button"
+                      *ngFor="let score of ratingScale(question)"
+                      [class.active]="isRatingSelected(question, score)"
+                      [disabled]="isVoteLocked || isSubmitting"
+                      (click)="setRatingAnswer(question, score)"
+                    >
+                      {{ score }}
+                    </button>
+                  </div>
+
+                  <input
+                    *ngSwitchDefault
+                    nz-input
+                    placeholder="Nhập câu trả lời"
+                    [disabled]="isVoteLocked || isSubmitting"
+                    [(ngModel)]="answers[answerKey(question)]"
+                  />
+
+                  <button
+                    class="clear-answer-button"
+                    type="button"
+                    *ngIf="canClearAnswer(question)"
+                    [disabled]="isVoteLocked || isSubmitting"
+                    (click)="clearAnswer(question)"
+                  >
+                    <i class="fa-solid fa-xmark"></i>
+                    {{ getClearAnswerText(question) }}
+                  </button>
+                </div>
+              </ng-template>
+            </div>
+
+            <div class="vote-footer">
+              <div class="section-nav-actions">
+                <button nz-button nzSize="small" type="button" [disabled]="!canGoPreviousSection()" (click)="goToPreviousSection()">
+                  <i class="fa-solid fa-arrow-left"></i>
+                  Trước
+                </button>
+                <button nz-button nzSize="small" type="button" [disabled]="!canGoNextSection()" (click)="goToNextSection()">
+                  Tiếp
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+              <button
+                nz-button
+                nzType="primary"
+                type="button"
+                *ngIf="!isVoteLocked"
+                [nzLoading]="isSubmitting"
+                [disabled]="!canSubmit || isSubmitting"
+                (click)="submitSection()"
+              >
+                {{ getSubmitButtonText() }}
+              </button>
+              <span class="review-only-note" *ngIf="isVoteLocked">Chỉ xem lại</span>
+            </div>
+          </section>
+        </div>
+      </ng-container>
+
+      <ng-template #selectPollEmpty>
+        <section class="vote-empty-main">
+          <nz-empty nzNotFoundContent="Chọn một phiếu bình chọn để bắt đầu"></nz-empty>
+        </section>
+      </ng-template>
+
+      <ng-template #noQuestionTpl>
+        <section class="vote-empty-main">
+          <nz-empty nzNotFoundContent="Phiếu này chưa có câu hỏi"></nz-empty>
+        </section>
+      </ng-template>
+
+      <ng-template #completedTpl>
+        <section class="vote-completed">
+          <i class="fa-regular fa-circle-check"></i>
+          <h3>Đã gửi bình chọn</h3>
+          <p>Cảm ơn bạn đã hoàn tất phiếu bình chọn.</p>
+          <button nz-button nzType="primary" type="button" (click)="backToList()">Quay lại danh sách</button>
+        </section>
+      </ng-template>
+    </nz-spin>
+  </main>
+</div>

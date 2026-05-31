@@ -2,14 +2,22 @@
 .modal-container {
     display: flex;
     flex-direction: column;
-    height: 99.8vh; /* Use slightly less than 100 to avoid sub-pixel scroll issues */
     width: 100%;
-    max-height: 100vh;
     position: relative;
     overflow: hidden !important;
     margin: 0 !important;
     padding: 0 !important;
     box-sizing: border-box;
+}
+
+.modal-container.is-modal {
+    height: 99.8vh;
+    max-height: 100vh;
+}
+
+.modal-container.is-tab {
+    height: 93vh;
+    max-height: 93vh;
 }
 
 /* Force hide any scrollbars on parent modal containers (NgZorro) */
@@ -23,7 +31,7 @@
     overflow: hidden !important;
 }
 
-:host ::ng-deep .ant-modal-body > * {
+:host ::ng-deep .ant-modal-body>* {
     height: 100vh !important;
 }
 
@@ -67,7 +75,7 @@ angular-slickgrid,
 }
 
 /* ==================== ISSUE 4: LAYOUT FIX ==================== */
-/* app-custom-tree-table host phải fill 100% chiều cao của container */
+/* app-custom-tree-table host pháº£i fill 100% chiá»u cao cá»§a container */
 :host ::ng-deep app-custom-tree-table,
 :host ::ng-deep app-custom-table {
     display: flex;
@@ -76,7 +84,7 @@ angular-slickgrid,
     overflow: hidden;
 }
 
-/* p-treeTable wrapper phải fill flex container */
+/* p-treeTable wrapper pháº£i fill flex container */
 :host ::ng-deep .p-treetable-wrapper,
 :host ::ng-deep .p-datatable-wrapper {
     flex: 1;
@@ -106,14 +114,15 @@ angular-slickgrid,
     line-height: 1.4 !important;
 }
 
-/* QUAN TRỌNG: KHÔNG dùng table-layout:fixed vì nó ngăn scroll ngang.
-   PrimeNG scrollable mode tự xử lý layout */
-/* :host ::ng-deep .p-treetable-table { table-layout: fixed; } -- ĐÃ XÓA */
+/* QUAN TRá»ŒNG: KHÃ”NG dÃ¹ng table-layout:fixed vÃ¬ nÃ³ ngÄƒn scroll ngang.
+   PrimeNG scrollable mode tá»± xá»­ lÃ½ layout */
+/* :host ::ng-deep .p-treetable-table { table-layout: fixed; } -- ÄÃƒ XÃ“A */
 
 
 
 :host ::ng-deep .p-treetable-thead>tr>th,
 :host ::ng-deep .p-datatable-thead>tr>th {
+    font-size: 13px !important;
     vertical-align: middle !important;
     padding: 10px 4px !important;
     line-height: 1.4 !important;
@@ -124,14 +133,15 @@ angular-slickgrid,
 
 :host ::ng-deep .p-treetable-tbody>tr>td,
 :host ::ng-deep .p-datatable-tbody>tr>td {
+    font-size: 13px !important;
     vertical-align: middle !important;
     padding: 10px 4px !important;
     line-height: 1.4 !important;
 }
 
 /* ==================== ISSUE 1: ROW COLORS (Evaluation Tabs) ==================== */
-/* Dòng cha trong tab KPI Kỹ năng / Chung / Chuyên môn
-   SlickGrid: getItemMetadata → cssClasses 'evaluation-parent-row' → #D3D3D3 */
+/* DÃ²ng cha trong tab KPI Ká»¹ nÄƒng / Chung / ChuyÃªn mÃ´n
+   SlickGrid: getItemMetadata â†’ cssClasses 'evaluation-parent-row' â†’ #D3D3D3 */
 ::ng-deep .evaluation-parent-row {
     background-color: #D3D3D3 !important;
     font-weight: bold;
@@ -158,18 +168,18 @@ angular-slickgrid,
 }
 
 /* ==================== ISSUE 1: CELL COLORS (Point input columns) ==================== */
-/* SlickGrid: customEditableInputFormatter → addClasses: 'editable-field' → #e6f7ff */
+/* SlickGrid: customEditableInputFormatter â†’ addClasses: 'editable-field' â†’ #e6f7ff */
 
-/* Cột điểm không active - vàng nhạt
+/* Cá»™t Ä‘iá»ƒm khÃ´ng active - vÃ ng nháº¡t
    SlickGrid: cell-point-highlight */
 ::ng-deep td.cell-point-highlight {
     background-color: #FFFFE0 !important;
-    /* Vàng nhạt - điểm nhưng không edit được */
+    /* VÃ ng nháº¡t - Ä‘iá»ƒm nhÆ°ng khÃ´ng edit Ä‘Æ°á»£c */
 }
 
 /* ==================== ISSUE 1: COLUMN GROUP CELL COLORS ==================== */
 /* Nhóm "Đánh giá của Nhân viên" */
-::ng-deep .col-group-nv {
+:host ::ng-deep .p-treetable-tbody>tr>td.col-group-nv {
     color: #0050b3 !important;
 }
 
@@ -179,7 +189,7 @@ angular-slickgrid,
 }
 
 /* Nhóm "Đánh giá của TBP/PBP" */
-::ng-deep .col-group-tbp {
+:host ::ng-deep .p-treetable-tbody>tr>td.col-group-tbp {
     color: #135200 !important;
 }
 
@@ -189,7 +199,7 @@ angular-slickgrid,
 }
 
 /* Nhóm "Đánh giá của BGĐ" */
-::ng-deep .col-group-bgd {
+:host ::ng-deep .p-treetable-tbody>tr>td.col-group-bgd {
     color: #ad6800 !important;
 }
 
@@ -199,15 +209,15 @@ angular-slickgrid,
 }
 
 /* ==================== ISSUE 2: ROW COLORS (Rule Tab) ==================== */
-/* Dòng cha hoặc NEWLINE trong Rule grid → xám (#D3D3D3)
-   SlickGrid: getBgColor → dataContext.__hasChildren → return '#D3D3D3' */
+/* DÃ²ng cha hoáº·c NEWLINE trong Rule grid â†’ xÃ¡m (#D3D3D3)
+   SlickGrid: getBgColor â†’ dataContext.__hasChildren â†’ return '#D3D3D3' */
 ::ng-deep .rule-parent-row {
     background-color: #D3D3D3 !important;
     font-weight: bold;
 }
 
 /* ==================== SCROLLING ==================== */
-/* Fix: p-treetable khi scrollable cần min-width trên table, không phải wrapper */
+/* Fix: p-treetable khi scrollable cáº§n min-width trÃªn table, khÃ´ng pháº£i wrapper */
 ::ng-deep .p-treetable .p-treetable-scrollable-wrapper {
     overflow-x: auto !important;
 }
@@ -217,14 +227,14 @@ angular-slickgrid,
 }
 
 /* ==================== ISSUE 3: COLUMN GROUP HEADER ROWS ==================== */
-/* Styling cho header group rows được render bởi headerGroups input */
+/* Styling cho header group rows Ä‘Æ°á»£c render bá»Ÿi headerGroups input */
 :host ::ng-deep .p-treetable-thead>tr:not(:last-child)>th {
     background-color: #f0f0f0;
     border-bottom: 2px solid #dee2e6;
     text-align: center;
     font-weight: bold;
     padding: 6px 4px !important;
-    font-size: 12px;
+    font-size: 13px !important;
 }
 
 /* Header group: empty cells (no group) */
@@ -314,7 +324,9 @@ angular-slickgrid,
     cursor: pointer;
 }
 
-:host ::ng-deep .slick-cell {
+:host ::ng-deep .slick-cell,
+:host ::ng-deep .slick-header-column {
+    font-size: 13px !important;
     padding: 4px 6px;
 }
 
@@ -409,20 +421,20 @@ nz-tabset {
     height: 40px !important;
 }
 
-/* Nhóm: Đánh giá của Nhân viên - Xanh dương nhạt */
-:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Đánh giá của Nhân viên"] {
+/* NhÃ³m: ÄÃ¡nh giÃ¡ cá»§a NhÃ¢n viÃªn - Xanh dÆ°Æ¡ng nháº¡t */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="ÄÃ¡nh giÃ¡ cá»§a NhÃ¢n viÃªn"] {
     background-color: #e6f7ff !important;
     color: #0050b3 !important;
 }
 
-/* Nhóm: Đánh giá của TBP/PBP - Xanh lá nhạt */
-:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Đánh giá của TBP/PBP"] {
+/* NhÃ³m: ÄÃ¡nh giÃ¡ cá»§a TBP/PBP - Xanh lÃ¡ nháº¡t */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="ÄÃ¡nh giÃ¡ cá»§a TBP/PBP"] {
     background-color: #f6ffed !important;
     color: #135200 !important;
 }
 
-/* Nhóm: Đánh giá của BGĐ - Cam nhạt */
-:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="Đánh giá của BGĐ"] {
+/* NhÃ³m: ÄÃ¡nh giÃ¡ cá»§a BGÄ - Cam nháº¡t */
+:host ::ng-deep .slick-preheader-panel .slick-header-column[data-group="ÄÃ¡nh giÃ¡ cá»§a BGÄ"] {
     background-color: #fff7e6 !important;
     color: #ad6800 !important;
 }
@@ -502,4 +514,33 @@ nz-tabset {
     .control-panel {
         flex-wrap: wrap;
     }
+}
+
+:host ::ng-deep .empty-placeholder {
+    color: #888;
+    /* MÃ u Ä‘áº­m hÆ¡n Ä‘á»ƒ dá»… nhÃ¬n */
+    font-weight: bold;
+    display: block;
+    width: 100%;
+    text-align: center;
+    opacity: 1;
+    /* Hiá»ƒn thá»‹ rÃµ nÃ©t */
+    pointer-events: none;
+    font-size: 12px;
+}
+
+:host ::ng-deep .zero-score-bg {
+    background-color: #ffe5e5 !important;
+}
+
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td.zero-score-bg {
+    background-color: #ffe5e5 !important;
+}
+
+:host ::ng-deep .zero-score-border {
+    border: 1px solid red !important;
+}
+
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td.zero-score-border {
+    border: 1px solid red !important;
 }

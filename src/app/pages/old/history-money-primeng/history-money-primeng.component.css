@@ -1,0 +1,169 @@
+.ant-splitter {
+    height: 70vh !important;
+}
+
+.grid-container {
+    height: 100%;
+    min-height: 0;
+    height: 87.5vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .grid-container p-table,
+:host ::ng-deep .grid-container .p-datatable {
+    height: 100% !important;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .hm-prime-table .p-datatable-wrapper {
+    flex: 1;
+    min-height: 0;
+}
+
+:host ::ng-deep .hm-prime-table table {
+    table-layout: fixed;
+}
+
+/* Pagination compact */
+:host ::ng-deep .hm-prime-table .p-paginator {
+    padding: 2px 4px;
+    font-size: 11px;
+    min-height: unset;
+    flex-shrink: 0;
+}
+
+:host ::ng-deep .hm-prime-table .p-paginator .p-paginator-element {
+    min-width: 24px;
+    height: 24px;
+    font-size: 11px;
+}
+
+:host ::ng-deep .hm-prime-table .p-paginator .p-select {
+    height: 24px;
+    font-size: 11px;
+}
+
+:host ::ng-deep .hm-prime-table .p-paginator .p-select .p-select-label {
+    padding: 2px 4px;
+    font-size: 11px;
+}
+
+:host ::ng-deep .hm-prime-table .p-datatable-thead>tr>th,
+:host ::ng-deep .hm-prime-table .p-datatable-tbody>tr>td {
+    font-size: 12px;
+    padding: 4px 6px;
+    vertical-align: middle;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+:host ::ng-deep .hm-prime-table .p-datatable-thead>tr>th {
+    background: #f5f7fb;
+    font-weight: 600;
+}
+
+.table-header-cell {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 4px;
+    min-height: 20px;
+    line-height: 1.25;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.cell-content {
+    display: block;
+    min-width: 0;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.35;
+}
+
+:host ::ng-deep .hm-prime-table .data-row {
+    cursor: pointer;
+}
+
+:host ::ng-deep .hm-prime-table .data-row:hover>td {
+    background: #f0f7ff;
+}
+
+:host ::ng-deep .hm-prime-table .selected-row>td {
+    background: #e6f4ff !important;
+}
+
+:host ::ng-deep nz-splitter,
+:host ::ng-deep .ant-splitter {
+    height: 100% !important;
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-splitter-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-splitter-panel .card {
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-splitter-panel .card-body {
+    min-height: 0;
+}
+
+.table-icon-btn {
+    width: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+}
+
+.table-cell-input {
+    width: 100%;
+    padding: 2px 4px;
+    font-size: 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 2px;
+    outline: none;
+}
+
+.table-cell-input:focus {
+    border-color: #1677ff;
+    box-shadow: 0 0 0 2px rgba(5, 145, 255, 0.1);
+}
+
+.table-checkbox {
+    cursor: pointer;
+}
+
+:host ::ng-deep .hm-prime-table .p-datatable-loading-overlay {
+    background: rgba(255, 255, 255, 0.7);
+    color: #1677ff;
+}
+
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-inputtext {
+    height: 3vh;
+    width: 100%;
+}

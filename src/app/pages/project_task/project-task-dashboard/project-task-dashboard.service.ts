@@ -59,7 +59,7 @@ export class ProjectTaskDashboardService {
         projectChartData: ChartData,
         typeStackedChartData: ChartData
     }> {
-        return this.projectTaskService.getProjectTasks(startDate, endDate, -1).pipe(
+        return this.projectTaskService.getProjectTasks(startDate, endDate, '-1', -1).pipe(
             map(res => {
                 const rawTasks = res.ProjectTask || [];
                 let tasks = this.uniqueById(rawTasks);

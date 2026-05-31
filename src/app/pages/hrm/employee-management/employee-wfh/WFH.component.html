@@ -64,14 +64,15 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
                             <nz-form-control>
-                                <nz-select name="selectedDepartmentFilter" nzShowSearch nzAllowClear
-                                    nzPlaceHolder="Chọn phòng ban" [(ngModel)]="selectedDepartmentFilter"
-                                    (ngModelChange)="onDepartmentFilterChange()" nzSize="small" class="w-100">
-                                    <nz-option *ngFor="let department of departmentList" [nzValue]="department.ID"
-                                        [nzLabel]="department.Name ?? ''" nzCustomContent="true">
-                                        {{ department.Code }} - {{ department.Name }}
-                                    </nz-option>
-                                </nz-select>
+                                <nz-tree-select name="selectedDepartmentFilter" class="w-100" [nzNodes]="departmentNodes"
+                                    nzDropdownClassName="type-select-dropdown" nzShowSearch nzAllowClear
+                                    nzDefaultExpandAll
+                                    nzPlaceHolder="Chọn phòng ban" nzSize="small"
+                                    [(ngModel)]="selectedDepartmentFilter"
+                                    (ngModelChange)="onDepartmentFilterChange()"
+                                    style="width: 100%; font-size: 12px;"
+                                    [nzDropdownStyle]="{ 'max-height': '250px', 'overflow': 'auto', 'font-size': '12px' }">
+                                </nz-tree-select>
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>

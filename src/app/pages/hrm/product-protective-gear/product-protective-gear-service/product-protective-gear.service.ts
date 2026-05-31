@@ -206,7 +206,9 @@ export class ProductProtectiveGearService {
   getBillExportByID(id: number) {
     return this.http.get<any>(this.urlBillExportTechnicalProtectiveGear + `billexport/${id}`);
   }
-
+  getBillCodeExport(billtype: number): Observable<any> {
+    return this.http.get<any>(this.urlBillExportTechnicalProtectiveGear + `get-bill-code?billtype=${billtype}`);
+  }
   // save bill export
   saveBillExport(data: any): Observable<any> {
     return this.http.post<any>(this.urlBillExportTechnicalProtectiveGear + `save-data`, data);
@@ -430,4 +432,4 @@ export class ProductProtectiveGearService {
       this.apiUrl + `historyproductrtcprotectivegear/save-update-status-product-rtc?id=${id}&status=${status}`,
     );
   }
-} 
+}

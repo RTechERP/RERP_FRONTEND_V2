@@ -1,0 +1,339 @@
+<!-- history-money-primeng.component.html -->
+<div *ngIf="activeModal" class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">LỊCH SỬ TIỀN VỀ
+    </h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-1">
+    <div class="d-flex align-items-center gap-2 mb-2">
+        <input nz-input placeholder="Số hóa đơn / PO ..." [(ngModel)]="filterText" (keyup.enter)="onSearch()"
+            style="flex: 1;" />
+        <button nz-button nzType="primary" nzSize="default" (click)="onSearch()">
+            <nz-icon nzType="search" nzTheme="outline"></nz-icon>
+        </button>
+        <div class="ms-auto d-flex gap-2">
+            <button *ngIf="activeModal" nz-button nzType="default" nzDanger="true" nzSize="default"
+                (click)="closeModal()">Đóng</button>
+            <button nz-button nzType="default" nzSize="default" (click)="exportExcel()" class="me-2">
+                <i class="fas fa-file-excel text-success me-1"></i> Xuất Excel
+            </button>
+            <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
+        </div>
+    </div>
+    <nz-splitter class="h-100">
+        <!-- Left Panel: Product Table (read-only) -->
+        <nz-splitter-panel>
+            <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                <div class="card-body p-0 flex-grow-1 grid-container" style="overflow: hidden;">
+                    <p-table [value]="dataProduct" dataKey="ID" selectionMode="single" [(selection)]="selectedProduct"
+                        (onRowSelect)="onProductRowSelect($event)" [scrollable]="true" scrollHeight="flex"
+                        styleClass="p-datatable-sm p-datatable-gridlines hm-prime-table" [resizableColumns]="true"
+                        columnResizeMode="expand" [paginator]="true" [rows]="15" [rowsPerPageOptions]="[15, 30, 50]">
+
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th pResizableColumn pSortableColumn="ProductNewCode"
+                                    style="min-width: 50px; width: 120px;">
+                                    <div class="table-header-cell">
+                                        <span>Mã sản phẩm</span>
+                                        <p-sortIcon field="ProductNewCode"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="ProductName"
+                                    style="min-width: 180px; width: 180px;">
+                                    <div class="table-header-cell">
+                                        <span>Tên sản phẩm</span>
+                                        <p-sortIcon field="ProductName"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="TotalPriceIncludeVAT"
+                                    style="min-width: 130px; width: 130px;">
+                                    <div class="table-header-cell">
+                                        <span>Tổng tiền</span>
+                                        <p-sortIcon field="TotalPriceIncludeVAT"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="TotalMoneyRemaining"
+                                    style="min-width: 130px; width: 130px;">
+                                    <div class="table-header-cell">
+                                        <span>Số tiền còn lại</span>
+                                        <p-sortIcon field="TotalMoneyRemaining"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="Qty" style="min-width: 70px; width: 70px;">
+                                    <div class="table-header-cell">
+                                        <span>Số lượng</span>
+                                        <p-sortIcon field="Qty"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="POCode" style="min-width: 150px; width: 150px;">
+                                    <div class="table-header-cell">
+                                        <span>PO</span>
+                                        <p-sortIcon field="POCode"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="BillNumber"
+                                    style="min-width: 130px; width: 130px;">
+                                    <div class="table-header-cell">
+                                        <span>Số hóa đơn</span>
+                                        <p-sortIcon field="BillNumber"></p-sortIcon>
+                                    </div>
+                                </th>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="body" let-rowData>
+                            <tr [pSelectableRow]="rowData" class="data-row"
+                                [ngClass]="{ 'selected-row': selectedProduct?.ID === rowData.ID }">
+                                <td>
+                                    <span class="cell-content">{{ rowData.ProductNewCode }}</span>
+                                </td>
+                                <td>
+                                    <span class="cell-content">{{ rowData.ProductName }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <span class="cell-content">{{ formatMoney(rowData.TotalPriceIncludeVAT) }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <span class="cell-content">{{ formatMoney(rowData.TotalMoneyRemaining) }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <span class="cell-content">{{ rowData.Qty }}</span>
+                                </td>
+                                <td>
+                                    <span class="cell-content">{{ rowData.POCode }}</span>
+                                </td>
+                                <td>
+                                    <span class="cell-content">{{ rowData.BillNumber }}</span>
+                                </td>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-3">
+                                    Không có dữ liệu
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </div>
+        </nz-splitter-panel>
+
+        <!-- Right Panel: Data Table (editable) -->
+        <nz-splitter-panel nzDefaultSize="50%">
+            <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                <div class="card-body p-0 flex-grow-1 grid-container" style="overflow: hidden;">
+                    <p-table [value]="mainData" dataKey="__rowKey" [scrollable]="true" scrollHeight="flex"
+                        styleClass="p-datatable-sm p-datatable-gridlines hm-prime-table" [resizableColumns]="true"
+                        columnResizeMode="expand" [paginator]="true" [rows]="15" [rowsPerPageOptions]="[15, 30, 50]"
+                        editMode="cell">
+
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th style="width: 40px; min-width: 40px;">
+                                    <div style="display: flex; justify-content: center; align-items: center; cursor: pointer;"
+                                        (click)="addNewRow()" title="Thêm dòng">
+                                        <i class="fas fa-plus text-danger"></i>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="MoneyDate"
+                                    style="min-width: 130px; width: 130px;">
+                                    <div class="table-header-cell">
+                                        <span>Ngày tiền về</span>
+                                        <p-sortIcon field="MoneyDate"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="Money" style="min-width: 130px; width: 130px;">
+                                    <div class="table-header-cell">
+                                        <span>Tiền về</span>
+                                        <p-sortIcon field="Money"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="Note" style="min-width: 130px; width: 130px;">
+                                    <div class="table-header-cell">
+                                        <span>Ghi chú</span>
+                                        <p-sortIcon field="Note"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="BankName" style="min-width: 200px; width: 200px;">
+                                    <div class="table-header-cell">
+                                        <span>Tên ngân hàng</span>
+                                        <p-sortIcon field="BankName"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="InvoiceNo"
+                                    style="min-width: 120px; width: 120px;">
+                                    <div class="table-header-cell">
+                                        <span>Số hóa đơn</span>
+                                        <p-sortIcon field="InvoiceNo"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="VAT" style="min-width: 70px; width: 70px;">
+                                    <div class="table-header-cell">
+                                        <span>VAT</span>
+                                        <p-sortIcon field="VAT"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="MoneyVAT" style="min-width: 130px; width: 130px;">
+                                    <div class="table-header-cell">
+                                        <span>Tiền trước VAT</span>
+                                        <p-sortIcon field="MoneyVAT"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="UserID" style="min-width: 150px; width: 150px;">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        Người phụ trách
+                                        <p-sortIcon field="UserID"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn style="min-width: 60px; width: 60px;">
+                                    <div class="table-header-cell">
+                                        <span>Film</span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="body" let-rowData let-rowIndex="rowIndex">
+                            <tr class="data-row">
+                                <!-- Delete button -->
+                                <td class="text-center">
+                                    <button *ngIf="!rowData.IsDeleted" pButton type="button" icon="pi pi-trash"
+                                        class="p-button-text p-button-danger p-button-sm table-icon-btn"
+                                        (click)="deleteDataRow(rowData); $event.stopPropagation()">
+                                    </button>
+                                </td>
+
+                                <!-- MoneyDate (editable) -->
+                                <td [pEditableColumn]="rowData" pEditableColumnField="MoneyDate" class="text-center">
+                                    <p-cellEditor>
+                                        <ng-template pTemplate="input">
+                                            <input type="date" class="table-cell-input"
+                                                [ngModel]="toDateInputValue(rowData.MoneyDate)"
+                                                [ngModelOptions]="{ standalone: true }"
+                                                (ngModelChange)="onMoneyDateChanged(rowData, $event)" />
+                                        </ng-template>
+                                        <ng-template pTemplate="output">{{ formatDateVi(rowData.MoneyDate)
+                                            }}</ng-template>
+                                    </p-cellEditor>
+                                </td>
+
+                                <!-- Money (editable) -->
+                                <td [pEditableColumn]="rowData" pEditableColumnField="Money" class="text-end">
+                                    <p-cellEditor>
+                                        <ng-template pTemplate="input">
+                                            <input type="number" pInputText class="table-cell-input text-end"
+                                                [(ngModel)]="rowData.Money" [ngModelOptions]="{ standalone: true }" />
+                                        </ng-template>
+                                        <ng-template pTemplate="output">{{ formatMoney(rowData.Money) }}</ng-template>
+                                    </p-cellEditor>
+                                </td>
+
+                                <!-- Note (editable) -->
+                                <td [pEditableColumn]="rowData" pEditableColumnField="Note">
+                                    <p-cellEditor>
+                                        <ng-template pTemplate="input">
+                                            <input pInputText class="table-cell-input" [(ngModel)]="rowData.Note"
+                                                [ngModelOptions]="{ standalone: true }" />
+                                        </ng-template>
+                                        <ng-template pTemplate="output">{{ rowData.Note }}</ng-template>
+                                    </p-cellEditor>
+                                </td>
+
+                                <!-- BankName (editable - dropdown) -->
+                                <td [pEditableColumn]="rowData" pEditableColumnField="BankName">
+                                    <p-cellEditor>
+                                        <ng-template pTemplate="input">
+                                            <p-select [options]="bankNameOptions" optionLabel="label"
+                                                optionValue="value" [filter]="true" [showClear]="true" appendTo="body"
+                                                styleClass="w-100" [(ngModel)]="rowData.BankName"
+                                                [ngModelOptions]="{ standalone: true }">
+                                            </p-select>
+                                        </ng-template>
+                                        <ng-template pTemplate="output">{{ rowData.BankName }}</ng-template>
+                                    </p-cellEditor>
+                                </td>
+
+                                <!-- InvoiceNo (editable) -->
+                                <td [pEditableColumn]="rowData" pEditableColumnField="InvoiceNo">
+                                    <p-cellEditor>
+                                        <ng-template pTemplate="input">
+                                            <input pInputText class="table-cell-input" [(ngModel)]="rowData.InvoiceNo"
+                                                [ngModelOptions]="{ standalone: true }" />
+                                        </ng-template>
+                                        <ng-template pTemplate="output">{{ rowData.InvoiceNo }}</ng-template>
+                                    </p-cellEditor>
+                                </td>
+
+                                <!-- VAT (editable) -->
+                                <td [pEditableColumn]="rowData" pEditableColumnField="VAT" class="text-end">
+                                    <p-cellEditor>
+                                        <ng-template pTemplate="input">
+                                            <input type="number" pInputText class="table-cell-input text-end"
+                                                [(ngModel)]="rowData.VAT" [ngModelOptions]="{ standalone: true }" />
+                                        </ng-template>
+                                        <ng-template pTemplate="output">{{ rowData.VAT }}%</ng-template>
+                                    </p-cellEditor>
+                                </td>
+
+                                <!-- MoneyVAT (editable) -->
+                                <td [pEditableColumn]="rowData" pEditableColumnField="MoneyVAT" class="text-end">
+                                    <p-cellEditor>
+                                        <ng-template pTemplate="input">
+                                            <input type="number" pInputText class="table-cell-input text-end"
+                                                [(ngModel)]="rowData.MoneyVAT"
+                                                [ngModelOptions]="{ standalone: true }" />
+                                        </ng-template>
+                                        <ng-template pTemplate="output">{{ formatMoney(rowData.MoneyVAT)
+                                            }}</ng-template>
+                                    </p-cellEditor>
+                                </td>
+
+                                <!-- UserID (editable - dropdown) -->
+                                <td [pEditableColumn]="rowData" pEditableColumnField="UserID">
+                                    <p-cellEditor>
+                                        <ng-template pTemplate="input">
+                                            <p-select [options]="salesEmployeeOptions" optionLabel="label"
+                                                optionValue="value" [filter]="true" [showClear]="true" appendTo="body"
+                                                styleClass="w-100" [(ngModel)]="rowData.UserID"
+                                                [ngModelOptions]="{ standalone: true }">
+                                            </p-select>
+                                        </ng-template>
+                                        <ng-template pTemplate="output">{{ getEmployeeName(rowData.UserID)
+                                            }}</ng-template>
+                                    </p-cellEditor>
+                                </td>
+
+                                <!-- IsFilm (checkbox) -->
+                                <td class="text-center">
+                                    <input type="checkbox" class="form-check-input table-checkbox"
+                                        [(ngModel)]="rowData.IsFilm" [ngModelOptions]="{ standalone: true }" />
+                                </td>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-3">
+                                    Không có dữ liệu
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
+
+    <!-- <div class="modal-footer py-1">
+        <button *ngIf="activeModal" nz-button nzType="default" nzDanger="true" nzSize="default"
+            (click)="closeModal()">Đóng</button>
+        <button nz-button nzType="default" nzSize="default" (click)="exportExcel()" class="me-2">
+            <i class="fas fa-file-excel text-success me-1"></i> Xuất Excel
+        </button>
+        <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
+    </div> -->
+</div>

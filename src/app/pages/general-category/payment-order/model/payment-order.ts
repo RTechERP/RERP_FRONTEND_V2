@@ -4,6 +4,8 @@ export class PaymentOrder {
 
     TypeOrder: number | null = null;
     PaymentOrderTypeID: number | null = null;
+    OrderType: string | null = null;
+    OrderTypeIDs: string | null = null;
 
     DateOrder: Date | null = null;
     EmployeeID: number | null = null;
@@ -115,12 +117,15 @@ export class PaymentOrder {
     ApprovedTBPID: number | null = null;
     ApprovedBGDID: number | null = 0;
     TaxCompanyID: number | null = null;
+    PaymentOrderTypeIDs: { PaymentOrderTypeID: number; IsDeleted: boolean }[] = []
     PaymentOrderPOs: any[] = []
     PaymentOrderBillNumbers: any[] = []
     PaymentOrderBillNumberss: string | null = ''
     PaymentOrderPOss: string | null = ''
     BankListID: number | null = 0;
     ContentBankTransferType: number | null = 0;
+    TransferType: number | null = null;
+    TransferTypeText: string | null = '';
 
     // ===== Optional: constructor map từ object =====
     constructor(init?: Partial<PaymentOrder>) {
@@ -191,6 +196,7 @@ export const PaymentOrderField = {
     TypeBankTransfer: { name: '', field: 'TypeBankTransfer', type: 'number' },
     ContentBankTransfer: { name: '', field: 'ContentBankTransfer', type: 'string' },
     AccountingNote: { name: '', field: 'AccountingNote', type: 'string' },
+    AccountingLeaderNote: { name: '', field: 'AccountingLeaderNote', type: 'string' },
     CreatedBy: { name: '', field: 'CreatedBy', type: 'string' },
     CreatedDate: { name: '', field: 'CreatedDate', type: 'string' },
     UpdatedBy: { name: '', field: 'UpdatedBy', type: 'string' },
@@ -258,6 +264,8 @@ export const PaymentOrderField = {
     ApprovedBGDID: { name: 'BGĐ duyệt', field: 'ApprovedBGDID', type: 'number' },
     TaxCompanyID: { name: 'Công ty', field: 'TaxCompanyID', type: 'number' },
     TaxCompanyName: { name: 'Công ty', field: 'TaxCompanyName', type: 'string' },
+    TransferType: { name: '', field: 'TransferType', type: 'number' },
+    TransferTypeText: { name: 'Loại chuyển khoản', field: 'TransferTypeText', type: 'string' },
 } as const
 
 

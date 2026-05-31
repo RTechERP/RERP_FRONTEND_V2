@@ -51,6 +51,9 @@ interface LiXi {
     rotation: number;
     icon: string;
 }
+import { HistoryBorrowSaleService } from '../../../pages/old/Sale/HistoryBorrowSale/history-borrow-sale-service/history-borrow-sale.service';
+import { ProjectTaskService } from '../../../pages/project_task/project-task/project-task.service';
+import { PollFormService } from '../../../pages/poll-form/poll-form.service';
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -79,7 +82,7 @@ interface LiXi {
 export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     private eventSource: EventSource | null = null;
     currentAppVersion: string = '';
-    userAppVersion: string = localStorage.getItem('currentAppVersion') || '0.0.0';
+    userAppVersion: string = localStorage.getItem('currentAppVersion') || '1.0.3';
     lixis: LiXi[] = [];
     showLixiRain: boolean = false;
     hasNewVersion: boolean = false;
@@ -173,6 +176,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         public notifService: NotificationService,
         private projectTaskService: ProjectTaskService,
         private projectTaskAttendanceService: ProjectTaskSumaryAttendanceService,
+        private pollFormService: PollFormService,
     ) { }
 
     get notifItems(): NotifyItem[] { return this.notifService.items; }
@@ -213,6 +217,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             this.loadNewsletters(),
             this.getPendingContractReview(),
             this.getProjectTaskAttendance(),
+            this.getPendingPollCount(),
         ]).subscribe({
             next: () => {
                 console.log('Tất cả API quan trọng đã load xong. Khởi tạo SSE và check version...');
@@ -226,6 +231,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             }
         });
 
+        // mở new tab
 
     }
     getQuantityApprove() {
@@ -412,6 +418,9 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 // }
                 this.menuWeekplans = menuWeekplans;
                 this.menuQickAcesss = this.menus.find((x) => x.key == 'M4');
+                let quickAccessChildren = this.menuPersons.find((x) => x.key == 'registercommon').children.find((x: any) => x.key === 'M11205');
+                this.menuQickAcesss.children.push(quickAccessChildren);
+
             }),
             catchError((err) => {
                 return of(null);
@@ -576,6 +585,23 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 );
                 return of(null);
             })
+    getPendingPollCount() {
+        return this.pollFormService.getPendingCount().pipe(
+            tap((res: any) => {
+                if (res?.status !== 1 || res?.data <= 0) return;
+                const count = res.data;
+                this.notifService.addItem({
+                    id: 12,
+                    time: new Date().toISOString(),
+                    title: ' Bình chọn',
+                    text: `Bạn có ${count} bình chọn chưa hoàn thành`,
+                    group: 'today',
+                    icon: 'form',
+                    route: 'poll-vote',
+                    queryParams: {}
+                });
+            }),
+            catchError(() => of(null))
         );
     }
 

@@ -1,12 +1,16 @@
-<p-menubar [model]="menuItems">
-  <ng-template pTemplate="start">
-    <div class="page-title ms-2 me-3">
-      <span nz-icon nzType="file-done" nzTheme="outline" class="me-2"></span>
-      Phê Duyệt Đánh Giá Hợp Đồng (HR)
-    </div>
-  </ng-template>
+<div class="ctr-page-container">
+  <!-- ===== Thanh menu ===== -->
+  <p-menubar [model]="menuItems" styleClass="border-0 mb-0 ctr-menubar">
+    <ng-template pTemplate="start">
+      <div class="page-title ms-2 me-3">
+        <span nz-icon nzType="file-done" nzTheme="outline" class="me-2"></span>
+        Phê Duyệt Đánh Giá Hợp Đồng (HR)
+      </div>
+    </ng-template>
+  </p-menubar>
 
-  <div class="filter-bar bg-light border-bottom p-2 w-100">
+  <!-- ===== Thanh tìm kiếm ===== -->
+  <div class="filter-bar bg-light border-bottom px-2 py-1">
     <form nz-form>
       <div class="filter-bar-inner">
         <div class="filter-right">
@@ -14,8 +18,8 @@
           <nz-form-item class="m-0 d-flex align-items-center gap-1 flex-shrink-0">
             <nz-form-label style="font-size: 12px; margin: 0; white-space: nowrap;">Từ ngày</nz-form-label>
             <nz-form-control>
-              <input type="date" [ngModel]="dateStart | date: 'yyyy-MM-dd'"
-                (ngModelChange)="onDateChange('dateStart', $event)" name="dateStart2" title="Từ ngày"
+              <input type="date" [(ngModel)]="dateStart" name="dateStart2" title="Từ ngày"
+                (change)="onSearch()"
                 style="width: 125px; font-size: 12px; height: 24px; border: 1px solid #d9d9d9; border-radius: 2px; padding: 0 8px;" />
             </nz-form-control>
           </nz-form-item>
@@ -24,8 +28,8 @@
           <nz-form-item class="m-0 d-flex align-items-center gap-1 flex-shrink-0">
             <nz-form-label style="font-size: 12px; margin: 0; white-space: nowrap;">Đến ngày</nz-form-label>
             <nz-form-control>
-              <input type="date" [ngModel]="dateEnd | date: 'yyyy-MM-dd'"
-                (ngModelChange)="onDateChange('dateEnd', $event)" name="dateEnd2" title="Đến ngày"
+              <input type="date" [(ngModel)]="dateEnd" name="dateEnd2" title="Đến ngày"
+                (change)="onSearch()"
                 style="width: 125px; font-size: 12px; height: 24px; border: 1px solid #d9d9d9; border-radius: 2px; padding: 0 8px;" />
             </nz-form-control>
           </nz-form-item>
@@ -44,12 +48,12 @@
             <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
               Tìm kiếm
             </button>
-            <button nz-button nzType="primary" nzSize="small" nz-dropdown [nzDropdownMenu]="searchMenu" nzTrigger="click"
-              nzPlacement="bottomRight" style="padding-left: 8px; padding-right: 8px">
+            <button nz-button nzType="primary" nzSize="small" nz-dropdown [nzDropdownMenu]="searchMenu"
+              nzTrigger="click" nzPlacement="bottomRight" style="padding-left: 8px; padding-right: 8px">
               <i nz-icon nzType="down"></i>
             </button>
             <nz-dropdown-menu #searchMenu="nzDropdownMenu">
-              <div class="p-3 advanced-filters-container" style="
+              <div class="p-3" style="
                 min-width: 300px;
                 background-color: #ffffff;
                 border: 1px solid #d9d9d9;
@@ -64,52 +68,45 @@
       </div>
     </form>
   </div>
-</p-menubar>
 
+  <!-- ===== Vùng bảng dữ liệu ===== -->
+  <div class="ctr-table-area">
+    <app-custom-table [data]="tableData" [textWrap]="true" [columns]="columns" [loading]="isLoading" dataKey="ID"
+      [scrollable]="true" scrollHeight="flex" [showGlobalFilter]="false" [paginator]="false" [rows]="20"
+      rowGroupMode="subheader" groupRowsBy="DepartmentName" [expandableRowGroups]="true"
+      [rowsPerPageOptions]="[20, 50, 100]" fontSize="12px" [clickSelectRow]="true"
+      (rowClick)="onRowClickToggleSelection($event)" selectionMode="multiple" [(selection)]="selectedRequests">
+      <ng-template #cellTemplate let-rowData let-col="col">
+        <!-- Trạng thái -->
+        <ng-container *ngIf="col.field === 'StatusName'">
+          <nz-tag [nzColor]="getStatusColor(rowData.Status)">{{rowData.StatusName}}</nz-tag>
+        </ng-container>
 
+        <!-- Thao tác -->
+        <ng-container *ngIf="col.field === '_action'">
+          <div class="d-flex gap-1 flex-wrap">
+            <!-- Xem / Chỉnh sửa -->
+            <button nz-button nzSize="small" nzType="primary" (click)="openDetail(rowData)" title="Xem chi tiết">
+              <span nz-icon nzType="eye"></span> Xem
+            </button>
 
-<div class="table-wrapper position-relative" style="width: 100%; border-top: 1px solid #ddd; background: #fff;"
-  [style.height]="selectedRow ? 'calc(100vh - 78px)' : 'calc(100vh - 55px)'">
-  <div *ngIf="isLoading" style="position: absolute; top:0; left:0; width:100%; height:100%;
-     background: rgba(255,255,255,0.4); z-index: 999; display: flex; align-items: center; justify-content: center;">
-    <nz-spin nzSimple></nz-spin>
+            <!-- Phiếu CBQL – chỉ HR -->
+            <button *ngIf="checkRole() === 'hr'" nz-button nzSize="small"
+              style="background:#6f42c1;border-color:#6f42c1;color:#fff" (click)="openDetailNew(rowData)"
+              title="Mở phiếu đánh giá CBQL">
+              <span nz-icon nzType="file-text"></span> CBQL
+            </button>
+
+            <!-- Xóa (chỉ HR và phiếu chưa qua bước NV xác nhận) -->
+            <button *ngIf="canDeleteRow(rowData)" nz-button nzSize="small" nzDanger (click)="onDelete(rowData)"
+              title="Xóa phiếu">
+              <span nz-icon nzType="delete"></span>
+            </button>
+          </div>
+        </ng-container>
+      </ng-template>
+    </app-custom-table>
   </div>
-
-  <app-custom-table [data]="tableData" [textWrap]="true" [columns]="columns" [loading]="isLoading" dataKey="ID"
-    [scrollable]="true" scrollHeight="flex" [showGlobalFilter]="false" [paginator]="false" [rows]="20"
-    rowGroupMode="subheader" groupRowsBy="DepartmentName" [expandableRowGroups]="true"
-    [rowsPerPageOptions]="[20, 50, 100]" fontSize="12px" [clickSelectRow]="true"
-    (rowClick)="onRowClickToggleSelection($event)" selectionMode="multiple" [(selection)]="selectedRequests">
-    <ng-template #cellTemplate let-rowData let-col="col">
-      <!-- Trạng thái -->
-      <ng-container *ngIf="col.field === 'StatusName'">
-        <nz-tag [nzColor]="getStatusColor(rowData.Status)">{{rowData.StatusName}}</nz-tag>
-      </ng-container>
-
-      <!-- Thao tác -->
-      <ng-container *ngIf="col.field === '_action'">
-        <div class="d-flex gap-1 flex-wrap">
-          <!-- Xem / Chỉnh sửa -->
-          <button nz-button nzSize="small" nzType="primary" (click)="openDetail(rowData)" title="Xem chi tiết">
-            <span nz-icon nzType="eye"></span> Xem
-          </button>
-
-          <!-- Phiếu CBQL – chỉ HR -->
-          <button *ngIf="checkRole() === 'hr'" nz-button nzSize="small"
-            style="background:#6f42c1;border-color:#6f42c1;color:#fff" (click)="openDetailNew(rowData)"
-            title="Mở phiếu đánh giá CBQL">
-            <span nz-icon nzType="file-text"></span> CBQL
-          </button>
-
-          <!-- Xóa (chỉ HR và phiếu chưa qua bước NV xác nhận) -->
-          <button *ngIf="canDeleteRow(rowData)" nz-button nzSize="small" nzDanger (click)="onDelete(rowData)"
-            title="Xóa phiếu">
-            <span nz-icon nzType="delete"></span>
-          </button>
-        </div>
-      </ng-container>
-    </ng-template>
-  </app-custom-table>
 </div>
 
 <ng-template #advancedFiltersTemplate>

@@ -1,0 +1,68 @@
+<div
+    class="card h-100 border-0 rounded-0 inventory-new-card inventory-new-h-100 inventory-new-border-0 inventory-new-rounded-0">
+    <div class="card-header bg-white p-1 inventory-new-card-header inventory-new-bg-white inventory-new-p-1">
+        <div class="d-flex gap-1 inventory-new-d-flex inventory-new-gap-1">
+            <button class="fs-12 btn inventory-new-fs-12 inventory-new-btn" nz-button nzType="default" nzSize="small"
+                (click)="exportExcel()">
+                <img class="btn-action-icon inventory-new-btn-action-icon" src="assets/icon/export_warehouse.png"
+                    alt="Xuất tồn kho" />
+                Xuất tồn kho
+            </button>
+
+            <div style="display: flex; width: 40%" class="ms-auto inventory-new-ms-auto">
+                <label nz-checkbox [(ngModel)]="searchParam.checkedAll" name="checkedAll"
+                    (nzCheckedChange)="getAllProductSale()">Tất cả</label>
+                <input type="text" nzSize="small" width="100px" [(ngModel)]="searchParam.Find" name="Find" nz-input
+                    class="fs-12 inventory-new-fs-12" style="font-style: italic; flex: 1" placeholder="Tìm kiếm"
+                    (keyup.enter)="getdataFind()" />
+                <button nz-button nzType="primary" nzSize="small" (click)="getdataFind()">
+                    <nz-icon nzType="search"></nz-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0 inventory-new-card-body inventory-new-p-0">
+        <nz-splitter>
+            <nz-splitter-panel>
+                <div class="position-relative" [class]="'grid-container-product-group-' + componentId"
+                    style="height: 100%">
+                    <div *ngIf="isLoadingProductGroup"
+                        class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 inventory-new-position-absolute inventory-new-top-0 inventory-new-start-0 inventory-new-w-100 inventory-new-h-100 inventory-new-d-flex inventory-new-align-items-center inventory-new-justify-content-center inventory-new-bg-white inventory-new-bg-opacity-75"
+                        style="z-index: 1000">
+                        <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+                    </div>
+                    <angular-slickgrid [gridId]="'grid-product-group-' + componentId"
+                        [columns]="columnDefinitionsProductGroup" [options]="gridOptionsProductGroup"
+                        [dataset]="datasetProductGroup" (onAngularGridCreated)="
+              angularGridReadyProductGroup($any($event).detail)
+            " (onSelectedRowsChanged)="
+              onRowSelectionChangedProductGroup(
+                $any($event).detail.eventData,
+                $any($event).detail.args
+              )
+            " (onCellDoubleClick)="
+              onRowDoubleClickProductGroup(
+                $any($event).detail.eventData,
+                $any($event).detail.args
+              )
+            ">
+                    </angular-slickgrid>
+                </div>
+            </nz-splitter-panel>
+            <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="80%">
+                <div [class]="'grid-container-inventory-' + componentId" style="height: 98%">
+                    <div *ngIf="isLoadingInventory"
+                        class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 inventory-new-position-absolute inventory-new-top-0 inventory-new-start-0 inventory-new-w-100 inventory-new-h-100 inventory-new-d-flex inventory-new-align-items-center inventory-new-justify-content-center inventory-new-bg-white inventory-new-bg-opacity-75"
+                        style="z-index: 1000">
+                        <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+                    </div>
+                    <angular-slickgrid [gridId]="'grid-inventory-' + componentId" [columns]="columnDefinitionsInventory"
+                        [options]="gridOptionsInventory" [dataset]="datasetInventory" (onAngularGridCreated)="
+              angularGridReadyInventory($any($event).detail)
+            ">
+                    </angular-slickgrid>
+                </div>
+            </nz-splitter-panel>
+        </nz-splitter>
+    </div>
+</div>

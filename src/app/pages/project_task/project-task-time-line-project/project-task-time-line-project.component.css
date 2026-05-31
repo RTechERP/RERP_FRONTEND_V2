@@ -280,6 +280,13 @@ thead .sticky-col {
     border-bottom: 2px solid #cbd5e1;
 }
 
+/* Rowspan cells (Công việc, Trạng thái) span both planned + actual rows,
+   so they must also have the same separator border as .row-actual */
+td.col-job[rowspan],
+td.col-status[rowspan] {
+    border-bottom: 2px solid #cbd5e1;
+}
+
 .cell-group-end {
     border-bottom: 2px solid #b4b4b4 !important;
 }

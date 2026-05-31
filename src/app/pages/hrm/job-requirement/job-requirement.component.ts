@@ -35,6 +35,7 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
@@ -56,6 +57,8 @@ import { DateTime } from 'luxon';
 
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { JobRequirementService } from './job-requirement-service/job-requirement.service';
+import { DepartmentServiceService } from '../department/department-service/department-service.service';
+import { EmployeeService } from '../employee/employee-service/employee.service';
 // import { HandoverFormComponent } from './handover-form/handover-form.component';
 import * as ExcelJS from 'exceljs';
 import { format, isValid, parseISO } from 'date-fns';
@@ -78,6 +81,7 @@ import { ProjectPartlistPriceRequestNewComponent } from '../../purchase/project-
 import { JobRequirementPurchaseRequestViewComponent } from './job-requirement-purchase-request-view/job-requirement-purchase-request-view.component';
 import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { JobRequirementSummaryComponent } from './job-requirement-summary/job-requirement-summary.component';
+import { JobRequirementLogComponent } from './job-requirement-log/job-requirement-log.component';
 import pdfMake from 'pdfmake/build/pdfmake';
 import vfs from '../../../shared/pdf/vfs_fonts_custom.js';
 import { environment } from '../../../../environments/environment';
@@ -116,6 +120,7 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
         NzAutocompleteModule,
         NzInputModule,
         NzSelectModule,
+        NzTreeSelectModule,
         NzTableModule,
         NzTabsModule,
         NzUploadModule,
@@ -177,6 +182,7 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
     DepartmentRequiredID: number = 0;
     data: any[] = [];
     dataDepartment: any[] = [];
+    departmentNodes: any[] = [];
     cbbEmployee: any[] = [];
 
     JobrequirementDetailData: any[] = [];
@@ -441,6 +447,8 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
     constructor(
         private notification: NzNotificationService,
         private JobRequirementService: JobRequirementService,
+        private departmentService: DepartmentServiceService,
+        private employeeService: EmployeeService,
         private modalService: NgbModal,
         private modal: NzModalService,
         private cdr: ChangeDetectorRef,
@@ -634,12 +642,33 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
     }
 
     getdataDepartment() {
-        this.JobRequirementService.getDataDepartment().subscribe((response: any) => {
+        this.departmentService.getDepartments().subscribe((response: any) => {
             this.dataDepartment = response.data || [];
+            this.departmentNodes = this.buildTreeNodes([...this.dataDepartment]);
         });
     }
+
+    private buildTreeNodes(data: any[]): any[] {
+        const tree: any[] = [];
+        const lookup: any = {};
+
+        data.forEach(item => {
+            lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+        });
+
+        data.forEach(item => {
+            if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+                lookup[item.ParentID].children.push(lookup[item.ID]);
+                lookup[item.ParentID].isLeaf = false;
+            } else {
+                tree.push(lookup[item.ID]);
+            }
+        });
+
+        return tree;
+    }
     getdataEmployee() {
-        this.JobRequirementService.getAllEmployee().subscribe((response: any) => {
+        this.employeeService.getAllEmployee().subscribe((response: any) => {
             this.cbbEmployee = response.data || [];
         });
     }
@@ -2410,6 +2439,21 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         ];
 
         this.gridOptions = {
+            contextMenu: {
+                commandItems: [
+                    {
+                        command: 'view-log',
+                        title: 'Lịch sử thay đổi',
+                        iconCssClass: 'fa-solid fa-history text-info',
+                        action: (e, args) => {
+                            const item = args.dataContext;
+                            if (item) {
+                                this.viewLogHistory(item);
+                            }
+                        }
+                    }
+                ]
+            },
             autoResize: {
                 container: '#jobRequirementGridContainer',
                 rightPadding: 0,
@@ -2694,5 +2738,15 @@ export class JobRequirementComponent implements OnInit, AfterViewInit {
         angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
         angularGrid.slickGrid.invalidate();
         angularGrid.slickGrid.render();
+    }
+
+    viewLogHistory(rowData: any): void {
+        const modalRef = this.modalService.open(JobRequirementLogComponent, {
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+        modalRef.componentInstance.JobRequirementID = rowData.ID;
     }
 }

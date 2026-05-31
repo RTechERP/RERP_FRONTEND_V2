@@ -1,0 +1,48 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-uppercase text-white">
+    {{ isEdit ? 'CẬP NHẬT CONFIG NOTIFICATION KEY' : 'THÊM MỚI CONFIG NOTIFICATION KEY' }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body fs-12">
+  <form nz-form [formGroup]="form" nzLayout="vertical">
+    <nz-form-item class="mb-2">
+      <nz-form-label [nzSpan]="24" class="p-0">
+        Mã Key <span class="text-danger ps-1">*</span>
+      </nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã key (Tối đa 200 ký tự)">
+        <input nz-input formControlName="KeyCode" placeholder="Nhập mã key" style="font-size: 12px;" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="mb-2">
+      <nz-form-label [nzSpan]="24" class="p-0">
+        Tên Key <span class="text-danger ps-1">*</span>
+      </nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên key (Tối đa 500 ký tự)">
+        <input nz-input formControlName="KeyName" placeholder="Nhập tên key" style="font-size: 12px;" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="mb-0">
+      <nz-form-label [nzSpan]="24" class="p-0">Nội dung</nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Tối đa 550 ký tự">
+        <textarea nz-input formControlName="KeyContent" placeholder="Nhập nội dung" rows="4"
+          style="font-size: 12px;"></textarea>
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</div>
+
+<div class="modal-footer fs-12 py-2">
+  <button nz-button nzType="default" nzDanger nzSize="small" (click)="onCancel()">
+    <i class="fa-solid fa-xmark me-1"></i> Đóng
+  </button>
+  <button nz-button nzType="primary" nzSize="small" [nzLoading]="loading" (click)="onSubmit(false)" *ngIf="!isEdit">
+    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
+  </button>
+  <button nz-button nzType="primary" nzSize="small" [nzLoading]="loading" (click)="onSubmit(true)">
+    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu và đóng
+  </button>
+</div>

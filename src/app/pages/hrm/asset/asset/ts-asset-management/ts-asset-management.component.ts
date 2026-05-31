@@ -35,7 +35,8 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { SelectModule } from 'primeng/select';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MenuItem } from 'primeng/api';
+import { ContextMenuModule } from 'primeng/contextmenu';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NzModalModule } from 'ng-zorro-antd/modal';
@@ -57,7 +58,6 @@ import { TsAssetProposeLiquidationFormComponent } from './ts-asset-propose-liqui
 import { TsAssetLiquidationComponent } from './ts-asset-liquidation/ts-asset-liquidation.component';
 import { TsAssetManagementImportExcelComponent } from './ts-asset-management-import-excel/ts-asset-management-import-excel.component';
 import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
-
 @Component({
     standalone: true,
     imports: [
@@ -94,7 +94,8 @@ import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-manag
         MultiSelectModule,
         CheckboxModule,
         ConfirmDialogModule,
-        SelectModule
+        SelectModule,
+        ContextMenuModule
     ],
     providers: [ConfirmationService],
     selector: 'app-ts-asset-management',
@@ -111,6 +112,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
 
     public detailTabTitle: string = 'Thông tin cấp phát biên bản:';
     selectedRows: any[] = [];
+    selectedContextRow: any;
+    contextMenuItems: MenuItem[] = [];
 
     // Status Color Map for PrimeNG Badges
     statusColorMap: { [key: number]: string } = {
@@ -164,7 +167,42 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     ngOnInit() {
         this.initializeDates();
         this.initMenuBar();
+        this.initContextMenu();
         this.getAssetmanagement();
+    }
+
+    initContextMenu() {
+        this.contextMenuItems = [
+            {
+                label: 'Xem lịch sử thay đổi',
+                icon: 'fa-solid fa-clock-rotate-left text-primary',
+                command: () => this.openAssetLogModal(this.selectedContextRow)
+            }
+        ];
+    }
+
+    openAssetLogModal(row: any) {
+        if (!row || !row.ID) {
+            this.notification.warning('Thông báo', 'Dữ liệu tài sản không hợp lệ!');
+            return;
+        }
+        import('./asset-log/asset-log.component').then((m) => {
+            const modalRef = this.modal.create({
+                nzTitle: 'Lịch sử thay đổi mã tài sản ' + (row.TSCodeNCC || ''),
+                nzContent: m.AssetLogComponent,
+                nzWidth: '1000px',
+                nzFooter: null,
+                nzStyle: { top: '20px' },
+                nzBodyStyle: {
+                    height: 'calc(100vh - 100px)',
+                    overflowY: 'auto',
+                    padding: '0 !important',
+                },
+            });
+            if (modalRef.componentInstance) {
+                modalRef.componentInstance.assetID = row.ID;
+            }
+        });
     }
 
     /** Helper function to format date to yyyy-MM-dd for HTML date input */
@@ -536,9 +574,6 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             },
         });
     }
-
-   
-
     onAddAsset() {
         const initialData = {
             ID: 0,
@@ -846,7 +881,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             { header: 'Mô tả chi tiết', key: 'SpecificationsAsset', width: 30, field: 'SpecificationsAsset' },
             { header: 'Đơn vị', key: 'UnitName', width: 10, field: 'UnitName' },
             { header: 'Mã phòng ban', key: 'DepartmentCode', width: 15, field: 'DepartmentCode' },
-            { header: 'Phòng ban', key: 'DepartmentName', width: 20, field: 'DepartmentName' },
+            { header: 'Phòng ban', key: 'Name', width: 20, field: 'Name' },
             { header: 'Mã nhân viên', key: 'EmployeeCode', width: 15, field: 'EmployeeCode' },
             { header: 'Người quản lý', key: 'FullName', width: 20, field: 'FullName' },
             { header: 'Thời gian mua', key: 'DateBuy', width: 15, field: 'DateBuy' },

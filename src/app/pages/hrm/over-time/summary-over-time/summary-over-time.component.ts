@@ -7,6 +7,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -51,6 +52,7 @@ import { ProjectService } from '../../../project/project-service/project.service
     NzDatePickerModule,
     NzTabsModule,
     NzSpinModule,
+    NzTreeSelectModule,
     NgIf
   ]
 })
@@ -59,6 +61,7 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit {
   tabulator!: Tabulator;
   searchForm!: FormGroup;
   departmentList: any[] = [];
+  departmentNodes: any[] = [];
   employeeList: any[] = [];
   isLoading = false;
   dayOfWeekList: any[] = [];
@@ -117,12 +120,32 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit {
     this.departmentService.getDepartments().subscribe({
       next: (data: any) => {
         this.departmentList = data.data;
-        console.log(this.departmentList);
+        this.departmentNodes = this.buildTreeNodes(this.departmentList);
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
       }
     });
+  }
+
+  buildTreeNodes(data: any[], parentId: number | null = null): any[] {
+    const nodes: any[] = [];
+    const children = data.filter(item => (item.ParentID === parentId) || (parentId === null && !item.ParentID));
+    for (const child of children) {
+      const node: any = {
+        title: child.Name,
+        value: child.ID,
+        key: child.ID,
+        isLeaf: true
+      };
+      const childNodes = this.buildTreeNodes(data, child.ID);
+      if (childNodes.length > 0) {
+        node.children = childNodes;
+        node.isLeaf = false;
+      }
+      nodes.push(node);
+    }
+    return nodes;
   }
 
   loadEmployees() {

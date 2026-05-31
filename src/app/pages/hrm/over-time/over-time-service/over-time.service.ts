@@ -18,9 +18,11 @@ export class OverTimeService {
   }
 
   saveEmployeeOverTime(employeeOverTime: any): Observable<any> {
+    const offset = -new Date().getTimezoneOffset();
     return this.http.post<any>(
       this._url + 'EmployeeOverTime/save-data',
-      employeeOverTime
+      employeeOverTime,
+      { headers: { 'TimeZoneOffset': offset.toString() } }
     );
   }
 
@@ -32,9 +34,11 @@ export class OverTimeService {
   }
 
   saveDataEmployee(dto: any): Observable<any> {
+    const offset = -new Date().getTimezoneOffset();
     return this.http.post<any>(
       this._url + 'EmployeeOverTime/save-data-employee',
-      dto
+      dto,
+      { headers: { 'TimeZoneOffset': offset.toString() } }
     );
   }
 

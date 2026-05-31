@@ -120,6 +120,9 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
     @Input() warehouseId: number = 0;
 
+    // Unique instance ID to avoid gridId conflicts when multiple tabs are open
+    uniqueId = `ri_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+
     // SlickGrid properties for Main table
     angularGridMain!: AngularGridInstance;
     columnDefinitionsMain: Column[] = [];
@@ -144,6 +147,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     gridOptionsPOFile: GridOption = {};
     datasetPOFile: any[] = [];
 
+    // SlickGrid properties for Contract File table
+    angularGridContractFile!: AngularGridInstance;
+    columnDefinitionsContractFile: Column[] = [];
+    gridOptionsContractFile: GridOption = {};
+    datasetContractFile: any[] = [];
+
     constructor(
         private modalService: NgbModal,
         private RequestInvoiceSlickgridService: RequestInvoiceSlickgridService,
@@ -162,10 +171,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     data: any[] = [];
     dataDetail: any[] = [];
     dataFile: any[] = [];
+    contractFiles: any[] = [];
     POFiles: any[] = [];
     selectedId: number = 0;
     selectedRow: any = null;
     selectedFile: any = null;
+    selectedContractFile: any = null;
     selectedPOFile: any = null;
     statusData: any[] = [];
 
@@ -176,12 +187,14 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     };
 
     isPOFileGridRendered: boolean = false;
+    isContractFileGridRendered: boolean = false;
 
     // Loading states for grids
     isLoadingMain: boolean = false;
     isLoadingDetail: boolean = false;
     isLoadingFile: boolean = false;
     isLoadingPOFile: boolean = false;
+    isLoadingContractFile: boolean = false;
 
     menuBars: any[] = [];
 
@@ -247,8 +260,14 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     }
 
     onFilesTabChange(tabIndex: number): void {
-        // Lazy render POFile grid only when user opens the tab (avoid '#gridPOFile does not exist' on initial load)
-        if (tabIndex === 1 && !this.isPOFileGridRendered) {
+        // Lazy render Contract File grid only when user opens the tab
+        if (tabIndex === 1 && !this.isContractFileGridRendered) {
+            setTimeout(() => {
+                this.isContractFileGridRendered = true;
+            }, 0);
+        }
+        // Lazy render POFile grid only when user opens the tab
+        if (tabIndex === 2 && !this.isPOFileGridRendered) {
             setTimeout(() => {
                 this.isPOFileGridRendered = true;
             }, 0);
@@ -260,7 +279,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 this.angularGridFile.resizerService.resizeGrid();
                 this.angularGridFile.slickGrid?.invalidate();
             }
-            if (tabIndex === 1 && this.angularGridPOFile?.resizerService) {
+            if (tabIndex === 1 && this.angularGridContractFile?.resizerService) {
+                this.angularGridContractFile.resizerService.resizeGrid();
+                this.angularGridContractFile.slickGrid?.invalidate();
+                this.angularGridContractFile.slickGrid?.render();
+            }
+            if (tabIndex === 2 && this.angularGridPOFile?.resizerService) {
                 this.angularGridPOFile.resizerService.resizeGrid();
                 this.angularGridPOFile.slickGrid?.invalidate();
                 this.angularGridPOFile.slickGrid?.render();
@@ -287,6 +311,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         this.initGridMain();
         this.initGridDetail();
         this.initGridFile();
+        this.initGridContractFile();
         this.initGridPOFile();
 
         this.loadStatusData();
@@ -400,6 +425,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             { id: 'CustomerName', name: 'Khách hàng', field: 'CustomerName', width: 250, minWidth: 250, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Address', name: 'Địa chỉ', field: 'Address', width: 300, minWidth: 300, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Name', name: 'Công ty bán', field: 'Name', width: 140, minWidth: 140, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
+            { id: 'TypeName', name: 'Loại hợp đồng', field: 'TypeName', width: 300, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['multipleSelect'], collection: [], collectionOptions: { addBlankEntry: true }, filterOptions: { autoAdjustDropHeight: true, filter: true, } as any, } },
             { id: 'AmendReason', name: 'Lý do yêu cầu bổ sung', field: 'AmendReason', width: 215, minWidth: 215, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'Note', name: 'Ghi chú', field: 'Note', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
         ];
@@ -557,6 +583,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
         this.gridOptionsFile = {
             enableAutoResize: true,
+            forceFitColumns: true,
             autoResize: {
                 container: '.grid-container-file',
                 calculateAvailableSizeBy: 'container',
@@ -630,6 +657,93 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         }
     }
 
+    // Initialize Contract File Table
+    initGridContractFile(): void {
+        this.columnDefinitionsContractFile = [
+            { id: 'FileName', name: 'Tên file', field: 'FileName', width: 300, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
+        ];
+
+        this.gridOptionsContractFile = {
+            enableAutoResize: true,
+            forceFitColumns: true,
+            autoResize: {
+                container: '.grid-container-contractfile',
+                calculateAvailableSizeBy: 'container',
+                resizeDetection: 'container',
+            },
+            gridWidth: '100%',
+            enableCellNavigation: true,
+            enableFiltering: false,
+            enableRowSelection: true,
+            rowSelectionOptions: {
+                selectActiveRow: true
+            },
+            enableCheckboxSelector: false,
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: this.getContractFileContextMenuOptions(),
+                onCommand: (e, args) => this.handleContractFileContextMenuCommand(e, args),
+            },
+        };
+    }
+
+    angularGridReadyContractFile(angularGrid: AngularGridInstance): void {
+        this.angularGridContractFile = angularGrid;
+        setTimeout(() => {
+            if (this.angularGridContractFile?.resizerService) {
+                this.angularGridContractFile.resizerService.resizeGrid();
+            }
+        }, 150);
+    }
+
+    private getContractFileContextMenuOptions(): MenuCommandItem[] {
+        return [
+            {
+                iconCssClass: 'fa fa-eye',
+                title: 'Xem file',
+                command: 'view',
+                positionOrder: 60,
+            },
+            {
+                iconCssClass: 'fa fa-download',
+                title: 'Tải xuống',
+                command: 'download',
+                positionOrder: 61,
+            }
+        ];
+    }
+
+    handleContractFileContextMenuCommand(e: any, args: MenuCommandItemCallbackArgs): void {
+        const command = args.command;
+        const dataContext = args.dataContext;
+
+        switch (command) {
+            case 'view':
+                this.selectedContractFile = dataContext;
+                this.viewFile(dataContext);
+                break;
+            case 'download':
+                this.selectedContractFile = dataContext;
+                this.downloadFile(dataContext);
+                break;
+        }
+    }
+
+    onContractFileRowClick(e: any, args: any): void {
+        const item = args?.grid?.getDataItem(args?.row);
+        if (item) {
+            this.selectedContractFile = item;
+        }
+    }
+
+    onContractFileRowDblClick(e: any, args: any): void {
+        const item = args?.dataContext;
+        if (item) {
+            this.selectedContractFile = item;
+            this.downloadFile(item);
+        }
+    }
+
     // Initialize POFile Table
     initGridPOFile(): void {
         this.columnDefinitionsPOFile = [
@@ -638,6 +752,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
 
         this.gridOptionsPOFile = {
             enableAutoResize: true,
+            forceFitColumns: true,
             autoResize: {
                 container: '.grid-container-pofile',
                 calculateAvailableSizeBy: 'container',
@@ -736,7 +851,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                     }));
                     // Apply distinct filters after data is loaded
                     setTimeout(() => {
-                        this.applyDistinctFiltersToGrid(this.angularGridMain, this.columnDefinitionsMain, ['Name', 'StatusText'], this.datasetMain);
+                        this.applyDistinctFiltersToGrid(this.angularGridMain, this.columnDefinitionsMain, ['Name', 'StatusText', 'TypeName'], this.datasetMain);
                     }, 500);
                     this.isLoadingMain = false;
                 } else {
@@ -811,6 +926,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
     loadDetailData(id: number): void {
         this.isLoadingDetail = true;
         this.isLoadingFile = true;
+        this.isLoadingContractFile = true;
+        this.contractFiles = [];
+        this.datasetContractFile = [];
+        if (this.angularGridContractFile && this.angularGridContractFile.dataView) {
+            this.angularGridContractFile.dataView.setItems([]);
+        }
         this.POFiles = [];
         this.datasetPOFile = [];
         if (this.angularGridPOFile && this.angularGridPOFile.dataView) {
@@ -821,8 +942,12 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             next: (response) => {
                 if (response.status === 1) {
                     this.dataDetail = response.data;
-                    this.dataFile = response.files;
+                    const allFiles = response.files || [];
+                    // Filter: FileType === 1 or no FileType = invoice files, FileType === 2 = contract files
+                    this.dataFile = allFiles.filter((f: any) => f.FileType === 1 || !f.FileType);
+                    this.contractFiles = allFiles.filter((f: any) => f.FileType === 2);
                     this.selectedFile = null;
+                    this.selectedContractFile = null;
 
                     this.datasetDetail = this.dataDetail.map((item: any, index: number) => ({
                         ...item,
@@ -835,12 +960,25 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                         id: item.ID || `file_${index}`
                     }));
 
+                    this.datasetContractFile = this.contractFiles.map((item: any, index: number) => ({
+                        ...item,
+                        id: item.ID || `cfile_${index}`
+                    }));
+
+                    // Update Contract File grid if already rendered
+                    if (this.angularGridContractFile && this.angularGridContractFile.dataView) {
+                        this.angularGridContractFile.dataView.setItems(this.datasetContractFile);
+                        this.angularGridContractFile.slickGrid?.invalidate();
+                        this.angularGridContractFile.slickGrid?.render();
+                    }
+
                     setTimeout(() => {
                         this.applyDistinctFiltersToGrid(this.angularGridDetail, this.columnDefinitionsDetail, ['Unit', 'CompanyText'], this.datasetDetail);
                         this.updateFooterRow();
                     }, 500);
                     this.isLoadingDetail = false;
                     this.isLoadingFile = false;
+                    this.isLoadingContractFile = false;
 
                     // Auto select first row and load POFile
                     if (this.dataDetail.length > 0) {
@@ -852,6 +990,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 } else {
                     this.isLoadingDetail = false;
                     this.isLoadingFile = false;
+                    this.isLoadingContractFile = false;
                     this.notification.create(
                         NOTIFICATION_TYPE_MAP[response.status] || 'error',
                         NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
@@ -865,6 +1004,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             error: (err: any) => {
                 this.isLoadingDetail = false;
                 this.isLoadingFile = false;
+                this.isLoadingContractFile = false;
                 this.notification.create(
                     NOTIFICATION_TYPE_MAP[err.status] || 'error',
                     NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
@@ -1235,6 +1375,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             { header: 'Khách hàng', key: 'CustomerName', width: 30 },
             { header: 'Địa chỉ', key: 'Address', width: 30 },
             { header: 'Công ty bán', key: 'Name', width: 20 },
+            { header: 'Loại hợp đồng', key: 'TypeName', width: 20 },
             { header: 'Lý do yêu cầu bổ sung', key: 'AmendReason', width: 30 },
             { header: 'Ghi chú', key: 'Note', width: 30 },
         ];
@@ -1254,6 +1395,7 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 CustomerName: row.CustomerName || '',
                 Address: row.Address || '',
                 Name: row.Name || '',
+                TypeName: row.TypeName || '',
                 AmendReason: row.AmendReason || '',
                 Note: row.Note || '',
             });

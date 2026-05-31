@@ -39,6 +39,22 @@ import { environment } from '../../../../../environments/environment';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
 
 import { IProjectTask, IProjectTaskChecklist, IProjectTaskAdditional, IProjectSubtask, IProjectTaskGroup, IProjectTaskAttachment, IProject } from '../../../../models/kanban.interface';
+
+interface IProjectTaskWork {
+    ID: number;
+    ProjectTaskID?: number;
+    Date?: string;
+    Location?: string;
+    EstimatedTime?: number;
+    IsWork?: boolean;
+    IsDeleted?: boolean;
+    CreatedDate?: string;
+    UpdatedDate?: string;
+    _locationSelect?: string;
+    _customLocation?: string;
+    _isNew?: boolean;
+    _selected?: boolean;
+}
 import { AddRelatedPeopleComponent } from '../add-related-people/add-related-people.component';
 
 @Component({
@@ -95,13 +111,39 @@ export class TaskDetailComponent implements OnInit {
 
     // Task Status
     taskStatus: number = 0;
-    statusList = [
-        { value: 0, label: 'Chưa làm', color: '#8c8c8c', icon: 'minus-circle' },
-        { value: 1, label: 'Đang làm', color: '#1890ff', icon: 'sync' },
-        { value: 2, label: 'Hoàn thành', color: '#52c41a', icon: 'check-circle' },
-        { value: 3, label: 'Pending', color: '#faad14', icon: 'clock-circle' },
-        { value: 4, label: 'Hủy', color: '#ff4d4f', icon: 'close-circle' }
+    statusList: { value: number; label: string; color: string; colorFont: string; icon: string }[] = [
+        { value: 0, label: 'Chưa làm', color: '#f5f5f5', colorFont: '#8c8c8c', icon: 'minus-circle' },
+        { value: 1, label: 'Đang làm', color: '#e6f7ff', colorFont: '#1890ff', icon: 'sync' },
+        { value: 2, label: 'Hoàn thành', color: '#f6ffed', colorFont: '#52c41a', icon: 'check-circle' },
+        { value: 3, label: 'Pending', color: '#fffbe6', colorFont: '#faad14', icon: 'clock-circle' },
+        { value: 4, label: 'Hủy', color: '#fff1f0', colorFont: '#ff4d4f', icon: 'close-circle' }
     ];
+
+    private readonly statusIconMap: Record<number, string> = {
+        0: 'minus-circle',
+        1: 'sync',
+        2: 'check-circle',
+        3: 'clock-circle',
+        4: 'close-circle'
+    };
+
+    loadTaskStatuses(): void {
+        this.projectTaskService.getProjectTaskStatuses().subscribe({
+            next: (statuses) => {
+                if (!statuses || statuses.length === 0) return;
+                const type1 = statuses.filter((s: any) => s.Type === 1);
+                type1.sort((a: any, b: any) => a.No - b.No);
+                this.statusList = type1.map((s: any) => ({
+                    value: s.No,
+                    label: s.Title,
+                    color: (s.ColorBackground || '#f1f5f9').trim(),
+                    colorFont: (s.ColorFont || '#475569').trim(),
+                    icon: this.statusIconMap[s.No] || 'question-circle'
+                }));
+            },
+            error: (err) => console.error('[TaskDetail] Error loading statuses:', err)
+        });
+    }
 
     priority: number = 1;
     priorityList = [
@@ -148,6 +190,56 @@ export class TaskDetailComponent implements OnInit {
     endTime?: Date;
     planStartDate?: Date;
     planEndDate?: Date;
+
+    taskWorkList: IProjectTaskWork[] = [];
+    dayOffList: string[] = [];
+    isLoadingTaskWork: boolean = false;
+    taskWorkLoaded: boolean = false;
+    hasCheckedTaskWork: boolean = false;
+    isAllTaskWorkSelected: boolean = false;
+    baseLocationOptions = [
+        { value: 'VP RTC', label: 'VP RTC' },
+        { value: 'Đan Phượng', label: 'Đan Phượng' }
+    ];
+    locationOptions = [
+        ...this.baseLocationOptions,
+        { value: 'Khác', label: 'Khác' }
+    ];
+
+    updateLocationOptions(): void {
+        const customLocs = new Set<string>();
+
+        const addTaskLoc = (val?: string) => {
+            const t = (val || '').trim();
+            if (t && t !== 'Khác' && !this.baseLocationOptions.some(b => b.value === t)) {
+                customLocs.add(t);
+            }
+        };
+
+        if (this.taskLocationSelect === 'Khác') {
+            addTaskLoc(this.taskCustomLocation);
+        } else {
+            addTaskLoc(this.taskLocationSelect);
+        }
+
+        this.taskWorkList.forEach(row => {
+            if (row._locationSelect === 'Khác') {
+                addTaskLoc(row._customLocation);
+            } else {
+                addTaskLoc(row._locationSelect);
+            }
+        });
+
+        this.locationOptions = [
+            ...this.baseLocationOptions,
+            ...Array.from(customLocs).map(loc => ({ value: loc, label: loc })),
+            { value: 'Khác', label: 'Khác' }
+        ];
+    }
+
+    get showTaskWorkTab(): boolean {
+        return !!this.planStartDate && !!this.planEndDate;
+    }
     deadline?: Date;
     selectedTabIndex: number = 0;
 
@@ -180,6 +272,21 @@ export class TaskDetailComponent implements OnInit {
         if (!val) return undefined;
         const d = new Date(val + 'T00:00:00');
         return isNaN(d.getTime()) ? undefined : d;
+    }
+
+    // Task Location UI variables
+    taskLocationSelect: string = 'VP RTC';
+    taskCustomLocation?: string;
+
+    onTaskLocationChange(): void {
+        if (this.taskLocationSelect !== 'Khác') {
+            this.taskCustomLocation = undefined;
+        }
+        this.updateLocationOptions();
+    }
+
+    onTaskCustomLocationChange(): void {
+        this.updateLocationOptions();
     }
 
     validateDates(): void {
@@ -226,6 +333,7 @@ export class TaskDetailComponent implements OnInit {
         this.planStartDate = d;
         this.validateDates();
         this.updateEstimatedTime();
+        this.onPlanDateChanged();
     }
 
     get planEndDateStr(): string {
@@ -244,6 +352,7 @@ export class TaskDetailComponent implements OnInit {
 
         this.validateDates();
         this.updateEstimatedTime();
+        this.onPlanDateChanged();
     }
 
     get startDateStr(): string {
@@ -253,6 +362,17 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.startDate = d;
         this.validateDates();
+        // Auto-switch to In Progress (No=1) when actual start date is set
+        // Only if current status is "Not Started" (No=0)
+        if (d && this.taskStatus === 0) {
+            this.taskStatus = 1;
+            this.previousStatus = 1;
+        }
+        // If start date is cleared, revert to Not Started if still In Progress
+        if (!d && this.taskStatus === 1 && !this.endDate) {
+            this.taskStatus = 0;
+            this.previousStatus = 0;
+        }
     }
 
     get endDateStr(): string {
@@ -262,6 +382,17 @@ export class TaskDetailComponent implements OnInit {
         const d = this.parseInputDate(val);
         this.endDate = d;
         this.validateDates();
+        // Auto-switch to Done (No=2) when actual end date is set
+        // Only if current status is Not Started (0) or In Progress (1)
+        if (d && (this.taskStatus === 0 || this.taskStatus === 1)) {
+            this.taskStatus = 2;
+            this.previousStatus = 2;
+        }
+        // If end date is cleared, revert to In Progress if startDate still exists
+        if (!d && this.taskStatus === 2) {
+            this.taskStatus = this.startDate ? 1 : 0;
+            this.previousStatus = this.taskStatus;
+        }
     }
 
     get deadlineStr(): string {
@@ -628,12 +759,37 @@ export class TaskDetailComponent implements OnInit {
         // Với Bug: 0: main, 1: solution, 2: childTasks, 3: checklist, 4: attachments, 5: history, 6: additional
         // Không Bug: 0: main, 1: childTasks, 2: checklist, 3: attachments, 4: history, 5: additional
         const isBug = this.selectedTaskTypeId === 2;
+        const hasWorkTab = this.showTaskWorkTab;
         
-        const map: Record<number, string> = isBug
+        const baseMap: Record<number, string> = isBug
             ? { 2: 'childTasks', 3: 'checklist', 4: 'attachments', 5: 'history', 6: 'additional' }
             : { 1: 'childTasks', 2: 'checklist', 3: 'attachments', 4: 'history', 5: 'additional' };
 
-        return map[index] ?? null;
+        if (hasWorkTab) {
+            const additionalIndex = isBug ? 6 : 5;
+            baseMap[additionalIndex + 1] = 'taskWork';
+        }
+
+        return baseMap[index] ?? null;
+    }
+
+    private _getTabIndexByKey(key: string): number {
+        const isBug = this.selectedTaskTypeId === 2;
+        const baseMap: Record<number, string> = isBug
+            ? { 2: 'childTasks', 3: 'checklist', 4: 'attachments', 5: 'history', 6: 'additional' }
+            : { 1: 'childTasks', 2: 'checklist', 3: 'attachments', 4: 'history', 5: 'additional' };
+
+        if (this.showTaskWorkTab) {
+            const additionalIndex = isBug ? 6 : 5;
+            baseMap[additionalIndex + 1] = 'taskWork';
+        }
+
+        for (const indexStr in baseMap) {
+            if (baseMap[indexStr] === key) {
+                return parseInt(indexStr, 10);
+            }
+        }
+        return -1;
     }
 
     /**
@@ -641,7 +797,16 @@ export class TaskDetailComponent implements OnInit {
      */
     onTabChange(index: number): void {
         this.activeMainTabIndex = index;
-        if (!this.isUpdateMode) return; // CREATE / COPY mode: nothing to lazy-load
+
+        // Xử lý riêng cho taskWork: có thể load trong cả CREATE và UPDATE mode
+        const keyForTaskWork = this._getTabKey(index);
+        if (keyForTaskWork === 'taskWork') {
+            this.hasCheckedTaskWork = true;
+            this.loadTaskWork();
+            return;
+        }
+
+        if (!this.isUpdateMode) return; // CREATE / COPY mode: nothing to lazy-load for other tabs
 
         const key = this._getTabKey(index);
         if (!key || this._loadedTabs.has(key)) return;
@@ -1089,6 +1254,289 @@ export class TaskDetailComponent implements OnInit {
         const minutes = String(d.getMinutes()).padStart(2, '0');
         const seconds = String(d.getSeconds()).padStart(2, '0');
         return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    }
+
+    // ========== LỊCH LÀM VIỆC METHODS ==========
+
+    onPlanDateChanged(): void {
+        if (!this.planStartDate || !this.planEndDate) {
+            // Thiếu ngày kết thúc hoặc bắt đầu -> đánh dấu xoá mềm tất cả các row
+            this.taskWorkList.forEach(r => r.IsDeleted = true);
+            return;
+        }
+
+        // Có đủ 2 ngày -> auto sinh dữ liệu và show thông báo nhắc nhở
+        const workTabIndex = this._getTabIndexByKey('taskWork');
+        if (workTabIndex !== -1 && this.activeMainTabIndex !== workTabIndex) {
+            this.message.info('Hãy kiểm tra lại lịch làm việc khi thay đổi khoảng thời gian dự kiến');
+        }
+
+        // Load day off rồi merge
+        this.loadDayOffAndMergeWorkList();
+    }
+
+    loadDayOffAndMergeWorkList(): void {
+        if (!this.planStartDate || !this.planEndDate) return;
+
+        const startStr = this.toDateInputString(this.planStartDate);
+        const endStr = this.toDateInputString(this.planEndDate);
+
+        this.isLoadingTaskWork = true;
+        this.kanbanService.getDayOff(startStr, endStr).subscribe({
+            next: (res) => {
+                this.dayOffList = [];
+                if (res.status === 1 || res.status === 200) {
+                    this.dayOffList = (res.data || []).map((d: any) => {
+                        const dt = new Date(d.DateOff);
+                        return this.toDateInputString(dt);
+                    });
+                }
+                this.mergeWorkList();
+                this.isLoadingTaskWork = false;
+                this.cdr.detectChanges();
+            },
+            error: () => {
+                this.mergeWorkList();
+                this.isLoadingTaskWork = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    mergeWorkList(): void {
+        if (!this.planStartDate || !this.planEndDate) return;
+
+        const allDates = this.generateDateRange(this.planStartDate, this.planEndDate);
+        const usedKeys = new Set<string>();
+
+        // 1. Quét list hiện tại: nếu nằm ngoài khoảng -> xoá mềm. Nếu nằm trong khoảng -> đảm bảo hiển thị (IsDeleted = false)
+        this.taskWorkList.forEach(row => {
+            const dateStr = this.toDateInputString(new Date(row.Date!));
+            if (allDates.includes(dateStr)) {
+                row.IsDeleted = false;
+                usedKeys.add(dateStr);
+            } else {
+                row.IsDeleted = true;
+            }
+        });
+
+        // 2. Thêm các ngày mới vào list (nếu chưa có)
+        const taskLoc = (this.taskLocationSelect === 'Khác' ? this.taskCustomLocation : this.taskLocationSelect) || 'VP RTC';
+        const knownLocations = ['VP RTC', 'Đan Phượng'];
+        const isKnownLoc = knownLocations.includes(taskLoc);
+
+        for (const dateStr of allDates) {
+            if (!usedKeys.has(dateStr)) {
+                const dt = new Date(dateStr + 'T00:00:00');
+                const isSunday = dt.getDay() === 0;
+                const isDayOff = this.dayOffList.includes(dateStr);
+                this.taskWorkList.push({
+                    ID: 0,
+                    ProjectTaskID: this.activeTaskId,
+                    Date: dateStr + 'T00:00:00',
+                    Location: taskLoc,
+                    EstimatedTime: 8,
+                    IsWork: !(isSunday || isDayOff),
+                    IsDeleted: false,
+                    _locationSelect: isKnownLoc ? taskLoc : 'Khác',
+                    _customLocation: isKnownLoc ? undefined : taskLoc,
+                    _isNew: true,
+                    _selected: false
+                });
+            }
+        }
+
+        // Sắp xếp lại theo thời gian
+        this.taskWorkList.sort((a, b) => new Date(a.Date!).getTime() - new Date(b.Date!).getTime());
+        
+        this.updateLocationOptions();
+    }
+
+    getActiveTaskWorkCount(): number {
+        return this.taskWorkList.filter(row => !row.IsDeleted).length;
+    }
+
+    private generateDateRange(start: Date, end: Date): string[] {
+        const dates: string[] = [];
+        const current = new Date(start);
+        current.setHours(0, 0, 0, 0);
+        const endDate = new Date(end);
+        endDate.setHours(0, 0, 0, 0);
+
+        while (current <= endDate) {
+            dates.push(this.toDateInputString(current));
+            current.setDate(current.getDate() + 1);
+        }
+        return dates;
+    }
+
+    loadTaskWork(): void {
+        if (this.taskWorkLoaded) return;
+        const taskId = this.activeTaskId;
+        if (!taskId || taskId <= 0) {
+            this.taskWorkLoaded = true;
+            this.loadDayOffAndMergeWorkList();
+            return;
+        }
+
+        this.isLoadingTaskWork = true;
+        this.kanbanService.getProjectTaskWork(taskId).subscribe({
+            next: (res) => {
+                if ((res.status === 1 || res.status === 200) && res.data?.exitProjectTaskWork) {
+                    const apiData: any[] = res.data.exitProjectTaskWork;
+                    this.taskWorkList = apiData.map(item => {
+                        const loc = item.Location || 'VP RTC';
+                        const knownLocations = ['VP RTC', 'Đan Phượng'];
+                        const isKnown = knownLocations.includes(loc);
+                        return {
+                            ID: item.ID,
+                            ProjectTaskID: item.ProjectTaskID,
+                            Date: item.Date,
+                            Location: loc,
+                            EstimatedTime: item.EstimatedTime ?? 8,
+                            IsWork: item.IsWork ?? true,
+                            IsDeleted: item.IsDeleted ?? false,
+                            _locationSelect: isKnown ? loc : 'Khác',
+                            _customLocation: isKnown ? undefined : loc,
+                            _isNew: false,
+                            _selected: false
+                        };
+                    });
+                }
+                this.taskWorkLoaded = true;
+                this.loadDayOffAndMergeWorkList();
+            },
+            error: () => {
+                this.taskWorkLoaded = true;
+                this.loadDayOffAndMergeWorkList();
+            }
+        });
+    }
+
+    syncTaskWorkToApi(projectTaskId: number): Observable<any> {
+        if (!this.showTaskWorkTab) {
+            // Nếu tab bị ẩn, kiểm tra xem có bản ghi nào trên DB (ID > 0) cần xoá không
+            const hasDeletedDbRecords = this.taskWorkList.some(r => r.ID > 0 && r.IsDeleted);
+            if (!hasDeletedDbRecords) {
+                return of(null);
+            }
+        }
+
+        const allRows = this.taskWorkList;
+        if (allRows.length === 0) return of(null);
+
+        const payload = allRows.map(row => {
+            let finalLocation = row._locationSelect || row.Location || 'VP RTC';
+            if (row._locationSelect === 'Khác') {
+                finalLocation = row._customLocation || '';
+            }
+            return {
+                ID: row.ID || 0,
+                ProjectTaskID: projectTaskId,
+                Date: row.Date,
+                Location: finalLocation,
+                EstimatedTime: row.EstimatedTime ?? 8,
+                IsWork: row.IsWork ?? true,
+                IsDeleted: row.IsDeleted ?? false
+            };
+        });
+
+        return this.kanbanService.saveProjectTaskWorkList(payload).pipe(
+            catchError(err => {
+                console.error('Error saving task work list', err);
+                return of(null);
+            })
+        );
+    }
+
+    isSunday(dateStr: string | undefined): boolean {
+        if (!dateStr) return false;
+        return new Date(dateStr).getDay() === 0;
+    }
+
+    isDayOff(dateStr: string | undefined): boolean {
+        if (!dateStr) return false;
+        const key = this.toDateInputString(new Date(dateStr));
+        return this.dayOffList.includes(key);
+    }
+
+    getDayName(dateStr: string | undefined): string {
+        if (!dateStr) return '';
+        const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+        return days[new Date(dateStr).getDay()];
+    }
+
+    onLocationChange(row: IProjectTaskWork): void {
+        if (row._locationSelect !== 'Khác') {
+            row._customLocation = undefined;
+            row.Location = row._locationSelect;
+        }
+        if (row._selected) {
+            for (const r of this.selectedTaskWorkRows) {
+                if (r !== row) {
+                    r._locationSelect = row._locationSelect;
+                    r._customLocation = row._customLocation;
+                    r.Location = row.Location;
+                }
+            }
+        }
+        this.updateLocationOptions();
+    }
+
+    onCustomLocationChange(row: IProjectTaskWork): void {
+        row.Location = row._customLocation || '';
+        if (row._selected) {
+            for (const r of this.selectedTaskWorkRows) {
+                if (r !== row) {
+                    r._customLocation = row._customLocation;
+                    r.Location = row.Location;
+                }
+            }
+        }
+        this.updateLocationOptions();
+    }
+
+    onEstimatedTimeChange(row: IProjectTaskWork): void {
+        if (row._selected) {
+            for (const r of this.selectedTaskWorkRows) {
+                if (r !== row) {
+                    r.EstimatedTime = row.EstimatedTime;
+                }
+            }
+        }
+    }
+
+    onIsWorkChange(row: IProjectTaskWork): void {
+        // ngModel binding will update IsWork automatically
+        if (row._selected) {
+            for (const r of this.selectedTaskWorkRows) {
+                if (r !== row) {
+                    r.IsWork = row.IsWork;
+                }
+            }
+        }
+    }
+
+    toggleSelectAllTaskWork(checked: boolean): void {
+        this.isAllTaskWorkSelected = checked;
+        this.taskWorkList
+            .filter(r => !r.IsDeleted)
+            .forEach(r => r._selected = checked);
+    }
+
+    get isAllTaskWorkChecked(): boolean {
+        const activeRows = this.taskWorkList.filter(r => !r.IsDeleted);
+        return activeRows.length > 0 && activeRows.every(r => r._selected);
+    }
+
+    get isIndeterminate(): boolean {
+        const activeRows = this.taskWorkList.filter(r => !r.IsDeleted);
+        const selectedCount = activeRows.filter(r => r._selected).length;
+        return selectedCount > 0 && selectedCount < activeRows.length;
+    }
+
+    get selectedTaskWorkRows(): IProjectTaskWork[] {
+        return this.taskWorkList.filter(r => !r.IsDeleted && r._selected);
     }
 
     // ========== TASK LOG METHODS ==========
@@ -1857,7 +2305,9 @@ export class TaskDetailComponent implements OnInit {
 
     ngOnInit(): void {
         this.isFullPage = true;
-        this.isLoading = true; // Bật loading ngay lập tức để UI không bị trống
+        this.isLoading = true;
+
+        this.loadTaskStatuses();
 
         // Trì hoãn việc tải dữ liệu nặng và vẽ UI để nhường Main Thread cho việc vẽ UI chuyển tab trước
         setTimeout(() => {
@@ -1983,11 +2433,23 @@ export class TaskDetailComponent implements OnInit {
             this.projectTaskResult = activeTask.ProjectTaskResult || '';
             this.taskComplexity = activeTask.TaskComplexity ?? 1;
 
+            const loc = activeTask.Location;
+            if (loc) {
+                const knownLocations = ['VP RTC', 'Đan Phượng'];
+                const isKnown = knownLocations.includes(loc);
+                this.taskLocationSelect = isKnown ? loc : 'Khác';
+                this.taskCustomLocation = isKnown ? undefined : loc;
+            } else {
+                this.taskLocationSelect = 'VP RTC';
+                this.taskCustomLocation = undefined;
+            }
+
             if (activeTask.AssignedToEmployeeID) {
                 this.assigneeIds = [activeTask.AssignedToEmployeeID];
             }
             if (this.planStartDate && this.planEndDate) {
                 this.updateEstimatedTime(true);
+                this.loadTaskWork();
             }
 
             this.loadAllProjects();
@@ -2706,6 +3168,17 @@ export class TaskDetailComponent implements OnInit {
             return;
         }
 
+        // Validate Task Work (Lịch làm việc)
+        const taskWorkError = this.validateTaskWork();
+        if (taskWorkError) {
+            this.message.error(taskWorkError);
+            return;
+        }
+
+        if (!this.validateUnsavedTaskWork()) {
+            return;
+        }
+
         if (!this.selectedTaskTypeId) {
             this.message.error('Vui lòng chọn loại công việc');
             return;
@@ -2733,6 +3206,9 @@ export class TaskDetailComponent implements OnInit {
                 return this.syncChildTasksToApi(activeTask.ID);
             }),
             switchMap(() => {
+                return this.syncTaskWorkToApi(activeTask.ID);
+            }),
+            switchMap(() => {
                 const saveData: any = {
                     ID: activeTask.ID,
                     Mission: this.title.trim(),
@@ -2752,6 +3228,7 @@ export class TaskDetailComponent implements OnInit {
                     ProjectTaskTypeID: this.selectedTaskTypeId,
                     ProjectTaskResult: this.projectTaskResult,
                     TaskComplexity: this.taskComplexity,
+                    Location: (this.taskLocationSelect === 'Khác' ? this.taskCustomLocation : this.taskLocationSelect) || null,
                     AssignedToEmployeeID: this.assigneeIds.length > 0 ? this.assigneeIds[0] : undefined,
                     OrderIndex: activeTask.OrderIndex,
                     ParentID: this.parentTaskId,
@@ -2789,6 +3266,50 @@ export class TaskDetailComponent implements OnInit {
                 console.error('Error saving task', err);
             }
         });
+    }
+
+    private validateTaskWork(): string | null {
+        if (!this.showTaskWorkTab) return null;
+        for (const row of this.taskWorkList) {
+            if (!row.IsDeleted) {
+                const dateStr = this.toDateInputString(new Date(row.Date!));
+                if (row._locationSelect === 'Khác' && !(row._customLocation || '').trim()) {
+                    return `Vui lòng nhập địa điểm cho ngày ${dateStr} trong Lịch làm việc`;
+                }
+                if (row.EstimatedTime === null || row.EstimatedTime === undefined) {
+                    return `Vui lòng nhập thời gian dự kiến cho ngày ${dateStr} trong Lịch làm việc`;
+                }
+            }
+        }
+        return null;
+    }
+
+    private validateUnsavedTaskWork(): boolean {
+        // Kiểm tra điều kiện:
+        // 1. Đang hiển thị tab Lịch làm việc (tức là có ngày bắt đầu và ngày kết thúc)
+        // 2. Toàn bộ các dòng đang hiển thị đều là bản nháp mới sinh (chưa từng lưu, ID = 0)
+        // 3. Người dùng chưa xem qua tab Lịch làm việc
+        
+        if (!this.showTaskWorkTab) return true;
+
+        if (this.isLoadingTaskWork) {
+            this.message.warning('Đang tải dữ liệu Lịch làm việc, vui lòng thử lại sau giây lát!');
+            return false;
+        }
+        
+        const activeRows = this.taskWorkList.filter(r => !r.IsDeleted);
+        if (activeRows.length === 0) return true;
+        
+        const isAllNew = activeRows.every(r => r.ID === 0);
+        if (isAllNew && !this.hasCheckedTaskWork) {
+            this.message.warning('Vui lòng kiểm tra lại Lịch làm việc trước khi lưu!');
+            const workTabIndex = this._getTabIndexByKey('taskWork');
+            if (workTabIndex !== -1) {
+                this.hasCheckedTaskWork = true; // Đánh dấu đã kiểm tra để lần click lưu tiếp theo được qua
+            }
+            return false;
+        }
+        return true;
     }
 
     private validateChildTasks(): string | null {
@@ -2899,6 +3420,17 @@ export class TaskDetailComponent implements OnInit {
             this.planStartDate = new Date();
         }
 
+        // Validate Task Work (Lịch làm việc)
+        const taskWorkError = this.validateTaskWork();
+        if (taskWorkError) {
+            this.message.error(taskWorkError);
+            return;
+        }
+
+        if (!this.validateUnsavedTaskWork()) {
+            return;
+        }
+
         this.isSaving = true;
 
         // Pipeline: upload files → save task → sync checklists with new task ID
@@ -2920,7 +3452,7 @@ export class TaskDetailComponent implements OnInit {
                     PlanEndDate: this.formatDateForApi(this.planEndDate),
                     ProjectID: this.selectedProjectId,
                     IsPersonalProject: this.isPersonalProject,
-                    Priority: 1,
+                    Priority: this.priority,
                     EstimatedTime: (this.estimatedTimeHours === null || this.estimatedTimeHours === undefined || this.estimatedTimeHours as any === '') ? null : this.estimatedTimeHours,
                     Status: this.taskStatus,
                     TypeProjectItem: this.selectedTypeProjectItemId,
@@ -2928,6 +3460,7 @@ export class TaskDetailComponent implements OnInit {
                     ProjectTaskResult: this.projectTaskResult,
                     IsAdditional: this.isAdditional,
                     TaskComplexity: this.taskComplexity,
+                    Location: (this.taskLocationSelect === 'Khác' ? this.taskCustomLocation : this.taskLocationSelect) || null,
                     AssignedToEmployeeID: this.assigneeIds.length > 0 ? this.assigneeIds[0] : undefined,
                     EmployeeIDRequest: this.assignerId,
                     Employee: this.assigneeIds,
@@ -2952,7 +3485,8 @@ export class TaskDetailComponent implements OnInit {
                         employees: this.syncEmployeesToApi(newTaskId),
                         checklists: this.syncChecklistsToApi(newTaskId),
                         additionals: this.syncAdditionalsToApi(newTaskId),
-                        childTasks: this.syncChildTasksToApi(newTaskId)
+                        childTasks: this.syncChildTasksToApi(newTaskId),
+                        taskWork: this.syncTaskWorkToApi(newTaskId)
                     }).pipe(map(() => res));
                 }
                 return of(res);

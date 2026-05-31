@@ -11,17 +11,29 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Menubar } from 'primeng/menubar';
-import {
-  AngularGridInstance,
-  AngularSlickgridModule,
-  Column,
-  Filters,
-  GridOption,
-} from 'angular-slickgrid';
+import { TableModule } from 'primeng/table';
+import { TreeTableModule } from 'primeng/treetable';
+import { TreeNode } from 'primeng/api';
 import { KpiPositionEmployeeService, DeleteEmployeeRequest } from './kpi-position-employee-service/kpi-position-employee.service';
 import { KpiPositionDetailComponent } from './kpi-position-detail/kpi-position-detail.component';
 import { KpiPositionEmployeeDetailComponent } from './kpi-position-employee-detail/kpi-position-employee-detail.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+
+type PrimeColumnType = 'text' | 'number' | 'boolean';
+
+interface PrimeColumn {
+  id: string;
+  name: string;
+  field: string;
+  width?: number;
+  minWidth?: number;
+  hidden?: boolean;
+  sortable?: boolean;
+  filterable?: boolean;
+  type?: PrimeColumnType;
+  align?: 'left' | 'center' | 'right';
+  cssClass?: string;
+}
 
 @Component({
   selector: 'app-kpi-position-employee',
@@ -33,7 +45,8 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzSplitterModule,
     NzModalModule,
     NzFormModule,
-    AngularSlickgridModule,
+    TableModule,
+    TreeTableModule,
     Menubar,
   ],
   templateUrl: './kpi-position-employee.component.html',
@@ -45,16 +58,15 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
   @ViewChild('copyModalContent') copyModalContent!: TemplateRef<any>;
 
   // Master grid (Positions)
-  angularGridMaster!: AngularGridInstance;
-  columnDefinitionsMaster: Column[] = [];
-  gridOptionsMaster: GridOption = {};
+  columnDefinitionsMaster: PrimeColumn[] = [];
   datasetMaster: any[] = [];
+  treeDatasetMaster: TreeNode[] = [];
+  isLoadingMaster = false;
 
   // Detail grid (Employees)
-  angularGridDetail!: AngularGridInstance;
-  columnDefinitionsDetail: Column[] = [];
-  gridOptionsDetail: GridOption = {};
+  columnDefinitionsDetail: PrimeColumn[] = [];
   datasetDetail: any[] = [];
+  isLoadingDetail = false;
 
   // Menu bars
   masterMenuBars: any[] = [];
@@ -88,10 +100,9 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
   ) {
     // Subscribe to queryParams in constructor like approve-tp pattern
     this.route.queryParams.subscribe(params => {
-      this.selectedDepartmentId =
-        params['departmentId']
-        ?? this.tabData?.departmentId
-        ?? 0;
+      this.selectedDepartmentId = params['departmentId']
+        ? Number(params['departmentId'])
+        : (this.tabData?.departmentId ?? 0);
     });
   }
 
@@ -103,7 +114,7 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
     this.initGridDetail();
     this.loadDepartments();
 
-    // Load initial data with param = 0 (wait for grid to be ready)
+    // Load initial data with param = 0
     setTimeout(() => {
       this.loadInitialData();
     }, 300);
@@ -156,97 +167,25 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
   //#region Master Grid Setup
   initGridMaster(): void {
     this.columnDefinitionsMaster = [
-      {
-        id: 'PositionCode',
-        name: 'Mã vị trí',
-        field: 'PositionCode',
-        width: 120,
-        minWidth: 120,
-        sortable: true,
-        filterable: true,
-        formatter: this.commonTooltipFormatter,
-        filter: { model: Filters['compoundInputText'] },
-      },
-      {
-        id: 'PositionName',
-        name: 'Tên vị trí',
-        field: 'PositionName',
-        width: 300,
-        minWidth: 200,
-        sortable: true,
-        filterable: true,
-        formatter: this.commonTooltipFormatter,
-        filter: { model: Filters['compoundInputText'] },
-      },
-      {
-        id: 'TypePositionText',
-        name: 'Chức vụ',
-        field: 'TypePositionText',
-        width: 150,
-        minWidth: 100,
-        sortable: true,
-        filterable: true,
-        formatter: this.commonTooltipFormatter,
-        filter: { model: Filters['compoundInputText'] },
-      },
-      {
-        id: 'KPISessionName',
-        name: 'Kỳ đánh giá',
-        field: 'KPISessionName',
-        width: 200,
-        minWidth: 150,
-        sortable: true,
-        filterable: true,
-        formatter: this.commonTooltipFormatter,
-        filter: { model: Filters['compoundInputText'] },
-      },
-      {
-        id: 'YearEvaluation',
-        name: 'Năm',
-        field: 'YearEvaluation',
-        width: 100,
-        minWidth: 80,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
-      },
+      this.textCol('PositionCode', 'Mã vị trí', 'PositionCode', 120),
+      this.textCol('PositionName', 'Tên vị trí', 'PositionName', 200),
+      this.textCol('TypePositionText', 'Chức vụ', 'TypePositionText', 120),
+      this.textCol('KPISessionName', 'Kỳ đánh giá', 'KPISessionName', 200),
+      this.textCol('YearEvaluation', 'Năm', 'YearEvaluation', 80, { align: 'right' }),
     ];
-
-    this.gridOptionsMaster = {
-      enableAutoResize: true,
-      autoResize: {
-        container: '.grid-container-master',
-        calculateAvailableSizeBy: 'container',
-      },
-      enableFiltering: true,
-      enableCellNavigation: true,
-      enableRowSelection: true,
-      rowSelectionOptions: {
-        selectActiveRow: true,
-      },
-      enableCheckboxSelector: false,
-      multiColumnSort: true,
-      enableGrouping: true,
-    };
   }
 
-  angularGridReadyMaster(angularGrid: AngularGridInstance): void {
-    this.angularGridMaster = angularGrid;
-  }
-
-  onMasterRowClick(e: any, args: any): void {
-    const item = args?.grid?.getDataItem(args?.row);
-    if (item) {
-      this.selectedPositionId = item.ID;
-      this.selectedPositionRow = item;
+  onMasterRowClick(rowData: any): void {
+    if (rowData && !rowData.isGroup) {
+      this.selectedPositionId = rowData.ID;
+      this.selectedPositionRow = rowData;
       this.loadEmployeeDetails(this.selectedPositionId);
     }
   }
 
-  onMasterRowDblClick(e: any, args: any): void {
-    const item = args?.dataContext;
-    if (item) {
-      this.selectedPositionId = item.ID;
+  onMasterRowDblClick(rowData: any): void {
+    if (rowData && !rowData.isGroup) {
+      this.selectedPositionId = rowData.ID;
       this.onEditPosition();
     }
   }
@@ -255,77 +194,13 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
   //#region Detail Grid Setup
   initGridDetail(): void {
     this.columnDefinitionsDetail = [
-      {
-        id: 'Code',
-        name: 'Mã nhân viên',
-        field: 'Code',
-        width: 120,
-        minWidth: 100,
-        sortable: true,
-        filterable: true,
-        formatter: this.commonTooltipFormatter,
-        filter: { model: Filters['compoundInputText'] },
-      },
-      {
-        id: 'FullName',
-        name: 'Tên nhân viên',
-        field: 'FullName',
-        width: 200,
-        minWidth: 150,
-        sortable: true,
-        filterable: true,
-        formatter: this.commonTooltipFormatter,
-        filter: { model: Filters['compoundInputText'] },
-      },
-      {
-        id: 'DepartmentName',
-        name: 'Phòng ban',
-        field: 'DepartmentName',
-        width: 200,
-        minWidth: 150,
-        sortable: true,
-        filterable: true,
-        formatter: this.commonTooltipFormatter,
-        filter: { model: Filters['compoundInputText'] },
-      },
+      this.textCol('Code', 'Mã nhân viên', 'Code', 120),
+      this.textCol('FullName', 'Tên nhân viên', 'FullName', 200),
+      this.textCol('DepartmentName', 'Phòng ban', 'DepartmentName', 200),
     ];
-
-    this.gridOptionsDetail = {
-      enableAutoResize: true,
-      autoResize: {
-        container: '.grid-container-detail',
-        calculateAvailableSizeBy: 'container',
-      },
-      enableFiltering: true,
-      enableCellNavigation: true,
-      enableRowSelection: true,
-      enableCheckboxSelector: true,
-      checkboxSelector: {
-        hideInFilterHeaderRow: false,
-        hideInColumnTitleRow: false,
-      },
-      rowSelectionOptions: {
-        selectActiveRow: true,
-      },
-      multiSelect: true,
-      enableGrouping: true,
-    };
   }
 
-  angularGridReadyDetail(angularGrid: AngularGridInstance): void {
-    this.angularGridDetail = angularGrid;
-
-    // Listen to row selection changes
-    this.angularGridDetail.slickGrid?.onSelectedRowsChanged.subscribe((e, args) => {
-      const selectedRows = args.rows;
-      this.selectedEmployeeRows = selectedRows.map(row =>
-        this.angularGridDetail.dataView?.getItem(row)
-      ).filter(item => item);
-    });
-  }
-
-  onDetailRowDblClick(e: any, args: any): void {
-    // Double click on detail grid opens add employee modal
+  onDetailRowDblClick(rowData: any): void {
     this.onAddEmployee();
   }
   //#endregion
@@ -351,9 +226,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
+        const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi kết nối khi tải phòng ban: ' + error
+          'Lỗi kết nối khi tải phòng ban: ' + errorMessage
         );
       },
     });
@@ -376,9 +252,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
+          const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
           this.notification.error(
             NOTIFICATION_TITLE.error,
-            'Lỗi kết nối khi tải kỳ đánh giá: ' + error
+            'Lỗi kết nối khi tải kỳ đánh giá: ' + errorMessage
           );
         },
       });
@@ -392,23 +269,26 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
   }
 
   loadInitialData(): void {
+    this.isLoadingMaster = true;
     // Load all data with kpiSessionId = 0
     this.service.getData(0).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          this.datasetMaster = response.data.map((item: any, index: number) => ({
+          this.datasetMaster = (response.data || []).map((item: any, index: number) => ({
             ...item,
             id: `${item.ID}_${index}`,
-          }));
-
-          // Apply grouping
-          setTimeout(() => {
-            this.applyMasterGrouping();
-          }, 100);
+          })).sort((a: any, b: any) => {
+            const sessionCompare = (a.KPISessionName || '').localeCompare(b.KPISessionName || '');
+            if (sessionCompare !== 0) return sessionCompare;
+            return (a.TypePositionText || '').localeCompare(b.TypePositionText || '');
+          });
+          this.treeDatasetMaster = this.buildTreeDataset(this.datasetMaster);
         }
+        this.isLoadingMaster = false;
       },
       error: (error) => {
         console.error('Error loading initial data:', error);
+        this.isLoadingMaster = false;
       },
     });
   }
@@ -422,13 +302,19 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isLoadingMaster = true;
     this.service.getData(this.selectedKPISessionId).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          this.datasetMaster = response.data.map((item: any, index: number) => ({
+          this.datasetMaster = (response.data || []).map((item: any, index: number) => ({
             ...item,
             id: `${item.ID}_${index}`,
-          }));
+          })).sort((a: any, b: any) => {
+            const sessionCompare = (a.KPISessionName || '').localeCompare(b.KPISessionName || '');
+            if (sessionCompare !== 0) return sessionCompare;
+            return (a.TypePositionText || '').localeCompare(b.TypePositionText || '');
+          });
+          this.treeDatasetMaster = this.buildTreeDataset(this.datasetMaster);
 
           // Update selectedPositionRow với data mới từ dataset
           if (this.selectedPositionId) {
@@ -437,86 +323,110 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
               this.selectedPositionRow = updatedRow;
             }
           }
-
-          // Apply grouping
-          setTimeout(() => {
-            this.applyMasterGrouping();
-          }, 100);
         } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,
             'Lỗi khi tải dữ liệu vị trí'
           );
         }
+        this.isLoadingMaster = false;
       },
       error: (error) => {
+        this.isLoadingMaster = false;
+        const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi kết nối khi tải dữ liệu: ' + error
+          'Lỗi kết nối khi tải dữ liệu: ' + errorMessage
         );
       },
     });
   }
 
   loadEmployeeDetails(positionId: number): void {
+    this.isLoadingDetail = true;
     this.service.getDetail(positionId).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          this.datasetDetail = response.data.map((item: any, index: number) => ({
+          this.datasetDetail = (response.data || []).map((item: any, index: number) => ({
             ...item,
             id: `${item.ID}_${index}`,
-          }));
-
-          // Apply grouping
-          setTimeout(() => {
-            this.applyDetailGrouping();
-          }, 100);
+          })).sort((a: any, b: any) => {
+            return (a.DepartmentName || '').localeCompare(b.DepartmentName || '');
+          });
         } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,
             'Lỗi khi tải danh sách nhân viên'
           );
         }
+        this.isLoadingDetail = false;
       },
       error: (error) => {
+        this.isLoadingDetail = false;
+        const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Lỗi kết nối khi tải nhân viên: ' + error
+          'Lỗi kết nối khi tải nhân viên: ' + errorMessage
         );
       },
     });
   }
 
-  applyMasterGrouping(): void {
-    if (!this.angularGridMaster?.slickGrid) return;
-
-    this.angularGridMaster.dataView?.setGrouping([
-      {
-        getter: 'KPISessionName',
-        formatter: (g: any) => `Kỳ đánh giá: ${g.value} (${g.count} vị trí)`,
-        aggregateCollapsed: false,
-        collapsed: false,
-      },
-      {
-        getter: 'TypePositionText',
-        formatter: (g: any) => `Chức vụ: ${g.value} (${g.count} vị trí)`,
-        aggregateCollapsed: false,
-        collapsed: false,
-      },
-    ]);
+  getDetailGroupCount(deptName: string): number {
+    return this.datasetDetail.filter(item => item.DepartmentName === deptName).length;
   }
 
-  applyDetailGrouping(): void {
-    if (!this.angularGridDetail?.slickGrid) return;
+  buildTreeDataset(data: any[]): TreeNode[] {
+    const tree: TreeNode[] = [];
+    const sessionMap = new Map<string, TreeNode>();
 
-    this.angularGridDetail.dataView?.setGrouping([
-      {
-        getter: 'DepartmentName',
-        formatter: (g: any) => `Phòng ban: ${g.value} (${g.count} nhân viên)`,
-        aggregateCollapsed: false,
-        collapsed: false,
-      },
-    ]);
+    for (const item of data) {
+      const sessionName = item.KPISessionName || 'Khác';
+      const typePositionName = item.TypePositionText || 'Khác';
+
+      // 1. Get or create Level 0 (Kỳ đánh giá)
+      if (!sessionMap.has(sessionName)) {
+        const sessionNode: TreeNode = {
+          data: {
+            isGroup: true,
+            isSessionGroup: true,
+            KPISessionName: sessionName,
+            count: 0
+          },
+          expanded: true,
+          children: []
+        };
+        sessionMap.set(sessionName, sessionNode);
+        tree.push(sessionNode);
+      }
+      const sessionNode = sessionMap.get(sessionName)!;
+      sessionNode.data.count++;
+
+      // 2. Get or create Level 1 (Chức vụ) inside Level 0
+      let typeNode = sessionNode.children!.find(c => c.data.TypePositionText === typePositionName);
+      if (!typeNode) {
+        typeNode = {
+          data: {
+            isGroup: true,
+            isTypeGroup: true,
+            TypePositionText: typePositionName,
+            count: 0
+          },
+          expanded: true,
+          children: []
+        };
+        sessionNode.children!.push(typeNode);
+      }
+      typeNode.data.count++;
+
+      // 3. Add Leaf Node (Item)
+      typeNode.children!.push({
+        data: item,
+        leaf: true
+      });
+    }
+
+    return tree;
   }
   //#endregion
 
@@ -597,6 +507,7 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
               );
               this.onSearch();
               this.selectedPositionId = 0;
+              this.selectedPositionRow = null;
               this.datasetDetail = [];
             } else {
               this.notification.error(
@@ -606,9 +517,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
             }
           },
           error: (error) => {
+            const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              'Lỗi kết nối khi xóa vị trí: ' + error
+              'Lỗi khi xóa vị trí: ' + errorMessage
             );
           },
         });
@@ -668,9 +580,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
             }
           },
           error: (error) => {
+            const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              'Lỗi kết nối khi copy: ' + error
+              'Lỗi khi copy: ' + errorMessage
             );
           },
         });
@@ -747,9 +660,10 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
             }
           },
           error: (error) => {
+            const errorMessage = error?.error?.message || (typeof error?.error === 'string' ? error.error : error?.message) || error;
             this.notification.error(
               NOTIFICATION_TITLE.error,
-              'Lỗi kết nối khi xóa nhân viên: ' + error
+              'Lỗi khi xóa nhân viên: ' + errorMessage
             );
           },
         });
@@ -758,36 +672,57 @@ export class KpiPositionEmployeeComponent implements OnInit, OnDestroy {
   }
   //#endregion
 
-  // Helper function to escape HTML special characters for title attributes
-  private escapeHtml(text: string | null | undefined): string {
-    if (!text) return '';
-    return String(text)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+  visibleColumns(columns: PrimeColumn[]): PrimeColumn[] {
+    return columns.filter(col => !col.hidden);
   }
 
-  private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
-    if (!value) return '';
-    const escaped = this.escapeHtml(value);
-    return `
-                <span
-                title="${escaped}"
-                style="
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    word-wrap: break-word;
-                    word-break: break-word;
-                    line-height: 1.4;
-                "
-                >
-                ${value}
-                </span>
-            `;
-  };
+  getColumnWidth(col: PrimeColumn): string {
+    return `${col.width || col.minWidth || 120}px`;
+  }
+
+  getColumnFilterType(col: PrimeColumn): string {
+    return 'text';
+  }
+
+  getCellClass(col: PrimeColumn): Record<string, boolean> {
+    return {
+      'text-end': col.align === 'right' || col.type === 'number' || col.cssClass === 'text-end',
+      'text-center': col.align === 'center' || col.type === 'boolean',
+    };
+  }
+
+  formatCell(row: any, col: PrimeColumn): string {
+    const value = row?.[col.field];
+    if (value === null || value === undefined || value === '') return '';
+    if (col.type === 'number') return this.formatNumber(value);
+    if (col.type === 'boolean') return value ? '✓' : '';
+    return String(value);
+  }
+
+  getCellTitle(row: any, col: PrimeColumn): string {
+    if (col.type === 'boolean') return row?.[col.field] ? 'Có' : 'Không';
+    return this.formatCell(row, col);
+  }
+
+  private formatNumber(value: any): string {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue) || numericValue === 0) return '';
+    return new Intl.NumberFormat('vi-VN', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1,
+    }).format(numericValue);
+  }
+
+  private textCol(id: string, name: string, field: string, width: number, extra: Partial<PrimeColumn> = {}): PrimeColumn {
+    return {
+      id,
+      name,
+      field,
+      width,
+      sortable: true,
+      filterable: true,
+      type: 'text',
+      ...extra,
+    };
+  }
 }

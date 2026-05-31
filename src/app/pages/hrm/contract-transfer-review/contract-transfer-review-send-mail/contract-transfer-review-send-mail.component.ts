@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { environment } from '../../../../../environments/environment';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -42,11 +43,14 @@ export interface ContractReviewMail {
   // Email
   toEmail: string;       // gửi đến nhân viên
   ccEmail: string;       // CC quản lý
+  ccEmailBgd: string;    // CC BGD
   subject: string;
   // Deadline nộp
   deadlineDate: any;
   deadlineHour: string;
   deadlineMinute: string;
+  // Link chuyển hướng cá nhân đánh giá
+  personalReviewUrl: string;
 }
 
 @Component({
@@ -138,10 +142,12 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
         // Ưu tiên email công ty, fallback email cá nhân
         toEmail: r.EmployeeEmailCongTy || r.EmployeeEmailCaNhan || '',
         ccEmail: r.LeaderEmail || '',
+        ccEmailBgd: 'dept_manager@rtc.edu.vn',
         subject: '',
         deadlineDate: dl,
         deadlineHour: '17',
         deadlineMinute: '00',
+        personalReviewUrl: `${window.location.origin}${environment.baseHref}/contract-transfer-review-personal`,
       };
       this.updateSubject(mail);
       return mail;
@@ -312,8 +318,15 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
     return `
 <div style="font-family:'Times New Roman',serif;font-size:11.5pt;line-height:160%;color:#000;">
 
-  <p style="margin:0 0 4pt 0;"><i><b>Kính gửi:&nbsp; ${evaluatorLine}</b></i></p>
-  ${employeeLine ? `<p style="margin:0 0 12pt 40pt;"><i>${employeeLine}</i></p>` : ''}
+  <table style="border-collapse:collapse;border:none;margin:0 0 ${employeeLine ? '25pt' : '4pt'} 0;font-family:'Times New Roman',serif;font-size:11.5pt;line-height:160%;color:#000;">
+    <tr>
+      <td style="vertical-align:top;white-space:nowrap;padding:0;font-weight:bold;font-style:italic;">Kính gửi:&nbsp;</td>
+      <td style="vertical-align:top;padding:0;font-style:italic;">
+        ${evaluatorLine}
+        ${employeeLine ? `<br>${employeeLine}` : ''}
+      </td>
+    </tr>
+  </table>
 
   <p>
     Về việc đánh giá chuyển HĐLĐ nhân sự, P. HCNS xin gửi thông tin CBNV như sau:<br>
@@ -321,9 +334,10 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
     Chức danh: ${mail.positionName}<br>
     ${mail.periodLabel}: ${trialPeriod}<br>
     Đề nghị ${empSal} ${mail.employeeName} làm bản tự đánh giá
-    và ${'phòng ' + mail.departmentName || 'bộ phận liên quan'} làm đánh giá chuyển hợp đồng
-    <i>(trên phần mềm)</i> trước ${deadlineStr} để P. HCNS trình Ban Giám đốc
-    phê duyệt và căn cứ để làm các thủ tục tiếp theo cho người lao động.
+    và ${mail.departmentName || 'bộ phận liên quan'} làm đánh giá chuyển hợp đồng
+    <i>(trên web nội bộ)</i> trước ${deadlineStr} để P. HCNS trình Ban Giám đốc
+    phê duyệt và căn cứ để làm các thủ tục tiếp theo cho người lao động.<br>
+    Cá nhân nhấn vào <a href="${mail.personalReviewUrl}" target="_blank"><b>link này</b></a> để đánh giá chuyển hợp đồng.
   </p>
 
   <p style="margin:12pt 0 4pt 0;">Trân trọng!</p>
@@ -340,7 +354,7 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
   }
 
   private getMailBody(mail: ContractReviewMail): string {
-    return `<!DOCTYPE html><html><body style="font-family:'Times New Roman',serif;font-size:14px;color:#222;max-width:800px;margin:0 auto;padding:20px;">${this.buildContent(mail)}</body></html>`;
+    return `<!DOCTYPE html><html><body style="font-family:'Times New Roman',serif;font-size:14px;color:#222;margin:0 auto;padding:20px;">${this.buildContent(mail)}</body></html>`;
   }
 
   // ─── Send ────────────────────────────────────────────────────────────────────
@@ -381,7 +395,7 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
         ID: mail.recordId,
         Subject: mail.subject,
         EmailTo: mail.toEmail,
-        EmailCC: mail.ccEmail || '',
+        EmailCC: [mail.ccEmail, mail.ccEmailBgd].filter(Boolean).join(';'),
         Body: this.getMailBody(mail),
       };
     });

@@ -178,7 +178,14 @@
                     <ng-template pTemplate="groupheader" let-rowData>
                         <tr pRowGroupHeader>
                             <td [attr.colspan]="columnDefinitions.length + 2" class="group-header-cell">
+                                <div class="group-header-content">
+                                    <input type="checkbox" class="group-select-checkbox"
+                                        [checked]="isGroupSelected(rowData)"
+                                        [indeterminate]="isGroupPartiallySelected(rowData)"
+                                        (click)="$event.stopPropagation()"
+                                        (change)="onGroupSelectionChange(rowData, $any($event.target).checked)" />
                                 Số POKH: {{ rowData.PONumber || 'N/A' }}
+                                </div>
                             </td>
                         </tr>
                     </ng-template>

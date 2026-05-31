@@ -38,6 +38,8 @@ import { CommonModule } from '@angular/common';
 import { KhoBaseService } from '../../kho-base-service/kho-base.service';
 import { FirmBaseDetailComponent } from '../firm-base-detail/firm-base-detail.component';
 import { ProjectTypeBaseDetailComponent } from '../project-type-base-detail/project-type-base-detail.component';
+import { HasPermissionDirective } from '../../../../../../directives/has-permission.directive';
+import { PermissionService } from '../../../../../../services/permission.service';
 
 @Component({
   selector: 'app-follow-project-base-detail',
@@ -68,6 +70,7 @@ import { ProjectTypeBaseDetailComponent } from '../project-type-base-detail/proj
     NzModalModule,
     NzCheckboxModule,
     CommonModule,
+    HasPermissionDirective,
   ]
 })
 export class FollowProjectBaseDetailComponent implements OnInit {
@@ -82,6 +85,7 @@ export class FollowProjectBaseDetailComponent implements OnInit {
     private notification: NzNotificationService,
     private khoBaseService: KhoBaseService,
     private modalService: NgbModal,
+    private permissionService: PermissionService,
   ) { }
   @Input() FollowProject: any;
   @ViewChild('tb_followProjectForSale', { static: false })
@@ -552,6 +556,10 @@ export class FollowProjectBaseDetailComponent implements OnInit {
     }
   }
   openProjectTypeBaseDetail() {
+    if (!this.permissionService.hasPermission('N1,N27,N31,N100')) {
+      this.notification.warning('Cảnh báo', 'Bạn không có quyền thực hiện chức năng này!');
+      return;
+    }
     const modalRef = this.modalService.open(ProjectTypeBaseDetailComponent, {
       backdrop: 'static',
       keyboard: false,
@@ -563,6 +571,10 @@ export class FollowProjectBaseDetailComponent implements OnInit {
     });
   }
   openFirmBaseDetail() {
+    if (!this.permissionService.hasPermission('N1,N27,N31,N100')) {
+      this.notification.warning('Cảnh báo', 'Bạn không có quyền thực hiện chức năng này!');
+      return;
+    }
     const modalRef = this.modalService.open(FirmBaseDetailComponent, {
       backdrop: 'static',
       keyboard: false,

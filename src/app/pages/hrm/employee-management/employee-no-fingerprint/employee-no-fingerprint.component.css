@@ -139,3 +139,7 @@
 ::ng-deep .slick-frozen-left .slick-header {
   overflow: hidden !important;
 }
+
+::ng-deep .type-select-dropdown {
+  min-width: 35vh !important;
+}

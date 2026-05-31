@@ -11,6 +11,7 @@ import {
   Input,
   Optional,
   Inject,
+  ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -241,6 +242,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   private pendingReload: boolean = false;
   // Subscriptions
   private subscriptions: Subscription[] = [];
+  private filterPatchObserver: MutationObserver | null = null;
 
   // Menu items for PrimeNG Menubar
   menuItems: MenuItem[] = [];
@@ -279,6 +281,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     private ponccService: PONCCService,
     private route: ActivatedRoute,
     private tabService: TabServiceService,
+    private elementRef: ElementRef,
     @Optional() public activeModal?: NgbActiveModal
   ) { }
 
@@ -315,6 +318,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
       this.onSearch();
     }
+    console.log('isApprovedBGD', this.isApprovedBGD);
   }
 
   // Initialize menu items based on current state
@@ -581,6 +585,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
   ngOnDestroy() {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
+    if (this.filterPatchObserver) {
+      this.filterPatchObserver.disconnect();
+      this.filterPatchObserver = null;
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -772,6 +780,55 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         }, 150);
       }, 200);
     }
+    setTimeout(() => this.patchSlickGridFilterInputs(), 600);
+  }
+
+  /**
+   * Fix: SlickGrid filter inputs không nhận change khi Ctrl+X, Delete, Backspace trên text đang bôi đen.
+   */
+  private patchSlickGridFilterInputs(): void {
+    const container = this.elementRef.nativeElement as HTMLElement;
+
+    const applyPatch = (input: HTMLInputElement) => {
+      if (input.dataset['filterPatched']) return;
+      input.dataset['filterPatched'] = '1';
+
+      input.addEventListener('cut', () => {
+        setTimeout(() => input.dispatchEvent(new Event('input', { bubbles: true })), 10);
+      });
+
+      input.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          const hasSelection = (input.selectionStart ?? 0) !== (input.selectionEnd ?? 0);
+          if (hasSelection) {
+            setTimeout(
+              () => input.dispatchEvent(new Event('input', { bubbles: true })),
+              10
+            );
+          }
+        }
+      });
+    };
+
+    container
+      .querySelectorAll<HTMLInputElement>('.slick-headerrow-column input')
+      .forEach(applyPatch);
+
+    this.filterPatchObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of Array.from(mutation.addedNodes)) {
+          if (node instanceof HTMLElement) {
+            node.querySelectorAll<HTMLInputElement>(
+              '.slick-headerrow-column input'
+            ).forEach(applyPatch);
+            if (node instanceof HTMLInputElement && node.closest('.slick-headerrow-column')) {
+              applyPatch(node);
+            }
+          }
+        }
+      }
+    });
+    this.filterPatchObserver.observe(container, { childList: true, subtree: true });
   }
 
   // Initialize all grids
@@ -1141,7 +1198,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filter: {
           model: Filters['compoundInputText'],
         },
-        hidden: isCommercialTab,
+        hidden: isCommercialTab || typeId === 6,
       },
       {
         id: 'WarehouseID',
@@ -1150,7 +1207,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 120,
         sortable: false,
         filterable: true,
-        hidden: typeId === 3 || isCommercialTab,
+        hidden: typeId === 3 || isCommercialTab || typeId === 6,
         filter: {
           model: Filters['multipleSelect'],
           collectionOptions: {
@@ -1251,8 +1308,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     }
 
     // Continue with common columns
-    // Chỉ thêm 2 cột YC duyệt và BGĐ duyệt nếu KHÔNG phải tab "Mua hàng dự án" (typeId !== 1) và KHÔNG phải tab "Mượn demo" (typeId !== 4) và KHÔNG phải tab mua demo (typeId !== 3) và KHÔNG phải tab Hàng Thương mại (typeId !== 5)
-    if (typeId !== 1 && typeId !== 4 && typeId !== 3 && typeId !== 5) {
+    // Chỉ thêm 2 cột YC duyệt và BGĐ duyệt nếu KHÔNG phải tab "Mua hàng dự án" (typeId !== 1) và KHÔNG phải tab "Mượn demo" (typeId !== 4) và KHÔNG phải tab mua demo (typeId !== 3) và KHÔNG phải tab Hàng Thương mại (typeId !== 5) và KHÔNG phải tab Hàng HR (typeId !== 6)
+    if (typeId !== 1 && typeId !== 4 && typeId !== 3 && typeId !== 5 && typeId !== 6) {
       columns.push(
         // IsRequestApproved
         {
@@ -1281,8 +1338,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       );
     }
 
-    // Chỉ thêm cột CustomerName nếu KHÔNG phải tab "Mua hàng dự án" (typeId !== 1) và KHÔNG phải tab mua demo (typeId !== 3)
-    if (typeId !== 1 && typeId !== 3 && !isConsumableTab) {
+    // Chỉ thêm cột CustomerName nếu KHÔNG phải tab "Mua hàng dự án" (typeId !== 1) và KHÔNG phải tab mua demo (typeId !== 3) và KHÔNG phải tab Hàng HR (typeId !== 6)
+    if (typeId !== 1 && typeId !== 3 && !isConsumableTab && typeId !== 6) {
       columns.push(
         // CustomerName
         {
@@ -1322,7 +1379,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         width: 100,
         sortable: false,
         filterable: true,
-        hidden: typeId === 3,
+        hidden: typeId === 3 || typeId === 6,
         filter: {
           // model: Filters['compoundInputText'],
           model: Filters['multipleSelect'],
@@ -2281,7 +2338,16 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         params: { dateFormat: 'DD/MM/YYYY' },
         filter: { model: Filters['compoundDate'] },
       },
-      // BillCode
+      // Mã PONCC
+      {
+        id: 'PONCCCode',
+        field: 'PONCCCode',
+        name: 'Mã PONCC',
+        width: 180,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
       {
         id: 'BillCode',
         field: 'BillCode',
@@ -2485,6 +2551,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       );
       if (unitPricePOKHIndex !== -1) {
         columns.splice(unitPricePOKHIndex, 1);
+      }
+    }
+
+    // Chỉ hiển thị cột PONCCCode ở tab hàng thương mại (typeId === 5)
+    if (typeId !== 5) {
+      const poncCCodeIndex = columns.findIndex((col) => col.id === 'PONCCCode');
+      if (poncCCodeIndex !== -1) {
+        columns.splice(poncCCodeIndex, 1);
       }
     }
 
@@ -2891,6 +2965,22 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     if (totalPriceFooter) {
       totalPriceFooter.textContent = `${this.formatNumberEnUS(totalPriceSum, 0)}`;
     }
+  }
+
+  private resyncGridScroll(angularGrid: AngularGridInstance): void {
+    // Use double-rAF to ensure browser has completed layout/paint after setItems+refresh
+    // before nudging the scroll to re-sync header, filter-row, and viewport.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const container = (angularGrid.slickGrid as any).getContainerNode?.() as HTMLElement;
+        if (!container) return;
+        const vp = container.querySelector('.slick-viewport') as HTMLElement;
+        if (!vp || vp.scrollLeft === 0) return;
+        const sl = vp.scrollLeft;
+        vp.scrollLeft = sl + 1;
+        requestAnimationFrame(() => { vp.scrollLeft = sl; });
+      });
+    });
   }
 
   // Update editor collections for all grids after master data is loaded
@@ -3732,6 +3822,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           const dataWithId = filteredData.map((item: any, index: number) => ({
             ...item,
             id: item.ID || index,
+            IsApprovedBGDText: (item.IsApprovedBGD === true || item.IsApprovedBGD === 1) ? 'Đã duyệt' : 'Chưa duyệt',
           }));
 
           // Lưu dataset hiển thị cho tab
@@ -3754,6 +3845,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           if (angularGrid && angularGrid.dataView) {
             angularGrid.dataView.setItems(dataWithId);
             angularGrid.dataView.refresh();
+            this.resyncGridScroll(angularGrid);
           }
         });
 
@@ -3972,7 +4064,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         });
       }
     });
-
+    console.log("result",result);
     return result;
   }
   private normalizeRowData(row: any): any {

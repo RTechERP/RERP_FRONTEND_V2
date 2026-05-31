@@ -114,6 +114,12 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
   dataAccountingContractFiles: any[] = [];
   selectedRow: any = null;
 
+  // Bulk Receive Contract modal
+  showBulkReceiveModal: boolean = false;
+  bulkDateReceived: Date | null = null;
+  bulkQuantityDocument: number = 0;
+  isBulkSaving: boolean = false;
+
   filters: any = {
     startDate: (() => {
       const now = new Date();
@@ -246,7 +252,18 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
   }
 
   onEdit() {
-    if (!this.selectedRow || !this.selectedRow.ID) {
+    const selectedData = this.tb_AccountingContract.getSelectedData();
+    if (selectedData.length > 1) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn duy nhất 1 hợp đồng để sửa'
+      );
+      return;
+    }
+
+    const rowToEdit = selectedData.length === 1 ? selectedData[0] : this.selectedRow;
+
+    if (!rowToEdit || !rowToEdit.ID) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
         'Vui lòng chọn hợp đồng để sửa'
@@ -260,8 +277,8 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       centered: true,
     });
 
-    modalRef.componentInstance.editId = this.selectedRow.ID;
-    modalRef.componentInstance.isReceivedContractMode = this.selectedRow.IsReceivedContract === true;
+    modalRef.componentInstance.editId = rowToEdit.ID;
+    modalRef.componentInstance.isReceivedContractMode = rowToEdit.IsReceivedContract === true;
 
     modalRef.result.then(
       (result) => {
@@ -394,6 +411,87 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
     );
   }
 
+  onBulkReceiveContract() {
+    const selectedRows = this.tb_AccountingContract.getSelectedData();
+
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn ít nhất một hợp đồng để nhận chứng từ hàng loạt'
+      );
+      return;
+    }
+
+    const contractIds = selectedRows
+      .map((row: any) => row.ID)
+      .filter((id: any) => id && id > 0);
+
+    if (contractIds.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không tìm thấy ID hợp đồng hợp lệ'
+      );
+      return;
+    }
+
+    // Reset modal fields
+    this.bulkDateReceived = null;
+    this.bulkQuantityDocument = 0;
+    this.showBulkReceiveModal = true;
+  }
+
+  onBulkReceiveConfirm() {
+    if (!this.bulkDateReceived) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập Ngày trả hồ sơ gốc');
+      return;
+    }
+    if (!this.bulkQuantityDocument || this.bulkQuantityDocument <= 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập SL hồ sơ > 0');
+      return;
+    }
+
+    const selectedRows = this.tb_AccountingContract.getSelectedData();
+    const contractIds = selectedRows
+      .map((row: any) => row.ID)
+      .filter((id: any) => id && id > 0);
+
+    const formatLocalDate = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}T00:00:00`;
+    };
+
+    this.isBulkSaving = true;
+    this.accountingContractService.bulkReceiveContract(
+      contractIds,
+      formatLocalDate(this.bulkDateReceived),
+      this.bulkQuantityDocument
+    ).subscribe({
+      next: (response: any) => {
+        this.isBulkSaving = false;
+        if (response && (response.status === 1 || response.Status === 1)) {
+          this.notification.success(NOTIFICATION_TITLE.success, response.message || response.Message || 'Nhận chứng từ hàng loạt thành công');
+          this.showBulkReceiveModal = false;
+          this.loadData();
+        } else {
+          const errorMessage = response?.message || response?.Message || 'Có lỗi xảy ra';
+          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+        }
+      },
+      error: (error: any) => {
+        this.isBulkSaving = false;
+        console.error('Error in onBulkReceiveConfirm:', error);
+        const errorMessage = error?.error?.message || error?.error?.Message || error?.message || 'Có lỗi xảy ra khi nhận chứng từ hàng loạt';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+      }
+    });
+  }
+
+  onBulkReceiveCancel() {
+    this.showBulkReceiveModal = false;
+  }
+
   onCancelReceiveContract() {
     if (!this.selectedRow) {
       this.notification.warning(
@@ -449,10 +547,21 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
   }
 
   onCopy() {
-    if (!this.selectedRow || !this.selectedRow.ID) {
+    const selectedData = this.tb_AccountingContract.getSelectedData();
+    if (selectedData.length > 1) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        'Vui lòng chọn hợp đồng để sửa'
+        'Vui lòng chọn duy nhất 1 hợp đồng để copy'
+      );
+      return;
+    }
+
+    const rowToEdit = selectedData.length === 1 ? selectedData[0] : this.selectedRow;
+
+    if (!rowToEdit || !rowToEdit.ID) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn hợp đồng để copy'
       );
       return;
     }
@@ -463,7 +572,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       centered: true,
     });
 
-    modalRef.componentInstance.editId = this.selectedRow.ID;
+    modalRef.componentInstance.editId = rowToEdit.ID;
     modalRef.componentInstance.isCopyMode = true;
     modalRef.componentInstance.isReceivedContractMode = false;
 
@@ -528,7 +637,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       dataTree: true,
       dataTreeStartExpanded: true,
       dataTreeChildField: '_children',
-      selectableRows: 1,
+      selectableRows: true,
       pagination: true,
       paginationMode: 'remote',
       paginationSize: 50,
@@ -755,19 +864,19 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Hiệu lực HĐ',
-          field: 'DateExpired',
+          field: 'DateExpiredText',
           sorter: 'date',
           width: 150,
-          formatter: (cell: any) => {
-            const value = cell.getValue();
-            if (!value) return '';
-            const date = new Date(value);
-            if (isNaN(date.getTime())) return value;
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
-          },
+          // formatter: (cell: any) => {
+          //   const value = cell.getValue();
+          //   if (!value) return '';
+          //   const date = new Date(value);
+          //   if (isNaN(date.getTime())) return value;
+          //   const day = String(date.getDate()).padStart(2, '0');
+          //   const month = String(date.getMonth() + 1).padStart(2, '0');
+          //   const year = date.getFullYear();
+          //   return `${day}/${month}/${year}`;
+          // },
         },
         {
           title: 'Ngày duyệt bản mềm',
@@ -790,6 +899,15 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
           field: 'FullName',
           sorter: 'string',
           width: 150,
+        },
+        {
+          title: 'Ghi chú',
+          field: 'AccountingNote',
+          sorter: 'string',
+          formatter: 'textarea',
+          width: 250,
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc ghi chú',
         },
         {
           title: 'Thông tin thay đổi',
@@ -969,9 +1087,10 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
         { header: 'Giá trị HĐ', key: 'ContractValue', width: 20 },
         { header: 'ĐVT', key: 'Unit', width: 10 },
         { header: 'Nội dung thanh toán', key: 'ContentPayment', width: 40 },
-        { header: 'Hiệu lực HĐ', key: 'DateExpired', width: 15 },
+        { header: 'Hiệu lực HĐ', key: 'DateExpiredText', width: 15 },
         { header: 'Ngày duyệt bản mềm', key: 'DateIsApprovedGroup', width: 18 },
         { header: 'NV phụ trách', key: 'FullName', width: 20 },
+        { header: 'Ghi chú', key: 'AccountingNote', width: 30 },
         { header: 'Thông tin thay đổi', key: 'Note', width: 30 },
         { header: 'Ngày trả hồ sơ gốc', key: 'DateReceived', width: 20 },
         { header: 'Số lượng hồ sơ', key: 'QuantityDocument', width: 15 },
@@ -1010,7 +1129,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
           ContractValue: row.ContractValue || 0,
           Unit: row.Unit || '',
           ContentPayment: row.ContentPayment || '',
-          DateExpired: row.DateExpired ? this.formatDateForExcel(row.DateExpired) : '',
+          DateExpiredText: row.DateExpiredText || '',
           DateIsApprovedGroup: row.DateIsApprovedGroup ? this.formatDateForExcel(row.DateIsApprovedGroup) : '',
           FullName: row.FullName || '',
           Note: row.Note || '',
@@ -1034,7 +1153,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
         }
 
         // Format ngày tháng
-        ['DateInput', 'DateContract', 'DateExpired', 'DateIsApprovedGroup', 'DateReceived'].forEach(field => {
+        ['DateInput', 'DateContract', 'DateExpiredText', 'DateIsApprovedGroup', 'DateReceived'].forEach(field => {
           const dateCell = excelRow.getCell(field);
           if (dateCell.value && typeof dateCell.value === 'string') {
             dateCell.alignment = { horizontal: 'center' };

@@ -719,7 +719,7 @@ export class BillExportTechnicalProtectiveGearDetailComponent implements OnInit 
       return;
     }
 
-    this.ProductProtectiveGearService.getBillCode(billType).subscribe({
+    this.ProductProtectiveGearService.getBillCodeExport(billType).subscribe({
       next: (res: any) => {
         if (res?.data) {
           this.newBillExport.Code = res.data;

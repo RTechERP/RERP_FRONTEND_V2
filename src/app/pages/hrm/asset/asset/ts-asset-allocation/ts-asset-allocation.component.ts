@@ -19,6 +19,10 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzModalModule } from 'ng-zorro-antd/modal';
+import { ConfirmationService, MenuItem } from 'primeng/api';
+import { ContextMenuModule } from 'primeng/contextmenu';
+import { NzModalService } from 'ng-zorro-antd/modal';
 import {
   AngularGridInstance,
   AngularSlickgridModule,
@@ -78,7 +82,9 @@ import { PermissionService } from '../../../../../services/permission.service';
     NzFormModule,
     Menubar,
     TableModule,
-    InputTextModule
+    InputTextModule,
+    ContextMenuModule,
+    NzModalModule
   ],
   selector: 'app-ts-asset-allocation',
   templateUrl: './ts-asset-allocation.component.html',
@@ -104,6 +110,9 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   datasetDetail: any[] = [];
   selectedRows: any[] = [];
 
+  selectedContextRow: any;
+  contextMenuItems: MenuItem[] = [];
+
   public detailTabTitle: string = 'Thông tin biên bản cấp phát:';
   gridId = this.generateUUIDv4();
   gridIdDetail = this.generateUUIDv4();
@@ -120,6 +129,8 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
     private authService: AuthService,
     private permissionService: PermissionService,
+    private modal: NzModalService,
+    
   ) { }
   selectedRow: any = "";
   modalData: any = [];
@@ -175,6 +186,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     this.dateStart = this.getFirstDayOfMonth();
     this.dateEnd = this.getLastDayOfMonth();
     this.initMenuBar();
+    this.initContextMenu();
   }
 
   initMenuBar(): void {
@@ -262,6 +274,40 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       }
     ];
   }
+
+   initContextMenu() {
+        this.contextMenuItems = [
+            {
+                label: 'Xem lịch sử thay đổi',
+                icon: 'fa-solid fa-clock-rotate-left text-primary',
+                command: () => this.openAssetLogModal(this.selectedContextRow)
+            }
+        ];
+    }
+
+    openAssetLogModal(row: any) {
+        if (!row || !row.ID) {
+            this.notification.warning('Thông báo', 'Dữ liệu tài sản không hợp lệ!');
+            return;
+        }
+        import('./ts-asset-allocation-log/ts-asset-allocation-log.component').then((m) => {
+            const modalRef = this.modal.create({
+                nzTitle: 'Lịch sử thay đổi mã tài sản cấp phát ' + (row.Code || ''),
+                nzContent: m.TsAssetAllocationLogComponent,
+                nzWidth: '1000px',
+                nzFooter: null,
+                nzStyle: { top: '20px' },
+                nzBodyStyle: {
+                    height: 'calc(100vh - 100px)',
+                    overflowY: 'auto',
+                    padding: '0 !important',
+                },
+            });
+            if (modalRef.componentInstance) {
+                modalRef.componentInstance.assetID = row.ID;
+            }
+        });
+    }
 
   ngAfterViewInit(): void {
     this.getAllocation();

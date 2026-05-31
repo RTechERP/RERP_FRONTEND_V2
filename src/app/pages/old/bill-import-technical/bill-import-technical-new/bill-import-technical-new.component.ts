@@ -99,10 +99,11 @@ export class BillImportTechnicalNewComponent implements OnInit, AfterViewInit, O
     ];
     warehouseType: number = 1;
     isLoading: boolean = false;
+    billImportId: number = 0;
     private subscriptions: Subscription[] = [];
     private ngbModal = inject(NgbModal);
-private gridResizeObserver!: ResizeObserver;
-private detailResizeObserver!: ResizeObserver;
+    private gridResizeObserver!: ResizeObserver;
+    private detailResizeObserver!: ResizeObserver;
     constructor(
         private notification: NzNotificationService,
         private billImportTechnicalService: BillImportTechnicalService,
@@ -140,22 +141,22 @@ private detailResizeObserver!: ResizeObserver;
         this.initDetailGridOptions();
     }
     private initResizeObserver(): void {
-      const masterEl = document.querySelector('.grid-container') as HTMLElement;
-      const detailEl = document.querySelector('.grid-container-detail') as HTMLElement;
+        const masterEl = document.querySelector('.grid-container') as HTMLElement;
+        const detailEl = document.querySelector('.grid-container-detail') as HTMLElement;
 
-      if (masterEl) {
-        this.gridResizeObserver = new ResizeObserver(() => {
-          this.angularGrid?.slickGrid?.resizeCanvas();
-        });
-        this.gridResizeObserver.observe(masterEl);
-      }
+        if (masterEl) {
+            this.gridResizeObserver = new ResizeObserver(() => {
+                this.angularGrid?.slickGrid?.resizeCanvas();
+            });
+            this.gridResizeObserver.observe(masterEl);
+        }
 
-      if (detailEl) {
-        this.detailResizeObserver = new ResizeObserver(() => {
-          this.angularGridDetail?.slickGrid?.resizeCanvas();
-        });
-        this.detailResizeObserver.observe(detailEl);
-      }
+        if (detailEl) {
+            this.detailResizeObserver = new ResizeObserver(() => {
+                this.angularGridDetail?.slickGrid?.resizeCanvas();
+            });
+            this.detailResizeObserver.observe(detailEl);
+        }
     }
     ngAfterViewInit(): void {
         this.initResizeObserver();
@@ -167,8 +168,8 @@ private detailResizeObserver!: ResizeObserver;
 
     ngOnDestroy(): void {
         this.subscriptions.forEach(sub => sub.unsubscribe());
-          this.gridResizeObserver?.disconnect();
-  this.detailResizeObserver?.disconnect();
+        this.gridResizeObserver?.disconnect();
+        this.detailResizeObserver?.disconnect();
     }
 
     // Helper method to format date to yyyy-MM-dd
@@ -380,8 +381,8 @@ private detailResizeObserver!: ResizeObserver;
             //     calculateAvailableSizeBy: 'container',
             //     resizeDetection: 'container',
             // },
-              enableAutoResize: false,
-  // gridWidth: '100%',
+            enableAutoResize: false,
+            // gridWidth: '100%',
             gridWidth: '100%',
             datasetIdPropertyName: 'id',
             enableRowSelection: true,
@@ -414,15 +415,40 @@ private detailResizeObserver!: ResizeObserver;
                     },
                 ],
             },
+            enableContextMenu: true,
+            contextMenu: {
+                commandItems: [
+                    {
+                        command: 'log',
+                        title: 'Lịch sử thay đổi',
+                        iconCssClass: 'fa-solid fa-clock-rotate-left text-primary',
+                        positionOrder: 1,
+                        action: (_e, args) => {
+                            this.viewLogHistory(args.dataContext);
+                        },
+                    },
+                    {
+                        command: 'copy',
+                        title: 'Sao chép (Copy)',
+                        iconCssClass: 'fa fa-copy',
+                        positionOrder: 2,
+                        action: (_e, args) => {
+                            // this.clipboardService.copy(args.value);
+                        },
+                    },
+                ],
+            },
         };
     }
     openSummaryModal() {
         const modalRef = this.ngbModal.open(BillImportTechnicalSummaryComponent, {
-            centered: true,
+            centered: false,
+            fullscreen: true,
             backdrop: 'static',
             keyboard: false,
+            scrollable: true,
             windowClass: 'full-screen-modal',
-            size: 'xl',
+            injector: this.injector
         });
         // Truyền warehouseID vào component
         modalRef.componentInstance.warehouseId = this.warehouseID;
@@ -882,6 +908,34 @@ private detailResizeObserver!: ResizeObserver;
             },
         });
         this.subscriptions.push(sub);
+    }
+
+    viewLogHistory(rowData: any): void {
+        if (!rowData || !rowData.ID) {
+            this.notification.warning('Thông báo', 'Dữ liệu phiếu không hợp lệ!');
+            return;
+        }
+        import('../bill-import-technical-audit-log/bill-import-technical-audit-log.component').then(
+            (m) => {
+                const modalRef = this.modal.create({
+                    nzTitle:
+                        'Lịch sử thay đổi phiếu nhập ' + (rowData.BillCode || ''),
+                    nzContent: m.BillImportTechnicalAuditLogComponent,
+                    nzWidth: '1000px',
+                    nzFooter: null, // Không hiện các nút Ok/Cancel mặc định
+                    nzStyle: { top: '20px' },
+                    nzBodyStyle: {
+                        height: 'calc(100vh - 100px)',
+                        overflowY: 'auto',
+                        padding: '0 !important',
+                    },
+                });
+                // Gắn Input cho component
+                if (modalRef.componentInstance) {
+                    modalRef.componentInstance.billImportId = rowData.ID;
+                }
+            },
+        );
     }
 
     // Approve multiple bills

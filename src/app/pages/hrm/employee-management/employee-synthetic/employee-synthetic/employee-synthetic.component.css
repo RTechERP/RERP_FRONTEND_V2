@@ -80,3 +80,18 @@
   background: #e9b003 !important;
   background-color: #e9b003 !important;
 }
+
+/* ===== Tree Select — Phòng ban ===== */
+::ng-deep .es-dept-dropdown {
+    min-width: 30vh !important;
+    font-size: 12px !important;
+}
+
+::ng-deep .es-dept-dropdown .ant-select-tree-node-content-wrapper {
+    font-size: 12px !important;
+}
+
+:host ::ng-deep nz-tree-select .ant-select-selection-item,
+:host ::ng-deep nz-tree-select .ant-select-selection-placeholder {
+    font-size: 12px !important;
+}

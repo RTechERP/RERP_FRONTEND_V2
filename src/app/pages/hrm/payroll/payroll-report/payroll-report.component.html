@@ -63,13 +63,18 @@
                             <nz-form-item>
                                 <nz-form-label class="fs-12 p-0" [nzSpan]="24">Phòng ban</nz-form-label>
                                 <nz-form-control [nzSpan]="24">
-                                    <nz-select class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban"
-                                        [(ngModel)]="departmentId" name="departmentId">
-                                        <ng-container *ngFor="let item of departments">
-                                            <nz-option [nzLabel]="item.Code +' - '+ item.Name" [nzValue]="item.ID">
-                                            </nz-option>
-                                        </ng-container>
-                                    </nz-select>
+                                    <nz-tree-select
+                                        name="departmentId"
+                                        class="w-100"
+                                        [nzNodes]="departmentNodes"
+                                        nzDropdownClassName="type-select-dropdown"
+                                        nzShowSearch
+                                        nzAllowClear
+                                         nzDefaultExpandAll
+                                        nzPlaceHolder="Chọn phòng ban"
+                                        [(ngModel)]="departmentId"
+                                        [nzDropdownStyle]="{ 'max-height': '250px', 'overflow': 'auto', 'font-size': '12px' }">
+                                    </nz-tree-select>
                                 </nz-form-control>
                             </nz-form-item>
                             <nz-form-item>

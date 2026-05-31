@@ -9,9 +9,9 @@
                         Phòng ban
                     </nz-form-label>
                     <nz-form-control>
-                        <nz-select name="department" nzShowSearch nzSize="small" nzPlaceHolder="Chọn phòng ban"
+                        <nz-select name="department" nzShowSearch nzSize="small" nzPlaceHolder="Chọn phòng ban" nzDropdownClassName="select-dropdown"
                             style="width: 200px;" [(ngModel)]="selectedDepartmentId"
-                            (ngModelChange)="onDepartmentChange()" [nzDisabled]="true">
+                            (ngModelChange)="onDepartmentChange()">
                             <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID"
                                 [nzLabel]="dept.Code + ' - ' + dept.Name">
                             </nz-option>
@@ -24,7 +24,7 @@
                         Kỳ đánh giá
                     </nz-form-label>
                     <nz-form-control>
-                        <nz-select name="kpiSession" nzShowSearch nzAllowClear nzSize="small"
+                        <nz-select name="kpiSession" nzShowSearch nzAllowClear nzSize="small" nzDropdownClassName="select-dropdown"
                             nzPlaceHolder="Chọn kỳ đánh giá" style="width: 250px;" [(ngModel)]="selectedKPISessionId"
                             (ngModelChange)="onKPISessionChange()">
                             <nz-option *ngFor="let session of kpiSessions" [nzValue]="session.ID"
@@ -64,13 +64,92 @@
                         </div>
 
                         <!-- Master Grid -->
-                        <div class="card-body p-0 flex-grow-1 grid-container-master" style="overflow: hidden;">
-                            <angular-slickgrid gridId="gridMaster" [columns]="columnDefinitionsMaster"
-                                [options]="gridOptionsMaster" [dataset]="datasetMaster"
-                                (onAngularGridCreated)="angularGridReadyMaster($event.detail)"
-                                (onClick)="onMasterRowClick($event.detail.eventData, $event.detail.args)"
-                                (onDblClick)="onMasterRowDblClick($event.detail.eventData, $event.detail.args)">
-                            </angular-slickgrid>
+                        <div class="card-body p-0 flex-grow-1 grid-container-master"
+                            style="overflow: hidden; display: flex; flex-direction: column;">
+                            <p-treeTable #ttMaster [value]="treeDatasetMaster" [columns]="visibleColumns(columnDefinitionsMaster)"
+                                dataKey="ID" [scrollable]="true" scrollHeight="flex"
+                                styleClass="p-treetable-sm p-treetable-gridlines kpi-prime-tree-table"
+                                [loading]="isLoadingMaster" [resizableColumns]="true" columnResizeMode="expand"
+                                [filterMode]="'lenient'">
+                                <ng-template pTemplate="colgroup" let-columns>
+                                    <colgroup>
+                                        <col *ngFor="let col of columns" [style.width]="getColumnWidth(col)">
+                                    </colgroup>
+                                </ng-template>
+                                <ng-template pTemplate="header" let-columns>
+                                    <tr>
+                                        <th *ngFor="let col of columns" ttResizableColumn [ttSortableColumn]="col.field"
+                                            [ttSortableColumnDisabled]="!col.sortable"
+                                            [style.width]="getColumnWidth(col)">
+                                            <div class="table-header-cell d-flex align-items-center justify-content-between">
+                                                <span>{{ col.name }}</span>
+                                                <p-treeTableSortIcon *ngIf="col.sortable" [field]="col.field"></p-treeTableSortIcon>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th *ngFor="let col of columns" class="filter-cell"
+                                            [style.width]="getColumnWidth(col)">
+                                            <input *ngIf="col.filterable" type="text"
+                                                class="p-inputtext p-component p-inputtext-sm w-100" placeholder="Tìm kiếm"
+                                                (input)="ttMaster.filter($any($event.target).value, col.field, 'contains')"
+                                                (blur)="ttMaster.filter($any($event.target).value?.trim(), col.field, 'contains')" />
+                                        </th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-rowNode let-rowData="rowData" let-columns="columns">
+                                    <tr [ttRow]="rowNode" [ttSelectableRow]="rowNode" class="data-row"
+                                        (click)="onMasterRowClick(rowData)" (dblclick)="onMasterRowDblClick(rowData)"
+                                        [ngClass]="{
+                                            'selected-row': selectedPositionId && selectedPositionId === rowData.ID,
+                                            'group-row session-group-row': rowData.isSessionGroup,
+                                            'group-row type-group-row': rowData.isTypeGroup
+                                        }">
+                                        <!-- Group Row Handling: Span across all columns -->
+                                        <ng-container *ngIf="rowData.isGroup">
+                                            <td [attr.colspan]="columns.length">
+                                                <div class="tree-cell">
+                                                    <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+                                                    <ng-container *ngIf="rowData.isSessionGroup">
+                                                        <span class="group-title fw-bold text-primary">Kỳ đánh giá: {{ rowData.KPISessionName }}</span>
+                                                        <span class="group-count text-muted ms-2">({{ rowData.count }} vị trí)</span>
+                                                    </ng-container>
+                                                    <ng-container *ngIf="rowData.isTypeGroup">
+                                                        <span class="group-title fw-bold text-success">Chức vụ: {{ rowData.TypePositionText }}</span>
+                                                        <span class="group-count text-muted ms-2">({{ rowData.count }} vị trí)</span>
+                                                    </ng-container>
+                                                </div>
+                                            </td>
+                                        </ng-container>
+                                        
+                                        <!-- Data Row Handling: Render each cell normally -->
+                                        <ng-container *ngIf="!rowData.isGroup">
+                                            <td *ngFor="let col of columns; let i = index" [ngClass]="getCellClass(col)"
+                                                [style.width]="getColumnWidth(col)">
+                                                <ng-container *ngIf="i === 0; else regularCell">
+                                                    <div class="tree-cell">
+                                                        <p-treeTableToggler [rowNode]="rowNode" style="visibility: hidden;"></p-treeTableToggler>
+                                                        <span class="cell-content" [title]="getCellTitle(rowData, col)">
+                                                            {{ formatCell(rowData, col) }}
+                                                        </span>
+                                                    </div>
+                                                </ng-container>
+                                                <ng-template #regularCell>
+                                                    <span class="cell-content" [title]="getCellTitle(rowData, col)">
+                                                        {{ formatCell(rowData, col) }}
+                                                    </span>
+                                                </ng-template>
+                                            </td>
+                                        </ng-container>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td [attr.colspan]="visibleColumns(columnDefinitionsMaster).length"
+                                            class="text-center text-muted py-3">Không có dữ liệu</td>
+                                    </tr>
+                                </ng-template>
+                            </p-treeTable>
                         </div>
                     </div>
                 </nz-splitter-panel>
@@ -91,12 +170,70 @@
                         </div>
 
                         <!-- Detail Grid -->
-                        <div class="card-body p-0 flex-grow-1 grid-container-detail" style="overflow: hidden;">
-                            <angular-slickgrid gridId="gridDetail" [columns]="columnDefinitionsDetail"
-                                [options]="gridOptionsDetail" [dataset]="datasetDetail"
-                                (onAngularGridCreated)="angularGridReadyDetail($event.detail)"
-                                (onDblClick)="onDetailRowDblClick($event.detail.eventData, $event.detail.args)">
-                            </angular-slickgrid>
+                        <div class="card-body p-0 flex-grow-1 grid-container-detail"
+                            style="overflow: hidden; display: flex; flex-direction: column;">
+                            <p-table [value]="datasetDetail" [columns]="visibleColumns(columnDefinitionsDetail)"
+                                dataKey="ID" [scrollable]="true" scrollHeight="flex"
+                                styleClass="p-datatable-sm p-datatable-gridlines kpi-prime-table"
+                                selectionMode="multiple" [(selection)]="selectedEmployeeRows" rowGroupMode="subheader"
+                                groupRowsBy="DepartmentName" [sortField]="'DepartmentName'" [sortOrder]="1"
+                                [loading]="isLoadingDetail" loadingIcon="pi pi-spin pi-spinner"
+                                [resizableColumns]="true" columnResizeMode="expand">
+                                <ng-template pTemplate="header" let-columns>
+                                    <tr>
+                                        <th style="width: 42px; text-align: center;">
+                                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                                        </th>
+                                        <th *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field"
+                                            [pSortableColumnDisabled]="!col.sortable"
+                                            [style.min-width]="getColumnWidth(col)" [style.width]="getColumnWidth(col)">
+                                            <div
+                                                class="table-header-cell d-flex align-items-center justify-content-between">
+                                                <span>{{ col.name }}</span>
+                                                <p-sortIcon *ngIf="col.sortable" [field]="col.field"></p-sortIcon>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th></th>
+                                        <th *ngFor="let col of columns" [style.min-width]="getColumnWidth(col)"
+                                            [style.width]="getColumnWidth(col)" class="filter-cell">
+                                            <p-columnFilter *ngIf="col.filterable" [type]="getColumnFilterType(col)"
+                                                [field]="col.field" display="row" [showMenu]="false"
+                                                matchMode="contains" placeholder="Tìm kiếm"></p-columnFilter>
+                                        </th>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="groupheader" let-rowData>
+                                    <tr pRowGroupHeader class="group-row">
+                                        <td [attr.colspan]="visibleColumns(columnDefinitionsDetail).length + 1">
+                                            <span class="group-title fw-bold text-success">Phòng ban: {{
+                                                rowData.DepartmentName }}</span>
+                                            <span class="group-count text-muted ms-2">({{
+                                                getDetailGroupCount(rowData.DepartmentName) }} nhân viên)</span>
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="body" let-rowData let-columns="columns">
+                                    <tr class="data-row" (dblclick)="onDetailRowDblClick(rowData)">
+                                        <td style="width: 42px; text-align: center;">
+                                            <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
+                                        </td>
+                                        <td *ngFor="let col of columns" [ngClass]="getCellClass(col)"
+                                            [style.min-width]="getColumnWidth(col)" [style.width]="getColumnWidth(col)">
+                                            <span class="cell-content" [title]="getCellTitle(rowData, col)">
+                                                {{ formatCell(rowData, col) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td [attr.colspan]="visibleColumns(columnDefinitionsDetail).length + 1"
+                                            class="text-center text-muted py-3">Không có dữ liệu</td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
                         </div>
                     </div>
                 </nz-splitter-panel>

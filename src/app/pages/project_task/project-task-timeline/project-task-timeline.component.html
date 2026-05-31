@@ -11,6 +11,15 @@
                 <div class="legend-item">
                     <span class="box actual"></span> Thực tế
                 </div>
+                <div class="legend-item">
+                    <span class="box outside-work"></span> Nhà máy
+                </div>
+                <div class="legend-item"><span class="legend-sep">|</span></div>
+                <div class="legend-item"><strong>Ro</strong>&nbsp;= Nghỉ không lương</div>
+                <div class="legend-item"><strong>P</strong>&nbsp;= Nghỉ phép</div>
+                <div class="legend-item"><strong>R</strong>&nbsp;= Việc riêng có lương</div>
+                <div class="legend-item"><span class="legend-sep">|</span></div>
+                <div class="legend-item"><strong>/S</strong>&nbsp;= Buổi sáng &nbsp; <strong>/C</strong>&nbsp;= Buổi chiều &nbsp; (không có hậu tố = cả ngày)</div>
             </div>
             <!-- Search Bar -->
             <div class="search-bar">
@@ -75,12 +84,12 @@
                         </th>
                         <th rowspan="2" class="sticky-col col-time">Thời gian <br>(giờ/ngày)</th>
                         <th rowspan="2" class="sticky-col col-type">Loại</th>
-                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday" class="date-header">
+                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday || col.isDayOff" class="date-header">
                             {{ col.dayName }}
                         </th>
                     </tr>
                     <tr>
-                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday" class="date-subheader">
+                        <th *ngFor="let col of dateColumns" [class.sunday]="col.isSunday || col.isDayOff" class="date-subheader">
                             {{ col.dateDisplay }}
                         </th>
                     </tr>
@@ -134,8 +143,8 @@
                                     <!-- Trạng thái: span 2 dòng -->
                                     <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-status text-center"
                                         [class.cell-group-end]="ti === group.tasks.length - 1">
-                                        <span class="status-tag" [attr.data-status]="task.Status">
-                                            {{ getStatusName(task.Status) }}
+                                        <span class="status-tag" [attr.data-status]="task.Status" [class.overdue]="task.isOverdue" [ngStyle]="task._statusStyle">
+                                            {{ task.StatusName }}
                                         </span>
                                     </td>
 
@@ -152,21 +161,27 @@
                                         {{ row.TypeDate === 1 ? 'Dự kiến' : 'Thực tế' }}
                                     </td>
 
-                                    <!-- Các ô ngày -->
+                                    <!-- Các ô ngày - Sử dụng pre-computed _cellData -->
                                     <td *ngFor="let col of dateColumns" class="gantt-cell"
                                         [class.cell-group-end]="ri === 1 && ti === group.tasks.length - 1"
-                                        [class.sunday]="col.isSunday" [class.today-col]="col.isToday"
-                                        [class.filled-planned]="row.TypeDate === 1 && (getValue(row, col.dateStr) === 1 || getValue(row, col.dateStr) === 3)"
-                                        [class.filled-actual]="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
-                                        <!-- Dự kiến: 2 hoặc 3 hiển thị icon check -->
+                                        [class.sunday]="col.isSunday || col.isDayOff" [class.today-col]="col.isToday"
+                                        [class.filled-planned]="row.TypeDate === 1 && row._cellData[col.dateStr]?.isPlannedFilled && !row._cellData[col.dateStr]?.isOutsideWork"
+                                        [class.filled-planned-outside]="row.TypeDate === 1 && row._cellData[col.dateStr]?.isPlannedFilled && row._cellData[col.dateStr]?.isOutsideWork"
+                                        [class.filled-actual]="row.TypeDate === 2 && row._cellData[col.dateStr]?.isFilledActual"
+                                        [class.filled-actual-outside]="row.TypeDate === 2 && row._cellData[col.dateStr]?.isFilledActualOutside"
+                                        [nz-tooltip]="row._cellData[col.dateStr]?.tooltip">
+                                        <!-- Dự kiến: hiển thị icon check -->
                                         <ng-container
-                                            *ngIf="row.TypeDate === 1 && (getValue(row, col.dateStr) === 2 || getValue(row, col.dateStr) === 3)">
+                                            *ngIf="row.TypeDate === 1 && row._cellData[col.dateStr]?.hasCheckMark">
                                             <span nz-icon nzType="check" nzTheme="outline" class="check-icon"></span>
                                         </ng-container>
-                                        <!-- Thực tế: > 0 hiển thị số giờ -->
-                                        <ng-container *ngIf="row.TypeDate === 2 && getValue(row, col.dateStr) > 0">
-                                            <span class="actual-hours">
-                                                {{ getValue(row, col.dateStr) }}
+                                        <!-- Thực tế: dùng pre-computed data -->
+                                        <ng-container *ngIf="row.TypeDate === 2">
+                                            <span *ngIf="row._cellData[col.dateStr]?.actualHours > 0" class="actual-hours">
+                                                {{ row._cellData[col.dateStr].actualHours }}
+                                            </span>
+                                            <span *ngIf="row._cellData[col.dateStr]?.hasLeave" class="leave-label">
+                                                {{ row._cellData[col.dateStr].leaveLabel }}
                                             </span>
                                         </ng-container>
                                     </td>

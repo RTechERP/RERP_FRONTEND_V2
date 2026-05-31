@@ -20,6 +20,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
@@ -32,6 +33,7 @@ import { DateTime } from 'luxon';
 
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { EmployeeAttendanceImportExcelComponent } from './employee-attendance-import-excel/employee-attendance-import-excel.component';
+import { EmployeeAttendanceManualFormComponent } from './employee-attendance-manual-form/employee-attendance-manual-form.component';
 import { EmployeeAttendanceService } from './employee-attendance.service';
 import { VehicleRepairService } from '../../vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
 import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../app.config';
@@ -54,6 +56,7 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
     NzFormModule,
     NzModalModule,
     NzCheckboxModule,
+    NzTreeSelectModule,
     HasPermissionDirective,
     TableModule,
     ButtonModule,
@@ -94,6 +97,7 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
 
   // Master data
   departments: any[] = [];
+  departmentNodes: any[] = []; // tree nodes for nz-tree-select
   allEmployees: any[] = []; // full list (để filter theo phòng ban)
   employees: any[] = []; // grouped theo DepartmentName (cho dropdown)
 
@@ -132,7 +136,10 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
   loadDepartments(): void {
     this.eas.getDepartment().subscribe({
       next: (res: any) => {
-        if (res?.status === 1) this.departments = res.data || [];
+        if (res?.status === 1) {
+          this.departments = res.data || [];
+          this.departmentNodes = this.buildTreeNodes([...this.departments]);
+        }
       },
       error: (res: any) =>
         this.notification.error('Lỗi', res.error.message || 'Không thể tải danh sách phòng ban'),
@@ -260,6 +267,26 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
     if (!t) return text || '';
     const re = new RegExp(`(${this.escapeRegExp(t)})`, 'gi');
     return String(text ?? '').replace(re, '<mark>$1</mark>');
+  }
+
+  private buildTreeNodes(data: any[]): any[] {
+    const tree: any[] = [];
+    const lookup: any = {};
+
+    data.forEach(item => {
+      lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+    });
+
+    data.forEach(item => {
+      if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+        lookup[item.ParentID].children.push(lookup[item.ID]);
+        lookup[item.ParentID].isLeaf = false;
+      } else {
+        tree.push(lookup[item.ID]);
+      }
+    });
+
+    return tree;
   }
 
   // ---------- Events ----------
@@ -809,6 +836,48 @@ export class EmployeeAttendanceComponent implements OnInit, AfterViewInit {
         });
       },
     });
+  }
+
+  // ======================= MANUAL ADD/EDIT =======================
+  addManualAttendance(): void {
+    const modalRef = this.ngbModal.open(
+      EmployeeAttendanceManualFormComponent,
+      { size: 'lg', backdrop: 'static', keyboard: false, centered: true }
+    );
+    modalRef.componentInstance.mode = 'add';
+    modalRef.componentInstance.allEmployees = this.allEmployees;
+
+    modalRef.result.then(
+      (res) => {
+        if (res === 'success') this.getEmployeeAttendace();
+      },
+      () => {} // dismissed
+    );
+  }
+
+  editManualAttendance(): void {
+    if (!this.selectedAttendance || this.selectedAttendance.length !== 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đúng 1 dòng để sửa');
+      return;
+    }
+
+    const modalRef = this.ngbModal.open(
+      EmployeeAttendanceManualFormComponent,
+      { size: 'lg', backdrop: 'static', keyboard: false, centered: true }
+    );
+    modalRef.componentInstance.mode = 'edit';
+    modalRef.componentInstance.editData = this.selectedAttendance[0];
+    modalRef.componentInstance.allEmployees = this.allEmployees;
+
+    modalRef.result.then(
+      (res) => {
+        if (res === 'success') {
+          this.getEmployeeAttendace();
+          this.selectedAttendance = [];
+        }
+      },
+      () => {} // dismissed
+    );
   }
 
   // ======================= IMPORT EXCEL =======================

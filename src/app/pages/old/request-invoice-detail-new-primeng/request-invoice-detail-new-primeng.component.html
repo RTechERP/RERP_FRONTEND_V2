@@ -12,11 +12,18 @@
                         <div class="row">
                             <div class="col-md-6 mb-2">
                                 <label class="mb-0 fs-12">Số phiếu</label>
-                                <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="formData.Code"
-                                    name="Code" disabled>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm fs-12"
+                                        [(ngModel)]="formData.Code" name="Code" disabled>
+                                    <button class="btn btn-outline-secondary" type="button" 
+                                        (click)="generateBillNumber(selectedId)" 
+                                        title="Làm mới số phiếu">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="col-md-6 mb-2">
-                                <label class="mb-0 fs-12">Công ty bán</label>
+                                <label class="mb-0 fs-12">Công ty bán <span class="text-danger">*</span></label>
                                 <nz-select nzShowSearch name="taxCompany" nzPlaceHolder="Chọn công ty bán" nzAllowClear
                                     nzSize="default" class="w-100" [(ngModel)]="formData.taxCompanyId">
                                     <nz-option *ngFor="let item of taxCompanyOptions" [nzValue]="item.value"
@@ -24,7 +31,7 @@
                                 </nz-select>
                             </div>
                             <div class="col-md-12 mb-2">
-                                <label class="mb-0 fs-12">Khách hàng</label>
+                                <label class="mb-0 fs-12">Khách hàng <span class="text-danger">*</span></label>
                                 <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
                                     nzSize="default" class="w-100" [(ngModel)]="formData.customerId"
                                     (ngModelChange)="onCustomerChange($event)">
@@ -48,7 +55,7 @@
                     <div class="col-md-4 px-2">
                         <div class="row">
                             <div class="col-md-12 mb-2">
-                                <label class="mb-0 fs-12">Người yêu cầu</label>
+                                <label class="mb-0 fs-12">Người yêu cầu <span class="text-danger">*</span></label>
                                 <nz-select nzShowSearch name="userId" nzPlaceHolder="Chọn người yêu cầu" nzAllowClear
                                     nzSize="default" class="w-100" [(ngModel)]="formData.userId">
                                     <nz-option *ngFor="let user of employees" [nzValue]="user.ID"
@@ -56,47 +63,58 @@
                                 </nz-select>
                             </div>
                             <div class="col-md-12 mb-2">
-                                <label class="mb-0 fs-12">Ngày yêu cầu</label>
+                                <label class="mb-0 fs-12">Ngày yêu cầu <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control form-control-sm fs-12"
                                     [(ngModel)]="formData.requestDate" name="requestDate">
                             </div>
                             <div class="col-md-12 mb-2">
-                                <label class="mb-0 fs-12">Ngày xuất</label>
+                                <label class="mb-0 fs-12">Ngày xuất <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control form-control-sm fs-12"
                                     [(ngModel)]="formData.exportDate" name="createDate">
                             </div>
                             <div class="col-md-12 mb-2">
                                 <div class="row">
+                                    <div class="col-md-12">
+                                        <label class="mb-0 fs-12">Loại hợp đồng <span class="text-danger">*</span></label>
+                                        <nz-select nzShowSearch name="accountingContractType"
+                                            nzPlaceHolder="Chọn loại hợp đồng" nzAllowClear nzSize="default"
+                                            class="w-100" [(ngModel)]="formData.accountingContractType">
+                                            <nz-option *ngFor="let item of accountingContractTypeOptions"
+                                                [nzValue]="item.ID"
+                                                [nzLabel]="item.TypeCode + ' - ' + item.TypeName"></nz-option>
+                                        </nz-select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-2">
+                                <div class="row">
                                     <div class="col-md-6">
-                                        <label class="mb-0 fs-12">Trạng thái</label>
-                                        <nz-select nzShowSearch name="status" nzPlaceHolder="Chọn trạng thái" nzAllowClear
-                                            nzSize="default" class="w-100" [(ngModel)]="formData.status">
+                                        <label class="mb-0 fs-12">Trạng thái <span class="text-danger">*</span></label>
+                                        <nz-select nzShowSearch name="status" nzPlaceHolder="Chọn trạng thái"
+                                            nzAllowClear nzSize="default" class="w-100" [(ngModel)]="formData.status">
                                             <nz-option *ngFor="let item of statuses" [nzValue]="item.value"
                                                 [nzLabel]="item.label"></nz-option>
                                         </nz-select>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="mb-0 fs-12 invisible">Tờ khai</label>
-                                        <div class="d-flex align-items-center mt-1">
-                                            <input type="checkbox" [(ngModel)]="formData.isCustomsDeclared"
-                                                name="isCustomsDeclared" class="form-check-input me-2" />
-                                            <label class="mb-0 fs-12">Tờ khai hải quan</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-12 mb-2">
-                                <div class="row">
                                     <div class="col-md-6">
                                         <label class="mb-0 fs-12">Deadline</label>
                                         <input type="date" class="form-control form-control-sm fs-12"
                                             [(ngModel)]="formData.deadline" name="deadline"
                                             [disabled]="!formData.isUrgency">
                                     </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-2">
+                                <div class="row">
                                     <div class="col-md-6">
-                                        <label class="mb-0 fs-12 invisible">Cần gấp</label>
-                                        <div class="d-flex align-items-center mt-1">
+                                        <div class="d-flex align-items-center mt-2">
+                                            <input type="checkbox" [(ngModel)]="formData.isCustomsDeclared"
+                                                name="isCustomsDeclared" class="form-check-input me-2" />
+                                            <label class="mb-0 fs-12">Tờ khai hải quan</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center mt-2">
                                             <input type="checkbox" [(ngModel)]="formData.isUrgency" name="isUrgency"
                                                 class="form-check-input me-2" (change)="onUrgencyChange()" />
                                             <label class="mb-0 fs-12">Cần gấp</label>
@@ -108,27 +126,27 @@
                     </div>
 
                     <div class="col-md-4 ps-2">
-                        <div class="row">
-                            <h6>File đính kèm</h6>
-                            <div class="mb-2 d-flex align-items-center">
-                                <input type="file" multiple class="form-control" #fileInput
-                                    style="max-width: 300px; height: 30px; font-size: 11px;"
-                                    (change)="onFileSelected($event)">
-                            </div>
+                        <div class="d-flex align-items-center justify-content-between mb-2 mt-1">
+                            <h6 class="mb-0">File đính kèm</h6>
+                            <input type="file" multiple class="form-control" #fileInput
+                                style="max-width: 200px; height: 30px; font-size: 11px;"
+                                (change)="onFileSelected($event)">
                         </div>
 
                         <p-table [value]="files" dataKey="__fileKey" selectionMode="single"
                             [(selection)]="selectedInvoiceFile"
-                            styleClass="p-datatable-gridlines p-datatable-sm invoice-file-table"
-                            [scrollable]="true" scrollHeight="26.5vh" [showGridlines]="true" [rowHover]="true">
+                            styleClass="p-datatable-gridlines p-datatable-sm invoice-file-table mb-3" [scrollable]="true"
+                            scrollHeight="16vh" [showGridlines]="true" [rowHover]="true">
                             <ng-template pTemplate="header">
                                 <tr>
                                     <th style="width: 42px;"></th>
-                                    <th pSortableColumn="fileName">Tên file <p-sortIcon field="fileName"></p-sortIcon></th>
+                                    <th pSortableColumn="fileName">Tên file <p-sortIcon field="fileName"></p-sortIcon>
+                                    </th>
                                 </tr>
                             </ng-template>
                             <ng-template pTemplate="body" let-file>
-                                <tr [pSelectableRow]="file" (dblclick)="selectedInvoiceFile = file; downloadInvoiceFile(file)">
+                                <tr [pSelectableRow]="file"
+                                    (dblclick)="selectedInvoiceFile = file; downloadInvoiceFile(file)">
                                     <td class="text-center">
                                         <button *ngIf="!file.IsDeleted" pButton type="button" icon="pi pi-trash"
                                             class="p-button-text p-button-danger p-button-sm table-icon-btn"
@@ -146,6 +164,45 @@
                                 </tr>
                             </ng-template>
                         </p-table>
+
+                        <div class="d-flex align-items-center justify-content-between mb-2 mt-1">
+                            <h6 class="mb-0">File hợp đồng</h6>
+                            <input type="file" multiple class="form-control" #contractFileInput
+                                style="max-width: 200px; height: 30px; font-size: 11px;"
+                                (change)="onContractFileSelected($event)">
+                        </div>
+
+                        <p-table [value]="contractFiles" dataKey="__fileKey" selectionMode="single"
+                            [(selection)]="selectedContractFile"
+                            styleClass="p-datatable-gridlines p-datatable-sm invoice-file-table" [scrollable]="true"
+                            scrollHeight="16vh" [showGridlines]="true" [rowHover]="true">
+                            <ng-template pTemplate="header">
+                                <tr>
+                                    <th style="width: 42px;"></th>
+                                    <th pSortableColumn="fileName">Tên file <p-sortIcon field="fileName"></p-sortIcon>
+                                    </th>
+                                </tr>
+                            </ng-template>
+                            <ng-template pTemplate="body" let-file>
+                                <tr [pSelectableRow]="file"
+                                    (dblclick)="selectedContractFile = file; downloadContractFile(file)">
+                                    <td class="text-center">
+                                        <button *ngIf="!file.IsDeleted" pButton type="button" icon="pi pi-trash"
+                                            class="p-button-text p-button-danger p-button-sm table-icon-btn"
+                                            (click)="deleteContractFile(file); $event.stopPropagation()">
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <span class="file-link">{{ getContractFileName(file) }}</span>
+                                    </td>
+                                </tr>
+                            </ng-template>
+                            <ng-template pTemplate="emptymessage">
+                                <tr>
+                                    <td colspan="2">Không có file.</td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
                     </div>
                 </div>
 
@@ -154,221 +211,254 @@
                         <nz-splitter-panel>
                             <h6 class="mb-1 fs-14">Danh sách sản phẩm</h6>
                             <div class="detail-table-shell">
-                            <p-table [value]="details" dataKey="__rowKey"
-                                styleClass="p-datatable-gridlines p-datatable-sm request-detail-table"
-                                [tableStyle]="{ 'min-width': '3300px', 'table-layout': 'fixed' }"
-                                [scrollable]="true" scrollHeight="flex" [resizableColumns]="true"
-                                columnResizeMode="expand" [showGridlines]="true" [rowHover]="true" [stripedRows]="true"
-                                selectionMode="multiple" [(selection)]="selectedDetailRows"
-                                (selectionChange)="onDetailSelectionChange($event)" editMode="cell">
+                                <p-table [value]="details" dataKey="__rowKey"
+                                    styleClass="p-datatable-gridlines p-datatable-sm request-detail-table"
+                                    [tableStyle]="{ 'min-width': '3300px', 'table-layout': 'fixed' }"
+                                    [scrollable]="true" scrollHeight="flex" [resizableColumns]="true"
+                                    columnResizeMode="expand" [showGridlines]="true" [rowHover]="true"
+                                    [stripedRows]="true" selectionMode="multiple" [(selection)]="selectedDetailRows"
+                                    (selectionChange)="onDetailSelectionChange($event)" editMode="cell">
 
-                                <ng-template pTemplate="header">
-                                    <tr class="column-size-row">
-                                        <th style="width: 42px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 42px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 34px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 180px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 190px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 180px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 220px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 50px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 80px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 160px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 220px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 220px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 120px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 170px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 150px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 90px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 180px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 150px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 150px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 240px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 220px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 170px; height: 0; padding: 0; border: 0;"></th>
-                                        <th style="width: 220px; height: 0; padding: 0; border: 0;"></th>
-                                    </tr>
-                                    <tr>
-                                        <th style="width: 42px;"></th>
-                                        <th style="width: 42px;"></th>
-                                        <th colspan="15" class="text-center"></th>
-                                        <th colspan="6" class="text-center">Thông tin đầu vào</th>
-                                    </tr>
-                                    <tr>
-                                        <th style="width: 42px;"></th>
-                                        <th style="width: 42px;">
-                                            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-                                        </th>
-                                        <th class="stt-column" pResizableColumn>STT</th>
-                                        <th pResizableColumn pSortableColumn="ProductNewCode" style="width: 120px;">Mã nội bộ <p-sortIcon field="ProductNewCode"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="ProductSaleID" style="width: 190px;">Mã sản phẩm <p-sortIcon field="ProductSaleID"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="GuestCode" style="width: 180px;">Mã theo khách <p-sortIcon field="GuestCode"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="ProductName" style="width: 220px;">Tên sản phẩm <p-sortIcon field="ProductName"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="Unit" style="width: 50px;">ĐVT <p-sortIcon field="Unit"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="Quantity" style="width: 80px;">Số lượng <p-sortIcon field="Quantity"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="ProjectCode" style="width: 160px;">Mã dự án <p-sortIcon field="ProjectCode"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="ProjectID" style="width: 220px;">Dự án <p-sortIcon field="ProjectID"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="Note" style="width: 220px;">Ghi chú <p-sortIcon field="Note"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="PONumber" style="width: 120px;">Số POKH <p-sortIcon field="PONumber"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="InvoiceNumber" style="width: 170px;">Số hóa đơn <p-sortIcon field="InvoiceNumber"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="InvoiceDate" style="width: 150px;">Ngày hóa đơn <p-sortIcon field="InvoiceDate"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="IsStock" style="width: 90px;">Tồn kho <p-sortIcon field="IsStock"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="BillExportCode" style="width: 180px;">Mã phiếu xuất <p-sortIcon field="BillExportCode"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="RequestDate" style="width: 150px;">Ngày đặt hàng <p-sortIcon field="RequestDate"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="DateRequestImport" style="width: 150px;">Ngày hàng về <p-sortIcon field="DateRequestImport"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="SupplierName" style="width: 240px;">Nhà cung cấp <p-sortIcon field="SupplierName"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="SomeBill" style="width: 220px;">Hóa đơn đầu vào <p-sortIcon field="SomeBill"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="ExpectedDate" style="width: 170px;">Ngày hàng về dự kiến <p-sortIcon field="ExpectedDate"></p-sortIcon></th>
-                                        <th pResizableColumn pSortableColumn="BillImportCode" style="width: 220px;">PNK <p-sortIcon field="BillImportCode"></p-sortIcon></th>
-                                    </tr>
-                                </ng-template>
+                                    <ng-template pTemplate="header">
+                                        <tr class="column-size-row">
+                                            <th style="width: 42px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 42px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 34px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 180px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 190px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 180px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 220px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 50px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 80px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 160px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 220px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 220px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 120px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 170px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 150px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 90px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 180px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 150px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 150px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 240px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 220px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 170px; height: 0; padding: 0; border: 0;"></th>
+                                            <th style="width: 220px; height: 0; padding: 0; border: 0;"></th>
+                                        </tr>
+                                        <tr>
+                                            <th style="width: 42px;"></th>
+                                            <th style="width: 42px;"></th>
+                                            <th colspan="15" class="text-center"></th>
+                                            <th colspan="6" class="text-center">Thông tin đầu vào</th>
+                                        </tr>
+                                        <tr>
+                                            <th style="width: 42px;"></th>
+                                            <th style="width: 42px;">
+                                                <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                                            </th>
+                                            <th class="stt-column" pResizableColumn>STT</th>
+                                            <th pResizableColumn pSortableColumn="ProductNewCode" style="width: 120px;">
+                                                Mã nội bộ <p-sortIcon field="ProductNewCode"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="ProductSaleID" style="width: 190px;">
+                                                Mã sản phẩm <p-sortIcon field="ProductSaleID"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="GuestCode" style="width: 180px;">Mã
+                                                theo khách <p-sortIcon field="GuestCode"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="ProductName" style="width: 220px;">Tên
+                                                sản phẩm <p-sortIcon field="ProductName"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="Unit" style="width: 50px;">ĐVT
+                                                <p-sortIcon field="Unit"></p-sortIcon>
+                                            </th>
+                                            <th pResizableColumn pSortableColumn="Quantity" style="width: 80px;">Số
+                                                lượng <p-sortIcon field="Quantity"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="ProjectCode" style="width: 160px;">Mã
+                                                dự án <p-sortIcon field="ProjectCode"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="ProjectID" style="width: 220px;">Dự án
+                                                <p-sortIcon field="ProjectID"></p-sortIcon>
+                                            </th>
+                                            <th pResizableColumn pSortableColumn="Note" style="width: 220px;">Ghi chú
+                                                <p-sortIcon field="Note"></p-sortIcon>
+                                            </th>
+                                            <th pResizableColumn pSortableColumn="PONumber" style="width: 120px;">Số
+                                                POKH <p-sortIcon field="PONumber"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="InvoiceNumber" style="width: 170px;">
+                                                Số hóa đơn <p-sortIcon field="InvoiceNumber"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="InvoiceDate" style="width: 150px;">
+                                                Ngày hóa đơn <p-sortIcon field="InvoiceDate"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="IsStock" style="width: 90px;">Tồn kho
+                                                <p-sortIcon field="IsStock"></p-sortIcon>
+                                            </th>
+                                            <th pResizableColumn pSortableColumn="BillExportCode" style="width: 180px;">
+                                                Mã phiếu xuất <p-sortIcon field="BillExportCode"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="RequestDate" style="width: 150px;">
+                                                Ngày đặt hàng <p-sortIcon field="RequestDate"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="DateRequestImport"
+                                                style="width: 150px;">Ngày hàng về <p-sortIcon
+                                                    field="DateRequestImport"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="SupplierName" style="width: 240px;">
+                                                Nhà cung cấp <p-sortIcon field="SupplierName"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="SomeBill" style="width: 220px;">Hóa
+                                                đơn đầu vào <p-sortIcon field="SomeBill"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="ExpectedDate" style="width: 170px;">
+                                                Ngày hàng về dự kiến <p-sortIcon field="ExpectedDate"></p-sortIcon></th>
+                                            <th pResizableColumn pSortableColumn="BillImportCode" style="width: 220px;">
+                                                PNK <p-sortIcon field="BillImportCode"></p-sortIcon></th>
+                                        </tr>
+                                    </ng-template>
 
-                                <ng-template pTemplate="body" let-rowData let-rowIndex="rowIndex">
-                                    <tr [class.p-highlight]="isDetailRowSelected(rowData)">
-                                        <td class="text-center">
-                                            <button *ngIf="!rowData.IsDeleted" pButton type="button" icon="pi pi-trash"
-                                                class="p-button-text p-button-danger p-button-sm table-icon-btn"
-                                                (click)="deleteDetailRow(rowData); $event.stopPropagation()">
-                                            </button>
-                                        </td>
-                                        <td class="text-center">
-                                            <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
-                                        </td>
-                                        <td class="text-center stt-column">{{ rowData.STT }}</td>
-                                        <td>{{ rowData.ProductNewCode }}</td>
-                                        <td [pEditableColumn]="rowData" pEditableColumnField="ProductSaleID">
-                                            <p-cellEditor>
-                                                <ng-template pTemplate="input">
-                                                    <p-select [options]="productEditorOptions" optionLabel="label"
-                                                        optionValue="value" [filter]="true" filterBy="label"
-                                                        [showClear]="true" [virtualScroll]="true"
-                                                        [virtualScrollItemSize]="28" scrollHeight="360px"
-                                                        [resetFilterOnHide]="true"
-                                                        appendTo="body" styleClass="w-100 product-editor-select"
-                                                        panelStyleClass="product-editor-panel"
-                                                        [panelStyle]="{ width: '520px', 'max-width': '80vw' }"
-                                                        [(ngModel)]="rowData.ProductSaleID"
-                                                        [ngModelOptions]="{ standalone: true }"
-                                                        (onFocus)="prepareProductEditor(rowData)"
-                                                        (onShow)="prepareProductEditor(rowData)"
-                                                        (onFilter)="filterProductOptions($event, rowData)"
-                                                        (onChange)="onProductSaleIDChanged(rowData, $event.value)">
-                                                    </p-select>
-                                                </ng-template>
-                                                <ng-template pTemplate="output">{{ getProductCode(rowData) }}</ng-template>
-                                            </p-cellEditor>
-                                        </td>
-                                        <td>{{ rowData.GuestCode }}</td>
-                                        <td>{{ rowData.ProductName }}</td>
-                                        <td>{{ rowData.Unit }}</td>
-                                        <td [pEditableColumn]="rowData" pEditableColumnField="Quantity"
-                                            class="text-end">
-                                            <p-cellEditor>
-                                                <ng-template pTemplate="input">
-                                                    <input type="number" pInputText class="table-cell-input text-end"
-                                                        [(ngModel)]="rowData.Quantity"
-                                                        [ngModelOptions]="{ standalone: true }"
-                                                        (ngModelChange)="onDetailFieldChanged(rowData, 'Quantity', $event)" />
-                                                </ng-template>
-                                                <ng-template pTemplate="output">{{ rowData.Quantity }}</ng-template>
-                                            </p-cellEditor>
-                                        </td>
-                                        <td>{{ rowData.ProjectCode }}</td>
-                                        <td [pEditableColumn]="rowData" pEditableColumnField="ProjectID">
-                                            <p-cellEditor>
-                                                <ng-template pTemplate="input">
-                                                    <p-select [options]="projectOptions" optionLabel="label"
-                                                        optionValue="value" [filter]="true" [showClear]="true"
-                                                        appendTo="body" styleClass="w-100"
-                                                        [(ngModel)]="rowData.ProjectID"
-                                                        [ngModelOptions]="{ standalone: true }"
-                                                        (onChange)="onProjectChanged(rowData, $event.value)">
-                                                    </p-select>
-                                                </ng-template>
-                                                <ng-template pTemplate="output">{{ getProjectName(rowData) }}</ng-template>
-                                            </p-cellEditor>
-                                        </td>
-                                        <td [pEditableColumn]="rowData" pEditableColumnField="Note">
-                                            <p-cellEditor>
-                                                <ng-template pTemplate="input">
-                                                    <input pInputText class="table-cell-input"
-                                                        [(ngModel)]="rowData.Note"
-                                                        [ngModelOptions]="{ standalone: true }"
-                                                        (ngModelChange)="onDetailFieldChanged(rowData, 'Note', $event)" />
-                                                </ng-template>
-                                                <ng-template pTemplate="output">{{ rowData.Note }}</ng-template>
-                                            </p-cellEditor>
-                                        </td>
-                                        <td>{{ rowData.PONumber }}</td>
-                                        <td [pEditableColumn]="rowData" pEditableColumnField="InvoiceNumber">
-                                            <p-cellEditor>
-                                                <ng-template pTemplate="input">
-                                                    <input pInputText class="table-cell-input"
-                                                        [(ngModel)]="rowData.InvoiceNumber"
-                                                        [ngModelOptions]="{ standalone: true }"
-                                                        (ngModelChange)="onDetailFieldChanged(rowData, 'InvoiceNumber', $event)" />
-                                                </ng-template>
-                                                <ng-template pTemplate="output">{{ rowData.InvoiceNumber }}</ng-template>
-                                            </p-cellEditor>
-                                        </td>
-                                        <td [pEditableColumn]="rowData" pEditableColumnField="InvoiceDate">
-                                            <p-cellEditor>
-                                                <ng-template pTemplate="input">
-                                                    <input type="date" class="table-cell-input"
-                                                        [ngModel]="toDateInputValue(rowData.InvoiceDate)"
-                                                        [ngModelOptions]="{ standalone: true }"
-                                                        (ngModelChange)="onInvoiceDateChanged(rowData, $event)" />
-                                                </ng-template>
-                                                <ng-template pTemplate="output">{{ formatDateVi(rowData.InvoiceDate) }}</ng-template>
-                                            </p-cellEditor>
-                                        </td>
-                                        <td class="text-center">
-                                            <input type="checkbox" class="form-check-input table-checkbox"
-                                                [ngModel]="!!rowData.IsStock"
-                                                [ngModelOptions]="{ standalone: true }"
-                                                (ngModelChange)="onDetailFieldChanged(rowData, 'IsStock', $event)" />
-                                        </td>
-                                        <td>{{ rowData.BillExportCode }}</td>
-                                        <td>{{ formatDateVi(rowData.RequestDate) }}</td>
-                                        <td>{{ formatDateVi(rowData.DateRequestImport) }}</td>
-                                        <td>{{ rowData.SupplierName }}</td>
-                                        <td>{{ rowData.SomeBill }}</td>
-                                        <td>{{ formatDateVi(rowData.ExpectedDate) }}</td>
-                                        <td>{{ rowData.BillImportCode }}</td>
-                                    </tr>
-                                </ng-template>
+                                    <ng-template pTemplate="body" let-rowData let-rowIndex="rowIndex">
+                                        <tr [class.p-highlight]="isDetailRowSelected(rowData)">
+                                            <td class="text-center">
+                                                <button *ngIf="!rowData.IsDeleted" pButton type="button"
+                                                    icon="pi pi-trash"
+                                                    class="p-button-text p-button-danger p-button-sm table-icon-btn"
+                                                    (click)="deleteDetailRow(rowData); $event.stopPropagation()">
+                                                </button>
+                                            </td>
+                                            <td class="text-center">
+                                                <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
+                                            </td>
+                                            <td class="text-center stt-column">{{ rowData.STT }}</td>
+                                            <td>{{ rowData.ProductNewCode }}</td>
+                                            <td [pEditableColumn]="rowData" pEditableColumnField="ProductSaleID">
+                                                <p-cellEditor>
+                                                    <ng-template pTemplate="input">
+                                                        <p-select [options]="productEditorOptions" optionLabel="label"
+                                                            optionValue="value" [filter]="true" filterBy="label"
+                                                            [showClear]="true" [virtualScroll]="true"
+                                                            [virtualScrollItemSize]="28" scrollHeight="360px"
+                                                            [resetFilterOnHide]="true" appendTo="body"
+                                                            styleClass="w-100 product-editor-select"
+                                                            panelStyleClass="product-editor-panel"
+                                                            [panelStyle]="{ width: '520px', 'max-width': '80vw' }"
+                                                            [(ngModel)]="rowData.ProductSaleID"
+                                                            [ngModelOptions]="{ standalone: true }"
+                                                            (onFocus)="prepareProductEditor(rowData)"
+                                                            (onShow)="prepareProductEditor(rowData)"
+                                                            (onFilter)="filterProductOptions($event, rowData)"
+                                                            (onChange)="onProductSaleIDChanged(rowData, $event.value)">
+                                                        </p-select>
+                                                    </ng-template>
+                                                    <ng-template pTemplate="output">{{ getProductCode(rowData)
+                                                        }}</ng-template>
+                                                </p-cellEditor>
+                                            </td>
+                                            <td>{{ rowData.GuestCode }}</td>
+                                            <td>{{ rowData.ProductName }}</td>
+                                            <td>{{ rowData.Unit }}</td>
+                                            <td [pEditableColumn]="rowData" pEditableColumnField="Quantity"
+                                                class="text-end">
+                                                <p-cellEditor>
+                                                    <ng-template pTemplate="input">
+                                                        <input type="number" pInputText
+                                                            class="table-cell-input text-end"
+                                                            [(ngModel)]="rowData.Quantity"
+                                                            [ngModelOptions]="{ standalone: true }"
+                                                            (ngModelChange)="onDetailFieldChanged(rowData, 'Quantity', $event)" />
+                                                    </ng-template>
+                                                    <ng-template pTemplate="output">{{ rowData.Quantity }}</ng-template>
+                                                </p-cellEditor>
+                                            </td>
+                                            <td>{{ rowData.ProjectCode }}</td>
+                                            <td [pEditableColumn]="rowData" pEditableColumnField="ProjectID">
+                                                <p-cellEditor>
+                                                    <ng-template pTemplate="input">
+                                                        <p-select [options]="projectOptions" optionLabel="label"
+                                                            optionValue="value" [filter]="true" [showClear]="true"
+                                                            appendTo="body" styleClass="w-100"
+                                                            [(ngModel)]="rowData.ProjectID"
+                                                            [ngModelOptions]="{ standalone: true }"
+                                                            (onChange)="onProjectChanged(rowData, $event.value)">
+                                                        </p-select>
+                                                    </ng-template>
+                                                    <ng-template pTemplate="output">{{ getProjectName(rowData)
+                                                        }}</ng-template>
+                                                </p-cellEditor>
+                                            </td>
+                                            <td [pEditableColumn]="rowData" pEditableColumnField="Note">
+                                                <p-cellEditor>
+                                                    <ng-template pTemplate="input">
+                                                        <input pInputText class="table-cell-input"
+                                                            [(ngModel)]="rowData.Note"
+                                                            [ngModelOptions]="{ standalone: true }"
+                                                            (ngModelChange)="onDetailFieldChanged(rowData, 'Note', $event)" />
+                                                    </ng-template>
+                                                    <ng-template pTemplate="output">{{ rowData.Note }}</ng-template>
+                                                </p-cellEditor>
+                                            </td>
+                                            <td>{{ rowData.PONumber }}</td>
+                                            <td [pEditableColumn]="rowData" pEditableColumnField="InvoiceNumber">
+                                                <p-cellEditor>
+                                                    <ng-template pTemplate="input">
+                                                        <input pInputText class="table-cell-input"
+                                                            [(ngModel)]="rowData.InvoiceNumber"
+                                                            [ngModelOptions]="{ standalone: true }"
+                                                            (ngModelChange)="onDetailFieldChanged(rowData, 'InvoiceNumber', $event)" />
+                                                    </ng-template>
+                                                    <ng-template pTemplate="output">{{ rowData.InvoiceNumber
+                                                        }}</ng-template>
+                                                </p-cellEditor>
+                                            </td>
+                                            <td [pEditableColumn]="rowData" pEditableColumnField="InvoiceDate">
+                                                <p-cellEditor>
+                                                    <ng-template pTemplate="input">
+                                                        <input type="date" class="table-cell-input"
+                                                            [ngModel]="toDateInputValue(rowData.InvoiceDate)"
+                                                            [ngModelOptions]="{ standalone: true }"
+                                                            (ngModelChange)="onInvoiceDateChanged(rowData, $event)" />
+                                                    </ng-template>
+                                                    <ng-template pTemplate="output">{{ formatDateVi(rowData.InvoiceDate)
+                                                        }}</ng-template>
+                                                </p-cellEditor>
+                                            </td>
+                                            <td class="text-center">
+                                                <input type="checkbox" class="form-check-input table-checkbox"
+                                                    [ngModel]="!!rowData.IsStock"
+                                                    [ngModelOptions]="{ standalone: true }"
+                                                    (ngModelChange)="onDetailFieldChanged(rowData, 'IsStock', $event)" />
+                                            </td>
+                                            <td>{{ rowData.BillExportCode }}</td>
+                                            <td>{{ formatDateVi(rowData.RequestDate) }}</td>
+                                            <td>{{ formatDateVi(rowData.DateRequestImport) }}</td>
+                                            <td>{{ rowData.SupplierName }}</td>
+                                            <td>{{ rowData.SomeBill }}</td>
+                                            <td>{{ formatDateVi(rowData.ExpectedDate) }}</td>
+                                            <td>{{ rowData.BillImportCode }}</td>
+                                        </tr>
+                                    </ng-template>
 
-                                <ng-template pTemplate="emptymessage">
-                                    <tr>
-                                        <td colspan="23">Không có dữ liệu.</td>
-                                    </tr>
-                                </ng-template>
-                            </p-table>
+                                    <ng-template pTemplate="emptymessage">
+                                        <tr>
+                                            <td colspan="23">Không có dữ liệu.</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
                             </div>
                         </nz-splitter-panel>
                         <nz-splitter-panel nzDefaultSize="20%" [nzCollapsible]="true" nzResizable="true">
                             <h6 class="mb-1 fs-14">Danh sách file PO đính kèm</h6>
                             <div class="po-table-shell">
-                            <p-table [value]="POFiles" dataKey="__fileKey" selectionMode="single"
-                                [(selection)]="selectedPOFile"
-                                styleClass="p-datatable-gridlines p-datatable-sm po-file-table"
-                                [scrollable]="true" scrollHeight="flex" [showGridlines]="true" [rowHover]="true">
-                                <ng-template pTemplate="header">
-                                    <tr>
-                                        <th pSortableColumn="FileName">Tên file <p-sortIcon field="FileName"></p-sortIcon></th>
-                                    </tr>
-                                </ng-template>
-                                <ng-template pTemplate="body" let-file>
-                                    <tr [pSelectableRow]="file" (dblclick)="selectedPOFile = file; downloadPOFile(file)">
-                                        <td><span class="file-link">{{ getPOFileName(file) }}</span></td>
-                                    </tr>
-                                </ng-template>
-                                <ng-template pTemplate="emptymessage">
-                                    <tr>
-                                        <td>Không có file.</td>
-                                    </tr>
-                                </ng-template>
-                            </p-table>
+                                <p-table [value]="POFiles" dataKey="__fileKey" selectionMode="single"
+                                    [(selection)]="selectedPOFile"
+                                    styleClass="p-datatable-gridlines p-datatable-sm po-file-table" [scrollable]="true"
+                                    scrollHeight="flex" [showGridlines]="true" [rowHover]="true">
+                                    <ng-template pTemplate="header">
+                                        <tr>
+                                            <th pSortableColumn="FileName">Tên file <p-sortIcon
+                                                    field="FileName"></p-sortIcon></th>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="body" let-file>
+                                        <tr [pSelectableRow]="file"
+                                            (dblclick)="selectedPOFile = file; downloadPOFile(file)">
+                                            <td><span class="file-link">{{ getPOFileName(file) }}</span></td>
+                                        </tr>
+                                    </ng-template>
+                                    <ng-template pTemplate="emptymessage">
+                                        <tr>
+                                            <td>Không có file.</td>
+                                        </tr>
+                                    </ng-template>
+                                </p-table>
                             </div>
                         </nz-splitter-panel>
                     </nz-splitter>

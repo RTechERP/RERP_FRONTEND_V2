@@ -116,6 +116,21 @@
                     </div>
                 </ng-container>
             </div>
+            <div *ngIf="urlPDF && pdfFileExists && hiddenVideo" class="pdf-section mb-4">
+                <div>
+                    <!-- <embed [src]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%" height="600"> -->
+                    <!-- <iframe src="{{getUrlPDFFile(currentLesson?.UrlPDF)}}" width="600" height="780" style="border: none;">
+                </iframe> -->
+                    <!--
+                <object [data]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%"
+                    height="600"></object> -->
+                    <!-- <object data="{{getUrlPDFFile(currentLesson?.UrlPDF)}}"  type="application/pdf" width="100%"
+                    height="600"></object> -->
+                    <embed [src]="urlPDF" type="application/pdf" width="100%" height="800" frameborder="0"
+                        sandbox="allow-same-origin allow-scripts" allowfullscreen>
+    
+                </div>
+            </div>
 
             <!-- Chapters List -->
             <div  class="chapters-section px-3 pb-4" *ngIf="(chapters && chapters.length > 0) && !hiddenVideo">
@@ -223,7 +238,7 @@
     <div class="content-section mb-4">
         <h5 class="section-title">{{ currentLesson?.LessonTitle }}</h5>
         <!-- PDF Section -->
-        <div *ngIf="urlPDF && pdfFileExists" class="pdf-section mb-4">
+        <div *ngIf="urlPDF && pdfFileExists && !hiddenVideo" class="pdf-section mb-4">
             <div>
                 <!-- <embed [src]="getUrlPDFFile(currentLesson?.UrlPDF)" type="application/pdf" width="100%" height="600"> -->
                 <!-- <iframe src="{{getUrlPDFFile(currentLesson?.UrlPDF)}}" width="600" height="780" style="border: none;">

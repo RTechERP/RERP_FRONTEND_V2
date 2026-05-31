@@ -15,7 +15,6 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -24,14 +23,10 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 // NgBootstrap Modal
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
-// Angular SlickGrid
-import {
-  AngularGridInstance,
-  AngularSlickgridModule,
-  Column,
-  Formatters,
-  GridOption,
-} from 'angular-slickgrid';
+// PrimeNG
+import { TreeNode } from 'primeng/api';
+import { TableModule } from 'primeng/table';
+import { TreeTableModule } from 'primeng/treetable';
 
 // Service
 import { KpiEvaluationFactorsService } from './kpi-evaluation-factores-service/kpi-evaluation-factors.service';
@@ -41,6 +36,22 @@ import { KpiSessionDetailComponent } from '../kpi-evaluation-rule/kpi-session-de
 import { KpiExamComponent } from './kpi-exam/kpi-exam.component';
 import { CopyKpiExamComponent } from './copy-kpi-exam/copy-kpi-exam.component';
 import { KpiEvaluationFactorsDetailComponent } from './kpi-evaluation-factors-detail/kpi-evaluation-factors-detail.component';
+
+type PrimeColumnType = 'text' | 'number' | 'boolean';
+
+interface PrimeColumn {
+  id: string;
+  name: string;
+  field: string;
+  width?: number;
+  minWidth?: number;
+  hidden?: boolean;
+  sortable?: boolean;
+  filterable?: boolean;
+  type?: PrimeColumnType;
+  align?: 'left' | 'center' | 'right';
+  cssClass?: string;
+}
 
 @Component({
   selector: 'app-kpi-evaluation-factors',
@@ -54,11 +65,11 @@ import { KpiEvaluationFactorsDetailComponent } from './kpi-evaluation-factors-de
     NzSplitterModule,
     NzSelectModule,
     NzInputNumberModule,
-    NzSpinModule,
     NzModalModule,
     NzFormModule,
     NzTabsModule,
-    AngularSlickgridModule,
+    TableModule,
+    TreeTableModule,
   ],
   templateUrl: './kpi-evaluation-factors.component.html',
   styleUrl: './kpi-evaluation-factors.component.css'
@@ -74,34 +85,12 @@ export class KpiEvaluationFactorsComponent implements OnInit, OnDestroy {
   // Data arrays
   departments: any[] = [];
 
-  // Grid IDs
-  private uuid = Math.random().toString(36).substring(2, 9);
-  gridSessionId = `gridSession_${this.uuid}`;
-  gridExamId = `gridExam_${this.uuid}`;
-  gridSkillId = `gridSkill_${this.uuid}`;
-  gridGeneralId = `gridGeneral_${this.uuid}`;
-  gridSpecialtyId = `gridSpecialty_${this.uuid}`;
-
-  // SlickGrid instances
-  angularGridSession!: AngularGridInstance;
-  angularGridExam!: AngularGridInstance;
-  angularGridSkill!: AngularGridInstance;
-  angularGridGeneral!: AngularGridInstance;
-  angularGridSpecialty!: AngularGridInstance;
-
   // Column definitions
-  columnDefinitionsSession: Column[] = [];
-  columnDefinitionsExam: Column[] = [];
-  columnDefinitionsSkill: Column[] = [];
-  columnDefinitionsGeneral: Column[] = [];
-  columnDefinitionsSpecialty: Column[] = [];
-
-  // Grid options
-  gridOptionsSession: GridOption = {};
-  gridOptionsExam: GridOption = {};
-  gridOptionsSkill: GridOption = {};
-  gridOptionsGeneral: GridOption = {};
-  gridOptionsSpecialty: GridOption = {};
+  columnDefinitionsSession: PrimeColumn[] = [];
+  columnDefinitionsExam: PrimeColumn[] = [];
+  columnDefinitionsSkill: PrimeColumn[] = [];
+  columnDefinitionsGeneral: PrimeColumn[] = [];
+  columnDefinitionsSpecialty: PrimeColumn[] = [];
 
   // Datasets
   datasetSession: any[] = [];
@@ -109,6 +98,9 @@ export class KpiEvaluationFactorsComponent implements OnInit, OnDestroy {
   datasetSkill: any[] = [];
   datasetGeneral: any[] = [];
   datasetSpecialty: any[] = [];
+  treeDatasetSkill: TreeNode[] = [];
+  treeDatasetGeneral: TreeNode[] = [];
+  treeDatasetSpecialty: TreeNode[] = [];
 
   // Selected items
   selectedSession: any = null;
@@ -116,6 +108,9 @@ export class KpiEvaluationFactorsComponent implements OnInit, OnDestroy {
   selectedSkillFactor: any = null;
   selectedGeneralFactor: any = null;
   selectedSpecialtyFactor: any = null;
+  selectedSkillNode: TreeNode | null = null;
+  selectedGeneralNode: TreeNode | null = null;
+  selectedSpecialtyNode: TreeNode | null = null;
 
   // Loading states
   isLoadingSession = false;
@@ -180,22 +175,31 @@ export class KpiEvaluationFactorsComponent implements OnInit, OnDestroy {
             id: item.ID,
           }));
 
-          // Auto-select current quarter session
-          const currentQuarter = Math.ceil((new Date().getMonth() + 1) / 3);
-          const currentSession = this.datasetSession.find(
-            (s: any) => s.YearEvaluation === this.filters.year && s.QuarterEvaluation === currentQuarter
-          );
-          if (currentSession) {
-            this.selectedSession = currentSession;
-            setTimeout(() => this.loadExams(), 100);
-          } else if (this.datasetSession.length > 0) {
-            this.selectedSession = this.datasetSession[0];
+          // Ưu tiên giữ lại session đang được chọn
+          let sessionToSelect = null;
+          if (this.selectedSession?.ID) {
+            sessionToSelect = this.datasetSession.find(s => s.ID === this.selectedSession.ID);
+          }
+
+          // Nếu không có, tự động chọn quý hiện tại
+          if (!sessionToSelect) {
+            const currentQuarter = Math.ceil((new Date().getMonth() + 1) / 3);
+            sessionToSelect = this.datasetSession.find(
+              (s: any) => s.YearEvaluation === this.filters.year && s.QuarterEvaluation === currentQuarter
+            );
+          }
+
+          // Nếu vẫn không có, chọn dòng đầu tiên
+          if (!sessionToSelect && this.datasetSession.length > 0) {
+            sessionToSelect = this.datasetSession[0];
+          }
+
+          if (sessionToSelect) {
+            this.selectedSession = sessionToSelect;
             setTimeout(() => this.loadExams(), 100);
           } else {
-            this.datasetExam = [];
-            this.datasetSkill = [];
-            this.datasetGeneral = [];
-            this.datasetSpecialty = [];
+            this.selectedSession = null;
+            this.clearExamData();
           }
         }
         this.isLoadingSession = false;
@@ -209,10 +213,7 @@ export class KpiEvaluationFactorsComponent implements OnInit, OnDestroy {
 
   loadExams(): void {
     if (!this.selectedSession?.ID) {
-      this.datasetExam = [];
-      this.datasetSkill = [];
-      this.datasetGeneral = [];
-      this.datasetSpecialty = [];
+      this.clearExamData();
       return;
     }
     this.isLoadingExam = true;
@@ -223,14 +224,23 @@ export class KpiEvaluationFactorsComponent implements OnInit, OnDestroy {
             ...item,
             id: item.ID,
           }));
-          if (this.datasetExam.length > 0) {
-            this.selectedExam = this.datasetExam[0];
+          // Ưu tiên giữ lại exam đang được chọn
+          let examToSelect = null;
+          if (this.selectedExam?.ID) {
+            examToSelect = this.datasetExam.find(e => e.ID === this.selectedExam.ID);
+          }
+
+          // Nếu không có, chọn dòng đầu tiên
+          if (!examToSelect && this.datasetExam.length > 0) {
+            examToSelect = this.datasetExam[0];
+          }
+
+          if (examToSelect) {
+            this.selectedExam = examToSelect;
             setTimeout(() => this.loadKPIEvaluation(), 100);
           } else {
             this.selectedExam = null;
-            this.datasetSkill = [];
-            this.datasetGeneral = [];
-            this.datasetSpecialty = [];
+            this.clearEvaluationData();
           }
         }
         this.isLoadingExam = false;
@@ -244,9 +254,7 @@ export class KpiEvaluationFactorsComponent implements OnInit, OnDestroy {
 
   loadKPIEvaluation(): void {
     if (!this.selectedExam?.ID) {
-      this.datasetSkill = [];
-      this.datasetGeneral = [];
-      this.datasetSpecialty = [];
+      this.clearEvaluationData();
       return;
     }
 
@@ -261,34 +269,46 @@ export class KpiEvaluationFactorsComponent implements OnInit, OnDestroy {
 
           // data = EvaluationType 1 (KỸ NĂNG)
           const skillData = Array.isArray(responseData?.data) ? responseData.data : [];
-          this.datasetSkill = skillData.map((item: any) => ({
-            ...item,
-            id: item.ID,
-            parentId: item.ParentID === 0 ? null : item.ParentID,
-          }));
+          this.datasetSkill = this.prepareFactorDataset(skillData);
+          this.treeDatasetSkill = this.buildFactorTreeNodes(this.datasetSkill);
+
+          if (this.selectedSkillFactor?.ID) {
+            const updated = this.datasetSkill.find(x => x.ID === this.selectedSkillFactor.ID);
+            if (updated) {
+              this.selectedSkillFactor = updated;
+              this.selectedSkillNode = this.findNodeInTree(this.treeDatasetSkill, updated.ID);
+            }
+          }
 
           // data2 = EvaluationType 2 (CHUYÊN MÔN)
           const specialtyData = Array.isArray(responseData?.data2) ? responseData.data2 : [];
-          this.datasetSpecialty = specialtyData.map((item: any) => ({
-            ...item,
-            id: item.ID,
-            parentId: item.ParentID === 0 ? null : item.ParentID,
-          }));
+          this.datasetSpecialty = this.prepareFactorDataset(specialtyData);
+          this.treeDatasetSpecialty = this.buildFactorTreeNodes(this.datasetSpecialty);
+
+          if (this.selectedSpecialtyFactor?.ID) {
+            const updated = this.datasetSpecialty.find(x => x.ID === this.selectedSpecialtyFactor.ID);
+            if (updated) {
+              this.selectedSpecialtyFactor = updated;
+              this.selectedSpecialtyNode = this.findNodeInTree(this.treeDatasetSpecialty, updated.ID);
+            }
+          }
 
           // data3 = EvaluationType 3 (ĐÁNH GIÁ CHUNG)
           const generalData = Array.isArray(responseData?.data3) ? responseData.data3 : [];
-          this.datasetGeneral = generalData.map((item: any) => ({
-            ...item,
-            id: item.ID,
-            parentId: item.ParentID === 0 ? null : item.ParentID,
-          }));
+          this.datasetGeneral = this.prepareFactorDataset(generalData);
+          this.treeDatasetGeneral = this.buildFactorTreeNodes(this.datasetGeneral);
+
+          if (this.selectedGeneralFactor?.ID) {
+            const updated = this.datasetGeneral.find(x => x.ID === this.selectedGeneralFactor.ID);
+            if (updated) {
+              this.selectedGeneralFactor = updated;
+              this.selectedGeneralNode = this.findNodeInTree(this.treeDatasetGeneral, updated.ID);
+            }
+          }
         }
         this.isLoadingSkill = false;
         this.isLoadingGeneral = false;
         this.isLoadingSpecialty = false;
-
-        // Refresh grid to apply parent row highlighting after data loads
-        setTimeout(() => this.refreshGridHighlight(), 100);
       },
       error: (err) => {
         this.isLoadingSkill = false;
@@ -311,264 +331,114 @@ export class KpiEvaluationFactorsComponent implements OnInit, OnDestroy {
   //#region Grid Initialization
   initGridSession(): void {
     this.columnDefinitionsSession = [
-      { id: 'Code', name: 'Mã kỳ', field: 'Code', width: 120, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'Name', name: 'Tên kỳ', field: 'Name', width: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'YearEvaluation', name: 'Năm', field: 'YearEvaluation', width: 80, sortable: true, cssClass: 'text-end' },
-      { id: 'QuarterEvaluation', name: 'Quý', field: 'QuarterEvaluation', width: 80, sortable: true, cssClass: 'text-end' },
+      this.textCol('Code', 'Mã kỳ', 'Code', 120),
+      this.textCol('Name', 'Tên kỳ', 'Name', 200),
+      this.textCol('YearEvaluation', 'Năm', 'YearEvaluation', 80, { align: 'right', filterable: false }),
+      this.textCol('QuarterEvaluation', 'Quý', 'QuarterEvaluation', 80, { align: 'right', filterable: false }),
     ];
-
-    this.gridOptionsSession = {
-      enableAutoResize: true,
-      autoResize: {
-        container: '.grid-container-session',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container',
-      },
-      gridWidth: '100%',
-      forceFitColumns: true,
-      enableCellNavigation: true,
-      enableFiltering: true,
-      enableRowSelection: true,
-      rowSelectionOptions: { selectActiveRow: true },
-      enableCheckboxSelector: false,
-    };
   }
 
   initGridExam(): void {
     this.columnDefinitionsExam = [
-      { id: 'ExamCode', name: 'Mã bài đánh giá', field: 'ExamCode', width: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'ExamName', name: 'Tên bài đánh giá', field: 'ExamName', width: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'PositionName', name: 'Vị trí', field: 'PositionName', width: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'TypePositionName', name: 'Chức vụ', field: 'TypePositionName', width: 120, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'IsActive', name: 'Hoạt động', field: 'IsActive', width: 100, sortable: true, formatter: Formatters.checkmarkMaterial },
+      this.textCol('ExamCode', 'Mã bài đánh giá', 'ExamCode', 150),
+      this.textCol('ExamName', 'Tên bài đánh giá', 'ExamName', 200),
+      this.textCol('PositionName', 'Vị trí', 'PositionName', 150),
+      this.textCol('TypePositionName', 'Chức vụ', 'TypePositionName', 120),
+      this.booleanCol('IsActive', 'Hoạt động', 'IsActive', 100),
     ];
-
-    this.gridOptionsExam = {
-      enableAutoResize: true,
-      autoResize: {
-        container: '.grid-container-exam',
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container',
-      },
-      gridWidth: '100%',
-      forceFitColumns: true,
-      enableCellNavigation: true,
-      enableFiltering: true,
-      enableRowSelection: true,
-      rowSelectionOptions: { selectActiveRow: true },
-      enableCheckboxSelector: false,
-      enableGrouping: true,
-    };
-  }
-
-  numberFormatter(row: number, cell: number, value: any, columnDef: any, dataContext: any): string {
-    if (value === null || value === undefined || value === 0) return '';
-    return new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
   }
 
   initGridSkill(): void {
-    this.columnDefinitionsSkill = [
-      { id: 'STT', name: 'STT', field: 'STT', width: 150, sortable: true, formatter: Formatters.tree },
-      { id: 'EvaluationContent', name: 'Yếu tố đánh giá', field: 'EvaluationContent', width: 300, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'StandardPoint', name: 'Điểm chuẩn', field: 'StandardPoint', width: 100, sortable: true, cssClass: 'text-end', formatter: this.numberFormatter },
-      { id: 'Coefficient', name: 'Hệ số', field: 'Coefficient', width: 80, sortable: true, cssClass: 'text-end', formatter: this.numberFormatter },
-      { id: 'VerificationToolsContent', name: 'Phương tiện xác minh tiêu chí', field: 'VerificationToolsContent', width: 300, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'Unit', name: 'Đơn vị tính', field: 'Unit', width: 100, sortable: true, formatter: this.commonTooltipFormatter },
-    ];
-
-    this.gridOptionsSkill = this.createTreeGridOptions('.grid-container-skill');
+    this.columnDefinitionsSkill = this.createFactorColumns();
   }
 
   initGridGeneral(): void {
-    this.columnDefinitionsGeneral = [
-      { id: 'STT', name: 'STT', field: 'STT', width: 150, sortable: true, formatter: Formatters.tree },
-      { id: 'EvaluationContent', name: 'Yếu tố đánh giá', field: 'EvaluationContent', width: 300, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'StandardPoint', name: 'Điểm chuẩn', field: 'StandardPoint', width: 100, sortable: true, cssClass: 'text-end', formatter: this.numberFormatter },
-      { id: 'Coefficient', name: 'Hệ số', field: 'Coefficient', width: 80, sortable: true, cssClass: 'text-end', formatter: this.numberFormatter },
-      { id: 'VerificationToolsContent', name: 'Phương tiện xác minh tiêu chí', field: 'VerificationToolsContent', width: 300, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'Unit', name: 'Đơn vị tính', field: 'Unit', width: 100, sortable: true, formatter: this.commonTooltipFormatter },
-    ];
-
-    this.gridOptionsGeneral = this.createTreeGridOptions('.grid-container-general');
+    this.columnDefinitionsGeneral = this.createFactorColumns();
   }
 
   initGridSpecialty(): void {
-    this.columnDefinitionsSpecialty = [
-      { id: 'STT', name: 'STT', field: 'STT', width: 150, sortable: true, formatter: Formatters.tree },
-      { id: 'EvaluationContent', name: 'Yếu tố đánh giá', field: 'EvaluationContent', width: 300, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'StandardPoint', name: 'Điểm chuẩn', field: 'StandardPoint', width: 100, sortable: true, cssClass: 'text-end', formatter: this.numberFormatter },
-      { id: 'Coefficient', name: 'Hệ số', field: 'Coefficient', width: 80, sortable: true, cssClass: 'text-end', formatter: this.numberFormatter },
-      { id: 'VerificationToolsContent', name: 'Phương tiện xác minh tiêu chí', field: 'VerificationToolsContent', width: 300, sortable: true, filterable: true, formatter: this.commonTooltipFormatter },
-      { id: 'Unit', name: 'Đơn vị tính', field: 'Unit', width: 100, sortable: true, formatter: this.commonTooltipFormatter },
-    ];
-
-    this.gridOptionsSpecialty = this.createTreeGridOptions('.grid-container-specialty');
-  }
-
-  createTreeGridOptions(container: string): GridOption {
-    return {
-      enableAutoResize: true,
-      autoResize: {
-        container: container,
-        calculateAvailableSizeBy: 'container',
-        resizeDetection: 'container',
-      },
-      gridWidth: '100%',
-      forceFitColumns: true,
-      enableCellNavigation: true,
-      enableFiltering: true,
-      enableTreeData: true,
-      multiColumnSort: false,
-      treeDataOptions: {
-        columnId: 'STT',
-        parentPropName: 'parentId',
-        levelPropName: 'treeLevel',
-        indentMarginLeft: 15,
-        initiallyCollapsed: false,
-      },
-      enableRowSelection: true,
-      rowSelectionOptions: { selectActiveRow: true },
-      enableCheckboxSelector: false,
-    };
+    this.columnDefinitionsSpecialty = this.createFactorColumns();
   }
   //#endregion
 
   //#region Grid Events
-  angularGridReadySession(angularGrid: AngularGridInstance): void {
-    this.angularGridSession = angularGrid;
+  onSessionRowClick(item: any): void {
+    if (!item?.ID) return;
+    this.selectedSession = item;
+    this.clearExamData();
+    this.loadExams();
   }
 
-  angularGridReadyExam(angularGrid: AngularGridInstance): void {
-    this.angularGridExam = angularGrid;
-  }
-
-  angularGridReadySkill(angularGrid: AngularGridInstance): void {
-    this.angularGridSkill = angularGrid;
-    this.setupParentRowHighlight(angularGrid, () => this.datasetSkill);
-  }
-
-  angularGridReadyGeneral(angularGrid: AngularGridInstance): void {
-    this.angularGridGeneral = angularGrid;
-    this.setupParentRowHighlight(angularGrid, () => this.datasetGeneral);
-  }
-
-  angularGridReadySpecialty(angularGrid: AngularGridInstance): void {
-    this.angularGridSpecialty = angularGrid;
-    this.setupParentRowHighlight(angularGrid, () => this.datasetSpecialty);
-  }
-
-  setupParentRowHighlight(angularGrid: AngularGridInstance, getDataset: () => any[]): void {
-    if (angularGrid.dataView) {
-      const originalMetadata = angularGrid.dataView.getItemMetadata?.bind(angularGrid.dataView);
-      angularGrid.dataView.getItemMetadata = (row: number) => {
-        const item = angularGrid.dataView.getItem(row);
-        let metadata = originalMetadata ? originalMetadata(row) : {};
-        const dataset = getDataset();
-
-        if (item && dataset) {
-          const hasChildren = dataset.some((r: any) => r.parentId === item.id);
-          if (hasChildren) {
-            metadata = metadata || {};
-            metadata.cssClasses = (metadata.cssClasses || '') + ' parent-row-highlight';
-          }
-        }
-
-        return metadata;
-      };
-    }
-  }
-
-  refreshGridHighlight(): void {
-    // Force grid to re-render to apply row highlighting
-    if (this.angularGridSkill?.slickGrid) {
-      this.angularGridSkill.slickGrid.invalidate();
-      this.angularGridSkill.slickGrid.render();
-    }
-    if (this.angularGridGeneral?.slickGrid) {
-      this.angularGridGeneral.slickGrid.invalidate();
-      this.angularGridGeneral.slickGrid.render();
-    }
-    if (this.angularGridSpecialty?.slickGrid) {
-      this.angularGridSpecialty.slickGrid.invalidate();
-      this.angularGridSpecialty.slickGrid.render();
-    }
-  }
-
-  onSessionRowClick(e: any, args: any): void {
-    const item = args?.grid?.getDataItem(args?.row);
-    if (item) {
-      this.selectedSession = item;
-      this.loadExams();
-    }
-  }
-
-  onSessionRowDblClick(e: any, args: any): void {
-    const item = args?.dataContext;
+  onSessionRowDblClick(item: any): void {
     if (item) {
       this.selectedSession = item;
       this.onEditSession();
     }
   }
 
-  onExamRowClick(e: any, args: any): void {
-    const item = args?.grid?.getDataItem(args?.row);
-    if (item) {
-      this.selectedExam = item;
-      this.loadKPIEvaluation();
-    }
+  onExamRowClick(item: any): void {
+    if (!item?.ID) return;
+    this.selectedExam = item;
+    this.clearEvaluationData();
+    this.loadKPIEvaluation();
   }
 
-  onExamRowDblClick(e: any, args: any): void {
-    const item = args?.dataContext;
+  onExamRowDblClick(item: any): void {
     if (item) {
       this.selectedExam = item;
       this.onEditExam();
     }
   }
 
-  onSkillRowClick(e: any, args: any): void {
-    const item = args?.grid?.getDataItem(args?.row);
+  onSkillRowClick(item: any): void {
     if (item) {
       this.selectedSkillFactor = item;
     }
   }
 
-  onSkillRowDblClick(e: any, args: any): void {
-    const item = args?.dataContext;
+  onSkillRowDblClick(item: any): void {
     if (item) {
       this.selectedSkillFactor = item;
       this.onEditEvaluationFactor();
     }
   }
 
-  onGeneralRowClick(e: any, args: any): void {
-    const item = args?.grid?.getDataItem(args?.row);
+  onSkillNodeSelect(event: any): void {
+    this.onSkillRowClick(event?.node?.data);
+  }
+
+  onGeneralRowClick(item: any): void {
     if (item) {
       this.selectedGeneralFactor = item;
     }
   }
 
-  onGeneralRowDblClick(e: any, args: any): void {
-    const item = args?.dataContext;
+  onGeneralRowDblClick(item: any): void {
     if (item) {
       this.selectedGeneralFactor = item;
       this.onEditEvaluationFactor();
     }
   }
 
-  onSpecialtyRowClick(e: any, args: any): void {
-    const item = args?.grid?.getDataItem(args?.row);
+  onGeneralNodeSelect(event: any): void {
+    this.onGeneralRowClick(event?.node?.data);
+  }
+
+  onSpecialtyRowClick(item: any): void {
     if (item) {
       this.selectedSpecialtyFactor = item;
     }
   }
 
-  onSpecialtyRowDblClick(e: any, args: any): void {
-    const item = args?.dataContext;
+  onSpecialtyRowDblClick(item: any): void {
     if (item) {
       this.selectedSpecialtyFactor = item;
       this.onEditEvaluationFactor();
     }
+  }
+
+  onSpecialtyNodeSelect(event: any): void {
+    this.onSpecialtyRowClick(event?.node?.data);
   }
   //#endregion
 
@@ -874,6 +744,11 @@ export class KpiEvaluationFactorsComponent implements OnInit, OnDestroy {
       };
     }
 
+    // Bắt sự kiện lưu thành công để tải lại lưới ngay lập tức (cho chức năng Lưu & Thêm mới)
+    modalRef.componentInstance.onSaved.subscribe(() => {
+      this.loadKPIEvaluation();
+    });
+
     modalRef.result.then(
       (result) => {
         if (result) {
@@ -902,6 +777,10 @@ export class KpiEvaluationFactorsComponent implements OnInit, OnDestroy {
     modalRef.componentInstance.evaluationType = this.getCurrentEvaluationType();
     modalRef.componentInstance.departmentId = this.filters.departmentId;
     modalRef.componentInstance.selectedFactor = selectedFactor;
+
+    modalRef.componentInstance.onSaved.subscribe(() => {
+      this.loadKPIEvaluation();
+    });
 
     modalRef.result.then(
       (result) => {
@@ -944,36 +823,203 @@ export class KpiEvaluationFactorsComponent implements OnInit, OnDestroy {
     });
   }
   //#endregion
-  // Helper function to escape HTML special characters for title attributes
-  private escapeHtml(text: string | null | undefined): string {
-    if (!text) return '';
-    return String(text)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+
+  visibleColumns(columns: PrimeColumn[]): PrimeColumn[] {
+    return columns.filter(col => !col.hidden);
   }
 
-  private commonTooltipFormatter = (_row: any, _cell: any, value: any, _column: any, _dataContext: any) => {
-    if (!value) return '';
-    const escaped = this.escapeHtml(value);
-    return `
-                <span
-                title="${escaped}"
-                style="
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    word-wrap: break-word;
-                    word-break: break-word;
-                    line-height: 1.4;
-                "
-                >
-                ${value}
-                </span>
-            `;
-  };
+  getColumnWidth(col: PrimeColumn): string {
+    return `${col.width || col.minWidth || 120}px`;
+  }
+
+  getColumnFilterType(_col: PrimeColumn): string {
+    return 'text';
+  }
+
+  getCellClass(col: PrimeColumn): Record<string, boolean> {
+    return {
+      'text-end': col.align === 'right' || col.type === 'number' || col.cssClass === 'text-end',
+      'text-center': col.align === 'center' || col.type === 'boolean',
+    };
+  }
+
+  formatCell(row: any, col: PrimeColumn): string {
+    const value = row?.[col.field];
+    if (value === null || value === undefined || value === '') return '';
+    if (col.type === 'number') return this.formatNumber(value);
+    if (col.type === 'boolean') return value ? '✓' : '';
+    return String(value);
+  }
+
+  getCellTitle(row: any, col: PrimeColumn): string {
+    if (col.type === 'boolean') return row?.[col.field] ? 'Có' : 'Không';
+    return this.formatCell(row, col);
+  }
+
+  getExamGroupHeader(rowData: any): string {
+    return rowData?.TypePositionName || '(Không có chức vụ)';
+  }
+
+  getExamGroupCount(typePositionName: string | null | undefined): number {
+    return this.datasetExam.filter((item: any) => {
+      const itemGroup = item?.TypePositionName || '';
+      const group = typePositionName || '';
+      return itemGroup === group;
+    }).length;
+  }
+
+  trackById(_index: number, row: any): any {
+    return row?.ID ?? row?.id ?? row;
+  }
+
+  private clearExamData(): void {
+    this.datasetExam = [];
+    this.selectedExam = null;
+    this.clearEvaluationData();
+  }
+
+  private clearEvaluationData(): void {
+    this.datasetSkill = [];
+    this.datasetGeneral = [];
+    this.datasetSpecialty = [];
+    this.treeDatasetSkill = [];
+    this.treeDatasetGeneral = [];
+    this.treeDatasetSpecialty = [];
+    this.selectedSkillFactor = null;
+    this.selectedGeneralFactor = null;
+    this.selectedSpecialtyFactor = null;
+    this.selectedSkillNode = null;
+    this.selectedGeneralNode = null;
+    this.selectedSpecialtyNode = null;
+  }
+
+  private createFactorColumns(): PrimeColumn[] {
+    return [
+      this.textCol('STT', 'STT', 'STT', 100, { filterable: false }),
+      this.textCol('EvaluationContent', 'Yếu tố đánh giá', 'EvaluationContent', 300),
+      this.numberCol('StandardPoint', 'Điểm chuẩn', 'StandardPoint', 70),
+      this.numberCol('Coefficient', 'Hệ số', 'Coefficient', 80),
+      this.textCol('VerificationToolsContent', 'Phương tiện xác minh tiêu chí', 'VerificationToolsContent', 400),
+      this.textCol('Unit', 'Đơn vị tính', 'Unit', 100, { filterable: false }),
+    ];
+  }
+
+  private findNodeInTree(nodes: TreeNode[], id: any): TreeNode | null {
+    if (!nodes) return null;
+    for (const node of nodes) {
+      if (node.data?.ID === id) return node;
+      if (node.children && node.children.length > 0) {
+        const found = this.findNodeInTree(node.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  private prepareFactorDataset(source: any[]): any[] {
+    return (source || []).map((item: any) => ({
+      ...item,
+      id: item.ID,
+      parentId: item.ParentID === 0 ? null : item.ParentID,
+    }));
+  }
+
+  private buildFactorTreeNodes(rows: any[]): TreeNode[] {
+    const nodeMap = new Map<number, TreeNode>();
+    const roots: TreeNode[] = [];
+
+    rows.forEach((row: any) => {
+      const rowId = this.getFactorId(row);
+      nodeMap.set(rowId, {
+        key: String(rowId),
+        data: row,
+        children: [],
+        expanded: true,
+      });
+      row.hasChildren = false;
+    });
+
+    rows.forEach((row: any) => {
+      const rowId = this.getFactorId(row);
+      const node = nodeMap.get(rowId);
+      if (!node) return;
+
+      const parentId = row.parentId === null || row.parentId === undefined ? null : Number(row.parentId);
+      const parentNode = parentId ? nodeMap.get(parentId) : null;
+      if (parentNode) {
+        parentNode.children = parentNode.children || [];
+        parentNode.children.push(node);
+        parentNode.data.hasChildren = true;
+      } else {
+        roots.push(node);
+      }
+    });
+
+    rows.forEach((row: any) => {
+      const node = nodeMap.get(this.getFactorId(row));
+      if (node?.children && node.children.length === 0) {
+        delete node.children;
+      }
+    });
+
+    return roots;
+  }
+
+  private getFactorId(row: any): number {
+    return Number(row?.ID ?? row?.id ?? 0);
+  }
+
+  formatNumber(value: any): string {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue) || numericValue === 0) return '';
+    return new Intl.NumberFormat('vi-VN', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).format(numericValue);
+  }
+
+  calculateTotal(dataset: any[], field: string): number {
+    if (!dataset || dataset.length === 0) return 0;
+    // Để tránh cộng dồn double (cả cha lẫn con), chỉ tính tổng các node gốc (không có parentId)
+    return dataset.filter(x => !x.parentId).reduce((sum, row) => sum + (Number(row[field]) || 0), 0);
+  }
+
+  private textCol(id: string, name: string, field: string, width: number, extra: Partial<PrimeColumn> = {}): PrimeColumn {
+    return {
+      id,
+      name,
+      field,
+      width,
+      sortable: true,
+      filterable: true,
+      type: 'text',
+      ...extra,
+    };
+  }
+
+  private numberCol(id: string, name: string, field: string, width: number): PrimeColumn {
+    return {
+      id,
+      name,
+      field,
+      width,
+      sortable: true,
+      filterable: true,
+      type: 'number',
+      align: 'right',
+    };
+  }
+
+  private booleanCol(id: string, name: string, field: string, width: number): PrimeColumn {
+    return {
+      id,
+      name,
+      field,
+      width,
+      sortable: true,
+      filterable: false,
+      type: 'boolean',
+      align: 'center',
+    };
+  }
 }

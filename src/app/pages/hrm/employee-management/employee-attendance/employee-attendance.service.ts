@@ -20,6 +20,15 @@ export interface ImportAttendancePayload {
   Rows: Array<Record<string, any>>; // List<Dictionary<string, object>> - mỗi row là object với key-value pairs
 }
 
+export interface UpsertSingleAttendanceRequest {
+  ID: number;             // 0 = Create new, > 0 = Update existing
+  Code: string;           // Employee Code
+  AttendanceDate: string; // yyyy-MM-dd
+  DayWeek: string;
+  CheckIn: string;        // HH:mm
+  CheckOut: string;       // HH:mm
+}
+
 @Injectable({ providedIn: 'root' })
 export class EmployeeAttendanceService {
   private apiUrl = environment.host + 'api/EmployeeAttendance/';
@@ -85,6 +94,10 @@ export class EmployeeAttendanceService {
   // Method chính để import Excel - gửi payload theo format backend expect
   importExcelWithPayload(payload: ImportAttendancePayload): Observable<any> {
     return this.http.post<any>(this.apiUrl + 'import-excel', payload);
+  }
+
+  upsertSingleAttendance(request: UpsertSingleAttendanceRequest): Observable<any> {
+    return this.http.post<any>(this.apiUrl + 'save-attendance', request);
   }
 
   delete(ids: number[]): Observable<any> {

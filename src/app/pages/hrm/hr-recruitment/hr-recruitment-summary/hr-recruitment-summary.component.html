@@ -31,15 +31,11 @@
         <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="5" [nzXl]="4">
           <div class="form-field-vertical">
             <label>Phòng ban</label>
-            <nz-select name="departmentID" [(ngModel)]="departmentID" (ngModelChange)="search()"
-              nzPlaceHolder="Tất cả phòng ban" nzSize="small" class="w-100" nzAllowClear nzShowSearch nzCustomContent>
-              <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID || dept.id"
-                [nzLabel]="dept.Name || dept.name">
-                <span style="white-space: normal; word-break: break-word; display: block;">
-                  {{ dept.Name || dept.name }}
-                </span>
-              </nz-option>
-            </nz-select>
+            <nz-tree-select nzPlaceHolder="Tất cả phòng ban" [(ngModel)]="departmentID" nzSize="small" nzShowSearch
+              nzAllowClear (ngModelChange)="search()" style="width: 100%;"
+              [nzNodes]="departmentNodes" nzDropdownClassName="type-select-dropdown"  nzDefaultExpandAll
+              [nzDropdownStyle]="{ 'max-height': '250px', 'overflow': 'auto', 'font-size': '12px' }">
+            </nz-tree-select>
           </div>
         </nz-col>
 

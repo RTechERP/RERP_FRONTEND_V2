@@ -117,6 +117,34 @@
   color: #34ff63 !important;
 }
 
+/* Filter dropdown (ms-drop) - cho phép xuống dòng khi text dài */
+::ng-deep .ms-drop {
+  width: auto !important;
+  min-width: 250px !important;
+  max-width: 500px !important;
+}
+
+::ng-deep .ms-drop .ms-list li label {
+  display: flex !important;
+  align-items: flex-start !important;
+  padding: 6px 10px !important;
+  cursor: pointer !important;
+}
+
+::ng-deep .ms-drop .ms-list li label span {
+  flex: 1 !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+::ng-deep .ms-drop .ms-list li label .icon-checkbox-container {
+  margin-right: 6px !important;
+  flex-shrink: 0 !important;
+  margin-top: 2px !important;
+}
+
 /* Footer row styling */
 ::ng-deep
   .slickgrid-container

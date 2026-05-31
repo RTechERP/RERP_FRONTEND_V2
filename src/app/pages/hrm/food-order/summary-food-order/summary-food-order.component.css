@@ -1,0 +1,3 @@
+::ng-deep .type-select-dropdown {
+  min-width: 35vh !important;
+}

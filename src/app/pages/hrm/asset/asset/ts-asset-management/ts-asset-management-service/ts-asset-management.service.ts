@@ -54,4 +54,8 @@ export class AssetsManagementService {
       })
     );
   }
+
+  getAssetLogs(assetID: number): Observable<any> {
+    return this.httpclient.get<any>(`${this.urlGetAssets}-log/${assetID}`);
+  }
 }

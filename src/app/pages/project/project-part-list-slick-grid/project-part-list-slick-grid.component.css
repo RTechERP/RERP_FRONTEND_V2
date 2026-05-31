@@ -26,6 +26,16 @@
   font-weight: bold !important;
 }
 
+/* Dòng hết hiệu lực - Sọc đỏ nhạt */
+:host ::ng-deep .slick-row.row-expired {
+  background-image: repeating-linear-gradient(135deg,
+      transparent,
+      transparent 10px,
+      rgba(255, 77, 79, 0.12) 10px,
+      rgba(255, 77, 79, 0.12) 12px) !important;
+  color: #8c8c8c !important;
+}
+
 /* ==================== CELL COLORING STYLES ==================== */
 /* Cell có IsFix = true → Xanh nước biển (steelblue) - giống WinForm */
 :host ::ng-deep .slick-cell.cell-is-fix {
@@ -93,6 +103,18 @@
   background-color: #ffccc7 !important;
 }
 
+/* Cell EffectiveDate hết hạn - Đỏ đậm */
+:host ::ng-deep .slick-cell.cell-effective-expired {
+  background-color: #ff4d4f !important;
+  color: #fff !important;
+  font-weight: bold !important;
+}
+
+/* Cell ProductCode của dòng hết hiệu lực → Chữ đen
+:host ::ng-deep .slick-cell.cell-expired-product-code {
+  color: #696969 !important;
+} */
+
 /* Cell có IsDeleted = true → Xám */
 :host ::ng-deep .slick-cell.cell-deleted {
   background-color: #f5f5f5 !important;
@@ -108,6 +130,23 @@
 /* Cell có giá trị 0 → Xám nhạt */
 :host ::ng-deep .slick-cell.cell-zero-value {
   color: #8c8c8c !important;
+}
+
+/* Button Filter: Hết hiệu lực */
+.btn-filter-expired {
+  background: repeating-linear-gradient(135deg,
+      #fff1f0,
+      #fff1f0 5px,
+      #ffccc7 5px,
+      #ffccc7 7px) !important;
+  color: #373737 !important;
+  border: 1px solid #d9d9d9 !important;
+}
+
+.btn-filter-expired.btn-filter-active {
+  border: 1.5px solid #ff4d4f !important;
+  font-weight: bold !important;
+  color: #000 !important;
 }
 
 /* ==================== HEADER GROUP STYLES - Màu nền phân biệt từng nhóm ==================== */
@@ -315,4 +354,43 @@ angular-slickgrid,
 nz-dropdown-menu ul {
   font-family: inherit;
   font-size: inherit;
+}
+
+/* ==================== PRICE REQUEST POPUP TABLE ==================== */
+.price-request-table-wrapper {
+  height: 300px;
+  overflow: hidden;
+}
+
+:host ::ng-deep .price-request-table-wrapper angular-slickgrid,
+:host ::ng-deep .price-request-table-wrapper .slickgrid-container,
+:host ::ng-deep .price-request-table-wrapper .gridPane {
+  height: 100% !important;
+}
+
+.price-request-table-wrapper :host ::ng-deep .ant-table {
+  font-size: 12px;
+}
+
+.price-request-table-wrapper td {
+  font-size: 12px;
+  padding: 4px 6px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.price-request-table-wrapper th {
+  font-size: 12px !important;
+  padding: 4px 6px !important;
+  white-space: nowrap;
+}
+
+.price-request-table-wrapper nz-input-number {
+  width: 100% !important;
+}
+
+.price-request-table-wrapper input[nz-input] {
+  font-size: 12px;
 }

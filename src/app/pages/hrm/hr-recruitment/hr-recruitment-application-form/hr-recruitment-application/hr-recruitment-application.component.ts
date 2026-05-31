@@ -25,6 +25,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -66,6 +67,7 @@ import { DateTime } from 'luxon';
         NzSelectModule,
         NzFormModule,
         NzGridModule,
+        NzTreeSelectModule,
         Menubar,
         HomeLayoutCandidateComponent,
     ],
@@ -104,6 +106,7 @@ export class HRRecruitmentApplicationComponent implements OnInit {
     filterText = '';
     departmentId: any = 0;
     departmentList: any[] = [];
+    departmentNodes: any[] = [];
     //#endregion
 
     constructor(
@@ -170,12 +173,33 @@ export class HRRecruitmentApplicationComponent implements OnInit {
             next: (res: any) => {
                 if (res?.status === 1) {
                     this.departmentList = res.data || [];
+                    this.departmentNodes = this.buildTreeNodes([...this.departmentList]);
                 }
             },
             error: (err: any) => {
                 console.error('Lỗi lấy danh sách phòng ban:', err);
             }
         });
+    }
+    
+    private buildTreeNodes(data: any[]): any[] {
+        const tree: any[] = [];
+        const lookup: any = {};
+    
+        data.forEach(item => {
+            lookup[item.ID] = { title: item.Name, key: item.ID, value: item.ID, children: [], isLeaf: true, ...item };
+        });
+    
+        data.forEach(item => {
+            if (item.ParentID && item.ParentID > 0 && lookup[item.ParentID]) {
+                lookup[item.ParentID].children.push(lookup[item.ID]);
+                lookup[item.ParentID].isLeaf = false;
+            } else {
+                tree.push(lookup[item.ID]);
+            }
+        });
+    
+        return tree;
     }
     //#endregion
     //#region Grid chính - Danh sách tờ khai

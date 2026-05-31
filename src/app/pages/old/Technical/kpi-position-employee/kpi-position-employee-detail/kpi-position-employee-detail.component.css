@@ -11,10 +11,109 @@
     gap: 8px;
 }
 
-:host ::ng-deep .slick-header-column {
-    font-weight: bold !important;
+/* PrimeNG Table styling inside modal */
+:host ::ng-deep p-table,
+:host ::ng-deep .p-datatable {
+    height: 100% !important;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
-:host ::ng-deep .slick-cell.text-center {
-    text-align: center !important;
+:host ::ng-deep .kpi-prime-table .p-datatable-wrapper {
+    flex: 1;
+    min-height: 0;
+}
+
+:host ::ng-deep .kpi-prime-table table {
+    table-layout: fixed;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-thead>tr>th,
+:host ::ng-deep .kpi-prime-table .p-datatable-tbody>tr>td {
+    font-size: 12px;
+    padding: 4px 6px;
+    vertical-align: middle;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+:host ::ng-deep .kpi-prime-table .p-datatable-thead>tr>th {
+    background: #f5f7fb;
+    font-weight: 600;
+}
+
+:host ::ng-deep .kpi-prime-table .filter-cell {
+    padding: 2px 4px;
+}
+
+:host ::ng-deep .kpi-prime-table .p-column-filter,
+:host ::ng-deep .kpi-prime-table .p-column-filter .p-inputtext,
+:host ::ng-deep .kpi-prime-table .p-column-filter input {
+    width: 100%;
+}
+
+:host ::ng-deep .kpi-prime-table .p-column-filter .p-inputtext,
+:host ::ng-deep .kpi-prime-table .p-column-filter input {
+    height: 22px;
+    min-height: 22px;
+    padding: 1px 5px;
+    font-size: 11px;
+    line-height: 18px;
+}
+
+:host ::ng-deep .kpi-prime-table .data-row {
+    cursor: pointer;
+}
+
+:host ::ng-deep .kpi-prime-table .data-row:hover>td {
+    background: #f0f7ff;
+}
+
+:host ::ng-deep .kpi-prime-table .group-row>td {
+    background: #f0f7ff !important;
+    color: #222;
+    font-weight: 600;
+    padding: 5px 8px;
+}
+
+.table-header-cell {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 4px;
+    min-height: 20px;
+    line-height: 1.25;
+}
+
+.cell-content {
+    display: block;
+    min-width: 0;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.35;
+}
+
+:host ::ng-deep .p-column-filter {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep .p-column-filter-element {
+    width: 100%;
+    min-width: 0;
+}
+
+:host ::ng-deep p-columnfilterformelement.p-fluid {
+    width: 100% !important;
+    display: block;
+}
+
+:host ::ng-deep .p-inputtext {
+    height: 3vh;
+    width: 100%;
 }

@@ -873,22 +873,14 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     const location = (data.Location || data.LocationID) && (data.Location || data.LocationID) > 0 ? (data.Location || data.LocationID) : null;
     const projectId = (data.ProjectID || data.ProjectId) && (data.ProjectID || data.ProjectId) > 0 ? (data.ProjectID || data.ProjectId) : null;
 
-    const timeStartValueRaw = data.TimeStart
-      ? data.TimeStart instanceof Date
-        ? data.TimeStart
-        : new Date(data.TimeStart)
-      : null;
-    const endTimeValueRaw = data.EndTime
-      ? data.EndTime instanceof Date
-        ? data.EndTime
-        : new Date(data.EndTime)
-      : null;
+    const timeStartValueRaw = data.TimeStart ? this.parseDateTime(data.TimeStart) : null;
+    const endTimeValueRaw = data.EndTime ? this.parseDateTime(data.EndTime) : null;
     const timeStartValue = this.normalizeToMinute(timeStartValueRaw);
     const endTimeValue = this.normalizeToMinute(endTimeValueRaw);
 
     this.commonForm.patchValue({
       EmployeeID: employeeID,
-      DateRegister: data.DateRegister ? new Date(data.DateRegister) : new Date(),
+      DateRegister: data.DateRegister ? this.parseDateTime(data.DateRegister) : new Date(),
       ApprovedID: approvedId,
       IsProblem: data.IsProblem || false
     }, { emitEvent: false });
@@ -1145,6 +1137,25 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
     }
   }
 
+  parseDateTime(val: any): Date | null {
+    if (!val) return null;
+    if (val instanceof Date) return val;
+    try {
+      let dt = DateTime.fromISO(val, { setZone: true });
+      if (!dt.isValid) {
+        dt = DateTime.fromSQL(val, { setZone: true });
+      }
+      if (dt.isValid) {
+        return dt.setZone('local', { keepLocalTime: true }).toJSDate();
+      }
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? null : d;
+    } catch {
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? null : d;
+    }
+  }
+
   toLocalISOString(date: Date | string | null): string | null {
     if (!date) return null;
     try {
@@ -1152,7 +1163,7 @@ export class OverTimePersonFormComponent implements OnInit, AfterViewInit, OnDes
       if (isNaN(dateObj.getTime())) return null;
 
       const dt = DateTime.fromJSDate(dateObj);
-      return dt.toISO({ includeOffset: true });
+      return dt.toFormat('yyyy-MM-dd\'T\'HH:mm:ss');
     } catch {
       return null;
     }

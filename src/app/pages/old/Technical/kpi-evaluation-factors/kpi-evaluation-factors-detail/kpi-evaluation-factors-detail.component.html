@@ -26,13 +26,10 @@
                         <label class="m-0 text-nowrap">Nhóm cha</label>
                     </div>
                     <div class="col-7">
-                        <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhóm cha" [(ngModel)]="parentId"
-                            style="width: 100%;" nzSize="small" (ngModelChange)="onParentGroupChange()"
-                            (nzOnClear)="onParentGroupChange()">
-                            <nz-option *ngFor="let item of parentGroups" [nzValue]="item.ID"
-                                [nzLabel]="item.STT ? item.STT + ' - ' + item.EvaluationDetails : item.EvaluationDetails">
-                            </nz-option>
-                        </nz-select>
+                        <nz-tree-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhóm cha" [(ngModel)]="parentId"
+                            [nzNodes]="parentGroupNodes" style="width: 100%;" nzSize="small"
+                            (ngModelChange)="onParentGroupChange()" nzVirtualHeight="300px">
+                        </nz-tree-select>
                     </div>
                     <div class="col-1 ps-0">
                         <button nz-button nzType="default" nzSize="small" (click)="onRefreshParentGroup()" nz-tooltip
@@ -146,6 +143,10 @@
 <div class="modal-footer p-2">
     <button nz-button nzType="default" nzSize="default" (click)="cancel()">
         <i class="fas fa-times"></i> Đóng
+    </button>
+    <button *ngIf="mode === 'add'" nz-button nzType="primary" nzSize="default" (click)="saveAndNew()"
+        [nzLoading]="isSaving">
+        <i class="fas fa-plus"></i> Lưu & thêm mới
     </button>
     <button nz-button nzType="primary" nzSize="default" (click)="save()" [nzLoading]="isSaving">
         <i class="fas fa-save"></i> Lưu

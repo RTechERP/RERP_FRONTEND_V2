@@ -1120,6 +1120,44 @@ export class PaymentOrderComponent implements OnInit {
                 // },
             },
             {
+                id: PaymentOrderField.CostCategory.field,
+                name: 'Khoản mục chi phí',
+                field: PaymentOrderField.CostCategory.field,
+                type: PaymentOrderField.CostCategory.type,
+                sortable: true, filterable: true,
+                width: 200,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: PaymentOrderField.AccountingAccount.field,
+                name: 'Tài khoản hạch toán',
+                field: PaymentOrderField.AccountingAccount.field,
+                type: PaymentOrderField.AccountingAccount.type,
+                sortable: true, filterable: true,
+                width: 200,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: PaymentOrderField.SupplierAccCode.field,
+                name: 'Mã NCC',
+                field: PaymentOrderField.SupplierAccCode.field,
+                type: PaymentOrderField.SupplierAccCode.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
+                id: PaymentOrderField.InvoiceAccNumber.field,
+                name: 'Số hóa đơn',
+                field: PaymentOrderField.InvoiceAccNumber.field,
+                type: PaymentOrderField.InvoiceAccNumber.type,
+                sortable: true, filterable: true,
+                width: 200,
+                // formatter: Formatters.icon,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
                 id: PaymentOrderField.StatusContractText.field,
                 name: 'Trạng thái hợp đồng',
                 field: PaymentOrderField.StatusContractText.field,
@@ -1796,6 +1834,18 @@ export class PaymentOrderComponent implements OnInit {
                         command: '', title: 'Lịch sử duyệt/không duyệt', iconCssClass: 'fa-solid fa-clock-rotate-left fa-lg text-info', positionOrder: 4,
                         action: (e, args) => {
                             this.onOpenPaymentOrderLog();
+                        }
+                    },
+                    {
+                        command: 'updateNCC', title: 'Cập nhật NCC', iconCssClass: 'fa-solid fa-pen-to-square', positionOrder: 5,
+                        action: (e, args) => {
+                            this.onUpdateNCC(e, args as any);
+                        }
+                    },
+                    {
+                        command: 'updateInvoiceNumber', title: 'Cập nhật Số hóa đơn', iconCssClass: 'fa-solid fa-file-invoice', positionOrder: 6,
+                        action: (e, args) => {
+                            this.onUpdateInvoiceNumber(e, args as any);
                         }
                     },
 
@@ -2631,6 +2681,18 @@ export class PaymentOrderComponent implements OnInit {
                             this.onAttachFileExtend();
                         }
                     },
+                    {
+                        command: 'updateNCC', title: 'Cập nhật NCC', iconCssClass: 'fa-solid fa-pen-to-square', positionOrder: 63,
+                        action: (e, args) => {
+                            this.onUpdateNCC(e, args as any);
+                        }
+                    },
+                    {
+                        command: 'updateInvoiceNumber', title: 'Cập nhật Số hóa đơn', iconCssClass: 'fa-solid fa-file-invoice', positionOrder: 64,
+                        action: (e, args) => {
+                            this.onUpdateInvoiceNumber(e, args as any);
+                        }
+                    },
                 ],
             }
         }
@@ -2686,7 +2748,7 @@ export class PaymentOrderComponent implements OnInit {
                 // formatter: Formatters.iconBoolean,
                 filter: { model: Filters['compoundInputText'] },
             },
-           
+
             {
                 id: PaymentOrderDetailField.PaymentInfor.field,
                 name: 'Thông tin thanh toán',
@@ -4687,18 +4749,70 @@ export class PaymentOrderComponent implements OnInit {
             }
         })
 
+    }
 
-        // console.log('this.dataPrint:', this.dataPrint);
+    async onUpdateNCC(e: Event, args: MenuCommandItemCallbackArgs) {
+        const item = args.dataContext as PaymentOrder;
 
+        const { value: SupplierAccCode }: { value?: string } = await Swal.fire({
+            input: 'text',
+            inputLabel: 'Cập nhật Nhà cung cấp',
+            inputValue: "",
+            inputPlaceholder: 'Nhập tên nhà cung cấp mới...',
+            inputAttributes: {
+                'aria-label': 'Vui lòng nhập tên Nhà cung cấp',
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#dc3545',
+            confirmButtonText: 'Cập nhật',
+            cancelButtonText: 'Hủy',
+        });
 
-        // const paymentOrder = this.dataPrint.paymentOrder[0];
-        // const details = this.dataPrint.details;
-        // const signs = this.dataPrint.signs;
+        console.log(SupplierAccCode);
+        if (SupplierAccCode !== undefined && SupplierAccCode !== null) {
+            this.updateSupplierAndInvoice(1, item.ID, SupplierAccCode);
+            item.SupplierAccCode = SupplierAccCode;
+        }
+    }
 
-        // console.log('.paymentOrder:', paymentOrder);
-        // console.log('.details:', details);
-        // console.log('.signs:', signs);
+    async onUpdateInvoiceNumber(e: Event, args: MenuCommandItemCallbackArgs) {
+        const item = args.dataContext as PaymentOrder;
+        const { value: InvoiceAccNumber }: { value?: string } = await Swal.fire({
+            input: 'text',
+            inputLabel: 'Cập nhật Số hóa đơn',
+            inputValue: "",
+            inputPlaceholder: 'Nhập số hóa đơn mới...',
+            inputAttributes: {
+                'aria-label': 'Vui lòng nhập Số hóa đơn',
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#dc3545',
+            confirmButtonText: 'Cập nhật',
+            cancelButtonText: 'Hủy',
+        });
 
+        console.log(InvoiceAccNumber);
+        if (InvoiceAccNumber !== undefined && InvoiceAccNumber !== null) {
+            this.updateSupplierAndInvoice(2, item.ID, InvoiceAccNumber);
+
+            item.InvoiceAccNumber = InvoiceAccNumber;
+        }
+    }
+
+    updateSupplierAndInvoice(typeUpdate: number, paymentID: number, contentUpdate: string) {
+        this.paymentService.updatePaymentOrderSupplierAndInvoice(paymentID, typeUpdate, contentUpdate).subscribe({
+            next: (response) => {
+                this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Cập nhật thành công!');
+                // this.loadData();
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`, {
+                    nzStyle: { whiteSpace: 'pre-line' }
+                });
+            }
+        });
     }
 
 

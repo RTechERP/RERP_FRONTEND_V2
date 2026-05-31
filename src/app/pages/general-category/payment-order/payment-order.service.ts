@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../../environments/environment';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { PaymentOrder } from './model/payment-order';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 @Injectable({
     providedIn: 'root'
@@ -254,7 +254,33 @@ export class PaymentOrderService {
         return this.http.get<any>(`${this.url}/get-currency-config`);
     }
 
+    updatePaymentOrderSupplierAndInvoice(paymentID: number, typeUpdate: number, contentUpdate: string): Observable<any> {
+        let httpParams = new HttpParams();
+
+        if (paymentID !== undefined && paymentID !== null) {
+            httpParams = httpParams.set('paymentID', paymentID.toString());
+        } else {
+            httpParams = httpParams.set('paymentID', '');
+        }
+
+        if (typeUpdate !== undefined && typeUpdate !== null) {
+            httpParams = httpParams.set('typeUpdate', typeUpdate.toString());
+        } else {
+            httpParams = httpParams.set('typeUpdate', '');
+        }
+
+        if (contentUpdate !== undefined && contentUpdate !== null) {
+            httpParams = httpParams.set('contentUpdate', contentUpdate.toString());
+        } else {
+            httpParams = httpParams.set('contentUpdate', '');
+        }
+
+        return this.http.get<any>(`${this.url}/update-supplier-code-and-invoice-number`, { params: httpParams });
+    }
+
 }
+
+
 
 
 export interface CurrencyConfig {

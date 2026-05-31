@@ -127,6 +127,10 @@ export class PaymentOrder {
     TransferType: number | null = null;
     TransferTypeText: string | null = '';
 
+    SupplierAccCode: string | null = '';
+    InvoiceAccNumber: string | null = '';
+    CostCategory: string | null = '';
+    AccountingAccount: string | null = '';
     // ===== Optional: constructor map từ object =====
     constructor(init?: Partial<PaymentOrder>) {
         Object.assign(this, init);
@@ -266,6 +270,10 @@ export const PaymentOrderField = {
     TaxCompanyName: { name: 'Công ty', field: 'TaxCompanyName', type: 'string' },
     TransferType: { name: '', field: 'TransferType', type: 'number' },
     TransferTypeText: { name: 'Loại chuyển khoản', field: 'TransferTypeText', type: 'string' },
+    SupplierAccCode: { name: 'Mã NCC', field: 'SupplierAccCode', type: 'string' },
+    InvoiceAccNumber: { name: 'Số hóa đơn', field: 'InvoiceAccNumber', type: 'string' },
+    CostCategory: { name: 'Khoản mục chi phí', field: 'CostCategory', type: 'string' },
+    AccountingAccount: { name: 'Tài khoản hạch toán', field: 'AccountingAccount', type: 'string' },
 } as const
 
 

@@ -373,6 +373,7 @@ import { PaymentOrderPrimeComponent } from './pages/general-category/payment-ord
 import { InventoryOveragedComponent } from './pages/old/Sale/Inventory/inventory-overaged/inventory-overaged.component';
 import { ConfigNotificationKeyManagementComponent } from './pages/systems/app-user/config-notification-key/config-notification-key-management/config-notification-key-management.component';
 import { ConfigNotificationKeyPersonalComponent } from './pages/systems/app-user/config-notification-key/config-notification-key-personal/config-notification-key-personal.component';
+import { ProjectJoinSummaryComponent } from './pages/project/project-join-summary/project-join-summary.component';
 export const routes: Routes = [
 
     {
@@ -1279,8 +1280,7 @@ export const routes: Routes = [
             { path: 'inventory-overaged', component: InventoryOveragedComponent, canActivate: [authGuard] },
             { path: 'config-notification-key', component: ConfigNotificationKeyManagementComponent, canActivate: [authGuard] },
             { path: 'config-notification-key-personal', component: ConfigNotificationKeyPersonalComponent, canActivate: [authGuard] },
-
-
+            { path: 'project-join-summary', component: ProjectJoinSummaryComponent, canActivate: [authGuard] },
         ],
     },
 ];

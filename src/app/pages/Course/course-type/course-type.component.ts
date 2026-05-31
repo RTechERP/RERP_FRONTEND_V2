@@ -85,7 +85,7 @@ export class CourseTypeComponent implements OnInit, AfterViewInit {
     private router: Router,
     private projectService: ProjectService
   ) {}
-  ngOnInit(): void { 
+  ngOnInit(): void {
     this.loadData();
   }
   ngAfterViewInit(): void {
@@ -138,9 +138,9 @@ export class CourseTypeComponent implements OnInit, AfterViewInit {
       ]
     });
   }
-  exportExcel(){
+  onExportExcel(){
    if(this.dataTableCourseType.length > 0){
-    this.projectService.exportExcel(this.tb_courseType, this.dataTableCourseType, 'Loại khóa học', 'LOAIKHOAHOC');
+    this.exportExcel(this.tb_courseType, this.dataTableCourseType, 'Loại khóa học', 'LOAIKHOAHOC');
    }else{
     this.notification.info('Thông báo','Không có dữ liệu để xuất!');
    }
@@ -169,7 +169,7 @@ export class CourseTypeComponent implements OnInit, AfterViewInit {
         .filter((stt: any) => stt != null && stt !== undefined && !isNaN(stt));
       maxSTT = ids.length > 0 ? Math.max(...ids) : 0;
     }
-    
+
     const newCourseType = {
       ID: 0,
       STT: maxSTT + 1,
@@ -194,13 +194,13 @@ export class CourseTypeComponent implements OnInit, AfterViewInit {
       this.notification.error('Thông báo', 'Vui lòng chọn ít nhất một loại khóa học để xóa!');
       return;
     }
-    
+
     // Hiển thị dialog xác nhận
     const count = selectedCourseType.length;
-    const message = count === 1 
+    const message = count === 1
       ? `Bạn có chắc chắn muốn xóa loại khóa học <strong>"${selectedCourseType[0].CourseTypeName}"</strong> không?`
       : `Bạn có chắc chắn muốn xóa <strong>${count}</strong> loại khóa học đã chọn không?`;
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: message,
@@ -248,26 +248,117 @@ export class CourseTypeComponent implements OnInit, AfterViewInit {
 
   onsearchData() {
     this.keyword = this.keyword.trim();
-  
+
     // Nếu keyword rỗng, hiển thị lại toàn bộ dữ liệu gốc
     if (!this.keyword || this.keyword === '') {
       this.dataTableCourseType = [...this.originalDataTableCourseType];
       this.tb_courseType.replaceData(this.dataTableCourseType);
       return;
     }
-  
+
     // Chuẩn hóa keyword để tìm kiếm (ví dụ: "Má" → "ma", "Máy" → "may")
     const keywordNorm = this.normalizeVietnamese(this.keyword);
-  
+
     // Filter từ dữ liệu gốc
     this.dataTableCourseType = this.originalDataTableCourseType.filter((item: any) => {
       const code = this.normalizeVietnamese(item.CourseTypeCode || '');
       const name = this.normalizeVietnamese(item.CourseTypeName || '');
-  
+
       return code.includes(keywordNorm) ||
              name.includes(keywordNorm);
     });
-  
+
     this.tb_courseType.replaceData(this.dataTableCourseType);
   }
+  //#region Xuất excel thường
+async exportExcel(table: any, data: any, sheetName: any, fileName: any) {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(sheetName);
+
+  // Chỉ lấy những cột có field
+  // Cột checkbox thường không có field nên sẽ bị loại bỏ
+  const columns = table.getColumns().filter((col: any) => {
+    const field = col.getField?.();
+    return field !== undefined && field !== null && field !== '';
+  });
+
+  const headers = columns.map((col: any) => col.getDefinition().title);
+  worksheet.addRow(headers);
+
+  data.forEach((row: any) => {
+    const rowData = columns.map((col: any) => {
+      const field = col.getField();
+      let value = row[field];
+
+      if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+        value = new Date(value);
+      }
+
+      return value;
+    });
+
+    worksheet.addRow(rowData);
+  });
+
+  // Format cột có giá trị là Date
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return;
+
+    row.eachCell((cell) => {
+      if (cell.value instanceof Date) {
+        cell.numFmt = 'dd/mm/yyyy';
+      }
+    });
+  });
+
+  // Tự động căn chỉnh độ rộng cột
+  worksheet.columns.forEach((column: any) => {
+    let maxLength = 10;
+
+    column.eachCell({ includeEmpty: true }, (cell: any) => {
+      const cellValue = cell.value ? cell.value.toString() : '';
+      maxLength = Math.max(maxLength, cellValue.length + 2);
+    });
+
+    column.width = maxLength;
+  });
+
+  // Thêm bộ lọc cho toàn bộ cột
+  worksheet.autoFilter = {
+    from: {
+      row: 1,
+      column: 1,
+    },
+    to: {
+      row: 1,
+      column: columns.length,
+    },
+  };
+
+  // Wrap text + căn giữa theo chiều dọc
+  worksheet.eachRow((row) => {
+    row.eachCell((cell) => {
+      cell.alignment = {
+        ...(cell.alignment || {}),
+        wrapText: true,
+        vertical: 'middle',
+      };
+    });
+  });
+
+  // Xuất file
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+
+  const link = document.createElement('a');
+  link.href = window.URL.createObjectURL(blob);
+  link.download = `${fileName}.xlsx`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(link.href);
+}
+//#endregion
 }

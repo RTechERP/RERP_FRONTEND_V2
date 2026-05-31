@@ -45,6 +45,10 @@ export class CourseSelectorComponent implements OnChanges {
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['selectedCourseId'] || changes['allCourseData']) {
+            console.log('[CourseSelector] ngOnChanges:', {
+                allCourseDataLength: this.allCourseData.length,
+                selectedCourseId: this.selectedCourseId
+            });
             this.updateSelectedCourseName();
         }
     }

@@ -186,16 +186,16 @@ export class ExamResultTableComponent implements OnInit, OnChanges, AfterViewIni
             commonColumns[0], // STT
             commonColumns[1], // FullName
             { title: 'Ngày thi', field: 'CreatedDate', width: 160, hozAlign: 'center', formatter: dateFormatter },
-            { title: 'Điểm cần đạt (%)', field: 'Goal', width: 100, hozAlign: 'right', headerHozAlign: 'center' },
-            { title: 'Điểm thi (%)', field: 'PracticePoints', width: 100, hozAlign: 'right', headerHozAlign: 'center' },
+            { title: 'Điểm cần đạt (%)', field: 'Goal', width: 100, hozAlign: 'right', headerHozAlign: 'center', formatter: (cell: CellComponent) => { const val = cell.getValue(); return val !== null && val !== undefined ? val.toFixed(2) : ''; } },
+            { title: 'Điểm thi (%)', field: 'PracticePoints', width: 100, hozAlign: 'right', headerHozAlign: 'center', formatter: (cell: CellComponent) => { const val = cell.getValue(); return val !== null && val !== undefined ? val.toFixed(2) : ''; } },
             commonColumns[2], // Status
             { title: 'Người đánh giá', field: 'UpdatedBy', width: 150 },
         ] : [
             commonColumns[0], // STT
             commonColumns[1], // FullName
             { title: 'Ngày thi', field: 'CreatedDate', width: 160, hozAlign: 'center', formatter: dateFormatter },
-            { title: 'Điểm cần đạt (%)', field: 'Goal', width: 140, hozAlign: 'right', headerHozAlign: 'center' },
-            { title: 'Điểm thi (%)', field: 'PracticePoints', width: 120, hozAlign: 'right', headerHozAlign: 'center' },
+            { title: 'Điểm cần đạt (%)', field: 'Goal', width: 140, hozAlign: 'right', headerHozAlign: 'center', formatter: (cell: CellComponent) => { const val = cell.getValue(); return val !== null && val !== undefined ? val.toFixed(2) : ''; } },
+            { title: 'Điểm thi (%)', field: 'PracticePoints', width: 120, hozAlign: 'right', headerHozAlign: 'center', formatter: (cell: CellComponent) => { const val = cell.getValue(); return val !== null && val !== undefined ? val.toFixed(2) : ''; } },
             commonColumns[2], // Status
             { title: 'Người đánh giá', field: 'UpdatedBy', width: 150 },
         ];

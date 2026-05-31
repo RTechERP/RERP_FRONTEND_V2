@@ -380,7 +380,14 @@ export class CourseExamExerciseComponent implements OnInit, OnDestroy {
       },
       nzOnCancel: () => {
         this.stopTimer();
-        this.activeModal.dismiss();
+        this.coursePracticeService.DeleteExamResult(this.courseExamResultID).subscribe({
+          next: () => {
+            this.activeModal.dismiss();
+          },
+          error: (error) => {
+            this.activeModal.dismiss();
+          }
+        });
       }
     });
   }

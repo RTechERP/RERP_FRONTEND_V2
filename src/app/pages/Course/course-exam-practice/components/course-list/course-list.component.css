@@ -39,3 +39,17 @@
 ::ng-deep .tabulator-row.tabulator-selected {
     background-color: #e6f7ff !important;
 }
+
+/* Group header clickable */
+::ng-deep .tabulator-group {
+    cursor: pointer;
+}
+
+::ng-deep .tabulator-group:hover {
+    background-color: #f0f0f0 !important;
+}
+
+::ng-deep .tabulator-group-header {
+    cursor: pointer;
+    user-select: none;
+}

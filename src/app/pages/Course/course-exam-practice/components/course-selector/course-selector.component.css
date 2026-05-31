@@ -14,3 +14,13 @@
 :host ::ng-deep .ant-dropdown {
     width: auto !important;
 }
+
+:host ::ng-deep .ant-dropdown .course-dropdown-content {
+    min-width: 600px;
+    height: 400px;
+}
+
+:host ::ng-deep .course-dropdown-content app-course-list {
+    display: block;
+    height: 400px;
+}

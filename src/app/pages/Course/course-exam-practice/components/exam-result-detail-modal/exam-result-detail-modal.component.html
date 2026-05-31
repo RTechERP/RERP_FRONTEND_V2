@@ -17,10 +17,10 @@
                     <span class="fw-bold">Nhân viên:</span>
                     <nz-select [(ngModel)]="filterEmployeeID" [nzDisabled]="disabled" nzShowSearch
                         class="filter-select">
-                        <nz-option-group *ngFor="let group of groupedEmployees"
-                            [nzLabel]="'Phòng ban: ' + group.department">
-                            <nz-option *ngFor="let emp of group.employees" [nzValue]="emp.ID"
-                                [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                        <nz-option-group *ngFor="let group of employees"
+                            [nzLabel]="'Phòng ban: ' + group.label">
+                            <nz-option *ngFor="let emp of group.options" [nzValue]="emp.item.EmployeeID"
+                                [nzLabel]="emp.item.Code + ' - ' + emp.item.FullName"></nz-option>
                         </nz-option-group>
                     </nz-select>
                 </div>

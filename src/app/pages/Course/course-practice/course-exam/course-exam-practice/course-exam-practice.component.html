@@ -5,19 +5,23 @@
             <h4 class="practice-modal-title">Bài thi thực hành {{ courseName }}</h4>
             <p class="practice-date">{{ createdDate }}</p>
         </div>
-        <button nz-button nzType="primary" class="complete-btn" (click)="onSubmit()" [nzLoading]="isSubmitting"
-            [disabled]="isSubmitting">
-            <span nz-icon nzType="check"></span>
-            Hoàn thành
-        </button>
+        <div class="header-actions">
+            <button nz-button nzType="text" nzDanger (click)="onClose()" class="close-btn" nz-tooltip="Thoát">
+                <span nz-icon nzType="close"></span> Thoát
+            </button>
+            <button nz-button nzType="primary" class="complete-btn" (click)="onSubmit()" [nzLoading]="isSubmitting" [disabled]="isSubmitting">
+                <span nz-icon nzType="check"></span>
+                Hoàn thành
+            </button>
+       
+        </div>
     </div>
 
     <!-- Body -->
     <div class="practice-modal-body">
         <nz-spin [nzSpinning]="isLoading">
             <div class="practice-card">
-                <nz-table #practiceTable [nzData]="questions" [nzShowPagination]="false" [nzBordered]="true"
-                    [nzSize]="'small'" nzTableLayout="fixed">
+                <nz-table #practiceTable [nzData]="questions" [nzShowPagination]="false" [nzBordered]="true" [nzSize]="'small'" nzTableLayout="fixed">
                     <thead>
                         <tr>
                             <th nzWidth="80px">STT</th>

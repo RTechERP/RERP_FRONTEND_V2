@@ -117,52 +117,65 @@ export class CourseExamPracticeComponent implements OnInit {
 
   submitPractice(): void {
     this.isSubmitting = true;
-
-    // Step 1: Confirm practice
-    this.coursePracticeService.ConfirmPractice(this.courseExamResultID).subscribe({
+    this.coursePracticeService.CreateExamResult(this.courseExamID).subscribe({
       next: (response: any) => {
-        if (response?.status === 1) {
-          // Step 2: Create exam valuate for each question
-          const evaluateData = this.questions.map(q => ({
-            CourseExamResultID: this.courseExamResultID,
-            CourseQuestionID: q.ID,
-            Point: 0,
-            Note: ''
-          }));
 
-          console.log("evaluateData", evaluateData);
+        if (response?.status === 1 && response.data?.ID > 0) {
+          this.courseExamResultID = response.data.ID
+          this.coursePracticeService.ConfirmPractice(this.courseExamResultID).subscribe({
+            next: (response: any) => {
+              if (response?.status === 1) {
+                // Step 2: Create exam valuate for each question
+                const evaluateData = this.questions.map(q => ({
+                  CourseExamResultID: this.courseExamResultID,
+                  CourseQuestionID: q.ID,
+                  Point: 0,
+                  Note: ''
+                }));
 
-          this.coursePracticeService.CreateListExamValuate(evaluateData).subscribe({
-            next: () => {
-              this.isSubmitting = false;
-              this.notification.success('Thành công', 'Hoàn thành bài thực hành!');
-              this.activeModal.close(true);
+                console.log("evaluateData", evaluateData);
+
+                this.coursePracticeService.CreateListExamValuate(evaluateData).subscribe({
+                  next: () => {
+                    this.isSubmitting = false;
+                    this.notification.success('Thành công', 'Hoàn thành bài thực hành!');
+                    this.activeModal.close(true);
+                  },
+                  error: (error) => {
+                    console.error('Error creating exam valuate:', error);
+                    this.isSubmitting = false;
+                    this.notification.success('Thành công', 'Hoàn thành bài thực hành!');
+                    this.activeModal.close(true);
+                  }
+                });
+              } else {
+                this.isSubmitting = false;
+                this.notification.error('Lỗi', response?.message || 'Không thể hoàn thành bài thực hành!');
+              }
             },
             error: (error) => {
-              console.error('Error creating exam valuate:', error);
+              console.error('Error confirming practice:', error);
               this.isSubmitting = false;
-              this.notification.success('Thành công', 'Hoàn thành bài thực hành!');
-              this.activeModal.close(true);
+              this.notification.error('Lỗi', 'Có lỗi xảy ra khi hoàn thành bài thực hành!');
             }
           });
         } else {
-          this.isSubmitting = false;
-          this.notification.error('Lỗi', response?.message || 'Không thể hoàn thành bài thực hành!');
+          this.notification.error('Lỗi', response?.message || 'Không thể tạo bài thi!');
         }
       },
       error: (error) => {
-        console.error('Error confirming practice:', error);
-        this.isSubmitting = false;
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi hoàn thành bài thực hành!');
+        this.notification.error('Lỗi', 'Có lỗi xảy ra khi tạo bài thi!');
       }
     });
+    // Step 1: Confirm practice
+
   }
 
   onClose(): void {
     this.modal.confirm({
-      nzTitle: 'Xác nhận đóng',
-      nzContent: 'Bạn chưa hoàn thành bài thực hành. Bạn có muốn đóng không?',
-      nzOkText: 'Đóng',
+      nzTitle: 'Cảnh báo',
+      nzContent: 'Bài thi sẽ không được lưu. Bạn có chắc chắn muốn thoát không?',
+      nzOkText: 'Thoát',
       nzCancelText: 'Tiếp tục làm',
       nzOnOk: () => {
         this.activeModal.dismiss();

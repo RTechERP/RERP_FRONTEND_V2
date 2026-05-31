@@ -15,168 +15,190 @@ import { CourseSelectorComponent } from '../course-selector/course-selector.comp
 import { NzMessageService } from 'ng-zorro-antd/message';
 
 @Component({
-    selector: 'app-exam-result-form',
-    standalone: true,
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        FormsModule,
-        NzFormModule,
-        NzInputModule,
-        NzSelectModule,
-        NzInputNumberModule,
-        NzCheckboxModule,
-        NzButtonModule,
-        NzIconModule,
-        NzModalModule,
-        CourseSelectorComponent
-    ],
-    templateUrl: './exam-result-form.component.html',
-    styleUrls: ['./exam-result-form.component.css']
+  selector: 'app-exam-result-form',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    NzFormModule,
+    NzInputModule,
+    NzSelectModule,
+    NzInputNumberModule,
+    NzCheckboxModule,
+    NzButtonModule,
+    NzIconModule,
+    NzModalModule,
+    CourseSelectorComponent
+  ],
+  templateUrl: './exam-result-form.component.html',
+  styleUrls: ['./exam-result-form.component.css']
 })
 export class ExamResultFormComponent implements OnInit {
-    @Input() isVisible: boolean = false;
-    @Input() isEdit: boolean = false;
-    @Input() courseID: number = 0;
-    @Input() type: number = 2; // 2: TH, 3: BT
-    @Input() examResult?: CourseExamResult;
-    @Input() employeeData: Employee[] = []; // Pass from parent
-    @Input() allCourseData: CourseData[] = []; // Pass from parent for selector
+  @Input() isVisible: boolean = false;
+  @Input() isEdit: boolean = false;
+  @Input() courseID: number = 0;
+  @Input() type: number = 2; // 2: TH, 3: BT
+  @Input() examResult?: CourseExamResult;
+  @Input() employeeData: any[] = []; // Pass from parent
+  @Input() allCourseData: CourseData[] = []; // Pass from parent for selector
+  @Input() isLoading: boolean = false; // Pass from parent for selector loading state
 
-    @Output() onCancel = new EventEmitter<void>();
-    @Output() onSave = new EventEmitter<boolean>();
+  @Output() onCancel = new EventEmitter<void>();
+  @Output() onSave = new EventEmitter<boolean>();
 
-    validateForm!: FormGroup;
-    groupedEmployees: { department: string; employees: Employee[] }[] = [];
+  validateForm!: FormGroup;
+  groupedEmployees: { department: string; employees: Employee[] }[] = [];
 
-    isLoading = false;
+  isSaving: boolean = false;
 
-    constructor(
-        private fb: FormBuilder,
-        private service: CourseExamPracticeService,
-        private message: NzMessageService
-    ) { }
+  constructor(
+    private fb: FormBuilder,
+    private service: CourseExamPracticeService,
+    private message: NzMessageService
+  ) { }
 
-    ngOnInit(): void {
-        this.initializeForm();
-        this.groupEmployees();
+  ngOnInit(): void {
+    console.log('[ExamResultForm] ngOnInit — allCourseData:', this.allCourseData?.length);
+    this.loadEmployees();
+    this.initializeForm();
+  }
+
+  ngOnChanges(changes: import('@angular/core').SimpleChanges): void {
+    console.log('[ExamResultForm] ngOnChanges keys:', Object.keys(changes));
+    console.log('[ExamResultForm] allCourseData length:', this.allCourseData?.length);
+    if (changes['isVisible'] && this.isVisible) {
+      console.log('Form Visible. Edit Mode:', this.isEdit);
+      console.log('Exam Result Data:', this.examResult);
+      this.initializeForm();
     }
+    if (changes['examResult'] && this.isVisible) {
+      console.log('Exam Result Changed:', this.examResult);
+      this.initializeForm();
+    }
+    if (changes['isLoading'] && !this.isLoading && this.allCourseData.length > 0) {
+      // Parent finished loading — re-patch CourseID so selector updates display
+      if (this.validateForm) {
+        this.validateForm.patchValue({ CourseID: this.validateForm.get('CourseID')?.value });
+      }
+    }
+    if (changes['allCourseData'] && this.allCourseData.length > 0) {
+      // Course data arrived — re-patch to update selector display
+      if (this.validateForm) {
+        this.validateForm.patchValue({ CourseID: this.validateForm.get('CourseID')?.value });
+      }
+    }
+  }
 
-    ngOnChanges(changes: import('@angular/core').SimpleChanges): void {
-        if (changes['isVisible'] && this.isVisible) {
-            console.log('Form Visible. Edit Mode:', this.isEdit);
-            console.log('Exam Result Data:', this.examResult);
-            this.initializeForm();
-            this.groupEmployees();
+  createdDataGroup(items: any[], groupByField: string): any[] {
+    const grouped: Record<string, any[]> = items.reduce((acc, item) => {
+      const groupKey = item[groupByField] || '';
+      if (!acc[groupKey]) acc[groupKey] = [];
+      acc[groupKey].push(item);
+      return acc;
+    }, {});
+
+    return Object.entries(grouped).map(([groupLabel, groupItems]) => ({
+      label: groupLabel,
+      options: groupItems.map((item) => ({
+        item: item,
+      })),
+    }));
+  }
+
+  loadEmployees() {
+    this.service.getEmployeeData().subscribe(
+      (response) => {
+        if (response && response.status === 1) {
+          this.employeeData = this.createdDataGroup(response.data, 'DepartmentName');
         }
-        if (changes['examResult'] && this.isVisible) {
-            console.log('Exam Result Changed:', this.examResult);
-            this.initializeForm();
-        }
-    }
+      }
+    );
+  }
 
-    initializeForm(): void {
-        const data = this.examResult as any || {};
-        const courseId = this.courseID || data.CourseID || data.CourseId || null;
-        const employeeId = data.EmployeeId || data.EmployeeID || null;
-        const practicePoints = data.PracticePoints !== undefined ? data.PracticePoints : 0;
-        const evaluate = data.Evaluate !== undefined ? data.Evaluate : false;
-        const note = data.Note || data.note || '';
+  initializeForm(): void {
+    const data = this.examResult as any || {};
+    const courseId = this.courseID || data.CourseID || data.CourseId || null;
+    const employeeId = data.EmployeeId || data.EmployeeID || null;
+    const practicePoints = data.PracticePoints !== undefined ? data.PracticePoints : 0;
+    const evaluate = data.Evaluate !== undefined ? data.Evaluate : false;
+    const note = data.Note || data.note || '';
 
-        this.validateForm = this.fb.group({
-            CourseID: [courseId, [Validators.required]],
-            EmployeeId: [employeeId, [Validators.required]],
-            ExamType: [this.type || 2, [Validators.required]],
-            PracticePoints: [practicePoints],
-            Evaluate: [evaluate],
-            Note: [note]
-        });
+    this.validateForm = this.fb.group({
+      CourseID: [courseId, [Validators.required]],
+      EmployeeId: [employeeId, [Validators.required]],
+      ExamType: [this.type || 2, [Validators.required]],
+      PracticePoints: [practicePoints],
+      Evaluate: [evaluate],
+      Note: [note]
+    });
 
-        console.log('Initialized Form Value:', this.validateForm.value);
-    }
+    console.log('Initialized Form Value:', this.validateForm.value);
+  }
 
-    onCourseSelected(course: CourseData): void {
-        this.validateForm.patchValue({ CourseID: course.ID });
-    }
+  onCourseSelected(course: CourseData): void {
+    this.validateForm.patchValue({ CourseID: course.ID });
+  }
 
 
-    groupEmployees(): void {
-        if (!this.employeeData) return;
-        const departments = new Map<string, Employee[]>();
+  handleSave(): void {
+    if (this.validateForm.valid) {
+      const vals = this.validateForm.getRawValue();
+      this.isSaving = true;
 
-        // Filter out 'Tất cả' if present
-        const cleanList = this.employeeData.filter(e => e.ID > 0);
+      this.service.getCourseExam(vals.CourseID).subscribe(res => {
+        if (res.status === 1) {
+          const exam = (res.data || []).find(e => parseInt(e.ExamType) === vals.ExamType);
 
-        cleanList.forEach(emp => {
-            const dept = emp.DepartmentName || 'Chưa có phòng ban';
-            if (!departments.has(dept)) departments.set(dept, []);
-            departments.get(dept)!.push(emp);
-        });
+          if (exam && exam.ID > 0) {
+            const payload = {
+              CourseId: vals.CourseID,
+              ExamType: vals.ExamType,
+              CourseExamResult: {
+                CourseExamId: exam.ID,
+                EmployeeId: vals.EmployeeId,
+                PracticePoints: vals.PracticePoints,
+                Evaluate: vals.Evaluate,
+                ID: this.examResult?.ID || 0,
+                Note: vals.Note
+              }
+            };
 
-        this.groupedEmployees = Array.from(departments.entries()).map(([dept, emps]) => ({
-            department: dept,
-            employees: emps
-        }));
-    }
-
-    handleSave(): void {
-        if (this.validateForm.valid) {
-            const vals = this.validateForm.getRawValue();
-            this.isLoading = true;
-
-            this.service.getCourseExam(vals.CourseID).subscribe(res => {
-                if (res.status === 1) {
-                    const exam = (res.data || []).find(e => parseInt(e.ExamType) === vals.ExamType);
-
-                    if (exam && exam.ID > 0) {
-                        const payload = {
-                            CourseId: vals.CourseID,
-                            ExamType: vals.ExamType,
-                            CourseExamResult: {
-                                CourseExamId: exam.ID,
-                                EmployeeId: vals.EmployeeId,
-                                PracticePoints: vals.PracticePoints,
-                                Evaluate: vals.Evaluate,
-                                ID: this.examResult?.ID || 0,
-                                Note: vals.Note
-                            }
-                        };
-
-                        this.service.saveCourseExamPractice(payload).subscribe(saveRes => {
-                            this.isLoading = false;
-                            if (saveRes.status === 1) {
-                                this.message.success(saveRes.message);
-                                this.onSave.emit(true);
-                            } else {
-                                this.message.error(saveRes.message || 'Lưu không thành công');
-                            }
-                        }, () => {
-                            this.isLoading = false;
-                            this.message.error('Có lỗi xảy ra khi lưu kết quả!');
-                        });
-                    } else {
-                        this.isLoading = false;
-                        this.message.error('Không tìm thấy đề thi phù hợp!');
-                    }
-                } else {
-                    this.isLoading = false;
-                    this.message.error('Không thể lấy thông tin đề thi!');
-                }
+            this.service.saveCourseExamPractice(payload).subscribe(saveRes => {
+              this.isSaving = false;
+              if (saveRes.status === 1) {
+                this.message.success(saveRes.message);
+                this.onSave.emit(true);
+              } else {
+                this.message.error(saveRes.message || 'Lưu không thành công');
+              }
             }, () => {
-                this.isLoading = false;
-                this.message.error('Lỗi khi kiểm tra đề thi!');
+              this.isSaving = false;
+              this.message.error('Có lỗi xảy ra khi lưu kết quả!');
             });
+          } else {
+            this.isSaving = false;
+            this.message.error('Không tìm thấy đề thi phù hợp!');
+          }
         } else {
-            Object.values(this.validateForm.controls).forEach(control => {
-                if (control.invalid) {
-                    control.markAsDirty();
-                    control.updateValueAndValidity({ onlySelf: true });
-                }
-            });
+          this.isSaving = false;
+          this.message.error('Không thể lấy thông tin đề thi!');
         }
+      }, () => {
+        this.isSaving = false;
+        this.message.error('Lỗi khi kiểm tra đề thi!');
+      });
+    } else {
+      Object.values(this.validateForm.controls).forEach(control => {
+        if (control.invalid) {
+          control.markAsDirty();
+          control.updateValueAndValidity({ onlySelf: true });
+        }
+      });
     }
+  }
 
-    handleCancel(): void {
-        this.onCancel.emit();
-    }
+  handleCancel(): void {
+    this.onCancel.emit();
+  }
 }

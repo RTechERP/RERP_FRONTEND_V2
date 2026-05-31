@@ -2464,16 +2464,15 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       showFooterRow: true,
       footerRowHeight: 28,
 
-      // Ngăn chỉnh sửa các hàng đã báo giá (StatusRequest = 2) hoặc đã hoàn thành (StatusRequest = 3)
       editCommandHandler: (item: any, _column: any, editCommand: any) => {
         // Tab VTTH (typeId = 15) không cho phép sửa trực tiếp trên bảng
         if (typeId === -10) {
           return;
         }
 
-        const statusRequest = Number(item?.StatusRequest || item?.StatusRequestID || 0);
-        // Cho phép edit nếu status = 1 (Yêu cầu báo giá) hoặc status = 5 (Từ chối)
-        if (statusRequest === 2 || statusRequest === 3) {
+        const statusRequest = Number(item?.StatusRequest || 0);
+        // Chỉ block status = 3 (hoàn thành), status = 2 (đã báo giá) vẫn cho sửa
+        if (statusRequest === 3) {
           // Không thực hiện edit command, revert lại giá trị cũ
           return;
         }
@@ -4727,6 +4726,11 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         centered: true,
       }
     );
+    // Tab HCNS (activeTabId = -2) → typeID = 3, Tab Hàng demo (activeTabId = -4) → typeID = 6
+    let typeID = 0;
+    if (this.activeTabId === -2) typeID = 3;
+    else if (this.activeTabId === -4) typeID = 6;
+    modalRef.componentInstance.projectPartlistPriceRequestTypeID = typeID;
   }
 
   OpenAddSupplierModal(): void {

@@ -1,0 +1,48 @@
+/* Footer row styling */
+:host
+  ::ng-deep
+  .slickgrid-container
+  .slick-footerrow
+  .slick-footerrow-columns
+  .slick-footerrow-column {
+  border-right: 1px solid #ddd !important;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+:host ::ng-deep .slick-footerrow-column[id$="ProductName"] {
+  justify-content: flex-start !important;
+}
+
+:host ::ng-deep div[id^="grid-inventory-"] {
+  height: 90vh !important;
+}
+
+.inventory-new-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-body {
+  flex: 1;
+  overflow: hidden;
+}
+
+.font-12 {
+  font-size: 12px;
+}
+
+/* Highlight row overaged */
+:host ::ng-deep .slick-row.row-overaged .slick-cell {
+  background-color: #fff1f0 !important;
+  color: #cf1322 !important;
+}
+
+:host ::ng-deep .slick-row.row-overaged:hover .slick-cell {
+  background-color: #ffa39e !important;
+}

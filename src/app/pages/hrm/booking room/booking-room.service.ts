@@ -32,7 +32,7 @@ export interface BookingRoomResponse {
 export class BookingRoomService {
   private apiUrl = `${environment.host}api/BookingRoom/`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getBookingRooms(
     dateStart: Date,

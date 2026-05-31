@@ -310,6 +310,7 @@ export class PollFormComponent implements OnInit {
   statistics: PollStatisticsModel | null = null;
   answers: Record<string, any> = {};
   searchText = '';
+  responseKeyword = '';
   statusFilter: PollStatusFilter = 'all';
   selectedPollId = 0;
   selectedSectionIndex = 0;
@@ -1757,7 +1758,7 @@ export class PollFormComponent implements OnInit {
     try {
       const [statisticsResponse, responsesResponse] = await Promise.all([
         firstValueFrom(this.pollFormService.getStatistics(pollId)),
-        firstValueFrom(this.pollFormService.getResponses(pollId)),
+        firstValueFrom(this.pollFormService.getResponses(pollId, this.responseKeyword)),
       ]);
       this.assertSuccess(statisticsResponse);
       this.assertSuccess(responsesResponse);
@@ -1769,6 +1770,22 @@ export class PollFormComponent implements OnInit {
       this.statistics = null;
       this.responses = [];
       this.notifyError(error, 'Không tải được kết quả bình chọn');
+    } finally {
+      this.isLoadingResults = false;
+    }
+  }
+
+  async searchResponses(): Promise<void> {
+    if (this.selectedPollId <= 0) return;
+    this.isLoadingResults = true;
+    try {
+      const response = await firstValueFrom(this.pollFormService.getResponses(this.selectedPollId, this.responseKeyword));
+      this.assertSuccess(response);
+      const responseData = this.unwrap<any[]>(response, []);
+      this.responses = responseData.map((item) => this.normalizeResponse(item));
+    } catch (error) {
+      this.responses = [];
+      this.notifyError(error, 'Không tìm kiếm được danh sách phản hồi');
     } finally {
       this.isLoadingResults = false;
     }

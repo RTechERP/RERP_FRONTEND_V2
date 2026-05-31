@@ -29,6 +29,10 @@ export class CommercialPriceRequestServiceService {
   postDataImportExcel(data: any): Observable<any> {
     return this.http.post<any>(this.apiUrl + 'post-data-import-excel', data);
   }
+  //delete commercial price request
+  deleteCommercialPriceRequest(data: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl + 'deleted-commercial-price-request', data);
+  }
   //LƯU MẪU EXCEL
   downloadTemplate(fileName: string): Observable<Blob> {
     const url = `${environment.host}api/share/software/Template/ImportExcel/${fileName}`;

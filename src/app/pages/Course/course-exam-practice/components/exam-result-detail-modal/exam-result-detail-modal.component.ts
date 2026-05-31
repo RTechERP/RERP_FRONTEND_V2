@@ -10,6 +10,10 @@ import { CourseExamResult, ExamResultDetail, Employee, CourseData } from '../../
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { FormsModule } from '@angular/forms';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import * as XLSX from 'xlsx';
+
+// Make XLSX available globally for Tabulator
+(window as any).XLSX = XLSX;
 
 @Component({
     selector: 'app-exam-result-detail-modal',
@@ -27,7 +31,6 @@ export class ExamResultDetailModalComponent implements OnInit, OnChanges, AfterV
     @Input() examCode: string = '';
     @Input() testTime: number = 0;
     @Input() employeeName: string = '';
-    @Input() employeeData: Employee[] = [];
     @Input() courseData: CourseData[] = [];
 
     @Output() onCancel = new EventEmitter<void>();
@@ -43,21 +46,23 @@ export class ExamResultDetailModalComponent implements OnInit, OnChanges, AfterV
     // Filter properties
     filterCourseID: number = 0;
     filterEmployeeID: number = 0;
-    groupedEmployees: { department: string; employees: Employee[] }[] = [];
-
+    groupedEmployees: { department: string; employees: any[] }[] = [];
+    employees: any[] = [];
     totalCorrect: number = 0;
     totalIncorrect: number = 0;
     totalQuestions: number = 0;
 
     constructor(private service: CourseExamPracticeService) { }
 
-    ngOnInit(): void { }
+    ngOnInit(): void { 
+        this.loadEmployees();
+    }
 
     ngOnChanges(changes: SimpleChanges): void {
         if (this.isVisible && (changes['isVisible'] || changes['courseResultID'])) {
             this.filterCourseID = this.courseID;
             this.filterEmployeeID = this.employeeID;
-            this.groupEmployees();
+            // this.groupEmployees();
             this.loadData();
         } else if (!this.isVisible && changes['isVisible']) {
             // Modal is being closed
@@ -68,6 +73,36 @@ export class ExamResultDetailModalComponent implements OnInit, OnChanges, AfterV
             }
         }
     }
+    createdDataGroup(items: any[], groupByField: string): any[] {
+        const grouped: Record<string, any[]> = items.reduce((acc, item) => {
+          const groupKey = item[groupByField] || '';
+          if (!acc[groupKey]) acc[groupKey] = [];
+          acc[groupKey].push(item);
+          return acc;
+        }, {});
+    
+        return Object.entries(grouped).map(([groupLabel, groupItems]) => ({
+          label: groupLabel,
+          options: groupItems.map((item) => ({
+            item: item,
+          })),
+        }));
+      }
+    
+      loadEmployees() {
+        this.service.getEmployeeData().subscribe(
+          (response) => {
+            if (response && response.status === 1) {
+              this.employees = this.createdDataGroup(response.data, 'DepartmentName');
+    
+            } else {
+              this.employees = [];
+            }
+          },
+          (error) => {
+          }
+        );
+      }
 
     ngAfterViewInit(): void {
         if (this.isVisible) {
@@ -119,21 +154,21 @@ export class ExamResultDetailModalComponent implements OnInit, OnChanges, AfterV
         this.totalIncorrect = this.data.filter(item => item.Result === 0).length;
     }
 
-    groupEmployees(): void {
-        const departments = new Map<string, Employee[]>();
-        const cleanList = this.employeeData.filter(e => e.ID > 0);
+    // groupEmployees(): void {
+    //     const departments = new Map<string, any[]>();
+    //     const cleanList = this.employeeData.filter(e => e.ID > 0);
 
-        cleanList.forEach(emp => {
-            const dept = emp.DepartmentName || 'Chưa có phòng ban';
-            if (!departments.has(dept)) departments.set(dept, []);
-            departments.get(dept)!.push(emp);
-        });
+    //     cleanList.forEach(emp => {
+    //         const dept = emp.DepartmentName || 'Chưa có phòng ban';
+    //         if (!departments.has(dept)) departments.set(dept, []);
+    //         departments.get(dept)!.push(emp);
+    //     });
 
-        this.groupedEmployees = Array.from(departments.entries()).map(([dept, emps]) => ({
-            department: dept,
-            employees: emps
-        }));
-    }
+    //     this.groupedEmployees = Array.from(departments.entries()).map(([dept, emps]) => ({
+    //         department: dept,
+    //         employees: emps
+    //     }));
+    // }
 
     handleSearch(): void {
         this.loadData();

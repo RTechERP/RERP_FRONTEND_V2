@@ -77,7 +77,7 @@ export class CourseExamService {
   }
 
   uploadQuestionImage(file: File): Observable<any> {
-    return this.uploadMultipleFiles([file], 'CourseQuestion', 'images');
+    return this.uploadMultipleFiles([file], 'CourseExamExerciseImages', 'images');
   }
 
   uploadMultipleFiles(files: File[], key?: string, subPath?: string): Observable<any> {
@@ -85,16 +85,19 @@ export class CourseExamService {
     files.forEach((file) => {
       formData.append('files', file);
     });
-    formData.append('key', key || 'Course');
-    if (subPath && subPath.trim()) {
-      formData.append('subPath', subPath.trim());
-    }
+    formData.append('key', key || 'CourseExamExerciseImages');
+    // if (subPath && subPath.trim()) {
+    //   formData.append('subPath', subPath.trim());
+    // }
     return this.http.post<any>(this._url + 'home/upload-multiple', formData);
   }
 
   getCourseAnswers(questionID: number): Observable<{ status: number, data: AnswerItem[], message: string }> {
     const params = new HttpParams().set('questionID', questionID.toString());
     return this.http.get<any>(this.apiUrl + 'get-course-answers', { params });
+  }
+   getPathServer(keyName: string): Observable<any> {
+    return this.http.get<any>(this.apiUrl + 'get-path-server?keyName=' + keyName);
   }
 
   getCourseQuestionNo(examID: number): Observable<any> {

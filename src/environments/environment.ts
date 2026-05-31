@@ -3,6 +3,7 @@ export const environment = {
     apiKey:
         "RTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keY",
     host: 'https://localhost:44365/',
+    hostExam: 'https://localhost:44365/',
     hostwebold: 'https://localhost:44365/',
     baseHref: '/rerpweb',
     title: 'R-ERP',

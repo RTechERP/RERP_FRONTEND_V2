@@ -27,6 +27,8 @@ import { AppUserService } from '../../../../../services/app-user.service';
 import { PermissionService } from '../../../../../services/permission.service';
 import { ProjectService } from '../../../../project/project-service/project.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 @Component({
   standalone: true,
@@ -53,7 +55,8 @@ import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '
     NzFormItemComponent,
     NzInputNumberModule,
     NzSelectModule,
-    PaginatorModule
+    PaginatorModule,
+    NzModalModule
   ],
 })
 export class CommercialPriceRequestComponent implements OnInit {
@@ -100,7 +103,8 @@ export class CommercialPriceRequestComponent implements OnInit {
     private permissionService: PermissionService,
     private projectService: ProjectService,
     private notification: NzNotificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private modal: NzModalService
   ) { }
 
   ngOnInit(): void {
@@ -152,6 +156,12 @@ export class CommercialPriceRequestComponent implements OnInit {
         label: 'Nhập Excel',
         icon: 'fa-solid fa-file-excel fa-lg text-success',
         command: () => this.onImportExcel(),
+        visible: this.permissionService.hasPermission('N33,N35,N1')
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        command: () => this.onDelete(),
         visible: this.permissionService.hasPermission('N33,N35,N1')
       },
     ];
@@ -364,7 +374,7 @@ export class CommercialPriceRequestComponent implements OnInit {
         format: (v: any) => this.formatDateTime(v)
       },  //ép kiểu về năm tháng ngày giờ
       {
-        field: 'SalesPushedAt', header: 'Ngày báo giá', width: '160px', sortable: true, filterMode: 'datetime', cssClass: 'text-center',
+        field: 'PurSentAt', header: 'Ngày báo giá', width: '160px', sortable: true, filterMode: 'datetime', cssClass: 'text-center',
         format: (v: any) => this.formatDateTime(v)
       }, //check lại trường
       {
@@ -413,5 +423,40 @@ export class CommercialPriceRequestComponent implements OnInit {
         },
       ],
     ];
+  }
+
+  onDelete() {
+    if (!this.selectedRequests || this.selectedRequests.length === 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn ít nhất một dòng để xóa!');
+      return;
+    }
+
+    const ids = this.selectedRequests.map((r: any) => r.ID);
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc muốn xóa ${ids.length} bản ghi đã chọn? Những báo giá không phải của bạn sẽ được bỏ qua!`,
+      nzOkText: 'Xóa',
+      nzOkDanger: true,
+      nzOnOk: () => {
+        this.isLoading = true;
+        this.commercialPriceRequestService.deleteCommercialPriceRequest(ids).subscribe({
+          next: (res: any) => {
+            this.isLoading = false;
+            if (res?.status === 1) {
+              this.notification.success('Thành công', res.message || 'Xóa thành công!');
+              this.selectedRequests = [];
+              this.getData();
+            } else {
+              this.notification.error('Lỗi', res?.message || 'Xóa thất bại!');
+            }
+          },
+          error: (err: any) => {
+            this.isLoading = false;
+            this.notification.error('Lỗi', err?.error?.message || 'Xóa thất bại!');
+          }
+        });
+      }
+    });
   }
 }

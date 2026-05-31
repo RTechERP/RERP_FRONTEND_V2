@@ -709,7 +709,7 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
       `,
       nzFooter: [
         {
-          label: 'Xuất Excel 1',
+          label: 'Xuất kiểu 1',
           type: 'primary',
           onClick: () => {
             this.modal.closeAll();
@@ -717,7 +717,7 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
           }
         },
         {
-          label: 'Xuất Excel 2',
+          label: 'Xuất kiểu 2',
           type: 'default',
           onClick: () => {
             this.modal.closeAll();
@@ -808,7 +808,8 @@ export class CourseExamComponent implements OnInit, AfterViewInit {
         STT: item.STT ?? '',
         QuestionText: item.QuestionText || '',
         AnswerText: item.AnswerText || '',
-        RightAnswer: (item.IsRightAnswer === 1 || item.CheckInput === 1) ? 1 : 0
+        // RightAnswer: (item.IsRightAnswer === 1 || item.CheckInput === 1) ? 1 : 0
+        RightAnswer: item.RightAnswer === 1 ? 1 : 0
       });
 
       row.eachCell({ includeEmpty: true }, (cell, colNumber) => {

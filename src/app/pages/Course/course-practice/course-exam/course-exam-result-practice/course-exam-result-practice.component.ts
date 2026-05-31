@@ -140,11 +140,11 @@ export class CourseExamResultPracticeComponent implements OnInit, OnChanges {
     this.isStartingExam = true;
 
     // Create exam result first (reuse CreateExamResult API)
-    this.coursePracticeService.CreateExamResult(this.courseExamID).subscribe({
-      next: (response: any) => {
-        this.isStartingExam = false;
+    // this.coursePracticeService.CreateExamResult(this.courseExamID).subscribe({
+    //   next: (response: any) => {
+    //     this.isStartingExam = false;
 
-        if (response?.status === 1 && response.data?.ID > 0) {
+    //     if (response?.status === 1 && response.data?.ID > 0) {
           // Open practice exam modal
           const modalRef = this.modalService.open(CourseExamPracticeComponent, {
             fullscreen: true,
@@ -154,28 +154,30 @@ export class CourseExamResultPracticeComponent implements OnInit, OnChanges {
 
           // Pass data to modal
           modalRef.componentInstance.courseExamID = this.courseExamID;
-          modalRef.componentInstance.courseExamResultID = response.data.ID;
+          // modalRef.componentInstance.courseExamResultID = response.data.ID;
           modalRef.componentInstance.courseName = this.courseName;
           modalRef.componentInstance.courseID = this.courseID;
 
           // Handle modal close
           modalRef.closed.subscribe(() => {
             this.loadHistory();
+            this.isStartingExam = false;
           });
 
           modalRef.dismissed.subscribe(() => {
             this.loadHistory();
+            this.isStartingExam = false;
           });
-        } else {
-          this.notification.error('Lỗi', response?.message || 'Không thể tạo bài thi!');
-        }
-      },
-      error: (error) => {
-        this.isStartingExam = false;
-        console.error('Error creating practice result:', error);
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi tạo bài thi!');
-      }
-    });
+    //     } else {
+    //       this.notification.error('Lỗi', response?.message || 'Không thể tạo bài thi!');
+    //     }
+    //   },
+    //   error: (error) => {
+    //     this.isStartingExam = false;
+    //     console.error('Error creating practice result:', error);
+    //     this.notification.error('Lỗi', 'Có lỗi xảy ra khi tạo bài thi!');
+    //   }
+    // });
   }
 
   formatDate(dateStr: string): string {

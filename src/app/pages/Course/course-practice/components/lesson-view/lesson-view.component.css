@@ -1,6 +1,7 @@
-﻿@import "https://unpkg.com/@videogular/ngx-videogular/fonts/videogular.css";
+@import "https://unpkg.com/@videogular/ngx-videogular/fonts/videogular.css";
 
 /* ========== VIDEOGULAR STYLES ========== */
+
 vg-player {
     width: 100% !important;
     height: auto !important;
@@ -19,7 +20,9 @@ vg-controls {
     transition: opacity 0.3s ease-in-out;
 }
 
+
 /* YouTube-style Segmented Progress Bar */
+
 vg-scrub-bar {
     height: 2px !important;
     background-color: rgba(255, 255, 255, 0.2) !important;
@@ -73,7 +76,6 @@ vg-player:hover vg-scrub-bar {
     border-right: none;
 }
 
-
 .segment.hovered {
     height: 14px !important;
     top: -3px !important;
@@ -81,7 +83,9 @@ vg-player:hover vg-scrub-bar {
     z-index: 100;
 }
 
+
 /* YouTube Red Progress Bar */
+
 ::ng-deep vg-scrub-bar-current-time {
     background-color: transparent !important;
     height: 100% !important;
@@ -89,7 +93,9 @@ vg-player:hover vg-scrub-bar {
     /* Let clicks pass to parent if needed, but vg-scrub-bar handles it */
 }
 
+
 /* Red Playhead (Knob) - Now attached to .background which has the correct width */
+
 ::ng-deep vg-scrub-bar-current-time .background::after {
     content: "";
     position: absolute;
@@ -140,7 +146,9 @@ h3 {
     position: relative;
 }
 
+
 /* ---- Current chapter in controls ---- */
+
 .current-chapter-label {
     color: #fff;
     font-size: 13px;
@@ -157,18 +165,67 @@ h3 {
     opacity: 1;
 }
 
-.time-sep {
-    color: #aaa;
-    font-size: 13px;
-    padding: 0 2px;
+.speed-control-wrap {
     display: flex;
     align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+    margin-right: 6px;
+    padding: 2px 6px;
+    /* Speed control UI improvements */
+    .speed-control-wrap {
+        display: flex;
+        align-items: center;
+        background: rgba(30, 30, 30, 0.85);
+        border-radius: 6px;
+        padding: 2px 10px 2px 10px;
+        margin: 0 12px;
+        height: 32px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        font-size: 11px;
+        white-space: nowrap;
+    }
+    .speed-control-select {
+        min-width: 62px;
+        border: 0;
+        font-size: 13px;
+        margin-right: 6px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        font-size: 11px;
+        padding: 2px 6px;
+        outline: none;
+    }
+    .speed-control-select option {
+        color: #111;
+        background: #fff;
+    }
+    background: transparent;
+    color: #fff;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 56px;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
+
 /* ---- Chapter tooltip with preview thumbnail ---- */
+
 .chapter-tooltip {
     position: absolute;
     transform: translateX(-50%);
+    color: #222;
+    background: #fff;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.15s;
@@ -183,7 +240,9 @@ h3 {
     opacity: 1;
 }
 
+
 /* Preview thumbnail */
+
 .tooltip-preview {
     width: 160px;
     height: 90px;
@@ -207,7 +266,9 @@ h3 {
     background: #222;
 }
 
+
 /* Time + title row below thumbnail */
+
 .tooltip-info {
     background: rgba(0, 0, 0, 0.92);
     padding: 5px 10px;
@@ -235,7 +296,9 @@ h3 {
     color: #aad4ff;
 }
 
+
 /* ---- Chapters List ---- */
+
 .chapters-section {
     margin-top: 16px;
 }
@@ -259,7 +322,9 @@ h3 {
     position: relative;
 }
 
+
 /* Custom Scrollbar for Chapter List */
+
 .chapter-list::-webkit-scrollbar {
     width: 6px;
 }
@@ -352,7 +417,9 @@ h3 {
     color: #40a9ff;
 }
 
+
 /* ---- Playlist ---- */
+
 .playlist-section {
     margin-top: 20px;
 }
@@ -384,7 +451,9 @@ li.playlist-item.selected {
     color: #fff;
 }
 
+
 /* ========== LESSON LIST STYLES ========== */
+
 .lesson-list {
     display: flex;
     flex-direction: column;
@@ -454,7 +523,9 @@ li.playlist-item.selected {
     color: #8c8c8c;
 }
 
+
 /* Lesson Completion Checkbox */
+
 .lesson-checkbox {
     flex: 0 0 auto;
     margin: 0;
@@ -476,7 +547,9 @@ li.playlist-item.selected {
     height: 10px;
 }
 
+
 /* Completed lesson item style */
+
 .lesson-item.completed {
     background: #f6ffed;
     border-color: #b7eb8f;
@@ -490,7 +563,9 @@ li.playlist-item.selected {
     color: #389e0d;
 }
 
+
 /* ========== LESSON EXAM DROPDOWN ========== */
+
 .lesson-exam-dropdown {
     flex: 0 0 auto;
     margin-right: 8px;
@@ -519,7 +594,9 @@ li.playlist-item.selected {
     font-size: 10px;
 }
 
+
 /* ========== EXAM TYPE BUTTONS ========== */
+
 .exam-buttons {
     padding: 12px 0;
     border-top: 1px solid #e8e8e8;
@@ -585,7 +662,9 @@ li.playlist-item.selected {
     box-shadow: 0 4px 12px rgba(82, 196, 26, 0.4);
 }
 
+
 /* ========== DISABLED EXAM BUTTON STYLES ========== */
+
 .exam-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -601,7 +680,9 @@ li.playlist-item.selected {
     color: #8c8c8c !important;
 }
 
+
 /* ========== LESSON DETAIL STYLES ========== */
+
 .lesson-detail-container {
     max-width: 100%;
 }
@@ -616,7 +697,9 @@ li.playlist-item.selected {
     border-radius: 8px;
 }
 
+
 /* Video Unavailable Placeholder */
+
 .video-unavailable {
     background: #1a1a1a;
     border-radius: 8px;
@@ -772,35 +855,32 @@ li.playlist-item.selected {
 
 .card-body {
     flex: 1;
-    overflow-y: auto;
+    /* overflow-y: auto; */
     min-height: 0;
 }
 
+
 /* Responsive adjustments for lesson view */
+
 @media (max-width: 768px) {
     .lesson-item {
         padding: 10px 12px;
         gap: 10px;
     }
-
     .lesson-number {
         flex: 0 0 28px;
         height: 28px;
         font-size: 12px;
     }
-
     .lesson-name {
         font-size: 12px;
     }
-
     .section-title {
         font-size: 18px;
     }
-
     .video-section iframe {
         height: 300px !important;
     }
-
     .pdf-section embed {
         height: 400px !important;
     }

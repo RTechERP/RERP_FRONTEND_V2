@@ -5,9 +5,11 @@
 <nav class="navbar sticky-top p-0" style="background-color: #23458a">
     <div class="container-fluid">
         <a class="navbar-brand p-0" href="#" style="width: 6%" routerLink="/home">
-            <img src="assets/images/logo-RTC-2023-1200-red-white.png" alt="" width="100%" class="d-inline-block align-text-top" />
+            <img src="assets/images/logo-RTC-2023-1200-red-white.png" alt="" width="100%"
+                class="d-inline-block align-text-top" />
         </a>
-        <span *ngIf="hasNewVersion" (click)="showUpdateModal()" class="text-white fw-bold cursor-pointer blink-text" style="font-size: 14px; margin: 0 10px; vertical-align: right">
+        <span *ngIf="hasNewVersion" (click)="showUpdateModal()" class="text-white fw-bold cursor-pointer blink-text"
+            style="font-size: 14px; margin: 0 10px; vertical-align: right">
             <i nz-icon nzType="info-circle" nzTheme="outline"></i> Có phiên bản cập
             nhật mới!
             <span style="
@@ -18,7 +20,9 @@
         ">(Xem chi tiết)</span>
         </span>
         <div class="">
-            <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text" [(nzVisible)]="isAppMenuVisible" [nzClickHide]="false" style="border: none !important; background-color: transparent" nzTrigger="click">
+            <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
+                [(nzVisible)]="isAppMenuVisible" [nzClickHide]="false"
+                style="border: none !important; background-color: transparent" nzTrigger="click">
                 <img src="assets/icon/app_store.svg" />
             </button>
 
@@ -26,7 +30,8 @@
                 <div class="app-launcher">
                     <div class="app-launcher-inner">
                         @for (m of menus; track $index) {
-                        <a [href]="m.router" (click)="openModule($event, m.router, m.key)" *ngIf="m.isPermission" [class.active]="m.key === selectedModuleKey">
+                        <a [href]="m.router" (click)="openModule($event, m.router, m.key)" *ngIf="m.isPermission"
+                            [class.active]="m.key === selectedModuleKey">
                             <img [src]="m.icon" />
                             <span class="mt-1">{{ m.title }}</span>
                         </a>
@@ -90,9 +95,10 @@
                 item.key == 'M79' ||
                 item.key == 'M136' ||
                 item.key == 'M137' ||
-                item.key == 'M139'
+                item.key == 'M139' || item.key == 'M11205'
               ">
-                        <a [attr.href]="item.router ? item.router : null" (click)="handleClickLink($event, item.router, item.title)">
+                        <a [attr.href]="item.router ? item.router : null"
+                            (click)="handleClickLink($event, item.router, item.title)">
                             <img [src]="item.icon" width="5%" />
                             <span> {{ item.title }}</span>
                         </a>
@@ -102,7 +108,8 @@
                       'border-bottom': $index < item.children.length - 1,
                       '': $index == item.children.length - 1,
                     }">
-                                <a [attr.href]="c.router ? c.router : null" (click)="handleClickLink($event, c.router, c.title)">
+                                <a [attr.href]="c.router ? c.router : null"
+                                    (click)="handleClickLink($event, c.router, c.title)">
                                     <img [src]="c.icon" width="5%" />
                                     <span> {{ c.title }}</span>
                                 </a>
@@ -123,7 +130,8 @@
                 <div class="gutter-example">
                     <div nz-row [nzGutter]="[16, 16]">
                         @for (m of menus; track $index) {
-                        <a nz-col class="gutter-row" [nzXs]="8" [nzMd]="6" [nzLg]="6" *ngIf="m.isPermission" [href]="m.router" (click)="openModule($event, m.router, m.key)">
+                        <a nz-col class="gutter-row" [nzXs]="8" [nzMd]="6" [nzLg]="6" *ngIf="m.isPermission"
+                            [href]="m.router" (click)="openModule($event, m.router, m.key)">
                             <div class="grid-config text-center py-1 shadow" style="
                     display: flex;
                     flex-flow: column;
@@ -162,7 +170,8 @@
                 <ul class="list-group list-group-flush">
                     @for (item of menuApproves.children; track $index) {
                     <li class="list-group-item border-0 border-bottom py-1" *ngIf="item.isPermission">
-                        <a class="text-dark" [attr.href]="item.router ? item.router : null" *ngIf="(item.router || '') != '#' && (item.router || '') != ''" (click)="
+                        <a class="text-dark" [attr.href]="item.router ? item.router : null"
+                            *ngIf="(item.router || '') != '#' && (item.router || '') != ''" (click)="
                   handleClickLink($event, item.router, item.Title, item.data)
                 ">
                             <img [src]="item.icon" style="width: 20px; height: 20px;" />
@@ -311,12 +320,26 @@
                                 <br />
                             </ng-container>
 
+                            <ng-container *ngIf="projectTaskAttendances === 0">
+                                <br />
+                                Ngày hôm nay bạn chưa điểm danh công việc!
+                                <span class="text-primary cursor-pointer fw-bold" style="
+                                                                            color: #007bff !important;
+                                                                            text-decoration: underline;
+                                                                            cursor: pointer;
+                                                                            font-weight: 600;
+                                                                        " (click)="onPickProjectTaskOverdue()"> Bấm vào
+                                    đây để xem</span>
+                                <br />
+                            </ng-container>
+
+
                             <!-- Thông báo phiếu đánh giá chuyển HDLD chờ xử lý -->
                             <ng-container
                                 *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0 || pendingReview.asTBP > 0 || pendingReview.asHR > 0 || pendingReview.asBGD > 0">
                                 <br *ngIf="quantityBorrow > 0 || quantityBorrowExpried > 0 || quantityBorrowSale > 0
                                            || quantityBorrowExpriedSale > 0 || quantityApprove?.Count > 0
-                                           || quantityOverdueProjectTask > 0" />
+                                           || quantityOverdueProjectTask > 0 || projectTaskAttendances === 0" />
 
                                 <!-- NV tự đánh giá -->
                                 <ng-container *ngIf="pendingReview.asEmployee > 0">
@@ -389,7 +412,8 @@
                         <!-- Hàng trên: Ảnh và Tiêu đề -->
                         <div class="d-flex w-100 gap-2 align-items-center mb-1">
                             <div class="flex-shrink-0">
-                                <img src="assets/icon/thongbao.jpg" alt="Newsletter thumb" class="rounded shadow-sm" style="
+                                <img src="assets/icon/thongbao.jpg" alt="Newsletter thumb" class="rounded shadow-sm"
+                                    style="
                       width: 50px;
                       height: 50px;
                       object-fit: cover;
@@ -411,7 +435,8 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
                             <!-- Hàng dưới: Ngày (dưới ảnh) và Xem chi tiết (bên phải) -->
-                            <div class="text-muted d-flex justify-content-center flex-shrink-0" style="width: 50px; font-size: 10px; white-space: nowrap;">
+                            <div class="text-muted d-flex justify-content-center flex-shrink-0"
+                                style="width: 50px; font-size: 10px; white-space: nowrap;">
                                 {{ item.CreatedDate | date: "dd/MM/yyyy" }}
                             </div>
                             <div class="text-primary cursor-pointer fw-bold" style="
@@ -527,9 +552,11 @@
                     <nz-tab [nzTitle]="titleTemplateWFH"></nz-tab>
                 </nz-tabset>
                 <ng-template class="panel-title" #titleTemplateOnleave>
-                    NGHỈ PHÉP {{ totalEmployeeOnleave == 0 ? "" : `(${totalEmployeeOnleave})` }} - {{ today | date: "dd/MM/yyyy" }}
+                    NGHỈ PHÉP {{ totalEmployeeOnleave == 0 ? "" : `(${totalEmployeeOnleave})` }} - {{ today | date:
+                    "dd/MM/yyyy" }}
                 </ng-template>
-                <ng-template class="panel-title" #titleTemplateWFH>WFH {{ totalEmployeeWfh == 0 ? "" : `(${totalEmployeeWfh})` }} - {{ today | date: "dd/MM/yyyy" }}
+                <ng-template class="panel-title" #titleTemplateWFH>WFH {{ totalEmployeeWfh == 0 ? "" :
+                    `(${totalEmployeeWfh})` }} - {{ today | date: "dd/MM/yyyy" }}
                 </ng-template>
             </div>
 
@@ -593,7 +620,8 @@
                 <span class="badge bg-danger ms-auto">Ngày nghỉ</span>
             </div>
             <div class="card-body p-0 pt-1">
-                <nz-calendar [nzFullscreen]="false" [(ngModel)]="calendarDate" [nzCustomHeader]="" [nzDateFullCell]="dateCell" (nzSelectChange)="onSelectChangeCalendar($event)">
+                <nz-calendar [nzFullscreen]="false" [(ngModel)]="calendarDate" [nzCustomHeader]=""
+                    [nzDateFullCell]="dateCell" (nzSelectChange)="onSelectChangeCalendar($event)">
                 </nz-calendar>
 
                 <ng-template #dateCell let-date>

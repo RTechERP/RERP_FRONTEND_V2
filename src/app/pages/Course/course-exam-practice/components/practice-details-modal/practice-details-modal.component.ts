@@ -40,6 +40,7 @@ export class PracticeDetailsModalComponent implements OnInit, OnChanges, AfterVi
     @Input() examType: number = 2; // 2: Practice (Thực hành), 3: Exercise (Bài tập)
 
     @Output() onClose = new EventEmitter<void>();
+    @Output() onSaveSuccess = new EventEmitter<void>();
 
     @ViewChild('HistoryTable') historyTableRef!: ElementRef;
     @ViewChild('EvaluationTable') evaluationTableRef!: ElementRef;
@@ -347,6 +348,33 @@ export class PracticeDetailsModalComponent implements OnInit, OnChanges, AfterVi
         });
 
         this.evaluationTable.on('cellEdited', (cell) => {
+            const field = cell.getField();
+            const value = cell.getValue();
+
+            if (field === 'Point') {
+                // Validate điểm: chỉ cho phép 0-10
+                const num = parseFloat(value);
+                if (isNaN(num) || num < 0 || num > 10) {
+                    // Highlight dòng lỗi bằng màu đỏ
+                    const row = cell.getRow();
+                    row.getElement().style.backgroundColor = '#ffcccc';
+                    row.getElement().style.borderLeft = '3px solid #ff0000';
+
+                    // Thông báo lỗi
+                    this.message.error('Điểm phải từ 0 đến 10!');
+
+                    // Reset về giá trị hợp lệ hoặc 0
+                    const cellData = cell.getData() as PracticeEvaluationDetail;
+                    const validValue = isNaN(num) ? 0 : Math.max(0, Math.min(10, num));
+                    cell.setValue(validValue);
+                } else {
+                    // Xóa highlight nếu giá trị hợp lệ
+                    const row = cell.getRow();
+                    row.getElement().style.backgroundColor = '';
+                    row.getElement().style.borderLeft = '';
+                }
+            }
+
             this.hasUnsavedChanges = true;
         });
     }
@@ -389,15 +417,28 @@ export class PracticeDetailsModalComponent implements OnInit, OnChanges, AfterVi
             const tableData = this.evaluationTable.getData() as PracticeEvaluationDetail[];
             const evaluationPayload: CourseExamEvaluate[] = [];
 
+            // Validate điểm: phải từ 0-10
+            const invalidItems: string[] = [];
             tableData.forEach(item => {
                 if (item.ID > 0) {
-                    evaluationPayload.push({
-                        ID: item.ID,
-                        Point: item.Point || 0,
-                        Note: item.Note || ''
-                    });
+                    const point = item.Point || 0;
+                    if (point < 0 || point > 10 || isNaN(point)) {
+                        invalidItems.push(`Câu ${item.STT}`);
+                    } else {
+                        evaluationPayload.push({
+                            ID: item.ID,
+                            Point: point,
+                            Note: item.Note || ''
+                        });
+                    }
                 }
             });
+
+            if (invalidItems.length > 0) {
+                this.message.error(`Điểm không hợp lệ: ${invalidItems.join(', ')}. Điểm phải từ 0 đến 10!`);
+                reject();
+                return;
+            }
 
             // Prepare full payload matching SavePracticeEvaluationParam
             const payload: SavePracticeEvaluationParam = {
@@ -423,6 +464,9 @@ export class PracticeDetailsModalComponent implements OnInit, OnChanges, AfterVi
 
                         // Reload history to reflect updated points
                         this.loadHistoryData();
+
+                        // Emit event để parent load lại bảng kết quả
+                        this.onSaveSuccess.emit();
 
                         if (closeAfter) {
                             this.handleClose();

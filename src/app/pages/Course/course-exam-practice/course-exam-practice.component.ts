@@ -60,7 +60,7 @@ export class CourseExamPracticeComponent implements OnInit, AfterViewInit {
   isSmallScreen: boolean = false;
 
   // Employee Selection
-  employees: Employee[] = [];
+  employees: any[] = [];
   selectedEmployeeId: number = 0;
 
   // Course Data
@@ -112,23 +112,24 @@ export class CourseExamPracticeComponent implements OnInit, AfterViewInit {
   // Selected rows for bulk operations
   selectedCourseResultIds: number[] = [];
   selectedLessonResultIds: number[] = [];
+  activeResultSourceTab: 'course' | 'lesson' = 'course'; // Track bảng nào đang active từ right-click
 
   menuItems: MenuItem[] = [
-    {
-      label: 'Thêm',
-      icon: 'fa-solid fa-circle-plus fa-lg text-success',
-      command: () => this.handleAdd(),
-    },
-    {
-      label: 'Sửa',
-      icon: 'fa-solid fa-file-pen fa-lg text-primary',
-      command: () => this.handleEdit(),
-    },
-    {
-      label: 'Xóa',
-      icon: 'fa-solid fa-trash fa-lg text-danger',
-      command: () => this.handleDelete(),
-    },
+    // {
+    //   label: 'Thêm',
+    //   icon: 'fa-solid fa-circle-plus fa-lg text-success',
+    //   command: () => this.handleAdd(),
+    // },
+    // {
+    //   label: 'Sửa',
+    //   icon: 'fa-solid fa-file-pen fa-lg text-primary',
+    //   command: () => this.handleEdit(),
+    // },
+    // {
+    //   label: 'Xóa',
+    //   icon: 'fa-solid fa-trash fa-lg text-danger',
+    //   command: () => this.handleDelete(),
+    // },
     {
       label: 'Tải lại',
       icon: 'fa-solid fa-sync fa-lg text-primary',
@@ -141,6 +142,16 @@ export class CourseExamPracticeComponent implements OnInit, AfterViewInit {
     },
     { separator: true },
   ];
+
+  // // Menu chỉ cho toolbar (Tải lại, Xuất Excel)
+  // get toolbarMenuItems(): MenuItem[] {
+  //   return this.menuItems.slice(3, 5);
+  // }
+
+  // // Menu chỉ cho tab Bài tập (Thêm, Sửa, Xóa)
+  // get baiTapMenuItems(): MenuItem[] {
+  //   return this.menuItems.slice(0, 3);
+  // }
 
   // Modal states for Exam Result Form
   isExamResultModalVisible: boolean = false;
@@ -165,7 +176,8 @@ export class CourseExamPracticeComponent implements OnInit, AfterViewInit {
   selectedPracticeDetailParams: any = {
     employeeID: 0,
     courseExamID: 0,
-    examType: 2
+    examType: 2,
+    sourceTab: 'course' // 'course' or 'lesson'
   };
 
   constructor(
@@ -202,18 +214,18 @@ export class CourseExamPracticeComponent implements OnInit, AfterViewInit {
     // Enable actions ONLY if:
     // 1. We are in Course Mode (mainTabIndex === 0)
     // 2. AND we are NOT in Multiple Choice (TN) tab (courseSubTabIndex !== 0)
-    const isCourseMode = this.mainTabIndex === 0;
-    const isTracNghiem = this.courseSubTabIndex === 0;
+    // const isCourseMode = this.mainTabIndex === 0;
+    // const isTracNghiem = this.courseSubTabIndex === 0;
 
-    const enableActions = isCourseMode && !isTracNghiem;
+    // const enableActions = isCourseMode && !isTracNghiem;
 
-    // 0: Thêm, 1: Sửa, 2: Xóa
-    this.menuItems[0].disabled = !enableActions;
-    this.menuItems[1].disabled = !enableActions;
-    this.menuItems[2].disabled = !enableActions;
+    // // 0: Thêm, 1: Sửa, 2: Xóa
+    // this.menuItems[0].disabled = !enableActions;
+    // this.menuItems[1].disabled = !enableActions;
+    // this.menuItems[2].disabled = !enableActions;
 
-    // Trigger change detection for PrimeNG
-    this.menuItems = [...this.menuItems];
+    // // Trigger change detection for PrimeNG
+    // this.menuItems = [...this.menuItems];
   }
   // ... (skipping unchanged code)
 
@@ -227,49 +239,44 @@ export class CourseExamPracticeComponent implements OnInit, AfterViewInit {
 
   // ========== Data Loading Methods ==========
 
+  createdDataGroup(items: any[], groupByField: string): any[] {
+    const grouped: Record<string, any[]> = items.reduce((acc, item) => {
+      const groupKey = item[groupByField] || '';
+      if (!acc[groupKey]) acc[groupKey] = [];
+      acc[groupKey].push(item);
+      return acc;
+    }, {});
+
+    return Object.entries(grouped).map(([groupLabel, groupItems]) => ({
+      label: groupLabel,
+      options: groupItems.map((item) => ({
+        item: item,
+      })),
+    }));
+  }
+
   loadEmployees() {
     this.isLoadingEmployees = true;
     this.service.getEmployeeData().subscribe(
       (response) => {
         this.isLoadingEmployees = false;
         if (response && response.status === 1) {
-          this.employees = response.data || [];
-          this.employees.unshift({ ID: 0, FullName: 'Tất cả', Code: 'ALL' } as Employee);
-          this.selectedEmployeeId = this.employees[0].ID;
-          this.onEmployeeChange();
+          this.employees = this.createdDataGroup(response.data, 'DepartmentName');
+
         } else {
           this.notification.warning(NOTIFICATION_TITLE.warning, response?.message || 'Không thể tải danh sách nhân viên!');
           this.employees = [];
-          this.employees.unshift({ ID: 0, FullName: 'Tất cả', Code: 'ALL' } as Employee);
         }
+        this.onEmployeeChange();
       },
       (error) => {
         this.isLoadingEmployees = false;
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi tải danh sách nhân viên!');
         console.error('Error loading employees:', error);
-        this.employees = [];
-        this.groupEmployees();
+        this.onEmployeeChange();
       }
     );
   }
-
-  groupedEmployees: { department: string; employees: Employee[] }[] = [];
-  groupEmployees(): void {
-    const departments = new Map<string, Employee[]>();
-    const cleanList = this.employees.filter(e => e.ID > 0);
-
-    cleanList.forEach(emp => {
-      const dept = emp.DepartmentName || 'Chưa có phòng ban';
-      if (!departments.has(dept)) departments.set(dept, []);
-      departments.get(dept)!.push(emp);
-    });
-
-    this.groupedEmployees = Array.from(departments.entries()).map(([dept, emps]) => ({
-      department: dept,
-      employees: emps
-    }));
-  }
-
   loadCourses(employeeId: number) {
     this.isLoadingCourses = true;
     this.service.getCourseData(employeeId).subscribe(
@@ -293,21 +300,29 @@ export class CourseExamPracticeComponent implements OnInit, AfterViewInit {
 
   loadAllCoursesNew() {
     this.isLoadingAllCourses = true;
-    this.service.getCourseNew().subscribe(
-      (response) => {
+
+    // Try getCourseData first (has data), fallback to getCourseNew
+    this.service.getCourseData().subscribe({
+      next: (response: any) => {
+        console.log('[Parent] getCourseData response:', JSON.stringify(response));
         this.isLoadingAllCourses = false;
-        if (response && response.status === 1) {
-          this.allCourseNewData = response.data || [];
-        } else {
-          this.allCourseNewData = [];
+        let courses: any[] = [];
+        if (Array.isArray(response)) {
+          courses = response;
+        } else if (response && response.status === 1) {
+          courses = response.data || [];
+        } else if (response && Array.isArray(response.data)) {
+          courses = response.data;
         }
+        this.allCourseNewData = courses;
+        console.log('[Parent] getCourseData — courses length:', courses.length);
       },
-      (error) => {
+      error: (err) => {
+        console.error('[Parent] getCourseData ERROR:', err);
         this.isLoadingAllCourses = false;
-        console.error('Error loading all courses (new):', error);
         this.allCourseNewData = [];
       }
-    );
+    });
   }
 
   loadLessons(courseId: number) {
@@ -471,6 +486,16 @@ export class CourseExamPracticeComponent implements OnInit, AfterViewInit {
     this.selectedLessonResultIds = [];
   }
 
+  onMainTabChange(index: number) {
+    this.mainTabIndex = index;
+    // Load data khi chuyển tab
+    if (index === 0 && this.selectedCourseId > 0) {
+      this.loadCourseExamResults(this.selectedCourseId, this.selectedEmployeeId);
+    } else if (index === 1 && this.selectedLessonId > 0) {
+      this.loadLessonExamResults(this.selectedLessonId, this.selectedEmployeeId);
+    }
+  }
+
   // ========== CRUD Operations ==========
 
   onCourseResultSelectionChange(selectedIds: number[]) {
@@ -526,6 +551,7 @@ export class CourseExamPracticeComponent implements OnInit, AfterViewInit {
     this.isExamResultEditMode = false;
     this.currentExamResult = undefined;
     this.isExamResultModalVisible = true;
+
   }
 
   handleEdit() {
@@ -634,35 +660,39 @@ export class CourseExamPracticeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  onResultTableRightClick(event: { event: MouseEvent, data: any }, menu: any): void {
-    const isCourseMode = this.mainTabIndex === 0;
-    const subTabIndex = isCourseMode ? this.courseSubTabIndex : this.lessonSubTabIndex;
+  onResultTableRightClick(event: { event: MouseEvent, data: any }, menu: any, sourceTab: 'course' | 'lesson' = 'course'): void {
+    const rowType = event.data.ExamType || event.data.type;
 
-    // ONLY allow for Course Mode (mainTabIndex === 0) 
-    // AND only for Practice (TH) or Exercise (BT) (subTabIndex !== 0)
-    if (!isCourseMode || subTabIndex === 0) return;
+    // Chỉ hiện menu cho TH (type 2) và BT (type 3), không cho TN (type 1)
+    if (rowType === 1) {
+      console.log('Blocked: rowType is 1 (TN)');
+      return;
+    }
 
     this.nzContextMenuService.create(event.event, menu);
 
-    // If the right-clicked row is NOT already selected, select only it.
-    // Otherwise, maintain the current multi-selection.
+    // Cập nhật selection đúng
     const rowId = event.data.ID;
-    const currentSelection = isCourseMode ? this.selectedCourseResultIds : this.selectedLessonResultIds;
-
-    if (!currentSelection.includes(rowId)) {
-      if (isCourseMode) {
+    if (sourceTab === 'course') {
+      if (!this.selectedCourseResultIds.includes(rowId)) {
         this.selectedCourseResultIds = [rowId];
-      } else {
+      }
+    } else {
+      if (!this.selectedLessonResultIds.includes(rowId)) {
         this.selectedLessonResultIds = [rowId];
       }
     }
+
+    // Track bảng nào đang active để handleEvaluate dùng đúng
+    this.activeResultSourceTab = sourceTab;
   }
 
   handleEvaluate(isPass: boolean) {
     const type = this.getOperationType();
     if (!type) return;
 
-    const isCourseMode = this.mainTabIndex === 0;
+    // Dùng activeResultSourceTab thay vì mainTabIndex để track đúng bảng từ right-click
+    const isCourseMode = this.activeResultSourceTab === 'course';
     const selectedIds = isCourseMode ? this.selectedCourseResultIds : this.selectedLessonResultIds;
 
     if (selectedIds.length === 0) {
@@ -756,18 +786,35 @@ export class CourseExamPracticeComponent implements OnInit, AfterViewInit {
   }
 
   onViewPracticeDetails(result: CourseExamResult) {
+    const isCourseTab = this.mainTabIndex === 0;
     this.selectedPracticeDetailParams = {
       examResultID: result.ID,
       employeeID: result.EmployeeId || this.selectedEmployeeId,
       courseExamID: result.CourseExamId || 0,
-      examType: result.ExamType || (this.mainTabIndex === 0 ? this.courseSubTabIndex + 1 : this.lessonSubTabIndex + 1)
+      examType: result.ExamType || (isCourseTab ? this.courseSubTabIndex + 1 : this.lessonSubTabIndex + 1),
+      sourceTab: isCourseTab ? 'course' : 'lesson'
     };
     this.isPracticeDetailModalVisible = true;
   }
 
   handlePracticeDetailClose() {
     this.isPracticeDetailModalVisible = false;
-    this.refreshCurrentResults(); // Reload data after modal closes
+    // Không tự động refresh - user sẽ bấm Tải lại nếu cần
+  }
+
+  handlePracticeSaveSuccess() {
+    // Load lại bảng kết quả thi tương ứng với nơi mở modal
+    if (this.selectedPracticeDetailParams.sourceTab === 'course') {
+      // Bảng trên - Kết quả thi khóa học
+      if (this.selectedCourseId) {
+        this.loadCourseExamResults(this.selectedCourseId, this.selectedEmployeeId);
+      }
+    } else {
+      // Bảng dưới - Kết quả thi bài học
+      if (this.selectedLessonId) {
+        this.loadLessonExamResults(this.selectedLessonId, this.selectedEmployeeId);
+      }
+    }
   }
 
   // ========== Helper Methods ==========

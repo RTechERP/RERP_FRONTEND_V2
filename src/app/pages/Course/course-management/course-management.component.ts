@@ -1001,13 +1001,6 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
             headerSort: false,
           },
           {
-            title: 'Người tạo',
-            field: 'Instructor',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            headerSort: false,
-          },
-          {
             title: 'Danh sách loại vị trí',
             field: 'KPIPositionTypeCodes',
             hozAlign: 'left',

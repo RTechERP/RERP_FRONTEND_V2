@@ -77,9 +77,10 @@
           <!-- Bảng Master - Cấp phát (ở trên) - 55% -->
           <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="55%">
             <div class="table-container" style="height: 100%; overflow: auto;">
+              <p-contextMenu #cm [model]="contextMenuItems" appendTo="body"></p-contextMenu>
               <p-table [value]="dataset" [scrollable]="true" scrollHeight="flex" [(selection)]="selectedRows"
                 dataKey="id" [rowHover]="true" selectionMode="multiple" (onRowSelect)="onMasterRowSelect($event)"
-                [tableStyle]="{'min-width': '80rem'}"
+                [(contextMenuSelection)]="selectedContextRow" [contextMenu]="cm" [tableStyle]="{'min-width': '80rem'}"
                 styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped">
                 <ng-template pTemplate="header">
                   <tr>
@@ -155,7 +156,7 @@
                   </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-row let-i="rowIndex">
-                  <tr [pSelectableRow]="row" (click)="onMasterRowClick(row)">
+                  <tr [pSelectableRow]="row" [pContextMenuRow]="row" (click)="onMasterRowClick(row)">
                     <td><p-tableCheckbox [value]="row" /></td>
                     <td class="text-center">{{ i + 1 }}</td>
                     <td class="text-center"><input type="checkbox" [checked]="isChecked(row.IsApprovedPersonalProperty)"

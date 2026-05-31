@@ -1,5 +1,5 @@
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -9,7 +9,7 @@ import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { TabulatorFull as Tabulator, ColumnDefinition } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { DateTime } from 'luxon';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectPartlistPriceRequestService } from '../project-partlist-price-request-service/project-partlist-price-request.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
@@ -23,9 +23,11 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 })
 export class ImportExcelProjectPartlistPriceRequestComponent implements OnInit {
   private notification = inject(NzNotificationService);
-  private modalService = inject(NgbModal);
+  private activeModal = inject(NgbActiveModal);
   private priceService = inject(ProjectPartlistPriceRequestService);
   private appUserService = inject(AppUserService);
+
+  @Input() projectPartlistPriceRequestTypeID: number = 0;
 
   filePath: string = '';
   excelSheets: string[] = [];
@@ -111,7 +113,9 @@ export class ImportExcelProjectPartlistPriceRequestComponent implements OnInit {
 
   private normalizeHeader(h: any): string {
     const s = (typeof h === 'string' ? h : h?.toString() || '').trim().toLowerCase();
-    const noAccents = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    // X\u1eed l\u00fd "\u0111" tr\u01b0\u1edbc v\u00ec kh\u00f4ng decompose \u0111\u01b0\u1ee3c b\u1eb1ng NFD
+    const withD = s.replace(/\u0111/g, 'd');
+    const noAccents = withD.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const stripped = noAccents.replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
     return stripped;
   }
@@ -207,23 +211,50 @@ export class ImportExcelProjectPartlistPriceRequestComponent implements OnInit {
 
   deadlineEditor(cell: any, onRendered: any, success: any, cancel: any) {
     const input = document.createElement('input');
-    input.type = 'text';
-    input.placeholder = 'dd/MM/yyyy';
-    input.value = this.formatDeadlineDisplay(cell.getValue());
+    input.type = 'date';
+    input.value = cell.getValue() || '';
     input.className = 'form-control form-control-sm';
-    onRendered(() => { input.focus(); input.select(); });
-    const apply = () => {
-      const s = (input.value || '').trim();
-      const d = DateTime.fromFormat(s, 'dd/MM/yyyy');
-      if (d.isValid) { success(d.toISODate()); } else { this.notification.warning('Thông báo', 'Ngày không hợp lệ. Định dạng dd/MM/yyyy'); cancel(); }
-    };
-    input.addEventListener('blur', apply);
-    input.addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Enter') apply(); if (e.key === 'Escape') cancel(); });
+    onRendered(() => { input.focus(); input.showPicker?.(); });
+    input.addEventListener('change', () => { success(input.value || null); });
+    input.addEventListener('blur', () => { success(input.value || null); });
+    input.addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') cancel(); });
     return input;
   }
 
+  addRow(): void {
+    const nextStt = (this.dataTableExcel?.length || 0) + 1;
+    const newRow = { STT: nextStt, ProductCode: '', ProductName: '', Maker: '', Deadline: null, Quantity: 0, UnitName: '', NoteHR: '' };
+    if (this.tableExcel) {
+      this.tableExcel.addRow(newRow);
+    }
+    this.dataTableExcel = [...(this.dataTableExcel || []), newRow];
+  }
+
   drawTable() {
+    const deleteCol: ColumnDefinition = {
+      title: '',
+      field: '_delete',
+      width: 40,
+      hozAlign: 'center',
+      headerSort: false,
+      titleFormatter: (_cell: any, _params: any, onRendered: any) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-link p-0 text-success';
+        btn.title = 'Thêm dòng';
+        btn.innerHTML = '<i class="fas fa-plus"></i>';
+        onRendered(() => btn.addEventListener('click', () => this.addRow()));
+        return btn;
+      },
+      formatter: () => `<button class="btn btn-link p-0 text-danger" title="Xóa"><i class="fas fa-times"></i></button>`,
+      cellClick: (_e: any, cell: any) => {
+        const row = cell.getRow();
+        const data = row.getData();
+        this.dataTableExcel = this.dataTableExcel.filter((r: any) => r !== data);
+        row.delete();
+      }
+    };
     const cols: ColumnDefinition[] = [
+      deleteCol,
       { title: 'STT', field: 'STT', width: 60, hozAlign: 'center' },
       { title: 'Mã sản phẩm', field: 'ProductCode', width: 150, editor: 'input', validator: ['required'] },
       { title: 'Tên sản phẩm', field: 'ProductName', width: 220, editor: 'input', validator: ['required'] },
@@ -246,46 +277,43 @@ export class ImportExcelProjectPartlistPriceRequestComponent implements OnInit {
     }
   }
 
-  private checkDeadline(deadlineISO: string | null, stt: number): boolean {
-    if (!deadlineISO) {
-      this.notification.warning('Thông báo', `Vui lòng nhập Deadline! (Dòng stt: ${stt})`);
-      return false;
-    }
+  private getDeadlineError(deadlineISO: string | null, stt: number): string | null {
+    if (!deadlineISO) return `Vui lòng nhập Deadline! (Dòng stt: ${stt})`;
     const deadline = DateTime.fromISO(deadlineISO);
-    if (!deadline.isValid) {
-      this.notification.warning('Thông báo', `Deadline không hợp lệ! (Dòng stt: ${stt})`);
-      return false;
-    }
-    let dateRequest = DateTime.local();
-    if (dateRequest.hour >= 15) dateRequest = dateRequest.plus({ days: 1 });
-    if (dateRequest.weekday === 6) dateRequest = dateRequest.plus({ days: 1 });
-    if (dateRequest.weekday === 7) dateRequest = dateRequest.plus({ days: 1 });
-    const days: string[] = [];
-    let cur = dateRequest.startOf('day');
-    const end = deadline.startOf('day');
-    while (cur <= end) {
-      if (cur.weekday !== 6 && cur.weekday !== 7) days.push(cur.toISODate()!);
-      cur = cur.plus({ days: 1 });
-    }
-    if (days.length < 2) {
-      this.notification.warning('Thông báo', `Dealine phải ít nhất là 2 ngày tính từ [${dateRequest.toFormat('dd/MM/yyyy')}] và KHÔNG tính T7, CN! (Dòng stt: ${stt})`);
-      return false;
-    }
-    return true;
+    if (!deadline.isValid) return `Deadline không hợp lệ! (Dòng stt: ${stt})`;
+    if (deadline.weekday === 6 || deadline.weekday === 7)
+      return `Deadline (${deadline.toFormat('dd/MM/yyyy')}) là ngày cuối tuần, phải là ngày làm việc T2-T6! (Dòng stt: ${stt})`;
+    let startDate = DateTime.local().startOf('day');
+    if (DateTime.local().hour >= 15) startDate = startDate.plus({ days: 1 });
+    while (startDate.weekday === 6 || startDate.weekday === 7) startDate = startDate.plus({ days: 1 });
+    if (deadline.startOf('day') < startDate.plus({ days: 2 }))
+      return `Deadline phải cách ít nhất 2 ngày làm việc tính từ [${startDate.toFormat('dd/MM/yyyy')}]! (Dòng stt: ${stt})`;
+    return null;
   }
 
   validateRows(): boolean {
     const rows = this.dataTableExcel || [];
-    for (let i = 0; i < rows.length; i++) {
-      const r = rows[i];
+    const tabulatorRows = this.tableExcel?.getRows() || [];
+    tabulatorRows.forEach(r => r.getElement().classList.remove('row-error'));
+
+    const errors: string[] = [];
+    rows.forEach((r, i) => {
       const stt = Number(r.STT || i + 1);
-      const code = String(r.ProductCode || '').trim();
-      const name = String(r.ProductName || '').trim();
-      const qty = Number(r.Quantity || 0);
-      if (!code) { this.notification.warning('Thông báo', `Vui lòng nhập Mã sản phẩm! (Dòng stt: ${stt})`); return false; }
-      if (!name) { this.notification.warning('Thông báo', `Vui lòng nhập Tên sản phẩm! (Dòng stt: ${stt})`); return false; }
-      if (!this.checkDeadline(r.Deadline || null, stt)) return false;
-      if (qty <= 0) { this.notification.warning('Thông báo', `Vui lòng nhập SL yêu cầu! (Dòng stt: ${stt})`); return false; }
+      const msgs: string[] = [];
+      if (!String(r.ProductCode || '').trim()) msgs.push(`Vui lòng nhập Mã sản phẩm! (Dòng stt: ${stt})`);
+      if (!String(r.ProductName || '').trim()) msgs.push(`Vui lòng nhập Tên sản phẩm! (Dòng stt: ${stt})`);
+      const deadlineErr = this.getDeadlineError(r.Deadline || null, stt);
+      if (deadlineErr) msgs.push(deadlineErr);
+      if (Number(r.Quantity || 0) <= 0) msgs.push(`Vui lòng nhập SL yêu cầu! (Dòng stt: ${stt})`);
+      if (msgs.length > 0) {
+        errors.push(...msgs);
+        if (tabulatorRows[i]) tabulatorRows[i].getElement().classList.add('row-error');
+      }
+    });
+
+    if (errors.length > 0) {
+      this.notification.warning('Thông báo', errors[0]);
+      return false;
     }
     return true;
   }
@@ -301,7 +329,36 @@ export class ImportExcelProjectPartlistPriceRequestComponent implements OnInit {
     if (this.tableExcel) this.tableExcel.replaceData([]);
   }
 
-  closeExcelModal() { this.modalService.dismissAll(true); }
+  closeExcelModal() { this.activeModal.dismiss(); }
+
+  async downloadTemplate(): Promise<void> {
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet('Template');
+    ws.columns = [
+      { header: 'STT', key: 'STT', width: 8 },
+      { header: 'Mã sản phẩm', key: 'ProductCode', width: 18 },
+      { header: 'Tên sản phẩm', key: 'ProductName', width: 30 },
+      { header: 'Hãng', key: 'Maker', width: 15 },
+      { header: 'Deadline', key: 'Deadline', width: 14 },
+      { header: 'SL yêu cầu', key: 'Quantity', width: 12 },
+      { header: 'ĐVT', key: 'UnitName', width: 10 },
+      { header: 'Ghi chú', key: 'NoteHR', width: 25 },
+    ];
+    const headerRow = ws.getRow(1);
+    headerRow.font = { bold: true };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+    headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
+    ws.addRow([1, '', '', '', 'dd/MM/yyyy', 0, '', '']);
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'Template_NhapExcel_YeuCauBaoGia.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  }
 
   saveExcelData() {
     if (!this.validateRows()) return;
@@ -309,23 +366,60 @@ export class ImportExcelProjectPartlistPriceRequestComponent implements OnInit {
       ProductCode: r.ProductCode,
       ProductName: r.ProductName,
       Maker: r.Maker || '',
-      Deadline: r.Deadline ? DateTime.fromISO(r.Deadline).toJSDate() : null,
+      Deadline: r.Deadline ? new Date(r.Deadline + 'T00:00:00.000Z') : null,
       Quantity: Number(r.Quantity || 0),
       Unit: r.UnitName || '',
-      NoteHR: r.NoteHR || '',
+      NoteHR:this.projectPartlistPriceRequestTypeID === 6 ? '' : (r.NoteHR || ''),
       JobRequirementID: 0,
       IsJobRequirement: false,
       StatusRequest: 1,
       DateRequest: new Date(),
-      EmployeeID: this.appUserService.employeeID
+      EmployeeID: this.appUserService.employeeID,
+      ProjectPartlistPriceRequestTypeID: this.projectPartlistPriceRequestTypeID || 0,
     }));
     this.priceService.saveData(payload).subscribe({
       next: (res: any) => {
-        this.notification.success('Thông báo', res?.message || 'Lưu thành công');
-        this.closeExcelModal();
+        if (this.projectPartlistPriceRequestTypeID === 6) {
+          this.saveNotesForDemo(res);
+        } else {
+          this.notification.success('Thông báo', res?.message || 'Lưu thành công');
+          this.closeExcelModal();
+        }
       },
       error: (err: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Có lỗi xảy ra');
+      }
+    });
+  }
+
+  private saveNotesForDemo(saveResponse: any): void {
+    const savedItems: any[] = Array.isArray(saveResponse?.data)
+      ? saveResponse.data
+      : Array.isArray(saveResponse?.data?.data)
+        ? saveResponse.data.data
+        : [];
+
+    const notes = savedItems
+      .map((saved: any, index: number) => ({
+        ID: 0,
+        ProjectPartlistPriceRequestID: saved.ID || 0,
+        Note: this.dataTableExcel[index]?.NoteHR || null,
+      }))
+      .filter(n => n.ProjectPartlistPriceRequestID > 0);
+
+    if (notes.length === 0) {
+      this.notification.success('Thông báo', saveResponse?.message || 'Lưu thành công');
+      this.closeExcelModal();
+      return;
+    }
+
+    this.priceService.saveRequestNote(notes).subscribe({
+      next: (res: any) => {
+        // this.notification.success('Thông báo', res?.message || 'Lưu thành công');
+        this.closeExcelModal();
+      },
+      error: (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Lưu ghi chú thất bại');
       }
     });
   }

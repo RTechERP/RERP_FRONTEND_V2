@@ -1,3 +1,4 @@
+import { ProjectTaskSumaryAttendanceComponent } from './pages/project_task/project-task-sumary-attendance/project-task-sumary-attendance.component';
 import { Routes } from '@angular/router';
 import { WelcomeComponent } from './pages/old/welcome/welcome.component';
 import { LoginComponent } from './auth/login/login.component';
@@ -369,6 +370,9 @@ import { ProjectTaskEfficiencyByProjectComponent } from './pages/project_task/pr
 import { ProjectTaskTimeLineNullComponent } from './pages/project_task/project-task-time-line-null/project-task-time-line-null.component';
 import { ProjectTaskEfficiencyByTaskComponent } from './pages/project_task/project-task-efficiency-by-task/project-task-efficiency-by-task.component';
 import { PaymentOrderPrimeComponent } from './pages/general-category/payment-order/payment-order-prime/payment-order-prime.component';
+import { InventoryOveragedComponent } from './pages/old/Sale/Inventory/inventory-overaged/inventory-overaged.component';
+import { ConfigNotificationKeyManagementComponent } from './pages/systems/app-user/config-notification-key/config-notification-key-management/config-notification-key-management.component';
+import { ConfigNotificationKeyPersonalComponent } from './pages/systems/app-user/config-notification-key/config-notification-key-personal/config-notification-key-personal.component';
 export const routes: Routes = [
 
     {
@@ -1254,6 +1258,8 @@ export const routes: Routes = [
             { path: 'project-task-poject-worker', component: ProjectTaskPojectWorkerComponent, canActivate: [authGuard] },
             { path: 'project-task-detail/:id', component: TaskDetailComponent, canActivate: [authGuard] },
             { path: 'project-task-add', component: TaskDetailComponent, canActivate: [authGuard] },
+            { path: 'project-task-summary-attendance', component: ProjectTaskSumaryAttendanceComponent, canActivate: [authGuard] },
+
             { path: 'purchase-quote-summary', component: PurchaseQuoteSummaryComponent, canActivate: [authGuard] },
             { path: 'commercial-price-request', component: CommercialPriceRequestComponent, canActivate: [authGuard] },
             { path: 'purchase-quote-summary-main', component: PurchaseQuoteSummaryMainComponent, canActivate: [authGuard] },
@@ -1270,6 +1276,10 @@ export const routes: Routes = [
             { path: 'project-task-efficiency-by-project', component: ProjectTaskEfficiencyByProjectComponent, canActivate: [authGuard] },
             { path: 'project-task-time-line-null', component: ProjectTaskTimeLineNullComponent, canActivate: [authGuard] },
             { path: 'project-task-efficiency-by-task', component: ProjectTaskEfficiencyByTaskComponent, canActivate: [authGuard] },
+            { path: 'inventory-overaged', component: InventoryOveragedComponent, canActivate: [authGuard] },
+            { path: 'config-notification-key', component: ConfigNotificationKeyManagementComponent, canActivate: [authGuard] },
+            { path: 'config-notification-key-personal', component: ConfigNotificationKeyPersonalComponent, canActivate: [authGuard] },
+
 
         ],
     },

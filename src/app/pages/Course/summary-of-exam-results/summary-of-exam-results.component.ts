@@ -180,7 +180,6 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
   }
 
   getExamResultsByEmployeeID(employeeID: number) {
-    debugger;
     // Cho phép gọi API với employeeID = 0 để lấy tất cả kết quả thi
     if (employeeID === null || employeeID === undefined || employeeID < 0) {
       this.examResultsData = [];
@@ -259,13 +258,13 @@ export class SummaryOfExamResultsComponent implements OnInit, AfterViewInit {
 
       this.employeeTable.on('rowClick', (e: UIEvent, row: RowComponent) => {
         const rowData = row.getData();
-        this.selectedEmployeeID = rowData['UserID'] || rowData['ID'] || 0;
+        this.selectedEmployeeID =  rowData['ID'] || 0;
         this.getExamResultsByEmployeeID(this.selectedEmployeeID);
       });
 
       this.employeeTable.on('rowSelected', (row: RowComponent) => {
         const rowData = row.getData();
-        this.selectedEmployeeID = rowData['UserID'] || rowData['ID'] || 0;
+        this.selectedEmployeeID = rowData['ID'] || 0;
         this.getExamResultsByEmployeeID(this.selectedEmployeeID);
       });
 

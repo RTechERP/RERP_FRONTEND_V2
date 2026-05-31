@@ -16,6 +16,7 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { ChangePasswordComponent } from '../../../auth/change-password/change-password.component';
 import { PersonalInfomationComponent } from '../../general-category/infomation-personal/personal-infomation.component';
+import { ConfigNotificationKeyPersonalComponent } from './config-notification-key/config-notification-key-personal/config-notification-key-personal.component';
 @Component({
   selector: 'app-app-user-dropdown',
   standalone: true,
@@ -84,6 +85,15 @@ export class AppUserDropdownComponent {
       key: 'personal-information',
     });
     this.router.navigateByUrl('/personal-information');
+  }
+  //Mở setting cá nhân
+  settingPersonal() {
+    this.tabService.openTabComp({
+      comp: ConfigNotificationKeyPersonalComponent,
+      title: 'Setting cá nhân',
+      key: 'setting-personal',
+    });
+    this.router.navigateByUrl('/config-notification-key-personal');
   }
 
   onAutoLoginChange(value: boolean): void {

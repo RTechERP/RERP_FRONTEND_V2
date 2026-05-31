@@ -1,0 +1,52 @@
+<div class="card h-100 border-0 rounded-0 inventory-new-card">
+    <div class="card-header bg-white p-1">
+        <div class="d-flex align-items-center gap-2">
+            <!-- Bên trái: Tag -->
+            <nz-tag nzColor="red" class="m-0">Quá hạn nhập/xuất 1 năm</nz-tag>
+
+            <!-- Bên phải: Chọn kho và Ô tìm kiếm -->
+            <div class="d-flex align-items-center gap-3 ms-auto">
+                <!-- Chọn kho -->
+                <div class="d-flex align-items-center">
+                    <label class="font-12 me-2 text-nowrap">Kho</label>
+                    <nz-select [(ngModel)]="warehouseId" (ngModelChange)="onWarehouseChange($event)" nzShowSearch
+                        nzSize="small" style="width: 150px;" nzPlaceHolder="Chọn kho">
+                        @for (item of warehouses; track item.id) {
+                        <nz-option [nzLabel]="item.name" [nzValue]="item.id"></nz-option>
+                        }
+                    </nz-select>
+                </div>
+
+                <!-- Tìm kiếm -->
+                <div class="d-flex align-items-center gap-2">
+                    <label class="font-12 text-nowrap">Từ khóa</label>
+                    <input type="text" [(ngModel)]="searchParam.Find" (keyup.enter)="getdataFind()" nz-input
+                        nzSize="small" style="width: 350px" placeholder="Tìm kiếm mã, tên sản phẩm..." />
+                    <button nz-button nzType="primary" nzSize="small" (click)="getdataFind()">
+                        Tìm kiếm
+                    </button>
+                    <button nz-button [nzType]="filterOveraged ? 'default' : 'dashed'" nzSize="small"
+                        [style.background]="filterOveraged ? '#ff4d4f' : ''"
+                        [style.border-color]="filterOveraged ? '#ff4d4f' : '#ff4d4f'"
+                        [style.color]="filterOveraged ? '#fff' : '#ff4d4f'" (click)="toggleFilterOveraged()">
+                        <span nz-icon nzType="warning"></span>
+                        Quá hạn
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div [class]="'grid-container-inventory-' + componentId" style="height: 90vh;">
+            <div *ngIf="isLoadingInventory"
+                class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75"
+                style="z-index: 1000">
+                <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+            </div>
+            <angular-slickgrid [gridId]="'grid-inventory-' + componentId" [columns]="columnDefinitionsInventory"
+                [options]="gridOptionsInventory" [dataset]="datasetInventory"
+                (onAngularGridCreated)="angularGridReadyInventory($any($event).detail)">
+            </angular-slickgrid>
+        </div>
+    </div>
+</div>

@@ -39,6 +39,7 @@ import { NewsletterDetailComponent } from '../../../pages/old/newsletter/newslet
 import { DateTime } from 'luxon';
 import { UpdateVersionDetailComponent } from '../../../pages/systems/update-version/update-version-detail/update-version-detail.component';
 import { NzButtonModule } from "ng-zorro-antd/button";
+import { ProjectTaskSumaryAttendanceService } from '../../../pages/project_task/project-task-sumary-attendance/project-task-sumary-attendance.service';
 
 interface LiXi {
     id: number;
@@ -50,6 +51,7 @@ interface LiXi {
 }
 import { HistoryBorrowSaleService } from '../../../pages/old/Sale/HistoryBorrowSale/history-borrow-sale-service/history-borrow-sale.service';
 import { ProjectTaskService } from '../../../pages/project_task/project-task/project-task.service';
+import { PollFormService } from '../../../pages/poll-form/poll-form.service';
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -110,6 +112,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     calendarDate = new Date();
     holidays: any[] = [];
     scheduleWorkSaturdays: any[] = [];
+    projectTaskAttendances: number = 0;
     quantityApprove: any = {};
     quantityBorrow: any = {};
     quantityBorrowExpried: any = {};
@@ -170,6 +173,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         private nzModal: NzModalService,
         public notifService: NotificationService,
         private projectTaskService: ProjectTaskService,
+        private projectTaskAttendanceService: ProjectTaskSumaryAttendanceService,
+        private pollFormService: PollFormService,
     ) { }
 
     get notifItems(): NotifyItem[] { return this.notifService.items; }
@@ -209,6 +214,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             this.getQuantityOverdueProjectTask(),
             this.loadNewsletters(),
             this.getPendingContractReview(),
+            this.getProjectTaskAttendance(),
+            this.getPendingPollCount(),
         ]).subscribe({
             next: () => {
                 console.log('Tất cả API quan trọng đã load xong. Khởi tạo SSE và check version...');
@@ -409,6 +416,9 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 // }
                 this.menuWeekplans = menuWeekplans;
                 this.menuQickAcesss = this.menus.find((x) => x.key == 'M4');
+                let quickAccessChildren = this.menuPersons.find((x) => x.key == 'registercommon').children.find((x: any) => x.key === 'M11205');
+                this.menuQickAcesss.children.push(quickAccessChildren);
+
             }),
             catchError((err) => {
                 return of(null);
@@ -556,6 +566,44 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         );
     }
 
+
+
+    getProjectTaskAttendance() {
+        return this.projectTaskAttendanceService.getCheckProjectTaskAttendance(this.appUserService.currentUser?.ID || 0).pipe(
+            tap((res: any) => {
+                const data = res.data;
+                this.projectTaskAttendances = data.length;
+            }),
+            catchError((err: any) => {
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
+                return of(null);
+            }))
+    };
+    getPendingPollCount() {
+        return this.pollFormService.getPendingCount().pipe(
+            tap((res: any) => {
+                if (res?.status !== 1 || res?.data <= 0) return;
+                const count = res.data;
+                this.notifService.addItem({
+                    id: 12,
+                    time: new Date().toISOString(),
+                    title: ' Bình chọn',
+                    text: `Bạn có ${count} bình chọn chưa hoàn thành`,
+                    group: 'today',
+                    icon: 'form',
+                    route: 'poll-vote',
+                    queryParams: {}
+                });
+            }),
+            catchError(() => of(null))
+        );
+    }
+
     onPick(n: NotifyItem) {
         if (n.route) {
             this.newTab(n.route, n.title || 'Thông báo', n.queryParams);
@@ -573,6 +621,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     onPickProjectTaskOverdue() {
         this.newTab('project-task', 'Công việc');
     }
+
 
 
     openModule(event: MouseEvent, route: string, key: string) {

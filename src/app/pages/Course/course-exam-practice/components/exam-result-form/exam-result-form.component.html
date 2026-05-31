@@ -22,12 +22,29 @@
                     <nz-form-item>
                         <nz-form-label nzRequired>Nhân viên</nz-form-label>
                         <nz-form-control nzErrorTip="Vui lòng chọn nhân viên!">
-                            <nz-select formControlName="EmployeeId" nzShowSearch nzPlaceHolder="Chọn nhân viên">
-                                <nz-option-group *ngFor="let group of groupedEmployees"
-                                    [nzLabel]="'Phòng ban: ' + group.department">
-                                    <nz-option *ngFor="let emp of group.employees" [nzValue]="emp.ID"
-                                        [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                            <!-- <nz-select formControlName="EmployeeId" nzShowSearch nzPlaceHolder="Chọn nhân viên">
+                                <nz-option-group *ngFor="let group of employeeData" [nzLabel]="'Phòng ban: ' + group.department">
+                                    <nz-option *ngFor="let emp of group.employees" [nzValue]="emp.ID" [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
                                 </nz-option-group>
+                            </nz-select> -->
+                            <nz-select nzAllowClear name="EmployeeId" formControlName="EmployeeId" 
+                                [nzPlaceHolder]="'Chọn nhân viên'" class="w-100"
+                               nzShowSearch>
+                                <ng-container *ngFor="let group of employeeData">
+                                    <nz-option-group [nzLabel]="group.label">
+                                        <nz-option *ngFor="let option of group.options"
+                                            [nzLabel]="option.item.Code + ' - ' + option.item.FullName"
+                                            [nzValue]="option.item.EmployeeID" nzCustomContent>
+                                            <span style="
+                          white-space: normal;
+                          word-break: break-word;
+                          display: block;
+                        ">
+                                                {{ option.item.Code }} - {{ option.item.FullName }}
+                                            </span>
+                                        </nz-option>
+                                    </nz-option-group>
+                                </ng-container>
                             </nz-select>
                         </nz-form-control>
                     </nz-form-item>
@@ -77,7 +94,7 @@
 
     <ng-template #modalFooter>
         <button nz-button nzType="default" (click)="handleCancel()">Hủy</button>
-        <button nz-button nzType="primary" (click)="handleSave()" [nzLoading]="isLoading"
+        <button nz-button nzType="primary" (click)="handleSave()" [nzLoading]="isSaving"
             [disabled]="!validateForm.valid">
             Lưu
         </button>

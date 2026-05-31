@@ -101,6 +101,13 @@ export class CoursePracticeService {
       {},
     );
   }
+  DeleteExamResult(courseExamResultID: number): Observable<any> {
+    return this.http.post<any>(
+      this.apiUrl + `delete-exam?courseExamResultID=${courseExamResultID}`,
+      {},
+    );
+  }
+
 
   // Lấy kết quả đúng của bài thi
   GetQuestionAnswerRight(courseExamResultId: number): Observable<any> {

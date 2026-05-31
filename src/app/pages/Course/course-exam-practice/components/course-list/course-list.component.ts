@@ -23,7 +23,8 @@ export class CourseListComponent implements OnInit, OnChanges, AfterViewInit, On
         (data: CourseData) => data.DepartmentName || 'Chưa có phòng ban',
         (data: CourseData) => data.CatalogName || 'Chưa có danh mục',
     ];
-    @Input() groupStartOpen: boolean[] | ((value: any, count: number, data: any[], group: any) => boolean) = [true, true, true];
+
+    @Input() groupStartOpen: boolean[] | ((value: any, count: number, data: any[], group: any) => boolean) = [true, false, false];
     @Input() groupHeader: any[] = [
         (value: any) => `<strong>Loại: ${value}</strong>`,
         (value: any) => `<strong>Phòng ban: ${value}</strong>`,
@@ -34,6 +35,7 @@ export class CourseListComponent implements OnInit, OnChanges, AfterViewInit, On
 
     table: Tabulator | null = null;
     private isTableBuilt = false;
+    private pendingData: CourseData[] | null = null;
     private boundResizeHandler: any;
 
     constructor() { }
@@ -41,14 +43,17 @@ export class CourseListComponent implements OnInit, OnChanges, AfterViewInit, On
     ngOnInit(): void { }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (this.table && this.isTableBuilt) {
-            if (changes['data']) {
+        if (changes['data']) {
+            if (this.table && this.isTableBuilt) {
                 this.table.replaceData(this.data).then(() => {
-                    this.table?.redraw(); // Ensure layout
+                    this.table?.redraw();
                     if (this.autoSelectFirst && this.data.length > 0) {
                         this.selectFirstRow();
                     }
                 });
+            } else {
+                // Table not built yet — save data to apply once ready
+                this.pendingData = this.data;
             }
         }
     }
@@ -125,9 +130,21 @@ export class CourseListComponent implements OnInit, OnChanges, AfterViewInit, On
             }
         });
 
+        // Group click - toggle expand/collapse when clicking on group header
+        this.table.on('groupClick', (e: UIEvent, group: any) => {
+            if (group) {
+                group.toggle();
+            }
+        });
+
         this.table.on('tableBuilt', () => {
             this.isTableBuilt = true;
-            if (this.autoSelectFirst && this.data.length > 0) {
+            if (this.pendingData && this.pendingData.length > 0) {
+                this.table!.replaceData(this.pendingData).then(() => {
+                    this.table?.redraw();
+                    this.pendingData = null;
+                });
+            } else if (this.autoSelectFirst && this.data.length > 0) {
                 this.selectFirstRow();
             }
         });

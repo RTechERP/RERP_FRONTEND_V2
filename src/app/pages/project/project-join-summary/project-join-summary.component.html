@@ -1,0 +1,482 @@
+<ng-container class="w-100">
+    <div class="card h-100 border-0 rounded-0"
+        style="display: flex; flex-direction: column; height: calc(100vh - 90px)">
+
+        <!-- Menubar -->
+        <div class="card-header bg-white p-1">
+            <p-menubar [model]="menuItems" styleClass="p-0 border-0">
+            </p-menubar>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="bg-light border-bottom p-2" style="flex-shrink: 0">
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <nz-form-label class="fs-12 mb-0" style="font-size: 12px">Từ ngày</nz-form-label>
+                <input nz-input type="date" [(ngModel)]="dateStart" [ngModelOptions]="{ standalone: true }"
+                    style="width: 140px" nzSize="small" />
+
+                <nz-form-label class="fs-12 mb-0" style="font-size: 12px">Đến ngày</nz-form-label>
+                <input nz-input type="date" [(ngModel)]="dateEnd" [ngModelOptions]="{ standalone: true }"
+                    style="width: 140px" nzSize="small" />
+
+                <nz-form-label class="fs-12 mb-0" style="font-size: 12px">Nhân viên</nz-form-label>
+                <nz-select [(ngModel)]="employeeId" [ngModelOptions]="{ standalone: true }" nzShowSearch nzAllowClear
+                    nzSize="small" nzPlaceHolder="Chọn nhân viên" style="min-width: 300px" (ngModelChange)="search()">
+                    @for (parent of users; track $index) {
+                    <nz-option-group [nzLabel]="parent.label">
+                        @for (child of parent.options; track $index) {
+                        <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+                            [nzValue]="child.item.ID">
+                            {{ child.item.Code + " - " + child.item.FullName }}
+                        </nz-option>
+                        }
+                    </nz-option-group>
+                    }
+                </nz-select>
+
+                <button nz-button nzType="primary" nzSize="small" (click)="search()"
+                    [nzLoading]="isLoading || isJoinedLoading">
+                    <nz-icon nzType="search" />
+                    Tìm kiếm
+                </button>
+                <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">
+                    <nz-icon nzType="reload" />
+                    Đặt lại
+                </button>
+            </div>
+        </div>
+
+        <!-- Two Tables Side-by-Side using PrimeNG Splitter -->
+        <div class="card-body p-0" style="flex: 1; min-height: 0; overflow: hidden;">
+            <p-splitter [panelSizes]="[60, 40]" [minSizes]="[20, 20]" styleClass="h-100 w-100" style="height: 100%;">
+
+                <!-- ===== BẢNG TRÁI: Tổng hợp dự án ===== -->
+                <ng-template pTemplate>
+                    <div style="height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden;">
+                        <div class="px-2 py-1 border-bottom bg-white d-flex align-items-center gap-2"
+                            style="flex-shrink: 0;">
+                            <i class="fa-solid fa-table-list text-primary"></i>
+                            <strong class="fs-12">Dự án đã tham gia</strong>
+                            <span class="badge bg-primary ms-auto">{{ datasetSummary.length }}</span>
+                        </div>
+                        <div
+                            style="height: calc(100vh - 215px); display: flex; flex-direction: column; overflow: hidden;">
+                            <p-table #dtSummary [value]="datasetSummary" selectionMode="single"
+                                [(selection)]="selectedSummaryRow" dataKey="STT" [scrollable]="true" scrollHeight="flex"
+                                [paginator]="false" [resizableColumns]="true" columnResizeMode="expand"
+                                styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
+                                (onRowSelect)="onSummaryRowSelect($event.data)" [loading]="isLoading">
+
+                                <ng-template pTemplate="header">
+                                    <!-- Row 1: Tiêu đề cột -->
+                                    <tr>
+                                        <th pResizableColumn style="min-width: 50px; width: 50px">STT</th>
+                                        <th pSortableColumn="ProjectStatusName" pResizableColumn
+                                            style="min-width: 120px; width: 120px">
+                                            Trạng thái
+                                            <p-sortIcon field="ProjectStatusName"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="PersonalPriotity" pResizableColumn
+                                            style="min-width: 100px; width: 100px">
+                                            Mức độ ưu tiên cá nhân
+                                            <p-sortIcon field="PersonalPriotity"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="ProjectCode" pResizableColumn
+                                            style="min-width: 100px; width: 100px">
+                                            Mã dự án
+                                            <p-sortIcon field="ProjectCode"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="ProjectName" pResizableColumn
+                                            style="min-width: 220px; width: 220px">
+                                            Tên dự án
+                                            <p-sortIcon field="ProjectName"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="FullNameSale" pResizableColumn
+                                            style="min-width: 140px; width: 140px">
+                                            Người phụ trách (sale)
+                                            <p-sortIcon field="FullNameSale"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="FullNameTech" pResizableColumn
+                                            style="min-width: 140px; width: 140px">
+                                            Người phụ trách (kỹ thuật)
+                                            <p-sortIcon field="FullNameTech"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="FullNamePM" pResizableColumn
+                                            style="min-width: 120px; width: 120px">
+                                            PM
+                                            <p-sortIcon field="FullNamePM"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="CustomerName" pResizableColumn
+                                            style="min-width: 160px; width: 160px">
+                                            Khách hàng
+                                            <p-sortIcon field="CustomerName"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="PlanDateStart" pResizableColumn
+                                            style="min-width: 80px; width: 80px">
+                                            Ngày bắt đầu dự kiến
+                                            <p-sortIcon field="PlanDateStart"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="PlanDateEnd" pResizableColumn
+                                            style="min-width: 80px; width: 80px">
+                                            Ngày kết thúc dự kiến
+                                            <p-sortIcon field="PlanDateEnd"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="ActualDateStart" pResizableColumn
+                                            style="min-width: 80px; width: 80px">
+                                            Ngày bắt đầu thực tế
+                                            <p-sortIcon field="ActualDateStart"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="ActualDateEnd" pResizableColumn
+                                            style="min-width: 80px; width: 80px">
+                                            Ngày kết thúc thực tế
+                                            <p-sortIcon field="ActualDateEnd"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="EndUserName" pResizableColumn
+                                            style="min-width: 150px; width: 150px">
+                                            End User
+                                            <p-sortIcon field="EndUserName"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="PODate" pResizableColumn
+                                            style="min-width: 80px; width: 80px">
+                                            Ngày PO
+                                            <p-sortIcon field="PODate"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="CreatedDate" pResizableColumn
+                                            style="min-width: 80px; width: 80px">
+                                            Ngày tạo
+                                            <p-sortIcon field="CreatedDate"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="CreatedBy" pResizableColumn
+                                            style="min-width: 80px; width: 80px">
+                                            Người tạo
+                                            <p-sortIcon field="CreatedBy"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="UpdatedBy" pResizableColumn
+                                            style="min-width: 80px; width: 80px">
+                                            Người sửa
+                                            <p-sortIcon field="UpdatedBy"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="UpdatedDate" pResizableColumn
+                                            style="min-width: 80px; width: 80px">
+                                            Ngày cập nhật
+                                            <p-sortIcon field="UpdatedDate"></p-sortIcon>
+                                        </th>
+                                    </tr>
+                                    <!-- Row 2: Bộ lọc cột -->
+                                    <tr>
+                                        <th style="min-width: 50px; width: 50px"></th>
+                                        <th style="min-width: 120px; width: 120px">
+                                            <p-columnFilter field="ProjectStatusName" matchMode="contains"
+                                                [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="Trạng thái..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 120px; width: 120px">
+                                            <p-columnFilter field="PersonalPriotity" matchMode="contains"
+                                                [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="Ưu tiên CN..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 140px; width: 140px">
+                                            <p-columnFilter field="ProjectCode" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="Mã..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 220px; width: 220px">
+                                            <p-columnFilter field="ProjectName" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="Tên dự án..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 140px; width: 140px">
+                                            <p-columnFilter field="FullNameSale" matchMode="contains"
+                                                [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="Sale..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 140px; width: 140px">
+                                            <p-columnFilter field="FullNameTech" matchMode="contains"
+                                                [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="Kỹ thuật..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 120px; width: 120px">
+                                            <p-columnFilter field="FullNamePM" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="PM..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 160px; width: 160px">
+                                            <p-columnFilter field="CustomerName" matchMode="contains"
+                                                [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="Khách hàng..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 110px; width: 110px">
+                                            <p-columnFilter type="date" field="PlanDateStart"
+                                                class="w-full"></p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 110px; width: 110px">
+                                            <p-columnFilter type="date" field="PlanDateEnd"
+                                                class="w-full"></p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 110px; width: 110px">
+                                            <p-columnFilter type="date" field="ActualDateStart"
+                                                class="w-full"></p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 110px; width: 110px">
+                                            <p-columnFilter type="date" field="ActualDateEnd"
+                                                class="w-full"></p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 150px; width: 150px">
+                                            <p-columnFilter field="EndUserName" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="End User..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 110px; width: 110px">
+                                            <p-columnFilter type="date" field="PODate" class="w-full"></p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 110px; width: 110px">
+                                            <p-columnFilter type="date" field="CreatedDate"
+                                                class="w-full"></p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 120px; width: 120px">
+                                            <p-columnFilter field="CreatedBy" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="Người tạo..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 120px; width: 120px">
+                                            <p-columnFilter field="UpdatedBy" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="Người sửa..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 110px; width: 110px">
+                                            <p-columnFilter type="date" field="UpdatedDate"
+                                                class="w-full"></p-columnFilter>
+                                        </th>
+                                    </tr>
+                                </ng-template>
+
+                                <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
+                                    <tr [pSelectableRow]="row"
+                                        [class.selected-row]="selectedSummaryRow?.STT === row.STT">
+                                        <td style="min-width: 50px; width: 50px; text-align: center">{{ row.STT }}
+                                        </td>
+                                        <td style="min-width: 120px; width: 120px">
+                                            <span *ngIf="row.ProjectStatusColor" class="badge"
+                                                [style.background-color]="row.ProjectStatusColor">
+                                                {{ row.ProjectStatusName }}
+                                            </span>
+                                            <span *ngIf="!row.ProjectStatusColor">{{ row.ProjectStatusName }}</span>
+                                        </td>
+                                        <td style="min-width: 60px; width: 60px">{{ row.PersonalPriotity }}</td>
+                                        <td style="min-width: 140px; width: 140px">{{ row.ProjectCode }}</td>
+                                        <td style="min-width: 220px; width: 220px" [pTooltip]="row.ProjectName"
+                                            tooltipPosition="top">
+                                            {{ row.ProjectName }}
+                                        </td>
+                                        <td style="min-width: 140px; width: 140px">{{ row.FullNameSale }}</td>
+                                        <td style="min-width: 140px; width: 140px">{{ row.FullNameTech }}</td>
+                                        <td style="min-width: 120px; width: 120px">{{ row.FullNamePM }}</td>
+                                        <td style="min-width: 160px; width: 160px">{{ row.CustomerName }}</td>
+                                        <td style="min-width: 80px; width: 80px">{{ row.PlanDateStart |
+                                            date:'dd/MM/yyyy' }}</td>
+                                        <td style="min-width: 80px; width: 80px">{{ row.PlanDateEnd |
+                                            date:'dd/MM/yyyy' }}</td>
+                                        <td style="min-width: 80px; width: 80px">{{ row.ActualDateStart |
+                                            date:'dd/MM/yyyy' }}</td>
+                                        <td style="min-width: 80px; width: 80px">{{ row.ActualDateEnd |
+                                            date:'dd/MM/yyyy' }}</td>
+                                        <td style="min-width: 150px; width: 150px">{{ row.EndUserName }}</td>
+                                        <td style="min-width: 80px; width: 80px">{{ row.PODate | date:'dd/MM/yyyy'
+                                            }}</td>
+                                        <td style="min-width: 80px; width: 80px">{{ row.CreatedDate |
+                                            date:'dd/MM/yyyy' }}</td>
+                                        <td style="min-width: 120px; width: 120px">{{ row.CreatedBy }}</td>
+                                        <td style="min-width: 120px; width: 120px">{{ row.UpdatedBy }}</td>
+                                        <td style="min-width: 80px; width: 80px">{{ row.UpdatedDate |
+                                            date:'dd/MM/yyyy' }}</td>
+                                    </tr>
+                                </ng-template>
+
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td [attr.colspan]="19" class="text-center text-muted py-3">
+                                            <i class="fa-solid fa-inbox fa-lg me-2"></i>Không có dữ liệu
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </div>
+                    </div>
+                </ng-template>
+
+                <!-- ===== BẢNG PHẢI: Dự án đã tham gia ===== -->
+                <ng-template pTemplate>
+                    <div style="height: 100%; width: 100%; display: flex; flex-direction: column; overflow: hidden;">
+                        <div class="px-2 py-1 border-bottom bg-white d-flex align-items-center gap-2"
+                            style="flex-shrink: 0;">
+                            <i class="fa-solid fa-table text-success"></i>
+                            <strong class="fs-12">Dự án thực tế</strong>
+                            <span class="badge bg-success ms-auto">{{ datasetJoined.length }}</span>
+                        </div>
+                        <div
+                            style="height: calc(100vh - 215px); display: flex; flex-direction: column; overflow: hidden;">
+                            <p-table #dtJoined [value]="datasetJoined" selectionMode="single"
+                                [(selection)]="selectedJoinedRow" dataKey="STT" [scrollable]="true" scrollHeight="flex"
+                                [paginator]="false" [resizableColumns]="true" columnResizeMode="expand"
+                                styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
+                                (onRowSelect)="onJoinedRowSelect($event.data)" [loading]="isJoinedLoading">
+
+                                <ng-template pTemplate="header">
+                                    <!-- Row 1: Tiêu đề cột -->
+                                    <tr>
+                                        <th pResizableColumn style="min-width: 50px; width: 50px">STT</th>
+                                        <th pSortableColumn="StatusName" pResizableColumn
+                                            style="min-width: 120px; width: 120px">
+                                            Trạng thái
+                                            <p-sortIcon field="StatusName"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="ProjectCode" pResizableColumn
+                                            style="min-width: 140px; width: 140px">
+                                            Mã dự án
+                                            <p-sortIcon field="ProjectCode"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="ProjectName" pResizableColumn
+                                            style="min-width: 220px; width: 220px">
+                                            Tên dự án
+                                            <p-sortIcon field="ProjectName"></p-sortIcon>
+                                        </th>
+                                        <th pSortableColumn="UpdatedDate" pResizableColumn
+                                            style="min-width: 80px; width: 80px">
+                                            Ngày cập nhật
+                                            <p-sortIcon field="UpdatedDate"></p-sortIcon>
+                                        </th>
+
+                                        <th pSortableColumn="CreatedDate" pResizableColumn
+                                            style="min-width: 80px; width: 80px">
+                                            Ngày tạo
+                                            <p-sortIcon field="CreatedDate"></p-sortIcon>
+                                        </th>
+                                    </tr>
+                                    <!-- Row 2: Bộ lọc cột -->
+                                    <tr>
+                                        <th style="min-width: 50px; width: 50px"></th>
+                                        <th style="min-width: 140px; width: 140px">
+                                            <p-columnFilter field="ProjectCode" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="Mã..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 220px; width: 220px">
+                                            <p-columnFilter field="ProjectName" matchMode="contains" [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="Tên dự án..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 110px; width: 110px">
+                                            <p-columnFilter type="date" field="UpdatedDate"
+                                                class="w-full"></p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 120px; width: 120px">
+                                            <p-columnFilter field="ProjectStatusName" matchMode="contains"
+                                                [showMenu]="false">
+                                                <ng-template pTemplate="filter" let-filter="filterCallback">
+                                                    <input pInputText type="text"
+                                                        (input)="filter($any($event.target).value)"
+                                                        class="w-full p-inputtext-sm" placeholder="Trạng thái..." />
+                                                </ng-template>
+                                            </p-columnFilter>
+                                        </th>
+                                        <th style="min-width: 110px; width: 110px">
+                                            <p-columnFilter type="date" field="CreatedDate"
+                                                class="w-full"></p-columnFilter>
+                                        </th>
+                                    </tr>
+                                </ng-template>
+
+                                <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
+                                    <tr [pSelectableRow]="row"
+                                        [class.selected-row]="selectedJoinedRow?.STT === row.STT">
+                                        <td style="min-width: 50px; width: 50px; text-align: center">{{ row.STT }}
+                                        </td>
+                                        <td style="min-width: 120px; width: 120px">
+                                            {{ row.StatusName }}
+                                        </td>
+                                        <td style="min-width: 140px; width: 140px">{{ row.ProjectCode }}</td>
+                                        <td style="min-width: 220px; width: 220px" [pTooltip]="row.ProjectName"
+                                            tooltipPosition="top">
+                                            {{ row.ProjectName }}
+                                        </td>
+                                        <td style="min-width: 80px; width: 80px">{{ row.UpdatedDate |
+                                            date:'dd/MM/yyyy' }}</td>
+
+                                        <td style="min-width: 80px; width: 80px">{{ row.CreatedDate |
+                                            date:'dd/MM/yyyy' }}</td>
+                                    </tr>
+                                </ng-template>
+
+                                <ng-template pTemplate="emptymessage">
+                                    <tr>
+                                        <td [attr.colspan]="6" class="text-center text-muted py-3">
+                                            <i class="fa-solid fa-inbox fa-lg me-2"></i>Không có dữ liệu
+                                        </td>
+                                    </tr>
+                                </ng-template>
+                            </p-table>
+                        </div>
+                    </div>
+                </ng-template>
+
+            </p-splitter>
+        </div>
+    </div>
+</ng-container>

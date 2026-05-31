@@ -1,0 +1,128 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Grid wrapper - full height flex container for p-table */
+.grid-wrapper {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+
+.grid-wrapper.prime-table {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+/* Panel title bar */
+.panel-title-bar {
+    display: flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-bottom: 1px solid #e8e8e8;
+    flex-shrink: 0;
+    min-height: 30px;
+    position: relative;
+}
+
+/* Spinner overlay */
+.spinner-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+/* Cell styles */
+.cell-wrap {
+    white-space: normal;
+    word-break: break-word;
+    max-height: 52px;
+    overflow: hidden;
+}
+
+/* Footer total row */
+.footer-total {
+    font-weight: 600;
+    font-size: 12px;
+    padding: 4px 8px;
+    background: #fafafa;
+    border-top: 1px solid #e8e8e8;
+}
+
+/* PrimeNG table overrides */
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+    font-size: 12px;
+    padding: 4px 6px;
+    white-space: nowrap;
+    background: #fafafa;
+    border-color: #e8e8e8;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+    font-size: 12px;
+    padding: 3px 6px;
+    border-color: #e8e8e8;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr.p-highlight > td {
+    background: #bae0ff !important;
+    color: #000 !important;
+}
+
+/* NzCard search bar compact */
+:host ::ng-deep .ant-card {
+    border-radius: 0;
+}
+
+:host ::ng-deep .ant-card-body {
+    padding: 8px 12px;
+}
+
+/* PrimeNG Splitter */
+:host ::ng-deep .p-splitter {
+    border: none;
+    border-radius: 0;
+}
+
+:host ::ng-deep .p-splitter-panel {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Menubar compact */
+:host ::ng-deep .p-menubar {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    font-size: 12px;
+    padding: 2px 4px;
+}
+
+:host ::ng-deep .p-menubar .p-menuitem-link {
+    padding: 4px 8px;
+}
+
+:host ::ng-deep .p-datatable-scrollable-body {
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+}
+
+:host ::ng-deep .p-datatable-wrapper {
+  overflow: auto !important;
+}
+
+:host ::ng-deep .p-datatable table {
+  width: max-content !important;
+}

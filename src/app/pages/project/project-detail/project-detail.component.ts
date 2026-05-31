@@ -320,7 +320,14 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   initTableColumns() {
     this.projectTypeCols = [
       { field: 'ProjectTypeName', header: 'Kiểu dự án', treeToggler: true, width: '200px' },
-      { field: 'FullName', header: 'Leader', width: '150px' },
+      {
+        field: 'FullName', header: 'Leader', width: '150px',
+        editable: true,
+        isEditable: (rowData) => !!rowData.Selected,
+        cellClass: (rowData) => !rowData.Selected ? 'cell-disabled' : '',
+        editType: 'table-lookup',
+        editLookupConfig: this.leaderLookupConfig
+      },
       {
         field: 'ApplicationTypeIDs', header: 'Kiểu ứng dụng',
         editable: true,
@@ -344,7 +351,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       {
         field: 'LeaderID', header: 'Leader', width: '250px',
         editable: true,
-        isEditable: (rowData) => true,
+        //isEditable: (rowData) => true,
+        isEditable: (rowData) => !!rowData.Selected,
+        cellClass: (rowData) => !rowData.Selected ? 'cell-disabled' : '',
         editType: 'lookup',
         cssClass: 'app-leader',
         editOptions: [] // Will be populated with projectUserTeams
@@ -383,7 +392,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       data: this.applicationTypes,
       multiSelect: true,
       columns: [
-        { field: 'ApplicationName', header: 'Tên kiểu ứng dụng' }
+        { field: 'ApplicationName', header: 'Tên kiểu ứng dụng' },
+        { field: 'Descriptions', header: 'Mô tả' }
       ],
       valueField: 'ID',
       displayField: 'ApplicationName',
@@ -397,17 +407,20 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           filtered = filtered.filter(x => x.ApplicationName?.toLowerCase().includes(query));
         }
         return filtered;
-      }
+      },
+      disableColumnFilter: true
     };
 
     this.techLookupConfig = {
       data: this.technologies,
       multiSelect: true,
       columns: [
-        { field: 'TechnologyName', header: 'Tên công nghệ' }
+        { field: 'TechnologyName', header: 'Tên công nghệ' },
+        { field: 'Descriptions', header: 'Mô tả' }
       ],
       valueField: 'ID',
       displayField: 'TechnologyName',
+
       // TN.Bình update 15/04/26: Thêm action mở modal thêm mới công nghệ
       addAction: (rowData: any) => this.openAddTechnologyModal(rowData),
       loadData: (query: string, rowData?: any) => {
@@ -418,7 +431,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           filtered = filtered.filter(x => x.TechnologyName?.toLowerCase().includes(query));
         }
         return filtered;
-      }
+      },
+      disableColumnFilter: true
     };
   }
 
@@ -1734,6 +1748,15 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       }
     });
     return result;
+  }
+
+  onLookupSelect(event: any) {
+    const { selectedRow, field, rowData } = event;
+    if (field === 'FullName' || field === 'LeaderID') {
+      rowData.LeaderID = selectedRow.EmployeeID;
+      rowData.EmployeeID = selectedRow.EmployeeID;
+      rowData.FullName = selectedRow.FullName;
+    }
   }
   openAddCustomer() {
     const modalRef = this.modalService.open(CustomerDetailComponent, {

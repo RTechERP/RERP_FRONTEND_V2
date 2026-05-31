@@ -425,7 +425,7 @@
                 <app-custom-tree-table [data]="projectTypeNodes" [columns]="projectTypeCols" selectionMode="checkbox"
                   [(selection)]="selectedTypeNodes" (selectionChange)="onSelectionChange($event)" [scrollable]="true"
                   scrollHeight="28vh" [editMode]="'cell'" (cellValueChange)="handleCellValueChange($event)"
-                  class="rerp-tree-table">
+                  (lookupSelect)="onLookupSelect($event)" class="rerp-tree-table">
                 </app-custom-tree-table>
               </div>
             </div>
@@ -493,7 +493,8 @@
                 <app-custom-tree-table [data]="projectTypeNodesDetail" [columns]="projectTypeDetailCols"
                   selectionMode="checkbox" [(selection)]="selectedTypeNodesDetail"
                   (selectionChange)="onSelectionChange($event, true)" [scrollable]="true" scrollHeight="30vh"
-                  [editMode]="'cell'" (cellValueChange)="handleCellValueChange($event)" class="rerp-tree-table">
+                  [editMode]="'cell'" (cellValueChange)="handleCellValueChange($event)"
+                  (lookupSelect)="onLookupSelect($event)" class="rerp-tree-table">
                 </app-custom-tree-table>
               </div>
 

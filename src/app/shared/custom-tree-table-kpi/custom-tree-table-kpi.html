@@ -313,7 +313,7 @@
                             {{ lc.header }}
                         </th>
                     </tr>
-                    <tr>
+                    <tr *ngIf="!activeLookupCol?.editLookupConfig?.disableColumnFilter">
                         <th *ngIf="activeLookupCol?.editLookupConfig?.multiSelect" style="padding: 4px;"></th>
                         <th *ngFor="let lc of activeLookupCol?.editLookupConfig?.columns" style="padding: 4px;">
                             <input pInputText type="text" [(ngModel)]="lookupColFilters[lc.field]"

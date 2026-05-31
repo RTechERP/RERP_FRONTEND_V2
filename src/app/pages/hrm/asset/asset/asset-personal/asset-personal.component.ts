@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -45,6 +45,7 @@ import { AssetPersonalService } from './asset-personal.service';
     styleUrl: './asset-personal.component.css'
 })
 export class AssetPersonalComponent implements OnInit {
+    @Output() dataCountChange = new EventEmitter<number>();
     isLoading: boolean = false;
     selectedTabIndex: number = 0;
 
@@ -104,6 +105,7 @@ export class AssetPersonalComponent implements OnInit {
                 } else {
                     this.recordsData = [];
                 }
+                this.dataCountChange.emit(this.recordsData.length);
             },
             error: (error: any) => {
                 this.isLoading = false;

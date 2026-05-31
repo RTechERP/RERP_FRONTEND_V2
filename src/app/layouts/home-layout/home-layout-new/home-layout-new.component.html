@@ -320,12 +320,26 @@
                                 <br />
                             </ng-container>
 
+                            <ng-container *ngIf="projectTaskAttendances === 0">
+                                <br />
+                                Ngày hôm nay bạn chưa điểm danh công việc!
+                                <span class="text-primary cursor-pointer fw-bold" style="
+                                                                            color: #007bff !important;
+                                                                            text-decoration: underline;
+                                                                            cursor: pointer;
+                                                                            font-weight: 600;
+                                                                        " (click)="onPickProjectTaskOverdue()"> Bấm vào
+                                    đây để xem</span>
+                                <br />
+                            </ng-container>
+
+
                             <!-- Thông báo phiếu đánh giá chuyển HDLD chờ xử lý -->
                             <ng-container
                                 *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0 || pendingReview.asTBP > 0 || pendingReview.asHR > 0 || pendingReview.asBGD > 0">
                                 <br *ngIf="quantityBorrow > 0 || quantityBorrowExpried > 0 || quantityBorrowSale > 0
                                            || quantityBorrowExpriedSale > 0 || quantityApprove?.Count > 0
-                                           || quantityOverdueProjectTask > 0" />
+                                           || quantityOverdueProjectTask > 0 || projectTaskAttendances === 0" />
 
                                 <!-- NV tự đánh giá -->
                                 <ng-container *ngIf="pendingReview.asEmployee > 0">

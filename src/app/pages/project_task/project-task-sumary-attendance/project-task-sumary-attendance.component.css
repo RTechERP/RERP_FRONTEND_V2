@@ -176,3 +176,25 @@
   text-align: right !important;
   padding-right: 8px !important;
 }
+
+/* Force single line for multi-select */
+::ng-deep .single-line-select .ant-select-selector {
+  flex-wrap: nowrap !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+
+/* Align native date input height with nz-select small */
+input[type="date"].form-control-sm,
+:host ::ng-deep input[type="date"].form-control-sm {
+  height: 24px !important;
+  min-height: 24px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  line-height: 24px !important;
+  font-size: 12px !important;
+}
+
+

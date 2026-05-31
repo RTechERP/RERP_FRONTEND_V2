@@ -12,11 +12,16 @@ export interface ProjectTaskAttendanceDTO {
   teamID?: number;
   keyword?: string;
 }
+
+export interface EmployeeByTeamAndDepartmentStringDTO {
+  departmentStr?: number;
+  teamID?: number;
+}
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectTaskSumaryAttendanceService {
-  private apiUrl = `${environment.host}api/projecttask/`;
+  private apiUrl = `${environment.host}api/`;
   constructor(private http: HttpClient) { }
 
   getSumaryProjectTaskAttendance(params: ProjectTaskAttendanceDTO): Observable<any> {
@@ -28,7 +33,7 @@ export class ProjectTaskSumaryAttendanceService {
     if (params.departmentID !== undefined && params.departmentID !== null) {
       httpParams = httpParams.set('departmentID', params.departmentID.toString());
     } else {
-      httpParams = httpParams.set('departmentID', '-1');
+      httpParams = httpParams.set('departmentID', '');
     }
 
     if (params.status !== undefined && params.status !== null) {
@@ -55,7 +60,7 @@ export class ProjectTaskSumaryAttendanceService {
       httpParams = httpParams.set('keyword', '');
     }
 
-    return this.http.get<any>(this.apiUrl + 'get-sumary-project-task-attendance', { params: httpParams });
+    return this.http.get<any>(this.apiUrl + 'projecttask/get-sumary-project-task-attendance', { params: httpParams });
   }
 
 
@@ -65,7 +70,38 @@ export class ProjectTaskSumaryAttendanceService {
     if (employeeID !== undefined && employeeID !== null) {
       httpParams = httpParams.set('EmployeeID', employeeID.toString());
     }
-
-    return this.http.get<any>(this.apiUrl + 'get-check-project-task-attendance', { params: httpParams });
+    return this.http.get<any>(this.apiUrl + 'projecttask/get-check-project-task-attendance', { params: httpParams });
   }
+
+  getEmployeeByTeamAndDepartmentString(params: EmployeeByTeamAndDepartmentStringDTO): Observable<any> {
+
+    let httpParams = new HttpParams()
+
+    if (params.departmentStr !== undefined && params.departmentStr !== null) {
+      httpParams = httpParams.set('departmentString', params.departmentStr.toString());
+    } else {
+      httpParams = httpParams.set('departmentString', '');
+    }
+
+    if (params.teamID !== undefined && params.teamID !== null) {
+      httpParams = httpParams.set('teamID', params.teamID.toString());
+    } else {
+      httpParams = httpParams.set('teamID', '-1');
+    }
+
+    return this.http.get<any>(this.apiUrl + 'employee/get-employee-by-department-string', { params: httpParams });
+  }
+
+  getTeamByDepartmentString(params: EmployeeByTeamAndDepartmentStringDTO): Observable<any> {
+
+    let httpParams = new HttpParams()
+
+    if (params.departmentStr !== undefined && params.departmentStr !== null) {
+      httpParams = httpParams.set('departmentString', params.departmentStr.toString());
+    } else {
+      httpParams = httpParams.set('departmentString', '');
+    }
+    return this.http.get<any>(this.apiUrl + 'team/employee-by-department-string', { params: httpParams });
+  }
+
 }

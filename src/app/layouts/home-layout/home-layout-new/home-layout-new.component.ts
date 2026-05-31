@@ -566,20 +566,6 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
             tap((res: any) => {
                 const data = res.data;
                 this.projectTaskAttendances = data.length;
-                console.log(data);
-                // if (data.length > 0) {
-                //     this.notifService.addItem({
-                //         id: 3,
-                //         time: new Date().toISOString(),
-                //         title: 'Bạn chưa điểm danh công việc ngày hôm nay',
-                //         text: `Hãy điểm danh công việc của bạn!`,
-                //         group: 'today',
-                //         icon: 'clock-circle',
-                //         route: 'summary-asset-persional',
-                //         queryParams: { activeTab: 1 }
-                //     });
-                // }
-
             }),
             catchError((err: any) => {
                 this.notification.create(

@@ -39,8 +39,6 @@ import { NewsletterDetailComponent } from '../../../pages/old/newsletter/newslet
 import { DateTime } from 'luxon';
 import { UpdateVersionDetailComponent } from '../../../pages/systems/update-version/update-version-detail/update-version-detail.component';
 import { NzButtonModule } from "ng-zorro-antd/button";
-import { HistoryBorrowSaleService } from '../../../pages/old/Sale/HistoryBorrowSale/history-borrow-sale-service/history-borrow-sale.service';
-import { ProjectTaskService } from '../../../pages/project_task/project-task/project-task.service';
 import { ProjectTaskSumaryAttendanceService } from '../../../pages/project_task/project-task-sumary-attendance/project-task-sumary-attendance.service';
 
 interface LiXi {
@@ -584,7 +582,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                     { nzStyle: { whiteSpace: 'pre-line' } }
                 );
                 return of(null);
-            })
+            }))
+    };
     getPendingPollCount() {
         return this.pollFormService.getPendingCount().pipe(
             tap((res: any) => {

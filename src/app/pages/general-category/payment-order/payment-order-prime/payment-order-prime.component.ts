@@ -338,7 +338,9 @@ export class PaymentOrderPrimeComponent implements OnInit {
             { label: 'Xem đề nghị thanh toán', icon: 'fa-solid fa-eye', command: () => this.onPrint() },
             { label: 'Bổ sung file', icon: 'fa-solid fa-paperclip', command: () => this.onAttachFileExtend() },
             { label: 'Xem hợp đồng', icon: 'fa-solid fa-eye', command: () => this.viewContract(row) },
-            { label: 'Cây thư mục', icon: 'fa-solid fa-folder-open text-warning', command: () => this.onTreeFolder(row) }
+            { label: 'Cây thư mục', icon: 'fa-solid fa-folder-open text-warning', command: () => this.onTreeFolder(row) },
+            { label: 'Cập nhật NCC', icon: 'fa-solid fa-pen-to-square', command: () => this.onUpdateNCC(row) },
+            { label: 'Cập nhật Số hóa đơn', icon: 'fa-solid fa-file-invoice', command: () => this.onUpdateInvoiceNumber(row) }
         ];
 
         if (this.appUserService.currentUser?.IsAdmin && this.appUserService.currentUser?.EmployeeID <= 0) {
@@ -975,6 +977,62 @@ export class PaymentOrderPrimeComponent implements OnInit {
             },
             error: (err: any) => {
                 this.notification.warning(NOTIFICATION_TITLE.warning, err.message);
+            }
+        });
+    }
+
+    async onUpdateNCC(item: any) {
+        const { value: SupplierAccCode }: { value?: string } = await Swal.fire({
+            input: 'text',
+            inputLabel: 'Cập nhật Nhà cung cấp',
+            inputValue: "",
+            inputPlaceholder: 'Nhập tên nhà cung cấp mới...',
+            inputAttributes: {
+                'aria-label': 'Vui lòng nhập tên Nhà cung cấp',
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#dc3545',
+            confirmButtonText: 'Cập nhật',
+            cancelButtonText: 'Hủy',
+        });
+
+        if (SupplierAccCode !== undefined && SupplierAccCode !== null) {
+            this.updateSupplierAndInvoice(1, item.ID, SupplierAccCode);
+        }
+    }
+
+    async onUpdateInvoiceNumber(item: any) {
+        const { value: InvoiceAccNumber }: { value?: string } = await Swal.fire({
+            input: 'text',
+            inputLabel: 'Cập nhật Số hóa đơn',
+            inputValue: "",
+            inputPlaceholder: 'Nhập số hóa đơn mới...',
+            inputAttributes: {
+                'aria-label': 'Vui lòng nhập Số hóa đơn',
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#dc3545',
+            confirmButtonText: 'Cập nhật',
+            cancelButtonText: 'Hủy',
+        });
+
+        if (InvoiceAccNumber !== undefined && InvoiceAccNumber !== null) {
+            this.updateSupplierAndInvoice(2, item.ID, InvoiceAccNumber);
+        }
+    }
+
+    updateSupplierAndInvoice(typeUpdate: number, paymentID: number, contentUpdate: string) {
+        this.paymentService.updatePaymentOrderSupplierAndInvoice(paymentID, typeUpdate, contentUpdate).subscribe({
+            next: (response) => {
+                this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Cập nhật thành công!');
+                this.loadData();
+            },
+            error: (err) => {
+                this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`, {
+                    nzStyle: { whiteSpace: 'pre-line' }
+                });
             }
         });
     }

@@ -4769,10 +4769,8 @@ export class PaymentOrderComponent implements OnInit {
             cancelButtonText: 'Hủy',
         });
 
-        console.log(SupplierAccCode);
         if (SupplierAccCode !== undefined && SupplierAccCode !== null) {
             this.updateSupplierAndInvoice(1, item.ID, SupplierAccCode);
-            item.SupplierAccCode = SupplierAccCode;
         }
     }
 
@@ -4793,11 +4791,8 @@ export class PaymentOrderComponent implements OnInit {
             cancelButtonText: 'Hủy',
         });
 
-        console.log(InvoiceAccNumber);
         if (InvoiceAccNumber !== undefined && InvoiceAccNumber !== null) {
             this.updateSupplierAndInvoice(2, item.ID, InvoiceAccNumber);
-
-            item.InvoiceAccNumber = InvoiceAccNumber;
         }
     }
 
@@ -4805,7 +4800,7 @@ export class PaymentOrderComponent implements OnInit {
         this.paymentService.updatePaymentOrderSupplierAndInvoice(paymentID, typeUpdate, contentUpdate).subscribe({
             next: (response) => {
                 this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Cập nhật thành công!');
-                // this.loadData();
+                this.loadData();
             },
             error: (err) => {
                 this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`, {

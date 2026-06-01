@@ -299,7 +299,7 @@ export class OfficeSupplyRequestDetailComponent implements OnInit {
         const officeSupplyRequest = {
             ID: formValue.ID || 0,
             EmployeeIDRequest: this.currentUser.EmployeeID,
-            DateRequest: formValue.DateRequest.toISOString(),
+            DateRequest: new Date(formValue.DateRequest.getTime() - (formValue.DateRequest.getTimezoneOffset() * 60000)).toISOString(),
             DepartmentID: formValue.DepartmentID,
             IsApproved: false,
             IsDeleted: false,

@@ -374,6 +374,14 @@ import { InventoryOveragedComponent } from './pages/old/Sale/Inventory/inventory
 import { ConfigNotificationKeyManagementComponent } from './pages/systems/app-user/config-notification-key/config-notification-key-management/config-notification-key-management.component';
 import { ConfigNotificationKeyPersonalComponent } from './pages/systems/app-user/config-notification-key/config-notification-key-personal/config-notification-key-personal.component';
 import { ProjectJoinSummaryComponent } from './pages/project/project-join-summary/project-join-summary.component';
+// import component khoá học web sinh viên
+import { CourseWebManagementComponent } from './pages/course-web/course-management/course-management.component';
+import { SummaryOfExamResultsWebComponent } from './pages/course-web/summary-of-exam-results/summary-of-exam-results.component';
+import { CourseTypeWebComponent } from './pages/course-web/course-type/course-type.component';
+import { CourseExamWebComponent } from './pages/course-web/course-exam/course-exam.component';
+import { CourseExamPracticeWebComponent } from './pages/course-web/course-exam-practice/course-exam-practice.component';
+import { CourseCatalogTypeComponent } from './pages/course-web/course-catalog-type/course-catalog-type.component';
+import { UserManagementComponent } from './pages/course-web/user-management/user-management.component';
 export const routes: Routes = [
 
     {
@@ -1281,6 +1289,14 @@ export const routes: Routes = [
             { path: 'config-notification-key', component: ConfigNotificationKeyManagementComponent, canActivate: [authGuard] },
             { path: 'config-notification-key-personal', component: ConfigNotificationKeyPersonalComponent, canActivate: [authGuard] },
             { path: 'project-join-summary', component: ProjectJoinSummaryComponent, canActivate: [authGuard] },
+            // khai báo routes cho web khoá học
+            { path: 'course-management-web', component: CourseWebManagementComponent, canActivate: [authGuard] },
+            { path: 'summary-of-exam-results-web', component: SummaryOfExamResultsWebComponent, canActivate: [authGuard] },
+            { path: 'course-type-web', component: CourseTypeWebComponent, canActivate: [authGuard] },
+            { path: 'course-exam-web', component: CourseExamWebComponent, canActivate: [authGuard] },
+            { path: 'course-exam-practice-web', component: CourseExamPracticeWebComponent, canActivate: [authGuard] },
+            { path: 'course-catalog-type-web', component: CourseCatalogTypeComponent, canActivate: [authGuard] },
+            { path: 'user-management-web', component: UserManagementComponent, canActivate: [authGuard] },
         ],
     },
 ];

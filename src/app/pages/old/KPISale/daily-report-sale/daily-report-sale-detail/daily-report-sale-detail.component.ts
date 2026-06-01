@@ -794,11 +794,18 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
     const formValue = group.getRawValue();
     const employeeId = this.appUserService.employeeID || 0;
 
-    const formatDate = (date: any): string => {
+    // Format date theo local time để tránh lệch timezone
+    const formatLocalDate = (date: any): string => {
       if (!date) return '';
-      if (date instanceof Date) return date.toISOString();
-      if (typeof date === 'string') return new Date(date).toISOString();
-      return '';
+      const d = date instanceof Date ? date : new Date(date);
+      if (isNaN(d.getTime())) return '';
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const seconds = String(d.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
     };
 
     return {
@@ -808,8 +815,8 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
       warehouseId: this.warehouseId || 0,
       projectStatusBaseId: formValue.projectStatusId || 0,
       userId: formValue.userId || 0,
-      dateStart: formatDate(formValue.dateStart),
-      dateEnd: formValue.dateEnd ? formatDate(formValue.dateEnd) : null,
+      dateStart: formatLocalDate(formValue.dateStart),
+      dateEnd: formValue.dateEnd ? formatLocalDate(formValue.dateEnd) : null,
       firmId: formValue.firmId || 0,
       projectTypeId: formValue.projectTypeId || 0,
       contactId: formValue.contactId || 0,
@@ -824,7 +831,7 @@ export class DailyReportSaleDetailComponent implements OnInit, AfterViewInit {
       productOfCustomer: (formValue.productOfCustomer || '').trim(),
       projectStatusOld: this.projectStatusOldMap[index] || 0,
       employeeId: employeeId,
-      dateStatusLog: formValue.dateStatusLog ? formatDate(formValue.dateStatusLog) : new Date().toISOString(),
+      dateStatusLog: formValue.dateStatusLog ? formatLocalDate(formValue.dateStatusLog) : formatLocalDate(new Date()),
     };
   }
 

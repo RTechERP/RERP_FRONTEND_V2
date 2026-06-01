@@ -12,6 +12,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
@@ -39,7 +40,7 @@ interface KpiSalePeriod {
   isClosed: boolean;
 }
 
-interface PeriodTreeRow {
+export interface PeriodTreeRow {
   period: KpiSalePeriod;
   level: number;
   expandable: boolean;
@@ -72,6 +73,12 @@ interface KpiSaleIndex {
   isActive: boolean;
 }
 
+export interface IndexTreeRow {
+  index: KpiSaleIndex;
+  level: number;
+  expandable: boolean;
+  expanded: boolean;
+}
 interface AllowedTable {
   id: number;
   tableName: string;
@@ -179,8 +186,9 @@ interface KpiSaleScoringRule {
   formulaJson?: string;
 }
 
-interface KpiResultRow {
+export interface KpiResultRow {
   kpiIndexId: number;
+  parentIndexId?: number;
   indexCode: string;
   indexName: string;
   unitType: UnitType;
@@ -198,6 +206,13 @@ interface KpiResultRow {
   calculatedDate?: Date;
 }
 
+export interface ResultTreeRow {
+  row: KpiResultRow;
+  level: number;
+  expandable: boolean;
+  expanded: boolean;
+}
+
 @Component({
   selector: 'app-kpi-sale-management',
   imports: [
@@ -211,6 +226,7 @@ interface KpiResultRow {
     NzInputNumberModule,
     NzRadioModule,
     NzIconModule,
+    NzPopconfirmModule,
     NzSelectModule,
     NzSpinModule,
     NzSwitchModule,
@@ -243,6 +259,7 @@ export class KpiSaleManagementComponent implements OnInit {
   readonly availableYears: number[] = Array.from({ length: 7 }, (_, i) => new Date().getFullYear() - 2 + i);
   periodTreeRows: PeriodTreeRow[] = [];
   periodExpandState: Record<number, boolean> = {};
+  indexExpandState: Record<number, boolean> = {};
   readonly indexTypes: IndexType[] = ['DETAIL', 'GROUP', 'FORMULA'];
   readonly unitTypes: UnitType[] = ['MONEY', 'NUMBER', 'PERCENT'];
   readonly aggregateTypes: AggregateType[] = ['SUM', 'COUNT', 'COUNT_DISTINCT', 'SUM_DISTINCT', 'AVG', 'MAX', 'MIN'];
@@ -533,6 +550,7 @@ export class KpiSaleManagementComponent implements OnInit {
   ];
 
   resultRows: KpiResultRow[] = this.buildResultRows();
+  resultExpandState: Record<number, boolean> = {};
   calculationLogs = [
     'Đã tải kỳ KPI Q2-2026',
     'Đã tải mẫu KPI Sale Vision-ID',
@@ -692,10 +710,19 @@ export class KpiSaleManagementComponent implements OnInit {
           .filter((item) => item.fullName);
       }
 
-      this.selectedTemplateId = this.templates[0]?.id || this.selectedTemplateId;
-      this.selectedPeriodId = this.periods.find((item) => !item.isClosed)?.id || this.periods[0]?.id || this.selectedPeriodId;
-      this.selectedEmployeeId = this.employees[0]?.id || this.selectedEmployeeId;
-      this.selectedAllowedTableId = this.allowedTables[0]?.id || this.selectedAllowedTableId;
+      if (!this.templates.some(t => t.id === this.selectedTemplateId)) {
+        this.selectedTemplateId = this.templates[0]?.id || this.selectedTemplateId;
+      }
+      if (!this.periods.some(p => p.id === this.selectedPeriodId)) {
+        this.selectedPeriodId = this.periods.find((item) => !item.isClosed)?.id || this.periods[0]?.id || this.selectedPeriodId;
+      }
+      if (!this.employees.some(e => e.id === this.selectedEmployeeId)) {
+        this.selectedEmployeeId = this.employees[0]?.id || this.selectedEmployeeId;
+      }
+      if (!this.allowedTables.some(t => t.id === this.selectedAllowedTableId)) {
+        this.selectedAllowedTableId = this.allowedTables[0]?.id || this.selectedAllowedTableId;
+      }
+      
       this.targetDraft.employeeId = this.selectedEmployeeId;
       this.targetDraft.periodId = this.selectedPeriodId;
       this.allowedColumnDraft.tableId = this.selectedAllowedTableId;
@@ -841,6 +868,52 @@ export class KpiSaleManagementComponent implements OnInit {
       .sort((a, b) => a.sortOrder - b.sortOrder);
   }
 
+  get indexesTreeForTemplate(): IndexTreeRow[] {
+    const keyword = this.searchText.trim().toLowerCase();
+    
+    const includeNodes = new Set<number>();
+    for (const r of this.indexes) {
+      if (r.templateId === this.selectedTemplateId) {
+        if (!keyword || r.indexCode.toLowerCase().includes(keyword) || r.indexName.toLowerCase().includes(keyword)) {
+          let current: KpiSaleIndex | undefined = r;
+          while (current && !includeNodes.has(current.id)) {
+            includeNodes.add(current.id);
+            current = this.indexes.find(x => x.id === current!.parentId);
+          }
+        }
+      }
+    }
+
+    const filtered = this.indexes.filter(r => includeNodes.has(r.id) && r.templateId === this.selectedTemplateId);
+
+    const treeRows: IndexTreeRow[] = [];
+    const byParent = new Map<number, KpiSaleIndex[]>();
+    for (const r of filtered) {
+      const key = r.parentId || 0;
+      if (!byParent.has(key)) byParent.set(key, []);
+      byParent.get(key)!.push(r);
+    }
+
+    const walk = (parentId: number, level: number) => {
+      const children = byParent.get(parentId) || [];
+      const sorted = children.sort((a, b) => a.sortOrder - b.sortOrder);
+      for (const r of sorted) {
+        const hasChildren = byParent.has(r.id) && (byParent.get(r.id)!.length > 0);
+        const expanded = this.indexExpandState[r.id] ?? true;
+        treeRows.push({ index: r, level, expandable: hasChildren, expanded });
+        if (hasChildren && expanded) {
+          walk(r.id, level + 1);
+        }
+      }
+    };
+    walk(0, 0);
+    return treeRows;
+  }
+
+  toggleIndexExpand(treeRow: IndexTreeRow, expanded: boolean): void {
+    this.indexExpandState[treeRow.index.id] = expanded;
+  }
+
   get detailIndexesForTemplate(): KpiSaleIndex[] {
     return this.indexesForTemplate.filter((item) => item.indexType === 'DETAIL');
   }
@@ -882,9 +955,48 @@ export class KpiSaleManagementComponent implements OnInit {
     return this.scoringRules.filter((item) => item.kpiIndexId === this.selectedIndexId);
   }
 
-  get resultRowsFiltered(): KpiResultRow[] {
+  get resultTreeRowsFiltered(): ResultTreeRow[] {
     const keyword = this.searchText.trim().toLowerCase();
-    return this.resultRows.filter((item) => !keyword || item.indexCode.toLowerCase().includes(keyword) || item.indexName.toLowerCase().includes(keyword));
+    
+    const includeNodes = new Set<number>();
+    for (const r of this.resultRows) {
+      if (!keyword || r.indexCode.toLowerCase().includes(keyword) || r.indexName.toLowerCase().includes(keyword)) {
+        let current: KpiResultRow | undefined = r;
+        while (current && !includeNodes.has(current.kpiIndexId)) {
+          includeNodes.add(current.kpiIndexId);
+          current = this.resultRows.find(x => x.kpiIndexId === current!.parentIndexId);
+        }
+      }
+    }
+
+    const filtered = this.resultRows.filter(r => includeNodes.has(r.kpiIndexId));
+
+    const treeRows: ResultTreeRow[] = [];
+    const byParent = new Map<number, KpiResultRow[]>();
+    for (const r of filtered) {
+      const key = r.parentIndexId || 0;
+      if (!byParent.has(key)) byParent.set(key, []);
+      byParent.get(key)!.push(r);
+    }
+
+    const walk = (parentId: number, level: number) => {
+      const children = byParent.get(parentId) || [];
+      const sorted = children.sort((a, b) => a.sortOrder - b.sortOrder);
+      for (const r of sorted) {
+        const hasChildren = byParent.has(r.kpiIndexId) && (byParent.get(r.kpiIndexId)!.length > 0);
+        const expanded = this.resultExpandState[r.kpiIndexId] ?? true;
+        treeRows.push({ row: r, level, expandable: hasChildren, expanded });
+        if (hasChildren && expanded) {
+          walk(r.kpiIndexId, level + 1);
+        }
+      }
+    };
+    walk(0, 0);
+    return treeRows;
+  }
+
+  toggleResultExpand(treeRow: ResultTreeRow, expanded: boolean): void {
+    this.resultExpandState[treeRow.row.kpiIndexId] = expanded;
   }
 
   get totalWeight(): number {
@@ -916,7 +1028,7 @@ export class KpiSaleManagementComponent implements OnInit {
   }
 
   get totalFinalScore(): number {
-    return this.resultRowsFiltered.reduce((sum, item) => sum + item.finalScore, 0);
+    return this.resultTreeRowsFiltered.reduce((sum, item) => sum + item.row.finalScore, 0);
   }
 
   async onTemplateChange(templateId: number): Promise<void> {
@@ -1009,6 +1121,13 @@ export class KpiSaleManagementComponent implements OnInit {
 
   async onResultFilterChange(): Promise<void> {
     await this.loadTargetsAndResults();
+  }
+
+  onSelectedPeriodChange(val: string): void {
+    if (val) {
+      this.selectedPeriodId = Number(val);
+      this.onResultFilterChange();
+    }
   }
 
   onPeriodSelect(period: KpiSalePeriod): void {
@@ -1492,7 +1611,7 @@ export class KpiSaleManagementComponent implements OnInit {
     if (this.isApiMode) {
       const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.saveMapping(this.mappingToApi({
         ...this.mappingDraft,
-        kpiIndexId: this.selectedIndexId,
+        kpiIndexId: this.mappingDraft.kpiIndexId || this.selectedIndexId,
       }))));
       if (response?.status === 1) {
         const mappingId = this.read<number>(response.data, 'ID', 'id') || 0;
@@ -1517,7 +1636,7 @@ export class KpiSaleManagementComponent implements OnInit {
     const mapping: KpiSaleMapping = {
       ...this.mappingDraft,
       id: this.mappingDraft.id || this.nextId(this.mappings),
-      kpiIndexId: this.selectedIndexId,
+      kpiIndexId: this.mappingDraft.kpiIndexId || this.selectedIndexId,
       filterGroups: this.mappingDraft.id
         ? (this.mappings.find((m) => m.id === this.mappingDraft.id)?.filterGroups || [])
         : [
@@ -1542,7 +1661,7 @@ export class KpiSaleManagementComponent implements OnInit {
     }
 
     if (this.isApiMode) {
-      const groupId = await this.ensureApiRootFilterGroup(mapping);
+      const groupId = this.filterDraft.filterGroupId || await this.ensureApiRootFilterGroup(mapping);
       if (!groupId) {
         this.notification.error('Lỗi', 'Chưa có nhóm lọc cho ánh xạ');
         return;
@@ -1565,22 +1684,320 @@ export class KpiSaleManagementComponent implements OnInit {
       return;
     }
 
-    const group = mapping.filterGroups[0] || { id: this.nextFilterGroupId(), logicOperator: 'AND' as LogicOperator, conditions: [] };
+    let group: FilterGroup | undefined;
+    if (this.filterDraft.filterGroupId) {
+      const findGroup = (groups: FilterGroup[], id: number): FilterGroup | undefined => {
+        for (const g of groups) {
+          if (g.id === id) return g;
+          if (g.children) {
+            const found = findGroup(g.children, id);
+            if (found) return found;
+          }
+        }
+        return undefined;
+      };
+      group = findGroup(mapping.filterGroups, this.filterDraft.filterGroupId);
+    }
+    
+    if (!group) {
+      group = mapping.filterGroups[0] || { id: this.nextFilterGroupId(), logicOperator: 'AND' as LogicOperator, conditions: [], children: [] };
+      if (!mapping.filterGroups.length) {
+        mapping.filterGroups = [group];
+      }
+    }
+
     const condition: FilterCondition = {
       ...this.filterDraft,
       id: this.filterDraft.id || this.nextFilterConditionId(),
+      filterGroupId: group.id,
       dataType: this.columnsForSelectedMapping.find((item) => item.columnName === this.filterDraft.columnName)?.dataType || 'STRING',
     };
+
     if (this.filterDraft.id) {
       group.conditions = group.conditions.map((c) => c.id === condition.id ? condition : c);
     } else {
       group.conditions = [...group.conditions, condition];
     }
-    if (!mapping.filterGroups.length) {
-      mapping.filterGroups = [group];
-    }
+
     this.mappings = this.mappings.map((item) => item.id === mapping.id ? { ...mapping } : item);
     this.resetFilterDraft();
+  }
+
+  async addChildFilterGroup(parentGroupId: number): Promise<void> {
+    const mapping = this.selectedMapping;
+    if (!mapping) return;
+
+    if (this.isApiMode) {
+      const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.saveFilterGroup({
+        ID: 0,
+        MappingID: mapping.id,
+        ParentGroupID: parentGroupId,
+        LogicOperator: 'OR',
+        SortOrder: 1,
+      })));
+      if (response?.status === 1) {
+        this.notification.success('Thông báo', response.message || 'Thêm nhóm con thành công');
+        await this.loadFilterTree(mapping.id);
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể thêm nhóm con');
+      }
+    } else {
+      const newGroup: FilterGroup = {
+        id: this.nextFilterGroupId(),
+        mappingId: mapping.id,
+        parentGroupId: parentGroupId,
+        logicOperator: 'OR',
+        conditions: [],
+        children: []
+      };
+      
+      const insertChild = (groups: FilterGroup[], pId: number): boolean => {
+        for (const g of groups) {
+          if (g.id === pId) {
+            g.children = g.children || [];
+            g.children.push(newGroup);
+            return true;
+          }
+          if (g.children && insertChild(g.children, pId)) return true;
+        }
+        return false;
+      };
+      
+      insertChild(mapping.filterGroups, parentGroupId);
+      this.mappings = this.mappings.map((item) => item.id === mapping.id ? { ...mapping } : item);
+    }
+  }
+
+  async deleteFilterGroup(groupId: number): Promise<void> {
+    const mapping = this.selectedMapping;
+    if (!mapping) return;
+
+    if (this.isApiMode) {
+      const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.deleteFilterGroup(groupId)));
+      if (response?.status === 1) {
+        this.notification.success('Thông báo', response.message || 'Xóa nhóm thành công');
+        await this.loadFilterTree(mapping.id);
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể xóa nhóm');
+      }
+    } else {
+      const removeGroup = (groups: FilterGroup[], id: number): boolean => {
+        const idx = groups.findIndex(g => g.id === id);
+        if (idx !== -1) {
+          groups.splice(idx, 1);
+          return true;
+        }
+        for (const g of groups) {
+          if (g.children && removeGroup(g.children, id)) return true;
+        }
+        return false;
+      };
+      removeGroup(mapping.filterGroups, groupId);
+      this.mappings = this.mappings.map((item) => item.id === mapping.id ? { ...mapping } : item);
+    }
+  }
+
+  async deletePeriod(periodId: number): Promise<void> {
+    if (this.isApiMode) {
+      const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.deletePeriod(periodId)));
+      if (response?.status === 1) {
+        this.notification.success('Thông báo', response.message || 'Xóa kỳ KPI thành công');
+        await this.loadInitialData();
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể xóa kỳ KPI');
+      }
+    } else {
+      this.periods = this.periods.filter((item) => item.id !== periodId);
+    }
+    this.resetPeriodForm();
+  }
+
+  async deleteTemplate(templateId: number): Promise<void> {
+    if (this.isApiMode) {
+      const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.deleteTemplate(templateId)));
+      if (response?.status === 1) {
+        this.notification.success('Thông báo', response.message || 'Xóa mẫu KPI thành công');
+        await this.loadInitialData();
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể xóa mẫu KPI');
+      }
+    } else {
+      this.templates = this.templates.filter((item) => item.id !== templateId);
+    }
+    this.resetTemplateDraft();
+  }
+
+  async deleteIndex(indexId: number): Promise<void> {
+    if (this.isApiMode) {
+      const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.deleteIndex(indexId)));
+      if (response?.status === 1) {
+        this.notification.success('Thông báo', response.message || 'Xóa chỉ tiêu KPI thành công');
+        await this.loadTemplateDetails();
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể xóa chỉ tiêu KPI');
+      }
+    } else {
+      this.indexes = this.indexes.filter((item) => item.id !== indexId);
+    }
+    this.resetIndexDraft();
+  }
+
+  async deleteAllowedTable(tableId: number): Promise<void> {
+    if (this.isApiMode) {
+      const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.deleteAllowedTable(tableId)));
+      if (response?.status === 1) {
+        this.notification.success('Thông báo', response.message || 'Xóa bảng được phép thành công');
+        const tablesResponse = await firstValueFrom(this.safeApi<any[]>(this.kpiSaleService.getAllowedTables()));
+        if (tablesResponse?.status === 1 && Array.isArray(tablesResponse.data)) {
+          this.allowedTables = tablesResponse.data.map((item) => this.normalizeAllowedTable(item));
+        }
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể xóa bảng được phép');
+      }
+    } else {
+      this.allowedTables = this.allowedTables.filter((item) => item.id !== tableId);
+      this.allowedColumns = this.allowedColumns.filter((item) => item.tableId !== tableId);
+    }
+    this.resetAllowedTableDraft();
+  }
+
+  async deleteAllowedColumn(columnId: number): Promise<void> {
+    if (this.isApiMode) {
+      const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.deleteAllowedColumn(columnId)));
+      if (response?.status === 1) {
+        this.notification.success('Thông báo', response.message || 'Xóa cột được phép thành công');
+        await this.onAllowedTableSelect(this.selectedAllowedTableId);
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể xóa cột được phép');
+      }
+    } else {
+      this.allowedColumns = this.allowedColumns.filter((item) => item.id !== columnId);
+    }
+    this.resetAllowedColumnDraft();
+  }
+
+  async deleteDataSource(sourceId: number): Promise<void> {
+    if (this.isApiMode) {
+      const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.deleteDataSource(sourceId)));
+      if (response?.status === 1) {
+        this.notification.success('Thông báo', response.message || 'Xóa nguồn dữ liệu thành công');
+        const dataSourceResponse = await firstValueFrom(this.safeApi<any[]>(this.kpiSaleService.getDataSources()));
+        if (dataSourceResponse?.status === 1 && Array.isArray(dataSourceResponse.data)) {
+          this.dataSources = dataSourceResponse.data.map((item) => this.normalizeDataSource(item));
+        }
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể xóa nguồn dữ liệu');
+      }
+    } else {
+      this.dataSources = this.dataSources.filter((item) => item.id !== sourceId);
+    }
+    this.resetDataSourceDraft();
+  }
+
+  async deleteMapping(mappingId: number): Promise<void> {
+    if (this.isApiMode) {
+      const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.deleteMapping(mappingId)));
+      if (response?.status === 1) {
+        this.notification.success('Thông báo', response.message || 'Xóa ánh xạ thành công');
+        await this.loadIndexDetails();
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể xóa ánh xạ');
+      }
+    } else {
+      this.mappings = this.mappings.filter((item) => item.id !== mappingId);
+    }
+    this.resetMappingDraft();
+  }
+
+  async deleteFilterCondition(conditionId: number): Promise<void> {
+    const mapping = this.selectedMapping;
+    if (!mapping) return;
+
+    if (this.isApiMode) {
+      const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.deleteFilterCondition(conditionId)));
+      if (response?.status === 1) {
+        this.notification.success('Thông báo', response.message || 'Xóa điều kiện lọc thành công');
+        await this.loadFilterTree(mapping.id);
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể xóa điều kiện lọc');
+      }
+    } else {
+      const removeCondition = (groups: FilterGroup[], id: number): boolean => {
+        for (const g of groups) {
+          const idx = g.conditions.findIndex(c => c.id === id);
+          if (idx !== -1) {
+            g.conditions.splice(idx, 1);
+            return true;
+          }
+          if (g.children && removeCondition(g.children, id)) return true;
+        }
+        return false;
+      };
+      removeCondition(mapping.filterGroups, conditionId);
+      this.mappings = this.mappings.map((item) => item.id === mapping.id ? { ...mapping } : item);
+    }
+    this.resetFilterDraft();
+  }
+
+  async deleteFormulaItem(formulaId: number): Promise<void> {
+    if (this.isApiMode) {
+      const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.deleteFormulaItem(formulaId)));
+      if (response?.status === 1) {
+        this.notification.success('Thông báo', response.message || 'Xóa thành phần công thức thành công');
+        await this.loadIndexDetails();
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể xóa thành phần công thức');
+      }
+    } else {
+      this.formulaItems = this.formulaItems.filter((item) => item.id !== formulaId);
+    }
+    this.resetFormulaDraft();
+  }
+
+  async deleteScoringRule(ruleId: number): Promise<void> {
+    if (this.isApiMode) {
+      const response = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.deleteScoringRule(ruleId)));
+      if (response?.status === 1) {
+        this.notification.success('Thông báo', response.message || 'Xóa quy tắc chấm điểm thành công');
+        await this.loadIndexDetails();
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể xóa quy tắc chấm điểm');
+      }
+    } else {
+      this.scoringRules = this.scoringRules.filter((item) => item.id !== ruleId);
+    }
+    this.resetScoringRuleDraft();
+  }
+
+  async onLogicOperatorChange(group: FilterGroup): Promise<void> {
+    if (this.isApiMode && group.id) {
+      await firstValueFrom(this.safeApi<any>(this.kpiSaleService.saveFilterGroup({
+        ID: group.id,
+        MappingID: group.mappingId || this.selectedMappingId,
+        ParentGroupID: group.parentGroupId,
+        LogicOperator: group.logicOperator,
+        SortOrder: group.sortOrder || 1,
+      })));
+    }
+  }
+
+  get flatFilterGroups(): { id: number, label: string }[] {
+    const mapping = this.selectedMapping;
+    if (!mapping || !mapping.filterGroups) return [];
+    
+    const result: { id: number, label: string }[] = [];
+    const traverse = (groups: FilterGroup[], prefix: string) => {
+      for (let i = 0; i < groups.length; i++) {
+        const g = groups[i];
+        const currentPrefix = prefix ? `${prefix}.${i + 1}` : `Nhóm gốc`;
+        result.push({ id: g.id, label: `${currentPrefix} (${g.logicOperator})` });
+        if (g.children && g.children.length > 0) {
+          traverse(g.children, currentPrefix);
+        }
+      }
+    };
+    traverse(mapping.filterGroups, '');
+    return result;
   }
 
   onTargetPeriodChange(val: string): void {
@@ -1809,16 +2226,16 @@ export class KpiSaleManagementComponent implements OnInit {
 
   exportCsv(): void {
     const header = ['Kỳ KPI', 'Mã chỉ tiêu', 'Tên chỉ tiêu', 'Đơn vị', 'Giá trị mục tiêu', 'Giá trị kết quả', 'Tỷ lệ đạt', 'Trọng số', 'Điểm cuối'];
-    const rows = this.resultRowsFiltered.map((item) => [
-      item.periodCode || this.getPeriodName(item.periodId || this.selectedPeriodId),
-      item.indexCode,
-      item.indexName,
-      item.unitType,
-      item.goalValue,
-      item.resultValue,
-      item.achievedPercent,
-      item.weightPercent,
-      item.finalScore,
+    const rows = this.resultTreeRowsFiltered.map((item) => [
+      item.row.periodCode || this.getPeriodName(item.row.periodId || this.selectedPeriodId),
+      item.row.indexCode,
+      item.row.indexName,
+      item.row.unitType,
+      item.row.goalValue,
+      item.row.resultValue,
+      item.row.achievedPercent,
+      item.row.weightPercent,
+      item.row.finalScore,
     ]);
     const csv = [header, ...rows]
       .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
@@ -2024,8 +2441,8 @@ export class KpiSaleManagementComponent implements OnInit {
     return `${value.toFixed(1)}%`;
   }
 
-  trackById(_index: number, item: { id?: number; kpiIndexId?: number }): number {
-    return item.id || item.kpiIndexId || _index;
+  trackById(_index: number, item: any): number {
+    return item.id || item.kpiIndexId || item.row?.kpiIndexId || item.index?.id || _index;
   }
 
   private buildResultRows(refresh = false): KpiResultRow[] {
@@ -2041,6 +2458,7 @@ export class KpiSaleManagementComponent implements OnInit {
       const achievedPercent = goalValue > 0 ? resultValue / goalValue * 100 : 0;
       return {
         kpiIndexId: index.id,
+        parentIndexId: index.parentId,
         indexCode: index.indexCode,
         indexName: index.indexName,
         unitType: index.unitType,
@@ -2172,7 +2590,7 @@ export class KpiSaleManagementComponent implements OnInit {
   }
 
   resetFilterDraft(): void {
-    this.filterDraft = { id: 0, columnName: '', operator: '=', valueType: 'STATIC', value1: '', value2: '', dataType: 'STRING', isActive: true };
+    this.filterDraft = { id: 0, columnName: '', operator: '=', valueType: 'STATIC', value1: '', value2: '', dataType: 'STRING', isActive: true, filterGroupId: undefined };
   }
 
   resetFormulaDraft(): void {
@@ -2382,6 +2800,7 @@ export class KpiSaleManagementComponent implements OnInit {
   private normalizeResult(item: any): KpiResultRow {
     return {
       kpiIndexId: this.read<number>(item, 'KpiIndexID', 'KpiIndexId', 'kpiIndexId') || 0,
+      parentIndexId: this.read<number>(item, 'ParentID', 'ParentId', 'parentIndexId'),
       indexCode: this.read<string>(item, 'IndexCode', 'indexCode') || '',
       indexName: this.read<string>(item, 'IndexName', 'indexName') || '',
       goalValue: this.read<number>(item, 'GoalValue', 'goalValue') || 0,

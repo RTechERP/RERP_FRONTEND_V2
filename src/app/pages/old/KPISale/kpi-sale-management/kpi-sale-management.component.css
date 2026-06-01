@@ -151,9 +151,9 @@
   margin: 0;
 }
 
-.compact-form .field > span,
-.inline-control > span,
-.result-form .ant-form-item-label > label {
+.compact-form .field>span,
+.inline-control>span,
+.result-form .ant-form-item-label>label {
   color: #475569;
   font-size: 12px;
 }
@@ -228,6 +228,28 @@
   width: 220px;
 }
 
+.filter-group {
+  border: 1px dashed #cbd5e1;
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  background-color: #f8fafc;
+}
+
+.filter-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.filter-group-children {
+  margin-left: 16px;
+  border-left: 2px solid #94a3b8;
+  padding-left: 12px;
+  margin-top: 8px;
+}
+
 .metadata-tables {
   overflow: auto;
 }
@@ -295,7 +317,7 @@
   font-size: 12px;
 }
 
-:host ::ng-deep .ant-table-thead > tr > th {
+:host ::ng-deep .ant-table-thead>tr>th {
   background: #264c7f;
   color: #ffffff;
   font-weight: 700;
@@ -303,7 +325,7 @@
   padding: 5px 6px;
 }
 
-:host ::ng-deep .ant-table-tbody > tr > td {
+:host ::ng-deep .ant-table-tbody>tr>td {
   padding: 4px 6px;
   vertical-align: middle;
 }
@@ -329,6 +351,7 @@
 }
 
 @media (max-width: 720px) {
+
   .toolbar-filters nz-select,
   .toolbar-filters input,
   .result-form nz-select {

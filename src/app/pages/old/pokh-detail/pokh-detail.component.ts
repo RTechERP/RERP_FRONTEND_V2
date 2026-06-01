@@ -1431,6 +1431,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         // Handle numeric fields that may be empty strings
         Qty: row.Qty === '' || row.Qty === null || row.Qty === undefined ? null : Number(row.Qty),
         IntoMoney: row.IntoMoney === '' || row.IntoMoney === null || row.IntoMoney === undefined ? null : Number(row.IntoMoney),
+        DiscountAmount: row.DiscountAmount === '' || row.DiscountAmount === null || row.DiscountAmount === undefined ? null : Number(row.DiscountAmount),
+        IntoMoneyAfterDiscount: row.IntoMoneyAfterDiscount === '' || row.IntoMoneyAfterDiscount === null || row.IntoMoneyAfterDiscount === undefined ? null : Number(row.IntoMoneyAfterDiscount),
         UnitPrice: row.UnitPrice === '' || row.UnitPrice === null || row.UnitPrice === undefined ? null : Number(row.UnitPrice),
         VAT: row.VAT === '' || row.VAT === null || row.VAT === undefined ? null : Number(row.VAT),
         NetUnitPrice: row.NetUnitPrice === '' || row.NetUnitPrice === null || row.NetUnitPrice === undefined ? null : Number(row.NetUnitPrice),
@@ -1556,10 +1558,12 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     const quantity = row.getData().Qty || 0;
     const unitPrice = row.getData().UnitPrice || 0;
     const vat = row.getData().VAT || 0;
+    const discountAmount = row.getData().DiscountAmount || 0;
     const billDate = row.getData().BillDate;
     const debt = row.getData().Debt || 0;
     const intoMoney = quantity * unitPrice;
-    const totalWithVAT = intoMoney + intoMoney * (vat / 100);
+    const intoMoneyAfterDiscount = intoMoney - discountAmount;
+    const totalWithVAT = intoMoneyAfterDiscount + intoMoneyAfterDiscount * (vat / 100);
 
     try {
       // Tính thành tiền và tổng tiền bao gồm VAT
@@ -1567,10 +1571,12 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         if (
           columnField === 'Qty' ||
           columnField === 'UnitPrice' ||
-          columnField === 'VAT'
+          columnField === 'VAT' ||
+          columnField === 'DiscountAmount'
         ) {
           row.update({
             IntoMoney: intoMoney,
+            IntoMoneyAfterDiscount: intoMoneyAfterDiscount,
             TotalPriceIncludeVAT: totalWithVAT,
           });
           this.calculateTotalIterative();
@@ -1753,6 +1759,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   }
   calculateTotalIterative(): void {
     let totalSum = 0;
+    let totalMoneyDiscount = 0;
     const allRows = this.tb_ProductDetailTreeList.getRows();
 
     allRows.forEach((row: RowComponent) => {
@@ -1770,6 +1777,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           totalSum += Number(currentNode['TotalPriceIncludeVAT']);
         }
 
+        if (
+          currentNode['DiscountAmount'] !== undefined &&
+          !isNaN(currentNode['DiscountAmount'])
+        ) {
+          totalMoneyDiscount += Number(currentNode['DiscountAmount']);
+        }
+
         if (currentNode['_children'] && currentNode['_children'].length > 0) {
           currentNode['_children'].forEach((child: any) => {
             stack.push(child);
@@ -1781,6 +1795,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     // Đảm bảo totalPO luôn là số hợp lệ, không phải NaN
     this.poFormData.totalPO = isNaN(totalSum) ? 0 : totalSum;
     this.poFormData.totalPOBeforeVAT = this.calculateTotalMoneyKoVAT();
+    
+    // Gán tổng tiền chiết khấu từ chi tiết lên master
+    this.poFormData.moneyDiscount = isNaN(totalMoneyDiscount) ? 0 : totalMoneyDiscount;
+
     console.log('Tổng giá trị sau VAT:', this.poFormData.totalPO);
 
     // Cập nhật lại giá trị tiền trong bảng người phụ trách
@@ -2046,6 +2064,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       Unit: '',
       UnitPrice: 0,
       IntoMoney: 0,
+      DiscountAmount: 0,
+      IntoMoneyAfterDiscount: 0,
       VAT: 0,
       NetUnitPrice: 0,
       TotalPriceIncludeVAT: 0,
@@ -2097,6 +2117,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       Unit: '',
       UnitPrice: 0,
       IntoMoney: 0,
+      DiscountAmount: 0,
+      IntoMoneyAfterDiscount: 0,
       VAT: 0,
       NetUnitPrice: 0,
       TotalPriceIncludeVAT: 0,
@@ -2673,6 +2695,60 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             },
             bottomCalc: (values, data) => {
               return this.accumulateTreeValues(data, 'IntoMoney');
+            },
+            bottomCalcFormatter: 'money',
+            bottomCalcFormatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+          },
+          {
+            title: 'Tiền chiết khấu',
+            field: 'DiscountAmount',
+            sorter: 'number',
+            width: 150,
+            editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
+            formatter: 'money',
+            formatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+            bottomCalc: (values, data) => {
+              return this.accumulateTreeValues(data, 'DiscountAmount');
+            },
+            bottomCalcFormatter: 'money',
+            bottomCalcFormatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+          },
+          {
+            title: 'Tiền sau chiết khấu',
+            field: 'IntoMoneyAfterDiscount',
+            sorter: 'number',
+            width: 150,
+            formatter: 'money',
+            formatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+            bottomCalc: (values, data) => {
+              return this.accumulateTreeValues(data, 'IntoMoneyAfterDiscount');
             },
             bottomCalcFormatter: 'money',
             bottomCalcFormatterParams: {

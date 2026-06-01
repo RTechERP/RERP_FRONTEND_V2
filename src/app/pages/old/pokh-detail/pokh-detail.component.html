@@ -144,14 +144,6 @@
                 </div>
 
                 <div class="col-md-2">
-                  <label class="mb-1 fs-12">Tổng tiền PO sau VAT</label>
-                  <nz-input-number name="totalPO" nzPlaceHolder="0" [nzMin]="0" [nzStep]="0.01" nzSize="default"
-                    class="w-100" [(ngModel)]="poFormData.totalPO" [nzFormatter]="formatAmount" [nzParser]="parseAmount"
-                    nzReadOnly="false" (ngModelChange)="onTotalPOChange($event)">
-                  </nz-input-number>
-                </div>
-
-                <div class="col-md-2">
                   <label class="mb-1 fs-12">Tổng tiền PO trước VAT</label>
                   <nz-input-number name="totalPOBeforeVAT" nzPlaceHolder="0" [nzMin]="0" [nzStep]="0.01"
                     nzSize="default" class="w-100" [(ngModel)]="poFormData.totalPOBeforeVAT"
@@ -169,7 +161,7 @@
                 <div class="col-md-2">
                   <label class="mb-1 fs-12">Tiền chiết khấu</label>
                   <nz-input-number name="moneyDiscount" nzPlaceHolder="0" [nzMin]="0" [nzStep]="0.01" nzSize="default"
-                    class="w-100" [(ngModel)]="poFormData.moneyDiscount" [nzFormatter]="formatAmount"
+                    class="w-100" [(ngModel)]="poFormData.moneyDiscount" [nzFormatter]="formatAmount" nzReadOnly="true"
                     [nzParser]="parseAmount" (ngModelChange)="onMoneyDiscountChange()">
                   </nz-input-number>
                 </div>
@@ -179,6 +171,14 @@
                   <nz-input-number name="totalMoneyDiscount" nzPlaceHolder="0" [nzMin]="0" [nzStep]="0.01"
                     nzSize="default" class="w-100" [(ngModel)]="poFormData.totalMoneyDiscount"
                     [nzFormatter]="formatAmount" [nzParser]="parseAmount">
+                  </nz-input-number>
+                </div>
+
+                <div class="col-md-2">
+                  <label class="mb-1 fs-12">Tổng tiền PO sau VAT</label>
+                  <nz-input-number name="totalPO" nzPlaceHolder="0" [nzMin]="0" [nzStep]="0.01" nzSize="default"
+                    class="w-100" [(ngModel)]="poFormData.totalPO" [nzFormatter]="formatAmount" [nzParser]="parseAmount"
+                    nzReadOnly="false" (ngModelChange)="onTotalPOChange($event)">
                   </nz-input-number>
                 </div>
 

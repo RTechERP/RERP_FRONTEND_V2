@@ -35,6 +35,10 @@ export class KpiSaleManagementService {
       : this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/periods`, period);
   }
 
+  deletePeriod(id: number): Observable<KpiApiResponse<any>> {
+    return this.http.delete<KpiApiResponse<any>>(`${this.apiUrl}/periods/${id}`);
+  }
+
   getTemplates(isActive?: boolean, keyword?: string): Observable<KpiApiResponse<any[]>> {
     let params = new HttpParams();
     if (isActive !== undefined) {
@@ -156,10 +160,18 @@ export class KpiSaleManagementService {
       : this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/filter-groups`, group);
   }
 
+  deleteFilterGroup(id: number): Observable<KpiApiResponse<any>> {
+    return this.http.delete<KpiApiResponse<any>>(`${this.apiUrl}/filter-groups/${id}`);
+  }
+
   saveFilterCondition(condition: any): Observable<KpiApiResponse<any>> {
     return condition.ID > 0
       ? this.http.put<KpiApiResponse<any>>(`${this.apiUrl}/filter-conditions/${condition.ID}`, condition)
       : this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/filter-conditions`, condition);
+  }
+
+  deleteFilterCondition(id: number): Observable<KpiApiResponse<any>> {
+    return this.http.delete<KpiApiResponse<any>>(`${this.apiUrl}/filter-conditions/${id}`);
   }
 
   getFormulaItems(kpiIndexId: number): Observable<KpiApiResponse<any[]>> {
@@ -172,6 +184,10 @@ export class KpiSaleManagementService {
       : this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/formula-items`, item);
   }
 
+  deleteFormulaItem(id: number): Observable<KpiApiResponse<any>> {
+    return this.http.delete<KpiApiResponse<any>>(`${this.apiUrl}/formula-items/${id}`);
+  }
+
   getScoringRules(kpiIndexId: number): Observable<KpiApiResponse<any[]>> {
     return this.http.get<KpiApiResponse<any[]>>(`${this.apiUrl}/indexes/${kpiIndexId}/scoring-rules`);
   }
@@ -180,6 +196,10 @@ export class KpiSaleManagementService {
     return rule.ID > 0
       ? this.http.put<KpiApiResponse<any>>(`${this.apiUrl}/scoring-rules/${rule.ID}`, rule)
       : this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/scoring-rules`, rule);
+  }
+
+  deleteScoringRule(id: number): Observable<KpiApiResponse<any>> {
+    return this.http.delete<KpiApiResponse<any>>(`${this.apiUrl}/scoring-rules/${id}`);
   }
 
   getTargets(employeeId?: number, periodId?: number, templateId?: number): Observable<KpiApiResponse<any[]>> {

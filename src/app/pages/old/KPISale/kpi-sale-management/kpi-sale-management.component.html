@@ -23,15 +23,9 @@
         <form nz-form nzLayout="inline" class="toolbar-filters">
           <nz-form-item>
             <nz-form-control>
-              <nz-select
-                name="selectedTemplateId"
-                nzSize="small"
-                nzShowSearch
-                [(ngModel)]="selectedTemplateId"
-                (ngModelChange)="onTemplateChange($event)">
-                <nz-option
-                  *ngFor="let item of templates; trackBy: trackById"
-                  [nzValue]="item.id"
+              <nz-select nzDropdownClassName="select-dropdown" name="selectedTemplateId" nzSize="small" nzShowSearch
+                [(ngModel)]="selectedTemplateId" (ngModelChange)="onTemplateChange($event)">
+                <nz-option *ngFor="let item of templates; trackBy: trackById" [nzValue]="item.id"
                   [nzLabel]="item.templateName">
                 </nz-option>
               </nz-select>
@@ -39,15 +33,9 @@
           </nz-form-item>
           <nz-form-item>
             <nz-form-control>
-              <nz-select
-                name="selectedEmployeeId"
-                nzSize="small"
-                nzShowSearch
-                [(ngModel)]="selectedEmployeeId"
-                (ngModelChange)="onResultFilterChange()">
-                <nz-option
-                  *ngFor="let item of employees; trackBy: trackById"
-                  [nzValue]="item.id"
+              <nz-select nzDropdownClassName="select-dropdown" name="selectedEmployeeId" nzSize="small" nzShowSearch
+                [(ngModel)]="selectedEmployeeId" (ngModelChange)="onResultFilterChange()">
+                <nz-option *ngFor="let item of employees; trackBy: trackById" [nzValue]="item.id"
                   [nzLabel]="item.code + ' - ' + item.fullName">
                 </nz-option>
               </nz-select>
@@ -55,17 +43,11 @@
           </nz-form-item>
           <nz-form-item>
             <nz-form-control>
-              <nz-select
-                name="selectedPeriodId"
-                nzSize="small"
-                [(ngModel)]="selectedPeriodId"
-                (ngModelChange)="onResultFilterChange()">
-                <nz-option
-                  *ngFor="let item of periods; trackBy: trackById"
-                  [nzValue]="item.id"
-                  [nzLabel]="item.periodCode">
-                </nz-option>
-              </nz-select>
+              <nz-tree-select nzDropdownClassName="select-dropdown" name="selectedPeriodId" style="width: 180px;"
+                nzSize="small" [nzNodes]="periodNodes" nzShowSearch [ngModel]="selectedPeriodId?.toString()"
+                (ngModelChange)="onSelectedPeriodChange($event)" nzPlaceHolder="Chọn kỳ KPI"
+                [nzDropdownStyle]="{ 'max-height': '300px', 'overflow-y': 'auto' }">
+              </nz-tree-select>
             </nz-form-control>
           </nz-form-item>
           <nz-form-item>
@@ -117,19 +99,23 @@
                 <div class="form-grid">
                   <div class="field">
                     <span>Loại kỳ</span>
-                    <nz-select nzSize="small" name="periodType" [(ngModel)]="periodDraft.periodType" (ngModelChange)="onPeriodTypeOrYearChange()">
-                      <nz-option *ngFor="let item of periodTypes" [nzValue]="item" [nzLabel]="getPeriodTypeLabel(item)"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="periodType"
+                      [(ngModel)]="periodDraft.periodType" (ngModelChange)="onPeriodTypeOrYearChange()">
+                      <nz-option *ngFor="let item of periodTypes" [nzValue]="item"
+                        [nzLabel]="getPeriodTypeLabel(item)"></nz-option>
                     </nz-select>
                   </div>
                   <div class="field">
                     <span>Năm</span>
-                    <nz-select nzSize="small" name="periodYear" [(ngModel)]="periodYear" (ngModelChange)="onPeriodTypeOrYearChange()">
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="periodYear"
+                      [(ngModel)]="periodYear" (ngModelChange)="onPeriodTypeOrYearChange()">
                       <nz-option *ngFor="let y of availableYears" [nzValue]="y" [nzLabel]="'' + y"></nz-option>
                     </nz-select>
                   </div>
                   <div class="field" *ngIf="periodDraft.periodType === 'QUARTER'">
                     <span>Quý</span>
-                    <nz-select nzSize="small" name="periodQuarter" [(ngModel)]="periodQuarter" (ngModelChange)="onPeriodTypeOrYearChange()">
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="periodQuarter"
+                      [(ngModel)]="periodQuarter" (ngModelChange)="onPeriodTypeOrYearChange()">
                       <nz-option [nzValue]="1" nzLabel="Quý 1"></nz-option>
                       <nz-option [nzValue]="2" nzLabel="Quý 2"></nz-option>
                       <nz-option [nzValue]="3" nzLabel="Quý 3"></nz-option>
@@ -168,31 +154,37 @@
                     <th>Ngày bắt đầu</th>
                     <th>Ngày kết thúc</th>
                     <th>Đã khóa</th>
+                    <th nzWidth="50px"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    class="editable-row"
-                    *ngFor="let row of periodTable.data"
-                    [class.selected-row]="row.period.id === periodDraft.id"
-                    (click)="onPeriodSelect(row.period)">
+                  <tr class="editable-row" *ngFor="let row of periodTable.data"
+                    [class.selected-row]="row.period.id === periodDraft.id" (click)="onPeriodSelect(row.period)">
                     <td class="mono">
-                      <span [style.padding-left.px]="row.level * 20" style="display: inline-flex; align-items: center; gap: 4px;">
-                        <span *ngIf="row.expandable"
-                              class="tree-toggle"
-                              (click)="togglePeriodExpand(row, $event)">
-                          <span nz-icon [nzType]="row.expanded ? 'minus-square' : 'plus-square'" nzTheme="outline"></span>
+                      <span [style.padding-left.px]="row.level * 20"
+                        style="display: inline-flex; align-items: center; gap: 4px;">
+                        <span *ngIf="row.expandable" class="tree-toggle" (click)="togglePeriodExpand(row, $event)">
+                          <span nz-icon [nzType]="row.expanded ? 'minus-square' : 'plus-square'"
+                            nzTheme="outline"></span>
                         </span>
                         <span *ngIf="!row.expandable" style="width: 14px; display: inline-block;"></span>
                         {{ row.period.periodCode }}
                       </span>
                     </td>
                     <td>{{ row.period.periodName }}</td>
-                    <td><nz-tag [nzColor]="row.period.periodType === 'YEAR' ? 'blue' : row.period.periodType === 'QUARTER' ? 'green' : 'orange'">{{ getPeriodTypeLabel(row.period.periodType) }}</nz-tag></td>
+                    <td><nz-tag
+                        [nzColor]="row.period.periodType === 'YEAR' ? 'blue' : row.period.periodType === 'QUARTER' ? 'green' : 'orange'">{{
+                        getPeriodTypeLabel(row.period.periodType) }}</nz-tag></td>
                     <td>{{ row.period.dateStart | date: 'dd/MM/yyyy' }}</td>
                     <td>{{ row.period.dateEnd | date: 'dd/MM/yyyy' }}</td>
                     <td (click)="$event.stopPropagation()">
-                      <nz-switch nzSize="small" [(ngModel)]="row.period.isClosed" [ngModelOptions]="{ standalone: true }"></nz-switch>
+                      <nz-switch nzSize="small" [(ngModel)]="row.period.isClosed"
+                        [ngModelOptions]="{ standalone: true }"></nz-switch>
+                    </td>
+                    <td (click)="$event.stopPropagation()">
+                      <button nz-button nzType="text" nzDanger nzSize="small" nz-popconfirm
+                        nzPopconfirmTitle="Xóa kỳ KPI này?" (nzOnConfirm)="deletePeriod(row.period.id)"><i nz-icon
+                          nzType="delete"></i></button>
                     </td>
                   </tr>
                 </tbody>
@@ -212,7 +204,8 @@
                 </div>
                 <div class="field">
                   <span>Tên hiển thị</span>
-                  <input nz-input nzSize="small" name="allowedDisplayName" [(ngModel)]="allowedTableDraft.displayName" />
+                  <input nz-input nzSize="small" name="allowedDisplayName"
+                    [(ngModel)]="allowedTableDraft.displayName" />
                 </div>
                 <div class="field">
                   <span>Lược đồ</span>
@@ -220,10 +213,12 @@
                 </div>
                 <div class="inline-control">
                   <span>Đang dùng</span>
-                  <nz-switch nzSize="small" name="allowedTableActive" [(ngModel)]="allowedTableDraft.isActive"></nz-switch>
+                  <nz-switch nzSize="small" name="allowedTableActive"
+                    [(ngModel)]="allowedTableDraft.isActive"></nz-switch>
                 </div>
                 <div class="form-actions">
-                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addAllowedTable()">{{ allowedTableDraft.id ? 'Cập nhật bảng' : 'Lưu bảng' }}</button>
+                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addAllowedTable()">{{
+                    allowedTableDraft.id ? 'Cập nhật bảng' : 'Lưu bảng' }}</button>
                   <button nz-button nzSize="small" type="button" (click)="resetAllowedTableDraft()">Tạo mới</button>
                 </div>
               </form>
@@ -234,14 +229,9 @@
               <form nz-form nzLayout="vertical" class="compact-form">
                 <div class="field">
                   <span>Bảng được phép</span>
-                  <nz-select
-                    nzSize="small"
-                    name="allowedColumnTable"
-                    [(ngModel)]="selectedAllowedTableId"
-                    (ngModelChange)="onAllowedTableSelect($event)">
-                    <nz-option
-                      *ngFor="let item of allowedTables; trackBy: trackById"
-                      [nzValue]="item.id"
+                  <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="allowedColumnTable"
+                    [(ngModel)]="selectedAllowedTableId" (ngModelChange)="onAllowedTableSelect($event)">
+                    <nz-option *ngFor="let item of allowedTables; trackBy: trackById" [nzValue]="item.id"
                       [nzLabel]="item.schemaName + '.' + item.tableName">
                     </nz-option>
                   </nz-select>
@@ -249,29 +239,38 @@
                 <div class="form-grid">
                   <div class="field">
                     <span>Tên cột</span>
-                    <input nz-input nzSize="small" name="allowedColumnName" [(ngModel)]="allowedColumnDraft.columnName" />
+                    <input nz-input nzSize="small" name="allowedColumnName"
+                      [(ngModel)]="allowedColumnDraft.columnName" />
                   </div>
                   <div class="field">
                     <span>Tên hiển thị</span>
-                    <input nz-input nzSize="small" name="allowedColumnDisplayName" [(ngModel)]="allowedColumnDraft.displayName" />
+                    <input nz-input nzSize="small" name="allowedColumnDisplayName"
+                      [(ngModel)]="allowedColumnDraft.displayName" />
                   </div>
                   <div class="field">
                     <span>Kiểu dữ liệu</span>
-                    <nz-select nzSize="small" name="allowedColumnDataType" [(ngModel)]="allowedColumnDraft.dataType">
-                      <nz-option *ngFor="let item of columnDataTypes" [nzValue]="item" [nzLabel]="getColumnDataTypeLabel(item)"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="allowedColumnDataType"
+                      [(ngModel)]="allowedColumnDraft.dataType">
+                      <nz-option *ngFor="let item of columnDataTypes" [nzValue]="item"
+                        [nzLabel]="getColumnDataTypeLabel(item)"></nz-option>
                     </nz-select>
                   </div>
                 </div>
                 <div class="inline-control checkbox-grid">
                   <label nz-checkbox name="canFilter" [(ngModel)]="allowedColumnDraft.canFilter">Cho phép lọc</label>
-                  <label nz-checkbox name="canAggregate" [(ngModel)]="allowedColumnDraft.canAggregate">Cho phép tổng hợp</label>
-                  <label nz-checkbox name="canDistinct" [(ngModel)]="allowedColumnDraft.canDistinct">Cho phép đếm không trùng</label>
-                  <label nz-checkbox name="isEmployeeColumn" [(ngModel)]="allowedColumnDraft.isEmployeeColumn">Cột nhân viên</label>
+                  <label nz-checkbox name="canAggregate" [(ngModel)]="allowedColumnDraft.canAggregate">Cho phép tổng
+                    hợp</label>
+                  <label nz-checkbox name="canDistinct" [(ngModel)]="allowedColumnDraft.canDistinct">Cho phép đếm không
+                    trùng</label>
+                  <label nz-checkbox name="isEmployeeColumn" [(ngModel)]="allowedColumnDraft.isEmployeeColumn">Cột nhân
+                    viên</label>
                   <label nz-checkbox name="isDateColumn" [(ngModel)]="allowedColumnDraft.isDateColumn">Cột ngày</label>
-                  <label nz-checkbox name="isValueColumn" [(ngModel)]="allowedColumnDraft.isValueColumn">Cột giá trị</label>
+                  <label nz-checkbox name="isValueColumn" [(ngModel)]="allowedColumnDraft.isValueColumn">Cột giá
+                    trị</label>
                 </div>
                 <div class="form-actions">
-                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addAllowedColumn()">{{ allowedColumnDraft.id ? 'Cập nhật cột' : 'Lưu cột' }}</button>
+                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addAllowedColumn()">{{
+                    allowedColumnDraft.id ? 'Cập nhật cột' : 'Lưu cột' }}</button>
                   <button nz-button nzSize="small" type="button" (click)="resetAllowedColumnDraft()">Tạo mới</button>
                 </div>
               </form>
@@ -289,18 +288,23 @@
                     <th>Tên bảng</th>
                     <th>Tên hiển thị</th>
                     <th>Đang dùng</th>
+                    <th nzWidth="50px"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    *ngFor="let item of allowedTable.data; trackBy: trackById"
-                    [class.selected-row]="item.id === allowedTableDraft.id"
-                    (click)="onAllowedTableSelect(item.id)">
+                  <tr *ngFor="let item of allowedTable.data; trackBy: trackById"
+                    [class.selected-row]="item.id === allowedTableDraft.id" (click)="onAllowedTableSelect(item.id)">
                     <td class="mono">{{ item.schemaName }}</td>
                     <td class="mono">{{ item.tableName }}</td>
                     <td>{{ item.displayName }}</td>
                     <td>
-                      <nz-switch nzSize="small" [(ngModel)]="item.isActive" [ngModelOptions]="{ standalone: true }"></nz-switch>
+                      <nz-switch nzSize="small" [(ngModel)]="item.isActive"
+                        [ngModelOptions]="{ standalone: true }"></nz-switch>
+                    </td>
+                    <td (click)="$event.stopPropagation()">
+                      <button nz-button nzType="text" nzDanger nzSize="small" nz-popconfirm
+                        nzPopconfirmTitle="Xóa bảng này?" (nzOnConfirm)="deleteAllowedTable(item.id)"><i nz-icon
+                          nzType="delete"></i></button>
                     </td>
                   </tr>
                 </tbody>
@@ -312,7 +316,8 @@
                 <h6>{{ selectedAllowedTable?.displayName }}</h6>
                 <span>{{ columnsForSelectedAllowedTable.length }} cột</span>
               </div>
-              <nz-table #allowedColumn [nzData]="columnsForSelectedAllowedTable" [nzFrontPagination]="false" nzSize="small" nzBordered>
+              <nz-table #allowedColumn [nzData]="columnsForSelectedAllowedTable" [nzFrontPagination]="false"
+                nzSize="small" nzBordered>
                 <thead>
                   <tr>
                     <th>Tên cột</th>
@@ -324,19 +329,32 @@
                     <th>Nhân viên</th>
                     <th>Ngày</th>
                     <th>Giá trị</th>
+                    <th nzWidth="50px"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let item of allowedColumn.data; trackBy: trackById" class="editable-row" [class.selected-row]="item.id === allowedColumnDraft.id" (click)="onAllowedColumnSelect(item)">
+                  <tr *ngFor="let item of allowedColumn.data; trackBy: trackById" class="editable-row"
+                    [class.selected-row]="item.id === allowedColumnDraft.id" (click)="onAllowedColumnSelect(item)">
                     <td class="mono">{{ item.columnName }}</td>
                     <td>{{ item.displayName }}</td>
                     <td><nz-tag nzColor="blue">{{ getColumnDataTypeLabel(item.dataType) }}</nz-tag></td>
-                    <td><label nz-checkbox [ngModel]="item.canFilter" [ngModelOptions]="{ standalone: true }"></label></td>
-                    <td><label nz-checkbox [ngModel]="item.canAggregate" [ngModelOptions]="{ standalone: true }"></label></td>
-                    <td><label nz-checkbox [ngModel]="item.canDistinct" [ngModelOptions]="{ standalone: true }"></label></td>
-                    <td><label nz-checkbox [ngModel]="item.isEmployeeColumn" [ngModelOptions]="{ standalone: true }"></label></td>
-                    <td><label nz-checkbox [ngModel]="item.isDateColumn" [ngModelOptions]="{ standalone: true }"></label></td>
-                    <td><label nz-checkbox [ngModel]="item.isValueColumn" [ngModelOptions]="{ standalone: true }"></label></td>
+                    <td><label nz-checkbox [ngModel]="item.canFilter" [ngModelOptions]="{ standalone: true }"></label>
+                    </td>
+                    <td><label nz-checkbox [ngModel]="item.canAggregate"
+                        [ngModelOptions]="{ standalone: true }"></label></td>
+                    <td><label nz-checkbox [ngModel]="item.canDistinct" [ngModelOptions]="{ standalone: true }"></label>
+                    </td>
+                    <td><label nz-checkbox [ngModel]="item.isEmployeeColumn"
+                        [ngModelOptions]="{ standalone: true }"></label></td>
+                    <td><label nz-checkbox [ngModel]="item.isDateColumn"
+                        [ngModelOptions]="{ standalone: true }"></label></td>
+                    <td><label nz-checkbox [ngModel]="item.isValueColumn"
+                        [ngModelOptions]="{ standalone: true }"></label></td>
+                    <td (click)="$event.stopPropagation()">
+                      <button nz-button nzType="text" nzDanger nzSize="small" nz-popconfirm
+                        nzPopconfirmTitle="Xóa cột này?" (nzOnConfirm)="deleteAllowedColumn(item.id)"><i nz-icon
+                          nzType="delete"></i></button>
+                    </td>
                   </tr>
                 </tbody>
               </nz-table>
@@ -359,14 +377,16 @@
                 </div>
                 <div class="field">
                   <span>Mô tả</span>
-                  <textarea nz-input name="templateDescription" rows="2" [(ngModel)]="templateDraft.description"></textarea>
+                  <textarea nz-input name="templateDescription" rows="2"
+                    [(ngModel)]="templateDraft.description"></textarea>
                 </div>
                 <div class="inline-control">
                   <span>Đang dùng</span>
                   <nz-switch nzSize="small" name="templateActive" [(ngModel)]="templateDraft.isActive"></nz-switch>
                 </div>
                 <div class="form-actions">
-                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addTemplate()">{{ templateDraft.id ? 'Cập nhật mẫu' : 'Lưu mẫu' }}</button>
+                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addTemplate()">{{
+                    templateDraft.id ? 'Cập nhật mẫu' : 'Lưu mẫu' }}</button>
                   <button nz-button nzSize="small" type="button" (click)="resetTemplateDraft()">Tạo mới</button>
                 </div>
               </form>
@@ -385,10 +405,9 @@
                 </div>
                 <div class="field">
                   <span>Chỉ tiêu cha</span>
-                  <nz-select nzSize="small" name="parentIndexId" nzAllowClear [(ngModel)]="indexDraft.parentId">
-                    <nz-option
-                      *ngFor="let item of indexesForTemplate; trackBy: trackById"
-                      [nzValue]="item.id"
+                  <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="parentIndexId" nzAllowClear
+                    [(ngModel)]="indexDraft.parentId">
+                    <nz-option *ngFor="let item of indexesForTemplate; trackBy: trackById" [nzValue]="item.id"
                       [nzLabel]="item.indexCode + ' - ' + item.indexName">
                     </nz-option>
                   </nz-select>
@@ -396,34 +415,44 @@
                 <div class="form-grid">
                   <div class="field">
                     <span>Loại chỉ tiêu</span>
-                    <nz-select nzSize="small" name="indexType" [(ngModel)]="indexDraft.indexType">
-                      <nz-option *ngFor="let item of indexTypes" [nzValue]="item" [nzLabel]="getIndexTypeLabel(item)"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="indexType"
+                      [(ngModel)]="indexDraft.indexType">
+                      <nz-option *ngFor="let item of indexTypes" [nzValue]="item"
+                        [nzLabel]="getIndexTypeLabel(item)"></nz-option>
                     </nz-select>
                   </div>
                   <div class="field">
                     <span>Đơn vị</span>
-                    <nz-select nzSize="small" name="unitType" [(ngModel)]="indexDraft.unitType">
-                      <nz-option *ngFor="let item of unitTypes" [nzValue]="item" [nzLabel]="getUnitTypeLabel(item)"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="unitType"
+                      [(ngModel)]="indexDraft.unitType">
+                      <nz-option *ngFor="let item of unitTypes" [nzValue]="item"
+                        [nzLabel]="getUnitTypeLabel(item)"></nz-option>
                     </nz-select>
                   </div>
                   <div class="field">
                     <span>Trọng số (%)</span>
-                    <nz-input-number nzSize="small" name="weightPercent" [(ngModel)]="indexDraft.weightPercent" [nzMin]="0" [nzMax]="100"></nz-input-number>
+                    <nz-input-number nzSize="small" name="weightPercent" [(ngModel)]="indexDraft.weightPercent"
+                      [nzMin]="0" [nzMax]="100"></nz-input-number>
                   </div>
                   <div class="field">
                     <span>Thứ tự</span>
-                    <nz-input-number nzSize="small" name="sortOrder" [(ngModel)]="indexDraft.sortOrder" [nzMin]="0"></nz-input-number>
+                    <nz-input-number nzSize="small" name="sortOrder" [(ngModel)]="indexDraft.sortOrder"
+                      [nzMin]="0"></nz-input-number>
                   </div>
                   <div class="field">
                     <span>Cách tính mục tiêu quý</span>
-                    <nz-select nzSize="small" name="quarterGoalCalculateType" [(ngModel)]="indexDraft.quarterGoalCalculateType">
-                      <nz-option *ngFor="let item of quarterCalculateTypes" [nzValue]="item" [nzLabel]="getQuarterCalculateTypeLabel(item)"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="quarterGoalCalculateType"
+                      [(ngModel)]="indexDraft.quarterGoalCalculateType">
+                      <nz-option *ngFor="let item of quarterCalculateTypes" [nzValue]="item"
+                        [nzLabel]="getQuarterCalculateTypeLabel(item)"></nz-option>
                     </nz-select>
                   </div>
                   <div class="field">
                     <span>Cách tính kết quả quý</span>
-                    <nz-select nzSize="small" name="quarterResultCalculateType" [(ngModel)]="indexDraft.quarterResultCalculateType">
-                      <nz-option *ngFor="let item of quarterCalculateTypes" [nzValue]="item" [nzLabel]="getQuarterCalculateTypeLabel(item)"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="quarterResultCalculateType"
+                      [(ngModel)]="indexDraft.quarterResultCalculateType">
+                      <nz-option *ngFor="let item of quarterCalculateTypes" [nzValue]="item"
+                        [nzLabel]="getQuarterCalculateTypeLabel(item)"></nz-option>
                     </nz-select>
                   </div>
                 </div>
@@ -433,7 +462,8 @@
                   <label nz-checkbox name="indexActive" [(ngModel)]="indexDraft.isActive">Đang dùng</label>
                 </div>
                 <div class="form-actions">
-                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addIndex()">{{ indexDraft.id ? 'Cập nhật chỉ tiêu' : 'Lưu chỉ tiêu KPI' }}</button>
+                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addIndex()">{{ indexDraft.id
+                    ? 'Cập nhật chỉ tiêu' : 'Lưu chỉ tiêu KPI' }}</button>
                   <button nz-button nzSize="small" type="button" (click)="resetIndexDraft()">Tạo mới</button>
                 </div>
               </form>
@@ -444,7 +474,8 @@
                 <h6>{{ selectedTemplate?.templateName }}</h6>
                 <span>{{ totalWeight | number: '1.0-2' }}%</span>
               </div>
-              <nz-table #indexTable [nzData]="indexesForTemplate" [nzFrontPagination]="false" nzSize="small" nzBordered>
+              <nz-table #indexTable [nzData]="indexesTreeForTemplate" [nzFrontPagination]="false" nzSize="small"
+                nzBordered>
                 <thead>
                   <tr>
                     <th>Thứ tự</th>
@@ -456,24 +487,35 @@
                     <th>Trọng số</th>
                     <th>Công thức</th>
                     <th>Đang dùng</th>
+                    <th nzWidth="50px"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    *ngFor="let item of indexTable.data; trackBy: trackById"
-                    [class.selected-row]="item.id === indexDraft.id"
-                    [class.main-index-row]="item.isMainIndex"
-                    (click)="onIndexSelect(item.id)">
-                    <td class="text-end">{{ item.sortOrder }}</td>
-                    <td class="mono">{{ item.indexCode }}</td>
-                    <td [class.fw-bold]="item.isBold">{{ item.indexName }}</td>
-                    <td>{{ item.parentIndexName || (item.parentId ? getIndexName(item.parentId) : '') }}</td>
-                    <td><nz-tag [nzColor]="getTypeColor(item.indexType)">{{ getIndexTypeLabel(item.indexType) }}</nz-tag></td>
-                    <td>{{ getUnitLabel(item.unitType) }}</td>
-                    <td class="text-end">{{ item.weightPercent | number: '1.0-2' }}%</td>
-                    <td>{{ getFormulaText(item) }}</td>
+                  <tr *ngFor="let item of indexTable.data; trackBy: trackById"
+                    [class.selected-row]="item.index.id === indexDraft.id"
+                    [class.main-index-row]="item.index.isMainIndex" (click)="onIndexSelect(item.index.id)">
+                    <td class="text-end">{{ item.index.sortOrder }}</td>
+                    <td class="mono" [nzIndentSize]="item.level * 20" [nzShowExpand]="item.expandable"
+                      [nzExpand]="item.expanded" (nzExpandChange)="toggleIndexExpand(item, $event)">
+                      {{ item.index.indexCode }}
+                    </td>
+                    <td [class.fw-bold]="item.index.isBold">{{ item.index.indexName }}</td>
+                    <td>{{ item.index.parentIndexName || (item.index.parentId ? getIndexName(item.index.parentId) : '')
+                      }}</td>
+                    <td><nz-tag [nzColor]="getTypeColor(item.index.indexType)">{{
+                        getIndexTypeLabel(item.index.indexType)
+                        }}</nz-tag></td>
+                    <td>{{ getUnitLabel(item.index.unitType) }}</td>
+                    <td class="text-end">{{ item.index.weightPercent | number: '1.0-2' }}%</td>
+                    <td>{{ getFormulaText(item.index) }}</td>
                     <td>
-                      <nz-switch nzSize="small" [(ngModel)]="item.isActive" [ngModelOptions]="{ standalone: true }"></nz-switch>
+                      <nz-switch nzSize="small" [(ngModel)]="item.index.isActive"
+                        [ngModelOptions]="{ standalone: true }"></nz-switch>
+                    </td>
+                    <td (click)="$event.stopPropagation()">
+                      <button nz-button nzType="text" nzDanger nzSize="small" nz-popconfirm
+                        nzPopconfirmTitle="Xóa chỉ tiêu này?" (nzOnConfirm)="deleteIndex(item.index.id)"><i nz-icon
+                          nzType="delete"></i></button>
                     </td>
                   </tr>
                 </tbody>
@@ -497,14 +539,9 @@
                 </div>
                 <div class="field">
                   <span>Bảng được phép</span>
-                  <nz-select
-                    nzSize="small"
-                    name="allowedTableId"
-                    [(ngModel)]="dataSourceDraft.allowedTableId"
-                    (ngModelChange)="onDataSourceDraftTableChange($event)">
-                    <nz-option
-                      *ngFor="let item of allowedTables; trackBy: trackById"
-                      [nzValue]="item.id"
+                  <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="allowedTableId"
+                    [(ngModel)]="dataSourceDraft.allowedTableId" (ngModelChange)="onDataSourceDraftTableChange($event)">
+                    <nz-option *ngFor="let item of allowedTables; trackBy: trackById" [nzValue]="item.id"
                       [nzLabel]="item.schemaName + '.' + item.tableName">
                     </nz-option>
                   </nz-select>
@@ -512,20 +549,26 @@
                 <div class="form-grid">
                   <div class="field">
                     <span>Cột ngày</span>
-                    <nz-select nzSize="small" name="dateColumn" [(ngModel)]="dataSourceDraft.dateColumn">
-                      <nz-option *ngFor="let item of columnsForDraftSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="dateColumn"
+                      [(ngModel)]="dataSourceDraft.dateColumn">
+                      <nz-option *ngFor="let item of columnsForDraftSource" [nzValue]="item.columnName"
+                        [nzLabel]="item.columnName"></nz-option>
                     </nz-select>
                   </div>
                   <div class="field">
                     <span>Cột nhân viên</span>
-                    <nz-select nzSize="small" name="employeeColumn" nzAllowClear [(ngModel)]="dataSourceDraft.employeeColumn">
-                      <nz-option *ngFor="let item of columnsForDraftSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="employeeColumn" nzAllowClear
+                      [(ngModel)]="dataSourceDraft.employeeColumn">
+                      <nz-option *ngFor="let item of columnsForDraftSource" [nzValue]="item.columnName"
+                        [nzLabel]="item.columnName"></nz-option>
                     </nz-select>
                   </div>
                   <div class="field">
                     <span>Cột giá trị</span>
-                    <nz-select nzSize="small" name="valueColumn" nzAllowClear [(ngModel)]="dataSourceDraft.valueColumn">
-                      <nz-option *ngFor="let item of columnsForDraftSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="valueColumn" nzAllowClear
+                      [(ngModel)]="dataSourceDraft.valueColumn">
+                      <nz-option *ngFor="let item of columnsForDraftSource" [nzValue]="item.columnName"
+                        [nzLabel]="item.columnName"></nz-option>
                     </nz-select>
                   </div>
                 </div>
@@ -534,7 +577,8 @@
                   <nz-switch nzSize="small" name="sourceActive" [(ngModel)]="dataSourceDraft.isActive"></nz-switch>
                 </div>
                 <div class="form-actions">
-                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addDataSource()">{{ dataSourceDraft.id ? 'Cập nhật nguồn' : 'Lưu nguồn' }}</button>
+                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addDataSource()">{{
+                    dataSourceDraft.id ? 'Cập nhật nguồn' : 'Lưu nguồn' }}</button>
                   <button nz-button nzSize="small" type="button" (click)="resetDataSourceDraft()">Tạo mới</button>
                 </div>
               </form>
@@ -544,17 +588,19 @@
               <nz-table #sourceTable [nzData]="dataSources" [nzFrontPagination]="false" nzSize="small" nzBordered>
                 <thead>
                   <tr>
-                  <th>Mã nguồn</th>
-                  <th>Tên nguồn</th>
-                  <th>Bảng được phép</th>
-                  <th>Cột ngày</th>
-                  <th>Cột nhân viên</th>
-                  <th>Cột giá trị</th>
-                  <th>Đang dùng</th>
+                    <th>Mã nguồn</th>
+                    <th>Tên nguồn</th>
+                    <th>Bảng được phép</th>
+                    <th>Cột ngày</th>
+                    <th>Cột nhân viên</th>
+                    <th>Cột giá trị</th>
+                    <th>Đang dùng</th>
+                    <th nzWidth="50px"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let item of sourceTable.data; trackBy: trackById" class="editable-row" [class.selected-row]="item.id === dataSourceDraft.id" (click)="onDataSourceSelect(item)">
+                  <tr *ngFor="let item of sourceTable.data; trackBy: trackById" class="editable-row"
+                    [class.selected-row]="item.id === dataSourceDraft.id" (click)="onDataSourceSelect(item)">
                     <td class="mono">{{ item.sourceCode }}</td>
                     <td>{{ item.sourceName }}</td>
                     <td>{{ getDataSourceTableName(item) }}</td>
@@ -562,7 +608,13 @@
                     <td class="mono">{{ item.employeeColumn }}</td>
                     <td class="mono">{{ item.valueColumn }}</td>
                     <td>
-                      <nz-switch nzSize="small" [(ngModel)]="item.isActive" [ngModelOptions]="{ standalone: true }"></nz-switch>
+                      <nz-switch nzSize="small" [(ngModel)]="item.isActive"
+                        [ngModelOptions]="{ standalone: true }"></nz-switch>
+                    </td>
+                    <td (click)="$event.stopPropagation()">
+                      <button nz-button nzType="text" nzDanger nzSize="small" nz-popconfirm
+                        nzPopconfirmTitle="Xóa nguồn này?" (nzOnConfirm)="deleteDataSource(item.id)"><i nz-icon
+                          nzType="delete"></i></button>
                     </td>
                   </tr>
                 </tbody>
@@ -578,24 +630,18 @@
               <form nz-form nzLayout="vertical" class="compact-form">
                 <div class="field">
                   <span>Chỉ tiêu KPI</span>
-                  <nz-select nzSize="small" name="mappingIndexId" nzShowSearch [(ngModel)]="mappingDraft.kpiIndexId">
-                    <nz-option
-                      *ngFor="let item of detailIndexesForTemplate; trackBy: trackById"
-                      [nzValue]="item.id"
+                  <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="mappingIndexId" nzShowSearch
+                    [(ngModel)]="mappingDraft.kpiIndexId">
+                    <nz-option *ngFor="let item of detailIndexesForTemplate; trackBy: trackById" [nzValue]="item.id"
                       [nzLabel]="item.indexCode + ' - ' + item.indexName">
                     </nz-option>
                   </nz-select>
                 </div>
                 <div class="field">
                   <span>Nguồn dữ liệu</span>
-                  <nz-select
-                    nzSize="small"
-                    name="mappingSourceId"
-                    [(ngModel)]="mappingDraft.dataSourceId"
-                    (ngModelChange)="onMappingSourceChange($event)">
-                    <nz-option
-                      *ngFor="let item of activeDataSources; trackBy: trackById"
-                      [nzValue]="item.id"
+                  <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="mappingSourceId"
+                    [(ngModel)]="mappingDraft.dataSourceId" (ngModelChange)="onMappingSourceChange($event)">
+                    <nz-option *ngFor="let item of activeDataSources; trackBy: trackById" [nzValue]="item.id"
                       [nzLabel]="item.sourceCode + ' - ' + item.sourceName">
                     </nz-option>
                   </nz-select>
@@ -603,25 +649,32 @@
                 <div class="form-grid">
                   <div class="field">
                     <span>Kiểu tổng hợp</span>
-                    <nz-select nzSize="small" name="aggregateType" [(ngModel)]="mappingDraft.aggregateType">
-                      <nz-option *ngFor="let item of aggregateTypes" [nzValue]="item" [nzLabel]="getAggregateTypeLabel(item)"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="aggregateType"
+                      [(ngModel)]="mappingDraft.aggregateType">
+                      <nz-option *ngFor="let item of aggregateTypes" [nzValue]="item"
+                        [nzLabel]="getAggregateTypeLabel(item)"></nz-option>
                     </nz-select>
                   </div>
                   <div class="field">
                     <span>Cột giá trị</span>
-                    <nz-select nzSize="small" name="mappingValueColumn" nzAllowClear [(ngModel)]="mappingDraft.valueColumn">
-                      <nz-option *ngFor="let item of columnsForMappingSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="mappingValueColumn"
+                      nzAllowClear [(ngModel)]="mappingDraft.valueColumn">
+                      <nz-option *ngFor="let item of columnsForMappingSource" [nzValue]="item.columnName"
+                        [nzLabel]="item.columnName"></nz-option>
                     </nz-select>
                   </div>
                   <div class="field">
                     <span>Cột không trùng</span>
-                    <nz-select nzSize="small" name="mappingDistinctColumn" nzAllowClear [(ngModel)]="mappingDraft.distinctColumn">
-                      <nz-option *ngFor="let item of columnsForMappingSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="mappingDistinctColumn"
+                      nzAllowClear [(ngModel)]="mappingDraft.distinctColumn">
+                      <nz-option *ngFor="let item of columnsForMappingSource" [nzValue]="item.columnName"
+                        [nzLabel]="item.columnName"></nz-option>
                     </nz-select>
                   </div>
                 </div>
                 <div class="form-actions">
-                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addMapping()">{{ mappingDraft.id ? 'Cập nhật ánh xạ' : 'Lưu ánh xạ' }}</button>
+                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addMapping()">{{
+                    mappingDraft.id ? 'Cập nhật ánh xạ' : 'Lưu ánh xạ' }}</button>
                   <button nz-button nzSize="small" type="button" (click)="resetMappingDraft()">Tạo mới</button>
                 </div>
               </form>
@@ -630,44 +683,46 @@
 
               <h6>Thiết lập bộ lọc</h6>
               <form nz-form nzLayout="vertical" class="compact-form" *ngIf="selectedMapping as mapping">
-                <nz-radio-group
-                  *ngIf="mapping.filterGroups.length"
-                  [(ngModel)]="mapping.filterGroups[0].logicOperator"
-                  name="filterLogic"
-                  nzSize="small">
-                  <label *ngFor="let item of logicOperators" nz-radio-button [nzValue]="item">{{ getLogicOperatorLabel(item) }}</label>
-                </nz-radio-group>
                 <div class="form-grid">
                   <div class="field">
+                    <span>Thuộc nhóm</span>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="filterGroupId"
+                      [(ngModel)]="filterDraft.filterGroupId" nzPlaceHolder="Nhóm gốc">
+                      <nz-option *ngFor="let g of flatFilterGroups" [nzValue]="g.id" [nzLabel]="g.label"></nz-option>
+                    </nz-select>
+                  </div>
+                  <div class="field">
                     <span>Tên cột</span>
-                    <nz-select nzSize="small" name="filterColumn" [(ngModel)]="filterDraft.columnName">
-                      <nz-option
-                        *ngFor="let item of columnsForSelectedMapping"
-                        [nzValue]="item.columnName"
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="filterColumn"
+                      [(ngModel)]="filterDraft.columnName">
+                      <nz-option *ngFor="let item of columnsForSelectedMapping" [nzValue]="item.columnName"
                         [nzLabel]="item.columnName">
                       </nz-option>
                     </nz-select>
                   </div>
                   <div class="field">
                     <span>Toán tử</span>
-                    <nz-select nzSize="small" name="filterOperator" [(ngModel)]="filterDraft.operator">
-                      <nz-option *ngFor="let item of operators" [nzValue]="item" [nzLabel]="getOperatorLabel(item)"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="filterOperator"
+                      [(ngModel)]="filterDraft.operator">
+                      <nz-option *ngFor="let item of operators" [nzValue]="item"
+                        [nzLabel]="getOperatorLabel(item)"></nz-option>
                     </nz-select>
                   </div>
                   <div class="field">
                     <span>Loại giá trị</span>
-                    <nz-select nzSize="small" name="filterValueType" [(ngModel)]="filterDraft.valueType">
-                      <nz-option *ngFor="let item of valueTypes" [nzValue]="item" [nzLabel]="getValueTypeLabel(item)"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="filterValueType"
+                      [(ngModel)]="filterDraft.valueType">
+                      <nz-option *ngFor="let item of valueTypes" [nzValue]="item"
+                        [nzLabel]="getValueTypeLabel(item)"></nz-option>
                     </nz-select>
                   </div>
                   <div class="field">
                     <span>Giá trị 1</span>
-                    <nz-select
-                      *ngIf="filterDraft.valueType === 'PARAM'; else staticValue"
-                      nzSize="small"
-                      name="filterParamValue"
+                    <nz-select nzDropdownClassName="select-dropdown"
+                      *ngIf="filterDraft.valueType === 'PARAM'; else staticValue" nzSize="small" name="filterParamValue"
                       [(ngModel)]="filterDraft.value1">
-                      <nz-option *ngFor="let item of systemParameters" [nzValue]="item" [nzLabel]="getSystemParameterLabel(item)"></nz-option>
+                      <nz-option *ngFor="let item of systemParameters" [nzValue]="item"
+                        [nzLabel]="getSystemParameterLabel(item)"></nz-option>
                     </nz-select>
                     <ng-template #staticValue>
                       <input nz-input nzSize="small" name="filterValue1" [(ngModel)]="filterDraft.value1" />
@@ -679,7 +734,8 @@
                   </div>
                 </div>
                 <div class="form-actions">
-                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addFilterCondition()">{{ filterDraft.id ? 'Cập nhật ĐK' : 'Thêm điều kiện' }}</button>
+                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addFilterCondition()">{{
+                    filterDraft.id ? 'Cập nhật ĐK' : 'Thêm điều kiện' }}</button>
                   <button nz-button nzSize="small" type="button" (click)="resetFilterDraft()">Tạo mới</button>
                 </div>
               </form>
@@ -690,7 +746,8 @@
                 <h6>{{ selectedIndex?.indexName }}</h6>
                 <span>{{ mappingsForSelectedIndex.length }} ánh xạ</span>
               </div>
-              <nz-table #mappingTable [nzData]="mappingsForSelectedIndex" [nzFrontPagination]="false" nzSize="small" nzBordered>
+              <nz-table #mappingTable [nzData]="mappingsForSelectedIndex" [nzFrontPagination]="false" nzSize="small"
+                nzBordered>
                 <thead>
                   <tr>
                     <th>Nguồn dữ liệu</th>
@@ -698,19 +755,24 @@
                     <th>Cột giá trị</th>
                     <th>Cột không trùng</th>
                     <th>Đang dùng</th>
+                    <th nzWidth="50px"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    *ngFor="let item of mappingTable.data; trackBy: trackById"
-                    [class.selected-row]="item.id === mappingDraft.id"
-                    (click)="onMappingSelect(item.id)">
+                  <tr *ngFor="let item of mappingTable.data; trackBy: trackById"
+                    [class.selected-row]="item.id === mappingDraft.id" (click)="onMappingSelect(item.id)">
                     <td>{{ getSourceName(item.dataSourceId) }}</td>
                     <td><nz-tag nzColor="blue">{{ getAggregateTypeLabel(item.aggregateType) }}</nz-tag></td>
                     <td class="mono">{{ item.valueColumn }}</td>
                     <td class="mono">{{ item.distinctColumn }}</td>
                     <td>
-                      <nz-switch nzSize="small" [(ngModel)]="item.isActive" [ngModelOptions]="{ standalone: true }"></nz-switch>
+                      <nz-switch nzSize="small" [(ngModel)]="item.isActive"
+                        [ngModelOptions]="{ standalone: true }"></nz-switch>
+                    </td>
+                    <td (click)="$event.stopPropagation()">
+                      <button nz-button nzType="text" nzDanger nzSize="small" nz-popconfirm
+                        nzPopconfirmTitle="Xóa ánh xạ này?" (nzOnConfirm)="deleteMapping(item.id)"><i nz-icon
+                          nzType="delete"></i></button>
                     </td>
                   </tr>
                 </tbody>
@@ -719,39 +781,74 @@
               <div class="divider-line"></div>
 
               <ng-container *ngIf="selectedMapping as mapping">
-                <nz-table
-                  #filterTable
-                  [nzData]="mapping.filterGroups[0]?.conditions || []"
-                  [nzFrontPagination]="false"
-                  nzSize="small"
-                  nzBordered>
-                  <thead>
-                    <tr>
-                      <th>Nhóm điều kiện</th>
-                      <th>Tên cột</th>
-                      <th>Toán tử</th>
-                      <th>Loại giá trị</th>
-                      <th>Giá trị 1</th>
-                      <th>Giá trị 2</th>
-                      <th>Kiểu dữ liệu</th>
-                      <th>Đang dùng</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let item of filterTable.data; trackBy: trackById" class="editable-row" [class.selected-row]="item.id === filterDraft.id" (click)="onFilterConditionSelect(item)">
-                      <td>{{ getLogicOperatorLabel(mapping.filterGroups[0]?.logicOperator) }}</td>
-                      <td class="mono">{{ item.columnName }}</td>
-                      <td>{{ getOperatorLabel(item.operator) }}</td>
-                      <td>{{ getValueTypeLabel(item.valueType) }}</td>
-                      <td>{{ item.value1 }}</td>
-                      <td>{{ item.value2 }}</td>
-                      <td>{{ getColumnDataTypeLabel(item.dataType) }}</td>
-                      <td>
-                        <nz-switch nzSize="small" [(ngModel)]="item.isActive" [ngModelOptions]="{ standalone: true }"></nz-switch>
-                      </td>
-                    </tr>
-                  </tbody>
-                </nz-table>
+                <div class="filter-tree-container">
+                  <ng-container
+                    *ngTemplateOutlet="filterGroupTpl; context: { $implicit: mapping.filterGroups[0] }"></ng-container>
+                </div>
+
+                <ng-template #filterGroupTpl let-group>
+                  <div class="filter-group" *ngIf="group">
+                    <div class="filter-group-header">
+                      <nz-radio-group [(ngModel)]="group.logicOperator" (ngModelChange)="onLogicOperatorChange(group)"
+                        nzSize="small">
+                        <label *ngFor="let item of logicOperators" nz-radio-button [nzValue]="item">{{
+                          getLogicOperatorLabel(item) }}</label>
+                      </nz-radio-group>
+                      <button nz-button nzType="dashed" nzSize="small" (click)="addChildFilterGroup(group.id)">+ Thêm
+                        nhóm con</button>
+                      <button nz-button nzType="text" nzDanger nzSize="small" *ngIf="group.parentGroupId" nz-popconfirm
+                        nzPopconfirmTitle="Xóa nhóm này?" (nzOnConfirm)="deleteFilterGroup(group.id)"><i nz-icon
+                          nzType="delete"></i></button>
+                    </div>
+
+                    <div class="filter-group-body">
+                      <!-- Conditions -->
+                      <nz-table *ngIf="group.conditions?.length" [nzData]="group.conditions" [nzFrontPagination]="false"
+                        [nzShowPagination]="false" nzSize="small" nzBordered>
+                        <thead>
+                          <tr>
+                            <th>Tên cột</th>
+                            <th>Toán tử</th>
+                            <th>Loại giá trị</th>
+                            <th>Giá trị 1</th>
+                            <th>Giá trị 2</th>
+                            <th>Kiểu dữ liệu</th>
+                            <th>Đang dùng</th>
+                            <th nzWidth="50px"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let item of group.conditions; trackBy: trackById" class="editable-row"
+                            [class.selected-row]="item.id === filterDraft.id" (click)="onFilterConditionSelect(item)">
+                            <td class="mono">{{ item.columnName }}</td>
+                            <td>{{ getOperatorLabel(item.operator) }}</td>
+                            <td>{{ getValueTypeLabel(item.valueType) }}</td>
+                            <td>{{ item.value1 }}</td>
+                            <td>{{ item.value2 }}</td>
+                            <td>{{ getColumnDataTypeLabel(item.dataType) }}</td>
+                            <td>
+                              <nz-switch nzSize="small" [(ngModel)]="item.isActive"
+                                [ngModelOptions]="{ standalone: true }"></nz-switch>
+                            </td>
+                            <td (click)="$event.stopPropagation()">
+                              <button nz-button nzType="text" nzDanger nzSize="small" nz-popconfirm
+                                nzPopconfirmTitle="Xóa điều kiện này?" (nzOnConfirm)="deleteFilterCondition(item.id)"><i
+                                  nz-icon nzType="delete"></i></button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </nz-table>
+
+                      <!-- Children Groups -->
+                      <div class="filter-group-children" *ngIf="group.children?.length">
+                        <ng-container *ngFor="let childGroup of group.children">
+                          <ng-container
+                            *ngTemplateOutlet="filterGroupTpl; context: { $implicit: childGroup }"></ng-container>
+                        </ng-container>
+                      </div>
+                    </div>
+                  </div>
+                </ng-template>
               </ng-container>
             </section>
           </div>
@@ -764,20 +861,18 @@
               <form nz-form nzLayout="vertical" class="compact-form">
                 <div class="field">
                   <span>Chỉ tiêu cha</span>
-                  <nz-select nzSize="small" name="formulaParent" nzShowSearch [(ngModel)]="formulaDraft.parentKpiIndexId">
-                    <nz-option
-                      *ngFor="let item of indexesForTemplate; trackBy: trackById"
-                      [nzValue]="item.id"
+                  <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="formulaParent" nzShowSearch
+                    [(ngModel)]="formulaDraft.parentKpiIndexId">
+                    <nz-option *ngFor="let item of indexesForTemplate; trackBy: trackById" [nzValue]="item.id"
                       [nzLabel]="item.indexCode + ' - ' + item.indexName">
                     </nz-option>
                   </nz-select>
                 </div>
                 <div class="field">
                   <span>Chỉ tiêu con</span>
-                  <nz-select nzSize="small" name="formulaChild" nzShowSearch [(ngModel)]="formulaDraft.childKpiIndexId">
-                    <nz-option
-                      *ngFor="let item of indexesForTemplate; trackBy: trackById"
-                      [nzValue]="item.id"
+                  <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="formulaChild" nzShowSearch
+                    [(ngModel)]="formulaDraft.childKpiIndexId">
+                    <nz-option *ngFor="let item of indexesForTemplate; trackBy: trackById" [nzValue]="item.id"
                       [nzLabel]="item.indexCode + ' - ' + item.indexName">
                     </nz-option>
                   </nz-select>
@@ -785,17 +880,20 @@
                 <div class="form-grid">
                   <div class="field">
                     <span>Toán tử</span>
-                    <nz-select nzSize="small" name="formulaOperator" [(ngModel)]="formulaDraft.operator">
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="formulaOperator"
+                      [(ngModel)]="formulaDraft.operator">
                       <nz-option *ngFor="let item of formulaOperators" [nzValue]="item" [nzLabel]="item"></nz-option>
                     </nz-select>
                   </div>
                   <div class="field">
                     <span>Thứ tự</span>
-                    <nz-input-number nzSize="small" name="formulaSortOrder" [(ngModel)]="formulaDraft.sortOrder" [nzMin]="0"></nz-input-number>
+                    <nz-input-number nzSize="small" name="formulaSortOrder" [(ngModel)]="formulaDraft.sortOrder"
+                      [nzMin]="0"></nz-input-number>
                   </div>
                 </div>
                 <div class="form-actions">
-                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addFormulaItem()">{{ formulaDraft.id ? 'Cập nhật T.Phần' : 'Lưu thành phần công thức' }}</button>
+                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addFormulaItem()">{{
+                    formulaDraft.id ? 'Cập nhật T.Phần' : 'Lưu thành phần công thức' }}</button>
                   <button nz-button nzSize="small" type="button" (click)="resetFormulaDraft()">Tạo mới</button>
                 </div>
               </form>
@@ -806,10 +904,9 @@
               <form nz-form nzLayout="vertical" class="compact-form">
                 <div class="field">
                   <span>Chỉ tiêu KPI</span>
-                  <nz-select nzSize="small" name="scoringIndex" nzShowSearch [(ngModel)]="scoringRuleDraft.kpiIndexId">
-                    <nz-option
-                      *ngFor="let item of indexesForTemplate; trackBy: trackById"
-                      [nzValue]="item.id"
+                  <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="scoringIndex" nzShowSearch
+                    [(ngModel)]="scoringRuleDraft.kpiIndexId">
+                    <nz-option *ngFor="let item of indexesForTemplate; trackBy: trackById" [nzValue]="item.id"
                       [nzLabel]="item.indexCode + ' - ' + item.indexName">
                     </nz-option>
                   </nz-select>
@@ -817,13 +914,16 @@
                 <div class="form-grid">
                   <div class="field">
                     <span>Kiểu tính điểm</span>
-                    <nz-select nzSize="small" name="scoreType" [(ngModel)]="scoringRuleDraft.scoreType">
-                      <nz-option *ngFor="let item of scoreTypes" [nzValue]="item" [nzLabel]="getScoreTypeLabel(item)"></nz-option>
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="scoreType"
+                      [(ngModel)]="scoringRuleDraft.scoreType">
+                      <nz-option *ngFor="let item of scoreTypes" [nzValue]="item"
+                        [nzLabel]="getScoreTypeLabel(item)"></nz-option>
                     </nz-select>
                   </div>
                   <div class="field">
                     <span>Tỷ lệ đạt tối đa</span>
-                    <nz-input-number nzSize="small" name="maxAchievedPercent" [(ngModel)]="scoringRuleDraft.maxAchievedPercent" [nzMin]="0"></nz-input-number>
+                    <nz-input-number nzSize="small" name="maxAchievedPercent"
+                      [(ngModel)]="scoringRuleDraft.maxAchievedPercent" [nzMin]="0"></nz-input-number>
                   </div>
                 </div>
                 <div class="field">
@@ -831,7 +931,8 @@
                   <textarea nz-input name="formulaJson" rows="3" [(ngModel)]="scoringRuleDraft.formulaJson"></textarea>
                 </div>
                 <div class="form-actions">
-                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addScoringRule()">{{ scoringRuleDraft.id ? 'Cập nhật quy tắc' : 'Lưu quy tắc chấm điểm' }}</button>
+                  <button nz-button nzType="primary" nzSize="small" type="button" (click)="addScoringRule()">{{
+                    scoringRuleDraft.id ? 'Cập nhật quy tắc' : 'Lưu quy tắc chấm điểm' }}</button>
                   <button nz-button nzSize="small" type="button" (click)="resetScoringRuleDraft()">Tạo mới</button>
                 </div>
               </form>
@@ -842,21 +943,29 @@
                 <h6>{{ selectedIndex?.indexName }}</h6>
                 <span>{{ formulaItemsForSelectedIndex.length }} thành phần</span>
               </div>
-              <nz-table #formulaTable [nzData]="formulaItemsForSelectedIndex" [nzFrontPagination]="false" nzSize="small" nzBordered>
+              <nz-table #formulaTable [nzData]="formulaItemsForSelectedIndex" [nzFrontPagination]="false" nzSize="small"
+                nzBordered>
                 <thead>
                   <tr>
                     <th>Chỉ tiêu cha</th>
                     <th>Toán tử</th>
                     <th>Chỉ tiêu con</th>
                     <th>Thứ tự</th>
+                    <th nzWidth="50px"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let item of formulaTable.data; trackBy: trackById" class="editable-row" [class.selected-row]="item.id === formulaDraft.id" (click)="onFormulaItemSelect(item)">
+                  <tr *ngFor="let item of formulaTable.data; trackBy: trackById" class="editable-row"
+                    [class.selected-row]="item.id === formulaDraft.id" (click)="onFormulaItemSelect(item)">
                     <td>{{ item.parentIndexName || getIndexName(item.parentKpiIndexId) }}</td>
                     <td class="text-end">{{ item.operator }}</td>
                     <td>{{ item.childIndexName || getIndexName(item.childKpiIndexId) }}</td>
                     <td class="text-end">{{ item.sortOrder }}</td>
+                    <td (click)="$event.stopPropagation()">
+                      <button nz-button nzType="text" nzDanger nzSize="small" nz-popconfirm
+                        nzPopconfirmTitle="Xóa thành phần này?" (nzOnConfirm)="deleteFormulaItem(item.id)"><i nz-icon
+                          nzType="delete"></i></button>
+                    </td>
                   </tr>
                 </tbody>
               </nz-table>
@@ -867,21 +976,29 @@
                 <h6>Quy tắc chấm điểm</h6>
                 <span>{{ scoringRulesForSelectedIndex.length }} quy tắc</span>
               </div>
-              <nz-table #scoringTable [nzData]="scoringRulesForSelectedIndex" [nzFrontPagination]="false" nzSize="small" nzBordered>
+              <nz-table #scoringTable [nzData]="scoringRulesForSelectedIndex" [nzFrontPagination]="false" nzSize="small"
+                nzBordered>
                 <thead>
                   <tr>
                     <th>Chỉ tiêu KPI</th>
                     <th>Kiểu tính điểm</th>
                     <th>Tỷ lệ đạt tối đa</th>
                     <th>Công thức JSON</th>
+                    <th nzWidth="50px"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let item of scoringTable.data; trackBy: trackById" class="editable-row" [class.selected-row]="item.id === scoringRuleDraft.id" (click)="onScoringRuleSelect(item)">
+                  <tr *ngFor="let item of scoringTable.data; trackBy: trackById" class="editable-row"
+                    [class.selected-row]="item.id === scoringRuleDraft.id" (click)="onScoringRuleSelect(item)">
                     <td>{{ getIndexName(item.kpiIndexId) }}</td>
                     <td><nz-tag nzColor="blue">{{ getScoreTypeLabel(item.scoreType) }}</nz-tag></td>
                     <td class="text-end">{{ item.maxAchievedPercent | number: '1.0-2' }}</td>
                     <td class="mono">{{ item.formulaJson }}</td>
+                    <td (click)="$event.stopPropagation()">
+                      <button nz-button nzType="text" nzDanger nzSize="small" nz-popconfirm
+                        nzPopconfirmTitle="Xóa quy tắc này?" (nzOnConfirm)="deleteScoringRule(item.id)"><i nz-icon
+                          nzType="delete"></i></button>
+                    </td>
                   </tr>
                 </tbody>
               </nz-table>
@@ -896,42 +1013,36 @@
               <form nz-form nzLayout="vertical" class="compact-form">
                 <div class="field">
                   <span>Nhân viên</span>
-                  <nz-select nzSize="small" name="targetEmployee" nzShowSearch [(ngModel)]="targetDraft.employeeId" (ngModelChange)="onTargetDraftChange()">
-                    <nz-option
-                      *ngFor="let item of employees; trackBy: trackById"
-                      [nzValue]="item.id"
+                  <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="targetEmployee" nzShowSearch
+                    [(ngModel)]="targetDraft.employeeId" (ngModelChange)="onTargetDraftChange()">
+                    <nz-option *ngFor="let item of employees; trackBy: trackById" [nzValue]="item.id"
                       [nzLabel]="item.code + ' - ' + item.fullName">
                     </nz-option>
                   </nz-select>
                 </div>
                 <div class="field">
                   <span>Kỳ KPI</span>
-                  <nz-tree-select
-                    nzSize="small"
-                    name="targetPeriod"
-                    [nzNodes]="periodNodes"
-                    nzShowSearch
-                    [ngModel]="targetDraft.periodId?.toString()"
-                    (ngModelChange)="onTargetPeriodChange($event)"
-                    nzPlaceHolder="Chọn kỳ KPI"
-                    [nzDropdownStyle]="{ 'max-height': '300px', 'overflow-y': 'auto' }">
+                  <nz-tree-select nzSize="small" name="targetPeriod" [nzNodes]="periodNodes" nzShowSearch
+                    [ngModel]="targetDraft.periodId?.toString()" (ngModelChange)="onTargetPeriodChange($event)"
+                    nzPlaceHolder="Chọn kỳ KPI" [nzDropdownStyle]="{ 'max-height': '300px', 'overflow-y': 'auto' }">
                   </nz-tree-select>
                 </div>
                 <div class="field">
                   <span>Chỉ tiêu KPI</span>
-                  <nz-select nzSize="small" name="targetIndex" nzShowSearch [(ngModel)]="targetDraft.kpiIndexId" (ngModelChange)="onTargetDraftChange()">
-                    <nz-option
-                      *ngFor="let item of indexesForTemplate; trackBy: trackById"
-                      [nzValue]="item.id"
+                  <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="targetIndex" nzShowSearch
+                    [(ngModel)]="targetDraft.kpiIndexId" (ngModelChange)="onTargetDraftChange()">
+                    <nz-option *ngFor="let item of indexesForTemplate; trackBy: trackById" [nzValue]="item.id"
                       [nzLabel]="item.indexCode + ' - ' + item.indexName">
                     </nz-option>
                   </nz-select>
                 </div>
                 <div class="field">
                   <span>Giá trị mục tiêu</span>
-                  <nz-input-number nzSize="small" name="goalValue" [(ngModel)]="targetDraft.goalValue" [nzMin]="0"></nz-input-number>
+                  <nz-input-number nzSize="small" name="goalValue" [(ngModel)]="targetDraft.goalValue"
+                    [nzMin]="0"></nz-input-number>
                 </div>
-                <button nz-button nzType="primary" nzSize="small" type="button" (click)="addTarget()">Lưu mục tiêu</button>
+                <button nz-button nzType="primary" nzSize="small" type="button" (click)="addTarget()">Lưu mục
+                  tiêu</button>
               </form>
             </section>
 
@@ -946,13 +1057,13 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let item of targetTable.data; trackBy: trackById"
-                      class="editable-row"
-                      [class.selected-row]="item.kpiIndexId === targetDraft.kpiIndexId && item.employeeId === targetDraft.employeeId && item.periodId === targetDraft.periodId"
-                      (click)="onTargetSelect(item)">
+                  <tr *ngFor="let item of targetTable.data; trackBy: trackById" class="editable-row"
+                    [class.selected-row]="item.kpiIndexId === targetDraft.kpiIndexId && item.employeeId === targetDraft.employeeId && item.periodId === targetDraft.periodId"
+                    (click)="onTargetSelect(item)">
                     <td>{{ item.employeeName || getEmployeeName(item.employeeId) }}</td>
                     <td>{{ item.periodCode || getPeriodName(item.periodId) }}</td>
-                    <td>{{ item.indexCode ? item.indexCode + ' - ' + (item.indexName || getIndexName(item.kpiIndexId)) : getIndexName(item.kpiIndexId) }}</td>
+                    <td>{{ item.indexCode ? item.indexCode + ' - ' + (item.indexName || getIndexName(item.kpiIndexId)) :
+                      getIndexName(item.kpiIndexId) }}</td>
                     <td class="text-end">{{ item.goalValue | number: '1.0-0' }}</td>
                   </tr>
                 </tbody>
@@ -968,15 +1079,9 @@
                 <nz-form-item>
                   <nz-form-label>Nhân viên</nz-form-label>
                   <nz-form-control>
-                    <nz-select
-                      nzSize="small"
-                      name="calculateEmployee"
-                      nzShowSearch
-                      [(ngModel)]="selectedEmployeeId"
-                      (ngModelChange)="onResultFilterChange()">
-                      <nz-option
-                        *ngFor="let item of employees; trackBy: trackById"
-                        [nzValue]="item.id"
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="calculateEmployee"
+                      nzShowSearch [(ngModel)]="selectedEmployeeId" (ngModelChange)="onResultFilterChange()">
+                      <nz-option *ngFor="let item of employees; trackBy: trackById" [nzValue]="item.id"
                         [nzLabel]="item.code + ' - ' + item.fullName">
                       </nz-option>
                     </nz-select>
@@ -985,33 +1090,27 @@
                 <nz-form-item>
                   <nz-form-label>Kỳ KPI</nz-form-label>
                   <nz-form-control>
-                    <nz-select
-                      nzSize="small"
-                      name="calculatePeriod"
-                      [(ngModel)]="selectedPeriodId"
-                      (ngModelChange)="onResultFilterChange()">
-                      <nz-option
-                        *ngFor="let item of periods; trackBy: trackById"
-                        [nzValue]="item.id"
-                        [nzLabel]="item.periodCode">
-                      </nz-option>
-                    </nz-select>
+                    <nz-tree-select nzDropdownClassName="select-dropdown" style="width: 180px;" nzSize="small"
+                      name="calculatePeriod" [nzNodes]="periodNodes" nzShowSearch
+                      [ngModel]="selectedPeriodId?.toString()" (ngModelChange)="onSelectedPeriodChange($event)"
+                      nzPlaceHolder="Chọn kỳ KPI" [nzDropdownStyle]="{ 'max-height': '300px', 'overflow-y': 'auto' }">
+                    </nz-tree-select>
                   </nz-form-control>
                 </nz-form-item>
                 <nz-form-item>
                   <nz-form-label>Mẫu KPI</nz-form-label>
                   <nz-form-control>
-                    <nz-select nzSize="small" name="calculateTemplate" [(ngModel)]="selectedTemplateId" (ngModelChange)="onTemplateChange($event)">
-                      <nz-option
-                        *ngFor="let item of templates; trackBy: trackById"
-                        [nzValue]="item.id"
+                    <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="calculateTemplate"
+                      [(ngModel)]="selectedTemplateId" (ngModelChange)="onTemplateChange($event)">
+                      <nz-option *ngFor="let item of templates; trackBy: trackById" [nzValue]="item.id"
                         [nzLabel]="item.templateName">
                       </nz-option>
                     </nz-select>
                   </nz-form-control>
                 </nz-form-item>
                 <label nz-checkbox name="calculateSaveSnapshot" [(ngModel)]="saveSnapshot">Lưu bản ghi kết quả</label>
-                <button nz-button nzType="primary" nzSize="small" type="button" (click)="runCalculate()">Tính KPI</button>
+                <button nz-button nzType="primary" nzSize="small" type="button" (click)="runCalculate()">Tính
+                  KPI</button>
               </form>
               <div class="snapshot-info">
                 <span>Bản ghi: {{ lastCalculatedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
@@ -1020,13 +1119,8 @@
             </section>
 
             <section class="panel result-table">
-              <nz-table
-                #resultTable
-                [nzData]="resultRowsFiltered"
-                [nzFrontPagination]="false"
-                nzSize="small"
-                nzBordered
-                [nzScroll]="{ x: '1180px', y: 'calc(100vh - 350px)' }">
+              <nz-table #resultTable [nzData]="resultTreeRowsFiltered" [nzFrontPagination]="false" nzSize="small"
+                nzBordered [nzScroll]="{ x: '1180px', y: 'calc(100vh - 350px)' }">
                 <thead>
                   <tr>
                     <th nzLeft>Kỳ KPI</th>
@@ -1043,21 +1137,24 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    *ngFor="let item of resultTable.data; trackBy: trackById"
-                    [class.main-index-row]="item.isMainIndex"
-                    [class.fw-bold]="item.isBold">
-                    <td nzLeft>{{ item.periodCode || getPeriodName(item.periodId || selectedPeriodId) }}</td>
-                    <td nzLeft class="mono">{{ item.indexCode }}</td>
-                    <td>{{ item.indexName }}</td>
-                    <td>{{ getUnitTypeLabel(item.unitType) }}</td>
-                    <td class="text-end">{{ formatMetric(item.goalValue, item.unitType) }}</td>
-                    <td class="text-end">{{ formatMetric(item.resultValue, item.unitType) }}</td>
-                    <td class="text-end">{{ formatPercent(item.achievedPercent) }}</td>
-                    <td class="text-end">{{ item.weightPercent | number: '1.0-2' }}%</td>
-                    <td class="text-end">{{ item.finalScore | number: '1.0-2' }}</td>
-                    <td><label nz-checkbox [ngModel]="item.isMainIndex" [ngModelOptions]="{ standalone: true }"></label></td>
-                    <td>{{ item.calculatedDate | date: 'dd/MM/yyyy HH:mm' }}</td>
+                  <tr *ngFor="let item of resultTable.data; trackBy: trackById"
+                    [class.main-index-row]="item.row.isMainIndex" [class.fw-bold]="item.row.isBold">
+                    <td nzLeft>{{ item.row.periodCode || getPeriodName(item.row.periodId || selectedPeriodId) }}</td>
+                    <td nzLeft class="mono" [nzIndentSize]="item.level * 20" [nzShowExpand]="item.expandable"
+                      [nzExpand]="item.expanded" (nzExpandChange)="toggleResultExpand(item, $event)">
+                      {{ item.row.indexCode }}
+                    </td>
+                    <td>{{ item.row.indexName }}</td>
+                    <td>{{ getUnitTypeLabel(item.row.unitType) }}</td>
+                    <td class="text-end">{{ formatMetric(item.row.goalValue, item.row.unitType) }}</td>
+                    <td class="text-end">{{ formatMetric(item.row.resultValue, item.row.unitType) }}</td>
+                    <td class="text-end">{{ formatPercent(item.row.achievedPercent) }}</td>
+                    <td class="text-end">{{ item.row.weightPercent | number: '1.0-2' }}%</td>
+                    <td class="text-end">{{ item.row.finalScore | number: '1.0-2' }}</td>
+                    <td><label nz-checkbox [ngModel]="item.row.isMainIndex"
+                        [ngModelOptions]="{ standalone: true }"></label>
+                    </td>
+                    <td>{{ item.row.calculatedDate | date: 'dd/MM/yyyy HH:mm' }}</td>
                   </tr>
                 </tbody>
               </nz-table>

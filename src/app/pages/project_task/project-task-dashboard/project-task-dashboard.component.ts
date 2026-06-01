@@ -18,6 +18,7 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
 import { ProjectTaskStatusDetailComponent } from '../project-task-status-detail/project-task-status-detail.component';
 import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
 import { TooltipModule } from 'primeng/tooltip';
+import { ProjectTaskTimeLineTotalService } from '../project-task-time-line-total/project-task-time-line-total.service';
 
 // ECharts
 import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
@@ -73,9 +74,14 @@ export class ProjectTaskDashboardComponent implements OnInit {
   private router = inject(Router);
   private appUserService = inject(AppUserService);
   private tabService = inject(TabServiceService);
+  private timelineTotalService = inject(ProjectTaskTimeLineTotalService);
 
   @ViewChild('approveModalTpl') approveModalTpl!: TemplateRef<any>;
   @ViewChild('rejectModalTpl') rejectModalTpl!: TemplateRef<any>;
+
+  allStatuses: any[] = [];
+  statusMap = new Map<number, any>();
+  approvalStatusMap = new Map<number, any>();
 
   approveReviewText: string = '';
   approveCompletionRating: number = 5;
@@ -318,7 +324,50 @@ export class ProjectTaskDashboardComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.refreshData();
+    this.loadProjectTaskStatuses();
+  }
+
+  loadProjectTaskStatuses() {
+    this.timelineTotalService.getProjectTaskStatuses().subscribe({
+      next: (statuses: any[]) => {
+        this.allStatuses = statuses;
+        statuses.forEach(s => {
+          if (s.Type === 1) {
+            this.statusMap.set(s.No, s);
+          } else if (s.Type === 2) {
+            this.approvalStatusMap.set(s.No, s);
+          }
+        });
+        this.refreshData();
+      },
+      error: () => {
+        this.refreshData();
+      }
+    });
+  }
+
+  getStatusName(no: number, fallback: string): string {
+    return this.statusMap.has(no) ? this.statusMap.get(no).Title : fallback;
+  }
+
+  getStatusColor(no: number, fallback: string): string {
+    return this.statusMap.has(no) && this.statusMap.get(no).ColorFont ? this.statusMap.get(no).ColorFont : fallback;
+  }
+
+  getStatusBgColor(no: number, fallback: string): string {
+    return this.statusMap.has(no) && this.statusMap.get(no).ColorBackground ? this.statusMap.get(no).ColorBackground : fallback;
+  }
+
+  getApprovalStatusName(no: number, fallback: string): string {
+    return this.approvalStatusMap.has(no) ? this.approvalStatusMap.get(no).Title : fallback;
+  }
+
+  getApprovalStatusColor(no: number, fallback: string): string {
+    return this.approvalStatusMap.has(no) && this.approvalStatusMap.get(no).ColorFont ? this.approvalStatusMap.get(no).ColorFont : fallback;
+  }
+
+  getApprovalStatusBgColor(no: number, fallback: string): string {
+    return this.approvalStatusMap.has(no) && this.approvalStatusMap.get(no).ColorBackground ? this.approvalStatusMap.get(no).ColorBackground : fallback;
   }
 
   refreshData() {
@@ -331,7 +380,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
     const [start, end] = this.getFormattedDateRange();
     const currentUserId = this.appUserService.employeeID || 0;
 
-    this.dashboardService.getDashboardData(start, end, currentUserId).subscribe({
+    this.dashboardService.getDashboardData(start, end, currentUserId, this.allStatuses).subscribe({
       next: (data) => {
         this.allTasks.set(data.tasks);
         this.stats.set(data.stats);
@@ -461,7 +510,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
       comp: TaskDetailComponent,
       title: taskCode,
       key: `project-task-detail-${taskId}`,
-      data: { id: taskId }
+      data: { id: taskId, ApprovalStatus: task?.ApprovalStatus ?? null }
     });
   }
 
@@ -531,7 +580,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
       selectedTypes.includes(t.ProjectTaskTypeName || 'Khác')
     );
 
-    const data = this.dashboardService.prepareTypeStackedChartData(filteredTasks, selectedTypes);
+    const data = this.dashboardService.prepareTypeStackedChartData(filteredTasks, this.allStatuses, selectedTypes);
 
     // Convert ChartData to ECharts Options
     this.typeStackedChartOptions.set({
@@ -574,6 +623,7 @@ export class ProjectTaskDashboardComponent implements OnInit {
         stack: ds.stack || undefined,
         data: ds.data,
         itemStyle: { color: ds.backgroundColor },
+        emphasis: { disabled: true },
         lineStyle: ds.type === 'line' ? { width: 3 } : undefined,
         symbol: ds.type === 'line' ? 'circle' : undefined,
         symbolSize: ds.type === 'line' ? 8 : undefined

@@ -13,7 +13,10 @@
                         <span class="box actual"></span> Thực tế
                     </div>
                     <div class="legend-item">
-                        <span class="box outside-work"></span> Nhà máy
+                        <span class="box outside-work-planned"></span> Công tác dự kiến
+                    </div>
+                    <div class="legend-item">
+                        <span class="box outside-work-actual"></span> Công tác thực tế
                     </div>
                     <div class="legend-item"><span class="legend-sep">|</span></div>
                     <div class="legend-item"><strong>Ro</strong>&nbsp;= Nghỉ không lương</div>
@@ -153,9 +156,9 @@
                         <th rowspan="2" class="sticky-col col-name">
                             Họ và tên
                             <p-multiSelect [options]="employeeColumnOptions" [(ngModel)]="filterEmployeeColumn"
-                                placeholder="Tất cả" [showHeader]="false" [filter]="true" filterPlaceHolder="Tìm..." 
+                                placeholder="Tất cả" [filter]="true" filterPlaceHolder="Tìm..." 
                                 (onChange)="onColumnFilter()"
-                                styleClass="timeline-status-multi" [maxSelectedLabels]="1"
+                                styleClass="timeline-status-multi" panelStyleClass="timeline-status-panel-global" [maxSelectedLabels]="1"
                                 selectedItemsLabel="{0} người" appendTo="body" />
                         </th>
 

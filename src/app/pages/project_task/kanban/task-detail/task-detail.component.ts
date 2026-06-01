@@ -1330,13 +1330,14 @@ export class TaskDetailComponent implements OnInit {
                 const dt = new Date(dateStr + 'T00:00:00');
                 const isSunday = dt.getDay() === 0;
                 const isDayOff = this.dayOffList.includes(dateStr);
+                const isWork = !(isSunday || isDayOff);
                 this.taskWorkList.push({
                     ID: 0,
                     ProjectTaskID: this.activeTaskId,
                     Date: dateStr + 'T00:00:00',
                     Location: taskLoc,
-                    EstimatedTime: 8,
-                    IsWork: !(isSunday || isDayOff),
+                    EstimatedTime: isWork ? 8 : 0,
+                    IsWork: isWork,
                     IsDeleted: false,
                     _locationSelect: isKnownLoc ? taskLoc : 'Khác',
                     _customLocation: isKnownLoc ? undefined : taskLoc,
@@ -1508,10 +1509,20 @@ export class TaskDetailComponent implements OnInit {
 
     onIsWorkChange(row: IProjectTaskWork): void {
         // ngModel binding will update IsWork automatically
+        
+        // Tự động điều chỉnh giờ dựa trên trạng thái làm việc
+        if (!row.IsWork) {
+            row.EstimatedTime = 0;
+        } else if (row.EstimatedTime === 0) {
+            // Nếu chọn lại làm việc mà giờ đang bằng 0 thì gán lại bằng 8 (chuẩn 1 ngày)
+            row.EstimatedTime = 8;
+        }
+
         if (row._selected) {
             for (const r of this.selectedTaskWorkRows) {
                 if (r !== row) {
                     r.IsWork = row.IsWork;
+                    r.EstimatedTime = row.EstimatedTime;
                 }
             }
         }
@@ -3129,6 +3140,10 @@ export class TaskDetailComponent implements OnInit {
             this.message.error('Vui lòng chọn ngày bắt đầu thực tế');
             return;
         }
+        if ((this.taskStatus === 1 || this.taskStatus === 2) && !this.deadline) {
+            this.message.error('Vui lòng chọn Deadline khi công việc Đang làm hoặc Hoàn thành');
+            return;
+        }
         if (this.assigneeIds.length === 0) {
             this.message.error('Vui l\u00f2ng ch\u1ecdn ng\u01b0\u1eddi th\u1ef1c hi\u1ec7n');
             return;
@@ -3413,6 +3428,10 @@ export class TaskDetailComponent implements OnInit {
         // Bắt buộc chọn ngày bắt đầu nếu là Đang làm/Hoàn thành
         if ((this.taskStatus === 1 || this.taskStatus === 2) && !this.startDate) {
             this.message.error('Vui lòng chọn ngày bắt đầu thực tế');
+            return;
+        }
+        if ((this.taskStatus === 1 || this.taskStatus === 2) && !this.deadline) {
+            this.message.error('Vui lòng chọn Deadline khi công việc Đang làm hoặc Hoàn thành');
             return;
         }
 

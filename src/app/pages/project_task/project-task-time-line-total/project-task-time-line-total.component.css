@@ -89,8 +89,12 @@
     background-color: #f472b6;
 }
 
-.box.outside-work {
-    background-color: #fb923c;
+.box.outside-work-planned {
+    background-color: #ffb066;
+}
+
+.box.outside-work-actual {
+    background-color: #f97316;
 }
 
 /* ===== TABLE ===== */
@@ -291,12 +295,12 @@ thead .sticky-col {
 }
 
 .filled-planned-outside {
-    background-color: #fb923c !important;
+    background-color: #ffb066 !important;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 .filled-actual-outside {
-    background-color: #fb923c !important;
+    background-color: #f97316 !important;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
@@ -617,4 +621,12 @@ tfoot td {
     word-wrap: break-word;
     line-height: 1.4;
     padding: 4px 0;
+}
+
+/* Fix missing width on PrimeNG checkbox when appendTo="body" */
+::ng-deep .timeline-status-panel-global .p-checkbox .p-checkbox-box,
+::ng-deep .timeline-status-multi-panel .p-checkbox .p-checkbox-box {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0 !important;
 }

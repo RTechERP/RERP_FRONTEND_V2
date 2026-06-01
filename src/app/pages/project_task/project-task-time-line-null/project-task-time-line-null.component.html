@@ -89,11 +89,11 @@
               <input type="text" class="filter-input" [(ngModel)]="filterTaskKeyword"
                 (keyup)="onColumnFilter()" placeholder="Tìm mã/tên...">
             </th>
-            <th rowspan="2" class="sticky-col col-status">
-              Trạng Thái
+            <th rowspan="2" class="sticky-col col-status text-center">
+              <div class="mb-1 text-center">Trạng Thái</div>
               <p-multiSelect [options]="statusOptions" [(ngModel)]="filterStatusColumn"
                 placeholder="Tất cả" [showHeader]="false" [filter]="false" (onChange)="onColumnFilter()"
-                styleClass="timeline-status-multi" [maxSelectedLabels]="3"
+                styleClass="timeline-status-multi" panelStyleClass="timeline-status-panel-global" [maxSelectedLabels]="3"
                 selectedItemsLabel="{0} trạng thái" appendTo="body" />
             </th>
             <th rowspan="2" class="sticky-col col-time">Thời gian<br>(giờ/ngày)</th>
@@ -194,12 +194,13 @@
                     <!-- Ô ngày -->
                     <ng-container *ngFor="let col of dateColumns; trackBy: trackByColumn">
 
-      <!-- TypeDate = 2: Thực tế - chỉ tích không tô màu -->
+                      <!-- TypeDate = 2: Thực tế - tô màu thực tế và hiển thị giá trị lên -->
                       <td *ngIf="row.TypeDate === 2" class="gantt-cell"
                         [class.cell-group-end]="ri === 1 && ti === project.tasks.length - 1 && pi === group.projects.length - 1"
-                        [class.sunday]="col.isSunday || col.isDayOff" [class.today-col]="col.isToday">
+                        [class.sunday]="col.isSunday || col.isDayOff" [class.today-col]="col.isToday"
+                        [class.filled-actual]="getActualValue(row, col.dateStr) > 0">
                         <ng-container *ngIf="getActualValue(row, col.dateStr) > 0">
-                          <span nz-icon nzType="check" nzTheme="outline" class="check-icon"></span>
+                          <span class="actual-hours">{{ getActualValue(row, col.dateStr) }}</span>
                         </ng-container>
                       </td>
 
@@ -248,15 +249,15 @@
       [class.cell-group-end]="ri === 1 && ti === project.tasks.length - 1 && pi === group.projects.length - 1"
       [class.sunday]="col.isSunday || col.isDayOff" [class.today-col]="col.isToday"
       [class.filled-planned]="ctx.d.workMode === 1 || ctx.d.workMode === 3"
-      [nz-tooltip]="ctx.d.leaveTime > 0 ? getLeaveTooltip(ctx.d.leaveTime, ctx.d.leaveType) : null">
+      [nz-tooltip]="ctx.d.leaveType > 0 ? getLeaveTooltip(ctx.d.leaveTime, ctx.d.leaveType) : null">
 
       <!-- Mode 2 hoặc 3: hiển thị dấu tích -->
       <ng-container *ngIf="ctx.d.workMode === 2 || ctx.d.workMode === 3">
         <span nz-icon nzType="check" nzTheme="outline" class="check-icon"></span>
       </ng-container>
 
-      <!-- Badge nghỉ (chỉ chữ, không nền) -->
-      <ng-container *ngIf="ctx.d.leaveTime > 0 && ctx.d.leaveType > 0">
+      <!-- Badge nghỉ (chỉ chữ, không nền) nếu leaveType > 0 -->
+      <ng-container *ngIf="ctx.d.leaveType > 0">
         <span class="leave-label">{{ getLeaveLabel(ctx.d.leaveType, ctx.d.leaveTime) }}</span>
       </ng-container>
     </td>

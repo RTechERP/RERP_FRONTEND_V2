@@ -1,0 +1,165 @@
+.dashboard-container {
+  padding: 15px;
+  background-color: #f4f7f9;
+  height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.dashboard-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+:host ::ng-deep .ant-select-single.ant-select-sm:not(.ant-select-customize-input) .ant-select-selector{
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+:host ::ng-deep .ant-select-single .ant-select-selector .ant-select-selection-item,
+:host ::ng-deep .ant-select-single .ant-select-selector .ant-select-selection-placeholder {
+  line-height: normal !important;
+  align-self: center !important;
+}
+
+.sticky-header {
+  z-index: 20;
+}
+
+.form-field-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-field-vertical label {
+  font-size: 12px;
+  color: #595959;
+  font-weight: 500;
+}
+
+.form-field-vertical input,
+.form-field-vertical nz-select {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .form-field-vertical .timeline-combo-select .ant-select-selection-item,
+:host ::ng-deep .form-field-vertical .timeline-combo-select .ant-select-selection-placeholder,
+:host ::ng-deep .form-field-vertical .timeline-combo-select .ant-select-selection-search-input {
+    font-size: 11px !important;
+    font-weight: 400 !important;
+}
+
+::ng-deep .timeline-combo-dropdown,
+::ng-deep .timeline-combo-dropdown .ant-select-item,
+::ng-deep .timeline-combo-dropdown .ant-select-item-option-content {
+    font-size: 11px !important;
+    font-weight: 400 !important;
+}
+
+/* ===== Data Section Flex Layout ===== */
+.data-flex-row {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.data-col-left {
+  flex: 0 0 30%;
+  max-width: 30%;
+}
+
+.data-col-right {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.employee-table-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+}
+
+/* Ẩn phần scroll mặc định của nz-table body, để wrapper quản lý scroll */
+.employee-table-wrapper ::ng-deep .ant-table-body {
+  overflow: visible !important;
+}
+
+/* Header cố định khi scroll */
+.employee-table-wrapper ::ng-deep thead.ant-table-thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.summary-table {
+  border: 1px solid #d9d9d9;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+}
+
+.summary-row {
+  display: flex;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.summary-label {
+  flex: 1;
+  background-color: #e0f2fe; /* Light blue matching Excel */
+  padding: 8px 12px;
+  font-weight: 600;
+  color: #1e293b;
+  border-right: 1px solid #d9d9d9;
+}
+
+.summary-value {
+  flex: 1;
+  padding: 8px 12px;
+  text-align: right;
+  background-color: #fff;
+  color: #334155;
+}
+
+::ng-deep .custom-th {
+  background-color: #174276 !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* ===== Charts Section ===== */
+.charts-section {
+  margin-top: 24px;
+}
+
+.chart-tip {
+  background-color: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #595959;
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+.charts-flex-row {
+  display: flex;
+  gap: 24px;
+}
+
+.chart-box {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 8px;
+}

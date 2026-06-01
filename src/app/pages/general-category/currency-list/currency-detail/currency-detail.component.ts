@@ -72,6 +72,15 @@ export class CurrencyDetailComponent implements OnInit {
     });
   }
 
+  private parseDate(value: any): Date | null {
+    if (!value) return null;
+    const s = String(value);
+    // Nếu là datetime string không có timezone info → thêm Z để parse đúng UTC
+    const normalized = s.length > 10 && !s.endsWith('Z') && !s.includes('+') ? s + 'Z' : s;
+    const d = new Date(normalized);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
   private populateForm(data: any): void {
     this.currencyForm.patchValue({
       Code: data.Code || '',
@@ -79,12 +88,12 @@ export class CurrencyDetailComponent implements OnInit {
       NameVietNamese: data.NameVietNamese || '',
       MinUnit: data.MinUnit || '',
       CurrencyRate: data.CurrencyRate ?? '',
-      DateStart: data.DateStart ? new Date(data.DateStart) : null,
-      DateExpried: data.DateExpried ? new Date(data.DateExpried) : null,
+      DateStart: this.parseDate(data.DateStart),
+      DateExpried: this.parseDate(data.DateExpried),
       CurrencyRateOfficialQuota: data.CurrencyRateOfficialQuota ?? '',
-      DateExpriedOfficialQuota: data.DateExpriedOfficialQuota ? new Date(data.DateExpriedOfficialQuota) : null,
+      DateExpriedOfficialQuota: this.parseDate(data.DateExpriedOfficialQuota),
       CurrencyRateUnofficialQuota: data.CurrencyRateUnofficialQuota ?? '',
-      DateExpriedUnofficialQuota: data.DateExpriedUnofficialQuota ? new Date(data.DateExpriedUnofficialQuota) : null,
+      DateExpriedUnofficialQuota: this.parseDate(data.DateExpriedUnofficialQuota),
       Note: data.Note || ''
     });
     this.formatRateField('CurrencyRate');
@@ -118,6 +127,13 @@ export class CurrencyDetailComponent implements OnInit {
     }
 
     const sanitize = (v: any) => this.normalizeNumberInput(v);
+    const toLocalDate = (d: Date | null): string | null => {
+      if (!d) return null;
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    };
     const raw = this.currencyForm.value;
     const formValue = {
       ...raw,
@@ -128,7 +144,11 @@ export class CurrencyDetailComponent implements OnInit {
 
     const currencyData = {
       ...formValue,
-      ID: this.dataInput?.ID || 0
+      ID: this.dataInput?.ID || 0,
+      DateStart: toLocalDate(raw.DateStart),
+      DateExpried: toLocalDate(raw.DateExpried),
+      DateExpriedOfficialQuota: toLocalDate(raw.DateExpriedOfficialQuota),
+      DateExpriedUnofficialQuota: toLocalDate(raw.DateExpriedUnofficialQuota),
     };
 
     this.projectService.save(currencyData).subscribe({

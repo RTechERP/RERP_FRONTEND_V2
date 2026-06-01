@@ -20,6 +20,7 @@ import { NzImageModule } from 'ng-zorro-antd/image';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { firstValueFrom } from 'rxjs';
 import { TestExamService } from './test-exam.service';
 import { AppUserService } from '../../../services/app-user.service';
 
@@ -125,14 +126,8 @@ export class TestExamComponent implements OnInit, OnDestroy {
       this.courseExamResultID = +params['courseExamResultID'] || 0;
       this.lessonID = +params['lessonID'] || 0;
       this.examType = +params['examType'] || 1;
+      this.selectedExamType = this.examType;
       this.testTimeMinutes = +params['testTime'] || 30;
-
-      if (this.courseExamResultID > 0) {
-        this.loadQuestions();
-      } else {
-        this.notification.error('Lỗi', 'Không thể tải danh sách câu hỏi.');
-        this.isLoading = false;
-      }
     });
   }
 
@@ -247,6 +242,71 @@ export class TestExamComponent implements OnInit, OnDestroy {
       });
   }
 
+  async loadQuestionsForStartedExam(): Promise<boolean> {
+    const empId = this.appUserService.employeeID || 0;
+
+    try {
+      const res = await firstValueFrom(
+        this.testExamService.ListExamQuestion(
+          this.selectedYear,
+          this.selectedSeason,
+          this.selectedExamType,
+          empId,
+        ),
+      );
+      const status = res?.status !== undefined ? res.status : res?.Status;
+      const data = res?.data || res?.Data;
+
+      if (!res || status === 0 || !data) {
+        this.notification.error(
+          'Thông báo',
+          res?.message || res?.Message || 'Không có dữ liệu câu hỏi.',
+        );
+        return false;
+      }
+
+      const rawData: any[] = data;
+      this.rawItems = rawData;
+
+      const grouped = new Map<number, any>();
+
+      rawData.forEach((item) => {
+        const qId = item.courseQuestionID || item.CourseQuestionID;
+        if (qId === undefined || qId === null) return;
+
+        if (!grouped.has(qId)) {
+          grouped.set(qId, {
+            ID: qId,
+            QuestionText: item.questionText || item.QuestionText || '',
+            Image: item.imageName || item.ImageName || '',
+            ExamAnswers: [],
+            ExamResultDetailID:
+              item.examResultDetailID || item.ExamResultDetailID,
+          });
+        }
+
+        const q = grouped.get(qId);
+        q.ExamAnswers.push({
+          ID: item.courseAnswerID || item.CourseAnswerID || item.id || 0,
+          AnswerText: item.answerText || item.AnswerText || '',
+          STT: item.stt || item.STT || 0,
+          selected: item.isPicked || item.IsPicked || false,
+        });
+      });
+
+      this.questions = Array.from(grouped.values());
+      if (this.questions.length === 0) {
+        this.notification.error('Thông báo', 'Không có dữ liệu câu hỏi.');
+        return false;
+      }
+
+      return true;
+    } catch {
+      this.notification.error('Lỗi', 'Không thể tải danh sách câu hỏi.');
+      return false;
+    }
+  }
+
   async startExam(): Promise<void> {
     this.currentIndex = 0; // Reset question index to 1
     const empId = this.appUserService.employeeID || 0;
@@ -287,7 +347,11 @@ export class TestExamComponent implements OnInit, OnDestroy {
         this.testTimeMinutes = duration;
         this.remainingSeconds = duration * 60;
 
-        this.loadQuestionsNew();
+        const questionsLoaded = await this.loadQuestionsForStartedExam();
+        if (!questionsLoaded) {
+          this.isLoading = false;
+          return;
+        }
 
         try {
           const el = this.examContainer.nativeElement;

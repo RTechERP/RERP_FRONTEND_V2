@@ -49,6 +49,7 @@ interface PrimeViewColumn {
   footer?: string | ((data: any[]) => string);
   footerClass?: string;
   textWrap?: boolean;
+  checkboxField?: boolean;
 }
 
 @Component({
@@ -234,6 +235,7 @@ export class ViewPokhPrimengComponent implements OnInit {
       { field: 'Code', header: 'Mã phiếu xuất', width: '160px', sortable: true, filterMode: 'input', textWrap: true },
       { field: 'TotalQty', header: 'Tổng SL PO', width: '90px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right' },
       { field: 'Qty', header: 'SL xuất', width: '90px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right' },
+      { field: 'IsTransfer', header: 'Chuyển kho', width: '90px', sortable: true, cssClass: 'text-center', checkboxField: true },
     ];
 
     this.invoiceColumnDefinitions = [
@@ -909,12 +911,14 @@ export class ViewPokhPrimengComponent implements OnInit {
 
   private selectAllExportsForParent(parentData: any): void {
     if (!parentData.exportDetails?.length) return;
-    parentData.exportDetails.forEach((exportRow: any) => {
-      const selected = this.toSelectedExport(parentData.ID, exportRow);
-      if (!this.selectedExportRowsAll.some((row) => row.__exportKey === selected.__exportKey)) {
-        this.selectedExportRowsAll.push(selected);
-      }
-    });
+    parentData.exportDetails
+      .filter((exportRow: any) => !exportRow.IsTransfer)
+      .forEach((exportRow: any) => {
+        const selected = this.toSelectedExport(parentData.ID, exportRow);
+        if (!this.selectedExportRowsAll.some((row) => row.__exportKey === selected.__exportKey)) {
+          this.selectedExportRowsAll.push(selected);
+        }
+      });
   }
 
   private ensureParentSelected(parentRow: any): void {

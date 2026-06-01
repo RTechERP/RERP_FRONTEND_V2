@@ -231,7 +231,7 @@
                                     <p-table *ngIf="getActiveNestedTab(rowData) === 'export' && rowData.exportDetails?.length"
                                         [value]="rowData.exportDetails" dataKey="__exportKey"
                                         styleClass="p-datatable-gridlines p-datatable-sm nested-table"
-                                        [tableStyle]="{ width: '382px', 'min-width': '382px', 'table-layout': 'fixed' }"
+                                        [tableStyle]="{ width: '472px', 'min-width': '472px', 'table-layout': 'fixed' }"
                                         selectionMode="multiple"
                                         [selection]="getSelectedExportRows(rowData)"
                                         (selectionChange)="onExportSelectionChange(rowData, $event)">
@@ -250,10 +250,15 @@
                                                 <td style="width: 42px;"><p-tableCheckbox [value]="exportRow"></p-tableCheckbox></td>
                                                 <td *ngFor="let col of exportColumnDefinitions" [style.width]="col.width"
                                                     [ngClass]="col.cssClass || ''">
-                                                    <div [class.wrap-text]="col.textWrap" [class.truncate-text]="!col.textWrap"
-                                                        [title]="formatCell(col, exportRow)">
-                                                        {{ formatCell(col, exportRow) }}
-                                                    </div>
+                                                    <ng-container *ngIf="col.checkboxField; else exportCellText">
+                                                        <input type="checkbox" [checked]="!!exportRow[col.field]" disabled />
+                                                    </ng-container>
+                                                    <ng-template #exportCellText>
+                                                        <div [class.wrap-text]="col.textWrap" [class.truncate-text]="!col.textWrap"
+                                                            [title]="formatCell(col, exportRow)">
+                                                            {{ formatCell(col, exportRow) }}
+                                                        </div>
+                                                    </ng-template>
                                                 </td>
                                             </tr>
                                         </ng-template>

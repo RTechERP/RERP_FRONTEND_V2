@@ -1,0 +1,81 @@
+/* Main container layout */
+.exam-detail-container {
+    display: flex;
+    flex-direction: column;
+    height: 700px;
+    /* Fixed height for the modal content */
+}
+
+.table-container {
+    flex-grow: 1;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+::ng-deep .tabulator .tabulator-tableholder {
+    height: calc(100% - 59px) !important;
+    max-height: calc(100% - 59px) !important;
+}
+
+::ng-deep .ant-spin-nested-loading,
+::ng-deep .ant-spin-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-bar {
+    font-size: 13px;
+}
+
+.filter-select {
+    width: 250px;
+}
+
+.btn-search {
+    font-weight: 600;
+}
+
+.btn-excel {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+.header-labels {
+    border-radius: 4px;
+}
+
+.label-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.label-title {
+    font-weight: 800;
+    font-size: 14px;
+    color: #333;
+}
+
+.label-value {
+    font-size: 14px;
+    color: #000;
+}
+
+.summary-footer {
+    padding: 0;
+}
+
+.summary-box,
+.summary-left {
+    min-width: 250px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.summary-row {
+    line-height: 1.2;
+}

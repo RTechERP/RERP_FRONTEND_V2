@@ -1,0 +1,109 @@
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white text-uppercase" id="userModalLabel">
+        {{ mode === 'add' ? 'Thêm User' : 'Sửa User' }}
+    </h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body">
+    <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7 mt-2">
+        <nz-row [nzGutter]="24">
+            <nz-col [nzSpan]="12">
+                <nz-form-item>
+                    <nz-form-label for="fullNameInput" class="fs-12 p-0">
+                        Họ và tên<span class="text-danger ps-1">(*)</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+            formGroup.get('FullName')?.hasError('required') && (formGroup.get('FullName')?.dirty || formGroup.get('FullName')?.touched)
+              ? 'Vui lòng nhập họ và tên!'
+              : undefined
+          ">
+                        <input id="fullNameInput" nz-input formControlName="FullName" placeholder="Nhập họ và tên" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <nz-col [nzSpan]="12">
+                <nz-form-item>
+                    <nz-form-label for="BirthOfDateInput" class="fs-12 p-0">
+                        Ngày sinh
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <nz-date-picker id="BirthOfDateInput" formControlName="BirthOfDate" style="width: 100%;" placeholder="Chọn ngày sinh" [nzFormat]="'dd/MM/yyyy'"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+        <nz-row [nzGutter]="24">
+            <nz-col [nzSpan]="12">
+                <nz-form-item>
+                    <nz-form-label for="emailInput" class="fs-12 p-0">
+                        Email<span class="text-danger ps-1">(*)</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+            formGroup.get('Email')?.hasError('required') && (formGroup.get('Email')?.dirty || formGroup.get('Email')?.touched)
+              ? 'Vui lòng nhập email!'
+              : formGroup.get('Email')?.hasError('email')
+              ? 'Email không hợp lệ!'
+              : undefined
+          ">
+                        <input id="emailInput" nz-input type="email" formControlName="Email" placeholder="Nhập email" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <nz-col [nzSpan]="12">
+                <nz-form-item *ngIf="mode === 'add'">
+                    <nz-form-label for="PasswordHashInput" class="fs-12 p-0">
+                        Mật khẩu<span class="text-danger ps-1">(*)</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+            formGroup.get('PasswordHash')?.hasError('required') && (formGroup.get('PasswordHash')?.dirty || formGroup.get('PasswordHash')?.touched)
+              ? 'Vui lòng nhập mật khẩu!'
+              : formGroup.get('PasswordHash')?.hasError('minlength')
+              ? 'Mật khẩu tối thiểu 6 ký tự!'
+              : undefined
+          ">
+                        <input id="PasswordHashInput" nz-input type="Password" formControlName="PasswordHash" placeholder="Nhập mật khẩu" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+
+        <nz-row [nzGutter]="24">
+            <nz-col [nzSpan]="12">
+                <nz-form-item>
+                    <nz-form-label for="SexInput" class="fs-12 p-0">
+                        Giới tính
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <nz-select id="SexInput" formControlName="Sex" style="width: 100%;" placeholder="Chọn giới tính">
+                            <nz-option *ngFor="let option of SexOptions" [nzValue]="option.value" [nzLabel]="option.label">
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <nz-col [nzSpan]="12">
+                <nz-form-item>
+                    <nz-form-control [nzSpan]="24">
+                        <label nz-checkbox formControlName="IsActive"> Kích hoạt</label>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+
+
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
+        Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="save()" [disabled]="saving">
+        <i *ngIf="saving" nz-icon nzType="loading" class="me-2"></i>
+        {{ saving ? 'Đang lưu...' : 'Lưu' }}
+    </button>
+</div>

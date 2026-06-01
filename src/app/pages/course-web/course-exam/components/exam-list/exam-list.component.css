@@ -1,0 +1,39 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+/* Force nz-spin-nested-loading to be the relative anchor */
+:host ::ng-deep .ant-spin-nested-loading {
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+/* absolute positioning guarantees the container fits exactly within the parent, preventing overflow or clipping */
+:host ::ng-deep .ant-spin-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    /* Contain Tabulator's internal scrollbars */
+    display: block;
+}
+
+/* Tabulator container inherits full size from the absolute parent */
+.table-container {
+    height: 100%;
+    width: 100%;
+}
+
+:host ::ng-deep .ant-spin {
+    max-height: 100%;
+}
+
+/* Fix Tabulator Group Header background not extending on horizontal scroll */
+:host ::ng-deep .tabulator .tabulator-row.tabulator-group {
+    min-width: 100%;
+    width: max-content;
+}

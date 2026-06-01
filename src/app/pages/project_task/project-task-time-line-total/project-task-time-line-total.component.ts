@@ -101,6 +101,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   filterStatusColumn: number[] = [];
 
   statusOptions: any[] = [];
+  columnStatusOptions: any[] = [];
   employeeColumnOptions: any[] = [];
 
   // Infinite Scroll state
@@ -147,6 +148,18 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
           label: s.Title,
           value: s.No
         }));
+
+        // columnStatusOptions = Type 1 + Type 2 (Approve/Reject) cho filter cột
+        this.columnStatusOptions = [...this.statusOptions];
+        const type2Statuses = statuses.filter((s: any) => s.Type === 2);
+        type2Statuses.forEach((s: any) => {
+          // Dùng mã giả lập 22, 23 (hoặc tùy biến) để filter
+          const customValue = s.No === 1 ? 22 : 23; 
+          this.columnStatusOptions.push({
+            label: s.Title,
+            value: customValue
+          });
+        });
       },
       error: (err) => console.error('Error loading project task statuses:', err)
     });
@@ -556,7 +569,19 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
         ...g,
         projects: g.projects.map((p: any) => ({
           ...p,
-          tasks: p.tasks.filter((t: any) => this.filterStatusColumn.includes(t.Status))
+          tasks: p.tasks.filter((t: any) => {
+            if (this.filterStatusColumn.includes(t.Status)) return true;
+            
+            // Xử lý filter cho Approval/Reject
+            const approved = t.IsApproved;
+            const isApproveValue = approved === 1 || approved === true || approved === '1';
+            const isRejectValue = approved === 0 || approved === false || approved === '0';
+            
+            if (this.filterStatusColumn.includes(22) && isApproveValue) return true;
+            if (this.filterStatusColumn.includes(23) && isRejectValue) return true;
+            
+            return false;
+          })
         })).filter((p: any) => p.tasks.length > 0)
       })).filter(g => g.projects.length > 0);
     }
@@ -900,7 +925,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
             if (isPlanned) {
               const fontStyle = this.hasCheckMark(item, dateCol.dateStr) ? { color: { argb: 'FFFFFFFF' }, bold: true } : undefined;
               if (isOutside) {
-                return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFB923C' } }, font: fontStyle }; // Factory work color (#fb923c)
+                return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFB066' } }, font: fontStyle }; // Công tác dự kiến (#ffb066)
               }
               return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + plannedColor } }, font: fontStyle };
             }
@@ -913,7 +938,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
               const isOutside = act.length > 1 ? parseInt(act[1], 10) || 0 : 0;
               if (hours > 0) {
                 if (isOutside === 1) {
-                  return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFB923C' } } }; // Factory work color (#fb923c)
+                  return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF97316' } } }; // Công tác thực tế (#f97316)
                 }
                 return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + actualColor } } };
               }

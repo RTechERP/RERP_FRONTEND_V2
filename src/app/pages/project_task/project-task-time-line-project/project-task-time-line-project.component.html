@@ -106,7 +106,7 @@
                             Trạng Thái
                             <p-multiSelect [options]="statusOptions" [(ngModel)]="filterStatusColumn" placeholder="Tất cả"
                                 [showHeader]="false" [filter]="false" (onChange)="onColumnFilter()"
-                                styleClass="timeline-status-multi" [maxSelectedLabels]="3"
+                                styleClass="timeline-status-multi" panelStyleClass="timeline-status-panel-global" [maxSelectedLabels]="3"
                                 selectedItemsLabel="{0} trạng thái" appendTo="body" />
                         </th>
                         <th rowspan="2" class="sticky-col col-time">Thời gian <br>(giờ/ngày)</th>
@@ -168,8 +168,8 @@
                                     <!-- Trạng thái: span 2 dòng -->
                                     <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-status text-center"
                                         [class.cell-group-end]="ti === group.tasks.length - 1">
-                                        <span class="status-tag" [attr.data-status]="task.Status">
-                                            {{ task.StatusName }}
+                                        <span class="status-tag" [ngStyle]="getStatusStyle(task)">
+                                            {{ getStatusDisplayName(task) }}
                                         </span>
                                     </td>
 

@@ -27,88 +27,88 @@
                 <div class="value">{{ stats()?.totalTasks }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(1, 'Chưa làm')">
-            <div class="stat-icon bg-secondary-soft">
+        <div class="stat-card" (click)="viewStatusDetail(0, getStatusName(0, 'Chưa làm'))">
+            <div class="stat-icon" [style.backgroundColor]="getStatusBgColor(0, '#f1f5f9')" [style.color]="getStatusColor(0, '#64748b')">
                 <i nz-icon nzType="info-circle" nzTheme="outline"></i>
             </div>
             <div class="stat-info">
-                <div class="label">Chưa làm</div>
+                <div class="label">{{ getStatusName(0, 'Chưa làm') }}</div>
                 <div class="value">{{ stats()?.notStarted }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(2, 'Đang thực hiện')">
-            <div class="stat-icon bg-info-soft">
+        <div class="stat-card" (click)="viewStatusDetail(1, getStatusName(1, 'Đang thực hiện'))">
+            <div class="stat-icon" [style.backgroundColor]="getStatusBgColor(1, '#e0f2fe')" [style.color]="getStatusColor(1, '#0ea5e9')">
                 <i nz-icon nzType="sync" nzTheme="outline"></i>
             </div>
             <div class="stat-info">
-                <div class="label">Đang thực hiện</div>
+                <div class="label">{{ getStatusName(1, 'Đang thực hiện') }}</div>
                 <div class="value">{{ stats()?.inProgress }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(21, 'Đang làm quá hạn')">
-            <div class="stat-icon bg-rose-soft">
+        <div class="stat-card" (click)="viewStatusDetail(11, getStatusName(1, 'Đang làm') + ' Overdue')">
+            <div class="stat-icon" [style.backgroundColor]="'#fee2e2'" [style.color]="'#ef4444'">
                 <i nz-icon nzType="warning" nzTheme="outline"></i>
             </div>
             <div class="stat-info">
-                <div class="label">Đang làm quá hạn</div>
+                <div class="label">{{ getStatusName(1, 'Đang làm') }} Overdue</div>
                 <div class="value">{{ stats()?.inProgressOverdue }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(3, 'Hoàn thành')">
-            <div class="stat-icon bg-success-soft">
+        <div class="stat-card" (click)="viewStatusDetail(2, getStatusName(2, 'Hoàn thành'))">
+            <div class="stat-icon" [style.backgroundColor]="getStatusBgColor(2, '#ecfdf5')" [style.color]="getStatusColor(2, '#10b981')">
                 <i nz-icon nzType="check-circle" nzTheme="outline"></i>
             </div>
             <div class="stat-info">
-                <div class="label">Hoàn thành</div>
+                <div class="label">{{ getStatusName(2, 'Hoàn thành') }}</div>
                 <div class="value">{{ stats()?.completed }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(21, 'Hoàn thành quá hạn')">
-            <div class="stat-icon bg-amber-soft">
+        <div class="stat-card" (click)="viewStatusDetail(21, getStatusName(2, 'Hoàn thành') + ' Overdue')">
+            <div class="stat-icon" [style.backgroundColor]="'#fffbeb'" [style.color]="'#f59e0b'">
                 <i nz-icon nzType="history" nzTheme="outline"></i>
             </div>
             <div class="stat-info">
-                <div class="label">Hoàn thành quá hạn</div>
+                <div class="label">{{ getStatusName(2, 'Hoàn thành') }} Overdue</div>
                 <div class="value">{{ stats()?.completedOverdue }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(22, 'Đã duyệt')">
-            <div class="stat-icon bg-audit-soft">
+        <div class="stat-card" (click)="viewStatusDetail(22, getApprovalStatusName(1, 'Đã duyệt'))">
+            <div class="stat-icon" [style.backgroundColor]="getApprovalStatusBgColor(1, '#faf5ff')" [style.color]="getApprovalStatusColor(1, '#a855f7')">
                 <i nz-icon nzType="file-done" nzTheme="outline"></i>
             </div>
             <div class="stat-info">
-                <div class="label">Đã duyệt</div>
+                <div class="label">{{ getApprovalStatusName(1, 'Đã duyệt') }}</div>
                 <div class="value">{{ stats()?.approved }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(23, 'Đã hủy duyệt')">
-            <div class="stat-icon bg-slate-soft">
+        <div class="stat-card" (click)="viewStatusDetail(23, getApprovalStatusName(0, 'Đã hủy duyệt'))">
+            <div class="stat-icon" [style.backgroundColor]="getApprovalStatusBgColor(0, '#f1f5f9')" [style.color]="getApprovalStatusColor(0, '#475569')">
                 <i nz-icon nzType="close-circle" nzTheme="outline"></i>
             </div>
             <div class="stat-info">
-                <div class="label">Đã hủy duyệt</div>
+                <div class="label">{{ getApprovalStatusName(0, 'Đã hủy duyệt') }}</div>
                 <div class="value">{{ stats()?.rejected }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(3, 'Pending')">
-            <div class="stat-icon bg-orange-soft">
+        <div class="stat-card" (click)="viewStatusDetail(3, getStatusName(3, 'Pending'))">
+            <div class="stat-icon" [style.backgroundColor]="getStatusBgColor(3, '#fff7ed')" [style.color]="getStatusColor(3, '#f97316')">
                 <i nz-icon nzType="pause-circle" nzTheme="outline"></i>
             </div>
             <div class="stat-info">
-                <div class="label">Pending</div>
+                <div class="label">{{ getStatusName(3, 'Pending') }}</div>
                 <div class="value">{{ stats()?.pending }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(4, 'Hủy')">
-            <div class="stat-icon bg-rose-soft">
+        <div class="stat-card" (click)="viewStatusDetail(4, getStatusName(4, 'Hủy'))">
+            <div class="stat-icon" [style.backgroundColor]="getStatusBgColor(4, '#fff1f2')" [style.color]="getStatusColor(4, '#f43f5e')">
                 <i nz-icon nzType="stop" nzTheme="outline"></i>
             </div>
             <div class="stat-info">
-                <div class="label">Hủy</div>
+                <div class="label">{{ getStatusName(4, 'Hủy') }}</div>
                 <div class="value">{{ stats()?.cancel }}</div>
             </div>
         </div>
-        <div class="stat-card" (click)="viewStatusDetail(0, 'Chờ phê duyệt')">
+        <div class="stat-card" (click)="viewStatusDetail(99, 'Chờ phê duyệt')">
             <div class="stat-icon bg-audit-soft">
                 <i nz-icon nzType="audit" nzTheme="outline"></i>
             </div>

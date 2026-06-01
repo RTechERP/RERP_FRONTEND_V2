@@ -77,4 +77,12 @@ export class ProjectTaskEfficiencyByTaskService {
             map(response => response.data || [])
         );
     }
+
+    getProjectTaskStatuses(): Observable<any[]> {
+        return this.http.get<IAPIResponse<any>>(
+            `${this.apiUrl}/project-task-status`
+        ).pipe(
+            map(response => response.data?.projectTaskStatuses || [])
+        );
+    }
 }

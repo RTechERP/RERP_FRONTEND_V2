@@ -1,0 +1,95 @@
+<div class="page-container">
+    <p-menubar [model]="menuBars">
+        <ng-template pTemplate="end">
+            <div class="filter-bar d-flex align-items-center gap-2 me-2">
+                <input nz-input placeholder="Tìm kiếm..." [(ngModel)]="searchKeyword" (keyup.enter)="onSearch()" nzSize="small" style="width: 200px;" />
+                <nz-select [(ngModel)]="selectedStatus" nzSize="small" style="width: 150px;" (ngModelChange)="loadUsers()">
+                    <nz-option *ngFor="let option of statusOptions" [nzValue]="option.value" [nzLabel]="option.label">
+                    </nz-option>
+                </nz-select>
+                <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                    <span nz-icon nzType="search"></span>
+                    Tìm kiếm
+                </button>
+            </div>
+        </ng-template>
+    </p-menubar>
+
+    <div class="table-container">
+        <div *ngIf="isLoading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                  background: rgba(255,255,255,0.6); z-index: 999;
+                  display: flex; align-items: center; justify-content: center;">
+            <nz-spin nzSimple></nz-spin>
+        </div>
+
+        <p-table #dt [value]="tableData" [loading]="isLoading" dataKey="ID" [scrollable]="true" scrollHeight="flex" styleClass="p-datatable-sm p-datatable-gridlines" [paginator]="true" [rows]="20" [rowsPerPageOptions]="[20, 50, 100]" selectionMode="multiple" [(selection)]="selectedUsers" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)" (onHeaderCheckboxToggle)="onHeaderCheckboxToggle($event)" (onRowDoubleClick)="onRowDoubleClick($event)" (onSort)="onSort($event)" [showCurrentPageReport]="true" currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} bản ghi" [tableStyle]="{'min-width': '50rem'}">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="width: 3rem; text-align: center;">
+                        <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                    </th>
+                    <th style="width: 3rem; text-align: center;">STT</th>
+
+
+                    <th pSortableColumn="FullName" style="width: 180px;">Họ tên
+                        <p-sortIcon field="FullName" />
+                    </th>
+                    <th pSortableColumn="Email" style="width: 200px;">Email
+                        <p-sortIcon field="Email" />
+                    </th>
+                    <th pSortableColumn="Status" style="width: 120px;">Trạng thái
+                        <p-sortIcon field="Status" />
+                    </th>
+                    <th pSortableColumn="CreatedDate" style="width: 120px;">Ngày tạo
+                        <p-sortIcon field="CreatedDate" />
+                    </th>
+                </tr>
+                <tr class="p-column-filter-row">
+                    <th></th>
+                    <th></th>
+
+                    <th>
+                        <p-columnFilter type="text" field="FullName" matchMode="contains" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
+                    </th>
+                    <th>
+                        <p-columnFilter type="text" field="Email" matchMode="contains" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
+                    </th>
+                    <th>
+                        <p-columnFilter type="text" field="Status" matchMode="contains" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
+                    </th>
+                    <th>
+                        <p-columnFilter type="date" field="CreatedDate" matchMode="dateIs" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
+                    </th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                <tr [pSelectableRow]="item">
+                    <td style="text-align: center;">
+                        <p-tableCheckbox [value]="item"></p-tableCheckbox>
+                    </td>
+                    <td style="text-align: center;">{{ (dt.first ?? 0) + rowIndex + 1 }}</td>
+                    <td>{{ item.FullName }}</td>
+                    <td>{{ item.Email }}</td>
+                    <td>
+                        <ng-container [ngSwitch]="item.Status">
+                            <span *ngSwitchCase="0" class="badge bg-success">Hoạt động</span>
+                            <span *ngSwitchCase="1" class="badge bg-warning">Khoá</span>
+                            <span *ngSwitchDefault class="badge bg-secondary">Chưa kích hoạt</span>
+                        </ng-container>
+                    </td>
+                    <td>{{ item.CreatedDate | date:'dd/MM/yyyy' }}</td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 20px; color: #8c8c8c;">
+                        Không có dữ liệu
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>

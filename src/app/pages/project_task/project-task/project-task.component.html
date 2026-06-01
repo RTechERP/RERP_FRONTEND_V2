@@ -95,9 +95,9 @@
             <div class="search-field">
                 <label class="search-label">Trạng thái</label>
                 <p-multiSelect [options]="taskStatusOptions" [(ngModel)]="filterStatus"
-                    placeholder="All" [maxSelectedLabels]="1" selectedItemsLabel="..."
-                    styleClass="status-filter-multi" [filter]="false" appendTo="body" scrollHeight="400px"
-                    [style]="{'width': '120px', 'height': '28px', 'font-size': '12px', 'line-height': '28px'}">
+                    placeholder="All" [maxSelectedLabels]="5" selectedItemsLabel="..."
+                    styleClass="status-filter-multi" panelStyleClass="timeline-status-panel-global" [filter]="false" appendTo="body" scrollHeight="400px"
+                    [style]="{'min-width': '200px', 'max-width': '450px', 'height': '28px', 'font-size': '12px', 'line-height': '28px'}">
                 </p-multiSelect>
             </div>
             <div class="search-field">
@@ -218,8 +218,8 @@
                         <div class="filter-item">
                             <label>Trạng thái</label>
                             <p-multiSelect [options]="taskStatusOptions" [(ngModel)]="filterStatus"
-                                placeholder="All" [maxSelectedLabels]="1" selectedItemsLabel="..."
-                                styleClass="mobile-input w-100" [filter]="false" appendTo="body" scrollHeight="400px">
+                                placeholder="All" [maxSelectedLabels]="5" selectedItemsLabel="..."
+                                styleClass="mobile-input w-100" panelStyleClass="timeline-status-panel-global" [filter]="false" appendTo="body" scrollHeight="400px">
                             </p-multiSelect>
                         </div>
                         <div class="filter-item">
@@ -251,14 +251,14 @@
             <ng-template pTemplate="header">
                 <tr>
                     @if (activeTab() === 'myApproval') {
-                    <th style="width: 3rem">
+                    <th style="width: 3rem; min-width: 3rem; max-width: 3rem; text-align: center;">
                         <input type="checkbox" [checked]="isAllPendingSelected()" [indeterminate]="isIndeterminate()"
                             (change)="toggleSelectAllPending($any($event.target).checked)"
                             style="cursor: pointer; width: 16px; height: 16px;">
                     </th>
                     }
                     @if (activeTab() === 'related') {
-                    <th style="width: 3rem">
+                    <th style="width: 3rem; min-width: 3rem; max-width: 3rem; text-align: center;">
                         <input type="checkbox" [checked]="isAllRelatedSelected()"
                             [indeterminate]="isRelatedIndeterminate()"
                             (change)="toggleSelectAllRelated($any($event.target).checked)"
@@ -358,18 +358,18 @@
                 </tr>
                 <tr>
                     @if (activeTab() === 'myApproval') {
-                    <th></th>
+                    <th style="width: 3rem; min-width: 3rem; max-width: 3rem;"></th>
                     }
                     @if (activeTab() === 'related') {
-                    <th></th>
+                    <th style="width: 3rem; min-width: 3rem; max-width: 3rem;"></th>
                     }
                     <th style="text-align: center;">
                         <p-columnFilter field="DisplayStatus" matchMode="in" [showMenu]="false">
                             <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                                 <p-multiSelect [options]="statusOptions" [ngModel]="value"
                                     (onChange)="filter($event.value)" placeholder="Tất cả" [showHeader]="false"
-                                    [filter]="false" class="status-filter-multi" [maxSelectedLabels]="1"
-                                    selectedItemsLabel="..." appendTo="body" />
+                                    [filter]="false" class="status-filter-multi" [maxSelectedLabels]="5"
+                                    selectedItemsLabel="..." panelStyleClass="timeline-status-panel-global" appendTo="body" />
                             </ng-template>
                         </p-columnFilter>
                     </th>
@@ -384,7 +384,7 @@
                                 <p-multiSelect [options]="projectOptions" [ngModel]="value"
                                     (onChange)="filter($event.value)" placeholder="Tất cả"
                                     [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
-                                    selectedItemsLabel="..." appendTo="body" />
+                                    selectedItemsLabel="..." panelStyleClass="timeline-status-panel-global" appendTo="body" />
                             </ng-template>
                         </p-columnFilter>
                     </th>
@@ -395,7 +395,7 @@
                                 <p-multiSelect [options]="assignerOptions" [ngModel]="value"
                                     (onChange)="filter($event.value)" placeholder="Tất cả"
                                     [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
-                                    selectedItemsLabel="..." appendTo="body" />
+                                    selectedItemsLabel="..." panelStyleClass="timeline-status-panel-global" appendTo="body" />
                             </ng-template>
                         </p-columnFilter>
                     </th>
@@ -407,7 +407,7 @@
                                 <p-multiSelect [options]="assigneeOptions" [ngModel]="value"
                                     (onChange)="filter($event.value)" placeholder="Tất cả"
                                     [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
-                                    selectedItemsLabel="..." appendTo="body" />
+                                    selectedItemsLabel="..." panelStyleClass="timeline-status-panel-global" appendTo="body" />
                             </ng-template>
                         </p-columnFilter>
                     </th>
@@ -555,7 +555,7 @@
                                 <p-multiSelect [options]="deptAssignerOptions" [ngModel]="value"
                                     (onChange)="filter($event.value)" placeholder="Tất cả"
                                     [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
-                                    selectedItemsLabel="..." appendTo="body" />
+                                    selectedItemsLabel="..." panelStyleClass="timeline-status-panel-global" appendTo="body" />
                             </ng-template>
                         </p-columnFilter>
                     </th>
@@ -567,7 +567,7 @@
                                 <p-multiSelect [options]="deptAssigneeOptions" [ngModel]="value"
                                     (onChange)="filter($event.value)" placeholder="Tất cả"
                                     [filter]="true" class="status-filter-multi" [maxSelectedLabels]="1"
-                                    selectedItemsLabel="..." appendTo="body" />
+                                    selectedItemsLabel="..." panelStyleClass="timeline-status-panel-global" appendTo="body" />
                             </ng-template>
                         </p-columnFilter>
                     </th>
@@ -599,13 +599,13 @@
                 <tr (click)="selectTaskForCopy(task)" [class.row-selected]="selectedTaskForCopy?.ID === task.ID"
                     (contextmenu)="onCellContextMenu($event, cm, task)">
                     @if (activeTab() === 'myApproval') {
-                    <td style="text-align: center;" (click)="$event.stopPropagation()">
+                    <td style="width: 3rem; min-width: 3rem; max-width: 3rem; text-align: center;" (click)="$event.stopPropagation()">
                         <p-tableCheckbox [value]="task"
                             [disabled]="task.Status !== 2 || task.ApprovalStatus === true || task.ApprovalStatus === false" />
                     </td>
                     }
                     @if (activeTab() === 'related') {
-                    <td style="text-align: center;" (click)="$event.stopPropagation()">
+                    <td style="width: 3rem; min-width: 3rem; max-width: 3rem; text-align: center;" (click)="$event.stopPropagation()">
                         <p-tableCheckbox [value]="task" />
                     </td>
                     }

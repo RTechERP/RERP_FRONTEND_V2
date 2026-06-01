@@ -745,8 +745,10 @@
 }
 
 :host ::ng-deep .p-checkbox .p-checkbox-box {
-    width: 18px;
-    height: 18px;
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    flex-shrink: 0 !important;
 }
 
 /* Loading state */
@@ -1042,4 +1044,11 @@
 :host ::ng-deep .p-select-label {
     padding: 2px !important;
 
+}
+
+/* Fix missing width on PrimeNG checkbox when appendTo="body" */
+::ng-deep .timeline-status-panel-global .p-checkbox .p-checkbox-box {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0 !important;
 }

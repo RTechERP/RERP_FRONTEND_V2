@@ -19,6 +19,12 @@ export class SummaryKpiErrorEmployeeService {
     return this.http.get(this._url + 'get-department');
   }
 
+  // Lấy hình ảnh từ server dưới dạng Blob
+  getImageFile(fileName: string): Observable<Blob> {
+    const params = new HttpParams().set('fileName', fileName);
+    return this.http.get(environment.host + 'api/KPIErrorEmployee/get-image', { params, responseType: 'blob' });
+  }
+
   // Lấy danh sách loại lỗi
   getKPIErrorType(): Observable<any> {
     return this.http.get(this._url + 'get-kpi-error-type');

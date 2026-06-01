@@ -276,14 +276,40 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
 
     loadImage(item: any): void {
         this.selectedFileRow = item;
-        this.imageUrl = this.getImageUrl(item);
-        this.isImageVisible = !!this.imageUrl;
+        this.imageUrl = '';
+        if (item && item.FileName) {
+            this.service.getImageFile(item.FileName).subscribe({
+                next: (blob) => {
+                    this.imageUrl = URL.createObjectURL(blob);
+                    this.isImageVisible = true;
+                },
+                error: (err) => {
+                    this.notification.error('Lỗi', 'Không thể tải ảnh');
+                    this.isImageVisible = false;
+                }
+            });
+        } else {
+            this.isImageVisible = false;
+        }
     }
 
     loadImageEmployee(item: any): void {
         this.selectedEmployeeRow = item;
-        this.imageUrlEmployee = this.getImageUrl(item);
-        this.isImageEmployeeVisible = !!this.imageUrlEmployee;
+        this.imageUrlEmployee = '';
+        if (item && item.FileName) {
+            this.service.getImageFile(item.FileName).subscribe({
+                next: (blob) => {
+                    this.imageUrlEmployee = URL.createObjectURL(blob);
+                    this.isImageEmployeeVisible = true;
+                },
+                error: (err) => {
+                    this.notification.error('Lỗi', 'Không thể tải ảnh');
+                    this.isImageEmployeeVisible = false;
+                }
+            });
+        } else {
+            this.isImageEmployeeVisible = false;
+        }
     }
 
     onTableRowClick(item: any, imageMode?: 'file' | 'employee'): void {
@@ -297,10 +323,15 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
 
     onTableRowDblClick(item: any, imageMode?: 'file' | 'employee'): void {
         if (!imageMode || !item?.FileName) return;
-        const url = this.getImageUrl(item);
-        if (url) {
-            window.open(url, '_blank');
-        }
+        this.service.getImageFile(item.FileName).subscribe({
+            next: (blob) => {
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            },
+            error: (err) => {
+                this.notification.error('Lỗi', 'Không thể mở ảnh');
+            }
+        });
     }
 
     searchTab2(): void {

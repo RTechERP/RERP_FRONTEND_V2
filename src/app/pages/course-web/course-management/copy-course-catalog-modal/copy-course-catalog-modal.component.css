@@ -1,0 +1,8 @@
+.checkbox-group {
+    margin-bottom: 8px;
+}
+
+.modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+}

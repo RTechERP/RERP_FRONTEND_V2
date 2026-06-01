@@ -60,13 +60,9 @@ export class ProjectTaskTimeLineProjectComponent implements OnInit {
   // ===== Dropdown data =====
   projectList: any[] = [];
 
-  statusOptions = [
-    { label: 'Chưa làm', value: 0 },
-    { label: 'Đang làm', value: 1 },
-    { label: 'Hoàn thành', value: 2 },
-    { label: 'Pending', value: 3 },
-    { label: 'Hủy', value: 4 }
-  ];
+  statusOptions: any[] = [];
+  allStatuses: any[] = [];
+  private statusMap = new Map<string, any>();
 
   // ===== Trạng thái =====
   loading = signal(false);
@@ -83,7 +79,30 @@ export class ProjectTaskTimeLineProjectComponent implements OnInit {
 
   ngOnInit() {
     this.loadProjects();
-    this.loadTimeline();
+    this.loadProjectTaskStatuses();
+  }
+
+  loadProjectTaskStatuses(): void {
+    this.timelineService.getProjectTaskStatuses().subscribe({
+      next: (statuses) => {
+        this.allStatuses = statuses;
+        this.statusMap.clear();
+        statuses.forEach((s: any) => {
+          this.statusMap.set(`${s.Type}_${s.No}`, s);
+        });
+        const type1Statuses = statuses.filter((s: any) => s.Type === 1);
+        this.statusOptions = type1Statuses.map((s: any) => ({
+          label: s.Title,
+          value: s.No
+        }));
+
+        this.loadTimeline();
+      },
+      error: (err) => {
+        console.error('Error loading project task statuses:', err);
+        this.loadTimeline(); // Fallback
+      }
+    });
   }
 
   // ===== NGÀY MẶC ĐỊNH: THÁNG TRƯỚC → THÁNG SAU =====
@@ -249,6 +268,10 @@ export class ProjectTaskTimeLineProjectComponent implements OnInit {
           ProjectTaskParentTitle: item.ProjectTaskParentTitle || '',
           Status: item.Status,
           StatusName: this.getStatusName(item.Status),
+          PlanEndDate: item.PlanEndDate,
+          ActualEndDate: item.ActualEndDate,
+          IsApproved: item.IsApproved,
+          IsApprove: item.IsApprove,
           planned: null,
           actual: null
         });
@@ -305,7 +328,19 @@ export class ProjectTaskTimeLineProjectComponent implements OnInit {
     if (this.filterStatusColumn && this.filterStatusColumn.length > 0) {
       groups = groups.map(g => ({
         ...g,
-        tasks: g.tasks.filter((t: any) => this.filterStatusColumn.includes(t.Status))
+        tasks: g.tasks.filter((t: any) => {
+          if (this.filterStatusColumn.includes(t.Status)) return true;
+          
+          // Xử lý filter cho Approval/Reject
+          const approved = t.IsApproved ?? t.IsApprove;
+          const isApproveValue = approved === 1 || approved === true || approved === '1';
+          const isRejectValue = approved === 0 || approved === false || approved === '0';
+          
+          if (this.filterStatusColumn.includes(22) && isApproveValue) return true;
+          if (this.filterStatusColumn.includes(23) && isRejectValue) return true;
+          
+          return false;
+        })
       })).filter(g => g.tasks.length > 0);
     }
 
@@ -343,6 +378,78 @@ export class ProjectTaskTimeLineProjectComponent implements OnInit {
   }
 
   // ===== TRẠNG THÁI =====
+
+  private isTaskOverdue(task: any): boolean {
+    const approved = task.IsApproved ?? task.IsApprove;
+    if (approved === 1 || approved === true || approved === '1') {
+      return false;
+    }
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const planEnd = task.PlanEndDate ? new Date(task.PlanEndDate) : null;
+    if (planEnd) planEnd.setHours(0, 0, 0, 0);
+
+    const dueDate = task.ActualEndDate ? new Date(task.ActualEndDate) : null;
+    if (dueDate) dueDate.setHours(0, 0, 0, 0);
+
+    // Nếu đã hoàn thành (Status 2): quá hạn nếu ngày thực tế > ngày dự kiến
+    if (task.Status === 2) {
+      return !!(dueDate && planEnd && dueDate > planEnd);
+    }
+
+    // Nếu chưa hoàn thành (Status 0, 1): quá hạn nếu ngày hiện tại > ngày dự kiến
+    if (task.Status === 0 || task.Status === 1) {
+      return !!(planEnd && planEnd < now);
+    }
+
+    return false;
+  }
+
+  getTaskStatusConfig(task: any): any {
+    const approved = task.IsApproved ?? task.IsApprove;
+    if (approved === 0 || approved === false || approved === '0') {
+      return this.statusMap.get('2_0') || this.allStatuses.find(s => s.Type === 2 && s.No === 0);
+    } else if (approved === 1 || approved === true || approved === '1') {
+      return this.statusMap.get('2_1') || this.allStatuses.find(s => s.Type === 2 && s.No === 1);
+    } else {
+      return this.statusMap.get(`1_${task.Status}`) || this.allStatuses.find(s => s.Type === 1 && s.No === task.Status);
+    }
+  }
+
+  getStatusDisplayName(task: any): string {
+    const statusConfig = this.getTaskStatusConfig(task);
+    const baseName = statusConfig ? statusConfig.Title : this.getStatusName(task.Status);
+    const isOverdue = this.isTaskOverdue(task);
+
+    if (isOverdue) {
+      return baseName + '\nOverdue';
+    }
+
+    return baseName;
+  }
+
+  getStatusStyle(node: any): { [key: string]: string } {
+    if (this.isTaskOverdue(node)) {
+      // Overdue sẽ dùng màu cơ bản nhưng thêm logic overdue (tuỳ chọn) hoặc trả về css overdue
+      // Trong component tổng nó trả về {} để dùng class CSS .overdue mặc định, ta làm tương tự:
+      // Nhưng wait! Thẻ HTML của ta chưa có [class.overdue]="isTaskOverdue(task)"
+      // Vậy ta nên trả về màu đỏ ở đây.
+      return {
+        'background-color': '#fff1f2',
+        'color': '#e11d48'
+      };
+    }
+    const statusConfig = this.getTaskStatusConfig(node);
+    if (statusConfig) {
+      return {
+        'background-color': statusConfig.ColorBackground ? statusConfig.ColorBackground.trim() : '#f1f5f9',
+        'color': statusConfig.ColorFont ? statusConfig.ColorFont.trim() : '#475569'
+      };
+    }
+    return {};
+  }
 
   getStatusName(status: number): string {
     switch (status) {

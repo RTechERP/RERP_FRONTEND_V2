@@ -99,7 +99,8 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
     { label: 'Đã duyệt', value: 22 },
     { label: 'Đã hủy duyệt', value: 23 },
     { label: 'Pending', value: 3 },
-    { label: 'Hủy', value: 4 }
+    { label: 'Hủy', value: 4 },
+    { label: 'Chờ phê duyệt', value: 99 }
   ];
 
   ngOnInit() {
@@ -150,7 +151,7 @@ export class ProjectTaskStatusDetailComponent implements OnInit {
         const results = processedTasks.filter((t: any) => {
           // Status filter
           let matchesStatus = false;
-          if (this.statusId === 0) {
+          if (this.statusId === 99) {
               matchesStatus = (t.Status === 2 && t.ApprovalStatus === null);
           } else {
               matchesStatus = (t.DisplayStatus === this.statusId);

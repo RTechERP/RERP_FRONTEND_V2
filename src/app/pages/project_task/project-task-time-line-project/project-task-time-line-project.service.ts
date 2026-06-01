@@ -59,4 +59,10 @@ export class ProjectTaskTimeLineProjectService {
             })
         );
     }
+
+    getProjectTaskStatuses(): Observable<any> {
+        return this.http.get(`${this.apiUrl}/project-task-status`).pipe(
+            map((res: any) => res.data?.projectTaskStatuses || [])
+        );
+    }
 }

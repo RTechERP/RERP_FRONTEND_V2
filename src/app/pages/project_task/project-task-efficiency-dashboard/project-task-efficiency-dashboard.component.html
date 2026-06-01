@@ -1,0 +1,169 @@
+<div class="dashboard-container">
+  <!-- ===== PHẦN TÌM KIẾM ===== -->
+  <div class="card border-0 rounded-0 sticky-header mb-3">
+    <div class="card-header bg-white p-2">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <h6 class="m-0 text-uppercase fw-bold">DASHBOARD ĐÁNH GIÁ HIỆU SUẤT NHÂN VIÊN THEO TASK / DỰ ÁN</h6>
+      </div>
+      <nz-row [nzGutter]="[8, 8]" nzAlign="bottom" nzJustify="start">
+        <!-- Từ ngày -->
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="4">
+          <div class="form-field-vertical">
+            <label>Từ ngày</label>
+            <input type="date" [(ngModel)]="dateStart" name="dateStart"
+              style="width: 100%; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box; height: 32px;" />
+          </div>
+        </nz-col>
+
+        <!-- Đến ngày -->
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="4">
+          <div class="form-field-vertical">
+            <label>Đến ngày</label>
+            <input type="date" [(ngModel)]="dateEnd" name="dateEnd"
+              style="width: 100%; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 4px; box-sizing: border-box; height: 32px;" />
+          </div>
+        </nz-col>
+
+        <!-- Dự án -->
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="7" [nzXl]="6">
+          <div class="form-field-vertical">
+            <label>Dự án</label>
+            <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown" nzPlaceHolder="Chọn dự án" [(ngModel)]="projectId" nzSize="small" nzShowSearch nzAllowClear
+              style="width: 100%; height: 32px; line-height: 32px;">
+              <nz-option *ngFor="let item of projectList; trackBy: trackByRow" 
+                nzCustomContent
+                [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
+                <div class="multiline-dropdown-option" style="white-space: normal; line-height: 1.2; padding: 4px 0;">
+                    {{ item.ProjectCode }} - {{ item.ProjectName }}
+                </div>
+              </nz-option>
+            </nz-select>
+          </div>
+        </nz-col>
+
+        <!-- Nút tra cứu -->
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3" [nzXl]="3">
+          <button nz-button nzType="primary" (click)="searchData()" [nzLoading]="loading()"
+            style="width: 100%; border-radius: 4px; font-weight: 500; height: 32px; background-color: #174276; border-color: #174276;">
+            <i nz-icon nzType="search"></i> Tra cứu
+          </button>
+        </nz-col>
+      </nz-row>
+    </div>
+  </div>
+
+  <!-- Scrollable Content wrapper -->
+  <div class="dashboard-scroll-content" *ngIf="totalSummary() || employeeData().length > 0">
+    <!-- Data Display -->
+    <div class="data-section">
+      <div class="data-flex-row">
+        
+        <!-- Left: Total Summary (chiều cao tự nhiên, quyết định chiều cao hàng) -->
+        <div class="data-col-left">
+          <div class="summary-table">
+            <div class="summary-row">
+              <div class="summary-label">Tổng task</div>
+              <div class="summary-value">{{ totalSummary()?.TaskCount || 0 }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="summary-label">Task hoàn thành</div>
+              <div class="summary-value">{{ totalSummary()?.DoneTasks || 0 }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="summary-label">Tổng estimate giờ</div>
+              <div class="summary-value">{{ totalSummary()?.TotalEstimate || 0 }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="summary-label">Tổng actual giờ</div>
+              <div class="summary-value">{{ totalSummary()?.TotalActual || 0 }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="summary-label">Hiệu suất giờ tổng</div>
+              <div class="summary-value">{{ formatPercent(totalSummary()?.Efficiency) }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="summary-label">Tỷ lệ đúng deadline</div>
+              <div class="summary-value">{{ formatPercent(totalSummary()?.DeadlineRate) }}</div>
+            </div>
+            <div class="summary-row">
+              <div class="summary-label">Tỷ lệ OT tổng</div>
+              <div class="summary-value">{{ formatPercent(totalSummary()?.OTRatio) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Employee Table (khớp chiều cao bảng trái, scroll nội bộ) -->
+        <div class="data-col-right">
+          <div class="employee-table-wrapper">
+            <nz-table #basicTable [nzData]="employeeData()" [nzFrontPagination]="false" [nzBordered]="true" nzSize="small" [nzShowPagination]="false">
+              <thead>
+                <tr>
+                  <th class="custom-th">Employee</th>
+                  <th class="custom-th" nzAlign="right">Efficiency</th>
+                  <th class="custom-th" nzAlign="right">Deadline Rate</th>
+                  <th class="custom-th" nzAlign="right">OT Ratio</th>
+                  <th class="custom-th" nzAlign="right">Final KPI</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let data of basicTable.data; trackBy: trackByRow">
+                  <td>{{ data.EmployeeFullName }}</td>
+                  <td nzAlign="right">{{ formatPercent(data.Efficiency) }}</td>
+                  <td nzAlign="right">{{ formatPercent(data.DeadlineRate) }}</td>
+                  <td nzAlign="right">{{ formatPercent(data.OTRatio) }}</td>
+                  <td nzAlign="right">{{ formatPercent(data.FinalKPIScore) }}</td>
+                </tr>
+              </tbody>
+            </nz-table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section" *ngIf="employeeData().length > 0">
+      <!-- Gợi ý -->
+      <div class="chart-tip">
+        <strong>Gợi ý đọc chỉ số:</strong> KPI tốt nhất là đúng deadline, gần/nhanh hơn estimate, ít OT và dao động hiệu suất thấp.
+        Nếu đúng deadline nhưng Actual &gt; Estimate và OT cao thì là 'cứu tiến độ bằng làm thêm giờ', không phải hiệu suất thật.
+      </div>
+
+      <div class="charts-flex-row">
+        <!-- Chart 1: Efficiency theo nhân viên -->
+        <div class="chart-box">
+          <div echarts [options]="timeChartOptions" style="width: 100%; height: 350px;"></div>
+        </div>
+
+        <!-- Chart 2: Tỷ lệ đúng hạn theo nhân viên -->
+        <div class="chart-box">
+          <div echarts [options]="efficiencyChartOptions" style="width: 100%; height: 350px;"></div>
+        </div>
+      </div>
+
+      <div class="charts-flex-row" style="margin-top: 24px;">
+        <!-- Chart 3: Độ ổn định công việc -->
+        <div class="chart-box">
+          <div echarts [options]="stabilityChartOptions" style="width: 100%; height: 350px;"></div>
+        </div>
+
+        <!-- Chart 4: OT Ratio theo nhân viên -->
+        <div class="chart-box">
+          <div echarts [options]="otChartOptions" style="width: 100%; height: 350px;"></div>
+        </div>
+      </div>
+
+      <div class="charts-flex-row" style="margin-top: 24px;">
+        <!-- Chart 5: Final KPI -->
+        <div class="chart-box">
+          <div echarts [options]="finalKpiChartOptions" style="width: 100%; height: 350px;"></div>
+        </div>
+
+        <!-- Chart 6: KPI Tổng hợp -->
+        <div class="chart-box">
+          <div echarts [options]="kpiSummaryChartOptions" style="width: 100%; height: 350px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

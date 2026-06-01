@@ -15,7 +15,10 @@
                         <span class="box actual"></span> Thực tế
                     </div>
                     <div class="legend-item">
-                        <span class="box outside-work"></span> Nhà máy
+                        <span class="box outside-work-planned"></span> Công tác dự kiến
+                    </div>
+                    <div class="legend-item">
+                        <span class="box outside-work-actual"></span> Công tác thực tế
                     </div>
                     <div class="legend-item"><span class="legend-sep">|</span></div>
                     <div class="legend-item"><strong>Ro</strong>&nbsp;= Nghỉ không lương</div>
@@ -141,29 +144,29 @@
                         <th rowspan="2" class="sticky-col col-member">
                             Nhân viên
                             <p-multiSelect [options]="memberOptions" [(ngModel)]="filterMemberColumn"
-                                placeholder="Tất cả" [showHeader]="false" [filter]="true" (onChange)="onColumnFilter()"
-                                styleClass="timeline-status-multi" [maxSelectedLabels]="3"
+                                placeholder="Tất cả" [filter]="true" filterPlaceHolder="Tìm..." (onChange)="onColumnFilter()"
+                                styleClass="timeline-status-multi" panelStyleClass="timeline-status-panel-global" [maxSelectedLabels]="3"
                                 selectedItemsLabel="{0} người" appendTo="body" />
                         </th>
                         <th rowspan="2" class="sticky-col col-dept">
                             Phòng ban
                             <p-multiSelect [options]="deptOptions" [(ngModel)]="filterDeptColumn" placeholder="Tất cả"
                                 [showHeader]="false" [filter]="true" (onChange)="onColumnFilter()"
-                                styleClass="timeline-status-multi" [maxSelectedLabels]="3"
+                                styleClass="timeline-status-multi" panelStyleClass="timeline-status-panel-global" [maxSelectedLabels]="3"
                                 selectedItemsLabel="{0} phòng" appendTo="body" />
                         </th>
                         <th rowspan="2" class="sticky-col col-category">
                             Hạng mục
                             <p-multiSelect [options]="categoryOptions" [(ngModel)]="filterCategoryColumn"
                                 placeholder="Tất cả" [showHeader]="false" [filter]="true" (onChange)="onColumnFilter()"
-                                styleClass="timeline-status-multi" [maxSelectedLabels]="3" selectedItemsLabel="{0} mục"
+                                styleClass="timeline-status-multi" panelStyleClass="timeline-status-panel-global" [maxSelectedLabels]="3" selectedItemsLabel="{0} mục"
                                 appendTo="body" />
                         </th>
                         <th rowspan="2" class="sticky-col col-status">
                             Trạng Thái
-                            <p-multiSelect [options]="statusOptions" [(ngModel)]="filterStatusColumn"
+                            <p-multiSelect [options]="columnStatusOptions" [(ngModel)]="filterStatusColumn"
                                 placeholder="Tất cả" [showHeader]="false" [filter]="false" (onChange)="onColumnFilter()"
-                                styleClass="timeline-status-multi" [maxSelectedLabels]="3"
+                                styleClass="timeline-status-multi" panelStyleClass="timeline-status-panel-global" [maxSelectedLabels]="3"
                                 selectedItemsLabel="{0} trạng thái" appendTo="body" />
                         </th>
                         <th rowspan="2" class="sticky-col col-time text-center">

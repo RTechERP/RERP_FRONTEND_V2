@@ -1,0 +1,41 @@
+:host ::ng-deep .ant-tabs-content {
+    height: 60vh;
+    min-height: 450px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+}
+
+:host ::ng-deep .ant-tabs-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+:host ::ng-deep .ant-tabs-content::-webkit-scrollbar-thumb {
+    background-color: #c1c1c1;
+    border-radius: 4px;
+}
+
+/* Ghim cụm nút Toolbar (Sao chép, Nhập nhanh...) lên trên cùng */
+.kpi-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    background: #fff;
+    padding-top: 5px;
+    padding-bottom: 10px;
+    margin-bottom: 0 !important;
+}
+
+/* Ghim đầu bảng (Header) ở phía dưới Toolbar */
+:host ::ng-deep .ant-table-thead>tr>th {
+    position: sticky;
+    top: 24px;
+    /* Giảm xuống để khít với Toolbar phía trên */
+    z-index: 10;
+    background: #f7f7f7 !important;
+    box-shadow: 0 1px 0 #e8e8e8;
+}
+
+::ng-deep .ant-table-placeholder td.nz-disable-td {
+    height: 49vh !important;
+}

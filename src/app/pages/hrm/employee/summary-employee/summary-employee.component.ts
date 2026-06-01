@@ -562,7 +562,7 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
       { id: 'DateRegister', name: 'Ngày', field: 'DateRegister', width: 120, sortable: true, formatter: this.formatDateOnly, filterable: true, filter: { model: Filters['compoundDate'] } },
       { id: 'TimeStart', name: 'Từ', field: 'TimeStart', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
       { id: 'EndTime', name: 'Đến', field: 'EndTime', width: 140, sortable: true, formatter: this.formatDate, filterable: true, filter: { model: Filters['compoundDate'] } },
-      { id: 'TotalTime', name: 'Số giờ', field: 'TotalTime', width: 80, sortable: true, cssClass: 'text-right', filterable: true, filter: { model: Filters['compoundInputNumber'] } },
+      { id: 'TimeReality', name: 'Số giờ', field: 'TimeReality', width: 80, sortable: true, cssClass: 'text-right', filterable: true, filter: { model: Filters['compoundInputNumber'] } },
       { id: 'ProjectName', name: 'Dự án', field: 'ProjectName', width: 150, sortable: true, filterable: true, filter: { model: Filters['compoundInputText'] } },
       {
         id: 'LocationText', name: 'Địa điểm', field: 'LocationText', width: 150, sortable: true, filterable: true,
@@ -725,7 +725,7 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
 
   angularGridOverTimeReady(angularGrid: AngularGridInstance): void {
     this.angularGridOverTime = angularGrid;
-    this.setupFooterRowUpdate(angularGrid, 'EmployeeFullName', ['TotalTime']);
+    this.setupFooterRowUpdate(angularGrid, 'EmployeeFullName', ['TimeReality']);
   }
 
   angularGridBussinessReady(angularGrid: AngularGridInstance): void {
@@ -806,7 +806,7 @@ export class SummaryEmployeeComponent implements OnInit, AfterViewInit, OnDestro
   private updateAllFooterRows(): void {
     this.updateFooterRow(this.angularGridOnLeave, 'EmployeeLeave', []);
     this.updateFooterRow(this.angularGridEarlyLate, 'EmployeeEarlyLate', ['TimeRegister']);
-    this.updateFooterRow(this.angularGridOverTime, 'EmployeeFullName', ['TotalTime']);
+    this.updateFooterRow(this.angularGridOverTime, 'EmployeeFullName', ['TimeReality']);
     this.updateFooterRow(this.angularGridBussiness, 'EmployeeName', ['TotalMoney']);
     this.updateFooterRow(this.angularGridWFH, 'EmployeeName', []);
     this.updateFooterRow(this.angularGridENF, 'EmployeeName', []);

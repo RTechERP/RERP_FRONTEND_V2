@@ -53,6 +53,7 @@
                     <nz-date-picker
                       formControlName="DateStart"
                       style="width: 100%"
+                      nzFormat="dd/MM/yyyy"
                       placeholder="Ngày bắt đầu"
                     ></nz-date-picker>
                   </nz-form-control>
@@ -63,6 +64,7 @@
                     <nz-date-picker
                       formControlName="DateExpried"
                       style="width: 100%"
+                      nzFormat="dd/MM/yyyy"
                       placeholder="Ngày hết hạn"
                     ></nz-date-picker>
                   </nz-form-control>
@@ -84,7 +86,7 @@
           <nz-form-item style="margin-bottom: 16px;">
             <nz-form-label>Ngày hết hạn TGCN</nz-form-label>
             <nz-form-control>
-              <nz-date-picker formControlName="DateExpriedOfficialQuota" style="width: 100%" placeholder="Ngày hết hạn TGCN"></nz-date-picker>
+              <nz-date-picker formControlName="DateExpriedOfficialQuota" style="width: 100%" nzFormat="dd/MM/yyyy" placeholder="Ngày hết hạn TGCN"></nz-date-picker>
             </nz-form-control>
           </nz-form-item>
 
@@ -98,7 +100,7 @@
           <nz-form-item style="margin-bottom: 16px;">
             <nz-form-label>Ngày hết hạn TGTN</nz-form-label>
             <nz-form-control>
-              <nz-date-picker formControlName="DateExpriedUnofficialQuota" style="width: 100%" placeholder="Ngày hết hạn TGTN"></nz-date-picker>
+              <nz-date-picker formControlName="DateExpriedUnofficialQuota" style="width: 100%" nzFormat="dd/MM/yyyy" placeholder="Ngày hết hạn TGTN"></nz-date-picker>
             </nz-form-control>
           </nz-form-item>
 

@@ -135,3 +135,10 @@
   padding: 0.25rem 0.5rem;
   height: calc(1.5em + 0.5rem + 2px);
 }
+
+/* Fix nested submenu (vd: "Xuất Excel" bên trong nhóm "More") mở xuống dưới
+   thay vì sang phải để không bị cắt khi menu cha ở gần mép phải màn hình */
+::ng-deep .p-menubar-submenu > .p-menubar-item-active > .p-menubar-submenu {
+  left: 0 !important;
+  top: 100% !important;
+}

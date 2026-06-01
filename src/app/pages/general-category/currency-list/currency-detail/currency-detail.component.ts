@@ -187,7 +187,7 @@ export class CurrencyDetailComponent implements OnInit {
     control.setValue(formatted, { emitEvent: false });
   }
 
-  // Chuẩn hóa chuỗi nhập sang số (hỗ trợ cả '1.234,56' và '1,234.56')
+  // Chuẩn hóa chuỗi vi-VN sang số: dấu '.' là phân cách nghìn, dấu ',' là thập phân
   private normalizeNumberInput(raw: any): number {
     if (raw === null || raw === undefined) return 0;
     if (typeof raw === 'number') return raw;
@@ -199,16 +199,12 @@ export class CurrencyDetailComponent implements OnInit {
     const sign = s.startsWith('-') ? -1 : 1;
     s = s.replace(/-/g, '');
 
-    const lastDot = s.lastIndexOf('.');
-    const lastComma = s.lastIndexOf(',');
-    const lastSepIndex = Math.max(lastDot, lastComma);
-
-    if (lastSepIndex !== -1) {
-      const integerPart = s.slice(0, lastSepIndex).replace(/[.,]/g, '');
-      const fractionalPart = s.slice(lastSepIndex + 1).replace(/[.,]/g, '');
-      s = integerPart + '.' + fractionalPart;
+    if (s.indexOf(',') !== -1) {
+      // Có dấu phẩy → phẩy là thập phân (vi-VN), xóa tất cả chấm (nghìn)
+      s = s.replace(/\./g, '').replace(',', '.');
     } else {
-      s = s.replace(/[.,]/g, '');
+      // Không có phẩy → tất cả chấm là phân cách nghìn, xóa hết
+      s = s.replace(/\./g, '');
     }
 
     const num = parseFloat(s);
@@ -226,7 +222,7 @@ export class CurrencyDetailComponent implements OnInit {
       if (m && m[1]) decimals = m[1].length;
     }
 
-    const fmt = new Intl.NumberFormat('en-US', {
+    const fmt = new Intl.NumberFormat('vi-VN', {
       useGrouping: true,
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals
@@ -249,8 +245,8 @@ export class CurrencyDetailComponent implements OnInit {
     control?.setValue(formatted, { emitEvent: false });
     inputEl.value = formatted;
 
-    // Nếu số kết thúc bằng "." -> đặt caret SAU dấu "." để nhập phần thập phân
-    const sepIdxFormatted = formatted.lastIndexOf('.');
+    // Nếu số kết thúc bằng "," -> đặt caret SAU dấu "," để nhập phần thập phân
+    const sepIdxFormatted = formatted.lastIndexOf(',');
     let newPos: number;
 
     if (sepIdxFormatted !== -1 && sepIdxFormatted === formatted.length - 1) {
@@ -275,11 +271,11 @@ export class CurrencyDetailComponent implements OnInit {
         return i + 1;
       }
     }
-    const sepIdx = formatted.lastIndexOf('.');
+    const sepIdx = formatted.lastIndexOf(',');
     return sepIdx !== -1 ? sepIdx : formatted.length;
   }
 
-  // en-US: comma = thousands, dot = decimal
+  // vi-VN: dot = thousands, comma = decimal
   private formatImmediateCurrency(raw: string): string {
     if (raw === null || raw === undefined) return '';
     let s = String(raw).trim();
@@ -291,33 +287,33 @@ export class CurrencyDetailComponent implements OnInit {
       s = s.slice(1);
     }
 
-    // Chỉ giữ số và dấu chấm (en-US: dấu chấm = thập phân)
-    s = s.replace(/[^\d.]/g, '');
+    // Chỉ giữ số và dấu phẩy (vi-VN: dấu phẩy = thập phân)
+    s = s.replace(/[^\d,]/g, '');
 
-    const lastDot = s.lastIndexOf('.');
-    const endsWithSep = lastDot !== -1 && lastDot === s.length - 1;
+    const lastComma = s.lastIndexOf(',');
+    const endsWithSep = lastComma !== -1 && lastComma === s.length - 1;
 
     let intPart = '';
     let fracPart = '';
 
-    if (lastDot !== -1) {
-      intPart = s.slice(0, lastDot).replace(/\./g, '');
-      fracPart = endsWithSep ? '' : s.slice(lastDot + 1);
+    if (lastComma !== -1) {
+      intPart = s.slice(0, lastComma).replace(/,/g, '');
+      fracPart = endsWithSep ? '' : s.slice(lastComma + 1);
     } else {
       intPart = s;
     }
 
     const intNum = parseInt(intPart || '0', 10);
-    const intFormatted = new Intl.NumberFormat('en-US', { useGrouping: true }).format(isNaN(intNum) ? 0 : intNum);
+    const intFormatted = new Intl.NumberFormat('vi-VN', { useGrouping: true }).format(isNaN(intNum) ? 0 : intNum);
 
-    // Nếu vừa gõ dấu "." -> hiện dấu "." treo để nhập thập phân
+    // Nếu vừa gõ dấu "," -> hiện dấu "," treo để nhập phần thập phân
     if (endsWithSep) {
-      return sign + intFormatted + '.';
+      return sign + intFormatted + ',';
     }
 
     const decimals = fracPart.length;
     const num = parseFloat(`${intPart || '0'}.${fracPart || ''}`);
-    const fmt = new Intl.NumberFormat('en-US', {
+    const fmt = new Intl.NumberFormat('vi-VN', {
       useGrouping: true,
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals

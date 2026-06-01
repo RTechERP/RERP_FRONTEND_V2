@@ -1837,13 +1837,13 @@ export class PaymentOrderComponent implements OnInit {
                         }
                     },
                     {
-                        command: 'updateNCC', title: 'Cập nhật NCC', iconCssClass: 'fa-solid fa-pen-to-square', positionOrder: 5,
+                        command: 'updateNCC', title: 'Cập nhật NCC', iconCssClass: 'fa-solid fa-pen-to-square', positionOrder: 5, hidden: !this.permissionService.hasPermission("N55,N61"),
                         action: (e, args) => {
                             this.onUpdateNCC(e, args as any);
                         }
                     },
                     {
-                        command: 'updateInvoiceNumber', title: 'Cập nhật Số hóa đơn', iconCssClass: 'fa-solid fa-file-invoice', positionOrder: 6,
+                        command: 'updateInvoiceNumber', title: 'Cập nhật Số hóa đơn', iconCssClass: 'fa-solid fa-file-invoice', positionOrder: 6, hidden: !this.permissionService.hasPermission("N55,N61"),
                         action: (e, args) => {
                             this.onUpdateInvoiceNumber(e, args as any);
                         }

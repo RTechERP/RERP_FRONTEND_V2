@@ -339,8 +339,8 @@ export class PaymentOrderPrimeComponent implements OnInit {
             { label: 'Bổ sung file', icon: 'fa-solid fa-paperclip', command: () => this.onAttachFileExtend() },
             { label: 'Xem hợp đồng', icon: 'fa-solid fa-eye', command: () => this.viewContract(row) },
             { label: 'Cây thư mục', icon: 'fa-solid fa-folder-open text-warning', command: () => this.onTreeFolder(row) },
-            { label: 'Cập nhật NCC', icon: 'fa-solid fa-pen-to-square', command: () => this.onUpdateNCC(row) },
-            { label: 'Cập nhật Số hóa đơn', icon: 'fa-solid fa-file-invoice', command: () => this.onUpdateInvoiceNumber(row) }
+            { label: 'Cập nhật NCC', icon: 'fa-solid fa-pen-to-square', visible: this.permissionService.hasPermission('N55,N61'), command: () => this.onUpdateNCC(row) },
+            { label: 'Cập nhật Số hóa đơn', icon: 'fa-solid fa-file-invoice', visible: this.permissionService.hasPermission('N55,N61'), command: () => this.onUpdateInvoiceNumber(row) }
         ];
 
         if (this.appUserService.currentUser?.IsAdmin && this.appUserService.currentUser?.EmployeeID <= 0) {

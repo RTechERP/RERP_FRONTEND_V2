@@ -116,6 +116,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     categoryOptions: any[] = [];
 
     statusOptions: any[] = [];
+    columnStatusOptions: any[] = [];
 
     // ===== Focus =====
     focusTaskId: number = 0;
@@ -171,6 +172,17 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
                     label: s.Title,
                     value: s.No
                 }));
+
+                // columnStatusOptions = Type 1 + Type 2 (Approve/Reject) cho filter cột
+                this.columnStatusOptions = [...this.statusOptions];
+                const type2Statuses = statuses.filter((s: any) => s.Type === 2);
+                type2Statuses.forEach((s: any) => {
+                    const customValue = s.No === 1 ? 22 : 23; 
+                    this.columnStatusOptions.push({
+                        label: s.Title,
+                        value: customValue
+                    });
+                });
             },
             error: (err) => console.error('Error loading project task statuses:', err)
         });
@@ -656,7 +668,26 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
 
     private filterTreeByStatus(nodes: TreeTaskNode[], statuses: number[]): TreeTaskNode[] {
         return nodes.filter(node => {
-            const match = statuses.includes(node.Status);
+            let match = false;
+            if (statuses.includes(node.Status)) {
+                match = true;
+            }
+
+            // Xử lý filter cho Approval/Reject
+            // 22 = Approved, 23 = Rejected
+            if (!match) {
+                const approved = node.IsApproved;
+                const isApproveValue = approved === 1 || approved === true || approved === '1';
+                const isRejectValue = approved === 0 || approved === false || approved === '0';
+                
+                if (statuses.includes(22) && isApproveValue) {
+                    match = true;
+                }
+                if (statuses.includes(23) && isRejectValue) {
+                    match = true;
+                }
+            }
+
             const filteredChildren = this.filterTreeByStatus(node.children, statuses);
 
             if (match || filteredChildren.length > 0) {
@@ -976,7 +1007,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
                         if (isPlanned) {
                             const fontStyle = this.hasCheckMark(item, dateCol.dateStr) ? { color: { argb: 'FFFFFFFF' }, bold: true } : undefined;
                             if (isOutside) {
-                                return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFB923C' } }, font: fontStyle };
+                                return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFB066' } }, font: fontStyle }; // Công tác dự kiến (#ffb066)
                             }
                             return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + plannedColor } }, font: fontStyle };
                         }
@@ -990,7 +1021,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
                             const isOutside = act.length > 1 ? parseInt(act[1], 10) || 0 : 0;
                             if (hours > 0) {
                                 if (isOutside === 1) {
-                                    return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFB923C' } } }; // Nhà máy
+                                    return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF97316' } } }; // Công tác thực tế (#f97316)
                                 }
                                 return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + actualColor } } }; // VP
                             }

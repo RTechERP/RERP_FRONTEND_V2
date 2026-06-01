@@ -4,7 +4,8 @@ import {
   Input,
   AfterViewInit,
   ViewChild,
-  TemplateRef
+  TemplateRef,
+  OnDestroy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -32,6 +33,10 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 import { OverTimePersonFormComponent } from '../../../hrm/over-time/over-time-person/over-time-person-form/over-time-person-form.component';
 import { WorkItemComponent } from '../../../project/work-item/work-item.component';
 import { ProjectItemPersonDetailComponent } from '../../../project/project-item-person/project-item-person-detail/project-item-person-detail.component';
+import { ProjectItemPersonService } from '../../../project/project-item-person/project-item-person-service/project-item-person.service';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { TaskDetailComponent } from '../../../project_task/kanban/task-detail/task-detail.component';
+import { Subscription } from 'rxjs';
 interface ProjectItem {
   ID: number;
   ProjectID: number;
@@ -88,7 +93,7 @@ interface Project {
   templateUrl: './daily-report-tech-detail.component.html',
   styleUrl: './daily-report-tech-detail.component.css'
 })
-export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
+export class DailyReportTechDetailComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() mode: 'add' | 'edit' = 'add';
   @Input() dataInput: any;
   @Input() currentUser: any;
@@ -135,6 +140,8 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
   @ViewChild('previewModalContent', { static: false }) previewModalTemplate!: TemplateRef<any>;
   previewContent: string = '';
 
+  private tabSubscription?: Subscription;
+
   constructor(
     private fb: FormBuilder,
     private notification: NzNotificationService,
@@ -143,6 +150,8 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
     private modalService: NzModalService,
     private dailyReportTechService: DailyReportTechService,
     private ngbModal: NgbModal,
+    private projectItemPersonService: ProjectItemPersonService,
+    private tabService: TabServiceService
   ) {
     this.formGroup = this.fb.group({
       DateReport: [null, [Validators.required]],
@@ -150,6 +159,18 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    // Thêm đăng ký lắng nghe sự kiện lưu dữ liệu từ tab chi tiết
+    this.tabSubscription = this.tabService.dataSaved$.subscribe((key: string) => {
+      if (key === 'project-task') {
+        // Khi tab detail lưu dữ liệu xong nó thường emit key 'project-task', ta reload project items
+        this.projectList.forEach((project, index) => {
+          if (project.ProjectID > 0) {
+            this.loadProjectItems(project.ProjectID, index + 1);
+          }
+        });
+      }
+    });
+
     // Load dữ liệu nếu là chế độ edit
     if (this.mode === 'edit' && this.dataInput) {
       // dataInput có thể là ID (number) hoặc object có ID
@@ -380,6 +401,12 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
     }
   }
 
+  ngOnDestroy(): void {
+    if (this.tabSubscription) {
+      this.tabSubscription.unsubscribe();
+    }
+  }
+
   // Thêm hạng mục cho dự án
   addProjectItem(projectIndex: number): void {
     const project = this.projectList[projectIndex - 1];
@@ -511,36 +538,58 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
       const item = project.ProjectItems[itemIndex - 1];
       if (item) {
         if (projectItemId > 0) {
-          // Tìm trong project items của project này
-          const projectItems = this.getProjectItemsForProject(projectIndex);
-          const selectedItem = projectItems.find(pi => pi.ID === projectItemId);
+          // Lưu lại giá trị cũ để có thể reset nếu cần
+          const previousProjectItemId = item.ProjectItemID;
 
-          if (selectedItem) {
-            item.ProjectItemID = projectItemId;
-            item.ProjectItemCode = selectedItem.Code || selectedItem.ProjectItemCode || '';
-            item.ProjectItemName = selectedItem.Mission || selectedItem.ProjectItemName || '';
-            // Tự động điền % hoàn thành
-            if (selectedItem.PercentageActual !== undefined && selectedItem.PercentageActual !== null) {
-              item.PercentComplete = selectedItem.PercentageActual;
-            }
-            // Nếu % hoàn thành = 0, tự động bind tên hạng mục vào nội dung
-            if (item.PercentComplete === 0 && item.ProjectItemName) {
-              item.Content = item.ProjectItemName;
-            }
+          // Gọi API kiểm tra thông tin công việc trước khi cho phép chọn
+          this.dailyReportTechService.checkInformationReport(projectItemId).subscribe({
+            next: (res: any) => {
+              if (res && res.status === 1 && res.data === true) {
+                // === Thông tin đầy đủ => Cho phép chọn bình thường ===
+                this.applyProjectItemSelection(projectIndex, itemIndex, projectItemId);
+              } else {
+                // === Thông tin chưa đầy đủ => Kiểm tra quyền sửa ===
+                // Reset dropdown về giá trị trước đó
+                item.ProjectItemID = previousProjectItemId || 0;
 
-            // Gọi API lấy danh sách phát sinh
-            this.dailyReportTechService.getProjectHistoryProblemByProjectItem(projectItemId).subscribe({
-              next: (res: any) => {
-                if (res && res.status === 1) {
-                  item.ProjectProblems = res.data || [];
-                  if (item.ProjectProblems && item.ProjectProblems.length > 0) {
-                    this.activeAccordion['additional_info'] = true;
+                // Gọi API lấy chi tiết task để kiểm tra quyền
+                this.projectItemPersonService.getById(projectItemId).subscribe({
+                  next: (detailRes: any) => {
+                    if (detailRes && detailRes.status === 1 && detailRes.data) {
+                      const taskDetail = detailRes.data;
+                      const canEdit = this.checkEditPermission(taskDetail);
+
+                      if (canEdit) {
+                        // Có quyền sửa => Hiển thị thông báo và mở modal chỉnh sửa
+                        this.notification.warning(
+                          'Thông báo',
+                          'Vui lòng điền đầy đủ thông tin về ngày dự kiến và ngày bắt đầu thực tế để có thể tiếp tục báo cáo!'
+                        );
+                        this.openEditTaskTab(projectItemId, taskDetail.Code || `Task-${projectItemId}`);
+                      } else {
+                        // Không có quyền sửa => Hiển thị thông báo từ chối
+                        this.notification.error(
+                          'Không có quyền',
+                          'Công việc này chưa đầy đủ thông tin (Ngày dự kiến, Ngày bắt đầu thực tế) để báo cáo và bạn không có quyền chỉnh sửa công việc này. Vui lòng liên hệ người phụ trách hoặc Admin để cập nhật!'
+                        );
+                      }
+                    } else {
+                      this.notification.error('Lỗi', 'Không thể lấy thông tin chi tiết công việc!');
+                    }
+                  },
+                  error: (err: any) => {
+                    console.error('Error loading task detail:', err);
+                    this.notification.error('Lỗi', 'Lỗi khi kiểm tra thông tin công việc!');
                   }
-                }
-              },
-              error: (err: any) => console.error('Error loading project problems:', err)
-            });
-          }
+                });
+              }
+            },
+            error: (err: any) => {
+              console.error('Error checking information report:', err);
+              // Nếu API lỗi, vẫn cho phép chọn bình thường để không block workflow
+              this.applyProjectItemSelection(projectIndex, itemIndex, projectItemId);
+            }
+          });
         } else {
           // Reset khi không chọn project item
           item.ProjectItemID = 0;
@@ -548,6 +597,93 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit {
           item.ProjectItemName = '';
         }
       }
+    }
+  }
+
+  /**
+   * Áp dụng chọn hạng mục công việc (logic binding dữ liệu gốc)
+   */
+  private applyProjectItemSelection(projectIndex: number, itemIndex: number, projectItemId: number): void {
+    const project = this.projectList[projectIndex - 1];
+    if (!project) return;
+    const item = project.ProjectItems[itemIndex - 1];
+    if (!item) return;
+
+    const projectItems = this.getProjectItemsForProject(projectIndex);
+    const selectedItem = projectItems.find(pi => pi.ID === projectItemId);
+
+    if (selectedItem) {
+      item.ProjectItemID = projectItemId;
+      item.ProjectItemCode = selectedItem.Code || selectedItem.ProjectItemCode || '';
+      item.ProjectItemName = selectedItem.Mission || selectedItem.ProjectItemName || '';
+      // Tự động điền % hoàn thành
+      if (selectedItem.PercentageActual !== undefined && selectedItem.PercentageActual !== null) {
+        item.PercentComplete = selectedItem.PercentageActual;
+      }
+      // Nếu % hoàn thành = 0, tự động bind tên hạng mục vào nội dung
+      if (item.PercentComplete === 0 && item.ProjectItemName) {
+        item.Content = item.ProjectItemName;
+      }
+
+      // Gọi API lấy danh sách phát sinh
+      this.dailyReportTechService.getProjectHistoryProblemByProjectItem(projectItemId).subscribe({
+        next: (res: any) => {
+          if (res && res.status === 1) {
+            item.ProjectProblems = res.data || [];
+            if (item.ProjectProblems && item.ProjectProblems.length > 0) {
+              this.activeAccordion['additional_info'] = true;
+            }
+          }
+        },
+        error: (err: any) => console.error('Error loading project problems:', err)
+      });
+    }
+  }
+
+  /**
+   * Kiểm tra quyền sửa công việc
+   * Có quyền nếu: Admin, Leader, Người phụ trách (UserID), Người giao việc (EmployeeIDRequest), hoặc Người tạo (CreatedBy)
+   */
+  private checkEditPermission(taskDetail: any): boolean {
+    if (!this.currentUser) return false;
+
+    const currentUserId = this.currentUser.ID;
+
+    // Admin
+    if (this.currentUser.IsAdmin === true) return true;
+
+    // Leader
+    if (this.currentUser.IsLeader && this.currentUser.IsLeader > 0) return true;
+
+    // Người phụ trách task
+    if (taskDetail.UserID && taskDetail.UserID === currentUserId) return true;
+
+    // Người giao việc
+    if (taskDetail.EmployeeIDRequest && taskDetail.EmployeeIDRequest === currentUserId) return true;
+
+    // Người tạo task
+    if (taskDetail.CreatedBy && taskDetail.CreatedBy === currentUserId) return true;
+
+    return false;
+  }
+
+  /**
+   * Mở tab chỉnh sửa chi tiết công việc
+   */
+  private openEditTaskTab(projectItemId: number, taskCode: string): void {
+    try {
+      // Đóng modal báo cáo hiện tại để không đè lên tab mới
+      this.close(false);
+      
+      this.tabService.openTabComp({
+        comp: TaskDetailComponent,
+        title: taskCode,
+        key: `project-task-detail-${projectItemId}`,
+        data: { id: projectItemId }
+      });
+    } catch (error) {
+      console.error('Error opening edit task tab:', error);
+      this.notification.error('Lỗi', 'Không thể mở tab chỉnh sửa! Vui lòng thử lại.');
     }
   }
 

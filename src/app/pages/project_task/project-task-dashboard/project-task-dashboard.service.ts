@@ -52,7 +52,7 @@ export interface ChartData {
 export class ProjectTaskDashboardService {
     private projectTaskService = inject(ProjectTaskService);
 
-    getDashboardData(startDate: string, endDate: string, currentUserId: number): Observable<{
+    getDashboardData(startDate: string, endDate: string, currentUserId: number, allStatuses: any[] = []): Observable<{
         tasks: ProjectTaskItem[],
         stats: DashboardStats,
         statusChartData: ChartData,
@@ -68,9 +68,9 @@ export class ProjectTaskDashboardService {
                 tasks = this.filterLeafTasks(tasks);
 
                 const stats = this.calculateStats(tasks, currentUserId);
-                const statusChartData = this.prepareStatusChartData(tasks);
+                const statusChartData = this.prepareStatusChartData(tasks, allStatuses);
                 const projectChartData = this.prepareTimelineChartData(tasks, startDate, endDate);
-                const typeStackedChartData = this.prepareTypeStackedChartData(tasks);
+                const typeStackedChartData = this.prepareTypeStackedChartData(tasks, allStatuses);
 
                 return {
                     tasks,
@@ -147,9 +147,21 @@ export class ProjectTaskDashboardService {
         };
     }
 
-    public prepareTypeStackedChartData(tasks: ProjectTaskItem[], filterTypeNames?: string[], filterStatusIds?: number[]): ChartData {
+    public prepareTypeStackedChartData(tasks: ProjectTaskItem[], allStatuses: any[] = [], filterTypeNames?: string[], filterStatusIds?: number[]): ChartData {
         const now = new Date();
         now.setHours(0, 0, 0, 0);
+
+        const statusMap = new Map<number, any>();
+        const approvalMap = new Map<number, any>();
+        allStatuses.forEach(s => {
+            if (s.Type === 1) statusMap.set(s.No, s);
+            else if (s.Type === 2) approvalMap.set(s.No, s);
+        });
+
+        const getStatusName = (no: number, fb: string) => statusMap.has(no) ? statusMap.get(no).Title : fb;
+        const getStatusColor = (no: number, fb: string) => statusMap.has(no) && statusMap.get(no).ColorFont ? statusMap.get(no).ColorFont : fb;
+        const getApproveName = (no: number, fb: string) => approvalMap.has(no) ? approvalMap.get(no).Title : fb;
+        const getApproveColor = (no: number, fb: string) => approvalMap.has(no) && approvalMap.get(no).ColorFont ? approvalMap.get(no).ColorFont : fb;
  
         // 1. Identify all types (X-axis labels)
         let typeNames = Array.from(new Set(tasks.map(t => t.ProjectTaskTypeName || 'Khác')));
@@ -159,7 +171,17 @@ export class ProjectTaskDashboardService {
         }
 
         // 2. Define Statuses and their Colors (Datasets)
-        let statusConfigs = STATUS_CONFIGS;
+        let statusConfigs = [
+            { id: 0, label: getStatusName(0, 'Chưa làm'), color: getStatusColor(0, '#94a3b8') },
+            { id: 1, label: getStatusName(1, 'Đang làm'), color: getStatusColor(1, '#3b82f6') },
+            { id: 11, label: getStatusName(1, 'Đang làm') + ' Overdue', color: '#f43f5e' },
+            { id: 2, label: getStatusName(2, 'Hoàn thành'), color: getStatusColor(2, '#10b981') },
+            { id: 21, label: getStatusName(2, 'Hoàn thành') + ' Overdue', color: '#f59e0b' },
+            { id: 22, label: getApproveName(1, 'Đã duyệt'), color: getApproveColor(1, '#8b5cf6') },
+            { id: 23, label: getApproveName(0, 'Đã hủy duyệt'), color: getApproveColor(0, '#64748b') },
+            { id: 3, label: getStatusName(3, 'Pending'), color: getStatusColor(3, '#ea580c') },
+            { id: 4, label: getStatusName(4, 'Hủy'), color: getStatusColor(4, '#ef4444') }
+        ];
 
         if (filterStatusIds && filterStatusIds.length > 0) {
             statusConfigs = statusConfigs.filter(config => filterStatusIds.includes(config.id));
@@ -227,9 +249,21 @@ export class ProjectTaskDashboardService {
         return status;
     }
 
-    private prepareStatusChartData(tasks: ProjectTaskItem[]): ChartData {
+    private prepareStatusChartData(tasks: ProjectTaskItem[], allStatuses: any[] = []): ChartData {
         const now = new Date();
         now.setHours(0, 0, 0, 0);
+
+        const statusMap = new Map<number, any>();
+        const approvalMap = new Map<number, any>();
+        allStatuses.forEach(s => {
+            if (s.Type === 1) statusMap.set(s.No, s);
+            else if (s.Type === 2) approvalMap.set(s.No, s);
+        });
+
+        const getStatusName = (no: number, fb: string) => statusMap.has(no) ? statusMap.get(no).Title : fb;
+        const getStatusColor = (no: number, fb: string) => statusMap.has(no) && statusMap.get(no).ColorFont ? statusMap.get(no).ColorFont : fb;
+        const getApproveName = (no: number, fb: string) => approvalMap.has(no) ? approvalMap.get(no).Title : fb;
+        const getApproveColor = (no: number, fb: string) => approvalMap.has(no) && approvalMap.get(no).ColorFont ? approvalMap.get(no).ColorFont : fb;
 
         const counts: { [key: number]: number } = {
             0: 0, 1: 0, 11: 0, 2: 0, 21: 0, 22: 0, 23: 0, 3: 0, 4: 0
@@ -243,15 +277,15 @@ export class ProjectTaskDashboardService {
         });
 
         const labels = [
-            'Chưa làm',
-            'Đang làm',
-            'Đang làm quá hạn',
-            'Hoàn thành',
-            'Hoàn thành quá hạn',
-            'Đã duyệt',
-            'Đã hủy duyệt',
-            'Pending',
-            'Hủy'
+            getStatusName(0, 'Chưa làm'),
+            getStatusName(1, 'Đang làm'),
+            getStatusName(1, 'Đang làm') + ' Overdue',
+            getStatusName(2, 'Hoàn thành'),
+            getStatusName(2, 'Hoàn thành') + ' Overdue',
+            getApproveName(1, 'Đã duyệt'),
+            getApproveName(0, 'Đã hủy duyệt'),
+            getStatusName(3, 'Pending'),
+            getStatusName(4, 'Hủy')
         ];
 
         const data = [
@@ -267,22 +301,24 @@ export class ProjectTaskDashboardService {
         ];
 
         const colors = [
-            '#94a3b8', // 1: Secondary soft
-            '#3b82f6', // 2: Info
-            '#f43f5e', // 21: Danger (Rose)
-            '#10b981', // 3: Success
-            '#f59e0b', // 31: Warning (Amber)
-            '#8b5cf6', // 32: Violet
-            '#64748b', // 33: Gray
-            '#ea580c', // 4: Orange
-            '#ef4444'  // Cancel: Red
+            getStatusColor(0, '#94a3b8'),
+            getStatusColor(1, '#3b82f6'),
+            '#f43f5e', // Overdue
+            getStatusColor(2, '#10b981'),
+            '#f59e0b', // Overdue
+            getApproveColor(1, '#8b5cf6'),
+            getApproveColor(0, '#64748b'),
+            getStatusColor(3, '#ea580c'),
+            getStatusColor(4, '#ef4444')
         ];
 
         return {
             labels,
             datasets: [{
                 data,
-                backgroundColor: colors
+                backgroundColor: colors,
+                hoverBackgroundColor: colors,
+                hoverOffset: 0
             }]
         };
     }

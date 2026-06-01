@@ -201,6 +201,16 @@ export class DailyReportTechService {
     return this.http.post<any>(this.apiUrlLXCP + 'save-report-lxcp', report);
   }
   //#endregion
+  /**
+   * Kiểm tra thông tin công việc có đủ để báo cáo hay không
+   * @param projectTaskID ID của hạng mục công việc
+   * @returns Observable<any> - { status, data: boolean (true: đủ, false: thiếu) }
+   */
+  checkInformationReport(projectTaskID: number): Observable<any> {
+    const params = new HttpParams().set('projectTaskID', projectTaskID.toString());
+    return this.http.get<any>(`${this.api}projecttask/check-information-report`, { params });
+  }
+
   //ham upload file
   uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
     const formData = new FormData();

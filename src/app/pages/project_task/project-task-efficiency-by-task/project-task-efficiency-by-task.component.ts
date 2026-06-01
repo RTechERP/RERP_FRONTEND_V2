@@ -72,31 +72,23 @@ export class ProjectTaskEfficiencyByTaskComponent implements OnInit, AfterViewIn
   employeeList: any[] = [];
   projectList: any[] = [];
 
-  statusOptions = [
-    { label: 'Chưa làm', value: 0 },
-    { label: 'Đang làm', value: 1 },
-    { label: 'Hoàn thành', value: 2 },
-    { label: 'Pending', value: 3 },
-    { label: 'Hủy', value: 4 },
-  ];
+  statusOptions: { label: string; value: number }[] = [];
+  allStatuses: any[] = [];
+  statusConfigMap: Record<number, { label: string; bgColor: string; color: string }> = {};
 
   // ═══ Columns ═══
   columns: ExtendedColumnDef[] = [
-    { field: 'STT', header: 'STT', width: '60px', sortable: false, cssClass: 'text-center' },
-    { field: 'ProjectNameDisplay', header: 'Project', width: '250px', sortable: true, cellTooltip: (row) => row.ProjectName },
-    { field: 'EmployeeFullName', header: 'Employee', width: '200px', sortable: true },
-    { field: 'ProjectTaskCode', header: 'Task ID', width: '150px', sortable: true, cssClass: 'text-center', cellClass: () => 'task-link', clickable: true },
-    { field: 'ProjectTaskTitle', header: 'Task Name', width: '350px', sortable: true, cssClass: 'text-left' },
+    { field: 'STT', header: 'STT', width: '60px', sortable: false, cssClass: 'text-center', frozen: true },
+    { field: 'ProjectNameDisplay', header: 'Project', width: '250px', sortable: true, cellTooltip: (row) => row.ProjectName, frozen: true },
+    { field: 'EmployeeFullName', header: 'Employee', width: '140px', sortable: true, frozen: true },
+    { field: 'ProjectTaskCode', header: 'Task ID', width: '150px', sortable: true, cssClass: 'text-center', cellClass: () => 'task-link', clickable: true, frozen: true },
+    { field: 'ProjectTaskTitle', header: 'Task Name', width: '250px', sortable: true, cssClass: 'text-left', frozen: true },
     {
-      field: 'StatusName', header: 'Status', width: '130px', sortable: true, cssClass: 'text-center',
-      editType: 'badge',
-      badgeSeverity: (r) => {
-        const ds = r.DisplayStatus;
-        if (ds === 2 || ds === 22) return 'success';
-        if (ds === 1) return 'info';
-        if (ds === 3 || ds === 21) return 'warn';
-        if (ds === 11 || ds === 10 || ds === 23 || ds === 4) return 'danger';
-        return 'secondary';
+      field: 'StatusName', header: 'Status', width: '100px', sortable: true, cssClass: 'text-center', frozen: true,
+      format: (val, row) => {
+        const ds = this.getDisplayStatus(row);
+        const dsValue = row.DisplayStatus ?? row.Status ?? 0;
+        return `<span class="status-badge-custom status-badge-custom-${dsValue}">${ds.label}</span>`;
       }
     },
     {
@@ -232,6 +224,8 @@ export class ProjectTaskEfficiencyByTaskComponent implements OnInit, AfterViewIn
   ) { }
 
   ngOnInit(): void {
+    this.loadProjectTaskStatuses();
+    
     // Enhance columns for tooltip feature dynamically
     this.columns.forEach(col => {
       const originalFormat = col.format;
@@ -263,7 +257,6 @@ export class ProjectTaskEfficiencyByTaskComponent implements OnInit, AfterViewIn
     }
     this.loadProjects();
     this.initMenu();
-    this.loadData();
   }
 
   ngAfterViewInit(): void {
@@ -377,20 +370,119 @@ export class ProjectTaskEfficiencyByTaskComponent implements OnInit, AfterViewIn
     return 0;
   }
 
-  getStatusLabel(displayStatus: number): string {
-    switch (displayStatus) {
-      case 0: return 'Chưa làm';
-      case 10: return 'Chưa làm quá hạn';
-      case 1: return 'Đang làm';
-      case 11: return 'Đang làm quá hạn';
-      case 2: return 'Hoàn thành';
-      case 21: return 'Hoàn thành quá hạn';
-      case 22: return 'Đã duyệt';
-      case 23: return 'Đã hủy duyệt';
-      case 3: return 'Pending';
-      case 4: return 'Hủy';
-      default: return 'Chưa xác định';
+  getDisplayStatus(task: any): { label: string; bgColor: string; color: string } {
+    const ds = task.DisplayStatus ?? task.Status;
+    
+    if (this.statusConfigMap[ds]) {
+      return this.statusConfigMap[ds];
     }
+
+    const findStatus = (type: number, no: number) => this.allStatuses.find(s => s.Type === type && s.No === no);
+    const overdueBg = '#fff1f2';
+    const overdueColor = '#e11d48';
+
+    let result = { label: 'Chưa xác định', bgColor: '#f5f5f5', color: '#595959' };
+
+    switch (ds) {
+      case 0: {
+        const s = findStatus(1, 0);
+        result = { label: s?.Title || 'Chưa làm', bgColor: s?.ColorBackground || '#f5f5f5', color: s?.ColorFont || '#595959' };
+        break;
+      }
+      case 10: {
+        const s = findStatus(1, 0);
+        result = { label: (s?.Title || 'Chưa làm') + '\nOverdue', bgColor: overdueBg, color: overdueColor };
+        break;
+      }
+      case 1: {
+        const s = findStatus(1, 1);
+        result = { label: s?.Title || 'Đang làm', bgColor: s?.ColorBackground || '#e6f7ff', color: s?.ColorFont || '#1890ff' };
+        break;
+      }
+      case 11: {
+        const s = findStatus(1, 1);
+        result = { label: (s?.Title || 'Đang làm') + '\nOverdue', bgColor: overdueBg, color: overdueColor };
+        break;
+      }
+      case 2: {
+        const s = findStatus(1, 2);
+        result = { label: s?.Title || 'Hoàn thành', bgColor: s?.ColorBackground || '#f6ffed', color: s?.ColorFont || '#52c41a' };
+        break;
+      }
+      case 21: {
+        const s = findStatus(1, 2);
+        result = { label: (s?.Title || 'Hoàn thành') + '\nOverdue', bgColor: overdueBg, color: overdueColor };
+        break;
+      }
+      case 22: {
+        const s = findStatus(2, 1); // Đã duyệt
+        result = { label: s?.Title || 'Đã duyệt', bgColor: s?.ColorBackground || '#f6ffed', color: s?.ColorFont || '#52c41a' };
+        break;
+      }
+      case 23: {
+        const s = findStatus(2, 0); // Chưa duyệt / Hủy duyệt
+        result = { label: s?.Title || 'Đã hủy duyệt', bgColor: s?.ColorBackground || '#fff2f0', color: s?.ColorFont || '#ff4d4f' };
+        break;
+      }
+      case 3: {
+        const s = findStatus(1, 3);
+        result = { label: s?.Title || 'Pending', bgColor: s?.ColorBackground || '#fffbe6', color: s?.ColorFont || '#faad14' };
+        break;
+      }
+      case 4: {
+        const s = findStatus(1, 4);
+        result = { label: s?.Title || 'Hủy', bgColor: s?.ColorBackground || '#fff1f2', color: s?.ColorFont || '#e11d48' };
+        break;
+      }
+    }
+    
+    this.statusConfigMap[ds] = result;
+    return result;
+  }
+
+  loadProjectTaskStatuses(): void {
+    this.service.getProjectTaskStatuses().subscribe({
+      next: (statuses) => {
+        this.allStatuses = statuses || [];
+        this.statusConfigMap = {};
+        
+        let type1Statuses = statuses.filter((s: any) => s.Type === 1);
+        type1Statuses.sort((a: any, b: any) => a.No - b.No);
+        this.statusOptions = type1Statuses.map((s: any) => ({
+          label: s.Title,
+          value: s.No
+        }));
+        
+        this.generateStatusStyles();
+        this.loadData();
+      },
+      error: (err) => {
+        console.error('Error loading project task statuses:', err);
+        this.generateStatusStyles();
+        this.loadData();
+      }
+    });
+  }
+
+  private generateStatusStyles(): void {
+    const styleId = 'dynamic-status-styles-efficiency-by-task';
+    let styleEl = document.getElementById(styleId);
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = styleId;
+      document.head.appendChild(styleEl);
+    }
+    
+    // We iterate over all possible DisplayStatus values used in the switch case
+    const dsValues = [0, 10, 1, 11, 2, 21, 22, 23, 3, 4];
+    let cssRules = `.status-badge-custom { padding: 4px 8px; border-radius: 4px; font-weight: 600; display: inline-block; white-space: pre-line; text-align: center; }\n`;
+    
+    dsValues.forEach(ds => {
+      const config = this.getDisplayStatus({ DisplayStatus: ds });
+      cssRules += `.status-badge-custom-${ds} { background-color: ${config.bgColor} !important; color: ${config.color} !important; }\n`;
+    });
+    
+    styleEl.innerHTML = cssRules;
   }
 
   private isTaskOverdue(task: any): boolean {
@@ -521,7 +613,7 @@ export class ProjectTaskEfficiencyByTaskComponent implements OnInit, AfterViewIn
       comp: TaskDetailComponent,
       title: taskCode,
       key: `project-task-detail-${taskId}`,
-      data: { id: taskId }
+      data: { id: taskId, ApprovalStatus: task?.ApprovalStatus ?? null }
     });
   }
 
@@ -676,12 +768,10 @@ export class ProjectTaskEfficiencyByTaskComponent implements OnInit, AfterViewIn
     this.service.getEfficiencyByTask(params).subscribe({
       next: (data) => {
         this.isLoading = false;
-        const statusMap: Record<number, string> = { 0: 'Chưa làm', 1: 'Đang làm', 2: 'Hoàn thành', 3: 'Pending' };
         this.tableData = (data || []).map((r: any, i: number) => {
           const processedRow = {
             ...r,
             STT: i + 1,
-            StatusName: statusMap[r.Status] ?? `Status ${r.Status}`,
             ProjectNameDisplay: (r.ProjectCode || '') + (r.ProjectStatusName ? ' (' + r.ProjectStatusName + ')' : ''),
             TaskComplexity: r.TaskComplexity != null ? r.TaskComplexity : (r.DifficultyFactor || 0)
           };
@@ -703,7 +793,7 @@ export class ProjectTaskEfficiencyByTaskComponent implements OnInit, AfterViewIn
             DeadlineMet: deadlineMet,
             DelayDays: delayDays,
             DisplayStatus: displayStatus,
-            StatusName: this.getStatusLabel(displayStatus),
+            StatusName: this.getDisplayStatus({ ...processedRow, DisplayStatus: displayStatus }).label,
             AutoNotes: this.generateAutoNotes({ ...processedRow, DeadlineMet: deadlineMet, DelayDays: delayDays })
           };
         });

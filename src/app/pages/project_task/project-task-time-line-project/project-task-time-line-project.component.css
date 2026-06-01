@@ -350,6 +350,8 @@ td.col-status[rowspan] {
     font-weight: 600;
     background: #f1f5f9;
     color: #475569;
+    white-space: pre-line;
+    display: inline-block;
 }
 
 .status-tag[data-status="0"] {
@@ -464,4 +466,11 @@ tfoot td {
 :host ::ng-deep .timeline-status-multi .p-multiselect-trigger {
     width: 20px;
     height: 22px;
+}
+
+/* Fix missing width on PrimeNG checkbox when appendTo="body" */
+::ng-deep .timeline-status-panel-global .p-checkbox .p-checkbox-box {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0 !important;
 }

@@ -28,6 +28,7 @@ import {
 
 // Services
 import { ProjectTaskStatusService, ProjectTaskChartItem } from '../project-task-status/project-task-status.service';
+import { ProjectTaskTimeLineTotalService } from '../project-task-time-line-total/project-task-time-line-total.service';
 import { WorkplanService } from '../../person/workplan/workplan.service';
 import { EmployeeService } from '../../hrm/employee/employee-service/employee.service';
 import { AppUserService } from '../../../services/app-user.service';
@@ -68,12 +69,16 @@ echarts.use([
 })
 export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
   private statusService = inject(ProjectTaskStatusService);
+  private timelineTotalService = inject(ProjectTaskTimeLineTotalService);
   private workplanService = inject(WorkplanService);
   private employeeService = inject(EmployeeService);
   private appUserService = inject(AppUserService);
   private projectService = inject(ProjectService);
   private notification = inject(NzNotificationService);
   private cdr = inject(ChangeDetectorRef);
+
+  allStatuses: any[] = [];
+  statusMap = new Map<number, any>();
 
   // ===== Filter params =====
   @Input() hideSearch: boolean = false;
@@ -108,19 +113,6 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
     const now = DateTime.now();
     this.dateStart = now.startOf('month').toFormat('yyyy-MM-dd');
     this.dateEnd = now.endOf('month').toFormat('yyyy-MM-dd');
-  }
-
-  ngOnInit() {
-    this.departmentId = this.appUserService.departmentID || 0;
-    this.loadDepartments();
-    this.loadEmployees();
-    if (this.departmentId > 0) {
-      this.loadTeamsByDepartment(this.departmentId);
-    }
-    this.loadProjects();
-    if (!this.hideSearch) {
-      this.loadData();
-    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -309,6 +301,20 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
     const cancel = data.map(item => item.Cancel);
     const total = data.map(item => item.TotalTasks);
 
+    const getStatusName = (no: number, fallback: string) => this.statusMap.has(no) ? this.statusMap.get(no).Title : fallback;
+    const getStatusColor = (no: number, fallback: string) => this.statusMap.has(no) && this.statusMap.get(no).ColorFont ? this.statusMap.get(no).ColorFont : fallback;
+
+    const legendData = [
+      getStatusName(0, 'Chưa làm'),
+      getStatusName(1, 'Đang làm'),
+      getStatusName(1, 'Đang làm') + ' Overdue',
+      getStatusName(2, 'Hoàn thành'),
+      getStatusName(2, 'Hoàn thành') + ' Overdue',
+      getStatusName(3, 'Pending'),
+      getStatusName(4, 'Hủy'),
+      'Tổng công việc'
+    ];
+
     this.chartOptions = {
       title: {
         text: 'THỐNG KÊ TRẠNG THÁI CÔNG VIỆC',
@@ -337,7 +343,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
         }
       },
       legend: {
-        data: ['Chưa làm', 'Đang làm', 'Đang làm quá hạn', 'Hoàn thành', 'Hoàn thành quá hạn', 'Pending', 'Hủy', 'Tổng công việc'],
+        data: legendData,
         bottom: 0,
         type: 'scroll'
       },
@@ -364,53 +370,60 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
       dataZoom: [],
       series: [
         {
-          name: 'Chưa làm',
+          name: legendData[0],
           type: 'bar',
           stack: 'status',
           data: notStarted,
-          itemStyle: { color: '#94a3b8' }
+          itemStyle: { color: getStatusColor(0, '#94a3b8') },
+          label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
-          name: 'Đang làm',
+          name: legendData[1],
           type: 'bar',
           stack: 'status',
           data: doing,
-          itemStyle: { color: '#3b82f6' }
+          itemStyle: { color: getStatusColor(1, '#3b82f6') },
+          label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
-          name: 'Đang làm quá hạn',
+          name: legendData[2],
           type: 'bar',
           stack: 'status',
           data: doingOverdue,
-          itemStyle: { color: '#ef4444' }
+          itemStyle: { color: '#ef4444' },
+          label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
-          name: 'Hoàn thành',
+          name: legendData[3],
           type: 'bar',
           stack: 'status',
           data: done,
-          itemStyle: { color: '#22c55e' }
+          itemStyle: { color: getStatusColor(2, '#22c55e') },
+          label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
-          name: 'Hoàn thành quá hạn',
+          name: legendData[4],
           type: 'bar',
           stack: 'status',
           data: doneLate,
-          itemStyle: { color: '#f59e0b' }
+          itemStyle: { color: '#f59e0b' },
+          label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
-          name: 'Pending',
+          name: legendData[5],
           type: 'bar',
           stack: 'status',
           data: pending,
-          itemStyle: { color: '#8b5cf6' }
+          itemStyle: { color: getStatusColor(3, '#8b5cf6') },
+          label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
-          name: 'Hủy',
+          name: legendData[6],
           type: 'bar',
           stack: 'status',
           data: cancel,
-          itemStyle: { color: '#f43f5e' }
+          itemStyle: { color: getStatusColor(4, '#f43f5e') },
+          label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
           name: 'Tổng công việc',
@@ -419,7 +432,8 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
           itemStyle: { color: '#005bb7' },
           lineStyle: { width: 3 },
           symbol: 'circle',
-          symbolSize: 8
+          symbolSize: 8,
+          label: { show: true, position: 'top', fontWeight: 'bold', color: '#005bb7' }
         }
       ]
     };
@@ -427,6 +441,44 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
 
   onChartInit(ec: any) {
     this.chartInstance = ec;
+  }
+
+  ngOnInit() {
+    this.departmentId = this.appUserService.departmentID || 0;
+
+    // Lấy config trạng thái từ API trước
+    this.timelineTotalService.getProjectTaskStatuses().subscribe({
+      next: (statuses: any[]) => {
+        this.allStatuses = statuses.filter(s => s.Type === 1);
+        this.allStatuses.forEach(s => {
+          this.statusMap.set(s.No, s);
+        });
+        this.initAfterStatusesLoaded();
+      },
+      error: () => {
+        this.initAfterStatusesLoaded();
+      }
+    });
+  }
+
+  initAfterStatusesLoaded() {
+    this.loadDepartments();
+    this.loadEmployees();
+    if (this.departmentId > 0) {
+      this.loadTeamsByDepartment(this.departmentId);
+    }
+    this.loadProjects();
+
+    if (!this.hideSearch) {
+      const now = DateTime.now();
+      this.dateStart = now.startOf('month').toFormat('yyyy-MM-dd');
+      this.dateEnd = now.endOf('month').toFormat('yyyy-MM-dd');
+      this.loadData();
+    } else {
+      // Khi hideSearch = true, việc gọi tải dữ liệu được quản lý bởi component cha.
+      // Tuy nhiên nếu cha đã truyền [hideSearch]="true" và muốn vẽ chart ngay,
+      // ta có thể gọi loadData() ở đây hoặc đợi ngOnChanges kích hoạt.
+    }
   }
 
   resetSearch() {

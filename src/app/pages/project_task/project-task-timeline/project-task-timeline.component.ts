@@ -78,10 +78,11 @@ export class ProjectTaskTimelineComponent implements OnInit {
   filterProjectKeyword = '';
   filterParentCode = '';
   selectedStatuses: number[] = [];
-  filterStatusColumn: number[] = [];
+  filterStatusColumn: string[] = [];
   contextMenuItems: MenuItem[] = [];
 
   statusOptions: any[] = [];
+  columnStatusOptions: any[] = [];
 
   ngOnInit() {
     this.selectedDepartment = this.appUserService.departmentID || 0;
@@ -105,6 +106,30 @@ export class ProjectTaskTimelineComponent implements OnInit {
           label: s.Title,
           value: s.No
         }));
+
+        // Xây dựng danh sách tùy chọn cột kết hợp Type 1 và Type 2
+        const colOptions = type1Statuses.map((s: any) => ({
+          label: s.Title,
+          value: `1_${s.No}`
+        }));
+
+        const approvalStatus = statuses.find((s: any) => s.Type === 2 && s.No === 1);
+        if (approvalStatus) {
+          colOptions.push({
+            label: approvalStatus.Title,
+            value: '2_1'
+          });
+        }
+
+        const rejectStatus = statuses.find((s: any) => s.Type === 2 && s.No === 0);
+        if (rejectStatus) {
+          colOptions.push({
+            label: rejectStatus.Title,
+            value: '2_0'
+          });
+        }
+
+        this.columnStatusOptions = colOptions;
       },
       error: (err) => console.error('Error loading project task statuses:', err)
     });
@@ -646,7 +671,18 @@ export class ProjectTaskTimelineComponent implements OnInit {
     if (this.filterStatusColumn && this.filterStatusColumn.length > 0) {
       projectGroups = projectGroups.map((p: any) => ({
         ...p,
-        tasks: p.tasks.filter((t: any) => this.filterStatusColumn.includes(t.Status))
+        tasks: p.tasks.filter((t: any) => {
+          const approved = t.IsApproved ?? t.IsApprove;
+          let statusKey = '';
+          if (approved === 0 || approved === false || approved === '0') {
+            statusKey = '2_0';
+          } else if (approved === 1 || approved === true || approved === '1') {
+            statusKey = '2_1';
+          } else {
+            statusKey = `1_${t.Status}`;
+          }
+          return this.filterStatusColumn.includes(statusKey);
+        })
       })).filter((p: any) => p.tasks.length > 0);
     }
 
@@ -816,7 +852,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
             if (isPlanned) {
               const fontStyle = this.hasCheckMark(item, dateCol.dateStr) ? { color: { argb: 'FFFFFFFF' }, bold: true } : undefined;
               if (isOutside) {
-                return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFB923C' } }, font: fontStyle }; // Factory work color (#fb923c)
+                return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFB066' } }, font: fontStyle }; // Công tác dự kiến (#ffb066)
               }
               return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + plannedColor } }, font: fontStyle };
             }
@@ -829,7 +865,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
               const isOutside = act.length > 1 ? parseInt(act[1], 10) || 0 : 0;
               if (hours > 0) {
                 if (isOutside === 1) {
-                  return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFB923C' } } }; // Factory work color (#fb923c)
+                  return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF97316' } } }; // Công tác thực tế (#f97316)
                 }
                 return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + actualColor } } };
               }

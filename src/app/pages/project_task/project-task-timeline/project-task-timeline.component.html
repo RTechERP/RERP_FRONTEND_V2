@@ -12,7 +12,10 @@
                     <span class="box actual"></span> Thực tế
                 </div>
                 <div class="legend-item">
-                    <span class="box outside-work"></span> Nhà máy
+                    <span class="box outside-work-planned"></span> Công tác dự kiến
+                </div>
+                <div class="legend-item">
+                    <span class="box outside-work-actual"></span> Công tác thực tế
                 </div>
                 <div class="legend-item"><span class="legend-sep">|</span></div>
                 <div class="legend-item"><strong>Ro</strong>&nbsp;= Nghỉ không lương</div>
@@ -77,9 +80,9 @@
                         </th>
                         <th rowspan="2" class="sticky-col col-status">
                             Trạng Thái
-                            <p-multiSelect [options]="statusOptions" [(ngModel)]="filterStatusColumn"
+                            <p-multiSelect [options]="columnStatusOptions" [(ngModel)]="filterStatusColumn"
                                 placeholder="Tất cả" [showHeader]="false" [filter]="false" (onChange)="applyFilters()"
-                                styleClass="timeline-status-multi" [maxSelectedLabels]="3"
+                                styleClass="timeline-status-multi" panelStyleClass="timeline-status-panel-global" [maxSelectedLabels]="3"
                                 selectedItemsLabel="{0} trạng thái" appendTo="body" />
                         </th>
                         <th rowspan="2" class="sticky-col col-time">Thời gian <br>(giờ/ngày)</th>

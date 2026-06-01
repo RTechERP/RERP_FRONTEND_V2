@@ -77,13 +77,13 @@ export class ProjectTaskEfficiencyByProjectComponent implements OnInit, AfterVie
   // ═══ Columns ═══
   // Chỉ FinalKPIScore và RatingLabel có màu. Các cột khác chỉ có tooltip = giá trị hiển thị.
   columns: ExtendedColumnDef[] = [
-    { field: 'STT', header: 'STT', width: '55px', sortable: false, cssClass: 'text-center' },
+    { field: 'STT', header: 'STT', width: '55px', sortable: false, cssClass: 'text-center', frozen: true },
     {
-      field: 'EmployeeFullName', header: 'Employee', width: '180px', sortable: true,
+      field: 'EmployeeFullName', header: 'Employee', width: '180px', sortable: true, frozen: true,
       cellTooltip: (row) => row.EmployeeFullName || ''
     },
     {
-      field: 'ProjectDisplay', header: 'Project', width: '200px', sortable: true,
+      field: 'ProjectDisplay', header: 'Project', width: '200px', sortable: true, frozen: true,
       cellTooltip: (row) => row.ProjectName || ''
     },
     {
@@ -303,7 +303,12 @@ export class ProjectTaskEfficiencyByProjectComponent implements OnInit, AfterVie
     this.efficiencyService.getEfficiencyByProject(params).subscribe({
       next: (res) => {
         this.isLoading = false;
-        this.tableData = (res || []).map((item: any, i: number) => {
+        
+        // Sort by EmployeeFullName
+        let data = res || [];
+        data.sort((a: any, b: any) => (a.EmployeeFullName || '').localeCompare(b.EmployeeFullName || ''));
+
+        this.tableData = data.map((item: any, i: number) => {
           const rating = this.getKPIGrade(item.FinalKPIScore);
           return {
             ...item,

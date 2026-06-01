@@ -371,11 +371,13 @@ export class ProjectTaskTimeLineNullComponent implements OnInit {
    */
   decodePlanned(row: any, dateStr: string): { workMode: number; leaveTime: number; leaveType: number } {
     const raw = row?.[dateStr];
-    if (!raw || raw.length < 3) return { workMode: 0, leaveTime: 0, leaveType: 0 };
+    if (raw == null || raw === '') return { workMode: 0, leaveTime: 0, leaveType: 0 };
+    const rawStr = raw.toString().trim();
+    if (rawStr.length < 3) return { workMode: 0, leaveTime: 0, leaveType: 0 };
     return {
-      workMode: parseInt(raw[0], 10) || 0,   // 1=fill, 2=check, 3=both
-      leaveTime: parseInt(raw[1], 10) || 0,
-      leaveType: parseInt(raw[2], 10) || 0
+      workMode: parseInt(rawStr[0], 10) || 0,   // 1=fill, 2=check, 3=both
+      leaveTime: parseInt(rawStr[1], 10) || 0,
+      leaveType: parseInt(rawStr[2], 10) || 0
     };
   }
 

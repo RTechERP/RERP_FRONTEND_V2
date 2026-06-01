@@ -399,7 +399,9 @@
                                             </nz-input-number>
                                         </div>
                                         <div class="rd-form-group">
-                                            <label class="rd-label">Deadline</label>
+                                            <label class="rd-label">Deadline
+                                                <span class="required" *ngIf="taskStatus === 1 || taskStatus === 2">*</span>
+                                            </label>
                                             <input type="date" [(ngModel)]="deadlineStr" [disabled]="!canEditDeadline"
                                                 class="rd-input" />
                                         </div>
@@ -1138,7 +1140,7 @@
                                     <td>
                                         <nz-input-number
                                             [(ngModel)]="row.EstimatedTime"
-                                            [nzMin]="0.1"
+                                            [nzMin]="row.IsWork ? 0.1 : 0"
                                             [nzMax]="24"
                                             [nzStep]="0.1"
                                             nzSize="small"

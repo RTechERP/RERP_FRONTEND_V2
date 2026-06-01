@@ -210,3 +210,10 @@ tfoot td {
 }
 .custom-context-menu li:hover { background: #f0f5ff; color: #1890ff; }
 .context-menu-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1049; }
+
+/* Fix missing width on PrimeNG checkbox when appendTo="body" */
+::ng-deep .timeline-status-panel-global .p-checkbox .p-checkbox-box {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0 !important;
+}

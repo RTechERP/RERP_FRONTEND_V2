@@ -1498,7 +1498,8 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
     });
     console.log('==================');
 
-    const dateRequestStr = this.dateRequest ? new Date(this.dateRequest).toISOString() : new Date().toISOString();
+    const d = this.dateRequest ? new Date(this.dateRequest) : new Date();
+    const dateRequestStr = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString();
 
     const officeSupplyRequest: any = {
       ID: this.requestId || 0,

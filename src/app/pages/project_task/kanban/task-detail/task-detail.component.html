@@ -424,7 +424,9 @@
                                                 [class.has-error]="dateValidationError && dateValidationError.includes('thuc te')" />
                                         </div>
                                         <div class="rd-form-group">
-                                            <label class="rd-label">Ngày kết thúc thực tế</label>
+                                            <label class="rd-label">Ngày kết thúc thực tế
+                                                <span class="required" *ngIf="taskStatus === 2">*</span>
+                                            </label>
                                             <input type="date" [(ngModel)]="endDateStr"
                                                 [min]="startDateStr" class="rd-input"
                                                 [class.has-error]="dateValidationError && dateValidationError.includes('thuc te')" />

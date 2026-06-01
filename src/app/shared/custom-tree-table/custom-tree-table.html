@@ -273,8 +273,8 @@
                 <input pInputText type="text" [(ngModel)]="lookupSearchText" (input)="filterLookupData()"
                     placeholder="Tìm kiếm..." style="width: 100%;" />
             </p-iconfield>
-            <p-button icon="pi pi-times" [text]="true" severity="danger" (click)="lookupPanel.hide()"
-                [style]="{ 'padding': '0.5rem' }"></p-button>
+            <p-button *ngIf="activeLookupCol?.editLookupConfig?.multiSelect" label="Bỏ chọn" icon="pi pi-times"
+                [text]="true" severity="secondary" size="small" (click)="lookupSelectedRows = []"></p-button>
         </div>
 
         <!-- Loading state -->
@@ -301,7 +301,7 @@
                             {{ lc.header }}
                         </th>
                     </tr>
-                    <tr>
+                    <tr *ngIf="!activeLookupCol?.editLookupConfig?.disableColumnFilter">
                         <th *ngIf="activeLookupCol?.editLookupConfig?.multiSelect" style="padding: 4px;"></th>
                         <th *ngFor="let lc of activeLookupCol?.editLookupConfig?.columns" style="padding: 4px;">
                             <input pInputText type="text" [(ngModel)]="lookupColFilters[lc.field]"
@@ -337,11 +337,11 @@
         <!-- Multi-select Footer -->
         <div *ngIf="activeLookupCol?.editLookupConfig?.multiSelect"
             style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding-top: 12px; border-top: 1px solid var(--p-surface-200);">
-            <span style="font-size: 0.875rem; color: var(--p-text-muted-color);">Đã chọn: <b
-                    style="color: var(--p-primary-color);">{{ lookupSelectedRows.length }}</b></span>
+            <span style="font-size: 0.875rem; color: var(--p-text-muted-color);"> <b
+                    style="color: var(--p-primary-color);"></b></span>
             <div style="display: flex; gap: 8px;">
-                <p-button label="Bỏ chọn" icon="pi pi-times" [text]="true" severity="secondary" size="small"
-                    (click)="lookupSelectedRows = []"></p-button>
+                <p-button label="Đóng" icon="pi pi-times" [text]="true" severity="danger" size="small"
+                    (click)="lookupPanel.hide()"></p-button>
                 <p-button label="Xác nhận" icon="pi pi-check" severity="success" size="small"
                     (click)="confirmLookupSelection()"></p-button>
             </div>

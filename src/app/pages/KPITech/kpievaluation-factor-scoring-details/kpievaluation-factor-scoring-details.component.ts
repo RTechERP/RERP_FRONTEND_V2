@@ -2959,7 +2959,10 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       const rawVal = event.value;
       const isNullOrEmpty = rawVal === null || rawVal === undefined || String(rawVal).trim() === '';
       let newEmployeePoint = isNullOrEmpty ? null : this.parseLocaleFloat(rawVal);
-      if (newEmployeePoint !== null && !isTKCK && newEmployeePoint > standardPoint) newEmployeePoint = standardPoint;
+      if (newEmployeePoint !== null) {
+        newEmployeePoint = Math.round(newEmployeePoint * 10) / 10;
+        if (!isTKCK && newEmployeePoint > standardPoint) newEmployeePoint = standardPoint;
+      }
       changedItem.EmployeePoint = newEmployeePoint;
       changedItem.EmployeeCoefficient = (newEmployeePoint ?? 0) * coefficient;
       changedItem.EmployeeEvaluation = newEmployeePoint;
@@ -2969,7 +2972,10 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       const rawVal = event.value;
       const isNullOrEmpty = rawVal === null || rawVal === undefined || String(rawVal).trim() === '';
       let tbpPointInput = isNullOrEmpty ? null : this.parseLocaleFloat(rawVal);
-      if (tbpPointInput !== null && !isTKCK && tbpPointInput > standardPoint) tbpPointInput = standardPoint;
+      if (tbpPointInput !== null) {
+        tbpPointInput = Math.round(tbpPointInput * 10) / 10;
+        if (!isTKCK && tbpPointInput > standardPoint) tbpPointInput = standardPoint;
+      }
       changedItem.TBPPointInput = tbpPointInput;
       if (tbpPointInput === null) {
         changedItem.TBPPoint = null;
@@ -2988,7 +2994,10 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       const rawVal = event.value;
       const isNullOrEmpty = rawVal === null || rawVal === undefined || String(rawVal).trim() === '';
       let bgdPointInput = isNullOrEmpty ? null : this.parseLocaleFloat(rawVal);
-      if (bgdPointInput !== null && !isTKCK && bgdPointInput > standardPoint) bgdPointInput = standardPoint;
+      if (bgdPointInput !== null) {
+        bgdPointInput = Math.round(bgdPointInput * 10) / 10;
+        if (!isTKCK && bgdPointInput > standardPoint) bgdPointInput = standardPoint;
+      }
       changedItem.BGDPointInput = bgdPointInput;
       if (bgdPointInput === null) {
         changedItem.BGDPoint = null;
@@ -3486,13 +3495,15 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       const isNullOrEmpty = rawVal === null || rawVal === undefined || String(rawVal).trim() === '';
       let newEmployeePoint = isNullOrEmpty ? null : this.parseLocaleFloat(rawVal);
 
-      // Sửa theo yêu cầu: Nếu không phải TKCK và nhập quá điểm chuẩn thì gán về max điểm chuẩn
-      if (newEmployeePoint !== null && !isTKCK && newEmployeePoint > standardPoint) {
-        newEmployeePoint = standardPoint;
+      if (newEmployeePoint !== null) {
+        newEmployeePoint = Math.round(newEmployeePoint * 10) / 10;
+        // Sửa theo yêu cầu: Nếu không phải TKCK và nhập quá điểm chuẩn thì gán về max điểm chuẩn
+        if (!isTKCK && newEmployeePoint > standardPoint) {
+          newEmployeePoint = standardPoint;
+        }
+        // Clamp: không cho phép nhập số âm
+        if (newEmployeePoint < 0) newEmployeePoint = 0;
       }
-
-      // Clamp: không cho phép nhập số âm
-      if (newEmployeePoint !== null && newEmployeePoint < 0) newEmployeePoint = 0;
 
       changedItem.EmployeePoint = newEmployeePoint;
       changedItem.EmployeeCoefficient = (newEmployeePoint ?? 0) * coefficient;
@@ -3505,12 +3516,15 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       const isNullOrEmpty = rawVal === null || rawVal === undefined || String(rawVal).trim() === '';
       let tbpPointInput = isNullOrEmpty ? null : this.parseLocaleFloat(rawVal);
 
-      // Sửa theo yêu cầu: Nếu không phải TKCK và nhập quá điểm chuẩn thì gán về max điểm chuẩn
-      if (tbpPointInput !== null && !isTKCK && tbpPointInput > standardPoint) {
-        tbpPointInput = standardPoint;
+      if (tbpPointInput !== null) {
+        tbpPointInput = Math.round(tbpPointInput * 10) / 10;
+        // Sửa theo yêu cầu: Nếu không phải TKCK và nhập quá điểm chuẩn thì gán về max điểm chuẩn
+        if (!isTKCK && tbpPointInput > standardPoint) {
+          tbpPointInput = standardPoint;
+        }
+        // Clamp: không cho phép nhập số âm
+        if (tbpPointInput < 0) tbpPointInput = 0;
       }
-      // Clamp: không cho phép nhập số âm
-      if (tbpPointInput !== null && tbpPointInput < 0) tbpPointInput = 0;
       changedItem.TBPPointInput = tbpPointInput;
 
       if (tbpPointInput === null) {
@@ -3532,12 +3546,15 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       const isNullOrEmpty = rawVal === null || rawVal === undefined || String(rawVal).trim() === '';
       let bgdPointInput = isNullOrEmpty ? null : this.parseLocaleFloat(rawVal);
 
-      // Sửa theo yêu cầu: Nếu không phải TKCK và nhập quá điểm chuẩn thì gán về max điểm chuẩn
-      if (bgdPointInput !== null && !isTKCK && bgdPointInput > standardPoint) {
-        bgdPointInput = standardPoint;
+      if (bgdPointInput !== null) {
+        bgdPointInput = Math.round(bgdPointInput * 10) / 10;
+        // Sửa theo yêu cầu: Nếu không phải TKCK và nhập quá điểm chuẩn thì gán về max điểm chuẩn
+        if (!isTKCK && bgdPointInput > standardPoint) {
+          bgdPointInput = standardPoint;
+        }
+        // Clamp: không cho phép nhập số âm
+        if (bgdPointInput < 0) bgdPointInput = 0;
       }
-      // Clamp: không cho phép nhập số âm
-      if (bgdPointInput !== null && bgdPointInput < 0) bgdPointInput = 0;
       changedItem.BGDPointInput = bgdPointInput;
 
       if (bgdPointInput === null) {

@@ -13,6 +13,8 @@ export interface EditLookupConfig {
     displayField?: string;
     /** Allow selecting multiple rows. Cell value becomes an array of valueField values. Default: false */
     multiSelect?: boolean;
+    /** Whether to hide the column-level search filters inside the lookup table popover. Default: false */
+    disableColumnFilter?: boolean;
 }
 
 export interface ColumnDef {

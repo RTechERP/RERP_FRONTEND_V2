@@ -60,7 +60,7 @@ export class CustomTable implements OnChanges {
 
     // --- Highlighting State ---
     globalFilterValue: string = '';
-    
+
     // --- Excel Filter State ---
     excelFilterSearchText: { [field: string]: string } = {};
     activeFilterTab: { [field: string]: string } = {};

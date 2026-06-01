@@ -16,6 +16,8 @@ export interface EditLookupConfig {
     /** Optional: callback to open add-new modal for this lookup. Receives current rowData.
      *  When provided, a "+" button appears next to the lookup chevron on editable rows. */
     addAction?: (rowData: any) => void;
+    /** Whether to hide the column-level search filters inside the lookup table popover. Default: false */
+    disableColumnFilter?: boolean;
 }
 
 export interface ColumnDef {

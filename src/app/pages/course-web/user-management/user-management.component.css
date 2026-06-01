@@ -1,0 +1,81 @@
+.page-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+}
+
+.filter-bar {
+    background: transparent;
+}
+
+.selected-info {
+    font-size: 13px;
+    color: #555;
+}
+
+.selected-info strong {
+    color: #1890ff;
+}
+
+.badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.badge.bg-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.badge.bg-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.badge.bg-secondary {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+
+.page-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);
+    min-height: 500px;
+}
+
+.table-container {
+    flex: 1;
+    overflow: auto;
+    border-top: 1px solid #ddd;
+    background: #fff;
+    position: relative;
+    min-height: 0;
+}
+
+:host ::ng-deep .p-datatable-wrapper {
+    height: 100% !important;
+}
+
+:host ::ng-deep .p-column-filter-row {
+    background-color: #f8f9fa;
+}
+
+:host ::ng-deep .p-column-filter-input {
+    font-size: 10px !important;
+    padding: 1px 4px !important;
+    height: 20px !important;
+    width: 100% !important;
+}
+
+:host ::ng-deep .p-column-filter-row {
+    background-color: #f8f9fa;
+}
+
+:host ::ng-deep .p-column-filter-row td {
+    padding: 2px 4px !important;
+}

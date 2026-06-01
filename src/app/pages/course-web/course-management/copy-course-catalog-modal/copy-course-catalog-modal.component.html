@@ -1,0 +1,108 @@
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white text-uppercase">
+        Copy Danh Mục Khóa Học
+    </h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body">
+    <form [formGroup]="formGroup" nzLayout="vertical" class="fs-7 mt-2">
+        <nz-row [nzGutter]="16">
+            <!-- Chon danh muc nguon -->
+            <nz-col [nzSpan]="24">
+                <nz-form-item>
+                    <nz-form-label nzRequired class="p-0">Danh mục gốc cần copy</nz-form-label>
+                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn danh mục gốc">
+                        <nz-select formControlName="SourceCatalogID" nzPlaceHolder="-- Chọn danh mục --" [nzLoading]="loading">
+                            <nz-option *ngFor="let c of sourceCatalogs" [nzValue]="c.ID" [nzLabel]="c.Name">
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+        <nz-row [nzGutter]="16">
+            <!-- Loai danh muc moi -->
+            <nz-col [nzSpan]="24">
+                <nz-form-item>
+                    <nz-form-label nzRequired class="p-0">Loại danh mục</nz-form-label>
+                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn loại danh mục">
+                        <nz-select formControlName="CatalogTypeID" nzPlaceHolder="-- Chọn loại --" [nzLoading]="loading">
+                            <nz-option *ngFor="let t of catalogTypes" [nzValue]="t.ID" [nzLabel]="t.CourseCatalogTypeName">
+                            </nz-option>
+                        </nz-select>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <!-- STT -->
+            <nz-col [nzSpan]="12" hidden>
+                <nz-form-item>
+                    <nz-form-label class="p-0">Số thứ tự</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <nz-input-number formControlName="STT" [nzMin]="1" style="width: 100%;"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+        <nz-row [nzGutter]="16">
+            <!-- Ten danh muc moi -->
+            <nz-col [nzSpan]="12">
+                <nz-form-item>
+                    <nz-form-label nzRequired class="p-0">Tên danh mục mới</nz-form-label>
+                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên danh mục">
+                        <input nz-input formControlName="Name" placeholder="Nhập tên danh mục mới" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <!-- Ma danh muc moi -->
+            <nz-col [nzSpan]="12">
+                <nz-form-item>
+                    <nz-form-label nzRequired class="p-0">Mã danh mục mới</nz-form-label>
+                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã danh mục">
+                        <input nz-input formControlName="Code" placeholder="Nhập mã danh mục mới" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+
+
+
+        <!-- Checkbox chon du lieu copy -->
+        <nz-row [nzGutter]="16">
+            <nz-col [nzSpan]="24">
+                <nz-form-item>
+                    <nz-form-label class="p-0">Dữ liệu cần copy</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <div class="checkbox-group">
+                            <label nz-checkbox [(ngModel)]="copyOptions[0].checked" [ngModelOptions]="{standalone: true}">
+                                {{ copyOptions[0].label }}
+                            </label>
+                        </div>
+                        <div class="checkbox-group">
+                            <label nz-checkbox [(ngModel)]="copyOptions[1].checked" [ngModelOptions]="{standalone: true}">
+                                {{ copyOptions[1].label }}
+                            </label>
+                        </div>
+                        <div class="checkbox-group">
+                            <label nz-checkbox [(ngModel)]="copyOptions[2].checked" [ngModelOptions]="{standalone: true}">
+                                {{ copyOptions[2].label }}
+                            </label>
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
+        Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="save()" [disabled]="saving">
+        <span *ngIf="saving">Đang xử lý...</span>
+        <span *ngIf="!saving">Copy</span>
+    </button>
+</div>

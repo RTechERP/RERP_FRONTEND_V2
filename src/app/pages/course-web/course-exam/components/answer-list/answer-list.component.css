@@ -1,0 +1,19 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+.table-container {
+    height: 100%;
+}
+
+:host ::ng-deep .ant-spin-nested-loading,
+:host ::ng-deep .ant-spin-container {
+    height: 100%;
+    display: block;
+}
+
+:host ::ng-deep .ant-spin {
+    max-height: 100%;
+    overflow: hidden;
+}

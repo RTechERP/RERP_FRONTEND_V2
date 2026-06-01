@@ -31,3 +31,15 @@
         border: 1px solid #dee2e6;
     }
 }
+
+::ng-deep .content-host {
+    height: 100% !important;
+}
+
+::ng-deep .tab-pane {
+    height: 100% !important;
+}
+
+::ng-deep .p-datatable-table {
+    height: 100%;
+}

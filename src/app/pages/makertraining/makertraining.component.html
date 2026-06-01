@@ -1,18 +1,12 @@
-<ng-container class="w-100">
+<div class="w-100 h-100">
   <nz-splitter>
-    <nz-splitter-panel [nzSize]="sizeSearch" [nzCollapsible]="true">
+    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false" [nzCollapsible]="true">
       <div class="card h-100 border-0 rounded-0">
         <div class="card-header bg-white p-1">
           <div class="d-flex justify-content-between align-items-center">
             <h6 class="m-0 ms-2">Tìm kiếm</h6>
-            <button
-              class="border-0 me-2"
-              nz-button
-              nzSize="small"
-              nzType="default"
-              nzDanger
-              (click)="toggleSearchPanel()"
-            >
+            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+              (click)="toggleSearchPanel()">
               <nz-icon nzType="close" nzTheme="outline" />
             </button>
           </div>
@@ -22,145 +16,78 @@
             <nz-form-item class="mb-3">
               <nz-form-label [nzSpan]="24">Từ ngày</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-date-picker
-                  [nzFormat]="dateFormat"
-                  class="w-100"
-                  [(ngModel)]="searchParams.DateStart"
-                  name="dateStart"
-                >
+                <nz-date-picker [nzFormat]="dateFormat" class="w-100" [(ngModel)]="searchParams.DateStart"
+                  name="dateStart">
                 </nz-date-picker>
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mb-3">
-              <nz-form-label [nzSpan]="24"
-                >Đến ngày</nz-form-label
-              >
+              <nz-form-label [nzSpan]="24">Đến ngày</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-date-picker
-                  [nzFormat]="dateFormat"
-                  class="w-100"
-                  [(ngModel)]="searchParams.DateEnd"
-                  name="dateEnd"
-                ></nz-date-picker>
+                <nz-date-picker [nzFormat]="dateFormat" class="w-100" [(ngModel)]="searchParams.DateEnd"
+                  name="dateEnd"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mb-3">
-              <nz-form-label [nzSpan]="24"
-                >Phòng ban</nz-form-label
-              >
+              <nz-form-label [nzSpan]="24">Phòng ban</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-select
-                  [(ngModel)]="searchParams.DepartmentID"
-                  [nzPlaceHolder]="'Chọn phòng ban'"
-                  style="width: 100%"
-                  name="DepartmentID"
-                  nzShowSearch
-                  [nzFilterOption]="filterOption"
-                  nzAllowClear
-                >
-                  <nz-option
-                    *ngFor="let item of dataDepartment"
-                    [nzLabel]="item.Code + '-' + item.Name"
-                    [nzValue]="item.ID"
-                  ></nz-option>
+                <nz-select [(ngModel)]="searchParams.DepartmentID" [nzPlaceHolder]="'Chọn phòng ban'"
+                  style="width: 100%" name="DepartmentID" nzShowSearch [nzFilterOption]="filterOption" nzAllowClear>
+                  <nz-option *ngFor="let item of dataDepartment" [nzLabel]="item.Code + '-' + item.Name"
+                    [nzValue]="item.ID"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mb-3">
-              <nz-form-label [nzSpan]="24"
-                >Chọn hãng</nz-form-label
-              >
+              <nz-form-label [nzSpan]="24">Chọn hãng</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-select
-                  [(ngModel)]="searchParams.FirmID"
-                  [nzPlaceHolder]="'Chọn hãng'"
-                  style="width: 100%"
-                  name="FirmID"
-                  nzShowSearch
-                  [nzFilterOption]="filterOption"
-                  nzAllowClear
-                >
-                  <nz-option
-                    *ngFor="let item of dataFirm"
-                    [nzLabel]="item.FirmName"
-                    [nzValue]="item.ID"
-                  ></nz-option>
+                <nz-select [(ngModel)]="searchParams.FirmID" [nzPlaceHolder]="'Chọn hãng'" style="width: 100%"
+                  name="FirmID" nzShowSearch [nzFilterOption]="filterOption" nzAllowClear>
+                  <nz-option *ngFor="let item of dataFirm" [nzLabel]="item.FirmName" [nzValue]="item.ID"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mb-0">
               <nz-form-label [nzSpan]="24">Từ khóa</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <input
-                  class="w-100"
-                  nz-input
-                  placeholder="Nhập từ khóa"
-                  name="keyword"
-                  [(ngModel)]="searchParams.Keyword"
-                />
+                <input class="w-100" nz-input placeholder="Nhập từ khóa" name="keyword"
+                  [(ngModel)]="searchParams.Keyword" />
               </nz-form-control>
             </nz-form-item>
           </form>
         </div>
         <div class="card-footer bg-white p-2 d-flex gap-1 justify-content-end">
-          <button
-            nz-button
-            nzType="primary"
-            (click)="searchData()"
-          >
+          <button nz-button nzType="primary" (click)="searchData()">
             Tìm kiếm
           </button>
         </div>
       </div>
     </nz-splitter-panel>
-    <nz-splitter-panel>
+    <nz-splitter-panel >
       <nz-splitter nzLayout="vertical">
         <nz-splitter-panel>
           <div class="card h-100 border-0 rounded-0">
             <div class="card-header bg-white p-1">
               <div class="d-flex gap-1 align-items-center">
-                <button
-                  nz-button
-                  nzType="default"
-                  nzSize="small"
-                  (click)="toggleSearchPanel()"
-                >
+                <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
                   <nz-icon nzType="search" />
                 </button>
-                <p-menubar
-                  [model]="menuBars"
-                  [style]="{
+                <p-menubar [model]="menuBars" [style]="{
                     border: 'none',
                     padding: '0',
                     'min-height': 'auto',
                     'z-index': '100'
-                  }"
-                ></p-menubar>
+                  }"></p-menubar>
               </div>
             </div>
             <div class="card-body p-0 flex-grow-1" style="min-height: 0">
               <div class="flat-table-section h-100">
-                <app-custom-table
-                  [columns]="makerTrainingColumns"
-                  [data]="makerTrainingData"
-                  dataKey="ID"
-                  [scrollable]="true"
-                  scrollHeight="flex"
-                  height="100%"
-                  [resizable]="true"
-                  [showGridlines]="true"
-                  [showColumnFilter]="true"
-                  [sortMode]="'single'"
-                  [paginator]="false"
-                  [rows]="pageSize"
-                  [rowsPerPageOptions]="pageSizeOptions"
-                  exportFilename="maker-training"
-                  tableId="maker-training-table"
-                  [selectionMode]="'multiple'"
-                  [(selection)]="selectedMakerTraining"
-                  (selectionChange)="onSelectionChange($event)"
-                  (rowDblClick)="onAddMakerTraining(true)"
-                >
+                <app-custom-table [columns]="makerTrainingColumns" [data]="makerTrainingData" dataKey="ID"
+                  [scrollable]="true" scrollHeight="flex" height="100%" [resizable]="true" [showGridlines]="true"
+                  [showColumnFilter]="true" [sortMode]="'single'" [paginator]="false" [rows]="pageSize"
+                  [rowsPerPageOptions]="pageSizeOptions" exportFilename="maker-training" tableId="maker-training-table"
+                  [selectionMode]="'multiple'" [(selection)]="selectedMakerTraining"
+                  (selectionChange)="onSelectionChange($event)" (rowDblClick)="onAddMakerTraining(true)">
                 </app-custom-table>
               </div>
             </div>
@@ -172,22 +99,10 @@
               <div class="box h-100">
                 <div class="card-body p-0 h-100" style="min-height: 0">
                   <div class="flat-table-section h-100">
-                    <app-custom-table
-                      [columns]="employeeColumns"
-                      [data]="makerTrainingEmployeeData"
-                      dataKey="ID"
-                      [scrollable]="true"
-                      scrollHeight="flex"
-                      height="100%"
-                      [resizable]="true"
-                      [showGridlines]="true"
-                      [showColumnFilter]="true"
-                      [sortMode]="'single'"
-                      [paginator]="false"
-                      [rows]="pageSize"
-                      [rowsPerPageOptions]="pageSizeOptions"
-                      tableId="maker-training-employee-table"
-                    >
+                    <app-custom-table [columns]="employeeColumns" [data]="makerTrainingEmployeeData" dataKey="ID"
+                      [scrollable]="true" scrollHeight="flex" height="100%" [resizable]="true" [showGridlines]="true"
+                      [showColumnFilter]="true" [sortMode]="'single'" [paginator]="false" [rows]="pageSize"
+                      [rowsPerPageOptions]="pageSizeOptions" tableId="maker-training-employee-table">
                     </app-custom-table>
                   </div>
                 </div>
@@ -197,23 +112,11 @@
               <div class="box h-100">
                 <div class="card-body p-0 h-100" style="min-height: 0">
                   <div class="flat-table-section h-100">
-                    <app-custom-table
-                      [columns]="fileColumns"
-                      [data]="makerTrainingFileData"
-                      dataKey="ID"
-                      [scrollable]="true"
-                      scrollHeight="flex"
-                      height="100%"
-                      [resizable]="true"
-                      [showGridlines]="true"
-                      [showColumnFilter]="true"
-                      [sortMode]="'single'"
-                      [paginator]="false"
-                      [rows]="pageSize"
-                      [rowsPerPageOptions]="pageSizeOptions"
-                      tableId="maker-training-file-table"
-                      (cellAction)="onCellAction($event)"
-                    >
+                    <app-custom-table [columns]="fileColumns" [data]="makerTrainingFileData" dataKey="ID"
+                      [scrollable]="true" scrollHeight="flex" height="100%" [resizable]="true" [showGridlines]="true"
+                      [showColumnFilter]="true" [sortMode]="'single'" [paginator]="false" [rows]="pageSize"
+                      [rowsPerPageOptions]="pageSizeOptions" tableId="maker-training-file-table"
+                      (cellAction)="onCellAction($event)">
                     </app-custom-table>
                   </div>
                 </div>
@@ -224,4 +127,4 @@
       </nz-splitter>
     </nz-splitter-panel>
   </nz-splitter>
-</ng-container>
+</div>

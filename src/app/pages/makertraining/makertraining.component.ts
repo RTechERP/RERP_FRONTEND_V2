@@ -309,7 +309,7 @@ export class MakertrainingComponent implements OnInit {
     private message: NzMessageService,
     private projectRequestService: ProjectRequestServiceService,
     private permissionService: PermissionService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.getdataDepartment();
@@ -329,7 +329,7 @@ export class MakertrainingComponent implements OnInit {
       {
         label: 'Thêm',
         icon: 'fa-solid fa-circle-plus fa-lg text-success',
-        visible: this.permissionService.hasPermission('N85, N32'),
+        visible: this.permissionService.hasPermission('N85,N32'),
         command: () => {
           this.onAddMakerTraining(false);
         },
@@ -337,7 +337,7 @@ export class MakertrainingComponent implements OnInit {
       {
         label: 'Sửa',
         icon: 'fa-solid fa-file-pen fa-lg text-primary',
-        visible: this.permissionService.hasPermission('N85, N32'),
+        visible: this.permissionService.hasPermission('N85,N32'),
         command: () => {
           this.onAddMakerTraining(true);
         },
@@ -345,7 +345,7 @@ export class MakertrainingComponent implements OnInit {
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: this.permissionService.hasPermission('N85, N32'),
+        visible: this.permissionService.hasPermission('N85,N32'),
         command: () => {
           this.onDeleteMakerTraining();
         },
@@ -353,7 +353,7 @@ export class MakertrainingComponent implements OnInit {
       {
         label: 'Xuất excel',
         icon: 'fa-solid fa-file-excel fa-lg text-success',
-        visible: this.permissionService.hasPermission('N85, N32'),
+        visible: this.permissionService.hasPermission('N85,N32'),
         command: () => {
           this.ExportExcel();
         },
@@ -500,7 +500,7 @@ export class MakertrainingComponent implements OnInit {
           this.getMakerTraining();
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }
 
   onSelectionChange(selection: any[]) {

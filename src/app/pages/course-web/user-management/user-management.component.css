@@ -26,6 +26,10 @@
     font-weight: 500;
 }
 
+:host ::ng-deep .p-inputtext {
+    height: 30px;
+}
+
 .badge.bg-success {
     background-color: #d4edda;
     color: #155724;
@@ -78,4 +82,33 @@
 
 :host ::ng-deep .p-column-filter-row td {
     padding: 2px 4px !important;
+}
+
+:host ::ng-deep .p-column-filter-row .ant-input {
+    height: 22px !important;
+    font-size: 11px !important;
+    padding: 1px 4px !important;
+}
+
+:host ::ng-deep .p-column-filter-row .ant-input-affix-wrapper {
+    height: 22px !important;
+    padding: 1px 4px !important;
+}
+
+:host ::ng-deep .p-column-filter-row .ant-picker {
+    height: 22px !important;
+    min-height: 22px !important;
+}
+
+:host ::ng-deep .p-column-filter-row .ant-picker-input>input {
+    font-size: 11px !important;
+}
+
+:host ::ng-deep .p-column-filter-row nz-date-picker .ant-picker {
+    height: 22px !important;
+    min-height: 22px !important;
+}
+
+:host ::ng-deep .p-column-filter-row nz-date-picker .ant-picker-suffix {
+    padding: 0 4px !important;
 }

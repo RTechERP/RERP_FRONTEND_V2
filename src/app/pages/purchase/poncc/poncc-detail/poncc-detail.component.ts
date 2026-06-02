@@ -161,7 +161,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   directorMarginLeftCm: number = 0.53;
   titleMarginTopCm: number = 0;
   preparedWidth: number = 150;
-  directorWidth: number = 170;
+  directorWidth: number = 190;
 
   // Column definitions for popups
   productSalePopupColumns: ColumnDefinition[] = [
@@ -3105,7 +3105,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
     this.preparedWidth = 150;
     this.directorMarginLeft = 0.53;
     this.directorMarginTop = 0;
-    this.directorWidth = 170;
+    this.directorWidth = 190;
     this.titleMarginTop = 0;
     this.toggleSeal();
   }

@@ -174,7 +174,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
   preparedMarginTop: number = 0;
   directorMarginTop: number = 0;
   preparedWidth: number = 150;
-  directorWidth: number = 170;
+  directorWidth: number = 190;
   preparedMarginLeft: number = 0;
   directorMarginLeft: number = 20;
   titleMarginTop: number = 0;
@@ -3702,7 +3702,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         preparedMarginTopTab: 0,
         directorMarginTopTab: 0,
         preparedWidthTab: 150,
-        directorWidthTab: 170,
+        directorWidthTab: 190,
         preparedMarginLeftTab: 0,
         directorMarginLeftTab: 0.53,
         titleMarginTopTab: 0,
@@ -3831,7 +3831,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     tab.preparedMarginTopTab = 0;
     tab.directorMarginTopTab = 0;
     tab.preparedWidthTab = 150;
-    tab.directorWidthTab = 170;
+    tab.directorWidthTab = 190;
     tab.preparedMarginLeftTab = 0;
     tab.directorMarginLeftTab = 0.53;
     tab.titleMarginTopTab = 0;
@@ -3853,7 +3853,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.preparedMarginTop = 0;
     this.directorMarginTop = 0;
     this.preparedWidth = 150;
-    this.directorWidth = 170;
+    this.directorWidth = 190;
     this.preparedMarginLeft = 0;
     this.directorMarginLeft = 20;
     this.titleMarginTop = 0;

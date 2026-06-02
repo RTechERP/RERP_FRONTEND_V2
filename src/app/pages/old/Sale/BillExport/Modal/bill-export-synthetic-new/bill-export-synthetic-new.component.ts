@@ -446,6 +446,15 @@ export class BillExportSyntheticNewComponent implements OnInit, AfterViewInit {
                 filter: { model: Filters['compoundInputText'] },
             },
             {
+                id: 'ProjectCodeText',
+                name: 'Mã dự án',
+                field: 'ProjectCodeText',
+                width: 200,
+                sortable: true,
+                filterable: true,
+                filter: { model: Filters['compoundInputText'] },
+            },
+            {
                 id: 'ProjectNameText',
                 name: 'Dự án',
                 field: 'ProjectNameText',

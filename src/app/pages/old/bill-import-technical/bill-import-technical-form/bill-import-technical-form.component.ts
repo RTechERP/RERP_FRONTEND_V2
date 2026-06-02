@@ -280,21 +280,35 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           ?.updateValueAndValidity({ onlySelf: true, emitEvent: false });
       });
 
-    // Subscribe to DeliverID changes to auto-fill Deliver (FullName)
+    // Subscribe to DeliverID changes to auto-fill Deliver (FullName) and update permissions
     this.formDeviceInfo
       .get('DeliverID')
       ?.valueChanges.subscribe((deliverID: number) => {
+        console.log('📋 [DeliverID valueChanges] deliverID =', deliverID,
+          '| emPloyeeLists.length =', this.emPloyeeLists?.length ?? 0);
         if (deliverID && this.emPloyeeLists && this.emPloyeeLists.length > 0) {
           const employee = this.emPloyeeLists.find(
             (e: any) => e.ID === deliverID
           );
+          console.log('📋 [DeliverID valueChanges] employee found:', employee);
           if (employee && employee.FullName) {
             this.formDeviceInfo.patchValue(
               { Deliver: employee.FullName },
               { emitEvent: false }
             );
           }
+          // Nếu currentUser thuộc phòng ban DepartmentID=4, set CustomerID mặc định = 10910
+          if (this.currentDepartmentID === 4) {
+            this.formDeviceInfo.patchValue(
+              { CustomerID: 10910 },
+              { emitEvent: false }
+            );
+          }
+        } else if (deliverID) {
+          console.warn('⚠️ [DeliverID valueChanges] emPloyeeLists chưa load xong khi DeliverID được set! Sẽ resolve sau khi employee list load.');
         }
+        // Update canEditRestrictedFields khi DeliverID thay đổi
+        this.applyFormPermissions();
       });
 
     // Disable WarehouseType field - không cho sửa
@@ -335,7 +349,19 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       .subscribe((res: any) => {
         // API returns { status, data: { data: [], data1: [], data2: [] } }
         this.customerList = res.data?.data || [];
-        console.log('Customer List:', this.customerList);
+        console.log('✅ [getCustomer] Customer List loaded, count =', this.customerList.length);
+
+        // FIX TIMING: Re-apply CustomerID sau khi customerList load xong
+        // vì patchDataFromPONCC() được gọi trước khi customerList có dữ liệu
+        // nz-select cần list phải có data mới hiển thị được option đã chọn
+        if (this.flag === 1 && this.PonccID > 0 && this.newBillImport) {
+          const customerID = this.newBillImport.CustomerID || 0;
+          console.log('🔵 [getCustomer] PONCC mode - re-applying CustomerID =', customerID);
+          if (customerID) {
+            this.formDeviceInfo.patchValue({ CustomerID: customerID }, { emitEvent: false });
+            console.log('✅ [getCustomer] CustomerID re-patched:', customerID);
+          }
+        }
       });
   }
   getNCC() {
@@ -412,7 +438,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     this.billImportTechnicalService.getUser().subscribe((respon: any) => {
       // API returns { status, data: [] } - using ApiResponseFactory
       this.emPloyeeLists = respon.data || [];
-      console.log('Employee List:', this.emPloyeeLists);
+      console.log('✅ [getListEmployee] Employee List loaded, count =', this.emPloyeeLists.length);
+      console.log('✅ [getListEmployee] Sample employee (first):', this.emPloyeeLists[0]);
 
       this.employeeSelectOptions = this.emPloyeeLists.map((e: any) => ({
         label: e.FullName,
@@ -429,6 +456,35 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         } catch (err) {
           console.warn('Unable to update table columns:', err);
         }
+      }
+
+      // FIX TIMING: Sau khi employee list load xong, nếu đang ở luồng PONCC
+      // thì re-apply Deliver name và logic department vì patchDataFromPONCC()
+      // đã được gọi trước khi emPloyeeLists có dữ liệu
+      if (this.flag === 1 && this.PonccID > 0) {
+        const deliverID = this.formDeviceInfo.get('DeliverID')?.value;
+        console.log('🔵 [getListEmployee] PONCC mode - re-applying DeliverID =', deliverID);
+        const employee = this.emPloyeeLists.find((e: any) => e.ID === deliverID);
+        if (deliverID) {
+          console.log('🔵 [getListEmployee] Employee resolved after load:', employee);
+          if (employee?.FullName) {
+            this.formDeviceInfo.patchValue({ Deliver: employee.FullName }, { emitEvent: false });
+            console.log('✅ [getListEmployee] Deliver name patched:', employee.FullName);
+          }
+        }
+        // Nếu currentUser thuộc phòng ban DepartmentID=4, set CustomerID mặc định = 10910
+        console.log('🔵 [getListEmployee] currentDepartmentID =', this.currentDepartmentID);
+        if (this.currentDepartmentID === 4) {
+          this.formDeviceInfo.patchValue({ CustomerID: 10910 }, { emitEvent: false });
+          console.log('✅ [getListEmployee] CustomerID set to 10910 (currentUser dept=4)');
+        }
+        // Log trạng thái form sau khi resolve
+        console.log('📋 [getListEmployee] Form values sau khi resolve PONCC:', {
+          DeliverID: this.formDeviceInfo.get('DeliverID')?.value,
+          Deliver: this.formDeviceInfo.get('Deliver')?.value,
+          ReceiverID: this.formDeviceInfo.get('ReceiverID')?.value,
+          CustomerID: this.formDeviceInfo.get('CustomerID')?.value,
+        });
       }
     });
   }
@@ -649,8 +705,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     }
     // Set người nhận mặc định là user đang đăng nhập (chỉ khi tạo mới)
     const currentUser = this.appUserService.currentUser;
-    if (currentUser?.ID && !this.dataEdit) {
-      this.formDeviceInfo.patchValue({ ReceiverID: currentUser.ID });
+    if (!this.dataEdit) {
+      this.formDeviceInfo.patchValue({ ReceiverID: 1700 });
     }
 
     // LUỒNG PONCC - Xử lý dữ liệu từ PONCC
@@ -763,7 +819,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    console.log('🔵 Đang patch master data từ PONCC:', this.newBillImport);
+    console.log('🔵 [patchDataFromPONCC] Raw newBillImport:', this.newBillImport);
+    console.log('🔵 [patchDataFromPONCC] emPloyeeLists.length tại thời điểm này =', this.emPloyeeLists?.length ?? 0);
 
     // Xác định giá trị cho các trường
     const receiverID =
@@ -771,6 +828,12 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     const deliverID = this.newBillImport.DeliverID || 0;
     const supplierSaleID = this.newBillImport.SupplierSaleID || 0;
     const rulePayID = this.newBillImport.RulePayID || 0;
+    const customerID = this.newBillImport.CustomerID || 0;
+
+    console.log('🔵 [patchDataFromPONCC] Các giá trị sẽ patch:', {
+      deliverID, receiverID, supplierSaleID, rulePayID, customerID,
+      BillTypeNew: this.newBillImport.BillTypeNew,
+    });
 
     // Patch dữ liệu master từ PONCC vào form
     this.formDeviceInfo.patchValue({
@@ -780,7 +843,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       DeliverID: deliverID,
       WarehouseID: this.newBillImport.WarehouseID || this.warehouseID,
       SupplierSaleID: supplierSaleID,
-      CustomerID: this.newBillImport.CustomerID || 0,
+      CustomerID: customerID,
       RulePayID: rulePayID,
       CreatDate: this.newBillImport.CreatDate
         ? new Date(this.newBillImport.CreatDate)
@@ -788,6 +851,14 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       DateRequestImport: this.newBillImport.DateRequestImport
         ? new Date(this.newBillImport.DateRequestImport)
         : new Date(),
+    });
+
+    console.log('🔵 [patchDataFromPONCC] Form values ngay sau patchValue:', {
+      DeliverID: this.formDeviceInfo.get('DeliverID')?.value,
+      Deliver: this.formDeviceInfo.get('Deliver')?.value,
+      ReceiverID: this.formDeviceInfo.get('ReceiverID')?.value,
+      CustomerID: this.formDeviceInfo.get('CustomerID')?.value,
+      SupplierSaleID: this.formDeviceInfo.get('SupplierSaleID')?.value,
     });
   }
 

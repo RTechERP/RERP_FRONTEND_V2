@@ -32,17 +32,6 @@ export class CourseSelectorComponent implements OnChanges {
     selectedCourseName: string = '';
     isCourseDropdownVisible: boolean = false;
 
-    // Specific grouping for this selector
-    groupBy: any[] = [
-        (data: any) => data.DepartmentName || 'Chưa có phòng ban',
-        (data: any) => data.CatalogName || 'Chưa có danh mục',
-    ];
-    groupStartOpen: boolean[] = [true, true];
-    groupHeader: any[] = [
-        (value: any) => `<strong>Phòng ban: ${value}</strong>`,
-        (value: any) => `<strong>Danh mục: ${value}</strong>`,
-    ];
-
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['selectedCourseId'] || changes['allCourseData']) {
             console.log('[CourseSelector] ngOnChanges:', {

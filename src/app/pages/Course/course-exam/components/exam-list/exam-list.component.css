@@ -3,37 +3,152 @@
     height: 100%;
 }
 
-/* Force nz-spin-nested-loading to be the relative anchor */
 :host ::ng-deep .ant-spin-nested-loading {
     height: 100%;
     width: 100%;
     position: relative;
 }
 
-/* absolute positioning guarantees the container fits exactly within the parent, preventing overflow or clipping */
 :host ::ng-deep .ant-spin-container {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden;
-    /* Contain Tabulator's internal scrollbars */
-    display: block;
-}
-
-/* Tabulator container inherits full size from the absolute parent */
-.table-container {
-    height: 100%;
-    width: 100%;
+    overflow: auto;
 }
 
 :host ::ng-deep .ant-spin {
     max-height: 100%;
 }
 
-/* Fix Tabulator Group Header background not extending on horizontal scroll */
-:host ::ng-deep .tabulator .tabulator-row.tabulator-group {
-    min-width: 100%;
-    width: max-content;
+.tree-container {
+    padding: 8px;
+}
+
+.tree-node {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+}
+
+.tree-node:hover {
+    filter: brightness(0.95);
+}
+
+.tree-node .node-prefix {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* Department - Xanh duong */
+.department-node {
+    background: #1a73e8;
+    border-left: 4px solid #1a73e8;
+    color: #fff;
+    font-weight: 400;
+}
+
+.department-node:hover {
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+}
+
+/* CatalogType - Theo loai */
+.catalog-type-node {
+    /* Mac dinh */
+}
+
+.catalog-type-node.type-co-ban {
+    background: #e3f2fd;
+    border-left: 4px solid #1a73e8;
+    color: #1a73e8;
+}
+
+.catalog-type-node.type-co-ban:hover {
+    box-shadow: 0 2px 8px rgba(82, 196, 26, 0.15);
+}
+
+.catalog-type-node.type-nang-cao {
+    background: #e3f2fd;
+    border-left: 4px solid #1a73e8;
+    color: #1a73e8;
+}
+
+.catalog-type-node.type-nang-cao:hover {
+    box-shadow: 0 2px 8px rgba(250, 140, 22, 0.15);
+}
+
+.catalog-type-node.type-bat-buoc {
+    background: #e3f2fd;
+    border-left: 4px solid #1a73e8;
+    color: #1a73e8;
+}
+
+.catalog-type-node.type-bat-buoc:hover {
+    box-shadow: 0 2px 8px rgba(255, 77, 79, 0.15);
+}
+
+/* Catalog - Tim */
+.catalog-node {
+    background: #f3e5f5;
+    border-left: 4px solid #9c27b0;
+    color: #7b1fa2;
+}
+
+.catalog-node:hover {
+    box-shadow: 0 2px 8px rgba(114, 46, 209, 0.15);
+}
+
+.catalog-type-node {
+    margin-left: 16px;
+}
+
+.catalog-node {
+    margin-left: 28px;
+}
+
+.course-node {
+    margin-left: 40px;
+    padding: 10px 14px;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #ffffff;
+}
+
+.course-node:hover {
+    background-color: #f0f7ff;
+    border-color: #1890ff;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+}
+
+.course-node.selected {
+    background-color: #e6f7ff;
+    border-color: #1890ff;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+}
+
+.course-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.course-name-text {
+    font-weight: 500;
+    color: #333;
+}
+
+.empty-children {
+    margin-left: 32px;
+    padding: 8px;
+    color: #999;
+    font-style: italic;
 }

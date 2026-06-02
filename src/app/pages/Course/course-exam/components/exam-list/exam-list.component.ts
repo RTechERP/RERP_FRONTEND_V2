@@ -1,31 +1,37 @@
-import { Component, OnInit, OnChanges, AfterViewInit, ViewChild, ElementRef, Input, Output, EventEmitter, SimpleChanges, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnChanges, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import { MenuItem } from 'primeng/api';
 import { MenubarModule } from 'primeng/menubar';
-import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { CourseData } from '../../course-exam.types';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzTagModule } from 'ng-zorro-antd/tag';
+
+interface TreeNode {
+    name: string;
+    isCollapsed: boolean;
+    courseCount: number;
+    children: TreeNode[];
+    course?: CourseData;
+}
 
 @Component({
     selector: 'app-exam-list',
     standalone: true,
-    imports: [CommonModule, MenubarModule, NzSpinModule],
+    imports: [CommonModule, MenubarModule, NzSpinModule, NzIconModule, NzTagModule],
     templateUrl: './exam-list.component.html',
     styleUrls: ['./exam-list.component.css']
 })
-export class ExamListComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
+export class ExamListComponent implements OnInit, OnChanges {
     @Input() data: CourseData[] = [];
     @Input() autoSelectFirst: boolean = false;
     @Input() isLoading: boolean = false;
     @Output() examSelected = new EventEmitter<CourseData>();
     @Output() menuAction = new EventEmitter<string>();
 
-    @ViewChild('ExamTable') tableRef!: ElementRef;
-
-    table: Tabulator | null = null;
-    private isTableBuilt = false;
-    private boundResizeHandler: any;
+    treeData: TreeNode[] = [];
+    allExpanded: boolean = false;
+    selectedCourseId: number | null = null;
 
     menuItems: MenuItem[] = [
         {
@@ -56,125 +62,124 @@ export class ExamListComponent implements OnInit, OnChanges, AfterViewInit, OnDe
     ngOnInit(): void { }
 
     ngOnChanges(changes: SimpleChanges): void {
-        if (this.table && this.isTableBuilt) {
-            const el = this.table.element;
-            if (!el || !document.body.contains(el)) return;
+        if (changes['data'] && this.data) {
+            this.buildTreeData(this.data);
+            if (this.autoSelectFirst && this.data.length > 0 && this.selectedCourseId === null) {
+                this.selectFirstCourse();
+            }
+        }
+    }
 
-            if (changes['data']) {
-                this.table.replaceData(this.data).then(() => {
-                    if (this.autoSelectFirst) {
-                        this.selectFirstRow();
-                    }
-                }).catch((err: any) => {
-                    console.warn('ExamList: replaceData failed', err);
+    private buildTreeData(courses: CourseData[]): void {
+        const deptMap = new Map<string, TreeNode>();
+
+        for (const course of courses) {
+            const deptName = course.DepartmentName || 'Chưa có phòng ban';
+            const catalogType = course.CatalogTypeText || 'Chưa phân loại';
+            const catalogName = course.CatalogName || 'Chưa có danh mục';
+
+            if (!deptMap.has(deptName)) {
+                deptMap.set(deptName, {
+                    name: deptName,
+                    isCollapsed: false,
+                    courseCount: 0,
+                    children: []
                 });
             }
+            const deptNode = deptMap.get(deptName)!;
+
+            let catTypeNode = deptNode.children.find(c => c.name === catalogType);
+            if (!catTypeNode) {
+                catTypeNode = { name: catalogType, isCollapsed: false, courseCount: 0, children: [] };
+                deptNode.children.push(catTypeNode);
+            }
+
+            let catalogNode = catTypeNode.children.find(c => c.name === catalogName);
+            if (!catalogNode) {
+                catalogNode = { name: catalogName, isCollapsed: true, courseCount: 0, children: [] };
+                catTypeNode.children.push(catalogNode);
+            }
+
+            const courseNode: TreeNode = {
+                name: course.NameCourse || '',
+                isCollapsed: false,
+                courseCount: 1,
+                children: [],
+                course: course
+            };
+            catalogNode.children.push(courseNode);
+
+            catalogNode.courseCount++;
+            catTypeNode.courseCount++;
+            deptNode.courseCount++;
+        }
+
+        this.treeData = Array.from(deptMap.values());
+    }
+
+    toggleNode(node: TreeNode, event: Event): void {
+        event.stopPropagation();
+        node.isCollapsed = !node.isCollapsed;
+    }
+
+    toggleAll(): void {
+        this.allExpanded = !this.allExpanded;
+        this.setExpandedAll(this.treeData, this.allExpanded);
+    }
+
+    private setExpandedAll(nodes: TreeNode[], expanded: boolean): void {
+        for (const node of nodes) {
+            node.isCollapsed = !expanded;
+            if (node.children.length > 0) {
+                this.setExpandedAll(node.children, expanded);
+            }
         }
     }
 
-    ngAfterViewInit(): void {
-        this.drawTable();
-    }
-
-    ngOnDestroy(): void {
-        if (this.boundResizeHandler) {
-            window.removeEventListener('resize', this.boundResizeHandler);
-        }
-        if (this.table) {
-            this.table.destroy();
-            this.table = null;
-            this.isTableBuilt = false;
+    selectCourse(courseNode: TreeNode, event: Event): void {
+        event.stopPropagation();
+        this.selectedCourseId = courseNode.course?.ID || null;
+        if (courseNode.course) {
+            this.examSelected.emit(courseNode.course);
         }
     }
 
-    private drawTable(): void {
-        if (!this.tableRef) return;
+    isSelected(courseNode: TreeNode): boolean {
+        return courseNode.course?.ID === this.selectedCourseId;
+    }
 
-        this.table = new Tabulator(this.tableRef.nativeElement, {
-            data: this.data,
-            ...DEFAULT_TABLE_CONFIG,
-            index: 'ID', // Ensure rows are indexed by ID
-            layout: 'fitColumns', // Allow horizontal scroll if needed
-            height: '100%', // Adjust to container
-            renderVerticalBuffer: 300, // Mitigation for blank space during fast scrolling
-            pagination: false,
-            selectableRows: 1,
-            paginationMode: 'local',
-            groupBy: [
-                (data: CourseData) => data.CatalogTypeText || 'Chưa phân loại',
-                (data: CourseData) => data.DepartmentName || 'Chưa có phòng ban',
-                (data: CourseData) => data.CatalogName || 'Chưa có danh mục',
-            ],
-            groupStartOpen: [true, true, true],
-            groupHeader: [
-                (value) => `<strong>Loại: ${value}</strong>`,
-                (value) => `<strong>Phòng ban: ${value}</strong>`,
-                (value) => `<strong>Danh mục: ${value}</strong>`,
-            ],
-            columns: [
-                {
-                    title: 'Mã khoá học',
-                    hozAlign: 'left',
-                    headerHozAlign: 'center',
-                    field: 'Code',
-                    minWidth: 100, // Flexible width
-                    formatter: 'textarea', // Allow wrapping
-                    resizable: true,
-                    widthGrow: 1,// Stretch this column
-                },
-                {
-                    title: 'Khoá học',
-                    field: 'NameCourse',
-                    hozAlign: 'left',
-                    headerHozAlign: 'center',
-                    formatter: 'textarea', resizable: true,
+    getCatalogColor(typeName: string): string {
+        const colors: Record<string, string> = {
+            'CƠ BẢN': 'green',
+            'NÂNG CAO': 'orange',
+            'BẮT BUỘC': 'red'
+        };
+        return colors[typeName] || 'default';
+    }
+
+    getCatalogTypeClass(typeName: string): string {
+        const typeMap: Record<string, string> = {
+            'CƠ BẢN': 'type-co-ban',
+            'NÂNG CAO': 'type-nang-cao',
+            'BẮT BUỘC': 'type-bat-buoc'
+        };
+        return typeMap[typeName] || '';
+    }
+
+    private selectFirstCourse(): void {
+        for (const deptNode of this.treeData) {
+            for (const catTypeNode of deptNode.children) {
+                for (const catNode of catTypeNode.children) {
+                    if (catNode.children.length > 0) {
+                        const firstCourse = catNode.children[0];
+                        if (firstCourse.course) {
+                            this.selectedCourseId = firstCourse.course.ID;
+                            this.examSelected.emit(firstCourse.course);
+                            return;
+                        }
+                    }
                 }
-            ],
-        });
-
-        this.table.on('tableBuilt', () => {
-            this.isTableBuilt = true;
-            if (this.autoSelectFirst && this.data.length > 0) {
-                this.selectFirstRow();
-            }
-        });
-
-        // Should we handle rowSelected? Typically rowClick is enough, but to be safe and consistent with previous behavior:
-        this.table.on('rowSelected', (row: RowComponent) => {
-            const rowData = row.getData() as CourseData;
-            this.examSelected.emit(rowData);
-        });
-    }
-
-    selectFirstRow() {
-        if (!this.table) return;
-        // Tabulator v5/v6: getRows("active") returns top-level rows/groups in current filter/sort
-        const rows = this.table.getRows("active");
-        const firstRow = this.findFirstRowRecursive(rows);
-
-        if (firstRow) {
-            firstRow.select();
-            // Optional: Scroll to ensures it's visible if the list is long
-            firstRow.scrollTo();
-            // We rely on 'rowSelected' event to emit this.examSelected
-        }
-    }
-
-    private findFirstRowRecursive(rows: any[]): RowComponent | null {
-        if (!rows) return null;
-        for (const row of rows) {
-            // Robust check: use the DOM element to distinguish Group vs Row
-            const el = row.getElement();
-            if (el && el.classList.contains('tabulator-group')) {
-                // It is a group
-                const subRows = row.getRows();
-                const found = this.findFirstRowRecursive(subRows);
-                if (found) return found;
-            } else {
-                // Assume it's a row
-                return row;
             }
         }
-        return null;
     }
 }

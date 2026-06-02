@@ -12,6 +12,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
@@ -35,6 +36,7 @@ import { PermissionService } from '../../../services/permission.service';
     NzSelectModule,
     NzTagModule,
     NzSpinModule,
+    NzDatePickerModule,
     MenubarModule,
     TableModule,
     CheckboxModule,
@@ -58,6 +60,8 @@ export class UserManagementComponent implements OnInit {
     { value: -1, label: 'Chưa kích hoạt' }
   ];
   selectedStatus: number = 2;
+  dateFilterValue = '';
+  dateFilterSelected: Date | null = null;
 
   private sortClickCount: { [key: string]: number } = {};
   private sortClickTimeout: any;
@@ -86,48 +90,48 @@ export class UserManagementComponent implements OnInit {
     this.menuBars = [
       {
         label: 'Thêm',
-        icon: 'fa-solid fa-plus',
+        icon: 'fa-solid fa-circle-plus fa-lg text-success',
         visible: this.permissionService.hasPermission('N96'),
         command: () => this.onAdd(),
       },
       {
         label: 'Sửa',
-        icon: 'fa-solid fa-edit',
+        icon: 'fa-solid fa-file-pen fa-lg text-primary',
         visible: this.permissionService.hasPermission('N96'),
         command: () => this.onEdit(),
         disabled: this.selectedUsers.length !== 1,
       },
       {
         label: 'Xóa',
-        icon: 'fa-solid fa-trash',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
         visible: this.permissionService.hasPermission('N96'),
         command: () => this.onDeleteMultiple(),
         disabled: this.selectedUsers.length === 0,
       },
       {
         label: 'Kích hoạt',
-        icon: 'fa-solid fa-check-circle',
+        icon: 'fa-solid fa-check-circle fa-lg text-success',
         visible: this.permissionService.hasPermission('N96'),
         command: () => this.onActivateMultiple(),
         disabled: this.selectedUsers.length === 0,
       },
       {
         label: 'Khóa',
-        icon: 'fa-solid fa-ban',
+        icon: 'fa-solid fa-ban fa-lg text-danger',
         visible: this.permissionService.hasPermission('N96'),
         command: () => this.onDeactivateMultiple(),
         disabled: this.selectedUsers.length === 0,
       },
       {
         label: 'Mở khóa',
-        icon: 'fa-solid fa-unlock',
+        icon: 'fa-solid fa-unlock fa-lg text-success',
         visible: this.permissionService.hasPermission('N96'),
         command: () => this.onUnlockMultiple(),
         disabled: this.selectedUsers.length === 0,
       },
       {
         label: 'Reset mật khẩu',
-        icon: 'fa-solid fa-key',
+        icon: 'fa-solid fa-key fa-lg text-secondary',
         visible: this.permissionService.hasPermission('N96'),
         command: () => this.onResetPasswordMultiple(),
         disabled: this.selectedUsers.length === 0,
@@ -399,5 +403,34 @@ export class UserManagementComponent implements OnInit {
       }
       this.sortClickCount = {};
     }, 400);
+  }
+
+  onDateFilterChange(value: string): void {
+    this.dateFilterSelected = null;
+    this.applyDateFilter(value);
+  }
+
+  onDatePickerChange(date: Date | null): void {
+    if (date) {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      this.dateFilterValue = `${day}${month}${year}`;
+    } else {
+      this.dateFilterValue = '';
+    }
+    this.applyDateFilter(this.dateFilterValue);
+  }
+
+  applyDateFilter(value: string): void {
+    const table = this.dt;
+    if (table && table.filters) {
+      if (value) {
+        table.filters['CreatedDate'] = { value: value, matchMode: 'contains' };
+      } else {
+        table.filters['CreatedDate'] = { value: null, matchMode: undefined };
+      }
+      table.filter(value, 'CreatedDate', 'contains');
+    }
   }
 }

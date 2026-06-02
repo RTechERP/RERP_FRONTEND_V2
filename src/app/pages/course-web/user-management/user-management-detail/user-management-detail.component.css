@@ -15,3 +15,12 @@
   padding: 16px;
   border-top: 1px solid #e8e8e8;
 }
+
+:host ::ng-deep .form-checkbox-activation {
+  padding-top: 20px;
+}
+
+:host ::ng-deep .form-checkbox-activation .ant-checkbox-wrapper {
+  font-size: 12px;
+  align-items: center;
+}

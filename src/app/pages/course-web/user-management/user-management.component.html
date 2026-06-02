@@ -32,16 +32,25 @@
                     <th style="width: 3rem; text-align: center;">STT</th>
 
 
-                    <th pSortableColumn="FullName" style="width: 180px;">Họ tên
+                    <th pSortableColumn="FullName" style="width: 180px; text-align: center;">Họ tên
                         <p-sortIcon field="FullName" />
                     </th>
-                    <th pSortableColumn="Email" style="width: 200px;">Email
+                    <th pSortableColumn="Email" style="width: 200px; text-align: center;">Email
                         <p-sortIcon field="Email" />
                     </th>
-                    <th pSortableColumn="Status" style="width: 120px;">Trạng thái
+                    <th pSortableColumn="Organization" style="width: 150px; text-align: center;">Cơ quan
+                        <p-sortIcon field="Organization" />
+                    </th>
+                    <th pSortableColumn="Position" style="width: 150px; text-align: center;">Vị trí
+                        <p-sortIcon field="Position" />
+                    </th>
+                    <th pSortableColumn="ReferralSource" style="width: 200px; text-align: center;">Nguồn biết đến
+                        <p-sortIcon field="ReferralSource" />
+                    </th>
+                    <th pSortableColumn="Status" style="width: 80px; text-align: center;">Trạng thái
                         <p-sortIcon field="Status" />
                     </th>
-                    <th pSortableColumn="CreatedDate" style="width: 120px;">Ngày tạo
+                    <th pSortableColumn="CreatedDate" style="width: 80px; text-align: center;">Ngày tạo
                         <p-sortIcon field="CreatedDate" />
                     </th>
                 </tr>
@@ -56,10 +65,19 @@
                         <p-columnFilter type="text" field="Email" matchMode="contains" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
                     </th>
                     <th>
+                        <p-columnFilter type="text" field="Organization" matchMode="contains" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
+                    </th>
+                    <th>
+                        <p-columnFilter type="text" field="Position" matchMode="contains" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
+                    </th>
+                    <th>
+                        <p-columnFilter type="text" field="ReferralSource" matchMode="contains" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
+                    </th>
+                    <th>
                         <p-columnFilter type="text" field="Status" matchMode="contains" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
                     </th>
                     <th>
-                        <p-columnFilter type="date" field="CreatedDate" matchMode="dateIs" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
+                        <p-columnFilter type="date" field="CreatedDate" matchMode="dateIs" [showMenu]="false" placeholder="Lọc..."></p-columnFilter>
                     </th>
                 </tr>
             </ng-template>
@@ -72,20 +90,23 @@
                     <td style="text-align: center;">{{ (dt.first ?? 0) + rowIndex + 1 }}</td>
                     <td>{{ item.FullName }}</td>
                     <td>{{ item.Email }}</td>
-                    <td>
+                    <td>{{ item.Organization }}</td>
+                    <td>{{ item.Position }}</td>
+                    <td>{{ item.ReferralSource }}</td>
+                    <td style="text-align: center;">
                         <ng-container [ngSwitch]="item.Status">
                             <span *ngSwitchCase="0" class="badge bg-success">Hoạt động</span>
                             <span *ngSwitchCase="1" class="badge bg-warning">Khoá</span>
                             <span *ngSwitchDefault class="badge bg-secondary">Chưa kích hoạt</span>
                         </ng-container>
                     </td>
-                    <td>{{ item.CreatedDate | date:'dd/MM/yyyy' }}</td>
+                    <td style="text-align: center;">{{ item.CreatedDate | date:'dd/MM/yyyy' }}</td>
                 </tr>
             </ng-template>
 
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 20px; color: #8c8c8c;">
+                    <td colspan="10" style="text-align: center; padding: 20px; color: #8c8c8c;">
                         Không có dữ liệu
                     </td>
                 </tr>

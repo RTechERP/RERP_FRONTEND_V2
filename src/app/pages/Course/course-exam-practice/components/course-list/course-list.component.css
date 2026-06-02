@@ -1,55 +1,112 @@
 :host {
     display: block;
     height: 100%;
-    width: 100%;
 }
 
-::ng-deep .ant-spin-nested-loading,
-::ng-deep .ant-spin-container {
+:host ::ng-deep .ant-spin-nested-loading {
     height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+:host ::ng-deep .ant-spin-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
+:host ::ng-deep .ant-spin {
+    max-height: 100%;
+}
+
+.tree-container {
+    padding: 8px;
+}
+
+.tree-node {
     display: flex;
-    flex-direction: column;
-}
-
-::ng-deep .tabulator {
-    border: none;
-    background-color: transparent;
-}
-
-::ng-deep .tabulator-header-filter input {
-    padding: 2px 4x !important;
-    border: 1px solid #d9d9d9 !important;
-    border-radius: 2px !important;
-    font-size: 8px !important;
-    font-weight: normal !important;
-    color: rgba(0, 0, 0, 0.85) !important;
-    background-color: #fff !important;
-}
-
-::ng-deep .tabulator-header {
-    background-color: #f5f5f5;
-    border-bottom: 1px solid #e8e8e8;
-}
-
-::ng-deep .tabulator-tableholder {
-    height: calc(100% - 45px) !important;
-    max-height: calc(100% - 45px) !important;
-}
-
-::ng-deep .tabulator-row.tabulator-selected {
-    background-color: #e6f7ff !important;
-}
-
-/* Group header clickable */
-::ng-deep .tabulator-group {
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
     cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
 }
 
-::ng-deep .tabulator-group:hover {
-    background-color: #f0f0f0 !important;
+.tree-node:hover {
+    filter: brightness(0.92);
 }
 
-::ng-deep .tabulator-group-header {
+/* Department - Xanh duong */
+.department-node {
+    background: #1a73e8;
+    border-left: 4px solid #1a73e8;
+    color: #fff;
+}
+
+.department-node:hover {
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.25);
+}
+
+/* CatalogType - Theo loai */
+.catalog-type-node {
+    margin-left: 16px;
+}
+
+.catalog-type-node.type-co-ban,
+.catalog-type-node.type-nang-cao,
+.catalog-type-node.type-bat-buoc {
+    background: #e3f2fd;
+    border-left: 4px solid #1a73e8;
+    color: #1a73e8;
+}
+
+.catalog-type-node.type-co-ban:hover,
+.catalog-type-node.type-nang-cao:hover,
+.catalog-type-node.type-bat-buoc:hover {
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.15);
+}
+
+/* Catalog - Tim */
+.catalog-node {
+    background: #f3e5f5;
+    border-left: 4px solid #9c27b0;
+    color: #7b1fa2;
+    margin-left: 28px;
+}
+
+.catalog-node:hover {
+    box-shadow: 0 2px 8px rgba(156, 39, 176, 0.15);
+}
+
+.course-node {
+    margin-left: 40px;
+    padding: 10px 14px;
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    margin-bottom: 4px;
     cursor: pointer;
-    user-select: none;
+    transition: all 0.2s;
+    background: #ffffff;
+}
+
+.course-node:hover {
+    background-color: #f0f7ff;
+    border-color: #1890ff;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+}
+
+.course-node.selected {
+    background-color: #e6f7ff;
+    border-color: #1890ff;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+}
+
+.course-name-text {
+    font-weight: 500;
+    color: #333;
 }

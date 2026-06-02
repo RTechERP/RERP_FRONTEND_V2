@@ -1,5 +1,41 @@
-<div class="card h-100 border-0 rounded-0 d-flex flex-column overflow-hidden" style="height: 100%;">
-    <nz-spin [nzSpinning]="isLoading" [nzTip]="'Đang tải...'" class="h-100">
-        <div #CourseTable></div>
+<div class="card h-100 border-0 rounded-0 d-flex flex-column overflow-hidden">
+    <nz-spin [nzSpinning]="isLoading" [nzDelay]="200" class="flex-grow-1 overflow-auto">
+        <div class="tree-container">
+            <ng-container *ngFor="let deptNode of treeData">
+                <div class="tree-node department-node" [class.collapsed]="deptNode.isCollapsed" (click)="toggleNode(deptNode, $event)">
+                    <span nz-icon [nzType]="deptNode.isCollapsed ? 'right' : 'down'" nzTheme="outline"></span>
+                    <strong>Phòng ban: {{ deptNode.name }}</strong>
+                    <nz-tag nzColor="blue">{{ deptNode.courseCount }} Khoá học</nz-tag>
+                </div>
+
+                <div class="tree-children" *ngIf="!deptNode.isCollapsed">
+                    <ng-container *ngFor="let catalogNode of deptNode.children">
+                        <div class="tree-node catalog-type-node" [class.collapsed]="catalogNode.isCollapsed" [ngClass]="getCatalogTypeClass(catalogNode.name)" (click)="toggleNode(catalogNode, $event)">
+                            <span nz-icon [nzType]="catalogNode.isCollapsed ? 'right' : 'down'" nzTheme="outline"></span>
+                            <strong>Loại: {{ catalogNode.name }}</strong>
+                            <nz-tag [nzColor]="getCatalogColor(catalogNode.name)">{{ catalogNode.courseCount }}</nz-tag>
+                        </div>
+
+                        <div class="tree-children" *ngIf="!catalogNode.isCollapsed">
+                            <ng-container *ngFor="let catNode of catalogNode.children">
+                                <div class="tree-node catalog-node" [class.collapsed]="catNode.isCollapsed" (click)="toggleNode(catNode, $event)">
+                                    <span nz-icon [nzType]="catNode.isCollapsed ? 'right' : 'down'" nzTheme="outline"></span>
+                                    <strong>Danh mục: {{ catNode.name }}</strong>
+                                    <nz-tag nzColor="purple">{{ catNode.courseCount }}</nz-tag>
+                                </div>
+
+                                <div class="tree-children" *ngIf="!catNode.isCollapsed">
+                                    <ng-container *ngFor="let courseNode of catNode.children">
+                                        <div class="course-node" [class.selected]="isSelected(courseNode)" (click)="selectCourse(courseNode, $event)">
+                                            <span class="course-name-text">{{ courseNode.name }}</span>
+                                        </div>
+                                    </ng-container>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </ng-container>
+                </div>
+            </ng-container>
+        </div>
     </nz-spin>
 </div>

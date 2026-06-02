@@ -8,8 +8,7 @@
     </ng-template>
     <nz-dropdown-menu #courseMenu="nzDropdownMenu">
         <div class="course-dropdown-content w-100">
-            <app-course-list [data]="allCourseData" [isLoading]="isLoading" [groupBy]="groupBy"
-                [groupStartOpen]="groupStartOpen" [groupHeader]="groupHeader"
+            <app-course-list [data]="allCourseData" [isLoading]="isLoading"
                 (courseSelected)="onCourseSelectedFromTable($event)">
             </app-course-list>
         </div>

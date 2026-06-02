@@ -569,7 +569,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
 
     getProjectTaskAttendance() {
-        return this.projectTaskAttendanceService.getCheckProjectTaskAttendance(this.appUserService.currentUser?.ID || 0).pipe(
+        return this.projectTaskAttendanceService.getCheckProjectTaskAttendance(this.appUserService.currentUser?.EmployeeID || 0).pipe(
             tap((res: any) => {
                 const data = res.data;
                 this.projectTaskAttendances = data.length;

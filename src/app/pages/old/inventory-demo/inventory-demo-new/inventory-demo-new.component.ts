@@ -957,7 +957,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 id: 'NumberOrder',
                 field: 'NumberOrder',
                 name: 'STT',
-                width: 60,
+                maxWidth: 60,
                 sortable: true,
                 filterable: true,
             },

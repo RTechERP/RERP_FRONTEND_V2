@@ -820,7 +820,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.partListColumns = [
             // ==================== NHÓM: Vật tư dự án ====================
             {
-                id: 'TT', field: 'TT', name: 'TT', width: 120, columnGroup: 'Vật tư dự án', formatter: Formatters.tree,
+                id: 'TT', field: 'TT', name: 'TT', maxWidth: 80, columnGroup: 'Vật tư dự án', formatter: Formatters.tree,
                 sortable: true,
                 sortComparer: naturalSortHierarchy,
                 filterable: true,

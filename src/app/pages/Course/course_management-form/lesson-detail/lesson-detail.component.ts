@@ -1630,13 +1630,15 @@ export class LessonDetailComponent implements OnInit, AfterViewInit {
 
     handleVideoImport(): void {
         if (this.tempVideoChapters.length > 0) {
-            this.chapters = [...this.tempVideoChapters];
+            const newChapters = [...this.tempVideoChapters];
+            this.chapters = [...this.chapters, ...newChapters];
             this.chapters.sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
             this.notification.success(
                 NOTIFICATION_TITLE.success,
-                `Đã thêm ${this.tempVideoChapters.length} phân đoạn từ video.`
+                `Đã thêm ${this.tempVideoChapters.length} phân đoạn từ video vào danh sách.`
             );
         }
+        this.tempVideoChapters = [];
         this.isVisibleVideoImport = false;
     }
 

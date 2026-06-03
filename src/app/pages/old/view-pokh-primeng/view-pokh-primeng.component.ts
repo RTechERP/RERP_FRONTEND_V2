@@ -210,9 +210,10 @@ export class ViewPokhPrimengComponent implements OnInit {
       { field: 'NetUnitPrice', header: 'Đơn giá NET', width: '130px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
       { field: 'UnitPrice', header: 'Đơn giá (chưa VAT)', width: '150px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
       { field: 'IntoMoney', header: 'Tổng giá (chưa VAT)', width: '160px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
+      { field: 'DiscountAmount', header: 'Tiền chiết khấu', width: '150px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
+      { field: 'IntoMoneyAfterDiscount', header: 'Đơn giá sau chiết khấu', width: '180px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
       { field: 'VAT', header: 'VAT(%)', width: '90px', sortable: true, filterType: 'numeric', cssClass: 'text-right' },
       { field: 'TotalPriceIncludeVAT', header: 'Tổng tiền (gồm VAT)', width: '170px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
-      { field: 'IntoMoneyAfterDiscount', header: 'Đơn giá sau chiết khấu', width: '180px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
       { field: 'DeliveryRequestedDate', header: 'Ngày dự kiến GH', width: '130px', sortable: true, filterMode: 'datetime', filterType: 'date', format: date, cssClass: 'text-center' },
       { field: 'DateMinutes', header: 'Ngày GH thực tế', width: '130px', sortable: true, filterMode: 'datetime', filterType: 'date', format: date, cssClass: 'text-center' },
       { field: 'PayDate', header: 'Ngày TT dự kiến', width: '130px', sortable: true, filterMode: 'datetime', filterType: 'date', format: date, cssClass: 'text-center' },
@@ -723,9 +724,10 @@ export class ViewPokhPrimengComponent implements OnInit {
       { field: 'NetUnitPrice', title: 'Đơn giá NET', width: 15, isMoney: true },
       { field: 'UnitPrice', title: 'Đơn giá (chưa VAT)', width: 18, isMoney: true },
       { field: 'IntoMoney', title: 'Tổng giá (chưa VAT)', width: 18, isMoney: true },
+      { field: 'DiscountAmount', title: 'Tiền chiết khấu', width: 18, isMoney: true },
+      { field: 'IntoMoneyAfterDiscount', title: 'Đơn giá sau chiết khấu', width: 20, isMoney: true },
       { field: 'VAT', title: 'VAT(%)', width: 10 },
       { field: 'TotalPriceIncludeVAT', title: 'Tổng tiền (gồm VAT)', width: 20, isMoney: true },
-      { field: 'IntoMoneyAfterDiscount', title: 'Đơn giá sau chiết khấu', width: 20, isMoney: true },
     ];
 
     worksheet.columns = columnDefs.map((col) => ({ header: col.title, key: col.field, width: col.width }));

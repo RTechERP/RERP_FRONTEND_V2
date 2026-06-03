@@ -18,6 +18,9 @@
             <button nz-button nzType="default" nzSize="default" (click)="exportExcel()" class="me-2">
                 <i class="fas fa-file-excel text-success me-1"></i> Xuất Excel
             </button>
+            <button nz-button nzType="default" nzSize="default" (click)="openExportFilterModal()" class="me-2">
+                <i class="fas fa-filter text-primary me-1"></i> Xuất Excel (Lọc)
+            </button>
             <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
         </div>
     </div>
@@ -337,3 +340,43 @@
         <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
     </div> -->
 </div>
+
+<!-- Export Filter Modal Template -->
+<ng-template #exportFilterModal>
+    <div class="export-filter-form">
+        <div class="row mb-3">
+            <div class="col-6">
+                <label class="form-label fw-bold">Từ ngày</label>
+                <nz-date-picker [(ngModel)]="exportFromDate" nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn từ ngày"
+                    style="width: 100%;">
+                </nz-date-picker>
+            </div>
+            <div class="col-6">
+                <label class="form-label fw-bold">Đến ngày</label>
+                <nz-date-picker [(ngModel)]="exportToDate" nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn đến ngày"
+                    style="width: 100%;">
+                </nz-date-picker>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-12">
+                <label class="form-label fw-bold">Phòng ban</label>
+                <nz-select [(ngModel)]="exportDepartmentId" nzPlaceHolder="-- Tất cả --" nzAllowClear nzShowSearch
+                    style="width: 100%;">
+                    <nz-option *ngFor="let team of departmentOptions" [nzValue]="team.value"
+                        [nzLabel]="team.label"></nz-option>
+                </nz-select>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-12">
+                <label class="form-label fw-bold">Sales phụ trách</label>
+                <nz-select [(ngModel)]="exportUserId" nzPlaceHolder="-- Tất cả --" nzAllowClear nzShowSearch
+                    style="width: 100%;">
+                    <nz-option *ngFor="let emp of salesEmployeeOptions" [nzValue]="emp.value"
+                        [nzLabel]="emp.label"></nz-option>
+                </nz-select>
+            </div>
+        </div>
+    </div>
+</ng-template>

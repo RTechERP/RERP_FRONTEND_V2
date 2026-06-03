@@ -3,7 +3,9 @@ import {
   Input,
   OnInit,
   Optional,
-  Inject
+  Inject,
+  ViewChild,
+  TemplateRef
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -12,8 +14,9 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalRef, NzModalService } from 'ng-zorro-antd/modal';
 import { CommonModule } from '@angular/common';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -35,6 +38,7 @@ import { PokhService } from '../pokh/pokh-service/pokh.service';
     ReactiveFormsModule,
     NzButtonModule,
     NzIconModule,
+    NzDatePickerModule,
     NzSplitterModule,
     NzInputModule,
     NzSelectModule,
@@ -59,6 +63,16 @@ export class HistoryMoneyPrimengComponent implements OnInit {
   bankNames: any[] = [];
   bankNameOptions: any[] = [];
   salesEmployeeOptions: any[] = [];
+  departmentOptions: any[] = [];
+
+  // Export filter
+  exportFromDate: Date | null = null;
+  exportToDate: Date | null = null;
+  exportDepartmentId: number | null = null;
+  exportUserId: number | null = null;
+
+  @ViewChild('exportFilterModal') exportFilterModal!: TemplateRef<any>;
+  exportFilterModalRef: NzModalRef | null = null;
 
   // Selection
   selectedProduct: any = null;
@@ -87,6 +101,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
     }
     this.loadBankNames();
     this.loadEmployeeManagers();
+    this.loadDepartments();
     this.loadProduct(this.filterText);
   }
 
@@ -142,6 +157,22 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       },
       (err: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Lỗi kết nối khi tải nhân viên');
+      }
+    );
+  }
+
+  loadDepartments(): void {
+    this.historyMoneyService.getDepartments().subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.departmentOptions = (response.data || []).map((t: any) => ({
+            label: t.Name || t.name,
+            value: t.ID || t.id
+          }));
+        }
+      },
+      (err: any) => {
+        console.error('Error loading departments', err);
       }
     );
   }
@@ -318,6 +349,62 @@ export class HistoryMoneyPrimengComponent implements OnInit {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xuất Excel');
       }
     });
+  }
+
+  openExportFilterModal() {
+    this.exportFromDate = null;
+    this.exportToDate = null;
+    this.exportDepartmentId = null;
+    this.exportUserId = null;
+
+    this.exportFilterModalRef = this.modal.create({
+      nzTitle: 'Xuất Excel - Lịch sử tiền về',
+      nzContent: this.exportFilterModal,
+      nzWidth: 500,
+      nzOkText: 'Xuất Excel',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.doExportExcelFilter();
+        return false;
+      }
+    });
+  }
+
+  doExportExcelFilter() {
+    const fromDate = this.exportFromDate ? this.formatDateISO(this.exportFromDate) : null;
+    const toDate = this.exportToDate ? this.formatDateISO(this.exportToDate) : null;
+
+    this.historyMoneyService.exportHistoryMoneyExcelFilter(
+      fromDate,
+      toDate,
+      this.exportDepartmentId,
+      this.exportUserId
+    ).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `LichSuTienVe_Export_${new Date().getTime()}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công');
+        if (this.exportFilterModalRef) {
+          this.exportFilterModalRef.close();
+        }
+      },
+      error: (err) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xuất Excel');
+      }
+    });
+  }
+
+  private formatDateISO(date: Date): string {
+    const d = new Date(date);
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
   }
   //#endregion
 

@@ -65,8 +65,8 @@ interface KpiSaleIndex {
   indexType: IndexType;
   unitType: UnitType;
   weightPercent: number;
-  quarterGoalCalculateType?: 'MANUAL' | 'SUM_MONTH';
-  quarterResultCalculateType?: 'MANUAL' | 'SUM_MONTH';
+  quarterGoalCalculateType?: 'MANUAL' | 'SUM_MONTH' | 'FULL_PERIOD';
+  quarterResultCalculateType?: 'MANUAL' | 'SUM_MONTH' | 'FULL_PERIOD';
   sortOrder: number;
   isBold: boolean;
   isMainIndex: boolean;
@@ -267,7 +267,7 @@ export class KpiSaleManagementComponent implements OnInit {
   readonly valueTypes: ValueType[] = ['STATIC', 'PARAM', 'COLUMN'];
   readonly operators = ['=', '<>', '>', '>=', '<', '<=', 'LIKE', 'IN', 'BETWEEN', 'IS NULL', 'IS NOT NULL'];
   readonly systemParameters = ['EmployeeID', 'DateStart', 'DateEnd', 'DepartmentID', 'PeriodID'];
-  readonly quarterCalculateTypes: Array<NonNullable<KpiSaleIndex['quarterGoalCalculateType']>> = ['MANUAL', 'SUM_MONTH'];
+  readonly quarterCalculateTypes: Array<NonNullable<KpiSaleIndex['quarterGoalCalculateType']>> = ['MANUAL', 'SUM_MONTH', 'FULL_PERIOD'];
   readonly columnDataTypes = ['STRING', 'NUMBER', 'MONEY', 'DATE', 'BOOLEAN'];
   readonly scoreTypes: KpiSaleScoringRule['scoreType'][] = ['NORMAL_PERCENT', 'REVERSE_PERCENT', 'FIXED_IF_REACHED', 'CUSTOM_FORMULA'];
   readonly formulaOperators: Array<'+' | '-' | '*' | '/'> = ['+', '-', '*', '/'];
@@ -722,7 +722,7 @@ export class KpiSaleManagementComponent implements OnInit {
       if (!this.allowedTables.some(t => t.id === this.selectedAllowedTableId)) {
         this.selectedAllowedTableId = this.allowedTables[0]?.id || this.selectedAllowedTableId;
       }
-      
+
       this.targetDraft.employeeId = this.selectedEmployeeId;
       this.targetDraft.periodId = this.selectedPeriodId;
       this.allowedColumnDraft.tableId = this.selectedAllowedTableId;
@@ -870,7 +870,7 @@ export class KpiSaleManagementComponent implements OnInit {
 
   get indexesTreeForTemplate(): IndexTreeRow[] {
     const keyword = this.searchText.trim().toLowerCase();
-    
+
     const includeNodes = new Set<number>();
     for (const r of this.indexes) {
       if (r.templateId === this.selectedTemplateId) {
@@ -957,7 +957,7 @@ export class KpiSaleManagementComponent implements OnInit {
 
   get resultTreeRowsFiltered(): ResultTreeRow[] {
     const keyword = this.searchText.trim().toLowerCase();
-    
+
     const includeNodes = new Set<number>();
     for (const r of this.resultRows) {
       if (!keyword || r.indexCode.toLowerCase().includes(keyword) || r.indexName.toLowerCase().includes(keyword)) {
@@ -1640,12 +1640,12 @@ export class KpiSaleManagementComponent implements OnInit {
       filterGroups: this.mappingDraft.id
         ? (this.mappings.find((m) => m.id === this.mappingDraft.id)?.filterGroups || [])
         : [
-            {
-              id: this.nextFilterGroupId(),
-              logicOperator: 'AND',
-              conditions: [],
-            },
-          ],
+          {
+            id: this.nextFilterGroupId(),
+            logicOperator: 'AND',
+            conditions: [],
+          },
+        ],
     };
     this.mappings = this.mappingDraft.id
       ? this.mappings.map((item) => item.id === mapping.id ? mapping : item)
@@ -1698,7 +1698,7 @@ export class KpiSaleManagementComponent implements OnInit {
       };
       group = findGroup(mapping.filterGroups, this.filterDraft.filterGroupId);
     }
-    
+
     if (!group) {
       group = mapping.filterGroups[0] || { id: this.nextFilterGroupId(), logicOperator: 'AND' as LogicOperator, conditions: [], children: [] };
       if (!mapping.filterGroups.length) {
@@ -1750,7 +1750,7 @@ export class KpiSaleManagementComponent implements OnInit {
         conditions: [],
         children: []
       };
-      
+
       const insertChild = (groups: FilterGroup[], pId: number): boolean => {
         for (const g of groups) {
           if (g.id === pId) {
@@ -1762,7 +1762,7 @@ export class KpiSaleManagementComponent implements OnInit {
         }
         return false;
       };
-      
+
       insertChild(mapping.filterGroups, parentGroupId);
       this.mappings = this.mappings.map((item) => item.id === mapping.id ? { ...mapping } : item);
     }
@@ -1984,7 +1984,7 @@ export class KpiSaleManagementComponent implements OnInit {
   get flatFilterGroups(): { id: number, label: string }[] {
     const mapping = this.selectedMapping;
     if (!mapping || !mapping.filterGroups) return [];
-    
+
     const result: { id: number, label: string }[] = [];
     const traverse = (groups: FilterGroup[], prefix: string) => {
       for (let i = 0; i < groups.length; i++) {
@@ -2037,7 +2037,7 @@ export class KpiSaleManagementComponent implements OnInit {
 
         if (allTargetsResponse?.status === 1 && Array.isArray(allTargetsResponse.data)) {
           const allTargets = allTargetsResponse.data.map((item) => this.normalizeTarget(item));
-          
+
           const existing = allTargets.find(t => t.kpiIndexId === this.targetDraft.kpiIndexId && t.periodId === this.targetDraft.periodId);
           if (existing) {
             existingTargetValue = existing.goalValue;
@@ -2061,7 +2061,7 @@ export class KpiSaleManagementComponent implements OnInit {
               this.targetDraft.goalValue = existingTargetValue;
             }
           } else {
-             this.targetDraft.goalValue = existingTargetValue || 0;
+            this.targetDraft.goalValue = existingTargetValue || 0;
           }
         }
       } catch (e) {
@@ -2070,32 +2070,32 @@ export class KpiSaleManagementComponent implements OnInit {
         this.isLoading = false;
       }
     } else {
-       const existing = this.targets.find((item) =>
-          item.employeeId === this.targetDraft.employeeId &&
-          item.periodId === this.targetDraft.periodId &&
-          item.kpiIndexId === this.targetDraft.kpiIndexId
-       );
-       
-       if (period.periodType === 'QUARTER' || period.periodType === 'YEAR') {
-          let childMonthIds: number[] = [];
-          if (period.periodType === 'QUARTER') {
-            childMonthIds = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId === period.id).map(p => p.id);
-          } else if (period.periodType === 'YEAR') {
-            const quarterIds = this.periods.filter(p => p.periodType === 'QUARTER' && p.parentPeriodId === period.id).map(p => p.id);
-            childMonthIds = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId && quarterIds.includes(p.parentPeriodId)).map(p => p.id);
-          }
+      const existing = this.targets.find((item) =>
+        item.employeeId === this.targetDraft.employeeId &&
+        item.periodId === this.targetDraft.periodId &&
+        item.kpiIndexId === this.targetDraft.kpiIndexId
+      );
 
-          const childrenTargets = this.targets.filter(t => t.employeeId === this.targetDraft.employeeId && t.kpiIndexId === this.targetDraft.kpiIndexId && childMonthIds.includes(t.periodId));
-          const sumOfChildren = childrenTargets.reduce((sum, t) => sum + (t.goalValue || 0), 0);
-          
-          if (sumOfChildren > 0 || !existing) {
-             this.targetDraft.goalValue = sumOfChildren;
-          } else if (existing) {
-             this.targetDraft.goalValue = existing.goalValue;
-          }
-       } else {
-          this.targetDraft.goalValue = existing ? existing.goalValue : 0;
-       }
+      if (period.periodType === 'QUARTER' || period.periodType === 'YEAR') {
+        let childMonthIds: number[] = [];
+        if (period.periodType === 'QUARTER') {
+          childMonthIds = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId === period.id).map(p => p.id);
+        } else if (period.periodType === 'YEAR') {
+          const quarterIds = this.periods.filter(p => p.periodType === 'QUARTER' && p.parentPeriodId === period.id).map(p => p.id);
+          childMonthIds = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId && quarterIds.includes(p.parentPeriodId)).map(p => p.id);
+        }
+
+        const childrenTargets = this.targets.filter(t => t.employeeId === this.targetDraft.employeeId && t.kpiIndexId === this.targetDraft.kpiIndexId && childMonthIds.includes(t.periodId));
+        const sumOfChildren = childrenTargets.reduce((sum, t) => sum + (t.goalValue || 0), 0);
+
+        if (sumOfChildren > 0 || !existing) {
+          this.targetDraft.goalValue = sumOfChildren;
+        } else if (existing) {
+          this.targetDraft.goalValue = existing.goalValue;
+        }
+      } else {
+        this.targetDraft.goalValue = existing ? existing.goalValue : 0;
+      }
     }
   }
 
@@ -2353,7 +2353,8 @@ export class KpiSaleManagementComponent implements OnInit {
   getQuarterCalculateTypeLabel(type?: NonNullable<KpiSaleIndex['quarterGoalCalculateType']>): string {
     const labels: Record<NonNullable<KpiSaleIndex['quarterGoalCalculateType']>, string> = {
       MANUAL: 'Nhập tay',
-      SUM_MONTH: 'Cộng theo tháng',
+      SUM_MONTH: 'Cộng theo tháng (distinct theo tháng)',
+      FULL_PERIOD: 'Toàn kỳ (distinct toàn quý)',
     };
     return type ? labels[type] || type : '';
   }

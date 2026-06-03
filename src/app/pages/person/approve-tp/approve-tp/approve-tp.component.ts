@@ -341,22 +341,7 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     }
 
     private bindDefaultTeam(): void {
-        if (!this.currentUser || !this.teamList || this.teamList.length === 0) {
-            return;
-        }
-
-        const employeeId = this.currentUser.EmployeeID;
-        if (!employeeId) {
-            return;
-        }
-
-        // Tìm team mà currentUser là LeaderID
-        const myTeam = this.teamList.find(team => team.LeaderID === employeeId);
-        if (myTeam && this.searchForm) {
-            this.searchForm.patchValue({
-                teamId: myTeam.ID
-            }, { emitEvent: false });
-        }
+        // Default to no team selected as requested by user
     }
 
     private buildTeamTree(data: any[]): any[] {
@@ -641,9 +626,58 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             paginationMode: 'local',
             paginationSize: 200,
             groupBy: 'TypeText',
-            groupHeader: function (value, count, data, group) {
-                return "Hạng mục : " + value + "(" + count + " )";
-            },
+            groupHeader: ((value: any, count: any, data: any, group: any): any => {
+                const container = document.createElement('div');
+                container.style.display = 'inline-flex';
+                container.style.alignItems = 'center';
+
+                container.style.fontSize = '12px';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'group-select-checkbox';
+                checkbox.style.cursor = 'pointer';
+                checkbox.style.width = '14px';
+                checkbox.style.height = '14px';
+
+                const rows = group.getRows() || [];
+                const selectedCount = rows.filter((r: any) => r.isSelected()).length;
+                if (selectedCount === count && count > 0) {
+                    checkbox.checked = true;
+                    checkbox.indeterminate = false;
+                } else if (selectedCount > 0) {
+                    checkbox.checked = false;
+                    checkbox.indeterminate = true;
+                } else {
+                    checkbox.checked = false;
+                    checkbox.indeterminate = false;
+                }
+
+                checkbox.addEventListener('click', (e: MouseEvent) => {
+                    e.stopPropagation();
+                });
+
+                checkbox.addEventListener('change', (e: Event) => {
+                    const checked = checkbox.checked;
+                    const groupRows = group.getRows() || [];
+                    groupRows.forEach((r: any) => {
+                        if (checked) {
+                            r.select();
+                        } else {
+                            r.deselect();
+                        }
+                    });
+                });
+
+                const textSpan = document.createElement('span');
+                textSpan.innerText = `Hạng mục : ${value} (${count} )`;
+                textSpan.style.fontSize = '12px';
+
+                container.appendChild(checkbox);
+                container.appendChild(textSpan);
+
+                return container;
+            }) as any,
             columns: [
                 {
                     title: 'Trạng thái duyệt', columns: [
@@ -885,6 +919,13 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             ],
         });
 
+        this.tabulator.on("rowSelected", (row: any) => {
+            this.updateGroupCheckboxState(row);
+        });
+        this.tabulator.on("rowDeselected", (row: any) => {
+            this.updateGroupCheckboxState(row);
+        });
+
         // Chỉ load data nếu đã có currentUser, nếu không sẽ được gọi trong getCurrentUser()
         // if (this.currentUser) {
         //     this.loadData();
@@ -894,6 +935,35 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
     getSelectedRows(): any[] {
         const selectedRows = this.tabulator.getSelectedRows();
         return selectedRows.map(row => row.getData());
+    }
+
+    private updateGroupCheckboxState(row: any): void {
+        if (!row || typeof row.getGroup !== 'function') {
+            return;
+        }
+        const group = row.getGroup();
+        if (group && typeof group.getElement === 'function') {
+            const groupEl = group.getElement();
+            if (groupEl) {
+                const checkbox = groupEl.querySelector('.group-select-checkbox') as HTMLInputElement;
+                if (checkbox) {
+                    const rows = group.getRows() || [];
+                    const count = rows.length;
+                    const selectedRowsCount = rows.filter((r: any) => r.isSelected()).length;
+
+                    if (selectedRowsCount === count && count > 0) {
+                        checkbox.checked = true;
+                        checkbox.indeterminate = false;
+                    } else if (selectedRowsCount > 0) {
+                        checkbox.checked = false;
+                        checkbox.indeterminate = true;
+                    } else {
+                        checkbox.checked = false;
+                        checkbox.indeterminate = false;
+                    }
+                }
+            }
+        }
     }
 
     approvedTBP() {
@@ -2383,7 +2453,6 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             }
         });
     }
-
     downloadFile(rowData: any) {
         const filePath = rowData?.FilePath || '';
         const fileName = rowData?.FileName || 'file';
@@ -2400,7 +2469,6 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có file để tải!');
             return;
         }
-
         try {
             const cleanFileName = fileName.split(';')[0].trim();
 
@@ -2419,7 +2487,6 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
                     pathToUse = `software\\${cleanPath}`;
                 }
             }
-
             let normalizedPath = pathToUse.replace(/\\/g, '/');
             normalizedPath = normalizedPath.replace(/\+(?=\w)/g, '/');
             if (normalizedPath.startsWith('/')) {
@@ -2432,7 +2499,6 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             } else {
                 normalizedPath = normalizedPath.replace(/^software\//i, 'software/');
             }
-
             const withSoftwareLower = normalizedPath.toLowerCase();
             const needsTestPrefix =
                 withSoftwareLower.startsWith('software/lamthem/') || withSoftwareLower === 'software/lamthem';
@@ -2451,7 +2517,6 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             if (!pathEndsWithFileName) {
                 normalizedPath = normalizedPath + '/' + cleanFileName;
             }
-
             normalizedPath = normalizedPath.replace(/\/+/g, '/').replace(/^\/+/, '');
 
             const pathParts = normalizedPath.split('/');
@@ -2479,8 +2544,6 @@ export class ApproveTpComponent implements OnInit, AfterViewInit {
             );
         }
     }
-
-
     /**
      * Convert IsApprovedBGD value to boolean | null for backend API
      * -1 (chưa duyệt) -> null

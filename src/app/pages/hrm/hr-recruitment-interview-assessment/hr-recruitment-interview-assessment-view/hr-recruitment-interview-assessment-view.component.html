@@ -1,0 +1,284 @@
+<div class="assessment-container h-100 d-flex flex-column bg-white" style="height: 93vh !important;">
+    <!-- Menubar -->
+    <p-menubar [model]="menuBars" class="p-0 border-0" style="width: 100%"></p-menubar>
+
+    <!-- Filter bar -->
+    <div class="filter-bar bg-light border-bottom p-2">
+        <form nz-form>
+            <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+                <!-- Phòng ban -->
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6">
+                    <nz-form-item class="mb-0">
+                        <nz-form-label class="fs-12">Phòng ban</nz-form-label>
+                        <nz-form-control>
+                            <nz-tree-select name="departmentId" [(ngModel)]="departmentId"
+                                nzPlaceHolder="Tất cả phòng ban" nzSize="small" class="w-100" nzAllowClear nzShowSearch
+                                nzDefaultExpandAll [nzNodes]="departmentNodes" (ngModelChange)="loadData()">
+                            </nz-tree-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+
+                <!-- Từ ngày -->
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="4">
+                    <nz-form-item class="mb-0">
+                        <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker name="fromDate" [(ngModel)]="fromDate" nzSize="small" nzFormat="dd/MM/yyyy"
+                                class="w-100" (ngModelChange)="loadData()">
+                            </nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+
+                <!-- Đến ngày -->
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="4">
+                    <nz-form-item class="mb-0">
+                        <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker name="toDate" [(ngModel)]="toDate" nzSize="small" nzFormat="dd/MM/yyyy"
+                                class="w-100" (ngModelChange)="loadData()">
+                            </nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+
+                <!-- Từ khóa -->
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6">
+                    <nz-form-item class="mb-0">
+                        <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input placeholder="Họ tên, SĐT, Email, Vị trí..." nzSize="small"
+                                [(ngModel)]="filterText" name="filterText" class="w-100" (keyup.enter)="loadData()" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+
+                <!-- Nút tìm kiếm -->
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="4">
+                    <nz-form-item class="mb-0">
+                        <nz-form-control>
+                            <button nz-button nzType="primary" nzSize="small" (click)="loadData()" class="w-100">
+                                <span nz-icon nzType="search"></span> Tìm kiếm
+                            </button>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </form>
+    </div>
+
+    <!-- Main Content Splitter layout -->
+    <div class="flex-grow-1 overflow-hidden position-relative bg-light">
+        <div *ngIf="isLoading" class="loading-overlay">
+            <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..."></nz-spin>
+        </div>
+
+        <nz-splitter class="h-100">
+            <!-- Panel trái: Grid danh sách đánh giá dùng PrimeNG Table -->
+            <nz-splitter-panel [nzSize]="isShowDetail ? '50%' : '100%'" [nzMin]="'30%'">
+                <div class="table-wrapper p-2 bg-white">
+                    <p-table [value]="dataset" styleClass="p-datatable-sm p-datatable-gridlines table-assessment"
+                        [scrollable]="true" scrollHeight="flex" [rowHover]="true">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th style="width: 50px; text-align: center;">STT</th>
+                                <th style=" width: 200px;text-align: center;">Họ tên ứng viên</th>
+                                <th style=" width: 200px;text-align: center;">Vị trí tuyển dụng</th>
+                                <th style="width: 120px; text-align: center;">Ngày PV</th>
+                                <th style=" width: 200px;text-align: center;">Người phỏng vấn</th>
+                                <th style="width: 150px; text-align: center;">Kết quả đề xuất</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-rowData let-ri="rowIndex">
+                            <tr (click)="selectCandidate(rowData)"
+                                [class.table-active]="rowData.HRRecruitmentCandidateID === selectedCandidateID"
+                                style="cursor: pointer;">
+                                <td style="text-align: center;">{{ ri + 1 }}</td>
+                                <td style=" width: 200px;">{{ rowData.FullName }}</td>
+                                <td style=" width: 200px;">{{ rowData.PositionName }}</td>
+                                <td style="text-align: center;">{{ formatDate(rowData.DateInterview) }}</td>
+                                <td style=" width: 200px;">{{ rowData.InterviewerName }}</td>
+                                <td>
+                                    <span class="badge w-100 py-1" [ngClass]="{
+                                              'badge-success': rowData.ApplicantStatus === 1,
+                                              'badge-warning': rowData.ApplicantStatus === 2,
+                                              'badge-danger': rowData.ApplicantStatus === 3
+                                          }">
+                                        {{ getApplicantStatusLabel(rowData.ApplicantStatus) || 'Chưa đánh giá' }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    Không có ứng viên nào có kết quả đánh giá phỏng vấn.
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </nz-splitter-panel>
+
+            <!-- Panel phải: Xem chi tiết phiếu đánh giá phỏng vấn -->
+            <nz-splitter-panel *ngIf="isShowDetail" [nzSize]="'50%'" [nzMin]="'30%'">
+                <div class="h-100 detail-panel d-flex flex-column bg-white">
+                    <div
+                        class="detail-header d-flex justify-content-between align-items-center p-2 border-bottom bg-light">
+                        <span class="detail-title fw-bold">
+                            <i class="fa-solid fa-file-waveform me-1 text-primary"></i>
+                            Kết quả đánh giá: {{ selectedCandidateName }} - {{ selectedPosition }}
+                        </span>
+                        <button nz-button nzType="text" nzSize="small" (click)="closeDetail()" title="Đóng preview">
+                            <span nz-icon nzType="close" class="text-danger"></span>
+                        </button>
+                    </div>
+
+                    <div class="detail-body overflow-auto p-3 position-relative">
+                        <div *ngIf="isDetailLoading" class="loading-overlay">
+                            <nz-spin [nzSpinning]="isDetailLoading" nzTip="Đang tải chi tiết..."></nz-spin>
+                        </div>
+
+                        <ng-container *ngIf="!isDetailLoading">
+                            <div *ngIf="!selectedAssessment"
+                                class="empty-state d-flex flex-column align-items-center justify-content-center h-100 py-5">
+                                <nz-icon nzType="profile" class="text-muted fs-2" style="font-size: 32px;"></nz-icon>
+                                <p class="text-muted mt-2">Ứng viên chưa được tạo phiếu đánh giá phỏng vấn hoặc dữ liệu
+                                    không tồn tại.</p>
+                            </div>
+
+                            <div *ngIf="selectedAssessment" class="assessment-paper">
+                                <!-- Header mẫu phiếu -->
+                                <div class="form-header text-center mb-4">
+                                    <h4 class="form-title fw-bold text-uppercase text-primary m-0">Phiếu Đánh Giá Phỏng
+                                        Vấn</h4>
+                                    <p class="form-subtitle text-muted mb-0"><i>Interview Assessment Form</i></p>
+                                    <small class="text-muted">(BM04-RTC.HR-QT01)</small>
+                                </div>
+
+                                <!-- Thông tin ứng viên & cuộc phỏng vấn -->
+                                <div class="info-section mb-4 p-3 bg-light border rounded">
+                                    <h6 class="section-title border-bottom pb-1 mb-2 text-dark fw-bold">Thông tin chung
+                                        / General Information</h6>
+                                    <table class="w-100 info-table">
+                                        <tr>
+                                            <td class="fw-bold py-1" style="width: 30%">Họ và tên / Candidate Name:</td>
+                                            <td class="py-1 text-primary fw-bold">{{ selectedAssessment.FullName }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold py-1">Ngày sinh / DOB:</td>
+                                            <td class="py-1">{{ formatDate(selectedAssessment.DateOfBirth) }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold py-1">Vị trí dự tuyển / Position:</td>
+                                            <td class="py-1">{{ selectedAssessment.PositionName }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold py-1">Người phỏng vấn / Interviewer:</td>
+                                            <td class="py-1">{{ selectedAssessment.InterviewerName || 'Chưa phân công'
+                                                }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold py-1">Ngày phỏng vấn / Date:</td>
+                                            <td class="py-1">{{ formatDate(selectedAssessment.AssessmentDateOfInterview)
+                                                }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+
+                                <!-- Bảng các tiêu chí đánh giá -->
+                                <div class="criteria-section mb-4">
+                                    <h6 class="section-title border-bottom pb-1 mb-3 text-dark fw-bold">Tiêu chí đánh
+                                        giá / Performance Factors</h6>
+
+                                    <div *ngFor="let c of performanceCriteria"
+                                        class="criteria-card border rounded p-3 mb-3 bg-white shadow-sm">
+                                        <div
+                                            class="d-flex justify-content-between align-items-start border-bottom pb-2 mb-2">
+                                            <div>
+                                                <span class="criterion-name fw-bold text-dark fs-13">
+                                                    {{ c.STT }}. {{ c.NameVI }}
+                                                </span>
+                                                <div class="text-muted italic fs-11">{{ c.NameEN }}</div>
+                                            </div>
+                                            <span class="badge px-3 py-1 rounded" [ngClass]="getRatingBadgeClass(c.ID)">
+                                                {{ getRatingLabel(c.ID) }}
+                                            </span>
+                                        </div>
+                                        <div class="criterion-desc text-muted mb-2 fs-11">
+                                            {{ c.DescriptionVI }}
+                                            <div class="italic">{{ c.DescriptionEN }}</div>
+                                        </div>
+                                        <div
+                                            class="comment-box p-2 bg-light rounded border-start border-3 border-primary">
+                                            <strong class="fs-11 text-muted d-block mb-1">Ghi chú / Comments:</strong>
+                                            <div class="text-dark whitespace-pre" style="white-space: pre-wrap;">
+                                                {{ commentsMap.get(c.ID) || 'Không có ghi chú.' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Nhận xét khác -->
+                                <div class="other-comments mb-4 p-3 bg-white border rounded">
+                                    <h6 class="section-title border-bottom pb-1 mb-2 text-dark fw-bold">6. Nhận xét khác
+                                        / Other Comments</h6>
+                                    <div class="p-2 rounded bg-light border-start border-3 border-info"
+                                        style="white-space: pre-wrap;">
+                                        {{ selectedAssessment.OtherComments || 'Không có nhận xét nào khác.' }}
+                                    </div>
+                                </div>
+
+                                <!-- Đánh giá chung sau phỏng vấn -->
+                                <div class="overall-result mb-4 p-3 bg-light border rounded">
+                                    <h6 class="section-title border-bottom pb-1 mb-2 text-dark fw-bold">Đánh giá sau
+                                        phỏng vấn / Interview Results</h6>
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="fw-bold">Kết quả đề xuất / Recommendation:</span>
+                                        <span class="badge px-3 py-1 rounded" [ngClass]="{
+                                                  'badge-success': selectedAssessment.ApplicantStatus === 1,
+                                                  'badge-warning': selectedAssessment.ApplicantStatus === 2,
+                                                  'badge-danger': selectedAssessment.ApplicantStatus === 3
+                                              }">
+                                            {{ selectedAssessment.ApplicantStatus === 1 ? 'Phù hợp, chuyển vòng tiếp
+                                            theo' :
+                                            selectedAssessment.ApplicantStatus === 2 ? 'Có thể phù hợp, lưu hồ sơ' :
+                                            selectedAssessment.ApplicantStatus === 3 ? 'Không phù hợp' : 'Chưa có kết
+                                            quả' }}
+                                        </span>
+                                    </div>
+
+                                    <div *ngIf="selectedAssessment.ApplicantStatus === 1"
+                                        class="d-flex align-items-center gap-2 mt-2 pt-2 border-top">
+                                        <span class="fw-bold text-success">Mức lương đề xuất / Proposed Salary:</span>
+                                        <span class="fw-bold fs-14 text-primary">
+                                            {{ formatSalary(selectedAssessment.Salary) }} VND
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Ký tên / Xác nhận -->
+                                <div
+                                    class="signature-section mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                                    <div class="text-center" style="width: 45%;">
+                                        <p class="mb-5 italic text-muted">Ký xác nhận bởi / Confirmed by</p>
+                                        <p class="fw-bold text-dark m-0">{{ selectedAssessment.InterviewerName }}</p>
+                                        <small class="text-muted">Người phỏng vấn / Interviewer</small>
+                                    </div>
+                                    <div class="text-center" style="width: 45%;">
+                                        <p class="mb-5 italic text-muted">Ngày ký / Date signed</p>
+                                        <p class="fw-bold text-dark m-0">
+                                            {{ selectedAssessment.DateSign ? formatDate(selectedAssessment.DateSign) :
+                                            formatDate(selectedAssessment.AssessmentDateOfInterview) }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+            </nz-splitter-panel>
+        </nz-splitter>
+    </div>
+</div>

@@ -104,6 +104,11 @@ export class PollFormService {
     return this.http.get<PollApiResponse<any>>(`${this.apiUrl}/${pollFormId}/my-response`);
   }
 
+  deleteMyResponse(pollFormId: number): Observable<PollApiResponse<any>> {
+    return this.http.post<PollApiResponse<any>>(`${this.apiUrl}/delete-my-response/${pollFormId}`, {});
+  }
+
+
   getResponses(pollFormId: number, keyword: string = ''): Observable<PollApiResponse<any[]>> {
     let params = new HttpParams();
     if (keyword) {

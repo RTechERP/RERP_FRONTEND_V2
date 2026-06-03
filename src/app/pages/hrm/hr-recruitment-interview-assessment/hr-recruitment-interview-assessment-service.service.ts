@@ -12,6 +12,15 @@ export class HrRecruitmentInterviewAssessmentServiceService {
 
   constructor(private http: HttpClient) { }
 
+  getAllInterviewAssessments(filter: any): Observable<any> {
+    const params: any = {};
+    if (filter.filterText) params.filterText = filter.filterText;
+    if (filter.departmentID) params.departmentID = filter.departmentID.toString();
+    if (filter.fromDate) params.fromDate = filter.fromDate;
+    if (filter.toDate) params.toDate = filter.toDate;
+    return this.http.get(`${this.apiUrl}/get-all-interview-assessments`, { params });
+  }
+
   getPerformanceCriteria(): Observable<any> {
     return this.http.get(`${this.apiUrl}/get-performance-criteria`);
   }
@@ -26,6 +35,9 @@ export class HrRecruitmentInterviewAssessmentServiceService {
   }
   getDataHRRecruitmentApprove(HRRecruitmentApplicationFormID: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/get-data-hr-recruitment-approve?HRRecruitmentApplicationFormID=${HRRecruitmentApplicationFormID}`);
+  }
+  getInterviewAssessmentResult(HRRecruitmentCandidateID: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/get-interview-assessment-result?HRRecruitmentCandidateID=${HRRecruitmentCandidateID}`);
   }
 
   saveHRRecruitmentInterviewAssessmentForm(data: any): Observable<any> {

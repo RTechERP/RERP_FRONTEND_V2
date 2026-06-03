@@ -382,6 +382,7 @@ import { CourseExamWebComponent } from './pages/course-web/course-exam/course-ex
 import { CourseExamPracticeWebComponent } from './pages/course-web/course-exam-practice/course-exam-practice.component';
 import { CourseCatalogTypeComponent } from './pages/course-web/course-catalog-type/course-catalog-type.component';
 import { UserManagementComponent } from './pages/course-web/user-management/user-management.component';
+import { HrRecruitmentInterviewAssessmentViewComponent } from './pages/hrm/hr-recruitment-interview-assessment/hr-recruitment-interview-assessment-view/hr-recruitment-interview-assessment-view.component';
 export const routes: Routes = [
 
     {
@@ -1243,12 +1244,12 @@ export const routes: Routes = [
             { path: 'hr-recruitment-candidate', component: HRRecruitmentCandidateComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-exam', component: HRRecruitmentExamComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-application', component: HRRecruitmentApplicationComponent, canActivate: [authGuard] },
+            { path: 'hr-recruitment-interview-assessment-view', component: HrRecruitmentInterviewAssessmentViewComponent, canActivate: [authGuard] },
             { path: 'history-borrow-sale-personal', component: HistoryBorrowSalePersonalComponent, canActivate: [authGuard] },
             { path: 'history-product-rtc-personal', component: HistoryProductRtcPersonalComponent, canActivate: [authGuard] },
 
             { path: 'summary-asset-persional', component: SummaryAssetPersionalComponent, canActivate: [authGuard] },
             { path: 'payment-order-view', component: PaymentOrderTeamComponent, canActivate: [authGuard] },
-
             //#region EMS
             { path: 'ems/dashboard', component: DashboardComponent, canActivate: [authGuard] },
             { path: 'ems/details', component: DeviceDetailsChartsComponent, canActivate: [authGuard] },

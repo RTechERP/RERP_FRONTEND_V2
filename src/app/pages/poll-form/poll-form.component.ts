@@ -357,6 +357,7 @@ export class PollFormComponent implements OnInit {
       startDate: [''],
       endDate: [''],
       isPublic: [false],
+      isNotifycation: [false],
     });
   }
 
@@ -532,6 +533,7 @@ export class PollFormComponent implements OnInit {
       startDate,
       endDate: '',
       isPublic: false,
+      isNotifycation: false,
     });
     this.sections = [this.createSectionModel(1)];
     this.questions = [this.createQuestion('SingleChoice', 1, this.sections[0])];
@@ -555,6 +557,7 @@ export class PollFormComponent implements OnInit {
         startDate: this.toApiDate(formValue.startDate),
         endDate: this.toApiDate(formValue.endDate),
         isPublic: Boolean(formValue.isPublic),
+        isNotifycation: Boolean(formValue.isNotifycation),
       };
 
       if (pollId > 0) {
@@ -569,6 +572,7 @@ export class PollFormComponent implements OnInit {
           startDate: pollPayload.startDate,
           endDate: pollPayload.endDate,
           isPublic: pollPayload.isPublic,
+          isNotifycation: pollPayload.isNotifycation,
         }));
         this.assertSuccess(response);
         pollId = this.readId(this.unwrap<any>(response, {}));
@@ -1686,6 +1690,7 @@ export class PollFormComponent implements OnInit {
         startDate: this.toDateTimeLocal(summary.startDate),
         endDate: this.toDateTimeLocal(summary.endDate),
         isPublic: summary.isPublic,
+        isNotifycation: !!(data.isNotifycation ?? data.IsNotifycation ?? false),
       });
 
       const rawSections = this.readArray(data, 'sections', 'Sections');

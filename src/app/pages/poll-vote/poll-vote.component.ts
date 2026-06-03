@@ -9,6 +9,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationModule, NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { environment } from '../../../environments/environment';
@@ -120,6 +121,7 @@ interface BranchDecision {
         NzNotificationModule,
         NzSpinModule,
         NzTagModule,
+        NzModalModule,
     ],
     templateUrl: './poll-vote.component.html',
     styleUrl: './poll-vote.component.css',
@@ -145,7 +147,8 @@ export class PollVoteComponent implements OnInit {
         private router: Router,
         private pollFormService: PollFormService,
         private notification: NzNotificationService,
-        private appUserService: AppUserService
+        private appUserService: AppUserService,
+        private modal: NzModalService
     ) { }
 
     ngOnInit(): void {
@@ -322,6 +325,34 @@ export class PollVoteComponent implements OnInit {
         } finally {
             this.isSubmitting = false;
         }
+    }
+
+    deleteMyResponse(): void {
+        if (!this.selectedPoll) return;
+        this.modal.confirm({
+            nzTitle: 'Xác nhận xóa bình chọn',
+            nzContent: 'Bạn có chắc chắn muốn xóa tất cả câu trả lời và kết quả bình chọn của bạn cho phiếu này không?',
+            nzOkText: 'Xóa',
+            nzOkDanger: true,
+            nzCancelText: 'Hủy',
+            nzOnOk: async () => {
+                this.isSubmitting = true;
+                try {
+                    const response = await firstValueFrom(this.pollFormService.deleteMyResponse(this.selectedPoll!.id));
+                    this.assertSuccess(response);
+                    this.notification.success(NOTIFICATION_TITLE.success, 'Xóa phiếu bình chọn thành công');
+                    this.pollResponseId = null;
+                    this.resetAnswers();
+                    await this.loadMyResponse(this.selectedPoll!.id);
+                    const firstVisibleIndex = this.findNextVisibleSectionIndex(0);
+                    this.currentSectionIndex = firstVisibleIndex >= 0 ? firstVisibleIndex : 0;
+                } catch (error) {
+                    this.notifyError(error, 'Không xóa được bình chọn');
+                } finally {
+                    this.isSubmitting = false;
+                }
+            }
+        });
     }
 
     answerKey(question: PollQuestionModel): string {
@@ -580,6 +611,7 @@ export class PollVoteComponent implements OnInit {
     }
 
     private async loadMyResponse(pollId: number): Promise<void> {
+        this.pollResponseId = null;
         try {
             const response = await firstValueFrom(this.pollFormService.getMyResponse(pollId));
             this.assertSuccess(response);

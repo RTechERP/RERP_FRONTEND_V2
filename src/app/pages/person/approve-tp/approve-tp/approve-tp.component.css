@@ -142,3 +142,14 @@
 ::ng-deep .type-select-dropdown {
   min-width: 35vh !important;
 }
+
+/* Custom styling for selected rows in Tabulator (lighter/softer color) */
+::ng-deep .tabulator-row.tabulator-selected {
+  background-color: #e6f7ff !important;
+  /* Soft light blue */
+}
+
+::ng-deep .tabulator-row.tabulator-selected:hover {
+  background-color: #cde9f9 !important;
+  /* Slightly darker light blue on hover */
+}

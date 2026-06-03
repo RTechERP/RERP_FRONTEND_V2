@@ -12,7 +12,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { HrRecruitmentInterviewAssessmentServiceService } from '../hr-recruitment-interview-assessment-service.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { AppUserService } from '../../../../services/app-user.service';
 import { PermissionService } from '../../../../services/permission.service';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -65,6 +65,7 @@ export interface HRRecruitmentInterviewAssessmentForm {
     NzSpinModule,
     NzInputNumberModule,
     NzFormModule,
+    NzModalModule,
   ],
   templateUrl: './hr-recruitment-interview-assessment-form.component.html',
   styleUrl: './hr-recruitment-interview-assessment-form.component.css'

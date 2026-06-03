@@ -27,6 +27,7 @@ import {
   Formatter,
   Formatters,
   GridOption,
+  MultipleSelectOption,
 } from 'angular-slickgrid';
 import * as XLSX from 'xlsx-js-style';
 import { saveAs } from 'file-saver';
@@ -75,6 +76,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
   columnDefinitionsInventory: Column[] = [];
   gridOptionsInventory: GridOption = {};
   datasetInventory: any[] = [];
+  private filterTimeout: any;
 
   searchParam = {
     checkedAll: true,
@@ -123,16 +125,22 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         id: 'ProductGroupName',
         field: 'ProductGroupName',
         name: 'Tên nhóm',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInput'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProductCode',
         field: 'ProductCode',
         name: 'Mã sản phẩm',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInput'] },
@@ -141,7 +149,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         id: 'ProductName',
         field: 'ProductName',
         name: 'Tên sản phẩm',
-        width: 250,
+        minWidth: 250,
         sortable: true,
         filterable: true,
         formatter: this.wrapTextFormatter,
@@ -151,36 +159,36 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         id: 'ProductNewCode',
         field: 'ProductNewCode',
         name: 'Mã nội bộ',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInput'] },
       },
-      {
-        id: 'NameNCC',
-        field: 'NameNCC',
-        name: 'NCC',
-        width: 200,
-        sortable: true,
-        filterable: true,
-        formatter: this.wrapTextFormatter,
-        filter: { model: Filters['compoundInput'] },
-      },
-      {
-        id: 'Deliver',
-        field: 'Deliver',
-        name: 'Người nhập',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        formatter: this.wrapTextFormatter,
-        filter: { model: Filters['compoundInput'] },
-      },
+      // {
+      //   id: 'NameNCC',
+      //   field: 'NameNCC',
+      //   name: 'NCC',
+      //   width: 200,
+      //   sortable: true,
+      //   filterable: true,
+      //   formatter: this.wrapTextFormatter,
+      //   filter: { model: Filters['compoundInput'] },
+      // },
+      // {
+      //   id: 'Deliver',
+      //   field: 'Deliver',
+      //   name: 'Người nhập',
+      //   width: 150,
+      //   sortable: true,
+      //   filterable: true,
+      //   formatter: this.wrapTextFormatter,
+      //   filter: { model: Filters['compoundInput'] },
+      // },
       {
         id: 'Maker',
         field: 'Maker',
         name: 'Hãng',
-        width: 120,
+        minWidth: 120,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInput'] },
@@ -189,7 +197,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         id: 'Unit',
         field: 'Unit',
         name: 'ĐVT',
-        width: 70,
+        minWidth: 70,
         sortable: true,
         filterable: true,
       },
@@ -209,7 +217,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         field: 'QuantityUse',
         name: 'Tồn sử dụng',
         cssClass: 'text-end',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputNumber'] },
@@ -220,7 +228,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         field: 'StillBorrowed',
         name: 'Đang mượn',
         cssClass: 'text-end',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputNumber'] },
@@ -230,7 +238,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         id: 'AddressBox',
         field: 'AddressBox',
         name: 'Vị trí',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
       },
@@ -238,7 +246,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         id: 'Detail',
         field: 'Detail',
         name: 'Chi tiết nhập',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
       },
@@ -246,7 +254,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         id: 'Note',
         field: 'Note',
         name: 'Ghi chú',
-        width: 150,
+        minWidth: 150,
         sortable: true,
         filterable: true,
       },
@@ -320,6 +328,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         exportWithFormatter: true,
       },
       enableGrouping: true,
+      forceFitColumns: true,
     };
   }
 
@@ -346,6 +355,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
               : [...this.allDatasetInventory];
             this.cdr.detectChanges();
             setTimeout(() => {
+              this.applyDistinctFilters(this.angularGridInventory);
               this.updateInventoryFooterRow();
             }, 100);
           }
@@ -389,6 +399,10 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         return base;
       };
       angularGrid.dataView.onRowCountChanged.subscribe(() => {
+        clearTimeout(this.filterTimeout);
+        this.filterTimeout = setTimeout(() => {
+          this.applyDistinctFilters(this.angularGridInventory);
+        }, 500);
         this.updateInventoryFooterRow();
       });
     }
@@ -517,6 +531,41 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         }
       });
     } catch (e) { }
+  }
+
+  applyDistinctFilters(angularGrid: AngularGridInstance): void {
+    if (!angularGrid?.slickGrid || !angularGrid.dataView) return;
+    const data = angularGrid.dataView.getFilteredItems();
+    if (!data || data.length === 0) return;
+
+    const getUniqueValues = (items: any[], field: string): Array<{ value: any; label: string }> => {
+      const map = new Map<string, { value: any; label: string }>();
+      items.forEach((row: any) => {
+        const value = row?.[field];
+        if (value === null || value === undefined || value === '') return;
+        const key = String(value);
+        if (!map.has(key)) map.set(key, { value, label: key });
+      });
+      return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    const columns = angularGrid.slickGrid.getColumns();
+    columns?.forEach((column: any) => {
+      if (column.filter?.model === Filters['multipleSelect']) {
+        column.filter.collection = getUniqueValues(data, column.field);
+      }
+    });
+
+    this.columnDefinitionsInventory.forEach((colDef: any) => {
+      if (colDef.filter?.model === Filters['multipleSelect']) {
+        colDef.filter.collection = getUniqueValues(data, colDef.field);
+      }
+    });
+
+    const updatedColumns = angularGrid.slickGrid.getColumns();
+    angularGrid.slickGrid.setColumns(updatedColumns);
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
   }
 
   wrapTextFormatter: Formatter = (_row, _cell, value) => {

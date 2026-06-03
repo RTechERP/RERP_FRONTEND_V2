@@ -74,7 +74,7 @@
                     <nz-form-label>Người giao<span style="color: red">(*)</span></nz-form-label>
                     <nz-form-control [nzErrorTip]="'Vui lòng chọn người giao'">
                         <nz-select formControlName="DeliverID" nzPlaceHolder="Chọn người giao" name="DeliverID"
-                            nzShowSearch (ngModelChange)="onDeliverIDChanged()">
+                            nzShowSearch>
                             <nz-option *ngFor="let item of emPloyeeLists" [nzValue]="item.ID" [nzLabel]="item.FullName"
                                 nzCustomContent>
                                 {{ item.EmployeeCode }} - {{ item.FullName }}

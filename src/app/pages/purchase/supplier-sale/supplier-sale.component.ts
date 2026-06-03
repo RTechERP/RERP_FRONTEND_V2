@@ -174,7 +174,18 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
       {
         label: 'Xuất Excel',
         icon: 'fa-solid fa-file-excel fa-lg text-success',
-        command: () => this.onExportExcel(),
+        items: [
+          {
+            label: 'Xuất Excel',
+            icon: 'fa-solid fa-file-excel fa-lg text-success',
+            command: () => this.onExportExcel(),
+          },
+          {
+            label: 'Xuất tất cả trang',
+            icon: 'fa-solid fa-file-zipper fa-lg text-warning',
+            command: () => this.onExportAllPages(),
+          },
+        ],
       },
       {
         label: 'Nhập Excel',
@@ -1051,6 +1062,116 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
       });
     } catch (error) {
       console.error('Export error:', error);
+      this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi khi xuất Excel!');
+    }
+  }
+
+  onExportAllPages() {
+    if (!this.angularGrid || !this.angularGrid.dataView) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa có dữ liệu để xuất!');
+      return;
+    }
+
+    const allItems = (this.angularGrid.dataView.getFilteredItems?.() as any[]) || [];
+
+    if (!allItems || allItems.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel.');
+      return;
+    }
+
+    try {
+      const formattedDate = new Date()
+        .toISOString()
+        .slice(2, 10)
+        .split('-')
+        .reverse()
+        .join('');
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('DanhSachNCC');
+
+      const headerRow = worksheet.addRow([
+        'Ngày update',
+        'Công ty nhập',
+        'Mã NCC',
+        'Tên viết tắt',
+        'Tên NCC',
+        'Tên tiếng Anh',
+        'Hãng/Brand',
+        'Mã nhóm',
+        'Địa chỉ',
+        'NV phụ trách',
+        'Loại hàng hóa',
+        'Mã số thuế',
+        'Website',
+        'Công nợ',
+        'Số TK',
+        'Ngân hàng',
+        'Điện thoại',
+        'Người đặt hàng',
+        'Ghi chú',
+      ]);
+
+      headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4D94FF' },
+      };
+      headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+
+      allItems.forEach((item: any) => {
+        worksheet.addRow([
+          item.NgayUpdate ? new Date(item.NgayUpdate).toLocaleDateString('vi-VN') : '',
+          item.CompanyText || '',
+          item.CodeNCC || '',
+          item.ShortNameSupplier || '',
+          item.NameNCC || '',
+          item.TenTiengAnh || '',
+          item.Brand || '',
+          item.MaNhom || '',
+          item.AddressNCC || '',
+          item.NVPhuTrach || '',
+          item.LoaiHangHoa || '',
+          item.MaSoThue || '',
+          item.Website || '',
+          item.Debt ? 'Có' : 'Không',
+          item.SoTK || '',
+          item.NganHang || '',
+          item.PhoneNCC || '',
+          item.OrderNCC || '',
+          item.Note || '',
+        ]);
+      });
+
+      const footerRow = worksheet.addRow([
+        '', '', allItems.length, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+      ]);
+      footerRow.font = { bold: true };
+
+      worksheet.columns.forEach((column: any) => {
+        let maxLength = 0;
+        column.eachCell?.({ includeEmpty: true }, (cell: any) => {
+          const columnLength = cell.value ? cell.value.toString().length : 10;
+          if (columnLength > maxLength) maxLength = columnLength;
+        });
+        column.width = maxLength < 10 ? 10 : maxLength + 2;
+      });
+
+      workbook.xlsx.writeBuffer().then((buffer) => {
+        const blob = new Blob([buffer], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `DanhSachNCC_TatCaTrang_${formattedDate}.xlsx`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xuất tất cả trang thành công!');
+      });
+    } catch (error) {
+      console.error('Export all pages error:', error);
       this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi khi xuất Excel!');
     }
   }

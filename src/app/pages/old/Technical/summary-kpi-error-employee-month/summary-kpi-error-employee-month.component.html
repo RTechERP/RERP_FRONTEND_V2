@@ -10,16 +10,18 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12">Từ ngày</nz-form-label>
                             <nz-form-control>
-                                <input type="date" class="ant-input" style="width: 150px; font-size: 12px; height: 24px;"
-                                    [(ngModel)]="startDate_TK" name="startDate_TK" />
+                                <input type="date" class="ant-input"
+                                    style="width: 150px; font-size: 12px; height: 24px;" [(ngModel)]="startDate_TK"
+                                    name="startDate_TK" />
                             </nz-form-control>
                         </nz-form-item>
 
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12">Đến ngày</nz-form-label>
                             <nz-form-control>
-                                <input type="date" class="ant-input" style="width: 150px; font-size: 12px; height: 24px;"
-                                    [(ngModel)]="endDate_TK" name="endDate_TK" />
+                                <input type="date" class="ant-input"
+                                    style="width: 150px; font-size: 12px; height: 24px;" [(ngModel)]="endDate_TK"
+                                    name="endDate_TK" />
                             </nz-form-control>
                         </nz-form-item>
 
@@ -39,7 +41,7 @@
                             <nz-form-control>
                                 <nz-select [(ngModel)]="departmentId_TK" name="departmentId_TK" nzSize="small"
                                     nzPlaceHolder="Chọn phòng ban" nzAllowClear style="width: 150px;">
-                                    <nz-option *ngFor="let item of departments" [nzValue]="item.Code"
+                                    <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
                                         [nzLabel]="item.Name"></nz-option>
                                 </nz-select>
                             </nz-form-control>
@@ -101,16 +103,18 @@
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12">Từ ngày</nz-form-label>
                             <nz-form-control>
-                                <input type="date" class="ant-input" style="width: 150px; font-size: 12px; height: 24px;"
-                                    [(ngModel)]="startDate_BD" name="startDate_BD" />
+                                <input type="date" class="ant-input"
+                                    style="width: 150px; font-size: 12px; height: 24px;" [(ngModel)]="startDate_BD"
+                                    name="startDate_BD" />
                             </nz-form-control>
                         </nz-form-item>
 
                         <nz-form-item class="mb-0">
                             <nz-form-label class="fs-12">Đến ngày</nz-form-label>
                             <nz-form-control>
-                                <input type="date" class="ant-input" style="width: 150px; font-size: 12px; height: 24px;"
-                                    [(ngModel)]="endDate_BD" name="endDate_BD" />
+                                <input type="date" class="ant-input"
+                                    style="width: 150px; font-size: 12px; height: 24px;" [(ngModel)]="endDate_BD"
+                                    name="endDate_BD" />
                             </nz-form-control>
                         </nz-form-item>
 

@@ -33,11 +33,28 @@ export class HistoryMoneyService {
     });
   }
 
+  getDepartments(): Observable<any> {
+    return this.http.get<any>(this._url + 'load-departments');
+  }
+
   exportHistoryMoneyExcel(pokhDetailId: number): Observable<Blob> {
     return this.http.get(`${this._url}export-excel`, {
       params: {
         pokhDetailId: pokhDetailId.toString(),
       },
+      responseType: 'blob'
+    });
+  }
+
+  exportHistoryMoneyExcelFilter(fromDate: string | null, toDate: string | null, departmentId: number | null, userId: number | null): Observable<Blob> {
+    let params: any = {};
+    if (fromDate) params.fromDate = fromDate;
+    if (toDate) params.toDate = toDate;
+    if (departmentId) params.departmentId = departmentId.toString();
+    if (userId) params.userId = userId.toString();
+
+    return this.http.get(`${this._url}export-excel-filter`, {
+      params,
       responseType: 'blob'
     });
   }

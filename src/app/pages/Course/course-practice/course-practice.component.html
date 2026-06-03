@@ -75,7 +75,7 @@
                                             <div class="tree-node department-node" [class.collapsed]="deptNode.isCollapsed" (click)="toggleTreeNode(deptNode, $event)">
                                                 <span nz-icon [nzType]="deptNode.isCollapsed ? 'right' : 'down'" nzTheme="outline"></span>
                                                 <strong>Phòng ban: {{ deptNode.name }}</strong>
-                                                <nz-tag nzColor="blue">{{ deptNode.courseCount }} Khoá học</nz-tag>
+                                                <nz-tag nzColor="blue" class="ms-auto">{{ deptNode.courseCount }} Khoá học</nz-tag>
                                             </div>
 
                                             <div class="tree-children" *ngIf="!deptNode.isCollapsed">
@@ -89,7 +89,7 @@
                                                         <!-- <span class="indent-1"></span> -->
                                                         <span nz-icon [nzType]="catalogNode.isCollapsed ? 'right' : 'down'" nzTheme="outline"></span>
                                                         <strong>Loại: {{ catalogNode.name }}</strong>
-                                                        <nz-tag [nzColor]="getCatalogTagColor(catalogNode.catalogType)">
+                                                        <nz-tag [nzColor]="getCatalogTagColor(catalogNode.catalogType)" class="ms-auto">
                                                             {{ catalogNode.courseCount }}
                                                         </nz-tag>
                                                     </div>
@@ -106,7 +106,7 @@
                                                                 <span nz-icon [nzType]="catalogGroupNode.isCollapsed ? 'right' : 'down'" nzTheme="outline"></span>
                                                                 <strong class="catalog-code">Danh mục: {{ catalogGroupNode.name }} - {{ catalogGroupNode.catalogName }}</strong>
                                                                 <!-- <span class="catalog-full-name"></span> -->
-                                                                <nz-tag nzColor="purple">{{ catalogGroupNode.courseCount }}</nz-tag>
+                                                                <nz-tag nzColor="purple" class="ms-auto">{{ catalogGroupNode.courseCount }}</nz-tag>
                                                             </div>
 
                                                             <div class="tree-children" *ngIf="!catalogGroupNode.isCollapsed">
@@ -122,14 +122,14 @@
                                                                         <div class="course-title">
                                                                             <!-- Check icon: Chỉ hiện khi Đạt -->
                                                                             <span *ngIf="courseNode.course?.EvaluateText === 'Đạt'" class="check-icon passed">
-                                                                                        <span nz-icon nzType="check-circle" nzTheme="fill">
-                                                                                        </span>
+                                                                                <span nz-icon nzType="check-circle" nzTheme="fill">
+                                                                                </span>
                                                                             </span>
                                                                             <span class="course-name-text">{{ courseNode.name }}</span>
 
                                                                             <!-- Lock icon ở bên phải với tooltip -->
                                                                             <span *ngIf="isCourseLocked(courseNode.course)" class="lock-icon" nz-icon nzType="lock" nzTheme="fill" [nz-tooltip]="getLockTooltip(courseNode.course)" nzTooltipPlacement="left">
-                                                                                    </span>
+                                                                            </span>
                                                                         </div>
 
                                                                         <!-- Stats row: Số bài + Thời gian + Điểm thi -->
@@ -149,14 +149,14 @@
                                                                                 <span nz-icon nzType="file-text" nzTheme="outline"></span>
                                                                                 <span>Điểm thi:</span>
                                                                                 <span style="font-size: 11px;" *ngIf="courseNode.course?.GoalMultiChoice > 0">
-                                                                                            TN {{ formatDecimal(courseNode.course?.QuizPoints) }}/{{ formatDecimal(courseNode.course?.GoalMultiChoice) }}
-                                                                                        </span>
+                                                                                    TN {{ formatDecimal(courseNode.course?.QuizPoints) }}/{{ formatDecimal(courseNode.course?.GoalMultiChoice) }}
+                                                                                </span>
                                                                                 <span style="font-size: 11px;" *ngIf="courseNode.course?.GoalPractice > 0">
-                                                                                            TH {{ formatDecimal(courseNode.course?.PracticePoints) }}/{{ formatDecimal(courseNode.course?.GoalPractice) }}
-                                                                                        </span>
+                                                                                    TH {{ formatDecimal(courseNode.course?.PracticePoints) }}/{{ formatDecimal(courseNode.course?.GoalPractice) }}
+                                                                                </span>
                                                                                 <span style="font-size: 11px;" *ngIf="courseNode.course?.GoalExercise > 0">
-                                                                                            BT {{ formatDecimal(courseNode.course?.ExcercisePoints) }}/{{ formatDecimal(courseNode.course?.GoalExercise) }}
-                                                                                        </span>
+                                                                                    BT {{ formatDecimal(courseNode.course?.ExcercisePoints) }}/{{ formatDecimal(courseNode.course?.GoalExercise) }}
+                                                                                </span>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -213,8 +213,7 @@
             <!-- ======================================== -->
             <!-- VIEW: Lessons (khi đã chọn khóa học)   -->
             <!-- ======================================== -->
-            <app-lesson-view *ngIf="viewMode === 'lessons'" [selectedCourseID]="selectedCourseID" [courseExamData]="courseExamData" [lessonData]="courseLessonData" [selectedCourseName]="selectedCourseName" [splitterLayout]="splitterLayout" (backToCourses)="onBackToCourses()"
-                (lessonSelected)="onLessonSelected($event)" (openExamResult)="onOpenExamResult()" (openLessonExamResult)="onOpenLessonExamResult($event)" (openPractice)="onOpenPracticeResult()" (openQuiz)="onOpenQuizResult()" (lessonCompleted)="onLessonCompleted($event)">
+            <app-lesson-view *ngIf="viewMode === 'lessons'" [selectedCourseID]="selectedCourseID" [courseExamData]="courseExamData" [lessonData]="courseLessonData" [selectedCourseName]="selectedCourseName" [splitterLayout]="splitterLayout" (backToCourses)="onBackToCourses()" (lessonSelected)="onLessonSelected($event)" (openExamResult)="onOpenExamResult()" (openLessonExamResult)="onOpenLessonExamResult($event)" (openPractice)="onOpenPracticeResult()" (openQuiz)="onOpenQuizResult()" (lessonCompleted)="onLessonCompleted($event)">
             </app-lesson-view>
 
             <!-- ======================================== -->
@@ -226,8 +225,7 @@
             <!-- ======================================== -->
             <!-- VIEW: Practice Result (Thực hành)       -->
             <!-- ======================================== -->
-            <app-course-exam-result-practice *ngIf="viewMode === 'practiceResult'" [courseID]="selectedCourseID" [courseName]="selectedCourseName" [courseExamID]="currentCourseExamIDForView" [testTime]="currentTestTimeForView" [lessonID]="selectedLessonID" [examType]="currentExamType"
-                (backToLesson)="onBackFromExamResult()">
+            <app-course-exam-result-practice *ngIf="viewMode === 'practiceResult'" [courseID]="selectedCourseID" [courseName]="selectedCourseName" [courseExamID]="currentCourseExamIDForView" [testTime]="currentTestTimeForView" [lessonID]="selectedLessonID" [examType]="currentExamType" (backToLesson)="onBackFromExamResult()">
             </app-course-exam-result-practice>
 
             <!-- ======================================== -->

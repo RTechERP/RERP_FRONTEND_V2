@@ -68,6 +68,7 @@ interface LessonFile {
   NameFile: string;
   ServerPath: string;
   TypeFile?: string;
+  OriginPath?:string;
 }
 
 interface CourseLesson {
@@ -232,6 +233,7 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
 
     return this.sanitizer.bypassSecurityTrustHtml(processedHtml);
   }
+
   formatTime(seconds: number): string {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -775,7 +777,11 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
       }
     }
   }
-
+  getFileNameWithExtension(path: string): string {
+    if (!path) return '';
+    const parts = path.split(/[\\/]/);
+    return parts[parts.length - 1] || '';
+  }
   getLessonFiles(lessonID: number): void {
     this.checkedFiles = [];
     this.courseService.getLessonFilesByLessonID(lessonID).subscribe(
@@ -795,7 +801,9 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
             //   error: () => {
             //   }
             // });
-
+            if(file?.OriginPath){
+              file.OriginPath = this.getFileNameWithExtension(file.OriginPath);
+            }
           });
         } else {
           this.currentLessonFiles = [];
@@ -1068,6 +1076,15 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
         this.pdfFileExists = false;
       }
     });
+  }
+
+  openPdfNewTab(): void {
+    if (this.urlPDF) {
+      const url = this.buildPdfUrl(this.currentLesson?.UrlPDF);
+      if (url) {
+        window.open(url, '_blank');
+      }
+    }
   }
 
   /**

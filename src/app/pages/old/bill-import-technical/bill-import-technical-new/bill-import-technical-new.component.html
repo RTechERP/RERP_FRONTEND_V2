@@ -69,7 +69,7 @@
                             nzSize="small" (click)="openModalImportExcel()">
                             <img alt="img" src="assets/icon/action_add_item_16.png" /> Thêm
                         </button>
-                        <button class="btn-edit fs-12" *hasPermission="'N26,N1,N73,N80'" nz-button nzType="default"
+                        <button class="btn-edit fs-12" *hasPermission="'N26,N1,N73,N80,N35'" nz-button nzType="default"
                             nzSize="small" (click)="onEditBillImportTechnical()">
                             <img alt="img" src="assets/icon/action_edit_item_16.png" />Sửa
                         </button>
@@ -94,22 +94,22 @@
                             (click)="openCheckHistoryTech()">
                             <nz-icon nzType="history" nzTheme="outline"></nz-icon>Lịch sử mượn NCC
                         </button>
-                        <button class="fs-12" *hasPermission="'N26,N1,N73,N80'" nz-button nzType="default" nzSize="small"
-                            (click)="openSummaryModal()">
+                        <button class="fs-12" *hasPermission="'N26,N1,N73,N80,N35'" nz-button nzType="default"
+                            nzSize="small" (click)="openSummaryModal()">
                             <img class="btn-action-icon" src="assets\icon\action_summary_24.svg" /> Tổng hợp
                         </button>
                     </div>
                 </div>
 
                 <nz-splitter style="height: 86vh;" [nzLayout]="'vertical'">
-                    <nz-splitter-panel [nzCollapsible]="true" nzResizable="true"  nzDefaultSize="70%">
+                    <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" nzDefaultSize="70%">
                         <div *ngIf="isLoading"
                             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.4); z-index: 999; display: flex; align-items: center; justify-content: center;">
                             <nz-spin [nzSpinning]="isLoading"></nz-spin>
                         </div>
                         <div class="grid-container" style="height: 90%;">
-                            <angular-slickgrid [gridId]="'billImportTechnicalGrid-' + warehouseID" [columns]="columnDefinitions"
-                                [options]="gridOptions" [dataset]="dataset"
+                            <angular-slickgrid [gridId]="'billImportTechnicalGrid-' + warehouseID"
+                                [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
                                 (onAngularGridCreated)="angularGridReady($event.detail)"
                                 (onSelectedRowsChanged)="onRowSelectionChanged($event.detail.eventData, $event.detail.args)">
                             </angular-slickgrid>
@@ -142,4 +142,3 @@
         </nz-splitter-panel>
     </nz-splitter>
 </ng-container>
-

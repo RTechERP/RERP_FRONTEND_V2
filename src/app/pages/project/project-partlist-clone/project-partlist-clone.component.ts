@@ -437,6 +437,51 @@ export class ProjectPartlistCloneComponent implements OnInit {
   //#region Hàm Xử lý bảng
   angularGridReady(angularGrid: AngularGridInstance) {
     this.angularGrid = angularGrid;
+    this.angularGrid.slickGrid.onCellChange.subscribe((e: any, args: any) => {
+      this.onCellChanged(args);
+    });
+  }
+
+  onCellChanged(args: any): void {
+    const column = args.column || this.angularGrid.slickGrid.getColumns()[args.cell];
+    if (column.id === 'TT') {
+      const changedRowIdx = args.row;
+      const changedItem = args.item || this.angularGrid.dataView.getItem(changedRowIdx);
+      if (!changedItem) return;
+
+      const startTT = (changedItem.TT || '').toString().trim();
+      if (!startTT) return;
+      if (!/^\d+(\.\d+)*$/.test(startTT)) return;
+
+      const match = startTT.match(/^(.*?)(\d+)$/);
+      if (!match) return;
+
+      const prefix = match[1];
+      let lastNumber = parseInt(match[2], 10);
+
+      const dataView = this.angularGrid.dataView;
+      const totalRows = dataView.getLength();
+
+      dataView.beginUpdate();
+      try {
+        for (let i = changedRowIdx + 1; i < totalRows; i++) {
+          const item = dataView.getItem(i);
+          if (item) {
+            lastNumber++;
+            item.TT = prefix + lastNumber;
+            dataView.updateItem(item.id, item);
+
+            const dsItem = this.dataset.find(x => x.id === item.id);
+            if (dsItem) {
+              dsItem.TT = item.TT;
+            }
+          }
+        }
+      } finally {
+        dataView.endUpdate();
+        this.angularGrid.slickGrid.invalidate();
+      }
+    }
   }
 
   // Helper methods trả về collection cho singleSelect editor

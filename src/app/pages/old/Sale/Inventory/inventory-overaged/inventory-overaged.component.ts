@@ -25,8 +25,11 @@ import {
   Column,
   Filters,
   Formatter,
+  Formatters,
   GridOption,
 } from 'angular-slickgrid';
+import * as XLSX from 'xlsx-js-style';
+import { saveAs } from 'file-saver';
 import { Subscription } from 'rxjs';
 
 import { InventoryService } from '../inventory-service/inventory.service';
@@ -52,19 +55,19 @@ import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '
   styleUrl: './inventory-overaged.component.css'
 })
 export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDestroy {
-  warehouseId: number = 1;
-  warehouseCode: string = 'HN';
+  warehouseId: number = -1;
+  warehouseCode: string = '';
   componentId: string = '';
   isLoadingInventory: boolean = false;
   filterOveraged: boolean = false;
   private allDatasetInventory: any[] = [];
 
   warehouses = [
+    { id: -1, code: '', name: 'Tất cả' },
     { id: 1, code: 'HN', name: 'Hà Nội' },
     { id: 2, code: 'HCM', name: 'Hồ Chí Minh' },
     { id: 3, code: 'BN', name: 'Bắc Ninh' },
     { id: 4, code: 'HP', name: 'Hải Phòng' },
-    { id: 5, code: 'BH', name: 'Đồ bảo hộ' },
     { id: 6, code: 'DP', name: 'Đan Phượng' },
   ];
 
@@ -190,142 +193,21 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         sortable: true,
         filterable: true,
       },
-      {
-        id: 'TotalQuantityFirst',
-        field: 'TotalQuantityFirst',
-        name: 'Tồn đầu kỳ',
-        cssClass: 'text-end',
-        width: 100,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
-        type: 'number',
-      },
-      {
-        id: 'Import',
-        field: 'Import',
-        name: 'Nhập',
-        cssClass: 'text-end',
-        width: 100,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
-        type: 'number',
-      },
-      {
-        id: 'Export',
-        field: 'Export',
-        name: 'Xuất',
-        cssClass: 'text-end',
-        width: 100,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
-        type: 'number',
-      },
-      {
-        id: 'TotalQuantityLastActual',
-        field: 'TotalQuantityLastActual',
-        name: 'SL tồn thực tế',
-        cssClass: 'text-end',
-        width: 120,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
-        type: 'number',
-      },
-      {
-        id: 'QuantityRequestExport',
-        field: 'QuantityRequestExport',
-        name: 'SL yêu cầu xuất',
-        cssClass: 'text-end',
-        width: 120,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
-        type: 'number',
-      },
-      {
-        id: 'TotalQuantityKeep',
-        field: 'TotalQuantityKeep',
-        name: 'SL giữ',
-        cssClass: 'text-end',
-        width: 120,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
-        type: 'number',
-      },
-      {
-        id: 'TotalQuantityLast',
-        field: 'TotalQuantityLast',
-        name: 'Tồn CK(được sử dụng)',
-        cssClass: 'text-end',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
-        type: 'number',
-      },
+      // {
+      //   id: 'TotalQuantityLast',
+      //   field: 'TotalQuantityLast',
+      //   name: 'Tồn CK(được sử dụng)',
+      //   cssClass: 'text-end',
+      //   width: 150,
+      //   sortable: true,
+      //   filterable: true,
+      //   filter: { model: Filters['compoundInputNumber'] },
+      //   type: 'number',
+      // },
       {
         id: 'QuantityUse',
         field: 'QuantityUse',
         name: 'Tồn sử dụng',
-        cssClass: 'text-end',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
-        type: 'number',
-      },
-      {
-        id: 'MinQuantity',
-        field: 'MinQuantity',
-        name: 'Tồn tối thiểu Y/c',
-        cssClass: 'text-end',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
-        type: 'number',
-      },
-      {
-        id: 'MinQuantityActual',
-        field: 'MinQuantityActual',
-        name: 'Tồn tối thiểu thực tế',
-        cssClass: 'text-end',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
-        type: 'number',
-      },
-      {
-        id: 'TotalQuantityReturnNCC',
-        field: 'TotalQuantityReturnNCC',
-        name: 'SL phải trả NCC',
-        cssClass: 'text-end',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
-        type: 'number',
-      },
-      {
-        id: 'ImportPT',
-        field: 'ImportPT',
-        name: 'Tổng mượn',
-        cssClass: 'text-end',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters['compoundInputNumber'] },
-        type: 'number',
-      },
-      {
-        id: 'ExportPM',
-        field: 'ExportPM',
-        name: 'Tổng trả',
         cssClass: 'text-end',
         width: 150,
         sortable: true,
@@ -368,37 +250,40 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         sortable: true,
         filterable: true,
       },
+      {
+        id: 'LastTransactionDate',
+        field: 'LastTransactionDate',
+        name: 'Ngày nhập/xuất gần nhất',
+        minWidth: 120,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center',
+      },
+      {
+        id: 'LastTransactionCode',
+        field: 'LastTransactionCode',
+        name: 'Phiếu nhập/xuất gần nhất',
+        minWidth: 120,
+        sortable: true,
+        filterable: true,
+      },
       // {
-      //   id: 'QtyExport',
-      //   field: 'QtyExport',
-      //   name: 'Tồn trong kỳ',
-      //   width: 150,
+      //   id: 'WarehouseCode',
+      //   field: 'WarehouseCode',
+      //   name: 'Kho',
+      //   maxWidth: 80,
       //   sortable: true,
       //   filterable: true,
-      // }
+      // },
     ];
   }
 
   private initGridOptions(): void {
-    // this.gridOptionsInventory = {
-    //   enableAutoResize: true,
-    //   autoResize: {
-    //     container: '.grid-container-inventory-' + this.componentId,
-    //     calculateAvailableSizeBy: 'container',
-    //     resizeDetection: 'container',
-    //   },
-    //   gridWidth: '100%',
-    //   datasetIdPropertyName: 'id',
-    //   enableRowSelection: true,
-    //   enableCellNavigation: true,
-    //   enableFiltering: true,
-    //   autoFitColumnsOnFirstLoad: true,
-    //   createFooterRow: true,
-    //   showFooterRow: true,
-    //   footerRowHeight: 28,
-    //   rowHeight: 45,
-    // };
-
     this.gridOptionsInventory = {
       enableAutoResize: true,
       autoResize: {
@@ -507,6 +392,91 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         this.updateInventoryFooterRow();
       });
     }
+  }
+
+  exportExcel(): void {
+    const items: any[] = (this.angularGridInventory?.dataView?.getFilteredItems?.() as any[]) || this.datasetInventory || [];
+    const columns = this.columnDefinitionsInventory;
+    const sumFields = ['TotalQuantityFirst', 'Import', 'Export', 'TotalQuantityLastActual', 'TotalQuantityLast'];
+
+    const headerStyle = {
+      font: { bold: true, color: { rgb: 'FFFFFF' } },
+      fill: { fgColor: { rgb: '1F497D' } },
+      alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+      border: {
+        top: { style: 'thin', color: { rgb: '000000' } },
+        left: { style: 'thin', color: { rgb: '000000' } },
+        bottom: { style: 'thin', color: { rgb: '000000' } },
+        right: { style: 'thin', color: { rgb: '000000' } },
+      }
+    };
+
+    const borderStyle = {
+      top: { style: 'thin', color: { rgb: '000000' } },
+      left: { style: 'thin', color: { rgb: '000000' } },
+      bottom: { style: 'thin', color: { rgb: '000000' } },
+      right: { style: 'thin', color: { rgb: '000000' } },
+    };
+
+    const aoa: any[][] = [];
+
+    // Header
+    aoa.push(columns.map(c => ({ v: c.name || c.field, s: headerStyle })));
+
+    // Data rows
+    items.forEach(item => {
+      const isOveraged = !!item.IsOveraged;
+      const rowStyle = isOveraged ? {
+        font: { color: { rgb: '9C0006' } },
+        fill: { fgColor: { rgb: 'FFC7CE' } },
+        border: borderStyle,
+      } : { border: borderStyle };
+
+      const row = columns.map(c => {
+        const val = item[c.field as string];
+        const isNum = c.type === 'number' || c.cssClass?.includes('text-end');
+        const style = isNum
+          ? { ...rowStyle, alignment: { horizontal: 'right' }, numFmt: '#,##0.##' }
+          : rowStyle;
+        return { v: val !== null && val !== undefined ? val : '', t: isNum && typeof val === 'number' ? 'n' : 's', s: style };
+      });
+      aoa.push(row);
+    });
+
+    // Footer row
+    const footerStyle = {
+      font: { bold: true },
+      fill: { fgColor: { rgb: 'DCE6F1' } },
+      border: borderStyle,
+    };
+    const footerRow = columns.map(c => {
+      if (c.field === 'ProductName') return { v: `Tổng: ${items.length} sản phẩm`, s: footerStyle };
+      if (sumFields.includes(c.field as string)) {
+        const total = items.reduce((s, i) => s + (Number(i[c.field as string]) || 0), 0);
+        return { v: total, t: 'n', s: { ...footerStyle, alignment: { horizontal: 'right' }, numFmt: '#,##0.##' } };
+      }
+      return { v: '', s: footerStyle };
+    });
+    aoa.push(footerRow);
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+    // Column widths
+    ws['!cols'] = columns.map(c => ({ wch: Math.max(12, Math.ceil((c.width || 100) / 7)) }));
+
+    // Freeze header row
+    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Tồn kho quá hạn');
+
+    const wh = this.warehouses.find(w => w.id === this.warehouseId);
+    const whName = wh ? wh.name : '';
+    const suffix = this.filterOveraged ? '_quahan' : '';
+    const fileName = `TonKho_${whName}${suffix}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    saveAs(new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fileName);
   }
 
   updateInventoryFooterRow(): void {

@@ -148,6 +148,12 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         }, 0);
         return this.round2(total);
     }
+    get isProjectRequired(): boolean {
+        const typeId = this.validateForm?.get('PaymentOrderTypeID')?.value;
+        const selectedType = this.paymentOrderTypes?.find((t: any) => t.ID == typeId);
+        return selectedType?.IsValidProject == 1 || selectedType?.IsValidProject === true;
+    }
+
     get showIsBillCheckbox(): boolean {
         const typeId = this.validateForm?.get('PaymentOrderTypeID')?.value;
         const selectedType = this.paymentOrderTypes?.find((t: any) => t.ID == typeId);
@@ -220,6 +226,9 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         }).subscribe({
             next: ({ approvers, procurement, partners, metadata, bankList }) => {
                 this.paymentOrderTypes = metadata.data.paymentOrderTypes;
+                const currentTypeId = this.validateForm?.get('PaymentOrderTypeID')?.value;
+                const currentType = this.paymentOrderTypes.find((t: any) => t.ID == currentTypeId);
+                this.applyProjectValidator(currentType);
                 this.approvedTBPs = approvers.data.approvedTBPs;
                 this.supplierSalesAll = procurement.data.supplierSales;
                 this.supplierSales = [...this.supplierSalesAll];
@@ -361,8 +370,9 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                     v == 22 ? ctrl?.setValidators([Validators.required]) : ctrl?.clearValidators();
                     ctrl?.updateValueAndValidity();
                 });
+                const selectedType = this.paymentOrderTypes.find(t => t.ID == v);
+                this.applyProjectValidator(selectedType);
                 if (v != 22) {
-                    const selectedType = this.paymentOrderTypes.find(t => t.ID == v);
                     const newVal = !!selectedType?.IsBill;
                     this.validateForm.get('IsBill')?.setValue(newVal, { emitEvent: false });
                     this.isBill = newVal;
@@ -617,6 +627,17 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         this.dataset = this.dataset.filter((_, i) => i !== index);
     }
 
+    private applyProjectValidator(selectedType: any): void {
+        const projectCtrl = this.validateForm?.get('ProjectID');
+        if (!projectCtrl) return;
+        if (selectedType?.IsValidProject == 1 || selectedType?.IsValidProject === true) {
+            projectCtrl.setValidators([Validators.required]);
+        } else {
+            projectCtrl.clearValidators();
+        }
+        projectCtrl.updateValueAndValidity();
+    }
+
     calcTotalMoney(row: any): void {
         row.TotalMoney = (this.parseNum(row.Quantity)) * (this.parseNum(row.UnitPrice));
         this.calcTotalPayment(row);
@@ -642,6 +663,9 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
 
     calcTotalPayment(row: any): void {
         row.TotalPaymentAmount = (this.parseNum(row.TotalMoney)) * ((this.parseNum(row.PaymentPercentage)) / 100);
+        if (this.isBill) {
+            row.TotalMoneyWithInvoice = row.TotalPaymentAmount;
+        }
     }
 
     // ---- Type 2 table ----

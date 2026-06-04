@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import * as ExcelJS from 'exceljs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
@@ -77,10 +78,7 @@ export class ProjectTaskTimeLineNullComponent implements OnInit {
   // ===== LIFECYCLE =====
 
   ngOnInit() {
-    const userDeptId = this.appUserService.departmentID;
-    if (userDeptId && userDeptId > 0) {
-      this.selectedDepartments = [userDeptId];
-    }
+    this.selectedDepartments = [2, 24, 25, 26, 27];
     this.loadTaskStatuses();
     this.loadDepartments();
     this.loadTimeline();
@@ -525,6 +523,257 @@ export class ProjectTaskTimeLineNullComponent implements OnInit {
         focusTaskId: this.contextMenuFocusTaskId || 0
       }
     });
+  }
+
+  // ===== EXPORT EXCEL =====
+
+  async exportExcel(): Promise<void> {
+    const groups = this.filteredData();
+    if (!groups || groups.length === 0) {
+      this.message.warning('Không có dữ liệu để xuất Excel!');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet('Timeline');
+
+    // ===== HEADER =====
+    const fixedHeaders = ['STT', 'Họ và tên', 'Dự án', 'Công việc', 'Trạng thái', 'Thời gian', 'Loại'];
+    const dateHeaders = this.dateColumns.map((c: any) => c.dayName);
+    ws.addRow([...fixedHeaders, ...dateHeaders]);
+
+    const emptyFixed = fixedHeaders.map(() => '');
+    const dateSubHeaders = this.dateColumns.map((c: any) => c.dateDisplay);
+    ws.addRow([...emptyFixed, ...dateSubHeaders]);
+
+    // Merge header cho cột cố định (row 1-2)
+    for (let i = 1; i <= fixedHeaders.length; i++) {
+      ws.mergeCells(1, i, 2, i);
+    }
+
+    // Style header
+    [1, 2].forEach(rowNum => {
+      const row = ws.getRow(rowNum);
+      row.font = { bold: true, size: 10 };
+      row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+      row.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      row.height = 24;
+    });
+
+    // Tô màu Chủ nhật/ngày nghỉ ở header
+    this.dateColumns.forEach((col: any, idx: number) => {
+      const colIndex = fixedHeaders.length + idx + 1;
+      if (col.isSunday || col.isDayOff) {
+        ws.getCell(1, colIndex).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+        ws.getCell(2, colIndex).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+        ws.getCell(1, colIndex).font = { bold: true, size: 10, color: { argb: 'FFE11D48' } };
+      }
+    });
+
+    // ===== DATA ROWS =====
+    let currentRow = 3;
+
+    groups.forEach((group: any, gi: number) => {
+      const groupStartRow = currentRow;
+
+      group.projects.forEach((project: any) => {
+        const projectStartRow = currentRow;
+
+        project.tasks.forEach((task: any) => {
+          const plannedRow = task.rows[0];
+          const actualRow = task.rows[1];
+          const taskStartRow = currentRow;
+
+          // --- Dòng Dự kiến ---
+          const plannedData: any[] = [
+            '', '', '', '', '',
+            `(${plannedRow.SumTotalHour ?? 0} / ${plannedRow.DurationDays ?? 0})`,
+            'Dự kiến'
+          ];
+          this.dateColumns.forEach((col: any) => {
+            const decoded = this.decodePlanned(plannedRow, col.dateStr);
+            const leaveLabel = decoded.leaveType > 0
+              ? this.getLeaveLabel(decoded.leaveType, decoded.leaveTime)
+              : '';
+            if (decoded.workMode === 1 || decoded.workMode === 3) {
+              plannedData.push(leaveLabel); // Chỉ tô màu, hiển thị label nghỉ nếu có
+            } else if (decoded.workMode === 2) {
+              plannedData.push(leaveLabel || '✓');
+            } else {
+              plannedData.push(leaveLabel);
+            }
+          });
+          ws.addRow(plannedData);
+
+          // Tô màu xanh cho ô dự kiến
+          this.dateColumns.forEach((col: any, idx: number) => {
+            const decoded = this.decodePlanned(plannedRow, col.dateStr);
+            const colIdx = fixedHeaders.length + idx + 1;
+            if (decoded.workMode === 1 || decoded.workMode === 3) {
+              ws.getCell(currentRow, colIdx).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF38BDF8' } };
+              ws.getCell(currentRow, colIdx).font = { color: { argb: 'FFFFFFFF' }, bold: true, size: 9 };
+            }
+          });
+          currentRow++;
+
+          // --- Dòng Thực tế ---
+          const actualData: any[] = [
+            '', '', '', '', '',
+            `(${actualRow.SumTotalHour ?? 0} / ${actualRow.DurationDays ?? 0})`,
+            'Thực tế'
+          ];
+          this.dateColumns.forEach((col: any) => {
+            const val = this.getActualValue(actualRow, col.dateStr);
+            actualData.push(val > 0 ? val : '');
+          });
+          ws.addRow(actualData);
+
+          // Tô màu hồng cho ô thực tế
+          this.dateColumns.forEach((col: any, idx: number) => {
+            const val = this.getActualValue(actualRow, col.dateStr);
+            const colIdx = fixedHeaders.length + idx + 1;
+            if (val > 0) {
+              ws.getCell(currentRow, colIdx).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF472B6' } };
+              ws.getCell(currentRow, colIdx).font = { color: { argb: 'FFFFFFFF' }, bold: true, size: 9 };
+            }
+          });
+
+          // Merge Công việc + Trạng thái (2 rows)
+          ws.mergeCells(taskStartRow, 4, currentRow, 4);
+          ws.getCell(taskStartRow, 4).value = `${task.ProjectTaskCode || ''} - ${task.ProjectTaskTitle || ''}`;
+          ws.getCell(taskStartRow, 4).alignment = { vertical: 'middle', wrapText: true };
+
+          ws.mergeCells(taskStartRow, 5, currentRow, 5);
+          const statusInfo = this.getDisplayStatusInfo(task);
+          ws.getCell(taskStartRow, 5).value = statusInfo.label;
+          ws.getCell(taskStartRow, 5).alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+
+          currentRow++;
+        });
+
+        // Merge Dự án
+        const projectEndRow = currentRow - 1;
+        if (projectEndRow >= projectStartRow) {
+          ws.mergeCells(projectStartRow, 3, projectEndRow, 3);
+          ws.getCell(projectStartRow, 3).value = `${project.ProjectCode || ''} - ${project.ProjectName || ''}`;
+          ws.getCell(projectStartRow, 3).alignment = { vertical: 'middle', wrapText: true };
+        }
+      });
+
+      // Merge STT + Họ tên
+      const groupEndRow = currentRow - 1;
+      if (groupEndRow >= groupStartRow) {
+        ws.mergeCells(groupStartRow, 1, groupEndRow, 1);
+        ws.getCell(groupStartRow, 1).value = gi + 1;
+        ws.getCell(groupStartRow, 1).alignment = { vertical: 'middle', horizontal: 'center' };
+
+        ws.mergeCells(groupStartRow, 2, groupEndRow, 2);
+        ws.getCell(groupStartRow, 2).value = group.FullName;
+        ws.getCell(groupStartRow, 2).alignment = { vertical: 'middle' };
+        ws.getCell(groupStartRow, 2).font = { bold: true };
+
+        // Border đậm phân cách nhân viên
+        for (let col = 1; col <= fixedHeaders.length + this.dateColumns.length; col++) {
+          const cell = ws.getCell(groupEndRow, col);
+          cell.border = { ...cell.border, bottom: { style: 'medium', color: { argb: 'FFB4B4B4' } } };
+        }
+      }
+    });
+
+    // ===== TÔ MÀU CỘT CN/NGÀY NGHỈ + NGÀY HIỆN TẠI =====
+    this.dateColumns.forEach((col: any, idx: number) => {
+      const colIdx = fixedHeaders.length + idx + 1;
+      if (col.isSunday || col.isDayOff) {
+        for (let r = 3; r < currentRow; r++) {
+          const cell = ws.getCell(r, colIdx);
+          const fg = (cell.fill as any)?.fgColor?.argb;
+          if (!fg || fg === 'FFF8FAFC') {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+          }
+        }
+      }
+      if (col.isToday) {
+        for (let r = 1; r < currentRow; r++) {
+          const cell = ws.getCell(r, colIdx);
+          const fg = (cell.fill as any)?.fgColor?.argb;
+          if (!fg || fg === 'FFF8FAFC' || fg === 'FFF1F5F9') {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F7FF' } };
+          }
+        }
+      }
+    });
+
+    // ===== COLUMN WIDTHS =====
+    ws.getColumn(1).width = 5;
+    ws.getColumn(2).width = 18;
+    ws.getColumn(3).width = 20;
+    ws.getColumn(4).width = 30;
+    ws.getColumn(5).width = 14;
+    ws.getColumn(6).width = 12;
+    ws.getColumn(7).width = 10;
+    this.dateColumns.forEach((_: any, idx: number) => {
+      ws.getColumn(fixedHeaders.length + idx + 1).width = 7.5;
+    });
+
+    // ===== BORDER & FONT & ALIGNMENT =====
+    const todayColIdx = this.dateColumns.findIndex((c: any) => c.isToday);
+    const excelTodayColNum = todayColIdx >= 0 ? fixedHeaders.length + todayColIdx + 1 : -1;
+
+    ws.eachRow((row: ExcelJS.Row, rowNumber: number) => {
+      row.eachCell({ includeEmpty: true }, (cell: ExcelJS.Cell) => {
+        const colNumber = Number(cell.col);
+        
+        let leftBorder: any = { style: 'thin', color: { argb: 'FFE2E8F0' } };
+        let rightBorder: any = { style: 'thin', color: { argb: 'FFE2E8F0' } };
+
+        // Highlight viền cột ngày hiện tại bằng màu đỏ
+        if (colNumber === excelTodayColNum) {
+          leftBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+          rightBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+        } else if (colNumber === excelTodayColNum + 1) {
+          leftBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+        } else if (colNumber === excelTodayColNum - 1) {
+          rightBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+        }
+
+        if (!cell.border || (!cell.border.bottom?.style || cell.border.bottom?.style === 'thin')) {
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            left: leftBorder,
+            bottom: cell.border?.bottom?.style === 'medium' ? cell.border.bottom as any : { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            right: rightBorder
+          };
+        } else {
+          cell.border = {
+            ...cell.border,
+            left: leftBorder,
+            right: rightBorder
+          };
+        }
+
+        if (rowNumber > 2 && !cell.font?.size) {
+          cell.font = { ...cell.font, size: 9 };
+        }
+        // Căn giữa cho các cột ngày
+        if (rowNumber > 2 && colNumber > fixedHeaders.length) {
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        }
+      });
+    });
+
+    // ===== DOWNLOAD =====
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    const formattedDate = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `TimelineNV_CanBoSung_${formattedDate}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
   }
 
   // ===== TRACK BY =====

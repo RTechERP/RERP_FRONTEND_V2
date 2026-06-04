@@ -138,8 +138,8 @@
                     @for (task of upcomingTasks(); track task.ID) {
                     <div class="task-item-detailed" (click)="openTaskDetail(task)">
                         <div class="task-main">
-                            <div class="task-title">{{ task.Mission }}</div>
-                            <div class="task-project">{{ task.ProjectName }}</div>
+                            <div class="task-title" nz-tooltip [nzTooltipTitle]="task.Mission">{{ task.Mission }}</div>
+                            <div class="task-project" nz-tooltip [nzTooltipTitle]="task.ProjectName">{{ task.ProjectName }}</div>
                         </div>
                         <div class="task-time-info">
                             <div class="plan-date">{{ formatDate(task.PlanEndDate) }}</div>

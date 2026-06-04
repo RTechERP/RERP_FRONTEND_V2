@@ -8,6 +8,7 @@ import { NzMessageService, NzMessageModule } from 'ng-zorro-antd/message';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzRateModule } from 'ng-zorro-antd/rate';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { ProjectTaskDashboardService, DashboardStats, ChartData } from './project-task-dashboard.service';
 import { KanbanService } from '../kanban/kanban.service';
 import { ProjectTaskItem } from '../project-task/project-task.service';
@@ -59,7 +60,8 @@ echarts.use([
     TooltipModule,
     NzRateModule,
     NgxEchartsDirective,
-    NzInputModule
+    NzInputModule,
+    NzToolTipModule
   ],
   providers: [provideEchartsCore({ echarts })],
   templateUrl: './project-task-dashboard.component.html',

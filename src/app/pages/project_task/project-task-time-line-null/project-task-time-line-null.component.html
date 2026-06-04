@@ -54,11 +54,11 @@
           <div class="form-field-vertical">
             <label>&nbsp;</label>
             <div class="d-flex gap-2">
-              <button nz-button nzType="default" nzSize="small" (click)="resetSearch()" nz-tooltip nzTooltipTitle="Đặt lại">
-                <span nz-icon nzType="reload"></span>
-              </button>
               <button nz-button nzType="primary" nzSize="small" (click)="loadTimeline()" nz-tooltip nzTooltipTitle="Tìm kiếm">
                 <span nz-icon nzType="search"></span>
+              </button>
+              <button nz-button nzType="default" nzSize="small" (click)="exportExcel()" nz-tooltip nzTooltipTitle="Xuất Excel">
+                <span nz-icon nzType="file-excel"></span>
               </button>
             </div>
           </div>

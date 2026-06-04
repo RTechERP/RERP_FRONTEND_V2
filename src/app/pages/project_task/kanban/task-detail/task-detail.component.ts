@@ -192,6 +192,9 @@ export class TaskDetailComponent implements OnInit {
     planEndDate?: Date;
 
     taskWorkList: IProjectTaskWork[] = [];
+    visibleTaskWorkList: IProjectTaskWork[] = [];
+    pageIndexTaskWork: number = 1;
+    pageSizeTaskWork: number = 10;
     dayOffList: string[] = [];
     isLoadingTaskWork: boolean = false;
     taskWorkLoaded: boolean = false;
@@ -716,10 +719,9 @@ export class TaskDetailComponent implements OnInit {
         if (isLeader) return true;
 
         // 4. Người thực hiện: 
-        // - Chỉ được sửa nếu trạng thái là "Chưa làm" (0) 
-        // - VÀ ban đầu công việc này chưa có Deadline (hadOriginalDeadline = false)
+        // - Được phép nhập bổ sung nếu ban đầu công việc này chưa có Deadline (hadOriginalDeadline = false), bất kể trạng thái.
         const isAssignee = this.assigneeIds.includes(currentEmployeeId);
-        if (isAssignee && this.taskStatus === 0 && !this.hadOriginalDeadline) return true;
+        if (isAssignee && !this.hadOriginalDeadline) return true;
 
         // Các trường hợp khác: KHÔNG được sửa
         return false;
@@ -761,6 +763,32 @@ export class TaskDetailComponent implements OnInit {
         return this.employees.find(emp => emp.ID === id);
     }
 
+    private _getTabKeys(): string[] {
+        const keys = ['main'];
+        if (this.selectedTaskTypeId === 2) {
+            keys.push('solution');
+        }
+        keys.push('childTasks', 'checklist', 'attachments');
+        if (this.isUpdateMode) {
+            keys.push('history');
+        }
+        keys.push('additional');
+        if (this.showTaskWorkTab) {
+            keys.push('taskWork');
+        }
+        return keys;
+    }
+
+    private _getTabKey(index: number): string | null {
+        const keys = this._getTabKeys();
+        return keys[index] ?? null;
+    }
+
+    private _getTabIndexByKey(key: string): number {
+        const keys = this._getTabKeys();
+        return keys.indexOf(key);
+    }
+
     // Main tabs for task detail
     activeMainTabIndex: number = 0;
 
@@ -771,48 +799,7 @@ export class TaskDetailComponent implements OnInit {
     private _checklistLoadPromise: Promise<void> | null = null;
 
     /**
-     * Resolves a tab index to a semantic key, accounting for the dynamic "Nguyên nhân" tab
-     * which only appears when selectedTaskTypeId === 2 (Bug).
-     */
-    private _getTabKey(index: number): string | null {
-        // Layout mới sau khi xóa 2 tab nhân sự:
-        // Với Bug: 0: main, 1: solution, 2: childTasks, 3: checklist, 4: attachments, 5: history, 6: additional
-        // Không Bug: 0: main, 1: childTasks, 2: checklist, 3: attachments, 4: history, 5: additional
-        const isBug = this.selectedTaskTypeId === 2;
-        const hasWorkTab = this.showTaskWorkTab;
 
-        const baseMap: Record<number, string> = isBug
-            ? { 2: 'childTasks', 3: 'checklist', 4: 'attachments', 5: 'history', 6: 'additional' }
-            : { 1: 'childTasks', 2: 'checklist', 3: 'attachments', 4: 'history', 5: 'additional' };
-
-        if (hasWorkTab) {
-            const additionalIndex = isBug ? 6 : 5;
-            baseMap[additionalIndex + 1] = 'taskWork';
-        }
-
-        return baseMap[index] ?? null;
-    }
-
-    private _getTabIndexByKey(key: string): number {
-        const isBug = this.selectedTaskTypeId === 2;
-        const baseMap: Record<number, string> = isBug
-            ? { 2: 'childTasks', 3: 'checklist', 4: 'attachments', 5: 'history', 6: 'additional' }
-            : { 1: 'childTasks', 2: 'checklist', 3: 'attachments', 4: 'history', 5: 'additional' };
-
-        if (this.showTaskWorkTab) {
-            const additionalIndex = isBug ? 6 : 5;
-            baseMap[additionalIndex + 1] = 'taskWork';
-        }
-
-        for (const indexStr in baseMap) {
-            if (baseMap[indexStr] === key) {
-                return parseInt(indexStr, 10);
-            }
-        }
-        return -1;
-    }
-
-    /**
      * Called when the user switches tabs. Loads data on first visit.
      */
     onTabChange(index: number): void {
@@ -1282,6 +1269,7 @@ export class TaskDetailComponent implements OnInit {
         if (!this.planStartDate || !this.planEndDate) {
             // Thiếu ngày kết thúc hoặc bắt đầu -> đánh dấu xoá mềm tất cả các row
             this.taskWorkList.forEach(r => r.IsDeleted = true);
+            this.updateVisibleTaskWorkList();
             return;
         }
 
@@ -1290,6 +1278,7 @@ export class TaskDetailComponent implements OnInit {
         if (this.isCreateMode) {
             this.taskWorkLoaded = false;
             this.taskWorkList = [];
+            this.updateVisibleTaskWorkList();
         }
 
         // Có đủ 2 ngày -> auto sinh dữ liệu và show thông báo nhắc nhở
@@ -1393,6 +1382,11 @@ export class TaskDetailComponent implements OnInit {
         this.taskWorkList.sort((a, b) => new Date(a.Date!).getTime() - new Date(b.Date!).getTime());
 
         this.updateLocationOptions();
+        this.updateVisibleTaskWorkList();
+    }
+
+    updateVisibleTaskWorkList() {
+        this.visibleTaskWorkList = this.taskWorkList.filter(row => !row.IsDeleted);
     }
 
     getActiveTaskWorkCount(): number {

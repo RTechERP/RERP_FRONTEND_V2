@@ -79,10 +79,13 @@ export class SupplierSaleLinkComponent implements OnInit, OnDestroy {
   showSearchBar: boolean = true;
 
   columns: ColDef[] = [
-    { field: 'CodeNCC', header: 'Mã', width: '150px', filterType: 'multiselect' },
-    { field: 'NameNCC', header: 'Nhà cung cấp', width: '300px', filterType: 'multiselect' },
-    { field: 'MatHang', header: 'Mặt hàng', width: '350px', filterType: 'text' },
-    { field: 'Note', header: 'Ghi chú', width: '400px', filterType: 'text' }
+    { field: 'CodeNCC', header: 'Mã', width: '120px', filterType: 'multiselect' },
+    { field: 'NameNCC', header: 'Nhà cung cấp', width: '220px', filterType: 'multiselect' },
+    { field: 'MatHang', header: 'Mặt hàng', width: '250px', filterType: 'text' },
+    { field: 'Website', header: 'Website', width: '200px', filterType: 'text', type: 'link' },
+    { field: 'IsAgencyCertified', header: 'Chứng nhận ĐL', width: '50px', filterType: 'multiselect', type: 'boolean' },
+    { field: 'AgencyTime', header: 'Thời điểm làm ĐL', width: '180px', filterType: 'text' },
+    { field: 'Note', header: 'Ghi chú', width: '300px', filterType: 'text' }
   ];
 
   private dataSavedSub?: Subscription;
@@ -211,12 +214,20 @@ export class SupplierSaleLinkComponent implements OnInit, OnDestroy {
   refreshFilters() {
     this.columns.forEach(col => {
       if (col.filterType === 'multiselect') {
-        const set = new Set<string>();
+        const set = new Set<any>();
         this.dataset.forEach(row => {
           const v = row?.[col.field];
-          if (v !== null && v !== undefined && v !== '') set.add(String(v));
+          if (v !== null && v !== undefined && v !== '') {
+            set.add(v);
+          }
         });
-        col.filterOptions = Array.from(set).sort().map(v => ({ label: v, value: v }));
+        col.filterOptions = Array.from(set).sort().map(v => {
+          if (col.type === 'boolean') {
+            const isTrue = String(v).toLowerCase() === 'true' || v === true || v === 1;
+            return { label: isTrue ? 'Yes' : 'No', value: isTrue };
+          }
+          return { label: String(v), value: v };
+        });
       }
     });
     this.onFilterChange();
@@ -290,6 +301,9 @@ export class SupplierSaleLinkComponent implements OnInit, OnDestroy {
       { header: 'Mã NCC', key: 'code', width: 20 },
       { header: 'Tên nhà cung cấp', key: 'name', width: 50 },
       { header: 'Mặt hàng', key: 'mathang', width: 50 },
+      { header: 'Website', key: 'website', width: 30 },
+      { header: 'Chứng nhận ĐL', key: 'certified', width: 15 },
+      { header: 'Thời điểm làm ĐL', key: 'agencyTime', width: 25 },
       { header: 'Ghi chú', key: 'note', width: 50 }
     ];
 
@@ -321,6 +335,9 @@ export class SupplierSaleLinkComponent implements OnInit, OnDestroy {
         code: item.CodeNCC,
         name: item.NameNCC,
         mathang: item.MatHang,
+        website: item.Website,
+        certified: item.IsAgencyCertified ? 'Yes' : 'No',
+        agencyTime: item.AgencyTime,
         note: item.Note
       });
 
@@ -328,7 +345,7 @@ export class SupplierSaleLinkComponent implements OnInit, OnDestroy {
         cell.font = { name: 'Times New Roman', size: 11 };
         cell.alignment = {
           vertical: 'middle',
-          horizontal: (colNumber === 1 || colNumber === 2 || colNumber === 4) ? 'center' : 'left',
+          horizontal: (colNumber === 1 || colNumber === 2 || colNumber === 4 || colNumber === 8) ? 'center' : 'left',
           wrapText: true
         };
         cell.border = {
@@ -380,5 +397,14 @@ export class SupplierSaleLinkComponent implements OnInit, OnDestroy {
 
   toggleSearchPanel(): void {
     this.showSearchBar = !this.showSearchBar;
+  }
+
+  getHref(value: any): string {
+    if (!value) return '';
+    const val = String(value).trim();
+    if (val.startsWith('http://') || val.startsWith('https://')) {
+      return val;
+    }
+    return 'http://' + val;
   }
 }

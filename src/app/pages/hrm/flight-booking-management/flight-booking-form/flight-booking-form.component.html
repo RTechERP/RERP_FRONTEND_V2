@@ -21,7 +21,7 @@
                 <nz-select nzShowSearch nzAllowClear formControlName="EmployeeRequestID"
                   nzPlaceHolder="Chọn người yêu cầu" class="fs-12" style="width: 100%">
                   <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
-                    <nz-option *ngFor="let emp of group.items" [nzValue]="emp.EmployeeID"
+                    <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID"
                       [nzLabel]="(emp.Code || '') + ' - ' + (emp.FullName || '')"></nz-option>
                   </nz-option-group>
                 </nz-select>
@@ -38,7 +38,7 @@
                 <nz-select nzMode="multiple" nzShowSearch nzAllowClear formControlName="EmployeeIDs"
                   nzPlaceHolder="Chọn nhân viên" class="fs-12" style="width: 100%">
                   <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
-                    <nz-option *ngFor="let emp of group.items" [nzValue]="emp.EmployeeID"
+                    <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID"
                       [nzLabel]="(emp.Code || '') + ' - ' + (emp.FullName || '')"></nz-option>
                   </nz-option-group>
                 </nz-select>
@@ -102,7 +102,7 @@
               <nz-form-control [nzSpan]="24" nzErrorTip="Bắt buộc!">
                 <nz-select nzShowSearch nzAllowClear formControlName="ApproveID" nzDropdownClassName="select-dropdown"
                   nzPlaceHolder="Chọn người duyệt" class="fs-12" style="width: 100%">
-                  <nz-option *ngFor="let emp of approvers" [nzValue]="emp.EmployeeID"
+                  <nz-option *ngFor="let emp of approvers" [nzValue]="emp.ID"
                     [nzLabel]="(emp.Code || '') + ' - ' + (emp.FullName || '')"></nz-option>
                 </nz-select>
               </nz-form-control>

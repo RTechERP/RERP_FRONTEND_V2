@@ -558,12 +558,16 @@ export class TeamComponent implements OnInit, AfterViewInit {
           field: 'Code',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc mã...',
         },
         {
           title: 'Tên nhân viên',
           field: 'FullName',
           hozAlign: 'left',
-          headerHozAlign: 'center'
+          headerHozAlign: 'center',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Lọc tên...',
         }
       ],
     });

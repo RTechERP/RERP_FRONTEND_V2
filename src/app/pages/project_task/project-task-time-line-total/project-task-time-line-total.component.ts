@@ -154,7 +154,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
         const type2Statuses = statuses.filter((s: any) => s.Type === 2);
         type2Statuses.forEach((s: any) => {
           // Dùng mã giả lập 22, 23 (hoặc tùy biến) để filter
-          const customValue = s.No === 1 ? 22 : 23; 
+          const customValue = s.No === 1 ? 22 : 23;
           this.columnStatusOptions.push({
             label: s.Title,
             value: customValue
@@ -571,15 +571,15 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
           ...p,
           tasks: p.tasks.filter((t: any) => {
             if (this.filterStatusColumn.includes(t.Status)) return true;
-            
+
             // Xử lý filter cho Approval/Reject
             const approved = t.IsApproved;
             const isApproveValue = approved === 1 || approved === true || approved === '1';
             const isRejectValue = approved === 0 || approved === false || approved === '0';
-            
+
             if (this.filterStatusColumn.includes(22) && isApproveValue) return true;
             if (this.filterStatusColumn.includes(23) && isRejectValue) return true;
-            
+
             return false;
           })
         })).filter((p: any) => p.tasks.length > 0)
@@ -885,7 +885,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       cols.push({
         header: `${dateCol.dayName}\n${dateCol.dateDisplay}`,
         field: dateCol.dateStr,
-        width: 6,
+        width: 7.5,
         align: 'center',
         renderValue: (item: any) => {
           if (item.TypeDate === 1 && this.hasCheckMark(item, dateCol.dateStr)) {
@@ -944,8 +944,11 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
               }
             }
           }
+          if (dateCol.isToday) {
+            return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F7FF' } } };
+          }
           if (dateCol.isSunday || dateCol.isDayOff) {
-            return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F5F5' } } };
+            return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } } };
           }
           return {};
         }
@@ -1026,6 +1029,52 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
           ws.mergeCells(range.s.r, range.s.c, range.e.r, range.e.c);
           const cell = ws.getCell(range.s.r, range.s.c);
           cell.alignment = { vertical: 'middle', horizontal: range.s.c === 1 ? 'center' : 'left', wrapText: true };
+        });
+
+        // Highlight Today & Header Date
+        const fixedHeadersLen = 9;
+        const todayColIdx = this.dateColumns.findIndex((c: any) => c.isToday);
+        const excelTodayColNum = todayColIdx >= 0 ? fixedHeadersLen + todayColIdx + 1 : -1;
+
+        ws.eachRow((row: any, rowNumber: number) => {
+          row.eachCell({ includeEmpty: true }, (cell: any, colNumber: number) => {
+            // Xử lý border đỏ cho Today
+            if (excelTodayColNum > 0) {
+              let leftBorder: any = undefined;
+              let rightBorder: any = undefined;
+
+              if (colNumber === excelTodayColNum) {
+                leftBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+                rightBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+              } else if (colNumber === excelTodayColNum + 1) {
+                leftBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+              } else if (colNumber === excelTodayColNum - 1) {
+                rightBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+              }
+
+              if (leftBorder || rightBorder) {
+                cell.border = {
+                  top: cell.border?.top || { style: 'thin', color: { argb: 'FFD9D9D9' } },
+                  bottom: cell.border?.bottom || { style: 'thin', color: { argb: 'FFD9D9D9' } },
+                  left: leftBorder || cell.border?.left || { style: 'thin', color: { argb: 'FFD9D9D9' } },
+                  right: rightBorder || cell.border?.right || { style: 'thin', color: { argb: 'FFD9D9D9' } }
+                };
+              }
+            }
+
+            // Xử lý Header (dòng 1) cho DayOff và Today
+            if (rowNumber === 1 && colNumber > fixedHeadersLen) {
+              const dCol = this.dateColumns[colNumber - fixedHeadersLen - 1];
+              if (dCol) {
+                if (dCol.isSunday || dCol.isDayOff) {
+                  cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+                  cell.font = { ...cell.font, color: { argb: 'FFE11D48' } };
+                } else if (dCol.isToday) {
+                  cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F7FF' } };
+                }
+              }
+            }
+          });
         });
       }
     );

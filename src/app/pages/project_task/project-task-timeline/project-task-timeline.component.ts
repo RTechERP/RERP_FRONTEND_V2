@@ -19,6 +19,7 @@ import { AppUserService } from '../../../services/app-user.service';
 import { Router } from '@angular/router';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { TaskDetailComponent } from '../kanban/task-detail/task-detail.component';
+import { ProjectTaskTimeLineAllProjectComponent } from '../project-task-time-line-all-project/project-task-time-line-all-project.component';
 
 @Component({
   selector: 'app-project-task-timeline',
@@ -309,6 +310,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
 
       if (!projectMap.has(projectKey)) {
         projectMap.set(projectKey, {
+          ProjectID: item['ProjectID'],
           ProjectCode: projectCode,
           ProjectName: projectName,
           ProjectStatusName: (item as any)['ProjectStatusName'] || '',
@@ -728,7 +730,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
     });
   }
 
-  onContextMenu(event: MouseEvent, cm: any, task: any): void {
+  onContextMenu(event: MouseEvent, cm: any, task: any, group?: any): void {
     const target = event.target as HTMLElement;
     const cell = target.closest('td');
 
@@ -752,6 +754,17 @@ export class ProjectTaskTimelineComponent implements OnInit {
         });
       }
 
+      // Báo cáo công việc dự án option
+      if (group && group.ProjectID) {
+        this.contextMenuItems.push({
+          label: 'Báo cáo công việc dự án',
+          icon: 'pi pi-project',
+          command: () => {
+            this.openProjectReport(group, task?.ProjectTaskID || 0);
+          }
+        });
+      }
+
       // Attendance option
       this.contextMenuItems.push({
         label: 'Điểm danh công việc',
@@ -768,6 +781,25 @@ export class ProjectTaskTimelineComponent implements OnInit {
 
     event.preventDefault();
     event.stopPropagation();
+  }
+
+  openProjectReport(group: any, focusTaskId: number): void {
+    if (!group?.ProjectID) {
+      this.message.warning('Không tìm thấy thông tin dự án');
+      return;
+    }
+
+    this.tabService.openTabComp({
+      comp: ProjectTaskTimeLineAllProjectComponent,
+      title: group.ProjectCode || 'Báo cáo DA',
+      key: `project-task-all-project-${group.ProjectID}`,
+      data: {
+        projectId: group.ProjectID,
+        projectCode: group.ProjectCode,
+        projectName: group.ProjectName,
+        focusTaskId: focusTaskId
+      }
+    });
   }
 
   saveAttendance(task: any) {
@@ -812,7 +844,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
       cols.push({
         header: `${dateCol.dayName}\n${dateCol.dateDisplay}`,
         field: dateCol.dateStr,
-        width: 6,
+        width: 7.5,
         align: 'center',
         renderValue: (item: any) => {
           if (item.TypeDate === 1 && this.hasCheckMark(item, dateCol.dateStr)) {
@@ -871,8 +903,11 @@ export class ProjectTaskTimelineComponent implements OnInit {
               }
             }
           }
+          if (dateCol.isToday) {
+            return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F7FF' } } };
+          }
           if (dateCol.isSunday || dateCol.isDayOff) {
-            return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F5F5' } } };
+            return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } } };
           }
           return {};
         }
@@ -943,6 +978,52 @@ export class ProjectTaskTimelineComponent implements OnInit {
           ws.mergeCells(range.s.r, range.s.c, range.e.r, range.e.c);
           const cell = ws.getCell(range.s.r, range.s.c);
           cell.alignment = { vertical: 'middle', horizontal: range.s.c === 1 ? 'center' : 'left', wrapText: true };
+        });
+
+        // Highlight Today & Header Date
+        const fixedHeadersLen = 8;
+        const todayColIdx = this.dateColumns.findIndex((c: any) => c.isToday);
+        const excelTodayColNum = todayColIdx >= 0 ? fixedHeadersLen + todayColIdx + 1 : -1;
+
+        ws.eachRow((row: any, rowNumber: number) => {
+          row.eachCell({ includeEmpty: true }, (cell: any, colNumber: number) => {
+            // Xử lý border đỏ cho Today
+            if (excelTodayColNum > 0) {
+              let leftBorder: any = undefined;
+              let rightBorder: any = undefined;
+
+              if (colNumber === excelTodayColNum) {
+                leftBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+                rightBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+              } else if (colNumber === excelTodayColNum + 1) {
+                leftBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+              } else if (colNumber === excelTodayColNum - 1) {
+                rightBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+              }
+
+              if (leftBorder || rightBorder) {
+                cell.border = {
+                  top: cell.border?.top || { style: 'thin', color: { argb: 'FFD9D9D9' } },
+                  bottom: cell.border?.bottom || { style: 'thin', color: { argb: 'FFD9D9D9' } },
+                  left: leftBorder || cell.border?.left || { style: 'thin', color: { argb: 'FFD9D9D9' } },
+                  right: rightBorder || cell.border?.right || { style: 'thin', color: { argb: 'FFD9D9D9' } }
+                };
+              }
+            }
+
+            // Xử lý Header (dòng 1) cho DayOff và Today
+            if (rowNumber === 1 && colNumber > fixedHeadersLen) {
+              const dCol = this.dateColumns[colNumber - fixedHeadersLen - 1];
+              if (dCol) {
+                if (dCol.isSunday || dCol.isDayOff) {
+                  cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+                  cell.font = { ...cell.font, color: { argb: 'FFE11D48' } };
+                } else if (dCol.isToday) {
+                  cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F7FF' } };
+                }
+              }
+            }
+          });
         });
       }
     );

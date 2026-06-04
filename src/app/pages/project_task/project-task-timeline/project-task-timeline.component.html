@@ -45,7 +45,6 @@
                     </nz-select>
                 </div>
                 <div class="filter-actions">
-                    <button nz-button nzType="default" nzSize="small" (click)="resetFilters()">Đặt lại</button>
                 </div>
                 <button nz-button nzType="primary" nzSize="small" (click)="loadTimeline()"
                     [disabled]="!dateStart || !dateEnd">
@@ -109,7 +108,8 @@
                                     </td>
                                     <!-- Dự án: chỉ ở dòng đầu tiên của dự án -->
                                     <td *ngIf="ti === 0 && ri === 0" [attr.rowspan]="group.tasks.length * 2"
-                                        class="sticky-col col-proj cell-group cell-group-end">
+                                        class="sticky-col col-proj cell-group cell-group-end"
+                                        (contextmenu)="onContextMenu($event, cm, null, group)">
                                         <div class="project-info">
                                             <span class="fw-bold">{{ group.ProjectCode }}<span *ngIf="group.ProjectStatusName"> ({{ group.ProjectStatusName }})</span></span>
                                             <div class="project-name text-wrap">{{ group.ProjectName }}</div>
@@ -119,7 +119,7 @@
                                     <!-- Công việc: span 2 dòng (Dự kiến + Thực tế) -->
                                     <td *ngIf="ri === 0" rowspan="2" class="sticky-col col-job"
                                         [class.cell-group-end]="ti === group.tasks.length - 1"
-                                        (contextmenu)="onContextMenu($event, cm, task)">
+                                        (contextmenu)="onContextMenu($event, cm, task, group)">
                                         <div class="task-info">
                                             <div
                                                 class="d-flex align-items-center gap-1 text-nowrap w-100 overflow-hidden">
@@ -136,8 +136,7 @@
                                                         task.ProjectTaskParentCode || 'N/A' }}</a>
                                                 </span>
                                             </div>
-                                            <div class="task-title text-wrap mt-1 clickable-title"
-                                                (click)="openTaskDetail(task); $event.stopPropagation()">
+                                            <div class="task-title mt-1" nz-tooltip [nzTooltipTitle]="task.ProjectTaskTitle" nzTooltipPlacement="right">
                                                 {{ task.ProjectTaskTitle }}
                                             </div>
                                         </div>

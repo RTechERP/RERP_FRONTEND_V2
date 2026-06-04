@@ -43,20 +43,21 @@ export interface ProjectTaskEfficiencyEmployee {
 export class ProjectTaskEfficiencyDashboardService {
   constructor(private http: HttpClient) {}
 
-  getProjectTotalEfficiency(dateStart: string, dateEnd: string, projectId: number): Observable<any> {
+  getProjectTotalEfficiency(dateStart: string, dateEnd: string, projectId: number, departmentId: number = 0): Observable<any> {
     let params = new HttpParams()
       .set('dateStart', dateStart)
       .set('dateEnd', dateEnd)
-      .set('projectID', projectId.toString());
+      .set('projectID', projectId.toString())
+      .set('departmentID', departmentId.toString());
       
     return this.http.post<any>(`${environment.host}api/projecttask/efficiency-task-project-total?${params.toString()}`, {});
   }
 
-  getEmployeeEfficiency(dateStart: string, dateEnd: string, projectId: number): Observable<any> {
+  getEmployeeEfficiency(dateStart: string, dateEnd: string, projectId: number, departmentId: number = 0): Observable<any> {
     let params = new HttpParams()
       .set('dateStart', dateStart)
       .set('dateEnd', dateEnd)
-      .set('departmentID', '0')
+      .set('departmentID', departmentId.toString())
       .set('teamID', '0')
       .set('employeeID', '0')
       .set('projectID', projectId.toString())

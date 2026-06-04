@@ -1089,10 +1089,14 @@
                         } @else {
                         <!-- Table -->
                         <nz-table #taskWorkTable
-                            [nzData]="taskWorkList"
+                            [nzData]="visibleTaskWorkList"
                             nzSize="small"
-                            [nzFrontPagination]="false"
-                            [nzShowPagination]="false"
+                            [nzFrontPagination]="true"
+                            [nzShowPagination]="true"
+                            [(nzPageIndex)]="pageIndexTaskWork"
+                            [(nzPageSize)]="pageSizeTaskWork"
+                            [nzShowSizeChanger]="true"
+                            [nzPageSizeOptions]="[10, 20, 50, 100]"
                             nzBordered>
                             <thead>
                                 <tr>
@@ -1112,7 +1116,6 @@
                             </thead>
                             <tbody>
                                 @for (row of taskWorkTable.data; track row.Date) {
-                                @if (!row.IsDeleted) {
                                 <tr [class.task-work-row-off]="!row.IsWork"
                                     [class.task-work-row-sunday]="isSunday(row.Date)"
                                     [class.task-work-row-dayoff]="isDayOff(row.Date)"
@@ -1184,7 +1187,6 @@
                                         </label>
                                     </td>
                                 </tr>
-                                }
                                 }
                             </tbody>
                         </nz-table>

@@ -30,6 +30,7 @@ import {
 // Services
 import { ProjectTaskEfficiencyDashboardService, ProjectTaskEfficiencyTotal, ProjectTaskEfficiencyEmployee } from './project-task-efficiency-dashboard.service';
 import { ProjectService } from '../../project/project-service/project.service';
+import { DepartmentServiceService } from '../../hrm/department/department-service/department-service.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 
 echarts.use([
@@ -73,9 +74,11 @@ export class ProjectTaskEfficiencyDashboardComponent implements OnInit {
   dateStart: string = '';
   dateEnd: string = '';
   projectId: number | null = null;
+  departmentId: number | null = null;
 
   // Dropdown
   projectList: any[] = [];
+  departmentList: any[] = [];
 
   // Data
   loading = signal(false);
@@ -96,8 +99,11 @@ export class ProjectTaskEfficiencyDashboardComponent implements OnInit {
     this.dateEnd = now.endOf('month').toFormat('yyyy-MM-dd');
   }
 
+  private departmentService = inject(DepartmentServiceService);
+
   ngOnInit(): void {
     this.loadProjects();
+    this.loadDepartments();
   }
 
   loadProjects(): void {
@@ -105,6 +111,16 @@ export class ProjectTaskEfficiencyDashboardComponent implements OnInit {
       next: (res: any) => {
         if (res && res.status === 1 && res.data) {
           this.projectList = Array.isArray(res.data) ? res.data : [];
+        }
+      }
+    });
+  }
+
+  loadDepartments(): void {
+    this.departmentService.getDepartments().subscribe({
+      next: (res: any) => {
+        if (res && (res.status === 1 || res.status === 200) && res.data) {
+          this.departmentList = Array.isArray(res.data) ? res.data : [];
         }
       }
     });
@@ -122,11 +138,12 @@ export class ProjectTaskEfficiencyDashboardComponent implements OnInit {
     }
 
     const pId = this.projectId;
+    const dId = this.departmentId || 0;
 
     this.loading.set(true);
 
     // Call Total API
-    this.efficiencyService.getProjectTotalEfficiency(this.dateStart, this.dateEnd, pId).subscribe({
+    this.efficiencyService.getProjectTotalEfficiency(this.dateStart, this.dateEnd, pId, dId).subscribe({
       next: (res: any) => {
         if (res && res.status === 1 && res.data && res.data.length > 0) {
           this.totalSummary.set(res.data[0]);
@@ -141,7 +158,7 @@ export class ProjectTaskEfficiencyDashboardComponent implements OnInit {
     });
 
     // Call Employee API
-    this.efficiencyService.getEmployeeEfficiency(this.dateStart, this.dateEnd, pId).subscribe({
+    this.efficiencyService.getEmployeeEfficiency(this.dateStart, this.dateEnd, pId, dId).subscribe({
       next: (res: any) => {
         if (res && res.status === 1 && res.data) {
           const data = Array.isArray(res.data) ? res.data : [];

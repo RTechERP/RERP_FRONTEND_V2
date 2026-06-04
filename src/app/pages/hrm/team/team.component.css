@@ -62,3 +62,9 @@ nz-form-label .ant-form-item-label {
 }
 
 ::ng-deep .type-select-dropdown { min-width: 35vh !important; }
+
+/* Fix header filter input text color in employee table */
+::ng-deep #employee-table .tabulator-header-filter input {
+  color: #000 !important;
+  background-color: #fff !important;
+}

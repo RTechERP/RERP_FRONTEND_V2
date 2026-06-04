@@ -76,7 +76,7 @@
                 <p-tableHeaderCheckbox />
               </th>
               <th *ngFor="let col of columns" [pSortableColumn]="col.field" [style.width]="col.width"
-                class="text-center">
+                class="text-center" style="font-size: 12px;">
                 {{col.header}} <p-sortIcon [field]="col.field" />
               </th>
             </tr>
@@ -101,7 +101,7 @@
 
           <ng-template pTemplate="groupheader" let-item>
             <tr pRowGroupHeader>
-              <td colspan="5">
+              <td [attr.colspan]="columns.length + 1">
                 <i class="fa-solid fa-user-tie me-2 text-primary"></i>
                 <span class="fw-bold" style="font-size: 13px;">{{item.EmployeePurchaseName}}</span>
               </td>
@@ -113,14 +113,19 @@
               <td class="text-center">
                 <p-tableCheckbox [value]="item" />
               </td>
-              <td *ngFor="let col of columns">
+              <td *ngFor="let col of columns" [class.text-center]="col.type === 'boolean'">
                 <ng-container [ngSwitch]="col.type">
-                  <span *ngSwitchCase="'date'">{{item[col.field] | date:col.dateFormat || 'dd/MM/yyyy'}}</span>
-                  <span *ngSwitchCase="'number'">{{item[col.field] | number:'1.0-2'}}</span>
-                  <span *ngSwitchCase="'boolean'">
-                    <i class="pi pi-check" *ngIf="item[col.field]" style="color:green"></i>
+                  <span *ngSwitchCase="'date'" style="font-size: 12px;">{{item[col.field] | date:col.dateFormat || 'dd/MM/yyyy'}}</span>
+                  <span *ngSwitchCase="'number'" style="font-size: 12px;">{{item[col.field] | number:'1.0-2'}}</span>
+                  <span *ngSwitchCase="'boolean'" style="font-size: 12px;">
+                    <i class="pi pi-check" *ngIf="item[col.field]" style="color:green; font-weight: bold !important;"></i>
                   </span>
-                  <span *ngSwitchDefault>{{item[col.field]}}</span>
+                  <span *ngSwitchCase="'link'" style="font-size: 12px;">
+                    <a *ngIf="item[col.field]" [href]="getHref(item[col.field])" target="_blank" class="text-primary text-decoration-underline" style="font-size: 12px;">
+                      {{item[col.field]}}
+                    </a>
+                  </span>
+                  <span *ngSwitchDefault style="font-size: 12px;">{{item[col.field]}}</span>
                 </ng-container>
               </td>
             </tr>
@@ -128,7 +133,7 @@
 
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="5" class="text-center p-3 text-muted">Không có dữ liệu</td>
+              <td [attr.colspan]="columns.length + 1" class="text-center p-3 text-muted">Không có dữ liệu</td>
             </tr>
           </ng-template>
         </p-table>

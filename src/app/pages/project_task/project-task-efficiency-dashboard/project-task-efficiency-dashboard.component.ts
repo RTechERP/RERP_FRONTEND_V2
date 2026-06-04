@@ -475,7 +475,6 @@ export class ProjectTaskEfficiencyDashboardComponent implements OnInit {
     };
 
     // === Chart 6: KPI Tổng hợp (Polar Bar Chart - giống ảnh) ===
-    const kpiSummaryColors = ['#0f3a5f', '#994d1c', '#004d20', '#0076a3', '#6b0f5c', '#3d7a1f'];
 
     this.kpiSummaryChartOptions = {
       title: {
@@ -535,7 +534,7 @@ export class ProjectTaskEfficiencyDashboardComponent implements OnInit {
           barWidth: 6, // thin spokes
           roundCap: true,
           itemStyle: {
-            color: kpiSummaryColors[i % kpiSummaryColors.length]
+            color: `hsl(${(i * 137.5) % 360}, 70%, 50%)`
           },
           emphasis: { disabled: true }
         };

@@ -1158,7 +1158,7 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
   }
 
   private createDetailRowKey(row: any): string {
-    const persistedKey = row?.ID || row?.RequestInvoiceDetailID || row?.POKHDetailID;
+    const persistedKey = row?.ID || row?.RequestInvoiceDetailID;
     return persistedKey
       ? `detail-${persistedKey}`
       : `detail-new-${++this.detailRowKeySequence}`;

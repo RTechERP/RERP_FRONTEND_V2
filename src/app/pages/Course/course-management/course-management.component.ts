@@ -1261,6 +1261,7 @@ export class CourseManagementComponent implements OnInit, AfterViewInit {
             title: 'Tên bài học',
             field: 'LessonTitle',
             hozAlign: 'left',
+            width: 300,
             headerHozAlign: 'center',
             resizable: false,
           },

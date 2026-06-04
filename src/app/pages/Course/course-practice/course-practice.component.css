@@ -509,8 +509,8 @@ nz-splitter-panel {
 
 /* ===================== CẤP 3: CATALOG NODE (Code + Name) ===================== */
 .catalog-node {
-    background: #f3e5f5;
-    border-left: 4px solid #9c27b0;
+    background: #f4ebf5;
+    border-left: 4px solid #aa5fb7;
     padding: 10px 16px;
     margin: 4px 8px 4px 25px;
     border-radius: 0 8px 8px 0;
@@ -522,7 +522,7 @@ nz-splitter-panel {
 }
 
 .catalog-node .catalog-code {
-    color: #7b1fa2;
+    color: #9d4bbf;
     font-weight: 700;
     font-size: 12px;
 }
@@ -574,7 +574,7 @@ nz-splitter-panel {
     padding: 12px 14px;
     margin: 4px 8px 4px 35px;
     border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     cursor: pointer;
     position: relative;
     transition: all 0.2s ease;

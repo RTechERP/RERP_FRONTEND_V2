@@ -172,6 +172,7 @@ h3 {
     margin-left: 8px;
     margin-right: 6px;
     padding: 2px 6px;
+
     /* Speed control UI improvements */
     .speed-control-wrap {
         display: flex;
@@ -186,6 +187,7 @@ h3 {
         font-size: 11px;
         white-space: nowrap;
     }
+
     .speed-control-select {
         min-width: 62px;
         border: 0;
@@ -199,10 +201,12 @@ h3 {
         padding: 2px 6px;
         outline: none;
     }
+
     .speed-control-select option {
         color: #111;
         background: #fff;
     }
+
     background: transparent;
     color: #fff;
     border: none;
@@ -801,7 +805,7 @@ li.playlist-item.selected {
 }
 
 .file-item {
-    padding: 10px 12px;
+    padding: 6px 12px;
     background: #ffffff;
     border: 1px solid #d9d9d9;
     border-radius: 6px;
@@ -867,21 +871,38 @@ li.playlist-item.selected {
         padding: 10px 12px;
         gap: 10px;
     }
+
     .lesson-number {
         flex: 0 0 28px;
         height: 28px;
         font-size: 12px;
     }
+
     .lesson-name {
         font-size: 12px;
     }
+
     .section-title {
         font-size: 18px;
     }
+
     .video-section iframe {
         height: 300px !important;
     }
+
     .pdf-section embed {
         height: 400px !important;
     }
+}
+
+.pdf-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.pdf-fullscreen-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
 }

@@ -24,7 +24,7 @@
                     <span nz-icon [nzType]="deptNode.isCollapsed ? 'right' : 'down'" nzTheme="outline"></span>
                     <!-- <span class="node-prefix"></span> -->
                     <strong>Phòng ban: {{ deptNode.name }}</strong>
-                    <nz-tag nzColor="blue">{{ deptNode.courseCount }} Khoá học</nz-tag>
+                    <nz-tag nzColor="blue" class="ms-auto">{{ deptNode.courseCount }} Khoá học</nz-tag>
                 </div>
 
                 <div class="tree-children" *ngIf="!deptNode.isCollapsed">
@@ -33,7 +33,7 @@
                             <span nz-icon [nzType]="catalogNode.isCollapsed ? 'right' : 'down'" nzTheme="outline"></span>
                             <!-- <span class="node-prefix"></span> -->
                             <strong>Loại: {{ catalogNode.name }}</strong>
-                            <nz-tag nzColor="blue">{{ catalogNode.courseCount }}</nz-tag>
+                            <nz-tag nzColor="blue" class="ms-auto">{{ catalogNode.courseCount }}</nz-tag>
                         </div>
 
                         <div class="tree-children" *ngIf="!catalogNode.isCollapsed">
@@ -42,7 +42,7 @@
                                     <span nz-icon [nzType]="catNode.isCollapsed ? 'right' : 'down'" nzTheme="outline"></span>
                                     <!-- <span class="node-prefix"></span> -->
                                     <strong>Danh mục: {{ catNode.name }}</strong>
-                                    <nz-tag nzColor="purple">{{ catNode.courseCount }}</nz-tag>
+                                    <nz-tag nzColor="purple" class="ms-auto">{{ catNode.courseCount }}</nz-tag>
                                 </div>
 
                                 <div class="tree-children" *ngIf="!catNode.isCollapsed">

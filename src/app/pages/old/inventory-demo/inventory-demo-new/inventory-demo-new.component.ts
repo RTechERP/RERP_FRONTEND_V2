@@ -342,6 +342,15 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                     } as MultipleSelectOption,
                 },
             },
+            {
+                id: 'ProductNote',
+                field: 'ProductNote',
+                name: 'Ghi chú sản phẩm',
+                width: 350,
+                sortable: true,
+                filterable: true,
+                formatter: this.multilineFormatter.bind(this),
+            },
             // Spec columns - hidden by default
             {
                 id: 'Resolution',

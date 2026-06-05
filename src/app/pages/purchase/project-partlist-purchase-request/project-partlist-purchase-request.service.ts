@@ -258,4 +258,8 @@ export class ProjectPartlistPurchaseRequestService {
         debugger;
         return this.http.get<any>(`${this.baseUrl}purchase-quote-summary-new`, { params });
     }
+
+    getLogActivity(projectPartlistRequestId: number): Observable<any> {
+        return this.http.get<any>(`${this.baseUrl}log-activity?projectPartlistRequestId=${projectPartlistRequestId}`);
+    }
 }

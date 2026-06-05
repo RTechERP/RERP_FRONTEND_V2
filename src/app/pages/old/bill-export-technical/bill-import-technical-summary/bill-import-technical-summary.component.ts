@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Input } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -30,6 +30,7 @@ import {
 
 // Service import
 import { BillImportTechnicalService } from '../../bill-import-technical/bill-import-technical-service/bill-import-technical.service';
+import { BillImportServiceService } from '../../Sale/BillImport/bill-import-service/bill-import-service.service';
 
 // Form component import
 import { BillImportTechnicalFormComponent } from '../../bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
@@ -93,7 +94,7 @@ interface BillImportTechnicalSummary {
 })
 export class BillImportTechnicalSummaryComponent
   implements OnInit, AfterViewInit {
-  @Input() warehouseId: number = 0;
+  @Input() warehouseId: number = -1;
 
   // Grid
   angularGrid!: AngularGridInstance;
@@ -101,6 +102,7 @@ export class BillImportTechnicalSummaryComponent
   gridOptions!: GridOption;
   dataset: BillImportTechnicalSummary[] = [];
   gridObj!: SlickGrid;
+  warehouseList: any[] = [];
 
   // State
   isLoading: boolean = false;
@@ -118,7 +120,7 @@ export class BillImportTechnicalSummaryComponent
     checkAll: false,
     pageNumber: 1,
     pageSize: 1000000,
-    warehouseId: 0,
+    warehouseId: -1,
   };
 
   // Dropdowns
@@ -142,8 +144,9 @@ export class BillImportTechnicalSummaryComponent
     private notification: NzNotificationService,
     private appUserService: AppUserService,
     private billImportTechnicalService: BillImportTechnicalService,
+    private billImportServiceService: BillImportServiceService,
     private ngbModal: NgbModal,
-    public activeModal: NgbActiveModal
+    @Optional() public activeModal?: NgbActiveModal
   ) { }
 
   ngOnInit(): void {
@@ -158,8 +161,22 @@ export class BillImportTechnicalSummaryComponent
   ngAfterViewInit(): void {
     // Load data sau khi view init
     setTimeout(() => {
+      this.getWarehouseList();
       this.loadBillImportTechnicalSummary();
     }, 0);
+  }
+
+  getWarehouseList() {
+    this.billImportServiceService.getWarehouse().subscribe({
+      next: (res) => {
+        if (res?.data && Array.isArray(res.data)) {
+          this.warehouseList = res.data;
+        }
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy danh sách kho', err);
+      }
+    })
   }
 
   initGridOptions(): void {
@@ -287,6 +304,13 @@ export class BillImportTechnicalSummaryComponent
   }
 
   onCheckAllChange(checked: boolean): void {
+    if (this.searchParams.warehouseId == -1) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn loại kho!'
+      );
+      return;
+    }
     this.searchParams.checkAll = checked;
     this.loadBillImportTechnicalSummary();
   }
@@ -298,11 +322,15 @@ export class BillImportTechnicalSummaryComponent
   loadBillImportTechnicalSummary(): void {
     this.isLoading = true;
 
-    const dateStart = this.searchParams.checkAll
-      ? null
-      : DateTime.fromJSDate(new Date(this.searchParams.dateStart))
-        .startOf('day')
-        .toISO();
+    // const dateStart = this.searchParams.checkAll
+    //   ? null
+    //   : DateTime.fromJSDate(new Date(this.searchParams.dateStart))
+    //     .startOf('day')
+    //     .toISO();
+
+    const dateStart = DateTime.fromJSDate(new Date(this.searchParams.dateStart))
+      .startOf('day')
+      .toISO();
 
     const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd))
       .endOf('day')
@@ -316,7 +344,7 @@ export class BillImportTechnicalSummaryComponent
         dateEnd: dateEnd || '',
         status: this.searchParams.billType,
         filterText: this.searchParams.filterText,
-        warehouseId: this.warehouseId,
+        warehouseId: this.searchParams.warehouseId,
         isAll: this.searchParams.checkAll,
       })
       .subscribe({
@@ -391,6 +419,14 @@ export class BillImportTechnicalSummaryComponent
         params: { dateFormat: 'DD/MM/YYYY' },
         width: 120,
         cssClass: 'text-center',
+      },
+      {
+        id: 'WarehouseName',
+        name: 'Kho',
+        field: 'WarehouseName',
+        sortable: true,
+        filterable: true,
+        width: 120,
       },
       {
         id: 'BillTypeText',
@@ -498,14 +534,6 @@ export class BillImportTechnicalSummaryComponent
         sortable: true,
         filterable: true,
         width: 150,
-      },
-      {
-        id: 'WarehouseName',
-        name: 'Kho',
-        field: 'WarehouseName',
-        sortable: true,
-        filterable: true,
-        width: 120,
       },
       {
         id: 'ProductCodeRTC',
@@ -1187,6 +1215,10 @@ export class BillImportTechnicalSummaryComponent
    * Đóng modal
    */
   closeModal(): void {
-    this.activeModal.dismiss('cancel');
+    this.activeModal?.dismiss('cancel');
+  }
+
+  onWarehouseChange(value: number | null): void {
+    this.searchParams.warehouseId = value ?? -1;
   }
 }

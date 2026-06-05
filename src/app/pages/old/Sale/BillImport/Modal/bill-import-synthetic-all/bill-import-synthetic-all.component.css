@@ -6,10 +6,45 @@
   height: 100%;
 }
 
+/* Filter Section */
+.filter-section {
+  background-color: #f5f5f5;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-item label {
+  white-space: nowrap;
+  font-weight: 500;
+  margin: 0;
+  font-size: 12px;
+}
+
+.filter-item button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .bill-import-synthetic-new-modal-body {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 70px);
   overflow: hidden;
 }
 
@@ -128,20 +163,17 @@
     font-size: 11px;
   }
 }
+
 :host ::ng-deep div[id^="billImportSyntheticGrid-"] {
-  height: calc(91vh - 60px) !important;
+  height: calc(91vh - 80px) !important;
 }
 
-:host ::ng-deep
-  .slickgrid-container
-  .slick-footerrow
-  .slick-footerrow-columns
-  .slick-footerrow-column {
+:host ::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
   border-right: 1px solid #ddd !important;
   padding: 4px 6px;
   font-size: 0.75rem;
   justify-content: end !important;
-  
+
 }
 
 :host ::ng-deep .slick-headerrow-column input {

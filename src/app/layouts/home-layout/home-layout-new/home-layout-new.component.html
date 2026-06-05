@@ -228,121 +228,70 @@
               background-color: #fff3cd !important;
               border-left: 4px solid #ffc107;
             ">
-                        <small class="text-muted fw-bold">
+                        <div class="text-muted fw-bold" style="font-size: 12px; line-height: 1.6;">
                             <div *hasPermission="'N1,N32,N85'">
-                                <ng-container *ngIf="quantityApprove?.Count > 0">
+                                <div *ngIf="quantityApprove?.Count > 0">
                                     Bạn đang có
-                                    <span class="text-danger fw-bold">{{
-                                        quantityApprove?.Count || 0
-                                        }}</span>
+                                    <span class="text-danger fw-bold">{{ quantityApprove?.Count || 0 }}</span>
                                     đơn đăng kí công chưa duyệt!
-                                    <span class="text-primary cursor-pointer fw-bold" style="
-                      color: #007bff !important;
-                      text-decoration: underline;
-                      cursor: pointer;
-                      font-weight: 600;
-                    " (click)="newTabApprove()">Bấm vào đây để duyệt</span>
-                                </ng-container>
+                                    <span class="text-primary cursor-pointer fw-bold"
+                                        style="color: #007bff !important; text-decoration: underline; cursor: pointer; font-weight: 600;"
+                                        (click)="newTabApprove()">Bấm vào đây để duyệt</span>
+                                </div>
                             </div>
-                            <ng-container *ngIf="
-                  (quantityApprove?.Count > 0 || quantityBorrow > 0 || quantityBorrowExpried > 0 || quantityBorrowSale > 0 || quantityBorrowExpriedSale > 0) &&
-                  quantityOverdueProjectTask > 0
-                ">
-                                <br />
-                            </ng-container>
-                            <ng-container *ngIf="quantityOverdueProjectTask > 0">
+                            <div *ngIf="quantityOverdueProjectTask > 0">
                                 Bạn đang có
                                 <span class="text-danger fw-bold">{{ quantityOverdueProjectTask }}</span>
                                 công việc quá hạn!
-                                <span class="text-primary cursor-pointer fw-bold" style="
-                    color: #007bff !important;
-                    text-decoration: underline;
-                    cursor: pointer;
-                    font-weight: 600;
-                  " (click)="onPickProjectTaskOverdue()"> Bấm vào đây để xem</span>
-                            </ng-container>
-                            <ng-container *ngIf="
-                  (quantityApprove?.Count > 0 || quantityOverdueProjectTask > 0) &&
-                  (quantityBorrow > 0 || quantityBorrowExpried > 0)
-                ">
-                                <br />
-                            </ng-container>
-                            <ng-container *ngIf="quantityBorrow > 0 || quantityBorrowExpried > 0">
+                                <span class="text-primary cursor-pointer fw-bold"
+                                    style="color: #007bff !important; text-decoration: underline; cursor: pointer; font-weight: 600;"
+                                    (click)="onPickProjectTaskOverdue()"> Bấm vào đây để xem</span>
+                            </div>
+                            <div *ngIf="quantityBorrow > 0 || quantityBorrowExpried > 0">
                                 Bạn đang có
                                 <ng-container *ngIf="quantityBorrow > 0">
                                     <span class="text-danger fw-bold">{{ quantityBorrow }}</span>
                                     vật tư sắp hết hạn
                                 </ng-container>
-                                <ng-container *ngIf="quantityBorrow > 0 && quantityBorrowExpried > 0">
-                                    và
-                                </ng-container>
+                                <ng-container *ngIf="quantityBorrow > 0 && quantityBorrowExpried > 0">và</ng-container>
                                 <ng-container *ngIf="quantityBorrowExpried > 0">
-                                    <span class="text-danger fw-bold">{{
-                                        quantityBorrowExpried
-                                        }}</span>
+                                    <span class="text-danger fw-bold">{{ quantityBorrowExpried }}</span>
                                     vật tư quá hạn
                                 </ng-container>
                                 kho demo!
-                                <span class="text-primary cursor-pointer fw-bold" style="
-                    color: #007bff !important;
-                    text-decoration: underline;
-                    cursor: pointer;
-                    font-weight: 600;
-                  " (click)="onPickHistoryProduct()">Tới lịch sử mượn kho demo</span>
-                                <br />
-                            </ng-container>
-                            <ng-container *ngIf="quantityBorrowSale > 0 || quantityBorrowExpriedSale > 0">
+                                <span class="text-primary cursor-pointer fw-bold"
+                                    style="color: #007bff !important; text-decoration: underline; cursor: pointer; font-weight: 600;"
+                                    (click)="onPickHistoryProduct()">Tới lịch sử mượn kho demo</span>
+                            </div>
+                            <div *ngIf="quantityBorrowSale > 0 || quantityBorrowExpriedSale > 0">
                                 Bạn đang có
                                 <ng-container *ngIf="quantityBorrowSale > 0">
-                                    <span class="text-danger fw-bold">{{
-                                        quantityBorrowSale
-                                        }}</span>
+                                    <span class="text-danger fw-bold">{{ quantityBorrowSale }}</span>
                                     vật tư sắp hết hạn
                                 </ng-container>
-                                <ng-container *ngIf="
-                    quantityBorrowSale > 0 && quantityBorrowExpriedSale > 0
-                  ">
-                                    và
-                                </ng-container>
+                                <ng-container
+                                    *ngIf="quantityBorrowSale > 0 && quantityBorrowExpriedSale > 0">và</ng-container>
                                 <ng-container *ngIf="quantityBorrowExpriedSale > 0">
-                                    <span class="text-danger fw-bold">{{
-                                        quantityBorrowExpriedSale
-                                        }}</span>
+                                    <span class="text-danger fw-bold">{{ quantityBorrowExpriedSale }}</span>
                                     vật tư quá hạn
                                 </ng-container>
                                 kho sale!
-                                <span class="text-primary cursor-pointer fw-bold" style="
-                    color: #007bff !important;
-                    text-decoration: underline;
-                    cursor: pointer;
-                    font-weight: 600;
-                  " (click)="onPickHistoryProductSale()">Tới lịch sử mượn kho sale</span>
-                                <br />
-                            </ng-container>
-
-                            <ng-container *ngIf="projectTaskAttendances === 0">
-                                <br />
+                                <span class="text-primary cursor-pointer fw-bold"
+                                    style="color: #007bff !important; text-decoration: underline; cursor: pointer; font-weight: 600;"
+                                    (click)="onPickHistoryProductSale()">Tới lịch sử mượn kho sale</span>
+                            </div>
+                            <div *ngIf="projectTaskAttendances === 0">
                                 Ngày hôm nay bạn chưa điểm danh công việc!
-                                <span class="text-primary cursor-pointer fw-bold" style="
-                                                                            color: #007bff !important;
-                                                                            text-decoration: underline;
-                                                                            cursor: pointer;
-                                                                            font-weight: 600;
-                                                                        " (click)="onPickProjectTaskOverdue()"> Bấm vào
-                                    đây để xem</span>
-                                <br />
-                            </ng-container>
-
+                                <span class="text-primary cursor-pointer fw-bold"
+                                    style="color: #007bff !important; text-decoration: underline; cursor: pointer; font-weight: 600;"
+                                    (click)="onPickProjectTaskOverdue()"> Bấm vào đây để xem</span>
+                            </div>
 
                             <!-- Thông báo phiếu đánh giá chuyển HDLD chờ xử lý -->
                             <ng-container
                                 *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0 || pendingReview.asTBP > 0 || pendingReview.asHR > 0 || pendingReview.asBGD > 0">
-                                <br *ngIf="quantityBorrow > 0 || quantityBorrowExpried > 0 || quantityBorrowSale > 0
-                                           || quantityBorrowExpriedSale > 0 || quantityApprove?.Count > 0
-                                           || quantityOverdueProjectTask > 0 || projectTaskAttendances === 0" />
-
                                 <!-- NV tự đánh giá -->
-                                <ng-container *ngIf="pendingReview.asEmployee > 0">
+                                <div *ngIf="pendingReview.asEmployee > 0">
                                     <i nz-icon nzType="file-done" nzTheme="outline" style="color:#0d6efd"></i>
                                     Bạn có <span class="text-danger fw-bold">{{ pendingReview.asEmployee }}</span>
                                     phiếu đánh giá chuyển hợp đồng <strong>cần tự đánh giá</strong>.
@@ -350,11 +299,9 @@
                                         style="text-decoration:underline;cursor:pointer;margin-left:4px"
                                         (click)="newTab('contract-transfer-review-personal', 'Đánh giá chuyển hợp đồng')">Xem
                                         ngay</span>
-                                </ng-container>
-
+                                </div>
                                 <!-- Người đánh giá -->
-                                <ng-container *ngIf="pendingReview.asEvaluator > 0">
-                                    <br *ngIf="pendingReview.asEmployee > 0" />
+                                <div *ngIf="pendingReview.asEvaluator > 0">
                                     <i nz-icon nzType="audit" nzTheme="outline" style="color:#0d6efd"></i>
                                     Bạn có <span class="text-danger fw-bold">{{ pendingReview.asEvaluator }}</span>
                                     phiếu đánh giá chuyển hợp đồng <strong>cần đánh giá</strong>.
@@ -362,11 +309,9 @@
                                         style="text-decoration:underline;cursor:pointer;margin-left:4px"
                                         (click)="newTab('contract-transfer-review-tbp', 'Đánh giá chuyển hợp đồng')">Xem
                                         ngay</span>
-                                </ng-container>
-
+                                </div>
                                 <!-- TBP -->
-                                <ng-container *ngIf="pendingReview.asTBP > 0">
-                                    <br *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0" />
+                                <div *ngIf="pendingReview.asTBP > 0">
                                     <i nz-icon nzType="check-square" nzTheme="outline" style="color:#198754"></i>
                                     Bạn có <span class="text-danger fw-bold">{{ pendingReview.asTBP }}</span>
                                     phiếu đánh giá chuyển hợp đồng <strong>cần duyệt (TBP)</strong>.
@@ -374,12 +319,9 @@
                                         style="text-decoration:underline;cursor:pointer;margin-left:4px"
                                         (click)="newTab('contract-transfer-review-tbp', 'Đánh giá chuyển hợp đồng')">Xem
                                         ngay</span>
-                                </ng-container>
-
+                                </div>
                                 <!-- HR -->
-                                <ng-container *ngIf="pendingReview.asHR > 0">
-                                    <br
-                                        *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0 || pendingReview.asTBP > 0" />
+                                <div *ngIf="pendingReview.asHR > 0">
                                     <i nz-icon nzType="solution" nzTheme="outline" style="color:#fd7e14"></i>
                                     Bạn có <span class="text-danger fw-bold">{{ pendingReview.asHR }}</span>
                                     phiếu đánh giá chuyển hợp đồng <strong>chờ HR xác nhận</strong>.
@@ -387,12 +329,9 @@
                                         style="text-decoration:underline;cursor:pointer;margin-left:4px"
                                         (click)="newTab('contract-transfer-review', 'Đánh giá chuyển hợp đồng')">Xem
                                         ngay</span>
-                                </ng-container>
-
+                                </div>
                                 <!-- BGD -->
-                                <ng-container *ngIf="pendingReview.asBGD > 0">
-                                    <br
-                                        *ngIf="pendingReview.asEmployee > 0 || pendingReview.asEvaluator > 0 || pendingReview.asTBP > 0 || pendingReview.asHR > 0" />
+                                <div *ngIf="pendingReview.asBGD > 0">
                                     <i nz-icon nzType="crown" nzTheme="outline" style="color:#6f42c1"></i>
                                     Bạn có <span class="text-danger fw-bold">{{ pendingReview.asBGD }}</span>
                                     phiếu đánh giá chuyển hợp đồng <strong>chờ BGĐ phê duyệt</strong>.
@@ -400,9 +339,9 @@
                                         style="text-decoration:underline;cursor:pointer;margin-left:4px"
                                         (click)="newTab('contract-transfer-review-bgd', 'Đánh giá chuyển hợp đồng')">Xem
                                         ngay</span>
-                                </ng-container>
+                                </div>
                             </ng-container>
-                        </small>
+                        </div>
                     </div>
                 </div>
 
@@ -414,8 +353,8 @@
                             <div class="flex-shrink-0">
                                 <img src="assets/icon/thongbao.jpg" alt="Newsletter thumb" class="rounded shadow-sm"
                                     style="
-                      width: 50px;
-                      height: 50px;
+                      width: 25px;
+                      height: 25px;
                       object-fit: cover;
                       border: 1px solid #eee;
                     " />

@@ -245,3 +245,7 @@ button[nz-button]:disabled {
 nz-divider {
   margin: 10px 0;
 }
+
+:host ::ng-deep div[id*="grid-bill-import-technical-summary"] {
+  height: calc(100vh - 215px) !important;
+}

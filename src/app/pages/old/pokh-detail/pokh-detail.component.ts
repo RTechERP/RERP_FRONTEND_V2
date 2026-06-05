@@ -1561,9 +1561,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     const discountAmount = row.getData().DiscountAmount || 0;
     const billDate = row.getData().BillDate;
     const debt = row.getData().Debt || 0;
-    const intoMoney = quantity * unitPrice;
-    const intoMoneyAfterDiscount = intoMoney - discountAmount;
-    const totalWithVAT = intoMoneyAfterDiscount + intoMoneyAfterDiscount * (vat / 100);
+    const discountBaseAmount = unitPrice;
+    const unitPriceAfterDiscount = discountBaseAmount - discountAmount;
+    const intoMoney = quantity * unitPriceAfterDiscount;
+    const totalWithVAT = intoMoney * (1 + vat / 100);
 
     try {
       // Tính thành tiền và tổng tiền bao gồm VAT
@@ -1576,7 +1577,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         ) {
           row.update({
             IntoMoney: intoMoney,
-            IntoMoneyAfterDiscount: intoMoneyAfterDiscount,
+            IntoMoneyAfterDiscount: unitPriceAfterDiscount,
             TotalPriceIncludeVAT: totalWithVAT,
           });
           this.calculateTotalIterative();
@@ -1614,7 +1615,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
       // Tính lại thành tiền khi thay đổi số lượng hoặc đơn giá
       if (columnField === 'Qty' || columnField === 'UnitPrice') {
-        row.update({ IntoMoney: quantity * unitPrice });
+        row.update({ IntoMoney: quantity * unitPriceAfterDiscount });
         this.calculateTotalIterative();
       }
     } catch (error) {
@@ -1758,7 +1759,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     return ids;
   }
   calculateTotalIterative(): void {
-    let totalSum = 0;
+    let totalBeforeVATSum = 0;
+    let totalAfterVATSum = 0;
     let totalMoneyDiscount = 0;
     const allRows = this.tb_ProductDetailTreeList.getRows();
 
@@ -1771,10 +1773,17 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         if (!currentNode) continue;
 
         if (
+          currentNode['IntoMoney'] !== undefined &&
+          !isNaN(currentNode['IntoMoney'])
+        ) {
+          totalBeforeVATSum += Number(currentNode['IntoMoney']);
+        }
+
+        if (
           currentNode['TotalPriceIncludeVAT'] !== undefined &&
           !isNaN(currentNode['TotalPriceIncludeVAT'])
         ) {
-          totalSum += Number(currentNode['TotalPriceIncludeVAT']);
+          totalAfterVATSum += Number(currentNode['TotalPriceIncludeVAT']);
         }
 
         if (
@@ -1792,10 +1801,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       }
     });
 
-    // Đảm bảo totalPO luôn là số hợp lệ, không phải NaN
-    this.poFormData.totalPO = isNaN(totalSum) ? 0 : totalSum;
-    this.poFormData.totalPOBeforeVAT = this.calculateTotalMoneyKoVAT();
-    
+    this.poFormData.totalPOBeforeVAT = isNaN(totalBeforeVATSum) ? 0 : totalBeforeVATSum;
+    this.poFormData.totalPO = isNaN(totalAfterVATSum) ? 0 : totalAfterVATSum;
+
     // Gán tổng tiền chiết khấu từ chi tiết lên master
     this.poFormData.moneyDiscount = isNaN(totalMoneyDiscount) ? 0 : totalMoneyDiscount;
 
@@ -2677,35 +2685,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           },
 
           {
-            title: 'Tổng tiền trước VAT',
-            field: 'IntoMoney',
-            sorter: 'number',
-            width: 150,
-            editor: 'number',
-            editorParams: {
-              verticalNavigation: 'table',
-            },
-            formatter: 'money',
-            formatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-            bottomCalc: (values, data) => {
-              return this.accumulateTreeValues(data, 'IntoMoney');
-            },
-            bottomCalcFormatter: 'money',
-            bottomCalcFormatterParams: {
-              precision: 0,
-              decimal: '.',
-              thousand: ',',
-              symbol: '',
-              symbolAfter: true,
-            },
-          },
-          {
             title: 'Tiền chiết khấu',
             field: 'DiscountAmount',
             sorter: 'number',
@@ -2749,6 +2728,35 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             },
             bottomCalc: (values, data) => {
               return this.accumulateTreeValues(data, 'IntoMoneyAfterDiscount');
+            },
+            bottomCalcFormatter: 'money',
+            bottomCalcFormatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+          },
+          {
+            title: 'Tổng tiền trước VAT',
+            field: 'IntoMoney',
+            sorter: 'number',
+            width: 150,
+            editor: 'number',
+            editorParams: {
+              verticalNavigation: 'table',
+            },
+            formatter: 'money',
+            formatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+            bottomCalc: (values, data) => {
+              return this.accumulateTreeValues(data, 'IntoMoney');
             },
             bottomCalcFormatter: 'money',
             bottomCalcFormatterParams: {

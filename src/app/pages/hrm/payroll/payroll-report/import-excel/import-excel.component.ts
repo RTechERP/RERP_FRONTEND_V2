@@ -36,6 +36,42 @@ function formatDate(value: any): string | null {
     return date.toISODate();
 }
 
+function getExcelCellValue(cell: ExcelJS.Cell, defaultValue: any = ''): any {
+    const value = cell.value as any;
+
+    if (value === null || value === undefined || value === '') return defaultValue;
+
+    if (typeof value === 'object') {
+        if (value.formula || value.sharedFormula) {
+            if (value.result !== undefined && value.result !== null) {
+                if (typeof value.result === 'object') {
+                    if (value.result.richText) return value.result.richText.map((rt: any) => rt.text).join('');
+                    if (value.result.text !== undefined) return value.result.text;
+                    if (value.result.error !== undefined) return value.result.error;
+                }
+
+                return value.result;
+            }
+            return cell.text || defaultValue;
+        }
+
+        if (value.richText) {
+            return value.richText.map((rt: any) => rt.text).join('');
+        }
+
+        if (value.text !== undefined) return value.text;
+        if (value.result !== undefined && value.result !== null) return value.result;
+        if (value.error !== undefined) return value.error;
+    }
+
+    return value;
+}
+
+function getExcelCellText(cell: ExcelJS.Cell, defaultValue: string = ''): string {
+    const value = getExcelCellValue(cell, defaultValue);
+    return value === null || value === undefined ? defaultValue : value.toString();
+}
+
 function checkBoxFormatter(cell: CellComponent) {
     debugger
     const value = String(cell.getValue()).toLowerCase();
@@ -58,7 +94,7 @@ function moneyCol(title: any, field: any) {
         },
         bottomCalc: 'sum',
         bottomCalcFormatter: 'money',
-    };
+    } as ColumnDefinition;
 }
 
 @Component({
@@ -313,88 +349,93 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
             let validRecords = 0;
             let foundFirstDataRow = false;
 
-            const totalWorkday = worksheet.getRow(1).getCell(12).value;
+            const totalWorkday = getExcelCellValue(worksheet.getRow(1).getCell(12), 0);
             // console.log('totalWorkday:', totalWorkday);
             worksheet.eachRow((row, rowNumber) => {
 
                 // console.log('row:', row);
 
                 if (rowNumber > 5) {
-                    const firstCell = row.getCell(1).value;
-                    const isEmptyRow = !firstCell || !row.getCell(2).value || !row.getCell(3).value;
+                    const firstCell = getExcelCellValue(row.getCell(1), '');
+                    const isEmptyRow = !firstCell || !getExcelCellValue(row.getCell(2), '') || !getExcelCellValue(row.getCell(3), '');
 
 
-                    const stt = parseInt(row.getCell(3).value?.toString() || '') || 0;
+                    const stt = parseInt(getExcelCellText(row.getCell(3)) || '') || 0;
 
-                    console.log('isEmptyRow:', row.getCell(3).value);
+                    console.log('isEmptyRow:', getExcelCellValue(row.getCell(3), ''));
 
                     // if (!isEmptyRow) {
                     if (stt > 0) {
+                        const cellValue = (colNumber: number, defaultValue: any = 0) => getExcelCellValue(row.getCell(colNumber), defaultValue);
+                        const cellText = (colNumber: number) => getExcelCellText(row.getCell(colNumber));
+
                         const rowData: any = {
                             TotalWorkday: totalWorkday,
-                            IsPublish: row.getCell(1).value?.toString() || '', // Công bố
-                            Sign: row.getCell(2).value?.toString() || '', // Ký nhận
-                            STT: row.getCell(3).value?.toString() || '',
-                            TaxCompanyName: row.getCell(4).value?.toString() || '',//Công ty
-                            Code: row.getCell(5).value?.toString() || '', // Mã NV
-                            FullName: row.getCell(6).value?.toString() || '',
-                            PositionName: row.getCell(7).value?.toString() || '',
-                            StatusContract: row.getCell(8).value?.toString() || '',
-                            StartWorking: row.getCell(9).value?.toString() || '',
-                            BasicSalary: row.getCell(10).value || 0,
-                            TotalMerit: row.getCell(11).value || 0,
-                            TotalSalaryByDay: row.getCell(12).value || 0,
-                            SalaryOneHour: row.getCell(13).value || 0,
+                            IsPublish: cellText(1), // Công bố
+                            Sign: cellText(2), // Ký nhận
+                            STT: cellText(3),
+                            TaxCompanyName: cellText(4),//Công ty
+                            Code: cellText(5), // Mã NV
+                            FullName: cellText(6),
+                            PositionName: cellText(7),
+                            StatusContract: cellText(8),
+                            StartWorking: cellText(9),
+                            BasicSalary: cellValue(10),
+                            TotalMerit: cellValue(11),
+                            TotalSalaryByDay: cellValue(12),
+                            SalaryOneHour: cellValue(13),
 
-                            OT_Hour_WD: row.getCell(14).value || 0,
-                            OT_Money_WD: row.getCell(15).value || 0,
-                            OT_Hour_WK: row.getCell(16).value || 0,
-                            OT_Money_WK: row.getCell(17).value || 0,
-                            OT_Hour_HD: row.getCell(18).value || 0,
-                            OT_Money_HD: row.getCell(19).value || 0,
-                            OT_TotalSalary: row.getCell(20).value || 0,
+                            OT_Hour_WD: cellValue(14),
+                            OT_Money_WD: cellValue(15),
+                            OT_Hour_WK: cellValue(16),
+                            OT_Money_WK: cellValue(17),
+                            OT_Hour_HD: cellValue(18),
+                            OT_Money_HD: cellValue(19),
+                            OT_TotalSalary: cellValue(20),
 
-                            AllowanceMeal: row.getCell(21).value || 0,
-                            Allowance_OT_Early: row.getCell(22).value || 0,
-                            TotalAllowance: row.getCell(23).value || 0,
+                            AllowanceMeal: cellValue(21),
+                            Allowance_OT_Early: cellValue(22),
+                            TotalAllowance: cellValue(23),
 
-                            BussinessMoney: row.getCell(24).value || 0,
-                            NightShiftMoney: row.getCell(25).value || 0,
-                            CostVehicleBussiness: row.getCell(26).value || 0,
-                            Bonus: row.getCell(27).value || 0,
-                            Other: row.getCell(28).value || 0,
-                            TotalBonus: row.getCell(29).value || 0,
-                            RealSalary: row.getCell(30).value || 0,
+                            BussinessMoney: cellValue(24),
+                            NightShiftMoney: cellValue(25),
+                            CostVehicleBussiness: cellValue(26),
+                            Bonus: cellValue(27),
+                            Other: cellValue(28),
+                            TotalBonus: cellValue(29),
+                            RealSalary: cellValue(30),
 
-                            SocialInsurance: row.getCell(31).value || 0,
-                            Insurances: row.getCell(32).value || 0,
-                            UnionFees: row.getCell(33).value || 0,
-                            AdvancePayment: row.getCell(34).value || 0,
-                            DepartmentalFees: row.getCell(35).value || 0,
-                            ParkingMoney: row.getCell(36).value || 0,
-                            Punish5S: row.getCell(37).value || 0,
-                            MealUse: row.getCell(38).value || 0,
-                            OtherDeduction: row.getCell(39).value || 0,
-                            TotalDeduction: row.getCell(40).value || 0,
+                            SocialInsurance: cellValue(31),
+                            Insurances: cellValue(32),
+                            UnionFees: cellValue(33),
+                            AdvancePayment: cellValue(34),
+                            DepartmentalFees: cellValue(35),
+                            ParkingMoney: cellValue(36),
+                            Punish5S: cellValue(37),
+                            MealUse: cellValue(38),
+                            RegulationViolation: cellValue(39),
+                            OtherDeduction: cellValue(40),
+                            TotalDeduction: cellValue(41),
 
-                            // TotalDeduction: row.getCell(41).value || 0,
-                            TaxSalaryOT: row.getCell(42).value || 0,
-                            TaxSalaryMeal: row.getCell(43).value || 0,
-                            TaxSalaryPhone: row.getCell(44).value || 0,
-                            TaxPersonalDeduction: row.getCell(45).value || 0,
-                            TaxDependentsDeduction: row.getCell(46).value || 0,
-                            TotalTaxDeduction: row.getCell(47).value || 0,
-                            TaxAbleIncome: row.getCell(48).value || 0,
-                            TaxDeduction: row.getCell(49).value || 0,
+                            // Lương BHXH (10.5%): cellValue(42),
+                            TaxSalaryOT: cellValue(43),
+                            TaxSalaryMeal: cellValue(44),
+                            TaxSalaryPhone: cellValue(45),
+                            TaxPersonalDeduction: cellValue(46),
+                            TaxDependentsDeduction: cellValue(47),
+                            TotalTaxDeduction: cellValue(48),
+                            TaxAbleIncome: cellValue(49),
+                            TaxDeduction: cellValue(50),
 
-                            ActualAmountReceived: row.getCell(50).value || 0,
-                            Note: (() => {
-                                const val = row.getCell(51).value;
-                                if (val && typeof val === 'object' && (val as any).richText) {
-                                    return (val as any).richText.map((rt: any) => rt.text).join('');
-                                }
-                                return val?.toString() || '';
-                            })(),
+                            ActualAmountReceived: cellValue(51),
+                            PenaltyLateEarlyQty: cellValue(52),
+                            PenaltyLateEarlyAmount: cellValue(53),
+                            PenaltyMissingAttendanceQty: cellValue(54),
+                            PenaltyMissingAttendanceAmount: cellValue(55),
+                            PenaltyLeaveOver2DaysQty: cellValue(56),
+                            PenaltyLeaveOver2DaysAmount: cellValue(57),
+                            PenaltyTotalAmount: cellValue(58),
+                            Note: cellText(59),
                         };
 
                         data.push(rowData);
@@ -837,6 +878,15 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
                                                         bottomCalcFormatter: "money", bottomCalc: "sum"
                                                     },
                                                     {
+                                                        title: "Vi phạm quy định", field: "RegulationViolation", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        formatterParams: {
+                                                            decimal: ".",
+                                                            thousand: ",",
+                                                            precision: false
+                                                        },
+                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
+                                                    },
+                                                    {
                                                         title: "Khác (Phải trừ)", field: "OtherDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
@@ -881,15 +931,15 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
                                                         },
                                                         bottomCalcFormatter: "money", bottomCalc: "sum"
                                                     },
-                                                    {
-                                                        title: "Lương làm thêm", field: "TaxSalaryMeal", hozAlign: "right", headerHozAlign: "center", formatter: "money",
-                                                        formatterParams: {
-                                                            decimal: ".",
-                                                            thousand: ",",
-                                                            precision: false
-                                                        },
-                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
-                                                    },
+                                                    // {
+                                                    //     title: "Lương làm thêm", field: "TaxSalaryMeal", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                    //     formatterParams: {
+                                                    //         decimal: ".",
+                                                    //         thousand: ",",
+                                                    //         precision: false
+                                                    //     },
+                                                    //     bottomCalcFormatter: "money", bottomCalc: "sum"
+                                                    // },
                                                     {
                                                         title: "PC cơm ca", field: "TaxSalaryMeal", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
@@ -965,6 +1015,37 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
                                         precision: false
                                     },
                                     bottomCalcFormatter: "money", bottomCalc: "sum"
+                                },
+                                {
+                                    title: "Tổng hợp phạt (Trừ vào Thưởng quý)",
+                                    headerHozAlign: "center",
+                                    columns: [
+                                        {
+                                            title: "Đi muộn về sớm",
+                                            headerHozAlign: "center",
+                                            columns: [
+                                                moneyCol("Số lượng", "PenaltyLateEarlyQty"),
+                                                moneyCol("Thành tiền", "PenaltyLateEarlyAmount"),
+                                            ]
+                                        },
+                                        {
+                                            title: "Quên chấm công",
+                                            headerHozAlign: "center",
+                                            columns: [
+                                                moneyCol("Số lượng", "PenaltyMissingAttendanceQty"),
+                                                moneyCol("Thành tiền", "PenaltyMissingAttendanceAmount"),
+                                            ]
+                                        },
+                                        {
+                                            title: "Nghỉ > 2 ngày/tháng",
+                                            headerHozAlign: "center",
+                                            columns: [
+                                                moneyCol("Số lượng", "PenaltyLeaveOver2DaysQty"),
+                                                moneyCol("Thành tiền", "PenaltyLeaveOver2DaysAmount"),
+                                            ]
+                                        },
+                                        moneyCol("Tổng", "PenaltyTotalAmount"),
+                                    ]
                                 },
                                 { title: "Ghi chú", field: "Note", hozAlign: "right", headerHozAlign: "center" },
                             ]

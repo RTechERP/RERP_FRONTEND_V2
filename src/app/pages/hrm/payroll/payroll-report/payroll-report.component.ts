@@ -875,6 +875,15 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                                         bottomCalcFormatter: "money", bottomCalc: "sum"
                                                     },
                                                     {
+                                                        title: "Vi phạm quy định", field: "RegulationViolation", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                        formatterParams: {
+                                                            decimal: ".",
+                                                            thousand: ",",
+                                                            precision: false
+                                                        },
+                                                        bottomCalcFormatter: "money", bottomCalc: "sum"
+                                                    },
+                                                    {
                                                         title: "Khác", field: "OtherDeduction", hozAlign: "right", headerHozAlign: "center", formatter: "money",
                                                         formatterParams: {
                                                             decimal: ".",
@@ -997,6 +1006,93 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                                         precision: false
                                     },
                                     bottomCalcFormatter: "money", bottomCalc: "sum"
+                                },
+                                {
+                                    title: "Tổng hợp phạt (Trừ vào Thưởng quý)",
+                                    headerHozAlign: "center",
+                                    columns: [
+                                        {
+                                            title: "Đi muộn về sớm",
+                                            headerHozAlign: "center",
+                                            columns: [
+                                                {
+                                                    title: "Số lượng", field: "PenaltyLateEarlyQty", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                    formatterParams: {
+                                                        decimal: ".",
+                                                        thousand: ",",
+                                                        precision: false
+                                                    },
+                                                    bottomCalcFormatter: "money", bottomCalc: "sum"
+                                                },
+                                                {
+                                                    title: "Thành tiền", field: "PenaltyLateEarlyAmount", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                    formatterParams: {
+                                                        decimal: ".",
+                                                        thousand: ",",
+                                                        precision: false
+                                                    },
+                                                    bottomCalcFormatter: "money", bottomCalc: "sum"
+                                                },
+                                            ]
+                                        },
+                                        {
+                                            title: "Quên chấm công",
+                                            headerHozAlign: "center",
+                                            columns: [
+                                                {
+                                                    title: "Số lượng", field: "PenaltyMissingAttendanceQty", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                    formatterParams: {
+                                                        decimal: ".",
+                                                        thousand: ",",
+                                                        precision: false
+                                                    },
+                                                    bottomCalcFormatter: "money", bottomCalc: "sum"
+                                                },
+                                                {
+                                                    title: "Thành tiền", field: "PenaltyMissingAttendanceAmount", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                    formatterParams: {
+                                                        decimal: ".",
+                                                        thousand: ",",
+                                                        precision: false
+                                                    },
+                                                    bottomCalcFormatter: "money", bottomCalc: "sum"
+                                                },
+                                            ]
+                                        },
+                                        {
+                                            title: "Nghỉ > 2 ngày/tháng",
+                                            headerHozAlign: "center",
+                                            columns: [
+                                                {
+                                                    title: "Số lượng", field: "PenaltyLeaveOver2DaysQty", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                    formatterParams: {
+                                                        decimal: ".",
+                                                        thousand: ",",
+                                                        precision: false
+                                                    },
+                                                    bottomCalcFormatter: "money", bottomCalc: "sum"
+                                                },
+                                                {
+                                                    title: "Thành tiền", field: "PenaltyLeaveOver2DaysAmount", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                                    formatterParams: {
+                                                        decimal: ".",
+                                                        thousand: ",",
+                                                        precision: false
+                                                    },
+                                                    bottomCalcFormatter: "money", bottomCalc: "sum"
+                                                },
+                                            ]
+                                        },
+                                        {
+                                            title: "Tổng", field: "PenaltyTotalAmount", hozAlign: "right", headerHozAlign: "center", formatter: "money",
+                                            formatterParams: {
+                                                decimal: ".",
+                                                thousand: ",",
+                                                precision: false
+                                            },
+                                            bottomCalcFormatter: "money", bottomCalc: "sum"
+                                        },
+                                    ]
                                 },
                                 { title: "GHI CHÚ", field: "Note", hozAlign: "right", headerHozAlign: "center" },
                             ]

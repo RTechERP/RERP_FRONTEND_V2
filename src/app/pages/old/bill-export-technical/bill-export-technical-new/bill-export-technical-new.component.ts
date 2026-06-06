@@ -395,7 +395,6 @@ export class BillExportTechnicalNewComponent implements OnInit, AfterViewInit, O
                 container: '.grid-container',
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
-                applyResizeToContainer: true,
                 // minHeight: 500,
             },
             gridWidth: '100%',

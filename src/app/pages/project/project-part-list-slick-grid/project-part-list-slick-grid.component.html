@@ -267,6 +267,10 @@
                                 (click)="toggleColorFilter('productSale')">
                                 Có mã trên PM
                             </button>
+                            <button class="fs-12 btn-filter-expired" nz-button nzType="text" nzSize="small"
+                                [ngClass]="{'btn-filter-active': filterExpired}" (click)="toggleColorFilter('expired')">
+                                Hết hiệu lực báo giá
+                            </button>
                         </div>
                     </div>
 
@@ -547,32 +551,44 @@
 
 <!-- Template cho modal yêu cầu báo giá -->
 <ng-template #priceRequestModalContent>
-    <div style="padding: 20px;">
-        <p class="mb-3">
-            <strong>Chọn deadline báo giá cho vật tư đã chọn</strong>
-        </p>
-        <div class="mb-3">
-            <label class="d-block mb-2">
-                <span class="text-danger">*</span> Deadline báo giá:
-            </label>
-            <nz-date-picker [(ngModel)]="deadlinePriceRequest" nzFormat="dd/MM/yyyy" nzPlaceHolder="Chọn ngày deadline"
-                [nzDisabledDate]="disabledDate" [nzShowToday]="false" style="width: 100%;"></nz-date-picker>
+    <div style="padding: 16px;">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="mb-3">
+                    <label class="d-block mb-2">
+                        <span class="text-danger">*</span> Deadline báo giá:
+                    </label>
+                    <nz-date-picker [(ngModel)]="deadlinePriceRequest" nzFormat="dd/MM/yyyy"
+                        nzPlaceHolder="Chọn ngày deadline" [nzDisabledDate]="disabledDate" [nzShowToday]="false"
+                        style="width: 250px;"></nz-date-picker>
+                </div>
+                <div class="text-muted mb-2" style="font-size: 11px;">
+                    <i nz-icon nzType="info-circle" nzTheme="outline"></i>
+                    <span class="ms-1">
+                        <strong>Lưu ý:</strong><br />
+                        - Nếu trước 15h: deadline tối thiểu là ngày mai<br />
+                        - Nếu sau 15h: deadline tối thiểu là 2 ngày tới<br />
+                        - Nếu chọn Thứ 7 hoặc Chủ nhật, deadline sẽ tự động chuyển thành Thứ 2 tuần sau
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="mb-3">
+                    <label class="d-block mb-2">
+                        Ghi chú (nếu có):
+                    </label>
+                    <textarea nz-input [(ngModel)]="noteData.content" placeholder="Nhập ghi chú tại đây"
+                        [nzAutosize]="{ minRows: 5, maxRows: 6 }" style="width: 100%;"></textarea>
+                </div>
+            </div>
         </div>
-        <div class="text-muted" style="font-size: 12px;">
-            <i nz-icon nzType="info-circle" nzTheme="outline"></i>
-            <span class="ms-1">
-                <strong>Lưu ý:</strong><br />
-                - Nếu trước 15h: deadline tối thiểu là ngày mai<br />
-                - Nếu sau 15h: deadline tối thiểu là 2 ngày tới<br />
-                - Nếu chọn Thứ 7 hoặc Chủ nhật, deadline sẽ tự động chuyển thành Thứ 2 tuần sau
-            </span>
-        </div>
-        <div class="mb-3 mt-3">
-            <label class="d-block mb-2">
-                Ghi chú (nếu có):
-            </label>
-            <textarea nz-input [(ngModel)]="noteData.content" placeholder="Nhập ghi chú tại đây"
-                [nzAutosize]="{ minRows: 3, maxRows: 6 }"></textarea>
+        <p class="mb-2 mt-2" style="font-weight: 600;">Danh sách vật tư đã chọn:</p>
+        <div class="card-body p-0 flex-grow-1 price-request-table-wrapper">
+            <angular-slickgrid *ngIf="priceRequestColumns && priceRequestGridOptions" [gridId]="priceRequestGridId"
+                [columns]="priceRequestColumns" [options]="priceRequestGridOptions" [dataset]="priceRequestItems"
+                (onAngularGridCreated)="onPriceGridCreated($event.detail)"
+                (onCellChange)="onPriceRequestCellChange($event.detail.eventData, $event.detail.args)">
+            </angular-slickgrid>
         </div>
     </div>
 </ng-template>

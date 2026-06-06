@@ -180,7 +180,8 @@
                     <div class="input-group">
                         <div class="input-group-prepend">
                             <div class="input-group-text py-0 px-1 h-auto">
-                                <input type="checkbox" formControlName="IsBill" id="isbill_old" style="width:18px;height:18px;cursor:pointer;" />
+                                <input type="checkbox" formControlName="IsBill" id="isbill_old"
+                                    style="width:18px;height:18px;cursor:pointer;" />
                                 <label class="m-0 ms-1" for="isbill_old" style="font-size:12px;">Có hóa đơn?</label>
                             </div>
                         </div>
@@ -199,7 +200,8 @@
             <div class="row m-0" *ngIf="showIsBillCheckbox && validateForm.get('PaymentOrderTypeID')?.value != 22">
                 <div class="form-group col-md-12 m-0 p-1">
                     <div class="d-flex align-items-center">
-                        <input type="checkbox" formControlName="IsBill" id="isbill_type" style="width:18px;height:18px;cursor:pointer;" />
+                        <input type="checkbox" formControlName="IsBill" id="isbill_type"
+                            style="width:18px;height:18px;cursor:pointer;" />
                         <label class="m-0 ms-1" for="isbill_type" style="font-size:12px;">Có hóa đơn?</label>
                     </div>
                 </div>
@@ -264,7 +266,7 @@
                     <div class="d-flex flex-column gap-1">
                         <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small"
                             nzPlaceHolder="--Chọn ngân hàng--" formControlName="BankListID">
-                            @for (item of bankList; track item) {
+                            @for (item of filteredBankList; track item) {
                             <nz-option [nzLabel]="item.BankName" [nzValue]="item.ID"></nz-option>
                             }
                         </nz-select>
@@ -372,15 +374,11 @@
                         </td>
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.Quantity | number:'1.2-2'"
-                                appCurrencyFormatRealtime
-                                (blur)="onQuantityBlur(row, $event)"
-                                type="text" />
+                                appCurrencyFormatRealtime (blur)="onQuantityBlur(row, $event)" type="text" />
                         </td>
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.UnitPrice | number:'1.2-2'"
-                                appCurrencyFormatRealtime
-                                (blur)="onUnitPriceBlur(row, $event)"
-                                type="text" />
+                                appCurrencyFormatRealtime (blur)="onUnitPriceBlur(row, $event)" type="text" />
                         </td>
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.TotalMoney | number:'1.2-2'"
@@ -452,13 +450,9 @@
                         <td class="fw-bold">Số tiền tạm ứng</td>
                         <td><textarea class="tbl-input" [(ngModel)]="t2RowI.Unit" rows="2"></textarea></td>
                         <td><input class="tbl-input tbl-num" [value]="t2RowI.Quantity | number:'1.2-2'"
-                                appCurrencyFormatRealtime
-                                (blur)="onQuantityBlur(t2RowI, $event)"
-                                type="text" /></td>
+                                appCurrencyFormatRealtime (blur)="onQuantityBlur(t2RowI, $event)" type="text" /></td>
                         <td><input class="tbl-input tbl-num" [value]="t2RowI.UnitPrice | number:'1.2-2'"
-                                appCurrencyFormatRealtime
-                                (blur)="onUnitPriceBlur(t2RowI, $event)"
-                                type="text" /></td>
+                                appCurrencyFormatRealtime (blur)="onUnitPriceBlur(t2RowI, $event)" type="text" /></td>
                         <td>
                             <input class="tbl-input tbl-num fw-bold" [value]="t2RowI.TotalMoney | number:'1.2-2'"
                                 appCurrencyFormatRealtime
@@ -502,15 +496,11 @@
                         </td>
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.Quantity | number:'1.2-2'"
-                                appCurrencyFormatRealtime
-                                (blur)="onQuantityBlur(row, $event)"
-                                type="text" />
+                                appCurrencyFormatRealtime (blur)="onQuantityBlur(row, $event)" type="text" />
                         </td>
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.UnitPrice | number:'1.2-2'"
-                                appCurrencyFormatRealtime
-                                (blur)="onUnitPriceBlur(row, $event)"
-                                type="text" />
+                                appCurrencyFormatRealtime (blur)="onUnitPriceBlur(row, $event)" type="text" />
                         </td>
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.TotalMoney | number:'1.2-2'"

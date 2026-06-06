@@ -6,7 +6,7 @@
   <div class="modal-body">
     <div class="row g-3">
       <div class="col-md-3">
-        <label class="form-label mb-2">Người yêu cầu <span class="text-danger">(*)</span></label>
+        <label class="form-label mb-2">Người yêu cầu<span class="text-danger">(*)</span></label>
         <nz-select class="w-100" nzPlaceHolder="Chọn người yêu cầu" [(ngModel)]="selectedEmployee"
           [nzDisabled]="isEmployeeDisabled" (ngModelChange)="onEmployeeChange($event)" nzAllowClear nzShowSearch>
           <nz-option *ngFor="let item of dataEmployee" [nzValue]="item.ID"
@@ -23,7 +23,8 @@
       </div>
       <div class="col-md-3">
         <label class="form-label mb-2">Ngày yêu cầu</label>
-        <nz-date-picker [(ngModel)]="dateRequest" class="w-100" nzFormat="dd/MM/yyyy" nzDisabled="true"></nz-date-picker>
+        <nz-date-picker [(ngModel)]="dateRequest" class="w-100" nzFormat="dd/MM/yyyy"
+          nzDisabled="true"></nz-date-picker>
       </div>
       <div class="col-md-3">
         <label class="form-label mb-2">Ngày yêu cầu giao</label>
@@ -41,6 +42,6 @@
   </div>
   <div class="modal-footer">
     <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
-    <button nz-button nzType="primary" nzSize="default" (click)="saveData()">Lưu</button>
+    <button nz-button nzType="primary" nzSize="default" (click)="saveData()" [nzLoading]="isLoading">Lưu</button>
   </div>
 </div>

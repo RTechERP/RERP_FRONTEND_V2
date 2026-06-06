@@ -899,12 +899,16 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit, On
           label: 'Báo cáo',
           type: 'primary',
           onClick: async () => {
-            // 1. Thực hiện copy ngay lập tức (để ăn theo User Gesture của nút click)
+            // 1. Copy ngay tại User Gesture để tránh bị trình duyệt chặn
+            //    (copy phải xảy ra trong cùng call stack với sự kiện click)
             const copyStatus = await this.copyToClipboard(summaryContent);
 
-            // 2. Gọi hàm lưu và truyền kết quả copy vào
-            this.submitDailyReport(summaryContent, copyStatus);
+            // 2. Đóng modal preview
             modal.destroy();
+
+            // 3. Gọi API lưu — form detail CHƯA đóng
+            //    Form detail chỉ đóng sau khi API trả về thành công (trong submitDailyReport)
+            this.submitDailyReport(summaryContent, copyStatus);
           }
         }
       ],
@@ -1407,7 +1411,7 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit, On
   }
 
   // Submit báo cáo (gọi API)
-  submitDailyReport(summaryContent: string, alreadyCopiedStatus: boolean = false): void {
+  submitDailyReport(summaryContent: string, alreadyCopiedStatus?: boolean): void {
     if (this.saving) {
       return;
     }
@@ -1434,36 +1438,48 @@ export class DailyReportTechDetailComponent implements OnInit, AfterViewInit, On
       next: (response: any) => {
         this.saving = false;
         if (response && response.status === 1) {
+          // Kiểm tra thêm: BE trả về danh sách ID đã lưu — tất cả phải > 0
+          // Đây là bằng chứng thực sự rằng dữ liệu đã được insert/update vào DB
+          const savedIds: number[] = response.data || [];
+          const allSaved = savedIds.length > 0 && savedIds.every((id: number) => id > 0);
+
+          if (!allSaved) {
+            // status=1 nhưng không có ID hợp lệ → lưu bị lỗi ngầm
+            this.notification.error('Thông báo', 'Lưu báo cáo không thành công! Dữ liệu chưa được ghi vào hệ thống. Vui lòng thử lại.');
+            return;
+          }
+
+          // Lưu thành công & có ID xác nhận → thông báo chính xác
           this.notification.success('Thông báo', response.message || 'Báo cáo đã được lưu thành công!');
 
-          // Hiển thị thông báo đã copy (nếu việc copy ở bước click trước đó thành công)
-          if (alreadyCopiedStatus) {
+          if (alreadyCopiedStatus === true) {
+            // Copy đã thành công tại thời điểm click → thông báo đúng sự thật
             this.notification.success('Thông báo', 'Đã copy nội dung báo cáo vào clipboard!');
-          } else if (summaryContent) {
-            // Nếu bước click chưa kịp copy hoặc copy fail, thử lại lần cuối (dành cho Desktop)
-            this.copyToClipboard(summaryContent).then(copySuccess => {
-              if (copySuccess) {
-                this.notification.success('Thông báo', 'Đã copy nội dung báo cáo vào clipboard!');
-              } else {
-                this.notification.warning('Thông báo', 'Không thể copy vào clipboard. Vui lòng copy thủ công.');
-              }
-            });
+          } else if (alreadyCopiedStatus === false) {
+            // Copy thất bại tại thời điểm click (trình duyệt chặn hoặc lỗi)
+            // → thông báo trung thực để người dùng biết cần copy thủ công
+            this.notification.warning('Thông báo', 'Không thể copy tự động vào clipboard. Vui lòng copy thủ công từ nội dung xem trước.');
           }
+          // Nếu alreadyCopiedStatus === undefined (không truyền vào): không thông báo về copy
 
           // Gửi email sau khi lưu thành công
           this.sendEmailAfterSave();
 
+          // Đóng form detail chỉ sau khi xác nhận lưu thành công với ID hợp lệ
           this.close(true); // Trả về true để reload data
         } else {
-          this.notification.error('Thông báo', response?.message || 'Lưu báo cáo thất bại!');
+          // Lưu thất bại → KHÔNG đóng form, KHÔNG thông báo về copy
+          this.notification.error('Thông báo', response?.message || 'Lưu báo cáo thất bại! Vui lòng thử lại.');
         }
       },
       error: (error: any) => {
+        // Lỗi mạng / server → KHÔNG đóng form, KHÔNG thông báo về copy
         this.saving = false;
         const errorMessage = error?.error?.message || error?.message || 'Có lỗi xảy ra khi lưu báo cáo!';
         this.notification.error('Thông báo', errorMessage);
       }
     });
+
   }
 
   /**

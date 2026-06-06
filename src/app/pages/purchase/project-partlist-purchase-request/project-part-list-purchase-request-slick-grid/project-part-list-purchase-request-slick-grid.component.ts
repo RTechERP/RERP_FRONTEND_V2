@@ -69,6 +69,7 @@ import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { ActivatedRoute } from '@angular/router';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { ProjectPartlistRequestLogActivityComponent } from '../../project-partlist-purchase-request-new/project-partlist-request-log-activity/project-partlist-request-log-activity.component';
 
 interface Tab {
   id: number;
@@ -541,6 +542,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             icon: 'fa-solid fa-download fa-lg text-primary',
             command: () => this.onDownloadFile(this.activeTabIndex),
           },
+
           {
             label: 'Xuất Excel',
             icon: 'fa-solid fa-file-excel fa-lg text-success',
@@ -559,6 +561,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           }
         );
       }
+
+      allItems.push(
+        {
+          label: 'Lịch sử thao tác',
+          icon: 'fa-solid fa-history fa-lg text-primary',
+          command: () => this.onActivityLog(this.activeTabIndex)
+        }
+      );
 
       // Lọc các items có visible = false
       const visibleItems = allItems.filter((item) => item.visible !== false);
@@ -4064,7 +4074,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         });
       }
     });
-    console.log("result",result);
+    console.log("result", result);
     return result;
   }
   private normalizeRowData(row: any): any {
@@ -6276,6 +6286,39 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     }
 
     return index;
+  }
+  //#endregion
+
+  //#region Lịch sử thao tác 
+  onActivityLog(tabIndex: number) {
+    if (this.changedRows.length > 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`
+      );
+      return;
+    }
+
+    const typeId = this.getTypeIdFromTabIndex(tabIndex);
+    if (!typeId) return;
+
+    const selected = this.getSelectedGridData(typeId);
+
+    if (selected.length != 1) {
+      this.notify.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn 1 dòng cần xem lịch sử!`);
+      return;
+    }
+
+    const row = selected[0];
+    const modalRef = this.modalService.open(ProjectPartlistRequestLogActivityComponent, {
+      centered: false,
+      backdrop: 'static',
+      keyboard: false,
+      size: 'xl'
+    });
+    modalRef.componentInstance.requestId = row.ID;
+    modalRef.componentInstance.productCode = row.ProductCode;
+    modalRef.result.catch(() => { });
   }
   //#endregion
 }

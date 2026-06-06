@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
@@ -23,6 +23,8 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { firstValueFrom } from 'rxjs';
 import { TestExamService } from './test-exam.service';
 import { AppUserService } from '../../../services/app-user.service';
+import { environment } from '../../../../environments/environment';
+
 
 interface TestAnswer {
   ID: number;
@@ -79,8 +81,11 @@ export class TestExamComponent implements OnInit, OnDestroy {
   rawItems: any[] = [];
   currentIndex = 0;
 
-  imageBaseUrl = 'http://113.190.234.64:8083/api/Upload/Images/Courses/';
+  imageBaseUrl = environment.hostExam
+    ? environment.hostExam + 'Upload/Images/Courses/'
+    : 'http://113.190.234.64:8083/api/Upload/Images/Courses/';
   previewImage: string | null = null;
+
   private isClosingPreview = false;
 
   isSidebarVisible = true;
@@ -112,15 +117,21 @@ export class TestExamComponent implements OnInit, OnDestroy {
   constructor(
     private notification: NzNotificationService,
     private route: ActivatedRoute,
+    private router: Router,
     private testExamService: TestExamService,
     private appUserService: AppUserService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     (window as any).enableExamDebug = () => this.enableDebug();
     (window as any).disableExamDebug = () => this.disableDebug();
 
     this.route.queryParams.subscribe((params) => {
+      // Chỉ xử lý khi URL hiện tại thực sự là test-exam (tránh ảnh hưởng khi chuyển tab/component khác)
+      if (!this.router.url.includes('/test-exam')) {
+        return;
+      }
+
       this.courseId = +params['courseId'] || 0;
       this.courseExamID = +params['courseExamID'] || 0;
       this.courseExamResultID = +params['courseExamResultID'] || 0;
@@ -128,6 +139,17 @@ export class TestExamComponent implements OnInit, OnDestroy {
       this.examType = +params['examType'] || 1;
       this.selectedExamType = this.examType;
       this.testTimeMinutes = +params['testTime'] || 30;
+
+      if (this.courseExamResultID > 0) {
+        this.loadQuestions();
+      } else if (params.hasOwnProperty('courseExamResultID')) {
+        // Chỉ hiện thông báo lỗi nếu param này tồn tại trong URL nhưng giá trị không hợp lệ
+        this.notification.error('Lỗi', 'Không thể tải danh sách câu hỏi.');
+        this.isLoading = false;
+      } else {
+        // Nếu không có courseExamResultID (bắt đầu thi mới), chỉ reset isLoading về false
+        this.isLoading = false;
+      }
     });
   }
 
@@ -140,9 +162,10 @@ export class TestExamComponent implements OnInit, OnDestroy {
 
   loadQuestions(): void {
     if (this.courseExamResultID > 0) {
-      this.loadQuestionsLegacy();
+      this.loadQuestionsNew();
     }
   }
+
 
   loadQuestionsLegacy(): void {
     this.isLoading = true;
@@ -317,6 +340,24 @@ export class TestExamComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // 1. Yêu cầu toàn màn hình TRƯỚC khi gọi API khởi tạo bài thi
+    try {
+      const el = this.examContainer.nativeElement;
+      if (el.requestFullscreen) {
+        await el.requestFullscreen();
+      } else if (el.mozRequestFullScreen) {
+        await el.mozRequestFullScreen();
+      } else if (el.webkitRequestFullscreen) {
+        await el.webkitRequestFullscreen();
+      }
+    } catch (error) {
+      this.notification.error(
+        'Lỗi',
+        'Cần bật chế độ toàn màn hình để làm bài thi.',
+      );
+      return; // Dừng luôn, không gọi API khởi tạo bài thi
+    }
+
     this.isLoading = true;
 
     const initData = {
@@ -327,6 +368,7 @@ export class TestExamComponent implements OnInit, OnDestroy {
       LoginName: loginName,
     };
 
+    // 2. Nếu đã lên toàn màn hình thành công, mới gọi API tạo đề thi
     this.testExamService.initExamNew(initData).subscribe({
       next: async (res) => {
         const status = res.status !== undefined ? res.status : res.Status;
@@ -337,6 +379,10 @@ export class TestExamComponent implements OnInit, OnDestroy {
             'Thông báo',
             res.message || res.Message || 'Lỗi khởi tạo bài thi.',
           );
+          // Hủy chế độ toàn màn hình nếu khởi tạo thất bại
+          if (document.fullscreenElement) {
+            await document.exitFullscreen();
+          }
           this.isLoading = false;
           return;
         }
@@ -347,41 +393,24 @@ export class TestExamComponent implements OnInit, OnDestroy {
         this.testTimeMinutes = duration;
         this.remainingSeconds = duration * 60;
 
-        const questionsLoaded = await this.loadQuestionsForStartedExam();
-        if (!questionsLoaded) {
-          this.isLoading = false;
-          return;
-        }
-
-        try {
-          const el = this.examContainer.nativeElement;
-          if (el.requestFullscreen) {
-            await el.requestFullscreen();
-          } else if (el.mozRequestFullScreen) {
-            await el.mozRequestFullScreen();
-          } else if (el.webkitRequestFullscreen) {
-            await el.webkitRequestFullscreen();
-          }
-
-          this.examStarted = true;
-          this.statusText = 'Đang giám sát...';
-          this.startMonitoring();
-          this.startTimer();
-          this.notification.success(
-            'Thông báo',
-            res.message || 'Bắt đầu bài thi.',
-          );
-        } catch (error) {
-          this.notification.error(
-            'Lỗi',
-            'Cần bật chế độ toàn màn hình để làm bài thi.',
-          );
-        }
-
+        // Bắt đầu thi và theo dõi giám sát
+        this.examStarted = true;
+        this.statusText = 'Đang giám sát...';
+        this.loadQuestionsNew();
+        this.startMonitoring();
+        this.startTimer();
+        this.notification.success(
+          'Thông báo',
+          res.message || 'Bắt đầu bài thi.',
+        );
         this.isLoading = false;
       },
-      error: () => {
+      error: async () => {
         this.notification.error('Lỗi', 'Không thể kết nối với máy chủ.');
+        // Hủy chế độ toàn màn hình nếu lỗi kết nối
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+        }
         this.isLoading = false;
       },
     });
@@ -403,6 +432,9 @@ export class TestExamComponent implements OnInit, OnDestroy {
     this.timerInterval = setInterval(() => {
       if (this.remainingSeconds > 0) {
         this.remainingSeconds--;
+        if (this.timerDangerLevel === 'danger') {
+          this.playTikTakSound();
+        }
       } else {
         this.stopTimer();
         this.autoSubmitExam();
@@ -414,6 +446,41 @@ export class TestExamComponent implements OnInit, OnDestroy {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
+    }
+  }
+
+  get timerDangerLevel(): 'danger' | 'warning' | 'normal' {
+    if (this.remainingSeconds <= 300) return 'danger';    // Dưới 5 phút
+    if (this.remainingSeconds <= 600) return 'warning';   // Dưới 10 phút
+    return 'normal';
+  }
+
+  private playTikTakSound(): void {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      // Tần số thay đổi giữa 800Hz và 600Hz để mô phỏng tiếng "tik" và "tak"
+      const freq = this.remainingSeconds % 2 === 0 ? 800 : 600;
+      oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      oscillator.type = 'sine';
+
+      gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.15);
+
+      // Giải phóng bộ nhớ giải quyết rò rỉ bộ nhớ của AudioContext trên một số trình duyệt
+      setTimeout(() => {
+        if (audioCtx.state !== 'closed') audioCtx.close();
+      }, 200);
+    } catch (e) {
+      console.warn('Could not play timer sound:', e);
     }
   }
 
@@ -440,6 +507,32 @@ export class TestExamComponent implements OnInit, OnDestroy {
   handleKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Escape' && this.previewImage) {
       this.onClosePreview();
+      return;
+    }
+
+    // Phím tắt điều hướng câu hỏi khi bài thi đang hoạt động
+    if (this.examStarted && !this.examSubmitted && !this.showSubmitModal) {
+      if (event.key === 'ArrowLeft') {
+        if (this.currentIndex > 0) {
+          this.onPrevious();
+          event.preventDefault();
+        }
+      } else if (event.key === 'ArrowRight') {
+        if (this.currentIndex < this.questions.length - 1) {
+          this.onNext();
+          event.preventDefault();
+        }
+      } else if (event.key === 'Enter') {
+        // Tránh tự động next câu hỏi khi người dùng đang gõ vào input, textarea hoặc bấm button
+        const target = event.target as HTMLElement;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON')) {
+          return;
+        }
+        if (this.currentIndex < this.questions.length - 1) {
+          this.onNext();
+          event.preventDefault();
+        }
+      }
     }
   }
 

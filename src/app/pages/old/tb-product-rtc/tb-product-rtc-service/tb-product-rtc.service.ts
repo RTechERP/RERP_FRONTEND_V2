@@ -9,7 +9,7 @@ import { environment } from '../../../../../environments/environment';
 export class TbProductRtcService {
   private url = `${environment.host}api/ProductRTC/`;
   private urlFirm = `${environment.host}api/Firm`;
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getProductRTC(request: any) {
     return this.http.post<any>(`${this.url + `get-productRTC`}`, request);
@@ -72,5 +72,19 @@ export class TbProductRtcService {
       .set('id', id.toString())
       .set('locationID', locationID.toString());
     return this.http.post<any>(`${this.url}update-location`, null, { params });
+  }
+
+  getdataProductGroupNew(
+    warehouseId: number,
+    isDeleted: boolean,
+    isVisible: boolean
+  ): Observable<any> {
+    return this.http.get<any>(
+      `${this.url}product-group-rtc-new?warehouseId=${warehouseId}&isDeleted=${isDeleted}&isVisible=${isVisible}`
+    );
+  }
+
+  visibleProductGroup(data: any) {
+    return this.http.post<any>(`${this.url}visible-product-rtc-group`, data);
   }
 }

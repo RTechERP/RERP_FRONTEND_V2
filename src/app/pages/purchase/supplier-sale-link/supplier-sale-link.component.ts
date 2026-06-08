@@ -84,7 +84,7 @@ export class SupplierSaleLinkComponent implements OnInit, OnDestroy {
     { field: 'MatHang', header: 'Mặt hàng', width: '250px', filterType: 'text' },
     { field: 'Website', header: 'Website', width: '200px', filterType: 'text', type: 'link' },
     { field: 'IsAgencyCertified', header: 'Chứng nhận ĐL', width: '50px', filterType: 'multiselect', type: 'boolean' },
-    { field: 'AgencyTime', header: 'Thời điểm làm ĐL', width: '180px', filterType: 'text' },
+    { field: 'AgencyTime', header: 'Ngày đại lý', width: '180px', filterType: 'text' },
     { field: 'Note', header: 'Ghi chú', width: '300px', filterType: 'text' }
   ];
 

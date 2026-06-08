@@ -378,11 +378,12 @@
                         </td>
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.UnitPrice | number:'1.2-2'"
-                                appCurrencyFormatRealtime (blur)="onUnitPriceBlur(row, $event)" type="text" />
+                                appCurrencyFormatRealtime [allowNegative]="true" (blur)="onUnitPriceBlur(row, $event)"
+                                type="text" />
                         </td>
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.TotalMoney | number:'1.2-2'"
-                                appCurrencyFormatRealtime
+                                appCurrencyFormatRealtime [allowNegative]="true"
                                 (blur)="row.TotalMoney = parseNum($any($event.target).value); calcTotalPayment(row)"
                                 type="text" />
                         </td>
@@ -396,7 +397,7 @@
                         <td *ngIf="showIsBillCheckbox">
                             <input class="tbl-input tbl-num"
                                 [value]="row.TotalMoneyWithInvoice != null ? (row.TotalMoneyWithInvoice | number:'1.2-2') : ''"
-                                appCurrencyFormatRealtime
+                                appCurrencyFormatRealtime [allowNegative]="true"
                                 (blur)="row.TotalMoneyWithInvoice = ($any($event.target).value.trim() === '' ? null : parseNum($any($event.target).value))"
                                 type="text" />
                         </td>
@@ -452,10 +453,11 @@
                         <td><input class="tbl-input tbl-num" [value]="t2RowI.Quantity | number:'1.2-2'"
                                 appCurrencyFormatRealtime (blur)="onQuantityBlur(t2RowI, $event)" type="text" /></td>
                         <td><input class="tbl-input tbl-num" [value]="t2RowI.UnitPrice | number:'1.2-2'"
-                                appCurrencyFormatRealtime (blur)="onUnitPriceBlur(t2RowI, $event)" type="text" /></td>
+                                appCurrencyFormatRealtime [allowNegative]="true"
+                                (blur)="onUnitPriceBlur(t2RowI, $event)" type="text" /></td>
                         <td>
                             <input class="tbl-input tbl-num fw-bold" [value]="t2RowI.TotalMoney | number:'1.2-2'"
-                                appCurrencyFormatRealtime
+                                appCurrencyFormatRealtime [allowNegative]="true"
                                 (blur)="t2RowI.TotalMoney = parseNum($any($event.target).value)" type="text" />
                         </td>
                         <td></td>
@@ -500,11 +502,12 @@
                         </td>
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.UnitPrice | number:'1.2-2'"
-                                appCurrencyFormatRealtime (blur)="onUnitPriceBlur(row, $event)" type="text" />
+                                appCurrencyFormatRealtime [allowNegative]="true" (blur)="onUnitPriceBlur(row, $event)"
+                                type="text" />
                         </td>
                         <td>
                             <input class="tbl-input tbl-num" [value]="row.TotalMoney | number:'1.2-2'"
-                                appCurrencyFormatRealtime
+                                appCurrencyFormatRealtime [allowNegative]="true"
                                 (blur)="row.TotalMoney = parseNum($any($event.target).value); calcTotalPayment(row)"
                                 type="text" />
                         </td>
@@ -518,7 +521,7 @@
                         <td *ngIf="showIsBillCheckbox">
                             <input class="tbl-input tbl-num"
                                 [value]="row.TotalMoneyWithInvoice != null ? (row.TotalMoneyWithInvoice | number:'1.2-2') : ''"
-                                appCurrencyFormatRealtime
+                                appCurrencyFormatRealtime [allowNegative]="true"
                                 (blur)="row.TotalMoneyWithInvoice = ($any($event.target).value.trim() === '' ? null : parseNum($any($event.target).value))"
                                 type="text" />
                         </td>

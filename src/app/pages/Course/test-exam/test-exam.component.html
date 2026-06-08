@@ -1,11 +1,7 @@
 <div class="test-exam-container" #examContainer>
   <!-- Loading State -->
   <div class="loading-overlay" *ngIf="isLoading">
-    <nz-spin
-      nzSimple
-      nzSize="large"
-      nzTip="Đang tải dữ liệu bài thi..."
-    ></nz-spin>
+    <nz-spin nzSimple nzSize="large" nzTip="Đang tải dữ liệu bài thi..."></nz-spin>
   </div>
 
   <!-- Start Screen -->
@@ -13,66 +9,59 @@
     <nz-card nzTitle="Thông tin Bài thi trực tuyến" class="info-card">
       <div class="info-content">
         <h1 class="info-title">Hướng dẫn làm bài thi</h1>
-        <p>Bắt đầu bài thi này, bạn cần tuân thủ các quy định sau:</p>
-        <ul class="info-list">
-          <li>
-            <strong>1:</strong> Bài thi yêu cầu chế độ toàn màn hình xuyên suốt
-            quá trình làm bài.
-          </li>
-          <li>
-            <strong>2:</strong> Bất kỳ hành động chuyển tab, thu nhỏ hoặc chuyển
-            đổi sang cửa sổ khác sẽ bị coi là gian lận.
-          </li>
-          <li>
-            <strong>3:</strong> Nếu phát hiện vi phạm, bài thi sẽ bị
-            <strong>tự động nộp ngay lập tức</strong>.
-          </li>
-        </ul>
+
+        <div class="rules-notice-box">
+          <div class="rules-notice-header">
+            <i nz-icon nzType="warning" nzTheme="fill" class="rules-warning-icon"></i>
+            <span>QUY CHẾ THI (BẮT BUỘC TUÂN THỦ)</span>
+          </div>
+          <div class="rules-list">
+            <div class="rule-item">
+              <div class="rule-badge">1</div>
+              <div class="rule-text">
+                Bài thi yêu cầu chế độ <strong>toàn màn hình</strong> xuyên suốt quá trình làm bài.
+              </div>
+            </div>
+            <div class="rule-item">
+              <div class="rule-badge">2</div>
+              <div class="rule-text">
+                Bất kỳ hành động <strong>chuyển tab, thu nhỏ hoặc chuyển đổi sang cửa sổ khác</strong> sẽ bị coi là vi
+                phạm.
+              </div>
+            </div>
+            <div class="rule-item danger">
+              <div class="rule-badge">3</div>
+              <div class="rule-text">
+                Nếu phát hiện vi phạm, bài thi sẽ bị <strong>tự động nộp ngay lập tức</strong>.
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="exam-selectors">
           <div class="selector-row">
             <div class="selector-item">
               <label>Năm (Year):</label>
-              <nz-input-number
-                [(ngModel)]="selectedYear"
-                [nzMin]="2000"
-                [nzMax]="2100"
-                [nzStep]="1"
-                class="full-width"
-              ></nz-input-number>
+              <nz-input-number [(ngModel)]="selectedYear" [nzMin]="2000" [nzMax]="2100" [nzStep]="1"
+                class="full-width"></nz-input-number>
             </div>
             <div class="selector-item">
               <label>Quý (Season):</label>
-              <nz-input-number
-                [(ngModel)]="selectedSeason"
-                [nzMin]="1"
-                [nzMax]="4"
-                [nzStep]="1"
-                class="full-width"
-              ></nz-input-number>
+              <nz-input-number [(ngModel)]="selectedSeason" [nzMin]="1" [nzMax]="4" [nzStep]="1"
+                class="full-width"></nz-input-number>
             </div>
           </div>
           <div class="selector-row">
             <div class="selector-item full-width">
               <label>Loại đề thi (Exam Type):</label>
               <nz-select [(ngModel)]="selectedExamType" class="full-width">
-                <nz-option
-                  *ngFor="let type of examTypes"
-                  [nzValue]="type.value"
-                  [nzLabel]="type.text"
-                ></nz-option>
+                <nz-option *ngFor="let type of examTypes" [nzValue]="type.value" [nzLabel]="type.text"></nz-option>
               </nz-select>
             </div>
           </div>
         </div>
 
         <div class="info-actions">
-          <button
-            nz-button
-            nzType="primary"
-            nzSize="large"
-            (click)="startExam()"
-            [nzLoading]="isLoading"
-          >
+          <button nz-button nzType="primary" nzSize="large" (click)="startExam()" [nzLoading]="isLoading">
             Bắt đầu làm bài
           </button>
         </div>
@@ -81,34 +70,27 @@
   </div>
 
   <!-- Exam Screen -->
-  <div
-    *ngIf="examStarted && !examSubmitted"
-    class="screen exam-screen"
-    [class.sidebar-hidden]="!isSidebarVisible"
-  >
+  <div *ngIf="examStarted && !examSubmitted" class="screen exam-screen" [class.sidebar-hidden]="!isSidebarVisible">
     <div class="layout-container">
       <!-- Main Content (Left) -->
       <div class="main-content">
         <!-- Combined Progress & Timer Bar -->
         <div class="progress-section">
           <div class="progress-left">
-            <nz-progress
-              [nzPercent]="
+            <nz-progress [nzPercent]="
                 questions.length > 0
                   ? ((currentIndex + 1) / questions.length) * 100
                   : 0
-              "
-              [nzShowInfo]="false"
-              nzStatus="active"
-            ></nz-progress>
+              " [nzShowInfo]="false" nzStatus="active"></nz-progress>
             <div class="progress-text">
               Câu hỏi {{ currentIndex + 1 }} / {{ questions.length }}
             </div>
           </div>
 
           <div class="header-tools">
-            <div class="timer-display" [class.warning]="remainingSeconds < 60">
-              <i nz-icon nzType="clock-circle"></i>
+            <div class="timer-display" [class.timer-warning]="timerDangerLevel === 'warning'"
+              [class.timer-danger]="timerDangerLevel === 'danger'">
+              <i nz-icon nzType="clock-circle" nzTheme="outline"></i>
               <span>{{ formattedTime }}</span>
             </div>
           </div>
@@ -119,22 +101,16 @@
           <div class="question-card" *ngIf="currentQuestion">
             <div class="question-header">
               <h3 class="question-text">
-                {{ currentIndex + 1 }}. {{ currentQuestion.QuestionText }}
+                <span>{{ currentIndex + 1 }}. </span>
+                <span [innerHTML]="currentQuestion.QuestionText"></span>
               </h3>
-              <div
-                *ngIf="currentQuestion.Image"
-                class="question-image-container"
-                (click)="onShowPreview(currentQuestion.Image, $event)"
-              >
-                <img
-                  [src]="
+              <div *ngIf="currentQuestion.Image" class="question-image-container"
+                (click)="onShowPreview(currentQuestion.Image, $event)">
+                <img [src]="
                     currentQuestion.Image.startsWith('http')
                       ? currentQuestion.Image
                       : imageBaseUrl + currentQuestion.Image
-                  "
-                  alt="Question Image"
-                  class="question-thumbnail"
-                />
+                  " alt="Question Image" class="question-thumbnail" />
                 <div class="hover-hint">
                   <i nz-icon nzType="zoom-in"></i> Nhấn để xem ảnh lớn
                 </div>
@@ -142,39 +118,25 @@
             </div>
 
             <div class="answer-grid">
-              <div
-                *ngFor="
+              <div *ngFor="
                   let answer of currentQuestion.ExamAnswers;
                   let i = index
-                "
-                class="answer-option"
-                [class.selected]="answer.selected"
-                tabindex="0"
-                (click)="onSelectAnswer(answer.ID)"
-                (keydown.enter)="onSelectAnswer(answer.ID)"
-                (keydown.space)="
+                " class="answer-option" [class.selected]="answer.selected" tabindex="0"
+                (click)="onSelectAnswer(answer.ID)" (keydown.space)="
                   onSelectAnswer(answer.ID); $event.preventDefault()
-                "
-              >
+                ">
                 <div class="option-label">
                   {{ i === 0 ? "A" : i === 1 ? "B" : i === 2 ? "C" : "D" }}
                 </div>
                 <div class="option-content">
-                  <div class="option-text">{{ answer.AnswerText }}</div>
-                  <div
-                    *ngIf="answer.Image"
-                    class="option-image-container"
-                    (click)="onShowPreview(answer.Image, $event)"
-                  >
-                    <img
-                      [src]="
+                  <div class="option-text" [innerHTML]="answer.AnswerText"></div>
+                  <div *ngIf="answer.Image" class="option-image-container"
+                    (click)="onShowPreview(answer.Image, $event)">
+                    <img [src]="
                         answer.Image.startsWith('http')
                           ? answer.Image
                           : imageBaseUrl + answer.Image
-                      "
-                      alt="Answer Image"
-                      class="option-thumbnail"
-                    />
+                      " alt="Answer Image" class="option-thumbnail" />
                   </div>
                 </div>
               </div>
@@ -185,47 +147,27 @@
         <!-- Navigation Footer -->
         <div class="navigation-footer">
           <div class="footer-left">
-            <button
-              nz-button
-              nzType="primary"
-              nzDanger
-              nzGhost
-              (click)="submitExamManual()"
-              [nzLoading]="isLoading"
-            >
+            <button nz-button nzType="primary" nzDanger nzGhost (click)="submitExamManual()" [nzLoading]="isLoading">
               Nộp bài <i nz-icon nzType="send"></i>
             </button>
           </div>
 
+          <div class="footer-center keyboard-hint">
+            <i nz-icon nzType="info-circle" nzTheme="outline"></i>
+            <em>Phím tắt: ◄ Trở về | ► / Enter Tiếp theo</em>
+          </div>
+
           <div class="footer-right">
-            <button
-              nz-button
-              nzType="default"
-              (click)="onPrevious()"
-              [disabled]="currentIndex === 0"
-            >
+            <button nz-button nzType="default" (click)="onPrevious()" [disabled]="currentIndex === 0">
               <i nz-icon nzType="left"></i> Câu trước
             </button>
 
-            <button
-              nz-button
-              nzType="primary"
-              (click)="onNext()"
-              [disabled]="currentIndex === questions.length - 1"
-            >
+            <button nz-button nzType="primary" (click)="onNext()" [disabled]="currentIndex === questions.length - 1">
               Câu sau <i nz-icon nzType="right"></i>
             </button>
 
-            <button
-              nz-button
-              nzType="default"
-              (click)="toggleSidebar()"
-              title="Toggle Sidebar"
-            >
-              <i
-                nz-icon
-                [nzType]="isSidebarVisible ? 'menu-unfold' : 'menu-fold'"
-              ></i>
+            <button nz-button nzType="default" (click)="toggleSidebar()" title="Toggle Sidebar">
+              <i nz-icon [nzType]="isSidebarVisible ? 'menu-unfold' : 'menu-fold'"></i>
             </button>
           </div>
         </div>
@@ -235,13 +177,8 @@
       <div class="sidebar-container" *ngIf="isSidebarVisible">
         <nz-card nzTitle="Danh sách câu hỏi" class="sidebar-card">
           <div class="question-grid">
-            <div
-              *ngFor="let q of questions; let idx = index"
-              class="question-bubble"
-              [class.current]="currentIndex === idx"
-              [class.answered]="isAnswered(idx)"
-              (click)="goToQuestion(idx)"
-            >
+            <div *ngFor="let q of questions; let idx = index" class="question-bubble"
+              [class.current]="currentIndex === idx" [class.answered]="isAnswered(idx)" (click)="goToQuestion(idx)">
               {{ idx + 1 }}
             </div>
           </div>
@@ -266,20 +203,8 @@
   <div *ngIf="examSubmitted" class="screen result-screen">
     <nz-card class="result-card">
       <div class="result-icon">
-        <i
-          nz-icon
-          nzType="check-circle"
-          nzTheme="outline"
-          *ngIf="!violationReason"
-          style="color: #52c41a"
-        ></i>
-        <i
-          nz-icon
-          nzType="close-circle"
-          nzTheme="outline"
-          *ngIf="violationReason"
-          style="color: #f5222d"
-        ></i>
+        <i nz-icon nzType="check-circle" nzTheme="outline" *ngIf="!violationReason" style="color: #52c41a"></i>
+        <i nz-icon nzType="close-circle" nzTheme="outline" *ngIf="violationReason" style="color: #f5222d"></i>
       </div>
       <h2 class="result-title">
         {{ violationReason ? "Kết quả: Vi phạm" : "Bài thi đã kết thúc" }}
@@ -291,7 +216,7 @@
           <span class="stat-label">Lý do vi phạm:</span>
           <span class="stat-value" style="color: #f5222d">{{
             violationReason
-          }}</span>
+            }}</span>
         </div>
       </div>
 
@@ -311,17 +236,13 @@
           </div>
         </div>
         <div class="total-score">
-          TỔNG ĐIỂM: <span>{{ examResultStats.TotalMarks }}</span> /
+          TỔNG SỐ CÂU ĐÚNG: <span>{{ examResultStats.TotalMarks }}</span> /
           {{ questions.length }}
         </div>
       </div>
 
       <div class="result-actions">
-        <button
-          nz-button
-          nzType="default"
-          (click)="resetExamState()"
-        >
+        <button nz-button nzType="default" (click)="resetExamState()">
           Thoát
         </button>
       </div>
@@ -344,11 +265,7 @@
   </div>
 
   <!-- Custom Submission Confirmation Modal -->
-  <div
-    class="custom-modal-overlay"
-    *ngIf="showSubmitModal"
-    (click)="showSubmitModal = false"
-  >
+  <div class="custom-modal-overlay" *ngIf="showSubmitModal" (click)="showSubmitModal = false">
     <div class="custom-modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div class="header-icon">
@@ -362,18 +279,14 @@
         <div class="progress-info" *ngIf="questions.length > 0">
           <div class="info-row">
             <span class="label">Đã hoàn thành:</span>
-            <span class="value"
-              >{{ questions.length - unansweredCount }}/{{
-                questions.length
-              }}</span
-            >
+            <span class="value">{{ questions.length - unansweredCount }}/{{
+              questions.length
+              }}</span>
           </div>
           <div class="info-row warning" *ngIf="unansweredCount > 0">
             <i nz-icon nzType="warning" nzTheme="fill"></i>
-            <span
-              >Bạn còn <strong>{{ unansweredCount }}</strong> câu hỏi chưa trả
-              lời!</span
-            >
+            <span>Bạn còn <strong>{{ unansweredCount }}</strong> câu hỏi chưa trả
+              lời!</span>
           </div>
         </div>
       </div>

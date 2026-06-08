@@ -470,6 +470,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             { key: 'Specifications', width: 20 },
             { key: 'InvoiceNumber', width: 20 },
             { key: 'InvoiceDate', width: 15 },
+            { key: 'DateRequest', width: 15 },
             { key: 'PONumber', width: 20 },
             { key: 'TeamSaleName', width: 20 },
             { key: 'MainIndex', width: 20 },
@@ -505,7 +506,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             'Lý do yêu cầu bổ sung', 'Người yêu cầu', 'Khách hàng', 'Địa chỉ', 'Công ty bán',
             'Ghi chú', 'Mã nội bộ', 'Mã sản phẩm', 'Mã sản phẩm NCC', 'Mã theo khách', 'Tên sản phẩm',
             'ĐVT', 'Số lượng', 'Mã dự án', 'Dự án', 'Ghi chú (Chi tiết)',
-            'Thông số kỹ thuật', 'Số hóa đơn', 'Ngày hóa đơn', 'Số PO', 'Team kinh doanh', 'Nhóm hàng', 'Đơn giá trước VAT', 'Tiền chiết khấu', 'Tiền sau chiết khấu', 'Tổng tiền trước VAT', 'VAT(%)', 'Tiền VAT', 'Tổng tiền bao gồm VAT', 'Mã PO',
+            'Thông số kỹ thuật', 'Số hóa đơn', 'Ngày hóa đơn', 'Ngày YCXHD', 'Số PO', 'Team kinh doanh', 'Nhóm hàng', 'Đơn giá trước VAT', 'Tiền chiết khấu', 'Tiền sau chiết khấu', 'Tổng tiền trước VAT', 'VAT(%)', 'Tiền VAT', 'Tổng tiền bao gồm VAT', 'Mã PO',
             'Ngày đặt hàng', 'Ngày hàng về', 'Nhà cung cấp', 'Hóa đơn đầu vào', 'Ngày hàng về dự kiến', 'PNK', 'Công ty nhập'
         ]);
 
@@ -570,6 +571,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 Specifications: item.Specifications,
                 InvoiceNumber: item.InvoiceNumber,
                 InvoiceDate: item.InvoiceDate ? DateTime.fromISO(item.InvoiceDate).toFormat('dd/MM/yyyy') : '',
+                DateRequest: item.DateRequest ? DateTime.fromISO(item.DateRequest).toFormat('dd/MM/yyyy') : '',
                 PONumber: item.PONumber,
                 TeamSaleName: item.TeamSaleName,
                 MainIndex: item.MainIndex,
@@ -1194,6 +1196,18 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'InvoiceDate',
                 name: 'Ngày hóa đơn',
                 field: 'InvoiceDate',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
+                width: 120,
+                minWidth: 150,
+                sortable: true,
+                formatter: dateFormatter,
+                cssClass: 'text-center',
+            },
+            {
+                id: 'DateRequest',
+                name: 'Ngày YCXHD',
+                field: 'DateRequest',
                 columnGroup: 'Chung',
                 columnGroupKey: 'Chung',
                 width: 120,

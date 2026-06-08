@@ -73,6 +73,8 @@ import * as ExcelJS from 'exceljs';
 import { BillExportDetailNewComponent } from '../../old/Sale/BillExport/bill-export-detail-new/bill-export-detail-new.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { ProjectPartlistCloneComponent } from '../project-partlist-clone/project-partlist-clone.component';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzTableModule } from 'ng-zorro-antd/table';
 
 @Component({
     selector: 'app-project-part-list-slick-grid',
@@ -98,7 +100,9 @@ import { ProjectPartlistCloneComponent } from '../project-partlist-clone/project
         NzTreeSelectModule,
         NzDividerModule,
         NgbModule,
-        HasPermissionDirective
+        HasPermissionDirective,
+        NzInputNumberModule,
+        NzTableModule
     ],
     templateUrl: './project-part-list-slick-grid.component.html',
     styleUrl: './project-part-list-slick-grid.component.css'
@@ -136,6 +140,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     angularGridPOVersion!: AngularGridInstance;
     angularGridVersion!: AngularGridInstance; // Merged Version grid
     angularGridPartList!: AngularGridInstance;
+    angularGridPriceRequest!: AngularGridInstance;
 
     // Column definitions
     solutionColumns: Column[] = [];
@@ -143,6 +148,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     poVersionColumns: Column[] = [];
     versionColumns: Column[] = []; // Merged Version columns
     partListColumns: Column[] = [];
+    priceRequestColumns: Column[] = [];
 
     // Grid options
     solutionGridOptions!: GridOption;
@@ -150,6 +156,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     poVersionGridOptions!: GridOption;
     versionGridOptions!: GridOption; // Merged Version options
     partListGridOptions!: GridOption;
+    priceRequestGridOptions!: GridOption;
 
     // Grid ready flags
     gridsInitialized = false;
@@ -158,6 +165,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     solutionGridId: string = 'grid-solution';
     versionGridId: string = 'grid-version';
     partListGridId: string = 'grid-partlist';
+    priceRequestGridId: string = 'grid-price-request';
 
     // Data
     dataSolution: any[] = [];
@@ -215,11 +223,22 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     noteData = {
         content: ''
     };
+    priceRequestItems: any[] = [];
     deadlinePurchaseRequest: Date | null = null;
     reasonDeleted: string = '';
     reasonDeletedVersion: string = '';
     reasonProblem: string = '';
     isGeneratedItem: boolean = false;
+
+    // Formatters for nz-input-number
+    formatterMoney = (value: number | string): string => {
+        if (value === null || value === undefined || value === '') return '';
+        return `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    };
+    parserMoney = (value: string): string => {
+        if (!value) return '';
+        return value.replace(/\$\s?|(,*)/g, '');
+    };
 
     // Color filter toggles
     filterDeleted: boolean = false;
@@ -229,6 +248,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     filterFix: boolean = false;
     filterReturn: boolean = false;
     filterProductSale: boolean = false;
+    filterExpired: boolean = false;
     headerFilterFunction: any = null; // Lưu header filter function gốc
 
     // Recent projects localStorage key (per-user)
@@ -293,6 +313,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 this.solutionGridId = `grid-solution-${this.projectId}`;
                 this.versionGridId = `grid-version-${this.projectId}`;
                 this.partListGridId = `grid-partlist-${this.projectId}`;
+                this.priceRequestGridId = `grid-price-request-${this.projectId}`;
             }
             if (this.tabData.projectNameX !== undefined) {
                 this.projectNameX = this.tabData.projectNameX;
@@ -319,6 +340,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     this.solutionGridId = `grid-solution-${this.projectId}`;
                     this.versionGridId = `grid-version-${this.projectId}`;
                     this.partListGridId = `grid-partlist-${this.projectId}`;
+                    this.priceRequestGridId = `grid-price-request-${this.projectId}`;
                 }
             }
             if (params['projectName'] !== undefined) {
@@ -381,8 +403,142 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.initPOVersionGrid();
         this.initVersionGrid();
         this.initPartListGrid();
+        this.initPriceRequestGrid();
     }
 
+    initPriceRequestGrid(): void {
+        const numberFormatter = (row: number, cell: number, value: any) => {
+            return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
+        };
+
+        this.priceRequestColumns = [
+            { id: 'TT', field: 'TT', name: 'TT', width: 50, cssClass: 'text-center' },
+            {
+                id: 'GroupMaterial', field: 'GroupMaterial', name: 'Tên vật tư', width: 150,
+                formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+                    if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.GroupMaterial);
+                    return `<span title="${escaped}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-wrap:break-word;word-break:break-word;white-space:pre-wrap;">${value}</span>`;
+                }
+            },
+            { id: 'ProductCode', field: 'ProductCode', name: 'Mã thiết bị', width: 130 },
+            { id: 'Manufacturer', field: 'Manufacturer', name: 'Hãng', width: 100 },
+            { id: 'QtyFull', field: 'QtyFull', name: 'SL', width: 60, cssClass: 'text-center' },
+            { id: 'Unit', field: 'Unit', name: 'ĐVT', width: 60, cssClass: 'text-center' },
+            { id: 'CurrencyCode', field: 'CurrencyCode', name: 'Tiền', width: 60, cssClass: 'text-center', formatter: (_r, _c, _v, _col, ctx) => ctx.CurrencyCode || 'VND' },
+            {
+                id: 'Note', field: 'Note', name: 'Ghi chú', width: 100,
+                formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+                    if (!value) return '';
+                    const escaped = this.escapeHtml(dataContext.Note);
+                    return `<span title="${escaped}" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-wrap:break-word;word-break:break-word;white-space:pre-wrap;">${value}</span>`;
+                }
+            },
+            {
+                id: 'TargetPrice', field: 'TargetPrice', name: 'Giá target', width: 120, cssClass: 'text-center',
+                editor: { model: Editors['float'], params: { min: 0 } },
+                formatter: (row: number, cell: number, value: any) => {
+                    return this.formatMoney(value, 0);
+                }
+            },
+            {
+                id: 'LeadTimeTechnical', field: 'LeadTimeTechnical', name: 'LeadTime cần hàng', width: 120, cssClass: 'text-center',
+                editor: { model: Editors['integer'], params: { min: 0 } },
+                formatter: numberFormatter
+            }
+        ];
+
+        this.priceRequestGridOptions = {
+            enableAutoResize: true,
+            autoResize: {
+                container: '.price-request-table-wrapper',
+                calculateAvailableSizeBy: 'container',
+            },
+            forceFitColumns: true,
+            gridWidth: '100%',
+            datasetIdPropertyName: 'ID',
+            enableRowSelection: true,
+            enableCheckboxSelector: true,
+            checkboxSelector: {
+                hideSelectAllCheckbox: false,
+                columnIndexPosition: 0
+            },
+            rowSelectionOptions: {
+                selectActiveRow: false
+            },
+            enableCellNavigation: true,
+            enableSorting: true,
+            editable: true,
+            autoEdit: true,
+            autoCommitEdit: true,
+            autoFitColumnsOnFirstLoad: false,
+            enableAutoSizeColumns: false,
+            rowHeight: 40,
+            headerRowHeight: 40,
+        };
+    }
+
+    onPriceGridCreated(angularGrid: AngularGridInstance): void {
+        this.angularGridPriceRequest = angularGrid;
+        setTimeout(() => {
+            if (this.angularGridPriceRequest && this.angularGridPriceRequest.resizerService) {
+                this.angularGridPriceRequest.resizerService.resizeGrid();
+            }
+        }, 200);
+    }
+
+    onPriceRequestCellChange(e: Event, args: any): void {
+        if (!this.angularGridPriceRequest || !this.angularGridPriceRequest.slickGrid) return;
+
+        const rowIndex = args.row;
+        const item = this.angularGridPriceRequest.dataView.getItem(rowIndex);
+        const column = args.column;
+        const field = column?.field || '';
+        const newValue = args.item?.[field];
+
+        if (!item || !field) return;
+
+        // Cập nhật giá trị mới vào item
+        if (newValue !== undefined) {
+            item[field] = newValue;
+        }
+
+        // Lấy ID của các dòng đang được chọn từ lưới
+        const selectedRowIndexes = this.angularGridPriceRequest.slickGrid.getSelectedRows();
+        const isEditedRowSelected = selectedRowIndexes && selectedRowIndexes.includes(rowIndex);
+
+        if (isEditedRowSelected && selectedRowIndexes.length > 1) {
+            let hasUpdatedRows = false;
+
+            for (const selectedRowIndex of selectedRowIndexes) {
+                if (selectedRowIndex === rowIndex) continue;
+
+                const selectedItem = this.angularGridPriceRequest.dataView.getItem(selectedRowIndex);
+                if (!selectedItem) continue;
+
+                // Điền cùng một giá trị cho dòng này
+                selectedItem[field] = newValue;
+
+                // Lưu thay đổi vào DateView
+                if (selectedItem.ID) {
+                    this.angularGridPriceRequest.dataView.updateItem(selectedItem.ID, selectedItem);
+                    hasUpdatedRows = true;
+                }
+            }
+
+            if (hasUpdatedRows) {
+                this.angularGridPriceRequest.slickGrid.invalidate();
+                this.angularGridPriceRequest.slickGrid.render();
+            }
+        }
+
+        if (item.ID) {
+            this.angularGridPriceRequest.dataView.updateItem(item.ID, item);
+        }
+
+        this.angularGridPriceRequest.slickGrid.invalidate();
+        this.angularGridPriceRequest.slickGrid.render();
+    }
     // Initialize Solution Grid
     initSolutionGrid(): void {
         this.solutionColumns = [
@@ -1395,6 +1551,21 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 filterable: true, filter: { model: Filters['compoundDate'] }
             },
             {
+                id: 'LeadTimeTechnical', field: 'LeadTimeTechnical', name: 'LeadTime cần hàng', width: 120, columnGroup: 'Yêu cầu báo giá', formatter: numberFormatter, cssClass: 'text-right',
+                filterable: true,
+                filter: { model: Filters['compoundInputNumber'] }
+            },
+            {
+                id: 'TargetPrice', field: 'TargetPrice', name: 'Giá Target', width: 120, columnGroup: 'Yêu cầu báo giá', formatter: moneyFormatter, cssClass: 'text-right',
+                filterable: true,
+                filter: { model: Filters['compoundInputNumber'] }
+            },
+            {
+                id: 'EffectiveDate', field: 'EffectiveDate', name: 'Hiệu lực', width: 100, columnGroup: 'Yêu cầu báo giá', formatter: dateFormatter, cssClass: 'text-center',
+                filterable: true,
+                filter: { model: Filters['compoundDate'] }
+            },
+            {
                 id: 'UnitPriceQuote', field: 'UnitPriceQuote', name: 'Đơn giá báo', width: 100, columnGroup: 'Yêu cầu báo giá', formatter: moneyFormatter, cssClass: 'text-right',
                 filterable: true,
                 filter: { model: Filters['compoundInputNumber'] }
@@ -2083,6 +2254,15 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         const isProductSale = item.IsProductSale && item.IsProductSale !== '';
         const isNewCode = item.IsNewCode === true;
 
+        let isExpired = false;
+        if (!hasChildren && item.EffectiveDate) {
+            const effectiveDate = new Date(item.EffectiveDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            effectiveDate.setHours(0, 0, 0, 0);
+            isExpired = effectiveDate < today;
+        }
+
         // Các trường totalSame - check = 0 thì màu hồng
         const totalSameProductCode = Number(item.IsSameProductCode) || 0;
         const totalSameProductName = Number(item.IsSameProductName) || 0;
@@ -2149,6 +2329,11 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
             if (isOverQty && this.isConsumable) {
                 columns['QtyFull'] = { cssClass: 'cell-over-qty' };
+            }
+
+            // === Logic màu đỏ cho cell EffectiveDate khi hết hiệu lực ===
+            if (isExpired) {
+                columns['EffectiveDate'] = { cssClass: 'cell-effective-expired' };
             }
         }
 
@@ -3677,7 +3862,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             New: this.filterNewCode,
             Fix: this.filterFix,
             Return: this.filterReturn,
-            ProductSale: this.filterProductSale
+            ProductSale: this.filterProductSale,
+            Expired: this.filterExpired
         };
 
         const hasActiveColorFilter = Object.values(activeFilters).some(v => v);
@@ -3713,6 +3899,16 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             if (this.filterReturn && quantityReturn > 0) isMatch = true;
             if (this.filterProductSale && isProductSale) isMatch = true;
             if (this.filterOverQty && isOverQty) isMatch = true;
+
+            if (this.filterExpired && item.IsLeaf === true) {
+                if (item.EffectiveDate) {
+                    const effectiveDate = new Date(item.EffectiveDate);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    effectiveDate.setHours(0, 0, 0, 0);
+                    if (effectiveDate < today) isMatch = true;
+                }
+            }
 
             if (isMatch) {
                 matchedIds.add(item.ID);
@@ -3762,6 +3958,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 break;
             case 'productSale':
                 this.filterProductSale = !this.filterProductSale;
+                break;
+            case 'expired':
+                this.filterExpired = !this.filterExpired;
                 break;
         }
         this.applyColorFilters();
@@ -4504,13 +4703,19 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 IsLeaf: isLeaf,
                 Note: '',
                 DatePriceQuote: row.DatePriceQuote || null,
-                DeadlinePriceRequest: null
+                DeadlinePriceRequest: null,
+                Unit: row.Unit || '',
+                CurrencyCode: row.CurrencyCode || 'VND',
+                TargetPrice: null,
+                LeadTimeTechnical: null
             });
         }
 
 
         this.deadlinePriceRequest = null;
         this.noteData.content = '';
+        this.priceRequestItems = requestItems
+            .filter((item: any) => item.IsLeaf === true);
         this.showPriceRequestModal(requestItems, false);
     }
 
@@ -4522,7 +4727,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             nzOkText: 'Xác nhận',
             nzCancelText: 'Hủy',
             nzOkType: 'primary',
-            nzWidth: 500,
+            nzWidth: 1600,
             nzOnOk: () => {
                 return this.validateAndConfirmDeadline(requestItems, isRequestAgain);
             },
@@ -4853,6 +5058,39 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             if (row.IsApprovedPurchase == true) {
                 this.notification.warning('Thông báo', `Vật tư thứ tự [${row.TT || row.STT || row.ID}] đã được Y/c mua.\nVui lòng kiểm tra lại!`);
                 return;
+            }
+
+            // Kiểm tra đã được báo giá chưa và hiệu lực báo giá
+            const hasEffectiveDate = row.EffectiveDate && row.EffectiveDate !== '';
+            const hasDatePriceQuote = row.DatePriceQuote && row.DatePriceQuote !== '';
+
+            // 1. Ưu tiên kiểm tra hết hạn nếu có EffectiveDate
+            if (hasEffectiveDate) {
+                const effectiveDate = new Date(row.EffectiveDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                effectiveDate.setHours(0, 0, 0, 0);
+                if (effectiveDate < today) {
+                    this.notification.warning('Thông báo', `Vật tư thứ tự [${row.TT || row.STT || row.ID}] đã hết hiệu lực, cần báo giá lại!`);
+                    return;
+                }
+            }
+
+            // 2. Kiểm tra nếu hoàn toàn chưa có báo giá
+            if (!hasDatePriceQuote && !hasEffectiveDate) {
+                this.notification.warning('Thông báo', `Vật tư thứ tự [${row.TT || row.STT || row.ID}] chưa được báo giá!\nVui lòng kiểm tra lại!`);
+                return;
+            }
+
+            // 3. Kiểm tra báo giá quá 3 tháng (nếu có DatePriceQuote)
+            if (hasDatePriceQuote) {
+                const datePriceQuote = new Date(row.DatePriceQuote);
+                const threeMonthsAgo = new Date();
+                threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+                if (datePriceQuote < threeMonthsAgo) {
+                    this.notification.warning('Thông báo', `Vật tư thứ tự [${row.TT || row.STT || row.ID}] đã hết hiệu lực, cần báo giá lại!`);
+                    return;
+                }
             }
 
             // Kiểm tra đã được báo giá chưa (trong vòng 3 tháng)
@@ -5228,7 +5466,12 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     ReasonDeleted: this.reasonDeletedVersion.trim()
                 };
 
-                this.projectPartListService.saveProjectPartListVersion(payload).subscribe({
+                const payloadfinal = {
+                    ProjectPartListVersion: payload,
+                    ProjectHistoryProblemIds: []
+                }
+
+                this.projectPartListService.saveProjectPartListVersion(payloadfinal).subscribe({
                     next: (response: any) => {
                         if (response.status === 1) {
                             this.notification.success('Thành công', response.message || 'Xóa phiên bản thành công!');
@@ -6292,6 +6535,19 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         if (!this.angularGridPartList) return [];
         const selectedRowIndices = this.angularGridPartList.slickGrid?.getSelectedRows() || [];
         return selectedRowIndices.map((i: number) => this.angularGridPartList.dataView?.getItem(i)).filter((item: any) => item);
+    }
+
+    hasSelectedExpiredItems(): boolean {
+        const selectedRows = this.getSelectedPartListRows();
+        if (!selectedRows || selectedRows.length === 0) return false;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return selectedRows.some((row: any) => {
+            if (!row.EffectiveDate || row.IsLeaf === false) return false;
+            const effectiveDate = new Date(row.EffectiveDate);
+            effectiveDate.setHours(0, 0, 0, 0);
+            return effectiveDate < today;
+        });
     }
 
     // Tính toán tree data (giống CalculatorData trong WinForm)
@@ -7395,7 +7651,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
             requestItems.push({
                 ID: row.ID,
-                STT: row.STT,
+                TT: row.TT,
                 ProductCode: row.ProductCode,
                 GroupMaterial: row.GroupMaterial,
                 Manufacturer: row.Manufacturer,
@@ -7415,6 +7671,9 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
         this.deadlinePriceRequest = null;
         this.noteData.content = '';
+        this.priceRequestItems = requestItems
+            .filter((item: any) => item.IsLeaf === true);
+        // .sort((a: any, b: any) => (a.TT || 0) - (b.TT || 0));
         this.showPriceRequestModal(requestItems, true);
     }
     cancelPriceRequestAgain(): void { }

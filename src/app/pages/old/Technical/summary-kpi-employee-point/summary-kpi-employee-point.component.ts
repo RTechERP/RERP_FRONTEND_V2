@@ -18,6 +18,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import {
   AngularGridInstance,
@@ -52,6 +53,7 @@ import { TabServiceService } from '../../../../layouts/tab-service.service';
     NzSelectModule,
     NzFormModule,
     NzModalModule,
+    NzSpinModule,
     AngularSlickgridModule,
     Menubar,
   ],
@@ -76,6 +78,7 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
   departmentId: number = 0;
   employeeId: number = 0;
   keyword: string = '';
+  isLoading: boolean = false;
 
   // Dropdown data
   departments: any[] = [];
@@ -139,6 +142,7 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
   }
 
   search(): void {
+    this.isLoading = true;
     const request: SummaryKPIEmployeePointRequest = {
       Year: this.year,
       Quarter: this.quarter,
@@ -161,9 +165,11 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
         } else {
           this.notification.error('Lỗi', response.message || 'Không thể tải dữ liệu');
         }
+        this.isLoading = false;
       },
       error: (error: any) => {
         this.notification.error('Lỗi', 'Không thể tải dữ liệu');
+        this.isLoading = false;
       }
     });
   }

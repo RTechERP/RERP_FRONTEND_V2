@@ -2510,7 +2510,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
                     const parentRow = row.getTreeParent();
 
                     // Get all IDs to be deleted (current row and all its children)
-                    this.deletedPOKHDetailIds = this.getAllRowIds(row);
+                    const rowIdsToDelete = this.getAllRowIds(row);
+                    this.deletedPOKHDetailIds = Array.from(
+                      new Set([...this.deletedPOKHDetailIds, ...rowIdsToDelete])
+                    );
                     console.log(
                       'deletedPOKHDetailIds: ',
                       this.deletedPOKHDetailIds

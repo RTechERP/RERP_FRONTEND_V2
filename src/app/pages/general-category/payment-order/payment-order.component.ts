@@ -4512,7 +4512,7 @@ export class PaymentOrderComponent implements OnInit {
                 'Người đề nghị', 'Bộ phận', 'Phân loại chính', 'Nội dung chính của đề nghị', 'Lý do thanh toán',
                 'Số tiền', 'Số tiền thanh toán', 'Số tiền thanh toán thực tế', 'ĐVT', 'Bỏ qua HR',
                 'Hình thức thanh toán', 'Loại chuyển khoản', 'Nội dung chuyển khoản', 'Nhà cung cấp',
-                'Trạng thái hợp đồng', 'Số hợp đồng', 'Dự án',
+                'Mã số thuế', 'Trạng thái hợp đồng', 'Số hợp đồng', 'Dự án',
                 'Có hóa đơn', 'Điểm đi', 'Điểm đến', 'Trạng thái Bank Slip',
                 'Lịch sử duyệt / hủy duyệt', 'Lý do hủy duyệt', 'Ghi chú / Chứng từ kèm theo',
                 'Ghi chú kế toán', 'Số PO', 'Lý do KT Y/c bổ sung', 'Lý do HR Y/c bổ sung',
@@ -4521,7 +4521,7 @@ export class PaymentOrderComponent implements OnInit {
             CENTER_COLS = [3, 4, 5, 6, 17, 18, 26];
             COL_WIDTHS = [
                 20, 18, 15, 8, 15, 14, 22, 25, 20, 22, 20, 22, 35, 45,
-                18, 18, 20, 8, 12, 25, 25, 35, 25, 25, 25, 35, 12, 35, 35, 25,
+                18, 18, 20, 8, 12, 25, 25, 35, 25, 25, 25, 25, 35, 12, 35, 35, 25,
                 45, 35, 45, 35, 15, 35, 35
             ];
         }
@@ -4593,6 +4593,7 @@ export class PaymentOrderComponent implements OnInit {
                     item.TransferTypeText || this.getTransferTypeText(item.TransferType),
                     item.ContentBankTransfer ?? '',
                     item.SuplierName ?? '',
+                    item.MaSoThue ?? '',
                     item.StatusContractText ?? '',
                     item.DocumentName ?? '',
                     item.ProjectFullName ?? '',

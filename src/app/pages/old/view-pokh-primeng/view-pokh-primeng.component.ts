@@ -100,6 +100,17 @@ export class ViewPokhPrimengComponent implements OnInit {
   exportColumnDefinitions: PrimeViewColumn[] = [];
   invoiceColumnDefinitions: PrimeViewColumn[] = [];
 
+  // Pagination & Virtual Scroll
+  currentRowsPerPage: number = 50;
+
+  get isVirtualScrollEnabled(): boolean {
+    return this.currentRowsPerPage >= 500;
+  }
+
+  onPageChange(event: any): void {
+    this.currentRowsPerPage = event.rows;
+  }
+
   selectedRows: any[] = [];
   selectedRowsAll: any[] = [];
   selectedRowsInView: any[] = [];

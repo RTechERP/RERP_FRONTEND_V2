@@ -470,13 +470,15 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             { key: 'Specifications', width: 20 },
             { key: 'InvoiceNumber', width: 20 },
             { key: 'InvoiceDate', width: 15 },
+            { key: 'DateRequest', width: 15 },
             { key: 'PONumber', width: 20 },
             { key: 'TeamSaleName', width: 20 },
             { key: 'MainIndex', width: 20 },
             { key: 'UnitPrice', width: 20 },
-            { key: 'IntoMoney', width: 20 },
             { key: 'DiscountAmount', width: 20 },
             { key: 'IntoMoneyAfterDiscount', width: 20 },
+            { key: 'IntoMoney', width: 20 },
+            { key: 'VAT', width: 12 },
             { key: 'VATAmount', width: 20 },
             { key: 'TotalPriceIncludeVAT', width: 20 },
             { key: 'POCode', width: 20 },
@@ -490,13 +492,13 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
         ];
 
         // Add Band Row (Row 1)
-        const bandValues = new Array(34).fill('');
+        const bandValues = new Array(35).fill('');
         bandValues.push('Thông tin đầu vào');
         const bandRow = worksheet.addRow(bandValues);
 
         // Merge cells for Band
-        worksheet.mergeCells('A1:AH1');
-        worksheet.mergeCells('AI1:AO1');
+        worksheet.mergeCells('A1:AI1');
+        worksheet.mergeCells('AJ1:AP1');
 
         // Add Header Row (Row 2)
         const headerRow = worksheet.addRow([
@@ -504,7 +506,7 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             'Lý do yêu cầu bổ sung', 'Người yêu cầu', 'Khách hàng', 'Địa chỉ', 'Công ty bán',
             'Ghi chú', 'Mã nội bộ', 'Mã sản phẩm', 'Mã sản phẩm NCC', 'Mã theo khách', 'Tên sản phẩm',
             'ĐVT', 'Số lượng', 'Mã dự án', 'Dự án', 'Ghi chú (Chi tiết)',
-            'Thông số kỹ thuật', 'Số hóa đơn', 'Ngày hóa đơn', 'Số PO', 'Team kinh doanh', 'Nhóm hàng', 'Đơn giá trước VAT', 'Tổng tiền trước VAT', 'Tiền chiết khấu', 'Tiền sau chiết khấu', 'Tiền VAT', 'Tổng tiền bao gồm VAT', 'Mã PO',
+            'Thông số kỹ thuật', 'Số hóa đơn', 'Ngày hóa đơn', 'Ngày YCXHD', 'Số PO', 'Team kinh doanh', 'Nhóm hàng', 'Đơn giá trước VAT', 'Tiền chiết khấu', 'Tiền sau chiết khấu', 'Tổng tiền trước VAT', 'VAT(%)', 'Tiền VAT', 'Tổng tiền bao gồm VAT', 'Mã PO',
             'Ngày đặt hàng', 'Ngày hàng về', 'Nhà cung cấp', 'Hóa đơn đầu vào', 'Ngày hàng về dự kiến', 'PNK', 'Công ty nhập'
         ]);
 
@@ -569,13 +571,15 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 Specifications: item.Specifications,
                 InvoiceNumber: item.InvoiceNumber,
                 InvoiceDate: item.InvoiceDate ? DateTime.fromISO(item.InvoiceDate).toFormat('dd/MM/yyyy') : '',
+                DateRequest: item.DateRequest ? DateTime.fromISO(item.DateRequest).toFormat('dd/MM/yyyy') : '',
                 PONumber: item.PONumber,
                 TeamSaleName: item.TeamSaleName,
                 MainIndex: item.MainIndex,
                 UnitPrice: item.UnitPrice,
-                IntoMoney: item.IntoMoney,
                 DiscountAmount: item.DiscountAmount,
                 IntoMoneyAfterDiscount: item.IntoMoneyAfterDiscount,
+                IntoMoney: item.IntoMoney,
+                VAT: item.VAT,
                 VATAmount: item.VATAmount,
                 TotalPriceIncludeVAT: item.TotalPriceIncludeVAT,
                 POCode: item.POCode,
@@ -1112,9 +1116,10 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
             { id: 'TeamSaleName', name: 'Team kinh doanh', field: 'TeamSaleName', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'MainIndex', name: 'Nhóm hàng', field: 'MainIndex', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'UnitPrice', name: 'Đơn giá trước VAT', field: 'UnitPrice', width: 150, minWidth: 150, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
-            { id: 'IntoMoney', name: 'Tổng tiền trước VAT', field: 'IntoMoney', width: 150, minWidth: 150, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'DiscountAmount', name: 'Tiền chiết khấu', field: 'DiscountAmount', width: 150, minWidth: 150, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'IntoMoneyAfterDiscount', name: 'Tiền sau chiết khấu', field: 'IntoMoneyAfterDiscount', width: 150, minWidth: 150, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'IntoMoney', name: 'Tổng tiền trước VAT', field: 'IntoMoney', width: 150, minWidth: 150, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
+            { id: 'VAT', name: 'VAT(%)', field: 'VAT', width: 100, minWidth: 100, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'VATAmount', name: 'Tiền VAT', field: 'VATAmount', width: 150, minWidth: 150, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             { id: 'TotalPriceIncludeVAT', name: 'Tổng tiền bao gồm VAT', field: 'TotalPriceIncludeVAT', width: 150, minWidth: 150, sortable: true, formatter: this.moneyFormatter, cssClass: 'text-end', filterable: true, filter: { model: Filters['compoundInputNumber'] }, columnGroup: 'Chung', columnGroupKey: 'Chung' },
             {
@@ -1191,6 +1196,18 @@ export class RequestInvoiceSummarySlickgridComponent implements OnInit, AfterVie
                 id: 'InvoiceDate',
                 name: 'Ngày hóa đơn',
                 field: 'InvoiceDate',
+                columnGroup: 'Chung',
+                columnGroupKey: 'Chung',
+                width: 120,
+                minWidth: 150,
+                sortable: true,
+                formatter: dateFormatter,
+                cssClass: 'text-center',
+            },
+            {
+                id: 'DateRequest',
+                name: 'Ngày YCXHD',
+                field: 'DateRequest',
                 columnGroup: 'Chung',
                 columnGroupKey: 'Chung',
                 width: 120,

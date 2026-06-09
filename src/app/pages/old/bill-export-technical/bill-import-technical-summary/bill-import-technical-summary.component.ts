@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Input } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -17,7 +17,6 @@ import { DateTime } from 'luxon';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import * as ExcelJS from 'exceljs';
 
-// Angular SlickGrid imports
 import {
   AngularSlickgridModule,
   Column,
@@ -26,10 +25,13 @@ import {
   AngularGridInstance,
   Editors,
   SlickGrid,
+  Filters,
+  MultipleSelectOption,
 } from 'angular-slickgrid';
 
 // Service import
 import { BillImportTechnicalService } from '../../bill-import-technical/bill-import-technical-service/bill-import-technical.service';
+import { BillImportServiceService } from '../../Sale/BillImport/bill-import-service/bill-import-service.service';
 
 // Form component import
 import { BillImportTechnicalFormComponent } from '../../bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
@@ -93,7 +95,7 @@ interface BillImportTechnicalSummary {
 })
 export class BillImportTechnicalSummaryComponent
   implements OnInit, AfterViewInit {
-  @Input() warehouseId: number = 0;
+  @Input() warehouseId: number = -1;
 
   // Grid
   angularGrid!: AngularGridInstance;
@@ -101,6 +103,7 @@ export class BillImportTechnicalSummaryComponent
   gridOptions!: GridOption;
   dataset: BillImportTechnicalSummary[] = [];
   gridObj!: SlickGrid;
+  warehouseList: any[] = [];
 
   // State
   isLoading: boolean = false;
@@ -118,7 +121,7 @@ export class BillImportTechnicalSummaryComponent
     checkAll: false,
     pageNumber: 1,
     pageSize: 1000000,
-    warehouseId: 0,
+    warehouseId: -1,
   };
 
   // Dropdowns
@@ -137,13 +140,15 @@ export class BillImportTechnicalSummaryComponent
 
   // Track edited cells
   changedRows: Map<number, any> = new Map();
+  filterCollectionUpdateTimer: any;
 
   constructor(
     private notification: NzNotificationService,
     private appUserService: AppUserService,
     private billImportTechnicalService: BillImportTechnicalService,
+    private billImportServiceService: BillImportServiceService,
     private ngbModal: NgbModal,
-    public activeModal: NgbActiveModal
+    @Optional() public activeModal?: NgbActiveModal
   ) { }
 
   ngOnInit(): void {
@@ -158,8 +163,22 @@ export class BillImportTechnicalSummaryComponent
   ngAfterViewInit(): void {
     // Load data sau khi view init
     setTimeout(() => {
+      this.getWarehouseList();
       this.loadBillImportTechnicalSummary();
     }, 0);
+  }
+
+  getWarehouseList() {
+    this.billImportServiceService.getWarehouse().subscribe({
+      next: (res) => {
+        if (res?.data && Array.isArray(res.data)) {
+          this.warehouseList = res.data;
+        }
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy danh sách kho', err);
+      }
+    })
   }
 
   initGridOptions(): void {
@@ -184,9 +203,14 @@ export class BillImportTechnicalSummaryComponent
       enableExcelExport: true,
       autoFitColumnsOnFirstLoad: false,
       enableAutoSizeColumns: false,
+      enableRowSelection: true,
       enableCheckboxSelector: true,
-      // showFooterRow: true,
-      // footerRowHeight: 40,
+      checkboxSelector: {
+        hideSelectAllCheckbox: false,
+      },
+      createFooterRow: true,
+      showFooterRow: true,
+      footerRowHeight: 40,
       rowSelectionOptions: {
         selectActiveRow: false,
       },
@@ -250,27 +274,59 @@ export class BillImportTechnicalSummaryComponent
 
     // Lắng nghe sự kiện cell change để tự động tính DueDate
     this.gridObj.onCellChange.subscribe((_e: any, args: any) => {
-      if (args && args.item) {
-        const item = args.item;
-        const field = this.gridObj.getColumns()[args.cell]?.field;
+      const columnDef = this.gridObj.getColumns()[args.cell];
+      const field = columnDef?.field;
+      const editedItem = args.item;
+      const newValue = editedItem[field as string];
 
-        // Tự động tính DueDate khi DateSomeBill hoặc DPO thay đổi
+      // Track edited row
+      if (editedItem.IDDetail) {
+        this.changedRows.set(editedItem.IDDetail, editedItem);
+      }
+
+      const selectedRowIndexes = this.gridObj.getSelectedRows() || [];
+      const isEditedRowSelected = selectedRowIndexes.includes(args.row);
+
+      if (isEditedRowSelected && selectedRowIndexes.length > 1) {
+        const editableFields = ['SomeBill', 'DateSomeBill', 'DPO', 'TaxReduction', 'COFormE'];
+
+        if (editableFields.includes(field as string)) {
+          selectedRowIndexes.forEach((rowIndex: number) => {
+            if (rowIndex !== args.row) {
+              const item = this.angularGrid.dataView.getItem(rowIndex);
+              if (item) {
+                item[field as string] = newValue;
+                if (item.IDDetail) {
+                  this.changedRows.set(item.IDDetail, item);
+                }
+
+                if (field === 'DateSomeBill' || field === 'DPO') {
+                  const dpo = item.DPO || 0;
+                  if (item.DateSomeBill) {
+                    const dateSomeBill = DateTime.fromISO(item.DateSomeBill);
+                    if (dateSomeBill.isValid) {
+                      item.DueDate = dateSomeBill.plus({ days: dpo }).toISO();
+                    }
+                  }
+                }
+                this.angularGrid.dataView.updateItem(item.id, item);
+              }
+            }
+          });
+          this.gridObj.invalidate();
+        }
+      } else {
+        // Tự động tính DueDate khi DateSomeBill hoặc DPO thay đổi cho 1 dòng
         if (field === 'DateSomeBill' || field === 'DPO') {
-          const dpo = item.DPO || 0;
-          if (item.DateSomeBill) {
-            const dateSomeBill = DateTime.fromISO(item.DateSomeBill);
+          const dpo = editedItem.DPO || 0;
+          if (editedItem.DateSomeBill) {
+            const dateSomeBill = DateTime.fromISO(editedItem.DateSomeBill);
             if (dateSomeBill.isValid) {
-              item.DueDate = dateSomeBill.plus({ days: dpo }).toISO();
-              // Update grid
+              editedItem.DueDate = dateSomeBill.plus({ days: dpo }).toISO();
               this.gridObj.invalidateRow(args.row);
               this.gridObj.render();
             }
           }
-        }
-
-        // Track changed rows
-        if (item.IDDetail) {
-          this.changedRows.set(item.IDDetail, item);
         }
       }
     });
@@ -278,15 +334,24 @@ export class BillImportTechnicalSummaryComponent
     // Cập nhật footer khi filter thay đổi
     this.angularGrid.dataView.onRowCountChanged.subscribe(() => {
       this.updateMasterFooterRow();
+      this.updateFilterCollectionsFromFilteredData();
     });
 
     // Cập nhật footer lần đầu sau khi grid sẵn sàng
     setTimeout(() => {
+      this.applyFilterCollections();
       this.updateMasterFooterRow();
     }, 300);
   }
 
   onCheckAllChange(checked: boolean): void {
+    if (this.searchParams.warehouseId == -1) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn loại kho!'
+      );
+      return;
+    }
     this.searchParams.checkAll = checked;
     this.loadBillImportTechnicalSummary();
   }
@@ -298,11 +363,15 @@ export class BillImportTechnicalSummaryComponent
   loadBillImportTechnicalSummary(): void {
     this.isLoading = true;
 
-    const dateStart = this.searchParams.checkAll
-      ? null
-      : DateTime.fromJSDate(new Date(this.searchParams.dateStart))
-        .startOf('day')
-        .toISO();
+    // const dateStart = this.searchParams.checkAll
+    //   ? null
+    //   : DateTime.fromJSDate(new Date(this.searchParams.dateStart))
+    //     .startOf('day')
+    //     .toISO();
+
+    const dateStart = DateTime.fromJSDate(new Date(this.searchParams.dateStart))
+      .startOf('day')
+      .toISO();
 
     const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd))
       .endOf('day')
@@ -316,7 +385,7 @@ export class BillImportTechnicalSummaryComponent
         dateEnd: dateEnd || '',
         status: this.searchParams.billType,
         filterText: this.searchParams.filterText,
-        warehouseId: this.warehouseId,
+        warehouseId: this.searchParams.warehouseId,
         isAll: this.searchParams.checkAll,
       })
       .subscribe({
@@ -346,7 +415,10 @@ export class BillImportTechnicalSummaryComponent
             if (this.angularGrid && this.angularGrid.dataView) {
               this.angularGrid.dataView.setItems(this.dataset);
               this.gridObj.invalidate();
-              setTimeout(() => this.updateMasterFooterRow(), 100);
+              setTimeout(() => {
+                this.applyFilterCollections();
+                this.updateMasterFooterRow();
+              }, 100);
             }
           } else {
             this.notification.error(
@@ -378,8 +450,19 @@ export class BillImportTechnicalSummaryComponent
         formatter: (_row: number, _cell: number, value: any) => {
           return value ? '✓' : '';
         },
-        width: 70,
+        width: 100,
         cssClass: 'text-center',
+        filter: {
+          collection: [
+            { value: '', label: '' },
+            { value: true, label: 'Đã nhận' },
+            { value: false, label: 'Chưa nhận' },
+          ],
+          model: Filters['singleSelect'],
+          filterOptions: {
+            autoAdjustDropHeight: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'CreatedDate',
@@ -391,6 +474,14 @@ export class BillImportTechnicalSummaryComponent
         params: { dateFormat: 'DD/MM/YYYY' },
         width: 120,
         cssClass: 'text-center',
+      },
+      {
+        id: 'WarehouseName',
+        name: 'Kho',
+        field: 'WarehouseName',
+        sortable: true,
+        filterable: true,
+        width: 120,
       },
       {
         id: 'BillTypeText',
@@ -498,14 +589,6 @@ export class BillImportTechnicalSummaryComponent
         sortable: true,
         filterable: true,
         width: 150,
-      },
-      {
-        id: 'WarehouseName',
-        name: 'Kho',
-        field: 'WarehouseName',
-        sortable: true,
-        filterable: true,
-        width: 120,
       },
       {
         id: 'ProductCodeRTC',
@@ -762,17 +845,66 @@ export class BillImportTechnicalSummaryComponent
     }));
 
     // Combine all columns
-    this.columnDefinitions = [
+    let newColumns = [
       ...this.columnDefinitions,
       statusColumn,
       ...documentColumns,
     ];
 
-    // Update grid columns nếu grid đã sẵn sàng
-    if (this.angularGrid && this.gridObj) {
-      this.gridObj.setColumns(this.columnDefinitions);
-      this.gridObj.invalidate();
+    const dateFields = ['CreatedDate', 'DateRequestImport', 'CreatDate', 'DateSomeBill', 'DueDate'];
+    const moneyFields = ['Quantity', 'DPO', 'TaxReduction', 'COFormE', 'Price', 'TotalPrice', 'UnitPricePO', 'VATPO', 'TotalPricePO'];
+    const statusFields = ['Status', 'IsBill'];
+
+    // Add filters to filterable columns dynamically
+    newColumns.forEach(col => {
+      if (col.filterable && !col.filter) {
+        if (dateFields.includes(col.field)) {
+          col.filter = { model: Filters['compoundDate'] };
+        } else if (moneyFields.includes(col.field)) {
+          col.filter = { model: Filters['compoundInputText'] };
+        } else if (statusFields.includes(col.field)) {
+          col.filter = {
+            collection: [
+              { value: '', label: '--Tất cả--' },
+              { value: true, label: col.id === 'Status' ? 'Đã nhận' : 'Có' },
+              { value: false, label: col.id === 'Status' ? 'Chưa nhận' : 'Không' }
+            ],
+            model: Filters['multipleSelect'],
+            collectionOptions: {
+              addBlankEntry: false
+            },
+            filterOptions: {
+              autoAdjustDropHeight: true,
+              filter: true,
+            } as MultipleSelectOption,
+          };
+        } else {
+          col.filter = {
+            collection: [],
+            model: Filters['multipleSelect'],
+            collectionOptions: {
+              addBlankEntry: true
+            },
+            filterOptions: {
+              autoAdjustDropHeight: true,
+              filter: true,
+            } as MultipleSelectOption,
+          };
+        }
+      }
+    });
+
+    // Giữ lại checkbox_selector nếu nó đang tồn tại trên grid
+    if (this.angularGrid && this.angularGrid.gridService) {
+      const allCols = this.angularGrid.gridService.getAllColumnDefinitions() || [];
+      const checkboxCol = allCols.find(c => c.id === '_checkbox_selector');
+
+      if (checkboxCol && newColumns[0]?.id !== '_checkbox_selector') {
+        newColumns = [checkboxCol, ...newColumns];
+      }
     }
+
+    this.columnDefinitions = newColumns;
   }
 
   saveChanges(): void {
@@ -1153,32 +1285,26 @@ export class BillImportTechnicalSummaryComponent
         }
       );
 
+      const fmt = (n: number) => n.toLocaleString('en-US');
+
+      const footerMap: Record<string, string> = {
+        BillCode: `<b>${fmt(codeCount)}</b>`,
+        Quantity: `<b>${fmt(Math.round(totals.Quantity))}</b>`,
+        DPO: `<b>${fmt(Math.round(totals.DPO))}</b>`,
+        TaxReduction: `<b>${fmt(totals.TaxReduction)}</b>`,
+        COFormE: `<b>${fmt(totals.COFormE)}</b>`,
+        Price: `<b>${fmt(totals.Price)}</b>`,
+        TotalPrice: `<b>${fmt(totals.TotalPrice)}</b>`,
+        UnitPricePO: `<b>${fmt(totals.UnitPricePO)}</b>`,
+        VATPO: `<b>${fmt(totals.VATPO)}</b>`,
+        TotalPricePO: `<b>${fmt(totals.TotalPricePO)}</b>`,
+      };
+
       const columns = this.angularGrid.slickGrid.getColumns();
       columns.forEach((col: any) => {
         const footerCell = this.angularGrid.slickGrid.getFooterRowColumn(col.id);
         if (!footerCell) return;
-
-        if (col.id === 'BillCode') {
-          footerCell.innerHTML = `<b style="color:#1890ff">${codeCount.toLocaleString('en-US')}</b>`;
-        } else if (col.id === 'Quantity') {
-          footerCell.innerHTML = `<b>${Math.round(totals.Quantity).toLocaleString('en-US')}</b>`;
-        } else if (col.id === 'DPO') {
-          footerCell.innerHTML = `<b>${Math.round(totals.DPO).toLocaleString('en-US')}</b>`;
-        } else if (col.id === 'TaxReduction') {
-          footerCell.innerHTML = `<b>${totals.TaxReduction.toLocaleString('en-US')}</b>`;
-        } else if (col.id === 'COFormE') {
-          footerCell.innerHTML = `<b>${totals.COFormE.toLocaleString('en-US')}</b>`;
-        } else if (col.id === 'Price') {
-          footerCell.innerHTML = `<b>${totals.Price.toLocaleString('en-US')}</b>`;
-        } else if (col.id === 'TotalPrice') {
-          footerCell.innerHTML = `<b>${totals.TotalPrice.toLocaleString('en-US')}</b>`;
-        } else if (col.id === 'UnitPricePO') {
-          footerCell.innerHTML = `<b>${totals.UnitPricePO.toLocaleString('en-US')}</b>`;
-        } else if (col.id === 'VATPO') {
-          footerCell.innerHTML = `<b>${totals.VATPO.toLocaleString('en-US')}</b>`;
-        } else if (col.id === 'TotalPricePO') {
-          footerCell.innerHTML = `<b>${totals.TotalPricePO.toLocaleString('en-US')}</b>`;
-        }
+        footerCell.innerHTML = footerMap[col.id] ?? '';
       });
     }
   }
@@ -1187,6 +1313,60 @@ export class BillImportTechnicalSummaryComponent
    * Đóng modal
    */
   closeModal(): void {
-    this.activeModal.dismiss('cancel');
+    this.activeModal?.dismiss('cancel');
+  }
+
+  onWarehouseChange(value: number | null): void {
+    this.searchParams.warehouseId = value ?? -1;
+  }
+
+  private updateFilterCollectionsFromFilteredData(): void {
+    clearTimeout(this.filterCollectionUpdateTimer);
+    this.filterCollectionUpdateTimer = setTimeout(() => {
+      this.applyFilterCollections();
+    }, 400);
+  }
+
+  private applyFilterCollections(): void {
+    if (!this.angularGrid || !this.angularGrid.slickGrid) return;
+
+    const columns = this.angularGrid.slickGrid.getColumns();
+    const filteredItems = this.angularGrid.dataView.getFilteredItems() || [];
+
+    const activeFilterColumnIds = new Set(
+      (this.angularGrid.filterService?.getCurrentLocalFilters() || [])
+        .filter((f: any) => f.searchTerms?.length && String(f.searchTerms[0]) !== '')
+        .map((f: any) => f.columnId)
+    );
+
+    const getUniqueValuesFromData = (data: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      data.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value && value.trim() !== '' && !map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      return Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+    };
+
+    let hasChanges = false;
+    columns.forEach((column: any) => {
+      if (
+        column.filter &&
+        column.filter.model === Filters['multipleSelect']
+      ) {
+        const sourceData = activeFilterColumnIds.has(column.id) ? this.dataset : filteredItems;
+        column.filter.collection = getUniqueValuesFromData(sourceData, column.field);
+        hasChanges = true;
+      }
+    });
+
+    if (hasChanges) {
+      this.angularGrid.slickGrid.setColumns(columns);
+      this.updateMasterFooterRow();
+    }
   }
 }

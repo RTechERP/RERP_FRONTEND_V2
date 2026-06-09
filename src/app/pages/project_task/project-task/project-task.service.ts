@@ -195,15 +195,20 @@ export class ProjectTaskService {
         });
 
         // Auto-width
-        worksheet.columns.forEach((column: any) => {
-            let maxLength = 10;
-            column.eachCell({ includeEmpty: true }, (cell: any) => {
-                const columnLength = cell.value ? cell.value.toString().length : 10;
-                if (columnLength > maxLength) {
-                    maxLength = columnLength;
-                }
-            });
-            column.width = Math.min(maxLength + 2, 50);
+        worksheet.columns.forEach((column: any, idx: number) => {
+            const colConfig = cols[idx];
+            if (colConfig && colConfig.width) {
+                column.width = colConfig.width;
+            } else {
+                let maxLength = 10;
+                column.eachCell({ includeEmpty: true }, (cell: any) => {
+                    const columnLength = cell.value ? cell.value.toString().length : 10;
+                    if (columnLength > maxLength) {
+                        maxLength = columnLength;
+                    }
+                });
+                column.width = Math.min(maxLength + 2, 50);
+            }
         });
 
         // Áp dụng postProcess nếu có (Ví dụ gộp dòng cho Timeline)

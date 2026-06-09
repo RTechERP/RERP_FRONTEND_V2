@@ -188,6 +188,14 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
         return this.paymentService.readMoney(this.currentTotal, unit);
     }
 
+    get filteredBankList(): any[] {
+        const unit = this.validateForm?.get('Unit')?.value;
+        if (unit?.toLowerCase() === 'vnd') {
+            return this.bankList.filter(item => item.ID !== 187 && !(item.BankName || '').toLowerCase().includes('khác'));
+        }
+        return this.bankList;
+    }
+
     constructor(
         public activeModal: NgbActiveModal,
         private fb: NonNullableFormBuilder,
@@ -328,7 +336,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
             ),
             ContentBankTransferType: this.fb.control(this.paymentOrder.ContentBankTransferType === 0 ? 1 : this.paymentOrder.ContentBankTransferType),
             ContentBankTransfer: this.fb.control(this.paymentOrder.ContentBankTransfer),
-            Unit: this.fb.control(this.paymentOrder.Unit?.toLowerCase(), [Validators.required]),
+            Unit: this.fb.control((this.paymentOrder.ID <= 0 || !this.paymentOrder.Unit) ? 'vnd' : this.paymentOrder.Unit.toLowerCase(), [Validators.required]),
             TaxCompanyID: this.fb.control({ value: (this.paymentOrder.ID <= 0 || this.isCopy) ? this.appUserService.currentUser?.TaxCompanyID : this.paymentOrder.TaxCompanyID, disabled: true }),
 
         });
@@ -466,6 +474,17 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                 }
                 contentCtrl?.updateValueAndValidity();
             });
+
+        this.validateForm.get('Unit')?.valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe((v: string) => {
+                if (v?.toLowerCase() === 'vnd') {
+                    if (this.validateForm.get('BankListID')?.value === 187) {
+                        this.validateForm.get('BankListID')?.setValue(null);
+                        this.validateForm.get('Bank')?.setValue('');
+                    }
+                }
+            });
+
         if (initialTypePayment) {
             this.validateForm.get('TypePayment')?.updateValueAndValidity();
         }

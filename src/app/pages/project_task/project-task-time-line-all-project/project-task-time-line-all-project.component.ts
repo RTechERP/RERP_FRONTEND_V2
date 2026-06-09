@@ -90,6 +90,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     loading = signal(false);
     dateColumns: any[] = [];
     treeData: TreeTaskNode[] = [];
+    filteredTreeData: TreeTaskNode[] = [];
     flatVisibleData: TreeTaskNode[] = [];
     
     // Infinite Scroll state
@@ -137,8 +138,8 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         // Thiết lập thời gian mặc định: 3 tháng (tháng trước, tháng hiện tại, tháng sau)
         this.dateStart = this.getDefaultDateStart();
         this.dateEnd = this.getDefaultDateEnd();
-        this.departmentId = this.appUserService.departmentID || 0;
-        this.teamId = this.appUserService.currentUser?.TeamOfUser || 0;
+        this.departmentId = 0;
+        this.teamId = 0;
 
         // Nhận data từ tab trước truyền sang
         if (this.tabData) {
@@ -274,8 +275,8 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
     resetSearch(): void {
         this.dateStart = this.getDefaultDateStart();
         this.dateEnd = this.getDefaultDateEnd();
-        this.departmentId = this.appUserService.departmentID || 0;
-        this.teamId = this.appUserService.currentUser?.TeamOfUser || 0;
+        this.departmentId = 0;
+        this.teamId = 0;
         this.selectedStatuses = [];
         this.filterTaskKeyword = '';
         this.filterStatusColumn = [];
@@ -578,6 +579,17 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         return result;
     }
 
+    private flattenTreeForExport(nodes: TreeTaskNode[]): TreeTaskNode[] {
+        const result: TreeTaskNode[] = [];
+        for (const node of nodes) {
+            result.push(node);
+            if (node.children.length > 0) {
+                result.push(...this.flattenTreeForExport(node.children));
+            }
+        }
+        return result;
+    }
+
     // ===== BỘ LỌC =====
 
     applyFilters(resetScroll: boolean = true) {
@@ -609,6 +621,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
             filtered = this.filterTreeByProperty(filtered, 'ProjectTypeName', this.filterCategoryColumn);
         }
 
+        this.filteredTreeData = filtered;
         this.flatVisibleData = this.flattenTree(filtered);
 
         if (resetScroll) {
@@ -973,7 +986,7 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
             cols.push({
                 header: `${dateCol.dayName}\n${dateCol.dateDisplay}`,
                 field: dateCol.dateStr,
-                width: 6,
+                width: 7.5,
                 align: 'center',
                 renderValue: (item: any) => {
                     if (item.TypeDate === 1 && this.hasCheckMark(item, dateCol.dateStr)) {
@@ -1027,8 +1040,11 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
                             }
                         }
                     }
+                    if (dateCol.isToday) {
+                        return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F7FF' } } };
+                    }
                     if (dateCol.isSunday || dateCol.isDayOff) {
-                        return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F5F5' } } };
+                        return { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } } };
                     }
                     return {};
                 }
@@ -1039,14 +1055,25 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
         const flattenedData: any[] = [];
         const mergeRanges: any[] = [];
         const outlineLevels: { row: number, level: number }[] = [];
+        const parentRows: { row: number, isRoot: boolean }[] = [];
 
-        this.flatVisibleData.forEach((task: any, index: number) => {
+        const exportData = this.flattenTreeForExport(this.filteredTreeData.length > 0 ? this.filteredTreeData : this.treeData);
+
+        exportData.forEach((task: any, index: number) => {
             const taskStartRow = flattenedData.length + 2; // +1 cho header, +1 vì index 0
 
             // Lưu cấp độ (outline level) cho 2 dòng của task
             const level = task.level || 0;
+            const isParent = task.children && task.children.length > 0;
+            const isRoot = level === 0 && isParent;
+
             outlineLevels.push({ row: taskStartRow, level });
             outlineLevels.push({ row: taskStartRow + 1, level });
+
+            if (isParent) {
+                parentRows.push({ row: taskStartRow, isRoot });
+                parentRows.push({ row: taskStartRow + 1, isRoot });
+            }
 
             // Tạo indent cho Tên công việc dựa vào level (nếu muốn)
             const indent = '  '.repeat(level);
@@ -1119,6 +1146,65 @@ export class ProjectTaskTimeLineAllProjectComponent implements OnInit, AfterView
                     ws.mergeCells(range.s.r, range.s.c, range.e.r, range.e.c);
                     const cell = ws.getCell(range.s.r, range.s.c);
                     cell.alignment = { vertical: 'middle', horizontal: range.s.c === 1 ? 'center' : 'left', wrapText: true };
+                });
+
+                // Highlight Today & Header Date
+                const fixedHeadersLen = 9;
+                const todayColIdx = this.dateColumns.findIndex((c: any) => c.isToday);
+                const excelTodayColNum = todayColIdx >= 0 ? fixedHeadersLen + todayColIdx + 1 : -1;
+
+                ws.eachRow((row: any, rowNumber: number) => {
+                    const parentInfo = parentRows.find(p => p.row === rowNumber);
+
+                    row.eachCell({ includeEmpty: true }, (cell: any, colNumber: number) => {
+                        // Xử lý Parent row background
+                        if (parentInfo && rowNumber > 1) {
+                            if (!cell.fill || cell.fill.type === 'none') {
+                                if (parentInfo.isRoot && colNumber <= 6) {
+                                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF8FF' } };
+                                } else {
+                                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFAFBFC' } };
+                                }
+                            }
+                        }
+
+                        // Xử lý border đỏ cho Today
+                        if (excelTodayColNum > 0) {
+                            let leftBorder: any = undefined;
+                            let rightBorder: any = undefined;
+
+                            if (colNumber === excelTodayColNum) {
+                                leftBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+                                rightBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+                            } else if (colNumber === excelTodayColNum + 1) {
+                                leftBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+                            } else if (colNumber === excelTodayColNum - 1) {
+                                rightBorder = { style: 'medium', color: { argb: 'FFFF4D4F' } };
+                            }
+
+                            if (leftBorder || rightBorder) {
+                                cell.border = {
+                                    top: cell.border?.top || { style: 'thin', color: { argb: 'FFD9D9D9' } },
+                                    bottom: cell.border?.bottom || { style: 'thin', color: { argb: 'FFD9D9D9' } },
+                                    left: leftBorder || cell.border?.left || { style: 'thin', color: { argb: 'FFD9D9D9' } },
+                                    right: rightBorder || cell.border?.right || { style: 'thin', color: { argb: 'FFD9D9D9' } }
+                                };
+                            }
+                        }
+
+                        // Xử lý Header (dòng 1) cho DayOff và Today
+                        if (rowNumber === 1 && colNumber > fixedHeadersLen) {
+                            const dCol = this.dateColumns[colNumber - fixedHeadersLen - 1];
+                            if (dCol) {
+                                if (dCol.isSunday || dCol.isDayOff) {
+                                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+                                    cell.font = { ...cell.font, color: { argb: 'FFE11D48' } };
+                                } else if (dCol.isToday) {
+                                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F7FF' } };
+                                }
+                            }
+                        }
+                    });
                 });
             }
         );

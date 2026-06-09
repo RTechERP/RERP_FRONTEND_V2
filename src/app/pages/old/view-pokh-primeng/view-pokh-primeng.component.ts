@@ -100,6 +100,17 @@ export class ViewPokhPrimengComponent implements OnInit {
   exportColumnDefinitions: PrimeViewColumn[] = [];
   invoiceColumnDefinitions: PrimeViewColumn[] = [];
 
+  // Pagination & Virtual Scroll
+  currentRowsPerPage: number = 50;
+
+  get isVirtualScrollEnabled(): boolean {
+    return this.currentRowsPerPage >= 500;
+  }
+
+  onPageChange(event: any): void {
+    this.currentRowsPerPage = event.rows;
+  }
+
   selectedRows: any[] = [];
   selectedRowsAll: any[] = [];
   selectedRowsInView: any[] = [];
@@ -209,9 +220,9 @@ export class ViewPokhPrimengComponent implements OnInit {
       { field: 'Unit', header: 'ĐVT', width: '60px', sortable: true, filterMode: 'input' },
       { field: 'NetUnitPrice', header: 'Đơn giá NET', width: '130px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
       { field: 'UnitPrice', header: 'Đơn giá (chưa VAT)', width: '150px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
-      { field: 'IntoMoney', header: 'Tổng giá (chưa VAT)', width: '160px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
       { field: 'DiscountAmount', header: 'Tiền chiết khấu', width: '150px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
       { field: 'IntoMoneyAfterDiscount', header: 'Đơn giá sau chiết khấu', width: '180px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
+      { field: 'IntoMoney', header: 'Tổng giá (chưa VAT)', width: '160px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
       { field: 'VAT', header: 'VAT(%)', width: '90px', sortable: true, filterType: 'numeric', cssClass: 'text-right' },
       { field: 'TotalPriceIncludeVAT', header: 'Tổng tiền (gồm VAT)', width: '170px', sortable: true, filterType: 'numeric', format: money, cssClass: 'text-right', ...numericFooter },
       { field: 'DeliveryRequestedDate', header: 'Ngày dự kiến GH', width: '130px', sortable: true, filterMode: 'datetime', filterType: 'date', format: date, cssClass: 'text-center' },
@@ -723,9 +734,9 @@ export class ViewPokhPrimengComponent implements OnInit {
       { field: 'Unit', title: 'ĐVT', width: 8 },
       { field: 'NetUnitPrice', title: 'Đơn giá NET', width: 15, isMoney: true },
       { field: 'UnitPrice', title: 'Đơn giá (chưa VAT)', width: 18, isMoney: true },
-      { field: 'IntoMoney', title: 'Tổng giá (chưa VAT)', width: 18, isMoney: true },
       { field: 'DiscountAmount', title: 'Tiền chiết khấu', width: 18, isMoney: true },
       { field: 'IntoMoneyAfterDiscount', title: 'Đơn giá sau chiết khấu', width: 20, isMoney: true },
+      { field: 'IntoMoney', title: 'Tổng giá (chưa VAT)', width: 18, isMoney: true },
       { field: 'VAT', title: 'VAT(%)', width: 10 },
       { field: 'TotalPriceIncludeVAT', title: 'Tổng tiền (gồm VAT)', width: 20, isMoney: true },
     ];

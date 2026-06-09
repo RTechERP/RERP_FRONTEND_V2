@@ -65,7 +65,7 @@
                   <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                 </th>
                 <th *ngFor="let col of columns" [pSortableColumn]="col.field" [style.width]="col.width"
-                  class="text-center">
+                  class="text-center" style="font-size: 12px;">
                   {{col.header}} <p-sortIcon [field]="col.field" />
                 </th>
               </tr>
@@ -82,7 +82,7 @@
                     class="p-column-filter w-100 fs-12 px-2 py-1"
                     style="height: 28px; border: 1px solid #ced4da; border-radius: 4px;">
                   <input *ngIf="col.filterType === 'number'" pInputText type="number" [(ngModel)]="col.filterValue"
-                    (input)="onFilterChange()" placeholder="Lọc số..." class="p-column-filter w-100 fs-12 px-2 py-1"
+                    (input)="onFilterChange()" placeholder="Lọc..." class="p-column-filter w-100 fs-12 px-2 py-1"
                     style="height: 28px; border: 1px solid #ced4da; border-radius: 4px;">
                 </th>
               </tr>
@@ -97,11 +97,20 @@
                   <ng-container [ngSwitch]="col.field">
                     <textarea *ngSwitchCase="'MatHang'" nz-input rows="2" [(ngModel)]="item.MatHang"
                       [ngModelOptions]="{standalone: true}" placeholder="Mặt hàng..."
-                      class="w-100 fs-12 custom-textarea" style="resize: vertical;"></textarea>
+                      class="w-100 fs-12 custom-textarea" style="resize: vertical; font-size: 12px;"></textarea>
                     <textarea *ngSwitchCase="'Note'" nz-input rows="2" [(ngModel)]="item.Note"
                       [ngModelOptions]="{standalone: true}" placeholder="Ghi chú..." class="w-100 fs-12 custom-textarea"
-                      style="resize: vertical;"></textarea>
-                    <span *ngSwitchDefault>{{item[col.field]}}</span>
+                      style="resize: vertical; font-size: 12px;"></textarea>
+                    <textarea *ngSwitchCase="'Website'" nz-input rows="2" [(ngModel)]="item.Website"
+                      [ngModelOptions]="{standalone: true}" placeholder="Website..." class="w-100 fs-12 custom-textarea"
+                      style="resize: vertical; font-size: 12px;"></textarea>
+                    <textarea *ngSwitchCase="'AgencyTime'" nz-input rows="2" [(ngModel)]="item.AgencyTime"
+                      [ngModelOptions]="{standalone: true}" placeholder="Thời điểm..." class="w-100 fs-12 custom-textarea"
+                      style="resize: vertical; font-size: 12px;"></textarea>
+                    <div *ngSwitchCase="'IsAgencyCertified'" class="text-center">
+                      <label nz-checkbox [(ngModel)]="item.IsAgencyCertified" [ngModelOptions]="{standalone: true}"></label>
+                    </div>
+                    <span *ngSwitchDefault style="font-size: 12px;">{{item[col.field]}}</span>
                   </ng-container>
                 </td>
               </tr>

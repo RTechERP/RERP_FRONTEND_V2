@@ -191,7 +191,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     private tabulatorPopupService: TabulatorPopupService,
     private billExportService: BillExportService,
     private billImportChoseSerialService: BillImportChoseSerialService
-  ) {}
+  ) { }
 
   supplierOrCustomerValidator(
     control: AbstractControl
@@ -232,12 +232,12 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         Validators.required,
       ],
       DeliverID: [null, Validators.required],
-      ReceiverID: [null, Validators.required],
+      ReceiverID: [this.warehouseID == 6 ? 586 : null, Validators.required],
       WarehouseID: [this.warehouseID, Validators.required],
       SupplierSaleID: [null, this.supplierOrCustomerValidator.bind(this)],
       RulePayID: [34, Validators.required],
       CustomerID: [null, this.supplierOrCustomerValidator.bind(this)],
-      ApproverID: [this.warehouseType === 2 ? 97 : 54, Validators.required], //54:Phạm Văn Quyền; 97:Bùi Mạnh Cần
+      ApproverID: [this.warehouseID == 6 ? 1544 : this.warehouseType === 2 ? 97 : 54, Validators.required], //54:Phạm Văn Quyền; 97:Bùi Mạnh Cần
       Receiver: [''],
       Status: [false],
       Suplier: [''],
@@ -1059,12 +1059,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
             const product = this.productOptions.find((p) => p.ID === productId);
             const productCode = product ? product.ProductCode : '';
             return `
-              <button class="btn-toggle-detail w-100 h-100" title="${
-                productCode || 'Chọn sản phẩm'
+              <button class="btn-toggle-detail w-100 h-100" title="${productCode || 'Chọn sản phẩm'
               }">
-                <span class="product-code-text">${
-                  productCode || 'Chọn SP'
-                }</span>
+                <span class="product-code-text">${productCode || 'Chọn SP'
+              }</span>
                 <span class="arrow">&#9662;</span>
               </button>
             `;
@@ -1311,7 +1309,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         rowData['SerialIDs'] = serialIDs;
         row.update(rowData);
       })
-      .catch(() => {});
+      .catch(() => { });
   }
   // Thêm dòng mới vào bảng tạm
   addRow() {

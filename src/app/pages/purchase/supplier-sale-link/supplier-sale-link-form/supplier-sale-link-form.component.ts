@@ -85,10 +85,13 @@ export class SupplierSaleLinkFormComponent implements OnInit {
   searchSubject = new Subject<string>();
 
   columns: ColDef[] = [
-    { field: 'CodeNCC', header: 'Mã', width: '150px', filterType: 'multiselect' },
-    { field: 'NameNCC', header: 'Tên nhà cung cấp', width: '350px', filterType: 'multiselect' },
-    { field: 'MatHang', header: 'Mặt hàng', width: '650px', filterType: 'text' },
-    { field: 'Note', header: 'Ghi chú', width: 'auto', filterType: 'text' }
+    { field: 'CodeNCC', header: 'Mã', width: '120px', filterType: 'multiselect' },
+    { field: 'NameNCC', header: 'Tên nhà cung cấp', width: '220px', filterType: 'multiselect' },
+    { field: 'MatHang', header: 'Mặt hàng', width: '250px', filterType: 'text' },
+    { field: 'Website', header: 'Website', width: '200px', filterType: 'text' },
+    { field: 'IsAgencyCertified', header: 'Chứng nhận ĐL', width: '50px', filterType: 'multiselect', type: 'boolean' },
+    { field: 'AgencyTime', header: 'Thời điểm làm ĐL', width: '180px', filterType: 'text' },
+    { field: 'Note', header: 'Ghi chú', width: '300px', filterType: 'text' }
   ];
 
   constructor(
@@ -209,6 +212,9 @@ export class SupplierSaleLinkFormComponent implements OnInit {
           NameNCC: x.NameNCC,
           MatHang: x.MatHang,
           Note: x.Note,
+          Website: x.Website,
+          AgencyTime: x.AgencyTime,
+          IsAgencyCertified: x.IsAgencyCertified,
           IsSelected: 1
         }));
         if (this.lastLazyLoadEvent) {
@@ -309,12 +315,20 @@ export class SupplierSaleLinkFormComponent implements OnInit {
   refreshFilters() {
     this.columns.forEach(col => {
       if (col.filterType === 'multiselect') {
-        const set = new Set<string>();
+        const set = new Set<any>();
         this.suppliers.forEach(row => {
           const v = row?.[col.field];
-          if (v !== null && v !== undefined && v !== '') set.add(String(v));
+          if (v !== null && v !== undefined && v !== '') {
+            set.add(v);
+          }
         });
-        col.filterOptions = Array.from(set).sort().map(v => ({ label: v, value: v }));
+        col.filterOptions = Array.from(set).sort().map(v => {
+          if (col.type === 'boolean') {
+            const isTrue = String(v).toLowerCase() === 'true' || v === true || v === 1;
+            return { label: isTrue ? 'Yes' : 'No', value: isTrue };
+          }
+          return { label: String(v), value: v };
+        });
       }
     });
     this.onFilterChange();
@@ -346,7 +360,10 @@ export class SupplierSaleLinkFormComponent implements OnInit {
         SupplierSaleID: s.ID,
         EmployeePurchaseID: employeeID,
         Note: s.Note || '',
-        MatHang: s.MatHang || ''
+        MatHang: s.MatHang || '',
+        Website: s.Website || '',
+        AgencyTime: s.AgencyTime || '',
+        IsAgencyCertified: !!s.IsAgencyCertified
       }));
 
       // Validation: MatHang is required for all selected items

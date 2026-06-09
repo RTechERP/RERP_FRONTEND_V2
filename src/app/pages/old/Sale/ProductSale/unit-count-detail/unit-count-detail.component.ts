@@ -21,6 +21,7 @@ interface UnitCount {
   ID?: number;
   UnitCode: string;
   UnitName: string;
+  UnitDescription?: string;
 }
 
 // Custom validator để kiểm tra ký tự tiếng Việt
@@ -62,6 +63,7 @@ export class UnitCountDetailComponent implements OnInit, AfterViewInit {
   newUnitCount: UnitCount = {
     UnitName: '',
     UnitCode: '',
+    UnitDescription: '',
   };
 
   @Input() listProductGroupcbb: any[] = [];
@@ -76,7 +78,8 @@ export class UnitCountDetailComponent implements OnInit, AfterViewInit {
   ) {
     this.formGroup = this.fb.group({
       UnitCode: ['', [Validators.required]],
-      UnitName: ['', [Validators.required]]
+      UnitName: ['', [Validators.required]],
+      UnitDescription: ['']
     });
   }
 
@@ -86,13 +89,15 @@ export class UnitCountDetailComponent implements OnInit, AfterViewInit {
       this.newUnitCount.ID = this.unitCount.ID;
       this.formGroup.patchValue({
         UnitCode: this.unitCount.UnitCode || '',
-        UnitName: this.unitCount.UnitName || ''
+        UnitName: this.unitCount.UnitName || '',
+        UnitDescription: this.unitCount.UnitDescription || ''
       });
     } else {
       // mặc định (thêm mới)
       this.formGroup.patchValue({
         UnitCode: this.newUnitCount.UnitCode || '',
-        UnitName: this.newUnitCount.UnitName || ''
+        UnitName: this.newUnitCount.UnitName || '',
+        UnitDescription: this.newUnitCount.UnitDescription || ''
       });
     }
   }
@@ -111,8 +116,9 @@ if (this.formGroup.invalid) {
   }
     const formValue = this.formGroup.getRawValue();
     const payload: any = {
-      UnitCode: formValue.UnitCode,
-      UnitName: formValue.UnitName
+      UnitCode: formValue.UnitCode?.trim(),
+      UnitName: formValue.UnitName?.trim(),
+      UnitDescription: formValue.UnitDescription?.trim()
     };
 
     // Nếu có ID -> update, ngược lại -> create

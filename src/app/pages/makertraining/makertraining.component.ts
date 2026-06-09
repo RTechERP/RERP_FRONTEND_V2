@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { FormsModule } from '@angular/forms';
+import { environment } from '../../../environments/environment';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
@@ -154,7 +155,20 @@ export class MakertrainingComponent implements OnInit {
       header: 'Phòng Ban',
       sortable: true,
       filterType: 'text',
-      filterMode: 'multiselect',
+      filterMode: 'input',
+      minWidth: 250,
+      textWrap: true,
+      format: (value: any) => {
+        if (!value) return '';
+        const departments = value.split(',').map((d: string) => d.trim()).filter((d: string) => d);
+        if (departments.length === 0) return '';
+        let html = '<span class="dept-tags">';
+        departments.forEach((dept: string) => {
+          html += `<span class="dept-tag">${dept}</span>`;
+        });
+        html += '</span>';
+        return html;
+      },
     },
     {
       field: 'TypeName',
@@ -202,6 +216,24 @@ export class MakertrainingComponent implements OnInit {
       format: (value: any) =>
         value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy HH:mm:ss') : '',
     },
+    // {
+    //   field: 'VideoCount',
+    //   header: 'Video & Playlist',
+    //   sortable: false,
+    //   filterType: 'text',
+    //   clickable: true,
+    //   headerFormat: () => 'Video & Playlist',
+    //   format: (value: any) => {
+    //     if (value && value > 0) {
+    //       const icon = value > 1 ? 'pi-list' : 'pi-play';
+    //       return `<button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm d-flex justify-content-center align-items-center" style="gap: 6px; font-size: 12px; height: 28px;">
+    //                     <i class="pi ${icon}" style="font-size: 12px; color: blue"></i>
+    //                     <span class="fw-bold">Video (${value})</span>
+    //                 </button>`;
+    //     }
+    //     return '';
+    //   }
+    // },
     {
       field: 'IsTest',
       header: 'Bài kiểm tra',
@@ -351,6 +383,27 @@ export class MakertrainingComponent implements OnInit {
         },
       },
       {
+        label: 'Danh sách video',
+        icon: 'fa-solid fa-circle-play fa-lg text-info',
+        visible: this.permissionService.hasPermission('N85,N32'),
+        command: () => {
+          if (!this.selectedMakerTraining || this.selectedMakerTraining.length === 0) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn 1 khóa đào tạo!');
+            return;
+          }
+          if (this.selectedMakerTraining.length > 1) {
+            this.notification.warning('Thông báo', 'Chỉ chọn 1 khóa đào tạo để xem danh sách video!');
+            return;
+          }
+          const rowData = this.selectedMakerTraining[0];
+          if (rowData.VideoCount > 0) {
+            this.onMainTableCellAction({ field: 'VideoCount', rowData: rowData });
+          } else {
+            this.notification.info('Thông báo', 'Khóa đào tạo này chưa có video nào!');
+          }
+        },
+      },
+      {
         label: 'Xuất excel',
         icon: 'fa-solid fa-file-excel fa-lg text-success',
         visible: this.permissionService.hasPermission('N85,N32'),
@@ -439,6 +492,63 @@ export class MakertrainingComponent implements OnInit {
         this.makerTrainingFileData = response.data?.MakerTrainingDocument || [];
       },
     );
+  }
+
+  // ---- Video Playlist Modal ----
+  isVisibleVideoModal: boolean = false;
+  currentPlaylist: any[] = [];
+  currentPlayingVideo: any = null;
+  playlistCategoryName: string = '';
+
+  onMainTableCellAction(event: { field: string; rowData: any }) {
+    if (event.field === 'VideoCount' && event.rowData.VideoCount > 0) {
+      this.playlistCategoryName = event.rowData.TypeName || 'N/A';
+      this.MakerTrainingService.getMakerTrainingData(event.rowData.ID).subscribe(
+        (response: any) => {
+          let videos = response.data?.MakerTrainingVideoLink || [];
+
+          // Prefix UrlVideo with host if it's relative
+          videos = videos.map((v: any) => {
+            let url = v.UrlVideo || '';
+            // Always use stream endpoint so it reads from physical path correctly
+            url = environment.host + 'api/StreamTraining/stream-maker-training/' + v.ID;
+
+            return { ...v, FullUrl: url };
+          });
+
+          this.currentPlaylist = videos;
+          if (this.currentPlaylist.length > 0) {
+            this.currentPlayingVideo = this.currentPlaylist[0];
+          }
+          this.isVisibleVideoModal = true;
+        }
+      );
+    }
+  }
+
+  closeVideoModal() {
+    this.isVisibleVideoModal = false;
+    this.currentPlayingVideo = null;
+    this.currentPlaylist = [];
+  }
+
+  playVideo(video: any) {
+    this.currentPlayingVideo = video;
+  }
+
+  onMetadataLoaded(event: any, video: any) {
+    const duration = event.target.duration;
+    if (duration && !isNaN(duration) && duration !== Infinity) {
+      const hours = Math.floor(duration / 3600);
+      const minutes = Math.floor((duration % 3600) / 60);
+      const seconds = Math.floor(duration % 60);
+
+      const hStr = hours < 10 ? '0' + hours : hours.toString();
+      const mStr = minutes < 10 ? '0' + minutes : minutes.toString();
+      const sStr = seconds < 10 ? '0' + seconds : seconds.toString();
+
+      video.VideoDuration = `${hStr}:${mStr}:${sStr}`;
+    }
   }
 
   getdataDepartment() {

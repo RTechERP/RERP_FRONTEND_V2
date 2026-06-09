@@ -228,16 +228,15 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 // this.initSseConnection();
             }
         });
-
-        // mở new tab
-
     }
     getQuantityApprove() {
+        if (!this.permissionService.hasPermission('N1,N85,N32')) {
+            this.quantityApprove = { Count: 0 };
+            return of(null);
+        }
         return this.approveTpService.getQuantityApprove().pipe(
             tap((res: any) => {
-                // console.log('API Response:', res); // Debug log
                 this.quantityApprove = res.data;
-                // console.log('Assigned quantityApprove:', this.quantityApprove); // Debug log
             }),
             catchError((err: any) => {
                 this.notification.create(

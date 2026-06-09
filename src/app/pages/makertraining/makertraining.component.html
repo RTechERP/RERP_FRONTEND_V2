@@ -87,7 +87,8 @@
                   [showColumnFilter]="true" [sortMode]="'single'" [paginator]="false" [rows]="pageSize"
                   [rowsPerPageOptions]="pageSizeOptions" exportFilename="maker-training" tableId="maker-training-table"
                   [selectionMode]="'multiple'" [(selection)]="selectedMakerTraining"
-                  (selectionChange)="onSelectionChange($event)" (rowDblClick)="onAddMakerTraining(true)">
+                  (selectionChange)="onSelectionChange($event)" (rowDblClick)="onAddMakerTraining(true)"
+                  (cellAction)="onMainTableCellAction($event)">
                 </app-custom-table>
               </div>
             </div>
@@ -128,3 +129,61 @@
     </nz-splitter-panel>
   </nz-splitter>
 </div>
+
+<!-- Video Playlist Modal -->
+<nz-modal [nzVisible]="isVisibleVideoModal" [nzTitle]="'Danh sách Video - Hạng mục ' + playlistCategoryName"
+  (nzOnCancel)="closeVideoModal()" (nzOnOk)="closeVideoModal()" [nzWidth]="1500" [nzFooter]="null" [nzBodyStyle]="{ padding: '0' }">
+  <ng-container *nzModalContent>
+    <div class="row g-0" style="min-height: 700px; background-color: #f8f9fa;">
+      
+      <!-- Video Player Section (Left) -->
+      <div class="col-md-8 bg-black p-2 d-flex flex-column position-relative">
+        <h5 class="text-white mb-3" *ngIf="currentPlayingVideo" style="font-size: 16px;">
+          {{ currentPlaylist.indexOf(currentPlayingVideo) + 1 }}. {{ currentPlayingVideo.UrlVideo | slice:currentPlayingVideo.UrlVideo.lastIndexOf('/')+1 }}
+        </h5>
+        <div class="flex-grow-1 d-flex align-items-center justify-content-center w-100 h-100">
+           <video *ngIf="currentPlayingVideo" width="100%" controls autoplay [src]="currentPlayingVideo.FullUrl" style="max-height: 550px; outline: none;">
+             Trình duyệt của bạn không hỗ trợ thẻ video.
+           </video>
+        </div>
+      </div>
+
+      <!-- Playlist Section (Right) -->
+      <div class="col-md-4 d-flex flex-column border-start bg-white" style="max-height: 550px;">
+        <div class="playlist-header p-3 border-bottom bg-white">
+          <span class="fw-bold text-dark" style="font-size: 14px;">Nội dung bài giảng ({{ currentPlaylist.length }} video)</span>
+        </div>
+        
+        <div class="playlist-container flex-grow-1 overflow-auto p-2 bg-light">
+          <div *ngFor="let video of currentPlaylist; let i = index" 
+               class="playlist-item d-flex align-items-center p-3 mb-2 bg-white cursor-pointer transition-all border shadow-sm rounded"
+               [class.active-video]="currentPlayingVideo === video"
+               (click)="playVideo(video)">
+            
+             <div class="video-thumbnail bg-dark rounded d-flex align-items-center justify-content-center position-relative" style="width: 80px; height: 50px; overflow: hidden; flex-shrink: 0;">
+               <span class="text-white fw-bold fs-5">P{{ i + 1 }}</span>
+               
+               <!-- Hidden video to load metadata -->
+               <video [src]="video.FullUrl" preload="metadata" (loadedmetadata)="onMetadataLoaded($event, video)" style="display: none;"></video>
+
+               <div *ngIf="video.VideoDuration" class="position-absolute bottom-0 end-0 bg-black text-white px-1 m-1 rounded" style="font-size: 9px; opacity: 0.8;">
+                 {{ video.VideoDuration }}
+               </div>
+            </div>
+
+            <div class="video-info ms-3 flex-grow-1 d-flex flex-column justify-content-center overflow-hidden" style="min-width: 0;">
+              <span class="video-title fw-medium mb-1" [class.text-primary]="currentPlayingVideo === video" style="font-size: 13px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;" [title]="video.UrlVideo | slice:video.UrlVideo.lastIndexOf('/')+1">
+                {{ i + 1 }}. {{ video.UrlVideo | slice:video.UrlVideo.lastIndexOf('/')+1 }}
+              </span>
+              <div *ngIf="currentPlayingVideo === video" class="d-flex align-items-center text-primary" style="font-size: 12px; font-weight: 500;">
+                  <i nz-icon nzType="sound" nzTheme="outline" class="me-1"></i> Đang phát
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </ng-container>
+</nz-modal>

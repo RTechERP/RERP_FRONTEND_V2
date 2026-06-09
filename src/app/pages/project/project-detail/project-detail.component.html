@@ -213,6 +213,19 @@
                     </nz-select>
                   </nz-form-control>
                 </nz-form-item>
+                <nz-form-item>
+                  <nz-form-label class="fs-12" [nzSpan]="24"> Kiểu dự án <span
+                      class="text-danger ps-1">*</span></nz-form-label>
+                  <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectTypeId')">
+                    <nz-select formControlName="projectTypeId" class="w-100" nzShowSearch nzAllowClear
+                      nzPlaceHolder="Chọn kiểu dự án" (ngModelChange)="getProjectCode()">
+                      <nz-option [nzValue]="1" nzLabel="Dự án"></nz-option>
+                      <nz-option [nzValue]="2" nzLabel="Thương mại"></nz-option>
+                      <nz-option [nzValue]="3" nzLabel="Phim"></nz-option>
+                      <nz-option [nzValue]="4" nzLabel="Nội bộ"></nz-option>
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
 
                 <!-- Hãng & Loại -->
                 <div nz-row nzGutter="12">
@@ -266,7 +279,7 @@
                       <div nz-row nzGutter="12">
                         <div nz-col [nzSpan]="12">
                           <nz-form-item>
-                            <nz-form-label class="fs-12" [nzSpan]="24">Ngày gửi dự án <span class="text-danger ps-1">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Ngày gửi dự án <span class="text-danger ps-1" *ngIf="formGroup.get('projectTypeId')?.value !== 4">
                                 *</span></nz-form-label>
                             <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('expectedPlanDate')">
                               <input nz-input type="date" formControlName="expectedPlanDate" class="w-100" />
@@ -275,7 +288,7 @@
                         </div>
                         <div nz-col [nzSpan]="12">
                           <nz-form-item>
-                            <nz-form-label class="fs-12" [nzSpan]="24">Ngày gửi báo giá <span class="text-danger ps-1">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Ngày gửi báo giá <span class="text-danger ps-1" *ngIf="formGroup.get('projectTypeId')?.value !== 4">
                                 *</span></nz-form-label>
                             <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('expectedQuotationDate')">
                               <input nz-input type="date" formControlName="expectedQuotationDate" class="w-100" />
@@ -362,11 +375,11 @@
                     </nz-form-item>
                   </div>
                 </div>
-                <div nz-row [nzGutter]="12">
-                  <div nz-col [nzSpan]="12">
+                <div nz-row>
+                  <div nz-col [nzSpan]="24">
                     <nz-form-item>
                       <nz-form-label class="fs-12" [nzSpan]="24">
-                        Mức ưu tiên <span class="text-danger ps-1">*</span>
+                        Mức ưu tiên <span class="text-danger ps-1" *ngIf="formGroup.get('projectTypeId')?.value !== 4">*</span>
                         <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzType="text" nzSize="small"
                           title="Thêm độ ưu tiên" (click)="openProjectPriorityDetail()">
                           <i class="fas fa-plus"></i>
@@ -374,21 +387,6 @@
                       </nz-form-label>
                       <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('priority')">
                         <input formControlName="priority" class="w-100" nz-input placeholder="Mức ưu tiên" />
-                      </nz-form-control>
-                    </nz-form-item>
-                  </div>
-                  <div nz-col [nzSpan]="12">
-                    <nz-form-item>
-                      <nz-form-label class="fs-12" [nzSpan]="24"> Kiểu dự án <span
-                          class="text-danger ps-1">*</span></nz-form-label>
-                      <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectTypeId')">
-                        <nz-select formControlName="projectTypeId" class="w-100" nzShowSearch nzAllowClear
-                          nzPlaceHolder="Chọn kiểu dự án" (ngModelChange)="getProjectCode()">
-                          <nz-option [nzValue]="1" nzLabel="Dự án"></nz-option>
-                          <nz-option [nzValue]="2" nzLabel="Thương mại"></nz-option>
-                          <nz-option [nzValue]="3" nzLabel="Phim"></nz-option>
-                          <nz-option [nzValue]="4" nzLabel="Nội bộ"></nz-option>
-                        </nz-select>
                       </nz-form-control>
                     </nz-form-item>
                   </div>

@@ -92,4 +92,8 @@ export class MakertrainingService {
   deleteMakerTraining(ids: number[]): Observable<any> {
     return this.http.post(this.url + `delete`, ids);
   }
+
+  getVideoPathServer(subPath: string): Observable<any> {
+    return this.http.get<any>(this.url + `get-path-server?subPath=${subPath}`);
+  }
 }

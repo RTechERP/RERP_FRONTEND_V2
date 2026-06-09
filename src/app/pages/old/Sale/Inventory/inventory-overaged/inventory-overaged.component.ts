@@ -356,8 +356,13 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
             this.cdr.detectChanges();
             setTimeout(() => {
               this.applyDistinctFilters(this.angularGridInventory);
-              this.updateInventoryFooterRow();
             }, 100);
+
+            setTimeout(() => {
+              this.updateInventoryFooterRow();
+            }, 500);
+
+
           }
         },
         error: (err) => {
@@ -561,7 +566,6 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         colDef.filter.collection = getUniqueValues(data, colDef.field);
       }
     });
-
     const updatedColumns = angularGrid.slickGrid.getColumns();
     angularGrid.slickGrid.setColumns(updatedColumns);
     angularGrid.slickGrid.invalidate();

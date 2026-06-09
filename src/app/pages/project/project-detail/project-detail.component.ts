@@ -133,6 +133,13 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
   readonly STATUS_MAINTENANCE = 6;
   readonly STATUS_FINISHED = 9;
+  readonly VALID_STATUS_FOR_ATTRIBUTES = [4, 5, 9];
+
+  // Trả về true nếu trạng thái dự án hiện tại yêu cầu điền lĩnh vực & công nghệ
+  get isAttributeRequired(): boolean {
+    const statusId = this.formGroup.get('projectStatusId')?.value;
+    return statusId != null && this.VALID_STATUS_FOR_ATTRIBUTES.includes(Number(statusId));
+  }
 
   // Ngày thay đổi trạng thái
   dateChangeStatus: string | null = null;
@@ -242,6 +249,11 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     });
     this.formGroup.get('projectTypeId')?.valueChanges.subscribe(value => {
       this.projectTypeId = value;
+      this.handleProjectTypeChange(value);
+    });
+    // Cập nhật lại header cột khi trạng thái thay đổi (ẩn/hiện dấu *)
+    this.formGroup.get('projectStatusId')?.valueChanges.subscribe(() => {
+      this.initTableColumns();
     });
     this.formGroup.get('expectedPODate')?.valueChanges.subscribe(value => {
       this.expectedPODate = value;
@@ -290,6 +302,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     //   this.getProjectCode();
     // });
     this.initTableColumns();
+    this.handleProjectTypeChange(this.formGroup.get('projectTypeId')?.value || 1);
   }
 
   ngAfterViewInit(): void {
@@ -318,6 +331,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   //#endregion
 
   initTableColumns() {
+    const attrRequired = this.isAttributeRequired;
     this.projectTypeCols = [
       { field: 'ProjectTypeName', header: 'Kiểu dự án', treeToggler: true, width: '200px' },
       {
@@ -329,7 +343,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         editLookupConfig: this.leaderLookupConfig
       },
       {
-        field: 'ApplicationTypeIDs', header: 'Kiểu ứng dụng',
+        field: 'ApplicationTypeIDs',
+        header: 'Lĩnh vực ứng dụng',
+        headerFormat: attrRequired ? () => 'Lĩnh vực ứng dụng <span class="text-danger fw-bold ps-1">*</span>' : undefined,
         editable: true,
         isEditable: (rowData) => !!rowData.Selected,
         cellClass: (rowData) => !rowData.Selected ? 'cell-disabled' : '',
@@ -337,7 +353,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         editLookupConfig: this.appLookupConfig
       },
       {
-        field: 'TechnologyIDs', header: 'Công nghệ ứng dụng',
+        field: 'TechnologyIDs',
+        header: 'Công nghệ ứng dụng',
+        headerFormat: attrRequired ? () => 'Công nghệ ứng dụng <span class="text-danger fw-bold ps-1">*</span>' : undefined,
         editable: true,
         isEditable: (rowData) => !!rowData.Selected,
         cellClass: (rowData) => !rowData.Selected ? 'cell-disabled' : '',
@@ -446,6 +464,26 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
   handleCellValueChange(event: any) {
     // Optional logic to trigger dirty checking if needed, otherwise cell binding handles the model update
+  }
+
+  handleProjectTypeChange(typeId: number) {
+    const priorityControl = this.formGroup.get('priority');
+    const expectedPlanDateControl = this.formGroup.get('expectedPlanDate');
+    const expectedQuotationDateControl = this.formGroup.get('expectedQuotationDate');
+
+    if (typeId === 4) {
+      priorityControl?.clearValidators();
+      expectedPlanDateControl?.clearValidators();
+      expectedQuotationDateControl?.clearValidators();
+    } else {
+      priorityControl?.setValidators([Validators.required]);
+      expectedPlanDateControl?.setValidators([Validators.required]);
+      expectedQuotationDateControl?.setValidators([Validators.required]);
+    }
+
+    priorityControl?.updateValueAndValidity();
+    expectedPlanDateControl?.updateValueAndValidity();
+    expectedQuotationDateControl?.updateValueAndValidity();
   }
 
   getCurrentUser() {
@@ -1096,7 +1134,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     console.log('prjtypelink', projectTypeLinks);
 
     // Kiểm tra kiểu dự án
-    if (projectTypeLinks.length == 0 && this.projectTypeId <= 1) {
+    if (projectTypeLinks.length == 0) {
       this.isSaving = false;
       this.notification.error('Thông báo', 'Vui lòng chọn kiểu dự án!');
       return;
@@ -1157,7 +1195,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         ProjectManager: this.pmId ?? 0,
         CurrentState: this.currentState ?? '',
         EndUser: this.endUserId ?? 0,
-        Priotity: this.priority ?? 0,
+        Priotity: this.priority || 0,
         TypeProject: this.projectTypeId ?? 0,
       },
       projectStatusLog: {
@@ -1639,43 +1677,45 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       'projectCode',
       'pmId',
       'userSaleId',
-      'priority',
       'userTechId',
       'endUserId',
-      'expectedPlanDate',
-      'expectedQuotationDate',
       'projectTypeId',
     ];
+    if (this.projectTypeId !== 4) {
+      requiredFields.push('priority', 'expectedPlanDate', 'expectedQuotationDate');
+    }
     const invalidFields = requiredFields.filter(key => {
       const control = this.formGroup.get(key);
       return !control || control.invalid || control.value === '' || control.value == null;
     });
 
-    // Kiểm tra mức ưu tiên có giá trị hợp lệ
-    const priorityControl = this.formGroup.get('priority');
-    const priorityValue = priorityControl?.value;
+    // Kiểm tra mức ưu tiên có giá trị hợp lệ (chỉ khi không phải kiểu dự án Nội bộ)
+    if (this.projectTypeId !== 4) {
+      const priorityControl = this.formGroup.get('priority');
+      const priorityValue = priorityControl?.value;
 
-    if (!priorityControl || priorityValue === '' || priorityValue == null || priorityValue === undefined) {
-      this.notification.error('Thông báo', 'Vui lòng nhập mức ưu tiên!');
-      priorityControl?.markAsTouched();
-      this.formGroup.markAllAsTouched();
-      return false;
-    }
+      if (!priorityControl || priorityValue === '' || priorityValue == null || priorityValue === undefined) {
+        this.notification.error('Thông báo', 'Vui lòng nhập mức ưu tiên!');
+        priorityControl?.markAsTouched();
+        this.formGroup.markAllAsTouched();
+        return false;
+      }
 
-    // Kiểm tra priority là số và lớn hơn 0
-    const priorityNum = parseFloat(priorityValue);
-    if (isNaN(priorityNum) || priorityNum <= 0) {
-      this.notification.error('Thông báo', 'Mức ưu tiên phải là số lớn hơn 0!');
-      priorityControl?.markAsTouched();
-      this.formGroup.markAllAsTouched();
-      return false;
+      // Kiểm tra priority là số và lớn hơn 0
+      const priorityNum = parseFloat(priorityValue);
+      if (isNaN(priorityNum) || priorityNum <= 0) {
+        this.notification.error('Thông báo', 'Mức ưu tiên phải là số lớn hơn 0!');
+        priorityControl?.markAsTouched();
+        this.formGroup.markAllAsTouched();
+        return false;
+      }
     }
 
     // Lấy dữ liệu projectTypeLinks và statusId để kiểm tra attributes
     const projectTypeLinks = this.getSelectedData(this.projectTypeNodes);
 
-    // Chỉ kiểm tra nếu projectTypeId <= 1 (Dự án hoặc Thương mại)
-    if (this.projectTypeId <= 1 && projectTypeLinks.length === 0) {
+    // Bắt buộc chọn ít nhất 1 kiểu dự án trong bảng (mọi loại dự án)
+    if (projectTypeLinks.length === 0) {
       this.notification.error('Thông báo', 'Vui lòng chọn ít nhất 1 kiểu dự án trong bảng!');
       this.formGroup.markAllAsTouched();
       return false;
@@ -1694,21 +1734,58 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   validateProjectAttributes(gridData: any[], statusId: any): boolean {
-    const VALID_STATUS_FOR_ATTRIBUTES = [4, 5, 9];
-    if (statusId != null && VALID_STATUS_FOR_ATTRIBUTES.includes(Number(statusId))) {
+    if (statusId != null && this.VALID_STATUS_FOR_ATTRIBUTES.includes(Number(statusId))) {
       const selectedLinks = gridData.filter(x => x.Selected === true);
       for (const link of selectedLinks) {
         if (!link.ApplicationTypeIDs || !Array.isArray(link.ApplicationTypeIDs) || link.ApplicationTypeIDs.length === 0) {
-          this.notification.error('Thông báo', `Vui lòng chọn kiểu ứng dụng cho loại dự án: ${link.ProjectTypeName}`);
+          this.notification.error('Thông báo', `Vui lòng chọn lĩnh vực ứng dụng cho loại dự án: ${link.ProjectTypeName}`);
+          this.focusFirstInvalidCell('ApplicationTypeIDs', link);
           return false;
         }
         if (!link.TechnologyIDs || !Array.isArray(link.TechnologyIDs) || link.TechnologyIDs.length === 0) {
-          this.notification.error('Thông báo', `Vui lòng chọn công nghệ sử dụng cho loại dự án: ${link.ProjectTypeName}`);
+          this.notification.error('Thông báo', `Vui lòng chọn công nghệ ứng dụng cho loại dự án: ${link.ProjectTypeName}`);
+          this.focusFirstInvalidCell('TechnologyIDs', link);
           return false;
         }
       }
     }
     return true;
+  }
+
+  /**
+   * Scroll bảng tree-table đến row bị lỗi và highlight cell cần điền.
+   * Dùng setTimeout để chờ notification render xong trước khi scroll.
+   */
+  private focusFirstInvalidCell(field: 'ApplicationTypeIDs' | 'TechnologyIDs', rowData: any): void {
+    setTimeout(() => {
+      // Tìm container bảng chính (tab 0)
+      const tableContainers = document.querySelectorAll('.rerp-tree-table .p-treetable-scrollable-body, .rerp-tree-table .p-treetable-tbody');
+      if (!tableContainers.length) return;
+
+      // Tìm tất cả các row trong bảng
+      const allRows = document.querySelectorAll('.rerp-tree-table tr[role="row"]');
+      for (let i = 0; i < allRows.length; i++) {
+        const row = allRows[i] as HTMLElement;
+        // Tìm cell có chứa text tên loại dự án tương ứng
+        const firstCell = row.querySelector('td:first-child');
+        if (firstCell && firstCell.textContent?.trim().includes(rowData.ProjectTypeName?.trim())) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Xác định column index của field cần focus
+          const colIndex = field === 'ApplicationTypeIDs' ? 2 : 3;
+          const targetCell = row.querySelectorAll('td')[colIndex] as HTMLElement;
+          if (targetCell) {
+            targetCell.style.outline = '2px solid red';
+            targetCell.style.outlineOffset = '-2px';
+            // Xóa highlight sau 3 giây
+            setTimeout(() => {
+              targetCell.style.outline = '';
+              targetCell.style.outlineOffset = '';
+            }, 3000);
+          }
+          break;
+        }
+      }
+    }, 100);
   }
 
 

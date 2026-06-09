@@ -413,16 +413,13 @@ export class HrRecruitmentInterviewAssessmentViewComponent implements OnInit {
           return;
         }
 
-        const candidateStatus = candidateInfo.Status ?? 3;
+        const candidateStatus = this.selectedCandidateStatus;
 
         if (candidateStatus < 3) {
           this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên chưa phỏng vấn!');
           return;
         }
-        if (candidateStatus == 3) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên được đánh giá sau phỏng vấn!');
-          return;
-        }
+
         if (candidateStatus == 4) {
           this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên có kết quả phỏng vấn không đạt!');
           return;
@@ -435,7 +432,7 @@ export class HrRecruitmentInterviewAssessmentViewComponent implements OnInit {
           size: 'xl',
           scrollable: true,
         });
-        modalRef.componentInstance.HRRecruitmentCandidateID = candidateInfo.ID;
+        modalRef.componentInstance.HRRecruitmentCandidateID = this.selectedCandidateID;
         modalRef.componentInstance.Status = candidateStatus;
         modalRef.result.then(
           (result) => {

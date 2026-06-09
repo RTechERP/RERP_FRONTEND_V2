@@ -83,12 +83,17 @@
         <div class="card-body p-0 flex-grow-1" style="min-height: 0; overflow: hidden;">
             <div class="d-flex flex-column" style="height: 100%;">
                 <!-- Grid -->
-                <div class="grid-container-main flex-grow-1" style="min-height: 0; overflow: hidden;">
+                <div class="grid-container-main flex-grow-1" style="min-height: 0; overflow: hidden; position: relative;">
                     <angular-slickgrid gridId="gridSummaryKPIEmployeePoint" [columns]="columnDefinitions"
                         [options]="gridOptions" [dataset]="dataset"
                         (onAngularGridCreated)="angularGridReady($event.detail)"
                         (onCellChange)="onCellChanged($event.detail.eventData, $event.detail.args)">
                     </angular-slickgrid>
+
+                    <!-- Loading Overlay -->
+                    <div *ngIf="isLoading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.7); z-index: 1000;">
+                        <nz-spin nzSimple nzSize="large" nzTip="Đang tải dữ liệu..."></nz-spin>
+                    </div>
                 </div>
                 <!-- Total Summary Footer -->
                 <div class="bg-light border-top px-2 py-1 d-flex align-items-center gap-3" style="flex-shrink: 0;">

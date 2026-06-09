@@ -375,6 +375,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
           stack: 'status',
           data: notStarted,
           itemStyle: { color: getStatusColor(0, '#94a3b8') },
+          emphasis: { disabled: true },
           label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
@@ -383,6 +384,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
           stack: 'status',
           data: doing,
           itemStyle: { color: getStatusColor(1, '#3b82f6') },
+          emphasis: { disabled: true },
           label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
@@ -391,6 +393,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
           stack: 'status',
           data: doingOverdue,
           itemStyle: { color: '#ef4444' },
+          emphasis: { disabled: true },
           label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
@@ -399,6 +402,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
           stack: 'status',
           data: done,
           itemStyle: { color: getStatusColor(2, '#22c55e') },
+          emphasis: { disabled: true },
           label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
@@ -407,6 +411,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
           stack: 'status',
           data: doneLate,
           itemStyle: { color: '#f59e0b' },
+          emphasis: { disabled: true },
           label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
@@ -415,6 +420,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
           stack: 'status',
           data: pending,
           itemStyle: { color: getStatusColor(3, '#8b5cf6') },
+          emphasis: { disabled: true },
           label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
@@ -423,6 +429,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
           stack: 'status',
           data: cancel,
           itemStyle: { color: getStatusColor(4, '#f43f5e') },
+          emphasis: { disabled: true },
           label: { show: true, position: 'inside', formatter: (p: any) => p.value > 0 ? p.value : '' }
         },
         {
@@ -430,6 +437,7 @@ export class ProjectTaskStatusChartComponent implements OnInit, OnChanges {
           type: 'line',
           data: total,
           itemStyle: { color: '#005bb7' },
+          emphasis: { disabled: true },
           lineStyle: { width: 3 },
           symbol: 'circle',
           symbolSize: 8,

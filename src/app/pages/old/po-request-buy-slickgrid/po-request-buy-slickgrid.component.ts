@@ -284,6 +284,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     }
   }
   saveData(): void {
+    if (this.isLoading) return;
     if (!this.selectedEmployee) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn người yêu cầu!');
       return;
@@ -320,8 +321,10 @@ export class PoRequestBuySlickgridComponent implements OnInit {
       ParentProductCode: row.ParentProductCode,
     }));
     
+    this.isLoading = true;
     this.PoRequestBuySlickgridService.saveData(requestData).subscribe({
       next: (res: any) => {
+        this.isLoading = false;
         if (res && res.status === 1) {
           this.notification.success(
             'Thông báo',
@@ -333,6 +336,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
         }
       },
       error: (err: any) => {
+        this.isLoading = false;
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu dữ liệu!');
       },
     });

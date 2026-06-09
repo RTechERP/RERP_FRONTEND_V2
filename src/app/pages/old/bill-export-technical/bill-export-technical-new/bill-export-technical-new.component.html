@@ -19,8 +19,8 @@
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-date-picker class="w-100" nzSize="small" nzFormat="dd/MM/yyyy" [(ngModel)]="dateStart"
-                                    name="dateStart"></nz-date-picker>
+                                <nz-date-picker class="w-100" nzSize="small" nzFormat="dd/MM/yyyy"
+                                    [(ngModel)]="dateStart" name="dateStart"></nz-date-picker>
                             </nz-form-control>
                         </nz-form-item>
                         <!-- Đến ngày -->
@@ -59,7 +59,7 @@
             </div>
         </nz-splitter-panel>
         <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
-            <div class="card border-0 rounded-0">
+            <div class="card h-100 border-0 rounded-0">
                 <div class="card-header bg-white p-1">
                     <div class="d-flex h-40 gap-1">
                         <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
@@ -81,13 +81,13 @@
                             nzSize="small" (click)="onApprove()">
                             <img src="assets/icon/action_approved_16.png" /> Duyệt
                         </button>
-                        <button class="fs-12" *hasPermission="'N18,N52,N1,N80'" nz-button nzType="default" nzSize="small"
-                            (click)="onUnApprove()">
+                        <button class="fs-12" *hasPermission="'N18,N52,N1,N80'" nz-button nzType="default"
+                            nzSize="small" (click)="onUnApprove()">
                             <img class="btn-action-icon" src="assets/icon/action_unapproved_16.png" /> Hủy duyệt
                         </button>
 
-                        <button class="fs-12" *hasPermission="'N26,N1,N73,N80'" nz-button nzType="default" nzSize="small"
-                            (click)="onExportExcel()">
+                        <button class="fs-12" *hasPermission="'N26,N1,N73,N80'" nz-button nzType="default"
+                            nzSize="small" (click)="onExportExcel()">
                             <img class="btn-action-icon" src="assets\icon\action_export_excel_24.svg" /> Xuất Phiếu
                         </button>
 
@@ -98,15 +98,15 @@
                     </div>
                 </div>
 
-                <nz-splitter nzLayout="vertical" style="height: 100%;">
+                <nz-splitter nzLayout="vertical" style="flex: 1; min-height: 0;">
                     <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
                         <div *ngIf="isLoading"
                             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.4); z-index: 999; display: flex; align-items: center; justify-content: center;">
                             <nz-spin [nzSpinning]="isLoading"></nz-spin>
                         </div>
                         <div class="grid-container" style="height: 100%;">
-                            <angular-slickgrid [gridId]="'billExportTechnicalGrid-' + warehouseID + '' + warehouseType" [columns]="columnDefinitions"
-                                [options]="gridOptions" [dataset]="dataset"
+                            <angular-slickgrid [gridId]="'billExportTechnicalGrid-' + warehouseID + '' + warehouseType"
+                                [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
                                 (onAngularGridCreated)="angularGridReady($event.detail)"
                                 (onSelectedRowsChanged)="onRowSelectionChanged($event.detail.eventData, $event.detail.args)">
                             </angular-slickgrid>
@@ -124,7 +124,8 @@
                             <nz-tab [nzTitle]="tabDetailTitle">
                                 <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
                                     <div class="grid-container-detail" style="height: 100%;">
-                                        <angular-slickgrid [gridId]="'billExportTechnicalDetailGrid-' + warehouseID + '' + warehouseType"
+                                        <angular-slickgrid
+                                            [gridId]="'billExportTechnicalDetailGrid-' + warehouseID + '' + warehouseType"
                                             [columns]="columnDefinitionsDetail" [options]="gridOptionsDetail"
                                             [dataset]="datasetDetail"
                                             (onAngularGridCreated)="angularGridDetailReady($event.detail)">

@@ -1,5 +1,5 @@
 <ng-container>
-    <nz-splitter style="height: 94vh;">
+    <nz-splitter style="height: 100%;">
         <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
             <div class="card h-100 border-0 rounded-0">
                 <!-- Header -->
@@ -59,7 +59,7 @@
             </div>
         </nz-splitter-panel>
         <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
-            <div class="card border-0 rounded-0">
+            <div class="card h-100 border-0 rounded-0">
                 <div class="card-header bg-white p-1">
                     <div class="d-flex h-40 gap-1">
                         <button title="btn" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
@@ -94,20 +94,20 @@
                             (click)="openCheckHistoryTech()">
                             <nz-icon nzType="history" nzTheme="outline"></nz-icon>Lịch sử mượn NCC
                         </button>
-                        <button class="fs-12" *hasPermission="'N26,N1,N73,N80,N35'" nz-button nzType="default"
+                        <!-- <button class="fs-12" *hasPermission="'N26,N1,N73,N80,N35'" nz-button nzType="default"
                             nzSize="small" (click)="openSummaryModal()">
                             <img class="btn-action-icon" src="assets\icon\action_summary_24.svg" /> Tổng hợp
-                        </button>
+                        </button> -->
                     </div>
                 </div>
 
-                <nz-splitter style="height: 86vh;" [nzLayout]="'vertical'">
+                <nz-splitter style="flex: 1; min-height: 0;" [nzLayout]="'vertical'">
                     <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" nzDefaultSize="70%">
                         <div *ngIf="isLoading"
                             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.4); z-index: 999; display: flex; align-items: center; justify-content: center;">
                             <nz-spin [nzSpinning]="isLoading"></nz-spin>
                         </div>
-                        <div class="grid-container" style="height: 90%;">
+                        <div class="grid-container" style="height: 100%;">
                             <angular-slickgrid [gridId]="'billImportTechnicalGrid-' + warehouseID"
                                 [columns]="columnDefinitions" [options]="gridOptions" [dataset]="dataset"
                                 (onAngularGridCreated)="angularGridReady($event.detail)"

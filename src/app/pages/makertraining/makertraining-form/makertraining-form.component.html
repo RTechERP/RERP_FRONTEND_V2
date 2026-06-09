@@ -119,7 +119,7 @@
                 <nz-form-control [nzSpan]="24" [nzErrorTip]="deptError">
                   <nz-select formControlName="DepartmentID" [nzPlaceHolder]="'Chọn phòng ban'" style="width: 100%"
                     nzShowSearch [nzFilterOption]="filterOption" nzAllowClear nzMode="multiple">
-                    <nz-option *ngFor="let item of dataDepartment" [nzLabel]="item.Code + '-' + item.Name"
+                    <nz-option *ngFor="let item of dataDepartment" [nzLabel]="item.Name"
                       [nzValue]="item.ID"></nz-option>
                   </nz-select>
                   <ng-template #deptError let-control>

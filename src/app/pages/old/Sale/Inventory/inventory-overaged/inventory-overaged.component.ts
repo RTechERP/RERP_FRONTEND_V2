@@ -166,11 +166,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         filterable: true,
         formatter: this.wrapTextFormatter,
         filter: {
-          model: Filters['multipleSelect'],
-          collection: [],
-          filterOptions: {
-            filter: true,
-          } as MultipleSelectOption,
+          model: Filters['compoundInputText'],
         },
       },
       {

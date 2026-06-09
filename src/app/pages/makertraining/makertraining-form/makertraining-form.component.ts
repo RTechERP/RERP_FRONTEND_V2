@@ -1260,7 +1260,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
               width: 40,
               headerSort: false,
               titleFormatter: () =>
-                `<div style="display: flex; justify-content: center; align-items: center; height: 100%; cursor: pointer;"><i class="fas fa-plus text-success" title="Thêm dòng"></i> </div>`,
+                `<div style="display: flex; justify-content: center; align-items: center; height: 100%; cursor: pointer;"><i class="fas fa-plus" style="color: white;" title="Thêm dòng"></i> </div>`,
               headerClick: () => {
                 this.addRow();
               },
@@ -1415,7 +1415,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
               width: 40,
               headerSort: false,
               titleFormatter: () =>
-                `<div style="display: flex; justify-content: center; align-items: center; height: 100%; cursor: pointer;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i> </div>`,
+                `<div style="display: flex; justify-content: center; align-items: center; height: 100%; cursor: pointer;"><i class="fas fa-plus cursor-pointer" style="color: white;" title="Thêm dòng"></i> </div>`,
               headerClick: () => {
                 this.openFileSelector_MakerTrainingFile();
               },

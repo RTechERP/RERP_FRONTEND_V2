@@ -8,7 +8,7 @@
       <!-- Cột 1: 2 ô -->
       <div class="row gx-2">
         <div class="col-md-6 border-end pe-3">
-          <h6 class="text-secondary mb-3"><i class="fa-solid fa-info-circle me-2"></i>Thông tin chung</h6>
+          <h6 class="text-secondary mb-1"><i class="fa-solid fa-info-circle me-2"></i>Thông tin chung</h6>
           <div class="row">
             <div class="col-md-6">
               <nz-form-item class="mt-2 mb-0">
@@ -132,11 +132,18 @@
         </div>
         <!-- Cột  2 -->
         <div class="col-md-6 ps-3">
-          <h6 class="text-secondary mb-3"><i class="fa-solid fa-screwdriver-wrench me-2"></i>Chi tiết đào tạo</h6>
+          <h6 class="text-secondary mb-1"><i class="fa-solid fa-screwdriver-wrench me-2"></i>Chi tiết đào tạo</h6>
           <div class="row">
+             <div class="col-md-12 col-lg-12">
+              <nz-form-item class="mt-2 flex mb-0">
+                <nz-form-control [nzSpan]="24">
+                  <label nz-checkbox formControlName="IsTest"> Bài kiểm tra </label>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
             <div class="col-md-12">
               <nz-form-item class="mb-0">
-                <nz-form-label [nzSpan]="24" class="fs-12 mt-2">Nội dung đào tạo
+                <nz-form-label [nzSpan]="24" class="fs-12 mt-1">Nội dung đào tạo
                   <span class="text-danger">*</span></nz-form-label>
                 <nz-form-control [nzSpan]="24" [nzErrorTip]="contentError">
                   <textarea nz-input rows="4" formControlName="TrainingContent"
@@ -148,18 +155,11 @@
                 </nz-form-control>
               </nz-form-item>
             </div>
-            <div class="col-md-3 col-lg-2">
-              <nz-form-item class="mt-2 flex mb-0">
-                <nz-form-control [nzSpan]="24">
-                  <label nz-checkbox formControlName="IsTest"> Bài kiểm tra </label>
-                </nz-form-control>
-              </nz-form-item>
-            </div>
-            <div class="col-md-9 col-lg-10">
+            <div class="col-md-12 col-lg-12">
               <nz-form-item class="mb-0">
-                <nz-form-label [nzSpan]="24" class="fs-12 mt-2 mb-2">Ghi chú</nz-form-label>
+                <nz-form-label [nzSpan]="24" class="fs-12 mt-1">Ghi chú</nz-form-label>
                 <nz-form-control [nzSpan]="24" [nzErrorTip]="noteError">
-                  <textarea nz-input rows="4" formControlName="Note" placeholder="Nhập ghi chú..."></textarea>
+                  <textarea nz-input rows="3" formControlName="Note" placeholder="Nhập ghi chú..."></textarea>
                   <ng-template #noteError let-control>
                     <ng-container *ngIf="control.hasError('maxlength')">Không được vượt quá 500 ký tự!</ng-container>
                   </ng-template>
@@ -258,15 +258,17 @@
         <div class="box h-100 px-2">
           <nz-splitter>
             <nz-splitter-panel nzDefaultSize="60%" nzMin="50%" nzMax="100%">
-              <div class="box h-100">
-                <div class="card-body p-0 h-100">
+              <div class="box h-100 d-flex flex-column">
+                <h6 class="text-secondary mb-1 px-2 pt-1 flex-shrink-0"><i class="fa-solid fa-users me-2"></i>Danh sách nhân viên tham gia</h6>
+                <div class="card-body p-0 flex-grow-1" style="min-height: 0;">
                   <div id="makerTrainingEmployeeDetail" style="width: 100%; height: 100%"></div>
                 </div>
               </div>
             </nz-splitter-panel>
             <nz-splitter-panel>
-              <div class="box h-100">
-                <div class="card-body p-0 h-100">
+              <div class="box h-100 d-flex flex-column">
+                <h6 class="text-secondary mb-1 px-2 pt-1 flex-shrink-0"><i class="fa-solid fa-file-alt me-2"></i>Danh sách tài liệu</h6>
+                <div class="card-body p-0 flex-grow-1" style="min-height: 0;">
                   <div id="makerTrainingFileDetail" style="width: 100%; height: 100%"></div>
                 </div>
               </div>

@@ -135,9 +135,13 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
           collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
+            autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
         },
@@ -150,9 +154,13 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
           collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
+            autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
         },
@@ -166,7 +174,15 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         filterable: true,
         formatter: this.wrapTextFormatter,
         filter: {
-          model: Filters['compoundInputText'],
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
         },
       },
       {
@@ -177,9 +193,13 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
           collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
+            autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
         },
@@ -212,9 +232,13 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
           collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
+            autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
         },
@@ -227,9 +251,13 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         sortable: true,
         filterable: true,
         filter: {
-          model: Filters['multipleSelect'],
           collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
+            autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
         },

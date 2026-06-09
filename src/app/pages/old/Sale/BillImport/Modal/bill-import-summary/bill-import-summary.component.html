@@ -1,0 +1,28 @@
+
+<div class="card-body p-0 fs-12">
+  <nz-tabset
+    class="ms-2"
+    [(nzSelectedIndex)]="selectedTabIndex">
+
+    <nz-tab nzTitle="KHO SALE">
+      <ng-template nz-tab>
+        <div class="card-body p-0 position-relative mt-1">
+          <app-bill-import-synthetic-all
+            #syntheticAll>
+          </app-bill-import-synthetic-all>
+        </div>
+      </ng-template>
+    </nz-tab>
+
+    <nz-tab nzTitle="KHO DEMO">
+      <ng-template nz-tab>
+        <div class="card-body p-0 position-relative mt-1">
+          <app-bill-import-technical-summary
+            #techSummary>
+          </app-bill-import-technical-summary>
+        </div>
+      </ng-template>
+    </nz-tab>
+
+  </nz-tabset>
+</div>

@@ -117,7 +117,7 @@
                                 <tr>
                                     <th colspan="6" class="group-standard">CÔNG TIÊU CHUẨN (F4)</th>
                                     <th class="group-standard" id="total_workday_standard">{{totalWorkdayStandard}}</th>
-                                    <th [attr.colspan]="showPCCC ? 48 : 46"></th>
+                                    <th [attr.colspan]="showPCCC ? 56 : 54"></th>
                                 </tr>
                                 <tr>
                                     <th rowspan="3" class="group-basic">STT</th>
@@ -133,9 +133,10 @@
                                     <th [attr.colspan]="showPCCC ? 5 : 3" class="group-allowance">PHỤ CẤP</th>
                                     <th colspan="6" class="group-bonus">CÁC KHOẢN CỘNG KHÁC</th>
                                     <th rowspan="3" class="group-bonus">TỔNG THU NHẬP TÍNH THUẾ</th>
-                                    <th colspan="10" class="group-deduction">CÁC KHOẢN PHẢI TRỪ</th>
+                                    <th colspan="11" class="group-deduction">CÁC KHOẢN PHẢI TRỪ</th>
                                     <th colspan="9" class="group-deduction">TỔNG THU NHẬP TÍNH THUẾ</th>
                                     <th rowspan="3" class="group-actual">THỰC LĨNH</th>
+                                    <th colspan="7" class="group-deduction">TỔNG HỢP PHẠT (TRỪ VÀO THƯỞNG QUÝ)</th>
                                     <th rowspan="3" class="group-note">GHI CHÚ</th>
                                 </tr>
                                 <tr>
@@ -163,6 +164,7 @@
                                     <th rowspan="2" class="group-deduction">Gửi xe ô tô</th>
                                     <th rowspan="2" class="group-deduction">5s</th>
                                     <th rowspan="2" class="group-deduction">Cơm ca tại văn phòng</th>
+                                    <th rowspan="2" class="group-deduction">Vi phạm quy định</th>
                                     <th rowspan="2" class="group-deduction">Khác</th>
                                     <th rowspan="2" class="group-deduction">Tổng các khoản phải trừ</th>
                                     <th colspan="6" class="group-tax-deduction">CÁC KHOẢN GIẢM TRỪ THUẾ TNCN</th>
@@ -170,6 +172,10 @@
                                     <th rowspan="2" class="group-tax-deduction">Tổng các khoản giảm trừ thuế TNCN</th>
                                     <th rowspan="2" class="group-tax-deduction">Thu thập tính thuế</th>
                                     <th rowspan="2" class="group-tax-deduction">Khấu trừ Thuế TNCN </th>
+                                    <th colspan="2" class="group-deduction">Đi muộn về sớm</th>
+                                    <th colspan="2" class="group-deduction">Quên chấm công</th>
+                                    <th colspan="2" class="group-deduction">Nghỉ &gt; 2 ngày/tháng</th>
+                                    <th rowspan="2" class="group-deduction">Tổng</th>
 
                                 </tr>
                                 <tr style="font-style: italic;">
@@ -195,6 +201,12 @@
                                     <th style="font-weight: 400;" class="group-tax-deduction">Giảm trừ bản thân</th>
                                     <th style="font-weight: 400;" class="group-tax-deduction">Giảm trừ người phụ thuộc
                                     </th>
+                                    <th style="font-weight: 400;" class="group-deduction">Số lượng</th>
+                                    <th style="font-weight: 400;" class="group-deduction">Thành tiền</th>
+                                    <th style="font-weight: 400;" class="group-deduction">Số lượng</th>
+                                    <th style="font-weight: 400;" class="group-deduction">Thành tiền</th>
+                                    <th style="font-weight: 400;" class="group-deduction">Số lượng</th>
+                                    <th style="font-weight: 400;" class="group-deduction">Thành tiền</th>
 
                                 </tr>
                                 <!-- <tr>
@@ -240,20 +252,28 @@
                                     <th class="group-deduction">(35)</th>
                                     <th class="group-deduction">(36)</th>
                                     <th class="group-deduction">(37)</th>
-                                    <th class="group-deduction">(38)=(31)+(32)+(33)+(34)+(35)+(36)+(37)</th>
+                                    <th class="group-deduction">(38)</th>
+                                    <th class="group-deduction">(39)=(31)+(32)+(33)+(34)+(35)+(36)+(37)+(38)</th>
 
-                                    <th class="group-tax-deduction">(39)</th>
-                                    <th class="group-tax-deduction">(40)=(14)+(21)</th>
-                                    <th class="group-tax-deduction">(41)</th>
+                                    <th class="group-tax-deduction">(40)</th>
+                                    <th class="group-tax-deduction">(41)=(14)+(21)</th>
                                     <th class="group-tax-deduction">(42)</th>
                                     <th class="group-tax-deduction">(43)</th>
                                     <th class="group-tax-deduction">(44)</th>
-                                    <th class="group-tax-deduction">(45)=(39)+(40)+(41)+(42)+(43)+(44)</th>
-                                    <th class="group-tax-deduction">(46)=(26)-(30)-(44)</th>
-                                    <th class="group-tax-deduction">(47)</th>
+                                    <th class="group-tax-deduction">(45)</th>
+                                    <th class="group-tax-deduction">(46)=(40)+(41)+(42)+(43)+(44)+(45)</th>
+                                    <th class="group-tax-deduction">(47)=(26)-(30)-(45)</th>
+                                    <th class="group-tax-deduction">(48)</th>
 
-                                    <th class="group-actual">(48)=(28)-(30)-(38)-(45)</th>
-                                    <th class="group-note">(49)</th>
+                                    <th class="group-actual">(49)=(28)-(30)-(39)-(46)</th>
+                                    <th class="group-deduction">(50)</th>
+                                    <th class="group-deduction">(51)</th>
+                                    <th class="group-deduction">(52)</th>
+                                    <th class="group-deduction">(53)</th>
+                                    <th class="group-deduction">(54)</th>
+                                    <th class="group-deduction">(55)</th>
+                                    <th class="group-deduction">(56)</th>
+                                    <th class="group-note">(57)</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody_payroll">
@@ -297,6 +317,7 @@
                                     <td class="text-right">{{formatNumber(item.ParkingMoney)}}</td>
                                     <td class="text-right">{{formatNumber(item.Punish5S)}}</td>
                                     <td class="text-right">{{formatNumber(item.MealUse)}}</td>
+                                    <td class="text-right">{{formatNumber(item.RegulationViolation)}}</td>
                                     <td class="text-right">{{formatNumber(item.OtherDeduction)}}</td>
                                     <td class="text-right">{{formatNumber(item.TotalDeduction)}}</td>
 
@@ -311,6 +332,13 @@
                                     <td class="text-right">{{formatNumber(item.TaxDeduction)}}</td>
 
                                     <td class="text-right">{{formatNumber(item.ActualAmountReceived)}}</td>
+                                    <td class="text-right">{{formatNumber(item.PenaltyLateEarlyQty)}}</td>
+                                    <td class="text-right">{{formatNumber(item.PenaltyLateEarlyAmount)}}</td>
+                                    <td class="text-right">{{formatNumber(item.PenaltyMissingAttendanceQty)}}</td>
+                                    <td class="text-right">{{formatNumber(item.PenaltyMissingAttendanceAmount)}}</td>
+                                    <td class="text-right">{{formatNumber(item.PenaltyLeaveOver2DaysQty)}}</td>
+                                    <td class="text-right">{{formatNumber(item.PenaltyLeaveOver2DaysAmount)}}</td>
+                                    <td class="text-right">{{formatNumber(item.PenaltyTotalAmount)}}</td>
                                     <td class="text-left" style="white-space: pre;">{{item.Note || ''}}</td>
                                 </tr>
                             </tbody>

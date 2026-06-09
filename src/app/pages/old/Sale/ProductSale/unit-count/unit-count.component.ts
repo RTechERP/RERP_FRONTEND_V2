@@ -130,6 +130,7 @@ export class UnitCountComponent implements OnInit, AfterViewInit {
         { title: 'ID', field: 'ID', visible: false },
         { title: 'Mã đơn vị tính', field: 'UnitCode', width: 400 },
         { title: 'Tên đơn vị tính', field: 'UnitName' },
+        { title: 'Mô tả', field: 'UnitDescription' },
       ],
     });
   }
@@ -221,6 +222,7 @@ export class UnitCountComponent implements OnInit, AfterViewInit {
               [
                   { field: 'UnitCode', type: 'like', value: keyword },
                   { field: 'UnitName', type: 'like', value: keyword },
+                  { field: 'UnitDescription', type: 'like', value: keyword },
               ],
           ]);
       }

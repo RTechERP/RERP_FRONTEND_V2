@@ -383,6 +383,8 @@ import { CourseExamPracticeWebComponent } from './pages/course-web/course-exam-p
 import { CourseCatalogTypeComponent } from './pages/course-web/course-catalog-type/course-catalog-type.component';
 import { UserManagementComponent } from './pages/course-web/user-management/user-management.component';
 import { HrRecruitmentInterviewAssessmentViewComponent } from './pages/hrm/hr-recruitment-interview-assessment/hr-recruitment-interview-assessment-view/hr-recruitment-interview-assessment-view.component';
+import { BillImportSummaryComponent } from './pages/old/Sale/BillImport/Modal/bill-import-summary/bill-import-summary.component';
+import { ProjectTaskEfficiencyDashboardComponent } from './pages/project_task/project-task-efficiency-dashboard/project-task-efficiency-dashboard.component';
 export const routes: Routes = [
 
     {
@@ -1298,6 +1300,8 @@ export const routes: Routes = [
             { path: 'course-exam-practice-web', component: CourseExamPracticeWebComponent, canActivate: [authGuard] },
             { path: 'course-catalog-type-web', component: CourseCatalogTypeComponent, canActivate: [authGuard] },
             { path: 'user-management-web', component: UserManagementComponent, canActivate: [authGuard] },
+            { path: 'bill-import-summary', component: BillImportSummaryComponent, canActivate: [authGuard] },
+            { path: 'project-task-efficiency-dashboard', component: ProjectTaskEfficiencyDashboardComponent, canActivate: [authGuard] },
         ],
     },
 ];

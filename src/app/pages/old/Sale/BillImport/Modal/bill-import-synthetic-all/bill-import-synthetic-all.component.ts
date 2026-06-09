@@ -242,6 +242,25 @@ export class BillImportSyntheticAllComponent {
         },
       },
       {
+        id: 'WarehouseName',
+        name: 'Kho',
+        field: 'WarehouseName',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
         id: 'BillTypeText',
         name: 'Loại phiếu',
         field: 'BillTypeText',
@@ -437,25 +456,6 @@ export class BillImportSyntheticAllComponent {
         name: 'Loại vật tư',
         field: 'KhoType',
         width: 160,
-        sortable: true,
-        filterable: true,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
-        },
-      },
-      {
-        id: 'WarehouseName',
-        name: 'Kho',
-        field: 'WarehouseName',
-        width: 120,
         sortable: true,
         filterable: true,
         filter: {

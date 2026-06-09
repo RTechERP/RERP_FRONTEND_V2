@@ -1,4 +1,4 @@
-import { Directive, HostListener, ElementRef } from '@angular/core';
+import { Directive, HostListener, ElementRef, Input } from '@angular/core';
 
 @Directive({
   selector: '[appCurrencyFormatRealtime]',
@@ -6,6 +6,8 @@ import { Directive, HostListener, ElementRef } from '@angular/core';
 })
 export class CurrencyFormatRealtimeDirective {
   private locale = 'en-US';
+  /** Cho phép nhập số âm (giữ dấu '-' đầu chuỗi). Mặc định false để các màn khác không bị ảnh hưởng. */
+  @Input() allowNegative = false;
   constructor(private el: ElementRef<HTMLInputElement>) { }
   @HostListener('input', ['$event'])
   onInput(event: any) {
@@ -14,10 +16,11 @@ export class CurrencyFormatRealtimeDirective {
     const start = inputEl.selectionStart || 0;
     const unformatted = inputEl.value;
 
+    const isNegative = this.allowNegative && /^\s*-/.test(unformatted);
     let rawValue = unformatted.replace(/[^0-9.]/g, '');
 
     if (rawValue === '') {
-      inputEl.value = '';
+      inputEl.value = isNegative ? '-' : '';
       return;
     }
 
@@ -32,7 +35,7 @@ export class CurrencyFormatRealtimeDirective {
         maximumFractionDigits: 0
       }).format(num);
 
-      inputEl.value = formattedNumber + decimalPart;
+      inputEl.value = (isNegative ? '-' : '') + formattedNumber + decimalPart;
     }
 
     const newCaretPos = this.calculateCaretPosition(unformatted, inputEl.value, start);

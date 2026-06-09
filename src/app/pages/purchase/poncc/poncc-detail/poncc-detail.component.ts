@@ -28,7 +28,7 @@ import { PONCCService } from '../poncc.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { SupplierSaleDetailComponent } from '../../supplier-sale/supplier-sale-detail/supplier-sale-detail.component';
 import { ProductSaleDetailComponent } from '../../../old/Sale/ProductSale/product-sale-detail/product-sale-detail.component';
-import { ProjectPartlistPurchaseRequestComponent } from '../../project-partlist-purchase-request/project-partlist-purchase-request.component';
+import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { BillImportServiceService } from '../../../old/Sale/BillImport/bill-import-service/bill-import-service.service';
 import { BillImportDetailComponent } from '../../../old/Sale/BillImport/Modal/bill-import-detail/bill-import-detail.component';
@@ -1578,7 +1578,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
   openYCMHModal(cell: any) {
     const row = cell.getRow();
     const supplierSaleId = this.informationForm.get('SupplierSaleID')?.value;
-    const modalRef = this.modalService.open(ProjectPartlistPurchaseRequestComponent, {
+    const modalRef = this.modalService.open(ProjectPartListPurchaseRequestSlickGridComponent, {
       backdrop: 'static',
       keyboard: false,
       centered: true,

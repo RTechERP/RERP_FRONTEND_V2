@@ -5451,7 +5451,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       const isApprovedBGD = data['IsApprovedBGD'] || false;
       const isTechBought = data['IsTechBought'] || false;
 
-      if (!isApprovedBGD && !isTechBought) {
+      // Chỉ bắt buộc BGĐ duyệt khi là hàng dự án (tab Mua hàng dự án, typeId = 1),
+      // các loại hàng khác vẫn chọn YCMH được
+      if (typeId === 1 && !isApprovedBGD && !isTechBought) {
         this.notify.warning(
           NOTIFICATION_TITLE.warning,
           'Sản phẩm chưa được BGĐ duyệt!'
@@ -5480,7 +5482,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
       const isApprovedBGD = data['IsApprovedBGD'] || false;
 
-      if (!isApprovedBGD) continue;
+      // Chỉ bỏ qua dòng chưa BGĐ duyệt khi là hàng dự án (typeId = 1)
+      if (typeId === 1 && !isApprovedBGD) continue;
       if (!code || code.toString().trim() === '') continue;
 
       if (!lstYCMH.includes(id)) {

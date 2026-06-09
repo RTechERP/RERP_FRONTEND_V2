@@ -511,6 +511,13 @@ export class PhaseAllocationPersonComponent
             return `Đã nhận: ${cell.getValue()}`;
           },
         },
+        {
+          title: 'Ghi chú',
+          field: 'ContentReceive',
+          headerHozAlign: 'left',
+          hozAlign: 'left',
+          width: 100
+        },
       ],
     });
   }

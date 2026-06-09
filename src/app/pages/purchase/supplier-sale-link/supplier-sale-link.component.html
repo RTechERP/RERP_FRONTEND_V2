@@ -89,11 +89,10 @@
                   selectedItemsLabel="{0} đã chọn">
                 </p-multiSelect>
                 <input *ngIf="col.filterType === 'text'" pInputText type="text" [(ngModel)]="col.filterValue"
-                  (input)="onFilterChange()" [placeholder]="'Lọc ' + col.header + '...'"
-                  class="p-column-filter w-100 fs-12 px-2 py-1"
+                  (input)="onFilterChange()" [placeholder]="'Lọc...'" class="p-column-filter w-100 fs-12 px-2 py-1"
                   style="height: 28px; border: 1px solid #ced4da; border-radius: 4px;">
                 <input *ngIf="col.filterType === 'number'" pInputText type="number" [(ngModel)]="col.filterValue"
-                  (input)="onFilterChange()" placeholder="Lọc số..." class="p-column-filter w-100 fs-12 px-2 py-1"
+                  (input)="onFilterChange()" placeholder="Lọc..." class="p-column-filter w-100 fs-12 px-2 py-1"
                   style="height: 28px; border: 1px solid #ced4da; border-radius: 4px;">
               </th>
             </tr>
@@ -115,13 +114,16 @@
               </td>
               <td *ngFor="let col of columns" [class.text-center]="col.type === 'boolean'">
                 <ng-container [ngSwitch]="col.type">
-                  <span *ngSwitchCase="'date'" style="font-size: 12px;">{{item[col.field] | date:col.dateFormat || 'dd/MM/yyyy'}}</span>
+                  <span *ngSwitchCase="'date'" style="font-size: 12px;">{{item[col.field] | date:col.dateFormat ||
+                    'dd/MM/yyyy'}}</span>
                   <span *ngSwitchCase="'number'" style="font-size: 12px;">{{item[col.field] | number:'1.0-2'}}</span>
                   <span *ngSwitchCase="'boolean'" style="font-size: 12px;">
-                    <i class="pi pi-check" *ngIf="item[col.field]" style="color:green; font-weight: bold !important;"></i>
+                    <i class="pi pi-check" *ngIf="item[col.field]"
+                      style="color:green; font-weight: bold !important;"></i>
                   </span>
                   <span *ngSwitchCase="'link'" style="font-size: 12px;">
-                    <a *ngIf="item[col.field]" [href]="getHref(item[col.field])" target="_blank" class="text-primary text-decoration-underline" style="font-size: 12px;">
+                    <a *ngIf="item[col.field]" [href]="getHref(item[col.field])" target="_blank"
+                      class="text-primary text-decoration-underline" style="font-size: 12px;">
                       {{item[col.field]}}
                     </a>
                   </span>

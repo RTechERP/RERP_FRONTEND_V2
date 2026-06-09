@@ -84,6 +84,11 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
     checkedStock: false,
   };
 
+  searchHistory: string[] = [];
+  showSearchHistory: boolean = false;
+  private readonly SEARCH_HISTORY_KEY = 'inventory_overaged_search_history';
+  private readonly MAX_HISTORY = 10;
+
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -104,6 +109,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
     }
     this.initGridColumns();
     this.initGridOptions();
+    this.loadSearchHistory();
     this.getInventory();
   }
 
@@ -143,7 +149,13 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         minWidth: 120,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInput'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProductName',
@@ -153,7 +165,13 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         sortable: true,
         filterable: true,
         formatter: this.wrapTextFormatter,
-        filter: { model: Filters['compoundInput'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProductNewCode',
@@ -162,7 +180,13 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         minWidth: 120,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInput'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       // {
       //   id: 'NameNCC',
@@ -191,7 +215,13 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         minWidth: 120,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInput'] },
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'Unit',
@@ -200,6 +230,13 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         minWidth: 70,
         sortable: true,
         filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       // {
       //   id: 'TotalQuantityLast',
@@ -379,7 +416,29 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
   }
 
   getdataFind() {
+    this.saveSearchHistory(this.searchParam.Find);
     this.getInventory();
+  }
+
+  selectHistoryItem(item: string): void {
+    this.searchParam.Find = item;
+    this.showSearchHistory = false;
+    this.getdataFind();
+  }
+
+  private loadSearchHistory(): void {
+    try {
+      this.searchHistory = JSON.parse(localStorage.getItem(this.SEARCH_HISTORY_KEY) || '[]');
+    } catch {
+      this.searchHistory = [];
+    }
+  }
+
+  private saveSearchHistory(keyword: string): void {
+    const kw = (keyword || '').trim();
+    if (!kw) return;
+    this.searchHistory = [kw, ...this.searchHistory.filter(h => h !== kw)].slice(0, this.MAX_HISTORY);
+    localStorage.setItem(this.SEARCH_HISTORY_KEY, JSON.stringify(this.searchHistory));
   }
 
   toggleFilterOveraged() {

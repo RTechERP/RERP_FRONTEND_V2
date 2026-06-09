@@ -20,8 +20,25 @@
                 <!-- Tìm kiếm -->
                 <div class="d-flex align-items-center gap-2">
                     <label class="font-12 text-nowrap">Từ khóa</label>
-                    <input type="text" [(ngModel)]="searchParam.Find" (keyup.enter)="getdataFind()" nz-input
-                        nzSize="small" style="width: 350px" placeholder="Tìm kiếm mã, tên sản phẩm..." />
+                    <div style="position: relative;">
+                        <input nz-input nzSize="small" style="width: 350px" type="text"
+                            placeholder="Tìm kiếm mã, tên sản phẩm..." [(ngModel)]="searchParam.Find"
+                            (keyup.enter)="getdataFind()"
+                            (focus)="showSearchHistory = true"
+                            (blur)="showSearchHistory = false" />
+                        @if (showSearchHistory && searchHistory.length > 0) {
+                        <div style="position: absolute; top: 100%; left: 0; z-index: 1050; background: #fff;
+                                    border: 1px solid #d9d9d9; border-radius: 4px; min-width: 100%;
+                                    max-height: 220px; overflow-y: auto; box-shadow: 0 3px 8px rgba(0,0,0,0.12);">
+                            @for (item of searchHistory; track item) {
+                            <div style="padding: 5px 12px; cursor: pointer; font-size: 13px; white-space: nowrap;"
+                                (mousedown)="selectHistoryItem(item)">
+                                <span style="color: #999; margin-right: 6px;">⏱</span>{{ item }}
+                            </div>
+                            }
+                        </div>
+                        }
+                    </div>
                     <button nz-button nzType="primary" nzSize="small" (click)="getdataFind()">
                         Tìm kiếm
                     </button>

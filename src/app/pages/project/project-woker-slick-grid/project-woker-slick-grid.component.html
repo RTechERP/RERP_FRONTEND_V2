@@ -40,7 +40,7 @@
                 </button>
               </div>
               <div class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-container" style="min-height: 0;">
-                <angular-slickgrid gridId="grid-solution" [columns]="solutionColumns" [options]="solutionGridOptions"
+                <angular-slickgrid [gridId]="solutionGridId" [columns]="solutionColumns" [options]="solutionGridOptions"
                   [dataset]="dataSolution" (onAngularGridCreated)="onSolutionGridReady($event)"
                   (onSelectedRowsChanged)="onSolutionRowClick($event)"></angular-slickgrid>
               </div>
@@ -96,7 +96,7 @@
               </div>
               <div class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-version-container"
                 style="min-height: 0;">
-                <angular-slickgrid *ngIf="gridsInitialized" gridId="grid-solution-version"
+                <angular-slickgrid *ngIf="gridsInitialized" [gridId]="solutionVersionGridId"
                   [columns]="solutionVersionColumns" [options]="solutionVersionGridOptions"
                   [dataset]="dataSolutionVersion" (onAngularGridCreated)="onSolutionVersionGridReady($event)"
                   (onSelectedRowsChanged)="onSolutionVersionRowClick($event)"></angular-slickgrid>
@@ -151,7 +151,7 @@
                 </nz-dropdown-menu>
               </div>
               <div class="card-body p-0 flex-grow-1 overflow-hidden grid-po-version-container" style="min-height: 0;">
-                <angular-slickgrid *ngIf="gridsInitialized" gridId="grid-po-version" [columns]="poVersionColumns"
+                <angular-slickgrid *ngIf="gridsInitialized" [gridId]="poVersionGridId" [columns]="poVersionColumns"
                   [options]="poVersionGridOptions" [dataset]="dataPOVersion"
                   (onAngularGridCreated)="onPOVersionGridReady($event)"
                   (onSelectedRowsChanged)="onPOVersionRowClick($event)"></angular-slickgrid>
@@ -251,7 +251,7 @@
               style="z-index: 10;">
               <nz-spin nzSimple></nz-spin>
             </div>
-            <angular-slickgrid *ngIf="gridsInitialized" gridId="grid-project-worker" [columns]="projectWorkerColumns"
+            <angular-slickgrid *ngIf="gridsInitialized" [gridId]="projectWorkerGridId" [columns]="projectWorkerColumns"
               [options]="projectWorkerGridOptions" [dataset]="dataProjectWorker"
               (onAngularGridCreated)="onProjectWorkerGridReady($event)"
               (onSelectedRowsChanged)="onProjectWorkerRowClick($event)"></angular-slickgrid>

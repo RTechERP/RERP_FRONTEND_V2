@@ -75,6 +75,12 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   angularGridPOVersion!: AngularGridInstance;
   angularGridProjectWorker!: AngularGridInstance;
 
+  // Dynamic Grid IDs to avoid collisions in tabs
+  solutionGridId: string = 'grid-solution-worker';
+  solutionVersionGridId: string = 'grid-solution-version-worker';
+  poVersionGridId: string = 'grid-po-version-worker';
+  projectWorkerGridId: string = 'grid-project-worker';
+
   // Column definitions
   solutionColumns: Column[] = [];
   solutionVersionColumns: Column[] = [];
@@ -150,6 +156,14 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         this.projectCodex = this.tabData.projectCodex;
       }
     }
+
+    // Initialize unique grid IDs based on projectId
+    const uniqueId = this.projectId || Math.floor(Math.random() * 1000000);
+    this.solutionGridId = `grid-solution-${uniqueId}`;
+    this.solutionVersionGridId = `grid-solution-version-${uniqueId}`;
+    this.poVersionGridId = `grid-po-version-${uniqueId}`;
+    this.projectWorkerGridId = `grid-project-worker-${uniqueId}`;
+
     this.isDeleted = 0;
     this.isApprovedTBP = -1;
     this.initializeGrids();

@@ -4943,6 +4943,19 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       );
       const ProductGroupName = productGroup?.ProductGroupName || '';
 
+      // Tính ProductCodeOfSupplier: mặc định "Tên SP Mã SP", riêng nhóm SP HR (77, 80) chỉ lấy Tên SP,
+      // hàng thương mại ưu tiên GuestCode, SpecialCode (nếu có) luôn ghi đè cuối cùng
+      const productGroupIDHR = [77, 80];
+      let productCodeOfSupplier = productGroupIDHR.includes(ProductGroupID)
+        ? String(row.ProductName || '')
+        : String(row.ProductName + ' ' + row.ProductCode || '');
+      if (isCommercialProduct && String(row.GuestCode || '').trim()) {
+        productCodeOfSupplier = String(row.GuestCode);
+      }
+      if (String(row.SpecialCode || '').trim()) {
+        productCodeOfSupplier = String(row.SpecialCode);
+      }
+
       // Tạo request object
       const thanhTien = quantity * unitPrice;
       const vatMoney = thanhTien * (vat / 100);
@@ -4950,7 +4963,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         ...row,
         STT: stt,
         ID: 0,
-        ProductCodeOfSupplier: String(row.ProductName + '-' + row.ProductCode || ''),
+        ProductCodeOfSupplier: productCodeOfSupplier,
         ProductGroupName: ProductGroupName,
         PriceHistory: Number(row.HistoryPrice || 0),
         VATMoney: vatMoney,

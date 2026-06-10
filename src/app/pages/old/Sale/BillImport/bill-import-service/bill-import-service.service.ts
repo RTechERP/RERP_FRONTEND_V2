@@ -235,6 +235,12 @@ export class BillImportServiceService {
             payload
         );
     }
+    SaveBill(payload: any[]): Observable<any> {
+        return this.http.post(
+            environment.host + `api/billimportdetail/save-bill`,
+            payload
+        );
+    }
     getPhieutra(productID: number) {
         return this.http.get(environment.host + `api/billimport/get-phieu-tra?productID=${productID}`);
     }

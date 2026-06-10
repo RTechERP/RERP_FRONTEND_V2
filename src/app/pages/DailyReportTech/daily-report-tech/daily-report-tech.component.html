@@ -125,8 +125,7 @@
                             <nz-form-control>
                                 <div class="d-flex gap-1">
                                     <input nz-input placeholder="Nhập từ khóa..." nzSize="small" [(ngModel)]="keyword"
-                                        name="keyword" class="flex-grow-1" (keyup.enter)="searchDailyReports()"
-                                        (ngModelChange)="onSearchChange($event)" />
+                                        name="keyword" class="flex-grow-1" (keyup.enter)="searchDailyReports()" />
                                     <button nz-button nzType="primary" style="width: 40px;" nzSize="small"
                                         (click)="searchDailyReports()">
                                         <nz-icon nzType="search" />

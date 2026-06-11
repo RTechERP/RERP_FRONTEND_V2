@@ -1,0 +1,66 @@
+<div class="page-container">
+  <div class="toolbar-header bg-white p-0" style="flex-shrink: 0; margin-bottom: 8px;">
+    <p-menubar [model]="menuBars">
+      <ng-template pTemplate="start">
+        <h4 class="page-title mb-0" style="margin-left: 10px; margin-right: 20px; font-weight: 600; line-height: 1;">Quản lý danh mục kỳ KPI</h4>
+      </ng-template>
+      <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass">
+          <i [class]="item.icon"></i>
+          <span class="p-menuitem-text" style="margin-left: 8px;">{{ item.label }}</span>
+        </a>
+      </ng-template>
+    </p-menubar>
+  </div>
+
+  <div class="content-container">
+    <nz-table #periodTreeTable [nzData]="periodTreeRows" [nzShowPagination]="false" [nzFrontPagination]="false"
+      [nzLoading]="isLoading" nzSize="small" [nzScroll]="{ y: 'calc(100vh - 280px)' }" nzBordered>
+      <thead>
+        <tr>
+          <th nzWidth="300px">Mã kỳ</th>
+          <th nzWidth="300px">Tên kỳ</th>
+          <th nzWidth="150px">Loại kỳ</th>
+          <th nzWidth="150px">Ngày bắt đầu</th>
+          <th nzWidth="150px">Ngày kết thúc</th>
+          <th nzWidth="100px" nzAlign="center">Trạng thái</th>
+          <th nzWidth="100px" nzAlign="center">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let data of periodTreeTable.data">
+          <tr *ngIf="(data.period.parentPeriodId === 0 || data.period.parentPeriodId == null) || (periodExpandState[data.period.parentPeriodId || 0])">
+            <td [nzIndentSize]="data.level! * 20" [nzShowExpand]="data.expandable"
+              [(nzExpand)]="data.expanded"
+              (nzExpandChange)="togglePeriodExpand(data, $event)">
+              <span class="tree-node-icon">
+                <i nz-icon [nzType]="data.period.periodType === 'YEAR' ? 'calendar' : (data.period.periodType === 'QUARTER' ? 'pie-chart' : 'schedule')"></i>
+              </span>
+              {{ data.period.periodCode }}
+            </td>
+            <td>{{ data.period.periodName }}</td>
+            <td>
+              <nz-tag [nzColor]="data.period.periodType === 'YEAR' ? 'blue' : (data.period.periodType === 'QUARTER' ? 'green' : 'orange')">
+                {{ data.period.periodType === 'YEAR' ? 'Năm' : (data.period.periodType === 'QUARTER' ? 'Quý' : 'Tháng') }}
+              </nz-tag>
+            </td>
+            <td>{{ data.period.dateStart | date:'dd/MM/yyyy' }}</td>
+            <td>{{ data.period.dateEnd | date:'dd/MM/yyyy' }}</td>
+            <td nzAlign="center">
+              <nz-switch [ngModel]="data.period.isClosed" nzDisabled nzSize="small"></nz-switch>
+            </td>
+            <td nzAlign="center">
+              <a class="action-btn text-primary" style="margin-right: 8px" (click)="openPeriodForm(data.period)">
+                <i nz-icon nzType="edit"></i>
+              </a>
+              <a class="action-btn text-danger" nz-popconfirm nzPopconfirmTitle="Bạn có chắc muốn xóa?"
+                (nzOnConfirm)="deletePeriod(data.period.id)">
+                <i nz-icon nzType="delete"></i>
+              </a>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </nz-table>
+  </div>
+</div>

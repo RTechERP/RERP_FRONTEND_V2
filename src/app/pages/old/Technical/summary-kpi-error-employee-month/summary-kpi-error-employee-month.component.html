@@ -29,9 +29,10 @@
                             <nz-form-label class="fs-12">Loại lỗi</nz-form-label>
                             <nz-form-control>
                                 <nz-select [(ngModel)]="kpiErrorTypeId_TK" name="kpiErrorTypeId_TK" nzSize="small"
-                                    nzPlaceHolder="Chọn loại lỗi" nzAllowClear style="width: 150px;">
-                                    <nz-option *ngFor="let item of kpiErrorTypes" [nzValue]="item.Code"
-                                        [nzLabel]="item.Name"></nz-option>
+                                    nzPlaceHolder="Chọn loại lỗi" nzAllowClear style="width: 150px;"
+                                    nzDropdownClassName="select-dropdown">
+                                    <nz-option *ngFor="let item of kpiErrorTypes" [nzValue]="item.ID"
+                                        [nzLabel]="item.Code + ' - ' + item.Name"></nz-option>
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
@@ -40,7 +41,8 @@
                             <nz-form-label class="fs-12">Phòng ban</nz-form-label>
                             <nz-form-control>
                                 <nz-select [(ngModel)]="departmentId_TK" name="departmentId_TK" nzSize="small"
-                                    nzPlaceHolder="Chọn phòng ban" nzAllowClear style="width: 150px;">
+                                    nzPlaceHolder="Chọn phòng ban" nzAllowClear style="width: 150px;"
+                                    nzDropdownClassName="select-dropdown">
                                     <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
                                         [nzLabel]="item.Name"></nz-option>
                                 </nz-select>
@@ -122,7 +124,8 @@
                             <nz-form-label class="fs-12">Loại lỗi</nz-form-label>
                             <nz-form-control>
                                 <nz-select [(ngModel)]="kpiErrorTypeId_BD" name="kpiErrorTypeId_BD" nzSize="small"
-                                    nzPlaceHolder="Chọn loại lỗi" nzAllowClear style="width: 150px;">
+                                    nzPlaceHolder="Chọn loại lỗi" nzAllowClear style="width: 150px;"
+                                    nzDropdownClassName="select-dropdown">
                                     <nz-option *ngFor="let item of kpiErrorTypes" [nzValue]="item.ID"
                                         [nzLabel]="item.Name"></nz-option>
                                 </nz-select>
@@ -133,7 +136,8 @@
                             <nz-form-label class="fs-12">Phòng ban</nz-form-label>
                             <nz-form-control>
                                 <nz-select [(ngModel)]="departmentId_BD" name="departmentId_BD" nzSize="small"
-                                    nzPlaceHolder="Chọn phòng ban" nzAllowClear style="width: 150px;">
+                                    nzPlaceHolder="Chọn phòng ban" nzAllowClear style="width: 150px;"
+                                    nzDropdownClassName="select-dropdown">
                                     <nz-option *ngFor="let item of departments" [nzValue]="item.ID"
                                         [nzLabel]="item.Name"></nz-option>
                                 </nz-select>

@@ -1,0 +1,224 @@
+<div class="page-container">
+  <div class="toolbar-header bg-white p-0" style="flex-shrink: 0; margin-bottom: 8px;">
+    <p-menubar [model]="menuBars" class="p-1">
+      <ng-template pTemplate="start">
+        <h4 class="page-title mb-0" style="margin-left: 10px; margin-right: 20px; font-weight: 600; line-height: 1;">Thiết lập Công thức &amp; Chấm điểm</h4>
+      </ng-template>
+      <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command($event) : null">
+          <i [class]="item.icon"></i>
+          <span class="p-menuitem-text" style="margin-left: 8px;">{{ item.label }}</span>
+        </a>
+      </ng-template>
+    </p-menubar>
+  </div>
+
+  <div class="split-container">
+    <!-- Cột bên trái: Bộ lọc & Bảng chỉ tiêu (Master) -->
+    <div class="left-sidebar">
+      <div class="sidebar-title">
+        <h6>Danh sách chỉ tiêu</h6>
+      </div>
+      <div class="filter-box p-2">
+        <div class="field mb-2">
+          <span>Mẫu KPI:</span>
+          <nz-select nzDropdownClassName="select-dropdown" name="selectedTemplateId" nzSize="small" nzShowSearch
+            [(ngModel)]="selectedTemplateId" (ngModelChange)="onTemplateChange($event)" class="w-100">
+            <nz-option *ngFor="let item of templates; trackBy: trackById" [nzValue]="item.id"
+              [nzLabel]="item.templateName">
+            </nz-option>
+          </nz-select>
+        </div>
+        <div class="field mb-1">
+          <span>Tìm chỉ tiêu:</span>
+          <input nz-input name="searchText" nzSize="small" placeholder="Tìm kiếm mã/tên KPI" [(ngModel)]="searchText" class="w-100" />
+        </div>
+      </div>
+
+      <div class="indicators-table-wrapper">
+        <nz-table #indexTable [nzData]="indexesTreeForTemplate" [nzFrontPagination]="false" nzSize="small"
+          nzBordered [nzScroll]="{ y: 'calc(100vh - 350px)' }" style="height: 100%;">
+          <thead>
+            <tr>
+              <th nzWidth="60px" nzAlign="right">STT</th>
+              <th>Mã &amp; Tên chỉ tiêu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of indexTable.data; trackBy: trackById"
+              [class.selected-row]="item.index.id === selectedIndexId"
+              [class.main-index-row]="item.index.isMainIndex" (click)="onIndexSelect(item.index.id)" class="cursor-pointer">
+              <td nzAlign="right">{{ item.index.sortOrder }}</td>
+              <td class="mono" [nzIndentSize]="item.level * 15" [nzShowExpand]="item.expandable"
+                [nzExpand]="item.expanded" (nzExpandChange)="toggleIndexExpand(item, $event)">
+                {{ item.index.indexCode }} - {{ item.index.indexName }}
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </div>
+    </div>
+
+    <!-- Cột bên phải: Công thức & Quy tắc chấm điểm (Detail) -->
+    <div class="right-content">
+      <div *ngIf="!selectedIndexId" class="empty-state">
+        <i nz-icon nzType="info-circle" nzTheme="outline" style="font-size: 32px; color: #1890ff; margin-bottom: 8px;"></i>
+        <span>Vui lòng chọn chỉ tiêu bên danh sách cột trái để bắt đầu thiết lập.</span>
+      </div>
+
+      <ng-container *ngIf="selectedIndexId">
+        <!-- Phần trên: Thành phần công thức -->
+        <div class="detail-section" style="flex: 5; display: flex; flex-direction: column;">
+          <div class="table-title">
+            <h6>Thành phần công thức: <span style="color: #0f766e;">{{ selectedIndex?.indexCode }} - {{ selectedIndex?.indexName }}</span></h6>
+            <button nz-button nzType="primary" nzSize="small" (click)="openFormulaForm()">+ Thêm thành phần</button>
+          </div>
+          <div style="flex: 1; min-height: 0; overflow: hidden;">
+            <nz-table #formulaTable [nzData]="formulaItems" [nzFrontPagination]="false" nzSize="small" nzBordered [nzScroll]="{ y: '240px' }" style="height: 100%;">
+              <thead>
+                <tr>
+                  <th>Chỉ tiêu cha</th>
+                  <th nzWidth="100px" nzAlign="center">Toán tử</th>
+                  <th>Chỉ tiêu con</th>
+                  <th nzWidth="80px" nzAlign="right">Thứ tự</th>
+                  <th nzWidth="100px" nzAlign="center">Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of formulaTable.data; trackBy: trackById" class="cursor-pointer">
+                  <td>{{ item.parentIndexName || getIndexName(item.parentKpiIndexId) }}</td>
+                  <td nzAlign="center"><nz-tag nzColor="purple">{{ item.operator }}</nz-tag></td>
+                  <td>{{ item.childIndexName || getIndexName(item.childKpiIndexId) }}</td>
+                  <td nzAlign="right">{{ item.sortOrder }}</td>
+                  <td nzAlign="center">
+                    <a class="action-btn text-primary" style="margin-right: 8px" (click)="openFormulaForm(item)">
+                      <i nz-icon nzType="edit"></i>
+                    </a>
+                    <a class="action-btn text-danger" nz-popconfirm nzPopconfirmTitle="Bạn có chắc muốn xóa thành phần này?" (nzOnConfirm)="deleteFormulaItem(item.id)">
+                      <i nz-icon nzType="delete"></i>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </nz-table>
+          </div>
+        </div>
+
+        <!-- Static Divider line -->
+        <div class="static-divider"></div>
+
+        <!-- Phần dưới: Quy tắc chấm điểm -->
+        <div class="detail-section" style="flex: 5; display: flex; flex-direction: column;">
+          <div class="table-title">
+            <h6>Quy tắc chấm điểm</h6>
+            <button nz-button nzType="primary" nzSize="small" (click)="openScoringForm()">+ Thêm quy tắc</button>
+          </div>
+          <div style="flex: 1; min-height: 0; overflow: hidden;">
+            <nz-table #scoringTable [nzData]="scoringRules" [nzFrontPagination]="false" nzSize="small" nzBordered [nzScroll]="{ y: '240px' }" style="height: 100%;">
+              <thead>
+                <tr>
+                  <th>Chỉ tiêu KPI</th>
+                  <th nzWidth="180px">Kiểu tính điểm</th>
+                  <th nzWidth="140px" nzAlign="right">Tỷ lệ đạt tối đa</th>
+                  <th>Công thức JSON</th>
+                  <th nzWidth="100px" nzAlign="center">Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of scoringTable.data; trackBy: trackById" class="cursor-pointer">
+                  <td>{{ getIndexName(item.kpiIndexId) }}</td>
+                  <td><nz-tag nzColor="blue">{{ getScoreTypeLabel(item.scoreType) }}</nz-tag></td>
+                  <td nzAlign="right">{{ item.maxAchievedPercent | number: '1.0-2' }}</td>
+                  <td class="mono">{{ item.formulaJson }}</td>
+                  <td nzAlign="center">
+                    <a class="action-btn text-primary" style="margin-right: 8px" (click)="openScoringForm(item)">
+                      <i nz-icon nzType="edit"></i>
+                    </a>
+                    <a class="action-btn text-danger" nz-popconfirm nzPopconfirmTitle="Bạn có chắc muốn xóa quy tắc này?" (nzOnConfirm)="deleteScoringRule(item.id)">
+                      <i nz-icon nzType="delete"></i>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </nz-table>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<!-- Template: Form Thành phần công thức -->
+<ng-template #formulaFormTemplate>
+  <form nz-form nzLayout="vertical" class="compact-form">
+    <div class="field">
+      <span>Chỉ tiêu cha (nhóm/công thức)</span>
+      <nz-select nzDropdownClassName="select-dropdown" name="formulaParent" nzShowSearch
+        [(ngModel)]="formulaDraft.parentKpiIndexId" class="w-100">
+        <nz-option *ngFor="let item of indexesForTemplate; trackBy: trackById" [nzValue]="item.id"
+          [nzLabel]="item.indexCode + ' - ' + item.indexName">
+        </nz-option>
+      </nz-select>
+    </div>
+
+    <div class="field">
+      <span>Chỉ tiêu con</span>
+      <nz-select nzDropdownClassName="select-dropdown" name="formulaChild" nzShowSearch
+        [(ngModel)]="formulaDraft.childKpiIndexId" class="w-100">
+        <nz-option *ngFor="let item of indexesForTemplate; trackBy: trackById" [nzValue]="item.id"
+          [nzLabel]="item.indexCode + ' - ' + item.indexName">
+        </nz-option>
+      </nz-select>
+    </div>
+
+    <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div class="field">
+        <span>Toán tử</span>
+        <nz-select nzDropdownClassName="select-dropdown" name="formulaOperator"
+          [(ngModel)]="formulaDraft.operator" class="w-100">
+          <nz-option *ngFor="let item of formulaOperators" [nzValue]="item" [nzLabel]="item"></nz-option>
+        </nz-select>
+      </div>
+      <div class="field">
+        <span>Thứ tự sắp xếp</span>
+        <nz-input-number name="formulaSortOrder" [(ngModel)]="formulaDraft.sortOrder"
+          [nzMin]="0" class="w-100"></nz-input-number>
+      </div>
+    </div>
+  </form>
+</ng-template>
+
+<!-- Template: Form Quy tắc chấm điểm -->
+<ng-template #scoringFormTemplate>
+  <form nz-form nzLayout="vertical" class="compact-form">
+    <div class="field">
+      <span>Chỉ tiêu KPI</span>
+      <nz-select nzDropdownClassName="select-dropdown" name="scoringIndex" nzShowSearch
+        [(ngModel)]="scoringRuleDraft.kpiIndexId" class="w-100">
+        <nz-option *ngFor="let item of indexesForTemplate; trackBy: trackById" [nzValue]="item.id"
+          [nzLabel]="item.indexCode + ' - ' + item.indexName">
+        </nz-option>
+      </nz-select>
+    </div>
+
+    <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div class="field">
+        <span>Kiểu tính điểm</span>
+        <nz-select nzDropdownClassName="select-dropdown" name="scoreType"
+          [(ngModel)]="scoringRuleDraft.scoreType" class="w-100">
+          <nz-option *ngFor="let item of scoreTypes" [nzValue]="item" [nzLabel]="getScoreTypeLabel(item)"></nz-option>
+        </nz-select>
+      </div>
+      <div class="field">
+        <span>Tỷ lệ đạt tối đa (%)</span>
+        <nz-input-number name="maxAchievedPercent" [(ngModel)]="scoringRuleDraft.maxAchievedPercent"
+          [nzMin]="0" class="w-100"></nz-input-number>
+      </div>
+    </div>
+
+    <div class="field">
+      <span>Công thức JSON (tùy chọn)</span>
+      <textarea nz-input name="formulaJson" rows="3" [(ngModel)]="scoringRuleDraft.formulaJson" placeholder="Nhập cấu hình công thức JSON nếu cần..."></textarea>
+    </div>
+  </form>
+</ng-template>

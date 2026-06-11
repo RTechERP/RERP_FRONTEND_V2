@@ -129,7 +129,7 @@ export class ProjectApplicationTypesComponent implements OnInit {
       {
         label: 'Thêm',
         icon: 'fa-solid fa-circle-plus fa-lg text-success',
-        visible: this.permissionService.hasPermission('N1,N13,N27'),
+        visible: this.permissionService.hasPermission('N1,N13,N27,N97'),
         command: () => {
           this.onAddProjectTechnology();
         },
@@ -137,7 +137,7 @@ export class ProjectApplicationTypesComponent implements OnInit {
       {
         label: 'Sửa',
         icon: 'fa-solid fa-file-pen fa-lg text-primary',
-        visible: this.permissionService.hasPermission('N1,N13,N27'),
+        visible: this.permissionService.hasPermission('N1,N13,N27,N97'),
         command: () => {
           this.onEditProjectTechnology();
         },
@@ -145,7 +145,7 @@ export class ProjectApplicationTypesComponent implements OnInit {
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: this.permissionService.hasPermission('N1,N13,N27'),
+        visible: this.permissionService.hasPermission('N1,N13,N27,N97'),
         command: () => {
           this.onDeleteProjectTechnology();
         },
@@ -158,7 +158,7 @@ export class ProjectApplicationTypesComponent implements OnInit {
       {
         label: 'Thêm',
         icon: 'fa-solid fa-circle-plus fa-lg text-success',
-        visible: this.permissionService.hasPermission('N1,N13,N27'),
+        visible: this.permissionService.hasPermission('N1,N13,N27,N97'),
         command: () => {
           this.onAddProjectApplicationType();
         },
@@ -166,7 +166,7 @@ export class ProjectApplicationTypesComponent implements OnInit {
       {
         label: 'Sửa',
         icon: 'fa-solid fa-file-pen fa-lg text-primary',
-        visible: this.permissionService.hasPermission('N1,N13,N27'),
+        visible: this.permissionService.hasPermission('N1,N13,N27,N97'),
         command: () => {
           this.onEditProjectApplicationType();
         },
@@ -174,7 +174,7 @@ export class ProjectApplicationTypesComponent implements OnInit {
       {
         label: 'Xóa',
         icon: 'fa-solid fa-trash fa-lg text-danger',
-        visible: this.permissionService.hasPermission('N1,N13,N27'),
+        visible: this.permissionService.hasPermission('N1,N13,N27,N97'),
         command: () => {
           this.onDelete();
         },

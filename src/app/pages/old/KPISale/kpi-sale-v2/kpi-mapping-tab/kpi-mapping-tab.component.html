@@ -1,0 +1,352 @@
+<div class="page-container">
+  <div class="toolbar-header bg-white p-0" style="flex-shrink: 0; margin-bottom: 8px;">
+    <p-menubar [model]="menuBars" class="p-1">
+      <ng-template pTemplate="start">
+        <h4 class="page-title mb-0" style="margin-left: 10px; margin-right: 20px; font-weight: 600; line-height: 1;">Thiết lập Ánh xạ & Bộ lọc chỉ tiêu</h4>
+      </ng-template>
+      <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command($event) : null">
+          <i [class]="item.icon"></i>
+          <span class="p-menuitem-text" style="margin-left: 8px;">{{ item.label }}</span>
+        </a>
+      </ng-template>
+    </p-menubar>
+  </div>
+
+  <div class="split-container">
+    <!-- Cột bên trái: Bộ lọc & Bảng chỉ tiêu (Master) -->
+    <div class="left-sidebar">
+      <div class="sidebar-title">
+        <h6>Danh sách chỉ tiêu</h6>
+      </div>
+      <div class="filter-box p-2">
+        <div class="field mb-2">
+          <span>Mẫu KPI:</span>
+          <nz-select nzDropdownClassName="select-dropdown" name="selectedTemplateId" nzSize="small" nzShowSearch
+            [(ngModel)]="selectedTemplateId" (ngModelChange)="onTemplateChange($event)" class="w-100">
+            <nz-option *ngFor="let item of templates; trackBy: trackById" [nzValue]="item.id"
+              [nzLabel]="item.templateName">
+            </nz-option>
+          </nz-select>
+        </div>
+        <div class="field mb-1">
+          <span>Tìm chỉ tiêu:</span>
+          <input nz-input name="searchText" nzSize="small" placeholder="Tìm kiếm mã/tên KPI" [(ngModel)]="searchText" class="w-100" />
+        </div>
+      </div>
+
+      <div class="indicators-table-wrapper">
+        <nz-table #indexTable [nzData]="indexesTreeForTemplate" [nzFrontPagination]="false" nzSize="small"
+          nzBordered [nzScroll]="{ y: 'calc(100vh - 350px)' }" style="height: 100%;">
+          <thead>
+            <tr>
+              <th nzWidth="60px" nzAlign="right">STT</th>
+              <th>Mã & Tên chỉ tiêu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of indexTable.data; trackBy: trackById"
+              [class.selected-row]="item.index.id === selectedIndexId"
+              [class.main-index-row]="item.index.isMainIndex" (click)="onIndexSelect(item.index.id)" class="cursor-pointer">
+              <td nzAlign="right">{{ item.index.sortOrder }}</td>
+              <td class="mono" [nzIndentSize]="item.level * 15" [nzShowExpand]="item.expandable"
+                [nzExpand]="item.expanded" (nzExpandChange)="toggleIndexExpand(item, $event)">
+                {{ item.index.indexCode }} - {{ item.index.indexName }}
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </div>
+    </div>
+
+    <!-- Cột bên phải: Danh sách ánh xạ & Bộ lọc tương ứng (Detail) -->
+    <div class="right-content">
+      <div *ngIf="!selectedIndexId" class="empty-state">
+        <i nz-icon nzType="info-circle" nzTheme="outline" style="font-size: 32px; color: #1890ff; margin-bottom: 8px;"></i>
+        <span>Vui lòng chọn chỉ tiêu chi tiết bên danh sách cột trái để bắt đầu thiết lập.</span>
+      </div>
+
+      <ng-container *ngIf="selectedIndexId">
+        <!-- Phần trên: Ánh xạ dữ liệu chỉ tiêu -->
+        <div class="detail-section" style="flex: 4; display: flex; flex-direction: column;">
+          <div class="table-title">
+            <h6>Ánh xạ nguồn dữ liệu: <span style="color: #0f766e;">{{ selectedIndex?.indexCode }} - {{ selectedIndex?.indexName }}</span></h6>
+            <button nz-button nzType="primary" nzSize="small" (click)="openMappingForm()">+ Thêm ánh xạ mới</button>
+          </div>
+          <div style="flex: 1; min-height: 0; overflow: hidden;">
+            <nz-table #mappingTable [nzData]="mappingsForSelectedIndex" [nzFrontPagination]="false" nzSize="small" nzBordered [nzScroll]="{ y: '240px' }" style="height: 100%;">
+              <thead>
+                <tr>
+                  <th>Nguồn dữ liệu</th>
+                  <th nzWidth="150px">Kiểu tổng hợp</th>
+                  <th nzWidth="180px">Cột giá trị</th>
+                  <th nzWidth="180px">Cột không trùng</th>
+                  <th nzWidth="90px" nzAlign="center">Đang dùng</th>
+                  <th nzWidth="100px" nzAlign="center">Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of mappingTable.data; trackBy: trackById"
+                  [class.selected-row]="item.id === selectedMappingId" (click)="onMappingSelect(item.id)" class="cursor-pointer">
+                  <td>{{ getSourceName(item.dataSourceId) }}</td>
+                  <td><nz-tag nzColor="blue">{{ getAggregateTypeLabel(item.aggregateType) }}</nz-tag></td>
+                  <td class="mono">{{ item.valueColumn }}</td>
+                  <td class="mono">{{ item.distinctColumn }}</td>
+                  <td nzAlign="center">
+                    <nz-switch nzSize="small" [ngModel]="item.isActive" nzDisabled></nz-switch>
+                  </td>
+                  <td nzAlign="center" (click)="$event.stopPropagation()">
+                    <a class="action-btn text-primary" style="margin-right: 8px" (click)="openMappingForm(item)">
+                      <i nz-icon nzType="edit"></i>
+                    </a>
+                    <a class="action-btn text-danger" nz-popconfirm nzPopconfirmTitle="Bạn có chắc muốn xóa ánh xạ này?" (nzOnConfirm)="deleteMapping(item.id)">
+                      <i nz-icon nzType="delete"></i>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </nz-table>
+          </div>
+        </div>
+
+        <!-- Static Divider line -->
+        <div class="static-divider"></div>
+
+        <!-- Phần dưới: Thiết lập bộ lọc của ánh xạ đang chọn -->
+        <div class="detail-section" style="flex: 6; display: flex; flex-direction: column;">
+          <div *ngIf="!selectedMappingId" class="empty-state-mini">
+            <span>Chọn một dòng ánh xạ ở trên để xem và thiết lập điều kiện bộ lọc.</span>
+          </div>
+
+          <ng-container *ngIf="selectedMappingId && selectedMapping as mapping">
+            <div class="table-title">
+              <h6>Cây điều kiện lọc dữ liệu</h6>
+            </div>
+            
+            <div class="filter-tree-wrapper" style="flex: 1; overflow-y: auto;">
+              <ng-container *ngTemplateOutlet="filterGroupTpl; context: { $implicit: mapping.filterGroups[0] }"></ng-container>
+            </div>
+
+            <!-- Template đệ quy kết xuất nhóm bộ lọc và điều kiện -->
+            <ng-template #filterGroupTpl let-group>
+              <div class="filter-group" *ngIf="group">
+                <div class="filter-group-header d-flex align-items-center gap-2">
+                  <nz-radio-group [(ngModel)]="group.logicOperator" (ngModelChange)="onLogicOperatorChange(group)" nzSize="small">
+                    <label *ngFor="let item of logicOperators" nz-radio-button [nzValue]="item">{{ getLogicOperatorLabel(item) }}</label>
+                  </nz-radio-group>
+                  <button nz-button nzType="dashed" nzSize="small" (click)="addChildFilterGroup(group.id)">+ Thêm nhóm con</button>
+                  <button nz-button nzType="default" nzSize="small" (click)="openFilterForm(group)">+ Thêm điều kiện</button>
+                  <button nz-button nzType="text" nzDanger nzSize="small" *ngIf="group.parentGroupId" nz-popconfirm nzPopconfirmTitle="Xóa nhóm lọc này và mọi điều kiện lọc bên trong?" (nzOnConfirm)="deleteFilterGroup(group.id)" style="margin-left: auto;">
+                    <i nz-icon nzType="delete"></i>
+                  </button>
+                </div>
+
+                <div class="filter-group-body">
+                  <!-- Danh sách điều kiện thuộc nhóm -->
+                  <nz-table *ngIf="group.conditions?.length" [nzData]="group.conditions" [nzFrontPagination]="false" [nzShowPagination]="false" nzSize="small" nzBordered style="margin-bottom: 12px;">
+                    <thead>
+                      <tr>
+                        <th>Tên cột</th>
+                        <th nzWidth="120px">Toán tử</th>
+                        <th nzWidth="130px">Loại giá trị</th>
+                        <th>Giá trị 1</th>
+                        <th>Giá trị 2</th>
+                        <th nzWidth="110px">Kiểu dữ liệu</th>
+                        <th nzWidth="80px" nzAlign="center">K.Hoạt</th>
+                        <th nzWidth="90px" nzAlign="center">Hành động</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let cond of group.conditions; trackBy: trackById">
+                        <td>{{ getColumnDisplayName(cond.columnName) }}</td>
+                        <td><nz-tag nzColor="orange">{{ getOperatorLabel(cond.operator) }}</nz-tag></td>
+                        <td>{{ getValueTypeLabel(cond.valueType) }}</td>
+                        <td>{{ getFilterValueLabel(cond, cond.value1) }}</td>
+                        <td>{{ getFilterValueLabel(cond, cond.value2) }}</td>
+                        <td><nz-tag nzColor="blue">{{ getColumnDataTypeLabel(cond.dataType) }}</nz-tag></td>
+                        <td nzAlign="center">
+                          <nz-switch nzSize="small" [ngModel]="cond.isActive" nzDisabled></nz-switch>
+                        </td>
+                        <td nzAlign="center">
+                          <a class="action-btn text-primary" style="margin-right: 8px" (click)="openFilterForm(group, cond)">
+                            <i nz-icon nzType="edit"></i>
+                          </a>
+                          <a class="action-btn text-danger" nz-popconfirm nzPopconfirmTitle="Bạn có chắc muốn xóa điều kiện này?" (nzOnConfirm)="deleteFilterCondition(cond.id)">
+                            <i nz-icon nzType="delete"></i>
+                          </a>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </nz-table>
+
+                  <!-- Đệ quy các nhóm lọc con -->
+                  <div class="filter-group-children" *ngIf="group.children?.length">
+                    <ng-container *ngFor="let childGroup of group.children">
+                      <ng-container *ngTemplateOutlet="filterGroupTpl; context: { $implicit: childGroup }"></ng-container>
+                    </ng-container>
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+          </ng-container>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+<!-- Template: Form Ánh xạ -->
+<ng-template #mappingFormTemplate>
+  <form nz-form nzLayout="vertical" class="compact-form">
+    <div class="field">
+      <span>Nguồn dữ liệu</span>
+      <nz-select nzDropdownClassName="select-dropdown" name="mappingSourceId" [(ngModel)]="mappingDraft.dataSourceId" (ngModelChange)="onMappingSourceChange($event)" class="w-100">
+        <nz-option *ngFor="let item of activeDataSources; trackBy: trackById" [nzValue]="item.id" [nzLabel]="item.sourceCode + ' - ' + item.sourceName">
+        </nz-option>
+      </nz-select>
+    </div>
+    
+    <div class="form-grid">
+      <div class="field">
+        <span>Kiểu tổng hợp</span>
+        <nz-select nzDropdownClassName="select-dropdown" name="aggregateType" [(ngModel)]="mappingDraft.aggregateType" class="w-100">
+          <nz-option *ngFor="let item of aggregateTypes" [nzValue]="item" [nzLabel]="getAggregateTypeLabel(item)"></nz-option>
+        </nz-select>
+      </div>
+      
+      <div class="field">
+        <span>Cột giá trị</span>
+        <nz-select nzDropdownClassName="select-dropdown" name="mappingValueColumn" nzAllowClear [(ngModel)]="mappingDraft.valueColumn" class="w-100" nzPlaceHolder="Chọn cột giá trị">
+          <nz-option *ngFor="let item of columnsForMappingDraftSource" [nzValue]="item.columnName" [nzLabel]="item.displayName || item.columnName"></nz-option>
+        </nz-select>
+      </div>
+      
+      <div class="field">
+        <span>Cột không trùng (Distinct)</span>
+        <nz-select nzDropdownClassName="select-dropdown" name="mappingDistinctColumn" nzAllowClear [(ngModel)]="mappingDraft.distinctColumn" class="w-100" nzPlaceHolder="Chọn cột không trùng">
+          <nz-option *ngFor="let item of columnsForMappingDraftSource" [nzValue]="item.columnName" [nzLabel]="item.displayName || item.columnName"></nz-option>
+        </nz-select>
+      </div>
+    </div>
+    
+    <div class="inline-control mt-3">
+      <span>Đang dùng</span>
+      <nz-switch name="mappingActive" [(ngModel)]="mappingDraft.isActive"></nz-switch>
+    </div>
+  </form>
+</ng-template>
+
+<!-- Template: Form Điều kiện lọc -->
+<ng-template #filterFormTemplate>
+  <form nz-form nzLayout="vertical" class="compact-form modal-form modal-form-filter">
+    <div class="form-section">
+      <div class="form-section-title">Thông tin điều kiện</div>
+      <div class="form-grid form-grid-3">
+        <div class="field field-full">
+          <span>Thuộc nhóm lọc</span>
+          <nz-select nzDropdownClassName="select-dropdown" name="filterGroupId" [(ngModel)]="filterDraft.filterGroupId" class="w-100" nzDisabled>
+            <nz-option *ngFor="let g of flatFilterGroups" [nzValue]="g.id" [nzLabel]="g.label"></nz-option>
+          </nz-select>
+        </div>
+
+        <div class="field field-wide">
+          <span>Tên cột lọc</span>
+          <nz-select nzDropdownClassName="select-dropdown" name="filterColumn" [(ngModel)]="filterDraft.columnName" (ngModelChange)="onFilterColumnChange()" class="w-100">
+            <nz-option *ngFor="let item of columnsForSelectedMapping" [nzValue]="item.columnName" [nzLabel]="item.displayName + ' (' + item.columnName + ')'">
+            </nz-option>
+          </nz-select>
+        </div>
+
+        <div class="field">
+          <span>Toán tử</span>
+          <nz-select nzDropdownClassName="select-dropdown" name="filterOperator" [(ngModel)]="filterDraft.operator" class="w-100">
+            <nz-option *ngFor="let item of operators" [nzValue]="item" [nzLabel]="getOperatorLabel(item)"></nz-option>
+          </nz-select>
+        </div>
+
+        <div class="field">
+          <span>Loại giá trị</span>
+          <nz-select nzDropdownClassName="select-dropdown" name="filterValueType" [(ngModel)]="filterDraft.valueType" (ngModelChange)="onValueTypeChange()" class="w-100">
+            <nz-option *ngFor="let item of valueTypes" [nzValue]="item" [nzLabel]="getValueTypeLabel(item)"></nz-option>
+          </nz-select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section" *ngIf="filterDraft.operator !== 'IS NULL' && filterDraft.operator !== 'IS NOT NULL'">
+      <div class="form-section-header">
+        <div class="form-section-title mb-0">Giá trị điều kiện</div>
+        <a class="mode-toggle-link" *ngIf="filterDraft.valueType === 'STATIC' && (isEmployeeColumnSelected || uniqueValues.length > 0)" (click)="isManualInput = !isManualInput">
+          {{ isManualInput ? 'Chọn từ danh sách' : 'Nhập thủ công' }}
+        </a>
+      </div>
+
+      <div class="form-grid form-grid-2">
+        <div class="field">
+          <span>Giá trị 1</span>
+
+          <nz-select nzDropdownClassName="select-dropdown" *ngIf="filterDraft.valueType === 'PARAM'" name="filterParamValue" [(ngModel)]="filterDraft.value1" class="w-100" nzPlaceHolder="Chọn tham số hệ thống">
+            <nz-option *ngFor="let item of systemParameters" [nzValue]="item" [nzLabel]="getSystemParameterLabel(item)"></nz-option>
+          </nz-select>
+
+          <nz-select nzDropdownClassName="select-dropdown" *ngIf="filterDraft.valueType === 'COLUMN'" name="filterColumnValue" [(ngModel)]="filterDraft.value1" class="w-100" nzPlaceHolder="Chọn cột dữ liệu">
+            <nz-option *ngFor="let item of columnsForSelectedMapping" [nzValue]="item.columnName" [nzLabel]="item.displayName + ' (' + item.columnName + ')'"></nz-option>
+          </nz-select>
+
+          <ng-container *ngIf="filterDraft.valueType === 'STATIC'">
+            <ng-container *ngIf="!isManualInput; else plainTextInputTpl">
+              <nz-select nzDropdownClassName="select-dropdown" *ngIf="isEmployeeColumnSelected; else uniqueValuesSelectTpl" nzShowSearch nzAllowClear nzMode="multiple" name="filterEmployeeValue" [(ngModel)]="multiSelectValue1" class="w-100" nzPlaceHolder="Chọn một hoặc nhiều nhân viên">
+                <nz-option *ngFor="let e of employees" [nzValue]="e.id.toString()" [nzLabel]="e.code + ' - ' + e.fullName"></nz-option>
+              </nz-select>
+
+              <ng-template #uniqueValuesSelectTpl>
+                <nz-select nzDropdownClassName="select-dropdown" *ngIf="uniqueValues.length > 0; else plainTextInputTpl" nzShowSearch nzAllowClear nzMode="multiple" [nzDropdownMatchSelectWidth]="false" name="filterStaticSelectValue" [(ngModel)]="multiSelectValue1" class="w-100" nzPlaceHolder="Chọn một hoặc nhiều giá trị" [nzLoading]="isLoadingUniqueValues">
+                  <nz-option *ngFor="let val of uniqueValues" [nzValue]="val.value" [nzLabel]="val.display"></nz-option>
+                </nz-select>
+              </ng-template>
+            </ng-container>
+
+            <ng-template #plainTextInputTpl>
+              <input nz-input name="filterValue1" [(ngModel)]="filterDraft.value1" placeholder="Nhập giá trị lọc" />
+            </ng-template>
+          </ng-container>
+        </div>
+
+        <div class="field">
+          <span>Giá trị 2</span>
+
+          <nz-select nzDropdownClassName="select-dropdown" *ngIf="filterDraft.valueType === 'PARAM'" name="filterParamValue2" [(ngModel)]="filterDraft.value2" class="w-100" nzPlaceHolder="Chọn tham số hệ thống" [nzDisabled]="filterDraft.operator !== 'BETWEEN'">
+            <nz-option *ngFor="let item of systemParameters" [nzValue]="item" [nzLabel]="getSystemParameterLabel(item)"></nz-option>
+          </nz-select>
+
+          <nz-select nzDropdownClassName="select-dropdown" *ngIf="filterDraft.valueType === 'COLUMN'" name="filterColumnValue2" [(ngModel)]="filterDraft.value2" class="w-100" nzPlaceHolder="Chọn cột dữ liệu" [nzDisabled]="filterDraft.operator !== 'BETWEEN'">
+            <nz-option *ngFor="let item of columnsForSelectedMapping" [nzValue]="item.columnName" [nzLabel]="item.displayName + ' (' + item.columnName + ')'"></nz-option>
+          </nz-select>
+
+          <ng-container *ngIf="filterDraft.valueType === 'STATIC'">
+            <ng-container *ngIf="!isManualInput; else plainTextInput2Tpl">
+              <nz-select nzDropdownClassName="select-dropdown" *ngIf="isEmployeeColumnSelected; else uniqueValuesSelect2Tpl" nzShowSearch nzAllowClear nzMode="multiple" name="filterEmployeeValue2" [(ngModel)]="multiSelectValue2" class="w-100" nzPlaceHolder="Chọn một hoặc nhiều nhân viên" [nzDisabled]="filterDraft.operator !== 'BETWEEN'">
+                <nz-option *ngFor="let e of employees" [nzValue]="e.id.toString()" [nzLabel]="e.code + ' - ' + e.fullName"></nz-option>
+              </nz-select>
+
+              <ng-template #uniqueValuesSelect2Tpl>
+                <nz-select nzDropdownClassName="select-dropdown" *ngIf="uniqueValues.length > 0; else plainTextInput2Tpl" nzShowSearch nzAllowClear nzMode="multiple" [nzDropdownMatchSelectWidth]="false" name="filterStaticSelectValue2" [(ngModel)]="multiSelectValue2" class="w-100" nzPlaceHolder="Chọn một hoặc nhiều giá trị" [nzLoading]="isLoadingUniqueValues" [nzDisabled]="filterDraft.operator !== 'BETWEEN'">
+                  <nz-option *ngFor="let val of uniqueValues" [nzValue]="val.value" [nzLabel]="val.display"></nz-option>
+                </nz-select>
+              </ng-template>
+            </ng-container>
+
+            <ng-template #plainTextInput2Tpl>
+              <input nz-input name="filterValue2" [(ngModel)]="filterDraft.value2" placeholder="Nhập giá trị giới hạn trên" [disabled]="filterDraft.operator !== 'BETWEEN'" />
+            </ng-template>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+    <div class="inline-control inline-control-card mt-3">
+      <span>Kích hoạt điều kiện</span>
+      <nz-switch name="filterActive" [(ngModel)]="filterDraft.isActive"></nz-switch>
+    </div>
+  </form>
+</ng-template>

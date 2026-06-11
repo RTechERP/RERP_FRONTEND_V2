@@ -25,10 +25,27 @@ export class HistoryMoneyService {
       },
     });
   }
+
+  getProductsByPOKHIds(pokhIds: string): Observable<any> {
+    return this.http.get<any>(this._url + 'load-products-by-pokh-ids', {
+      params: {
+        pokhIds: pokhIds,
+      },
+    });
+  }
+
   getHistoryMoneyPO(pokhDetailId: number): Observable<any> {
     return this.http.get<any>(this._url + 'load-history-money-po', {
       params: {
         pokhDetailId: pokhDetailId.toString(),
+      },
+    });
+  }
+
+  getHistoryMoneyPOMultiple(pokhDetailIds: string): Observable<any> {
+    return this.http.get<any>(this._url + 'load-history-money-po-multiple', {
+      params: {
+        pokhDetailIds: pokhDetailIds,
       },
     });
   }
@@ -41,6 +58,15 @@ export class HistoryMoneyService {
     return this.http.get(`${this._url}export-excel`, {
       params: {
         pokhDetailId: pokhDetailId.toString(),
+      },
+      responseType: 'blob'
+    });
+  }
+
+  exportHistoryMoneyExcelMultiple(pokhDetailIds: string): Observable<Blob> {
+    return this.http.get(`${this._url}export-excel-multiple`, {
+      params: {
+        pokhDetailIds: pokhDetailIds,
       },
       responseType: 'blob'
     });

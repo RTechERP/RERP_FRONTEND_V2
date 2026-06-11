@@ -1,0 +1,228 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.page-container {
+  padding: 8px;
+  background-color: #f5f7fa;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.split-container {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Cột trái */
+.left-sidebar {
+  width: 350px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #d8dee9;
+  flex-shrink: 0;
+}
+
+.sidebar-title {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f1f5f9;
+}
+
+.sidebar-title h6 {
+  margin: 0;
+  font-weight: 700;
+  font-size: 13px;
+  color: #1e293b;
+}
+
+.filter-box {
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+  padding: 12px;
+}
+
+.filter-box .field {
+  margin-bottom: 10px;
+}
+
+.filter-box .field span {
+  font-size: 11px;
+  color: #64748b;
+  display: block;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
+.indicators-table-wrapper {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Cột phải */
+.right-content {
+  flex: 1;
+  min-width: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #d8dee9;
+  padding: 8px;
+}
+
+.detail-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.table-title {
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.table-title h6 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 13px;
+  color: #1e293b;
+}
+
+/* Trạng thái trống */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+  padding: 24px;
+}
+
+/* Nút & dòng bảng */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 4px;
+}
+
+.action-btn:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+.text-danger {
+  color: #ff4d4f;
+}
+
+.text-primary {
+  color: #1890ff;
+}
+
+.selected-row > td {
+  background-color: #e6f7ff !important;
+}
+
+.main-index-row > td {
+  font-weight: bold;
+}
+
+.mono {
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.text-end {
+  text-align: right;
+}
+
+/* Form */
+.compact-form .field {
+  margin-bottom: 12px;
+}
+.compact-form .field span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+}
+.compact-form .inline-control {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.compact-form .inline-control span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+}
+
+/* Deep overrides cho nz-table */
+::ng-deep .ant-table-wrapper {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .ant-table-wrapper .ant-spin-nested-loading,
+::ng-deep .ant-table-wrapper .ant-spin-container {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .ant-table-wrapper .ant-table {
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .ant-table-wrapper .ant-table-container {
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .ant-table-wrapper .ant-table-body {
+  flex: 1 !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}

@@ -577,13 +577,15 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
             }
 
             // udpate ở đây - update thông tin supplier vào các form
+            const isNewPO = !this.poncc || this.poncc.ID === 0 || this.isCopy;
             this.extraForm.patchValue({
                 AccountNumberSupplier: selectedSupplier.SoTK || this.poncc?.SoTK || '',
                 BankSupplier: selectedSupplier.NganHang || this.poncc?.NganHang || '',
                 FedexAccount: selectedSupplier.FedexAccount || this.poncc?.FedexAccount || '',
                 OriginItem: selectedSupplier.OriginItem || this.poncc?.OriginItem || '',
                 BankCharge: selectedSupplier.BankCharge || this.poncc?.BankCharge || '',
-                DeptSupplier: selectedSupplier.IsDebt || this.poncc?.IsDebt || false,
+                // PO mới: lấy mặc định Công nợ theo NCC. PO đã lưu: giữ nguyên Công nợ đã lưu của PO
+                DeptSupplier: isNewPO ? Boolean(selectedSupplier.IsDebt) : Boolean(this.poncc?.DeptSupplier),
                 RuleIncoterm: selectedSupplier.RuleIncoterm || this.poncc?.RuleIncoterm || ''
             });
 

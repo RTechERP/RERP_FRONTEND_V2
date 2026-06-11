@@ -1,222 +1,412 @@
 <ng-container class="w-100">
-    <!-- Modal header - hiển thị khi activeModal tồn tại hoặc showHeader = true -->
-    <div *ngIf="showHeader || activeModal || isFromPOKH" class="modal-header bg-primary text-uppercase py-2">
-        <h6 class="modal-title text-white">{{ headerText }}</h6>
-        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+  <!-- Modal header - hiển thị khi activeModal tồn tại hoặc showHeader = true -->
+  <div
+    *ngIf="showHeader || activeModal || isFromPOKH"
+    class="modal-header bg-primary text-uppercase py-2"
+  >
+    <h6 class="modal-title text-white">{{ headerText }}</h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="closeModal()"
+      aria-label="Close"
+    ></button>
+  </div>
+
+  <div class="card h-100 border-0 rounded-0">
+    <!-- Header với PrimeNG MenuBar -->
+    <div class="card-header bg-white p-1">
+      <p-menubar [model]="menuItems" styleClass="p-0 border-0">
+        <ng-template pTemplate="end">
+          <div class="flex items-center gap-2">
+            <!-- Mobile: Search button with dropdown -->
+            <button
+              nz-button
+              nzType="text"
+              nzShape="circle"
+              *ngIf="isMobile()"
+              nz-dropdown
+              [nzDropdownMenu]="mobileSearchMenu"
+              nzTrigger="click"
+              nzPlacement="bottomRight"
+              type="button"
+              aria-label="Tìm kiếm"
+            >
+              <nz-icon nzType="search" />
+            </button>
+
+            <!-- Mobile search dropdown menu -->
+            <nz-dropdown-menu #mobileSearchMenu="nzDropdownMenu">
+              <div class="p-3 mobile-search-dropdown">
+                <ng-container
+                  *ngTemplateOutlet="searchFiltersTemplate"
+                ></ng-container>
+              </div>
+            </nz-dropdown-menu>
+          </div>
+        </ng-template>
+      </p-menubar>
     </div>
 
-    <div class="card h-100 border-0 rounded-0">
-        <!-- Header với PrimeNG MenuBar -->
-        <div class="card-header bg-white p-1">
-            <p-menubar [model]="menuItems" styleClass="p-0 border-0">
-                <ng-template pTemplate="end">
-                    <div class="flex items-center gap-2">
-                        <!-- Mobile: Search button with dropdown -->
-                        <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile()" nz-dropdown
-                            [nzDropdownMenu]="mobileSearchMenu" nzTrigger="click" nzPlacement="bottomRight"
-                            type="button" aria-label="Tìm kiếm">
-                            <nz-icon nzType="search" />
-                        </button>
+    <!-- Filter bar - hiển thị dạng hàng ngang trên desktop, ẩn trên mobile -->
+    <div class="filter-bar bg-light border-bottom p-2" *ngIf="!isMobile()">
+      <ng-container *ngTemplateOutlet="searchFiltersTemplate"></ng-container>
+    </div>
 
-                        <!-- Mobile search dropdown menu -->
-                        <nz-dropdown-menu #mobileSearchMenu="nzDropdownMenu">
-                            <div class="p-3 mobile-search-dropdown">
-                                <ng-container *ngTemplateOutlet="searchFiltersTemplate"></ng-container>
-                            </div>
-                        </nz-dropdown-menu>
-                    </div>
-                </ng-template>
-            </p-menubar>
-        </div>
+    <!-- Content với tabs động -->
+    <div class="card-body p-0 with-search-bar">
+      <div class="custom-tabs-container">
+        <ul class="nav nav-tabs" id="customTab" role="tablist">
+          <li
+            class="nav-item"
+            role="presentation"
+            *ngFor="let type of getVisibleProjectTypes(); let i = index"
+          >
+            <a
+              class="nav-link"
+              [class.active]="activeTabId === type.ProjectTypeID"
+              [id]="'tab-' + type.ProjectTypeID"
+              href="javascript:void(0)"
+              role="tab"
+              [attr.aria-controls]="'pane-' + type.ProjectTypeID"
+              [attr.aria-selected]="activeTabId === type.ProjectTypeID"
+              (click)="
+                $event.preventDefault();
+                $event.stopPropagation();
+                SelectProjectType(type.ProjectTypeID, $event)
+              "
+            >
+              {{ type.ProjectTypeName | uppercase }}
+            </a>
+          </li>
+        </ul>
 
-        <!-- Filter bar - hiển thị dạng hàng ngang trên desktop, ẩn trên mobile -->
-        <div class="filter-bar bg-light border-bottom p-2" *ngIf="!isMobile()">
-            <ng-container *ngTemplateOutlet="searchFiltersTemplate"></ng-container>
-        </div>
-
-        <!-- Content với tabs động -->
-        <div class="card-body p-0 with-search-bar">
-            <div class="custom-tabs-container">
-                <ul class="nav nav-tabs" id="customTab" role="tablist">
-                    <li class="nav-item" role="presentation"
-                        *ngFor="let type of getVisibleProjectTypes(); let i = index">
-                        <a class="nav-link" [class.active]="activeTabId === type.ProjectTypeID"
-                            [id]="'tab-' + type.ProjectTypeID" href="javascript:void(0)" role="tab"
-                            [attr.aria-controls]="'pane-' + type.ProjectTypeID"
-                            [attr.aria-selected]="activeTabId === type.ProjectTypeID"
-                            (click)="$event.preventDefault(); $event.stopPropagation(); SelectProjectType(type.ProjectTypeID, $event)">
-                            {{ type.ProjectTypeName | uppercase }}
-                        </a>
-                    </li>
-                </ul>
-
-                <div class="tab-content p-0" id="customTabContent" style="position: relative;">
-                    <!-- Spinner overlay -->
-                    <div *ngIf="loading"
-                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; background: rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center;">
-                        <nz-spin [nzSpinning]="loading" nzSimple [nzSize]="'large'"></nz-spin>
-                    </div>
-                    <div class="tab-pane fade" *ngFor="let type of getVisibleProjectTypes()"
-                        [class.show]="activeTabId === type.ProjectTypeID"
-                        [class.active]="activeTabId === type.ProjectTypeID" [id]="'pane-' + type.ProjectTypeID"
-                        role="tabpanel" [attr.aria-labelledby]="'tab-' + type.ProjectTypeID">
-                        <div class="table-container p-1 grid-container" [class]="'grid-container-' + type.ProjectTypeID"
-                            *ngIf="(activeTabId === type.ProjectTypeID || angularGrids.has(type.ProjectTypeID)) && columnDefinitionsMap.has(type.ProjectTypeID)">
-                            <angular-slickgrid [gridId]="'grid-' + type.ProjectTypeID"
-                                [columns]="columnDefinitionsMap.get(type.ProjectTypeID) || []"
-                                [options]="gridOptionsMap.get(type.ProjectTypeID) || {}"
-                                [dataset]="datasetsMap.get(type.ProjectTypeID) || []"
-                                (onAngularGridCreated)="angularGridReady(type.ProjectTypeID, $event.detail)"
-                                (onClick)="onCellClicked(type.ProjectTypeID, $event.detail.eventData, $event.detail.args)"
-                                (onCellChange)="onCellChange(type.ProjectTypeID, $event.detail.eventData, $event.detail.args)"
-                                (onSelectedRowsChanged)="handleRowSelection(type.ProjectTypeID, $event.detail.eventData, $event.detail.args)">
-                            </angular-slickgrid>
-                        </div>
-                    </div>
-                </div>
+        <div
+          class="tab-content p-0"
+          id="customTabContent"
+          style="position: relative"
+        >
+          <!-- Spinner overlay -->
+          <div
+            *ngIf="loading"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              z-index: 999;
+              background: rgba(255, 255, 255, 0.7);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <nz-spin
+              [nzSpinning]="loading"
+              nzSimple
+              [nzSize]="'large'"
+            ></nz-spin>
+          </div>
+          <div
+            class="tab-pane fade"
+            *ngFor="let type of getVisibleProjectTypes()"
+            [class.show]="activeTabId === type.ProjectTypeID"
+            [class.active]="activeTabId === type.ProjectTypeID"
+            [id]="'pane-' + type.ProjectTypeID"
+            role="tabpanel"
+            [attr.aria-labelledby]="'tab-' + type.ProjectTypeID"
+          >
+            <div
+              class="table-container p-1 grid-container"
+              [class]="'grid-container-' + type.ProjectTypeID"
+              *ngIf="
+                (activeTabId === type.ProjectTypeID ||
+                  angularGrids.has(type.ProjectTypeID)) &&
+                columnDefinitionsMap.has(type.ProjectTypeID)
+              "
+            >
+              <angular-slickgrid
+                [gridId]="'grid-' + type.ProjectTypeID"
+                [columns]="columnDefinitionsMap.get(type.ProjectTypeID) || []"
+                [options]="gridOptionsMap.get(type.ProjectTypeID) || {}"
+                [dataset]="datasetsMap.get(type.ProjectTypeID) || []"
+                (onAngularGridCreated)="
+                  angularGridReady(type.ProjectTypeID, $event.detail)
+                "
+                (onClick)="
+                  onCellClicked(
+                    type.ProjectTypeID,
+                    $event.detail.eventData,
+                    $event.detail.args
+                  )
+                "
+                (onCellChange)="
+                  onCellChange(
+                    type.ProjectTypeID,
+                    $event.detail.eventData,
+                    $event.detail.args
+                  )
+                "
+                (onSelectedRowsChanged)="
+                  handleRowSelection(
+                    type.ProjectTypeID,
+                    $event.detail.eventData,
+                    $event.detail.args
+                  )
+                "
+              >
+              </angular-slickgrid>
             </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </ng-container>
 <!-- </div> -->
 
-
 <ng-template #searchFiltersTemplate>
-    <div style="background-color: #ffffff; padding: 8px;">
-        <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-end">
-            <!-- Các filter mặc định hiển thị -->
-            <nz-form-item class="mb-0" nzFlex="1 1 auto">
-                <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
-                <nz-form-control>
-                    <input type="date" class="form-control form-control-sm date-input-sm"
-                        [ngModel]="filters.dateStart | date:'yyyy-MM-dd'"
-                        (ngModelChange)="onDateChange('dateStart', $event)" name="dateStart" title="Từ ngày" />
-                </nz-form-control>
-            </nz-form-item>
+  <div style="background-color: #ffffff">
+    <form
+      nz-form
+      nzLayout="inline"
+      class="d-flex flex-wrap gap-2 align-items-end"
+    >
+      <!-- Các filter mặc định hiển thị -->
+      <nz-form-item class="mb-0" nzFlex="1 1 auto">
+        <nz-form-label class="fs-12" style="font-size: 12px"
+          >Từ ngày</nz-form-label
+        >
+        <nz-form-control>
+          <input
+            type="date"
+            class="form-control form-control-sm date-input-sm"
+            [ngModel]="filters.dateStart | date: 'yyyy-MM-dd'"
+            (ngModelChange)="onDateChange('dateStart', $event)"
+            name="dateStart"
+            title="Từ ngày"
+          />
+        </nz-form-control>
+      </nz-form-item>
 
-            <nz-form-item class="mb-0" nzFlex="1 1 auto">
-                <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
-                <nz-form-control>
-                    <input type="date" class="form-control form-control-sm date-input-sm"
-                        [ngModel]="filters.dateEnd | date:'yyyy-MM-dd'"
-                        (ngModelChange)="onDateChange('dateEnd', $event)" name="dateEnd" title="Đến ngày" />
-                </nz-form-control>
-            </nz-form-item>
+      <nz-form-item class="mb-0" nzFlex="1 1 auto">
+        <nz-form-label class="fs-12" style="font-size: 12px"
+          >Đến ngày</nz-form-label
+        >
+        <nz-form-control>
+          <input
+            type="date"
+            class="form-control form-control-sm date-input-sm"
+            [ngModel]="filters.dateEnd | date: 'yyyy-MM-dd'"
+            (ngModelChange)="onDateChange('dateEnd', $event)"
+            name="dateEnd"
+            title="Đến ngày"
+          />
+        </nz-form-control>
+      </nz-form-item>
 
-            <nz-form-item class="mb-0" nzFlex="1 1 auto">
-                <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái</nz-form-label>
-                <nz-form-control>
-                    <nz-select style="width: 180px; font-size: 12px;" [(ngModel)]="filters.statusRequest" nzShowSearch
-                        nzAllowClear nzSize="small" name="statusRequest" nzPlaceHolder="trạng thái">
-                        <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
-                        <nz-option [nzValue]="1" nzLabel="Yêu cầu báo giá"></nz-option>
-                        <nz-option [nzValue]="2" nzLabel="Đã báo giá"></nz-option>
-                        <nz-option [nzValue]="3" nzLabel="Đã hoàn thành"></nz-option>
-                        <nz-option [nzValue]="4" nzLabel="Yêu cầu check lại"></nz-option>
-                        <nz-option [nzValue]="5" nzLabel="Từ chối báo giá"></nz-option>
-                        <nz-option [nzValue]="6" nzLabel="Yêu cầu báo giá lại"></nz-option>
-                        <nz-option [nzValue]="7" nzLabel="Đã báo giá lại"></nz-option>
-                    </nz-select>
-                </nz-form-control>
-            </nz-form-item>
+      <nz-form-item class="mb-0" nzFlex="1 1 auto">
+        <nz-form-label class="fs-12" style="font-size: 12px"
+          >Trạng thái</nz-form-label
+        >
+        <nz-form-control>
+          <nz-select
+            style="width: 180px; font-size: 12px"
+            [(ngModel)]="filters.statusRequest"
+            nzShowSearch
+            nzAllowClear
+            nzSize="small"
+            name="statusRequest"
+            nzPlaceHolder="trạng thái"
+          >
+            <nz-option [nzValue]="0" nzLabel="Tất cả"></nz-option>
+            <nz-option [nzValue]="1" nzLabel="Yêu cầu báo giá"></nz-option>
+            <nz-option [nzValue]="2" nzLabel="Đã báo giá"></nz-option>
+            <nz-option [nzValue]="3" nzLabel="Đã hoàn thành"></nz-option>
+            <nz-option [nzValue]="4" nzLabel="Yêu cầu check lại"></nz-option>
+            <nz-option [nzValue]="5" nzLabel="Từ chối báo giá"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
 
-            <nz-form-item class="mb-0" nzFlex="1 1 auto">
-                <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
-                <nz-form-control>
-                    <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filters.keyword"
-                        name="keyword" style="width: 150px; font-size: 12px;" />
-                </nz-form-control>
-            </nz-form-item>
+      <nz-form-item class="mb-0" nzFlex="1 1 auto">
+        <nz-form-label class="fs-12" style="font-size: 12px"
+          >Từ khóa</nz-form-label
+        >
+        <nz-form-control>
+          <input
+            nz-input
+            placeholder="Nhập từ khóa"
+            nzSize="small"
+            [(ngModel)]="filters.keyword"
+            name="keyword"
+            style="width: 150px; font-size: 12px"
+          />
+        </nz-form-control>
+      </nz-form-item>
 
-            <!-- Advanced filters - hiển thị trực tiếp khi mobile -->
-            <ng-container *ngIf="isMobile()">
-                <ng-container *ngTemplateOutlet="advancedFiltersTemplate"></ng-container>
-            </ng-container>
+      <!-- Advanced filters - hiển thị trực tiếp khi mobile -->
+      <ng-container *ngIf="isMobile()">
+        <ng-container
+          *ngTemplateOutlet="advancedFiltersTemplate"
+        ></ng-container>
+      </ng-container>
 
-            <!-- Nút tìm kiếm -->
-            <nz-form-item class="mb-0" nzFlex="1 1 auto">
-                <nz-form-control>
-                    <!-- Desktop: Nút tìm kiếm với dropdown -->
-                    <div *ngIf="!isMobile()" class="btn-group">
-                        <button nz-button nzType="primary" nzSize="small" (click)="ApplyFilters()">
-                            Tìm kiếm
-                        </button>
-                        <button nz-button nzType="primary" nzSize="small" nz-dropdown
-                            [nzDropdownMenu]="advancedSearchMenu" nzTrigger="click" nzPlacement="bottomRight"
-                            style="padding-left: 8px; padding-right: 8px;">
-                            <i nz-icon nzType="down"></i>
-                        </button>
-                        <nz-dropdown-menu #advancedSearchMenu="nzDropdownMenu">
-                            <div class="p-3 advanced-filters-container"
-                                style="min-width: 300px; background-color: #ffffff; border: 1px solid #d9d9d9; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-                                <ng-container *ngTemplateOutlet="advancedFiltersTemplate"></ng-container>
-                            </div>
-                        </nz-dropdown-menu>
-                    </div>
-                    <!-- Mobile: Chỉ nút tìm kiếm -->
-                    <button *ngIf="isMobile()" nz-button nzType="primary" nzSize="small" (click)="ApplyFilters()">
-                        Tìm kiếm
-                    </button>
-                </nz-form-control>
-            </nz-form-item>
-        </form>
-    </div>
+      <!-- Nút tìm kiếm -->
+      <nz-form-item class="mb-0" nzFlex="1 1 auto">
+        <nz-form-control>
+          <!-- Desktop: Nút tìm kiếm với dropdown -->
+          <div *ngIf="!isMobile()" class="btn-group">
+            <button
+              nz-button
+              nzType="primary"
+              nzSize="small"
+              (click)="ApplyFilters()"
+            >
+              Tìm kiếm
+            </button>
+            <button
+              nz-button
+              nzType="primary"
+              nzSize="small"
+              nz-dropdown
+              [nzDropdownMenu]="advancedSearchMenu"
+              nzTrigger="click"
+              nzPlacement="bottomRight"
+              style="padding-left: 8px; padding-right: 8px"
+            >
+              <i nz-icon nzType="down"></i>
+            </button>
+            <nz-dropdown-menu #advancedSearchMenu="nzDropdownMenu">
+              <div
+                class="p-3 advanced-filters-container"
+                style="
+                  min-width: 300px;
+                  background-color: #ffffff;
+                  border: 1px solid #d9d9d9;
+                  border-radius: 4px;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                "
+              >
+                <ng-container
+                  *ngTemplateOutlet="advancedFiltersTemplate"
+                ></ng-container>
+              </div>
+            </nz-dropdown-menu>
+          </div>
+          <!-- Mobile: Chỉ nút tìm kiếm -->
+          <button
+            *ngIf="isMobile()"
+            nz-button
+            nzType="primary"
+            nzSize="small"
+            (click)="ApplyFilters()"
+          >
+            Tìm kiếm
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </div>
 </ng-template>
 
 <ng-template #rejectReasonTpl>
-    <div class="mb-2">Vui lòng nhập lý do từ chối:</div>
-    <textarea nz-input [(ngModel)]="rejectReason" rows="3" placeholder="Nhập lý do..." class="w-100"></textarea>
+  <div class="mb-2">Vui lòng nhập lý do từ chối:</div>
+  <textarea
+    nz-input
+    [(ngModel)]="rejectReason"
+    rows="3"
+    placeholder="Nhập lý do..."
+    class="w-100"
+  ></textarea>
 </ng-template>
 
 <ng-template #requestBuyTpl>
-    <div class="mb-2">
-        <label class="form-label" for="requestBuyDeadline">Deadline</label>
-        <input type="date" id="requestBuyDeadline" class="form-control form-control-sm date-input-sm w-100"
-            [ngModel]="requestBuyDeadline | date:'yyyy-MM-dd'" (ngModelChange)="onRequestBuyDeadlineChange($event)"
-            title="Deadline" />
-    </div>
+  <div class="mb-2">
+    <label class="form-label" for="requestBuyDeadline">Deadline</label>
+    <input
+      type="date"
+      id="requestBuyDeadline"
+      class="form-control form-control-sm date-input-sm w-100"
+      [ngModel]="requestBuyDeadline | date: 'yyyy-MM-dd'"
+      (ngModelChange)="onRequestBuyDeadlineChange($event)"
+      title="Deadline"
+    />
+  </div>
 </ng-template>
 
 <ng-template #advancedFiltersTemplate>
-    <div style="background-color: #ffffff;padding: 0;">
-        <form nz-form nzLayout="vertical" class="mt-1">
-            <nz-form-item>
-                <nz-form-label class="fs-12">Dự án</nz-form-label>
-                <nz-form-control>
-                    <nz-select style="width: 100%" [(ngModel)]="filters.projectId" name="projectId" nzShowSearch
-                        nzAllowClear nzSize="small" nzPlaceHolder="Chọn dự án">
-                        <nz-option *ngFor="let item of dtproject" [nzLabel]="item.ProjectCode + '--' + item.ProjectName"
-                            [nzValue]="item.ID"></nz-option>
-                    </nz-select>
-                </nz-form-control>
-            </nz-form-item>
-            <nz-form-item>
-                <nz-form-label class="fs-12">Tình trạng</nz-form-label>
-                <nz-form-control>
-                    <nz-select style="width: 100%" [(ngModel)]="filters.isDeleted" name="isDeleted" nzShowSearch
-                        nzAllowClear nzSize="small">
-                        <nz-option nzLabel="Tất cả" [nzValue]="-1"></nz-option>
-                        <nz-option nzLabel="Chưa xóa" [nzValue]="0"></nz-option>
-                        <nz-option nzLabel="Đã xóa" [nzValue]="1"></nz-option>
-                    </nz-select>
-                </nz-form-control>
-            </nz-form-item>
+  <div style="background-color: #ffffff; padding: 0">
+    <form nz-form nzLayout="vertical" class="mt-1">
+      <nz-form-item>
+        <nz-form-label class="fs-12">Dự án</nz-form-label>
+        <nz-form-control>
+          <nz-select
+            style="width: 100%"
+            [(ngModel)]="filters.projectId"
+            name="projectId"
+            nzShowSearch
+            nzAllowClear
+            nzSize="small"
+            nzPlaceHolder="Chọn dự án"
+          >
+            <nz-option
+              *ngFor="let item of dtproject"
+              [nzLabel]="item.ProjectCode + '--' + item.ProjectName"
+              [nzValue]="item.ID"
+            ></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label class="fs-12">Tình trạng</nz-form-label>
+        <nz-form-control>
+          <nz-select
+            style="width: 100%"
+            [(ngModel)]="filters.isDeleted"
+            name="isDeleted"
+            nzShowSearch
+            nzAllowClear
+            nzSize="small"
+          >
+            <nz-option nzLabel="Tất cả" [nzValue]="-1"></nz-option>
+            <nz-option nzLabel="Chưa xóa" [nzValue]="0"></nz-option>
+            <nz-option nzLabel="Đã xóa" [nzValue]="1"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
 
-            <nz-form-item *ngIf="activeTabId == -1" class="mt-1">
-                <nz-form-label class="fs-12">PO</nz-form-label>
-                <nz-form-control>
-                    <nz-select style="width: 100%" nzShowSearch nzAllowClear nzPlaceHolder="Chọn PO" nzSize="small"
-                        [(ngModel)]="filters.poKHID" name="poKHID">
-                        <nz-option *ngFor="let item of dtPOKH" [nzLabel]="item.POCode" [nzValue]="item.ID"></nz-option>
-                    </nz-select>
-                </nz-form-control>
-            </nz-form-item>
-        </form>
-    </div>
+      <nz-form-item *ngIf="activeTabId == -1" class="mt-1">
+        <nz-form-label class="fs-12">PO</nz-form-label>
+        <nz-form-control>
+          <nz-select
+            style="width: 100%"
+            nzShowSearch
+            nzAllowClear
+            nzPlaceHolder="Chọn PO"
+            nzSize="small"
+            [(ngModel)]="filters.poKHID"
+            name="poKHID"
+          >
+            <nz-option
+              *ngFor="let item of dtPOKH"
+              [nzLabel]="item.POCode"
+              [nzValue]="item.ID"
+            ></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </div>
 </ng-template>
 
 <!-- Removed tabulator-popup - using single select editor instead -->
 
-<app-project-partlist-price-request-form *ngIf="showDetailModal" [dataInput]="modalData"
-    (formSubmitted)="OnFormSubmit()" (closeModal)="showDetailModal = false">
+<app-project-partlist-price-request-form
+  *ngIf="showDetailModal"
+  [dataInput]="modalData"
+  (formSubmitted)="OnFormSubmit()"
+  (closeModal)="showDetailModal = false"
+>
 </app-project-partlist-price-request-form>

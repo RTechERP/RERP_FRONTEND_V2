@@ -67,6 +67,7 @@ import { HolidayServiceService } from '../../hrm/holiday/holiday-service/holiday
 import { TabulatorPopupService } from '../../../shared/components/tabulator-popup/tabulator-popup.service';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
+import { ProjectPartlistPriceRequestLogComponent } from './project-partlist-price-request-log/project-partlist-price-request-log.component';
 
 @Component({
   selector: 'app-project-partlist-price-request-new',
@@ -103,6 +104,7 @@ import { MenuItem } from 'primeng/api';
     HorizontalScrollDirective,
     AngularSlickgridModule,
     MenubarModule,
+    ProjectPartlistPriceRequestLogComponent,
   ],
   templateUrl: './project-partlist-price-request-new.component.html',
   styleUrls: ['./project-partlist-price-request-new.component.css']
@@ -6386,6 +6388,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       });
     }
 
+    allItems.push({
+        label: 'Lịch sử thao tác',
+        icon: 'fa-solid fa-history fa-lg text-success',
+        command: () => this.onActivityLog()
+      });
+
     // Filter visible items
     const visibleItems = allItems.filter(item => item.visible !== false);
 
@@ -6480,4 +6488,35 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       document.body.style.width = '';
     }
   }
+
+  //#region Lich sử thao tác
+  onActivityLog(): void {
+    const angularGrid = this.angularGrids.get(this.activeTabId);
+    if (!angularGrid) return;
+
+    const selectedRows = angularGrid.slickGrid.getSelectedRows()
+      .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
+      .filter((item: any) => item && !item.__group && !item.__groupTotals);
+
+    if (selectedRows.length === 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 dòng để xem lịch sử thao tác!');
+      return;
+    }
+
+    if (selectedRows.length > 1) {
+      this.notification.info('Thông báo', 'Vui lòng chỉ chọn 1 dòng để xem lịch sử thao tác!');
+      return;
+    }
+
+    const row = selectedRows[0];
+    const modalRef = this.ngbModal.open(ProjectPartlistPriceRequestLogComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: false,
+    });
+    modalRef.componentInstance.requestId = row['ID'];
+    modalRef.componentInstance.productCode = row['ProductCode'] || '';
+  }
+  //#endregion
 }

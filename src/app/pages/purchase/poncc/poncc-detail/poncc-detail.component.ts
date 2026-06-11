@@ -1481,13 +1481,13 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         if (!product) return;
 
         const employeePurchaseIDs = [49, 179];
-        // const productGroupIDHR = [77, 80];
+        const productGroupIDHR = [77, 80];
         let productCodeOfSupplier = employeePurchaseIDs.includes(this.appUserService.employeeID || 0)
             ? product.ProductName
             : `${product.ProductName} ${product.ProductCode || ''}`;
-        // productCodeOfSupplier = productGroupIDHR.includes(product.ProductGroupID || 0)
-        //   ? product.ProductName
-        //   : productCodeOfSupplier;
+        productCodeOfSupplier = productGroupIDHR.includes(product.ProductGroupID || 0)
+          ? product.ProductName
+          : productCodeOfSupplier;
         const updateData: any = {
             ProductSaleID: isProductSale ? productId : 0,
             ProductRTCID: isProductSale ? 0 : productId,

@@ -22,3 +22,11 @@
 ::ng-deep .tabulator-edit-list .tabulator-edit-list-item.active {
     background-color: #e6f7ff !important;
 }
+
+/* CSS để textarea cells tự xuống dòng và không bị scroll */
+:host ::ng-deep .tabulator-cell {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+}

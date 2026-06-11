@@ -2154,15 +2154,7 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             return;
         }
 
-        const payload = billsToDelete.map((bill) => ({
-            billImport: {
-                ID: bill.ID,
-                IsDeleted: true,
-            },
-            billImportDetail: [],
-            DeletedDetailIDs: [],
-            billDocumentImports: [],
-        }));
+        const billImportIDs = billsToDelete.map((bill) => bill.ID);
 
         const billCodes = billsToDelete
             .map((bill) => bill.BillImportCode)
@@ -2174,25 +2166,25 @@ export class BillImportNewComponent implements OnInit, OnDestroy, AfterViewInit 
             nzOkText: 'Đồng ý',
             nzCancelText: 'Hủy',
             nzOnOk: () => {
-                this.billImportService.saveBillImport(payload).subscribe({
+                this.billImportService.deleteBillImport(billImportIDs).subscribe({
                     next: (res) => {
                         if (res.status === 1) {
                             this.notification.success(
                                 NOTIFICATION_TITLE.success,
-                                `Đã xóa thành công ${billsToDelete.length} phiếu!`
+                                res.message || `Đã xóa thành công ${billsToDelete.length} phiếu!`
                             );
                             this.loadDataBillImport();
                         } else {
                             this.notification.warning(
                                 NOTIFICATION_TITLE.warning,
-                                'Xóa thất bại!'
+                                res.message || 'Xóa thất bại!'
                             );
                         }
                     },
                     error: (err: any) => {
                         this.notification.error(
                             'Thông báo',
-                            err.error.message || 'Có lỗi xảy ra khi xóa dữ liệu!'
+                            err.error?.message || 'Có lỗi xảy ra khi xóa dữ liệu!'
                         );
                     },
                 });

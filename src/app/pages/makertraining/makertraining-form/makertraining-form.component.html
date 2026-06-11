@@ -71,7 +71,8 @@
               <nz-form-item class="mb-0">
                 <nz-form-label [nzSpan]="24" class="fs-12 mt-2">Địa điểm</nz-form-label>
                 <nz-form-control [nzSpan]="24" [nzErrorTip]="locError">
-                  <input nz-input formControlName="Location" placeholder="Nhập địa điểm..." [nzAutocomplete]="autoLocation" (input)="onLocationInput($event)" />
+                  <input nz-input formControlName="Location" placeholder="Nhập địa điểm..."
+                    [nzAutocomplete]="autoLocation" (input)="onLocationInput($event)" />
                   <nz-autocomplete #autoLocation>
                     <nz-auto-option *ngFor="let option of filteredLocationOptions" [nzValue]="option">
                       {{ option }}
@@ -134,7 +135,7 @@
         <div class="col-md-6 ps-3">
           <h6 class="text-secondary mb-1"><i class="fa-solid fa-screwdriver-wrench me-2"></i>Chi tiết đào tạo</h6>
           <div class="row">
-             <div class="col-md-12 col-lg-12">
+            <div class="col-md-12 col-lg-12">
               <nz-form-item class="mt-2 flex mb-0">
                 <nz-form-control [nzSpan]="24">
                   <label nz-checkbox formControlName="IsTest"> Bài kiểm tra </label>
@@ -259,7 +260,8 @@
           <nz-splitter>
             <nz-splitter-panel nzDefaultSize="60%" nzMin="50%" nzMax="100%">
               <div class="box h-100 d-flex flex-column">
-                <h6 class="text-secondary mb-1 px-2 pt-1 flex-shrink-0"><i class="fa-solid fa-users me-2"></i>Danh sách nhân viên tham gia</h6>
+                <h6 class="text-secondary mb-1 px-2 pt-1 flex-shrink-0"><i class="fa-solid fa-users me-2"></i>Danh sách
+                  nhân viên tham gia</h6>
                 <div class="card-body p-0 flex-grow-1" style="min-height: 0;">
                   <div id="makerTrainingEmployeeDetail" style="width: 100%; height: 100%"></div>
                 </div>
@@ -267,7 +269,8 @@
             </nz-splitter-panel>
             <nz-splitter-panel>
               <div class="box h-100 d-flex flex-column">
-                <h6 class="text-secondary mb-1 px-2 pt-1 flex-shrink-0"><i class="fa-solid fa-file-alt me-2"></i>Danh sách tài liệu</h6>
+                <h6 class="text-secondary mb-1 px-2 pt-1 flex-shrink-0"><i class="fa-solid fa-file-alt me-2"></i>Danh
+                  sách tài liệu</h6>
                 <div class="card-body p-0 flex-grow-1" style="min-height: 0;">
                   <div id="makerTrainingFileDetail" style="width: 100%; height: 100%"></div>
                 </div>

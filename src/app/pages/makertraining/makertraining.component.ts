@@ -284,7 +284,13 @@ export class MakertrainingComponent implements OnInit {
       format: (value: any) =>
         value === true || value === 1 ? 'Đạt' : 'Chưa đạt',
     },
-    { field: 'Note', header: 'Ghi chú', sortable: true, filterType: 'text' },
+    {
+      field: 'Note',
+      header: 'Ghi chú',
+      sortable: true,
+      filterType: 'text',
+      textWrap: true,
+    },
   ];
 
   // Column definitions for File table

@@ -223,22 +223,27 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       { field: 'IsApproved_PM', header: 'PM duyệt', width: '90px', editable: false, cssClass: 'text-center', format: (v: any) => v === true || v === 1 ? '<i class="fa-solid fa-check fa-lg text-success"></i>' : '' },
       { field: 'IsApproved_PP', header: 'PP duyệt', width: '90px', editable: false, cssClass: 'text-center', format: (v: any) => v === true || v === 1 ? '<i class="fa-solid fa-check fa-lg text-success"></i>' : '' },
       { field: 'IsApproved_TP', header: 'TP duyệt', width: '90px', editable: false, cssClass: 'text-center', format: (v: any) => v === true || v === 1 ? '<i class="fa-solid fa-check fa-lg text-success"></i>' : '' },
-      { field: 'DateProblem', header: 'Ngày phát sinh', width: '120px', editable: false, cssClass: 'text-center', format: (v: any) => v instanceof Date ? DateTime.fromJSDate(v).toFormat('dd/MM/yyyy') : (v ? DateTime.fromISO(v).toFormat('dd/MM/yyyy') : '') },
-      { field: 'DateImplementation', header: 'Ngày thực hiện', width: '120px', editable: false, cssClass: 'text-center', format: (v: any) => v instanceof Date ? DateTime.fromJSDate(v).toFormat('dd/MM/yyyy') : (v ? DateTime.fromISO(v).toFormat('dd/MM/yyyy') : '') },
-      { field: 'PerformerName', header: 'Người thực hiện', width: '180px', editable: false },
-      { field: 'ReceiverName', header: 'Người tiếp nhận', width: '200px', editable: false, textWrap: true },
-      { field: 'TeamDepartmentName', header: 'Team/Phòng ban', width: '200px', editable: false, textWrap: true },
       { field: 'ProjectCode', header: 'Mã dự án', width: '120px', editable: false },
       { field: 'ProjectName', header: 'Tên dự án', width: '200px', editable: false, textWrap: true },
-      { field: 'IssueLogTypeName', header: 'Loại', width: '100px', editable: false },
-      { field: 'StatusName', header: 'Trạng thái xử lý', width: '100px', editable: false },
-      { field: 'PriorityName', header: 'Mức độ ưu tiên', width: '100px', editable: false },
-      { field: 'ContentError', header: 'Nội dung lỗi', width: '300px', editable: false, textWrap: true },
+      { field: 'PMName', header: 'PM', width: '180px', editable: false },
+      { field: 'DateProblem', header: 'Thời điểm phát sinh', width: '120px', editable: false, cssClass: 'text-center', format: (v: any) => v instanceof Date ? DateTime.fromJSDate(v).toFormat('dd/MM/yyyy') : (v ? DateTime.fromISO(v).toFormat('dd/MM/yyyy') : '') },
+      { field: 'CreatorName', header: 'Người phát hiện', width: '180px', editable: false },
+      { field: 'ErrorLocation', header: 'Vị trí lỗi', width: '200px', editable: false, textWrap: true },
+      { field: 'ContentError', header: 'Nội dung sự cố', width: '300px', editable: false, textWrap: true },
       { field: 'Reason', header: 'Nguyên nhân', width: '300px', editable: false, textWrap: true },
-      { field: 'Remedies', header: 'Biện pháp khắc phục', width: '300px', editable: false, textWrap: true },
-      { field: 'IssueConclusion', header: 'Kết luận', width: '300px', editable: false, textWrap: true },
-      { field: 'CreatorName', header: 'Người tạo', width: '180px', editable: false },
-      { field: 'Image', header: 'Hình ảnh đính kèm', width: '200px', editable: false, textWrap: true }
+      { field: 'Impact', header: 'Ảnh hưởng', width: '150px', editable: false, textWrap: true },
+      { field: 'PriorityName', header: 'Mức độ nghiêm trọng', width: '100px', editable: false },
+      { field: 'Remedies', header: 'Phương án xử lý', width: '300px', editable: false, textWrap: true },
+      { field: 'DateImplementation', header: 'Thời hạn xử lý', width: '120px', editable: false, cssClass: 'text-center', format: (v: any) => v instanceof Date ? DateTime.fromJSDate(v).toFormat('dd/MM/yyyy') : (v ? DateTime.fromISO(v).toFormat('dd/MM/yyyy') : '') },
+      { field: 'PerformerName', header: 'Người chịu trách nhiệm xử lý', width: '180px', editable: false },
+      { field: 'IssueConclusion', header: 'Kết quả sau xử lý', width: '300px', editable: false, textWrap: true },
+      { field: 'StatusName', header: 'Trạng thái xử lý', width: '100px', editable: false },
+      { field: 'IssueLogTypeName', header: 'Lý do lỗi', width: '100px', editable: false },
+      { field: 'Note', header: 'Ghi chú', width: '200px', editable: false, textWrap: true },
+
+      // { field: 'ReceiverName', header: 'Người tiếp nhận', width: '200px', editable: false, textWrap: true },
+      // { field: 'TeamDepartmentName', header: 'Team/Phòng ban', width: '200px', editable: false, textWrap: true },
+      // { field: 'Image', header: 'Hình ảnh đính kèm', width: '200px', editable: false, textWrap: true }
     ];
   }
 
@@ -283,7 +288,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
             next: (res: any) => {
               this.notification.success('Thành công', `Đã xóa ${ids.length} dòng dữ liệu thành công!`);
               this.selectedHistoryRows = [];
-              
+
               if (this.previewRow && ids.includes(this.previewRow.ID)) {
                 this.previewRow = null;
                 this.previewImages = [];
@@ -410,12 +415,17 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       ReceiverID: item.ReceiverID || null,
       PriorityLevel: item.PriorityLevel || null,
       StatusProblem: item.StatusProblem || null,
+      Impact: item.Impact || '',
+      ErrorLocation: item.ErrorLocation || '',
+      Note: item.Note || '',
+      ProjectManagerID: item.ProjectManagerID || null,
       // Fields mapped từ Store Procedure
       IssueLogTypeName: item.IssueLogTypeName || '',
       StatusName: item.StatusName || '',
       PriorityName: item.PriorityName || '',
       TeamDepartmentName: item.TeamDepartmentName || '',
       CreatorName: item.CreatorName || '',
+      PMName: item.PMName || '',
       PerformerName: item.PerformerName || '',
       ReceiverName: item.ReceiverName || '',
       IsApproved_PM: item.IsApproved_PM || false,
@@ -588,31 +598,35 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       { header: 'STT', key: 'STT', width: 10 },
       { header: 'Mã dự án', key: 'ProjectCode', width: 20 },
       { header: 'Tên dự án', key: 'ProjectName', width: 40 },
-      { header: 'Loại', key: 'IssueLogType', width: 20 },
-      { header: 'Trạng thái xử lý', key: 'StatusProblem', width: 20 },
-      { header: 'Mức độ ưu tiên', key: 'PriorityLevel', width: 20 },
-      { header: 'Nội dung lỗi', key: 'ContentError', width: 40 },
-      { header: 'Nguyên nhân', key: 'Reason', width: 40 },
-      { header: 'Biện pháp khắc phục', key: 'Remedies', width: 40 },
-      { header: 'Kết luận (Kiểm tra)', key: 'IssueConclusion', width: 40 },
-      { header: 'Team/Phòng ban', key: 'TeamDepartment', width: 30 },
+      { header: 'PM', key: 'ProjectManagerID', width: 30 },
+      { header: 'Thời điểm phát sinh', key: 'DateProblem', width: 15 },
       { header: 'Người tạo', key: 'CreatorID', width: 30 },
-      { header: 'Người thực hiện', key: 'PerformerID', width: 30 },
-      { header: 'Người tiếp nhận', key: 'ReceiverID', width: 30 },
-      { header: 'PIC', key: 'PIC', width: 20 },
-      { header: 'Hình ảnh', key: 'Image', width: 30 },
-      { header: 'PM duyệt', key: 'IsApproved_PM', width: 15 },
-      { header: 'PP duyệt', key: 'IsApproved_PP', width: 15 },
-      { header: 'TP duyệt', key: 'IsApproved_TP', width: 15 },
-      { header: 'Ngày phát sinh', key: 'DateProblem', width: 15 },
-      { header: 'Ngày thực hiện', key: 'DateImplementation', width: 15 }
+      { header: 'Vị trí lỗi', key: 'ErrorLocation', width: 20 },
+      { header: 'Nội dung sự cố', key: 'ContentError', width: 40 },
+      { header: 'Nguyên nhân', key: 'Reason', width: 40 },
+      { header: 'Ảnh hưởng', key: 'Impact', width: 40 },
+      { header: 'Mức độ nghiêm trọng', key: 'PriorityLevel', width: 20 },
+      { header: 'Phương án xử lý', key: 'Remedies', width: 40 },
+      { header: 'Thời hạn xử lý', key: 'DateImplementation', width: 15 },
+      { header: 'Người chịu trách nhiệm xử lý', key: 'PerformerID', width: 30 },
+      { header: 'Kết quả sau xử lý', key: 'IssueConclusion', width: 40 },
+      { header: 'Trạng thái xử lý', key: 'StatusProblem', width: 20 },
+      { header: 'Lý do lỗi', key: 'IssueLogType', width: 20 },
+      { header: 'Ghi chú', key: 'Note', width: 40 },
+      // { header: 'Team/Phòng ban', key: 'TeamDepartment', width: 30 },
+      // { header: 'Người thực hiện', key: 'PerformerID', width: 30 },
+      // { header: 'PIC', key: 'PIC', width: 20 },
+      // { header: 'Hình ảnh', key: 'Image', width: 30 },
+      // { header: 'PM duyệt', key: 'IsApproved_PM', width: 15 },
+      // { header: 'PP duyệt', key: 'IsApproved_PP', width: 15 },
+      // { header: 'TP duyệt', key: 'IsApproved_TP', width: 15 },
     ];
 
     wsHistory.columns = historyColumns;
 
     // Header style
-    wsHistory.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
-    wsHistory.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD700' } };
+    wsHistory.getRow(1).font = { bold: true, color: { argb: '000000' } };
+    wsHistory.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'CFE2F3' } };
     wsHistory.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
 
     // Data
@@ -638,7 +652,11 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
         IsApproved_PP: row.IsApproved_PP ? 'Đã duyệt' : '',
         IsApproved_TP: row.IsApproved_TP ? 'Đã duyệt' : '',
         DateProblem: row.DateProblem ? this.formatDateForExcel(row.DateProblem) : '',
-        DateImplementation: row.DateImplementation ? this.formatDateForExcel(row.DateImplementation) : ''
+        DateImplementation: row.DateImplementation ? this.formatDateForExcel(row.DateImplementation) : '',
+        Note: row.Note || '',
+        Impact: row.Impact || '',
+        ErrorLocation: row.ErrorLocation || '',
+        ProjectManagerID: row.PMName || '',
       });
 
       // Format date columns

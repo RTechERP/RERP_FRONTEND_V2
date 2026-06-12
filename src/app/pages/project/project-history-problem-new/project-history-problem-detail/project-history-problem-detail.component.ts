@@ -68,7 +68,9 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
 
   issueLogTypeOptions = [
     { label: 'Khách hàng', value: 1 },
-    { label: 'Nội bộ', value: 2 }
+    { label: 'Nội bộ', value: 2 },
+    { label: 'Nhà cung cấp', value: 3 }
+
   ];
 
   ngOnInit(): void {
@@ -84,8 +86,9 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
       }
       if (this.data.TeamDepartment && typeof this.data.TeamDepartment === 'string') {
         try {
-          this.data.TeamDepartment = JSON.parse(this.data.TeamDepartment);
-        } catch { this.data.TeamDepartment = []; }
+          const parsedDept = JSON.parse(this.data.TeamDepartment);
+          this.data.TeamDepartment = Array.isArray(parsedDept) && parsedDept.length > 0 ? parsedDept[0] : null;
+        } catch { this.data.TeamDepartment = null; }
       }
       this.form.patchValue(this.data);
       if (this.data.ProjectID) {
@@ -171,19 +174,23 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
       ID: [0],
       STT: [{ value: null, disabled: true }],
       ProjectID: [null, [Validators.required]],
-      TeamDepartment: [[], [Validators.required]],
+      TeamDepartment: [null, [Validators.required]],
       IssueLogType: [null, [Validators.required]],
 
+      ErrorLocation: [null, [Validators.required]],
       ContentError: [null, [Validators.required]],
       Reason: [null],
       Remedies: [null],
       IssueConclusion: [null],
+      Impact: [null],
+      Note: [null],
 
       DateProblem: [null, [Validators.required]],
       DateImplementation: [null],
 
       CreatorID: [null, [Validators.required]],
       PerformerID: [null, [Validators.required]],
+      ProjectManagerID: [null, [Validators.required]],
       EmployeeID: [null],
       PIC: [null],
       ReceiverID: [[], [Validators.required]],
@@ -228,8 +235,8 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
                 // Binding leaders vào form
                 this.form.patchValue({ ReceiverID: leaders });
               } else {
-                 // Nếu không có leader, có thể xóa rỗng hoặc để nguyên
-                 this.form.patchValue({ ReceiverID: [] });
+                // Nếu không có leader, có thể xóa rỗng hoặc để nguyên
+                this.form.patchValue({ ReceiverID: [] });
               }
             }
           });
@@ -239,18 +246,27 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
       }
     });
 
-    this.form.get('ReceiverID')?.valueChanges.subscribe((employeeIds: number[]) => {
-      if (employeeIds && employeeIds.length > 0) {
+    const updateTeamDepartment = () => {
+      const pmId = this.form.get('ProjectManagerID')?.value;
+      const employeeIds: number[] = [];
+      
+      if (pmId) employeeIds.push(pmId);
+
+      if (employeeIds.length > 0) {
         this.projectHistoryProblemNewService.getDepartmentByEmployees(employeeIds).subscribe((res: any) => {
           if (res.status === 1) {
             const deptIds = res.data || [];
-            this.form.patchValue({ TeamDepartment: deptIds }, { emitEvent: false });
+            const newValue = deptIds.length > 0 ? deptIds[0] : null;
+            this.form.patchValue({ TeamDepartment: newValue });
           }
         });
       } else {
-        this.form.patchValue({ TeamDepartment: [] }, { emitEvent: false });
+        this.form.patchValue({ TeamDepartment: null });
       }
-    });
+    };
+
+    this.form.get('ProjectManagerID')?.valueChanges.subscribe(() => updateTeamDepartment());
+    this.form.get('ReceiverID')?.valueChanges.subscribe(() => updateTeamDepartment());
   }
 
   submitForm(): void {
@@ -277,12 +293,12 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
             if (this.attachedFiles.length > 0 && savedId > 0) {
               this.uploadFiles(savedId);
             }
-            
+
             // Gửi mail khi thêm mới
             if (isNew && savedId > 0) {
               this.projectHistoryProblemNewService.sendEmailProblem(savedId).subscribe();
             }
-            
+
             this.message.success('Lưu dữ liệu thành công!');
             this.modalRef.close({
               saved: true,
@@ -321,12 +337,16 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
       Reason: item.Reason || '',
       Remedies: item.Remedies || '',
       IssueConclusion: item.IssueConclusion || '',
+      Impact: item.Impact || '',
+      ErrorLocation: item.ErrorLocation || '',
+      Note: item.Note || '',
       DateProblem: item.DateProblem || null,
       DateImplementation: item.DateImplementation || null,
       PIC: item.PIC || '',
       EmployeeID: item.EmployeeID || null,
       CreatorID: item.CreatorID || null,
       PerformerID: item.PerformerID || null,
+      ProjectManagerID: item.ProjectManagerID || null,
       PriorityLevel: item.PriorityLevel || null,
       StatusProblem: item.StatusProblem || null,
       IsDeleted: item.IsDeleted || false,

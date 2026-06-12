@@ -78,6 +78,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
   // Selection
   selectedProduct: any = null;
   selectedPOKHDetailIds: number[] = []; // Lưu danh sách POKHDetail IDs từ dataProduct
+  isMultiPOMode: boolean = false; // Flag để phân biệt single-PO và multi-PO mode
 
   // State
   rowSelectedTotalPriceIncludeVAT: any;
@@ -112,8 +113,10 @@ export class HistoryMoneyPrimengComponent implements OnInit {
     this.loadDepartments();
     // Ưu tiên load theo pokhIds nếu có (multi-PO), không thì load theo filterText
     if (this.pokhIds && this.pokhIds.length > 0) {
+      this.isMultiPOMode = true;
       this.loadProductsByPOKHIds(this.pokhIds);
     } else {
+      this.isMultiPOMode = false;
       this.loadProduct(this.filterText);
     }
   }
@@ -233,7 +236,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
           // Lưu danh sách POKHDetail IDs
           this.selectedPOKHDetailIds = this.dataProduct.map((p: any) => p.ID).filter((id: number) => id > 0);
 
-          // Auto select first row
+          // Auto select first row - sẽ trigger loadHistoryMoneyPO
           if (this.dataProduct && this.dataProduct.length > 0) {
             this.selectedProduct = this.dataProduct[0];
             this.onProductRowSelect({ data: this.selectedProduct });

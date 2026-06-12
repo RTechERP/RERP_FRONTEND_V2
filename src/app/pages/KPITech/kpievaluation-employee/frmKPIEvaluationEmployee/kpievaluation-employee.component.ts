@@ -2121,7 +2121,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
           .subscribe({
             next: (res) => {
               if (res.data) {
-        
+
                 // Cập nhật isPublic theo logic WinForm: isTBPView || empPoint.IsPublish
                 const empPointIsPublish = res.data.IsPublish === true || res.data.IsPublish === 1;
                 this.isPublic = this.isTBPView || empPointIsPublish;
@@ -2238,6 +2238,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     modalRef.componentInstance.kpiExam = selectedExam;
     modalRef.componentInstance.status = selectedExam.Status || 0;
     modalRef.componentInstance.departmentID = this.departmentID;
+    modalRef.componentInstance.isAdminConfirm = this.isAdminConfirm || false;
 
     // Subscribe to dataSaved event to reload data when save is successful
     modalRef.componentInstance.dataSaved.subscribe(() => {
@@ -2279,6 +2280,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
           kpiExam: selectedExam,
           status: selectedExam.Status || 0,
           departmentID: this.departmentID,
+          isAdminConfirm: this.isAdminConfirm || false,
           onSavedCallback: () => {
             this.loadDataDetails();
             this.loadKPIExam(this.selectedSessionID);
@@ -2595,8 +2597,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         // Tab 1 (index=1) - Chung
         if (results.chung?.data) {
           console.log('[DEBUG] Loading "Chung" data, count:', results.chung.data.length);
-          this.dataEvaluation4 = this.transformToTreeData(results.chung.data);
-          this.dataEvaluation4 = this.calculatorAvgPoint(this.dataEvaluation4);
+          let chungLocal = this.transformToTreeData(results.chung.data);
+          this.dataEvaluation4 = this.calculatorAvgPoint(chungLocal);
           this.isTab2Loaded = true;
           if (this.angularGridEvaluation4) {
             this.updateGrid(this.angularGridEvaluation4, this.dataEvaluation4);
@@ -2607,8 +2609,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         // Tab 2 (index=2) - Chuyên môn
         if (results.chuyenMon?.data) {
           console.log('[DEBUG] Loading "Chuyên môn" data, count:', results.chuyenMon.data.length);
-          this.dataEvaluation2 = this.transformToTreeData(results.chuyenMon.data);
-          this.dataEvaluation2 = this.departmentID === this.departmentCK ? this.calculatorAvgPointTKCK(this.dataEvaluation2, 'specialization') : this.calculatorAvgPoint(this.dataEvaluation2);
+          let cmLocal = this.transformToTreeData(results.chuyenMon.data);
+          this.dataEvaluation2 = this.departmentID === this.departmentCK ? this.calculatorAvgPointTKCK(cmLocal, 'specialization') : this.calculatorAvgPoint(cmLocal);
           this.isTab3Loaded = true;
           if (this.angularGridEvaluation2) {
             this.updateGrid(this.angularGridEvaluation2, this.dataEvaluation2);
@@ -2648,10 +2650,6 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
               __hasChildren: false
             });
             this.dataRule = tempRuleData;
-
-            if (this.angularGridRule) {
-              this.updateGrid(this.angularGridRule, this.dataRule);
-            }
           }
           // Xử lý dtTeam
           if (results.ruleTeam.data.dtTeam) {
@@ -3905,8 +3903,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
             totalBgdPoint = 0;
           } else {
             // Kỹ năng / Chung: TBP nhập trực tiếp tại node cha
-            totalTbpPoint = this.formatDecimalNumber(parseFloat(row.TBPPointInput) || parseFloat(row.TBPEvaluation) || 0, 2);
-            totalBgdPoint = this.formatDecimalNumber(parseFloat(row.TBPPointInput) || parseFloat(row.BGDEvaluation) || 0, 2);
+            totalTbpPoint = this.formatDecimalNumber(parseFloat(row.TBPPoint) || parseFloat(row.TBPEvaluation) || 0, 2);
+            totalBgdPoint = this.formatDecimalNumber(parseFloat(row.TBPPoint) || parseFloat(row.BGDEvaluation) || 0, 2);
           }
         } else if (stt.startsWith(startStt)) {
           // Đây là node con
@@ -3916,9 +3914,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
           totalEmpPoint += this.formatDecimalNumber(parseFloat(row.EmployeePoint) || 0, 2);
           totalStandardPoint += this.formatDecimalNumber(parseFloat(row.StandardPoint) || 0, 2);
           if (gridType === 'specialization') {
-            // Chuyên môn: TBP/BGĐ nhập ở node CON (TBPPointInput), cộng dồn lên node cha
-            totalTbpPoint += this.formatDecimalNumber(parseFloat(row.TBPPointInput) || parseFloat(row.TBPPoint) || 0, 2);
-            totalBgdPoint += this.formatDecimalNumber(parseFloat(row.BGDPointInput) || parseFloat(row.TBPPointInput) || parseFloat(row.TBPPoint) || 0, 2);
+            // Chuyên môn: TBP/BGĐ nhập ở node CON (TBPPoint), cộng dồn lên node cha
+            totalTbpPoint += this.formatDecimalNumber(parseFloat(row.TBPPoint) || parseFloat(row.TBPPoint) || 0, 2);
+            totalBgdPoint += this.formatDecimalNumber(parseFloat(row.BGDPoint) || parseFloat(row.TBPPoint) || parseFloat(row.TBPPoint) || 0, 2);
           }
           count++;
         }

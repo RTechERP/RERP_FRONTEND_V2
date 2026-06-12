@@ -1,0 +1,64 @@
+<div class="activity-log-container">
+    <!-- Header -->
+    <div class="activity-log-header">
+        <div class="section-title d-flex align-items-center justify-content-between mb-0">
+            <div class="d-flex align-items-center gap-2">
+                <i nz-icon nzType="history"></i>
+                <span>Lịch sử thao tác KPI - {{ employeeName }}</span>
+                @if (kpiSessionCode) {
+                <span class="badge-session">Kỳ: {{ kpiSessionCode }}</span>
+                }
+            </div>
+            <button nz-button nzType="link" nzSize="small" (click)="handleReload()">
+                <i nz-icon nzType="reload" [class.spin]="isLoadingLogs"></i> Tải lại
+            </button>
+        </div>
+    </div>
+
+    <!-- Body (Scrollable) -->
+    <div class="activity-log-body">
+        @if (isLoadingLogs) {
+        <div class="text-center py-4">
+            <i nz-icon nzType="loading" class="fs-24 text-primary"></i>
+            <p class="text-muted mt-2">Đang tải lịch sử...</p>
+        </div>
+        } @else if (logs.length === 0) {
+        <div class="text-center py-4">
+            <i nz-icon nzType="inbox" class="fs-32 text-muted"></i>
+            <p class="text-muted mt-2">Chưa có lịch sử hoạt động</p>
+        </div>
+        } @else {
+        <div class="log-timeline">
+            @for (log of logs; track log.ID) {
+            <div class="log-item">
+                <div class="log-icon-wrapper">
+                    <div class="log-icon">
+                        <i nz-icon [nzType]="getLogIcon(log.TypeLog)" nzTheme="outline"></i>
+                    </div>
+                    <div class="log-line"></div>
+                </div>
+                <div class="log-body">
+                    <div class="log-type">{{ log.TypeLog }}</div>
+                    <div class="log-content">{{ log.ContentLog }}</div>
+                    <div class="log-meta">
+                        <span class="log-author">
+                            <i nz-icon nzType="user" nzTheme="outline"></i>
+                            {{ log.CreatedBy }}
+                        </span>
+                        <span class="log-time">
+                            <i nz-icon nzType="clock-circle" nzTheme="outline"></i>
+                            {{ log.CreatedDate | date:'dd/MM/yyyy HH:mm:ss' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+        }
+    </div>
+
+    <!-- Footer -->
+    <div class="activity-log-footer d-flex justify-content-end">
+        <button nz-button nzDanger (click)="handleClose()">Đóng</button>
+    </div>
+</div>

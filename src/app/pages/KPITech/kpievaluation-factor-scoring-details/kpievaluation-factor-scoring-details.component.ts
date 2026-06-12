@@ -424,7 +424,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       this.status = this.tabData.status ?? this.status;
       this.departmentID = this.tabData.departmentID ?? this.departmentID;
       this.isAdminConfirm = this.tabData.isAdminConfirm ?? this.isAdminConfirm;
-      if (this.tabData.canSave !== undefined) {
+      if (this.typePoint === 4 && !this.isAdminConfirm) {
+        this.canSave = false;
+      } else if (this.tabData.canSave !== undefined) {
         this.canSave = this.tabData.canSave;
       }
     }
@@ -2438,8 +2440,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.kpiSharedService.loadKPIChungFactorScoring(examId, isPublicTBP, isPublicBGD, empId).subscribe({
       next: (res) => {
         if (res.data) {
-          this.dataGeneral = this.transformToTreeData(res.data);
-          this.dataGeneral = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataGeneral, 'general') : this.calculatorAvgPoint(this.dataGeneral);
+          let dataLocal = this.transformToTreeData(res.data);
+          dataLocal = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(dataLocal, 'general') : this.calculatorAvgPoint(dataLocal);
+          this.dataGeneral = dataLocal;
           this.dataGeneralTree = this.buildTreeNodes(this.dataGeneral);
           this.updateGrid(this.angularGridGeneral, this.dataGeneral);
 
@@ -2467,8 +2470,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.kpiSharedService.loadKPIChuyenMonFactorScoring(examId, isPublicTBP, isPublicBGD, empId).subscribe({
       next: (res) => {
         if (res.data) {
-          this.dataSpecialization = this.transformToTreeData(res.data);
-          this.dataSpecialization = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataSpecialization, 'specialization') : this.calculatorAvgPoint(this.dataSpecialization);
+          let dataLocal = this.transformToTreeData(res.data);
+          dataLocal = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(dataLocal, 'specialization') : this.calculatorAvgPoint(dataLocal);
+          this.dataSpecialization = dataLocal;
           this.dataSpecializationTree = this.buildTreeNodes(this.dataSpecialization);
           this.updateGrid(this.angularGridSpecialization, this.dataSpecialization);
 
@@ -2553,7 +2557,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
             };
           });
 
-          this.updateGrid(this.angularGridRule, this.dataRule);
+          // Chỉ cập nhật grid Team đồng bộ vì dữ liệu Team không thay đổi bất đồng bộ
           this.updateGrid(this.angularGridTeam, this.dataTeam);
 
           //#region ĐỒNG BỘ LOGIC LOAD POIN RULE NEW (WinForm)
@@ -2564,10 +2568,11 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
             this.loadPointRuleNewAndCalculateDetail();
           } else if (!this.isAdminConfirm && (this.isPublish == false || this.isPublish == null)) {
             this.loadPointRuleLastMonthAndCalculateDetail();
+          } else {
+            // Chỉ thực hiện tính toán đồng bộ khi không có luồng async nào được kích hoạt
+            this.applyTeamSummaryAndCalculateDetail();
           }
           //#endregion
-          // Luôn thực hiện tính toán ngay cả khi không có data mới
-          this.applyTeamSummaryAndCalculateDetail();
 
           // Lấy điểm cuối cùng 
           this.kpiSharedService.getFinalPoint(empId, sessionId).subscribe({
@@ -4563,8 +4568,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
             this.loadKPIChuyenMon(this.selectedEmployeeId, this.selectedKPIExamId, isPublicTBP, isPublicBGD);
           }
 
-          this.notification.success('Thành công', `Đã cập nhật mã '${code}' thành công!`);
+          this.notification.success('Thành công', `Đã cập nhật thành công!`);
         } else {
+
           this.notification.warning('Thông báo', `Không tìm thấy dữ liệu cho mã: ${code}`);
         }
         //#endregion
@@ -4676,6 +4682,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     const isAdmin = this.typePoint === 4;
     const shouldSaveRule = isAdmin || this.departmentID !== this.DEPARTMENT_CO_KHI;
     // Admin chỉ lưu Rule
+    debugger
     if (isAdmin) {
       this.saveRuleData().subscribe({
         next: (isRuleSaved) => {

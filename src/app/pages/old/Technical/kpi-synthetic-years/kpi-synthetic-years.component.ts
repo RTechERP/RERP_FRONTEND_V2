@@ -47,7 +47,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 })
 export class KpiSyntheticYearsComponent implements OnInit {
   // Grid
-  gridId: string = 'kpiSyntheticYearsGrid';
+  gridId: string = 'kpi-sync-' + Math.random().toString(36).substring(2, 9);
   angularGrid!: AngularGridInstance;
   columnDefinitions: Column[] = [];
   gridOptions: GridOption = {};
@@ -233,7 +233,7 @@ export class KpiSyntheticYearsComponent implements OnInit {
 
     this.gridOptions = {
       autoResize: {
-        container: '.grid-container',
+        container: '#' + this.gridId + '-container',
         calculateAvailableSizeBy: 'container'
       },
       enableAutoResize: true,

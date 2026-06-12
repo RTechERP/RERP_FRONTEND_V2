@@ -70,7 +70,7 @@
 
         <!-- Content - SlickGrid -->
         <div class="card-body p-0 flex-grow-1" style="min-height: 0;">
-            <div class="h-100 grid-container">
+            <div [id]="gridId + '-container'" class="h-100 grid-container">
                 <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..." class="h-100 w-100">
                     <angular-slickgrid [gridId]="gridId" [columns]="columnDefinitions" [options]="gridOptions"
                         [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)">

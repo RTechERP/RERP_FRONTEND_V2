@@ -40,6 +40,7 @@ import { ProjectPartlistPriceRequestOldDetailComponent } from './project-partlis
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { PermissionService } from '../../../services/permission.service';
+import { ProjectPartlistPriceRequestLogComponent } from '../project-partlist-price-request-new/project-partlist-price-request-log/project-partlist-price-request-log.component';
 
 @Component({
   selector: 'app-project-partlist-price-request-old',
@@ -81,6 +82,7 @@ export class ProjectPartlistPriceRequestOldComponent
   columnDefinitionsMaster: Column[] = [];
   gridOptionsMaster: GridOption = {};
   dataMaster: any[] = [];
+  selectedMasterRows: any[] = []; // lưu lại rows đã chọn
   columnWidth: number = 150;
 
   currencyData: any[] = [];
@@ -248,6 +250,13 @@ export class ProjectPartlistPriceRequestOldComponent
         visible: this.permissionService.hasPermission('N1,N34,N69'),
         command: () => {
           this.OnDeleteClick();
+        },
+      },
+      {
+        label: 'Lịch sử thao tác',
+        icon: 'fa fa-history text-danger',
+        command: () => {
+          this.onActivityLog();
         },
       },
     ];
@@ -515,6 +524,14 @@ export class ProjectPartlistPriceRequestOldComponent
       // Sự kiện double click
       angularGrid.slickGrid.onDblClick.subscribe((e: any, args: any) => {
         this.onEdit();
+      });
+
+      // Lưu lại rows đã chọn (tránh mất selection khi click menu)
+      angularGrid.slickGrid.onSelectedRowsChanged.subscribe(() => {
+        const indexes = angularGrid.slickGrid.getSelectedRows();
+        this.selectedMasterRows = indexes
+          .map((i: number) => angularGrid.dataView.getItem(i))
+          .filter((item: any) => item && !item.__group);
       });
     }
     setTimeout(() => {
@@ -3002,6 +3019,32 @@ export class ProjectPartlistPriceRequestOldComponent
   formatDateForAPI(dateString: string): string {
     if (!dateString) return '';
     return dateString.replace(/-/g, '/');
+  }
+  //#endregion
+
+  //#region Lấy log thao tác
+  onActivityLog(): void {
+    const selectedRows = this.selectedMasterRows;
+
+    if (selectedRows.length === 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 dòng để xem lịch sử thao tác!');
+      return;
+    }
+
+    if (selectedRows.length > 1) {
+      this.notification.info('Thông báo', 'Vui lòng chỉ chọn 1 dòng để xem lịch sử thao tác!');
+      return;
+    }
+
+    const row = selectedRows[0];
+    const modalRef = this.ngbModal.open(ProjectPartlistPriceRequestLogComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: false,
+    });
+    modalRef.componentInstance.requestId = row['ID'];
+    modalRef.componentInstance.productCode = row['ProductCode'] || '';
   }
   //#endregion
 }

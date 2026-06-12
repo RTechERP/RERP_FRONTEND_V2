@@ -1,12 +1,14 @@
-<div style="display: flex; flex-direction: column; height: 100vh;">
+<div style="display: flex; flex-direction: column; position: relative;" [style.height]="activeModal ? '80vh' : 'calc(100vh - 96px)'">
   <!-- Modal Header -->
+  @if (activeModal) {
   <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0">
     <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem;">
       Danh sách báo cáo công việc {{projectCode}}
     </h6>
-    <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"
+    <button type="button" class="btn-close" (click)="activeModal?.dismiss()" aria-label="Close"
       style="background-color:lightcyan !important; font-weight: bold;"></button>
   </div>
+  }
 
   <!-- Modal Body -->
   <div class="p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">

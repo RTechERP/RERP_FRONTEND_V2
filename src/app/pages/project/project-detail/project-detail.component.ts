@@ -1734,6 +1734,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   validateProjectAttributes(gridData: any[], statusId: any): boolean {
+    if (this.projectTypeId === 2 || this.projectTypeId === 3) {
+      return true;
+    }
     if (statusId != null && this.VALID_STATUS_FOR_ATTRIBUTES.includes(Number(statusId))) {
       const selectedLinks = gridData.filter(x => x.Selected === true);
       for (const link of selectedLinks) {

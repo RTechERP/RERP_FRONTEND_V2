@@ -1603,17 +1603,28 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
 
     openProjectWorkReportModal() {
         const selectedIDs = this.getSelectedIds();
+        const selectedRows = this.getSelectedRows();
 
         if (selectedIDs.length != 1) {
             this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
             return;
         }
 
-        const modalRef = this.modalService.open(ProjectReportSlickGridComponent, {
-            centered: true,
-            windowClass: 'full-screen-modal',
+        const projectId = selectedIDs[0];
+        const projectName = selectedRows[0]?.ProjectName;
+        const projectCode = selectedRows[0]?.ProjectCode;
+
+        // Mở như tab thực sự thông qua TabService
+        this.tabService.openTabComp({
+            comp: ProjectReportSlickGridComponent,
+            title: `Báo cáo công việc - ${projectCode}`,
+            key: `project-report-${projectId}`,
+            data: {
+                projectId: projectId,
+                projectName: projectName,
+                projectCode: projectCode
+            }
         });
-        modalRef.componentInstance.projectId = this.projectId;
     }
 
     openWorkItemModal() {
@@ -1683,6 +1694,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
             return;
         }
 
+        const projectId = selectedIDs[0];
         const modalRef = this.modalService.open(ProjectPartListSlickGridComponent, {
             centered: true,
             backdrop: 'static',
@@ -1690,7 +1702,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
             windowClass: 'full-screen-modal',
             scrollable: false,
         });
-        modalRef.componentInstance.projectId = this.projectId;
+        modalRef.componentInstance.projectId = projectId;
         modalRef.componentInstance.projectNameX = selectedRows[0]?.ProjectName;
         modalRef.componentInstance.projectCodex = selectedRows[0]?.ProjectCode;
         modalRef.componentInstance.tbp = false;
@@ -1704,7 +1716,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
             return;
         }
 
-        const projectId = this.projectId;
+        const projectId = selectedIDs[0];
         const projectName = selectedRows[0]?.ProjectName;
         const projectCode = selectedRows[0]?.ProjectCode;
 
@@ -1720,6 +1732,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
             return;
         }
 
+        const projectId = selectedIDs[0];
         const projectName = selectedRows[0]?.ProjectName;
         const projectCode = selectedRows[0]?.ProjectCode;
 
@@ -1727,9 +1740,9 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         this.tabService.openTabComp({
             comp: ProjectPartListSlickGridComponent,
             title: `Danh mục vật tư - ${projectCode}`,
-            key: `project-part-list-${this.projectId}`,
+            key: `project-part-list-${projectId}`,
             data: {
-                projectId: this.projectId,
+                projectId: projectId,
                 projectNameX: projectName,
                 projectCodex: projectCode,
                 tbp: false

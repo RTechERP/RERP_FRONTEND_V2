@@ -37,13 +37,14 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { KpiRuleSumarizeTeamChooseEmployeeComponent } from '../kpi-rule-sumarize-team-choose-employee/kpi-rule-sumarize-team-choose-employee.component';
 import { KPIEvaluationFactorScoringDetailsComponent } from '../kpievaluation-factor-scoring-details/kpievaluation-factor-scoring-details.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
+import { ActivityLogKpiComponent } from './activity-log-kpi/activity-log-kpi.component';
 
 // PrimeNG / Custom Components
 import { CustomTableKpi } from '../../../shared/custom-table-kpi/custom-table-kpi';
 import { CustomTreeTableKpi } from '../../../shared/custom-tree-table-kpi/custom-tree-table-kpi';
 import { ColumnDef } from '../../../shared/custom-table-kpi/column-def.model';
 import { TreeColumnDef } from '../../../shared/custom-tree-table-kpi/tree-column-def.model';
-import { TreeNode } from 'primeng/api';
+import { MenuItem, TreeNode } from 'primeng/api';
 
 @Component({
   selector: 'app-kpievaluation-factor-scoring',
@@ -126,6 +127,9 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
     { ID: 0, Status: 'Chưa chấm điểm' },
     { ID: 1, Status: 'Đã chấm điểm' }
   ];
+  // Context Menu - Employee Table
+  employeeContextMenuItems: MenuItem[] = [];
+
   // Loading States
   loadingExam = false;
   loadingEmployee = false;
@@ -421,6 +425,7 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
     this.initializeGrids();
     this.updateTabVisibility();
     this.loadDepartments();
+    this.initEmployeeContextMenu();
     setTimeout(() => {
       if (this.selectedDepartmentID) {
         this.loadKPISession();
@@ -623,8 +628,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         // Only editable if typeID is 1 (Employee) or not specified (default)
       },
       {
-        id: 'TBPPointInput',
-        field: 'TBPPointInput',
+        id: 'TBPPoint',
+        field: 'TBPPoint',
         name: 'TBP/PBP đánh giá',
         minWidth: 93,
         cssClass: 'text-right cell-point-highlight',
@@ -633,8 +638,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         // Only editable if typeID is 2 (TBP)
       },
       {
-        id: 'BGDPointInput',
-        field: 'BGDPointInput',
+        id: 'BGDPoint',
+        field: 'BGDPoint',
         name: 'Đánh giá của BGĐ',
         minWidth: 93,
         cssClass: 'text-right cell-point-highlight',
@@ -1767,8 +1772,10 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         console.log('[FactorScoring] forkJoin results received:', results);
         // Tab 1 (UI Index 1) - Chung (Grid Evaluation4)
         if (results.chung?.data) {
-          this.dataEvaluation4 = this.transformToTreeData(results.chung.data);
-          this.dataEvaluation4 = this.selectedDepartmentID === this.departmentCK ? this.calculatorAvgPointTKCK(this.dataEvaluation4, 'general') : this.calculatorAvgPoint(this.dataEvaluation4);
+          const rawChung = this.transformToTreeData(results.chung.data);
+          this.dataEvaluation4 = this.selectedDepartmentID === this.departmentCK 
+            ? this.calculatorAvgPointTKCK(rawChung, 'general') 
+            : this.calculatorAvgPoint(rawChung);
           this.isTab2Loaded = true;
 
           this.updateGrid(this.angularGridEvaluation4, this.dataEvaluation4);
@@ -1779,8 +1786,10 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
 
         // Tab 2 (UI Index 2) - Chuyên môn (Grid Evaluation2)
         if (results.chuyenMon?.data) {
-          this.dataEvaluation2 = this.transformToTreeData(results.chuyenMon.data);
-          this.dataEvaluation2 = this.selectedDepartmentID === this.departmentCK ? this.calculatorAvgPointTKCK(this.dataEvaluation2, 'specialization') : this.calculatorAvgPoint(this.dataEvaluation2);
+          const rawChuyenMon = this.transformToTreeData(results.chuyenMon.data);
+          this.dataEvaluation2 = this.selectedDepartmentID === this.departmentCK 
+            ? this.calculatorAvgPointTKCK(rawChuyenMon, 'specialization') 
+            : this.calculatorAvgPoint(rawChuyenMon);
           this.isTab3Loaded = true;
 
           this.updateGrid(this.angularGridEvaluation2, this.dataEvaluation2);
@@ -1794,9 +1803,6 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
           this.loadSumaryRank_TKCK();
         } else {
           this.calculateTotalAVG();
-          if (this.angularGridMaster) {
-            this.updateGrid(this.angularGridMaster, this.dataMaster);
-          }
         }
         this.isTab4Loaded = true;
         this.updateGrid(this.angularGridMaster, this.dataMaster);
@@ -1869,9 +1875,7 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
           }
         }
 
-        // Cập nhật grid nếu đã load
-        this.updateGrid(this.angularGridRule, this.dataRule);
-        this.updateGrid(this.angularGridTeam, this.dataTeam);
+
 
         if (this.isValidGrid(this.angularGridRule)) {
           // Ép đặt lại độ rộng cột sau khi load data
@@ -2526,6 +2530,7 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
     modalRef.componentInstance.kpiExam = selectedExam;
     modalRef.componentInstance.status = selectedExam.Status || 0;
     modalRef.componentInstance.departmentID = this.selectedDepartmentID;
+    modalRef.componentInstance.isAdminConfirm = this.dataEmployee.find((emp: any) => (emp.EmployeeID || emp.ID) === empIdToPass)?.IsAdminConfirm || false;
 
     // Subscribe to dataSaved event to reload data when save is successful
     modalRef.componentInstance.dataSaved.subscribe(() => {
@@ -2640,6 +2645,7 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
     modalRef.componentInstance.kpiExam = selectedExam;
     modalRef.componentInstance.status = selectedEmployee?.ExamStatus || 0;
     modalRef.componentInstance.departmentID = this.selectedDepartmentID;
+    modalRef.componentInstance.isAdminConfirm = selectedEmployee?.IsAdminConfirm || false;
 
     // Subscribe to dataSaved event to reload data when save is successful
     modalRef.componentInstance.dataSaved.subscribe(() => {
@@ -2674,6 +2680,7 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
           kpiExam: selectedExam,
           status: selectedEmployee?.ExamStatus || 0,
           departmentID: this.selectedDepartmentID,
+          isAdminConfirm: selectedEmployee?.IsAdminConfirm || false,
           onSavedCallback: () => {
             this.loadEmployee();
           }
@@ -3405,6 +3412,64 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
   }
 
   /**
+   * Admin cancel confirm handler
+   */
+  adminCancelConfirm(): void {
+    const kpiExamID = this.selectedExamID;
+    const empID = this.selectedEmployeeID;
+
+    if (kpiExamID <= 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn bài đánh giá!');
+      return;
+    }
+
+    if (empID <= 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn nhân viên!');
+      return;
+    }
+
+    const examName = this.dataExam.find(e => e.ID === kpiExamID)?.ExamName || '';
+    const employeeName = this.dataEmployee.find(e => (e.EmployeeID || e.ID) === empID)?.FullName || '';
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent: `Bạn có muốn HỦY xác nhận Bài đánh giá [${examName}] của nhân viên [${employeeName}] hay không?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        // Call admin confirm API with isConfirm = false
+        this.kpiService.adminConfirmKPI(kpiExamID, empID, false).subscribe({
+          next: (confirmRes: any) => {
+            if (confirmRes.status === 1) {
+              // Update IsAdminConfirm in grid if exists
+              const selectedEmployee = this.dataEmployee.find(e => (e.EmployeeID || e.ID) === empID);
+              if (selectedEmployee) {
+                selectedEmployee.IsAdminConfirm = false;
+                this.angularGridEmployee?.slickGrid?.invalidate();
+              }
+
+              // Save data rule
+              this.saveDataRule();
+              // Load exams, employees, details
+              this.loadKPIExam();
+              this.loadEmployee();
+              this.loadDataDetails();
+
+              this.notification.success('Thành công', confirmRes.message || 'Hủy xác nhận đánh giá thành công!');
+            } else {
+              this.notification.error('Lỗi', confirmRes.message || 'Hủy xác nhận đánh giá thất bại!');
+            }
+          },
+          error: (error: any) => {
+            console.error('Admin cancel confirm error:', error);
+            this.notification.error('Lỗi', error.error?.message || 'Có lỗi xảy ra khi hủy xác nhận đánh giá!');
+          }
+        });
+      }
+    });
+  }
+
+  /**
    * Tính toán lại điểm KPI hàng loạt cho bộ lọc hiện tại
    * Chỉ dành cho Admin (typeID = 4)
    */
@@ -3416,7 +3481,7 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
 
     this.modal.confirm({
       nzTitle: 'Xác nhận tính lại điểm',
-      nzContent: 'Hệ thống sẽ tính toán lại toàn bộ điểm Rule (Lỗi) và điểm Summary (Tổng hợp) cho các nhân viên thuộc bộ lọc hiện tại. Các kỳ đã chốt (Published) sẽ được giữ nguyên. Bạn có muốn tiếp tục?',
+      nzContent: 'Hệ thống sẽ tính toán lại toàn bộ điểm Rule và điểm Tổng hợp cho các nhân viên thuộc bộ lọc hiện tại. Bạn có muốn tiếp tục?',
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
@@ -4188,7 +4253,7 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         case 'TEAMKPIVISION': newValue = sumKPIVision; break;
         case 'TEAMKPISOFTWARE': newValue = sumKPISoftware; break;
         case 'TEAMKPICHUYENMON': newValue = sumKPIChuyenMon; break;
-        case 'MA11': 
+        case 'MA11':
           if (ltsMA11.length > 0) {
             newValue = totalErrorTBP;
           }
@@ -4917,8 +4982,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
             totalBgdPoint = 0;
           } else {
             // Kỹ năng / Chung: TBP nhập trực tiếp tại node cha
-            totalTbpPoint = this.formatDecimalNumber(parseFloat(row.TBPPointInput) || parseFloat(row.TBPEvaluation) || 0, 2);
-            totalBgdPoint = this.formatDecimalNumber(parseFloat(row.TBPPointInput) || parseFloat(row.BGDEvaluation) || 0, 2);
+            totalTbpPoint = this.formatDecimalNumber(parseFloat(row.TBPPoint) || parseFloat(row.TBPEvaluation) || 0, 2);
+            totalBgdPoint = this.formatDecimalNumber(parseFloat(row.TBPPoint) || parseFloat(row.BGDEvaluation) || 0, 2);
           }
         } else if (stt.startsWith(startStt)) {
           // Đây là node con
@@ -4928,9 +4993,9 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
           totalEmpPoint += this.formatDecimalNumber(parseFloat(row.EmployeePoint) || 0, 2);
           totalStandardPoint += this.formatDecimalNumber(parseFloat(row.StandardPoint) || 0, 2);
           if (gridType === 'specialization') {
-            // Chuyên môn: TBP/BGĐ nhập ở node CON (TBPPointInput), cộng dồn lên node cha
-            totalTbpPoint += this.formatDecimalNumber(parseFloat(row.TBPPointInput) || parseFloat(row.TBPPoint) || 0, 2);
-            totalBgdPoint += this.formatDecimalNumber(parseFloat(row.BGDPointInput) || parseFloat(row.TBPPointInput) || parseFloat(row.TBPPoint) || 0, 2);
+            // Chuyên môn: TBP/BGĐ nhập ở node CON (TBPPoint), cộng dồn lên node cha
+            totalTbpPoint += this.formatDecimalNumber(parseFloat(row.TBPPoint) || parseFloat(row.TBPPoint) || 0, 2);
+            totalBgdPoint += this.formatDecimalNumber(parseFloat(row.BGDPoint) || parseFloat(row.BGDPoint) || parseFloat(row.TBPPoint) || 0, 2);
           }
           count++;
         }
@@ -5078,5 +5143,64 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
     this.updateGrid(this.angularGridMaster, this.dataMaster);
   }
 
+  //#endregion
+
+  //#region Context Menu - Lịch sử thao tác nhân viên
+  /**
+   * Khởi tạo context menu items cho bảng nhân viên
+   * Hiển thị khi người dùng chuột phải vào dòng nhân viên
+   */
+  initEmployeeContextMenu(): void {
+    this.employeeContextMenuItems = [
+      {
+        label: 'Admin hủy xác nhận',
+        icon: 'pi pi-times-circle',
+        visible: this.typeID === 4,
+        command: () => this.adminCancelConfirm()
+      },
+      {
+        label: 'Lịch sử thao tác',
+        icon: 'pi pi-history',
+        command: () => this.openEmployeeLogActivityModal()
+      }
+    ];
+  }
+
+  /**
+   * Xử lý sự kiện khi người dùng chọn dòng qua context menu
+   * Cập nhật selectedEmployee để đồng bộ với hành động chuột phải
+   */
+  onEmployeeContextMenuSelect(employee: any): void {
+    if (!employee) return;
+    this.selectedEmployee = employee;
+    this.selectedEmployeeID = employee.EmployeeID || employee.ID;
+  }
+
+  /**
+   * Mở modal lịch sử thao tác KPI cho nhân viên được chọn
+   */
+  openEmployeeLogActivityModal(): void {
+    if (!this.selectedEmployee) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên trước!');
+      return;
+    }
+
+    const employeeID = this.selectedEmployeeID
+    const employeeName = this.selectedEmployee.FullName || this.selectedEmployee.Name || '';
+    const kpiSessionID = this.selectedKPISessionID || 0;
+    const kpiSessionCode = this.kpiSessionData.find(s => s.ID === kpiSessionID)?.Code || '';
+
+    const modalRef = this.ngbModal.open(ActivityLogKpiComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+      size: 'xl'
+    });
+
+    modalRef.componentInstance.employeeID = employeeID;
+    modalRef.componentInstance.employeeName = employeeName;
+    modalRef.componentInstance.kpiSessionID = kpiSessionID;
+    modalRef.componentInstance.kpiSessionCode = kpiSessionCode;
+  }
   //#endregion
 }

@@ -220,11 +220,13 @@ export class KPIService {
    * API: POST api/KPIEvaluationFactorScoring/admin-confirm-kpi
    * @param kpiExamID - KPI Exam ID
    * @param employeeID - Employee ID
+   * @param isConfirm - Confirm or Cancel confirmation
    */
-  adminConfirmKPI(kpiExamID: number, employeeID: number): Observable<any> {
+  adminConfirmKPI(kpiExamID: number, employeeID: number, isConfirm: boolean = true): Observable<any> {
     const params = new HttpParams()
       .set('kpiExamID', kpiExamID.toString())
-      .set('empID', employeeID.toString());
+      .set('empID', employeeID.toString())
+      .set('isConfirm', isConfirm.toString());
     return this.http.post<any>(this.apiUrlFactorScoring + 'admin-confirm-kpi', null, { params });
   }
 
@@ -561,6 +563,19 @@ export class KPIService {
    */
   batchRecalculateKPI(request: { KpiSessionID: number, DepartmentID: number, TeamID: number }): Observable<any> {
     return this.http.post<any>(this.apiUrlFactorScoringDetails + 'batch-recalculate-kpi', request);
+  }
+
+  /**
+   * Lấy lịch sử thao tác KPI của nhân viên theo kỳ đánh giá
+   * API: GET api/KPIEvaluationFactorScoring/get-log-activity-kpi
+   * @param employeeID - ID nhân viên
+   * @param kpiSessionID - ID kỳ đánh giá KPI
+   */
+  getLogActivityKPI(employeeID: number, kpiSessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('employeeID', employeeID.toString())
+      .set('kpiSessionID', kpiSessionID.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'get-log-activity-kpi', { params });
   }
 }
 

@@ -64,6 +64,7 @@ import { TabServiceService } from '../../../../layouts/tab-service.service';
 })
 export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
   // SlickGrid
+  gridId: string = 'summary-kpi-' + Math.random().toString(36).substring(2, 9);
   angularGrid!: AngularGridInstance;
   columnDefinitions: Column[] = [];
   gridOptions: GridOption = {};
@@ -269,7 +270,7 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
                 kpiExam: kpiExam,
                 status: item.StatusKPIExam || 0,
                 departmentID: this.departmentId || 2,
-                isAdminConfirm: item.IsAdminConfirm || false,
+                isAdminConfirm: item.IsAdminConfirm || true,
                 canSave: false, // Chặn lưu
                 onSavedCallback: () => {
                   this.search(); // Reload data
@@ -615,7 +616,7 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
 
     this.gridOptions = {
       autoResize: {
-        container: '.grid-container-main',
+        container: '#' + this.gridId + '-container',
         calculateAvailableSizeBy: 'container',
       },
       gridWidth: '100%',

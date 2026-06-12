@@ -83,8 +83,8 @@
         <div class="card-body p-0 flex-grow-1" style="min-height: 0; overflow: hidden;">
             <div class="d-flex flex-column" style="height: 100%;">
                 <!-- Grid -->
-                <div class="grid-container-main flex-grow-1" style="min-height: 0; overflow: hidden; position: relative;">
-                    <angular-slickgrid gridId="gridSummaryKPIEmployeePoint" [columns]="columnDefinitions"
+                <div [id]="gridId + '-container'" class="grid-container-main flex-grow-1" style="min-height: 0; overflow: hidden; position: relative;">
+                    <angular-slickgrid [gridId]="gridId" [columns]="columnDefinitions"
                         [options]="gridOptions" [dataset]="dataset"
                         (onAngularGridCreated)="angularGridReady($event.detail)"
                         (onCellChange)="onCellChanged($event.detail.eventData, $event.detail.args)">

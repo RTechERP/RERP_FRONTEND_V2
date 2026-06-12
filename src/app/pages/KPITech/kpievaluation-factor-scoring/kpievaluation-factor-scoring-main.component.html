@@ -222,7 +222,9 @@
                                         [groupRowsBy]="'UserTeamName'" [expandableRowGroups]="true"
                                         [expandAllGroups]="true" (rowClick)="onEmployeeSelect($event)"
                                         selectionMode="single" [(selection)]="selectedEmployee" dataKey="ID"
-                                        [autoSelectFirstRow]="autoSelectFirstEmployee">
+                                        [autoSelectFirstRow]="autoSelectFirstEmployee"
+                                        [contextMenuItems]="employeeContextMenuItems"
+                                        (contextMenuSelectionChange)="onEmployeeContextMenuSelect($event)">
                                     </app-custom-table-kpi>
                                 </div>
                             </div>

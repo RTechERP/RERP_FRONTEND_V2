@@ -22,7 +22,9 @@
             <nz-spin nzSimple></nz-spin>
         </div>
 
-        <p-table #dt [value]="tableData" [loading]="isLoading" dataKey="ID" [scrollable]="true" scrollHeight="flex" styleClass="p-datatable-sm p-datatable-gridlines" [paginator]="true" [rows]="20" [rowsPerPageOptions]="[20, 50, 100]" selectionMode="multiple" [(selection)]="selectedUsers" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)" (onHeaderCheckboxToggle)="onHeaderCheckboxToggle($event)" (onRowDoubleClick)="onRowDoubleClick($event)" (onSort)="onSort($event)" [showCurrentPageReport]="true" currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} bản ghi" [tableStyle]="{'min-width': '50rem'}">
+        <p-table #dt [value]="tableData" [loading]="isLoading" dataKey="ID" [scrollable]="true" scrollHeight="flex" styleClass="p-datatable-sm p-datatable-gridlines" [paginator]="true" [rows]="20" [rowsPerPageOptions]="[20, 50, 100]" selectionMode="multiple"
+            [(selection)]="selectedUsers" (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)" (onHeaderCheckboxToggle)="onHeaderCheckboxToggle($event)" (onRowDoubleClick)="onRowDoubleClick($event)" (onSort)="onSort($event)" [showCurrentPageReport]="true"
+            currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} bản ghi" [tableStyle]="{'min-width': '50rem'}">
 
             <ng-template pTemplate="header">
                 <tr>
@@ -37,6 +39,12 @@
                     </th>
                     <th pSortableColumn="Email" style="width: 200px; text-align: center;">Email
                         <p-sortIcon field="Email" />
+                    </th>
+                    <th pSortableColumn="PhoneNumber" style="width: 130px; text-align: center;">Số điện thoại
+                        <p-sortIcon field="PhoneNumber" />
+                    </th>
+                    <th pSortableColumn="Address" style="width: 200px; text-align: center;">Địa chỉ
+                        <p-sortIcon field="Address" />
                     </th>
                     <th pSortableColumn="Organization" style="width: 150px; text-align: center;">Cơ quan
                         <p-sortIcon field="Organization" />
@@ -65,6 +73,12 @@
                         <p-columnFilter type="text" field="Email" matchMode="contains" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
                     </th>
                     <th>
+                        <p-columnFilter type="text" field="PhoneNumber" matchMode="contains" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
+                    </th>
+                    <th>
+                        <p-columnFilter type="text" field="Address" matchMode="contains" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
+                    </th>
+                    <th>
                         <p-columnFilter type="text" field="Organization" matchMode="contains" [showMenu]="false" class="w-100" placeholder="Lọc..."></p-columnFilter>
                     </th>
                     <th>
@@ -90,6 +104,8 @@
                     <td style="text-align: center;">{{ (dt.first ?? 0) + rowIndex + 1 }}</td>
                     <td>{{ item.FullName }}</td>
                     <td>{{ item.Email }}</td>
+                    <td>{{ item.PhoneNumber }}</td>
+                    <td>{{ item.Address }}</td>
                     <td>{{ item.Organization }}</td>
                     <td>{{ item.Position }}</td>
                     <td>{{ item.ReferralSource }}</td>
@@ -106,7 +122,7 @@
 
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td colspan="10" style="text-align: center; padding: 20px; color: #8c8c8c;">
+                    <td colspan="12" style="text-align: center; padding: 20px; color: #8c8c8c;">
                         Không có dữ liệu
                     </td>
                 </tr>

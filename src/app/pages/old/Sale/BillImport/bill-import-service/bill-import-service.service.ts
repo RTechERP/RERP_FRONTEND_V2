@@ -98,6 +98,12 @@ export class BillImportServiceService {
             `api/documentimport?poNCCId=${PONCCID}&billImportID=${BillImportID}`
         );
     }
+    deleteBillImport(billImportIDs: number[]): Observable<any> {
+        return this.http.post(
+            environment.host + `api/billimport/delete-bill-import`,
+            billImportIDs
+        );
+    }
     saveBillImport(payload: any[]): Observable<any> {
         const headers = new HttpHeaders({
             'Content-Type': 'application/json',

@@ -139,7 +139,6 @@ export class ProjectPartlistPurchaseRequestService {
         );
     }
 
-    // Get list of ProductRTC products - tham khảo TbProductRtcService.getProductRTC()
     getProductsRTC(request?: {
         productGroupID?: number;
         keyWord?: string;

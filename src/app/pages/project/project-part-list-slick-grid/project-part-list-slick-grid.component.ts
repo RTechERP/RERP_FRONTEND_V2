@@ -5871,31 +5871,37 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
         };
         // Map details cho modal theo BillExportDetailRQPDTO structure
-        const detailsForModal = details.map((detail: any) => ({
-            ID: 0,
-            STT: detail.STT || 0,
-            ChildID: detail.ChildID || 0,
-            ParentID: detail.ParentID || 0,
-            ProductID: detail.ProductID || 0,
-            ProductCode: detail.ProductCode || '',
-            ProductNewCode: detail.ProductNewCode || '',
-            ProductName: detail.ProductName || '',
-            ProductFullName: detail.ProductFullName || '',
-            Unit: detail.Unit || '',
-            Qty: detail.Qty || 0,
-            TotalQty: detail.TotalQty || 0,
-            QuantityRemain: detail.Qty || 0,
-            ProjectID: detail.ProjectID || 0,
-            ProjectName: detail.ProjectName || '',
-            ProjectCodeText: detail.ProjectCodeText || '',
-            ProjectCodeExport: detail.ProjectCodeExport || '',
-            ProjectPartListID: detail.ProjectPartListID || 0,
-            Note: detail.Note || '',
-            SerialNumber: detail.SerialNumber || '',
-            ProjectNameText: detail.ProjectName || '',
+        const detailsForModal = details.map((detail: any) => {
+            // Mã sản phẩm theo nhà cung cấp: ưu tiên SpecialCode, trống thì lấy GroupMaterial
+            const productFullName = String(detail.SpecialCode || '').trim()
+                ? detail.SpecialCode
+                : (detail.GroupMaterial || '');
+            return {
+                ID: 0,
+                STT: detail.STT || 0,
+                ChildID: detail.ChildID || 0,
+                ParentID: detail.ParentID || 0,
+                ProductID: detail.ProductID || 0,
+                ProductCode: detail.ProductCode || '',
+                ProductNewCode: detail.ProductNewCode || '',
+                ProductName: detail.ProductName || '',
+                ProductFullName: productFullName,
+                Unit: detail.Unit || '',
+                Qty: detail.Qty || 0,
+                TotalQty: detail.TotalQty || 0,
+                QuantityRemain: detail.Qty || 0,
+                ProjectID: detail.ProjectID || 0,
+                ProjectName: detail.ProjectName || '',
+                ProjectCodeText: detail.ProjectCodeText || '',
+                ProjectCodeExport: detail.ProjectCodeExport || '',
+                ProjectPartListID: detail.ProjectPartListID || 0,
+                Note: detail.Note || '',
+                SerialNumber: detail.SerialNumber || '',
+                ProjectNameText: detail.ProjectName || '',
 
-            TotalInventory: 0
-        }));
+                TotalInventory: 0
+            };
+        });
         const modalRef = this.ngbModal.open(BillExportDetailNewComponent, {
             centered: true,
             //size: 'xl',

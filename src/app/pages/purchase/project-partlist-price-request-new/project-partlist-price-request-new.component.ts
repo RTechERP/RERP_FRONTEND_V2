@@ -3440,6 +3440,8 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       'Unit',
       'Quantity',
       'TotalPrice',
+      'ProductCode',
+      'ProductName',
       'UnitPrice', // moneyEditor
       'UnitFactoryExportPrice', // moneyEditor
       'UnitImportPrice', // moneyEditor

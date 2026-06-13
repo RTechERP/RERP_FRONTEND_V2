@@ -76,10 +76,6 @@ interface Tab {
   title: string;
 }
 
-/**
- * Custom editor for single select with searchable dropdown and grouped options support
- */
-
 
 @Component({
   selector: 'app-project-part-list-purchase-request-slick-grid',
@@ -1928,8 +1924,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       },
       // DiscountPercent
       {
-        id: 'DiscountPercentPur',
-        field: 'DiscountPercentPur',
+        id: 'DiscountPercent',
+        field: 'DiscountPercent',
         name: '% giảm giá',
         width: 100,
         sortable: true,
@@ -1938,10 +1934,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         type: 'number',
         editor: {
           model: Editors['float'],
-          decimal: 2,
+          decimal: 3,
         },
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 2),
+          this.formatNumberEnUS(value, 3),
         filter: { model: Filters['compoundInputNumber'] },
       },
       // TotalPriceExchange
@@ -3510,6 +3506,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           this.OnSupplierSaleChangedSlickGrid(selectedItem);
         }
 
+        // Tính lại UnitPrice khi DiscountPercent hoặc HistoryPrice thay đổi
+        // Công thức: UnitPrice = HistoryPrice × (1 - DiscountPercent)
+        if (field === 'DiscountPercent' || field === 'HistoryPrice') {
+          const historyPrice = parseFloat(selectedItem.HistoryPrice) || 0;
+          const discountPercent = parseFloat(selectedItem.DiscountPercent) || 0;
+          selectedItem.UnitPrice = historyPrice * (1 - discountPercent);
+        }
+
         // Recalculate totals nếu cần (áp dụng cho TẤT CẢ các field liên quan)
         if (
           [
@@ -3518,6 +3522,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             'CurrencyRate',
             'VAT',
             'CurrencyID',
+            'DiscountPercent',
+            'HistoryPrice',
           ].includes(field)
         ) {
           this.recalculateTotals(selectedItem);
@@ -3583,6 +3589,21 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         angularGrid.dataView.updateItem(item.id, item);
         // Invalidate and update the specific cell
         angularGrid.slickGrid.updateCell(rowIndex, currencyRateColIndex);
+      }
+    }
+
+    // Handle DiscountPercent / HistoryPrice change - recalculate UnitPrice
+    // Công thức: UnitPrice = HistoryPrice × (1 - DiscountPercent)
+    if (field === 'DiscountPercent' || field === 'HistoryPrice') {
+      const historyPrice = parseFloat(item.HistoryPrice) || 0;
+      const discountPercent = parseFloat(item.DiscountPercent) || 0;
+      item.UnitPrice = historyPrice * (1 - discountPercent);
+      this.recalculateTotals(item);
+
+      const unitPriceColumn = columns.find((col: any) => col.field === 'UnitPrice');
+      if (unitPriceColumn) {
+        angularGrid.dataView.updateItem(item.id, item);
+        angularGrid.slickGrid.updateCell(rowIndex, columns.indexOf(unitPriceColumn));
       }
     }
 
@@ -3956,6 +3977,12 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     const typeId = this.getTypeIdFromTabIndex(tabIndex);
     if (!typeId) return;
 
+    // Force-commit editor đang active (tránh mất giá trị khi user click Lưu ngay mà chưa nhấn Enter/Tab)
+    const activeGrid = this.angularGrids.get(typeId);
+    if (activeGrid?.slickGrid?.getCellEditor()) {
+      activeGrid.slickGrid.getEditorLock().commitCurrentEdit();
+    }
+
     // Lấy dữ liệu mới nhất từ grid để đảm bảo có đầy đủ thông tin
     const angularGrid = this.angularGrids.get(typeId);
     if (angularGrid && angularGrid.dataView) {
@@ -4125,6 +4152,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       'TotalImportPrice',
       'TotalPriceHistory',
       'OriginQuantity',
+      'DiscountPercent',
     ];
 
     // Xử lý integer fields

@@ -1254,6 +1254,9 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
   //#region bảng team kpi
   // Team Grid (Tab 6 - grdTeam)
   initTeamGrid(): void {
+    const zeroToEmptyFormatter = (row: number, cell: number, value: any) =>
+      (value !== null && value !== undefined && value !== '' && Number(value) !== 0) ? Number(value).toFixed(2) : '';
+
     this.teamColumns = [
       // ========== gridBand3: Thông tin cơ bản (Fixed Left, no caption) ==========
       {
@@ -1293,7 +1296,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         minWidth: 120,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tuân thủ nội quy, Quy định'
+        columnGroup: 'Tuân thủ nội quy, Quy định',
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'FiveS',
@@ -1302,7 +1306,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         minWidth: 120,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tuân thủ nội quy, Quy định'
+        columnGroup: 'Tuân thủ nội quy, Quy định',
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'ReportWork',
@@ -1311,7 +1316,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         minWidth: 100,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tuân thủ nội quy, Quy định'
+        columnGroup: 'Tuân thủ nội quy, Quy định',
+        formatter: zeroToEmptyFormatter
       },
       // ========== gridBand5: Tinh thần làm việc ==========
       // CustomerComplaint và MissingTool ẩn trong WinForm
@@ -1322,7 +1328,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         minWidth: 351,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tinh thần làm việc'
+        columnGroup: 'Tinh thần làm việc',
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'DeadlineDelay',
@@ -1331,7 +1338,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         minWidth: 215,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tinh thần làm việc'
+        columnGroup: 'Tinh thần làm việc',
+        formatter: zeroToEmptyFormatter
       },
       // ========== gridBand6: KPI (no caption) ==========
       {
@@ -1340,7 +1348,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         name: 'Kỹ năng',
         minWidth: 99,
         cssClass: 'text-right',
-        sortable: true
+        sortable: true,
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'KPIChung',
@@ -1348,7 +1357,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         name: 'Đánh giá chung',
         minWidth: 140,
         cssClass: 'text-right',
-        sortable: true
+        sortable: true,
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'KPIChuyenMon',
@@ -1357,7 +1367,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         minWidth: 139,
         cssClass: 'text-right',
         sortable: true,
-        resizable: true
+        resizable: true,
+        formatter: zeroToEmptyFormatter
       }
       // ========== gridBand7: Chuyên môn (HIDDEN trong WinForm) ==========
       // KPIPLC, KPIVision, KPISoftware - không hiển thị

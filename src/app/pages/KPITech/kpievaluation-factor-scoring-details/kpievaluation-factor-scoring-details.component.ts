@@ -1831,19 +1831,29 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   //#endregion
 
   private initTeamGrid(): void {
+    const formatZeroToEmpty = (value: any) => {
+      if (value === null || value === undefined || value === '' || Number(value) === 0) {
+        return '';
+      }
+      return Number(value).toFixed(2);
+    };
+
+    const zeroToEmptyFormatter = (row: number, cell: number, value: any) =>
+      (value !== null && value !== undefined && value !== '' && Number(value) !== 0) ? Number(value).toFixed(2) : '';
+
     this.teamColumnsDef = [
       { field: 'STT', header: 'STT', minWidth: 60, cssClass: 'text-center', sortable: true, footer: (data) => `<b>${data.length}</b>` },
       { field: 'FullName', header: 'Thành viên', minWidth: 265, sortable: false },
       { field: 'PositionName', header: 'Vị trí', minWidth: 156, sortable: false },
       { field: 'ProjectTypeName', header: 'Nhóm', minWidth: 136, sortable: false },
-      { field: 'TimeWork', header: 'Thời gian, giờ giấc', minWidth: 120, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'FiveS', header: '5s, Quy trình quy định', minWidth: 140, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'ReportWork', header: 'Chuẩn bị hàng, report', minWidth: 145, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'ComplaneAndMissing', header: 'Có thái độ không tốt với khách hàng để khách hàng complain ảnh hưởng đến công ty, Không chủ động báo cáo các vấn đề phát sinh làm ảnh hưởng đến tiến dự án', minWidth: 351, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'DeadlineDelay', header: 'Không hoàn thành công việc theo đúng tiến độ yêu cầu của TBP/PBP trở lên hoặc từ sale PM yêu cầu', minWidth: 215, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'KPIKyNang', header: 'Kỹ năng', minWidth: 99, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'KPIChung', header: 'Đánh giá chung', minWidth: 140, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'KPIChuyenMon', header: 'Chuyên môn', minWidth: 139, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } }
+      { field: 'TimeWork', header: 'Thời gian, giờ giấc', minWidth: 120, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'FiveS', header: '5s, Quy trình quy định', minWidth: 140, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'ReportWork', header: 'Chuẩn bị hàng, report', minWidth: 145, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'ComplaneAndMissing', header: 'Có thái độ không tốt với khách hàng để khách hàng complain ảnh hưởng đến công ty, Không chủ động báo cáo các vấn đề phát sinh làm ảnh hưởng đến tiến dự án', minWidth: 351, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'DeadlineDelay', header: 'Không hoàn thành công việc theo đúng tiến độ yêu cầu của TBP/PBP trở lên hoặc từ sale PM yêu cầu', minWidth: 215, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'KPIKyNang', header: 'Kỹ năng', minWidth: 99, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'KPIChung', header: 'Đánh giá chung', minWidth: 140, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'KPIChuyenMon', header: 'Chuyên môn', minWidth: 139, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty }
     ];
 
     this.teamColumns = [
@@ -1885,7 +1895,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 120,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tuân thủ nội quy, Quy định'
+        columnGroup: 'Tuân thủ nội quy, Quy định',
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'FiveS',
@@ -1894,7 +1905,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 140,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tuân thủ nội quy, Quy định'
+        columnGroup: 'Tuân thủ nội quy, Quy định',
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'ReportWork',
@@ -1903,7 +1915,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 145,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tuân thủ nội quy, Quy định'
+        columnGroup: 'Tuân thủ nội quy, Quy định',
+        formatter: zeroToEmptyFormatter
       },
       // ========== gridBand5: Tinh thần làm việc ==========
       // CustomerComplaint và MissingTool ẩn trong WinForm
@@ -1914,7 +1927,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 351,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tinh thần làm việc'
+        columnGroup: 'Tinh thần làm việc',
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'DeadlineDelay',
@@ -1923,7 +1937,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 215,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tinh thần làm việc'
+        columnGroup: 'Tinh thần làm việc',
+        formatter: zeroToEmptyFormatter
       },
       // ========== gridBand6: KPI (no caption) ==========
       {
@@ -1932,7 +1947,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         name: 'Kỹ năng',
         minWidth: 99,
         cssClass: 'text-right',
-        sortable: true
+        sortable: true,
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'KPIChung',
@@ -1940,7 +1956,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         name: 'Đánh giá chung',
         minWidth: 140,
         cssClass: 'text-right',
-        sortable: true
+        sortable: true,
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'KPIChuyenMon',
@@ -1949,7 +1966,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 139,
         cssClass: 'text-right',
         sortable: true,
-        resizable: true
+        resizable: true,
+        formatter: zeroToEmptyFormatter
       }
       // ========== gridBand7: Chuyên môn (HIDDEN trong WinForm) ==========
       // KPIPLC, KPIVision, KPISoftware - không hiển thị

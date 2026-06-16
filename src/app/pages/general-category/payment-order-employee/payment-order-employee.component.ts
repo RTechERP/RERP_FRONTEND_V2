@@ -345,6 +345,14 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 cssClass: 'text-right',
             },
             {
+                field: 'TotalPaymentWithInvoice',
+                header: 'Số tiền có HĐ',
+                width: '120px',
+                filterType: 'numeric',
+                format: fmtMoney,
+                cssClass: 'text-right',
+            },
+            {
                 field: 'TotalPaymentActual',
                 header: 'Số tiền TT thực tế',
                 width: '130px',

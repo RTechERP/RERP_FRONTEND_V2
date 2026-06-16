@@ -1087,7 +1087,17 @@ export class PaymentOrderComponent implements OnInit {
                 // },
                 cssClass: 'text-end'
             },
-
+            {
+                id: PaymentOrderField.TotalPaymentWithInvoice.field,
+                name: 'Số tiền thanh toán có hóa đơn',
+                field: PaymentOrderField.TotalPaymentWithInvoice.field,
+                type: PaymentOrderField.TotalPaymentWithInvoice.type,
+                sortable: true, filterable: true,
+                width: 150,
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-end'
+            },
             {
                 id: PaymentOrderField.TotalPaymentActual.field,
                 name: 'Số tiền thanh toán thực tế',

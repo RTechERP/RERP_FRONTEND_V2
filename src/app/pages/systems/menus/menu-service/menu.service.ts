@@ -6,7 +6,7 @@ import { environment } from '../../../../../environments/environment';
 import { FactoryVisitRegistrationComponent } from '../../../general-category/visit-factory-registation/factory-visit-registration.component';
 import { TsAssetRecoveryPersonalNewComponent } from '../../../hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
 import { HandoverComponent } from '../../../hrm/handover/handover.component';
-import { HrhiringRequestComponent } from '../../../hrm/hrhiring-request/hrhiring-request.component';
+import { HrhiringRequestComponent } from '../../../hrm/hr-recruitment/hrhiring-request/hrhiring-request.component';
 import { VehicleManagementComponent } from '../../../hrm/vehicle/vehicle-management/vehicle-management.component';
 import { VehicleRepairTypeComponent } from '../../../hrm/vehicle/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
 import { TrainingRegistrationComponent } from '../../../training-registration/training-registration.component';

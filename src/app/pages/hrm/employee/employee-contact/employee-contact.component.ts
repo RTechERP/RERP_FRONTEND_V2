@@ -367,7 +367,14 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
                     const val = row[c.field!];
                     switch (c.field) {
                         case 'StartWorking':
-                            return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
+                            if (val) {
+                                const dt = DateTime.fromISO(val);
+                                if (dt.isValid) {
+                                    const date = dt.toJSDate();
+                                    return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                                }
+                            }
+                            return '';
                         case 'BirthOfDate':
                             return val ? DateTime.fromISO(val).toFormat('yyyy') : '';
                         default:
@@ -382,7 +389,7 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
         });
 
         worksheet.eachRow((row, rowNumber) => {
-            row.eachCell(cell => {
+            row.eachCell((cell, colNumber) => {
                 cell.border = {
                     top: { style: 'thin' },
                     left: { style: 'thin' },
@@ -392,6 +399,11 @@ export class EmployeeContactComponent implements OnInit, AfterViewInit {
                 if (rowNumber === 1) {
                     cell.font = { bold: true };
                     cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                } else {
+                    const colDef = columns[colNumber - 1];
+                    if (colDef && colDef.field === 'StartWorking') {
+                        cell.numFmt = 'dd/mm/yyyy';
+                    }
                 }
             });
         });

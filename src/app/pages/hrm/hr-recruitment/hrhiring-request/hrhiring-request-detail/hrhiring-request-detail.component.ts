@@ -23,8 +23,8 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 // Services
 import { HrhiringRequestService } from '../hrhiring-request-service/hrhiring-request.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../app.config';
-import { AppUserService } from '../../../../services/app-user.service';
+import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../../app.config';
+import { AppUserService } from '../../../../../services/app-user.service';
 
 @Component({
   selector: 'app-hrhiring-request-detail',

@@ -8,9 +8,9 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 // import { hrRecruitmentApproveServiceService } from '../hr-recruitment-interview-assessment-service.service';
 import { HrRecruitmentApproveService } from '../hr-recruitment-approve.service';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
-import { AppUserService } from '../../../../services/app-user.service';
-import { ProjectService } from '../../../project/project-service/project.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { AppUserService } from '../../../../../services/app-user.service';
+import { ProjectService } from '../../../../project/project-service/project.service';
 
 export interface Experiences { //kinh nghiệm
   CompanyName: string;

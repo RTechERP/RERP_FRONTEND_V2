@@ -71,7 +71,7 @@ import { HandoverComponent } from './pages/hrm/handover/handover.component';
 
 import { HolidayComponent } from './pages/hrm/holiday/holiday.component';
 import { HrPurchaseProposalComponent } from './pages/hrm/hr-purchase-proposal/hr-purchase-proposal.component';
-import { HrhiringRequestComponent } from './pages/hrm/hrhiring-request/hrhiring-request.component';
+import { HrhiringRequestComponent } from './pages/hrm/hr-recruitment/hrhiring-request/hrhiring-request.component';
 import { JobRequirementComponent } from './pages/hrm/job-requirement/job-requirement.component';
 import { ApproveJobRequirementComponent } from './pages/hrm/job-requirement/approve-job-requirement/approve-job-requirement.component';
 import { OfficeSupplyComponent } from './pages/hrm/office-supply/OfficeSupply/office-supply.component';
@@ -295,9 +295,10 @@ import { SummaryKpiEmployeePointComponent } from './pages/old/Technical/summary-
 import { FollowProjectBaseSlickgridComponent } from './pages/old/VisionBase/kho-base/follow-project-base-slickgrid/follow-project-base-slickgrid.component';
 import { DailyReportSaleAdminSlickgridComponent } from './pages/old/KPISale/daily-report-sale-admin-slickgrid/daily-report-sale-admin-slickgrid.component';
 import { HRRecruitmentCandidateComponent } from './pages/hrm/hr-recruitment-candidate/hr-recruitment-candidate.component';
+import { HRRecruitmentCandidateSummaryListComponent } from './pages/hrm/hr-recruitment-candidate/hr-recruitment-candidate-summary-list/hr-recruitment-candidate-summary-list.component';
 import { HRRecruitmentExamComponent } from './pages/hrm/hr-recruitment/HRRecruitmentExam/hrrecruitment-exam/hrrecruitment-exam.component';
 import { ExamScoreComponent } from './pages/hrm/hr-recruitment-exam-score/exam-score/exam-score.component';
-import { HRHiringRequestExamComponent } from './pages/hrm/hrhiring-request/hrhiring-request-exam/hrhiring-request-exam.component';
+import { HRHiringRequestExamComponent } from './pages/hrm/hr-recruitment/hrhiring-request/hrhiring-request-exam/hrhiring-request-exam.component';
 import { HiringRequestListComponent } from './pages/hrm/hr-recruitment/hiring-request-list/hiring-request-list.component';
 import { HRRecruitmentApplicationComponent } from './pages/hrm/hr-recruitment/hr-recruitment-application-form/hr-recruitment-application/hr-recruitment-application.component';
 import { HistoryBorrowSalePersonalComponent } from './pages/old/Sale/HistoryBorrowSale/history-borrow-sale-personal/history-borrow-sale-personal.component';
@@ -325,7 +326,7 @@ import { ProjectTaskTimelineComponent } from './pages/project_task/project-task-
 import { ProjectTaskStatusComponent } from './pages/project_task/project-task-status/project-task-status.component'
 import { ProjectTaskTypeComponent } from './pages/project_task/project-task-type/project-task-type.component'
 import { ProjectTaskProjectComponent } from './pages/project_task/project-task-project/project-task-project.component'
-import { HrRecruitmentApproveComponent } from './pages/hrm/hr-recruitment-approve/hr-recruitment-approve/hr-recruitment-approve.component';
+import { HrRecruitmentApproveComponent } from './pages/hrm/hr-recruitment/hr-recruitment-approve/hr-recruitment-approve/hr-recruitment-approve.component';
 import { ContractTransferReviewComponent } from './pages/hrm/contract-transfer-review/contract-transfer-review/contract-transfer-review.component';
 import { ContractTransferReviewPersonalComponent } from './pages/hrm/contract-transfer-review/contract-transfer-review-personal/contract-transfer-review-personal.component';
 import { ProjectTaskTimeLineTotalComponent } from './pages/project_task/project-task-time-line-total/project-task-time-line-total.component'
@@ -1244,6 +1245,7 @@ export const routes: Routes = [
 
             { path: 'daily-report-bod', component: DailyReportThrComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-candidate', component: HRRecruitmentCandidateComponent, canActivate: [authGuard] },
+            { path: 'hr-recruitment-candidate-summary-list', component: HRRecruitmentCandidateSummaryListComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-exam', component: HRRecruitmentExamComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-application', component: HRRecruitmentApplicationComponent, canActivate: [authGuard] },
             { path: 'hr-recruitment-interview-assessment-view', component: HrRecruitmentInterviewAssessmentViewComponent, canActivate: [authGuard] },

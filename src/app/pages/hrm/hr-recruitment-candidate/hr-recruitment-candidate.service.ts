@@ -123,5 +123,26 @@ export class HRRecruitmentCandidateService {
       params: request as any,
     });
   }
+
+  getCandidateSummaryDetail(candidateId: number): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `summary-detail?candidateId=${candidateId}`
+    );
+  }
+
+  getCandidateSummaryMaster(
+    id: number,
+    status: number,
+    employeeRequestId: number,
+    departmentId: number,
+    ds: any,
+    de: any,
+    keywords: string
+  ): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl +
+      `summary-master?id=${id}&status=${status}&employeeRequestId=${employeeRequestId}&departmentId=${departmentId}&dateStart=${ds}&dateEnd=${de}&keyword=${keywords}`
+    );
+  }
 }
 

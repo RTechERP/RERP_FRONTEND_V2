@@ -25,7 +25,7 @@ import { TableModule } from 'primeng/table';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { PermissionService } from '../../../../services/permission.service';
 import { HrRecruitmentInterviewAssessmentFormComponent } from '../hr-recruitment-interview-assessment-form/hr-recruitment-interview-assessment-form.component';
-import { HrRecruitmentApproveFormComponent } from '../../hr-recruitment-approve/hr-recruitment-approve-form/hr-recruitment-approve-form.component';
+import { HrRecruitmentApproveFormComponent } from '../../hr-recruitment/hr-recruitment-approve/hr-recruitment-approve-form/hr-recruitment-approve-form.component';
 
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HrRecruitmentInterviewAssessmentServiceService } from '../hr-recruitment-interview-assessment-service.service';

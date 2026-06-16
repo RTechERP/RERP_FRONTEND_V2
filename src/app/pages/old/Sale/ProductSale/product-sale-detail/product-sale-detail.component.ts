@@ -339,7 +339,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           this.isSaving = false;
-          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi cập nhật!');
+          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message|| err || 'Có lỗi xảy ra khi cập nhật!' );
           console.error(err);
         }
       });
@@ -382,7 +382,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           this.isSaving = false;
-          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi thêm mới!');
+          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || err.message|| err || 'Có lỗi xảy ra khi thêm mới!' );
           console.error(err);
         }
       });

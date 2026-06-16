@@ -27,6 +27,7 @@ import {
   Formatter,
   Formatters,
   GridOption,
+  MenuCommandItemCallbackArgs,
   MultipleSelectOption,
 } from 'angular-slickgrid';
 import * as XLSX from 'xlsx-js-style';
@@ -36,6 +37,8 @@ import { Subscription } from 'rxjs';
 import { InventoryService } from '../inventory-service/inventory.service';
 import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { faLinesLeaning } from '@fortawesome/free-solid-svg-icons';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
+import { ChiTietSanPhamSaleNewComponent } from '../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale-new/chi-tiet-san-pham-sale-new.component';
 
 @Component({
   selector: 'app-inventory-overaged',
@@ -98,6 +101,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
     private elementRef: ElementRef,
+    private tabService: TabServiceService,
     @Optional() @Inject('tabData') private tabData: any,
   ) { }
 
@@ -345,7 +349,22 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
       enableAutoSizeColumns: true,
       frozenColumn: 4,
       enableHeaderMenu: false,
-      //enableContextMenu: true,
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'view-detail',
+            title: 'Xem chi tiết',
+            iconCssClass: 'fa fa-external-link',
+            action: (_e: any, args: MenuCommandItemCallbackArgs) => {
+              const dataContext = args.dataContext;
+              if (dataContext) {
+                this.openChiTietSanPhamSale(dataContext);
+              }
+            },
+          },
+        ],
+      },
       rowHeight: 55,
       createFooterRow: true,
       showFooterRow: true,
@@ -632,6 +651,27 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
       const r = Math.random() * 16 | 0;
       const v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
+    });
+  }
+
+  openChiTietSanPhamSale(productData: any) {
+    const productCode = productData.ProductCode || '';
+    console.log("productDatachichi: ", productData);
+    this.tabService.openTabComp({
+      comp: ChiTietSanPhamSaleNewComponent,
+      title: `Chi tiết SP - ${productCode}`,
+      key: `chi-tiet-san-pham-sale-${productData.ProductSaleID || 0}`,
+      data: {
+        code: productCode,
+        suplier: productData.Supplier || '',
+        productName: productData.ProductName || '',
+        numberDauKy: productData.NumberInStoreDauky?.toString() || '0',
+        numberCuoiKy: productData.NumberInStoreCuoiKy?.toString() || '0',
+        import: productData.Import?.toString() || '0',
+        export: productData.Export?.toString() || '0',
+        productSaleID: productData.ProductSaleID || 0,
+        wareHouseCode: this.warehouseCode || 'HN',
+      }
     });
   }
 }

@@ -394,3 +394,21 @@ nz-dropdown-menu ul {
 .price-request-table-wrapper input[nz-input] {
   font-size: 12px;
 }
+
+/* ==================== IMPORT EXCEL PARTLIST MODAL SIZE ==================== */
+::ng-deep .modal-import-excel .modal-dialog {
+  max-width: 92vw !important;
+  width: 92vw !important;
+}
+
+::ng-deep .modal-import-excel .modal-content {
+  min-height: 80vh;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .modal-import-excel .modal-body {
+  flex: 1;
+  overflow-y: auto;
+}

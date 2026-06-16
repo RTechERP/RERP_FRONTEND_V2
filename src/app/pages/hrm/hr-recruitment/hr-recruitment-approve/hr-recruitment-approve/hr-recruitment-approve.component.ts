@@ -12,20 +12,20 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
-import { AppUserService } from '../../../../services/app-user.service';
-import { PermissionService } from '../../../../services/permission.service';
+import { AppUserService } from '../../../../../services/app-user.service';
+import { PermissionService } from '../../../../../services/permission.service';
 import { HrRecruitmentApproveService } from '../hr-recruitment-approve.service';
 import { HrRecruitmentApproveFormComponent } from '../hr-recruitment-approve-form/hr-recruitment-approve-form.component';
-import { DepartmentServiceService } from '../../department/department-service/department-service.service';
-import { CustomTable } from '../../../../shared/custom-table/custom-table';
-import { ColumnDef } from '../../../../shared/custom-table/column-def.model';
+import { DepartmentServiceService } from '../../../department/department-service/department-service.service';
+import { CustomTable } from '../../../../../shared/custom-table/custom-table';
+import { ColumnDef } from '../../../../../shared/custom-table/column-def.model';
 import Swal from 'sweetalert2';
-import { environment } from '../../../../../environments/environment';
-import { ProjectService } from '../../../project/project-service/project.service';
-import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
+import { environment } from '../../../../../../environments/environment';
+import { ProjectService } from '../../../../project/project-service/project.service';
+import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 
 @Component({
   selector: 'app-hr-recruitment-approve',

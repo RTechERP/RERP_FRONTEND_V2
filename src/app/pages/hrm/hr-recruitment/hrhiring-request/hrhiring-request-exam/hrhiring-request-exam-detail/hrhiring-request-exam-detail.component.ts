@@ -7,12 +7,12 @@ import { ButtonModule } from 'primeng/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { MessageService } from 'primeng/api';
-import { HRRecruitmentExamService } from '../../../hr-recruitment/HRRecruitmentExam/hr-recruitment-exam-service/hrrecruitment-exam.service';
+import { HRRecruitmentExamService } from '../../../HRRecruitmentExam/hr-recruitment-exam-service/hrrecruitment-exam.service';
 import { HRHiringRequestExamService } from '../hrhiring-request-exam.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
+import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../../app.config';
 @Component({
   selector: 'app-hrhiring-request-exam-detail',
   standalone: true,

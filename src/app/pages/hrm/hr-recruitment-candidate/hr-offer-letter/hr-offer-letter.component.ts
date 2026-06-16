@@ -17,7 +17,7 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { HRRecruitmentCandidateService } from '../hr-recruitment-candidate.service';
-import { HrRecruitmentApproveService } from '../../hr-recruitment-approve/hr-recruitment-approve.service';
+import { HrRecruitmentApproveService } from '../../hr-recruitment/hr-recruitment-approve/hr-recruitment-approve.service';
 
 export interface CandidateOfferMail {
   candidateId: any;

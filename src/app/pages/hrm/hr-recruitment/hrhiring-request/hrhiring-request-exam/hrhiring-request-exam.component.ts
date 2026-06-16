@@ -13,15 +13,15 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ContextMenuModule } from 'primeng/contextmenu';
 import { ButtonModule } from 'primeng/button';
 import { SplitterModule } from 'primeng/splitter';
-import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
+import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { FormsModule } from '@angular/forms';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { DateTime } from 'luxon';
+import { HasPermissionDirective } from "../../../../../directives/has-permission.directive";
 
 @Component({
   selector: 'app-hrhiring-request-exam',
@@ -37,7 +37,6 @@ import { DateTime } from 'luxon';
     CheckboxModule,
     ContextMenuModule,
     ButtonModule,
-    HasPermissionDirective,
     FormsModule,
     NzInputModule,
     NzIconModule,

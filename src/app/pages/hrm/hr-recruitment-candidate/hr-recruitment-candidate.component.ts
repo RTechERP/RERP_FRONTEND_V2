@@ -63,7 +63,7 @@ import { DepartmentServiceService } from '../department/department-service/depar
 import { HomeLayoutCandidateComponent } from '../hr-recruitment/hr-recruitment-application-form/home-layout-candidate/home-layout-candidate.component';
 import { environment } from '../../../../environments/environment';
 import { HrRecruitmentInterviewAssessmentFormComponent } from '../hr-recruitment-interview-assessment/hr-recruitment-interview-assessment-form/hr-recruitment-interview-assessment-form.component';
-import { HrRecruitmentApproveFormComponent } from '../hr-recruitment-approve/hr-recruitment-approve-form/hr-recruitment-approve-form.component';
+import { HrRecruitmentApproveFormComponent } from '../hr-recruitment/hr-recruitment-approve/hr-recruitment-approve-form/hr-recruitment-approve-form.component';
 import { HrOfferLetterComponent } from './hr-offer-letter/hr-offer-letter.component';
 import { HrRejectionLetterComponent } from './hr-rejection-letter/hr-rejection-letter.component';
 

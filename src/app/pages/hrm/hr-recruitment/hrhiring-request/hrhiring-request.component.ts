@@ -50,10 +50,11 @@ import { DateTime } from 'luxon';
 import { HrhiringRequestService } from './hrhiring-request-service/hrhiring-request.service';
 import { HrhiringRequestDetailComponent } from './hrhiring-request-detail/hrhiring-request-detail.component';
 import { PdfGeneratorService } from './hrhiring-request-service/pdf-generator.service';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
-import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../app.config';
-import { PermissionService } from '../../../services/permission.service';
+import { RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP } from '../../../../app.config';
+import { PermissionService } from '../../../../services/permission.service';
+import { NOTIFICATION_TITLE } from '../../hr-recruitment-interview-assessment/hr-recruitment-interview-assessment-form/hr-recruitment-interview-assessment-form.component';
 
 @Component({
   selector: 'app-hrhiring-request',

@@ -153,6 +153,8 @@
     </div>
 
     <div class="col-xl-3 col-md-6 col-sm-12 col-12 p-2 fixed-col">
+
+
         <!-- <div class="card"
             style="background-image: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('assets/icon/Gemini_Generated_Image_ec1n9dec1n9dec1n.png'); background-size: auto 100%; background-repeat: repeat-x; background-position: center;">
             <div class="card-header">
@@ -585,6 +587,38 @@
   ">
     Version: {{ userAppVersion }}
 </nz-footer>
+
+<nz-modal
+  [(nzVisible)]="isPollModalVisible"
+  nzTitle="Bình chọn chưa hoàn thành"
+  [nzFooter]="modalFooter"
+  (nzOnCancel)="handlePollModalCancel()"
+  [nzWidth]="600"
+>
+  <ng-container *nzModalContent>
+    <div class="poll-modal-list">
+      @for (poll of pendingPolls; track poll.ID) {
+      <div class="card mb-3 poll-card-item">
+        <div class="card-body p-3 d-flex align-items-center justify-content-between gap-3">
+          <div class="poll-card-left-content">
+            <h6 class="poll-card-title">{{ poll.Title }}</h6>
+            <div [innerHTML]="poll.Description" class="poll-card-desc"></div>
+            <div *ngIf="poll.EndDate" class="poll-card-date"><i nz-icon nzType="clock-circle" nzTheme="outline"></i>Hạn bình chọn: {{ poll.EndDate | date: 'dd/MM/yyyy HH:mm' }}</div>
+          </div>
+          <button nz-button nzType="primary" (click)="goToPollVote(poll.ID)" class="poll-card-btn">
+            Tham gia bình chọn
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+  </ng-container>
+
+  <ng-template #modalFooter>
+    <button nz-button nzType="default" (click)="handlePollModalCancel()" style="font-size: 12px; height: 32px; border-radius: 4px;">Để sau</button>
+  </ng-template>
+</nz-modal>
+
 
 <!-- <nz-layout>
     <nz-header>

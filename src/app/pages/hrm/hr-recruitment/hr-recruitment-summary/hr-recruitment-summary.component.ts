@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -13,6 +13,8 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 // ECharts
 import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
@@ -64,7 +66,7 @@ echarts.use([
   templateUrl: './hr-recruitment-summary.component.html',
   styleUrls: ['./hr-recruitment-summary.component.css']
 })
-export class HrRecruitmentSummaryComponent implements OnInit {
+export class HrRecruitmentSummaryComponent implements OnInit, OnDestroy {
   dateStart: Date | null = null;
   dateEnd: Date | null = null;
   departmentID: number = 0;
@@ -73,6 +75,9 @@ export class HrRecruitmentSummaryComponent implements OnInit {
 
   positionOptions: { label: string, value: string, selected: boolean }[] = [];
   rawData: any = null;
+
+  private searchSubject = new Subject<{ field: string; value: string }>();
+  private searchSubscription?: Subscription;
 
   chartOptions: any = {};
   chartInstance: any;
@@ -97,6 +102,18 @@ export class HrRecruitmentSummaryComponent implements OnInit {
     this.search(); // Initial load
     this.loadSourceSummary();
     this.loadEducationSummary();
+
+    this.searchSubscription = this.searchSubject.pipe(
+      debounceTime(400)
+    ).subscribe(({ field, value }) => {
+      this.executeDateChange(field, value);
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
   }
 
   resetSearch() {
@@ -161,6 +178,10 @@ export class HrRecruitmentSummaryComponent implements OnInit {
   }
 
   onDateChange(field: string, event: string) {
+    this.searchSubject.next({ field, value: event });
+  }
+
+  private executeDateChange(field: string, event: string) {
     if (!event) {
       if (field === 'dateStart') this.dateStart = null;
       if (field === 'dateEnd') this.dateEnd = null;
@@ -348,6 +369,13 @@ export class HrRecruitmentSummaryComponent implements OnInit {
         borderColor: '#fff',
         borderWidth: 1
       },
+      label: {
+        show: true,
+        position: 'inside',
+        fontFamily: 'Inter',
+        fontSize: 12,
+        formatter: (params: any) => params.value > 0 ? params.value : ''
+      },
       barMaxWidth: 60
     }));
 
@@ -486,21 +514,22 @@ export class HrRecruitmentSummaryComponent implements OnInit {
           },
           label: {
             show: true,
-            position: 'outside',
-            formatter: '{b}: {d}%',
+            position: 'inside',
+            formatter: '{c}',
             fontSize: 12,
             fontFamily: 'Inter',
-            color: '#64748b'
+            color: '#fff',
+            fontWeight: 'bold'
           },
           emphasis: {
             label: {
               show: true,
-              fontSize: 14,
+              fontSize: 12,
               fontWeight: 'bold'
             }
           },
           labelLine: {
-            show: true
+            show: false
           },
           data: chartData
         }

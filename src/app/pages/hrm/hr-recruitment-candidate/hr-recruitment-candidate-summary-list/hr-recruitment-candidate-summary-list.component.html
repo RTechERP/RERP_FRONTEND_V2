@@ -1,0 +1,901 @@
+<div class="summary-container w-100 fs-12" style="font-size: 12px;">
+  <!-- Filter bar ngang -->
+  <div class="filter-bar bg-light border-bottom p-2">
+    <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+      <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="4">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12" style="font-size: 12px;">Từ ngày</nz-form-label>
+          <nz-form-control>
+            <input nz-input type="date" name="dateStart" [(ngModel)]="dateStart" (ngModelChange)="loadCandidatesList()"
+              nzSize="small" class="w-100 fs-12">
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="4">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12" style="font-size: 12px;">Đến ngày</nz-form-label>
+          <nz-form-control>
+            <input nz-input type="date" name="dateEnd" [(ngModel)]="dateEnd" (ngModelChange)="loadCandidatesList()"
+              nzSize="small" class="w-100 fs-12">
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="6" [nzLg]="4">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
+          <nz-form-control>
+            <nz-tree-select name="selectedDepartmentFilter" [(ngModel)]="selectedDepartmentFilter"
+              (ngModelChange)="loadCandidatesList()" nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban"
+              nzSize="small" class="w-100" [nzNodes]="departmentNodes"
+              [nzDropdownStyle]="{ 'max-height': '250px', 'overflow': 'auto', 'font-size': '12px' }">
+            </nz-tree-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="5">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái hồ sơ</nz-form-label>
+          <nz-form-control>
+            <nz-select name="selectedStatusFilter" [(ngModel)]="selectedStatusFilter"
+              (ngModelChange)="loadCandidatesList()" nzSize="small" class="w-100">
+              <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+              <nz-option [nzValue]="0" nzLabel="Ứng tuyển"></nz-option>
+              <nz-option [nzValue]="1" nzLabel="Gửi thư mời"></nz-option>
+              <nz-option [nzValue]="2" nzLabel="Xác nhận phỏng vấn"></nz-option>
+              <nz-option [nzValue]="3" nzLabel="Đã phỏng vấn"></nz-option>
+              <nz-option [nzValue]="4" nzLabel="Kết quả không đạt"></nz-option>
+              <nz-option [nzValue]="5" nzLabel="Kết quả đạt"></nz-option>
+              <nz-option [nzValue]="6" nzLabel="Trình phê duyệt"></nz-option>
+              <nz-option [nzValue]="7" nzLabel="Gửi thư mời nhận việc"></nz-option>
+              <nz-option [nzValue]="8" nzLabel="Xác nhận thư mời"></nz-option>
+              <nz-option [nzValue]="9" nzLabel="Nhận việc"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="7">
+        <nz-form-item class="mb-0">
+          <nz-form-label class="fs-12" style="font-size: 12px;">Tìm kiếm từ khóa</nz-form-label>
+          <nz-form-control>
+            <div class="d-flex gap-1">
+              <input nz-input placeholder="Tìm mã UV, Họ tên..." nzSize="small" [(ngModel)]="searchValue"
+                class="flex-grow-1 fs-12" (keyup.enter)="loadCandidatesList()" />
+              <button nz-button nzType="primary" nzSize="small" (click)="loadCandidatesList()">
+                <nz-icon nzType="search" />
+              </button>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+  </div>
+
+  <!-- Main view Splitter -->
+  <div class="splitter-container position-relative bg-white" style="height: calc(90vh - 75px);">
+    <div *ngIf="isLoadingTable" class="loading-overlay">
+      <nz-spin nzSimple></nz-spin>
+    </div>
+
+    <nz-splitter style="height: 85vh !important;">
+      <!-- Left Split: Candidate List Grid (PrimeNG Table) -->
+      <nz-splitter-panel [nzSize]="showDetail ? '50%' : '100%'" [nzMin]="'25%'">
+        <nz-card class="h-100 rounded-0 border-0 card-custom" [nzBodyStyle]="{ 'padding': '8px', 'height': '100%' }">
+
+
+          <div class="table-section" style="height: calc(100% - 25px); overflow: hidden;">
+            <p-table #dtCandidates [value]="candidatesList" [paginator]="true" [rows]="50"
+              [rowsPerPageOptions]="[20, 50, 100, 500]"
+              currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} bản ghi"
+              [showCurrentPageReport]="true" [(selection)]="selectedCandidates" (onRowSelect)="onRowSelect($event)"
+              (onRowUnselect)="onRowUnselect($event)" [scrollable]="true" scrollHeight="flex"
+              [tableStyle]="{ 'min-width': '75rem' }" styleClass="p-datatable-sm p-datatable-gridlines fs-12"
+              dataKey="ID">
+
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width: 3rem; text-align: center;">
+                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                  </th>
+                  <th style="width: 45px; text-align: center;">STT</th>
+                  <th *ngFor="let col of columns" [pSortableColumn]="col.field" [style.width]="col.width"
+                    class="text-center" style="font-size: 12px;">
+                    <div class="d-flex align-items-center justify-content-center gap-1">
+                      {{col.header}} <p-sortIcon [field]="col.field" />
+                    </div>
+                  </th>
+                </tr>
+                <tr>
+                  <th style="width: 3rem; text-align: center; padding: 0 !important;"></th>
+                  <th style="width: 45px; text-align: center; padding: 0 !important;"></th>
+                  <th *ngFor="let col of columns" style="text-align: center; padding: 0 !important;">
+                    <p-multiSelect *ngIf="col.filterType === 'multiselect'" [options]="col.filterOptions || []"
+                      [(ngModel)]="col.filterValue" (onChange)="onFilterChange()" placeholder="Tất cả"
+                      [showHeader]="true" [filter]="true" appendTo="body" [style]="{'width':'100%','font-size':'12px'}"
+                      [maxSelectedLabels]="1" selectedItemsLabel="{0} đã chọn">
+                    </p-multiSelect>
+                    <input *ngIf="col.filterType === 'text'" pInputText type="text" [(ngModel)]="col.filterValue"
+                      (input)="onFilterChange()" [placeholder]="'Lọc...'" class="p-column-filter w-100 fs-12 px-2 py-1"
+                      style="height: 28px; border: 1px solid #ced4da; border-radius: 4px;">
+                    <input *ngIf="col.filterType === 'number'" pInputText type="number" [(ngModel)]="col.filterValue"
+                      (input)="onFilterChange()" placeholder="Lọc..." class="p-column-filter w-100 fs-12 px-2 py-1"
+                      style="height: 28px; border: 1px solid #ced4da; border-radius: 4px;">
+                  </th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
+                <tr [pSelectableRow]="row" (dblclick)="onRowDblClick(row)" style="cursor: pointer;">
+                  <td style="text-align: center;">
+                    <p-tableCheckbox [value]="row"></p-tableCheckbox>
+                  </td>
+                  <td style="text-align: center;">{{ rowIndex + 1 }}</td>
+                  <td *ngFor="let col of columns" [style.width]="col.width"
+                    [class.text-center]="col.type === 'boolean' || col.type === 'date' || col.field === 'UserName'">
+                    <ng-container [ngSwitch]="col.type">
+                      <span *ngSwitchCase="'date'" style="font-size: 12px;">
+                        {{ formatDate(row[col.field]) }}
+                      </span>
+                      <span *ngSwitchCase="'boolean'" style="font-size: 12px;">
+                        <span *ngIf="row[col.field] === 1"
+                          style="color: #28a745; font-weight: bold; font-size: 14px;">✔</span>
+                        <span *ngIf="row[col.field] !== 1"
+                          style="color: #dc3545; font-weight: bold; font-size: 14px; opacity: 0.5;">✘</span>
+                      </span>
+                      <span *ngSwitchDefault style="font-size: 12px;">
+                        {{ row[col.field] }}
+                      </span>
+                    </ng-container>
+                  </td>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td [attr.colspan]="columns.length + 2" class="text-center p-3 text-muted">
+                    Không có ứng viên nào. Vui lòng chọn khoảng thời gian và nhấn Tìm kiếm.
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </nz-card>
+      </nz-splitter-panel>
+
+      <!-- Right Split: Document Details -->
+      <nz-splitter-panel *ngIf="showDetail" [nzSize]="'50%'" [nzMin]="'30%'">
+        <nz-card class="h-100 rounded-0 border-0 scrollable-card"
+          [nzBodyStyle]="{ 'padding': '8px', 'height': '100%' }">
+          <div class="detail-header d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+            <div>
+              <span class="fw-bold fs-13 text-dark">{{ selectedCandidate?.FullName }}</span>
+              <span class="badge bg-secondary ms-2 fs-11" style="background-color: #6c757d;">{{
+                selectedCandidate?.UserName }}</span>
+              <div class="text-muted fs-11 mt-1">{{ selectedCandidate?.PositionName }} - {{
+                selectedCandidate?.DepartmentName }}</div>
+            </div>
+            <button nz-button nzType="text" nzDanger (click)="closeDetail()">
+              <nz-icon nzType="close" /> Đóng
+            </button>
+          </div>
+
+          <div class="detail-body-tabs" style="height: calc(100% - 60px); overflow-y: auto; background-color: #f1f5f9;">
+            <nz-tabset [nzSelectedIndex]="0" nzSize="small">
+
+              <!-- Tab 1: Thông tin cá nhân -->
+              <nz-tab nzTitle="Thông tin cá nhân">
+                <div class="tab-content-container p-2">
+                  <div class="preview-paper">
+                    <div class="row align-items-center mb-3 pb-3 border-bottom">
+                      <div class="col-8">
+                        <strong class="text-uppercase text-primary fs-13"
+                          style="font-size: 13px !important; display: block; margin-bottom: 2px;">Thông tin ứng
+                          viên</strong>
+                        <span class="text-muted italic small">(BM03-RTC.HR-QT01 / Application Form)</span>
+                      </div>
+                      <div class="col-4 text-end">
+                        <div class="border float-end d-flex align-items-center justify-content-center bg-light"
+                          style="width: 80px; height: 105px; overflow: hidden; border-radius: 2px;">
+                          <img *ngIf="imagePreview" [src]="imagePreview" alt="Ảnh 3x4"
+                            style="width: 100%; height: 100%; object-fit: cover;" />
+                          <span *ngIf="!imagePreview" class="text-muted small" style="font-size: 11px;">Ảnh 3x4</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <table class="table table-sm table-borderless info-table mb-0">
+                      <tbody>
+                        <tr>
+                          <td class="fw-bold py-1" style="width: 30%;">Họ và tên:</td>
+                          <td class="py-1 text-primary fw-bold">{{ detailData.applicationForm.master?.FullName || 'N/A'
+                            }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Ngày sinh:</td>
+                          <td class="py-1">{{ formatDate(detailData.applicationForm.master?.DateOfBirth) || 'N/A' }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Giới tính:</td>
+                          <td class="py-1">{{ getGenderText(detailData.applicationForm.master?.Gender) }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Số điện thoại:</td>
+                          <td class="py-1">{{ detailData.applicationForm.master?.Mobile || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Email:</td>
+                          <td class="py-1">{{ detailData.applicationForm.master?.Email || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Số CMND/CCCD:</td>
+                          <td class="py-1">{{ detailData.applicationForm.master?.NumberCCCD || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Ngày cấp / Nơi cấp:</td>
+                          <td class="py-1">
+                            {{ formatDate(detailData.applicationForm.master?.IssuedOn) || 'N/A' }}
+                            <span *ngIf="detailData.applicationForm.master?.IssuedBy"> tại {{
+                              detailData.applicationForm.master?.IssuedBy }}</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Hộ khẩu thường trú:</td>
+                          <td class="py-1">{{ detailData.applicationForm.master?.PermanentResidence || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Địa chỉ hiện nay:</td>
+                          <td class="py-1">{{ detailData.applicationForm.master?.CurrentAddress || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Chiều cao / Cân nặng:</td>
+                          <td class="py-1">
+                            {{ detailData.applicationForm.master?.Height || '_' }} cm / {{
+                            detailData.applicationForm.master?.Weight || '_' }} kg
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Tình trạng hôn nhân:</td>
+                          <td class="py-1">{{ getMaritalStatusText(detailData.applicationForm.master?.MaritalStatus) }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Sở thích cá nhân:</td>
+                          <td class="py-1">{{ detailData.applicationForm.master?.Hobbies || 'Không có' }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Thương tật/Ốm nặng:</td>
+                          <td class="py-1">
+                            {{ detailData.applicationForm.master?.InjuriesOrSeriousIll ? 'Có (Ghi chú: ' +
+                            (detailData.applicationForm.master?.IfYesSpecify || 'N/A') + ')' : 'Không' }}
+                          </td>
+                        </tr>
+                        <tr *ngIf="detailData.applicationForm.master?.Gender === 2">
+                          <td class="fw-bold py-1">Đang mang thai / Dự kiến:</td>
+                          <td class="py-1">
+                            {{ detailData.applicationForm.master?.CurrentlyPregnant ? 'Đang mang thai' : 'Không mang
+                            thai' }} /
+                            {{ detailData.applicationForm.master?.IsPlanPregnant ? 'Dự kiến mang thai trong 6 tháng tới'
+                            : 'Không dự kiến mang thai' }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Số năm kinh nghiệm:</td>
+                          <td class="py-1">{{
+                            getWorkExperienceLevelText(detailData.applicationForm.master?.WorkExperienceLevel) }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Ngày có thể đi làm:</td>
+                          <td class="py-1">{{ formatDate(detailData.applicationForm.master?.DateOfStart) || 'N/A' }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Lương mong muốn:</td>
+                          <td class="py-1 text-success fw-bold">{{ (detailData.applicationForm.master?.AcceptedSalary |
+                            number) || '0' }} VND</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Kinh nghiệm nổi bật:</td>
+                          <td class="py-1" style="white-space: pre-wrap;">{{
+                            detailData.applicationForm.master?.Experiences || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Lý do ứng tuyển:</td>
+                          <td class="py-1" style="white-space: pre-wrap;">{{
+                            detailData.applicationForm.master?.ReasonApplication || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Người thân tại RTC:</td>
+                          <td class="py-1">
+                            {{ detailData.applicationForm.master?.HasRelativeOrFriendInCompany ? 'Có (Thông tin: ' +
+                            (detailData.applicationForm.master?.RelativeInfo || 'N/A') + ')' : 'Không' }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold py-1">Sổ BHXH / Mã số thuế:</td>
+                          <td class="py-1">
+                            {{ detailData.applicationForm.master?.HasSocialInsurance ?
+                            detailData.applicationForm.master?.BHXH : 'Không có' }} /
+                            {{ detailData.applicationForm.master?.HasTaxCode ?
+                            detailData.applicationForm.master?.TaxCode : 'Không có' }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </nz-tab>
+
+              <!-- Tab 2: Thông tin tờ khai (Kinh nghiệm, học vấn, ngoại ngữ, chứng chỉ, liên hệ khẩn cấp, khảo sát) -->
+              <nz-tab nzTitle="Thông tin tờ khai">
+                <div class="tab-content-container p-2">
+                  <div class="preview-paper">
+
+                    <!-- 1. QUÁ TRÌNH CÔNG TÁC (WORKING EXPERIENCES) -->
+                    <h6 class="border-bottom pb-2 mb-3 text-primary fw-bold fs-13" style="font-size: 13px !important;">
+                      I. QUÁ TRÌNH CÔNG TÁC (WORKING EXPERIENCES)</h6>
+                    <div *ngIf="detailData.applicationForm.workingExperiences?.length > 0; else noExperiences">
+                      <div *ngFor="let exp of detailData.applicationForm.workingExperiences; let idx = index"
+                        class="border rounded p-3 mb-3 bg-light shadow-sm">
+                        <div class="d-flex justify-content-between align-items-start border-bottom pb-2 mb-2">
+                          <div>
+                            <strong class="text-dark fs-12">{{ idx + 1 }}. {{ exp.CompanyName }}</strong>
+                            <div class="text-muted italic small mt-1">Chức danh: {{ exp.PositionName }}</div>
+                          </div>
+                          <span class="badge bg-primary" style="background-color: #0d6efd; font-size: 11px;">
+                            {{ formatDate(exp.DateStart) }} - {{ formatDate(exp.DateEnd) }}
+                          </span>
+                        </div>
+                        <table class="table table-sm table-borderless mb-0 fs-11">
+                          <tbody>
+                            <tr>
+                              <td class="fw-bold" style="width: 140px;">Cấp trên trực tiếp:</td>
+                              <td>{{ exp.Leader || 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                              <td class="fw-bold">Mức lương:</td>
+                              <td class="text-success fw-bold">{{ (exp.Salary | number) || '0' }} đ</td>
+                            </tr>
+                            <tr>
+                              <td class="fw-bold">Trạng thái làm việc:</td>
+                              <td>{{ exp.WorkingStatus === 1 ? 'Còn làm việc' : 'Đã nghỉ việc' }}</td>
+                            </tr>
+                            <tr>
+                              <td class="fw-bold">Nhiệm vụ chính:</td>
+                              <td style="white-space: pre-wrap;">{{ exp.Mission || 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                              <td class="fw-bold">Thành tích đạt được:</td>
+                              <td style="white-space: pre-wrap;">{{ exp.Achievement || 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                              <td class="fw-bold">Lý do nghỉ việc:</td>
+                              <td>{{ exp.ReasonQuit || 'N/A' }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                    <ng-template #noExperiences>
+                      <div class="text-center text-muted p-4 border border-dashed rounded bg-light mb-3">Chưa có thông
+                        tin kinh nghiệm</div>
+                    </ng-template>
+
+                    <!-- 2. TRÌNH ĐỘ HỌC VẤN (EDUCATION) -->
+                    <h6 class="border-bottom pb-2 mb-3 text-primary fw-bold fs-13"
+                      style="font-size: 13px !important; margin-top: 20px;">II. TRÌNH ĐỘ HỌC VẤN (EDUCATION)</h6>
+                    <div class="table-responsive mb-3"
+                      *ngIf="detailData.applicationForm.educations?.length > 0; else noEducations">
+                      <table class="table table-sm table-bordered fs-11 text-center"
+                        style="font-size: 11px; margin-bottom: 0;">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Tên trường/Cơ sở</th>
+                            <th>Chuyên ngành</th>
+                            <th>Xếp loại học lực</th>
+                            <th>Thời gian học</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let edu of detailData.applicationForm.educations">
+                            <td class="text-start">{{ edu.NameOfSchool }}</td>
+                            <td>{{ edu.Major }}</td>
+                            <td>{{ getEducationRatingText(edu.QualificationLevel) }}</td>
+                            <td>{{ edu.GraduatedTime || 'N/A' }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <ng-template #noEducations>
+                      <div class="text-center text-muted p-4 border border-dashed rounded bg-light mb-3">Chưa có thông
+                        tin học vấn</div>
+                    </ng-template>
+
+                    <!-- 3. KỸ NĂNG NGOẠI NGỮ & CHỨNG CHỈ (LANGUAGE SKILLS & CERTIFICATES) -->
+                    <h6 class="border-bottom pb-2 mb-3 text-primary fw-bold fs-13"
+                      style="font-size: 13px !important; margin-top: 20px;">III. KỸ NĂNG NGOẠI NGỮ & CHỨNG CHỈ (LANGUAGE
+                      & CERTIFICATES)</h6>
+                    <div class="row g-3 mb-3">
+                      <div class="col-md-6 border-end">
+                        <strong class="text-dark d-block border-bottom pb-1 mb-2">Trình độ ngoại ngữ:</strong>
+                        <div *ngIf="detailData.applicationForm.foreignLanguageSkills?.length > 0; else noLang">
+                          <div *ngFor="let lang of detailData.applicationForm.foreignLanguageSkills"
+                            class="border rounded p-2 mb-2 bg-light">
+                            <div class="fw-bold text-primary">{{ lang.ForeignLanguage }}</div>
+                            <div class="small text-muted mt-1">
+                              Nghe: {{ getLangRatingText(lang.Listening) }} |
+                              Nói: {{ getLangRatingText(lang.Speaking) }} |
+                              Đọc: {{ getLangRatingText(lang.Reading) }} |
+                              Viết: {{ getLangRatingText(lang.Writing) }}
+                            </div>
+                          </div>
+                        </div>
+                        <ng-template #noLang>
+                          <div class="text-muted p-3 border border-dashed rounded text-center small">Không có thông tin
+                            ngoại ngữ</div>
+                        </ng-template>
+                      </div>
+
+                      <div class="col-md-6">
+                        <strong class="text-dark d-block border-bottom pb-1 mb-2">Chứng chỉ nghề nghiệp khác:</strong>
+                        <div *ngIf="detailData.applicationForm.otherCertificates?.length > 0; else noCert">
+                          <div *ngFor="let cert of detailData.applicationForm.otherCertificates"
+                            class="border rounded p-2 mb-2 bg-light">
+                            <div class="fw-bold text-dark">{{ cert.Certificates }}</div>
+                            <div class="small text-muted mt-1">
+                              Nơi cấp: {{ cert.IssuedBy || 'N/A' }} <br />
+                              Ngày cấp: {{ formatDate(cert.DateOfIssue) }} <br />
+                              Xếp loại: {{ getEducationRatingText(cert.QualificationLevel) }}
+                            </div>
+                          </div>
+                        </div>
+                        <ng-template #noCert>
+                          <div class="text-muted p-3 border border-dashed rounded text-center small">Không có thông tin
+                            chứng chỉ</div>
+                        </ng-template>
+                      </div>
+                    </div>
+
+                    <!-- 4. NGƯỜI LIÊN HỆ KHẨN CẤP (EMERGENCY CONTACTS) -->
+                    <h6 class="border-bottom pb-2 mb-3 text-primary fw-bold fs-13"
+                      style="font-size: 13px !important; margin-top: 20px;">IV. NGƯỜI LIÊN HỆ KHẨN CẤP (EMERGENCY
+                      CONTACTS)</h6>
+                    <div class="table-responsive mb-3"
+                      *ngIf="detailData.applicationForm.emergencyContacts?.length > 0; else noContacts">
+                      <table class="table table-sm table-bordered fs-11 text-center"
+                        style="font-size: 11px; margin-bottom: 0;">
+                        <thead class="table-light">
+                          <tr>
+                            <th>Họ và tên</th>
+                            <th>Mối quan hệ</th>
+                            <th>Số điện thoại</th>
+                            <th>Địa chỉ liên hệ</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let con of detailData.applicationForm.emergencyContacts">
+                            <td class="fw-bold">{{ con.FullName }}</td>
+                            <td>{{ con.Relation }}</td>
+                            <td style="font-variant-numeric: tabular-nums;">{{ con.Tel }}</td>
+                            <td class="text-start">{{ con.Address }}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <ng-template #noContacts>
+                      <div class="text-center text-muted p-4 border border-dashed rounded bg-light mb-3">Chưa có thông
+                        tin liên hệ khẩn cấp</div>
+                    </ng-template>
+
+                    <!-- 5. KÊNH BIẾT THÔNG TIN TUYỂN DỤNG (RECRUITMENT SURVEY) -->
+                    <h6 class="border-bottom pb-2 mb-3 text-primary fw-bold fs-13"
+                      style="font-size: 13px !important; margin-top: 20px;">V. KÊNH BIẾT THÔNG TIN TUYỂN DỤNG
+                      (RECRUITMENT SURVEY)</h6>
+                    <div class="survey-channel-list p-2 border rounded bg-light">
+                      <div class="row g-2">
+                        <div class="col-6 col-md-4">
+                          <span class="fw-bold">Website việc làm:</span>
+                          <span class="ms-1" [style.color]="recruitmentSurvey?.JobWebsites ? '#28a745' : '#dc3545'">
+                            {{ recruitmentSurvey?.JobWebsites ? '✔' : '✘' }}
+                          </span>
+                        </div>
+                        <div class="col-6 col-md-4">
+                          <span class="fw-bold">Công ty giới thiệu:</span>
+                          <span class="ms-1" [style.color]="recruitmentSurvey?.Headhunters ? '#28a745' : '#dc3545'">
+                            {{ recruitmentSurvey?.Headhunters ? '✔' : '✘' }}
+                          </span>
+                        </div>
+                        <div class="col-6 col-md-4">
+                          <span class="fw-bold">Báo giấy:</span>
+                          <span class="ms-1" [style.color]="recruitmentSurvey?.Newspapers ? '#28a745' : '#dc3545'">
+                            {{ recruitmentSurvey?.Newspapers ? '✔' : '✘' }}
+                          </span>
+                        </div>
+                        <div class="col-6 col-md-4">
+                          <span class="fw-bold">Người thân, quen:</span>
+                          <span class="ms-1" [style.color]="recruitmentSurvey?.Relatives ? '#28a745' : '#dc3545'">
+                            {{ recruitmentSurvey?.Relatives ? '✔' : '✘' }}
+                          </span>
+                        </div>
+                        <div class="col-6 col-md-4">
+                          <span class="fw-bold">Mạng xã hội:</span>
+                          <span class="ms-1" [style.color]="recruitmentSurvey?.SocialNetwork ? '#28a745' : '#dc3545'">
+                            {{ recruitmentSurvey?.SocialNetwork ? '✔' : '✘' }}
+                          </span>
+                        </div>
+                        <div class="col-6 col-md-4">
+                          <span class="fw-bold">Khác:</span>
+                          <span class="ms-1" [style.color]="recruitmentSurvey?.Others ? '#28a745' : '#dc3545'">
+                            {{ recruitmentSurvey?.Others ? '✔' : '✘' }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </nz-tab>
+
+              <!-- Tab 4: Kết quả bài test -->
+              <nz-tab nzTitle="Bài test">
+                <div class="tab-content-container p-2">
+                  <div class="preview-paper">
+                    <h6 class="border-bottom pb-2 mb-3 text-primary fw-bold fs-13" style="font-size: 13px !important;">
+                      KẾT QUẢ BÀI THI TUYỂN DỤNG (EXAM RESULTS)</h6>
+
+                    <div class="table-responsive" *ngIf="detailData.examResults?.length > 0; else noExams">
+                      <table class="table table-sm table-bordered fs-12 text-center" style="font-size: 12px;">
+                        <thead class="table-light">
+                          <tr>
+                            <th>STT</th>
+                            <th>Tên bài thi</th>
+                            <th>Điểm thi</th>
+
+                            <th>Trạng thái</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let test of detailData.examResults; let i = index">
+                            <td>{{ i + 1 }}</td>
+                            <td class="text-start">{{ test.NameExam || 'Bài thi trắc nghiệm' }}</td>
+                            <td class="fw-bold text-success">{{ test.TotalScore != null ? test.TotalScore : test.Score
+                              }} / {{ test.MaxPossibleScore || test.TotalQuestion }} điểm</td>
+
+                            <td>
+                              <span class="badge bg-success" *ngIf="test.StatusResult === 2 || test.Status === 1"
+                                style="background-color: #198754;">{{ test.ExamStatusText || 'Đã hoàn thành' }}</span>
+                              <span class="badge bg-warning" *ngIf="test.StatusResult === 1"
+                                style="background-color: #ffc107; color: #000;">{{ test.ExamStatusText || 'Chờ chấm
+                                điểm' }}</span>
+                              <span class="badge bg-info" *ngIf="test.StatusResult === 0"
+                                style="background-color: #17a2b8; color: #fff;">{{ test.ExamStatusText || 'Đang làm'
+                                }}</span>
+                              <span class="badge bg-secondary" *ngIf="test.StatusResult == null && test.Status !== 1"
+                                style="background-color: #6c757d;">Chưa hoàn thành</span>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <ng-template #noExams>
+                      <div class="text-center text-muted p-4 border border-dashed rounded bg-light">
+                        <nz-icon nzType="info-circle" style="font-size: 24px;" class="text-primary mb-2" />
+                        <div>Không tìm thấy dữ liệu bài thi của ứng viên này.</div>
+                      </div>
+                    </ng-template>
+                  </div>
+                </div>
+              </nz-tab>
+
+              <!-- Tab 3: Đánh giá phỏng vấn (BM04-RTC.HR-QT01) -->
+              <nz-tab nzTitle="Đánh giá phỏng vấn">
+                <div class="tab-content-container p-2">
+                  <div *ngIf="detailData.interviewAssessment.assessmentInfo; else noAssessment"
+                    class="assessment-paper">
+                    <!-- Header mẫu phiếu -->
+                    <div class="form-header text-center mb-3">
+                      <h5 class="form-title fw-bold text-uppercase text-primary m-0"
+                        style="font-size: 14px !important;">Phiếu Đánh Giá Phỏng Vấn</h5>
+                      <p class="form-subtitle text-muted mb-0"><i>Interview Assessment Form</i></p>
+                      <small class="text-muted">(BM04-RTC.HR-QT01)</small>
+                    </div>
+
+                    <!-- Thông tin chung -->
+                    <div class="info-section mb-3 p-3 bg-light border rounded">
+                      <strong class="section-title d-block border-bottom pb-1 mb-2 text-dark font-bold fs-12">Thông tin
+                        chung / General Information</strong>
+                      <table class="w-100 info-table">
+                        <tbody>
+                          <tr>
+                            <td class="fw-bold py-1" style="width: 35%;">Họ và tên ứng viên:</td>
+                            <td class="py-1 text-primary fw-bold">{{ detailData.applicationForm.master?.FullName }}</td>
+                          </tr>
+                          <tr>
+                            <td class="fw-bold py-1">Ngày sinh:</td>
+                            <td class="py-1">{{ formatDate(detailData.applicationForm.master?.DateOfBirth) }}</td>
+                          </tr>
+                          <tr>
+                            <td class="fw-bold py-1">Vị trí dự tuyển:</td>
+                            <td class="py-1">{{ selectedCandidate?.PositionName }}</td>
+                          </tr>
+                          <tr>
+                            <td class="fw-bold py-1">Người phỏng vấn:</td>
+                            <td class="py-1">{{ detailData.interviewAssessment.assessmentInfo?.InterviewerName }}</td>
+                          </tr>
+                          <tr>
+                            <td class="fw-bold py-1">Ngày phỏng vấn:</td>
+                            <td class="py-1">{{
+                              formatDate(detailData.interviewAssessment.assessmentInfo?.AssessmentDateOfInterview) }}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <!-- Danh sách các tiêu chí đánh giá -->
+                    <div class="criteria-section mb-3">
+                      <strong class="section-title d-block border-bottom pb-1 mb-3 text-dark font-bold fs-12">Tiêu chí
+                        đánh giá / Performance Factors</strong>
+
+                      <div *ngFor="let c of performanceCriteria"
+                        class="criteria-card border rounded p-3 mb-2 bg-white shadow-sm">
+                        <div class="d-flex justify-content-between align-items-start border-bottom pb-2 mb-2">
+                          <div>
+                            <span class="criterion-name fw-bold text-dark fs-12">{{ c.NameVI }}</span>
+                            <div class="text-muted italic small">{{ c.NameEN }}</div>
+                          </div>
+                          <span class="badge px-3 py-1 rounded" [ngClass]="getRatingBadgeClass(c.Code)">
+                            {{ getRatingLabel(c.Code) }}
+                          </span>
+                        </div>
+                        <div class="criterion-desc text-muted mb-2 small">
+                          {{ c.DescriptionVI }}
+                          <div class="italic">{{ c.DescriptionEN }}</div>
+                        </div>
+                        <div class="comment-box p-2 bg-light rounded border-start border-3 border-primary">
+                          <strong class="small text-muted d-block mb-1">Nhận xét / Comments:</strong>
+                          <div class="text-dark whitespace-pre" style="white-space: pre-wrap;">
+                            {{ getCriteriaNote(c.Code) || 'Không có ghi chú.' }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Nhận xét khác -->
+                    <div class="other-comments mb-3 p-3 bg-white border rounded">
+                      <strong class="section-title d-block border-bottom pb-1 mb-2 text-dark font-bold fs-12">6. Nhận
+                        xét khác / Other Comments</strong>
+                      <div class="p-2 rounded bg-light border-start border-3 border-info"
+                        style="white-space: pre-wrap;">
+                        {{ detailData.interviewAssessment.assessmentInfo?.OtherComments || 'Không có nhận xét nào khác.'
+                        }}
+                      </div>
+                    </div>
+
+                    <!-- Kết quả đánh giá chung -->
+                    <div class="overall-result mb-3 p-3 bg-light border rounded">
+                      <strong class="section-title d-block border-bottom pb-1 mb-2 text-dark font-bold fs-12">Đánh giá
+                        sau phỏng vấn / Interview Results</strong>
+                      <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="fw-bold">Kết quả đề xuất / Recommendation:</span>
+                        <span class="badge px-3 py-1 rounded" [ngClass]="{
+                          'badge-success': detailData.interviewAssessment.assessmentInfo?.ApplicantStatus === 1,
+                          'badge-warning': detailData.interviewAssessment.assessmentInfo?.ApplicantStatus === 2,
+                          'badge-danger': detailData.interviewAssessment.assessmentInfo?.ApplicantStatus === 3
+                        }">
+                          {{ detailData.interviewAssessment.assessmentInfo?.ApplicantStatus === 1 ? 'Phù hợp, chuyển
+                          vòng tiếp theo' :
+                          detailData.interviewAssessment.assessmentInfo?.ApplicantStatus === 2 ? 'Lưu hồ sơ' :
+                          detailData.interviewAssessment.assessmentInfo?.ApplicantStatus === 3 ? 'Không phù hợp' : 'Chưa
+                          có kết quả' }}
+                        </span>
+                      </div>
+                      <div *ngIf="detailData.interviewAssessment.assessmentInfo?.ApplicantStatus === 1"
+                        class="d-flex align-items-center gap-2 mt-2 pt-2 border-top">
+                        <span class="fw-bold text-success">Mức lương đề xuất / Proposed Salary:</span>
+                        <span class="fw-bold text-primary">{{ detailData.interviewAssessment.assessmentInfo?.Salary |
+                          number }} VND</span>
+                      </div>
+                    </div>
+
+                    <!-- Ký tên / Xác nhận -->
+                    <div
+                      class="signature-section mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                      <div class="text-center" style="width: 45%;">
+                        <p class="mb-4 italic text-muted">Ký xác nhận bởi / Confirmed by</p>
+                        <p class="fw-bold text-dark m-0">{{
+                          detailData.interviewAssessment.assessmentInfo?.InterviewerName }}</p>
+                        <small class="text-muted">Người phỏng vấn / Interviewer</small>
+                      </div>
+                      <div class="text-center" style="width: 45%;">
+                        <p class="mb-4 italic text-muted">Ngày ký / Date signed</p>
+                        <p class="fw-bold text-dark m-0">
+                          {{ detailData.interviewAssessment.assessmentInfo?.DateSign ?
+                          formatDate(detailData.interviewAssessment.assessmentInfo.DateSign) :
+                          formatDate(detailData.interviewAssessment.assessmentInfo.AssessmentDateOfInterview) }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <ng-template #noAssessment>
+                    <div class="text-center text-muted p-4 border border-dashed rounded m-3 bg-white">
+                      <nz-icon nzType="warning" style="font-size: 24px; color: #faad14;" class="mb-2" />
+                      <div>Ứng viên này chưa được thực hiện đánh giá phỏng vấn.</div>
+                    </div>
+                  </ng-template>
+                </div>
+              </nz-tab>
+
+              <!-- Tab 5: Tờ trình tuyển dụng -->
+              <nz-tab nzTitle="Tờ trình tuyển dụng">
+                <div class="tab-content-container p-2" style="background-color: #f1f5f9;">
+                  <div class="ttr-paper">
+
+                    <!-- ===== TIÊU ĐẦU 2 CỘT ===== -->
+                    <table class="ttr-header-table">
+                      <tr>
+                        <td class="ttr-col-left">
+                          <strong>CÔNG TY CỔ PHẦN<br>RTC TECHNOLOGY VIỆT NAM</strong>
+                          <div class="cdoc-underline2"></div>
+                        </td>
+                        <td class="ttr-col-right">
+                          <strong>CỘNG HOÀ XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong><br>
+                          <span style="font-weight: bold;">Độc lập - Tự do - Hạnh phúc</span>
+                          <div class="cdoc-underline"></div>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- ===== SỐ VĂN BẢN + NGÀY ===== -->
+                    <table class="ttr-ref-table">
+                      <tr>
+                        <td class="ttr-so">
+                          Số: &nbsp;&nbsp;&nbsp;/2026/TTr-RTC
+                        </td>
+                        <td class="ttr-col-right ttr-ngay">
+                          {{ ttrData.diaDiem }}, ngày {{ ttrData.ngay }} tháng {{ ttrData.thang }} năm 20{{ ttrData.nam
+                          }}
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- ===== TIÊU ĐỀ ===== -->
+                    <div class="ttr-title-block">
+                      <p class="ttr-title">TỜ TRÌNH</p>
+                      <em class="ttr-subtitle">V/v: Phê duyệt tuyển dụng nhân sự</em>
+                    </div>
+
+                    <!-- ===== CĂN CỨ ===== -->
+                    <em class="ttr-can-cu">Căn cứ tình hình sản xuất kinh doanh của Công ty;</em>
+                    <br>
+                    <em class="ttr-can-cu">Căn cứ Chức năng, nhiệm vụ của Phòng {{ ttrData.phongBan }};</em>
+                    <br>
+                    <em class="ttr-can-cu">Căn cứ tình hình nhân sự Phòng {{ ttrData.phongBan }};</em>
+                    <br>
+                    <em class="ttr-can-cu">Căn cứ trình độ, năng lực, kinh nghiệm làm việc của Ứng viên (Bản CV đính
+                      kèm),</em>
+                    <!-- ===== MỞ ĐẦU ===== -->
+                    <p class="ttr-the">Phòng HCNS kính trình Ban Lãnh đạo phê duyệt tuyển dụng nhân sự cụ thể như sau:
+                    </p>
+
+                    <!-- ===== MỤC 1 ===== -->
+                    <p class="ttr-section-h"><strong>1.&nbsp;&nbsp;Thông tin ứng viên.</strong></p>
+                    <table class="ttr-info-table">
+                      <tr>
+                        <td class="info-lbl">• &nbsp;&nbsp;Ông/Bà</td>
+                        <td class="info-sep">:</td>
+                        <td class="fw-bold text-primary">{{ ttrData.hoTen }}</td>
+                      </tr>
+                      <tr>
+                        <td class="info-lbl">• &nbsp;&nbsp;Ngày sinh</td>
+                        <td class="info-sep">:</td>
+                        <td>{{ ttrData.ngaySinh }}</td>
+                      </tr>
+                      <tr>
+                        <td class="info-lbl">• &nbsp;&nbsp;Hộ khẩu thường trú</td>
+                        <td class="info-sep">:</td>
+                        <td>{{ ttrData.hoKhau }}</td>
+                      </tr>
+                      <tr>
+                        <td class="info-lbl">• &nbsp;&nbsp;Chỗ ở hiện tại</td>
+                        <td class="info-sep">:</td>
+                        <td>{{ ttrData.noiO }}</td>
+                      </tr>
+
+                      <tr>
+                        <td class="info-lbl">• &nbsp;&nbsp;Chức danh ứng tuyển</td>
+                        <td class="info-sep">:</td>
+                        <td>{{ ttrData.chucDanh }}</td>
+                      </tr>
+                      <tr>
+                        <td class="info-lbl">• &nbsp;&nbsp;Phòng/Ban</td>
+                        <td class="info-sep">:</td>
+                        <td>{{ ttrData.phongBan }}</td>
+                      </tr>
+                    </table>
+
+                    <!-- ===== MỤC 2 ===== -->
+                    <p class="ttr-section-h"><strong>2.&nbsp;&nbsp;Kinh nghiệm:</strong></p>
+                    <table class="ttr-exp-table">
+                      <thead>
+                        <tr>
+                          <th style="width:40px">TT</th>
+                          <th style="width:180px">Thời gian</th>
+                          <th>Công ty</th>
+                          <th style="width:160px">Chức danh</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let row of ttrData.kinhNghiem; let i = index">
+                          <td class="text-center">{{ i + 1 }}</td>
+                          <td>{{ row.thoiGian }}</td>
+                          <td>{{ row.donVi }}</td>
+                          <td>{{ row.chucVu }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <!-- ===== MỤC 3 ===== -->
+                    <p class="ttr-num-para">
+                      <strong>3.&nbsp;&nbsp;Thời gian nhận việc:</strong> Kể từ ngày {{ ttrData.thuViecTu }} &nbsp;
+                      <span>Thời gian thử việc:</span> {{ ttrData.thoiGianThuViec }}
+                    </p>
+
+                    <!-- ===== MỤC 4 ===== -->
+                    <p class="ttr-num-para">
+                      <strong>4.&nbsp;&nbsp;Thời gian làm việc:</strong>
+                      Từ thứ 2 đến thứ 6, thứ 7 làm việc/nghỉ cách tuần.
+                    </p>
+
+                    <!-- ===== MỤC 5 ===== -->
+                    <p class="ttr-num-para"><strong>5.&nbsp;&nbsp;Chế độ được hưởng:</strong></p>
+                    <ul class="ttr-benefit-list">
+                      <li>Mức lương chính thức: <strong class="text-success">{{ ttrData.luongCB }} đ</strong></li>
+                      <li>Mức lương thử việc: <strong>90%*LCB ({{ ttrData.luongThuViec }} đ).</strong></li>
+                      <li>Chế độ phúc lợi khác: Theo quy định của Công ty.</li>
+                    </ul>
+
+                    <!-- ===== KẾT ===== -->
+                    <p class="ttr-body-para no-indent">
+                      Bằng văn bản này, Phòng HCNS kính trình Ban lãnh đạo xem xét, phê duyệt./.
+                    </p>
+
+                    <!-- ===== CHỮ KÝ 4 CỘT ===== -->
+                    <div class="ttr-sig-row">
+                      <div class="ttr-sig-col">
+                        <p class="ttr-sig-title">NGƯỜI LẬP</p>
+                        <div class="ttr-sig-space"></div>
+                        <div class="ttr-sig-name-input">{{ ttrData.nguoiLap || 'Chưa duyệt' }}</div>
+                      </div>
+                      <div class="ttr-sig-col">
+                        <p class="ttr-sig-title">PHÒNG BAN</p>
+                        <div class="ttr-sig-space"></div>
+                        <div class="ttr-sig-name-input">{{ ttrData.truongPhongBan || 'Chưa duyệt' }}</div>
+                      </div>
+                      <div class="ttr-sig-col">
+                        <p class="ttr-sig-title">P.HCNS</p>
+                        <div class="ttr-sig-space"></div>
+                        <div class="ttr-sig-name-input">{{ ttrData.phcns || 'Chưa duyệt' }}</div>
+                      </div>
+                      <div class="ttr-sig-col">
+                        <p class="ttr-sig-title">PHÊ DUYỆT</p>
+                        <div class="ttr-sig-space"></div>
+                        <div class="ttr-sig-name-input">{{ ttrData.pheDuyet || 'Chưa duyệt' }}</div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </nz-tab>
+
+            </nz-tabset>
+          </div>
+        </nz-card>
+      </nz-splitter-panel>
+    </nz-splitter>
+  </div>
+</div>

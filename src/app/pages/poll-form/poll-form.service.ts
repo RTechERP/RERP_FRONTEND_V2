@@ -22,8 +22,8 @@ export class PollFormService {
     return this.http.get<PollApiResponse<any[]>>(`${this.apiUrl}/all`);
   }
 
-  getPendingCount(): Observable<PollApiResponse<number>> {
-    return this.http.get<PollApiResponse<number>>(`${this.apiUrl}/pending-count`);
+  getPendingCount(): Observable<PollApiResponse<any[]>> {
+    return this.http.get<PollApiResponse<any[]>>(`${this.apiUrl}/pending-count`);
   }
 
   getDetail(id: number): Observable<PollApiResponse<any>> {

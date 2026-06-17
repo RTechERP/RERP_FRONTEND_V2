@@ -1727,12 +1727,12 @@ export class ContractTransferReviewComponent implements OnInit {
                 { text: 'NGƯỜI ĐƯỢC ĐÁNH GIÁ', bold: true, alignment: 'center' },
                 employeeApprovedDate
                   ? {
-                    svg: '<svg viewBox="0 0 512 512"><path fill="#28a745" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>',
-                    width: 24,
-                    height: 24,
-                    alignment: 'center',
-                    margin: [0, 10, 0, 14]
-                  }
+                      svg: '<svg viewBox="0 0 512 512"><path fill="#28a745" d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>',
+                      width: 24,
+                      height: 24,
+                      alignment: 'center',
+                      margin: [0, 10, 0, 14]
+                    }
                   : { text: '\n\n\n\n' },
                 { text: d.EmployeeName || '', bold: true, alignment: 'center' },
                 employeeApprovedDate
@@ -1746,12 +1746,12 @@ export class ContractTransferReviewComponent implements OnInit {
                 { text: 'TRƯỞNG BỘ PHẬN', bold: true, alignment: 'center' },
                 tbpApproveDate
                   ? {
-                    svg: '<svg viewBox="0 0 512 512"><path fill="#28a745" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>',
-                    width: 24,
-                    height: 24,
-                    alignment: 'center',
-                    margin: [0, 10, 0, 14]
-                  }
+                      svg: '<svg viewBox="0 0 512 512"><path fill="#28a745" d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>',
+                      width: 24,
+                      height: 24,
+                      alignment: 'center',
+                      margin: [0, 10, 0, 14]
+                    }
                   : { text: '\n\n\n\n' },
                 { text: d.TBPApproveName || '', bold: true, alignment: 'center' },
                 tbpApproveDate
@@ -1765,12 +1765,12 @@ export class ContractTransferReviewComponent implements OnInit {
                 { text: 'TRƯỞNG PHÒNG HCNS', bold: true, alignment: 'center' },
                 hcnsApproveDate
                   ? {
-                    svg: '<svg viewBox="0 0 512 512"><path fill="#28a745" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>',
-                    width: 24,
-                    height: 24,
-                    alignment: 'center',
-                    margin: [0, 10, 0, 14]
-                  }
+                      svg: '<svg viewBox="0 0 512 512"><path fill="#28a745" d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>',
+                      width: 24,
+                      height: 24,
+                      alignment: 'center',
+                      margin: [0, 10, 0, 14]
+                    }
                   : { text: '\n\n\n\n' },
                 { text: d.HCNSApproveName || '', bold: true, alignment: 'center' },
                 hcnsApproveDate
@@ -1784,12 +1784,12 @@ export class ContractTransferReviewComponent implements OnInit {
                 { text: 'PHÊ DUYỆT', bold: true, alignment: 'center' },
                 bgdApproveDate
                   ? {
-                    svg: '<svg viewBox="0 0 512 512"><path fill="#28a745" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/></svg>',
-                    width: 24,
-                    height: 24,
-                    alignment: 'center',
-                    margin: [0, 10, 0, 14]
-                  }
+                      svg: '<svg viewBox="0 0 512 512"><path fill="#28a745" d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>',
+                      width: 24,
+                      height: 24,
+                      alignment: 'center',
+                      margin: [0, 10, 0, 14]
+                    }
                   : { text: '\n\n\n\n' },
                 { text: d.BGDApproveName || '', bold: true, alignment: 'center' },
                 bgdApproveDate

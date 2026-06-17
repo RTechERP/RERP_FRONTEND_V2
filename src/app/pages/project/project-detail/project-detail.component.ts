@@ -345,7 +345,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       {
         field: 'ApplicationTypeIDs',
         header: 'Lĩnh vực ứng dụng',
-        headerFormat: attrRequired ? () => 'Lĩnh vực ứng dụng <span class="text-danger fw-bold ps-1">*</span>' : undefined,
+        // headerFormat: attrRequired ? () => 'Lĩnh vực ứng dụng <span class="text-danger fw-bold ps-1">*</span>' : undefined,
         editable: true,
         isEditable: (rowData) => !!rowData.Selected,
         cellClass: (rowData) => !rowData.Selected ? 'cell-disabled' : '',
@@ -355,7 +355,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       {
         field: 'TechnologyIDs',
         header: 'Công nghệ ứng dụng',
-        headerFormat: attrRequired ? () => 'Công nghệ ứng dụng <span class="text-danger fw-bold ps-1">*</span>' : undefined,
+        //headerFormat: attrRequired ? () => 'Công nghệ ứng dụng <span class="text-danger fw-bold ps-1">*</span>' : undefined,
         editable: true,
         isEditable: (rowData) => !!rowData.Selected,
         cellClass: (rowData) => !rowData.Selected ? 'cell-disabled' : '',
@@ -1133,8 +1133,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
     console.log('prjtypelink', projectTypeLinks);
 
-    // Kiểm tra kiểu dự án
-    if (projectTypeLinks.length == 0) {
+    // Kiểm tra kiểu dự án (trừ kiểu dự án Thương mại)
+    if (this.projectTypeId !== 2 && projectTypeLinks.length == 0) {
       this.isSaving = false;
       this.notification.error('Thông báo', 'Vui lòng chọn kiểu dự án!');
       return;
@@ -1714,8 +1714,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     // Lấy dữ liệu projectTypeLinks và statusId để kiểm tra attributes
     const projectTypeLinks = this.getSelectedData(this.projectTypeNodes);
 
-    // Bắt buộc chọn ít nhất 1 kiểu dự án trong bảng (mọi loại dự án)
-    if (projectTypeLinks.length === 0) {
+    // Bắt buộc chọn ít nhất 1 kiểu dự án trong bảng (trừ kiểu dự án Thương mại)
+    if (this.projectTypeId !== 2 && projectTypeLinks.length === 0) {
       this.notification.error('Thông báo', 'Vui lòng chọn ít nhất 1 kiểu dự án trong bảng!');
       this.formGroup.markAllAsTouched();
       return false;
@@ -1734,21 +1734,25 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   validateProjectAttributes(gridData: any[], statusId: any): boolean {
-    if (statusId != null && this.VALID_STATUS_FOR_ATTRIBUTES.includes(Number(statusId))) {
-      const selectedLinks = gridData.filter(x => x.Selected === true);
-      for (const link of selectedLinks) {
-        if (!link.ApplicationTypeIDs || !Array.isArray(link.ApplicationTypeIDs) || link.ApplicationTypeIDs.length === 0) {
-          this.notification.error('Thông báo', `Vui lòng chọn lĩnh vực ứng dụng cho loại dự án: ${link.ProjectTypeName}`);
-          this.focusFirstInvalidCell('ApplicationTypeIDs', link);
-          return false;
-        }
-        if (!link.TechnologyIDs || !Array.isArray(link.TechnologyIDs) || link.TechnologyIDs.length === 0) {
-          this.notification.error('Thông báo', `Vui lòng chọn công nghệ ứng dụng cho loại dự án: ${link.ProjectTypeName}`);
-          this.focusFirstInvalidCell('TechnologyIDs', link);
-          return false;
-        }
-      }
+    if (this.projectTypeId === 2 || this.projectTypeId === 3) {
+      return true;
     }
+    //bỏ validate lĩnh vực và ứng dụng 17/06/26
+    // if (statusId != null && this.VALID_STATUS_FOR_ATTRIBUTES.includes(Number(statusId))) {
+    //   const selectedLinks = gridData.filter(x => x.Selected === true);
+    //   for (const link of selectedLinks) {
+    //     if (!link.ApplicationTypeIDs || !Array.isArray(link.ApplicationTypeIDs) || link.ApplicationTypeIDs.length === 0) {
+    //       this.notification.error('Thông báo', `Vui lòng chọn lĩnh vực ứng dụng cho loại dự án: ${link.ProjectTypeName}`);
+    //       this.focusFirstInvalidCell('ApplicationTypeIDs', link);
+    //       return false;
+    //     }
+    //     if (!link.TechnologyIDs || !Array.isArray(link.TechnologyIDs) || link.TechnologyIDs.length === 0) {
+    //       this.notification.error('Thông báo', `Vui lòng chọn công nghệ ứng dụng cho loại dự án: ${link.ProjectTypeName}`);
+    //       this.focusFirstInvalidCell('TechnologyIDs', link);
+    //       return false;
+    //     }
+    //   }
+    // }
     return true;
   }
 

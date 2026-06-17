@@ -82,6 +82,9 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     currentAppVersion: string = '';
     userAppVersion: string = localStorage.getItem('currentAppVersion') || '1.0.3';
     lixis: LiXi[] = [];
+    isPollModalVisible: boolean = false;
+    currentPopupPoll: any = null;
+    pendingPolls: any[] = [];
     showLixiRain: boolean = false;
     hasNewVersion: boolean = false;
     latestVersionDetails: any = null;
@@ -586,8 +589,13 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     getPendingPollCount() {
         return this.pollFormService.getPendingCount().pipe(
             tap((res: any) => {
-                if (res?.status !== 1 || res?.data <= 0) return;
-                const count = res.data;
+                if (res?.status !== 1 || !res?.data || res.data.length === 0) {
+                    this.pendingPolls = [];
+                    return;
+                }
+                const pendingPolls = res.data;
+                this.pendingPolls = pendingPolls;
+                const count = pendingPolls.length;
                 this.notifService.addItem({
                     id: 12,
                     time: new Date().toISOString(),
@@ -598,9 +606,36 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                     route: 'poll-vote',
                     queryParams: {}
                 });
+
+                this.showPollPopup(pendingPolls);
             }),
             catchError(() => of(null))
         );
+    }
+
+    showPollPopup(polls: any[]) {
+        const hasUnseen = polls.some(p => !sessionStorage.getItem(`poll_popup_dismissed_${p.ID}`));
+        if (hasUnseen) {
+            this.isPollModalVisible = true;
+        }
+    }
+
+    handlePollModalCancel() {
+        this.isPollModalVisible = false;
+        if (this.pendingPolls && this.pendingPolls.length > 0) {
+            this.pendingPolls.forEach(p => {
+                sessionStorage.setItem(`poll_popup_dismissed_${p.ID}`, 'true');
+            });
+        }
+    }
+
+    goToPollVote(id?: any) {
+        this.isPollModalVisible = false;
+        const pollId = id || (this.currentPopupPoll ? this.currentPopupPoll.ID : null);
+        if (pollId) {
+            sessionStorage.setItem(`poll_popup_dismissed_${pollId}`, 'true');
+            this.newTab('poll-vote/' + pollId, 'Bình chọn');
+        }
     }
 
     onPick(n: NotifyItem) {
@@ -666,7 +701,9 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     // }
 
     newTab(route: string, title: string, queryParams?: any) {
-        route = route.replace(environment.baseHref, '');
+        if (environment.baseHref && route.startsWith(environment.baseHref)) {
+            route = route.substring(environment.baseHref.length);
+        }
 
         // Parse queryParams nếu là string JSON
         let parsedParams: any = null;

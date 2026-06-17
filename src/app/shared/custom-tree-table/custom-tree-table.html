@@ -131,8 +131,8 @@
                     <!-- Tree toggler: rendered in treeToggler column, or first column as fallback -->
                     <ng-container *ngIf="col.treeToggler || (!hasTtColumn && i === 0)">
                         <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
-                        <p-treeTableCheckbox *ngIf="selectionMode === 'checkbox'"
-                            [value]="rowNode"></p-treeTableCheckbox>
+                        <p-treeTableCheckbox *ngIf="selectionMode === 'checkbox'" [value]="rowNode"
+                            [disabled]="rowNode.node.data.disableSelection"></p-treeTableCheckbox>
                     </ng-container>
 
                     <div class="flex-1 overflow-hidden" style="min-width:100%;">
@@ -275,6 +275,8 @@
             </p-iconfield>
             <p-button *ngIf="activeLookupCol?.editLookupConfig?.multiSelect" label="Bỏ chọn" icon="pi pi-times"
                 [text]="true" severity="secondary" size="small" (click)="lookupSelectedRows = []"></p-button>
+            <p-button *ngIf="!activeLookupCol?.editLookupConfig?.multiSelect" label="Hủy chọn" icon="pi pi-times"
+                [text]="true" severity="danger" size="small" (click)="clearSingleLookupSelection()"></p-button>
         </div>
 
         <!-- Loading state -->

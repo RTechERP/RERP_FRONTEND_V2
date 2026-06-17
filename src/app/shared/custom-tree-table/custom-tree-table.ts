@@ -575,6 +575,17 @@ export class CustomTreeTable implements OnChanges, OnInit {
         this.activeLookupRowData = null;
     }
 
+    clearSingleLookupSelection() {
+        if (!this.activeLookupCol || !this.activeLookupRowData) return;
+        const cfg = this.activeLookupCol.editLookupConfig!;
+        if (cfg.multiSelect) return;
+        this.activeLookupRowData[this.activeLookupCol.field] = null;
+        this.lookupSelect.emit({ selectedRow: null, field: this.activeLookupCol.field, rowData: this.activeLookupRowData });
+        this.lookupPanel.hide();
+        this.activeLookupCol = null;
+        this.activeLookupRowData = null;
+    }
+
     /** Multi-select: toggle checkbox */
     toggleLookupRow(row: any) {
         const cfg = this.activeLookupCol?.editLookupConfig;

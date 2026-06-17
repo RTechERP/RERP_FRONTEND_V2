@@ -29,11 +29,13 @@
                         Ngày sinh
                     </nz-form-label>
                     <nz-form-control [nzSpan]="24">
-                        <nz-date-picker id="BirthOfDateInput" formControlName="BirthOfDate" style="width: 100%;" placeholder="Chọn ngày sinh" [nzFormat]="'dd/MM/yyyy'"></nz-date-picker>
+                        <nz-date-picker id="BirthOfDateInput" formControlName="BirthOfDate" style="width: 100%;"
+                            placeholder="Chọn ngày sinh" [nzFormat]="'dd/MM/yyyy'"></nz-date-picker>
                     </nz-form-control>
                 </nz-form-item>
             </nz-col>
         </nz-row>
+
         <nz-row [nzGutter]="24">
             <nz-col [nzSpan]="12">
                 <nz-form-item>
@@ -47,15 +49,18 @@
               ? 'Email không hợp lệ!'
               : undefined
           ">
-                        <input id="emailInput" nz-input type="email" formControlName="Email" placeholder="Nhập email" />
+                        <input id="emailInput" nz-input type="email" formControlName="Email" placeholder="Nhập email"
+                            [attr.readonly]="mode === 'edit' ? '' : null"
+                            [style.background]="mode === 'edit' ? '#f5f5f5' : ''"
+                            [style.cursor]="mode === 'edit' ? 'not-allowed' : ''" />
                     </nz-form-control>
                 </nz-form-item>
             </nz-col>
 
             <nz-col [nzSpan]="12">
-                <nz-form-item *ngIf="mode === 'add'">
+                <nz-form-item>
                     <nz-form-label for="PasswordHashInput" class="fs-12 p-0">
-                        Mật khẩu<span class="text-danger ps-1">(*)</span>
+                        Mật khẩu<span *ngIf="mode === 'add'" class="text-danger ps-1">(*)</span>
                     </nz-form-label>
                     <nz-form-control [nzSpan]="24" [nzErrorTip]="
             formGroup.get('PasswordHash')?.hasError('required') && (formGroup.get('PasswordHash')?.dirty || formGroup.get('PasswordHash')?.touched)
@@ -64,7 +69,66 @@
               ? 'Mật khẩu tối thiểu 6 ký tự!'
               : undefined
           ">
-                        <input id="PasswordHashInput" nz-input type="Password" formControlName="PasswordHash" placeholder="Nhập mật khẩu" />
+                        <input id="PasswordHashInput" nz-input type="password" formControlName="PasswordHash"
+                            [placeholder]="mode === 'add' ? 'Nhập mật khẩu' : '••••••••'"
+                            [attr.disabled]="mode === 'edit' ? '' : null" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+
+        <nz-row [nzGutter]="24">
+            <nz-col [nzSpan]="12">
+                <nz-form-item>
+                    <nz-form-label for="PhoneNumberInput" class="fs-12 p-0">
+                        Số điện thoại
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+            formGroup.get('PhoneNumber')?.hasError('pattern') && (formGroup.get('PhoneNumber')?.dirty || formGroup.get('PhoneNumber')?.touched)
+              ? 'Số điện thoại phải gồm 10 số và bắt đầu bằng 0!'
+              : undefined
+          ">
+                        <input id="PhoneNumberInput" nz-input formControlName="PhoneNumber"
+                            placeholder="Nhập số điện thoại"
+                            [attr.readonly]="mode === 'edit' ? '' : null"
+                            [style.background]="mode === 'edit' ? '#f5f5f5' : ''"
+                            [style.cursor]="mode === 'edit' ? 'not-allowed' : ''" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <nz-col [nzSpan]="12">
+                <nz-form-item>
+                    <nz-form-label for="AddressInput" class="fs-12 p-0">
+                        Địa chỉ
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <input id="AddressInput" nz-input formControlName="Address" placeholder="Nhập địa chỉ" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+
+        <nz-row [nzGutter]="24">
+            <nz-col [nzSpan]="12">
+                <nz-form-item>
+                    <nz-form-label for="OrganizationInput" class="fs-12 p-0">
+                        Cơ quan
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <input id="OrganizationInput" nz-input formControlName="Organization"
+                            placeholder="Nhập cơ quan" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+            <nz-col [nzSpan]="12">
+                <nz-form-item>
+                    <nz-form-label for="PositionInput" class="fs-12 p-0">
+                        Chức vụ
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <input id="PositionInput" nz-input formControlName="Position" placeholder="Nhập chức vụ" />
                     </nz-form-control>
                 </nz-form-item>
             </nz-col>
@@ -77,24 +141,25 @@
                         Giới tính
                     </nz-form-label>
                     <nz-form-control [nzSpan]="24">
-                        <nz-select id="SexInput" formControlName="Sex" style="width: 100%;" placeholder="Chọn giới tính">
-                            <nz-option *ngFor="let option of SexOptions" [nzValue]="option.value" [nzLabel]="option.label">
+                        <nz-select id="SexInput" formControlName="Sex" style="width: 100%;"
+                            placeholder="Chọn giới tính">
+                            <nz-option *ngFor="let option of SexOptions" [nzValue]="option.value"
+                                [nzLabel]="option.label">
                             </nz-option>
                         </nz-select>
                     </nz-form-control>
                 </nz-form-item>
             </nz-col>
 
-            <nz-col [nzSpan]="12" class="form-checkbox-activation">
+            <nz-col [nzSpan]="12">
                 <nz-form-item>
                     <nz-form-label class="fs-12 p-0">Kích hoạt</nz-form-label>
-                    <nz-form-control>
+                    <nz-form-control [nzSpan]="24">
                         <label nz-checkbox formControlName="IsActive"></label>
                     </nz-form-control>
                 </nz-form-item>
             </nz-col>
         </nz-row>
-
 
     </form>
 </div>

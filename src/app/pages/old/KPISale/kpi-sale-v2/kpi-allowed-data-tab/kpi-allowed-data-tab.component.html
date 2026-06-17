@@ -1,0 +1,193 @@
+<div class="page-container">
+  <div class="toolbar-header bg-white p-0" style="flex-shrink: 0; margin-bottom: 8px;">
+    <p-menubar [model]="menuBars" class="p-1">
+      <ng-template pTemplate="start">
+        <h4 class="page-title mb-0" style="margin-left: 10px; margin-right: 20px; font-weight: 600; line-height: 1;">Quản lý dữ liệu được phép</h4>
+      </ng-template>
+      <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command($event) : null">
+          <i [class]="item.icon"></i>
+          <span class="p-menuitem-text" style="margin-left: 8px;">{{ item.label }}</span>
+        </a>
+      </ng-template>
+    </p-menubar>
+  </div>
+
+  <div class="content-container">
+    <!-- Phần trên: Bảng dữ liệu - chiếm 60% -->
+    <div style="flex: 5; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
+      <div class="table-title" style="flex-shrink: 0; padding-top: 8px;">
+        <h6>Bảng dữ liệu được phép</h6>
+        <span>{{ allowedTables.length }} bảng</span>
+      </div>
+      <div style="flex: 1; min-height: 0; overflow: hidden;">
+        <nz-table #allowedTable [nzData]="allowedTables" [nzFrontPagination]="false" nzSize="small" nzBordered [nzLoading]="isLoadingTables" [nzScroll]="{ y: '240px' }" style="height: 100%;">
+          <thead>
+            <tr>
+              <th nzWidth="100px">Lược đồ</th>
+              <th>Tên bảng</th>
+              <th>Tên hiển thị</th>
+              <th nzWidth="100px" nzAlign="center">Đang dùng</th>
+              <th nzWidth="80px" nzAlign="center">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of allowedTable.data; trackBy: trackById"
+              [class.selected-row]="item.id === selectedTableId" class="cursor-pointer" (click)="onTableSelect(item.id)">
+              <td class="mono">{{ item.schemaName }}</td>
+              <td class="mono">{{ item.tableName }}</td>
+              <td>{{ item.displayName }}</td>
+              <td nzAlign="center">
+                <nz-switch nzSize="small" [ngModel]="item.isActive" nzDisabled></nz-switch>
+              </td>
+              <td nzAlign="center" (click)="$event.stopPropagation()">
+                <a class="action-btn text-primary" style="margin-right: 8px" (click)="openTableForm(item)">
+                  <i nz-icon nzType="edit"></i>
+                </a>
+                <a class="action-btn text-danger" nz-popconfirm nzPopconfirmTitle="Bạn có chắc muốn xóa bảng này?" (nzOnConfirm)="deleteTable(item.id)">
+                  <i nz-icon nzType="delete"></i>
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </div>
+    </div>
+
+    <!-- Thanh chia giống hệt -->
+    <div style="flex-shrink: 0; height: 3px; background: #d9d9d9; cursor: row-resize; margin: 8px 0;"></div>
+
+    <!-- Phần dưới: Cột dữ liệu - chiếm 40% -->
+    <div style="flex: 5; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
+      <div class="table-title" style="flex-shrink: 0; padding-top: 8px;">
+        <h6>{{ selectedTable?.displayName || 'Cột dữ liệu được phép' }}</h6>
+        <span>{{ columnsForSelectedTable.length }} cột</span>
+      </div>
+      <div style="flex: 1; min-height: 0; overflow: hidden;">
+        <nz-table #allowedColumn [nzData]="columnsForSelectedTable" [nzFrontPagination]="false" nzSize="small" nzBordered [nzLoading]="isLoadingColumns" [nzScroll]="{ x: '1200px', y: '240px' }" style="height: 100%;">
+          <thead>
+            <tr>
+              <th nzWidth="150px">Tên cột</th>
+              <th nzWidth="150px">Tên hiển thị</th>
+              <th nzWidth="100px">Kiểu dữ liệu</th>
+              <th nzWidth="60px" nzAlign="center">Lọc</th>
+              <th nzWidth="80px" nzAlign="center">Tổng hợp</th>
+              <th nzWidth="90px" nzAlign="center">Không trùng</th>
+              <th nzWidth="80px" nzAlign="center">Nhân viên</th>
+              <th nzWidth="60px" nzAlign="center">Ngày</th>
+              <th nzWidth="60px" nzAlign="center">Giá trị</th>
+              <th nzWidth="130px">Bảng khóa ngoại</th>
+              <th nzWidth="110px">Cột khóa ngoại</th>
+              <th nzWidth="110px">Cột hiển thị</th>
+              <th nzWidth="220px">Mapping tay</th>
+              <th nzWidth="80px" nzAlign="center" nzRight="0px">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of allowedColumn.data; trackBy: trackById">
+              <td class="mono">{{ item.columnName }}</td>
+              <td>{{ item.displayName }}</td>
+              <td><nz-tag nzColor="blue">{{ getColumnDataTypeLabel(item.dataType) }}</nz-tag></td>
+              <td nzAlign="center"><label nz-checkbox [ngModel]="item.canFilter" nzDisabled></label></td>
+              <td nzAlign="center"><label nz-checkbox [ngModel]="item.canAggregate" nzDisabled></label></td>
+              <td nzAlign="center"><label nz-checkbox [ngModel]="item.canDistinct" nzDisabled></label></td>
+              <td nzAlign="center"><label nz-checkbox [ngModel]="item.isEmployeeColumn" nzDisabled></label></td>
+              <td nzAlign="center"><label nz-checkbox [ngModel]="item.isDateColumn" nzDisabled></label></td>
+              <td nzAlign="center"><label nz-checkbox [ngModel]="item.isValueColumn" nzDisabled></label></td>
+              <td class="mono">{{ item.lookupTable }}</td>
+              <td class="mono">{{ item.lookupValueColumn }}</td>
+              <td class="mono">{{ item.lookupDisplayColumn }}</td>
+              <td class="mono mapping-preview">{{ item.manualValueMapJson }}</td>
+              <td nzAlign="center" nzRight="0px">
+                <a class="action-btn text-primary" style="margin-right: 8px" (click)="openColumnForm(item)">
+                  <i nz-icon nzType="edit"></i>
+                </a>
+                <a class="action-btn text-danger" nz-popconfirm nzPopconfirmTitle="Bạn có chắc muốn xóa cột này?" (nzOnConfirm)="deleteColumn(item.id)">
+                  <i nz-icon nzType="delete"></i>
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Template: Form Bảng -->
+<ng-template #tableFormTemplate>
+  <form nz-form nzLayout="vertical" class="compact-form">
+    <div class="field">
+      <span>Tên bảng</span>
+      <input nz-input name="tableName" [(ngModel)]="tableDraft.tableName" />
+    </div>
+    <div class="field">
+      <span>Tên hiển thị</span>
+      <input nz-input name="displayName" [(ngModel)]="tableDraft.displayName" />
+    </div>
+    <div class="field">
+      <span>Lược đồ</span>
+      <input nz-input name="schemaName" [(ngModel)]="tableDraft.schemaName" />
+    </div>
+    <div class="inline-control">
+      <span>Đang dùng</span>
+      <nz-switch name="isActive" [(ngModel)]="tableDraft.isActive"></nz-switch>
+    </div>
+  </form>
+</ng-template>
+
+<!-- Template: Form Cột -->
+<ng-template #columnFormTemplate>
+  <form nz-form nzLayout="vertical" class="compact-form">
+    <div class="field">
+      <span>Bảng được phép</span>
+      <nz-select name="tableId" [(ngModel)]="columnDraft.tableId" nzShowSearch nzPlaceHolder="Chọn bảng" class="w-100">
+        <nz-option *ngFor="let tbl of allowedTables" [nzValue]="tbl.id" [nzLabel]="tbl.schemaName + '.' + tbl.tableName"></nz-option>
+      </nz-select>
+    </div>
+    <div class="field">
+      <span>Tên cột</span>
+      <input nz-input name="columnName" [(ngModel)]="columnDraft.columnName" />
+    </div>
+    <div class="field">
+      <span>Tên hiển thị</span>
+      <input nz-input name="displayName" [(ngModel)]="columnDraft.displayName" />
+    </div>
+    <div class="field">
+      <span>Kiểu dữ liệu</span>
+      <nz-select name="dataType" [(ngModel)]="columnDraft.dataType" class="w-100">
+        <nz-option nzValue="STRING" nzLabel="Chuỗi"></nz-option>
+        <nz-option nzValue="NUMBER" nzLabel="Số"></nz-option>
+        <nz-option nzValue="MONEY" nzLabel="Tiền"></nz-option>
+        <nz-option nzValue="DATE" nzLabel="Ngày"></nz-option>
+        <nz-option nzValue="BOOLEAN" nzLabel="Đúng/Sai"></nz-option>
+      </nz-select>
+    </div>
+    <div class="field">
+      <span>Bảng khóa ngoại (Ví dụ: dbo.Employee)</span>
+      <input nz-input name="lookupTable" [(ngModel)]="columnDraft.lookupTable" placeholder="Ví dụ: dbo.Employee" />
+    </div>
+    <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div class="field">
+        <span>Cột khóa ngoại (Ví dụ: ID)</span>
+        <input nz-input name="lookupValueColumn" [(ngModel)]="columnDraft.lookupValueColumn" placeholder="Ví dụ: ID" />
+      </div>
+      <div class="field">
+        <span>Cột hiển thị (Ví dụ: FullName)</span>
+        <input nz-input name="lookupDisplayColumn" [(ngModel)]="columnDraft.lookupDisplayColumn" placeholder="Ví dụ: FullName" />
+      </div>
+    </div>
+    <div class="field">
+      <span>Mapping tay value → text (JSON)</span>
+      <textarea nz-input name="manualValueMapJson" [(ngModel)]="columnDraft.manualValueMapJson" rows="5" placeholder='Ví dụ: {"1":"Nam","2":"Nữ"} hoặc [{"value":"1","label":"Nam"}]'></textarea>
+    </div>
+    <div class="inline-control checkbox-grid mt-3">
+      <label nz-checkbox name="canFilter" [(ngModel)]="columnDraft.canFilter">Cho phép lọc</label>
+      <label nz-checkbox name="canAggregate" [(ngModel)]="columnDraft.canAggregate">Cho phép tổng hợp</label>
+      <label nz-checkbox name="canDistinct" [(ngModel)]="columnDraft.canDistinct">Đếm không trùng</label>
+      <label nz-checkbox name="isEmployeeColumn" [(ngModel)]="columnDraft.isEmployeeColumn">Cột nhân viên</label>
+      <label nz-checkbox name="isDateColumn" [(ngModel)]="columnDraft.isDateColumn">Cột ngày</label>
+      <label nz-checkbox name="isValueColumn" [(ngModel)]="columnDraft.isValueColumn">Cột giá trị</label>
+    </div>
+  </form>
+</ng-template>

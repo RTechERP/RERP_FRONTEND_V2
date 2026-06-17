@@ -27,6 +27,7 @@ import {
   Formatter,
   Formatters,
   GridOption,
+  MenuCommandItemCallbackArgs,
   MultipleSelectOption,
 } from 'angular-slickgrid';
 import * as XLSX from 'xlsx-js-style';
@@ -35,6 +36,9 @@ import { Subscription } from 'rxjs';
 
 import { InventoryService } from '../inventory-service/inventory.service';
 import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
+import { faLinesLeaning } from '@fortawesome/free-solid-svg-icons';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
+import { ChiTietSanPhamSaleNewComponent } from '../../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale-new/chi-tiet-san-pham-sale-new.component';
 
 @Component({
   selector: 'app-inventory-overaged',
@@ -84,6 +88,11 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
     checkedStock: false,
   };
 
+  searchHistory: string[] = [];
+  showSearchHistory: boolean = false;
+  private readonly SEARCH_HISTORY_KEY = 'inventory_overaged_search_history';
+  private readonly MAX_HISTORY = 10;
+
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -92,6 +101,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
     private elementRef: ElementRef,
+    private tabService: TabServiceService,
     @Optional() @Inject('tabData') private tabData: any,
   ) { }
 
@@ -104,6 +114,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
     }
     this.initGridColumns();
     this.initGridOptions();
+    this.loadSearchHistory();
     this.getInventory();
   }
 
@@ -125,13 +136,18 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         id: 'ProductGroupName',
         field: 'ProductGroupName',
         name: 'Tên nhóm',
-        minWidth: 120,
+        width: 120,
         sortable: true,
         filterable: true,
+        formatter: this.wrapTextFormatter,
         filter: {
-          model: Filters['multipleSelect'],
           collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
           filterOptions: {
+            autoAdjustDropHeight: true,
             filter: true,
           } as MultipleSelectOption,
         },
@@ -140,84 +156,106 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         id: 'ProductCode',
         field: 'ProductCode',
         name: 'Mã sản phẩm',
-        minWidth: 120,
+        width: 120,
         sortable: true,
+        formatter: this.wrapTextFormatter,
         filterable: true,
-        filter: { model: Filters['compoundInput'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProductName',
         field: 'ProductName',
         name: 'Tên sản phẩm',
-        minWidth: 250,
+        width: 250,
         sortable: true,
         filterable: true,
         formatter: this.wrapTextFormatter,
-        filter: { model: Filters['compoundInput'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'ProductNewCode',
         field: 'ProductNewCode',
         name: 'Mã nội bộ',
-        minWidth: 120,
+        width: 120,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInput'] },
+        formatter: this.wrapTextFormatter,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
-      // {
-      //   id: 'NameNCC',
-      //   field: 'NameNCC',
-      //   name: 'NCC',
-      //   width: 200,
-      //   sortable: true,
-      //   filterable: true,
-      //   formatter: this.wrapTextFormatter,
-      //   filter: { model: Filters['compoundInput'] },
-      // },
-      // {
-      //   id: 'Deliver',
-      //   field: 'Deliver',
-      //   name: 'Người nhập',
-      //   width: 150,
-      //   sortable: true,
-      //   filterable: true,
-      //   formatter: this.wrapTextFormatter,
-      //   filter: { model: Filters['compoundInput'] },
-      // },
       {
         id: 'Maker',
         field: 'Maker',
         name: 'Hãng',
-        minWidth: 120,
+        width: 120,
         sortable: true,
         filterable: true,
-        filter: { model: Filters['compoundInput'] },
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
       {
         id: 'Unit',
         field: 'Unit',
         name: 'ĐVT',
-        minWidth: 70,
+        width: 80,
         sortable: true,
         filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
       },
-      // {
-      //   id: 'TotalQuantityLast',
-      //   field: 'TotalQuantityLast',
-      //   name: 'Tồn CK(được sử dụng)',
-      //   cssClass: 'text-end',
-      //   width: 150,
-      //   sortable: true,
-      //   filterable: true,
-      //   filter: { model: Filters['compoundInputNumber'] },
-      //   type: 'number',
-      // },
       {
         id: 'QuantityUse',
         field: 'QuantityUse',
         name: 'Tồn sử dụng',
         cssClass: 'text-end',
-        minWidth: 150,
+        width: 150,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputNumber'] },
@@ -228,7 +266,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         field: 'StillBorrowed',
         name: 'Đang mượn',
         cssClass: 'text-end',
-        minWidth: 150,
+        width: 150,
         sortable: true,
         filterable: true,
         filter: { model: Filters['compoundInputNumber'] },
@@ -238,31 +276,34 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         id: 'AddressBox',
         field: 'AddressBox',
         name: 'Vị trí',
-        minWidth: 150,
+        width: 150,
         sortable: true,
         filterable: true,
+        formatter: this.wrapTextFormatter,
       },
       {
         id: 'Detail',
         field: 'Detail',
         name: 'Chi tiết nhập',
-        minWidth: 150,
+        width: 150,
         sortable: true,
         filterable: true,
+        formatter: this.wrapTextFormatter,
       },
       {
         id: 'Note',
         field: 'Note',
         name: 'Ghi chú',
-        minWidth: 150,
+        width: 150,
         sortable: true,
         filterable: true,
+        formatter: this.wrapTextFormatter,
       },
       {
         id: 'LastTransactionDate',
         field: 'LastTransactionDate',
         name: 'Ngày nhập/xuất gần nhất',
-        minWidth: 120,
+        width: 150,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -276,18 +317,10 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         id: 'LastTransactionCode',
         field: 'LastTransactionCode',
         name: 'Phiếu nhập/xuất gần nhất',
-        minWidth: 120,
+        width: 150,
         sortable: true,
         filterable: true,
       },
-      // {
-      //   id: 'WarehouseCode',
-      //   field: 'WarehouseCode',
-      //   name: 'Kho',
-      //   maxWidth: 80,
-      //   sortable: true,
-      //   filterable: true,
-      // },
     ];
   }
 
@@ -313,11 +346,25 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
       enableCheckboxSelector: true,
       enableCellNavigation: true,
       enableFiltering: true,
-      autoFitColumnsOnFirstLoad: false,
-      enableAutoSizeColumns: false,
+      enableAutoSizeColumns: true,
       frozenColumn: 4,
       enableHeaderMenu: false,
       enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'view-detail',
+            title: 'Xem chi tiết',
+            iconCssClass: 'fa fa-external-link',
+            action: (_e: any, args: MenuCommandItemCallbackArgs) => {
+              const dataContext = args.dataContext;
+              if (dataContext) {
+                this.openChiTietSanPhamSale(dataContext);
+              }
+            },
+          },
+        ],
+      },
       rowHeight: 55,
       createFooterRow: true,
       showFooterRow: true,
@@ -328,7 +375,7 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
         exportWithFormatter: true,
       },
       enableGrouping: true,
-      forceFitColumns: true,
+      //forceFitColumns: true,
     };
   }
 
@@ -379,7 +426,29 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
   }
 
   getdataFind() {
+    this.saveSearchHistory(this.searchParam.Find);
     this.getInventory();
+  }
+
+  selectHistoryItem(item: string): void {
+    this.searchParam.Find = item;
+    this.showSearchHistory = false;
+    this.getdataFind();
+  }
+
+  private loadSearchHistory(): void {
+    try {
+      this.searchHistory = JSON.parse(localStorage.getItem(this.SEARCH_HISTORY_KEY) || '[]');
+    } catch {
+      this.searchHistory = [];
+    }
+  }
+
+  private saveSearchHistory(keyword: string): void {
+    const kw = (keyword || '').trim();
+    if (!kw) return;
+    this.searchHistory = [kw, ...this.searchHistory.filter(h => h !== kw)].slice(0, this.MAX_HISTORY);
+    localStorage.setItem(this.SEARCH_HISTORY_KEY, JSON.stringify(this.searchHistory));
   }
 
   toggleFilterOveraged() {
@@ -582,6 +651,27 @@ export class InventoryOveragedComponent implements OnInit, AfterViewInit, OnDest
       const r = Math.random() * 16 | 0;
       const v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
+    });
+  }
+
+  openChiTietSanPhamSale(productData: any) {
+    const productCode = productData.ProductCode || '';
+    console.log("productDatachichi: ", productData);
+    this.tabService.openTabComp({
+      comp: ChiTietSanPhamSaleNewComponent,
+      title: `Chi tiết SP - ${productCode}`,
+      key: `chi-tiet-san-pham-sale-${productData.ProductSaleID || 0}`,
+      data: {
+        code: productCode,
+        suplier: productData.Supplier || '',
+        productName: productData.ProductName || '',
+        numberDauKy: productData.NumberInStoreDauky?.toString() || '0',
+        numberCuoiKy: productData.NumberInStoreCuoiKy?.toString() || '0',
+        import: productData.Import?.toString() || '0',
+        export: productData.Export?.toString() || '0',
+        productSaleID: productData.ProductSaleID || 0,
+        wareHouseCode: this.warehouseCode || 'HN',
+      }
     });
   }
 }

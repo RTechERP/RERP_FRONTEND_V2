@@ -2002,23 +2002,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 },
                 formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
                     if (!value) return '';
-                    return `
-            <span
-              title="${dataContext.BillImportCode}"
-              style="
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                word-wrap: break-word;
-                word-break: break-word;
-                line-height: 1.4;
-              "
-            >
-              ${value}
-            </span>
-          `;
+                    return `<span title="${dataContext.BillImportCode}" style="display: block; white-space: pre-line; line-height: 1.2;">${value}</span>`;
                 },
                 customTooltip: {
                     useRegularTooltip: true,
@@ -2063,7 +2047,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                 }
             },
             {
-                id: 'KhoType', field: 'KhoType', name: 'Kho nhập', width: 200, columnGroup: 'Nhập kho',
+                id: 'KhoType', field: 'KhoType', name: 'Kho nhập', width: 300, columnGroup: 'Nhập kho',
                 filterable: true,
                 filter: {
                     model: Filters['multipleSelect'],
@@ -2073,7 +2057,14 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                         filter: true,
                         autoAdjustDropWidthByTextSize: true,
                     } as MultipleSelectOption
-                }
+                },
+                formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+                    if (!value) return '';
+                    return `<span title="${dataContext.KhoType}" style="display: block; white-space: pre-line; line-height: 1.2;">${value}</span>`;
+                },
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
             },
 
             // ==================== NHÓM: Tồn CK (được sử dụng) ====================
@@ -2124,8 +2115,8 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             enableSorting: true,
             multiColumnSort: false,
             enablePagination: false,
-            // Row height - tăng để text wrap không bị đè
-            rowHeight: 45,
+            // Row height - tăng để text wrap không bị đè và hiển thị nhiều tiến trình chuyển kho rõ hơn
+            rowHeight: 60,
             headerRowHeight: 40,
             // Checkbox Selector - thêm cột dấu tích ở đầu
             enableCheckboxSelector: true,
@@ -5871,31 +5862,37 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
 
         };
         // Map details cho modal theo BillExportDetailRQPDTO structure
-        const detailsForModal = details.map((detail: any) => ({
-            ID: 0,
-            STT: detail.STT || 0,
-            ChildID: detail.ChildID || 0,
-            ParentID: detail.ParentID || 0,
-            ProductID: detail.ProductID || 0,
-            ProductCode: detail.ProductCode || '',
-            ProductNewCode: detail.ProductNewCode || '',
-            ProductName: detail.ProductName || '',
-            ProductFullName: detail.ProductFullName || '',
-            Unit: detail.Unit || '',
-            Qty: detail.Qty || 0,
-            TotalQty: detail.TotalQty || 0,
-            QuantityRemain: detail.Qty || 0,
-            ProjectID: detail.ProjectID || 0,
-            ProjectName: detail.ProjectName || '',
-            ProjectCodeText: detail.ProjectCodeText || '',
-            ProjectCodeExport: detail.ProjectCodeExport || '',
-            ProjectPartListID: detail.ProjectPartListID || 0,
-            Note: detail.Note || '',
-            SerialNumber: detail.SerialNumber || '',
-            ProjectNameText: detail.ProjectName || '',
+        const detailsForModal = details.map((detail: any) => {
+            // Mã sản phẩm theo nhà cung cấp: ưu tiên SpecialCode, trống thì lấy GroupMaterial
+            const productFullName = String(detail.SpecialCode || '').trim()
+                ? detail.SpecialCode
+                : (detail.GroupMaterial || '');
+            return {
+                ID: 0,
+                STT: detail.STT || 0,
+                ChildID: detail.ChildID || 0,
+                ParentID: detail.ParentID || 0,
+                ProductID: detail.ProductID || 0,
+                ProductCode: detail.ProductCode || '',
+                ProductNewCode: detail.ProductNewCode || '',
+                ProductName: detail.ProductName || '',
+                ProductFullName: productFullName,
+                Unit: detail.Unit || '',
+                Qty: detail.Qty || 0,
+                TotalQty: detail.TotalQty || 0,
+                QuantityRemain: detail.Qty || 0,
+                ProjectID: detail.ProjectID || 0,
+                ProjectName: detail.ProjectName || '',
+                ProjectCodeText: detail.ProjectCodeText || '',
+                ProjectCodeExport: detail.ProjectCodeExport || '',
+                ProjectPartListID: detail.ProjectPartListID || 0,
+                Note: detail.Note || '',
+                SerialNumber: detail.SerialNumber || '',
+                ProjectNameText: detail.ProjectName || '',
 
-            TotalInventory: 0
-        }));
+                TotalInventory: 0
+            };
+        });
         const modalRef = this.ngbModal.open(BillExportDetailNewComponent, {
             centered: true,
             //size: 'xl',

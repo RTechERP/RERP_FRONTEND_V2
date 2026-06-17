@@ -247,5 +247,12 @@ nz-divider {
 }
 
 :host ::ng-deep div[id*="grid-bill-import-technical-summary"] {
-  height: calc(100vh - 215px) !important;
+  height: calc(100vh - 210px) !important;
+}
+
+:host ::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
+  border-right: 1px solid #ddd !important;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+  justify-content: end !important;
 }

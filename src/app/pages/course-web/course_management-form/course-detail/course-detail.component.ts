@@ -48,7 +48,6 @@ interface Course {
   StudyDays: number;
   TypeID: number;
   TotalQuestions: number;
-  RandomQuizQuestions: number;
   QuestionDuration: number;
   IdeaID?: number[] | null;
   KPIID?: number[] | null;
@@ -91,7 +90,6 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     StudyDays: 0,
     TypeID: 0,
     TotalQuestions: 0,
-    RandomQuizQuestions: 0,
     QuestionDuration: 0,
     IdeaID: [],
     KPIID: [],
@@ -140,7 +138,6 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       EmployeeID: [null, []],
 
       TotalQuestions: [0, [Validators.min(0)]],
-      RandomQuizQuestions: [0, [Validators.min(0)]],
       QuestionDuration: [0, [Validators.min(0)]],
     });
   }
@@ -156,7 +153,6 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       StudyDays: 0,
       TypeID: 0,
       TotalQuestions: 0,
-      RandomQuizQuestions: 0,
       QuestionDuration: 0,
     };
 
@@ -186,7 +182,6 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
         TypeID: this.dataInput.CourseTypeID || null,
         EmployeeID: this.dataInput.EmployeeID || null,
         TotalQuestions: this.dataInput.MultiChoiceQuestions || 0,
-        RandomQuizQuestions: this.dataInput.QuestionCount || 0,
         QuestionDuration: this.dataInput.QuestionDuration || 0,
       });
       // this.getIdeaByCourseID(this.dataInput.ID);
@@ -276,7 +271,6 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       NameCourse: formValue.Name,
       CourseCatalogID: formValue.CategoryID,
       DeleteFlag: formValue.IsActive !== undefined ? formValue.IsActive : true,
-      QuestionCount: formValue.RandomQuizQuestions || 0,
       LeadTime: formValue.StudyDays || 0,
       CourseTypeID: formValue.TypeID,
       EmployeeID: formValue.EmployeeID || 0,

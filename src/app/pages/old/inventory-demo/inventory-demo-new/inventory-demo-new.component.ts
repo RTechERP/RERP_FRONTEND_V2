@@ -269,11 +269,31 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     loadProductGroups(): void {
-        const sub = this.inventoryDemoService
-            .getProductRTCGroup(this.warehouseID, this.warehouseType)
+        // const sub = this.inventoryDemoService
+        //     .getProductRTCGroup(1, 1)
+        //     .subscribe({
+        //         next: (response: any) => {
+        //             const data = response.data || [];
+        //             this.productGroupData = data;
+        //             // Set data for group grid
+        //             this.datasetGroup = data.map((item: any, index: number) => ({
+        //                 ...item,
+        //                 id: item.ID || `group_${index}`,
+        //             }));
+        //         },
+        //         error: (error: any) => {
+        //             this.notification.error(
+        //                 NOTIFICATION_TITLE.error,
+        //                 'Lỗi khi tải danh sách nhóm sản phẩm: ' + (error.message || error)
+        //             );
+        //         },
+        //     });
+        // this.subscriptions.push(sub);
+
+         const sub = this.tbProductRtcService.getdataProductGroupNew(this.warehouseID, false, false)
             .subscribe({
                 next: (response: any) => {
-                    const data = response.data || [];
+                    const data = response.data?.data1 || [];
                     this.productGroupData = data;
                     // Set data for group grid
                     this.datasetGroup = data.map((item: any, index: number) => ({

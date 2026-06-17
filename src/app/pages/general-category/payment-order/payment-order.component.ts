@@ -718,29 +718,11 @@ export class PaymentOrderComponent implements OnInit {
 
                     let activeCell = grid.slickGrid.getActiveCell();
                     if (activeCell) {
-                        const rowIndex = activeCell.row;        // index trong grid
-                        const item = grid.dataView.getItem(rowIndex); // data object
-
-                        const dateOrder = new Date(item.DateOrder);
-                        const year = dateOrder.getFullYear();
-                        const month = dateOrder.getMonth() + 1;
-                        const day = dateOrder.getDate();
-                        const pathPattern = `/năm ${year}/đề nghị thanh toán/tháng ${month}.${year}/${day}.${month}.${year}/${item.Code}`;
-                        const url = environment.host + 'api/share/Accountant/2.NỘI BỘ' + pathPattern;
-                        // const url = environment.host + 'api/share/Software/Test/UPLOADFILE' + pathPattern;
-
-                        const width = 1000;
-                        const height = 700;
-
-                        const left = (window.screen.width - width) / 2;
-                        const top = (window.screen.height - height) / 2;
-
-                        window.open(
-                            url,
-                            '_blank',
-                            `width=${width},height=${height},left=${left},top=${top}`
-                        );
-
+                        const rowIndex = activeCell.row;
+                        const item = grid.dataView.getItem(rowIndex);
+                        this.openPaymentOrderFolder(item);
+                    } else {
+                        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một phiếu');
                     }
                 }
             },
@@ -765,6 +747,118 @@ export class PaymentOrderComponent implements OnInit {
             this.menuBars = [];
         }
 
+    }
+
+    private openPaymentOrderFolder(item: any): void {
+        const folderPath = this.buildPaymentOrderFolderPath(item);
+        if (!folderPath) return;
+        const copiedFolderPath = this.copyTextToClipboard(folderPath.uncPath);
+
+        const width = 1000;
+        const height = 700;
+        const left = Math.max((window.screen.width - width) / 2, 0);
+        const top = Math.max((window.screen.height - height) / 2, 0);
+        const popup = window.open(
+            '',
+            '_blank',
+            `width=${width},height=${height},left=${left},top=${top}`,
+        );
+
+        if (!popup) {
+            this.notifyFolderOpenBlocked(folderPath, copiedFolderPath);
+            return;
+        }
+
+        try {
+            popup.location.href = folderPath.fileUrl;
+        } catch {
+            popup.close();
+            this.notifyFolderOpenBlocked(folderPath, copiedFolderPath);
+            return;
+        }
+
+        setTimeout(() => {
+            try {
+                if (popup.location.href === 'about:blank') {
+                    popup.close();
+                    this.notifyFolderOpenBlocked(folderPath, copiedFolderPath);
+                }
+            } catch {
+                // Nếu đã chuyển sang file:// thành công, browser sẽ chặn đọc location.
+            }
+        }, 300);
+    }
+
+    private buildPaymentOrderFolderPath(item: any): { fileUrl: string; uncPath: string } | null {
+        if (!item?.DateOrder || !item?.Code) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Không đủ dữ liệu ngày đề nghị hoặc mã phiếu');
+            return null;
+        }
+
+        const dateOrder = new Date(item.DateOrder);
+        if (Number.isNaN(dateOrder.getTime())) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Ngày đề nghị không hợp lệ');
+            return null;
+        }
+
+        const year = dateOrder.getFullYear();
+        const month = String(dateOrder.getMonth() + 1).padStart(2, '0');
+        const day = String(dateOrder.getDate()).padStart(2, '0');
+        const segments = [
+            '113.190.234.64',
+            'Accountant',
+            '2.NỘI BỘ',
+            `NĂM ${year}`,
+            'ĐỀ NGHỊ THANH TOÁN',
+            `THÁNG ${month}.${year}`,
+            `${day}.${month}.${year}`,
+            String(item.Code).trim(),
+        ];
+
+        return {
+            fileUrl: `file://///${segments.map(segment => encodeURIComponent(segment)).join('/')}`,
+            uncPath: `\\\\${segments.join('\\')}`,
+        };
+    }
+
+    private async notifyFolderOpenBlocked(folderPath: { fileUrl: string; uncPath: string }, copiedFolderPath: Promise<boolean>): Promise<void> {
+        const copied = await copiedFolderPath;
+        const message = copied
+            ? `Trình duyệt chặn mở file:// từ web.\nĐã tự copy đường dẫn thư mục. Bạn chỉ cần dán vào File Explorer:\n${folderPath.uncPath}\n\nLink trình duyệt nếu máy đã cấu hình policy:\n${folderPath.fileUrl}`
+            : `Trình duyệt chặn mở file:// từ web.\nBạn copy đường dẫn này vào File Explorer:\n${folderPath.uncPath}\n\nLink trình duyệt nếu máy đã cấu hình policy:\n${folderPath.fileUrl}`;
+
+        this.notification.warning(NOTIFICATION_TITLE.warning, message, {
+            nzStyle: { whiteSpace: 'pre-line' }
+        });
+    }
+
+    private async copyTextToClipboard(text: string): Promise<boolean> {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            if (document.execCommand('copy')) {
+                return true;
+            }
+        } catch {
+        } finally {
+            document.body.removeChild(textArea);
+        }
+
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+                return true;
+            }
+        } catch {
+        }
+
+        return false;
     }
 
     initGrid() {
@@ -993,7 +1087,6 @@ export class PaymentOrderComponent implements OnInit {
                 // },
                 cssClass: 'text-end'
             },
-
             {
                 id: PaymentOrderField.TotalPaymentActual.field,
                 name: 'Số tiền thanh toán thực tế',
@@ -1013,7 +1106,17 @@ export class PaymentOrderComponent implements OnInit {
                 // },
                 cssClass: 'text-end'
             },
-
+            {
+                id: PaymentOrderField.TotalPaymentWithInvoice.field,
+                name: 'Số tiền thanh toán có hóa đơn',
+                field: PaymentOrderField.TotalPaymentWithInvoice.field,
+                type: PaymentOrderField.TotalPaymentWithInvoice.type,
+                sortable: true, filterable: true,
+                width: 150,
+                formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
+                filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-end'
+            },
             {
                 id: PaymentOrderField.Unit.field,
                 name: 'ĐVT',
@@ -4512,7 +4615,7 @@ export class PaymentOrderComponent implements OnInit {
                 'Người đề nghị', 'Bộ phận', 'Phân loại chính', 'Nội dung chính của đề nghị', 'Lý do thanh toán',
                 'Số tiền', 'Số tiền thanh toán', 'Số tiền thanh toán thực tế', 'ĐVT', 'Bỏ qua HR',
                 'Hình thức thanh toán', 'Loại chuyển khoản', 'Nội dung chuyển khoản', 'Nhà cung cấp',
-                'Trạng thái hợp đồng', 'Số hợp đồng', 'Dự án',
+                'Mã số thuế', 'Trạng thái hợp đồng', 'Số hợp đồng', 'Dự án',
                 'Có hóa đơn', 'Điểm đi', 'Điểm đến', 'Trạng thái Bank Slip',
                 'Lịch sử duyệt / hủy duyệt', 'Lý do hủy duyệt', 'Ghi chú / Chứng từ kèm theo',
                 'Ghi chú kế toán', 'Số PO', 'Lý do KT Y/c bổ sung', 'Lý do HR Y/c bổ sung',
@@ -4521,7 +4624,7 @@ export class PaymentOrderComponent implements OnInit {
             CENTER_COLS = [3, 4, 5, 6, 17, 18, 26];
             COL_WIDTHS = [
                 20, 18, 15, 8, 15, 14, 22, 25, 20, 22, 20, 22, 35, 45,
-                18, 18, 20, 8, 12, 25, 25, 35, 25, 25, 25, 35, 12, 35, 35, 25,
+                18, 18, 20, 8, 12, 25, 25, 35, 25, 25, 25, 25, 35, 12, 35, 35, 25,
                 45, 35, 45, 35, 15, 35, 35
             ];
         }
@@ -4593,6 +4696,7 @@ export class PaymentOrderComponent implements OnInit {
                     item.TransferTypeText || this.getTransferTypeText(item.TransferType),
                     item.ContentBankTransfer ?? '',
                     item.SuplierName ?? '',
+                    item.MaSoThue ?? '',
                     item.StatusContractText ?? '',
                     item.DocumentName ?? '',
                     item.ProjectFullName ?? '',

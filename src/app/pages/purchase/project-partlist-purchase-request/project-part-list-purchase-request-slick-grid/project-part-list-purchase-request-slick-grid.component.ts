@@ -76,10 +76,6 @@ interface Tab {
   title: string;
 }
 
-/**
- * Custom editor for single select with searchable dropdown and grouped options support
- */
-
 
 @Component({
   selector: 'app-project-part-list-purchase-request-slick-grid',
@@ -1928,8 +1924,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       },
       // DiscountPercent
       {
-        id: 'DiscountPercentPur',
-        field: 'DiscountPercentPur',
+        id: 'DiscountPercent',
+        field: 'DiscountPercent',
         name: '% giảm giá',
         width: 100,
         sortable: true,
@@ -1938,10 +1934,10 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         type: 'number',
         editor: {
           model: Editors['float'],
-          decimal: 2,
+          decimal: 3,
         },
         formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value, 2),
+          this.formatNumberEnUS(value, 3),
         filter: { model: Filters['compoundInputNumber'] },
       },
       // TotalPriceExchange
@@ -3510,6 +3506,14 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           this.OnSupplierSaleChangedSlickGrid(selectedItem);
         }
 
+        // Tính lại UnitPrice khi DiscountPercent hoặc HistoryPrice thay đổi
+        // Công thức: UnitPrice = HistoryPrice × (1 - DiscountPercent)
+        if (field === 'DiscountPercent' || field === 'HistoryPrice') {
+          const historyPrice = parseFloat(selectedItem.HistoryPrice) || 0;
+          const discountPercent = parseFloat(selectedItem.DiscountPercent) || 0;
+          selectedItem.UnitPrice = historyPrice * (1 - discountPercent);
+        }
+
         // Recalculate totals nếu cần (áp dụng cho TẤT CẢ các field liên quan)
         if (
           [
@@ -3518,6 +3522,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
             'CurrencyRate',
             'VAT',
             'CurrencyID',
+            'DiscountPercent',
+            'HistoryPrice',
           ].includes(field)
         ) {
           this.recalculateTotals(selectedItem);
@@ -3583,6 +3589,21 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         angularGrid.dataView.updateItem(item.id, item);
         // Invalidate and update the specific cell
         angularGrid.slickGrid.updateCell(rowIndex, currencyRateColIndex);
+      }
+    }
+
+    // Handle DiscountPercent / HistoryPrice change - recalculate UnitPrice
+    // Công thức: UnitPrice = HistoryPrice × (1 - DiscountPercent)
+    if (field === 'DiscountPercent' || field === 'HistoryPrice') {
+      const historyPrice = parseFloat(item.HistoryPrice) || 0;
+      const discountPercent = parseFloat(item.DiscountPercent) || 0;
+      item.UnitPrice = historyPrice * (1 - discountPercent);
+      this.recalculateTotals(item);
+
+      const unitPriceColumn = columns.find((col: any) => col.field === 'UnitPrice');
+      if (unitPriceColumn) {
+        angularGrid.dataView.updateItem(item.id, item);
+        angularGrid.slickGrid.updateCell(rowIndex, columns.indexOf(unitPriceColumn));
       }
     }
 
@@ -3956,6 +3977,12 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     const typeId = this.getTypeIdFromTabIndex(tabIndex);
     if (!typeId) return;
 
+    // Force-commit editor đang active (tránh mất giá trị khi user click Lưu ngay mà chưa nhấn Enter/Tab)
+    const activeGrid = this.angularGrids.get(typeId);
+    if (activeGrid?.slickGrid?.getCellEditor()) {
+      activeGrid.slickGrid.getEditorLock().commitCurrentEdit();
+    }
+
     // Lấy dữ liệu mới nhất từ grid để đảm bảo có đầy đủ thông tin
     const angularGrid = this.angularGrids.get(typeId);
     if (angularGrid && angularGrid.dataView) {
@@ -4125,6 +4152,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       'TotalImportPrice',
       'TotalPriceHistory',
       'OriginQuantity',
+      'DiscountPercent',
     ];
 
     // Xử lý integer fields
@@ -4452,7 +4480,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           next: (rs) => {
             this.notify.success(
               NOTIFICATION_TITLE.success,
-              rs.message || `${isRequestApprovedText} thành công`
+              rs.message || `${isRequestApprovedText} thành công`,
+              { nzStyle: { whiteSpace: 'pre-line' } }
             );
             this.onSearch();
           },
@@ -4943,6 +4972,19 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       );
       const ProductGroupName = productGroup?.ProductGroupName || '';
 
+      // Tính ProductCodeOfSupplier: mặc định "Tên SP Mã SP", riêng nhóm SP HR (77, 80) chỉ lấy Tên SP,
+      // hàng thương mại ưu tiên GuestCode, SpecialCode (nếu có) luôn ghi đè cuối cùng
+      const productGroupIDHR = [77, 80];
+      let productCodeOfSupplier = productGroupIDHR.includes(ProductGroupID)
+        ? String(row.ProductName || '')
+        : String(row.ProductName + ' ' + row.ProductCode || '');
+      if (isCommercialProduct && String(row.GuestCode || '').trim()) {
+        productCodeOfSupplier = String(row.GuestCode);
+      }
+      if (String(row.SpecialCode || '').trim()) {
+        productCodeOfSupplier = String(row.SpecialCode);
+      }
+
       // Tạo request object
       const thanhTien = quantity * unitPrice;
       const vatMoney = thanhTien * (vat / 100);
@@ -4950,7 +4992,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         ...row,
         STT: stt,
         ID: 0,
-        ProductCodeOfSupplier: String(row.ProductName + '-' + row.ProductCode || ''),
+        ProductCodeOfSupplier: productCodeOfSupplier,
         ProductGroupName: ProductGroupName,
         PriceHistory: Number(row.HistoryPrice || 0),
         VATMoney: vatMoney,
@@ -5451,7 +5493,9 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       const isApprovedBGD = data['IsApprovedBGD'] || false;
       const isTechBought = data['IsTechBought'] || false;
 
-      if (!isApprovedBGD && !isTechBought) {
+      // Chỉ bắt buộc BGĐ duyệt khi là hàng dự án (tab Mua hàng dự án, typeId = 1),
+      // các loại hàng khác vẫn chọn YCMH được
+      if (typeId === 1 && !isApprovedBGD && !isTechBought) {
         this.notify.warning(
           NOTIFICATION_TITLE.warning,
           'Sản phẩm chưa được BGĐ duyệt!'
@@ -5480,7 +5524,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
 
       const isApprovedBGD = data['IsApprovedBGD'] || false;
 
-      if (!isApprovedBGD) continue;
+      // Chỉ bỏ qua dòng chưa BGĐ duyệt khi là hàng dự án (typeId = 1)
+      if (typeId === 1 && !isApprovedBGD) continue;
       if (!code || code.toString().trim() === '') continue;
 
       if (!lstYCMH.includes(id)) {

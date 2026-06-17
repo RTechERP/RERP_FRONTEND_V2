@@ -34,6 +34,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
+import { NzProgressModule } from 'ng-zorro-antd/progress';
 // import { SelectControlComponent } from '../../select-control/select-control.component';
 import { ProjectRequestServiceService } from '../../project/project-request/project-request-service/project-request-service.service';
 import {
@@ -47,10 +48,22 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { MakertrainingComponent } from '../makertraining.component';
 import { MakertrainingService } from '../makertraining-service/makertraining.service';
 import dayjs from 'dayjs';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 import { MakertrainingTypeFormComponent } from '../makertraining-type-form/makertraining-type-form.component';
 import { AppUserService } from '../../../services/app-user.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { VideoUploadStateService, UploadState } from '../../Course/course_management-form/video-upload-state.service';
+import { environment } from '../../../../environments/environment';
+
+interface PendingVideoUpload {
+  file: File;
+  generatedFileName: string;
+  generatedUrl: string;
+  progress: number;
+  speed: string;
+  status: 'pending' | 'uploading' | 'completed' | 'error';
+  uploadSubscription?: Subscription;
+}
 
 interface MakerTraining {
   STT: number;
@@ -88,6 +101,7 @@ import {
 } from '@angular/forms';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 
 @Component({
   selector: 'app-makertraining-form',
@@ -108,6 +122,8 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     NzUploadModule,
     NzFormModule,
     NzSpinModule,
+    NzProgressModule,
+    NzAutocompleteModule,
   ],
   templateUrl: './makertraining-form.component.html',
   styleUrl: './makertraining-form.component.css',
@@ -143,12 +159,18 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
 
   deletedFileIds: any[] = [];
   deletedEmployees: any[] = [];
+  deletedDepartments: any[] = [];
 
   makerTrainingEmployeeDataDetail: any[] = [];
   makerTrainingEmployeeDetailTable: Tabulator | null = null;
 
   makerTrainingFileDataDetail: any[] = [];
   makerTrainingFileDetailTable: Tabulator | null = null;
+
+  existingVideos: any[] = [];
+  deletedVideoIds: any[] = [];
+  pendingVideos: PendingVideoUpload[] = [];
+  pathServer: string = '';
 
   dataDepartment: any[] = [];
   dataFirm: any[] = [];
@@ -161,6 +183,10 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
   MakerTrainingID: number = 0;
 
   employeeOptions: any[] = [];
+  filteredEmployeeOptions: any[] = [];
+
+  locationOptions: string[] = ['Phòng họp 1', 'Phòng họp 2', 'Phòng họp 3', 'Online'];
+  filteredLocationOptions: string[] = [];
 
   documentFileData: any[] = [];
 
@@ -181,14 +207,15 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
     private message: NzMessageService,
     private projectRequestService: ProjectRequestServiceService,
     private appUserService: AppUserService,
+    private videoUploadService: VideoUploadStateService,
     private fb: FormBuilder,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.form = this.fb.group({
       ID: [this.newMakerTraining?.STT === 0 ? 0 : 0], // Master ID logic might be different, but keeping it simple
       STT: [this.newMakerTraining?.STT || 0],
-      DepartmentID: [this.newMakerTraining?.DepartmentID || null, [Validators.required]],
+      DepartmentID: [this.newMakerTraining?.DepartmentID ? [this.newMakerTraining.DepartmentID] : [], [Validators.required]],
       MakerTrainingTypeID: [this.newMakerTraining?.MakerTrainingTypeID || null, [Validators.required]],
       FirmID: [this.newMakerTraining?.FirmID || null, [Validators.required]],
       TrainerName: [this.newMakerTraining?.TrainerName || '', [Validators.required, Validators.maxLength(255)]],
@@ -204,6 +231,60 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
     this.getdataFirm();
     this.getDataTrainingType();
     this.loadOptionEmployee();
+    this.filteredLocationOptions = [...this.locationOptions];
+
+    this.form.get('DepartmentID')?.valueChanges.subscribe(val => {
+      this.filterEmployees(val);
+    });
+  }
+
+  filterEmployees(deptIds: any[]) {
+    if (!deptIds || deptIds.length === 0) {
+      this.filteredEmployeeOptions = [];
+    } else {
+      this.filteredEmployeeOptions = this.employeeOptions.filter(emp => deptIds.includes(emp.DepartmentID));
+    }
+
+    // Nếu bảng đã được vẽ, ép Tabulator cập nhật lại danh sách của dropdown
+    if (this.makerTrainingEmployeeDetailTable) {
+      const col = this.makerTrainingEmployeeDetailTable.getColumn('EmployeeID');
+      if (col) {
+        const def = col.getDefinition();
+        if (def && def.editorParams) {
+          (def.editorParams as any).values = this.filteredEmployeeOptions;
+        }
+      }
+
+      // Xóa các dòng nhân viên đang có trong bảng nhưng phòng ban của họ đã bị bỏ chọn
+      const currentRows = this.makerTrainingEmployeeDetailTable.getRows();
+      currentRows.forEach(row => {
+        const rowData = row.getData();
+        if (rowData['EmployeeID']) {
+          const empInfo = this.employeeOptions.find((e: any) => e.value === rowData['EmployeeID']);
+          if (empInfo) {
+            // Nếu phòng ban của nhân viên này không còn trong danh sách được chọn
+            if (!deptIds || !deptIds.includes(empInfo.DepartmentID)) {
+              if (rowData['ID']) {
+                this.deletedEmployees.push(rowData['ID']);
+              }
+              row.delete();
+              this.makerTrainingEmployeeDataDetail = this.makerTrainingEmployeeDataDetail.filter(x => x !== rowData);
+            }
+          }
+        }
+      });
+    }
+  }
+
+  onLocationInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    if (!value) {
+      this.filteredLocationOptions = [...this.locationOptions];
+    } else {
+      this.filteredLocationOptions = this.locationOptions.filter(loc =>
+        loc.toLowerCase().includes(value.toLowerCase())
+      );
+    }
   }
 
   getGroupedEmployees() {
@@ -254,13 +335,15 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
         const makerTraining = master.data;
         const documentDetails = details?.data?.MakerTrainingDocument || [];
         const employeeDetails = details?.data?.MakerTrainingEmployeeLink || [];
+        const departmentDetails = details?.data?.MakerTrainingDepartmentLink || [];
+        const videoDetails = details?.data?.MakerTrainingVideoLink || [];
         console.log('test test:', details?.data?.MakerTrainingEmployeeLink);
 
         // --------- Master data ----------
         this.form.patchValue({
           ID: makerTraining.ID,
           STT: makerTraining.STT,
-          DepartmentID: makerTraining.DepartmentID,
+          DepartmentID: departmentDetails.map((d: any) => d.DepartmentID),
           MakerTrainingTypeID: makerTraining.MakerTrainingTypeID,
           FirmID: makerTraining.FirmID,
           TrainerName: makerTraining.TrainerName,
@@ -271,6 +354,13 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
           Location: makerTraining.Location,
           Note: makerTraining.Note,
         });
+
+        // --------- Video Training ----------
+        this.existingVideos = videoDetails.map((v: any) => ({
+          ID: v.ID,
+          STT: v.STT,
+          UrlVideo: v.UrlVideo
+        }));
 
         // --------- Employee Training ----------
         this.makerTrainingEmployeeDataDetail = employeeDetails.map(
@@ -375,7 +465,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
       pad(adjustedDate.getUTCMinutes()) +
       ':' +
       pad(adjustedDate.getUTCSeconds())
-    ); 
+    );
   }
 
   closeModal(result: any = false) {
@@ -433,6 +523,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
               value: employee.ID,
               Code: employee.Code || '',
               FullName: employee.FullName,
+              DepartmentID: employee.DepartmentID,
               DepartmentName:
                 employee.DepartmentName || 'Không thuộc phòng ban',
               ChucVuHD: employee.ChucVuHD,
@@ -455,11 +546,17 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
             this.employeeOptions.length,
             ...mappedEmployees,
           );
+
+          // Khởi tạo lọc lần đầu nếu form có dữ liệu
+          const deptIds = this.form.get('DepartmentID')?.value;
+          this.filterEmployees(deptIds);
+
           if (this.makerTrainingEmployeeDetailTable) {
             this.makerTrainingEmployeeDetailTable.redraw(true);
           }
         } else {
           this.employeeOptions.splice(0, this.employeeOptions.length);
+          this.filteredEmployeeOptions = [];
         }
       },
       error: (err: any) => {
@@ -505,7 +602,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
 
       container.appendChild((componentRef.hostView as any).rootNodes[0]);
       appRef.attachView(componentRef.hostView);
-      onRendered(() => {});
+      onRendered(() => { });
 
       return container;
     };
@@ -626,7 +723,162 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
     this.saveData();
   }
 
-  saveData(): void {
+  // Video Upload Methods
+  beforeUploadVideo = (file: any): boolean => {
+    const totalVideos = this.existingVideos.length - this.deletedVideoIds.length + this.pendingVideos.length + 1;
+    if (totalVideos > 5) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Chỉ được tải lên tối đa 5 video!'
+      );
+      return false;
+    }
+
+    const fileName = file.name.toLowerCase();
+    const isValidVideo =
+      file.type === 'video/mp4' ||
+      file.type === 'video/webm' ||
+      fileName.endsWith('.mp4') ||
+      fileName.endsWith('.webm');
+
+    if (!isValidVideo) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Chỉ cho phép upload video định dạng .mp4 hoặc .webm!'
+      );
+      return false;
+    }
+    const maxSize = 10 * 1024 * 1024 * 1024; // 10GB
+    if (file.size > maxSize) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Kích thước file không được vượt quá 10GB!',
+      );
+      return false;
+    }
+
+    const originalName = file.name;
+    const lastDotIndex = originalName.lastIndexOf('.');
+    const baseName =
+      lastDotIndex > 0 ? originalName.substring(0, lastDotIndex) : originalName;
+    const extension =
+      lastDotIndex > 0 ? originalName.substring(lastDotIndex) : '';
+
+    const now = new Date();
+    const randStr = Math.random().toString(36).substring(2, 6);
+    const timestamp =
+      now.getFullYear().toString() +
+      (now.getMonth() + 1).toString().padStart(2, '0') +
+      now.getDate().toString().padStart(2, '0') +
+      now.getHours().toString().padStart(2, '0') +
+      now.getMinutes().toString().padStart(2, '0') +
+      now.getSeconds().toString().padStart(2, '0') + '_' + randStr;
+
+    const generatedFileName = `${baseName}_${timestamp}${extension}`;
+
+    const newPendingVideo: PendingVideoUpload = {
+      file: file as File,
+      generatedFileName: generatedFileName,
+      generatedUrl: '',
+      progress: 0,
+      speed: '0 KB/s',
+      status: 'pending'
+    };
+
+    this.pendingVideos.push(newPendingVideo);
+
+    if (!this.pathServer) {
+      this.makerTrainingService.getVideoPathServer('MakerTraining').subscribe({
+        next: (response: any) => {
+          this.pathServer = response?.data || response;
+          if (this.pathServer) {
+            newPendingVideo.generatedUrl = this.pathServer + generatedFileName;
+          } else {
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Không thể lấy đường dẫn server!'
+            );
+          }
+        },
+        error: (error) => {
+          console.error('Error getting path server:', error);
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Không thể lấy đường dẫn server!'
+          );
+        }
+      });
+    } else {
+      newPendingVideo.generatedUrl = this.pathServer + generatedFileName;
+    }
+
+    return false;
+  };
+
+  removePendingVideo(index: number): void {
+    const video = this.pendingVideos[index];
+    if (video && video.uploadSubscription) {
+      video.uploadSubscription.unsubscribe();
+    }
+    this.pendingVideos.splice(index, 1);
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  deleteExistingVideo(video: any) {
+    if (!video.ID) return;
+    const index = this.deletedVideoIds.indexOf(video.ID);
+    if (index > -1) {
+      this.deletedVideoIds.splice(index, 1);
+    } else {
+      this.deletedVideoIds.push(video.ID);
+    }
+  }
+
+  private startBackgroundVideoUploads(lessonId: number): Promise<string[]> {
+    const uploadPromises = this.pendingVideos.map(pendingVideo => {
+      return new Promise<string>((resolve, reject) => {
+        if (!pendingVideo.generatedFileName || !pendingVideo.generatedUrl) {
+          reject('Video URL chưa được tạo. Vui lòng thử lại.');
+          return;
+        }
+
+        const endpoint = environment.host + 'api/tus/upload-video';
+
+        const uploadState$ = this.videoUploadService.startUpload(
+          lessonId,
+          pendingVideo.file,
+          endpoint,
+          pendingVideo.generatedFileName,
+          this.pathServer,
+        );
+
+        pendingVideo.status = 'uploading';
+        pendingVideo.uploadSubscription = uploadState$.subscribe(state => {
+          pendingVideo.progress = state.progress;
+          pendingVideo.speed = state.speed;
+          pendingVideo.status = state.status;
+          this.cdr.detectChanges();
+        });
+
+        resolve(pendingVideo.generatedUrl);
+      });
+    });
+
+    return Promise.all(uploadPromises).then(urls => {
+      // Do not clear pendingVideos yet so user can see progress bar
+      // Instead, clear it on form reset
+      return urls;
+    });
+  }
+
+  async saveData(): Promise<void> {
     this.form.patchValue({
       TrainerName: (this.form.value.TrainerName || '').trim(),
       TrainingContent: (this.form.value.TrainingContent || '').trim(),
@@ -649,6 +901,22 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
     }
 
     const subPath = this.getSubPath(this.form.value.DateStart);
+
+    // Upload videos first if selected
+    let uploadedVideoUrls: string[] = [];
+    if (this.pendingVideos.length > 0) {
+      try {
+        const lessonId = this.isCheckmode ? this.MakerTrainingID : 0;
+        uploadedVideoUrls = await this.startBackgroundVideoUploads(lessonId);
+      } catch (error: any) {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          `Lỗi upload video: ${error}`,
+        );
+        return;
+      }
+    }
+
     if (this.isCheckmode == true) {
       // Update mode
       const filesToUpload: File[] = (
@@ -677,7 +945,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
                   }
                 });
               }
-              this.executeSaveData();
+              this.executeSaveData(uploadedVideoUrls);
             },
             error: (err: any) => {
               this.message.remove();
@@ -685,7 +953,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
             },
           });
       } else {
-        this.executeSaveData();
+        this.executeSaveData(uploadedVideoUrls);
       }
     } else {
       // Insert mode
@@ -715,7 +983,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
                   }
                 });
               }
-              this.executeSaveData();
+              this.executeSaveData(uploadedVideoUrls);
             },
             error: (err: any) => {
               this.message.remove();
@@ -723,18 +991,17 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
             },
           });
       } else {
-        this.executeSaveData();
+        this.executeSaveData(uploadedVideoUrls);
       }
     }
   }
 
-  executeSaveData(): void {
+  executeSaveData(uploadedVideoUrls: string[] = []): void {
     const formValue = this.form.value;
     if (this.isCheckmode == true) {
       const payload = {
         MakerTraining: {
           ID: this.MakerTrainingID, // ID cho update
-          DepartmentID: formValue.DepartmentID,
           MakerTrainingTypeID: formValue.MakerTrainingTypeID,
           FirmID: formValue.FirmID,
           TrainerName: formValue.TrainerName,
@@ -763,6 +1030,12 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
               IsDeleted: false,
             })) || []),
         ],
+        MakerTrainingDepartmentLink: formValue.DepartmentID ? formValue.DepartmentID.map((deptId: any) => ({
+          ID: 0,
+          STT: 0,
+          DepartmentID: deptId,
+          IsDeleted: false
+        })) : [],
         MakerTrainingDocument: [
           ...(this.makerTrainingFileDetailTable
             ?.getData()
@@ -774,8 +1047,24 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
               IsDeleted: false,
             })) || []),
         ],
+        MakerTrainingVideoLink: [
+          ...this.existingVideos.map((v) => ({
+            ID: v.ID,
+            STT: v.STT,
+            UrlVideo: v.UrlVideo,
+            IsDeleted: this.deletedVideoIds.includes(v.ID)
+          })),
+          ...uploadedVideoUrls.map(url => ({
+            ID: 0,
+            STT: 0,
+            UrlVideo: url,
+            IsDeleted: false
+          }))
+        ],
         DeletedFileIds: this.deletedFileIds,
         DeletedEmployees: this.deletedEmployees,
+        DeletedDepartments: this.deletedDepartments,
+        DeletedVideoIds: this.deletedVideoIds,
       };
 
       this.makerTrainingService.saveData(payload).subscribe({
@@ -806,7 +1095,6 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
         MakerTraining: {
           ID: 0,
           STT: formValue.STT,
-          DepartmentID: formValue.DepartmentID,
           MakerTrainingTypeID: formValue.MakerTrainingTypeID,
           FirmID: formValue.FirmID,
           TrainerName: formValue.TrainerName,
@@ -836,6 +1124,12 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
               IsDeleted: false,
             })) || []),
         ],
+        MakerTrainingDepartmentLink: formValue.DepartmentID ? formValue.DepartmentID.map((deptId: any) => ({
+          ID: 0,
+          STT: 0,
+          DepartmentID: deptId,
+          IsDeleted: false
+        })) : [],
         MakerTrainingDocument: [
           ...(this.makerTrainingFileDetailTable
             ?.getData()
@@ -847,8 +1141,24 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
               IsDeleted: false,
             })) || []),
         ],
+        MakerTrainingVideoLink: [
+          ...this.existingVideos.map((v) => ({
+            ID: v.ID,
+            STT: v.STT,
+            UrlVideo: v.UrlVideo,
+            IsDeleted: this.deletedVideoIds.includes(v.ID)
+          })),
+          ...uploadedVideoUrls.map(url => ({
+            ID: 0,
+            STT: 0,
+            UrlVideo: url,
+            IsDeleted: false
+          }))
+        ],
         DeletedFileIds: this.deletedFileIds,
         DeletedEmployees: this.deletedEmployees,
+        DeletedDepartments: this.deletedDepartments,
+        DeletedVideoIds: this.deletedVideoIds,
       };
       console.log('payload save: ', payload);
 
@@ -881,7 +1191,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
     this.form.reset({
       ID: 0,
       STT: 0,
-      DepartmentID: null,
+      DepartmentID: [],
       MakerTrainingTypeID: null,
       FirmID: null,
       TrainerName: '',
@@ -902,6 +1212,11 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
     }
     this.deletedEmployees = [];
     this.deletedFileIds = [];
+    this.deletedDepartments = [];
+    this.existingVideos = [];
+    this.deletedVideoIds = [];
+    this.pendingVideos.forEach(v => v.uploadSubscription?.unsubscribe());
+    this.pendingVideos = [];
   }
 
   onAddMakerTrainingType() {
@@ -917,7 +1232,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
           this.getDataTrainingType();
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }
 
   draw_makerTrainingEmployeeTable() {
@@ -933,9 +1248,10 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
           layout: 'fitColumns',
           height: '100%',
           movableColumns: true,
+          // movableRows: true,
           resizableRows: true,
           reactiveData: true,
-          selectableRows: 1,
+          selectableRows: false,
           columns: [
             {
               title: '',
@@ -944,7 +1260,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
               width: 40,
               headerSort: false,
               titleFormatter: () =>
-                `<div style="display: flex; justify-content: center; align-items: center; height: 100%; cursor: pointer;"><i class="fas fa-plus text-success" title="Thêm dòng"></i> </div>`,
+                `<div style="display: flex; justify-content: center; align-items: center; height: 100%; cursor: pointer;"><i class="fas fa-plus" style="color: white;" title="Thêm dòng"></i> </div>`,
               headerClick: () => {
                 this.addRow();
               },
@@ -989,7 +1305,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
               headerHozAlign: 'center',
               editor: 'list',
               editorParams: {
-                values: this.employeeOptions,
+                values: this.filteredEmployeeOptions,
                 listOnEmpty: true,
                 autocomplete: true,
                 groupValues: true,
@@ -1055,7 +1371,40 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
               title: 'Ghi chú',
               field: 'Note',
               headerHozAlign: 'center',
-              editor: 'textarea',
+              formatter: 'textarea',
+              variableHeight: true,
+              editor: function(cell: any, onRendered: any, success: any, cancel: any) {
+                const editor = document.createElement("textarea");
+                editor.style.width = "100%";
+                editor.style.boxSizing = "border-box";
+                editor.style.resize = "none";
+                editor.style.outline = "none";
+                editor.style.border = "0px";
+                editor.value = cell.getValue() || "";
+                
+                const resize = function() {
+                  editor.style.height = "auto";
+                  editor.style.height = (editor.scrollHeight + 2) + "px";
+                  cell.getRow().normalizeHeight();
+                };
+                
+                editor.addEventListener("input", resize);
+                editor.addEventListener("blur", function() {
+                  success(editor.value);
+                });
+                editor.addEventListener("keydown", function(e) {
+                  if (e.key === "Enter") {
+                    e.stopPropagation(); // Cho phép Enter để xuống dòng
+                  }
+                });
+                
+                onRendered(function() {
+                  editor.focus();
+                  resize();
+                });
+                
+                return editor;
+              },
             },
           ],
         },
@@ -1089,7 +1438,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
           movableColumns: true,
           resizableRows: true,
           reactiveData: true,
-          selectableRows: 1,
+          selectableRows: false,
           columns: [
             {
               title: '',
@@ -1098,7 +1447,7 @@ export class MakertrainingFormComponent implements OnInit, AfterViewInit {
               width: 40,
               headerSort: false,
               titleFormatter: () =>
-                `<div style="display: flex; justify-content: center; align-items: center; height: 100%; cursor: pointer;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i> </div>`,
+                `<div style="display: flex; justify-content: center; align-items: center; height: 100%; cursor: pointer;"><i class="fas fa-plus cursor-pointer" style="color: white;" title="Thêm dòng"></i> </div>`,
               headerClick: () => {
                 this.openFileSelector_MakerTrainingFile();
               },

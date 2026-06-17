@@ -38,6 +38,7 @@ import { ProjectPartlistPriceRequestNewComponent } from '../../../../pages/purch
 import { AppUserService } from '../../../../services/app-user.service';
 import { TbProductRtcImportExcelComponent } from '../tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
 import * as ExcelJS from 'exceljs';
+import { ProductGroupRtcSettingComponent } from '../product-group-rtc-setting/product-group-rtc-setting.component';
 @Component({
     selector: 'app-product-rtc',
     standalone: true,
@@ -92,6 +93,9 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
     datasetGroup: any[] = [];
 
     isLoading: boolean = false;
+
+    isHideSetProductGroup: boolean = false;
+    tableId: string = this.generateUUIDv4();
     private subscriptions: Subscription[] = [];
 
     constructor(
@@ -106,7 +110,16 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         @Optional() @Inject('tabData') private tabData: any
     ) { }
 
+    generateUUIDv4(): string {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
     ngOnInit() {
+
         this.initGridColumns();
         this.initGridOptions();
         this.initGroupGridColumns();
@@ -189,6 +202,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             this.loadProductGroups();
             this.getProduct();
         });
+        this.isHideSetProductGroup = this.warehouseType == 1 ? true : false;
         this.subscriptions.push(sub);
     }
 
@@ -443,7 +457,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 id: 'NumberOrder',
                 field: 'NumberOrder',
                 name: 'STT',
-                width: 60,
+                maxWidth: 80,
                 sortable: true,
                 filterable: true,
             },
@@ -472,6 +486,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             rowSelectionOptions: {
                 selectActiveRow: true,
             },
+            forceFitColumns: true,
             enableCellNavigation: true,
             enableFiltering: true,
             autoFitColumnsOnFirstLoad: true,
@@ -1255,5 +1270,14 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
+    }
+
+    openModalSettingProductGroup(): void {
+        const modalRef = this.modalService.open(ProductGroupRtcSettingComponent, {
+            size: 'lg',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
     }
 }

@@ -52,7 +52,7 @@
           <i nz-icon nzType="file-excel" nzTheme="outline"></i>
           Xuất Excel
         </button>
-        <button nz-button nzType="primary" *hasPermission="'N35'" (click)="saveData()">
+        <button nz-button nzType="primary" *hasPermission="'N35'" (click)="saveData()" [disabled]="isLoading || dirtyItems.size === 0">
           <i nz-icon nzType="save" nzTheme="outline"></i>
           Lưu hóa đơn
         </button>
@@ -78,9 +78,12 @@
           <span class="badge bg-light text-dark border" style="font-size:11px; font-weight:normal; flex-shrink:0;">{{
             f.columnName }}</span>
           <span class="text-muted" style="flex-shrink:0;">{{ f.operator }}</span>
-          <span class="badge"
-            style="background:#e6f4ff; color:#1677ff; border:1px solid #91caff; font-size:11px; font-weight:normal; flex-shrink:0;">{{
-            f.searchTerm }}</span>
+          <span class="badge d-flex align-items-center"
+            style="background:#e6f4ff; color:#1677ff; border:1px solid #91caff; font-size:11px; font-weight:normal; flex-shrink:0; gap:4px;">
+            {{ f.searchTerm }}
+            <span (click)="removeFilter(f, $event)" title="Bỏ điều kiện này"
+              style="cursor:pointer; color:#ff4d4f; font-weight:bold; line-height:1;">✕</span>
+          </span>
         </ng-container>
       </div>
     </div>

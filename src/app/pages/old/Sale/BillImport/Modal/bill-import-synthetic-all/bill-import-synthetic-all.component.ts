@@ -118,7 +118,7 @@ export class BillImportSyntheticAllComponent {
   gridOptions: GridOption = {};
   dataset: any[] = [];
   excelExportService = new ExcelExportService();
-  activeFilters: { columnName: string; operator: string; searchTerm: string }[] = [];
+  activeFilters: { columnId: string; columnName: string; operator: string; searchTerm: string }[] = [];
   showFilterPopup = false;
   filterPopupPosition: 'top' | 'bottom' = 'top';
   private filterCollectionUpdateTimer: any = null;
@@ -193,34 +193,210 @@ export class BillImportSyntheticAllComponent {
     // when enableCheckboxSelector: true is set in gridOptions
     this.columnDefinitions = [
       {
-        id: 'Status',
-        name: 'Nhận chứng từ',
-        field: 'Status',
+        id: 'BillImportCode',
+        name: 'Số phiếu',
+        field: 'BillImportCode',
+        width: 160,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'CodeNCC',
+        name: 'Mã NCC',
+        field: 'CodeNCC',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'NameNCC',
+        name: 'Nhà cung cấp / Bộ phận',
+        field: 'NameNCC',
+        width: 300,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'ProductCode',
+        name: 'Mã hàng',
+        field: 'ProductCode',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'BillCodePO',
+        name: 'Đơn mua hàng',
+        field: 'BillCodePO',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'SomeBill',
+        name: 'Số hóa đơn',
+        field: 'SomeBill',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+        editor: { model: Editors['text'] },
+      },
+      {
+        id: 'Deliver',
+        name: 'Người giao / Người trả',
+        field: 'Deliver',
+        width: 200,
+        sortable: true,
+        filterable: true,
+        filter: {
+          collection: [],
+          model: Filters['multipleSelect'],
+          collectionOptions: {
+            addBlankEntry: true
+          },
+          filterOptions: {
+            autoAdjustDropHeight: true,
+            filter: true,
+          } as MultipleSelectOption,
+        },
+      },
+      {
+        id: 'Qty',
+        name: 'SL thực tế',
+        field: 'Qty',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        type: FieldType.number,
+        filter: { model: Filters['compoundInputNumber'] },
+        cssClass: 'text-right',
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
+      },
+      {
+        id: 'DPO',
+        name: 'Số ngày công nợ',
+        field: 'DPO',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        type: FieldType.number,
+        filter: { model: Filters['compoundInputNumber'] },
+        editor: { model: Editors['integer'] },
+        cssClass: 'text-right',
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
+      },
+      {
+        id: 'IsBill',
+        name: 'Hóa đơn',
+        field: 'IsBill',
         width: 100,
         sortable: true,
         filterable: true,
         formatter: this.checkboxFormatter,
+        exportCustomFormatter: (_row, _cell, value) => {
+          return value === true || value === 1 ? 'V' : 'X';
+        },
         cssClass: 'text-center',
         filter: {
           collection: [
             { value: '', label: '' },
-            { value: true, label: 'Đã nhận' },
-            { value: false, label: 'Chưa nhận' },
+            { value: true, label: 'Có' },
+            { value: false, label: 'Không' },
           ],
           model: Filters['singleSelect'],
           filterOptions: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
-        exportCustomFormatter: (_row, _cell, value) => {
-          return value === true || value === 1 ? 'V' : 'X';
-        },
       },
       {
-        id: 'DateStatus',
-        name: 'Ngày nhận/hủy CT',
-        field: 'DateStatus',
-        width: 120,
+        id: 'DateSomeBill',
+        name: 'Ngày hóa đơn',
+        field: 'DateSomeBill',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        formatter: Formatters.date,
+        exportCustomFormatter: Formatters.date,
+        type: 'date',
+        params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        editor: { model: Editors['date'] },
+        cssClass: 'text-center',
+      },
+      {
+        id: 'DueDate',
+        name: 'Ngày tới hạn',
+        field: 'DueDate',
+        width: 150,
         sortable: true,
         filterable: true,
         formatter: Formatters.date,
@@ -231,15 +407,32 @@ export class BillImportSyntheticAllComponent {
         cssClass: 'text-center',
       },
       {
-        id: 'DoccumentReceiver',
-        name: 'Người nhận/hủy CT',
-        field: 'DoccumentReceiver',
-        width: 120,
+        id: 'TaxReduction',
+        name: 'Tiền thuế giảm',
+        field: 'TaxReduction',
+        width: 130,
         sortable: true,
         filterable: true,
-        filter: {
-          model: Filters['compoundInputText'],
-        },
+        type: FieldType.number,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
+        filter: { model: Filters['compoundInputNumber'] },
+        editor: { model: Editors['float'] },
+        cssClass: 'text-right',
+      },
+      {
+        id: 'COFormE',
+        name: 'Chi phí FE',
+        field: 'COFormE',
+        width: 130,
+        sortable: true,
+        filterable: true,
+        type: FieldType.number,
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
+        filter: { model: Filters['compoundInputNumber'] },
+        editor: { model: Editors['float'] },
+        cssClass: 'text-right',
       },
       {
         id: 'WarehouseName',
@@ -293,25 +486,6 @@ export class BillImportSyntheticAllComponent {
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center',
       },
-      {
-        id: 'BillImportCode',
-        name: 'Số phiếu',
-        field: 'BillImportCode',
-        width: 160,
-        sortable: true,
-        filterable: true,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
-        },
-      },
       // {
       //   id: 'CreatedDate',
       //   name: 'Ngày nhận',
@@ -323,44 +497,6 @@ export class BillImportSyntheticAllComponent {
       //   filter: { model: Filters['compoundDate'] },
       //   cssClass: 'text-center',
       // },
-      {
-        id: 'CodeNCC',
-        name: 'Mã NCC',
-        field: 'CodeNCC',
-        width: 120,
-        sortable: true,
-        filterable: true,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
-        },
-      },
-      {
-        id: 'NameNCC',
-        name: 'Nhà cung cấp / Bộ phận',
-        field: 'NameNCC',
-        width: 300,
-        sortable: true,
-        filterable: true,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
-        },
-      },
       {
         id: 'DepartmentName',
         name: 'Phòng ban',
@@ -385,25 +521,6 @@ export class BillImportSyntheticAllComponent {
         name: 'Mã NV',
         field: 'Code',
         width: 100,
-        sortable: true,
-        filterable: true,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
-        },
-      },
-      {
-        id: 'Deliver',
-        name: 'Người giao / Người trả',
-        field: 'Deliver',
-        width: 200,
         sortable: true,
         filterable: true,
         filter: {
@@ -490,44 +607,6 @@ export class BillImportSyntheticAllComponent {
         },
       },
       {
-        id: 'BillCodePO',
-        name: 'Đơn mua hàng',
-        field: 'BillCodePO',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
-        },
-      },
-      {
-        id: 'ProductCode',
-        name: 'Mã hàng',
-        field: 'ProductCode',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
-        },
-      },
-      {
         id: 'Unit',
         name: 'ĐVT',
         field: 'Unit',
@@ -566,19 +645,6 @@ export class BillImportSyntheticAllComponent {
         },
       },
       {
-        id: 'Qty',
-        name: 'SL thực tế',
-        field: 'Qty',
-        width: 120,
-        sortable: true,
-        filterable: true,
-        type: FieldType.number,
-        filter: { model: Filters['compoundInputNumber'] },
-        cssClass: 'text-right',
-        formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value),
-      },
-      {
         id: 'Maker',
         name: 'Loại hàng',
         field: 'Maker',
@@ -597,86 +663,38 @@ export class BillImportSyntheticAllComponent {
           } as MultipleSelectOption,
         },
       },
-      {
-        id: 'IsBill',
-        name: 'Hóa đơn',
-        field: 'IsBill',
+    
+  {
+        id: 'Status',
+        name: 'Nhận chứng từ',
+        field: 'Status',
         width: 100,
         sortable: true,
         filterable: true,
         formatter: this.checkboxFormatter,
-        exportCustomFormatter: (_row, _cell, value) => {
-          return value === true || value === 1 ? 'V' : 'X';
-        },
         cssClass: 'text-center',
         filter: {
           collection: [
             { value: '', label: '' },
-            { value: true, label: 'Có' },
-            { value: false, label: 'Không' },
+            { value: true, label: 'Đã nhận' },
+            { value: false, label: 'Chưa nhận' },
           ],
           model: Filters['singleSelect'],
           filterOptions: {
             autoAdjustDropHeight: true,
           } as MultipleSelectOption,
         },
-      },
-      {
-        id: 'SomeBill',
-        name: 'Số hóa đơn',
-        field: 'SomeBill',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        filter: {
-          collection: [],
-          model: Filters['multipleSelect'],
-          collectionOptions: {
-            addBlankEntry: true
-          },
-          filterOptions: {
-            autoAdjustDropHeight: true,
-            filter: true,
-          } as MultipleSelectOption,
+        exportCustomFormatter: (_row, _cell, value) => {
+          return value === true || value === 1 ? 'V' : 'X';
         },
-        editor: { model: Editors['text'] },
       },
       {
-        id: 'DateSomeBill',
-        name: 'Ngày hóa đơn',
-        field: 'DateSomeBill',
-        width: 150,
-        sortable: true,
-        filterable: true,
-        formatter: Formatters.date,
-        exportCustomFormatter: Formatters.date,
-        type: 'date',
-        params: { dateFormat: 'DD/MM/YYYY' },
-        filter: { model: Filters['compoundDate'] },
-        editor: { model: Editors['date'] },
-        cssClass: 'text-center',
-      },
-      {
-        id: 'DPO',
-        name: 'Số ngày công nợ',
-        field: 'DPO',
+        id: 'DateStatus',
+        name: 'Ngày nhận/hủy CT',
+        field: 'DateStatus',
         width: 120,
         sortable: true,
         filterable: true,
-        type: FieldType.number,
-        filter: { model: Filters['compoundInputNumber'] },
-        editor: { model: Editors['integer'] },
-        cssClass: 'text-right',
-        formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value),
-      },
-      {
-        id: 'DueDate',
-        name: 'Ngày tới hạn',
-        field: 'DueDate',
-        width: 150,
-        sortable: true,
-        filterable: true,
         formatter: Formatters.date,
         exportCustomFormatter: Formatters.date,
         type: 'date',
@@ -685,34 +703,16 @@ export class BillImportSyntheticAllComponent {
         cssClass: 'text-center',
       },
       {
-        id: 'TaxReduction',
-        name: 'Tiền thuế giảm',
-        field: 'TaxReduction',
-        width: 130,
+        id: 'DoccumentReceiver',
+        name: 'Người nhận/hủy CT',
+        field: 'DoccumentReceiver',
+        width: 120,
         sortable: true,
         filterable: true,
-        type: FieldType.number,
-        formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value),
-        filter: { model: Filters['compoundInputNumber'] },
-        editor: { model: Editors['float'] },
-        cssClass: 'text-right',
+        filter: {
+          model: Filters['compoundInputText'],
+        },
       },
-      {
-        id: 'COFormE',
-        name: 'Chi phí FE',
-        field: 'COFormE',
-        width: 130,
-        sortable: true,
-        filterable: true,
-        type: FieldType.number,
-        formatter: (row: number, cell: number, value: any) =>
-          this.formatNumberEnUS(value),
-        filter: { model: Filters['compoundInputNumber'] },
-        editor: { model: Editors['float'] },
-        cssClass: 'text-right',
-      },
-
       {
         id: 'DeliverFullName',
         name: 'Người giao',
@@ -898,7 +898,7 @@ export class BillImportSyntheticAllComponent {
       editable: true,
       autoEdit: false,
       autoCommitEdit: true,
-      frozenColumn: 6,
+      frozenColumn: 9,
       gridHeight: 600,
       enableContextMenu: true,
       rowHeight: 30,
@@ -1115,6 +1115,7 @@ export class BillImportSyntheticAllComponent {
       .map((f: any) => {
         const colDef = this.columnDefinitions.find((c: any) => c.id === f.columnId);
         return {
+          columnId: f.columnId,
           columnName: (colDef?.name as string) || f.columnId,
           operator: f.operator || 'Contains',
           searchTerm: (f.searchTerms || []).join(', '),
@@ -1126,6 +1127,12 @@ export class BillImportSyntheticAllComponent {
     this.angularGrid?.filterService?.clearFilters();
     this.activeFilters = [];
     this.showFilterPopup = false;
+  }
+
+  async removeFilter(filter: { columnId: string }, event: MouseEvent) {
+    event.stopPropagation();
+    await this.angularGrid?.filterService?.clearFilterByColumnId(event as any, filter.columnId);
+    this.updateActiveFilters();
   }
 
   toggleFilterPopup(event: MouseEvent) {
@@ -1165,25 +1172,14 @@ export class BillImportSyntheticAllComponent {
         return;
       }
 
-      const dpo = row.DPO || 0;
-      let dueDate = null;
-      if (row.DateSomeBill) {
-        const dateSomeBill = DateTime.fromISO(row.DateSomeBill);
-        if (dateSomeBill.isValid) {
-          dueDate = dateSomeBill.plus({ days: dpo }).toISO();
-        }
-      }
-
       const updateData = {
-        ID: id,
+        IDDetail: id,
+        DeliverID: deliverID,
         SomeBill: row.SomeBill || '',
         DateSomeBill: row.DateSomeBill || null,
-        DPO: dpo,
-        DueDate: dueDate,
+        DPO: row.DPO || 0,
         TaxReduction: row.TaxReduction || 0,
         COFormE: row.COFormE || 0,
-        UpdatedBy: this.appUserService.loginName || '',
-        UpdatedDate: new Date().toISOString(),
       };
 
       dataToSave.push(updateData);
@@ -1204,19 +1200,19 @@ export class BillImportSyntheticAllComponent {
       );
     }
 
-    this.billImportService.SaveDataBillDetail(dataToSave).subscribe({
-      next: (res) => {
-        if (res.status === 1) {
+    this.billImportService.SaveBill(dataToSave).subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
           this.notification.success(
             NOTIFICATION_TITLE.success,
-            res.message || 'Lưu thành công!'
+            res.message || `Lưu thành công ${res?.data?.Updated ?? dataToSave.length} dòng`
           );
           this.dirtyItems.clear();
           this.loadDataBillImportSynthetic();
         } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,
-            res.message || 'Lưu thất bại!'
+            res?.message || 'Lưu thất bại!'
           );
         }
       },
@@ -1810,21 +1806,29 @@ export class BillImportSyntheticAllComponent {
 
     const activeFilterColumnIds = new Set(
       (this.angularGrid.filterService?.getCurrentLocalFilters() || [])
-        .filter((f: any) => f.searchTerms?.length && String(f.searchTerms[0]) !== '')
+        .filter((f: any) => f.searchTerms?.length > 0)
         .map((f: any) => f.columnId)
     );
 
     const getUniqueValuesFromData = (data: any[], field: string): Array<{ value: string; label: string }> => {
       const map = new Map<string, string>();
+      let hasBlank = false;
       data.forEach((row: any) => {
         const value = String(row?.[field] ?? '');
-        if (value && value.trim() !== '' && !map.has(value)) {
+        if (value.trim() === '') {
+          hasBlank = true;
+        } else if (!map.has(value)) {
           map.set(value, value);
         }
       });
-      return Array.from(map.entries())
+      const result = Array.from(map.entries())
         .map(([value, label]) => ({ value, label }))
         .sort((a, b) => a.label.localeCompare(b.label));
+      // Giữ option "(Blank)" nếu dữ liệu có giá trị rỗng, tránh collection rỗng làm dropdown mất hết option
+      if (hasBlank) {
+        result.unshift({ value: '', label: '' });
+      }
+      return result;
     };
 
     const multiSelectFields = [

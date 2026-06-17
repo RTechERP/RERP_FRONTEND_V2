@@ -47,9 +47,18 @@
 
 
           <div class="row">
-            <div class="col-md-12">
+            <div class="col-md-5">
               <nz-form-item>
-                <nz-form-label nzRequired>Nội dung lỗi</nz-form-label>
+                <nz-form-label nzRequired>Vị trí lỗi</nz-form-label>
+                <nz-form-control nzErrorTip="Vui lòng nhập vị trí lỗi">
+                  <textarea nz-input formControlName="ErrorLocation" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+                    placeholder="Nhập vị trí lỗi..."></textarea>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div class="col-md-7">
+              <nz-form-item>
+                <nz-form-label nzRequired>Nội dung sự cố</nz-form-label>
                 <nz-form-control nzErrorTip="Vui lòng nhập nội dung">
                   <textarea nz-input formControlName="ContentError" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
                     placeholder="Nhập nội dung..."></textarea>
@@ -65,17 +74,25 @@
                 </nz-form-control>
               </nz-form-item>
             </div>
+            <div class="col-md-12">
+              <nz-form-item>
+                <nz-form-label>Ảnh hưởng </nz-form-label>
+                <nz-form-control>
+                  <textarea nz-input formControlName="Impact" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+                    placeholder="Nhập ảnh hưởng..."></textarea>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
           </div>
 
-
+          <!-- <h6 class="text-secondary mb-3"><i class="fa-solid fa-screwdriver-wrench me-2"></i>Phân tích & Giải pháp</h6> -->
           <nz-form-item>
-            <nz-form-label>Biện pháp khắc phục</nz-form-label>
+            <nz-form-label>Phương án xử lý</nz-form-label>
             <nz-form-control>
               <textarea nz-input formControlName="Remedies" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
-                placeholder="Nhập khắc phục..."></textarea>
+                placeholder="Nhập phương án xử lý..."></textarea>
             </nz-form-control>
           </nz-form-item>
-
 
           <!-- <nz-form-item>
           <nz-form-label>Phương pháp test</nz-form-label>
@@ -87,14 +104,20 @@
         </nz-form-item> -->
 
           <nz-form-item>
-            <nz-form-label>Kết luận issue </nz-form-label>
+            <nz-form-label>Kết quả sau xử lý </nz-form-label>
             <nz-form-control>
               <textarea nz-input formControlName="IssueConclusion" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
-                placeholder="Nhập kết luận..."></textarea>
+                placeholder="Nhập kết quả sau xử lý..."></textarea>
             </nz-form-control>
           </nz-form-item>
 
-
+          <nz-form-item>
+            <nz-form-label>Ghi chú </nz-form-label>
+            <nz-form-control>
+              <textarea nz-input formControlName="Note" [nzAutosize]="{ minRows: 4, maxRows: 4 }"
+                placeholder="Nhập ghi chú..."></textarea>
+            </nz-form-control>
+          </nz-form-item>
         </div>
 
         <!-- CỘT 2: Trạng thái, thời gian và Người xử lý -->
@@ -104,8 +127,8 @@
           <div class="row">
             <div class="col-md-6">
               <nz-form-item>
-                <nz-form-label nzRequired>Mức độ ưu tiên</nz-form-label>
-                <nz-form-control nzErrorTip="Vui lòng chọn mức độ ưu tiên">
+                <nz-form-label nzRequired>Mức độ nghiêm trọng</nz-form-label>
+                <nz-form-control nzErrorTip="Vui lòng chọn mức độ nghiêm trọng">
                   <nz-select formControlName="PriorityLevel" nzPlaceHolder="Chọn mức độ" nzAllowClear>
                     <nz-option *ngFor="let option of priorityOptions" [nzValue]="option.value"
                       [nzLabel]="option.label"></nz-option>
@@ -130,8 +153,8 @@
           <div class="row">
             <div class="col-md-6">
               <nz-form-item>
-                <nz-form-label nzRequired>Ngày phát sinh</nz-form-label>
-                <nz-form-control nzErrorTip="Vui lòng chọn ngày phát sinh">
+                <nz-form-label nzRequired>Thời điểm phát sinh</nz-form-label>
+                <nz-form-control nzErrorTip="Vui lòng chọn thời điểm phát sinh">
                   <nz-date-picker formControlName="DateProblem" nzFormat="dd/MM/yyyy"
                     style="width: 100%;"></nz-date-picker>
                 </nz-form-control>
@@ -139,7 +162,7 @@
             </div>
             <div class="col-md-6">
               <nz-form-item>
-                <nz-form-label>Ngày thực hiện</nz-form-label>
+                <nz-form-label>Thời hạn xử lý</nz-form-label>
                 <nz-form-control>
                   <nz-date-picker formControlName="DateImplementation" nzFormat="dd/MM/yyyy"
                     style="width: 100%;"></nz-date-picker>
@@ -148,10 +171,7 @@
             </div>
           </div>
 
-
           <h6 class="text-secondary mt-3 mb-3"><i class="fa-solid fa-users me-2"></i>Nhân sự liên quan</h6>
-
-
           <div class="row">
             <div class="col-md-6">
               <nz-form-item>
@@ -166,9 +186,10 @@
             </div>
             <div class="col-md-6">
               <nz-form-item>
-                <nz-form-label nzRequired>Người thực hiện</nz-form-label>
-                <nz-form-control nzErrorTip="Vui lòng chọn người thực hiện">
-                  <nz-select formControlName="PerformerID" nzPlaceHolder="Người thực hiện" nzAllowClear nzShowSearch>
+                <nz-form-label nzRequired>Người chịu trách nhiệm xử lý</nz-form-label>
+                <nz-form-control nzErrorTip="Vui lòng chọn người chịu trách nhiệm xử lý">
+                  <nz-select formControlName="PerformerID" nzPlaceHolder="Người chịu trách nhiệm xử lý" nzAllowClear
+                    nzShowSearch>
                     <nz-option *ngFor="let option of employeeOptions" [nzValue]="option.value"
                       [nzLabel]="option.label"></nz-option>
                   </nz-select>
@@ -177,13 +198,12 @@
             </div>
           </div>
 
-
           <div class="row">
             <div class="col-md-6">
               <nz-form-item>
-                <nz-form-label nzRequired>Người tiếp nhận</nz-form-label>
-                <nz-form-control nzErrorTip="Vui lòng chọn người tiếp nhận">
-                  <nz-select formControlName="ReceiverID" nzMode="multiple" nzPlaceHolder="Chọn người nhận" nzAllowClear
+                <nz-form-label nzRequired>PM phụ trách</nz-form-label>
+                <nz-form-control nzErrorTip="Vui lòng chọn PM phụ trách">
+                  <nz-select formControlName="ProjectManagerID" nzPlaceHolder="Chọn PM phụ trách" nzAllowClear
                     nzShowSearch>
                     <nz-option *ngFor="let option of employeeOptions" [nzValue]="option.value"
                       [nzLabel]="option.label"></nz-option>
@@ -195,7 +215,7 @@
               <nz-form-item>
                 <nz-form-label nzRequired>Team/Phòng ban</nz-form-label>
                 <nz-form-control nzErrorTip="Vui lòng chọn phòng ban">
-                  <nz-select formControlName="TeamDepartment" nzMode="multiple" nzPlaceHolder="Chọn phòng ban..."
+                  <nz-select formControlName="TeamDepartment" nzPlaceHolder="Chọn phòng ban..."
                     nzAllowClear nzShowSearch>
                     <nz-option *ngFor="let option of departmentOptions" [nzValue]="option.value"
                       [nzLabel]="option.label"></nz-option>
@@ -234,44 +254,46 @@
               </nz-form-item>
             </div>
           </div>
+          <div class="row">
+            <!-- Ảnh đính kèm -->
+            <div class="mt-2 border-top pt-2">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <h6 class="text-secondary mb-0"><i class="fa-solid fa-image me-2"></i>Ảnh đính kèm</h6>
+                <input type="file" multiple accept="image/*" class="form-control form-control-sm" #fileInput
+                  style="max-width: 250px; height: 26px; font-size: 11px; padding: 2px 8px;"
+                  (change)="onFileSelected($event)">
+              </div>
+              <nz-table #fileTable [nzData]="attachedFiles" nzSize="small" [nzShowPagination]="false"
+                [nzScroll]="{ y: '100px' }" nzBordered [nzFrontPagination]="false" [nzLoading]="false">
+                <thead>
+                  <tr>
+                    <th nzWidth="45px" class="text-center py-1">STT</th>
+                    <th class="py-1">Tên file</th>
+                    <th nzWidth="70px" class="text-center py-1">Loại</th>
+                    <!-- <th nzWidth="70px" class="text-center py-1">Dung lượng</th> -->
+                    <th nzWidth="50px" class="text-center py-1">Xóa</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let file of attachedFiles; let i = index" style="font-size: 12px;">
+                    <td class="text-center py-1">{{ i + 1 }}</td>
+                    <td class="text-truncate py-1" style="max-width: 200px;" [title]="file.fileName">{{ file.fileName }}
+                    </td>
+                    <td class="text-center py-1">{{ file.fileType }}</td>
+                    <td class="text-center py-1">
+                      <a class="text-danger" style="cursor: pointer;" (click)="removeFile(i)" title="Xóa file">
+                        <i class="fa-solid fa-trash-can"></i>
+                      </a>
+                    </td>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </div>
+          </div>
 
         </div>
       </div>
     </form>
-
-
-    <!-- Ảnh đính kèm -->
-    <div class="mt-2 border-top pt-2">
-      <div class="d-flex align-items-center gap-2 mb-2">
-        <h6 class="text-secondary mb-0"><i class="fa-solid fa-image me-2"></i>Ảnh đính kèm</h6>
-        <input type="file" multiple accept="image/*" class="form-control form-control-sm" #fileInput
-          style="max-width: 250px; height: 26px; font-size: 11px; padding: 2px 8px;" (change)="onFileSelected($event)">
-      </div>
-      <nz-table #fileTable [nzData]="attachedFiles" nzSize="small" [nzShowPagination]="false"
-        [nzScroll]="{ y: '100px' }" nzBordered [nzFrontPagination]="false" [nzLoading]="false">
-        <thead>
-          <tr>
-            <th nzWidth="45px" class="text-center py-1">STT</th>
-            <th class="py-1">Tên file</th>
-            <th nzWidth="70px" class="text-center py-1">Loại</th>
-            <!-- <th nzWidth="70px" class="text-center py-1">Dung lượng</th> -->
-            <th nzWidth="50px" class="text-center py-1">Xóa</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let file of attachedFiles; let i = index" style="font-size: 12px;">
-            <td class="text-center py-1">{{ i + 1 }}</td>
-            <td class="text-truncate py-1" style="max-width: 200px;" [title]="file.fileName">{{ file.fileName }}</td>
-            <td class="text-center py-1">{{ file.fileType }}</td>
-            <td class="text-center py-1">
-              <a class="text-danger" style="cursor: pointer;" (click)="removeFile(i)" title="Xóa file">
-                <i class="fa-solid fa-trash-can"></i>
-              </a>
-            </td>
-          </tr>
-        </tbody>
-      </nz-table>
-    </div>
 
 
   </div>
@@ -279,7 +301,8 @@
   <div class="detail-footer d-flex justify-content-end gap-2">
 
     <button nz-button nzType="default" (click)="destroyModal()"><i class="fa-solid fa-xmark me-2"></i>Đóng</button>
-    <button nz-button nzType="primary" (click)="submitForm()" [nzLoading]="isSubmitting"><i class="fa-solid fa-floppy-disk me-2" *ngIf="!isSubmitting"></i>Lưu
+    <button nz-button nzType="primary" (click)="submitForm()" [nzLoading]="isSubmitting"><i
+        class="fa-solid fa-floppy-disk me-2" *ngIf="!isSubmitting"></i>Lưu
       lại</button>
   </div>
 </div>

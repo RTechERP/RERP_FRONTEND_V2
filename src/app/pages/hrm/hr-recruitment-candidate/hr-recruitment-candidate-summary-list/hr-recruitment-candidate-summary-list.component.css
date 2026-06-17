@@ -1,0 +1,395 @@
+:host {
+  display: block;
+  height: 93vh;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.summary-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-size: 12px !important;
+  color: #333;
+}
+
+:host ::ng-deep * {
+  font-size: 12px !important;
+}
+
+.filter-bar {
+  padding: 10px 15px;
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.splitter-container {
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+}
+
+/* Fix ng-zorro spin to take full height and be a flex container */
+:host ::ng-deep .ant-spin-nested-loading {
+  height: 100%;
+}
+
+:host ::ng-deep .ant-spin-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-section {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fix PrimeNG table to take full height and scroll internally */
+:host ::ng-deep .p-datatable {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+:host ::ng-deep .p-datatable-wrapper {
+  flex: 1;
+}
+
+:host ::ng-deep .p-paginator {
+  flex-shrink: 0;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  font-size: 12px !important;
+  padding: 6px 8px !important;
+  background-color: #f8f9fa !important;
+  color: #333 !important;
+  font-weight: 600 !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  font-size: 12px !important;
+  padding: 6px 8px !important;
+  vertical-align: top;
+  white-space: normal !important;
+  word-break: break-word;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
+  background-color: #e6f7ff !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr.p-highlight {
+  background-color: #bae7ff !important;
+  color: #000 !important;
+}
+
+/* Splitter Panel Adjustments */
+::ng-deep .ant-splitter-panel {
+  overflow: hidden;
+}
+
+/* Previews paper styling (Thông tin cá nhân, Học vấn, v.v.) */
+.preview-paper {
+  background: #ffffff;
+  padding: 20px;
+  font-size: 12px !important;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+  margin-bottom: 15px;
+}
+
+.preview-paper * {
+  font-size: 12px !important;
+}
+
+.preview-paper .table-bordered th, 
+.preview-paper .table-bordered td {
+  border: 1px solid #dee2e6 !important;
+}
+
+.info-table td {
+  padding: 4px 8px;
+}
+
+/* Đánh giá phỏng vấn paper style */
+.assessment-paper {
+  background: #ffffff;
+  padding: 30px;
+  color: #1a1a1a;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+
+.assessment-paper * {
+  font-size: 12px !important;
+}
+
+.assessment-paper .section-title {
+  font-weight: bold;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.assessment-paper .criteria-card {
+  border: 1px dashed #dee2e6;
+  background-color: #f8fafc;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.assessment-paper .badge-success {
+  background-color: #28a745 !important;
+  color: white !important;
+}
+.assessment-paper .badge-primary {
+  background-color: #0d6efd !important;
+  color: white !important;
+}
+.assessment-paper .badge-danger {
+  background-color: #dc3545 !important;
+  color: white !important;
+}
+.assessment-paper .badge-secondary {
+  background-color: #6c757d !important;
+  color: white !important;
+}
+
+.assessment-paper .signature-section {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* Tờ trình phê duyệt tuyển dụng paper style */
+.ttr-paper,
+.ttr-paper * {
+  font-family: 'Times New Roman', Times, serif !important;
+  font-size: 13px !important;
+}
+
+.ttr-paper {
+  background: #ffffff;
+  padding: 30px 40px;
+  color: #000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  line-height: 1.5;
+  border-radius: 2px;
+}
+
+.ttr-header-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.ttr-col-left {
+  width: 45%;
+  text-align: center;
+  vertical-align: top;
+  font-weight: bold;
+}
+
+.ttr-col-right {
+  width: 55%;
+  text-align: center;
+  vertical-align: top;
+}
+
+.cdoc-underline {
+  border-top: 1px solid #000;
+  height: 0;
+  width: 35%;
+  margin: 1px auto 10px auto;
+}
+
+.cdoc-underline2 {
+  border-top: 1px solid #000;
+  height: 0;
+  width: 50%;
+  margin: 2px auto 0 auto;
+}
+
+.ttr-ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+
+.ttr-so {
+  text-align: left;
+}
+
+.ttr-ngay {
+  text-align: right;
+  font-style: italic;
+}
+
+.ttr-title-block {
+  text-align: center;
+  margin: 15px 0;
+}
+
+.ttr-title {
+  font-weight: bold;
+  font-size: 15px !important;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.ttr-subtitle {
+  font-size: 13px !important;
+  margin: 2px 0 0 0;
+}
+
+.ttr-can-cu-block {
+  margin-bottom: 10px;
+}
+
+.ttr-can-cu {
+  font-style: italic;
+  font-size: 13px !important;
+}
+
+.ttr-the {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.ttr-section-h {
+  font-size: 13px !important;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+.ttr-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.ttr-info-table td {
+  padding: 2px 4px;
+}
+
+.info-lbl {
+  width: 160px;
+  white-space: nowrap;
+}
+
+.info-sep {
+  width: 15px;
+  text-align: center;
+}
+
+.ttr-exp-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+
+.ttr-exp-table th,
+.ttr-exp-table td {
+  border: 1px solid #000;
+  padding: 4px 6px;
+  vertical-align: middle;
+}
+
+.ttr-exp-table th {
+  font-weight: bold;
+  background-color: #fafafa;
+}
+
+.ttr-num-para {
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+.ttr-benefit-list {
+  padding-left: 20px;
+  margin: 5px 0;
+}
+
+.ttr-benefit-list li {
+  margin-bottom: 4px;
+}
+
+.ttr-body-para {
+  margin: 10px 0;
+}
+
+.ttr-sig-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 25px;
+}
+
+.ttr-sig-col {
+  flex: 1;
+  text-align: center;
+  padding: 0 4px;
+}
+
+.ttr-sig-title {
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.ttr-sig-space {
+  height: 50px;
+}
+
+.ttr-sig-name-input {
+  font-weight: bold;
+  text-transform: uppercase;
+  border-top: 1px solid #ddd;
+  padding-top: 4px;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.6);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+.scrollable-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-content-container {
+  padding-right: 4px;
+}
+
+/* Custom badges */
+.badge {
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.bg-danger-subtle {
+  background-color: #f8d7da !important;
+}
+
+.border-dashed {
+  border-style: dashed !important;
+  border-width: 1px !important;
+  border-color: #ced4da !important;
+}
+

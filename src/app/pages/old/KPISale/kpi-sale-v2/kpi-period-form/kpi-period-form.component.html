@@ -1,0 +1,49 @@
+<!-- <div class="period-form-container"> -->
+  <form nz-form nzLayout="vertical" class="compact-form">
+    <div class="form-grid">
+      <div class="field">
+        <span>Loại kỳ</span>
+        <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="periodType"
+          [(ngModel)]="periodDraft.periodType" (ngModelChange)="onPeriodTypeOrYearChange()">
+          <nz-option *ngFor="let item of periodTypes" [nzValue]="item"
+            [nzLabel]="getPeriodTypeLabel(item)"></nz-option>
+        </nz-select>
+      </div>
+      <div class="field">
+        <span>Năm</span>
+        <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="periodYear"
+          [(ngModel)]="periodYear" (ngModelChange)="onPeriodTypeOrYearChange()">
+          <nz-option *ngFor="let y of availableYears" [nzValue]="y" [nzLabel]="'' + y"></nz-option>
+        </nz-select>
+      </div>
+      <div class="field" *ngIf="periodDraft.periodType === 'QUARTER'">
+        <span>Quý</span>
+        <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="periodQuarter"
+          [(ngModel)]="periodQuarter" (ngModelChange)="onPeriodTypeOrYearChange()">
+          <nz-option [nzValue]="1" nzLabel="Quý 1"></nz-option>
+          <nz-option [nzValue]="2" nzLabel="Quý 2"></nz-option>
+          <nz-option [nzValue]="3" nzLabel="Quý 3"></nz-option>
+          <nz-option [nzValue]="4" nzLabel="Quý 4"></nz-option>
+        </nz-select>
+      </div>
+    </div>
+    <div class="field">
+      <span>Mã kỳ</span>
+      <input nz-input nzSize="small" name="periodCode" [(ngModel)]="periodDraft.periodCode" readonly />
+    </div>
+    <div class="field">
+      <span>Tên kỳ</span>
+      <input nz-input nzSize="small" name="periodName" [(ngModel)]="periodDraft.periodName" readonly />
+    </div>
+    <div class="inline-control mt-2">
+      <span>Đã khóa</span>
+      <nz-switch nzSize="small" name="periodClosed" [(ngModel)]="periodDraft.isClosed"></nz-switch>
+    </div>
+    <div class="form-actions mt-4">
+      <button nz-button nzType="primary" nzSize="small" type="button" (click)="onSave()">
+        {{ periodDraft.periodType === 'YEAR' ? 'Tạo Năm + Quý + Tháng' : 'Tạo Quý + Tháng' }}
+      </button>
+      <button nz-button nzSize="small" type="button" (click)="onReset()">Tạo mới</button>
+    </div>
+  </form>
+<!-- </div> -->

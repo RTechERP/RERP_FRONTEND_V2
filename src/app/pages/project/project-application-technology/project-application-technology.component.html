@@ -1,0 +1,359 @@
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0"
+    style="display: flex; flex-direction: column; height: calc(100vh - 90px) !important">
+
+    <!-- Action Toolbar (Menubar) -->
+    <div class="card-header bg-white p-1">
+      <p-menubar [model]="menuItems" styleClass="p-0 border-0">
+        <ng-template pTemplate="end">
+          <button *ngIf="!isMobile" nz-button nzType="text" nzShape="circle" (click)="ToggleSearchPanelNew()"
+            style="font-size: 18px; line-height: 1" title="Thu gọn">
+            <nz-icon [nzType]="showSearchBar ? 'up' : 'down'" nzTheme="outline">
+            </nz-icon>
+          </button>
+        </ng-template>
+      </p-menubar>
+    </div>
+
+    <!-- Inline Search Toolbar -->
+    <div class="bg-light border-bottom p-2" *ngIf="showSearchBar">
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <nz-form-label class="fs-12 m-0" style="font-size: 12px">Từ ngày</nz-form-label>
+        <input nz-input type="date" [(ngModel)]="dateStart" style="width: 140px" nzSize="small" />
+
+        <nz-form-label class="fs-12 m-0" style="font-size: 12px">Đến ngày</nz-form-label>
+        <input nz-input type="date" [(ngModel)]="dateEnd" style="width: 140px" nzSize="small" />
+
+
+
+        <nz-form-label class="fs-12 m-0" style="font-size: 12px">Lĩnh vực ứng dụng</nz-form-label>
+        <nz-select [(ngModel)]="selectedAppTypeIds" nzMode="multiple" nzShowSearch nzAllowClear nzSize="small"
+          nzPlaceHolder="Lĩnh vực ứng dụng" style="min-width: 200px; max-width: 280px;"
+          nzDropdownClassName="select-dropdown" [nzMaxTagCount]="1">
+          <nz-option [nzLabel]="'Tất cả'" [nzValue]="null"></nz-option>
+          <nz-option [nzLabel]="'[Chưa cấu hình]'" [nzValue]="0"></nz-option>
+          @for (item of applicationTypes; track $index) {
+          <nz-option nzCustomContent="true" [nzLabel]="item.ApplicationName" [nzValue]="item.ID">
+            {{ item.ApplicationName }}
+          </nz-option>
+          }
+        </nz-select>
+
+        <nz-form-label class="fs-12 m-0" style="font-size: 12px">Công nghệ</nz-form-label>
+        <nz-select [(ngModel)]="selectedTechIds" nzMode="multiple" nzShowSearch nzAllowClear nzSize="small"
+          nzPlaceHolder="Công nghệ" style="min-width: 200px; max-width: 280px;" nzDropdownClassName="select-dropdown"
+          [nzMaxTagCount]="1">
+          <nz-option [nzLabel]="'Tất cả'" [nzValue]="null"></nz-option>
+          <nz-option [nzLabel]="'[Chưa cấu hình]'" [nzValue]="0"></nz-option>
+          @for (item of technologies; track $index) {
+          <nz-option nzCustomContent="true" [nzLabel]="item.TechnologyName" [nzValue]="item.ID">
+            {{ item.TechnologyName }}
+          </nz-option>
+          }
+        </nz-select>
+
+        <input nz-input nzSize="small" placeholder="Từ khóa..." style="width: 200px" [(ngModel)]="keyword"
+          (keyup.enter)="searchProjects(1, pageSize)" />
+
+        <button nz-button nzType="primary" nzSize="small" (click)="searchProjects(1, pageSize)">
+          <nz-icon nzType="search" /> Tìm kiếm
+        </button>
+
+        <button nz-button nzType="primary" nzSize="small" nz-dropdown [nzDropdownMenu]="searchMenu" nzTrigger="click"
+          nzPlacement="bottomRight" style="padding-left: 8px; padding-right: 8px">
+          <i nz-icon nzType="down"></i>
+        </button>
+
+        <nz-dropdown-menu #searchMenu="nzDropdownMenu">
+          <div class="p-3" style="min-width: 320px; background: #fff; border: 1px solid #d9d9d9;
+            border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15)">
+            <ng-container *ngTemplateOutlet="advancedFiltersTemplate"></ng-container>
+          </div>
+        </nz-dropdown-menu>
+      </div>
+    </div>
+
+    <!-- Main Table Area -->
+    <div class="card-body p-0 position-relative" style="flex: 1; display: flex; min-height: 0; flex-direction: column">
+      <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu dự án..."
+        style="flex: 1; display: flex; flex-direction: column">
+        <div class="table-container" style="height: 100%; flex: 1; display: flex; flex-direction: column">
+          <p-table #dtProjects [value]="dataset" selectionMode="single" [(selection)]="selectedRow" dataKey="ID"
+            [scrollable]="true" scrollHeight="flex" [virtualScroll]="true"
+            [virtualScrollItemSize]="projectVirtualRowHeight" [virtualScrollOptions]="projectVirtualScrollOptions"
+            [paginator]="true" [rows]="pageSize" [totalRecords]="totalRecords" [lazy]="true"
+            (onLazyLoad)="loadProjectsLazy($event)" [rowsPerPageOptions]="[100, 200, 500, 9999, 99999]"
+            [resizableColumns]="true" columnResizeMode="expand" (onRowSelect)="handleRowClick($event.data)"
+            styleClass="project-master-table p-datatable-sm p-datatable-gridlines p-datatable-striped"
+            (onFilter)="applyLocalFilterAndSort($event)">
+
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width: 10%" pSortableColumn="ProjectStatusName" pResizableColumn>
+                  Trạng thái <p-sortIcon field="ProjectStatusName"></p-sortIcon>
+                </th>
+                <th style="width: 10%" pSortableColumn="ProjectCode" pResizableColumn>
+                  Mã dự án <p-sortIcon field="ProjectCode"></p-sortIcon>
+                </th>
+                <th style="width: 15%" pSortableColumn="ProjectName" pResizableColumn>
+                  Tên dự án <p-sortIcon field="ProjectName"></p-sortIcon>
+                </th>
+                <th style="width: 15%" pSortableColumn="EndUserName" pResizableColumn>
+                  End User <p-sortIcon field="EndUserName"></p-sortIcon>
+                </th>
+                <th style="width: 15%" pSortableColumn="CustomerName" pResizableColumn>
+                  Khách hàng <p-sortIcon field="CustomerName"></p-sortIcon>
+                </th>
+                <th style="width: 12.5%" pSortableColumn="ApplicationTypeNames" pResizableColumn>
+                  Kiểu ứng dụng <p-sortIcon field="ApplicationTypeNames"></p-sortIcon>
+                </th>
+                <th style="width: 12.5%" pSortableColumn="TechnologyNames" pResizableColumn>
+                  Công nghệ <p-sortIcon field="TechnologyNames"></p-sortIcon>
+                </th>
+              </tr>
+              <tr>
+                <th style="width: 10%">
+                  <p-columnFilter field="ProjectStatusName" matchMode="in" [showMenu]="false">
+                    <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                      <p-multiselect [ngModel]="value" [options]="statusFilterOptions" optionLabel="label"
+                        optionValue="value" placeholder="Tất cả" (onChange)="filter($event.value)" appendTo="body"
+                        styleClass="w-full status-filter-select" selectedItemsLabel="{0} trạng thái">
+                      </p-multiselect>
+                    </ng-template>
+                  </p-columnFilter>
+                </th>
+                <th style="width: 10%">
+                  <p-columnFilter field="ProjectCode" matchMode="contains" [showMenu]="false">
+                    <ng-template pTemplate="filter" let-filter="filterCallback">
+                      <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                        (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                        placeholder="Mã..." />
+                    </ng-template>
+                  </p-columnFilter>
+                </th>
+                <th style="width: 15%">
+                  <p-columnFilter field="ProjectName" matchMode="contains" [showMenu]="false">
+                    <ng-template pTemplate="filter" let-filter="filterCallback">
+                      <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                        (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                        placeholder="Tên..." />
+                    </ng-template>
+                  </p-columnFilter>
+                </th>
+                <th style="width: 15%">
+                  <p-columnFilter field="EndUserName" matchMode="contains" [showMenu]="false">
+                    <ng-template pTemplate="filter" let-filter="filterCallback">
+                      <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                        (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                        placeholder="End User..." />
+                    </ng-template>
+                  </p-columnFilter>
+                </th>
+                <th style="width: 15%">
+                  <p-columnFilter field="CustomerName" matchMode="contains" [showMenu]="false">
+                    <ng-template pTemplate="filter" let-filter="filterCallback">
+                      <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                        (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                        placeholder="Khách hàng..." />
+                    </ng-template>
+                  </p-columnFilter>
+                </th>
+                <th style="width: 12.5%">
+                  <p-columnFilter field="ApplicationTypeNames" matchMode="contains" [showMenu]="false">
+                    <ng-template pTemplate="filter" let-filter="filterCallback">
+                      <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                        (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                        placeholder="Ứng dụng..." />
+                    </ng-template>
+                  </p-columnFilter>
+                </th>
+                <th style="width: 12.5%">
+                  <p-columnFilter field="TechnologyNames" matchMode="contains" [showMenu]="false">
+                    <ng-template pTemplate="filter" let-filter="filterCallback">
+                      <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                        (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                        placeholder="Công nghệ..." />
+                    </ng-template>
+                  </p-columnFilter>
+                </th>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-rowData>
+              <tr [pSelectableRow]="rowData" (dblclick)="openEditMappingModal(rowData)" style="cursor: pointer;">
+                <td style="width: 10%">
+                  <span class="fs-12 fw-500">{{ rowData.ProjectStatusName }}</span>
+                </td>
+                <td style="width: 10%">
+                  <span class="fs-12 fw-500">{{ rowData.ProjectCode }}</span>
+                </td>
+                <td style="width: 15%" class="cell-wrap">
+                  {{ rowData.ProjectName }}
+                </td>
+                <td style="width: 15%" class="cell-wrap">
+                  {{ rowData.EndUserName }}
+                </td>
+                <td style="width: 15%" class="cell-wrap">
+                  {{ rowData.CustomerName }}
+                </td>
+                <td style="width: 12.5%" class="cell-wrap" title="{{ rowData.ApplicationTypeNames }}">
+                  {{ rowData.ApplicationTypeNames }}
+                </td>
+                <td style="width: 12.5%" class="cell-wrap" title="{{ rowData.TechnologyNames }}">
+                  {{ rowData.TechnologyNames }}
+                </td>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="7" class="text-center p-3 text-muted">
+                  Không tìm thấy dữ liệu dự án.
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </nz-spin>
+    </div>
+
+  </div>
+</ng-container>
+
+<!-- Modal Chỉnh sửa kiểu dự án, lĩnh vực & công nghệ -->
+<nz-modal [(nzVisible)]="isModalVisible" nzTitle="Chỉnh sửa kiểu dự án, lĩnh vực & công nghệ"
+  (nzOnCancel)="closeModal()" [nzWidth]="1000" [nzMaskClosable]="false" nzWrapClassName="blue-header-modal"
+  [nzBodyStyle]="{ 'padding': '16px', 'overflow-y': 'auto', 'max-height': 'calc(100vh - 200px)' }">
+  <ng-container *nzModalContent>
+    <nz-spin [nzSpinning]="isDetailLoading" nzTip="Đang tải cấu hình kiểu dự án...">
+      <div class="mb-2 text-muted fs-11" *ngIf="selectedRow">
+        Dự án đang chọn: <strong>{{ selectedRow.ProjectCode }} - {{ selectedRow.ProjectName }}</strong>
+      </div>
+      <div style="min-height: 300px;" *ngIf="projectTypeCols.length">
+        <app-custom-tree-table [data]="projectTypeNodes" [columns]="projectTypeCols" selectionMode="checkbox"
+          [(selection)]="selectedTypeNodes" (selectionChange)="onSelectionChange($event)" [scrollable]="true"
+          scrollHeight="400px" [editMode]="'cell'" (cellValueChange)="handleCellValueChange($event)"
+          (lookupSelect)="onLookupSelect($event)" class="rerp-tree-table">
+        </app-custom-tree-table>
+      </div>
+    </nz-spin>
+  </ng-container>
+  <div *nzModalFooter>
+    <button nz-button nzType="primary" nzDanger (click)="closeModal()">Đóng</button>
+    <button nz-button nzType="primary" (click)="saveData()" [nzLoading]="isSaving">Lưu</button>
+  </div>
+</nz-modal>
+
+<!-- Advanced Filter Overlay Dropdown Menu -->
+<ng-template #advancedFiltersTemplate>
+  <form nz-form nzLayout="vertical">
+    <nz-form-item class="mb-2">
+      <nz-form-label class="fs-12">Khách hàng</nz-form-label>
+      <nz-form-control>
+        <nz-select [(ngModel)]="customerId" name="customerId" nzShowSearch nzAllowClear nzSize="small"
+          nzPlaceHolder="Chọn Khách hàng" style="width: 100%" nzDropdownClassName="select-dropdown">
+          <nz-option nzLabel="Tất cả" [nzValue]="null"></nz-option>
+          @for (item of customers; track $index) {
+          <nz-option nzCustomContent="true" [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"
+            [nzValue]="item.ID">
+            {{ item.CustomerCode + " - " + item.CustomerName }}
+          </nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item class="mb-2">
+      <nz-form-label class="fs-12">Sale</nz-form-label>
+      <nz-form-control>
+        <nz-select [(ngModel)]="userId" name="userId" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Chọn Sale"
+          style="width: 100%">
+          @for (parent of users; track $index) {
+          <nz-option-group [nzLabel]="parent.label">
+            @for (child of parent.options; track $index) {
+            <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+              [nzValue]="child.item.ID">
+              {{ child.item.Code + " - " + child.item.FullName }}
+            </nz-option>
+            }
+          </nz-option-group>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item class="mb-2">
+      <nz-form-label class="fs-12">PM</nz-form-label>
+      <nz-form-control>
+        <nz-select [(ngModel)]="pmId" name="pmId" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Chọn PM"
+          style="width: 100%">
+          @for (parent of pms; track $index) {
+          <nz-option-group [nzLabel]="parent.label">
+            @for (child of parent.options; track $index) {
+            <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+              [nzValue]="child.item.EmployeeID">
+              {{ child.item.Code + " - " + child.item.FullName }}
+            </nz-option>
+            }
+          </nz-option-group>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item class="mb-2">
+      <nz-form-label class="fs-12">Kỹ thuật</nz-form-label>
+      <nz-form-control>
+        <nz-select [(ngModel)]="technicalId" name="technicalId" nzShowSearch nzAllowClear nzSize="small"
+          nzPlaceHolder="Chọn kỹ thuật" style="width: 100%">
+          @for (parent of users; track $index) {
+          <nz-option-group [nzLabel]="parent.label">
+            @for (child of parent.options; track $index) {
+            <nz-option nzCustomContent="true" [nzLabel]="child.item?.Code + ' - ' + child.item?.FullName"
+              [nzValue]="child.item.ID">
+              {{ child.item.Code + " - " + child.item.FullName }}
+            </nz-option>
+            }
+          </nz-option-group>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item class="mb-2">
+      <nz-form-label class="fs-12">Lĩnh vực</nz-form-label>
+      <nz-form-control>
+        <nz-select [(ngModel)]="businessFieldId" name="businessFieldId" nzShowSearch nzAllowClear nzSize="small"
+          nzPlaceHolder="Chọn lĩnh vực" style="width: 100%">
+          @for (item of businessFields; track $index) {
+          <nz-option nzCustomContent="true" [nzLabel]="item.Code + ' - ' + item.Name" [nzValue]="item.ID">
+            {{ item.Code + " - " + item.Name }}
+          </nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item class="mb-2">
+      <nz-form-label class="fs-12">Kiểu dự án</nz-form-label>
+      <nz-form-control>
+        <nz-select [(ngModel)]="projectTypeIds" name="projectTypeIds" nzMode="multiple" nzAllowClear [nzMaxTagCount]="2"
+          nzSize="small" nzPlaceHolder="Chọn kiểu dự án" style="width: 100%">
+          @for (item of projectTypes; track $index) {
+          <nz-option [nzLabel]="item.ProjectTypeCode + ' - ' + item.ProjectTypeName" [nzValue]="item.ID"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item class="mb-2" *ngIf="isHide">
+      <nz-form-label class="fs-12">Trạng thái</nz-form-label>
+      <nz-form-control>
+        <nz-select [(ngModel)]="projecStatusIds" name="projecStatusIds" nzMode="multiple" nzAllowClear
+          [nzMaxTagCount]="1" nzSize="small" nzPlaceHolder="Chọn trạng thái" style="width: 100%">
+          @for (item of projecStatuses; track $index) {
+          <nz-option [nzLabel]="item.StatusName" [nzValue]="item.ID"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+    <div class="d-flex gap-1 justify-content-end mt-2">
+      <button nz-button nzType="default" nzSize="small" (click)="setDefautSearch()">Đặt lại</button>
+      <button nz-button nzType="primary" nzSize="small" (click)="searchProjects(1, pageSize)">Tìm kiếm</button>
+    </div>
+  </form>
+</ng-template>

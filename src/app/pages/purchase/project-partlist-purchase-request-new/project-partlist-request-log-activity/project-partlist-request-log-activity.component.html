@@ -35,17 +35,17 @@
                     <div class="log-line"></div>
                 </div>
                 <div class="log-body">
-                    <div class="log-type">{{ log.TypeLog }}</div>
-                    <div class="log-content">{{ log.ContentLog }}</div>
-                    <div class="log-meta">
-                        <span class="log-author">
-                            <i nz-icon nzType="user" nzTheme="outline"></i>
-                            {{ log.CreatedBy }}
-                        </span>
-                        <span class="log-time">
+                    <div class="log-type d-flex justify-content-between align-items-center">
+                        <span>{{ log.TypeLog }}</span>
+
+                        <span class="log-time text-muted small">
                             <i nz-icon nzType="clock-circle" nzTheme="outline"></i>
                             {{ log.CreatedDate | date:'dd/MM/yyyy HH:mm:ss' }}
                         </span>
+                    </div>
+
+                    <div class="log-content">
+                        {{ log.ContentLog }}
                     </div>
                 </div>
             </div>

@@ -511,6 +511,13 @@ export class PhaseAllocationPersonComponent
             return `Đã nhận: ${cell.getValue()}`;
           },
         },
+        {
+          title: 'Ghi chú',
+          field: 'ContentReceive',
+          headerHozAlign: 'left',
+          hozAlign: 'left',
+          width: 100
+        },
       ],
     });
   }
@@ -1261,7 +1268,8 @@ export class PhaseAllocationPersonComponent
         'Số lượng',
         'Đơn vị',
         'Ngày nhận',
-        'Trạng thái nhận'
+        'Trạng thái nhận',
+        'Ghi chú'
       ]);
 
       // Style header: Font 12 Times New Roman, background xanh lá nhạt, border
@@ -1316,10 +1324,11 @@ export class PhaseAllocationPersonComponent
           '',
           '',
           '',
+          '',
           ''
         ]);
         // Merge cells cho tên phòng ban
-        worksheet.mergeCells(deptHeaderRow.number, 1, deptHeaderRow.number, 7);
+        worksheet.mergeCells(deptHeaderRow.number, 1, deptHeaderRow.number, 8);
         deptHeaderRow.getCell(1).font = {
           name: 'Tahoma',
           size: 10,
@@ -1362,7 +1371,8 @@ export class PhaseAllocationPersonComponent
             detail.Quantity || '',
             detail.UnitName || '',
             formatDate(detail.DateReceive),
-            statusReceive ? '✓' : ''
+            statusReceive ? '✓' : '',
+            detail.ContentReceive || ''
           ]);
 
           // Style dữ liệu: Font 8.5 Tahoma, border
@@ -1402,7 +1412,8 @@ export class PhaseAllocationPersonComponent
           '',
           '',
           '',
-          'Đã nhận: ' + deptReceivedCount + '/' + deptEmployees.length
+          'Đã nhận: ' + deptReceivedCount + '/' + deptEmployees.length,
+          ''
         ]);
         deptCountRow.eachCell((cell: ExcelJS.Cell) => {
           cell.font = {
@@ -1431,7 +1442,8 @@ export class PhaseAllocationPersonComponent
         '',
         '',
         '',
-        'Đã nhận: ' + totalReceivedCount + '/' + this.detailData.length
+        'Đã nhận: ' + totalReceivedCount + '/' + this.detailData.length,
+        ''
       ]);
       countRow.eachCell((cell: ExcelJS.Cell) => {
         cell.font = {
@@ -1466,6 +1478,7 @@ export class PhaseAllocationPersonComponent
         { width: 12 },  // Đơn vị
         { width: 18 },  // Ngày nhận
         { width: 15 },  // Trạng thái
+        { width: 25 },  // Ghi chú
       ];
 
       // Xuất file

@@ -1,0 +1,273 @@
+<div class="kpi-summary-container">
+  <!-- Toolbar -->
+  <div class="kpi-summary-toolbar">
+    <div class="toolbar-row">
+      <div class="toolbar-field">
+        <label>Nhân viên</label>
+        <nz-select
+          [(ngModel)]="selectedEmployeeId"
+          (ngModelChange)="onEmployeeChange()"
+          nzPlaceHolder="Chọn nhân viên"
+          nzShowSearch
+          nzAllowClear
+          style="width: 220px">
+          <nz-option
+            *ngFor="let emp of employees"
+            [nzValue]="emp.UserID"
+            [nzLabel]="(emp.Code || '') + ' - ' + (emp.FullName || emp.fullName || emp.name || emp.loginName || emp.userName || emp.id)">
+          </nz-option>
+        </nz-select>
+      </div>
+
+      <div class="toolbar-field">
+        <label>Mẫu KPI</label>
+        <nz-select
+          [(ngModel)]="selectedTemplateId"
+          (ngModelChange)="onTemplateChange()"
+          nzPlaceHolder="Chọn mẫu KPI"
+          style="width: 220px">
+          <nz-option
+            *ngFor="let t of templates"
+            [nzValue]="t.id"
+            [nzLabel]="t.templateName">
+          </nz-option>
+        </nz-select>
+      </div>
+
+      <div class="toolbar-field">
+        <label>Quý / Năm</label>
+        <nz-select
+          [(ngModel)]="selectedQuarterId"
+          (ngModelChange)="onQuarterChange($event)"
+          nzPlaceHolder="Chọn quý hoặc năm"
+          nzShowSearch
+          nzAllowClear
+          style="width: 220px">
+          <nz-option
+            *ngFor="let period of quarterPeriods"
+            [nzValue]="period.id"
+            [nzLabel]="period.periodName || period.periodCode">
+          </nz-option>
+        </nz-select>
+      </div>
+
+      <div class="toolbar-field toolbar-badge" *ngIf="summaryData">
+        <nz-badge [nzStatus]="'success'" nzText="Đã tải"></nz-badge>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Info Bar -->
+  <div class="summary-info-bar" *ngIf="summaryData">
+    <span class="info-tag">
+      <span nz-icon nzType="calendar" nzTheme="outline"></span>
+      {{ summaryData.quarterName || summaryData.quarterCode }}
+    </span>
+    <span class="info-tag">
+      <span nz-icon nzType="unordered-list" nzTheme="outline"></span>
+      {{ summaryData.items.length || 0 }} chỉ số
+    </span>
+    <span class="info-tag" *ngIf="summaryData.warnings && summaryData.warnings.length">
+      <span nz-icon nzType="warning" nzTheme="outline"></span>
+      {{ summaryData.warnings.length }} cảnh báo
+    </span>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper" *ngIf="summaryData && summaryData.items && summaryData.items.length > 0; else emptyTpl">
+    <nz-spin [nzSpinning]="loading" nzSize="large">
+      <div class="table-scroll">
+        <table class="kpi-summary-table">
+          <!-- Header Row 1 -->
+          <thead>
+            <tr class="header-row-1">
+              <th class="col-index" rowspan="2">Chỉ số KPI</th>
+              <ng-container *ngFor="let p of summaryData.periods; let i = index">
+                <th class="col-period-group" colspan="3">{{ p.periodName || p.periodCode }}</th>
+              </ng-container>
+              <th class="col-period-group col-quarter" colspan="3">
+                {{ summaryData.quarterName || summaryData.quarterCode }}
+              </th>
+            </tr>
+            <tr class="header-row-2">
+              <ng-container *ngFor="let p of summaryData.periods">
+                <th class="col-goal">Mục tiêu</th>
+                <th class="col-result">Kết quả</th>
+                <th class="col-score">Điểm</th>
+              </ng-container>
+              <th class="col-goal col-quarter">Mục tiêu</th>
+              <th class="col-result col-quarter">Kết quả</th>
+              <th class="col-score col-quarter">Điểm</th>
+            </tr>
+          </thead>
+
+          <!-- Body -->
+          <tbody>
+            <tr
+              *ngFor="let row of regularRows; let rowIndex = index; trackBy: trackByIndex"
+              [ngClass]="getRowClasses(row, rowIndex)">
+              <!-- Index Column -->
+              <td class="col-index">
+                <div class="index-cell">
+                  <span class="index-name" [nz-tooltip]="row.indexName">{{ row.indexName }}</span>
+                  <span class="weight-badge" *ngIf="row.weightPercent > 0">{{ row.weightPercent }}%</span>
+                </div>
+              </td>
+
+              <!-- Monthly Values -->
+              <ng-container *ngFor="let mv of row.monthlyValues; let i = index">
+                <td class="col-goal" [class]="getResultClass(mv.goal, mv.goal)">
+                  <span [class]="'val-text ' + (mv.goal > 0 ? 'val-non-zero' : 'val-zero')">
+                    {{ formatVal(mv.goal) }}
+                  </span>
+                </td>
+                <td class="col-result" [class]="getResultClass(mv.result, mv.goal)">
+                  <span [class]="'val-text ' + getResultClass(mv.result, mv.goal)">
+                    {{ formatVal(mv.result) }}
+                  </span>
+                </td>
+                <td class="col-score" [class]="getScoreClass(mv.score, mv.goal)">
+                  <span class="score-text">{{ round(mv.score) }}%</span>
+                </td>
+              </ng-container>
+
+              <!-- Quarterly Values -->
+              <td class="col-goal col-quarter" [class]="getResultClass(row.quarterValue.goal, row.quarterValue.goal)">
+                <span [class]="'val-text ' + (row.quarterValue.goal > 0 ? 'val-non-zero' : 'val-zero')">
+                  {{ formatVal(row.quarterValue.goal) }}
+                </span>
+              </td>
+              <td class="col-result col-quarter" [class]="getResultClass(row.quarterValue.result, row.quarterValue.goal)">
+                <span [class]="'val-text ' + getResultClass(row.quarterValue.result, row.quarterValue.goal)">
+                  {{ formatVal(row.quarterValue.result) }}
+                </span>
+              </td>
+              <td class="col-score col-quarter" [class]="getScoreClass(row.quarterValue.score, row.quarterValue.goal)">
+                <span class="score-text">{{ round(row.quarterValue.score) }}%</span>
+              </td>
+            </tr>
+          </tbody>
+
+          <!-- Footer -->
+          <tfoot>
+            <tr class="footer-row">
+              <td class="col-index footer-label">
+                <strong>Tổng điểm KPI</strong>
+              </td>
+              <ng-container *ngFor="let p of summaryData.periods; let i = index">
+                <td class="col-goal"></td>
+                <td class="col-result"></td>
+                <td class="col-score footer-score-cell">
+                  <strong class="footer-score">{{ getSummaryPerformanceLabel(i) }}</strong>
+                </td>
+              </ng-container>
+              <td class="col-goal col-quarter"></td>
+              <td class="col-result col-quarter"></td>
+              <td class="col-score col-quarter footer-score-cell">
+                <strong class="footer-score footer-score-quarter">
+                  {{ getSummaryPerformanceLabel(3) }}
+                </strong>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </nz-spin>
+  </div>
+
+  <!-- Report Adjustments Table -->
+  <div class="report-table-wrapper" *ngIf="hasReportRows && summaryData">
+    <div class="report-table-header">
+      <span class="report-title">
+        <span nz-icon nzType="file-text" nzTheme="outline"></span>
+        Điều chỉnh điểm báo cáo
+      </span>
+      <span class="report-count">{{ reportRows.length }} chỉ tiêu</span>
+    </div>
+    <nz-spin [nzSpinning]="loading" nzSize="large">
+      <div class="report-table-scroll">
+        <table class="kpi-report-table">
+          <thead>
+            <tr class="report-header-row-1">
+              <th class="col-report-index" rowspan="2">Chỉ tiêu báo cáo</th>
+              <ng-container *ngFor="let p of summaryData.periods; let i = index">
+                <th class="col-report-period-group" colspan="2">{{ p.periodName || p.periodCode }}</th>
+              </ng-container>
+              <th class="col-report-period-group col-report-quarter" colspan="2">
+                {{ summaryData.quarterName || summaryData.quarterCode }}
+              </th>
+            </tr>
+            <tr class="report-header-row-2">
+              <ng-container *ngFor="let p of summaryData.periods">
+                <th class="col-report-adjustment">Điều chỉnh</th>
+                <th class="col-report-score">Điểm</th>
+              </ng-container>
+              <th class="col-report-adjustment col-report-quarter">Điều chỉnh</th>
+              <th class="col-report-score col-report-quarter">Điểm</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of reportRows; let rowIndex = index"
+                [ngClass]="{'row-even': rowIndex % 2 === 1}">
+              <td class="col-report-index">
+                <div class="index-cell">
+                  <span class="index-name">{{ row.indexName }}</span>
+                </div>
+              </td>
+              <!-- Monthly Values -->
+              <ng-container *ngFor="let mv of row.monthlyValues; let i = index">
+                <td class="col-report-adjustment" [class]="getAdjustmentTypeClass(row.reportScoreAdjustmentType)">
+                  <span class="adjustment-badge" *ngIf="row.reportScoreAdjustmentType !== 0"
+                        [ngClass]="getAdjustmentTypeClass(row.reportScoreAdjustmentType)">
+                    <span class="adjustment-type">{{ getAdjustmentTypeLabel(row.reportScoreAdjustmentType) }}</span>
+                    <span class="adjustment-value">{{ round(row.reportScoreValue) }}%</span>
+                  </span>
+                  <span *ngIf="row.reportScoreAdjustmentType === 0" class="adjustment-none">-</span>
+                </td>
+                <td class="col-report-score" [class]="getScoreClass(row.quarterValue.score, 100)">
+                  <span class="score-text">{{ round(mv.score) }}%</span>
+                </td>
+              </ng-container>
+              <!-- Quarterly Values -->
+              <td class="col-report-adjustment col-report-quarter" [class]="getAdjustmentTypeClass(row.reportScoreAdjustmentType)">
+                <span class="adjustment-badge" *ngIf="row.reportScoreAdjustmentType !== 0"
+                      [ngClass]="getAdjustmentTypeClass(row.reportScoreAdjustmentType)">
+                  <span class="adjustment-type">{{ getAdjustmentTypeLabel(row.reportScoreAdjustmentType) }}</span>
+                  <span class="adjustment-value">{{ round(row.reportScoreValue) }}%</span>
+                </span>
+                <span *ngIf="row.reportScoreAdjustmentType === 0" class="adjustment-none">-</span>
+              </td>
+              <td class="col-report-score col-report-quarter" [class]="getScoreClass(row.quarterValue.score, 100)">
+                <span class="score-text">{{ round(row.quarterValue.score) }}%</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </nz-spin>
+  </div>
+
+  <!-- Empty State -->
+  <ng-template #emptyTpl>
+    <div class="empty-state" *ngIf="!loading">
+      <div *ngIf="!selectedEmployeeId || !selectedQuarterId || !selectedTemplateId">
+        <span nz-icon nzType="info-circle" nzTheme="outline" class="empty-icon"></span>
+        <p>Vui lòng chọn <strong>nhân viên</strong>, <strong>mẫu KPI</strong> và <strong>quý</strong> để xem dữ liệu tổng hợp.</p>
+      </div>
+      <div *ngIf="selectedEmployeeId && selectedQuarterId && selectedTemplateId && !summaryData && !loading">
+        <span nz-icon nzType="loading" nzTheme="outline" class="empty-icon"></span>
+        <p>Đang tải dữ liệu...</p>
+      </div>
+      <div *ngIf="selectedEmployeeId && selectedQuarterId && selectedTemplateId && summaryData && summaryData.items && summaryData.items.length === 0">
+        <span nz-icon nzType="file-search" nzTheme="outline" class="empty-icon"></span>
+        <p>Không có dữ liệu KPI cho kỳ đã chọn.</p>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" *ngIf="loading">
+    <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+    <p>Đang tải dữ liệu tổng hợp KPI...</p>
+  </div>
+</div>

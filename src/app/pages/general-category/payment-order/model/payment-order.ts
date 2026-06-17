@@ -131,6 +131,7 @@ export class PaymentOrder {
     InvoiceAccNumber: string | null = '';
     CostCategory: string | null = '';
     AccountingAccount: string | null = '';
+    TotalPaymentWithInvoice: number | null = 0;
     // ===== Optional: constructor map từ object =====
     constructor(init?: Partial<PaymentOrder>) {
         Object.assign(this, init);
@@ -274,6 +275,7 @@ export const PaymentOrderField = {
     InvoiceAccNumber: { name: 'Số hóa đơn', field: 'InvoiceAccNumber', type: 'string' },
     CostCategory: { name: 'Khoản mục chi phí', field: 'CostCategory', type: 'string' },
     AccountingAccount: { name: 'Tài khoản hạch toán', field: 'AccountingAccount', type: 'string' },
+    TotalPaymentWithInvoice: { name: 'Tổng tiền có hóa đơn', field: 'TotalPaymentWithInvoice', type: 'number' },
 } as const
 
 

@@ -9,6 +9,8 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import * as ExcelJS from 'exceljs';
+import { DateTime } from 'luxon';
+(window as any).luxon = { DateTime };
 import { ProjectPartlistPurchaseRequestService } from '../project-partlist-purchase-request.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { NzSpinComponent } from "ng-zorro-antd/spin";
@@ -69,6 +71,13 @@ export class HistoryPriceComponent implements OnInit, AfterViewInit {
         },
         columns: [
           {
+            title: 'Mã dự án',
+            field: 'ProjectCode',
+            width: 150,
+            headerSort: false,
+            formatter: 'textarea'
+          },
+          {
             title: 'Mã sản phẩm',
             field: 'ProductCode',
             width: 150,
@@ -123,11 +132,37 @@ export class HistoryPriceComponent implements OnInit, AfterViewInit {
             formatter: 'textarea'
           },
           {
+            title: 'Ngày báo giá',
+            field: 'CreatedDate',
+            width: 100,
+            headerSort: false,
+            hozAlign: 'center',
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              if (!value) return '';
+              const dt = DateTime.fromISO(String(value));
+              if (!dt.isValid) return '';
+              if (dt.toFormat('yyyy-MM-dd') === '1900-01-01') return '-';
+              return dt.toFormat('dd/MM/yyyy');
+            },
+          },
+          {
+            title: 'Số lượng',
+            field: 'Quantity',
+            width: 50,
+            headerSort: false,
+            hozAlign: 'right',
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              return value ? `${value}` : '';
+            }
+          },
+          {
             title: 'Lead Time',
             field: 'LeadTime',
             width: 50,
             headerSort: false,
-            hozAlign: 'center',
+            hozAlign: 'right',
             formatter: (cell: any) => {
               const value = cell.getValue();
               return value ? `${value}` : '';
@@ -157,6 +192,7 @@ export class HistoryPriceComponent implements OnInit, AfterViewInit {
 
   onSearch(): void {
     this.getHistoryPrice();
+
   }
 
   exportToExcel(): void {

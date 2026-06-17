@@ -20,6 +20,7 @@ export const MAIN_COLUMNS: ColDef[] = [
     { field: 'TotalMoney', header: 'Số tiền', width: '150px', type: 'number', filterType: 'number', align: 'right' },
     { field: 'TotalPayment', header: 'Số tiền thanh toán', width: '150px', type: 'number', filterType: 'number', align: 'right' },
     { field: 'TotalPaymentActual', header: 'Số tiền TT thực tế', width: '150px', type: 'number', filterType: 'number', align: 'right' },
+    { field: 'TotalPaymentWithInvoice', header: 'Tổng tiền có HĐ', width: '150px', type: 'number', filterType: 'number', align: 'right' },
     { field: 'Unit', header: 'ĐVT', width: '80px', filterType: 'multiselect', uppercase: true },
     { field: 'IsIgnoreHR', header: 'Bỏ qua HR', width: '100px', type: 'boolean', filterType: 'multiselect', align: 'center' },
     { field: 'TypeBankTransferText', header: 'Hình thức TT', width: '170px', filterType: 'multiselect' },

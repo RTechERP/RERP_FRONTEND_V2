@@ -1307,23 +1307,46 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     openHistoryMoneyModal(): void {
-        if (!this.selectedId) {
+        // Lấy danh sách POKH IDs đã chọn (hỗ trợ multi-select)
+        const selectedPokhIds = this.selectedPOKHRows
+            .map((row: any) => Number(row?.ID) || 0)
+            .filter((id: number, index: number, array: number[]) => id > 0 && array.indexOf(id) === index);
+
+        // Nếu không có checkbox nào được chọn, dùng selectedId (click đơn)
+        const effectivePokhIds = selectedPokhIds.length > 0
+            ? selectedPokhIds
+            : (this.selectedId ? [this.selectedId] : []);
+
+        if (effectivePokhIds.length === 0) {
             this.notification.warning(
                 NOTIFICATION_TITLE.warning,
                 'Vui lòng chọn POKH cần xem lịch sử tiền về'
             );
             return;
         }
-        const poCode = this.selectedRow?.['POCode'] || this.selectedId;
 
-        this.tabService.openTabComp({
-            comp: HistoryMoneyPrimengComponent,
-            title: `Lịch sử tiền về - ${poCode}`,
-            key: `history-money-${this.selectedId}`,
-            data: {
-                filterText: this.selectedRow?.['POCode']
-            }
-        });
+        // Nếu chọn nhiều PO, mở tab với danh sách pokhIds
+        // Nếu chọn 1 PO, mở tab với filterText để tương thích ngược
+        if (effectivePokhIds.length > 1) {
+            this.tabService.openTabComp({
+                comp: HistoryMoneyPrimengComponent,
+                title: `Lịch sử tiền về - ${effectivePokhIds.length} PO`,
+                key: `history-money-multiple-${effectivePokhIds.join('-')}`,
+                data: {
+                    pokhIds: effectivePokhIds
+                }
+            });
+        } else {
+            const poCode = this.selectedRow?.['POCode'] || this.selectedId;
+            this.tabService.openTabComp({
+                comp: HistoryMoneyPrimengComponent,
+                title: `Lịch sử tiền về - ${poCode}`,
+                key: `history-money-${this.selectedId}`,
+                data: {
+                    filterText: this.selectedRow?.['POCode']
+                }
+            });
+        }
     }
 
     openProjectPartlistPurchaseRequest(): void {

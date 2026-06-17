@@ -64,6 +64,10 @@ export class UserManagementDetailComponent implements OnInit {
       BirthOfDate: [null],
       Sex: [1],
       IsActive: [true],
+      PhoneNumber: ['', [Validators.pattern(/^0\d{9}$/)]],
+      Address: [''],
+      Organization: [''],
+      Position: [''],
     });
   }
 
@@ -75,6 +79,10 @@ export class UserManagementDetailComponent implements OnInit {
         BirthOfDate: this.userData.BirthOfDate ? new Date(this.userData.BirthOfDate) : null,
         Sex: this.userData.Sex ?? 1,
         IsActive: this.userData.Status === 0,
+        PhoneNumber: this.userData.PhoneNumber || '',
+        Address: this.userData.Address || '',
+        Organization: this.userData.Organization || '',
+        Position: this.userData.Position || '',
       });
     }
   }
@@ -96,6 +104,10 @@ export class UserManagementDetailComponent implements OnInit {
       BirthOfDate: formValue.BirthOfDate,
       Sex: formValue.Sex,
       Status: formValue.IsActive ? 0 : -1,
+      PhoneNumber: formValue.PhoneNumber,
+      Address: formValue.Address,
+      Organization: formValue.Organization,
+      Position: formValue.Position,
     };
 
     if (this.mode === 'add') {

@@ -949,6 +949,7 @@ export class ProjectPartlistPriceRequestFormComponent
           width: '150',
           hozAlign: 'left',
           editable: (cell: any) => {
+            if (this.priceRequestTypeID === 6) return false;
             const rowData = cell.getRow().getData();
             return this.canEditCell(rowData);
           },
@@ -962,6 +963,7 @@ export class ProjectPartlistPriceRequestFormComponent
           width: '200',
           hozAlign: 'left',
           editable: (cell: any) => {
+            if (this.priceRequestTypeID === 6) return false;
             const rowData = cell.getRow().getData();
             return this.canEditCell(rowData);
           },
@@ -983,6 +985,7 @@ export class ProjectPartlistPriceRequestFormComponent
             return firm ? firm.Code || firm.FirmCode || firm.Name : val;
           },
           editable: (cell: any) => {
+            if (this.priceRequestTypeID === 6) return false;
             const rowData = cell.getRow().getData();
             return this.canEditCell(rowData);
           },

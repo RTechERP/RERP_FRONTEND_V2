@@ -1429,6 +1429,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     // gridBand5: ComplaneAndMissing, DeadlineDelay (Caption: "Tinh thần làm việc") - CustomerComplaint, MissingTool hidden
     // gridBand6: KPIKyNang, KPIChung, KPIChuyenMon (no caption)
     // gridBand7: KPIPLC, KPIVision, KPISoftware (Caption: "Chuyên môn", HIDDEN)
+    const zeroToEmptyFormatter = (row: number, cell: number, value: any) =>
+      (value !== null && value !== undefined && value !== '' && Number(value) !== 0) ? Number(value).toFixed(2) : '';
+
     this.teamColumns = [
       // ========== gridBand3: Thông tin cơ bản (Fixed Left, no caption) ==========
       {
@@ -1468,7 +1471,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         minWidth: 120,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tuân thủ nội quy, Quy định'
+        columnGroup: 'Tuân thủ nội quy, Quy định',
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'FiveS',
@@ -1477,7 +1481,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         minWidth: 140,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tuân thủ nội quy, Quy định'
+        columnGroup: 'Tuân thủ nội quy, Quy định',
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'ReportWork',
@@ -1486,7 +1491,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         minWidth: 145,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tuân thủ nội quy, Quy định'
+        columnGroup: 'Tuân thủ nội quy, Quy định',
+        formatter: zeroToEmptyFormatter
       },
       // ========== gridBand5: Tinh thần làm việc ==========
       // CustomerComplaint và MissingTool ẩn trong WinForm
@@ -1497,7 +1503,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         minWidth: 351,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tinh thần làm việc'
+        columnGroup: 'Tinh thần làm việc',
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'DeadlineDelay',
@@ -1506,7 +1513,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         minWidth: 215,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tinh thần làm việc'
+        columnGroup: 'Tinh thần làm việc',
+        formatter: zeroToEmptyFormatter
       },
       // ========== gridBand6: KPI (no caption) ==========
       {
@@ -1515,7 +1523,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         name: 'Kỹ năng',
         minWidth: 99,
         cssClass: 'text-right',
-        sortable: true
+        sortable: true,
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'KPIChung',
@@ -1523,7 +1532,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         name: 'Đánh giá chung',
         minWidth: 140,
         cssClass: 'text-right',
-        sortable: true
+        sortable: true,
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'KPIChuyenMon',
@@ -1532,7 +1542,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         minWidth: 139,
         cssClass: 'text-right',
         sortable: true,
-        resizable: true
+        resizable: true,
+        formatter: zeroToEmptyFormatter
       }
       // ========== gridBand7: Chuyên môn (HIDDEN trong WinForm) ==========
       // KPIPLC, KPIVision, KPISoftware - không hiển thị
@@ -1696,9 +1707,17 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     this.autoFillLastColumn(this.angularGridEvaluation);
     this.applyEvaluationRowStyling(this.angularGridEvaluation);
 
+    // Restore data khi grid được recreate bởi *ngIf (do switch tab)
+    if (this.dataEvaluation.length > 0 && this.angularGridEvaluation?.dataView) {
+      this.angularGridEvaluation.dataView.setItems(this.dataEvaluation);
+    }
+
     setTimeout(() => {
       if (this.angularGridEvaluation?.resizerService) {
         this.angularGridEvaluation.resizerService.resizeGrid();
+      }
+      if (this.dataEvaluation.length > 0) {
+        this.updateEvaluationFooter(this.angularGridEvaluation, this.dataEvaluation);
       }
     }, 100);
   }
@@ -1708,9 +1727,17 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     this.autoFillLastColumn(this.angularGridEvaluation2);
     this.applyEvaluationRowStyling(this.angularGridEvaluation2);
 
+    // Restore data khi grid được recreate bởi *ngIf (do switch tab)
+    if (this.dataEvaluation2.length > 0 && this.angularGridEvaluation2?.dataView) {
+      this.angularGridEvaluation2.dataView.setItems(this.dataEvaluation2);
+    }
+
     setTimeout(() => {
       if (this.angularGridEvaluation2?.resizerService) {
         this.angularGridEvaluation2.resizerService.resizeGrid();
+      }
+      if (this.dataEvaluation2.length > 0) {
+        this.updateEvaluationFooter(this.angularGridEvaluation2, this.dataEvaluation2);
       }
     }, 100);
   }
@@ -1720,9 +1747,17 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     this.autoFillLastColumn(this.angularGridEvaluation4);
     this.applyEvaluationRowStyling(this.angularGridEvaluation4);
 
+    // Restore data khi grid được recreate bởi *ngIf (do switch tab)
+    if (this.dataEvaluation4.length > 0 && this.angularGridEvaluation4?.dataView) {
+      this.angularGridEvaluation4.dataView.setItems(this.dataEvaluation4);
+    }
+
     setTimeout(() => {
       if (this.angularGridEvaluation4?.resizerService) {
         this.angularGridEvaluation4.resizerService.resizeGrid();
+      }
+      if (this.dataEvaluation4.length > 0) {
+        this.updateEvaluationFooter(this.angularGridEvaluation4, this.dataEvaluation4);
       }
     }, 100);
   }
@@ -1763,12 +1798,23 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     this.autoFillLastColumn(this.angularGridRule);
     this.applyRuleGridRowStyling(this.angularGridRule);
 
+    // Nếu data đã load từ background API trước khi grid render (do *ngIf lazy),
+    // cần setItems lại vì grid mới tạo có dataView rỗng
+    if (this.dataRule.length > 0 && this.angularGridRule?.dataView) {
+      this.angularGridRule.dataView.setItems(this.dataRule);
+    }
+
     setTimeout(() => {
       if (this.angularGridRule?.resizerService) {
         this.angularGridRule.resizerService.resizeGrid();
       }
+      // Cập nhật footer ngay khi grid ready (có data)
+      if (this.dataRule.length > 0) {
+        this.updateRuleFooter();
+      }
     }, 100);
   }
+
 
   /**
    * Áp dụng styling cho KPI Rule Grid
@@ -1827,6 +1873,12 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     this.angularGridTeam = angularGrid.detail ?? angularGrid;
     this.autoFillLastColumn(this.angularGridTeam);
 
+    // Nếu data đã load từ background API trước khi grid render (do *ngIf lazy),
+    // cần setItems lại vì grid mới tạo có dataView rỗng
+    if (this.dataTeam.length > 0 && this.angularGridTeam?.dataView) {
+      this.angularGridTeam.dataView.setItems(this.dataTeam);
+    }
+
     setTimeout(() => {
       if (this.angularGridTeam?.resizerService) {
         this.angularGridTeam.resizerService.resizeGrid();
@@ -1834,6 +1886,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
       this.updateTeamFooter();
     }, 100);
   }
+
 
   /**
    * Cập nhật footer cho Team grid với giá trị trung bình
@@ -2121,7 +2174,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
           .subscribe({
             next: (res) => {
               if (res.data) {
-        
+
                 // Cập nhật isPublic theo logic WinForm: isTBPView || empPoint.IsPublish
                 const empPointIsPublish = res.data.IsPublish === true || res.data.IsPublish === 1;
                 this.isPublic = this.isTBPView || empPointIsPublish;
@@ -2238,6 +2291,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     modalRef.componentInstance.kpiExam = selectedExam;
     modalRef.componentInstance.status = selectedExam.Status || 0;
     modalRef.componentInstance.departmentID = this.departmentID;
+    modalRef.componentInstance.isAdminConfirm = this.isAdminConfirm || false;
 
     // Subscribe to dataSaved event to reload data when save is successful
     modalRef.componentInstance.dataSaved.subscribe(() => {
@@ -2279,6 +2333,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
           kpiExam: selectedExam,
           status: selectedExam.Status || 0,
           departmentID: this.departmentID,
+          isAdminConfirm: this.isAdminConfirm || false,
           onSavedCallback: () => {
             this.loadDataDetails();
             this.loadKPIExam(this.selectedSessionID);
@@ -2472,6 +2527,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         case 5: // Tab 6: Team
           if (this.isTab5Loaded && this.dataTeam.length > 0) {
             this.refreshGrid(this.angularGridTeam, this.dataTeam);
+            setTimeout(() => this.updateTeamFooter(), 100);
           }
           break;
       }
@@ -2595,8 +2651,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         // Tab 1 (index=1) - Chung
         if (results.chung?.data) {
           console.log('[DEBUG] Loading "Chung" data, count:', results.chung.data.length);
-          this.dataEvaluation4 = this.transformToTreeData(results.chung.data);
-          this.dataEvaluation4 = this.calculatorAvgPoint(this.dataEvaluation4);
+          let chungLocal = this.transformToTreeData(results.chung.data);
+          this.dataEvaluation4 = this.calculatorAvgPoint(chungLocal);
           this.isTab2Loaded = true;
           if (this.angularGridEvaluation4) {
             this.updateGrid(this.angularGridEvaluation4, this.dataEvaluation4);
@@ -2607,8 +2663,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
         // Tab 2 (index=2) - Chuyên môn
         if (results.chuyenMon?.data) {
           console.log('[DEBUG] Loading "Chuyên môn" data, count:', results.chuyenMon.data.length);
-          this.dataEvaluation2 = this.transformToTreeData(results.chuyenMon.data);
-          this.dataEvaluation2 = this.departmentID === this.departmentCK ? this.calculatorAvgPointTKCK(this.dataEvaluation2, 'specialization') : this.calculatorAvgPoint(this.dataEvaluation2);
+          let cmLocal = this.transformToTreeData(results.chuyenMon.data);
+          this.dataEvaluation2 = this.departmentID === this.departmentCK ? this.calculatorAvgPointTKCK(cmLocal, 'specialization') : this.calculatorAvgPoint(cmLocal);
           this.isTab3Loaded = true;
           if (this.angularGridEvaluation2) {
             this.updateGrid(this.angularGridEvaluation2, this.dataEvaluation2);
@@ -2648,10 +2704,6 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
               __hasChildren: false
             });
             this.dataRule = tempRuleData;
-
-            if (this.angularGridRule) {
-              this.updateGrid(this.angularGridRule, this.dataRule);
-            }
           }
           // Xử lý dtTeam
           if (results.ruleTeam.data.dtTeam) {
@@ -2661,6 +2713,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
             }));
             if (this.angularGridTeam) {
               this.updateGrid(this.angularGridTeam, this.dataTeam);
+              setTimeout(() => this.updateTeamFooter(), 150);
             }
           }
           // Lưu empPointID từ response để dùng cho loadPointRuleNew
@@ -3905,8 +3958,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
             totalBgdPoint = 0;
           } else {
             // Kỹ năng / Chung: TBP nhập trực tiếp tại node cha
-            totalTbpPoint = this.formatDecimalNumber(parseFloat(row.TBPPointInput) || parseFloat(row.TBPEvaluation) || 0, 2);
-            totalBgdPoint = this.formatDecimalNumber(parseFloat(row.TBPPointInput) || parseFloat(row.BGDEvaluation) || 0, 2);
+            totalTbpPoint = this.formatDecimalNumber(parseFloat(row.TBPPoint) || parseFloat(row.TBPEvaluation) || 0, 2);
+            totalBgdPoint = this.formatDecimalNumber(parseFloat(row.TBPPoint) || parseFloat(row.BGDEvaluation) || 0, 2);
           }
         } else if (stt.startsWith(startStt)) {
           // Đây là node con
@@ -3916,9 +3969,9 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
           totalEmpPoint += this.formatDecimalNumber(parseFloat(row.EmployeePoint) || 0, 2);
           totalStandardPoint += this.formatDecimalNumber(parseFloat(row.StandardPoint) || 0, 2);
           if (gridType === 'specialization') {
-            // Chuyên môn: TBP/BGĐ nhập ở node CON (TBPPointInput), cộng dồn lên node cha
-            totalTbpPoint += this.formatDecimalNumber(parseFloat(row.TBPPointInput) || parseFloat(row.TBPPoint) || 0, 2);
-            totalBgdPoint += this.formatDecimalNumber(parseFloat(row.BGDPointInput) || parseFloat(row.TBPPointInput) || parseFloat(row.TBPPoint) || 0, 2);
+            // Chuyên môn: TBP/BGĐ nhập ở node CON (TBPPoint), cộng dồn lên node cha
+            totalTbpPoint += this.formatDecimalNumber(parseFloat(row.TBPPoint) || parseFloat(row.TBPPoint) || 0, 2);
+            totalBgdPoint += this.formatDecimalNumber(parseFloat(row.BGDPoint) || parseFloat(row.TBPPoint) || parseFloat(row.TBPPoint) || 0, 2);
           }
           count++;
         }

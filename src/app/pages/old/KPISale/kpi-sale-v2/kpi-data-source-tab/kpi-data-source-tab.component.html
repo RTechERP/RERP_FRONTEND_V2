@@ -1,0 +1,100 @@
+<div class="page-container">
+  <div class="toolbar-header bg-white p-0" style="flex-shrink: 0; margin-bottom: 8px;">
+    <p-menubar [model]="menuBars" class="p-1">
+      <ng-template pTemplate="start">
+        <h4 class="page-title mb-0" style="margin-left: 10px; margin-right: 20px; font-weight: 600; line-height: 1;">Quản lý Nguồn dữ liệu</h4>
+      </ng-template>
+      <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command($event) : null">
+          <i [class]="item.icon"></i>
+          <span class="p-menuitem-text" style="margin-left: 8px;">{{ item.label }}</span>
+        </a>
+      </ng-template>
+    </p-menubar>
+  </div>
+
+  <div class="content-container">
+    <nz-table #sourceTable [nzData]="dataSources" [nzFrontPagination]="false" nzSize="small" nzBordered [nzLoading]="isLoading" [nzScroll]="{ y: '240px' }" style="height: 100%;">
+      <thead>
+        <tr>
+          <th nzWidth="150px">Mã nguồn</th>
+          <th nzWidth="250px">Tên nguồn</th>
+          <th nzWidth="200px">Bảng được phép</th>
+          <th nzWidth="120px">Cột ngày</th>
+          <th nzWidth="150px">Cột nhân viên</th>
+          <th nzWidth="150px">Cột giá trị</th>
+          <th nzWidth="100px" nzAlign="center">Đang dùng</th>
+          <th nzWidth="100px" nzAlign="center">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of sourceTable.data; trackBy: trackById">
+          <td class="mono font-weight-bold">{{ item.sourceCode }}</td>
+          <td>{{ item.sourceName }}</td>
+          <td>{{ getDataSourceTableName(item) }}</td>
+          <td class="mono">{{ item.dateColumn }}</td>
+          <td class="mono">{{ item.employeeColumn }}</td>
+          <td class="mono">{{ item.valueColumn }}</td>
+          <td nzAlign="center">
+            <nz-switch nzSize="small" [ngModel]="item.isActive" nzDisabled></nz-switch>
+          </td>
+          <td nzAlign="center">
+            <a class="action-btn text-primary" style="margin-right: 8px" (click)="openForm(item)">
+              <i nz-icon nzType="edit"></i>
+            </a>
+            <a class="action-btn text-danger" nz-popconfirm nzPopconfirmTitle="Bạn có chắc muốn xóa nguồn dữ liệu này?" (nzOnConfirm)="deleteDataSource(item.id)">
+              <i nz-icon nzType="delete"></i>
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </div>
+</div>
+
+<!-- Template: Form Nguồn dữ liệu -->
+<ng-template #dataSourceFormTemplate>
+  <form nz-form nzLayout="vertical" class="compact-form">
+    <div class="field">
+      <span>Mã nguồn</span>
+      <input nz-input name="sourceCode" [(ngModel)]="dataSourceDraft.sourceCode" placeholder="Nhập mã nguồn (ví dụ: SRC_SALE_DETAIL)" />
+    </div>
+    <div class="field">
+      <span>Tên nguồn</span>
+      <input nz-input name="sourceName" [(ngModel)]="dataSourceDraft.sourceName" placeholder="Nhập tên nguồn dữ liệu" />
+    </div>
+    <div class="field">
+      <span>Bảng được phép</span>
+      <nz-select nzDropdownClassName="select-dropdown" name="allowedTableId" [(ngModel)]="dataSourceDraft.allowedTableId" (ngModelChange)="onTableChange($event)" class="w-100" nzShowSearch nzPlaceHolder="Chọn bảng dữ liệu được phép">
+        <nz-option *ngFor="let item of allowedTables; trackBy: trackById" [nzValue]="item.id" [nzLabel]="item.schemaName + '.' + item.tableName">
+        </nz-option>
+      </nz-select>
+    </div>
+    
+    <div class="field">
+      <span>Cột ngày</span>
+      <nz-select nzDropdownClassName="select-dropdown" name="dateColumn" [(ngModel)]="dataSourceDraft.dateColumn" class="w-100" nzPlaceHolder="Chọn cột ngày">
+        <nz-option *ngFor="let item of columnsForDraftSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
+      </nz-select>
+    </div>
+    
+    <div class="field">
+      <span>Cột nhân viên</span>
+      <nz-select nzDropdownClassName="select-dropdown" name="employeeColumn" nzAllowClear [(ngModel)]="dataSourceDraft.employeeColumn" class="w-100" nzPlaceHolder="Chọn cột nhân viên (không bắt buộc)">
+        <nz-option *ngFor="let item of columnsForDraftSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
+      </nz-select>
+    </div>
+    
+    <div class="field">
+      <span>Cột giá trị</span>
+      <nz-select nzDropdownClassName="select-dropdown" name="valueColumn" nzAllowClear [(ngModel)]="dataSourceDraft.valueColumn" class="w-100" nzPlaceHolder="Chọn cột giá trị (không bắt buộc)">
+        <nz-option *ngFor="let item of columnsForDraftSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
+      </nz-select>
+    </div>
+    
+    <div class="inline-control mt-3">
+      <span>Đang dùng</span>
+      <nz-switch name="sourceActive" [(ngModel)]="dataSourceDraft.isActive"></nz-switch>
+    </div>
+  </form>
+</ng-template>

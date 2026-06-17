@@ -1,3 +1,102 @@
-::ng-deep div[id^="billImportTechnicalGrid-"] {
-  min-height: 55vh !important;
+:host {
+  height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep nz-splitter,
+:host ::ng-deep .ant-splitter {
+  height: 100% !important;
+  flex: 1;
+  min-height: 0;
+}
+
+:host ::ng-deep nz-splitter-panel,
+:host ::ng-deep .ant-splitter-panel {
+  overflow: hidden;
+  height: 100% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure cards in splitter panel have proper height */
+:host ::ng-deep .ant-splitter-panel .card {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure card-body can scroll if needed */
+:host ::ng-deep .ant-splitter-panel .card-body {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* Grid containers height management */
+.grid-container,
+.grid-container-detail {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .grid-container nz-spin,
+:host ::ng-deep .grid-container .ant-spin-nested-loading,
+:host ::ng-deep .grid-container .ant-spin-container,
+:host ::ng-deep .grid-container angular-slickgrid,
+:host ::ng-deep .grid-container .slickgrid-container,
+:host ::ng-deep .grid-container .gridPane,
+:host ::ng-deep .grid-container-detail nz-spin,
+:host ::ng-deep .grid-container-detail .ant-spin-nested-loading,
+:host ::ng-deep .grid-container-detail .ant-spin-container,
+:host ::ng-deep .grid-container-detail angular-slickgrid,
+:host ::ng-deep .grid-container-detail .slickgrid-container,
+:host ::ng-deep .grid-container-detail .gridPane {
+  height: 100% !important;
+}
+
+/* Tabset styles to fill remaining height */
+:host ::ng-deep nz-tabset,
+:host ::ng-deep .ant-tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+:host ::ng-deep .ant-tabs-content-holder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+:host ::ng-deep .ant-tabs-content {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+:host ::ng-deep .ant-tabs-tabpane {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Detail spinner alignment and size */
+:host ::ng-deep .ant-tabs-tabpane nz-spin,
+:host ::ng-deep .ant-tabs-tabpane .ant-spin-nested-loading,
+:host ::ng-deep .ant-tabs-tabpane .ant-spin-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }

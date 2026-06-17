@@ -352,6 +352,14 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 format: fmtMoney,
                 cssClass: 'text-right',
             },
+            {
+                field: 'TotalPaymentWithInvoice',
+                header: 'Số tiền có HĐ',
+                width: '120px',
+                filterType: 'numeric',
+                format: fmtMoney,
+                cssClass: 'text-right',
+            },
             { field: 'Unit', header: 'ĐVT', width: '60px', cssClass: 'text-center' },
             {
                 field: 'IsIgnoreHR',

@@ -69,14 +69,32 @@ angular-slickgrid,
 }
 
 /* ==================== HEADER STYLES ==================== */
-/* Scoped to Team Grid only */
+/* Global rules for all grid headers in kpi-employee-wrapper to prevent truncation and allow wrap */
+:host ::ng-deep .kpi-employee-wrapper .slick-header-column {
+    white-space: normal !important;
+    line-height: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    -webkit-line-clamp: unset !important;
+    line-clamp: unset !important;
+}
+
+:host ::ng-deep .kpi-employee-wrapper .slick-header-column .slick-column-name {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: break-word !important;
+    line-height: 1.2 !important;
+    -webkit-line-clamp: unset !important;
+    line-clamp: unset !important;
+}
+
+/* Scoped to Team Grid only - specifically for height and flex alignment */
 :host ::ng-deep .kpi-employee-wrapper .grid-team-container .slick-header-column {
     background-color: #fafafa;
     border-right: 1px solid #ddd !important;
     font-weight: 600;
     height: 100px !important;
-    line-height: normal !important;
-    white-space: normal !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -85,11 +103,6 @@ angular-slickgrid,
 
 :host ::ng-deep .kpi-employee-wrapper .grid-team-container .slick-header-columns {
     height: 100px !important;
-}
-
-:host ::ng-deep .kpi-employee-wrapper .grid-team-container .slick-header-column .slick-column-name {
-    white-space: normal !important;
-    line-height: 1.2 !important;
 }
 
 :host ::ng-deep .kpi-employee-wrapper .slick-row.active {

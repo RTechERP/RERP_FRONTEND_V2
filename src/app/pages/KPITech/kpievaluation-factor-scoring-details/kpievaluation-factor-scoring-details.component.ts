@@ -424,7 +424,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       this.status = this.tabData.status ?? this.status;
       this.departmentID = this.tabData.departmentID ?? this.departmentID;
       this.isAdminConfirm = this.tabData.isAdminConfirm ?? this.isAdminConfirm;
-      if (this.tabData.canSave !== undefined) {
+      if (this.typePoint === 4 && !this.isAdminConfirm) {
+        this.canSave = false;
+      } else if (this.tabData.canSave !== undefined) {
         this.canSave = this.tabData.canSave;
       }
     }
@@ -1829,19 +1831,29 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   //#endregion
 
   private initTeamGrid(): void {
+    const formatZeroToEmpty = (value: any) => {
+      if (value === null || value === undefined || value === '' || Number(value) === 0) {
+        return '';
+      }
+      return Number(value).toFixed(2);
+    };
+
+    const zeroToEmptyFormatter = (row: number, cell: number, value: any) =>
+      (value !== null && value !== undefined && value !== '' && Number(value) !== 0) ? Number(value).toFixed(2) : '';
+
     this.teamColumnsDef = [
       { field: 'STT', header: 'STT', minWidth: 60, cssClass: 'text-center', sortable: true, footer: (data) => `<b>${data.length}</b>` },
       { field: 'FullName', header: 'Thành viên', minWidth: 265, sortable: false },
       { field: 'PositionName', header: 'Vị trí', minWidth: 156, sortable: false },
       { field: 'ProjectTypeName', header: 'Nhóm', minWidth: 136, sortable: false },
-      { field: 'TimeWork', header: 'Thời gian, giờ giấc', minWidth: 120, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'FiveS', header: '5s, Quy trình quy định', minWidth: 140, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'ReportWork', header: 'Chuẩn bị hàng, report', minWidth: 145, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'ComplaneAndMissing', header: 'Có thái độ không tốt với khách hàng để khách hàng complain ảnh hưởng đến công ty, Không chủ động báo cáo các vấn đề phát sinh làm ảnh hưởng đến tiến dự án', minWidth: 351, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'DeadlineDelay', header: 'Không hoàn thành công việc theo đúng tiến độ yêu cầu của TBP/PBP trở lên hoặc từ sale PM yêu cầu', minWidth: 215, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'KPIKyNang', header: 'Kỹ năng', minWidth: 99, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'KPIChung', header: 'Đánh giá chung', minWidth: 140, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
-      { field: 'KPIChuyenMon', header: 'Chuyên môn', minWidth: 139, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } }
+      { field: 'TimeWork', header: 'Thời gian, giờ giấc', minWidth: 120, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'FiveS', header: '5s, Quy trình quy định', minWidth: 140, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'ReportWork', header: 'Chuẩn bị hàng, report', minWidth: 145, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'ComplaneAndMissing', header: 'Có thái độ không tốt với khách hàng để khách hàng complain ảnh hưởng đến công ty, Không chủ động báo cáo các vấn đề phát sinh làm ảnh hưởng đến tiến dự án', minWidth: 351, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'DeadlineDelay', header: 'Không hoàn thành công việc theo đúng tiến độ yêu cầu của TBP/PBP trở lên hoặc từ sale PM yêu cầu', minWidth: 215, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'KPIKyNang', header: 'Kỹ năng', minWidth: 99, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'KPIChung', header: 'Đánh giá chung', minWidth: 140, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty },
+      { field: 'KPIChuyenMon', header: 'Chuyên môn', minWidth: 139, cssClass: 'text-right', sortable: false, footerType: 'avg', footerFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, format: formatZeroToEmpty }
     ];
 
     this.teamColumns = [
@@ -1883,7 +1895,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 120,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tuân thủ nội quy, Quy định'
+        columnGroup: 'Tuân thủ nội quy, Quy định',
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'FiveS',
@@ -1892,7 +1905,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 140,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tuân thủ nội quy, Quy định'
+        columnGroup: 'Tuân thủ nội quy, Quy định',
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'ReportWork',
@@ -1901,7 +1915,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 145,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tuân thủ nội quy, Quy định'
+        columnGroup: 'Tuân thủ nội quy, Quy định',
+        formatter: zeroToEmptyFormatter
       },
       // ========== gridBand5: Tinh thần làm việc ==========
       // CustomerComplaint và MissingTool ẩn trong WinForm
@@ -1912,7 +1927,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 351,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tinh thần làm việc'
+        columnGroup: 'Tinh thần làm việc',
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'DeadlineDelay',
@@ -1921,7 +1937,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 215,
         cssClass: 'text-right',
         sortable: true,
-        columnGroup: 'Tinh thần làm việc'
+        columnGroup: 'Tinh thần làm việc',
+        formatter: zeroToEmptyFormatter
       },
       // ========== gridBand6: KPI (no caption) ==========
       {
@@ -1930,7 +1947,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         name: 'Kỹ năng',
         minWidth: 99,
         cssClass: 'text-right',
-        sortable: true
+        sortable: true,
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'KPIChung',
@@ -1938,7 +1956,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         name: 'Đánh giá chung',
         minWidth: 140,
         cssClass: 'text-right',
-        sortable: true
+        sortable: true,
+        formatter: zeroToEmptyFormatter
       },
       {
         id: 'KPIChuyenMon',
@@ -1947,7 +1966,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         minWidth: 139,
         cssClass: 'text-right',
         sortable: true,
-        resizable: true
+        resizable: true,
+        formatter: zeroToEmptyFormatter
       }
       // ========== gridBand7: Chuyên môn (HIDDEN trong WinForm) ==========
       // KPIPLC, KPIVision, KPISoftware - không hiển thị
@@ -2438,8 +2458,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.kpiSharedService.loadKPIChungFactorScoring(examId, isPublicTBP, isPublicBGD, empId).subscribe({
       next: (res) => {
         if (res.data) {
-          this.dataGeneral = this.transformToTreeData(res.data);
-          this.dataGeneral = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataGeneral, 'general') : this.calculatorAvgPoint(this.dataGeneral);
+          let dataLocal = this.transformToTreeData(res.data);
+          dataLocal = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(dataLocal, 'general') : this.calculatorAvgPoint(dataLocal);
+          this.dataGeneral = dataLocal;
           this.dataGeneralTree = this.buildTreeNodes(this.dataGeneral);
           this.updateGrid(this.angularGridGeneral, this.dataGeneral);
 
@@ -2467,8 +2488,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.kpiSharedService.loadKPIChuyenMonFactorScoring(examId, isPublicTBP, isPublicBGD, empId).subscribe({
       next: (res) => {
         if (res.data) {
-          this.dataSpecialization = this.transformToTreeData(res.data);
-          this.dataSpecialization = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataSpecialization, 'specialization') : this.calculatorAvgPoint(this.dataSpecialization);
+          let dataLocal = this.transformToTreeData(res.data);
+          dataLocal = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(dataLocal, 'specialization') : this.calculatorAvgPoint(dataLocal);
+          this.dataSpecialization = dataLocal;
           this.dataSpecializationTree = this.buildTreeNodes(this.dataSpecialization);
           this.updateGrid(this.angularGridSpecialization, this.dataSpecialization);
 
@@ -2553,7 +2575,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
             };
           });
 
-          this.updateGrid(this.angularGridRule, this.dataRule);
+          // Chỉ cập nhật grid Team đồng bộ vì dữ liệu Team không thay đổi bất đồng bộ
           this.updateGrid(this.angularGridTeam, this.dataTeam);
 
           //#region ĐỒNG BỘ LOGIC LOAD POIN RULE NEW (WinForm)
@@ -2564,10 +2586,11 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
             this.loadPointRuleNewAndCalculateDetail();
           } else if (!this.isAdminConfirm && (this.isPublish == false || this.isPublish == null)) {
             this.loadPointRuleLastMonthAndCalculateDetail();
+          } else {
+            // Chỉ thực hiện tính toán đồng bộ khi không có luồng async nào được kích hoạt
+            this.applyTeamSummaryAndCalculateDetail();
           }
           //#endregion
-          // Luôn thực hiện tính toán ngay cả khi không có data mới
-          this.applyTeamSummaryAndCalculateDetail();
 
           // Lấy điểm cuối cùng 
           this.kpiSharedService.getFinalPoint(empId, sessionId).subscribe({
@@ -4563,8 +4586,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
             this.loadKPIChuyenMon(this.selectedEmployeeId, this.selectedKPIExamId, isPublicTBP, isPublicBGD);
           }
 
-          this.notification.success('Thành công', `Đã cập nhật mã '${code}' thành công!`);
+          this.notification.success('Thành công', `Đã cập nhật thành công!`);
         } else {
+
           this.notification.warning('Thông báo', `Không tìm thấy dữ liệu cho mã: ${code}`);
         }
         //#endregion
@@ -4609,31 +4633,20 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     const zeroScores = this.collectZeroScoreSTTs();
 
     if (zeroScores.size > 0) {
+      this.isSaving = false;
+      this.isCloseAfterSave = false;
       this.showValidationRedBorders = true;
+      this.showZeroScoreBorders = true;
       // Refresh references to trigger grid re-render immediately
       this.dataSkillTree = [...this.dataSkillTree];
       this.dataGeneralTree = [...this.dataGeneralTree];
       this.dataSpecializationTree = [...this.dataSpecializationTree];
       this.cdr.detectChanges();
 
-      this.modal.confirm({
-        nzTitle: 'Thông báo',
-        nzContent: 'Hệ thống phát hiện còn tiêu chí chưa đánh giá.<br/>Vui lòng kiểm tra lại trước khi lưu.',
-        nzOkText: 'Tiếp tục lưu',
-        nzCancelText: 'Hủy để kiểm tra lại',
-        nzOnOk: () => {
-          this.performSave();
-        },
-        nzOnCancel: () => {
-          this.isSaving = false;
-          this.showZeroScoreBorders = true;
-          // Refresh references to trigger grid re-render
-          this.dataSkillTree = [...this.dataSkillTree];
-          this.dataGeneralTree = [...this.dataGeneralTree];
-          this.dataSpecializationTree = [...this.dataSpecializationTree];
-          this.cdr.detectChanges();
-        }
-      });
+      this.notification.warning(
+        'Cảnh báo',
+        'Hệ thống phát hiện còn tiêu chí chưa đánh giá. Vui lòng kiểm tra lại trước khi lưu.'
+      );
     } else {
       this.performSave();
     }
@@ -4676,6 +4689,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     const isAdmin = this.typePoint === 4;
     const shouldSaveRule = isAdmin || this.departmentID !== this.DEPARTMENT_CO_KHI;
     // Admin chỉ lưu Rule
+    debugger
     if (isAdmin) {
       this.saveRuleData().subscribe({
         next: (isRuleSaved) => {

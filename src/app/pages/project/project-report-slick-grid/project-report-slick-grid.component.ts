@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Input, OnDestroy, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, OnDestroy, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef, ElementRef, Optional, Inject, inject } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -54,13 +54,15 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
   @ViewChild('dt') dt!: Table;
   @ViewChild('keywordInput') keywordInput!: ElementRef;
 
+  public activeModal = inject(NgbActiveModal, { optional: true });
+
   constructor(
     private projectService: ProjectService,
     private employeeService: EmployeeService,
     private departmentService: DepartmentServiceService,
     private notification: NzNotificationService,
     private modalService: NgbModal,
-    public activeModal: NgbActiveModal,
+    @Optional() @Inject('tabData') private tabData: any,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -106,6 +108,14 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
     };
 
   ngOnInit() {
+    if (this.tabData) {
+      if (this.tabData.projectId !== undefined) {
+        this.projectId = this.tabData.projectId;
+      }
+      if (this.tabData.projectCode !== undefined) {
+        this.projectCode = this.tabData.projectCode;
+      }
+    }
     this.initColumns();
     this.getProject();
     this.loadDepartments();
@@ -470,7 +480,7 @@ export class ProjectReportSlickGridComponent implements OnInit, AfterViewInit, O
   }
 
   onClose() {
-    this.activeModal.close(true);
+    this.activeModal?.close(true);
   }
 
   changeProject() {

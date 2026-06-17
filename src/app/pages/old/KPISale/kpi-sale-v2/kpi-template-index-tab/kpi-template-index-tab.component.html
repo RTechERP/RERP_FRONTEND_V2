@@ -1,0 +1,226 @@
+<div class="page-container">
+  <div class="toolbar-header bg-white p-0" style="flex-shrink: 0; margin-bottom: 8px;">
+    <p-menubar [model]="menuBars" class="p-1">
+      <ng-template pTemplate="start">
+        <h4 class="page-title mb-0" style="margin-left: 10px; margin-right: 20px; font-weight: 600; line-height: 1;">Quản lý Mẫu & Chỉ tiêu KPI</h4>
+      </ng-template>
+      <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command($event) : null">
+          <i [class]="item.icon"></i>
+          <span class="p-menuitem-text" style="margin-left: 8px;">{{ item.label }}</span>
+        </a>
+      </ng-template>
+    </p-menubar>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-header" style="flex-shrink: 0; margin-bottom: 8px; padding: 6px 8px; background: white; border-radius: 4px; border: 1px solid #d8dee9;">
+    <form nz-form nzLayout="inline" class="toolbar-filters d-flex align-items-center gap-2 flex-wrap">
+      <nz-form-item style="margin: 0; width: 180px; margin-left: auto;">
+        <nz-form-control>
+          <span style="font-size: 11px; color: #64748b; display: block; line-height: 1.2;">Tìm chỉ tiêu:</span>
+          <input nz-input name="searchText" nzSize="small" placeholder="Tìm KPI" [(ngModel)]="searchText" class="w-100" />
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </div>
+
+  <div class="content-container">
+    <!-- Upper panel: KPI Templates (Master) - 50% -->
+    <div style="flex: 5; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
+      <div class="table-title" style="flex-shrink: 0; padding-top: 8px;">
+        <h6>Danh sách mẫu KPI</h6>
+        <span>{{ templates.length }} mẫu</span>
+      </div>
+      <div style="flex: 1; min-height: 0; overflow: hidden;">
+        <nz-table #templateTable [nzData]="templates" [nzFrontPagination]="false" nzSize="small" nzBordered [nzLoading]="isLoading" [nzScroll]="{ y: '240px' }" style="height: 100%;">
+          <thead>
+            <tr>
+              <th nzWidth="150px">Mã mẫu</th>
+              <th nzWidth="250px">Tên mẫu</th>
+              <th>Mô tả</th>
+              <th nzWidth="100px" nzAlign="center">Đang dùng</th>
+              <th nzWidth="100px" nzAlign="center">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of templateTable.data; trackBy: trackById"
+              [class.selected-row]="item.id === selectedTemplateId" class="cursor-pointer" (click)="onTemplateChange(item.id)">
+              <td class="mono font-weight-bold">{{ item.templateCode }}</td>
+              <td>{{ item.templateName }}</td>
+              <td>{{ item.description }}</td>
+              <td nzAlign="center">
+                <nz-switch nzSize="small" [ngModel]="item.isActive" nzDisabled></nz-switch>
+              </td>
+              <td nzAlign="center" (click)="$event.stopPropagation()">
+                <a class="action-btn text-primary" style="margin-right: 8px" (click)="openTemplateForm(item)">
+                  <i nz-icon nzType="edit"></i>
+                </a>
+                <a class="action-btn text-danger" nz-popconfirm nzPopconfirmTitle="Xóa mẫu KPI này và tất cả chỉ tiêu của nó?" (nzOnConfirm)="deleteTemplate(item.id)">
+                  <i nz-icon nzType="delete"></i>
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </div>
+    </div>
+
+    <!-- Static divider -->
+    <div style="flex-shrink: 0; height: 3px; background: #d9d9d9; cursor: row-resize; margin: 8px 0;"></div>
+
+    <!-- Lower panel: KPI Indices (Detail) - 50% -->
+    <div style="flex: 5; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
+      <div class="table-title" style="flex-shrink: 0; padding-top: 8px;">
+        <h6>{{ selectedTemplate ? selectedTemplate.templateName : 'Chỉ tiêu KPI' }}</h6>
+        <span style="font-weight: 600; color: #10766e; font-size: 13px;">Tổng trọng số: {{ totalWeight | number: '1.0-2' }}%</span>
+      </div>
+      <div style="flex: 1; min-height: 0; overflow: hidden;">
+        <nz-table #indexTable [nzData]="indexesTreeForTemplate" [nzFrontPagination]="false" nzSize="small" nzBordered [nzLoading]="isLoading" [nzScroll]="{ y: '240px' }" style="height: 100%;">
+          <thead>
+            <tr>
+              <th nzWidth="80px" nzAlign="right">Thứ tự</th>
+              <th nzWidth="250px">Mã chỉ tiêu</th>
+              <th>Tên chỉ tiêu</th>
+              <th nzWidth="150px">Chỉ tiêu cha</th>
+              <th nzWidth="100px">Loại</th>
+              <th nzWidth="80px">Đơn vị</th>
+              <th nzWidth="140px">Điều chỉnh điểm</th>
+              <th nzWidth="90px" nzAlign="right">Trọng số</th>
+              <th nzWidth="100px" nzAlign="center">Đang dùng</th>
+              <th nzWidth="100px" nzAlign="center">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of indexTable.data; trackBy: trackById"
+              [class.selected-row]="item.index.id === indexDraft.id"
+              [class.main-index-row]="item.index.isMainIndex" (click)="onIndexSelect(item.index.id)" class="cursor-pointer">
+              <td nzAlign="right">{{ item.index.sortOrder }}</td>
+              <td class="mono" [nzIndentSize]="item.level * 20" [nzShowExpand]="item.expandable"
+                [nzExpand]="item.expanded" (nzExpandChange)="toggleIndexExpand(item, $event)">
+                {{ item.index.indexCode }}
+              </td>
+              <td [class.fw-bold]="item.index.isBold">{{ item.index.indexName }}</td>
+              <td>{{ item.index.parentIndexName || (item.index.parentId ? getIndexName(item.index.parentId) : '') }}</td>
+              <td>
+                <nz-tag [nzColor]="getTypeColor(item.index.indexType)">
+                  {{ getIndexTypeLabel(item.index.indexType) }}
+                </nz-tag>
+              </td>
+              <td>{{ getUnitLabel(item.index.unitType) }}</td>
+              <td>
+                <ng-container *ngIf="item.index.indexType === 'REPORT'; else emptyReportAdjustment">
+                  {{ getReportScoreAdjustmentTypeLabel(item.index.reportScoreAdjustmentType ?? 0) }}
+                </ng-container>
+                <ng-template #emptyReportAdjustment>-</ng-template>
+              </td>
+              <td nzAlign="right">{{ item.index.weightPercent | number: '1.0-2' }}%</td>
+              <td nzAlign="center">
+                <nz-switch nzSize="small" [ngModel]="item.index.isActive" nzDisabled></nz-switch>
+              </td>
+              <td nzAlign="center" (click)="$event.stopPropagation()">
+                <a class="action-btn text-primary" style="margin-right: 8px" (click)="openIndexForm(item.index)">
+                  <i nz-icon nzType="edit"></i>
+                </a>
+                <a class="action-btn text-danger" nz-popconfirm nzPopconfirmTitle="Bạn có chắc muốn xóa chỉ tiêu này?" (nzOnConfirm)="deleteIndex(item.index.id)">
+                  <i nz-icon nzType="delete"></i>
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Template: Form Mẫu KPI -->
+<ng-template #templateFormTemplate>
+  <form nz-form nzLayout="vertical" class="compact-form">
+    <div class="field">
+      <span>Mã mẫu</span>
+      <input nz-input name="templateCode" [(ngModel)]="templateDraft.templateCode" placeholder="Nhập mã mẫu (ví dụ: MAU_KPI_SALES)" />
+    </div>
+    <div class="field">
+      <span>Tên mẫu</span>
+      <input nz-input name="templateName" [(ngModel)]="templateDraft.templateName" placeholder="Nhập tên mẫu KPI" />
+    </div>
+    <div class="field">
+      <span>Mô tả</span>
+      <textarea nz-input name="templateDescription" rows="3" [(ngModel)]="templateDraft.description" placeholder="Nhập mô tả chi tiết mẫu KPI"></textarea>
+    </div>
+    <div class="inline-control mt-2">
+      <span>Đang dùng</span>
+      <nz-switch name="templateActive" [(ngModel)]="templateDraft.isActive"></nz-switch>
+    </div>
+  </form>
+</ng-template>
+
+<!-- Template: Form Chỉ tiêu KPI -->
+<ng-template #indexFormTemplate>
+  <form nz-form nzLayout="vertical" class="compact-form">
+    <div class="field">
+      <span>Mã chỉ tiêu</span>
+      <input nz-input name="indexCode" [(ngModel)]="indexDraft.indexCode" placeholder="Nhập mã chỉ tiêu" />
+    </div>
+    <div class="field">
+      <span>Tên chỉ tiêu</span>
+      <input nz-input name="indexName" [(ngModel)]="indexDraft.indexName" placeholder="Nhập tên chỉ tiêu" />
+    </div>
+    <div class="field">
+      <span>Chỉ tiêu cha</span>
+      <nz-select nzDropdownClassName="select-dropdown" name="parentIndexId" nzAllowClear nzShowSearch nzPlaceHolder="Chọn chỉ tiêu cha" [(ngModel)]="indexDraft.parentId" class="w-100">
+        <nz-option *ngFor="let item of activeGroupIndexes; trackBy: trackById" [nzValue]="item.id" [nzLabel]="item.indexCode + ' - ' + item.indexName">
+        </nz-option>
+      </nz-select>
+    </div>
+    
+    <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div class="field">
+        <span>Loại chỉ tiêu</span>
+        <nz-select nzDropdownClassName="select-dropdown" name="indexType" [(ngModel)]="indexDraft.indexType" class="w-100">
+          <nz-option *ngFor="let item of indexTypes" [nzValue]="item" [nzLabel]="getIndexTypeLabel(item)"></nz-option>
+        </nz-select>
+      </div>
+      <div class="field">
+        <span>Đơn vị</span>
+        <nz-select nzDropdownClassName="select-dropdown" name="unitType" [(ngModel)]="indexDraft.unitType" class="w-100">
+          <nz-option *ngFor="let item of unitTypes" [nzValue]="item" [nzLabel]="getUnitTypeLabel(item)"></nz-option>
+        </nz-select>
+      </div>
+      <div class="field">
+        <span>Trọng số (%)</span>
+        <nz-input-number name="weightPercent" [(ngModel)]="indexDraft.weightPercent" [nzMin]="0" [nzMax]="100" class="w-100"></nz-input-number>
+      </div>
+      <div class="field">
+        <span>Thứ tự</span>
+        <nz-input-number name="sortOrder" [(ngModel)]="indexDraft.sortOrder" [nzMin]="0" class="w-100"></nz-input-number>
+      </div>
+      <div class="field">
+        <span>Cách tính mục tiêu quý</span>
+        <nz-select nzDropdownClassName="select-dropdown" name="quarterGoalCalculateType" [(ngModel)]="indexDraft.quarterGoalCalculateType" class="w-100">
+          <nz-option *ngFor="let item of quarterCalculateTypes" [nzValue]="item" [nzLabel]="getQuarterCalculateTypeLabel(item)"></nz-option>
+        </nz-select>
+      </div>
+      <div class="field">
+        <span>Cách tính kết quả quý</span>
+        <nz-select nzDropdownClassName="select-dropdown" name="quarterResultCalculateType" [(ngModel)]="indexDraft.quarterResultCalculateType" class="w-100">
+          <nz-option *ngFor="let item of quarterCalculateTypes" [nzValue]="item" [nzLabel]="getQuarterCalculateTypeLabel(item)"></nz-option>
+        </nz-select>
+      </div>
+      <ng-container *ngIf="indexDraft.indexType === 'REPORT'">
+        <div class="field">
+          <span>Kiểu điều chỉnh điểm cuối</span>
+          <nz-select nzDropdownClassName="select-dropdown" name="reportScoreAdjustmentType" [(ngModel)]="indexDraft.reportScoreAdjustmentType" class="w-100">
+            <nz-option *ngFor="let item of reportScoreAdjustmentTypes" [nzValue]="item" [nzLabel]="getReportScoreAdjustmentTypeLabel(item)"></nz-option>
+          </nz-select>
+        </div>
+      </ng-container>
+    </div>
+    <div class="inline-control checkbox-grid mt-3">
+      <label nz-checkbox name="isMainIndex" [(ngModel)]="indexDraft.isMainIndex">Chỉ tiêu chính</label>
+      <label nz-checkbox name="isBold" [(ngModel)]="indexDraft.isBold">In đậm</label>
+      <label nz-checkbox name="indexActive" [(ngModel)]="indexDraft.isActive">Đang dùng</label>
+    </div>
+  </form>
+</ng-template>

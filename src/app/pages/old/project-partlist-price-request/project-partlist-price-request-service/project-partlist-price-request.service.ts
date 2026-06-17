@@ -242,4 +242,8 @@ export class ProjectPartlistPriceRequestService {
 
     return this.http.get<any>(`${this.baseUrl}/get-partlist-summary`, { params });
   }
+
+  getLogActivityPriceRequest(projectPartlistPriceRequestId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/log-activity?projectPartlistPriceRequestId=${projectPartlistPriceRequestId}`);
+  }
 }

@@ -40,6 +40,44 @@
     height: 100% !important;
 }
 
-::ng-deep .p-datatable-table {
+/* ::ng-deep .p-datatable-table {
     height: 100%;
+} */
+
+/* Video Playlist Drawer Styles */
+.playlist-item {
+    transition: all 0.2s ease-in-out;
+}
+.playlist-item:hover {
+    background-color: #f1f3f5 !important;
+    border-color: var(--ant-primary-color) !important;
+}
+.active-video {
+    background-color: #e6f7ff !important;
+    border-color: var(--ant-primary-color) !important;
+    border-left: 4px solid var(--ant-primary-color) !important;
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Department Tag Badges */
+:host ::ng-deep .dept-tags {
+    display: inline-flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    align-items: center;
+    line-height: 1.6;
+}
+
+:host ::ng-deep .dept-tag {
+    display: inline-block;
+    background: #F1F3F5;
+    color: #212529;
+    border: 1px solid #CED4DA;
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
 }

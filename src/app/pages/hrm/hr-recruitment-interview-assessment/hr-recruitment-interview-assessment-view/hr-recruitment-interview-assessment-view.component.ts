@@ -25,7 +25,7 @@ import { TableModule } from 'primeng/table';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { PermissionService } from '../../../../services/permission.service';
 import { HrRecruitmentInterviewAssessmentFormComponent } from '../hr-recruitment-interview-assessment-form/hr-recruitment-interview-assessment-form.component';
-import { HrRecruitmentApproveFormComponent } from '../../hr-recruitment-approve/hr-recruitment-approve-form/hr-recruitment-approve-form.component';
+import { HrRecruitmentApproveFormComponent } from '../../hr-recruitment/hr-recruitment-approve/hr-recruitment-approve-form/hr-recruitment-approve-form.component';
 
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HrRecruitmentInterviewAssessmentServiceService } from '../hr-recruitment-interview-assessment-service.service';
@@ -413,16 +413,13 @@ export class HrRecruitmentInterviewAssessmentViewComponent implements OnInit {
           return;
         }
 
-        const candidateStatus = candidateInfo.Status ?? 3;
+        const candidateStatus = this.selectedCandidateStatus;
 
         if (candidateStatus < 3) {
           this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên chưa phỏng vấn!');
           return;
         }
-        if (candidateStatus == 3) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên được đánh giá sau phỏng vấn!');
-          return;
-        }
+
         if (candidateStatus == 4) {
           this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên có kết quả phỏng vấn không đạt!');
           return;
@@ -435,7 +432,7 @@ export class HrRecruitmentInterviewAssessmentViewComponent implements OnInit {
           size: 'xl',
           scrollable: true,
         });
-        modalRef.componentInstance.HRRecruitmentCandidateID = candidateInfo.ID;
+        modalRef.componentInstance.HRRecruitmentCandidateID = this.selectedCandidateID;
         modalRef.componentInstance.Status = candidateStatus;
         modalRef.result.then(
           (result) => {

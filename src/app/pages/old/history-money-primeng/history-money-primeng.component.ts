@@ -56,6 +56,7 @@ import { PokhService } from '../pokh/pokh-service/pokh.service';
 export class HistoryMoneyPrimengComponent implements OnInit {
 
   @Input() filterText: any;
+  @Input() pokhIds: number[] = []; // Danh sách POKH IDs (cho multi-PO support)
 
   // Data arrays
   dataProduct: any[] = [];
@@ -76,6 +77,8 @@ export class HistoryMoneyPrimengComponent implements OnInit {
 
   // Selection
   selectedProduct: any = null;
+  selectedPOKHDetailIds: number[] = []; // Lưu danh sách POKHDetail IDs từ dataProduct
+  isMultiPOMode: boolean = false; // Flag để phân biệt single-PO và multi-PO mode
 
   // State
   rowSelectedTotalPriceIncludeVAT: any;
@@ -96,13 +99,26 @@ export class HistoryMoneyPrimengComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    if (this.tabData && this.tabData.filterText) {
-      this.filterText = this.tabData.filterText;
+    // Nhận data từ tabService (pokhIds hoặc filterText)
+    if (this.tabData) {
+      if (this.tabData.pokhIds && Array.isArray(this.tabData.pokhIds)) {
+        this.pokhIds = this.tabData.pokhIds;
+      }
+      if (this.tabData.filterText) {
+        this.filterText = this.tabData.filterText;
+      }
     }
     this.loadBankNames();
     this.loadEmployeeManagers();
     this.loadDepartments();
-    this.loadProduct(this.filterText);
+    // Ưu tiên load theo pokhIds nếu có (multi-PO), không thì load theo filterText
+    if (this.pokhIds && this.pokhIds.length > 0) {
+      this.isMultiPOMode = true;
+      this.loadProductsByPOKHIds(this.pokhIds);
+    } else {
+      this.isMultiPOMode = false;
+      this.loadProduct(this.filterText);
+    }
   }
 
   closeModal() {
@@ -204,6 +220,37 @@ export class HistoryMoneyPrimengComponent implements OnInit {
     );
   }
 
+  /**
+   * Load sản phẩm theo nhiều POKH IDs (cho multi-PO support)
+   */
+  loadProductsByPOKHIds(pokhIds: number[]): void {
+    if (!pokhIds || pokhIds.length === 0) {
+      this.dataProduct = [];
+      return;
+    }
+
+    this.historyMoneyService.getProductsByPOKHIds(pokhIds.join(',')).subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.dataProduct = response.data;
+          // Lưu danh sách POKHDetail IDs
+          this.selectedPOKHDetailIds = this.dataProduct.map((p: any) => p.ID).filter((id: number) => id > 0);
+
+          // Auto select first row - sẽ trigger loadHistoryMoneyPO
+          if (this.dataProduct && this.dataProduct.length > 0) {
+            this.selectedProduct = this.dataProduct[0];
+            this.onProductRowSelect({ data: this.selectedProduct });
+          }
+        } else {
+          this.notification.error('Lỗi khi tải sản phẩm:', response.message);
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi kết nối khi tải sản phẩm:', error);
+      }
+    );
+  }
+
   loadHistoryMoneyPO(pokhDetailId: number): void {
     this.listIdsDel = [];
     this.historyMoneyService.getHistoryMoneyPO(pokhDetailId).subscribe(
@@ -216,6 +263,30 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       },
       (error) => {
         this.notification.error('Lỗi kết nối khi tải PO:', error);
+      }
+    );
+  }
+
+  /**
+   * Load lịch sử tiền về theo nhiều POKHDetail IDs (cho multi-PO support)
+   */
+  loadHistoryMoneyPOMultiple(pokhDetailIds: number[]): void {
+    this.listIdsDel = [];
+    if (!pokhDetailIds || pokhDetailIds.length === 0) {
+      this.mainData = [];
+      return;
+    }
+
+    this.historyMoneyService.getHistoryMoneyPOMultiple(pokhDetailIds.join(',')).subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.mainData = this.normalizeDataRows(this.prepareVatForTable(response.data));
+        } else {
+          this.notification.error('Lỗi khi tải lịch sử tiền về:', response.message);
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi kết nối khi tải lịch sử tiền về:', error);
       }
     );
   }
@@ -329,17 +400,46 @@ export class HistoryMoneyPrimengComponent implements OnInit {
   }
 
   exportExcel() {
-    if (!this.rowSelectedPokhDetailId) {
+    // Nếu có nhiều POKHDetail IDs (multi-PO), xuất tất cả
+    if (this.selectedPOKHDetailIds && this.selectedPOKHDetailIds.length > 0) {
+      this.exportExcelMultiple();
+    } else if (!this.rowSelectedPokhDetailId) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 dòng PO trước khi xuất Excel');
-      return;
+    } else {
+      this.exportExcelSingle();
     }
+  }
 
+  private exportExcelSingle() {
     this.historyMoneyService.exportHistoryMoneyExcel(this.rowSelectedPokhDetailId).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `LichSuTienVe_${new Date().getTime()}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      },
+      error: (err) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi xuất Excel');
+      }
+    });
+  }
+
+  private exportExcelMultiple() {
+    if (!this.selectedPOKHDetailIds || this.selectedPOKHDetailIds.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel');
+      return;
+    }
+
+    this.historyMoneyService.exportHistoryMoneyExcelMultiple(this.selectedPOKHDetailIds.join(',')).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `LichSuTienVe_Multiple_${new Date().getTime()}.xlsx`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);

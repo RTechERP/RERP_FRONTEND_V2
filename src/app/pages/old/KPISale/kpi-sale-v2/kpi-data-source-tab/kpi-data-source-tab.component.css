@@ -1,0 +1,115 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.page-container {
+  padding: 8px;
+  background-color: #f5f7fa;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.content-container {
+  background: white;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 4px;
+}
+
+.action-btn:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+.text-danger {
+  color: #ff4d4f;
+}
+
+.text-primary {
+  color: #1890ff;
+}
+
+.mono {
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+/* Compact form */
+.compact-form .field {
+  margin-bottom: 12px;
+}
+.compact-form .field span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+}
+.compact-form .inline-control {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.compact-form .inline-control span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+}
+
+/* Constrain nz-table in sections to respect flex layout */
+::ng-deep .ant-table-wrapper {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .ant-table-wrapper .ant-spin-nested-loading,
+::ng-deep .ant-table-wrapper .ant-spin-container {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .ant-table-wrapper .ant-table {
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .ant-table-wrapper .ant-table-container {
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+::ng-deep .ant-table-wrapper .ant-table-body {
+  flex: 1 !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}

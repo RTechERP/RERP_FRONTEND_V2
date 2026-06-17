@@ -1260,6 +1260,7 @@ export class ContractTransferReviewComponent implements OnInit {
 
     const evalTypeName = evalTypes.find(t => t.id === d.EvaluationEmployeeLoaiHDID)?.name || '';
     const conclusionName = conclusions.find(c => c.id === d.ConclusionEmployeeLoaiHDID)?.name || '';
+    const tbpConclusionName = conclusions.find(c => c.id === d.TBPConclusionEmployeeLoaiHDID)?.name || '';
 
     const fmtDate = (dateStr: any) => {
       if (!dateStr) return '';
@@ -1412,6 +1413,15 @@ export class ContractTransferReviewComponent implements OnInit {
 
     const tableBody = [];
     tableBody.push([
+      { text: 'IV. ĐÁNH GIÁ', colSpan: 7, bold: true, color: '#D32F2F', fillColor: '#D9E1F2', margin: [5, 2, 5, 2] },
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]);
+    tableBody.push([
       { text: 'STT', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8] },
       { text: 'Nội dung đánh giá', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8] },
       { text: 'Trọng số', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8] },
@@ -1476,34 +1486,46 @@ export class ContractTransferReviewComponent implements OnInit {
 
     const commentTableBody = [
       [
-        { text: 'E', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 10] },
-        { text: 'Nhận xét chung', rowSpan: 2, bold: true, margin: [0, 10] },
+        { text: 'E', rowSpan: 3, bold: true, alignment: 'center', margin: [0, 20] },
+        { text: 'Tổng kết', rowSpan: 3, bold: true, margin: [0, 20] },
+        { text: '', bold: true },
+        { text: 'NLĐ tự đánh giá', bold: true, alignment: 'center', fillColor: '#fef2cc' },
+        { text: 'TBP đánh giá', bold: true, alignment: 'center', fillColor: '#fef2cc' }
+      ],
+      [
+        '',
+        '',
         { text: 'Điểm mạnh:', bold: true },
-        { text: addZeroWidthSpace(d.Strengths) }
+        { text: addZeroWidthSpace(d.Strengths) || '' },
+        { text: addZeroWidthSpace(d.TBPStrengths) || '' }
       ],
       [
         '',
         '',
         { text: 'Điểm cần cải thiện:', bold: true },
-        { text: addZeroWidthSpace(d.AreasForImprovement) }
+        { text: addZeroWidthSpace(d.AreasForImprovement) || '' },
+        { text: addZeroWidthSpace(d.TBPAreasForImprovement) || '' }
       ],
       [
         { text: 'F', bold: true, alignment: 'center' },
-        { text: 'Kiến nghị/Khác', bold: true },
-        { text: addZeroWidthSpace(d.RecommendationsOrOther), colSpan: 2 },
-        ''
+        { text: 'Kết luận', bold: true },
+        { text: '', bold: true },
+        { text: conclusionName, bold: true, alignment: 'center' },
+        {
+          text: [
+            { text: tbpConclusionName, bold: true },
+            d.OtherConclusion ? { text: ` (Khác: ${addZeroWidthSpace(d.OtherConclusion)})` } : ''
+          ],
+          bold: true,
+          alignment: 'center'
+        }
       ],
       [
         { text: 'G', bold: true, alignment: 'center' },
-        { text: 'Kết luận', bold: true },
-        {
-          text: [
-            { text: conclusionName, bold: true },
-            d.OtherConclusion ? { text: ` (Khác: ${addZeroWidthSpace(d.OtherConclusion)})` } : ''
-          ],
-          colSpan: 2
-        },
-        ''
+        { text: 'Kiến nghị/Khác', bold: true },
+        { text: '', bold: true },
+        { text: addZeroWidthSpace(d.RecommendationsOrOther) || '' },
+        { text: addZeroWidthSpace(d.TBPRecommendationsOrOther) || '' }
       ]
     ];
 
@@ -1514,6 +1536,23 @@ export class ContractTransferReviewComponent implements OnInit {
     const dateD = evalDate.getDate().toString().padStart(2, '0');
     const dateM = (evalDate.getMonth() + 1).toString().padStart(2, '0');
     const dateY = evalDate.getFullYear();
+
+    const tableLayout = {
+      hLineWidth: (i: number, node: any) => 0.5,
+      vLineWidth: (i: number, node: any) => 0.5,
+      hLineColor: (i: number, node: any) => '#aaaaaa',
+      vLineColor: (i: number, node: any) => '#aaaaaa'
+    };
+
+    const yellowTableLayout = {
+      hLineWidth: (i: number, node: any) => 0.5,
+      vLineWidth: (i: number, node: any) => 0.5,
+      hLineColor: (i: number, node: any) => '#aaaaaa',
+      vLineColor: (i: number, node: any) => '#aaaaaa',
+      fillColor: (rowIndex: number, node: any, columnIndex: number) => {
+        return '#fff9e6';
+      }
+    };
 
     const docDefinition: any = {
       pageSize: 'A4',
@@ -1529,7 +1568,7 @@ export class ContractTransferReviewComponent implements OnInit {
             {
               stack: [
                 { text: 'PHIẾU ĐÁNH GIÁ', bold: true, alignment: 'center', fontSize: 16, margin: [0, 5, 0, 2] },
-                { text: '(Dành cho Cán bộ Quản lý)', italic: true, alignment: 'center', fontSize: 11 }
+
               ],
               width: '*'
             },
@@ -1545,38 +1584,78 @@ export class ContractTransferReviewComponent implements OnInit {
           margin: [0, 0, 0, 10]
         },
         {
-          columns: [
-            { text: [{ text: 'Loại đánh giá: ', bold: true }, evalTypeName], width: '50%' },
-            { text: [{ text: 'Thời gian đánh giá: ', bold: true }, `Từ ${fmtDate(d.DateStart)} Đến ${fmtDate(d.DateEnd)}`], width: '50%' }
+          text: [
+            { text: 'Loại đánh giá: ', bold: true, decoration: 'underline' },
+            evalTypeName
+          ],
+          margin: [0, 0, 0, 4]
+        },
+        {
+          text: [
+            { text: 'Thời gian đánh giá: ', bold: true, decoration: 'underline' },
+            `Từ ${fmtDate(d.DateStart)} Đến ${fmtDate(d.DateEnd)}`
           ],
           margin: [0, 0, 0, 10]
         },
-        { text: 'I. CÁN BỘ QUẢN LÝ', bold: true, margin: [0, 5, 0, 3] },
         {
-          columns: [
-            { text: [{ text: '1. Họ và tên: ', bold: true }, evaluatorName], width: '50%' },
-            { text: [{ text: '2. Chức vụ: ', bold: true }, evaluatorPosition], width: '50%' }
-          ],
-          margin: [10, 0, 0, 10]
+          table: {
+            widths: [25, 110, '*'],
+            body: [
+              [
+                { text: 'I. CÁN BỘ QUẢN LÝ', colSpan: 3, bold: true, color: '#D32F2F', fillColor: '#D9E1F2', margin: [5, 2, 5, 2] },
+                {},
+                {}
+              ],
+              [
+                { text: '1', alignment: 'center' },
+                { text: 'Họ và tên:', bold: true },
+                { text: evaluatorName }
+              ],
+              [
+                { text: '2', alignment: 'center' },
+                { text: 'Chức vụ:', bold: true },
+                { text: evaluatorPosition }
+              ],
+              [
+                { text: 'II. NGƯỜI ĐƯỢC ĐÁNH GIÁ', colSpan: 3, bold: true, color: '#D32F2F', fillColor: '#D9E1F2', margin: [5, 2, 5, 2] },
+                {},
+                {}
+              ],
+              [
+                { text: '1', alignment: 'center' },
+                { text: 'Họ và tên:', bold: true },
+                { text: employeeName }
+              ],
+              [
+                { text: '2', alignment: 'center' },
+                { text: 'Chức vụ:', bold: true },
+                { text: employeePosition }
+              ],
+              [
+                { text: '3', alignment: 'center' },
+                { text: 'Bộ phận:', bold: true },
+                { text: departmentName }
+              ],
+              [
+                { text: '4', alignment: 'center' },
+                { text: 'Công việc chính:', bold: true },
+                { text: addZeroWidthSpace(d.MainJobmainResponsibilities) || '' }
+              ]
+            ]
+          },
+          layout: tableLayout,
+          margin: [0, 5, 0, 15]
         },
-        { text: 'II. NGƯỜI ĐƯỢC ĐÁNH GIÁ', bold: true, margin: [0, 5, 0, 3] },
-        {
-          columns: [
-            { text: [{ text: '1. Họ và tên: ', bold: true }, employeeName], width: '35%' },
-            { text: [{ text: '2. Chức vụ: ', bold: true }, employeePosition], width: '35%' },
-            { text: [{ text: '3. Bộ phận: ', bold: true }, departmentName], width: '30%' }
-          ],
-          margin: [10, 0, 0, 5]
-        },
-        {
-          text: [{ text: '4. Công việc chính: ', bold: true }, addZeroWidthSpace(d.MainJobmainResponsibilities) || ''],
-          margin: [10, 0, 0, 10]
-        },
-        { text: 'III. XẾP LOẠI', bold: true, margin: [0, 5, 0, 3] },
         {
           table: {
             widths: [35, 120, 70, '*'],
             body: [
+              [
+                { text: 'III. XẾP LOẠI', colSpan: 4, bold: true, color: '#D32F2F', fillColor: '#D9E1F2', margin: [5, 2, 5, 2] },
+                {},
+                {},
+                {}
+              ],
               [
                 { text: 'STT', bold: true, alignment: 'center' },
                 { text: 'Điểm %', bold: true, alignment: 'center' },
@@ -1615,22 +1694,25 @@ export class ContractTransferReviewComponent implements OnInit {
               ]
             ]
           },
-          margin: [10, 0, 0, 10]
+          layout: tableLayout,
+          margin: [0, 0, 0, 10]
         },
-        { text: 'IV. ĐÁNH GIÁ', bold: true, margin: [0, 5, 0, 3] },
         {
           table: {
-            widths: [20, '*', 45, 55, 60, 55, 60],
+            dontBreakRows: true,
+            widths: [20, '*', 50, 50, 65, 50, 65],
             body: tableBody
           },
-          margin: [10, 0, 0, 10]
+          layout: tableLayout,
+          margin: [0, 0, 0, 0]
         },
         {
           table: {
-            widths: [20, 80, 100, '*'],
+            widths: [20, '*', 50, 115, 115],
             body: commentTableBody
           },
-          margin: [10, 5, 0, 10],
+          layout: yellowTableLayout,
+          margin: [0, 0, 0, 10],
           unbreakable: true
         },
         {
@@ -1644,10 +1726,18 @@ export class ContractTransferReviewComponent implements OnInit {
             {
               stack: [
                 { text: 'NGƯỜI ĐƯỢC ĐÁNH GIÁ', bold: true, alignment: 'center' },
-                { text: '\n\n\n\n' },
+                employeeApprovedDate
+                  ? {
+                    svg: '<svg viewBox="0 0 512 512"><path fill="#28a745" d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>',
+                    width: 24,
+                    height: 24,
+                    alignment: 'center',
+                    margin: [0, 10, 0, 14]
+                  }
+                  : { text: '\n\n\n\n' },
                 { text: d.EmployeeName || '', bold: true, alignment: 'center' },
                 employeeApprovedDate
-                  ? { text: `(${employeeApprovedDate})`, italics: true, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
+                  ? { text: `${employeeApprovedDate}`, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
                   : { text: '' }
               ],
               width: '25%'
@@ -1655,7 +1745,15 @@ export class ContractTransferReviewComponent implements OnInit {
             {
               stack: [
                 { text: 'TRƯỞNG BỘ PHẬN', bold: true, alignment: 'center' },
-                { text: '\n\n\n\n' },
+                tbpApproveDate
+                  ? {
+                    svg: '<svg viewBox="0 0 512 512"><path fill="#28a745" d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>',
+                    width: 24,
+                    height: 24,
+                    alignment: 'center',
+                    margin: [0, 10, 0, 14]
+                  }
+                  : { text: '\n\n\n\n' },
                 { text: d.TBPApproveName || '', bold: true, alignment: 'center' },
                 tbpApproveDate
                   ? { text: `${tbpApproveDate}`, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
@@ -1666,7 +1764,15 @@ export class ContractTransferReviewComponent implements OnInit {
             {
               stack: [
                 { text: 'TRƯỞNG PHÒNG HCNS', bold: true, alignment: 'center' },
-                { text: '\n\n\n\n' },
+                hcnsApproveDate
+                  ? {
+                    svg: '<svg viewBox="0 0 512 512"><path fill="#28a745" d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>',
+                    width: 24,
+                    height: 24,
+                    alignment: 'center',
+                    margin: [0, 10, 0, 14]
+                  }
+                  : { text: '\n\n\n\n' },
                 { text: d.HCNSApproveName || '', bold: true, alignment: 'center' },
                 hcnsApproveDate
                   ? { text: `${hcnsApproveDate}`, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }
@@ -1677,7 +1783,15 @@ export class ContractTransferReviewComponent implements OnInit {
             {
               stack: [
                 { text: 'PHÊ DUYỆT', bold: true, alignment: 'center' },
-                { text: '\n\n\n\n' },
+                bgdApproveDate
+                  ? {
+                    svg: '<svg viewBox="0 0 512 512"><path fill="#28a745" d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg>',
+                    width: 24,
+                    height: 24,
+                    alignment: 'center',
+                    margin: [0, 10, 0, 14]
+                  }
+                  : { text: '\n\n\n\n' },
                 { text: d.BGDApproveName || '', bold: true, alignment: 'center' },
                 bgdApproveDate
                   ? { text: `${bgdApproveDate}`, alignment: 'center', fontSize: 9, color: '#555555', margin: [0, 2, 0, 0] }

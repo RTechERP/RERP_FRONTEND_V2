@@ -193,6 +193,30 @@ export class ProjectService {
 
     return this.http.get<any>(this.urlProject + 'get-projects', { params: httpParams });
   }
+
+  // Danh sách dự án phục vụ cho Lĩnh vực & Công nghệ
+  getProjectsAppTechPagination(params: any, page: number, size: number): Observable<any> {
+    let httpParams = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('dateTimeS', params.dateTimeS || '')
+      .set('dateTimeE', params.dateTimeE || '')
+      .set('keyword', params.keyword || '')
+      .set('customerID', params.customerID?.toString() || '0')
+      .set('saleID', params.saleID?.toString() || '0')
+      .set('projectType', params.projectType || '')
+      .set('leaderID', params.leaderID?.toString() || '0')
+      .set('userTechID', params.userTechID?.toString() || '0')
+      .set('pmID', params.pmID?.toString() || '0')
+      .set('globalUserID', params.globalUserID?.toString() || '0')
+      .set('bussinessFieldID', params.bussinessFieldID?.toString() || '0')
+      .set('projectStatus', params.projectStatus || '')
+      .set('isAGV', params.isAGV?.toString() || 'false')
+      .set('applicationType', params.applicationType || '')
+      .set('technology', params.technology || '');
+
+    return this.http.get<any>(this.urlProject + 'get-projects-apptech', { params: httpParams });
+  }
   // Lấy chi tiết công việc
   getProjectDetails(id: number): Observable<any> {
     return this.http.get<any>(this.urlProject + `get-project-details?id=${id}`);
@@ -326,6 +350,11 @@ export class ProjectService {
   // Lưu dữ liệu dự án
   saveProject(prj: any): Observable<any> {
     return this.http.post<any>(this.urlProject + `save-project`, prj);
+  }
+
+  // Lưu riêng thông tin lĩnh vực và công nghệ kiểu dự án
+  saveProjectApplicationTechnology(payload: any): Observable<any> {
+    return this.http.post<any>(this.urlProject + `save-project-application-technology`, payload);
   }
 
   // Chuyển dự án

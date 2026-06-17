@@ -845,20 +845,8 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
   onFileSelected(event: any) {
     const files = event.target.files;
     if (files && files.length > 0) {
-      const MAX_FILE_SIZE = 50 * 1024 * 1024;
       Array.from(files).forEach((file) => {
         const fileObj = file as File;
-        if (fileObj.size > MAX_FILE_SIZE) {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
-            NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
-            `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`,
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
-          );
-          return;
-        }
         this.addFileToTable(fileObj);
       });
       // this.fileInput.nativeElement.value = '';
@@ -868,20 +856,8 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
   onContractFileSelected(event: any) {
     const files = event.target.files;
     if (files && files.length > 0) {
-      const MAX_FILE_SIZE = 50 * 1024 * 1024;
       Array.from(files).forEach((file) => {
         const fileObj = file as File;
-        if (fileObj.size > MAX_FILE_SIZE) {
-          this.notification.create(
-            NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
-            NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
-            `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`,
-            {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }
-          );
-          return;
-        }
         this.addContractFileToTable(fileObj);
       });
     }

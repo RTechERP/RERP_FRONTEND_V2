@@ -196,6 +196,7 @@ import { OrgChartRtcManagementComponent } from './pages/hrm/org-chart-rtc/org-ch
 import { TaxCompanyComponent } from './pages/accounting/tax-company/tax-company.component';
 import { SummaryProjectJoinComponent } from './pages/person/summary-project-join/summary-project-join.component';
 import { ProjectSlickGrid2Component } from './pages/project/project-slick-grid2/project-slick-grid2.component';
+import { ProjectApplicationTechnologyComponent } from './pages/project/project-application-technology/project-application-technology.component';
 import { ProjectPartListSlickGridComponent } from './pages/project/project-part-list-slick-grid/project-part-list-slick-grid.component';
 import { InventoryNewComponent } from './pages/old/Sale/Inventory/inventory-new/inventory-new.component';
 import { BillImportTechnicalNewComponent } from './pages/old/bill-import-technical/bill-import-technical-new/bill-import-technical-new.component';
@@ -752,6 +753,7 @@ export const routes: Routes = [
 
             //Dự án
             { path: 'project', component: ProjectSlickGrid2Component, canActivate: [authGuard] },
+            { path: 'project-application-technology', component: ProjectApplicationTechnologyComponent, canActivate: [authGuard] },
             { path: 'project-workpropress', component: ProjectWorkPropressComponent, canActivate: [authGuard] },
             { path: 'project-worktimeline', component: ProjectWorkTimelineComponent, canActivate: [authGuard] },
             { path: 'project-survey', component: ProjectSurveySlickGridComponent, canActivate: [authGuard] },

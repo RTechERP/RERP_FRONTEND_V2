@@ -1,0 +1,232 @@
+.fs-11 {
+  font-size: 11px !important;
+}
+
+.fs-12 {
+  font-size: 12px !important;
+}
+
+.fs-13 {
+  font-size: 13px !important;
+}
+
+.fw-500 {
+  font-weight: 500;
+}
+
+/* Base font-size matching the ERP custom elements */
+:host ::ng-deep .p-datatable {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+  font-size: 12px !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+  font-size: 12px !important;
+  padding: 6px 4px !important;
+}
+
+:host ::ng-deep .p-paginator {
+  font-size: 12px !important;
+}
+
+/* Gray out inactive row lookup cells when unchecked */
+:host ::ng-deep .cell-disabled {
+  opacity: 0.55;
+  pointer-events: none !important;
+  background-color: #f5f5f5 !important;
+}
+
+/* Splitter pane styling details */
+.ant-splitter-panel {
+  position: relative;
+}
+
+/* Cell wrap overrides for long text columns */
+:host ::ng-deep .cell-wrap {
+  white-space: normal !important;
+  line-height: 1.4 !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  padding: 6px 4px !important;
+}
+
+.table-container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+:host ::ng-deep nz-splitter-panel {
+  min-width: 0 !important;
+  height: 100% !important;
+}
+
+:host ::ng-deep .p-datatable-scrollable-body {
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+}
+
+/* Style for selected row in Master list */
+:host ::ng-deep .p-datatable-tbody>tr.p-highlight {
+  background-color: #e3f2fd !important;
+  color: #0d6efd !important;
+  border-left: 3px solid #0d6efd !important;
+}
+
+:host ::ng-deep .ant-spin-nested-loading,
+:host ::ng-deep .ant-spin-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+:host ::ng-deep .project-master-table.p-datatable-flex-scrollable,
+:host ::ng-deep .project-master-table .p-datatable-table-container,
+:host ::ng-deep .project-master-table .p-virtualscroller {
+  min-height: 0;
+}
+
+:host ::ng-deep .project-master-table .p-virtualscroller {
+  flex: 1 1 auto;
+  overflow: auto !important;
+}
+
+:host ::ng-deep .project-master-table .p-datatable-tbody > tr {
+  height: 44px !important;
+  max-height: 44px !important;
+}
+
+:host ::ng-deep .project-master-table .p-datatable-tbody > tr > td {
+  height: 44px !important;
+  max-height: 44px !important;
+  line-height: 16px !important;
+  overflow: hidden !important;
+  vertical-align: middle !important;
+}
+
+:host ::ng-deep .project-master-table .p-datatable-tbody > tr > td.cell-wrap {
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
+:host ::ng-deep p-table {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+:host ::ng-deep p-table > .p-datatable {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+:host ::ng-deep .project-master-table .p-datatable-scrollable {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+:host ::ng-deep .project-master-table .p-datatable-wrapper {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Custom font size for filter inputs */
+:host ::ng-deep .p-column-filter select,
+:host ::ng-deep .p-column-filter .p-inputtext,
+:host ::ng-deep .p-column-filter .p-select,
+:host ::ng-deep .p-column-filter .p-select-label,
+:host ::ng-deep .p-column-filter .p-multiselect,
+:host ::ng-deep .p-column-filter .p-multiselect-label,
+:host ::ng-deep .p-column-filter .p-datepicker-input,
+:host ::ng-deep .p-column-filter-element input,
+:host ::ng-deep .p-column-filter-element select,
+:host ::ng-deep .p-column-filter-element .p-inputtext,
+:host ::ng-deep .p-column-filter-element .p-select,
+:host ::ng-deep .p-column-filter-element .p-select-label,
+:host ::ng-deep .p-column-filter-element .p-multiselect,
+:host ::ng-deep .p-column-filter-element .p-multiselect-label,
+:host ::ng-deep .p-datatable th input,
+:host ::ng-deep .p-datatable th select,
+:host ::ng-deep .p-datatable th .p-inputtext,
+:host ::ng-deep .p-datatable th .p-select,
+:host ::ng-deep .p-datatable th .p-select-label,
+:host ::ng-deep .p-datatable th .p-multiselect,
+:host ::ng-deep .p-datatable th .p-multiselect-label,
+:host ::ng-deep .p-datatable th .p-multiselect-label-container,
+:host ::ng-deep .p-datatable th .p-datepicker-input {
+  font-size: 12px !important;
+}
+
+/* Ensure the filter row header cells have minimal padding and take full width */
+:host ::ng-deep .p-datatable-thead > tr:nth-child(2) > th {
+  padding: 3px 4px !important;
+}
+
+/* Force all column filter elements to span 100% width of the header cell */
+:host ::ng-deep .p-datatable th p-columnfilter,
+:host ::ng-deep .p-datatable th .p-column-filter,
+:host ::ng-deep .p-datatable th .p-column-filter-element,
+:host ::ng-deep .p-datatable th .p-column-filter-element > *,
+:host ::ng-deep .p-datatable th input,
+:host ::ng-deep .p-datatable th select,
+:host ::ng-deep .p-datatable th .p-inputtext,
+:host ::ng-deep .p-datatable th .p-select,
+:host ::ng-deep .p-datatable th .p-multiselect,
+:host ::ng-deep .p-datatable th .status-filter-select {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+:host ::ng-deep .p-datatable-inline-filter {
+  justify-content: space-between !important;
+}
+
+:host ::ng-deep .p-component .p-inputtext .ng-star-inserted {
+  width: 100% !important;
+}
+
+:host ::ng-deep .p-fluid {
+  width: 100% !important;
+}
+
+:host::ng-deep .p-component .p-inputtext {
+  width: 100% !important;
+}
+
+/* Blue header modal styling */
+::ng-deep .blue-header-modal .ant-modal-header {
+  background-color: #1890ff !important;
+  border-bottom: 1px solid #1890ff !important;
+}
+
+::ng-deep .blue-header-modal .ant-modal-title {
+  color: #ffffff !important;
+}
+
+::ng-deep .blue-header-modal .ant-modal-close-x {
+  color: #ffffff !important;
+}
+

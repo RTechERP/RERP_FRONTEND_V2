@@ -68,6 +68,7 @@ import { TabulatorPopupService } from '../../../shared/components/tabulator-popu
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { ProjectPartlistPriceRequestLogComponent } from './project-partlist-price-request-log/project-partlist-price-request-log.component';
+import { HistoryPriceComponent } from '../../purchase/project-partlist-purchase-request/history-price/history-price.component';
 
 @Component({
   selector: 'app-project-partlist-price-request-new',
@@ -105,6 +106,7 @@ import { ProjectPartlistPriceRequestLogComponent } from './project-partlist-pric
     AngularSlickgridModule,
     MenubarModule,
     ProjectPartlistPriceRequestLogComponent,
+    HistoryPriceComponent,
   ],
   templateUrl: './project-partlist-price-request-new.component.html',
   styleUrls: ['./project-partlist-price-request-new.component.css']
@@ -2459,6 +2461,23 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       enablePagination: false,
       enableHeaderMenu: false, // Disable default header dropdown menu
       autoCommitEdit: true,
+
+      // Context menu
+      contextMenu: {
+        hideCloseButton: false,
+        commandTitle: '',
+        commandItems: [
+          {
+            command: 'history-price',
+            title: 'Lịch sử hỏi giá',
+            iconCssClass: 'mdi mdi-history',
+            positionOrder: 10,
+            action: (_e: any, _args: any) => {
+              this.onHistoryPrice(typeId);
+            },
+          },
+        ],
+      },
 
       // Footer row configuration
       rowHeight: 30,
@@ -6521,4 +6540,34 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     modalRef.componentInstance.productCode = row['ProductCode'] || '';
   }
   //#endregion
+
+  onHistoryPrice(typeId: number): void {
+    const tabEditedRows = this.editedRowsMap.get(typeId);
+    if (tabEditedRows && tabEditedRows.size > 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`
+      );
+      return;
+    }
+
+    const selected = this.getSelectedGridData(typeId);
+    if (selected.length !== 1) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn 1 sản phẩm cần xem lịch sử hỏi giá!`
+      );
+      return;
+    }
+
+    const productCode = selected[0].ProductCode;
+    const modalRef = this.ngbModal.open(HistoryPriceComponent, {
+      centered: false,
+      backdrop: 'static',
+      keyboard: false,
+      size: 'xl',
+    });
+    modalRef.componentInstance.searchKeyword = productCode;
+    modalRef.result.catch(() => { });
+  }
 }

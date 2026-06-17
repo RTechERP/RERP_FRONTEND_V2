@@ -4633,31 +4633,20 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     const zeroScores = this.collectZeroScoreSTTs();
 
     if (zeroScores.size > 0) {
+      this.isSaving = false;
+      this.isCloseAfterSave = false;
       this.showValidationRedBorders = true;
+      this.showZeroScoreBorders = true;
       // Refresh references to trigger grid re-render immediately
       this.dataSkillTree = [...this.dataSkillTree];
       this.dataGeneralTree = [...this.dataGeneralTree];
       this.dataSpecializationTree = [...this.dataSpecializationTree];
       this.cdr.detectChanges();
 
-      this.modal.confirm({
-        nzTitle: 'Thông báo',
-        nzContent: 'Hệ thống phát hiện còn tiêu chí chưa đánh giá.<br/>Vui lòng kiểm tra lại trước khi lưu.',
-        nzOkText: 'Tiếp tục lưu',
-        nzCancelText: 'Hủy để kiểm tra lại',
-        nzOnOk: () => {
-          this.performSave();
-        },
-        nzOnCancel: () => {
-          this.isSaving = false;
-          this.showZeroScoreBorders = true;
-          // Refresh references to trigger grid re-render
-          this.dataSkillTree = [...this.dataSkillTree];
-          this.dataGeneralTree = [...this.dataGeneralTree];
-          this.dataSpecializationTree = [...this.dataSpecializationTree];
-          this.cdr.detectChanges();
-        }
-      });
+      this.notification.warning(
+        'Cảnh báo',
+        'Hệ thống phát hiện còn tiêu chí chưa đánh giá. Vui lòng kiểm tra lại trước khi lưu.'
+      );
     } else {
       this.performSave();
     }

@@ -132,7 +132,7 @@
                     <ng-container *ngIf="col.treeToggler || (!hasTtColumn && i === 0)">
                         <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
                         <p-treeTableCheckbox *ngIf="selectionMode === 'checkbox'"
-                            [value]="rowNode"></p-treeTableCheckbox>
+                            [value]="rowNode" [disabled]="rowNode.node.data.disableSelection"></p-treeTableCheckbox>
                     </ng-container>
 
                     <div class="flex-1 overflow-hidden" style="min-width:100%;">

@@ -1,0 +1,11 @@
+/* esl test registration */
+.p-menubar {
+    border-radius: 0;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
+::ng-deep .esl-test-registration-modal .modal-dialog {
+    max-width: 1400px !important;
+}

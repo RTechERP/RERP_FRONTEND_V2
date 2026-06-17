@@ -149,6 +149,8 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
   projectTypeNodes: TreeNode[] = [];
   selectedTypeNodes: TreeNode[] = [];
   projectTypeCols: TreeColumnDef[] = [];
+  projectUserTeams: any[] = [];
+  leaderLookupConfig!: EditLookupConfig;
   appLookupConfig!: EditLookupConfig;
   techLookupConfig!: EditLookupConfig;
 
@@ -172,6 +174,7 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
     this.getBusinessFields();
     this.getPms();
     this.getUsers();
+    this.getUserTeams();
     this.getApplicationTypes();
     this.getTechnologies();
     this.setDefautSearch();
@@ -289,6 +292,15 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
     this.showSearchBar = !this.showSearchBar;
   }
 
+  getUserTeams() {
+    this.projectService.getUserTeams().subscribe({
+      next: (response: any) => {
+        this.projectUserTeams = response.data || [];
+        this.updateLookupConfigs();
+      }
+    });
+  }
+
   getApplicationTypes() {
     this.projectService.getApplicationTypes().subscribe({
       next: (res: any) => {
@@ -309,6 +321,16 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
 
   // Initialize and Update Lookup Editor Settings for custom-tree-table
   initLookupConfigs() {
+    this.leaderLookupConfig = {
+      data: this.projectUserTeams,
+      columns: [
+        { field: 'Code', header: 'Mã nhân viên', width: '120px' },
+        { field: 'FullName', header: 'Họ tên' }
+      ],
+      valueField: 'EmployeeID',
+      displayField: 'FullName'
+    };
+
     this.appLookupConfig = {
       data: this.applicationTypes,
       columns: [
@@ -352,8 +374,18 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
     this.projectTypeCols = [
       { field: 'ProjectTypeName', header: 'Kiểu dự án', treeToggler: true, width: '200px' },
       {
+        field: 'FullName',
+        header: 'Leader',
+        width: '180px',
+        editable: true,
+        isEditable: (rowData) => !!rowData.Selected,
+        cellClass: (rowData) => !rowData.Selected ? 'cell-disabled' : '',
+        editType: 'table-lookup',
+        editLookupConfig: this.leaderLookupConfig
+      },
+      {
         field: 'ApplicationTypeIDs',
-        header: 'Lĩnh vực ứng dụng',
+        header: 'Kiểu ứng dụng',
         editable: true,
         isEditable: (rowData) => !!rowData.Selected,
         cellClass: (rowData) => !rowData.Selected ? 'cell-disabled' : '',
@@ -373,7 +405,10 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
   }
 
   updateLookupConfigs() {
-    if (this.applicationTypes.length && this.technologies.length) {
+    if (this.applicationTypes.length && this.technologies.length && this.projectUserTeams.length) {
+      this.initLookupConfigs();
+    } else if (this.applicationTypes.length && this.technologies.length && !this.leaderLookupConfig) {
+      // Init even without teams to avoid undefined errors, teams will update later
       this.initLookupConfigs();
     }
   }
@@ -606,7 +641,13 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
         links.forEach((item: any) => {
           item.ApplicationTypeIDs = apps.filter((a: any) => a.ProjectTypeLinkID == item.ProjectTypeLinkID).map((x: any) => x.ApplicationTypeID);
           item.TechnologyIDs = techs.filter((a: any) => a.ProjectTypeLinkID == item.ProjectTypeLinkID).map((x: any) => x.TechnologyID);
-          item.disableSelection = true;
+          // Map FullName from projectUserTeams based on LeaderID
+          if (item.LeaderID && this.projectUserTeams.length > 0) {
+            const leader = this.projectUserTeams.find((u: any) => u.EmployeeID === item.LeaderID);
+            item.FullName = leader ? leader.FullName : null;
+          } else {
+            item.FullName = null;
+          }
         });
 
         const treeData = this.projectService.setDataTree(links, 'ID');
@@ -673,8 +714,17 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
     // Tree table handles updating the row model directly
   }
 
-  onLookupSelect(event: any) {
-    // Triggers if lookups change values
+  onLookupSelect(event: { selectedRow: any; field: string; rowData: any }) {
+    // When Leader is selected via table-lookup, sync LeaderID on the rowData
+    if (event.field === 'FullName') {
+      if (event.selectedRow && !Array.isArray(event.selectedRow)) {
+        event.rowData.LeaderID = event.selectedRow.EmployeeID || 0;
+        event.rowData.EmployeeID = event.selectedRow.EmployeeID || 0;
+      } else if (!event.selectedRow) {
+        event.rowData.LeaderID = 0;
+        event.rowData.EmployeeID = 0;
+      }
+    }
   }
 
   openEditMappingModal(rowData: any = null): void {
@@ -725,7 +775,7 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
           this.projectService.createProjectTree(response.data.project.ID, response.data.selectedProjectTypeLink).subscribe({
             next: () => {
               this.isSaving = false;
-              this.notification.success('Thành công', 'Lưu thông tin kiểu dự án, lĩnh vực và công nghệ thành công!');
+              this.notification.success('Thành công', 'Lưu thành công!');
               this.closeModal();
               this.searchProjects(this.currentPage > 0 ? this.currentPage : 1, this.pageSize);
             },

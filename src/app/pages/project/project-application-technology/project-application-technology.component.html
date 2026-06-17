@@ -180,7 +180,7 @@
             </ng-template>
 
             <ng-template pTemplate="body" let-rowData>
-              <tr [pSelectableRow]="rowData">
+              <tr [pSelectableRow]="rowData" (dblclick)="openEditMappingModal(rowData)" style="cursor: pointer;">
                 <td style="width: 10%">
                   <span class="fs-12 fw-500">{{ rowData.ProjectStatusName }}</span>
                 </td>

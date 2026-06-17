@@ -1,0 +1,28 @@
+<nz-spin [nzSpinning]="loading">
+  <div class="p-3">
+    <nz-card nzTitle="Thông tin đăng ký">
+      <nz-descriptions [nzColumn]="2" nzBordered>
+        <nz-descriptions-item nzTitle="Mã đăng ký">{{ data?.RegistrationCode }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Bàn test">{{ data?.TestTableName }} (Mặt {{ data?.TableSide }})</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Mã dự án">{{ data?.ProjectCode }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Thời gian">
+          Từ {{ data?.StartDate | date:'dd/MM/yyyy' }} đến {{ data?.EndDate | date:'dd/MM/yyyy' }}
+        </nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Người sử dụng">{{ data?.OwnerName }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Nội dung" [nzSpan]="2">{{ data?.RegistrationContent }}</nz-descriptions-item>
+      </nz-descriptions>
+
+      <div class="mt-3">
+        <label>Ghi chú duyệt:</label>
+        <textarea nz-input [(ngModel)]="approveNote" rows="3" placeholder="Nhập ghi chú..."></textarea>
+      </div>
+
+      <div class="mt-4 text-end">
+        <nz-space>
+          <button *nzSpaceItem nz-button nzType="primary" nzDanger (click)="onApprove(false)" [disabled]="loading">Từ chối</button>
+          <button *nzSpaceItem nz-button nzType="primary" (click)="onApprove(true)" [nzLoading]="loading">Duyệt và Bind ESL</button>
+        </nz-space>
+      </div>
+    </nz-card>
+  </div>
+</nz-spin>

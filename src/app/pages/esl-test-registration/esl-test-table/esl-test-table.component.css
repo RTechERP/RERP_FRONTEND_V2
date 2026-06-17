@@ -1,0 +1,58 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);
+    overflow: hidden;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+:host ::ng-deep app-custom-table {
+    flex: 1 1 auto;
+    height: 100% !important;
+    max-height: 100% !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden !important;
+}
+
+:host ::ng-deep .p-datatable.p-datatable-scrollable {
+    display: flex;
+    flex-direction: column;
+    height: 100% !important;
+    max-height: 100% !important;
+}
+
+:host ::ng-deep .p-datatable-scrollable .p-datatable-wrapper {
+    flex: 1;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+}
+
+:host ::ng-deep .p-datatable-scrollable .p-datatable-thead {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+:host ::ng-deep .p-datatable-scrollable .p-datatable-thead > tr > th {
+    background: #f8f9fa !important;
+    white-space: nowrap !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+    white-space: nowrap !important;
+    padding: 4px 8px !important;
+}

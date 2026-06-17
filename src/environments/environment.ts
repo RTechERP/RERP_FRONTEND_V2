@@ -2,9 +2,8 @@ export const environment = {
     production: false,
     apiKey:
         "RTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keY",
-    host: 'https://localhost:44365/',
-    hostExam: 'https://localhost:44365/',
-    hostwebold: 'https://localhost:44365/',
+    host: 'https://localhost:7187/',
+    hostwebold: 'https://localhost:7187/',
     baseHref: '/rerpweb',
     title: 'R-ERP',
     ems_baseURL: '',

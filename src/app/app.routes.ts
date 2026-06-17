@@ -365,6 +365,7 @@ import { JobRequirementRecommendComponent } from './pages/hrm/job-requirement/jo
 import { MakertrainingComponent } from './pages/makertraining/makertraining.component';
 import { PollFormComponent } from './pages/poll-form/poll-form.component';
 import { PollVoteComponent } from './pages/poll-vote/poll-vote.component';
+import { EslTestRegistrationComponent } from './pages/esl-test-registration/esl-test-registration.component';
 import { InventoryAllComponent } from './pages/old/Sale/Inventory/inventory-new/inventory-all/inventory-all.component';
 import { ProjectTaskEfficiencyByProjectComponent } from './pages/project_task/project-task-efficiency-by-project/project-task-efficiency-by-project.component';
 import { ProjectTaskTimeLineNullComponent } from './pages/project_task/project-task-time-line-null/project-task-time-line-null.component';
@@ -422,6 +423,7 @@ export const routes: Routes = [
         canActivate: [authGuard],
         children: [
             { path: 'welcome', component: WelcomeComponent, canActivate: [authGuard] },
+            { path: 'esl-test-registration', component: EslTestRegistrationComponent, canActivate: [authGuard] },
 
             //#region hệ thống
             { path: 'menu-app', component: MenuAppComponent, canActivate: [authGuard] },

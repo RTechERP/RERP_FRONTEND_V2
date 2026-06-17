@@ -1,0 +1,63 @@
+<nz-spin [nzSpinning]="loading">
+  <div class="bg-white">
+    <p-menubar [model]="menuBars"></p-menubar>
+    <div class="p-3">
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <nz-select [(ngModel)]="searchStatus" nzAllowClear nzPlaceHolder="Trạng thái" style="width: 100%">
+            <nz-option *ngFor="let opt of statusOptions" [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+          </nz-select>
+        </div>
+        <div class="col-md-4">
+          <nz-range-picker [(ngModel)]="searchDateRange" nzFormat="dd/MM/yyyy" style="width: 100%"></nz-range-picker>
+        </div>
+        <div class="col-md-3">
+          <input nz-input [(ngModel)]="searchKeyword" placeholder="Từ khóa tìm kiếm (Mã dự án, mã đăng ký)" (keyup.enter)="onSearch()" />
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button nz-button nzType="primary" (click)="onSearch()">Tìm kiếm</button>
+          <button nz-button nzType="default" (click)="onReset()">Đặt lại</button>
+        </div>
+      </div>
+
+      <p-table [value]="filteredDataset" [(selection)]="selectedItems" dataKey="RegistrationID"
+               [paginator]="true" [rows]="50" [rowsPerPageOptions]="[50, 100, 200]"
+               (onRowSelect)="updateMenuState()" (onRowUnselect)="updateMenuState()"
+               (onHeaderCheckboxToggle)="updateMenuState()"
+               styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
+               responsiveLayout="scroll" [scrollable]="true" scrollHeight="calc(100vh - 280px)">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 40px" class="text-center"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+            <th *ngFor="let col of columns" [style.width]="col.width" [style.text-align]="col.align || 'left'">
+              {{ col.header }}
+            </th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowData>
+          <tr [pSelectableRow]="rowData">
+            <td class="text-center"><p-tableCheckbox [value]="rowData"></p-tableCheckbox></td>
+            <td *ngFor="let col of columns" [style.text-align]="col.align || 'left'">
+              <ng-container *ngIf="col.field === 'Status'; else dateField">
+                <p-tag [severity]="getStatusColor(rowData.Status)" [value]="getStatusLabel(rowData.Status)"></p-tag>
+              </ng-container>
+              <ng-template #dateField>
+                <ng-container *ngIf="col.type === 'date'; else defaultField">
+                  {{ rowData[col.field] | date:'dd/MM/yyyy' }}
+                </ng-container>
+              </ng-template>
+              <ng-template #defaultField>
+                {{ rowData[col.field] }}
+              </ng-template>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td [attr.colspan]="columns.length + 1" class="text-center p-3">Không có dữ liệu</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</nz-spin>

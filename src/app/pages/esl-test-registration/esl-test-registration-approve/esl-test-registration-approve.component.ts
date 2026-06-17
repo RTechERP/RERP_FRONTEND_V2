@@ -1,4 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, Optional } from '@angular/core';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -8,6 +9,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { EslTestRegistrationService } from '../esl-test-registration.service';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { AppUserService } from '../../../services/app-user.service';
@@ -28,7 +30,8 @@ import { NzSpaceModule } from 'ng-zorro-antd/space';
     NzGridModule,
     NzCardModule,
     NzDescriptionsModule,
-    NzSpaceModule
+    NzSpaceModule,
+    NzModalModule
   ],
   providers: [NzNotificationService],
   templateUrl: './esl-test-registration-approve.component.html',
@@ -45,33 +48,91 @@ export class EslTestRegistrationApproveComponent implements OnInit {
     private eslService: EslTestRegistrationService,
     private notification: NzNotificationService,
     private tabService: TabServiceService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private modal: NzModalService,
+    @Optional() public activeModal: NgbActiveModal
   ) { }
 
   ngOnInit(): void {
   }
 
   onApprove(isApproved: boolean): void {
+    if (!isApproved) {
+      this.modal.confirm({
+        nzTitle: 'Xác nhận Từ chối',
+        nzContent: 'Bạn có chắc chắn muốn từ chối đăng ký này không? Hệ thống sẽ tự động trả lại bàn test.',
+        nzOkText: 'Từ chối',
+        nzOkDanger: true,
+        nzCancelText: 'Hủy',
+        nzOnOk: () => this.executeApprove(false)
+      });
+    } else {
+      this.executeApprove(true);
+    }
+  }
+
+  private executeApprove(isApproved: boolean): void {
     const currentUser = this.appUserService.currentUser;
     this.loading = true;
 
     this.eslService.approve({
-      detailId: this.data.DetailID,
+      detailId: this.data.DetailID || this.data.ID,
       isApproved: isApproved,
       note: this.approveNote,
       approverId: currentUser?.EmployeeID || 0
-    }).pipe(finalize(() => this.loading = false)).subscribe({
+    }).pipe(finalize(() => {
+      // We only stop loading here if it's Approved, or if Reject failed.
+      // If Reject succeeded, we wait for returnTable to finish.
+      if (isApproved) {
+        this.loading = false;
+      }
+    })).subscribe({
       next: (res: any) => {
         if (res.status === 1) {
-          this.notification.success(NOTIFICATION_TITLE.success, isApproved ? 'Duyệt thành công' : 'Từ chối thành công');
-          this.tabService.notifyDataSaved('esl-test-registration');
-          this.tabService.closeTabByKey(this.compID);
+          if (!isApproved) {
+            // Reject success, now call returnTable
+            this.eslService.returnTable({
+              registrationID: this.data.RegistrationID || this.data.ID,
+              returnBy: currentUser?.EmployeeID || 0
+            }).pipe(finalize(() => {
+              this.loading = false;
+              this.closeAndNotify();
+            })).subscribe({
+              next: (returnRes: any) => {
+                if (returnRes.status === 1) {
+                  this.notification.success(NOTIFICATION_TITLE.success, 'Từ chối và trả bàn thành công');
+                } else {
+                  this.notification.warning(NOTIFICATION_TITLE.warning, returnRes.message || 'Đã từ chối nhưng lỗi khi trả bàn');
+                }
+              },
+              error: () => {
+                this.notification.warning(NOTIFICATION_TITLE.warning, 'Đã từ chối nhưng có lỗi hệ thống khi trả bàn');
+              }
+            });
+          } else {
+            // Approve success
+            this.notification.success(NOTIFICATION_TITLE.success, 'Duyệt thành công');
+            this.closeAndNotify();
+          }
         } else {
+          this.loading = false;
           this.notification.warning(NOTIFICATION_TITLE.warning, res.message);
         }
       },
-      error: (err: any) => this.showError(err)
+      error: (err: any) => {
+        this.loading = false;
+        this.showError(err);
+      }
     });
+  }
+
+  private closeAndNotify(): void {
+    if (this.activeModal) {
+      this.activeModal.close(true);
+    } else {
+      this.tabService.notifyDataSaved('esl-test-registration');
+      this.tabService.closeTabByKey(this.compID);
+    }
   }
 
   showError(err: any): void {
@@ -80,6 +141,14 @@ export class EslTestRegistrationApproveComponent implements OnInit {
       NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
       err?.error?.message || err.message
     );
+  }
+
+  closeModal(): void {
+    if (this.activeModal) {
+      this.activeModal.dismiss();
+    } else {
+      this.tabService.closeTabByKey(this.compID);
+    }
   }
 }
 

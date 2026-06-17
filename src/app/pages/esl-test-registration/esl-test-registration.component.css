@@ -5,3 +5,7 @@
     border-left: none;
     border-right: none;
 }
+
+::ng-deep .esl-test-registration-modal .modal-dialog {
+    max-width: 1400px !important;
+}

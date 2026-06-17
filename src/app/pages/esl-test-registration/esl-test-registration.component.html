@@ -20,7 +20,7 @@
         </div>
       </div>
 
-      <p-table [value]="filteredDataset" [(selection)]="selectedItems" dataKey="RegistrationID"
+      <p-table [value]="filteredDataset" [(selection)]="selectedItems" dataKey="ID"
                [paginator]="true" [rows]="50" [rowsPerPageOptions]="[50, 100, 200]"
                (onRowSelect)="updateMenuState()" (onRowUnselect)="updateMenuState()"
                (onHeaderCheckboxToggle)="updateMenuState()"
@@ -29,32 +29,93 @@
         <ng-template pTemplate="header">
           <tr>
             <th style="width: 40px" class="text-center"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+            <th style="width: 40px"></th>
             <th *ngFor="let col of columns" [style.width]="col.width" [style.text-align]="col.align || 'left'">
               {{ col.header }}
             </th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-rowData>
+        <ng-template pTemplate="body" let-rowData let-rowIndex="rowIndex">
           <tr [pSelectableRow]="rowData">
             <td class="text-center"><p-tableCheckbox [value]="rowData"></p-tableCheckbox></td>
+            <td class="text-center">
+              <button *ngIf="rowData.children && rowData.children.length > 0" type="button"
+                class="btn btn-sm btn-link p-0" style="font-size: 14px;"
+                (click)="toggleExpand(rowData); $event.stopPropagation()">
+                <i [class]="expandedRows[rowData.ID] ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"></i>
+              </button>
+            </td>
             <td *ngFor="let col of columns" [style.text-align]="col.align || 'left'">
-              <ng-container *ngIf="col.field === 'Status'; else dateField">
-                <p-tag [severity]="getStatusColor(rowData.Status)" [value]="getStatusLabel(rowData.Status)"></p-tag>
-              </ng-container>
-              <ng-template #dateField>
-                <ng-container *ngIf="col.type === 'date'; else defaultField">
-                  {{ rowData[col.field] | date:'dd/MM/yyyy' }}
+              <ng-container [ngSwitch]="col.field">
+                <ng-container *ngSwitchCase="'Status'">
+                  <p-tag [severity]="getStatusColor(rowData.Status)" [value]="getStatusLabel(rowData.Status)"></p-tag>
                 </ng-container>
-              </ng-template>
-              <ng-template #defaultField>
-                {{ rowData[col.field] }}
-              </ng-template>
+                <ng-container *ngSwitchCase="'online'">
+                  <div class="w-100 h-100 d-flex justify-content-center align-items-center">
+                    <span [ngClass]="rowData.online ? 'bg-success' : 'bg-danger'" 
+                          style="display: inline-block; width: 12px; height: 12px; border-radius: 50%;"
+                          [title]="rowData.online ? 'Online' : 'Offline'"></span>
+                  </div>
+                </ng-container>
+                <ng-container *ngSwitchCase="'esl_battery'">
+                  {{ rowData.esl_battery ? (rowData.esl_battery + ' mV') : '' }}
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  <ng-container *ngIf="col.type === 'date'; else defaultText">
+                    {{ rowData[col.field] | date:'dd/MM/yyyy' }}
+                  </ng-container>
+                  <ng-template #defaultText>
+                    {{ rowData[col.field] }}
+                  </ng-template>
+                </ng-container>
+              </ng-container>
+            </td>
+          </tr>
+          <!-- Nested child table row -->
+          <tr *ngIf="expandedRows[rowData.ID] && rowData.children && rowData.children.length > 0">
+            <td [attr.colspan]="columns.length + 2" style="padding: 0;">
+              <div class="p-3" style="background-color: #f8f9fa;">
+                <p-table [value]="rowData.children" [(selection)]="selectedChildItems" dataKey="ID"
+                  (onRowSelect)="updateMenuState()" (onRowUnselect)="updateMenuState()"
+                  (onHeaderCheckboxToggle)="updateMenuState()"
+                  styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped">
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th style="width: 40px" class="text-center"><p-tableHeaderCheckbox></p-tableHeaderCheckbox></th>
+                      <th style="width:80px" class="text-center">Số lần</th>
+                      <th style="width:100px" class="text-center">Loại</th>
+                      <th style="width:150px" class="text-center">Ngày bắt đầu</th>
+                      <th style="width:150px" class="text-center">Ngày kết thúc</th>
+                      <th style="width:150px" class="text-center">Người nhận bàn giao</th>
+                      <th style="width:150px" class="text-center">Người duyệt</th>
+                      <th style="width:120px" class="text-center">Trạng thái</th>
+                    </tr>
+                  </ng-template>
+                  <ng-template pTemplate="body" let-child>
+                    <tr>
+                      <td class="text-center"><p-tableCheckbox [value]="child"></p-tableCheckbox></td>
+                      <td class="text-center">Lần {{ child.No - 1 }}</td>
+                      <td class="text-center">
+                        <p-tag [value]="child.Type === 1 ? 'Đăng ký' : (child.Type === 2 ? 'Gia hạn' : (child.Type === 3 ? 'Bàn giao' : 'Khác'))"
+                          [severity]="child.Type === 1 ? 'info' : (child.Type === 2 ? 'warn' : 'success')"></p-tag>
+                      </td>
+                      <td class="text-center">{{ child.DetailStartDate | date:'dd/MM/yyyy' }}</td>
+                      <td class="text-center">{{ child.DetailEndDate | date:'dd/MM/yyyy' }}</td>
+                      <td class="text-center">{{ child.OwnerFullName }}</td>
+                      <td class="text-center">{{ child.ApproverFullName }}</td>
+                      <td class="text-center">
+                        <p-tag [severity]="getStatusColor(child.Status)" [value]="getStatusLabel(child.Status)"></p-tag>
+                      </td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
             </td>
           </tr>
         </ng-template>
         <ng-template pTemplate="emptymessage">
           <tr>
-            <td [attr.colspan]="columns.length + 1" class="text-center p-3">Không có dữ liệu</td>
+            <td [attr.colspan]="columns.length + 2" class="text-center p-3">Không có dữ liệu</td>
           </tr>
         </ng-template>
       </p-table>

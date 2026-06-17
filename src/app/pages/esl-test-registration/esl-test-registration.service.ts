@@ -25,6 +25,14 @@ export class EslTestRegistrationService {
     return this.http.get(this.url + '/getall' + query);
   }
 
+  getAllRegistration(keyword: string, status?: number | null, startDate?: string | null, endDate?: string | null): Observable<any> {
+    let query = `?keyword=${keyword}`;
+    if (status !== undefined && status !== null) query += `&status=${status}`;
+    if (startDate) query += `&startDate=${startDate}`;
+    if (endDate) query += `&endDate=${endDate}`;
+    return this.http.get(this.url + '/get-all-registration' + query);
+  }
+
   getById(id: number): Observable<any> {
     return this.http.get(`${this.url}/getbyid?id=${id}`);
   }
@@ -41,11 +49,19 @@ export class EslTestRegistrationService {
     return this.http.post(this.url + '/delete', id);
   }
 
+  deleteMaster(masterID: number): Observable<any> {
+    return this.http.post(`${this.url}/delete-master?masterID=${masterID}`, null);
+  }
+
+  deleteDetail(detailID: number): Observable<any> {
+    return this.http.post(`${this.url}/delete-detail?detailID=${detailID}`, null);
+  }
+
   approve(data: { detailId: number, isApproved: boolean, note: string, approverId: number }): Observable<any> {
     return this.http.post(this.url + '/approve', data);
   }
 
-  extendHandover(data: { registrationID: number, type: number, ownerID: number, approverID: number }): Observable<any> {
+  extendHandover(data: { registrationID: number, type: number, ownerID: number, approverID: number, startDate: string, endDate: string }): Observable<any> {
     return this.http.post(this.url + '/extend-handover', data);
   }
 
@@ -65,8 +81,16 @@ export class EslTestRegistrationService {
     return this.http.get(`${this.employeeUrl}/?status=${status}&departmentid=${departmentId}&keyword=${keyword}`);
   }
 
+  getApprovers(): Observable<any> {
+    return this.http.get(`${this.url}/get-all-user-approve`);
+  }
+
   getProjects(): Observable<any> {
     return this.http.get(environment.host + 'api/ProjectTask/get-all-project');
+  }
+
+  biding(masterID: number): Observable<any> {
+    return this.http.post(`${this.url}/biding?masterID=${masterID}`, null);
   }
 }
 

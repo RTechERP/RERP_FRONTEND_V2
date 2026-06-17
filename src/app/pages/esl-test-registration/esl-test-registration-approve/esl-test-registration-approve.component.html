@@ -1,3 +1,8 @@
+<div class="modal-header bg-primary p-2">
+  <h6 class="modal-title text-white text-uppercase">Duyệt đăng ký: {{ data?.RegistrationCode }}</h6>
+  <button type="button" class="btn-close me-1" style="background-color:lightcyan !important; font-weight: bold;" aria-label="Close" (click)="closeModal()"></button>
+</div>
+<div class="modal-body p-2">
 <nz-spin [nzSpinning]="loading">
   <div class="p-3">
     <nz-card nzTitle="Thông tin đăng ký">
@@ -8,7 +13,7 @@
         <nz-descriptions-item nzTitle="Thời gian">
           Từ {{ data?.StartDate | date:'dd/MM/yyyy' }} đến {{ data?.EndDate | date:'dd/MM/yyyy' }}
         </nz-descriptions-item>
-        <nz-descriptions-item nzTitle="Người sử dụng">{{ data?.OwnerName }}</nz-descriptions-item>
+        <nz-descriptions-item nzTitle="Người sử dụng">{{ data?.OwnerName || data?.OwnerFullName }}</nz-descriptions-item>
         <nz-descriptions-item nzTitle="Nội dung" [nzSpan]="2">{{ data?.RegistrationContent }}</nz-descriptions-item>
       </nz-descriptions>
 
@@ -16,13 +21,12 @@
         <label>Ghi chú duyệt:</label>
         <textarea nz-input [(ngModel)]="approveNote" rows="3" placeholder="Nhập ghi chú..."></textarea>
       </div>
-
-      <div class="mt-4 text-end">
-        <nz-space>
-          <button *nzSpaceItem nz-button nzType="primary" nzDanger (click)="onApprove(false)" [disabled]="loading">Từ chối</button>
-          <button *nzSpaceItem nz-button nzType="primary" (click)="onApprove(true)" [nzLoading]="loading">Duyệt và Bind ESL</button>
-        </nz-space>
-      </div>
     </nz-card>
   </div>
 </nz-spin>
+</div>
+<div class="modal-footer bg-light p-2">
+  <button nz-button nzDanger nzType="default" (click)="closeModal()">Đóng</button>
+  <button nz-button nzType="primary" nzDanger (click)="onApprove(false)" [disabled]="loading">Từ chối</button>
+  <button nz-button nzType="primary" (click)="onApprove(true)" [nzLoading]="loading">Duyệt và Bind ESL</button>
+</div>

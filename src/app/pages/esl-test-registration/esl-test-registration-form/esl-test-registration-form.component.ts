@@ -1,6 +1,7 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, Optional } from '@angular/core';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { CommonModule, DatePipe } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -25,6 +26,7 @@ import { finalize } from 'rxjs/operators';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     NzButtonModule,
     NzFormModule,
     NzInputModule,
@@ -50,14 +52,19 @@ export class EslTestRegistrationFormComponent implements OnInit {
   loading = false;
   testTables: any[] = [];
   employees: any[] = [];
+  approvers: any[] = [];
   projects: any[] = [];
   isEdit = false;
+  allowEdit = true;
+  maxNo = 0;
+  maxNoDetail: any = null;
   detailsList: any[] = [];
   columns = [
-    { field: 'Type', header: 'Loại', width: '120px' },
-    { field: 'StartDate', header: 'Ngày bắt đầu', width: '120px' },
-    { field: 'EndDate', header: 'Ngày kết thúc', width: '120px' },
-    { field: 'OwnerName', header: 'Người đăng ký', width: '150px' },
+    { field: 'No', header: 'Số lần', width: '80px' },
+    { field: 'Type', header: 'Loại', width: '100px' },
+    { field: 'StartDate', header: 'Ngày bắt đầu', width: '150px' },
+    { field: 'EndDate', header: 'Ngày kết thúc', width: '150px' },
+    { field: 'OwnerName', header: 'Người nhận', width: '150px' },
     { field: 'ApproverName', header: 'Người duyệt', width: '150px' },
     { field: 'Status', header: 'Trạng thái', width: '120px' }
   ];
@@ -68,7 +75,8 @@ export class EslTestRegistrationFormComponent implements OnInit {
     private notification: NzNotificationService,
     private tabService: TabServiceService,
     private appUserService: AppUserService,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    @Optional() public activeModal: NgbActiveModal
   ) {
     this.createForm();
   }
@@ -76,15 +84,13 @@ export class EslTestRegistrationFormComponent implements OnInit {
   ngOnInit(): void {
     this.loadTestTables();
     this.loadEmployees();
+    this.loadApprovers();
     this.loadProjects();
-    
+
     if (this.data) {
       this.isEdit = true;
       this.patchFormData(this.data);
       this.loadDetails(this.data.RegistrationID);
-      if (this.data.Status === 1) {
-        this.form.disable();
-      }
     } else {
       const currentUser = this.appUserService.currentUser;
       this.form.patchValue({ OwnerID: currentUser?.EmployeeID });
@@ -93,9 +99,12 @@ export class EslTestRegistrationFormComponent implements OnInit {
     this.form.get('ProjectCode')?.valueChanges.subscribe(code => {
       const selectedProject = this.projects.find(p => p.ProjectCode === code);
       if (selectedProject) {
-        this.form.patchValue({ RegistrationContent: selectedProject.ProjectName });
+        this.form.patchValue({
+          RegistrationContent: selectedProject.ProjectName,
+          ProjectID: selectedProject.ID || selectedProject.ProjectID || 0
+        });
       } else {
-        this.form.patchValue({ RegistrationContent: null });
+        this.form.patchValue({ RegistrationContent: null, ProjectID: null });
       }
     });
   }
@@ -106,11 +115,13 @@ export class EslTestRegistrationFormComponent implements OnInit {
       DetailID: [0],
       TestTableID: [null, [Validators.required]],
       ProjectCode: [null, [Validators.required]],
+      ProjectID: [null],
       RegistrationContent: [null],
       OwnerID: [null, [Validators.required]],
       ApproverID: [null, [Validators.required]],
       StartDate: [null, [Validators.required]],
-      EndDate: [null, [Validators.required]]
+      EndDate: [null, [Validators.required]],
+      IsDelete: [false]
     });
   }
 
@@ -120,11 +131,13 @@ export class EslTestRegistrationFormComponent implements OnInit {
       DetailID: item.DetailID,
       TestTableID: item.TestTableID,
       ProjectCode: item.ProjectCode,
+      ProjectID: item.ProjectID,
       RegistrationContent: item.RegistrationContent,
       OwnerID: item.OwnerID,
       ApproverID: item.ApproverID,
       StartDate: item.StartDate,
-      EndDate: item.EndDate
+      EndDate: item.EndDate,
+      IsDelete: item.IsDelete || false
     });
   }
 
@@ -140,6 +153,14 @@ export class EslTestRegistrationFormComponent implements OnInit {
     this.eslService.getEmployees().subscribe({
       next: (res: any) => {
         this.employees = res.data || [];
+      }
+    });
+  }
+
+  loadApprovers(): void {
+    this.eslService.getApprovers().subscribe({
+      next: (res: any) => {
+        this.approvers = res.data?.result || res.data || [];
       }
     });
   }
@@ -163,13 +184,35 @@ export class EslTestRegistrationFormComponent implements OnInit {
   loadDetails(registrationId: number): void {
     this.eslService.getDetails(registrationId).subscribe({
       next: (res: any) => {
-        this.detailsList = res.data || [];
+        const rawDetails = res.data || [];
+        this.detailsList = rawDetails.filter((x: any) => x.No > 1);
+
+        if (this.isEdit && rawDetails.length > 0) {
+          const latestDetail = rawDetails.reduce((prev: any, current: any) => (prev.No > current.No) ? prev : current);
+          this.maxNo = latestDetail.No;
+          this.maxNoDetail = latestDetail;
+          this.applyEditRules(latestDetail.No, latestDetail.Status);
+        }
       }
     });
   }
 
+  applyEditRules(no: number, status: number): void {
+    if (status >= 1) {
+      this.form.disable();
+      this.allowEdit = false;
+    } else {
+      this.allowEdit = true;
+      if (no === 1) {
+        this.form.enable();
+      } else {
+        this.form.disable();
+      }
+    }
+  }
+
   getTypeLabel(type: number): string {
-    switch(type) {
+    switch (type) {
       case 1: return 'Đăng ký';
       case 2: return 'Gia hạn';
       case 3: return 'Bàn giao';
@@ -187,7 +230,7 @@ export class EslTestRegistrationFormComponent implements OnInit {
   }
 
   getStatusLabel(status: number): string {
-    switch(status) {
+    switch (status) {
       case 0: return 'Chờ duyệt';
       case 1: return 'Đã duyệt';
       case 2: return 'Từ chối';
@@ -201,43 +244,83 @@ export class EslTestRegistrationFormComponent implements OnInit {
       this.form.controls[i].updateValueAndValidity();
     }
 
-    if (this.form.valid) {
-      const formValue = this.form.value;
-      if (formValue.EndDate < formValue.StartDate) {
-        this.notification.warning('Cảnh báo', 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu');
-        return;
+    if (this.form.valid || (this.maxNo > 1 && this.allowEdit)) {
+      const formValue = this.form.getRawValue();
+      let payload: any = {};
+      let sd = '';
+      let ed = '';
+
+      if (this.maxNo > 1) {
+        sd = this.datePipe.transform(this.maxNoDetail.StartDate, 'yyyy-MM-dd') || '';
+        ed = this.datePipe.transform(this.maxNoDetail.EndDate, 'yyyy-MM-dd') || '';
+
+        if (new Date(this.maxNoDetail.EndDate) < new Date(this.maxNoDetail.StartDate)) {
+          this.notification.warning('Cảnh báo', 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu');
+          return;
+        }
+
+        payload = {
+          ID: formValue.RegistrationID,
+          TestTableID: formValue.TestTableID,
+          OwnerID: this.maxNoDetail.OwnerID,
+          ApproverID: this.maxNoDetail.ApproverID,
+          ProjectCode: formValue.ProjectCode,
+          ProjectID: formValue.ProjectID,
+          RegistrationContent: formValue.RegistrationContent,
+          StartDate: sd,
+          EndDate: ed,
+          IsDelete: formValue.IsDelete || false,
+          Status: this.maxNoDetail.Status,
+          Type: this.maxNoDetail.Type,
+          No: this.maxNoDetail.No
+        };
+      } else {
+        if (formValue.EndDate < formValue.StartDate) {
+          this.notification.warning('Cảnh báo', 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu');
+          return;
+        }
+        sd = this.datePipe.transform(formValue.StartDate, 'yyyy-MM-dd') || '';
+        ed = this.datePipe.transform(formValue.EndDate, 'yyyy-MM-dd') || '';
+
+        payload = {
+          ID: formValue.RegistrationID,
+          TestTableID: formValue.TestTableID,
+          OwnerID: formValue.OwnerID,
+          ApproverID: formValue.ApproverID,
+          ProjectCode: formValue.ProjectCode,
+          ProjectID: formValue.ProjectID,
+          RegistrationContent: formValue.RegistrationContent,
+          StartDate: sd,
+          EndDate: ed,
+          IsDelete: formValue.IsDelete || false,
+          Status: 0,
+          Type: 1,
+          No: 1
+        };
       }
 
       this.loading = true;
-      const sd = this.datePipe.transform(formValue.StartDate, 'yyyy-MM-dd') || '';
-      const ed = this.datePipe.transform(formValue.EndDate, 'yyyy-MM-dd') || '';
 
       // Check conflict
       this.eslService.checkConflict({
-        testTableId: formValue.TestTableID,
+        testTableId: payload.TestTableID,
         startDate: sd,
         endDate: ed,
-        excludeDetailId: formValue.DetailID > 0 ? formValue.DetailID : undefined
+        excludeDetailId: this.maxNo > 1 ? this.maxNoDetail.ID : (formValue.DetailID > 0 ? formValue.DetailID : undefined)
       }).subscribe({
         next: (resConflict: any) => {
           if (resConflict.status === 1) {
             // Save
-            const payload = {
-              ID: formValue.RegistrationID, // DTO maps to ID
-              TestTableID: formValue.TestTableID,
-              OwnerID: formValue.OwnerID,
-              ApproverID: formValue.ApproverID,
-              ProjectCode: formValue.ProjectCode,
-              RegistrationContent: formValue.RegistrationContent,
-              StartDate: sd,
-              EndDate: ed
-            };
             this.eslService.save(payload).pipe(finalize(() => this.loading = false)).subscribe({
               next: (res: any) => {
                 if (res.status === 1) {
                   this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
-                  this.tabService.notifyDataSaved('esl-test-registration');
-                  this.tabService.closeTabByKey(this.compID);
+                  if (this.activeModal) {
+                    this.activeModal.close(true);
+                  } else {
+                    this.tabService.notifyDataSaved('esl-test-registration');
+                    this.tabService.closeTabByKey(this.compID);
+                  }
                 } else {
                   this.notification.warning(NOTIFICATION_TITLE.warning, res.message);
                 }
@@ -263,6 +346,14 @@ export class EslTestRegistrationFormComponent implements OnInit {
       NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
       err?.error?.message || err.message
     );
+  }
+
+  closeModal(): void {
+    if (this.activeModal) {
+      this.activeModal.dismiss();
+    } else {
+      this.tabService.closeTabByKey(this.compID);
+    }
   }
 }
 

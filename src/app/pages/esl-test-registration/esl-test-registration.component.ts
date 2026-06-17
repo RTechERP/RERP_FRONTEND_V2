@@ -15,6 +15,7 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { MenubarModule } from 'primeng/menubar';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { ButtonModule } from 'primeng/button';
 import { Subscription } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import * as ExcelJS from 'exceljs';
@@ -55,7 +56,8 @@ export interface ColDef {
     TableModule,
     TagModule,
     MenubarModule,
-    MultiSelectModule
+    MultiSelectModule,
+    ButtonModule
   ],
   providers: [NzNotificationService, NzModalService, DatePipe],
   templateUrl: './esl-test-registration.component.html',
@@ -66,12 +68,15 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
   filteredDataset: any[] = [];
   loading = false;
   selectedItems: any[] = [];
+  expandedRows: { [key: number]: boolean } = {};
+  selectedChildItems: any[] = [];
   menuBars: MenuItem[] = [];
-  
+  approvers: any[] = [];
+
   searchKeyword = '';
   searchStatus: number | null = null;
   searchDateRange: Date[] = [];
-  
+
   statusOptions = [
     { label: 'Chờ duyệt', value: 0 },
     { label: 'Đã duyệt', value: 1 },
@@ -84,11 +89,13 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
     { field: 'TableSide', header: 'Mặt bàn', width: '90px', filterType: 'multiselect' },
     { field: 'ProjectCode', header: 'Mã dự án', width: '140px', filterType: 'text' },
     { field: 'RegistrationContent', header: 'Nội dung', width: '250px', filterType: 'text' },
-    { field: 'OwnerName', header: 'Người đăng ký', width: '150px', filterType: 'multiselect' },
-    { field: 'ApproverName', header: 'Người duyệt', width: '150px', filterType: 'multiselect' },
-    { field: 'StartDate', header: 'Ngày bắt đầu', width: '110px', filterType: 'date', type: 'date' },
-    { field: 'EndDate', header: 'Ngày kết thúc', width: '110px', filterType: 'date', type: 'date' },
+    { field: 'OwnerFullName', header: 'Người đăng ký', width: '150px', filterType: 'multiselect' },
+    { field: 'ApproverFullName', header: 'Người duyệt', width: '150px', filterType: 'multiselect' },
+    { field: 'DetailStartDate', header: 'Ngày bắt đầu', width: '110px', filterType: 'date', type: 'date' },
+    { field: 'DetailEndDate', header: 'Ngày kết thúc', width: '110px', filterType: 'date', type: 'date' },
     { field: 'ActualReturnDate', header: 'Ngày trả', width: '110px', filterType: 'date', type: 'date' },
+    { field: 'esl_battery', header: 'Pin (mV)', width: '100px', align: 'right' },
+    { field: 'online', header: 'Kết nối', width: '90px', align: 'center' },
     { field: 'Status', header: 'Trạng thái', width: '120px', filterType: 'multiselect' }
   ];
 
@@ -108,6 +115,7 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initMenu();
     this.loadData();
+    this.loadApprovers();
 
     this.dataSavedSub = this.tabService.dataSaved$.subscribe((key: string) => {
       if (key === 'esl-test-registration') {
@@ -139,7 +147,7 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
       },
       {
         label: 'Duyệt', icon: 'fa-solid fa-check text-success',
-        command: () => this.onApprove(), disabled: true, visible: hasCrud
+        command: () => this.onApprove(), disabled: true, visible: this.permissionService.hasPermission('N1,N32'),
       },
       {
         label: 'Gia hạn/Bàn giao', icon: 'fa-solid fa-clock-rotate-left text-info',
@@ -150,45 +158,180 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
         command: () => this.onReturn(), disabled: true, visible: hasCrud
       },
       { label: 'Tải lại', icon: 'fa-solid fa-arrows-rotate', command: () => this.loadData() },
-      { label: 'Xuất Excel', icon: 'fa-solid fa-file-excel text-success', command: () => this.onExport() }
+      { label: 'Xuất Excel', icon: 'fa-solid fa-file-excel text-success', command: () => this.onExport() },
+      {
+        label: 'Binding lại', icon: 'fa-solid fa-link text-primary',
+        command: () => this.onBiding(), disabled: true, visible: hasCrud
+      }
     ];
   }
 
   updateMenuState(): void {
-    const len = this.selectedItems.length;
-    const item = len === 1 ? this.selectedItems[0] : null;
-    
-    // Only can extend/handover/return if approved and not returned
-    const canAction = item?.Status === 1 && !item?.ActualReturnDate;
+    const lenMaster = this.selectedItems.length;
+    const lenChild = this.selectedChildItems.length;
+    const totalLen = lenMaster + lenChild;
+
+    // Must select exactly one item (either 1 master OR 1 child) to perform actions
+    const isValidSelection = totalLen === 1;
+
+    let item: any = null;
+    let masterItem: any = null;
+
+    if (lenMaster === 1 && lenChild === 0) {
+      item = this.selectedItems[0];
+      masterItem = item;
+    } else if (lenChild === 1 && lenMaster === 0) {
+      item = this.selectedChildItems[0];
+      masterItem = this.dataset.find(x => x.children && x.children.some((c: any) => c.ID === item.ID));
+    }
+
+    // Check if master and ALL its children are approved
+    const isAllApproved = item?.Status === 1 && (!item?.children || item?.children.every((c: any) => c.Status === 1));
+    const canAction = isAllApproved && !item?.ActualReturnDate;
+
+    // Can edit if the master itself is pending, OR any of its details are pending
+    const canEdit = masterItem && (masterItem.Status === 0 || (masterItem.children && masterItem.children.some((c: any) => c.Status === 0)));
+
+    // Authorization checks
+    const currentUser = this.appUserService.currentUser;
+    const currentUserId = currentUser?.EmployeeID;
+
+    // Check if current user is in the get-all-user-approve list
+    const isApproverInList = this.approvers.some(a => a.ID === currentUserId);
+
+    const masterOwnerId = masterItem?.OwnerID;
+    const itemOwnerId = item?.OwnerID;
+    const itemApproverId = item?.ApproverID;
+
+    // Rule 1: Sửa, Xóa, Gia hạn, Trả bàn
+    const hasRule1Access = currentUserId && (
+      currentUserId === masterOwnerId ||
+      currentUserId === itemOwnerId ||
+      currentUserId === itemApproverId ||
+      isApproverInList
+    );
+
+    // Rule 2: Duyệt (Chỉ người duyệt được chỉ định của yêu cầu đó mới được phép duyệt)
+    const hasApproveAccess = currentUserId && (currentUserId === itemApproverId);
 
     this.menuBars = this.menuBars.map(m => {
-      if (m.label === 'Sửa') return { ...m, disabled: len !== 1 || item?.Status !== 0 };
-      if (m.label === 'Xóa') return { ...m, disabled: len === 0 || this.selectedItems.some(x => x.Status !== 0) };
-      if (m.label === 'Duyệt') return { ...m, disabled: len !== 1 || item?.Status !== 0 };
-      if (m.label === 'Gia hạn/Bàn giao') return { ...m, disabled: len !== 1 || !canAction };
-      if (m.label === 'Trả bàn') return { ...m, disabled: len !== 1 || !canAction };
+      if (m.label === 'Sửa') return { ...m, disabled: !isValidSelection || !canEdit || !hasRule1Access };
+      if (m.label === 'Xóa') return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasRule1Access };
+      if (m.label === 'Duyệt') return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasApproveAccess };
+      if (m.label === 'Gia hạn/Bàn giao') return { ...m, disabled: lenMaster !== 1 || !canAction || !hasRule1Access }; // limit to master for now
+      if (m.label === 'Trả bàn') return { ...m, disabled: lenMaster !== 1 || !canAction || !hasRule1Access }; // limit to master for now
+      if (m.label === 'Binding lại') return { ...m, disabled: lenMaster !== 1 };
       return m;
+    });
+  }
+
+  onDelete(): void {
+    const lenMaster = this.selectedItems.length;
+    const lenChild = this.selectedChildItems.length;
+    const totalLen = lenMaster + lenChild;
+
+    if (totalLen !== 1) return;
+
+    let item = null;
+    let isMaster = false;
+    let isChild = false;
+
+    if (lenMaster === 1 && lenChild === 0) {
+      item = this.selectedItems[0];
+      isMaster = true;
+    } else if (lenChild === 1 && lenMaster === 0) {
+      item = this.selectedChildItems[0];
+      isChild = true;
+    }
+
+    if (!item || item.Status !== 0) {
+      this.notification.warning('Cảnh báo', 'Chỉ có thể xóa khi trạng thái là Chờ duyệt');
+      return;
+    }
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa đăng ký này?`,
+      nzOkText: 'Xóa',
+      nzOkDanger: true,
+      nzOnOk: () => {
+        if (isMaster) {
+          this.eslService.deleteMaster(item.ID).subscribe({
+            next: (res) => {
+              if (res.status === 1) {
+                this.notification.success('Thành công', 'Xóa thành công');
+                this.selectedItems = [];
+                this.selectedChildItems = [];
+                this.loadData();
+              } else {
+                this.notification.error('Lỗi', res.message || 'Có lỗi xảy ra');
+              }
+            },
+            error: (err) => this.notification.error('Lỗi', err.message || 'Lỗi kết nối')
+          });
+        } else if (isChild) {
+          this.eslService.deleteDetail(item.ID).subscribe({
+            next: (res) => {
+              if (res.status === 1) {
+                this.notification.success('Thành công', 'Xóa thành công');
+                this.selectedItems = [];
+                this.selectedChildItems = [];
+                this.loadData();
+              } else {
+                this.notification.error('Lỗi', res.message || 'Có lỗi xảy ra');
+              }
+            },
+            error: (err) => this.notification.error('Lỗi', err.message || 'Lỗi kết nối')
+          });
+        }
+      }
     });
   }
 
   loadData(): void {
     this.loading = true;
+    this.selectedItems = [];
+    this.selectedChildItems = [];
     let sd = '', ed = '';
     if (this.searchDateRange && this.searchDateRange.length === 2) {
       sd = this.datePipe.transform(this.searchDateRange[0], 'yyyy-MM-dd') || '';
       ed = this.datePipe.transform(this.searchDateRange[1], 'yyyy-MM-dd') || '';
     }
 
-    this.eslService.getAll(this.searchKeyword, this.searchStatus, sd, ed).pipe(
+    this.eslService.getAllRegistration(this.searchKeyword, this.searchStatus, sd, ed).pipe(
       finalize(() => this.loading = false)
     ).subscribe({
       next: (res: any) => {
-        this.dataset = res.data || [];
+        let results = res.data?.result || res.data || [];
+        results.forEach((item: any) => {
+          item.RegistrationID = item.ID; // Map ID to RegistrationID for compatibility
+          item.StartDate = item.DetailStartDate;
+          item.EndDate = item.DetailEndDate;
+          if (item.DetailsJson) {
+            try {
+              item.children = JSON.parse(item.DetailsJson);
+            } catch (e) {
+              item.children = [];
+            }
+          } else {
+            item.children = [];
+          }
+        });
+        this.dataset = results;
         this.selectedItems = [];
         this.refreshFilters();
         this.updateMenuState();
       },
       error: (err: any) => this.showError(err)
+    });
+  }
+
+  loadApprovers(): void {
+    this.eslService.getApprovers().subscribe({
+      next: (res: any) => {
+        this.approvers = res.data?.result || res.data || [];
+        this.updateMenuState();
+      }
     });
   }
 
@@ -219,6 +362,16 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
     return this.statusOptions.find(x => x.value === status)?.label || 'Unknown';
   }
 
+  toggleExpand(rowData: any): void {
+    const id = rowData.ID;
+    if (this.expandedRows[id]) {
+      delete this.expandedRows[id];
+    } else {
+      this.expandedRows[id] = true;
+    }
+    this.expandedRows = { ...this.expandedRows }; // trigger change detection
+  }
+
   onSearch(): void {
     this.loadData();
   }
@@ -231,34 +384,96 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
   }
 
   onAdd(): void {
-    this.tabService.openTabComp({
-      comp: EslTestRegistrationFormComponent,
-      title: 'Đăng ký bàn test mới',
-      key: 'esl-test-registration-new',
-      data: null
+    const modalRef = this.ngbModal.open(EslTestRegistrationFormComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: true,
+      centered: false,
+      windowClass: 'esl-test-registration-modal'
     });
+    modalRef.componentInstance.data = null;
+    modalRef.result.then((result) => {
+      if (result) this.loadData();
+    }).catch(() => { });
   }
 
   onEdit(): void {
-    if (this.selectedItems.length !== 1) return;
-    const selected = this.selectedItems[0];
-    this.tabService.openTabComp({
-      comp: EslTestRegistrationFormComponent,
-      title: `Cập nhật đăng ký: ${selected.RegistrationCode}`,
-      key: `esl-test-registration-edit-${selected.RegistrationID}`,
-      data: { ...selected }
+    const lenMaster = this.selectedItems.length;
+    const lenChild = this.selectedChildItems.length;
+    const totalLen = lenMaster + lenChild;
+
+    if (totalLen !== 1) return;
+
+    let masterItem: any = null;
+    if (lenMaster === 1 && lenChild === 0) {
+      masterItem = this.selectedItems[0];
+    } else if (lenChild === 1 && lenMaster === 0) {
+      const childItem = this.selectedChildItems[0];
+      masterItem = this.dataset.find(x => x.children && x.children.some((c: any) => c.ID === childItem.ID));
+    }
+
+    if (!masterItem) return;
+
+    const modalRef = this.ngbModal.open(EslTestRegistrationFormComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: true,
+      centered: false,
+      windowClass: 'esl-test-registration-modal'
     });
+    modalRef.componentInstance.data = { ...masterItem };
+    modalRef.result.then((result) => {
+      if (result) {
+        this.selectedItems = [];
+        this.selectedChildItems = [];
+        this.loadData();
+      }
+    }).catch(() => { });
   }
 
   onApprove(): void {
-    if (this.selectedItems.length !== 1) return;
-    const selected = this.selectedItems[0];
-    this.tabService.openTabComp({
-      comp: EslTestRegistrationApproveComponent,
-      title: `Duyệt đăng ký: ${selected.RegistrationCode}`,
-      key: `esl-test-registration-approve-${selected.DetailID}`,
-      data: { ...selected }
+    const lenMaster = this.selectedItems.length;
+    const lenChild = this.selectedChildItems.length;
+    const totalLen = lenMaster + lenChild;
+
+    if (totalLen !== 1) return;
+
+    let item: any = null;
+    if (lenMaster === 1 && lenChild === 0) {
+      item = { ...this.selectedItems[0] };
+    } else if (lenChild === 1 && lenMaster === 0) {
+      const childItem = this.selectedChildItems[0];
+      const masterItem = this.dataset.find(x => x.children && x.children.some((c: any) => c.ID === childItem.ID));
+      if (masterItem) {
+        item = {
+          ...masterItem,
+          ...childItem,
+          DetailID: childItem.ID,
+          StartDate: childItem.StartDate || childItem.DetailStartDate || masterItem.DetailStartDate,
+          EndDate: childItem.EndDate || childItem.DetailEndDate || masterItem.DetailEndDate
+        };
+      } else {
+        item = childItem;
+      }
+    }
+
+    if (!item) return;
+
+    const modalRef = this.ngbModal.open(EslTestRegistrationApproveComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: true,
+      centered: false,
+      windowClass: 'esl-test-registration-modal'
     });
+    modalRef.componentInstance.data = { ...item };
+    modalRef.result.then((result) => {
+      if (result) {
+        this.selectedItems = [];
+        this.selectedChildItems = [];
+        this.loadData();
+      }
+    }).catch(() => { });
   }
 
   onExtend(): void {
@@ -296,29 +511,33 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
     });
   }
 
-  onDelete(): void {
-    if (this.selectedItems.length === 0) return;
-    const ids = this.selectedItems.map(x => x.RegistrationID).join(',');
+
+  onExport(): void {
+    this.notification.info('Info', 'Chức năng xuất excel đang được phát triển');
+  }
+
+  onBiding(): void {
+    if (this.selectedItems.length !== 1) return;
+    const selected = this.selectedItems[0];
+
     this.modal.confirm({
-      nzTitle: 'Xác nhận xóa',
-      nzContent: `Xóa ${this.selectedItems.length} bản ghi đã chọn?`,
-      nzOkText: 'Xóa',
-      nzOkDanger: true,
+      nzTitle: 'Xác nhận Binding',
+      nzContent: `Bạn có chắc chắn muốn binding lại bàn test "${selected.TestTableName}" không?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
       nzOnOk: () => {
-        const id = this.selectedItems[0].RegistrationID;
-        this.eslService.delete(id).subscribe({
-          next: () => {
-            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
-            this.loadData();
+        this.eslService.biding(selected.ID).subscribe({
+          next: (res: any) => {
+            if (res.status === 1) {
+              this.notification.success('Thành công', res.message || 'Đã gửi lệnh Bind ESL');
+            } else {
+              this.notification.error('Lỗi', res.message || 'Lỗi binding');
+            }
           },
           error: (err: any) => this.showError(err)
         });
       }
     });
-  }
-
-  onExport(): void {
-    this.notification.info('Info', 'Chức năng xuất excel đang được phát triển');
   }
 
   showError(err: any): void {

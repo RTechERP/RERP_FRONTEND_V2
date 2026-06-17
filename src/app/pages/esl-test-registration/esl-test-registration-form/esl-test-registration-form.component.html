@@ -1,3 +1,8 @@
+<div class="modal-header bg-primary p-2" *ngIf="activeModal">
+  <h6 class="modal-title text-white text-uppercase">{{ isEdit ? 'Cập nhật đăng ký' : 'Đăng ký bàn test mới' }}</h6>
+  <button type="button" class="btn-close me-1" style="background-color:lightcyan !important; font-weight: bold;" aria-label="Close" (click)="closeModal()"></button>
+</div>
+<div class="modal-body p-2">
 <nz-spin [nzSpinning]="loading">
   <div class="p-3">
     <nz-card>
@@ -55,9 +60,9 @@
               <nz-form-control nzErrorTip="Vui lòng chọn người duyệt!">
                 <nz-select formControlName="ApproverID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn người duyệt"
                   [nzFilterOption]="filterEmployeeOption">
-                  <nz-option *ngFor="let e of employees" [nzValue]="e.ID"
-                    [nzLabel]="(e.Code || '') + ' - ' + e.FullName" nzCustomContent>
-                    <div>{{ e.Code }} - {{ e.FullName }}</div>
+                  <nz-option *ngFor="let a of approvers" [nzValue]="a.ID"
+                    [nzLabel]="(a.Code || '') + ' - ' + a.FullName" nzCustomContent>
+                    <div>{{ a.Code }} - {{ a.FullName }}</div>
                   </nz-option>
                 </nz-select>
               </nz-form-control>
@@ -83,36 +88,59 @@
             </nz-form-item>
           </div>
         </div>
-
-        <div nz-row>
-          <div nz-col nzSpan="24" class="text-end mt-3" *ngIf="!data || data.Status !== 1">
-            <button nz-button nzType="primary" [nzLoading]="loading">Lưu thông tin</button>
-          </div>
-        </div>
       </form>
     </nz-card>
 
-    <nz-card *ngIf="isEdit" class="mt-3" nzTitle="Lịch sử Lần đầu / Gia hạn / Bàn giao">
+    <nz-card *ngIf="isEdit && maxNo > 1" class="mt-3" nzTitle="Lịch sử Lần đầu / Gia hạn / Bàn giao">
       <p-table [value]="detailsList" styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
         responsiveLayout="scroll">
         <ng-template pTemplate="header">
           <tr>
-            <th *ngFor="let col of columns" [style.width]="col.width">
+            <th *ngFor="let col of columns" [style.width]="col.width" class="text-center">
               {{ col.header }}
             </th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-rowData>
           <tr>
-            <td>
+            <td class="text-center">Lần {{ rowData.No - 1 }}</td>
+            <td class="text-center">
               <p-tag [value]="getTypeLabel(rowData.Type)"
                 [severity]="rowData.Type === 1 ? 'info' : (rowData.Type === 2 ? 'warn' : 'success')"></p-tag>
             </td>
-            <td>{{ rowData.StartDate | date:'dd/MM/yyyy' }}</td>
-            <td>{{ rowData.EndDate | date:'dd/MM/yyyy' }}</td>
-            <td>{{ rowData.OwnerName }}</td>
-            <td>{{ rowData.ApproverName }}</td>
-            <td>
+            <td class="text-center">
+              <ng-container *ngIf="rowData.No === maxNo && rowData.Status < 1; else textStartDate">
+                <nz-date-picker [(ngModel)]="rowData.StartDate" nzFormat="dd/MM/yyyy" style="width: 100%"></nz-date-picker>
+              </ng-container>
+              <ng-template #textStartDate>{{ rowData.StartDate | date:'dd/MM/yyyy' }}</ng-template>
+            </td>
+            <td class="text-center">
+              <ng-container *ngIf="rowData.No === maxNo && rowData.Status < 1; else textEndDate">
+                <nz-date-picker [(ngModel)]="rowData.EndDate" nzFormat="dd/MM/yyyy" style="width: 100%"></nz-date-picker>
+              </ng-container>
+              <ng-template #textEndDate>{{ rowData.EndDate | date:'dd/MM/yyyy' }}</ng-template>
+            </td>
+            <td class="text-center">
+              <ng-container *ngIf="rowData.No === maxNo && rowData.Status < 1; else textOwner">
+                <nz-select [(ngModel)]="rowData.OwnerID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn người nhận" [nzFilterOption]="filterEmployeeOption" style="width: 100%">
+                  <nz-option *ngFor="let e of employees" [nzValue]="e.ID" [nzLabel]="(e.Code || '') + ' - ' + e.FullName" nzCustomContent>
+                    <div>{{ e.Code }} - {{ e.FullName }}</div>
+                  </nz-option>
+                </nz-select>
+              </ng-container>
+              <ng-template #textOwner>{{ rowData.OwnerName }}</ng-template>
+            </td>
+            <td class="text-center">
+              <ng-container *ngIf="rowData.No === maxNo && rowData.Status < 1; else textApprover">
+                <nz-select [(ngModel)]="rowData.ApproverID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn người duyệt" [nzFilterOption]="filterEmployeeOption" style="width: 100%">
+                  <nz-option *ngFor="let a of approvers" [nzValue]="a.ID" [nzLabel]="(a.Code || '') + ' - ' + a.FullName" nzCustomContent>
+                    <div>{{ a.Code }} - {{ a.FullName }}</div>
+                  </nz-option>
+                </nz-select>
+              </ng-container>
+              <ng-template #textApprover>{{ rowData.ApproverName }}</ng-template>
+            </td>
+            <td class="text-center">
               <p-tag [severity]="getStatusColor(rowData.Status)" [value]="getStatusLabel(rowData.Status)"></p-tag>
             </td>
           </tr>
@@ -126,3 +154,14 @@
     </nz-card>
   </div>
 </nz-spin>
+</div>
+
+<div class="modal-footer bg-light p-2" *ngIf="activeModal">
+  <button nz-button nzDanger nzType="default" (click)="closeModal()">Đóng</button>
+  <button nz-button nzType="primary" [nzLoading]="loading" (click)="submitForm()" *ngIf="allowEdit">Lưu thông tin</button>
+</div>
+<div nz-row *ngIf="!activeModal">
+  <div nz-col nzSpan="24" class="text-end mt-3" *ngIf="!data || data.Status !== 1">
+    <button nz-button nzType="primary" [nzLoading]="loading" (click)="submitForm()" *ngIf="allowEdit">Lưu thông tin</button>
+  </div>
+</div>

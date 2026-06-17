@@ -4480,7 +4480,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
           next: (rs) => {
             this.notify.success(
               NOTIFICATION_TITLE.success,
-              rs.message || `${isRequestApprovedText} thành công`
+              rs.message || `${isRequestApprovedText} thành công`,
+              { nzStyle: { whiteSpace: 'pre-line' } }
             );
             this.onSearch();
           },

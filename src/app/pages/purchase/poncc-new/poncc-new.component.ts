@@ -1715,9 +1715,12 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
             const usedIds = new Set<string>();
             const timestamp = Date.now();
             const mappedDetails = details.map((item: any, index: number) => {
+              // Capture DB id trước khi spread (API có thể trả về id hoặc ID)
+              const dbId = Number(item.ID || item.Id || 0);
+
               let uniqueId: string;
-              if (item.ID && Number(item.ID) > 0) {
-                uniqueId = `detail_id_${item.ID}`;
+              if (dbId > 0) {
+                uniqueId = `detail_id_${dbId}`;
               } else {
                 uniqueId = `detail_idx_${index}_${timestamp}_${Math.random()
                   .toString(36)
@@ -1735,6 +1738,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
               return {
                 ...item,
                 id: finalId,
+                ID: dbId || item.ID || 0,  // đảm bảo ID uppercase luôn có giá trị
               };
             });
 
@@ -2672,7 +2676,8 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.lastMasterId) {
           const currentSelectedDetails = this.getSelectedDetailRows();
           const allDetails = this.masterDetailsMap.get(this.lastMasterId) || [];
-          if (currentSelectedDetails.length === allDetails.length) {
+          // Không chọn dòng nào hoặc chọn tất cả → coi như chọn tất cả (undefined)
+          if (currentSelectedDetails.length === 0 || currentSelectedDetails.length === allDetails.length) {
             this.masterSelectedDetailIdsMap.delete(this.lastMasterId);
           } else {
             this.masterSelectedDetailIdsMap.set(

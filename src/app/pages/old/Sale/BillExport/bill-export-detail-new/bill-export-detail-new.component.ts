@@ -357,6 +357,15 @@ export class BillExportDetailNewComponent
             .subscribe((values) => {
                 this.newBillExport = { ...this.newBillExport, ...values };
             });
+
+        this.validateForm
+            .get('IsTransfer')
+            ?.valueChanges.pipe(takeUntil(this.destroy$))
+            .subscribe((isTransfer: boolean) => {
+                if (isTransfer) {
+                    this.validateForm.patchValue({ CustomerID: 2017 }, { emitEvent: false });
+                }
+            });
     }
 
     /** Khởi tạo dữ liệu form ban đầu (thêm mới hoặc chỉnh sửa) */
@@ -481,7 +490,7 @@ export class BillExportDetailNewComponent
         this.validateForm.patchValue({
             Code: this.newBillExport.Code || '',
             Address: this.newBillExport.Address || '',
-            CustomerID: this.newBillExport.CustomerID || 0,
+            CustomerID: this.newBillExport.IsTransfer === true ? 2017 : this.newBillExport.CustomerID || 0,
             UserID: this.newBillExport.UserID || 0,
             SenderID: this.newBillExport.SenderID || 0,
             KhoTypeID: this.newBillExport.KhoTypeID || 0,

@@ -39,8 +39,8 @@
                   Sửa
                 </button>
               </div>
-              <div class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-container" style="min-height: 0;">
-                <angular-slickgrid [gridId]="solutionGridId" [columns]="solutionColumns" [options]="solutionGridOptions"
+              <div [id]="solutionContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-container" style="min-height: 0;">
+                <angular-slickgrid *ngIf="gridsInitialized" [gridId]="solutionGridId" [columns]="solutionColumns" [options]="solutionGridOptions"
                   [dataset]="dataSolution" (onAngularGridCreated)="onSolutionGridReady($event)"
                   (onSelectedRowsChanged)="onSolutionRowClick($event)"></angular-slickgrid>
               </div>
@@ -94,7 +94,7 @@
                   </ul>
                 </nz-dropdown-menu>
               </div>
-              <div class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-version-container"
+              <div [id]="solutionVersionContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-version-container"
                 style="min-height: 0;">
                 <angular-slickgrid *ngIf="gridsInitialized" [gridId]="solutionVersionGridId"
                   [columns]="solutionVersionColumns" [options]="solutionVersionGridOptions"
@@ -150,7 +150,7 @@
                   </ul>
                 </nz-dropdown-menu>
               </div>
-              <div class="card-body p-0 flex-grow-1 overflow-hidden grid-po-version-container" style="min-height: 0;">
+              <div [id]="poVersionContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-po-version-container" style="min-height: 0;">
                 <angular-slickgrid *ngIf="gridsInitialized" [gridId]="poVersionGridId" [columns]="poVersionColumns"
                   [options]="poVersionGridOptions" [dataset]="dataPOVersion"
                   (onAngularGridCreated)="onPOVersionGridReady($event)"
@@ -243,7 +243,7 @@
             </div>
           </div>
 
-          <div class="card-body p-0 flex-grow-1 overflow-hidden grid-project-worker-container"
+          <div [id]="projectWorkerContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-project-worker-container"
             style="min-height: 0; position: relative;">
             <!-- Loading cho bảng projectWorker -->
             <div *ngIf="isLoading"

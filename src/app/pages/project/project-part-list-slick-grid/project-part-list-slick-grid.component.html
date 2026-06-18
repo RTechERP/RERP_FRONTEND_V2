@@ -68,9 +68,9 @@
                                     Làm mới
                                 </button>
                             </div>
-                            <div class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-container"
+                            <div [id]="solutionContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-container"
                                 style="min-height: 0;">
-                                <angular-slickgrid [gridId]="solutionGridId" [columns]="solutionColumns"
+                                <angular-slickgrid *ngIf="gridsInitialized" [gridId]="solutionGridId" [columns]="solutionColumns"
                                     [options]="solutionGridOptions" [dataset]="dataSolution"
                                     (onAngularGridCreated)="onSolutionGridReady($event)"
                                     (onSelectedRowsChanged)="onSolutionRowSelectionChanged($event)"></angular-slickgrid>
@@ -202,7 +202,7 @@
                                     Làm mới
                                 </button>
                             </div>
-                            <div class="card-body p-0 flex-grow-1 overflow-hidden grid-version-container"
+                            <div [id]="versionContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-version-container"
                                 style="min-height: 0; height: 100%;">
                                 <angular-slickgrid *ngIf="gridsInitialized && versionColumns && versionGridOptions"
                                     [gridId]="versionGridId" [columns]="versionColumns" [options]="versionGridOptions"
@@ -530,14 +530,14 @@
                         </div>
                     </div>
 
-                    <div class="card-body p-0 flex-grow-1 overflow-hidden grid-partlist-container"
+                    <div [id]="partListContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-partlist-container"
                         style="min-height: 0; position: relative;">
                         <div *ngIf="isLoading"
                             class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75"
                             style="z-index: 10;">
                             <nz-spin nzSimple></nz-spin>
                         </div>
-                        <angular-slickgrid [gridId]="partListGridId" [columns]="partListColumns"
+                        <angular-slickgrid *ngIf="gridsInitialized" [gridId]="partListGridId" [columns]="partListColumns"
                             [options]="partListGridOptions" [dataset]="dataProjectPartList"
                             (onAngularGridCreated)="onPartListGridReady($event)"></angular-slickgrid>
                     </div>
@@ -583,7 +583,7 @@
             </div>
         </div>
         <p class="mb-2 mt-2" style="font-weight: 600;">Danh sách vật tư đã chọn:</p>
-        <div class="card-body p-0 flex-grow-1 price-request-table-wrapper">
+        <div [id]="priceRequestContainerId" class="card-body p-0 flex-grow-1 price-request-table-wrapper">
             <angular-slickgrid *ngIf="priceRequestColumns && priceRequestGridOptions" [gridId]="priceRequestGridId"
                 [columns]="priceRequestColumns" [options]="priceRequestGridOptions" [dataset]="priceRequestItems"
                 (onAngularGridCreated)="onPriceGridCreated($event.detail)"

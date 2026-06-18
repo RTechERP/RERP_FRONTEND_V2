@@ -412,3 +412,18 @@ nz-dropdown-menu ul {
   flex: 1;
   overflow-y: auto;
 }
+
+/* ==================== MERGED VERSION GRID GROUP COLORING ==================== */
+/* Cấp 1: Phiên bản giải pháp - Màu cam vàng rõ ràng (Clear soft orange) */
+:host ::ng-deep .slick-row:has(.group-solution-version-label) {
+  background-color: #ffd591 !important;
+  border-top: 2px solid #fa8c16 !important;
+  border-bottom: 2px solid #fa8c16 !important;
+}
+
+/* Cấp 1: Phiên bản PO - Màu xanh lá cây dịu (Clear soft green) */
+:host ::ng-deep .slick-row:has(.group-po-version-label) {
+  background-color: #b7eb8f !important;
+  border-top: 2px solid #52c41a !important;
+  border-bottom: 2px solid #52c41a !important;
+}

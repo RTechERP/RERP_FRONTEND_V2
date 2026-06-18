@@ -302,18 +302,30 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         // document.title = title.trim();
     }
 
+    updateUniqueGridAndContainerIds(uniqueId: number | string): void {
+        const idWithPrefix = `partlist-${uniqueId}`;
+        this.solutionGridId = `grid-solution-${idWithPrefix}`;
+        this.versionGridId = `grid-version-${idWithPrefix}`;
+        this.partListGridId = `grid-partlist-${idWithPrefix}`;
+        this.priceRequestGridId = `grid-price-request-${idWithPrefix}`;
+
+        this.solutionContainerId = `grid-solution-container-${idWithPrefix}`;
+        this.versionContainerId = `grid-version-container-${idWithPrefix}`;
+        this.partListContainerId = `grid-partlist-container-${idWithPrefix}`;
+        this.priceRequestContainerId = `grid-price-request-container-${idWithPrefix}`;
+
+    }
+
     ngOnInit(): void {
+        // Initialize with default or random ID first
+        const initialUniqueId = this.projectId || Math.floor(Math.random() * 1000000);
+        this.updateUniqueGridAndContainerIds(initialUniqueId);
 
         // Đọc data từ tabData nếu được mở như tab
         if (this.tabData) {
             if (this.tabData.projectId !== undefined) {
                 this.projectId = this.tabData.projectId;
-
-                // Initialize unique grid IDs based on projectId
-                this.solutionGridId = `grid-solution-${this.projectId}`;
-                this.versionGridId = `grid-version-${this.projectId}`;
-                this.partListGridId = `grid-partlist-${this.projectId}`;
-                this.priceRequestGridId = `grid-price-request-${this.projectId}`;
+                this.updateUniqueGridAndContainerIds(this.projectId);
             }
             if (this.tabData.projectNameX !== undefined) {
                 this.projectNameX = this.tabData.projectNameX;
@@ -333,15 +345,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             }
             if (params['projectId'] !== undefined) {
                 this.projectId = Number(params['projectId']);
-
-                // Update unique grid IDs based on projectId if not already set from tabData
-                // Update unique grid IDs based on projectId if not already set from tabData
-                if (!this.solutionGridId.includes('-')) {
-                    this.solutionGridId = `grid-solution-${this.projectId}`;
-                    this.versionGridId = `grid-version-${this.projectId}`;
-                    this.partListGridId = `grid-partlist-${this.projectId}`;
-                    this.priceRequestGridId = `grid-price-request-${this.projectId}`;
-                }
+                this.updateUniqueGridAndContainerIds(this.projectId);
             }
             if (params['projectName'] !== undefined) {
                 this.projectNameX = decodeURIComponent(params['projectName']);
@@ -451,7 +455,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.priceRequestGridOptions = {
             enableAutoResize: true,
             autoResize: {
-                container: '.price-request-table-wrapper',
+                container: '#' + this.priceRequestContainerId,
                 calculateAvailableSizeBy: 'container',
             },
             forceFitColumns: true,
@@ -608,7 +612,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.solutionGridOptions = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-solution-container',
+                container: '#' + this.solutionContainerId,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -868,7 +872,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.versionGridOptions = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-version-container',
+                container: '#' + this.versionContainerId,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -2097,7 +2101,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         this.partListGridOptions = {
             enableAutoResize: true,
             autoResize: {
-                container: '.grid-partlist-container',
+                container: '#' + this.partListContainerId,
                 calculateAvailableSizeBy: 'container',
                 resizeDetection: 'container',
             },
@@ -2603,7 +2607,10 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                         return 0;
                     },
                     formatter: (g: any) => {
-                        return `<strong>${g.value}</strong> <span style="color: #666;">(${g.count} phiên bản)</span>`;
+                        const isSolution = g.value === 'Phiên bản giải pháp';
+                        const isPO = g.value === 'Phiên bản PO';
+                        const className = isSolution ? 'group-solution-version-label' : isPO ? 'group-po-version-label' : '';
+                        return `<span class="${className}"><strong>${g.value}</strong> <span style="color: #666;">(${g.count} phiên bản)</span></span>`;
                     },
                     aggregateCollapsed: false,
                     lazyTotalsCalculation: true

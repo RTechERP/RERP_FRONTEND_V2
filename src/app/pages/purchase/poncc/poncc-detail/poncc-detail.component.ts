@@ -2338,15 +2338,21 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         // Clean full-width colon
         const cleaned = str.replace(/\uFF1A/g, ':');
 
-        // Split theo 2 space
-        const lines = cleaned.split('  ').filter(line => line.trim() !== '');
+        // N\u1EBFu c\u00F3 newline th\u00EC split theo newline, fallback v\u1EC1 2 spaces cho data c\u0169
+        const hasNewline = /\r?\n/.test(cleaned);
+        const lines = cleaned.split(hasNewline ? /\r?\n/ : /  /).filter(line => line.trim() !== '');
 
-        if (lines.length <= 1) return cleaned;
+        // Gi\u1EEF nguy\u00EAn format: tab \u2192 4 spaces, multiple spaces \u2192 non-breaking space \u0111\u1EC3 pdfMake kh\u00F4ng collapse
+        const NBSP = '\u00A0';
+        const formatLine = (line: string) =>
+            line.replace(/\t/g, NBSP.repeat(4)).replace(/ {2,}/g, (m) => NBSP.repeat(m.length));
+
+        if (lines.length <= 1) return formatLine(cleaned);
 
         return {
             stack: lines.map(line => ({
-                text: line.trim(),
-                margin: [0, 2, 0, 0]
+                text: formatLine(line),
+                margin: [0, 0, 0, 0]
             }))
         };
     }
@@ -2632,6 +2638,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
                 {
                     style: 'tableExample',
                     table: {
+                        widths: [95, '*'],
                         body: [
                             [
                                 'Ngày giao hàng:',

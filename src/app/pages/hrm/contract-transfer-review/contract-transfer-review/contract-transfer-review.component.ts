@@ -283,24 +283,24 @@ export class ContractTransferReviewComponent implements OnInit {
 
       // ─── HR xác nhận ────────────────────────────────────────────────────────
       {
-        label: 'HR xác nhận',
+        label: 'TBP HR duyệt',
         icon: 'fa-solid fa-user-tie fa-lg text-info',
         visible: this.permissionService.hasPermission('N1,N56'),
         items: [
           {
-            label: 'HR xác nhận',
+            label: 'TBP HR duyệt',
             icon: 'fa-solid fa-check text-success',
             command: () => this.approvedTBPNew(1, 'hr'),
             // visible: this.permissionService.hasPermission('N2'),
           },
           {
-            label: 'HR không xác nhận',
+            label: 'TBP HR không duyệt',
             icon: 'fa-solid fa-times text-danger',
             command: () => this.approvedTBPNew(2, 'hr'),
             // visible: this.permissionService.hasPermission('N2'),
           },
           {
-            label: 'HR hủy xác nhận',
+            label: 'TBP HR hủy duyệt',
             icon: 'fa-solid fa-undo text-warning',
             command: () => this.approvedTBPNew(0, 'hr'),
             // visible: this.permissionService.hasPermission('N2'),
@@ -1422,22 +1422,22 @@ export class ContractTransferReviewComponent implements OnInit {
       {}
     ]);
     tableBody.push([
-      { text: 'STT', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8] },
-      { text: 'Nội dung đánh giá', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8] },
-      { text: 'Trọng số', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8] },
-      { text: 'NLĐ tự đánh giá', colSpan: 2, bold: true, alignment: 'center' },
-      '',
-      { text: 'TBP đánh giá', colSpan: 2, bold: true, alignment: 'center' },
-      ''
+      { text: 'STT', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8], fillColor: '#D9E1F2' },
+      { text: 'Nội dung đánh giá', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8], fillColor: '#D9E1F2' },
+      { text: 'Trọng số', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8], fillColor: '#D9E1F2' },
+      { text: 'NLĐ tự đánh giá', colSpan: 2, bold: true, alignment: 'center', fillColor: '#D9E1F2' },
+      { text: '', fillColor: '#D9E1F2' },
+      { text: 'TBP đánh giá', colSpan: 2, bold: true, alignment: 'center', fillColor: '#D9E1F2' },
+      { text: '', fillColor: '#D9E1F2' }
     ]);
     tableBody.push([
-      '',
-      '',
-      '',
-      { text: 'Điểm đánh giá', bold: true, alignment: 'center', fontSize: 9 },
-      { text: 'Điểm quy đổi = Điểm đánh giá (%) * Trọng số', bold: true, alignment: 'center', fontSize: 8 },
-      { text: 'Điểm đánh giá', bold: true, alignment: 'center', fontSize: 9 },
-      { text: 'Điểm quy đổi = Điểm đánh giá (%) * Trọng số', bold: true, alignment: 'center', fontSize: 8 }
+      { text: '', fillColor: '#D9E1F2' },
+      { text: '', fillColor: '#D9E1F2' },
+      { text: '', fillColor: '#D9E1F2' },
+      { text: 'Điểm đánh giá', bold: true, alignment: 'center', fontSize: 9, fillColor: '#D9E1F2' },
+      { text: 'Điểm quy đổi = Điểm đánh giá (%) * Trọng số', bold: true, alignment: 'center', fontSize: 8, fillColor: '#D9E1F2' },
+      { text: 'Điểm đánh giá', bold: true, alignment: 'center', fontSize: 9, fillColor: '#D9E1F2' },
+      { text: 'Điểm quy đổi = Điểm đánh giá (%) * Trọng số', bold: true, alignment: 'center', fontSize: 8, fillColor: '#D9E1F2' }
     ]);
 
     items.forEach(it => {
@@ -1657,10 +1657,10 @@ export class ContractTransferReviewComponent implements OnInit {
                 {}
               ],
               [
-                { text: 'STT', bold: true, alignment: 'center' },
-                { text: 'Điểm %', bold: true, alignment: 'center' },
-                { text: 'Xếp loại', bold: true, alignment: 'center' },
-                { text: 'Chú thích', bold: true, alignment: 'center' }
+                { text: 'STT', bold: true, alignment: 'center', fillColor: '#D9E1F2' },
+                { text: 'Điểm %', bold: true, alignment: 'center', fillColor: '#D9E1F2' },
+                { text: 'Xếp loại', bold: true, alignment: 'center', fillColor: '#D9E1F2' },
+                { text: 'Chú thích', bold: true, alignment: 'center', fillColor: '#D9E1F2' }
               ],
               [
                 { text: '1', alignment: 'center' },

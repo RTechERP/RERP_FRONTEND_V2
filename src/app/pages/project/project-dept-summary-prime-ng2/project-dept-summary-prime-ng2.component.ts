@@ -1509,14 +1509,18 @@ export class ProjectDeptSummaryPrimeNg2Component implements OnInit, AfterViewIni
       return;
     }
 
-    const modalRef = this.modalService.open(ProjectWokerSlickGridComponent, {
-      centered: true,
-      backdrop: 'static',
-      keyboard: false,
-      windowClass: 'full-screen-modal',
+    const projectId = selectedRows[0]?.ID;
+    const projectCode = selectedRows[0]?.ProjectCode;
+
+    this.tabService.openTabComp({
+      comp: ProjectWokerSlickGridComponent,
+      title: `Nhân công - ${projectCode}`,
+      key: `project-worker`,
+      data: {
+        projectId: projectId,
+        projectCodex: projectCode,
+      }
     });
-    modalRef.componentInstance.projectId = this.projectId;
-    modalRef.componentInstance.projectCodex = selectedRows[0]?.ProjectCode;
   }
 
   openProjectPartListModal() {
@@ -1572,7 +1576,7 @@ export class ProjectDeptSummaryPrimeNg2Component implements OnInit, AfterViewIni
     this.tabService.openTabComp({
       comp: ProjectPartListSlickGridComponent,
       title: `Danh mục vật tư - ${projectCode}`,
-      key: `project-part-list-${this.projectId}`,
+      key: `project-part-list`,
       data: {
         projectId: this.projectId,
         projectNameX: projectName,

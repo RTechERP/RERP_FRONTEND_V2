@@ -3220,6 +3220,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         {
           style: 'tableExample',
           table: {
+            widths: [95, '*'],
             body: [
               [
                 'Ngày giao hàng:',
@@ -3304,15 +3305,21 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
     // Clean full-width colon
     const cleaned = str.replace(/\uFF1A/g, ':');
 
-    // Split theo 2 space
-    const lines = cleaned.split('  ').filter(line => line.trim() !== '');
+    // N\u1EBFu c\u00F3 newline th\u00EC split theo newline, fallback v\u1EC1 2 spaces cho data c\u0169
+    const hasNewline = /\r?\n/.test(cleaned);
+    const lines = cleaned.split(hasNewline ? /\r?\n/ : /  /).filter(line => line.trim() !== '');
 
-    if (lines.length <= 1) return cleaned;
+    // Tab v\u00E0 nhi\u1EC1u spaces li\u00EAn ti\u1EBFp \u2192 non-breaking space \u0111\u1EC3 pdfMake kh\u00F4ng collapse
+    const NBSP = '\u00A0';
+    const formatLine = (line: string) =>
+      line.replace(/\t/g, NBSP.repeat(4)).replace(/ {2,}/g, (m) => NBSP.repeat(m.length));
+
+    if (lines.length <= 1) return formatLine(cleaned);
 
     return {
       stack: lines.map(line => ({
-        text: line.trim(),
-        margin: [0, 2, 0, 0]
+        text: formatLine(line),
+        margin: [0, 0, 0, 0]
       }))
     };
   }
@@ -3464,7 +3471,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         {
           style: 'tableExample',
           table: {
-            widths: [90, '*'],
+            widths: [95, '*'],
             body: [
               ['Buyer:', { text: taxCompany.BuyerEnglish, bold: true }],
               ['Address:', this.multiLineCell(taxCompany.AddressBuyerEnglish)],
@@ -3603,6 +3610,7 @@ export class PonccNewComponent implements OnInit, AfterViewInit, OnDestroy {
         {
           style: 'tableExample',
           table: {
+            widths: [95, '*'],
             body: [
               [
                 'Delivery date:',

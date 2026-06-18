@@ -404,8 +404,8 @@
                         <nz-form-item>
                           <nz-form-label>Số tài khoản</nz-form-label>
                           <nz-form-control>
-                            <input nz-input name="AccountNumberSupplier" formControlName="AccountNumberSupplier"
-                              placeholder="Nhập số tài khoản" />
+                            <textarea nz-input name="AccountNumberSupplier" formControlName="AccountNumberSupplier"
+                              placeholder="Nhập số tài khoản" [nzAutosize]="{ minRows: 2, maxRows: 5 }"></textarea>
                           </nz-form-control>
                         </nz-form-item>
                       </div>

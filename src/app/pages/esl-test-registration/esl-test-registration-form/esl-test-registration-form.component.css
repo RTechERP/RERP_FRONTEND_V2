@@ -1,0 +1,8 @@
+/* esl test registration form style */
+
+.dropdown-wrap-text {
+    white-space: normal;
+    word-wrap: break-word;
+    line-height: 1.4;
+    padding: 6px 0;
+}

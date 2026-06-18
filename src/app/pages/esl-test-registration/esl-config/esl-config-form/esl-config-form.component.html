@@ -1,0 +1,38 @@
+<div class="modal-header">
+    <h4 class="modal-title" id="modal-title">{{ isEditMode ? 'Cập nhật Cấu hình' : 'Thêm mới Cấu hình' }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss('Cross click')"></button>
+</div>
+<div class="modal-body p-4">
+    <form nz-form nzLayout="vertical">
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <nz-form-item>
+                    <nz-form-label nzRequired>Mã cấu hình</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input [(ngModel)]="formData.ConfigKey" name="ConfigKey" placeholder="Nhập mã cấu hình..." />
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div class="col-md-12 mb-3">
+                <nz-form-item>
+                    <nz-form-label nzRequired>Giá trị cấu hình</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input [(ngModel)]="formData.ConfigValue" name="ConfigValue" placeholder="Nhập giá trị cấu hình..." />
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div class="col-md-12 mb-3">
+                <nz-form-item>
+                    <nz-form-label>Mô tả</nz-form-label>
+                    <nz-form-control>
+                        <textarea nz-input [(ngModel)]="formData.Description" name="Description" [nzAutosize]="{ minRows: 2, maxRows: 6 }" placeholder="Nhập mô tả..."></textarea>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button nz-button nzType="default" (click)="activeModal.dismiss('Close click')">Đóng</button>
+    <button nz-button nzType="primary" (click)="save()" [nzLoading]="isSaving">Lưu</button>
+</div>

@@ -1,0 +1,62 @@
+<div class="modal-header">
+    <h4 class="modal-title" id="modal-title">{{ isEditMode ? 'Cập nhật Bàn Test' : 'Thêm mới Bàn Test' }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss('Cross click')"></button>
+</div>
+<div class="modal-body p-4">
+    <form nz-form nzLayout="vertical">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <nz-form-item>
+                    <nz-form-label nzRequired>Tên bàn test</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input [(ngModel)]="formData.TestTableName" name="TestTableName" placeholder="Nhập tên bàn test..." />
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div class="col-md-6 mb-3">
+                <nz-form-item>
+                    <nz-form-label nzRequired>Barcode</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input [(ngModel)]="formData.Barcode" name="Barcode" placeholder="Nhập barcode..." />
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div class="col-md-6 mb-3">
+                <nz-form-item>
+                    <nz-form-label nzRequired>Mặt bàn</nz-form-label>
+                    <nz-form-control>
+                        <nz-input-number class="w-100" [(ngModel)]="formData.TableSide" name="TableSide" [nzMin]="1" [nzStep]="1" placeholder="Nhập mặt bàn..."></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div class="col-md-6 mb-3">
+                <nz-form-item>
+                    <nz-form-label>Số mặt</nz-form-label>
+                    <nz-form-control>
+                        <nz-input-number class="w-100" [(ngModel)]="formData.NumberOfSides" name="NumberOfSides" [nzMin]="1" [nzStep]="1" placeholder="Nhập tổng số mặt..."></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div class="col-md-12 mb-3">
+                <nz-form-item>
+                    <nz-form-label>Mô tả</nz-form-label>
+                    <nz-form-control>
+                        <textarea nz-input [(ngModel)]="formData.Description" name="Description" [nzAutosize]="{ minRows: 2, maxRows: 6 }" placeholder="Nhập mô tả..."></textarea>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div class="col-md-12 mb-3">
+                <nz-form-item>
+                    <nz-form-label>Trạng thái</nz-form-label>
+                    <nz-form-control>
+                        <nz-switch [(ngModel)]="formData.IsActive" name="IsActive" nzCheckedChildren="Hoạt động" nzUnCheckedChildren="Ngừng hoạt động"></nz-switch>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button nz-button nzType="default" (click)="activeModal.dismiss('Close click')">Đóng</button>
+    <button nz-button nzType="primary" (click)="save()" [nzLoading]="isSaving">Lưu</button>
+</div>

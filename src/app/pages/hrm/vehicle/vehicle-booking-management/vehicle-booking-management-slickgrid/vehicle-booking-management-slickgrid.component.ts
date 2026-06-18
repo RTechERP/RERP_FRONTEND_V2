@@ -1882,8 +1882,8 @@ export class VehicleBookingManagementSlickgridComponent implements OnInit, After
 
     const selectedItem = this.vehicleBookingListId[0];
 
-    // Tạo bản copy của selectedItem và reset ID về 0 để tạo mới
-    const copiedItem = { ...selectedItem, ID: 0 };
+    // Tạo bản copy của selectedItem và reset ID về 0, clear các ngày để user nhập mới
+    const copiedItem = { ...selectedItem, ID: 0, TimeNeedPresent: null, DepartureDate: null, TimeReturn: null };
 
     const modalRef = this.modalService.open(VehicleBookingManagementDetailComponent, {
       size: 'lg',

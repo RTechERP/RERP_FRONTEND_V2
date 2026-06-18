@@ -167,6 +167,12 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
     partListGridId: string = 'grid-partlist';
     priceRequestGridId: string = 'grid-price-request';
 
+    // Dynamic Container IDs to avoid collisions in tabs
+    solutionContainerId: string = 'grid-solution-container';
+    versionContainerId: string = 'grid-version-container';
+    partListContainerId: string = 'grid-partlist-container';
+    priceRequestContainerId: string = 'grid-price-request-container';
+
     // Data
     dataSolution: any[] = [];
     dataSolutionVersion: any[] = [];

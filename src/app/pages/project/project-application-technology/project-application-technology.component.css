@@ -105,20 +105,20 @@
 }
 
 :host ::ng-deep .project-master-table .p-datatable-tbody > tr {
-  height: 44px !important;
-  max-height: 44px !important;
+  height: auto !important;
+  max-height: none !important;
 }
 
 :host ::ng-deep .project-master-table .p-datatable-tbody > tr > td {
-  height: 44px !important;
-  max-height: 44px !important;
-  line-height: 16px !important;
-  overflow: hidden !important;
+  height: auto !important;
+  max-height: none !important;
+  line-height: 1.4 !important;
+  overflow: visible !important;
   vertical-align: middle !important;
 }
 
 :host ::ng-deep .project-master-table .p-datatable-tbody > tr > td.cell-wrap {
-  white-space: normal !important;
+  white-space: pre-line !important;
   word-break: break-word !important;
 }
 
@@ -229,4 +229,56 @@
 ::ng-deep .blue-header-modal .ant-modal-close-x {
   color: #ffffff !important;
 }
+
+:host ::ng-deep .list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+:host ::ng-deep .list-item {
+  line-height: 1.4;
+}
+
+:host ::ng-deep .project-type-item {
+  font-weight: 500;
+  color: #262626;
+}
+
+:host ::ng-deep .bullet-dot {
+  font-size: 16px;
+  line-height: 1;
+  font-weight: bold;
+  color: #1890ff !important;
+}
+
+:host ::ng-deep .fs-10 {
+  font-size: 10px !important;
+}
+
+:host ::ng-deep .parent-header {
+  font-weight: 500;
+  color: #262626;
+}
+
+:host ::ng-deep .child-item {
+  font-size: 11.5px;
+  color: #595959;
+}
+
+:host ::ng-deep .badge-more {
+  display: inline-block;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  color: #1890ff;
+  background-color: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
 

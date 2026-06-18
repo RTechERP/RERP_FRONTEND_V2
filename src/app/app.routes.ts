@@ -387,6 +387,9 @@ import { UserManagementComponent } from './pages/course-web/user-management/user
 import { HrRecruitmentInterviewAssessmentViewComponent } from './pages/hrm/hr-recruitment-interview-assessment/hr-recruitment-interview-assessment-view/hr-recruitment-interview-assessment-view.component';
 import { BillImportSummaryComponent } from './pages/old/Sale/BillImport/Modal/bill-import-summary/bill-import-summary.component';
 import { ProjectTaskEfficiencyDashboardComponent } from './pages/project_task/project-task-efficiency-dashboard/project-task-efficiency-dashboard.component';
+import { EslTestTableComponent } from './pages/esl-test-registration/esl-test-table/esl-test-table.component';
+import { EslConfigComponent } from './pages/esl-test-registration/esl-config/esl-config.component';
+import { EslTestRegistrationComponent } from './pages/esl-test-registration/esl-test-registration.component';
 export const routes: Routes = [
 
     {
@@ -1306,6 +1309,10 @@ export const routes: Routes = [
             { path: 'user-management-web', component: UserManagementComponent, canActivate: [authGuard] },
             { path: 'bill-import-summary', component: BillImportSummaryComponent, canActivate: [authGuard] },
             { path: 'project-task-efficiency-dashboard', component: ProjectTaskEfficiencyDashboardComponent, canActivate: [authGuard] },
+            { path: 'esl-test-table', component: EslTestTableComponent, canActivate: [authGuard] },
+            { path: 'esl-config', component: EslConfigComponent, canActivate: [authGuard] },
+            { path: 'esl-test-registration', component: EslTestRegistrationComponent, canActivate: [authGuard] }
+
         ],
     },
 ];

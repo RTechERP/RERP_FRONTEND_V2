@@ -676,6 +676,27 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
     });
   }
 
+  parseAppTechLine(line: string): { parent: string; children: string[]; display: string; full: string; moreCount: number } {
+    if (!line) return { parent: '', children: [], display: '', full: '', moreCount: 0 };
+    const trimmed = line.trim();
+    if (trimmed.toLowerCase() === 'chưa cấu hình') {
+      return { parent: '', children: [], display: '', full: '', moreCount: 0 };
+    }
+    const colonIndex = trimmed.indexOf(':');
+    if (colonIndex === -1) {
+      return { parent: trimmed, children: [], display: '', full: '', moreCount: 0 };
+    }
+    const parent = trimmed.substring(0, colonIndex).trim();
+    const childrenStr = trimmed.substring(colonIndex + 1).trim();
+    let children = childrenStr ? childrenStr.split(',').map(c => c.trim()).filter(Boolean) : [];
+    children = children.filter(c => c.toLowerCase() !== 'chưa cấu hình' && c !== '');
+    
+    const full = children.join(', ');
+    const display = children.slice(0, 3).join(', ');
+    const moreCount = children.length > 3 ? children.length - 3 : 0;
+    return { parent, children, display, full, moreCount };
+  }
+
   getFlatNodes(nodes: TreeNode[], selection: TreeNode[]) {
     nodes.forEach(node => {
       if (node.data.Selected) {

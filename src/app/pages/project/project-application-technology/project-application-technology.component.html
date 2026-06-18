@@ -89,7 +89,7 @@
 
             <ng-template pTemplate="header">
               <tr>
-                <th style="width: 10%" pSortableColumn="ProjectStatusName" pResizableColumn>
+                <th style="width: 8%" pSortableColumn="ProjectStatusName" pResizableColumn>
                   Trạng thái <p-sortIcon field="ProjectStatusName"></p-sortIcon>
                 </th>
                 <th style="width: 10%" pSortableColumn="ProjectCode" pResizableColumn>
@@ -98,21 +98,24 @@
                 <th style="width: 15%" pSortableColumn="ProjectName" pResizableColumn>
                   Tên dự án <p-sortIcon field="ProjectName"></p-sortIcon>
                 </th>
-                <th style="width: 15%" pSortableColumn="EndUserName" pResizableColumn>
+                <th style="width: 12%" pSortableColumn="EndUserName" pResizableColumn>
                   End User <p-sortIcon field="EndUserName"></p-sortIcon>
                 </th>
                 <th style="width: 15%" pSortableColumn="CustomerName" pResizableColumn>
                   Khách hàng <p-sortIcon field="CustomerName"></p-sortIcon>
                 </th>
-                <th style="width: 12.5%" pSortableColumn="ApplicationTypeNames" pResizableColumn>
+                <th style="width: 12%" pSortableColumn="ProjectTypeNames" pResizableColumn>
+                  Kiểu dự án <p-sortIcon field="ProjectTypeNames"></p-sortIcon>
+                </th>
+                <th style="width: 14%" pSortableColumn="ApplicationTypeNames" pResizableColumn>
                   Kiểu ứng dụng <p-sortIcon field="ApplicationTypeNames"></p-sortIcon>
                 </th>
-                <th style="width: 12.5%" pSortableColumn="TechnologyNames" pResizableColumn>
+                <th style="width: 14%" pSortableColumn="TechnologyNames" pResizableColumn>
                   Công nghệ <p-sortIcon field="TechnologyNames"></p-sortIcon>
                 </th>
               </tr>
               <tr>
-                <th style="width: 10%">
+                <th style="width: 8%">
                   <p-columnFilter field="ProjectStatusName" matchMode="in" [showMenu]="false">
                     <ng-template pTemplate="filter" let-value let-filter="filterCallback">
                       <p-multiselect [ngModel]="value" [options]="statusFilterOptions" optionLabel="label"
@@ -140,7 +143,7 @@
                     </ng-template>
                   </p-columnFilter>
                 </th>
-                <th style="width: 15%">
+                <th style="width: 12%">
                   <p-columnFilter field="EndUserName" matchMode="contains" [showMenu]="false">
                     <ng-template pTemplate="filter" let-filter="filterCallback">
                       <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
@@ -158,7 +161,16 @@
                     </ng-template>
                   </p-columnFilter>
                 </th>
-                <th style="width: 12.5%">
+                <th style="width: 12%">
+                  <p-columnFilter field="ProjectTypeNames" matchMode="contains" [showMenu]="false">
+                    <ng-template pTemplate="filter" let-filter="filterCallback">
+                      <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
+                        (input)="$any($event.target).value === '' && filter('')" class="w-full p-inputtext-sm"
+                        placeholder="Kiểu dự án..." />
+                    </ng-template>
+                  </p-columnFilter>
+                </th>
+                <th style="width: 14%">
                   <p-columnFilter field="ApplicationTypeNames" matchMode="contains" [showMenu]="false">
                     <ng-template pTemplate="filter" let-filter="filterCallback">
                       <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
@@ -167,7 +179,7 @@
                     </ng-template>
                   </p-columnFilter>
                 </th>
-                <th style="width: 12.5%">
+                <th style="width: 14%">
                   <p-columnFilter field="TechnologyNames" matchMode="contains" [showMenu]="false">
                     <ng-template pTemplate="filter" let-filter="filterCallback">
                       <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
@@ -181,7 +193,7 @@
 
             <ng-template pTemplate="body" let-rowData>
               <tr [pSelectableRow]="rowData" (dblclick)="openEditMappingModal(rowData)" style="cursor: pointer;">
-                <td style="width: 10%">
+                <td style="width: 8%">
                   <span class="fs-12 fw-500">{{ rowData.ProjectStatusName }}</span>
                 </td>
                 <td style="width: 10%">
@@ -190,24 +202,96 @@
                 <td style="width: 15%" class="cell-wrap">
                   {{ rowData.ProjectName }}
                 </td>
-                <td style="width: 15%" class="cell-wrap">
+                <td style="width: 12%" class="cell-wrap">
                   {{ rowData.EndUserName }}
                 </td>
                 <td style="width: 15%" class="cell-wrap">
                   {{ rowData.CustomerName }}
                 </td>
-                <td style="width: 12.5%" class="cell-wrap" title="{{ rowData.ApplicationTypeNames }}">
-                  {{ rowData.ApplicationTypeNames }}
+                <td style="width: 12%" class="cell-wrap" title="{{ rowData.ProjectTypeNames }}">
+                  <div class="list-container">
+                    @for (line of rowData.ProjectTypeNames?.split('\n'); track $index) {
+                      <div class="list-item project-type-item d-flex align-items-center">
+                        <i class="fa-solid fa-cube text-primary me-2 fs-10"></i>
+                        <span>{{ line }}</span>
+                      </div>
+                    }
+                  </div>
                 </td>
-                <td style="width: 12.5%" class="cell-wrap" title="{{ rowData.TechnologyNames }}">
-                  {{ rowData.TechnologyNames }}
+                <td style="width: 14%" class="cell-wrap" title="{{ rowData.ApplicationTypeNames }}">
+                  <div class="list-container">
+                    @for (line of rowData.ApplicationTypeNames?.split('\n'); track $index) {
+                      @let parsedLine = parseAppTechLine(line);
+                      <div class="app-tech-group mb-2">
+                        <!-- Parent Header with Cube Icon -->
+                        @if (parsedLine.parent) {
+                          <div class="parent-header d-flex align-items-center mb-1">
+                            <i class="fa-solid fa-cube text-primary me-2 fs-10"></i>
+                            <span class="fw-500">{{ parsedLine.parent }}</span>
+                          </div>
+                        }
+                        <!-- Children list with Bullet Dots -->
+                        <div class="child-list ps-3">
+                          @if (parsedLine.children.length > 0) {
+                            <div class="child-item d-flex align-items-center" [title]="parsedLine.full">
+                              <span class="bullet-dot text-primary me-2">•</span>
+                              <span>{{ parsedLine.display }}</span>
+                              @if (parsedLine.moreCount > 0) {
+                                <span class="badge-more">+{{ parsedLine.moreCount }}</span>
+                              }
+                            </div>
+                          }
+                          @if (parsedLine.children.length === 0) {
+                            <div class="child-item d-flex align-items-center text-muted fs-11" style="font-style: italic;">
+                              <span class="bullet-dot text-secondary me-2">•</span>
+                              <span>Chưa cấu hình</span>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </td>
+                <td style="width: 14%" class="cell-wrap" title="{{ rowData.TechnologyNames }}">
+                  <div class="list-container">
+                    @for (line of rowData.TechnologyNames?.split('\n'); track $index) {
+                      @let parsedLine = parseAppTechLine(line);
+                      <div class="app-tech-group mb-2">
+                        <!-- Parent Header with Cube Icon -->
+                        @if (parsedLine.parent) {
+                          <div class="parent-header d-flex align-items-center mb-1">
+                            <i class="fa-solid fa-cube text-primary me-2 fs-10"></i>
+                            <span class="fw-500">{{ parsedLine.parent }}</span>
+                          </div>
+                        }
+                        <!-- Children list with Bullet Dots -->
+                        <div class="child-list ps-3">
+                          @if (parsedLine.children.length > 0) {
+                            <div class="child-item d-flex align-items-center" [title]="parsedLine.full">
+                              <span class="bullet-dot text-primary me-2">•</span>
+                              <span>{{ parsedLine.display }}</span>
+                              @if (parsedLine.moreCount > 0) {
+                                <span class="badge-more">+{{ parsedLine.moreCount }}</span>
+                              }
+                            </div>
+                          }
+                          @if (parsedLine.children.length === 0) {
+                            <div class="child-item d-flex align-items-center text-muted fs-11" style="font-style: italic;">
+                              <span class="bullet-dot text-secondary me-2">•</span>
+                              <span>Chưa cấu hình</span>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
                 </td>
               </tr>
             </ng-template>
 
             <ng-template pTemplate="emptymessage">
               <tr>
-                <td colspan="7" class="text-center p-3 text-muted">
+                <td colspan="8" class="text-center p-3 text-muted">
                   Không tìm thấy dữ liệu dự án.
                 </td>
               </tr>

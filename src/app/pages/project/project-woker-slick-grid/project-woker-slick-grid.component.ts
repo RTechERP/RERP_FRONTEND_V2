@@ -81,6 +81,12 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   poVersionGridId: string = 'grid-po-version-worker';
   projectWorkerGridId: string = 'grid-project-worker';
 
+  // Dynamic Container IDs to avoid collisions in tabs
+  solutionContainerId: string = 'grid-solution-container-worker';
+  solutionVersionContainerId: string = 'grid-solution-version-container-worker';
+  poVersionContainerId: string = 'grid-po-version-container-worker';
+  projectWorkerContainerId: string = 'grid-project-worker-container';
+
   // Column definitions
   solutionColumns: Column[] = [];
   solutionVersionColumns: Column[] = [];
@@ -158,11 +164,16 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
     }
 
     // Initialize unique grid IDs based on projectId
-    const uniqueId = this.projectId || Math.floor(Math.random() * 1000000);
+    const uniqueId = 'worker-' + (this.projectId || Math.floor(Math.random() * 1000000));
     this.solutionGridId = `grid-solution-${uniqueId}`;
     this.solutionVersionGridId = `grid-solution-version-${uniqueId}`;
     this.poVersionGridId = `grid-po-version-${uniqueId}`;
     this.projectWorkerGridId = `grid-project-worker-${uniqueId}`;
+
+    this.solutionContainerId = `grid-solution-container-${uniqueId}`;
+    this.solutionVersionContainerId = `grid-solution-version-container-${uniqueId}`;
+    this.poVersionContainerId = `grid-po-version-container-${uniqueId}`;
+    this.projectWorkerContainerId = `grid-project-worker-container-${uniqueId}`;
 
     this.isDeleted = 0;
     this.isApprovedTBP = -1;
@@ -213,7 +224,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
 
     this.solutionGridOptions = {
       enableAutoResize: true,
-      autoResize: { container: '.grid-solution-container', calculateAvailableSizeBy: 'container' },
+      autoResize: { container: '#' + this.solutionContainerId, calculateAvailableSizeBy: 'container' },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
       enableRowSelection: true,
@@ -259,12 +270,13 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         formatter: (row, cell, value) => `<input type="checkbox" ${value === true ? 'checked' : ''} disabled style="pointer-events: none;" />`,
         cssClass: 'text-center',
       },
-      { id: 'UpdatedBy', field: 'UpdatedBy', name: 'Người duyệt', width: 100 },
+      { id: 'CreatedBy', field: 'CreatedBy', name: 'Người tạo', width: 100 },
+      { id: 'ApprovedTBP', field: 'ApprovedTBP', name: 'Người duyệt', width: 100 },
     ];
 
     this.solutionVersionGridOptions = {
       enableAutoResize: true,
-      autoResize: { container: '.grid-solution-version-container', calculateAvailableSizeBy: 'container' },
+      autoResize: { container: '#' + this.solutionVersionContainerId, calculateAvailableSizeBy: 'container' },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
       enableRowSelection: true,
@@ -337,7 +349,8 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         formatter: (row, cell, value) => `<input type="checkbox" ${value === true ? 'checked' : ''} disabled style="pointer-events: none;" />`,
         cssClass: 'text-center',
       },
-      { id: 'UpdatedBy', field: 'UpdatedBy', name: 'Người duyệt', width: 100 },
+      { id: 'CreatedBy', field: 'CreatedBy', name: 'Người tạo', width: 100 },
+      { id: 'ApprovedTBP', field: 'ApprovedTBP', name: 'Người duyệt', width: 100 },
       {
         id: 'IsProblem', field: 'IsProblem', name: 'Phát sinh', width: 50,
         formatter: (row, cell, value) => `<input type="checkbox" ${value === true ? 'checked' : ''} disabled style="pointer-events: none;" />`,
@@ -348,7 +361,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
 
     this.poVersionGridOptions = {
       enableAutoResize: true,
-      autoResize: { container: '.grid-po-version-container', calculateAvailableSizeBy: 'container' },
+      autoResize: { container: '#' + this.poVersionContainerId, calculateAvailableSizeBy: 'container' },
       gridWidth: '100%',
       datasetIdPropertyName: 'id',
       enableRowSelection: true,
@@ -507,7 +520,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       enableAutoResize: true,
       // tự động fill độ rộng khi resize màn hình
       autoResize: {
-        container: '.grid-project-worker-container',
+        container: '#' + this.projectWorkerContainerId,
         calculateAvailableSizeBy: 'container',
         rightPadding: 0,
       },
@@ -1167,7 +1180,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
   updateApproveVersion(typeNumber: number, action: number): void {
     const grid = typeNumber === 1 ? this.angularGridSolutionVersion : this.angularGridPOVersion;
     if (!grid?.slickGrid) return;
-    
+
     const selectedRows = grid.slickGrid.getSelectedRows() || [];
     if (selectedRows.length === 0) {
       this.notification.warning(

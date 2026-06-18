@@ -1678,7 +1678,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         this.tabService.openTabComp({
             comp: ProjectWokerSlickGridComponent,
             title: `Nhân công - ${projectCode}`,
-            key: `project-worker-${projectId}`,
+            key: `project-worker`,
             data: {
                 projectId: projectId,
                 projectCodex: projectCode,
@@ -1740,7 +1740,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
         this.tabService.openTabComp({
             comp: ProjectPartListSlickGridComponent,
             title: `Danh mục vật tư - ${projectCode}`,
-            key: `project-part-list-${projectId}`,
+            key: `project-part-list`,
             data: {
                 projectId: projectId,
                 projectNameX: projectName,

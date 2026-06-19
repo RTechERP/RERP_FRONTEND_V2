@@ -215,7 +215,33 @@
               <nz-form-item>
                 <nz-form-label nzRequired>Team/Phòng ban</nz-form-label>
                 <nz-form-control nzErrorTip="Vui lòng chọn phòng ban">
-                  <nz-select formControlName="TeamDepartment" nzPlaceHolder="Chọn phòng ban..."
+                  <nz-select formControlName="TeamDepartment" nzPlaceHolder="Chọn phòng ban..." nzAllowClear
+                    nzShowSearch>
+                    <nz-option *ngFor="let option of departmentOptions" [nzValue]="option.value"
+                      [nzLabel]="option.label"></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <nz-form-item>
+                <nz-form-label nzRequired>Người liên quan</nz-form-label>
+                <nz-form-control nzErrorTip="Vui lòng chọn người liên quan">
+                  <nz-select formControlName="ReceiverID" nzMode="multiple" nzPlaceHolder="Chọn người liên quan"
+                    nzAllowClear nzShowSearch>
+                    <nz-option *ngFor="let option of employeeOptions" [nzValue]="option.value"
+                      [nzLabel]="option.label"></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div class="col-md-6">
+              <nz-form-item>
+                <nz-form-label nzRequired>Phòng ban (Người liên quan)</nz-form-label>
+                <nz-form-control nzErrorTip="Vui lòng chọn phòng ban">
+                  <nz-select formControlName="ReceiverDepartment" nzMode="multiple" nzPlaceHolder="Chọn phòng ban..."
                     nzAllowClear nzShowSearch>
                     <nz-option *ngFor="let option of departmentOptions" [nzValue]="option.value"
                       [nzLabel]="option.label"></nz-option>

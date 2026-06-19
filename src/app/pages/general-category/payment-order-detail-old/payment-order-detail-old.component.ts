@@ -598,7 +598,7 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                 this.cdr.detectChanges();
                 // Patch các trường còn lại, đè lên giá trị mà valueChanges vừa set
                 this.validateForm.patchValue({
-                    PONCCID: +poNCC.ID, ApprovedTBPID: 178,
+                    PONCCID: +poNCC.ID,
                     AccountNumber: poNCC.AccountNumberSupplier, Bank: poNCC.BankSupplier,
                     ReceiverInfo: supplierSale?.NameNCC || '', Unit: poNCC.Unit.toLowerCase(),
                 }, { emitEvent: false });

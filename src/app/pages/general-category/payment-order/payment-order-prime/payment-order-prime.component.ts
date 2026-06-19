@@ -268,6 +268,7 @@ export class PaymentOrderPrimeComponent implements OnInit {
 
     loadDataNormal() {
         this.isLoading = true;
+this.selectedItems = [];
         let emp = 0;
         if (this.isPermisstion && this.isApprove) emp = this.param.employeeID;
         else if (this.appUserService.currentUser?.EmployeeID == 0 && this.appUserService.currentUser?.IsAdmin) emp = this.param.employeeID;
@@ -887,7 +888,7 @@ export class PaymentOrderPrimeComponent implements OnInit {
     }
 
     async onApprove(isApproved: number, action: any) {
-        if (this.selectedItems.length <= 0) { this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đề nghị!'); return; }
+if (this.selectedItems.length <= 0) { this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đề nghị!'); return; }
         let items = this.selectedItems.map(x => ({ ...x, Action: action, PaymentOrderLog: { IsApproved: isApproved }, CurrentApproved: x.IsApproved || 0, Step: x.Step || 0 }));
         const group = action.ButtonActionGroup;
         const btnName = action.ButtonActionName;

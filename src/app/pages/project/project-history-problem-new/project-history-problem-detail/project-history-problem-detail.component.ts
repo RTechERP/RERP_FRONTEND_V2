@@ -12,6 +12,8 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { ProjectHistoryProblemNewService } from '../project-history-problem-service/project-history-problem-new.service';
 import { AppUserService } from '../../../../services/app-user.service';
+import { forkJoin, of } from 'rxjs';
+import { switchMap, catchError, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-project-history-problem-detail',
@@ -89,6 +91,17 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
           const parsedDept = JSON.parse(this.data.TeamDepartment);
           this.data.TeamDepartment = Array.isArray(parsedDept) && parsedDept.length > 0 ? parsedDept[0] : null;
         } catch { this.data.TeamDepartment = null; }
+      }
+      
+      if (this.data.ReceiverDepartment && typeof this.data.ReceiverDepartment === 'string') {
+        try {
+          const parsedDept = JSON.parse(this.data.ReceiverDepartment);
+          this.data.ReceiverDepartment = Array.isArray(parsedDept) ? parsedDept : [];
+        } catch { this.data.ReceiverDepartment = []; }
+      } else if (this.data.ReceiverDepartment && Array.isArray(this.data.ReceiverDepartment)) {
+          // Keep as is
+      } else {
+        this.data.ReceiverDepartment = [];
       }
       this.form.patchValue(this.data);
       if (this.data.ProjectID) {
@@ -175,6 +188,7 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
       STT: [{ value: null, disabled: true }],
       ProjectID: [null, [Validators.required]],
       TeamDepartment: [null, [Validators.required]],
+      ReceiverDepartment: [[]],
       IssueLogType: [null, [Validators.required]],
 
       ErrorLocation: [null, [Validators.required]],
@@ -248,16 +262,11 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
 
     const updateTeamDepartment = () => {
       const pmId = this.form.get('ProjectManagerID')?.value;
-      const employeeIds: number[] = [];
-      
-      if (pmId) employeeIds.push(pmId);
-
-      if (employeeIds.length > 0) {
-        this.projectHistoryProblemNewService.getDepartmentByEmployees(employeeIds).subscribe((res: any) => {
+      if (pmId) {
+        this.projectHistoryProblemNewService.getDepartmentByEmployees([pmId]).subscribe((res: any) => {
           if (res.status === 1) {
             const deptIds = res.data || [];
-            const newValue = deptIds.length > 0 ? deptIds[0] : null;
-            this.form.patchValue({ TeamDepartment: newValue });
+            this.form.patchValue({ TeamDepartment: deptIds.length > 0 ? deptIds[0] : null });
           }
         });
       } else {
@@ -266,7 +275,40 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
     };
 
     this.form.get('ProjectManagerID')?.valueChanges.subscribe(() => updateTeamDepartment());
-    this.form.get('ReceiverID')?.valueChanges.subscribe(() => updateTeamDepartment());
+
+    this.form.get('ReceiverID')?.valueChanges.pipe(
+      switchMap(receiverIds => {
+        const employeeIds: number[] = [];
+        
+        if (Array.isArray(receiverIds)) {
+          employeeIds.push(...receiverIds);
+        } else if (receiverIds) {
+          employeeIds.push(receiverIds);
+        }
+
+        const uniqueEmployeeIds = [...new Set(employeeIds)];
+
+        if (uniqueEmployeeIds.length > 0) {
+          const requests = uniqueEmployeeIds.map(id => this.projectHistoryProblemNewService.getDepartmentByEmployees([id]).pipe(
+            catchError(() => of({ status: 0, data: [] }))
+          ));
+          return forkJoin(requests);
+        } else {
+          return of([]);
+        }
+      })
+    ).subscribe((results: any[]) => {
+      if (results.length === 0) {
+        this.form.patchValue({ ReceiverDepartment: [] }, { emitEvent: false });
+        return;
+      }
+      
+      const deptIds = results
+        .map(res => (res && res.status === 1 && res.data && res.data.length > 0) ? res.data[0] : null)
+        .filter(id => id !== null);
+      const uniqueDeptIds = [...new Set(deptIds)];
+      this.form.patchValue({ ReceiverDepartment: uniqueDeptIds }, { emitEvent: false });
+    });
   }
 
   submitForm(): void {
@@ -280,7 +322,10 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
 
       const payload = [{
         projectHistoryProblem: payloadItem,
-        receiverIds: formValue.ReceiverID || [],
+        receiverIds: (Array.isArray(formValue.ReceiverID) ? formValue.ReceiverID : (formValue.ReceiverID ? [formValue.ReceiverID] : []))
+          .filter((id: any) => id !== null && id !== undefined)
+          .map((id: any) => Number(id))
+          .filter((id: number) => !isNaN(id) && id > 0),
         projectItemIds: formValue.ProjectItemIds || [],
         deleteIdsMaster: [],
         deleteFileIds: this.deletedFileIds
@@ -347,6 +392,8 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
       CreatorID: item.CreatorID || null,
       PerformerID: item.PerformerID || null,
       ProjectManagerID: item.ProjectManagerID || null,
+      TeamDepartment: item.TeamDepartment ? JSON.stringify([item.TeamDepartment]) : '[]',
+      ReceiverDepartment: item.ReceiverDepartment ? JSON.stringify(item.ReceiverDepartment) : '[]',
       PriorityLevel: item.PriorityLevel || null,
       StatusProblem: item.StatusProblem || null,
       IsDeleted: item.IsDeleted || false,

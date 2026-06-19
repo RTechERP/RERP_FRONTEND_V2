@@ -367,6 +367,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
         if (response.status === 1) {
           let responseData = response.data;
           let dtMaster = responseData?.dtMaster;
+
           if (!dtMaster) {
             this.dataHistory = [];
           } else if (Array.isArray(dtMaster)) {
@@ -374,6 +375,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
           } else {
             this.dataHistory = [];
           }
+          this.updateSTT();
           this.syncSelectedRowsWithCurrentData();
           this.syncPreviewRowWithCurrentData();
         } else {

@@ -1239,7 +1239,7 @@ export class PaymentOrderComponent implements OnInit {
         sortable: true, filterable: true,
         width: 200,
         filter: { model: Filters['compoundInputText'] },
-        hidden: true
+        hidden: true // Ẩn cột này đi do c gái Hà yc
       },
       {
         id: PaymentOrderField.SupplierAccCode.field,

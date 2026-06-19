@@ -75,6 +75,7 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
 import { ProjectPartlistCloneComponent } from '../project-partlist-clone/project-partlist-clone.component';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { ActivityLogPartListComponent } from './activity-log-partlist/activity-log-partlist.component';
 
 @Component({
     selector: 'app-project-part-list-slick-grid',
@@ -102,7 +103,8 @@ import { NzTableModule } from 'ng-zorro-antd/table';
         NgbModule,
         HasPermissionDirective,
         NzInputNumberModule,
-        NzTableModule
+        NzTableModule,
+        ActivityLogPartListComponent
     ],
     templateUrl: './project-part-list-slick-grid.component.html',
     styleUrl: './project-part-list-slick-grid.component.css'
@@ -2177,6 +2179,15 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                         action: (_e: any, args: any) => {
                             const productCode = args.dataContext?.ProductCode;
                             this.openProjectPartListHistory(productCode);
+                        },
+                    },
+                    {
+                        command: 'openActivityLog',
+                        title: 'Lịch sử thao tác',
+                        iconCssClass: 'fa fa-history',
+                        action: (_e: any, args: any) => {
+                            const partListItem = args.dataContext;
+                            this.openPartListActivityLogModal(partListItem);
                         },
                     },
                     {
@@ -5395,6 +5406,45 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
         });
     }
 
+    // TBP Xóa vật tư (Không check điều kiện, chỉ cần xác nhận)
+    deleteProjectPartListTBP(): void {
+        const selectedRows = this.getSelectedPartListRows();
+        if (!selectedRows || selectedRows.length === 0) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn vật tư cần xóa');
+            return;
+        }
+
+        this.modal.confirm({
+            nzTitle: 'Xác nhận xóa vật tư',
+            nzContent: `Bạn có chắc chắn muốn xóa ${selectedRows.length} vật tư đã chọn không?`,
+            nzOkText: 'Xác nhận',
+            nzCancelText: 'Hủy',
+            nzOkDanger: true,
+            nzWidth: 500,
+            nzOnOk: () => {
+                const ids = selectedRows.map((row: any) => row.ID || 0).filter(id => id > 0);
+                if (ids.length === 0) {
+                    this.notification.warning('Thông báo', 'Không có vật tư hợp lệ để xóa!');
+                    return;
+                }
+                this.projectPartListService.deletePartListTBP(ids).subscribe({
+                    next: (response: any) => {
+                        if (response.status === 1) {
+                            this.notification.success('Thành công', response.message || 'Xóa vật tư thành công!');
+                            this.loadDataProjectPartList();
+                        } else {
+                            this.notification.error('Lỗi', response.message || 'Không thể xóa vật tư');
+                        }
+                    },
+                    error: (error: any) => {
+                        const errorMsg = error?.error?.message || error?.message || 'Không thể xóa vật tư';
+                        this.notification.error('Lỗi', errorMsg);
+                    }
+                });
+            }
+        });
+    }
+
     // Xóa phiên bản
     deleteProjectPartListVersion(typenumber: number): void {
         let selectedVersion: any = null;
@@ -6423,6 +6473,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             size: 'xl',
             keyboard: false,
             backdrop: 'static',
+            windowClass: 'modal-import-excel',
         });
         modalRef.componentInstance.projectId = this.projectId;
         modalRef.componentInstance.projectCode = this.projectCodex;
@@ -6884,6 +6935,25 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             (result: any) => { },
             (reason: any) => { }
         );
+    }
+
+    openPartListActivityLogModal(partListItem?: any): void {
+        const item = partListItem || this.lastClickedPartListRow;
+        if (!item || !item.ID) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn vật tư trước!');
+            return;
+        }
+
+        const modalRef = this.ngbModal.open(ActivityLogPartListComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            size: 'xl'
+        });
+
+        modalRef.componentInstance.partListID = item.ID;
+        modalRef.componentInstance.productCode = item.ProductCode || '';
+        modalRef.componentInstance.groupMaterial = item.GroupMaterial || '';
     }
 
     getPriceHistory(): void {

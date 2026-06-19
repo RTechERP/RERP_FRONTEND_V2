@@ -120,9 +120,17 @@ export class ProjectPartListService {
   getPartListByID(partlistID: number): Observable<any> {
     return this.http.get<any>(`${this.urlProjectPartList}/get-partlist-by-id?partlistID=${partlistID}`);
   }
+  // Get PartList Activity Log
+  getLogActivityPartlist(partlistID: number): Observable<any> {
+    return this.http.get<any>(`${this.urlProjectPartList}/get-log-activity-partlist?partlistID=${partlistID}`);
+  }
   // Delete PartList
   deletePartList(payload: any[]): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/delete-partlist`, payload);
+  }
+  // Delete PartList TBP
+  deletePartListTBP(ids: number[]): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/delete-partlist-tbp`, ids);
   }
 
   cloneProjectPartList(payload: any): Observable<any> {

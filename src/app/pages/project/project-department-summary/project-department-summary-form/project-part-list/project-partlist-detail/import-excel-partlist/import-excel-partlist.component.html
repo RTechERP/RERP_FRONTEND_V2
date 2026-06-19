@@ -1,9 +1,9 @@
-<div class="modal-content">
+<div class="modal-content" style="height: 92vh; display: flex; flex-direction: column;">
   <div class="modal-header bg-primary text-uppercase py-2 ">
     <h6 class="modal-title text-white" id="ExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
     <button type="button" class="btn-close" (click)="closePartlistModal()"></button>
   </div>
-  <div class="modal-body">
+  <div class="modal-body" style="flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 10px;">
     <div class="d-flex gap-2 align-items-center p-2">
       <div class="flex-grow-1">
         <div class="progress-wrapper">
@@ -58,17 +58,17 @@
         </div>
       </div>
       <div class="card-body p-2">
-        <div id="partlistTable" style="height: calc(95vh - 350px); min-height: 400px; overflow-y: auto;">
+        <div id="partlistTable" style="height: calc(92vh - 280px); min-height: 350px;">
         </div>
       </div>
     </form>
-    <div class="modal-footer">
-      <button class="fs-12 btn" nz-button nzDanger (click)="closeExcelModal()" [disabled]="isSaving">Đóng</button>
-      <button class="fs-12 btn" nz-button (click)="downloadTemplate()" [disabled]="isSaving">
-        <nz-icon nzType="download" nzTheme="outline"></nz-icon> Mẫu
-      </button>
-      <button class="fs-12 btn" nz-button nzType="primary" (click)="saveExcelData()" [disabled]="isSaving"
-        [nzLoading]="isSaving">Lưu</button>
-    </div>
+  </div>
+  <div class="modal-footer py-2">
+    <button class="fs-12 btn" nz-button nzDanger (click)="closeExcelModal()" [disabled]="isSaving">Đóng</button>
+    <button class="fs-12 btn" nz-button (click)="downloadTemplate()" [disabled]="isSaving">
+      <nz-icon nzType="download" nzTheme="outline"></nz-icon> Mẫu
+    </button>
+    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveExcelData()" [disabled]="isSaving"
+      [nzLoading]="isSaving">Lưu</button>
   </div>
 </div>

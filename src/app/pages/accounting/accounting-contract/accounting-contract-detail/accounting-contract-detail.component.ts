@@ -487,6 +487,19 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
   initContractFile(): void {
     const contextMenuItems = [
       {
+        label: 'Xem file',
+        action: () => {
+          if (this.selectedContractFile) {
+            this.viewContractFile(this.selectedContractFile);
+          } else {
+            this.notification.warning(
+              'Thông báo',
+              'Vui lòng chọn file để xem!'
+            );
+          }
+        },
+      },
+      {
         label: 'Tải xuống',
         action: () => {
           if (this.selectedContractFile) {
@@ -584,41 +597,20 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
 
     this.tb_ContractFile.on('rowDblClick', (_e, row: RowComponent) => {
       this.selectedContractFile = row.getData();
-      this.downloadContractFile(this.selectedContractFile);
+      this.viewContractFile(this.selectedContractFile);
     });
   }
 
-  private buildFullFilePath(file: any): string {
-    if (!file) {
-      return '';
-    }
-    const serverPath =
-      (file.ServerPath || file.serverPath || '').toString().trim();
+  private downloadFromServer(file: any): void {
+    const fileId = Number(file?.ID || file?.id || 0);
     const fileName =
-      (file.FileName ||
-        file.fileName ||
-        file.FileNameOrigin ||
-        '').toString().trim();
+      file?.FileName || file?.fileName || file?.FileNameOrigin || 'downloaded_file';
 
-    if (!serverPath) {
-      return '';
-    }
-
-    if (fileName && serverPath.toLowerCase().includes(fileName.toLowerCase())) {
-      return serverPath;
-    }
-
-    if (!fileName) {
-      return serverPath;
-    }
-
-    const normalizedPath = serverPath.replace(/[\\/]+$/, '');
-    return `${normalizedPath}\\${fileName}`;
-  }
-
-  private downloadFromServer(fullPath: string, fileName: string): void {
-    if (!fullPath) {
-      this.notification.error('Thông báo', 'Không xác định được đường dẫn file!');
+    if (!fileId) {
+      this.notification.error(
+        'Thông báo',
+        'Không xác định được file! (Có thể file mới chưa được upload lên server).'
+      );
       return;
     }
 
@@ -626,7 +618,7 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       nzDuration: 0,
     }).messageId;
 
-    this.accountingContractService.downloadFile(fullPath).subscribe({
+    this.accountingContractService.downloadFileById(fileId).subscribe({
       next: (blob: Blob) => {
         this.message.remove(loadingMsg);
         if (blob && blob.size > 0) {
@@ -674,17 +666,108 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       this.notification.warning('Thông báo', 'Vui lòng chọn file để tải xuống!');
       return;
     }
-    const fullPath = this.buildFullFilePath(file);
-    const fileName =
-      file.FileName || file.fileName || file.FileNameOrigin || 'downloaded_file';
-    if (!fullPath) {
+    const fileId = Number(file?.ID || file?.id || 0);
+    if (!fileId) {
       this.notification.error(
         'Thông báo',
-        'Không xác định được đường dẫn file! (Có thể file mới chưa được upload lên server).'
+        'Không xác định được file! (Có thể file mới chưa được upload lên server).'
       );
       return;
     }
-    this.downloadFromServer(fullPath, fileName);
+    this.downloadFromServer(file);
+  }
+
+  viewContractFile(file: any): void {
+    if (!file) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn file để xem!');
+      return;
+    }
+    const fileId = Number(file?.ID || file?.id || 0);
+    const fileName =
+      file?.FileName || file?.fileName || file?.FileNameOrigin || `file_${fileId}`;
+
+    if (!fileId) {
+      this.notification.error(
+        'Thông báo',
+        'Không xác định được file! (Có thể file mới chưa được upload lên server).'
+      );
+      return;
+    }
+
+    const loadingMsg = this.message.loading('Đang mở file...', {
+      nzDuration: 0,
+    }).messageId;
+
+    this.accountingContractService.downloadFileById(fileId).subscribe({
+      next: (blob: Blob) => {
+        this.message.remove(loadingMsg);
+        if (!blob || blob.size === 0) {
+          this.notification.error('Thông báo', 'File rỗng hoặc không hợp lệ!');
+          return;
+        }
+
+        if (blob.type === 'application/json') {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const json = JSON.parse(reader.result as string);
+              this.notification.error(
+                'Thông báo',
+                json?.message || 'Không thể mở file!'
+              );
+            } catch {
+              this.openBlobInNewWindow(blob, fileName);
+            }
+          };
+          reader.readAsText(blob);
+          return;
+        }
+
+        this.openBlobInNewWindow(blob, fileName);
+      },
+      error: (err) => {
+        this.message.remove(loadingMsg);
+        if (err?.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errText = JSON.parse(reader.result as string);
+              this.notification.error(
+                'Thông báo',
+                errText.message || 'Mở file thất bại!'
+              );
+            } catch {
+              this.notification.error('Thông báo', 'Mở file thất bại!');
+            }
+          };
+          reader.readAsText(err.error);
+        } else {
+          this.notification.error(
+            'Thông báo',
+            err?.error?.message || err?.message || 'Mở file thất bại!'
+          );
+        }
+      },
+    });
+  }
+
+  private openBlobInNewWindow(blob: Blob, fileName: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const newWindow = window.open(url, '_blank', 'width=1000,height=700');
+
+    if (newWindow) {
+      newWindow.onload = () => {
+        if (newWindow.document) {
+          newWindow.document.title = fileName;
+        }
+      };
+      setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+    } else {
+      this.notification.warning(
+        'Thông báo',
+        'Trình duyệt đã chặn cửa sổ mới. Vui lòng cho phép popup để xem file.'
+      );
+    }
   }
 
   uploadFiles(accountingContractId: number): void {
@@ -700,65 +783,15 @@ export class AccountingContractDetailComponent implements OnInit, AfterViewInit 
       newFiles.forEach((fileObj: any) => {
         formData.append('files', fileObj.file);
       });
-
-      // key: để backend nhận biết loại tài liệu
       formData.append('key', 'PathAccounting');
-      // formData.append('key', 'TuanBeoTest');
 
-      // Lấy thông tin hợp đồng để tạo subPath
-      this.accountingContractService.getAccountingContractDetail(accountingContractId).subscribe({
-        next: (data: any) => {
-          if (data.status === 1 && data.data) {
-            const accountingContract = data.data;
-
-            const createdDate = new Date(accountingContract.DateInput || accountingContract.CreatedDate || new Date());
-            const year = createdDate.getFullYear().toString();
-            const month = ('0' + (createdDate.getMonth() + 1)).slice(-2);
-            const contractNumber = accountingContract.ContractNumber || '';
-
-            const sanitize = (s: string) =>
-              s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
-
-            const subPath = [
-              sanitize(year),
-              `T${sanitize(month)}`,
-              sanitize(contractNumber)
-            ].join('/');
-
-            formData.append('subPath', subPath);
-
-            // Gọi API upload sau khi đã có subPath
-            this.accountingContractService.uploadFiles(formData, accountingContractId).subscribe({
-              next: () => {
-                console.log('Upload files thành công');
-              },
-              error: (error) => {
-                this.notification.error('Thông báo', 'Lỗi upload files: ' + (error?.error?.message || error?.message || error));
-              },
-            });
-          } else {
-            // Nếu không lấy được thông tin hợp đồng, vẫn upload nhưng không có subPath
-            this.accountingContractService.uploadFiles(formData, accountingContractId).subscribe({
-              next: () => {
-                console.log('Upload files thành công');
-              },
-              error: (error) => {
-                this.notification.error('Thông báo', 'Lỗi upload files: ' + (error?.error?.message || error?.message || error));
-              },
-            });
-          }
+      this.accountingContractService.uploadFiles(formData, accountingContractId).subscribe({
+        next: () => {
+          console.log('Upload files thành công');
         },
         error: (error) => {
-          // Nếu lỗi khi lấy thông tin hợp đồng, vẫn upload nhưng không có subPath
-          this.accountingContractService.uploadFiles(formData, accountingContractId).subscribe({
-            next: () => {
-              console.log('Upload files thành công');
-            },
-            error: (uploadError) => {
-              this.notification.error('Thông báo', 'Lỗi upload files: ' + (uploadError?.error?.message || uploadError?.message || uploadError));
-            },
-          });
-        }
+          this.notification.error('Thông báo', 'Lỗi upload files: ' + (error?.error?.message || error?.message || error));
+        },
       });
     }
 

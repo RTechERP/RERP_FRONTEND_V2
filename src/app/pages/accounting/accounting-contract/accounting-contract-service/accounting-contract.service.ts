@@ -88,6 +88,14 @@ export class AccountingContractService {
     });
   }
 
+  downloadFileById(fileId: number): Observable<Blob> {
+    const params = new HttpParams().set('fileId', fileId.toString());
+    return this.http.get(`${this._url}download-file`, {
+      params,
+      responseType: 'blob',
+    });
+  }
+
   // API để lấy danh sách users
   getUsers(): Observable<any> {
     return this.http.get<any>(`${this._url}get-users`);

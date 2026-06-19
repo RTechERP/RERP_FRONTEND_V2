@@ -53,6 +53,7 @@ import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { map, catchError, of, forkJoin } from 'rxjs';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import * as ExcelJS from 'exceljs';
 
 import { AppComponent } from '../../../app.component';
@@ -142,6 +143,7 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private modalService: NgbModal,
     private notification: NzNotificationService,
+    private message: NzMessageService,
     private accountingContractService: AccountingContractService,
   ) { }
 
@@ -1002,6 +1004,44 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
       resizableRows: true,
       columns: [
         {
+          title: '',
+          field: 'viewAction',
+          hozAlign: 'center',
+          width: 40,
+          headerSort: false,
+          frozen: true,
+          formatter: (cell: any) => {
+            const data = cell.getRow().getData();
+            if (!data?.ID) return '';
+            return `<button class="btn text-success p-0 border-0" style="font-size: 0.85rem;" title="Xem file"><i class="fas fa-eye"></i></button>`;
+          },
+          cellClick: (_e: any, cell: any) => {
+            const data = cell.getRow().getData();
+            if (data?.ID) {
+              this.viewContractFile(data);
+            }
+          },
+        },
+        {
+          title: '',
+          field: 'downloadAction',
+          hozAlign: 'center',
+          width: 40,
+          headerSort: false,
+          frozen: true,
+          formatter: (cell: any) => {
+            const data = cell.getRow().getData();
+            if (!data?.ID) return '';
+            return `<button class="btn text-primary p-0 border-0" style="font-size: 0.85rem;" title="Tải xuống"><i class="fas fa-download"></i></button>`;
+          },
+          cellClick: (_e: any, cell: any) => {
+            const data = cell.getRow().getData();
+            if (data?.ID) {
+              this.downloadContractFile(data);
+            }
+          },
+        },
+        {
           title: 'ID',
           field: 'ID',
           visible: false,
@@ -1032,6 +1072,12 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
           width: '30%',
         },
         {
+          title: 'Thư mục server',
+          field: 'ServerPath',
+          sorter: 'string',
+          width: '30%',
+        },
+        {
           title: 'Ngày tạo',
           field: 'CreatedDate',
           sorter: 'date',
@@ -1055,6 +1101,142 @@ export class AccountingContractComponent implements OnInit, AfterViewInit {
         },
       ],
     });
+
+    this.tb_AccountingContractFile.on('rowDblClick', (_e: any, row: any) => {
+      const data = row.getData();
+      if (data?.ID) {
+        this.viewContractFile(data);
+      }
+    });
+  }
+
+  viewContractFile(file: any): void {
+    const fileId = Number(file?.ID || file?.id || 0);
+    const fileName = file?.FileName || file?.fileName || `file_${fileId}`;
+
+    if (!fileId) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không xác định được file để xem!');
+      return;
+    }
+
+    const loadingMsg = this.message.loading('Đang mở file...', {
+      nzDuration: 0,
+    }).messageId;
+
+    this.accountingContractService.downloadFileById(fileId).subscribe({
+      next: (blob: Blob) => {
+        this.message.remove(loadingMsg);
+        if (!blob || blob.size === 0) {
+          this.notification.error(NOTIFICATION_TITLE.error, 'File rỗng hoặc không hợp lệ!');
+          return;
+        }
+
+        if (blob.type === 'application/json') {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const json = JSON.parse(reader.result as string);
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                json?.message || 'Không thể mở file!'
+              );
+            } catch {
+              this.openBlobInNewWindow(blob, fileName);
+            }
+          };
+          reader.readAsText(blob);
+          return;
+        }
+
+        this.openBlobInNewWindow(blob, fileName);
+      },
+      error: (err: any) => {
+        this.message.remove(loadingMsg);
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          err?.error?.message || err?.message || 'Mở file thất bại!'
+        );
+        console.error('Error viewing file:', err);
+      },
+    });
+  }
+
+  private openBlobInNewWindow(blob: Blob, fileName: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const newWindow = window.open(url, '_blank', 'width=1000,height=700');
+
+    if (newWindow) {
+      newWindow.onload = () => {
+        if (newWindow.document) {
+          newWindow.document.title = fileName;
+        }
+      };
+      // Revoke URL sau khi window đã load xong để giải phóng bộ nhớ
+      setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+    } else {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Trình duyệt đã chặn cửa sổ mới. Vui lòng cho phép popup để xem file.'
+      );
+    }
+  }
+
+  downloadContractFile(file: any): void {
+    const fileId = Number(file?.ID || file?.id || 0);
+    const fileName = file?.FileName || file?.fileName || `file_${fileId}`;
+
+    if (!fileId) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không xác định được file để tải xuống!');
+      return;
+    }
+
+    const loadingMsg = this.message.loading('Đang tải xuống file...', {
+      nzDuration: 0,
+    }).messageId;
+
+    this.accountingContractService.downloadFileById(fileId).subscribe({
+      next: (blob: Blob) => {
+        this.message.remove(loadingMsg);
+        if (blob && blob.size > 0 && blob.type !== 'application/json') {
+          this.saveBlob(blob, fileName);
+          this.notification.success(NOTIFICATION_TITLE.success, 'Tải xuống thành công!');
+        } else {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const json = JSON.parse(reader.result as string);
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                json?.message || 'Không thể tải file!'
+              );
+            } catch {
+              this.saveBlob(blob, fileName);
+              this.notification.success(NOTIFICATION_TITLE.success, 'Tải xuống thành công!');
+            }
+          };
+          reader.readAsText(blob);
+        }
+      },
+      error: (err: any) => {
+        this.message.remove(loadingMsg);
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          err?.error?.message || err?.message || 'Tải xuống thất bại!'
+        );
+        console.error('Error downloading file:', err);
+      },
+    });
+  }
+
+  private saveBlob(blob: Blob, fileName: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   }
 
   async exportToExcel() {

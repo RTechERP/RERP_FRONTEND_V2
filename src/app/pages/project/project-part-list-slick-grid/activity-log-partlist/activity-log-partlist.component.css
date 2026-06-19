@@ -87,9 +87,11 @@
 
 .log-author,
 .log-time {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 4px;
+    color: #8c8c8c;
+    font-weight: 400;
 }
 
 .log-author i,

@@ -1,4 +1,4 @@
-﻿<div class="page-title ms-2 me-3" style="padding: 10px 0; font-size: 16px; font-weight: 500;">
+<div class="page-title ms-2 me-3" style="padding: 10px 0; font-size: 16px; font-weight: 500;">
   Hiệu Suất Theo Dự Án
 </div>
 
@@ -108,6 +108,7 @@
   <app-custom-table [data]="tableData" [textWrap]="false" [columns]="columns" [loading]="isLoading"
     dataKey="STT" [scrollable]="true" scrollHeight="flex" [showGlobalFilter]="false" [paginator]="false"
     [rows]="50" [rowsPerPageOptions]="[20, 50, 100]" fontSize="12px" [clickSelectRow]="true"
+    [virtualScroll]="true" [virtualScrollItemSize]="40"
     (rowClick)="selectedRow = $event" (cellContextMenu)="onCellContextMenu($event)">
   </app-custom-table>
 </div>
@@ -117,9 +118,4 @@
 <!-- ═══ TABLE FOOTER ═══ -->
 <div class="table-footer-bar">
   Tổng số dòng: <span class="total-count">{{ getTotalRows() }}</span>
-</div>
-
-<!-- ═══ STICKY SCROLLBAR ═══ -->
-<div class="sticky-scrollbar" #stickyScrollbar (scroll)="onStickyScroll($event)">
-  <div class="sticky-scrollbar-inner" #stickyScrollbarInner></div>
 </div>

@@ -45,12 +45,6 @@ interface ExtendedColumnDef extends ColumnDef {
 })
 export class ProjectTaskEfficiencyByTaskComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  @ViewChild('stickyScrollbar') stickyScrollbarRef!: ElementRef<HTMLDivElement>;
-  @ViewChild('stickyScrollbarInner') stickyScrollbarInnerRef!: ElementRef<HTMLDivElement>;
-  private tableScrollEl: HTMLElement | null = null;
-  private syncingScroll = false;
-  private resizeObserver: ResizeObserver | null = null;
-
   menuItems: MenuItem[] = [];
 
   isLoading = false;
@@ -260,51 +254,9 @@ export class ProjectTaskEfficiencyByTaskComponent implements OnInit, AfterViewIn
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => this.initStickyScrollbar(), 500);
   }
 
   ngOnDestroy(): void {
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-    }
-  }
-
-  private initStickyScrollbar(): void {
-    const host = (this.stickyScrollbarRef?.nativeElement as HTMLElement)?.closest('app-project-task-efficiency-by-task');
-    if (!host) return;
-    this.tableScrollEl = host.querySelector('.p-datatable-wrapper') as HTMLElement;
-    if (!this.tableScrollEl) return;
-
-    this.syncScrollbarWidth();
-
-    // Sync: table → sticky
-    this.tableScrollEl.addEventListener('scroll', () => {
-      if (this.syncingScroll) return;
-      this.syncingScroll = true;
-      const bar = this.stickyScrollbarRef?.nativeElement;
-      if (bar) bar.scrollLeft = this.tableScrollEl!.scrollLeft;
-      this.syncingScroll = false;
-    });
-
-    // Observe resize to update width
-    this.resizeObserver = new ResizeObserver(() => this.syncScrollbarWidth());
-    this.resizeObserver.observe(this.tableScrollEl);
-  }
-
-  private syncScrollbarWidth(): void {
-    if (!this.tableScrollEl || !this.stickyScrollbarInnerRef) return;
-    const innerDiv = this.stickyScrollbarInnerRef.nativeElement;
-    innerDiv.style.width = this.tableScrollEl.scrollWidth + 'px';
-  }
-
-  onStickyScroll(_event: Event): void {
-    if (this.syncingScroll) return;
-    this.syncingScroll = true;
-    const bar = this.stickyScrollbarRef?.nativeElement;
-    if (bar && this.tableScrollEl) {
-      this.tableScrollEl.scrollLeft = bar.scrollLeft;
-    }
-    this.syncingScroll = false;
   }
 
   onCellAction(event: { field: string; rowData: any }): void {

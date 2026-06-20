@@ -68,6 +68,9 @@ import { TabulatorPopupService } from '../../../shared/components/tabulator-popu
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { ProjectPartlistPriceRequestLogComponent } from './project-partlist-price-request-log/project-partlist-price-request-log.component';
+import { PriceHistoryPartlistSlickGridComponent } from '../../price-history-partlist-slick-grid/price-history-partlist-slick-grid.component';
+import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
+import { TabServiceService } from '../../../layouts/tab-service.service';
 import { HistoryPriceComponent } from '../../purchase/project-partlist-purchase-request/history-price/history-price.component';
 
 @Component({
@@ -106,7 +109,6 @@ import { HistoryPriceComponent } from '../../purchase/project-partlist-purchase-
     AngularSlickgridModule,
     MenubarModule,
     ProjectPartlistPriceRequestLogComponent,
-    HistoryPriceComponent,
   ],
   templateUrl: './project-partlist-price-request-new.component.html',
   styleUrls: ['./project-partlist-price-request-new.component.css']
@@ -165,6 +167,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   appUserService = inject(AppUserService);
   private ngbModal = inject(NgbModal);
   private tabulatorPopupService = inject(TabulatorPopupService);
+  private tabService = inject(TabServiceService);
 
   // Removed popup-related properties - will use single select editors instead
 
@@ -1626,6 +1629,37 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           // useRegularTooltipFromCellTextOnly: true,
         },
       },
+      // {
+      //   id: 'Moq',
+      //   field: 'Moq',
+      //   name: 'SL tối thiểu',
+      //   width: 80,
+      //   sortable: true,
+      //   filterable: true,
+      //   type: 'number',
+      //   cssClass: 'text-right',
+      //   filter: { model: Filters['compoundInputNumber'] },
+      //   groupTotalsFormatter: (totals: any, columnDef: any) => this.sumTotalsFormatterWithFormat(totals, columnDef),
+
+      //   formatter: (_row, _cell, value, _column, dataContext) => {
+      //     if (!value) return '';
+      //     return `
+      //       <span
+      //         title="${dataContext.Moq}"
+      //         style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+      //       >
+      //         ${value}
+      //       </span>
+      //     `;
+      //   },
+      //   editor: {
+      //     model: Editors['float'],
+      //     decimal: 2,
+      //   },
+      //   customTooltip: {
+      //     useRegularTooltip: true,
+      //   },
+      // },
       {
         id: 'Quantity',
         field: 'Quantity',
@@ -2469,11 +2503,20 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         commandItems: [
           {
             command: 'history-price',
-            title: 'Lịch sử hỏi giá',
+            title: 'Lịch sử giá',
             iconCssClass: 'mdi mdi-history',
             positionOrder: 10,
             action: (_e: any, _args: any) => {
               this.onHistoryPrice(typeId);
+            },
+          },
+          {
+            command: 'view-quotation',
+            title: 'Lịch sử báo giá dự án',
+            iconCssClass: 'mdi mdi-history',
+            positionOrder: 20,
+            action: (_e: any, _args: any) => {
+              this.openPriceHistory();
             },
           },
         ],
@@ -2557,6 +2600,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       (sum, item) => sum + (Number(item.TotalPrice) || 0),
       0
     );
+    const totalMoqSum = dataItems.reduce(
+      (sum, item) => sum + (Number(item.Moq) || 0),
+      0
+    );
 
     angularGrid.slickGrid.setFooterRowVisibility(true);
 
@@ -2593,6 +2640,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           maximumFractionDigits: 0,
         }).format(totalPriceSum);
         footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
+        // } else if (col.id === 'Moq') {
+        //   const formattedValue = new Intl.NumberFormat('en-US', {
+        //     minimumFractionDigits: 0,
+        //     maximumFractionDigits: 0,
+        //   }).format(totalMoqSum);
+        //   footerCell.innerHTML = `<b style="display:block;text-align:right;">${formattedValue}</b>`;
       } else {
         footerCell.innerHTML = '';
       }
@@ -3017,6 +3070,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
             'UnitImportPrice',
             'VAT',
             'TotalDayLeadTime',
+            //'Moq',
           ].includes(field)
         ) {
           this.recalculateRowForSlickGrid(selectedItem);
@@ -3063,6 +3117,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         'UnitImportPrice',
         'VAT',
         'TotalDayLeadTime',
+        //'Moq',
       ].includes(field)
     ) {
       // Tính toán lại các giá trị phụ thuộc
@@ -3482,6 +3537,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
       'HistoryPrice', // moneyEditor
       'TotalImportPrice',
       'EffectiveDate',
+      //'Moq',
     ];
     if (!this.appUserService.isAdmin) {
       validFields.push('QuoteEmployeeID');
@@ -3745,6 +3801,20 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   }
   UpdateValue(rowData: any): void {
     const quantity = Number(rowData.Quantity) || 0;
+
+    // const quantity = Number(rowData.Quantity) || 0;
+    // const moq = Number(rowData.Moq) || 0;
+
+    // let purchaseQuantity = quantity;
+    // if (moq > 0) {
+    //   if (quantity <= moq) {
+    //     purchaseQuantity = moq;
+    //   } else {
+    //     // Làm tròn lên theo bội số của MOQ
+    //     purchaseQuantity = Math.ceil(quantity / moq) * moq;
+    //   }
+    // }
+
     const unitPrice = Number(rowData.UnitPrice) || 0;
     const unitImportPrice = Number(rowData.UnitImportPrice) || 0;
     const vat = Number(rowData.VAT) || 0;
@@ -3753,6 +3823,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
 
     // Thành tiền
     const totalPrice = quantity * unitPrice;
+    //const totalPrice = purchaseQuantity * unitPrice;
     rowData.TotalPrice = totalPrice;
 
     // Thành tiền quy đổi (VNĐ)
@@ -3809,15 +3880,29 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     const data = item;
 
     // Lấy các giá trị cần thiết từ dòng
+    const quantity = Number(data.Quantity) || 0;
+    // const moq = Number(data.Moq) || 0;
+
+    // let purchaseQuantity = quantity;
+    // if (moq > 0) {
+    //   if (quantity <= moq) {
+    //     purchaseQuantity = moq;
+    //   } else {
+    //     // Làm tròn lên theo bội số của MOQ
+    //     purchaseQuantity = Math.ceil(quantity / moq) * moq;
+    //   }
+    // }
+
     const unitPrice = Number(data.UnitPrice) || 0;
     const importPrice = Number(data.UnitImportPrice) || 0;
-    const quantity = Number(data.Quantity) || 0;
     const vat = Number(data.VAT) || 0;
     const currencyRate = Number(data.CurrencyRate) || 1;
 
     // Tính toán lại
     const totalPrice = unitPrice * quantity;
     const totalPriceImport = quantity * importPrice;
+    // const totalPrice = unitPrice * purchaseQuantity;
+    // const totalPriceImport = purchaseQuantity * importPrice;
     const totalVAT = totalPrice + (totalPrice * vat) / 100;
     const totalPriceExchange = totalPrice * currencyRate;
     console.log('getHolidays', this.holidaySet);
@@ -6410,10 +6495,10 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     }
 
     allItems.push({
-        label: 'Lịch sử thao tác',
-        icon: 'fa-solid fa-history fa-lg text-success',
-        command: () => this.onActivityLog()
-      });
+      label: 'Lịch sử thao tác',
+      icon: 'fa-solid fa-history fa-lg text-success',
+      command: () => this.onActivityLog()
+    });
 
     // Filter visible items
     const visibleItems = allItems.filter(item => item.visible !== false);
@@ -6538,6 +6623,31 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     });
     modalRef.componentInstance.requestId = row['ID'];
     modalRef.componentInstance.productCode = row['ProductCode'] || '';
+  }
+  //#endregion
+
+  //#region Lịch sử giá
+  openPriceHistory(): void {
+    const angularGrid = this.angularGrids.get(this.activeTabId);
+    if (!angularGrid) return;
+
+    const selectedRows = angularGrid.slickGrid.getSelectedRows()
+      .map((rowIndex: number) => angularGrid.dataView.getItem(rowIndex))
+      .filter((item: any) => item && !item.__group && !item.__groupTotals);
+
+    if (selectedRows.length === 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 dòng để xem lịch sử giá!');
+      return;
+    }
+
+    const productCode = selectedRows[0]['ProductCode'] || '';
+
+    this.tabService.openTabComp({
+      comp: PriceHistoryPartlistSlickGridComponent,
+      title: `Lịch sử giá - ${productCode}`,
+      key: `price-history-${productCode}`,
+      data: { keyword: productCode }
+    });
   }
   //#endregion
 

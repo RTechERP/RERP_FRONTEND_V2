@@ -70,7 +70,7 @@
                 <div class="card-body p-0" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
                     <nz-spin [nzSpinning]="isLoadTable" [nzDelay]="200">
                         <div class="grid-container" id="grid-container-price-history" style="height: calc(100% - 50px);">
-                            <angular-slickgrid gridId="grvPriceHistory" [columns]="columnDefinitions"
+                            <angular-slickgrid gridId="grvPriceHistory-{{tableId}}" [columns]="columnDefinitions"
                                 [options]="gridOptions" [dataset]="dataset"
                                 (onAngularGridCreated)="angularGridReady($event.detail)">
                             </angular-slickgrid>

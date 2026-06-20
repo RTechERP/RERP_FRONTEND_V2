@@ -41,6 +41,8 @@ import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { PermissionService } from '../../../services/permission.service';
 import { ProjectPartlistPriceRequestLogComponent } from '../project-partlist-price-request-new/project-partlist-price-request-log/project-partlist-price-request-log.component';
+import { TabServiceService } from '../../../layouts/tab-service.service';
+import { PriceHistoryPartlistSlickGridComponent } from '../../price-history-partlist-slick-grid/price-history-partlist-slick-grid.component';
 
 @Component({
   selector: 'app-project-partlist-price-request-old',
@@ -119,7 +121,8 @@ export class ProjectPartlistPriceRequestOldComponent
     private projectPartlistPriceRequestService: ProjectPartlistPriceRequestService,
     private appUserService: AppUserService,
     private ngbModal: NgbModal,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private tabService: TabServiceService
   ) { }
   //#endregion
 
@@ -1414,6 +1417,24 @@ export class ProjectPartlistPriceRequestOldComponent
                 this.angularGrid.slickGrid.setSelectedRows(newSelection);
               }
             },
+          },
+          {
+            title: 'Lịch sử giá dự án',
+            iconCssClass: 'fa-solid fa-clock-rotate-left text-info',
+            disabled: false,
+            command: 'openPriceHistory',
+            positionOrder: 62,
+            action: (_e: any, args: any) => {
+              const item = args?.dataContext;
+              if (!item) return;
+              const productCode = item['ProductCode'] || '';
+              this.tabService.openTabComp({
+                comp: PriceHistoryPartlistSlickGridComponent,
+                title: `Lịch sử giá - ${productCode}`,
+                key: `price-history-${productCode}`,
+                data: { keyword: productCode }
+              });
+            }
           },
         ],
       },

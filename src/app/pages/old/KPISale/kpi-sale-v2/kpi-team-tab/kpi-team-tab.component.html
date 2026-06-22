@@ -28,9 +28,9 @@
                 <span class="member-count">
                   <i nz-icon nzType="user"></i> {{ item.employeeIDs.length }} TV
                 </span>
-                <span *ngIf="item.leaderEmployeeName" class="leader-badge">
+                <!-- <span *ngIf="item.leaderEmployeeName" class="leader-badge">
                   <i nz-icon nzType="crown" nzTheme="fill"></i> {{ item.leaderEmployeeName }}
-                </span>
+                </span> -->
                 <nz-tag *ngIf="item.isActive" nzColor="success" nzSize="small">Đang dùng</nz-tag>
                 <nz-tag *ngIf="!item.isActive" nzColor="default" nzSize="small">Ngưng</nz-tag>
               </div>

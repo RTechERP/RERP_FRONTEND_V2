@@ -1,0 +1,400 @@
+.team-employee-project-container {
+  padding: 4px;
+  background-color: var(--surface-ground, #f8f9fa);
+  box-sizing: border-box;
+}
+
+/* --- Filter Bar --- */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  width: 100%;
+}
+
+.filter-item label {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--text-color-secondary, #6c757d);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.filter-item ::ng-deep p-datepicker,
+.filter-item ::ng-deep p-select,
+.filter-item ::ng-deep .p-datepicker,
+.filter-item ::ng-deep .p-select,
+.filter-item ::ng-deep .p-calendar,
+.filter-item ::ng-deep .p-dropdown {
+  width: 100%;
+}
+
+.filter-item ::ng-deep .p-inputtext,
+.filter-item ::ng-deep .p-select-label,
+.filter-item ::ng-deep .p-select-placeholder,
+.filter-item ::ng-deep .p-placeholder,
+.filter-item ::ng-deep input,
+.filter-item ::ng-deep input::placeholder {
+  font-size: 0.75rem !important;
+}
+
+/* Force compact height (28px) and padding for inputs and select controls */
+.filter-item ::ng-deep .p-inputtext,
+.filter-item ::ng-deep input {
+  padding: 4px 8px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  box-sizing: border-box !important;
+  width: 100%;
+}
+
+.filter-item ::ng-deep .p-select {
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 !important;
+  /* Reset padding to prevent alignment shifting */
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.filter-item ::ng-deep .p-select-label {
+  padding: 0 8px !important;
+  margin: 0 !important;
+  height: 100% !important;
+  line-height: 26px !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+}
+
+.filter-item ::ng-deep .p-select-dropdown,
+.filter-item ::ng-deep .p-select-trigger,
+.filter-item ::ng-deep .p-datepicker-trigger {
+  width: 28px !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0;
+  margin-left: auto;
+}
+
+.filter-actions ::ng-deep .p-button {
+  height: 28px !important;
+  padding: 4px 10px !important;
+  font-size: 0.75rem !important;
+}
+
+::ng-deep .filter-card.p-card .p-card-body {
+  padding: 0.75rem 1.25rem !important;
+}
+
+/* --- Split Panel Layout --- */
+.split-panel {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+  /* Chiều cao = viewport - header app (~60px) - filter card (~70px) - padding (~16px) - margin-top (~12px) */
+  height: calc(100vh - 160px);
+  overflow: hidden;
+}
+
+.panel-left {
+  flex: 0 0 30%;
+  max-width: 30%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.panel-right {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+
+/* --- Card Styling (chung) --- */
+::ng-deep .p-card {
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  border: 1px solid var(--surface-border, #e9ecef);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Filter card: chiều cao tự động theo nội dung */
+::ng-deep .filter-card.p-card {
+  height: auto !important;
+}
+
+/* Panel card: chiều cao 100% để lấp đầy panel-left / panel-right */
+.panel-left ::ng-deep .p-card,
+.panel-right ::ng-deep .p-card {
+  height: 100%;
+}
+
+::ng-deep .p-card-body {
+  padding: 4px !important;
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Filter card body: không bị co flex */
+::ng-deep .filter-card.p-card .p-card-body {
+  flex: none !important;
+  min-height: unset !important;
+  overflow: visible !important;
+}
+
+::ng-deep .p-card-content {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+/* Filter card content: không bị co flex */
+::ng-deep .filter-card.p-card .p-card-content {
+  flex: none !important;
+  min-height: unset !important;
+  overflow: visible !important;
+}
+
+/* --- Panel Headers --- */
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 2px solid var(--primary-color-light, #e3f2fd);
+  /* margin-bottom: 1rem; */
+}
+
+.panel-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-color, #495057);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.panel-title i {
+  color: var(--primary-color, #2196f3);
+}
+
+.panel-count {
+  font-size: 0.875rem;
+  color: var(--text-color-secondary, #6c757d);
+  font-weight: 500;
+}
+
+/* --- Skeleton & Loading --- */
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* --- Table Adjustments --- */
+::ng-deep .p-datatable {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+::ng-deep .p-datatable-wrapper {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* Custom Highlighted Row States */
+.row-selected {
+  background-color: var(--primary-50, #e3f2fd) !important;
+}
+
+.row-highlighted {
+  background-color: var(--primary-100, #bbdefb) !important;
+  font-weight: bold;
+}
+
+.employee-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.employee-name {
+  font-weight: 600;
+  color: var(--text-color, #495057);
+}
+
+.employee-meta {
+  font-size: 0.75rem;
+  color: var(--text-color-secondary, #6c757d);
+}
+
+.project-code {
+  font-weight: 700;
+  color: var(--primary-color, #2196f3);
+  font-size: 0.9rem;
+}
+
+.empty-msg {
+  text-align: center;
+  padding: 3rem 1.5rem !important;
+  color: var(--text-color-secondary, #6c757d);
+  font-style: italic;
+}
+
+.empty-msg-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.empty-msg-content i {
+  font-size: 2rem;
+  color: #dee2e6;
+}
+
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem 1.5rem;
+  color: var(--text-color-secondary, #6c757d);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* Responsive adjust */
+@media screen and (max-width: 1024px) {
+  .split-panel {
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+
+  .panel-left,
+  .panel-right {
+    flex: none;
+    max-width: 100%;
+    height: 400px;
+    overflow: hidden;
+  }
+}
+
+/* Compact Table Headers and Filter Rows */
+::ng-deep .p-datatable .p-datatable-thead>tr>th {
+  padding: 6px 10px !important;
+  font-size: 0.8rem !important;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+  padding: 6px 10px !important;
+  font-size: 0.8rem !important;
+}
+
+::ng-deep .p-datatable .p-column-filter {
+  width: 100% !important;
+}
+
+::ng-deep .p-datatable .p-column-filter-element {
+  width: 100% !important;
+}
+
+/* Compact filter inputs (both select and text input) height */
+::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter input,
+::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-inputtext,
+::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-select {
+  height: 26px !important;
+  padding: 2px 6px !important;
+  font-size: 0.75rem !important;
+  line-height: normal !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  border-radius: 4px !important;
+}
+
+/* Adjust select label alignment inside table filter */
+::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-select-label {
+  padding: 0 6px !important;
+  height: 100% !important;
+  line-height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-select-trigger {
+  width: 24px !important;
+  height: 100% !important;
+}
+
+/* Ensure filter inputs take up full width of the column */
+::ng-deep .p-datatable p-columnfilter,
+::ng-deep .p-datatable p-columnfilterformelement,
+::ng-deep .p-datatable p-columnfilterformelement.p-fluid,
+::ng-deep .p-datatable .p-fluid {
+  width: 100% !important;
+  display: block !important;
+}
+
+/* Force container and all elements to use the Be Vietnam Pro font */
+:host ::ng-deep .team-employee-project-container,
+:host ::ng-deep .team-employee-project-container * {
+  font-family: "Be Vietnam Pro", sans-serif !important;
+}
+
+/* Restore icon font families */
+:host ::ng-deep .team-employee-project-container .pi,
+:host ::ng-deep .team-employee-project-container [class^="pi-"],
+:host ::ng-deep .team-employee-project-container [class*=" pi-"] {
+  font-family: 'primeicons' !important;
+}
+
+:host ::ng-deep .team-employee-project-container .fa,
+:host ::ng-deep .team-employee-project-container .fas,
+:host ::ng-deep .team-employee-project-container .far,
+:host ::ng-deep .team-employee-project-container .fab,
+:host ::ng-deep .team-employee-project-container [class^="fa-"],
+:host ::ng-deep .team-employee-project-container [class*=" fa-"] {
+  font-family: 'Font Awesome 6 Free', 'Font Awesome 6 Brands', 'FontAwesome', sans-serif !important;
+}
+
+/* Override global high z-index from styles.css only for inline datepickers in this component */
+:host ::ng-deep .team-employee-project-container p-datepicker,
+:host ::ng-deep .team-employee-project-container p-datepicker .p-datepicker {
+  z-index: auto !important;
+}

@@ -1134,7 +1134,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     console.log('prjtypelink', projectTypeLinks);
 
     // Kiểm tra kiểu dự án (trừ kiểu dự án Thương mại)
-    if (this.projectTypeId !== 2 && projectTypeLinks.length == 0 && this.projectTypeId !== 4) {
+    if (this.projectTypeId !== 2 && projectTypeLinks.length == 0 && this.projectTypeId !== 4 && this.projectTypeId !== 3) {
       this.isSaving = false;
       this.notification.error('Thông báo', 'Vui lòng chọn kiểu dự án!');
       return;
@@ -1715,7 +1715,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     const projectTypeLinks = this.getSelectedData(this.projectTypeNodes);
 
     // Bắt buộc chọn ít nhất 1 kiểu dự án trong bảng (trừ kiểu dự án Thương mại & Nội bộ)
-    if (this.projectTypeId !== 2 && projectTypeLinks.length === 0 && this.projectTypeId !== 4) {
+    if (this.projectTypeId !== 2 && projectTypeLinks.length === 0 && this.projectTypeId !== 4 && this.projectTypeId !== 3) {
       this.notification.error('Thông báo', 'Vui lòng chọn ít nhất 1 kiểu dự án trong bảng!');
       this.formGroup.markAllAsTouched();
       return false;

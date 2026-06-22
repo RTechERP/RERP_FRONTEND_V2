@@ -143,6 +143,7 @@ import { WorkplanComponent } from './pages/person/workplan/workplan.component';
 import { WorkplanSummaryComponent } from './pages/person/workplan/workplan-summary/workplan-summary.component';
 import { WorkplanSummaryNewComponent } from './pages/person/workplan/workplan-summary-new/workplan-summary-new.component';
 import { AssetPersonalComponent } from './pages/hrm/asset/asset/asset-personal/asset-personal.component';
+import { TeamEmployeeProjectComponent } from './pages/project/team-employee-project/team-employee-project.component';
 import { LeaderProjectComponent } from './pages/project/leader-project/leader-project.component';
 import { MeetingMinuteTypeComponent } from './pages/project/meeting-minute/meeting-minute-type/meeting-minute-type.component';
 import { MeetingMinuteComponent } from './pages/project/meeting-minute/meeting-minute.component';
@@ -590,6 +591,7 @@ export const routes: Routes = [
             { path: 'project-leader-project-type', component: ProjectLeaderProjectTypeComponent, canActivate: [authGuard] },
             { path: 'project-field', component: ProjectFieldComponent, canActivate: [authGuard] },
             { path: 'leader-project', component: LeaderProjectComponent, canActivate: [authGuard] },
+            { path: 'team-employee-project', component: TeamEmployeeProjectComponent, canActivate: [authGuard] },
             { path: 'meeting-minute-type', component: MeetingMinuteTypeComponent, canActivate: [authGuard] },
             { path: 'pokh', component: PokhSlickgridComponent, canActivate: [authGuard] },
             { path: 'quotation-kh', component: QuotationKhComponent, canActivate: [authGuard] },

@@ -23,44 +23,96 @@
         </div>
         <div class="filter-box">
           <div class="field">
-            <span>Mẫu KPI:</span>
-            <nz-select nzDropdownClassName="select-dropdown" name="selectedTemplateId" nzSize="small" nzShowSearch
-              [(ngModel)]="selectedTemplateId" (ngModelChange)="onFilterChange()" class="w-100">
-              <nz-option *ngFor="let item of templates; trackBy: trackById" [nzValue]="item.id"
-                [nzLabel]="item.templateName">
-              </nz-option>
-            </nz-select>
-          </div>
-          <div class="field">
             <span>Kỳ KPI:</span>
             <nz-tree-select nzDropdownClassName="select-dropdown" name="selectedPeriodId" style="width: 100%;"
               nzSize="small" [nzNodes]="sidebarPeriodNodes" nzShowSearch [(ngModel)]="selectedPeriodId"
-              (ngModelChange)="onFilterChange()" nzPlaceHolder="Tất cả kỳ KPI"
+              (ngModelChange)="onFilterChange()" nzPlaceHolder="Chọn kỳ KPI để xem dữ liệu"
               [nzDropdownStyle]="{ 'max-height': '300px', 'overflow-y': 'auto' }">
             </nz-tree-select>
+            <small class="field-hint">
+              Mẫu KPI của nhân viên sẽ tự động lọc theo kỳ đang chọn.
+            </small>
           </div>
+          <!-- <div class="field">
+            <span>Lọc nhiều nhân viên:</span>
+            <nz-select nzDropdownClassName="select-dropdown" name="selectedEmployeeIds" nzSize="small" nzMode="multiple"
+              nzShowSearch [nzMaxTagCount]="3" [nzMaxTagPlaceholder]="overflowTpl"
+              [(ngModel)]="selectedEmployeeIds" (ngModelChange)="onEmployeesChange($event)" class="w-100"
+              nzPlaceHolder="Tất cả nhân viên">
+              <nz-option *ngFor="let item of filteredEmployees; trackBy: trackByEmployeeId" [nzValue]="item.id"
+                [nzLabel]="item.code + ' - ' + item.fullName">
+              </nz-option>
+            </nz-select>
+            <ng-template #overflowTpl let-list>
+              +{{ list.length }} người
+            </ng-template>
+          </div> -->
           <div class="field" style="margin-bottom: 0;">
-            <span>Tìm nhân viên nhanh:</span>
+            <span>Tìm nhân viên:</span>
             <input nz-input name="searchText" nzSize="small" placeholder="Tìm mã/tên nhân viên" [(ngModel)]="searchText" class="w-100" />
           </div>
         </div>
 
         <div class="indicators-table-wrapper">
           <nz-table #employeeTable [nzData]="filteredEmployees" [nzFrontPagination]="false" nzSize="small"
-            nzBordered [nzScroll]="{ y: 'calc(100vh - 350px)' }" style="height: 100%;">
+            nzBordered [nzScroll]="{ y: 'calc(100vh - 320px)' }" style="height: 100%;">
             <thead>
               <tr>
-                <th nzWidth="60px" nzAlign="right">STT</th>
+                <th nzWidth="50px" nzAlign="right">STT</th>
                 <th>Nhân viên</th>
+                <th nzWidth="180px">
+                  Mẫu KPI
+                  <small style="display:block; font-weight:400; color:#94a3b8;">(Kỳ đang chọn)</small>
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let item of employeeTable.data; let i = index; trackBy: trackById"
-                [class.selected-row]="item.id === selectedEmployeeId"
-                (click)="onEmployeeSelect(item.id)" class="cursor-pointer">
-                <td nzAlign="right">{{ i + 1 }}</td>
-                <td class="mono">
-                  {{ item.code }} - {{ item.fullName }}
+              <ng-container *ngFor="let item of employeeTable.data; let i = index; trackBy: trackByEmployeeId">
+                <tr [class.selected-row]="item.id === selectedEmployeeId"
+                  (click)="onEmployeeSelect(item.id)" class="cursor-pointer">
+                  <td nzAlign="right">{{ i + 1 }}</td>
+                  <td class="mono">
+                    {{ item.code }} - {{ item.fullName }}
+                  </td>
+                  <td (click)="$event.stopPropagation()">
+                    <ng-container *ngIf="getAssignmentForEmployee(item.id) as assignment; else addBtn">
+                      <div class="template-assign">
+                        <nz-tag [nzColor]="assignment.periodType === 'Quarter' ? 'geekblue' : 'green'"
+                          nz-tooltip [nzTooltipTitle]="assignment.templateCode + ' · ' + (assignment.periodValue || '')">
+                          <i nz-icon nzType="check-circle"></i>
+                          {{ assignment.templateName || assignment.templateCode }}
+                        </nz-tag>
+                        <span class="template-assign-actions">
+                          <a nz-tooltip nzTooltipTitle="Sửa mẫu KPI"
+                            (click)="openEditAssignModal(item, assignment)">
+                            <i nz-icon nzType="edit"></i>
+                          </a>
+                          <a nz-tooltip nzTooltipTitle="Xóa mẫu KPI"
+                            nz-popconfirm
+                            nzPopconfirmTitle="Xóa mẫu KPI đã gán cho nhân viên này?"
+                            nzOkText="Xóa"
+                            nzCancelText="Hủy"
+                            nzOkType="primary"
+                            nzPopconfirmPlacement="left"
+                            (nzOnConfirm)="removeQuickAssign(item, assignment)">
+                            <i nz-icon nzType="delete"></i>
+                          </a>
+                        </span>
+                      </div>
+                    </ng-container>
+                    <ng-template #addBtn>
+                      <button nz-button nzType="dashed" nzSize="small"
+                        nz-tooltip nzTooltipTitle="Gán nhanh mẫu KPI cho nhân viên này"
+                        (click)="openQuickAssignModal(item)">
+                        <i nz-icon nzType="plus"></i> Thêm mẫu
+                      </button>
+                    </ng-template>
+                  </td>
+                </tr>
+              </ng-container>
+              <tr *ngIf="employeeTable.data.length === 0">
+                <td colspan="3" style="text-align: center; color: #94a3b8; padding: 16px;">
+                  Chưa có nhân viên nào.
                 </td>
               </tr>
             </tbody>
@@ -74,40 +126,139 @@
           <div class="table-title">
             <h6>Danh sách mục tiêu KPI</h6>
             <div class="table-actions">
+              <!-- Nút Duyệt nhanh — leader team hoặc admin N1 -->
+              <button *ngIf="canApproveTargets" nz-button nzType="primary" nzSize="small"
+                nz-tooltip nzTooltipTitle="Duyệt tất cả các dòng đã chọn"
+                [disabled]="selectedTargetIds.size === 0"
+                (click)="approveSelected()">
+                <i nz-icon nzType="check-circle"></i> Duyệt ({{ selectedTargetIds.size }})
+              </button>
+              <!-- Nút Lưu inline -->
+              <button nz-button nzType="default" nzSize="small"
+                nz-tooltip nzTooltipTitle="Lưu các thay đổi đã sửa trực tiếp trên bảng"
+                [disabled]="!hasAnyChanges"
+                (click)="saveInlineChanges()">
+                <i nz-icon nzType="save"></i> Lưu ({{ changedTargets.length }})
+              </button>
+              <!-- Nút Thêm mục tiêu -->
               <button nz-button nzType="primary" nzSize="small" (click)="openTargetForm()">
                 <i nz-icon nzType="plus"></i> Thêm mục tiêu
               </button>
             </div>
           </div>
 
-          <div style="flex: 1; min-height: 0; overflow: hidden;">
-            <nz-table #targetTable [nzData]="filteredTargets" [nzFrontPagination]="true" [nzPageSize]="50"
-              nzSize="small" nzBordered [nzScroll]="{ y: 'calc(100vh - 220px)' }" style="height: 100%;">
+          <div style="flex: 1; min-height: 0; overflow: hidden;" class="target-table-wrapper">
+            <nz-table #targetTable [nzData]="tableRows" [nzFrontPagination]="false"
+              nzSize="small" nzBordered style="height: 100%;"
+              [nzScroll]="{ y: 'calc(100vh - 340px)' }"
+              [nzPageSize]="100" [nzPageSizeOptions]="[50, 100, 200, 500]">
               <thead>
                 <tr>
+                  <th nzWidth="40px" nzAlign="center">
+                    <label nz-checkbox
+                      [nzChecked]="allSelected"
+                      [nzIndeterminate]="someSelected"
+                      (nzCheckedChange)="toggleSelectAll()">
+                    </label>
+                  </th>
                   <th>Nhân viên</th>
                   <th>Kỳ KPI</th>
                   <th>Chỉ tiêu KPI</th>
-                  <th nzWidth="150px" nzAlign="right">Giá trị mục tiêu</th>
+                  <th nzWidth="90px" nzAlign="right">Trọng số (%)</th>
+                  <th nzWidth="140px" nzAlign="right">Giá trị đề xuất</th>
+                  <th nzWidth="130px" nzAlign="right">Mục tiêu (đã duyệt)</th>
+                  <th nzWidth="110px" nzAlign="center">Trạng thái</th>
                   <th nzWidth="100px" nzAlign="center">Hành động</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let item of targetTable.data; trackBy: trackById" class="cursor-pointer">
-                  <td>{{ item.employeeName || getEmployeeName(item.employeeId) }}</td>
-                  <td>{{ item.periodCode || getPeriodName(item.periodId) }}</td>
-                  <td>
-                    <span class="mono">{{ item.indexCode ? item.indexCode + ' - ' + (item.indexName || getIndexName(item.kpiIndexId)) : getIndexName(item.kpiIndexId) }}</span>
-                  </td>
-                  <td nzAlign="right" style="font-weight: 600;">{{ item.goalValue | number: '1.0-0' }}</td>
-                  <td nzAlign="center">
-                    <a class="action-btn text-primary" (click)="openTargetForm(item)">
-                      <i nz-icon nzType="edit"></i> Sửa
-                    </a>
-                  </td>
-                </tr>
+                <ng-container *ngFor="let row of targetTable.data; trackBy: trackById">
+                  <!-- GROUP HEADER ROW (khi chọn QUÝ/YEAR) -->
+                  <tr *ngIf="isGroupHeader(row)" class="group-header-row">
+                    <td colspan="9" class="group-header-cell">
+                      <div class="group-header-content">
+                        <i nz-icon nzType="calendar" nzTheme="outline"></i>
+                        <strong>{{ row.periodCode }}</strong>
+                        <span class="group-header-count">({{ row.targetCount }} mục tiêu)</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <!-- TARGET DATA ROW -->
+                  <tr *ngIf="isTarget(row)" class="cursor-pointer"
+                    [class.row-selected]="isTargetSelected(row.id)"
+                    [class.row-edited]="hasInlineChanges(row.id)">
+                    <!-- Checkbox -->
+                    <td nzAlign="center" (click)="$event.stopPropagation()">
+                      <label nz-checkbox
+                        [nzChecked]="isTargetSelected(row.id)"
+                        (nzCheckedChange)="toggleTargetSelection(row.id)">
+                      </label>
+                    </td>
+                    <!-- Nhân viên -->
+                    <td>{{ row.employeeName || getEmployeeName(row.employeeId) }}</td>
+                    <!-- Kỳ KPI -->
+                    <td>{{ row.periodCode || getPeriodName(row.periodId) }}</td>
+                    <!-- Chỉ tiêu KPI -->
+                    <td>
+                      <span class="mono">{{ row.indexCode ? row.indexCode + ' - ' + (row.indexName || getIndexName(row.kpiIndexId)) : getIndexName(row.kpiIndexId) }}</span>
+                    </td>
+                    <!-- Trọng số -->
+                    <td nzAlign="right" style="font-weight: 600;">{{ (row.weightPercent ?? 0) | number: '1.0-2' }}%</td>
+                    <!-- Giá trị đề xuất (inline edit) -->
+                    <td nzAlign="right" (click)="$event.stopPropagation()">
+                      <input nz-input nzSize="small"
+                        type="text"
+                        [value]="formatMoney(getInlineProposed(row.id))"
+                        (blur)="onInlineProposedChange(row.id, parseMoney($any($event.target).value))"
+                        (focus)="$any($event.target).select()"
+                        style="width: 100%; font-weight: 600; text-align: right;"
+                        [style.color]="getInlineProposed(row.id) ? '#d48806' : 'inherit'" />
+                    </td>
+                    <!-- Mục tiêu đã duyệt (inline edit) — leader team hoặc admin N1 mới sửa được -->
+                    <td nzAlign="right" (click)="$event.stopPropagation()">
+                      <input nz-input nzSize="small"
+                        type="text"
+                        [value]="formatMoney(getInlineGoal(row.id))"
+                        (blur)="onInlineGoalChange(row.id, parseMoney($any($event.target).value))"
+                        (focus)="$any($event.target).select()"
+                        [disabled]="row.approvalStatus === 'Approved' || !canApproveTargets"
+                        style="width: 100%; font-weight: 600; text-align: right;" />
+                    </td>
+                    <!-- Trạng thái -->
+                    <td nzAlign="center">
+                      <nz-tag [nzColor]="getApprovalStatusColor(row.approvalStatus)">
+                        {{ getApprovalStatusLabel(row.approvalStatus) }}
+                      </nz-tag>
+                    </td>
+                    <!-- Hành động -->
+                    <td nzAlign="center" (click)="$event.stopPropagation()">
+                      <a *ngIf="row.approvalStatus !== 'Approved'"
+                        class="action-btn text-primary"
+                        nz-tooltip nzTooltipTitle="Chỉnh sửa mục tiêu"
+                        (click)="openTargetForm(row)">
+                        <i nz-icon nzType="edit"></i> Sửa
+                      </a>
+                      <a *ngIf="canApprove(row)"
+                        class="action-btn text-success"
+                        nz-tooltip nzTooltipTitle="Duyệt giá trị đề xuất"
+                        (click)="approveTarget(row)">
+                        <i nz-icon nzType="check-circle"></i> Duyệt
+                      </a>
+                      <a *ngIf="canApprove(row)"
+                        class="action-btn text-danger"
+                        nz-tooltip nzTooltipTitle="Hủy giá trị đề xuất"
+                        nz-popconfirm
+                        nzPopconfirmTitle="Hủy giá trị đề xuất của mục tiêu này?"
+                        nzOkText="Hủy đề xuất"
+                        nzCancelText="Đóng"
+                        (nzOnConfirm)="rejectTarget(row)">
+                        <i nz-icon nzType="close-circle"></i> Hủy
+                      </a>
+                    </td>
+                  </tr>
+                </ng-container>
                 <tr *ngIf="targetTable.data.length === 0">
-                  <td colspan="5" style="text-align: center; color: #94a3b8; padding: 24px;">
+                  <td colspan="9" style="text-align: center; color: #94a3b8; padding: 24px;">
                     Chưa có mục tiêu nào được thiết lập cho bộ lọc này.
                   </td>
                 </tr>
@@ -136,7 +287,7 @@
     <div class="field">
       <span>Kỳ KPI</span>
       <nz-tree-select nzSize="small" name="targetPeriod" [nzNodes]="formPeriodNodes" nzShowSearch
-        [ngModel]="targetDraft.periodId?.toString()" (ngModelChange)="onTargetPeriodChange($event)"
+        [(ngModel)]="targetDraft.periodId" (ngModelChange)="onTargetDraftChange()"
         nzPlaceHolder="Chọn kỳ KPI (chỉ tháng)" [nzDropdownStyle]="{ 'max-height': '300px', 'overflow-y': 'auto' }" class="w-100">
       </nz-tree-select>
     </div>
@@ -144,17 +295,153 @@
     <div class="field">
       <span>Chỉ tiêu KPI</span>
       <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="targetIndex" nzShowSearch
-        [(ngModel)]="targetDraft.kpiIndexId" (ngModelChange)="onTargetDraftChange()" class="w-100">
+        [(ngModel)]="targetDraft.kpiIndexId" (ngModelChange)="onTargetDraftChange()" class="w-100"
+        [nzDisabled]="!getAssignmentForEmployee(targetDraft.employeeId)">
         <nz-option *ngFor="let item of indexesForTemplate; trackBy: trackById" [nzValue]="item.id"
           [nzLabel]="item.indexCode + ' - ' + item.indexName">
+        </nz-option>
+      </nz-select>
+      <small *ngIf="targetDraft.employeeId && !getAssignmentForEmployee(targetDraft.employeeId)" class="field-hint">
+        Nhân viên chưa được gán mẫu KPI ở kỳ này. Bấm "Thêm mẫu" ở bảng bên trái.
+      </small>
+    </div>
+
+    <div class="field">
+      <span>Trọng số (%)</span>
+      <nz-input-number nzSize="small" name="weightPercent" [(ngModel)]="targetDraft.weightPercent"
+        [nzMin]="0" [nzMax]="100" [nzPrecision]="2" [nzStep]="1" class="w-100"></nz-input-number>
+    </div>
+
+    <div class="field">
+      <span>Giá trị mục tiêu (đã duyệt)</span>
+      <nz-input-number nzSize="small" name="goalValue" [(ngModel)]="targetDraft.goalValue"
+        [nzMin]="0" [nzDisabled]="isGoalValueLocked" class="w-100"></nz-input-number>
+      <small *ngIf="isGoalValueLocked" class="field-hint">
+        <i nz-icon nzType="lock"></i>
+        Mục tiêu đã duyệt, không thể chỉnh sửa trực tiếp. Hãy nhập giá trị đề xuất để leader duyệt lại.
+      </small>
+    </div>
+
+    <div class="field">
+      <span>
+        Giá trị đề xuất
+        <small style="color:#94a3b8;">(chờ leader duyệt)</small>
+      </span>
+      <nz-input-number nzSize="small" name="proposedGoalValue" [(ngModel)]="targetDraft.proposedGoalValue"
+        [nzMin]="0" class="w-100"></nz-input-number>
+      <small class="field-hint">
+        <i nz-icon nzType="info-circle"></i>
+        Nếu nhập, leader sẽ thấy giá trị đề xuất để duyệt hoặc hủy.
+      </small>
+    </div>
+  </form>
+</ng-template>
+
+<!-- Template: Modal gán nhanh mẫu KPI (từ bảng trái) -->
+<ng-template #quickAssignTemplate>
+  <form nz-form nzLayout="vertical" class="compact-form">
+    <div class="field">
+      <span>Nhân viên</span>
+      <input nz-input nzSize="small" [value]="quickAssignDraft.employeeName" disabled class="w-100" />
+    </div>
+
+    <div class="field">
+      <span>Mẫu KPI *</span>
+      <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="quickAssignTemplate" nzShowSearch
+        [(ngModel)]="quickAssignDraft.templateId" class="w-100"
+        nzPlaceHolder="Chọn mẫu KPI">
+        <nz-option *ngFor="let item of templates; trackBy: trackById" [nzValue]="item.id"
+          [nzLabel]="item.templateCode + ' - ' + item.templateName">
+        </nz-option>
+      </nz-select>
+    </div>
+
+    <div nz-row [nzGutter]="12">
+      <div nz-col nzSpan="10">
+        <div class="field">
+          <span>Loại kỳ</span>
+          <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="quickAssignPeriodType"
+            [(ngModel)]="quickAssignDraft.periodType"
+            (ngModelChange)="onQuickAssignPeriodTypeChange($event)" class="w-100">
+            <nz-option [nzValue]="'Quarter'" nzLabel="Theo QUÝ"></nz-option>
+          </nz-select>
+        </div>
+      </div>
+      <div nz-col nzSpan="14">
+        <div class="field">
+          <span>Kỳ áp dụng *</span>
+          <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="quickAssignPeriodValue" nzShowSearch
+            [(ngModel)]="quickAssignDraft.periodValue" class="w-100"
+            [nzPlaceHolder]="quickAssignDraft.periodType === 'Quarter' ? 'Chọn QUÝ' : 'Chọn THÁNG'">
+            <ng-container *ngIf="quickAssignDraft.periodType === 'Quarter'">
+              <nz-option *ngFor="let p of quickAssignQuarterOptions; trackBy: trackById" [nzValue]="p.periodCode"
+                [nzLabel]="p.periodCode + (p.periodName ? ' - ' + p.periodName : '')">
+              </nz-option>
+            </ng-container>
+            <ng-container *ngIf="quickAssignDraft.periodType === 'Month'">
+              <nz-option *ngFor="let p of quickAssignMonthOptions; trackBy: trackById" [nzValue]="p.periodCode"
+                [nzLabel]="p.periodCode + (p.periodName ? ' - ' + p.periodName : '')">
+              </nz-option>
+            </ng-container>
+          </nz-select>
+        </div>
+      </div>
+    </div>
+    <small class="field-hint" *ngIf="quickAssignDraft.periodType === 'Quarter'">
+      <i nz-icon nzType="info-circle"></i>
+      Chọn QUÝ sẽ tự động gán mẫu cho cả 3 tháng trong quý.
+    </small>
+  </form>
+</ng-template>
+
+<!-- Template: Modal gán mẫu KPI theo Team -->
+<ng-template #teamAssignTemplate>
+  <form nz-form nzLayout="vertical" class="compact-form">
+    <div class="field">
+      <span>Team <span style="color: #ff4d4f;">*</span></span>
+      <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="teamAssignTeam"
+        nzShowSearch [(ngModel)]="teamAssignDraft.teamId"
+        (ngModelChange)="onTeamSelect($event)" class="w-100"
+        nzPlaceHolder="Chọn team">
+        <nz-option *ngFor="let t of teams; trackBy: trackById"
+          [nzValue]="t.id"
+          [nzLabel]="t.teamCode + ' - ' + t.teamName + ' (' + t.employeeIDs.length + ' người)'">
         </nz-option>
       </nz-select>
     </div>
 
     <div class="field">
-      <span>Giá trị mục tiêu</span>
-      <nz-input-number nzSize="small" name="goalValue" [(ngModel)]="targetDraft.goalValue"
-        [nzMin]="0" class="w-100"></nz-input-number>
+      <span>Mẫu KPI <span style="color: #ff4d4f;">*</span></span>
+      <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="teamAssignTemplate" nzShowSearch
+        [(ngModel)]="teamAssignDraft.templateId" class="w-100"
+        nzPlaceHolder="Chọn mẫu KPI">
+        <nz-option *ngFor="let t of templates; trackBy: trackById" [nzValue]="t.id"
+          [nzLabel]="t.templateCode + ' - ' + t.templateName">
+        </nz-option>
+      </nz-select>
     </div>
+
+    <div class="field">
+      <span>Quý <span style="color: #ff4d4f;">*</span></span>
+      <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="teamAssignQuarter" nzShowSearch
+        [(ngModel)]="teamAssignDraft.periodValue" class="w-100"
+        nzPlaceHolder="Chọn quý">
+        <nz-option *ngFor="let p of teamTemplateOptions; trackBy: trackById"
+          [nzValue]="p.periodCode"
+          [nzLabel]="p.periodCode + (p.periodName ? ' - ' + p.periodName : '')">
+        </nz-option>
+      </nz-select>
+    </div>
+
+    <div class="field">
+      <span>Ghi chú</span>
+      <input nz-input nzSize="small" name="teamAssignNote"
+        [(ngModel)]="teamAssignDraft.note" class="w-100"
+        nzPlaceHolder="VD: Áp dụng KPI mới cho team Q2/2026" />
+    </div>
+
+    <nz-alert nzType="warning" nzMessage="Ghi đè mẫu KPI"
+      nzDescription="Gán mẫu cho team sẽ tự động ghi đè mẫu KPI của TẤT CẢ thành viên trong team cho quý này và các tháng thuộc quý đó."
+      nzShowIcon style="margin-top: 8px;"></nz-alert>
   </form>
 </ng-template>

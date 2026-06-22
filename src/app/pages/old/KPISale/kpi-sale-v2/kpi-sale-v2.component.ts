@@ -19,9 +19,10 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzTableModule } from 'ng-zorro-antd/table';
 
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
-import { KpiApiResponse, KpiCalculateResponse, KpiSaleV2Service, KpiTotalPerformanceResponse } from './kpi-sale-v2.service';
+import { KpiApiResponse, KpiCalculateResponse, KpiSaleV2Service, KpiTeamCalculateRequest, KpiTeam, KpiTotalPerformanceResponse } from './kpi-sale-v2.service';
 import { KpiPeriodTabComponent } from './kpi-period-tab/kpi-period-tab.component';
 import { KpiAllowedDataTabComponent } from './kpi-allowed-data-tab/kpi-allowed-data-tab.component';
 import { KpiPeriodFormSaveEvent } from './kpi-period-form/kpi-period-form.component';
@@ -30,7 +31,11 @@ import { KpiDataSourceTabComponent } from './kpi-data-source-tab/kpi-data-source
 import { KpiMappingTabComponent } from './kpi-mapping-tab/kpi-mapping-tab.component';
 import { KpiFormulaTabComponent } from './kpi-formula-tab/kpi-formula-tab.component';
 import { KpiTargetTabComponent } from './kpi-target-tab/kpi-target-tab.component';
+import { KpiTeamTabComponent } from './kpi-team-tab/kpi-team-tab.component';
+import { KpiRankingTabComponent } from './kpi-ranking-tab/kpi-ranking-tab.component';
+import { KpiRewardConfigTabComponent } from './kpi-reward-config-tab/kpi-reward-config-tab.component';
 import { KpiSummaryComponent } from '../kpi-summary/kpi-summary.component';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 type PeriodType = 'MONTH' | 'QUARTER' | 'YEAR';
 type IndexType = 'DETAIL' | 'GROUP' | 'FORMULA' | 'REPORT';
@@ -174,10 +179,42 @@ export interface KpiSaleTarget {
   periodId: number;
   kpiIndexId: number;
   goalValue: number;
+  weightPercent?: number;
+  proposedGoalValue?: number | null;
+  approvalStatus?: string;
+  approvedBy?: string;
+  approvedDate?: string;
+  rejectedBy?: string;
+  rejectedDate?: string;
   employeeName?: string;
   periodCode?: string;
+  periodType?: string;
+  parentPeriodId?: number;
+  parentPeriodCode?: string;
   indexCode?: string;
   indexName?: string;
+}
+
+export interface KpiSaleEmployeeTemplate {
+  id: number;
+  employeeId: number;
+  employeeCode?: string;
+  employeeName?: string;
+  departmentName?: string;
+  templateId: number;
+  templateCode?: string;
+  templateName?: string;
+  periodType?: 'Quarter' | 'Month' | string;
+  periodValue?: string;       // vd: "2026-Q1" hoặc "2026-03"
+  periodId?: number;
+  periodName?: string;
+  startDate?: string;
+  endDate?: string;
+  isActive?: boolean;
+  assignedDate?: string;
+  updatedDate?: string;
+  assignedBy?: string;
+  note?: string;
 }
 
 export interface EmployeeOption {
@@ -262,7 +299,9 @@ export interface ResultTreeRow {
     NzSwitchModule,
     NzTableModule,
     NzTagModule,
+    NzToolTipModule,
     NzTreeSelectModule,
+    HasPermissionDirective,
   ],
   templateUrl: './kpi-sale-v2.component.html',
   styleUrl: './kpi-sale-v2.component.css',
@@ -273,6 +312,12 @@ export class KpiSaleV2Component implements OnInit {
   selectedMappingId = 1;
   selectedAllowedTableId = 1;
   selectedEmployeeId = 101;
+  selectedEmployeeIds: number[] = [101];
+  selectedTeamId: number | null = null;
+  teamOptions: KpiTeam[] = [];
+  selectedTeamInfo: KpiTeam | null = null;
+  isTeamMode = false;
+  teamTemplates: any[] = [];
   selectedPeriodId = 3;
   searchText = '';
   lastCalculatedAt = new Date();
@@ -280,6 +325,10 @@ export class KpiSaleV2Component implements OnInit {
   isApiMode = false;
   apiStatusMessage = 'Đang dùng dữ liệu mẫu. Khi API /api/kpi sẵn sàng, màn hình sẽ tự động tải dữ liệu thật.';
   saveSnapshot = true;
+
+  // Mẫu KPI tự động binding theo Kỳ + Nhân viên (dùng cho panel Tính KPI)
+  boundTemplateId: number | null = null;
+  boundTemplateName: string | null = null;
 
   readonly periodTypes: PeriodType[] = ['QUARTER', 'YEAR'];
   periodYear: number = new Date().getFullYear();
@@ -392,6 +441,33 @@ export class KpiSaleV2Component implements OnInit {
       comp: KpiSummaryComponent,
       title: 'Tổng hợp KPI',
       key: 'kpi-summary-tab',
+      data: {}
+    });
+  }
+
+  openTeamTab(): void {
+    this.tabService.openTabComp({
+      comp: KpiTeamTabComponent,
+      title: 'Quản lý Team KPI',
+      key: 'kpi-team-tab',
+      data: {}
+    });
+  }
+
+  openRankingTab(): void {
+    this.tabService.openTabComp({
+      comp: KpiRankingTabComponent,
+      title: 'Ranking & Thưởng KPI',
+      key: 'kpi-ranking-tab',
+      data: {}
+    });
+  }
+
+  openRewardConfigTab(): void {
+    this.tabService.openTabComp({
+      comp: KpiRewardConfigTabComponent,
+      title: 'Cấu hình thưởng Ranking',
+      key: 'kpi-reward-config-tab',
       data: {}
     });
   }
@@ -639,6 +715,8 @@ export class KpiSaleV2Component implements OnInit {
     { id: 103, code: 'S003', fullName: 'Lê Minh Châu', departmentName: 'Kinh doanh Modula' },
   ];
 
+  teams: KpiTeam[] = [];
+
   targets: KpiSaleTarget[] = [
     { id: 1, employeeId: 101, periodId: 1, kpiIndexId: 1, goalValue: 717224000 },
     { id: 2, employeeId: 101, periodId: 2, kpiIndexId: 1, goalValue: 715000000 },
@@ -749,6 +827,7 @@ export class KpiSaleV2Component implements OnInit {
         allowedTables: this.safeApi(this.kpiSaleService.getAllowedTables()),
         dataSources: this.safeApi(this.kpiSaleService.getDataSources()),
         employees: this.safeApi(this.kpiSaleService.getEmployees()),
+        teamTemplates: this.safeApi<any[]>(this.kpiSaleService.getTeamTemplates(undefined, true)),
       }));
 
       this.isApiMode = [
@@ -758,9 +837,23 @@ export class KpiSaleV2Component implements OnInit {
         response.dataSources,
       ].some((item) => item?.status === 1);
 
+      let currentPeriod: KpiSalePeriod | undefined;
+
       if (response.periods?.status === 1 && Array.isArray(response.periods.data)) {
         this.periods = response.periods.data.map((item) => this.normalizePeriod(item));
         this.rebuildPeriodTreeRows();
+      }
+      currentPeriod = this.periods.find((p) => p.id === this.selectedPeriodId);
+      if (currentPeriod && this.isApiMode) {
+        const pv = this.buildTeamPeriodValue(currentPeriod);
+        if (pv) {
+          const ttRes = await firstValueFrom(
+            this.safeApi<any[]>(this.kpiSaleService.getTeamTemplates(undefined, true, pv))
+          );
+          if (ttRes?.status === 1 && Array.isArray(ttRes.data)) {
+            this.teamTemplates = ttRes.data;
+          }
+        }
       }
       if (response.templates?.status === 1 && Array.isArray(response.templates.data)) {
         this.templates = response.templates.data.map((item) => this.normalizeTemplate(item));
@@ -775,6 +868,9 @@ export class KpiSaleV2Component implements OnInit {
         this.employees = response.employees.data
           .map((item) => this.normalizeEmployee(item))
           .filter((item) => item.fullName);
+      }
+      if (response.teamTemplates?.status === 1 && Array.isArray(response.teamTemplates.data)) {
+        this.teamTemplates = response.teamTemplates.data;
       }
 
       if (!this.templates.some(t => t.id === this.selectedTemplateId)) {
@@ -796,6 +892,7 @@ export class KpiSaleV2Component implements OnInit {
         this.apiStatusMessage = 'Đang kết nối dữ liệu từ /api/kpi.';
         await this.loadAllowedColumnsForTables();
         await this.loadTemplateDetails();
+        await this.loadTeamOptions();
         await this.loadTargetsAndResults();
       } else {
         this.apiStatusMessage = 'Chưa kết nối được /api/kpi, màn hình đang hiển thị dữ liệu mẫu.';
@@ -888,6 +985,18 @@ export class KpiSaleV2Component implements OnInit {
   async loadTargetsAndResults(): Promise<void> {
     if (!this.isApiMode) {
       this.resultRows = this.buildResultRows();
+      return;
+    }
+
+    if (!this.boundTemplateId) {
+      this.targets = [];
+      this.totalPerformance = null;
+      this.resultRows = [];
+      return;
+    }
+
+    if (this.isTeamMode && this.selectedTeamId) {
+      await this.loadTeamResults(this.selectedTeamId);
       return;
     }
 
@@ -1194,7 +1303,314 @@ export class KpiSaleV2Component implements OnInit {
 
 
   async onResultFilterChange(): Promise<void> {
+    if (this.isApiMode && this.isTeamMode) {
+      const period = this.periods.find((p) => p.id === this.selectedPeriodId);
+      const pv = this.buildTeamPeriodValue(period);
+      if (pv) {
+        const ttRes = await firstValueFrom(
+          this.safeApi<any[]>(this.kpiSaleService.getTeamTemplates(undefined, true, pv))
+        );
+        if (ttRes?.status === 1 && Array.isArray(ttRes.data)) {
+          this.teamTemplates = ttRes.data;
+        }
+      }
+    }
+    await this.resolveBoundTemplate();
     await this.loadTargetsAndResults();
+  }
+
+  /**
+   * Build periodValue phù hợp để query team-templates.
+   * - QUÝ → dùng trực tiếp periodCode của QUÝ
+   * - THÁNG → tìm QUÝ cha qua parentPeriodId, dùng periodCode của QUÝ
+   */
+  private buildTeamPeriodValue(period: KpiSalePeriod | undefined): string {
+    if (!period) return '';
+
+    if (period.periodType === 'MONTH') {
+      // Tìm QUÝ cha qua parentPeriodId
+      if (period.parentPeriodId) {
+        const parent = this.periods.find((p) => p.id === period.parentPeriodId);
+        if (parent) {
+          return parent.periodCode || '';
+        }
+      }
+      // Fallback: tìm theo year + quarter number từ dateStart
+      const year = period.dateStart ? new Date(period.dateStart).getFullYear() : null;
+      const monthNum = period.dateStart ? new Date(period.dateStart).getMonth() + 1 : null;
+      if (year && monthNum) {
+        const q = Math.ceil(monthNum / 3);
+        return `Q${q}-${year}`; // match backend PeriodCode format
+      }
+      return '';
+    }
+
+    // QUÝ hoặc YEAR: dùng trực tiếp periodCode
+    return period.periodCode || '';
+  }
+
+  /**
+   * Tự động tìm mẫu KPI đang được gán cho nhân viên (hoặc team) ở kỳ đang chọn.
+   * - Chỉ QUÝ mới được gán mẫu.
+   * - Nếu kỳ đang chọn là THÁNG thì tự động lookup theo QUÝ cha chứa tháng đó.
+   * - Cập nhật `boundTemplateId` / `boundTemplateName` để UI hiển thị.
+   */
+  async resolveBoundTemplate(): Promise<void> {
+    if (!this.isApiMode) {
+      // Chế độ dữ liệu mẫu: giữ nguyên mặc định
+      this.boundTemplateId = this.selectedTemplateId;
+      const t = this.templates.find((x) => x.id === this.selectedTemplateId);
+      this.boundTemplateName = t?.templateName ?? null;
+      return;
+    }
+
+    if (this.isTeamMode) {
+      // Chế độ team: resolve template từ KPISaleTeamTemplate
+      if (!this.selectedTeamId) {
+        this.boundTemplateId = this.selectedTemplateId;
+        this.boundTemplateName = this.templates.find(x => x.id === this.selectedTemplateId)?.templateName ?? null;
+        return;
+      }
+      const period = this.periods.find((p) => p.id === this.selectedPeriodId);
+      // Với THÁNG: team template gán theo QUÝ cha, nên query bằng periodValue của QU�ý
+      const teamPv = this.buildTeamPeriodValue(period);
+      const teamTemplate = this.teamTemplates.find((tt) => {
+        const tid = tt.teamId ?? tt.teamID ?? tt.TeamID;
+        if (tid !== this.selectedTeamId) return false;
+        const active = tt.isActive ?? tt.IsActive;
+        if (active === false) return false;
+        if (!teamPv) return false;
+        const pv = (tt.periodValue ?? tt.PeriodValue ?? '').toString();
+        return pv === teamPv;
+      });
+      if (teamTemplate) {
+        const tid = teamTemplate.templateId ?? teamTemplate.templateID ?? teamTemplate.TemplateID;
+        this.boundTemplateId = tid;
+        this.selectedTemplateId = tid;
+        this.boundTemplateName =
+          teamTemplate.templateName ?? teamTemplate.TemplateName
+          ?? teamTemplate.templateCode ?? teamTemplate.TemplateCode
+          ?? `Template #${tid}`;
+      } else {
+        this.boundTemplateId = null;
+        this.boundTemplateName = null;
+      }
+      return;
+    }
+
+    if (!this.selectedEmployeeId || !this.selectedPeriodId) {
+      this.boundTemplateId = null;
+      this.boundTemplateName = null;
+      return;
+    }
+
+    const period = this.periods.find((p) => p.id === this.selectedPeriodId);
+    if (!period) {
+      this.boundTemplateId = null;
+      this.boundTemplateName = null;
+      return;
+    }
+
+    try {
+      // Chỉ QUÝ mới được gán mẫu — THÁNG phải dùng mẫu của QUÝ cha
+      let lookupPeriod = period;
+      if (period.periodType === 'MONTH' && period.parentPeriodId) {
+        const parent = this.periods.find((p) => p.id === period.parentPeriodId);
+        if (parent) {
+          lookupPeriod = parent;
+        }
+      }
+      const assignment = await this.findAssignment(this.selectedEmployeeId, lookupPeriod);
+
+      if (assignment) {
+        this.boundTemplateId = assignment.templateId;
+        const tpl = this.templates.find((x) => x.id === assignment.templateId);
+        this.boundTemplateName = tpl?.templateName ?? `Template #${assignment.templateId}`;
+        // Đồng bộ selectedTemplateId để các method downstream dùng đúng
+        this.selectedTemplateId = assignment.templateId;
+      } else {
+        this.boundTemplateId = null;
+        this.boundTemplateName = null;
+      }
+    } catch (err) {
+      console.error('Resolve bound template error:', err);
+      this.boundTemplateId = null;
+      this.boundTemplateName = null;
+    }
+  }
+
+  /**
+   * Helper: gọi API getEmployeeTemplates và tìm assignment phù hợp với kỳ.
+   * Match theo PeriodId trước; nếu không thấy thì match theo PeriodValue (vd "2026-Q1" hoặc "2026-03") + PeriodType.
+   */
+  private async findAssignment(employeeId: number, period: KpiSalePeriod): Promise<KpiSaleEmployeeTemplate | null> {
+    // Ưu tiên tìm theo PeriodId của QUÝ (khi gán trực tiếp cho nhân viên,
+    // CreateEmployeeTemplate tạo cả record cho QUÝ lẫn MONTH).
+    const direct = await this.queryEmployeeTemplate(employeeId, period.id);
+    if (direct) return direct;
+
+    // Fallback: nếu đang ở QUÝ mà không thấy record cho QUÝ, thì tìm theo các MONTH con.
+    // Lý do: khi gán qua Team (CreateTeamTemplate), chỉ tạo record cho MONTH, không tạo cho QUÝ.
+    if (period.periodType === 'QUARTER' && this.periods.length > 0) {
+      const childMonths = this.periods
+        .filter((p) => p.parentPeriodId === period.id && p.periodType === 'MONTH')
+        .sort((a, b) => new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime());
+      for (const month of childMonths) {
+        const found = await this.queryEmployeeTemplate(employeeId, month.id);
+        if (found) return found;
+      }
+    }
+
+    return null;
+  }
+
+  private async queryEmployeeTemplate(employeeId: number, periodId: number): Promise<KpiSaleEmployeeTemplate | null> {
+    const response = await firstValueFrom(
+      this.safeApi<any[]>(
+        this.kpiSaleService.getEmployeeTemplates(employeeId, undefined, true, periodId)
+      )
+    );
+    if (response?.status !== 1 || !Array.isArray(response.data)) return null;
+    const list: KpiSaleEmployeeTemplate[] = response.data.map((item) => this.normalizeEmployeeTemplate(item));
+    if (list.length === 0) return null;
+    return list[0] ?? null;
+  }
+
+  private buildPeriodValue(period: KpiSalePeriod): string {
+    const year = period.periodCode?.match(/\d{4}/)?.[0]
+      || (period.dateStart ? new Date(period.dateStart).getFullYear().toString() : null);
+    if (!year) return '';
+    const month = period.dateStart ? new Date(period.dateStart).getMonth() + 1 : null;
+    if (period.periodType === 'QUARTER' && month) {
+      const q = Math.ceil(month / 3);
+      return `Q${q}-${year}`;
+    }
+    if (period.periodType === 'MONTH' && month) {
+      return `${year}-${String(month).padStart(2, '0')}`;
+    }
+    if (period.periodType === 'YEAR') {
+      return `${year}`;
+    }
+    return '';
+  }
+
+  normalizeEmployeeTemplate(raw: any): KpiSaleEmployeeTemplate {
+    return {
+      id: raw.ID ?? raw.id ?? 0,
+      employeeId: raw.EmployeeID ?? raw.employeeId ?? 0,
+      employeeCode: raw.EmployeeCode ?? raw.employeeCode,
+      employeeName: raw.EmployeeName ?? raw.employeeName,
+      departmentName: raw.DepartmentName ?? raw.departmentName,
+      templateId: raw.TemplateID ?? raw.templateId ?? 0,
+      templateCode: raw.TemplateCode ?? raw.templateCode,
+      templateName: raw.TemplateName ?? raw.templateName,
+      periodType: raw.PeriodType ?? raw.periodType,
+      periodValue: raw.PeriodValue ?? raw.periodValue,
+      periodId: raw.PeriodID ?? raw.periodId,
+      startDate: raw.StartDate ? String(raw.StartDate) : undefined,
+      endDate: raw.EndDate ? String(raw.EndDate) : undefined,
+      isActive: (raw.IsActive ?? raw.isActive ?? true) === true || raw.IsActive === 1,
+      assignedDate: raw.AssignedDate ? String(raw.AssignedDate) : undefined,
+      updatedDate: raw.UpdatedDate ? String(raw.UpdatedDate) : undefined,
+      assignedBy: raw.AssignedBy ?? raw.assignedBy,
+      note: raw.Note ?? raw.note,
+    };
+  }
+
+  onCalculateModeChange(): void {
+    if (!this.isTeamMode) {
+      // Chuyển về chế độ cá nhân: lấy 1 employee đầu tiên đang chọn
+      if (this.selectedEmployeeIds && this.selectedEmployeeIds.length > 0) {
+        this.selectedEmployeeId = this.selectedEmployeeIds[0];
+      }
+      this.selectedTeamId = null;
+      this.selectedTeamInfo = null;
+    } else {
+      // Chuyển sang chế độ nhóm: load danh sách team đã khai báo
+      void this.loadTeamOptions();
+    }
+    void this.loadTargetsAndResults();
+  }
+
+  async loadTeamOptions(): Promise<void> {
+    if (!this.isApiMode) return;
+    const response = await firstValueFrom(this.safeApi<any[]>(this.kpiSaleService.getTeams()));
+    if (response?.status === 1 && Array.isArray(response.data)) {
+      this.teamOptions = response.data
+        .filter((t) => t.IsActive !== false)
+        .map((t) => this.normalizeTeam(t));
+      // Nếu team hiện tại không còn trong list, reset
+      if (this.selectedTeamId && !this.teamOptions.some((t) => t.id === this.selectedTeamId)) {
+        this.selectedTeamId = null;
+        this.selectedTeamInfo = null;
+        this.selectedEmployeeIds = [];
+      }
+    } else {
+      this.teamOptions = [];
+    }
+  }
+
+  private normalizeTeam(item: any): KpiTeam {
+    return {
+      id: this.readTeamField<number>(item, 'ID', 'id') || 0,
+      teamCode: this.readTeamField<string>(item, 'TeamCode', 'teamCode') || '',
+      teamName: this.readTeamField<string>(item, 'TeamName', 'teamName') || '',
+      description: this.readTeamField<string>(item, 'Description', 'description'),
+      isActive: this.readTeamField<boolean>(item, 'IsActive', 'isActive') !== false,
+      employeeIDs: Array.isArray(item.EmployeeIDs) ? item.EmployeeIDs : Array.isArray(item.employeeIDs) ? item.employeeIDs : [],
+    };
+  }
+
+  private readTeamField<T>(item: any, ...keys: string[]): T | undefined {
+    if (!item) return undefined;
+    for (const key of keys) {
+      if (item[key] !== undefined && item[key] !== null) {
+        return item[key] as T;
+      }
+    }
+    return undefined;
+  }
+
+  async onTeamSelectionChange(): Promise<void> {
+    if (this.isTeamMode && this.selectedTeamId) {
+      const team = this.teamOptions.find((t) => t.id === this.selectedTeamId);
+      if (team) {
+        this.selectedTeamInfo = team;
+        this.selectedEmployeeIds = [...team.employeeIDs];
+        if (team.employeeIDs.length > 0) {
+          this.selectedEmployeeId = team.employeeIDs[0];
+        }
+      }
+    } else {
+      this.selectedTeamInfo = null;
+    }
+    await this.loadTargetsAndResults();
+  }
+
+  getSelectedEmployeeName(): string {
+    if (this.isTeamMode) {
+      return this.getSelectedTeamLabel();
+    }
+    const emp = this.employees.find((e) => e.id === this.selectedEmployeeId);
+    return emp ? `${emp.code} - ${emp.fullName}` : '';
+  }
+
+  getSelectedTeamLabel(): string {
+    if (!this.selectedTeamInfo) {
+      return '(chưa chọn team)';
+    }
+    const team = this.selectedTeamInfo;
+    if (!team.employeeIDs || team.employeeIDs.length === 0) {
+      return `${team.teamCode} - ${team.teamName} (0 người)`;
+    }
+    const names = team.employeeIDs
+      .map((id) => this.employees.find((e) => e.id === id))
+      .filter((e) => !!e)
+      .map((e) => `${e!.code} - ${e!.fullName}`);
+    if (names.length <= 2) {
+      return names.join(', ');
+    }
+    return `${names.slice(0, 2).join(', ')} +${names.length - 2} người`;
   }
 
   onSelectedPeriodChange(val: string): void {
@@ -1733,6 +2149,35 @@ export class KpiSaleV2Component implements OnInit {
 
   async runCalculate(): Promise<void> {
     if (this.isApiMode) {
+      // Nếu là QUÝ → tự động tính QUÝ + 3 THÁNG con
+      if (this.isSelectedPeriodQuarter && this.periods.length > 0) {
+        const childMonths = this.periods
+          .filter((p) => p.parentPeriodId === this.selectedPeriodId && p.periodType === 'MONTH')
+          .sort((a, b) => new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime());
+
+        if (childMonths.length > 0) {
+          if (this.isTeamMode) {
+            await this.runCalculateTeamWithChildren(childMonths);
+          } else {
+            await this.runCalculateWithChildren(childMonths);
+          }
+          return;
+        }
+      }
+
+      if (this.isTeamMode) {
+        if (!this.selectedTeamId) {
+          this.notification.warning('Cảnh báo', 'Vui lòng chọn team đã khai báo trước khi tính KPI nhóm');
+          return;
+        }
+        if (!this.selectedEmployeeIds || this.selectedEmployeeIds.length === 0) {
+          this.notification.warning('Cảnh báo', 'Team đã chọn không có thành viên');
+          return;
+        }
+        await this.runCalculateTeam();
+        return;
+      }
+
       this.isLoading = true;
       try {
         const request = {
@@ -1753,13 +2198,7 @@ export class KpiSaleV2Component implements OnInit {
           this.resultRows = this.appendTotalPerformanceRow(
             this.asArray(response.data.Items).map((item) => this.normalizeResult(item)).sort((a, b) => a.sortOrder - b.sortOrder)
           );
-          if (this.isSelectedPeriodQuarter) {
-            await this.applyAllQuarterAdjustmentsFromMonths();
-          }
           this.notification.success('Thông báo', response.message || 'Tính KPI thành công');
-          if (this.saveSnapshot) {
-            await this.loadTargetsAndResults();
-          }
         } else {
           this.notification.error('Lỗi', response?.message || 'Không thể tính KPI');
         }
@@ -1767,24 +2206,226 @@ export class KpiSaleV2Component implements OnInit {
         this.isLoading = false;
       }
       this.lastCalculatedAt = new Date();
-      this.calculationLogs = [
-        `Gọi POST /api/kpi/calculate với nhân viên=${this.selectedEmployeeId}, kỳ=${this.selectedPeriodId}, mẫu=${this.selectedTemplateId}`,
-        `Lưu bản ghi kết quả=${this.saveSnapshot}`,
-        'Frontend nhận danh sách KpiCalculateResult và tổng điểm Total Performance',
-      ];
       return;
     }
 
     this.totalPerformance = null;
     this.resultRows = this.buildResultRows(true);
     this.lastCalculatedAt = new Date();
-    this.calculationLogs = [
-      `Yêu cầu tính mẫu với nhân viên=${this.selectedEmployeeId}, kỳ=${this.selectedPeriodId}, mẫu=${this.selectedTemplateId}`,
-      'Đã tải chỉ tiêu KPI và mục tiêu KPI',
-      'Đã chạy các ánh xạ tổng hợp an toàn',
-      'Đã tính các dòng nhóm/công thức',
-      'Đã cập nhật bản ghi xem trước',
-    ];
+  }
+
+  private async runCalculateWithChildren(childMonths: KpiSalePeriod[]): Promise<void> {
+    if (!this.selectedEmployeeId || !this.selectedTemplateId) return;
+
+    const parentPeriod = this.periods.find((p) => p.id === this.selectedPeriodId);
+    const periodName = parentPeriod?.periodName || parentPeriod?.periodCode || `Kỳ #${this.selectedPeriodId}`;
+    const childNames = childMonths.map((m) => m.periodName || m.periodCode).join(', ');
+
+    this.isLoading = true;
+    try {
+      // Tính 3 tháng trước, song song
+      const monthPromises = childMonths.map((month) =>
+        firstValueFrom(
+          this.safeApi<KpiCalculateResponse>(
+            this.kpiSaleService.calculate({
+              EmployeeID: this.selectedEmployeeId!,
+              PeriodID: month.id,
+              TemplateID: this.selectedTemplateId!,
+              DepartmentID: null,
+              SaveSnapshot: this.saveSnapshot,
+              ReportAdjustments: [],
+            })
+          )
+        )
+      );
+      const monthResponses = await Promise.all(monthPromises);
+      const failedMonths = monthResponses.filter((r) => r?.status !== 1);
+      if (failedMonths.length > 0) {
+        this.notification.warning('Cảnh báo', `${failedMonths.length} tháng tính thất bại`);
+      }
+
+      // Cuối cùng tính QUÝ
+      const quarterResponse = await firstValueFrom(
+        this.safeApi<KpiCalculateResponse>(
+          this.kpiSaleService.calculate({
+            EmployeeID: this.selectedEmployeeId!,
+            PeriodID: this.selectedPeriodId!,
+            TemplateID: this.selectedTemplateId!,
+            DepartmentID: null,
+            SaveSnapshot: this.saveSnapshot,
+            ReportAdjustments: this.getReportAdjustmentsPayload().map((item) => ({
+              KpiIndexID: item.kpiIndexId,
+              ReportScoreAdjustmentType: item.reportScoreAdjustmentType,
+              ReportScoreValue: item.reportScoreValue,
+            })),
+          })
+        )
+      );
+
+      if (quarterResponse?.status === 1 && quarterResponse.data) {
+        this.totalPerformance = this.normalizeTotalPerformance(quarterResponse.data.TotalPerformance);
+        this.resultRows = this.appendTotalPerformanceRow(
+          this.asArray(quarterResponse.data.Items).map((item) => this.normalizeResult(item)).sort((a, b) => a.sortOrder - b.sortOrder)
+        );
+        this.notification.success(
+          'Thông báo',
+          `Tính KPI thành công: ${childMonths.length} tháng (${childNames}) + quý '${periodName}'`
+        );
+      } else {
+        this.notification.error('Lỗi', quarterResponse?.message || 'Không thể tính KPI quý');
+      }
+
+      this.lastCalculatedAt = new Date();
+      this.calculationLogs = [
+        `Tính ${childMonths.length} tháng song song + QUÝ: ${periodName}`,
+        `Tổng: ${childMonths.length + 1} lần gọi API`,
+      ];
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  private async runCalculateTeamWithChildren(childMonths: KpiSalePeriod[]): Promise<void> {
+    if (!this.selectedTeamId || !this.selectedTemplateId) return;
+    if (!this.selectedEmployeeIds || this.selectedEmployeeIds.length === 0) {
+      this.notification.warning('Cảnh báo', 'Team đã chọn không có thành viên');
+      return;
+    }
+
+    const parentPeriod = this.periods.find((p) => p.id === this.selectedPeriodId);
+    const periodName = parentPeriod?.periodName || parentPeriod?.periodCode || `Kỳ #${this.selectedPeriodId}`;
+    const childNames = childMonths.map((m) => m.periodName || m.periodCode).join(', ');
+
+    this.isLoading = true;
+    try {
+      // Tính 3 tháng song song
+      const monthPromises = childMonths.map((month) =>
+        firstValueFrom(
+          this.safeApi<KpiCalculateResponse>(
+            this.kpiSaleService.calculateTeam({
+              teamID: this.selectedTeamId!,
+              employeeIDs: [...this.selectedEmployeeIds],
+              periodID: month.id,
+              templateID: this.selectedTemplateId!,
+              saveSnapshot: this.saveSnapshot,
+              reportAdjustments: [],
+            })
+          )
+        )
+      );
+      const monthResponses = await Promise.all(monthPromises);
+      const failedMonths = monthResponses.filter((r) => r?.status !== 1);
+      if (failedMonths.length > 0) {
+        this.notification.warning('Cảnh báo', `${failedMonths.length} tháng tính thất bại`);
+      }
+
+      // Cuối cùng tính QUÝ
+      const quarterResponse = await firstValueFrom(
+        this.safeApi<KpiCalculateResponse>(
+          this.kpiSaleService.calculateTeam({
+            teamID: this.selectedTeamId!,
+            employeeIDs: [...this.selectedEmployeeIds],
+            periodID: this.selectedPeriodId!,
+            templateID: this.selectedTemplateId!,
+            saveSnapshot: this.saveSnapshot,
+            reportAdjustments: this.getReportAdjustmentsPayload().map((item) => ({
+              kpiIndexId: item.kpiIndexId,
+              reportScoreAdjustmentType: item.reportScoreAdjustmentType,
+              reportScoreValue: item.reportScoreValue,
+            })),
+          })
+        )
+      );
+
+      if (quarterResponse?.status === 1 && quarterResponse.data) {
+        this.totalPerformance = this.normalizeTotalPerformance(quarterResponse.data.TotalPerformance);
+        this.resultRows = this.appendTotalPerformanceRow(
+          this.asArray(quarterResponse.data.Items).map((item) => this.normalizeResult(item)).sort((a, b) => a.sortOrder - b.sortOrder)
+        );
+        this.notification.success(
+          'Thông báo',
+          `Tính KPI nhóm thành công: ${childMonths.length} tháng (${childNames}) + quý '${periodName}'`
+        );
+      } else {
+        this.notification.error('Lỗi', quarterResponse?.message || 'Không thể tính KPI nhóm quý');
+      }
+
+      this.lastCalculatedAt = new Date();
+      this.calculationLogs = [
+        `Tính nhóm: ${childMonths.length} tháng song song + QUÝ: ${periodName}`,
+        `Tổng: ${childMonths.length + 1} lần gọi API`,
+      ];
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  private async runCalculateTeam(): Promise<void> {
+    this.isLoading = true;
+    try {
+      const request: KpiTeamCalculateRequest = {
+        teamID: this.selectedTeamId,
+        employeeIDs: [...this.selectedEmployeeIds],
+        periodID: this.selectedPeriodId,
+        templateID: this.selectedTemplateId,
+        saveSnapshot: this.saveSnapshot,
+        reportAdjustments: this.getReportAdjustmentsPayload().map((item) => ({
+          kpiIndexId: item.kpiIndexId,
+          reportScoreAdjustmentType: item.reportScoreAdjustmentType,
+          reportScoreValue: item.reportScoreValue,
+        })),
+      };
+
+      const response = await firstValueFrom(this.safeApi<KpiCalculateResponse>(this.kpiSaleService.calculateTeam(request)));
+      if (response?.status === 1 && response.data) {
+        this.totalPerformance = this.normalizeTotalPerformance(response.data.TotalPerformance);
+        this.resultRows = this.appendTotalPerformanceRow(
+          this.asArray(response.data.Items).map((item) => this.normalizeResult(item)).sort((a, b) => a.sortOrder - b.sortOrder)
+        );
+        if (this.isSelectedPeriodQuarter) {
+          await this.applyAllQuarterAdjustmentsFromMonths();
+        }
+        this.notification.success('Thông báo', response.message || `Tính KPI nhóm (${request.employeeIDs.length} người) thành công`);
+
+        if (this.saveSnapshot && this.selectedTeamId) {
+          await this.loadTeamResults(this.selectedTeamId);
+          if (this.isSelectedPeriodQuarter) {
+            await this.applyAllQuarterAdjustmentsFromMonths();
+          }
+        }
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể tính KPI nhóm');
+      }
+    } finally {
+      this.isLoading = false;
+      this.lastCalculatedAt = new Date();
+      this.calculationLogs = [
+        `Gọi POST /api/kpi/calculate-team với nhân viên=[${this.selectedEmployeeIds.join(', ')}], kỳ=${this.selectedPeriodId}, mẫu=${this.selectedTemplateId}`,
+        `Lưu bản ghi kết quả=${this.saveSnapshot}`,
+        'Backend sum target + sum result cho từng chỉ tiêu, re-compute FinalScore bằng cùng scoring rule',
+      ];
+    }
+  }
+
+  private async loadTeamResults(teamId: number): Promise<void> {
+    if (!this.isApiMode) {
+      return;
+    }
+    const response = await firstValueFrom(
+      this.safeApi<KpiCalculateResponse>(this.kpiSaleService.getResults(undefined, this.selectedPeriodId, this.selectedTemplateId, teamId))
+    );
+    if (response?.status === 1 && response.data && Array.isArray(response.data.Items) && response.data.Items.length) {
+      this.totalPerformance = this.normalizeTotalPerformance(response.data.TotalPerformance);
+      this.resultRows = this.appendTotalPerformanceRow(
+        response.data.Items.map((item) => this.normalizeResult(item)).sort((a, b) => a.sortOrder - b.sortOrder)
+      );
+      if (this.isSelectedPeriodQuarter) {
+        await this.applyAllQuarterAdjustmentsFromMonths();
+      }
+    } else {
+      this.totalPerformance = null;
+      this.resultRows = [];
+    }
   }
 
   exportCsv(): void {
@@ -1910,12 +2551,12 @@ export class KpiSaleV2Component implements OnInit {
       this.resultRows[quarterRowIndex] = { ...quarterRow, reportScoreValue: avgScore };
     }
 
-    const baseScore = quarterRow.achievedPercent;
+    // FinalScore của REPORT = reportScoreValue hoặc -reportScoreValue
     quarterRow.finalScore = quarterRow.reportScoreAdjustmentType === 2
-      ? baseScore + avgScore
+      ? avgScore
       : quarterRow.reportScoreAdjustmentType === 1
-        ? baseScore - avgScore
-        : baseScore;
+        ? -avgScore
+        : 0;
   }
 
   private async applyAllQuarterAdjustmentsFromMonths(): Promise<void> {
@@ -1928,18 +2569,35 @@ export class KpiSaleV2Component implements OnInit {
     const monthPeriods = this.periods.filter(p => p.parentPeriodId === quarterPeriod.id && p.periodType === 'MONTH');
     if (monthPeriods.length === 0) return;
 
-    // Load reportScoreValue from each month
+    // Team mode: load dữ liệu REPORT của TEAM ở từng tháng (đã lưu bởi SaveTeamSnapshotAsync khi user
+    // tính KPI team ở MONTH). KHÔNG gộp từ employee - dữ liệu REPORT của team phải do user tự nhập
+    // theo từng tháng của team.
+    // Individual mode: load dữ liệu tháng của 1 employee hiện tại.
+    if (this.isTeamMode) {
+      if (!this.selectedTeamId) return;
+    } else if (!this.selectedEmployeeId) {
+      return;
+    }
+
+    // monthValueByIndex: Map<kpiIndexId, Map<periodId, value>> - lưu giá trị của từng tháng của team/employee.
+    // monthAdjByIndex:   Map<kpiIndexId, Map<periodId, adjustmentType>> - lưu adjustmentType từng tháng.
+    const monthValueByIndex = new Map<number, Map<number, number>>();
+    const monthAdjByIndex = new Map<number, Map<number, number>>();
+    const totalMonthCount = monthPeriods.length; // Số tháng cố định của quý (3)
+
     const monthResults = await Promise.all(
       monthPeriods.map(async (monthPeriod) => {
         try {
           const response = await firstValueFrom(
             this.safeApi<KpiCalculateResponse>(
-              this.kpiSaleService.getResults(this.selectedEmployeeId, monthPeriod.id, this.selectedTemplateId)
+              this.isTeamMode
+                ? this.kpiSaleService.getResults(undefined, monthPeriod.id, this.selectedTemplateId, this.selectedTeamId!)
+                : this.kpiSaleService.getResults(this.selectedEmployeeId, monthPeriod.id, this.selectedTemplateId)
             )
           );
           if (response?.status === 1 && response.data?.Items) {
             return response.data.Items.map((item: any) => ({
-              periodId: monthPeriod.id,
+              monthPeriodId: monthPeriod.id,
               kpiIndexId: item.KpiIndexID ?? item.kpiIndexId,
               reportScoreAdjustmentType: item.ReportScoreAdjustmentType ?? item.reportScoreAdjustmentType,
               reportScoreValue: item.ReportScoreValue ?? item.reportScoreValue ?? 0,
@@ -1952,39 +2610,66 @@ export class KpiSaleV2Component implements OnInit {
       })
     );
 
-    const monthDataMap = new Map<number, { adjustmentType: number; value: number }>();
-    monthResults.flat().forEach((item: any) => {
-      if (item.kpiIndexId) {
-        const existing = monthDataMap.get(item.kpiIndexId);
-        if (!existing) {
-          monthDataMap.set(item.kpiIndexId, {
-            adjustmentType: item.reportScoreAdjustmentType ?? 0,
-            value: item.reportScoreValue ?? 0,
-          });
+    monthResults.forEach((items) => {
+      items.forEach((item: any) => {
+        if (!item.kpiIndexId) return;
+        // Lưu giá trị và adjustmentType cho từng tháng (1 record / tháng cho team hoặc employee)
+        if (!monthValueByIndex.has(item.kpiIndexId)) {
+          monthValueByIndex.set(item.kpiIndexId, new Map<number, number>());
+          monthAdjByIndex.set(item.kpiIndexId, new Map<number, number>());
         }
-      }
+        const valueMap = monthValueByIndex.get(item.kpiIndexId)!;
+        const adjMap = monthAdjByIndex.get(item.kpiIndexId)!;
+        valueMap.set(item.monthPeriodId, (valueMap.get(item.monthPeriodId) ?? 0) + (item.reportScoreValue ?? 0));
+        adjMap.set(item.monthPeriodId, item.reportScoreAdjustmentType ?? 0);
+      });
     });
 
-    quarterRows.forEach((row, idx) => {
-      const monthData = monthDataMap.get(row.kpiIndexId);
-      if (monthData) {
-        const avgScore = monthData.value;
-        const quarterRowIndex = this.resultRows.findIndex(r => r === row);
-        if (quarterRowIndex >= 0) {
-          this.resultRows[quarterRowIndex] = {
-            ...row,
-            reportScoreAdjustmentType: monthData.adjustmentType as ReportScoreAdjustmentType,
-            reportScoreValue: avgScore,
-          };
-        }
-
-        const baseScore = row.achievedPercent;
-        row.finalScore = monthData.adjustmentType === 2
-          ? baseScore + avgScore
-          : monthData.adjustmentType === 1
-            ? baseScore - avgScore
-            : baseScore;
+    quarterRows.forEach((row) => {
+      const valueMap = monthValueByIndex.get(row.kpiIndexId);
+      const adjMap = monthAdjByIndex.get(row.kpiIndexId);
+      // TB cộng qua các tháng: tổng giá trị các tháng / totalMonthCount (tháng thiếu = 0)
+      let totalValue = 0;
+      if (valueMap) {
+        monthPeriods.forEach((mp) => {
+          totalValue += valueMap.get(mp.id) ?? 0;
+        });
       }
+      const avgScore = totalValue / totalMonthCount;
+
+      // adjustmentType lấy từ tháng có dữ liệu mới nhất (PeriodID lớn nhất)
+      let latestAdjType = 0;
+      if (adjMap) {
+        const sortedMonthIds = Array.from(adjMap.keys()).sort((a, b) => a - b);
+        for (let i = sortedMonthIds.length - 1; i >= 0; i--) {
+          const monthId = sortedMonthIds[i];
+          if (valueMap && (valueMap.get(monthId) ?? 0) > 0) {
+            latestAdjType = adjMap.get(monthId) ?? 0;
+            break;
+          }
+        }
+        // Nếu không có tháng nào có value > 0, lấy tháng mới nhất có data
+        if (latestAdjType === 0 && sortedMonthIds.length > 0) {
+          const lastId = sortedMonthIds[sortedMonthIds.length - 1];
+          latestAdjType = adjMap.get(lastId) ?? 0;
+        }
+      }
+
+      const quarterRowIndex = this.resultRows.findIndex(r => r === row);
+      if (quarterRowIndex >= 0) {
+        this.resultRows[quarterRowIndex] = {
+          ...row,
+          reportScoreAdjustmentType: latestAdjType as ReportScoreAdjustmentType,
+          reportScoreValue: avgScore,
+        };
+      }
+
+      // FinalScore của REPORT = reportScoreValue hoặc -reportScoreValue
+      row.finalScore = latestAdjType === 2
+        ? avgScore
+        : latestAdjType === 1
+          ? -avgScore
+          : 0;
     });
   }
 
@@ -2126,13 +2811,12 @@ export class KpiSaleV2Component implements OnInit {
   }
 
   formatMetric(value: number, unitType: UnitType): string {
-    if (unitType === 'MONEY') {
-      return this.compactNumber(value);
-    }
     if (unitType === 'PERCENT') {
       return `${value.toFixed(1)}%`;
     }
-    return value.toLocaleString('vi-VN');
+    // Dùng dấu , cho hàng nghìn và . cho hàng thập phân (format chuẩn VN: 1,234,567.89)
+    const fixed = value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    return fixed;
   }
 
   formatPercent(value: number): string {
@@ -2171,7 +2855,9 @@ export class KpiSaleV2Component implements OnInit {
         resultValue,
         achievedPercent,
         weightPercent: index.weightPercent,
-        finalScore: index.indexType === 'REPORT' ? achievedPercent : Math.min(achievedPercent, 100) * index.weightPercent / 100,
+        finalScore: index.indexType === 'REPORT' 
+          ? achievedPercent 
+          : Math.min(achievedPercent * index.weightPercent / 100, 2.5 * index.weightPercent / 100),
         reportScoreAdjustmentType,
         reportScoreValue,
         isTotalPerformance: false,
@@ -2216,7 +2902,7 @@ export class KpiSaleV2Component implements OnInit {
       goalValue,
       resultValue,
       achievedPercent,
-      finalScore: Math.min(achievedPercent, 100) * row.weightPercent / 100,
+      finalScore: Math.min(achievedPercent * row.weightPercent / 100, 2.5 * row.weightPercent / 100),
     };
   }
 
@@ -2638,16 +3324,6 @@ export class KpiSaleV2Component implements OnInit {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
-  }
-
-  private compactNumber(value: number): string {
-    if (Math.abs(value) >= 1_000_000_000) {
-      return `${(value / 1_000_000_000).toFixed(2)}B`;
-    }
-    if (Math.abs(value) >= 1_000_000) {
-      return `${(value / 1_000_000).toFixed(1)}M`;
-    }
-    return value.toLocaleString('vi-VN');
   }
 
   private nextId(items: { id: number }[]): number {

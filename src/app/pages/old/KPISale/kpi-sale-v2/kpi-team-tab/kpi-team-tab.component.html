@@ -1,0 +1,223 @@
+<nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+  <div class="page-container">
+    <div class="split-container">
+      <!-- Cột bên trái: Danh sách Team -->
+      <div class="left-sidebar">
+        <div class="sidebar-header">
+          <h6 class="sidebar-title">Danh sách Team</h6>
+          <button nz-button nzType="primary" nzSize="small" (click)="openCreateForm()" nz-tooltip nzTooltipTitle="Tạo team mới">
+            <i nz-icon nzType="plus"></i>
+          </button>
+        </div>
+        <div class="filter-row">
+          <input nz-input nzSize="small" name="searchText" placeholder="Tìm mã/tên team"
+            [(ngModel)]="searchText" (ngModelChange)="onSearchChange()" class="w-100" />
+        </div>
+        <div class="team-list-wrapper">
+          <div *ngFor="let item of teams; trackBy: trackById"
+            class="team-item"
+            [class.selected]="isTeamSelected(item.id)"
+            [class.inactive]="!item.isActive"
+            (click)="selectTeam(item.id)">
+            <div class="team-item-main">
+              <div class="team-item-info">
+                <span class="team-code mono">{{ item.teamCode }}</span>
+                <span class="team-name">{{ item.teamName }}</span>
+              </div>
+              <div class="team-item-meta">
+                <span class="member-count">
+                  <i nz-icon nzType="user"></i> {{ item.employeeIDs.length }} TV
+                </span>
+                <span *ngIf="item.leaderEmployeeName" class="leader-badge">
+                  <i nz-icon nzType="crown" nzTheme="fill"></i> {{ item.leaderEmployeeName }}
+                </span>
+                <nz-tag *ngIf="item.isActive" nzColor="success" nzSize="small">Đang dùng</nz-tag>
+                <nz-tag *ngIf="!item.isActive" nzColor="default" nzSize="small">Ngưng</nz-tag>
+              </div>
+            </div>
+            <div class="team-item-actions" (click)="$event.stopPropagation()">
+              <a class="action-btn text-primary" nz-tooltip nzTooltipTitle="Sửa team"
+                (click)="openEditForm(item)">
+                <i nz-icon nzType="edit"></i>
+              </a>
+              <nz-popconfirm nzPopconfirmTitle="Ngưng sử dụng team này?"
+                nzOkText="Ngưng" nzCancelText="Hủy" (nzOnConfirm)="deleteTeam(item)"
+                *ngIf="item.isActive">
+                <a nz-popconfirm class="action-btn text-danger" nz-tooltip nzTooltipTitle="Ngưng team">
+                  <i nz-icon nzType="stop"></i>
+                </a>
+              </nz-popconfirm>
+              <nz-popconfirm nzPopconfirmTitle="Xóa vĩnh viễn team này?"
+                nzOkText="Xóa" nzCancelText="Hủy" (nzOnConfirm)="hardDeleteTeam(item)"
+                *ngIf="!item.isActive">
+                <a nz-popconfirm class="action-btn text-danger" nz-tooltip nzTooltipTitle="Xóa team">
+                  <i nz-icon nzType="delete"></i>
+                </a>
+              </nz-popconfirm>
+            </div>
+          </div>
+          <div *ngIf="teams.length === 0" class="empty-list">
+            <i nz-icon nzType="team"></i>
+            <span>Chưa có team nào</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cột bên phải: Thành viên của team đã chọn -->
+      <div class="right-content">
+        <ng-container *ngIf="selectedTeam; else noSelection">
+          <div class="page-header bg-white">
+            <div class="member-header-info">
+              <h4 class="page-title">
+                <i nz-icon nzType="team"></i>
+                {{ selectedTeam.teamName }}
+                <span class="mono" style="font-size: 12px; font-weight: 400; color: #64748b;">
+                  ({{ selectedTeam.teamCode }})
+                </span>
+              </h4>
+              <div class="member-stats">
+                <nz-tag nzColor="blue">
+                  <i nz-icon nzType="user"></i> {{ selectedTeamMembers.length }} thành viên
+                </nz-tag>
+                <label nz-checkbox name="showInactive" [(ngModel)]="showInactive" (ngModelChange)="toggleShowInactive()">
+                  Hiện team đã ngưng
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="member-table-wrapper">
+            <div class="member-toolbar">
+              <ng-container *ngIf="!showAddMember">
+                <button nz-button nzType="primary" nzSize="small" (click)="toggleAddMember()"
+                  *ngIf="selectedTeam"
+                  [disabled]="availableEmployees.length === 0">
+                  <i nz-icon nzType="user-add"></i> Thêm thành viên
+                </button>
+              </ng-container>
+              <ng-container *ngIf="showAddMember">
+                <div class="add-member-form">
+                  <nz-select nzDropdownClassName="select-dropdown" nzSize="small" nzShowSearch
+                    nzMode="multiple" [nzMaxTagCount]="3" nzPlaceHolder="Chọn nhân viên..."
+                    [(ngModel)]="selectedMemberIds" style="min-width: 300px;">
+                    <nz-option *ngFor="let emp of availableEmployees; trackBy: trackByEmployeeId"
+                      [nzValue]="emp.id" [nzLabel]="emp.code + ' - ' + emp.fullName">
+                    </nz-option>
+                  </nz-select>
+                  <button nz-button nzType="primary" nzSize="small" (click)="saveAddMembers()"
+                    [nzLoading]="isAddingMembers" [disabled]="selectedMemberIds.length === 0">
+                    <i nz-icon nzType="check"></i> Lưu
+                  </button>
+                  <button nz-button nzSize="small" (click)="cancelAddMembers()" [disabled]="isAddingMembers">
+                    Hủy
+                  </button>
+                </div>
+              </ng-container>
+            </div>
+            <nz-table #memberTable [nzData]="selectedTeamMembers" [nzFrontPagination]="false"
+              nzSize="small" nzBordered style="height: calc(100% - 48px);"
+              [nzScroll]="{ y: 'calc(100vh - 310px)' }">
+              <thead>
+                <tr>
+                  <th nzWidth="50px" nzAlign="right">STT</th>
+                  <th nzWidth="120px">Mã NV</th>
+                  <th>Họ tên</th>
+                  <th>Phòng ban</th>
+                  <th nzWidth="110px" nzAlign="center">Trưởng nhóm</th>
+                  <th nzWidth="80px" nzAlign="center">Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let member of memberTable.data; let i = index; trackBy: trackByEmployeeId">
+                  <td nzAlign="right">{{ i + 1 }}</td>
+                  <td class="mono">{{ member.code }}</td>
+                  <td>{{ member.fullName }}</td>
+                  <td>{{ member.departmentName || '—' }}</td>
+                  <td nzAlign="center">
+                    <nz-tag *ngIf="selectedTeam.leaderEmployeeId === member.id" nzColor="green">
+                      <i nz-icon nzType="crown" nzTheme="fill"></i> TL
+                    </nz-tag>
+                  </td>
+                  <td nzAlign="center">
+                    <a *ngIf="selectedTeam"
+                      class="action-btn text-danger" nz-tooltip nzTooltipTitle="Xóa khỏi team"
+                      nz-popconfirm nzPopconfirmTitle="Xóa thành viên khỏi team?"
+                      nzOkText="Xóa" nzCancelText="Hủy"
+                      (nzOnConfirm)="removeMember(member.id)">
+                      <i nz-icon nzType="user-delete"></i>
+                    </a>
+                  </td>
+                </tr>
+                <tr *ngIf="memberTable.data.length === 0">
+                  <td colspan="6" style="text-align: center; color: #94a3b8; padding: 24px;">
+                    Team này chưa có thành viên
+                  </td>
+                </tr>
+              </tbody>
+            </nz-table>
+          </div>
+        </ng-container>
+        <ng-template #noSelection>
+          <div class="empty-state">
+            <i nz-icon nzType="usergroup-add" nzTheme="outline"></i>
+            <span>Chọn một team bên trái để xem danh sách thành viên</span>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</nz-spin>
+
+<!-- Modal Form -->
+<ng-template #teamFormTemplate>
+  <form nz-form nzLayout="vertical" class="compact-form">
+    <div class="field">
+      <span>Mã team <span class="required">*</span></span>
+      <input nz-input name="teamCode" nzSize="small" [(ngModel)]="draft.teamCode"
+        [disabled]="draft.id !== null" placeholder="VD: SALES_Q1_2026" maxlength="50" />
+      <small class="error-text" *ngIf="draftErrors.teamCode">{{ draftErrors.teamCode }}</small>
+    </div>
+
+    <div class="field">
+      <span>Tên team <span class="required">*</span></span>
+      <input nz-input name="teamName" nzSize="small" [(ngModel)]="draft.teamName"
+        placeholder="VD: Nhóm kinh doanh khu vực Hà Nội" maxlength="200" />
+      <small class="error-text" *ngIf="draftErrors.teamName">{{ draftErrors.teamName }}</small>
+    </div>
+
+    <div class="field">
+      <span>Mô tả</span>
+      <textarea nz-input name="teamDescription" nzSize="small" [(ngModel)]="draft.description"
+        rows="2" placeholder="Mô tả ngắn về team (không bắt buộc)"></textarea>
+    </div>
+
+    <div class="field">
+      <span>Trưởng nhóm <small class="muted">(tùy chọn)</small></span>
+      <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="leaderEmployeeId"
+        nzShowSearch nzAllowClear nzPlaceHolder="Chọn trưởng nhóm từ thành viên..."
+        [(ngModel)]="draft.leaderEmployeeId" class="w-100"
+        [nzDisabled]="draft.employeeIDs.length === 0">
+        <nz-option *ngFor="let item of selectedTeamMembersForDraft; trackBy: trackByEmployeeId"
+          [nzValue]="item.id" [nzLabel]="item.code + ' - ' + item.fullName">
+        </nz-option>
+      </nz-select>
+    </div>
+
+    <div class="field">
+      <span>Thành viên <span class="required">*</span>
+        <small class="muted">({{ draft.employeeIDs.length }} đã chọn)</small>
+      </span>
+      <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="teamEmployees"
+        nzMode="multiple" nzShowSearch
+        [nzMaxTagCount]="5" [nzMaxTagPlaceholder]="overflowTpl"
+        [(ngModel)]="draft.employeeIDs" nzPlaceHolder="Tìm và chọn nhân viên..." class="w-100">
+        <nz-option *ngFor="let item of employees; trackBy: trackByEmployeeId" [nzValue]="item.id"
+          [nzLabel]="item.code + ' - ' + item.fullName">
+        </nz-option>
+      </nz-select>
+      <ng-template #overflowTpl let-list>
+        +{{ list.length }} người
+      </ng-template>
+      <small class="error-text" *ngIf="draftErrors.employeeIDs">{{ draftErrors.employeeIDs }}</small>
+    </div>
+  </form>
+</ng-template>

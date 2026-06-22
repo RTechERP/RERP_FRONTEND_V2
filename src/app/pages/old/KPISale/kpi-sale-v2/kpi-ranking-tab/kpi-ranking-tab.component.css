@@ -1,0 +1,194 @@
+.kpi-ranking-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 12px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.ranking-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: #fafafa;
+  border-radius: 4px;
+  border: 1px solid #e8e8e8;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.toolbar-filters {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #262626;
+  white-space: nowrap;
+}
+
+.filter-btn {
+  margin-left: 4px;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.reward-config-info {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #e6f7ff;
+  border-radius: 4px;
+  border: 1px solid #91d5ff;
+  flex-wrap: wrap;
+}
+
+.config-item {
+  font-size: 13px;
+  color: #1890ff;
+}
+
+.config-item strong {
+  color: #096dd9;
+}
+
+.auto-label {
+  color: #8c8c8c;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.team-revenue-summary {
+  background: #fff7e6;
+  border-color: #ffd591;
+  margin-top: -6px;
+}
+
+.team-revenue-summary .config-item {
+  color: #d46b08;
+}
+
+.team-revenue-summary .config-item strong {
+  color: #ad4e00;
+}
+
+.money-value.highlight {
+  color: #d4380d;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ranking-table-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #e8e8e8;
+}
+
+.ranking-table-container ::ng-deep .ant-table-wrapper {
+  width: 100%;
+}
+
+.ranking-table-container ::ng-deep .ant-table-body {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+}
+
+.ranking-table-container ::ng-deep .ant-table-body-inner {
+  overflow-x: auto !important;
+}
+
+.money-value {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 12px;
+}
+
+.percent-value {
+  font-weight: 500;
+}
+
+.percent-value.high-achievement {
+  color: #52c41a;
+}
+
+.percent-value.mid-achievement {
+  color: #1890ff;
+}
+
+.percent-value.low-achievement {
+  color: #faad14;
+}
+
+.bonus-value {
+  color: #1890ff;
+}
+
+.bonus-value.ranking-bonus.has-bonus {
+  color: #fa8c16;
+  font-weight: 600;
+}
+
+.new-account-count {
+  background: #fff7e6;
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: #fa8c16;
+  font-weight: 600;
+}
+
+.total-bonus {
+  color: #52c41a;
+  font-size: 13px;
+}
+
+tfoot tr {
+  background: #f5f5f5;
+}
+
+tfoot td {
+  font-weight: 600;
+}
+
+/* Đảm bảo tag Rank 3 (volcano) có chữ trắng rõ, không bị trùng nền */
+.ranking-table-container .ant-tag-volcano {
+  color: #ffffff !important;
+  background: #d4380d !important;
+  border-color: #d4380d !important;
+  font-weight: 600;
+}
+
+/* Giữ tương phản cho Rank 1 (gold) & Rank 2 (silver) */
+.ranking-table-container .ant-tag-gold {
+  color: #874d00 !important;
+  background: #ffe58f !important;
+  border-color: #ffe58f !important;
+  font-weight: 600;
+}
+
+.ranking-table-container .ant-tag-silver {
+  color: #595959 !important;
+  background: #d9d9d9 !important;
+  border-color: #d9d9d9 !important;
+  font-weight: 600;
+}

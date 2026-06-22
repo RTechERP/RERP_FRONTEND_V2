@@ -3,6 +3,14 @@
   <div class="kpi-summary-toolbar">
     <div class="toolbar-row">
       <div class="toolbar-field">
+        <label>Chế độ</label>
+        <nz-radio-group [(ngModel)]="isTeamMode" (ngModelChange)="onSummaryModeChange()">
+          <label nz-radio-button [nzValue]="false">Cá nhân</label>
+          <label nz-radio-button [nzValue]="true">Team</label>
+        </nz-radio-group>
+      </div>
+
+      <div class="toolbar-field" *ngIf="!isTeamMode">
         <label>Nhân viên</label>
         <nz-select
           [(ngModel)]="selectedEmployeeId"
@@ -19,17 +27,19 @@
         </nz-select>
       </div>
 
-      <div class="toolbar-field">
-        <label>Mẫu KPI</label>
+      <div class="toolbar-field" *ngIf="isTeamMode">
+        <label>Nhóm KPI</label>
         <nz-select
-          [(ngModel)]="selectedTemplateId"
-          (ngModelChange)="onTemplateChange()"
-          nzPlaceHolder="Chọn mẫu KPI"
-          style="width: 220px">
+          [(ngModel)]="selectedTeamId"
+          (ngModelChange)="onTeamChange()"
+          nzPlaceHolder="Chọn nhóm KPI"
+          nzShowSearch
+          nzAllowClear
+          style="width: 240px">
           <nz-option
-            *ngFor="let t of templates"
-            [nzValue]="t.id"
-            [nzLabel]="t.templateName">
+            *ngFor="let team of teams"
+            [nzValue]="team.ID"
+            [nzLabel]="(team.TeamCode || '') + ' - ' + (team.TeamName || '')">
           </nz-option>
         </nz-select>
       </div>
@@ -51,6 +61,13 @@
         </nz-select>
       </div>
 
+      <div class="toolbar-field">
+        <label></label>
+        <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" [disabled]="!summaryData">
+          <span nz-icon nzType="file-excel"></span> Xuất Excel
+        </button>
+      </div>
+
       <div class="toolbar-field toolbar-badge" *ngIf="summaryData">
         <nz-badge [nzStatus]="'success'" nzText="Đã tải"></nz-badge>
       </div>
@@ -59,13 +76,21 @@
 
   <!-- Summary Info Bar -->
   <div class="summary-info-bar" *ngIf="summaryData">
+    <span class="info-tag" *ngIf="!isTeamMode">
+      <span nz-icon nzType="user" nzTheme="outline"></span>
+      Nhân viên: {{ getEmployeeName() }}
+    </span>
+    <span class="info-tag" *ngIf="isTeamMode">
+      <span nz-icon nzType="team" nzTheme="outline"></span>
+      Nhóm: {{ getTeamName() }}
+    </span>
+    <span class="info-tag">
+      <span nz-icon nzType="file-text" nzTheme="outline"></span>
+      Mẫu: {{ boundTemplateName || '— chưa gán —' }}
+    </span>
     <span class="info-tag">
       <span nz-icon nzType="calendar" nzTheme="outline"></span>
       {{ summaryData.quarterName || summaryData.quarterCode }}
-    </span>
-    <span class="info-tag">
-      <span nz-icon nzType="unordered-list" nzTheme="outline"></span>
-      {{ summaryData.items.length || 0 }} chỉ số
     </span>
     <span class="info-tag" *ngIf="summaryData.warnings && summaryData.warnings.length">
       <span nz-icon nzType="warning" nzTheme="outline"></span>
@@ -74,6 +99,13 @@
   </div>
 
   <!-- Table -->
+  <!-- <div class="table-mode-banner" *ngIf="isTeamMode && summaryData">
+    <nz-tag nzColor="processing">
+      <i nz-icon nzType="team"></i> Chế độ nhóm
+    </nz-tag>
+    <span class="text-muted">KPI tổng hợp nhóm: sum(target) / sum(result) theo từng tháng và quý</span>
+  </div> -->
+
   <div class="table-wrapper" *ngIf="summaryData && summaryData.items && summaryData.items.length > 0; else emptyTpl">
     <nz-spin [nzSpinning]="loading" nzSize="large">
       <div class="table-scroll">
@@ -147,95 +179,29 @@
               </td>
             </tr>
           </tbody>
-
-          <!-- Footer -->
-          <tfoot>
-            <tr class="footer-row">
-              <td class="col-index footer-label">
-                <strong>Tổng điểm KPI</strong>
-              </td>
-              <ng-container *ngFor="let p of summaryData.periods; let i = index">
-                <td class="col-goal"></td>
-                <td class="col-result"></td>
-                <td class="col-score footer-score-cell">
-                  <strong class="footer-score">{{ getSummaryPerformanceLabel(i) }}</strong>
-                </td>
-              </ng-container>
-              <td class="col-goal col-quarter"></td>
-              <td class="col-result col-quarter"></td>
-              <td class="col-score col-quarter footer-score-cell">
-                <strong class="footer-score footer-score-quarter">
-                  {{ getSummaryPerformanceLabel(3) }}
-                </strong>
-              </td>
-            </tr>
-          </tfoot>
         </table>
       </div>
     </nz-spin>
   </div>
 
   <!-- Report Adjustments Table -->
-  <div class="report-table-wrapper" *ngIf="hasReportRows && summaryData">
-    <div class="report-table-header">
-      <span class="report-title">
-        <span nz-icon nzType="file-text" nzTheme="outline"></span>
-        Điều chỉnh điểm báo cáo
-      </span>
-      <span class="report-count">{{ reportRows.length }} chỉ tiêu</span>
-    </div>
-    <nz-spin [nzSpinning]="loading" nzSize="large">
-      <div class="report-table-scroll">
-        <table class="kpi-report-table">
+  <div class="report-table-wrapper report-table-wrapper--compact" *ngIf="hasReportRows && summaryData && !isTeamMode">
+    <nz-spin [nzSpinning]="loading" nzSize="small">
+      <div class="report-table-scroll report-table-scroll--compact">
+        <table class="kpi-report-table kpi-report-table--ultra-compact">
           <thead>
-            <tr class="report-header-row-1">
-              <th class="col-report-index" rowspan="2">Chỉ tiêu báo cáo</th>
-              <ng-container *ngFor="let p of summaryData.periods; let i = index">
-                <th class="col-report-period-group" colspan="2">{{ p.periodName || p.periodCode }}</th>
-              </ng-container>
-              <th class="col-report-period-group col-report-quarter" colspan="2">
+            <tr class="report-header-row-2">
+              <th class="col-report-index col-report-index--slim">Chỉ tiêu báo cáo</th>
+              <th class="col-report-score col-report-quarter">
                 {{ summaryData.quarterName || summaryData.quarterCode }}
               </th>
-            </tr>
-            <tr class="report-header-row-2">
-              <ng-container *ngFor="let p of summaryData.periods">
-                <th class="col-report-adjustment">Điều chỉnh</th>
-                <th class="col-report-score">Điểm</th>
-              </ng-container>
-              <th class="col-report-adjustment col-report-quarter">Điều chỉnh</th>
-              <th class="col-report-score col-report-quarter">Điểm</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let row of reportRows; let rowIndex = index"
                 [ngClass]="{'row-even': rowIndex % 2 === 1}">
-              <td class="col-report-index">
-                <div class="index-cell">
-                  <span class="index-name">{{ row.indexName }}</span>
-                </div>
-              </td>
-              <!-- Monthly Values -->
-              <ng-container *ngFor="let mv of row.monthlyValues; let i = index">
-                <td class="col-report-adjustment" [class]="getAdjustmentTypeClass(row.reportScoreAdjustmentType)">
-                  <span class="adjustment-badge" *ngIf="row.reportScoreAdjustmentType !== 0"
-                        [ngClass]="getAdjustmentTypeClass(row.reportScoreAdjustmentType)">
-                    <span class="adjustment-type">{{ getAdjustmentTypeLabel(row.reportScoreAdjustmentType) }}</span>
-                    <span class="adjustment-value">{{ round(row.reportScoreValue) }}%</span>
-                  </span>
-                  <span *ngIf="row.reportScoreAdjustmentType === 0" class="adjustment-none">-</span>
-                </td>
-                <td class="col-report-score" [class]="getScoreClass(row.quarterValue.score, 100)">
-                  <span class="score-text">{{ round(mv.score) }}%</span>
-                </td>
-              </ng-container>
-              <!-- Quarterly Values -->
-              <td class="col-report-adjustment col-report-quarter" [class]="getAdjustmentTypeClass(row.reportScoreAdjustmentType)">
-                <span class="adjustment-badge" *ngIf="row.reportScoreAdjustmentType !== 0"
-                      [ngClass]="getAdjustmentTypeClass(row.reportScoreAdjustmentType)">
-                  <span class="adjustment-type">{{ getAdjustmentTypeLabel(row.reportScoreAdjustmentType) }}</span>
-                  <span class="adjustment-value">{{ round(row.reportScoreValue) }}%</span>
-                </span>
-                <span *ngIf="row.reportScoreAdjustmentType === 0" class="adjustment-none">-</span>
+              <td class="col-report-index col-report-index--slim">
+                <span class="index-name">{{ row.indexName }}</span>
               </td>
               <td class="col-report-score col-report-quarter" [class]="getScoreClass(row.quarterValue.score, 100)">
                 <span class="score-text">{{ round(row.quarterValue.score) }}%</span>
@@ -247,18 +213,57 @@
     </nz-spin>
   </div>
 
+  <!-- KPI Total Score Table -->
+  <div class="report-table-wrapper" *ngIf="summaryData && summaryData.summary">
+    <div class="report-table-header">
+      <span class="report-title">
+        <span nz-icon nzType="trophy" nzTheme="outline"></span>
+        Total Performance
+      </span>
+    </div>
+    <nz-spin [nzSpinning]="loading" nzSize="large">
+      <div class="report-table-scroll">
+        <table class="kpi-report-table kpi-total-table">
+          <thead>
+            <tr class="report-header-row-1">
+              <ng-container *ngFor="let p of summaryData.periods">
+                <th class="col-report-period-group">{{ p.periodName || p.periodCode }}</th>
+              </ng-container>
+              <th class="col-report-period-group col-report-quarter">
+                {{ summaryData.quarterName || summaryData.quarterCode }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <ng-container *ngFor="let p of summaryData.periods; let i = index">
+                <td class="col-report-score" [class]="getScoreClass(getMonthScore(i), 100)">
+                  <span class="score-text">{{ round(getMonthScore(i)) }}%</span>
+                </td>
+              </ng-container>
+              <td class="col-report-score col-report-quarter" [class]="getScoreClass(summaryData.summary.quarterScore, 100)">
+                <span class="score-text">{{ round(summaryData.summary.quarterScore) }}%</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </nz-spin>
+  </div>
+
   <!-- Empty State -->
   <ng-template #emptyTpl>
     <div class="empty-state" *ngIf="!loading">
-      <div *ngIf="!selectedEmployeeId || !selectedQuarterId || !selectedTemplateId">
+      <div *ngIf="isMissingSelection()">
         <span nz-icon nzType="info-circle" nzTheme="outline" class="empty-icon"></span>
-        <p>Vui lòng chọn <strong>nhân viên</strong>, <strong>mẫu KPI</strong> và <strong>quý</strong> để xem dữ liệu tổng hợp.</p>
+        <p *ngIf="isTeamMode">Vui lòng chọn <strong>nhóm KPI</strong> và <strong>quý</strong> để xem dữ liệu tổng hợp. Mẫu KPI sẽ tự lấy theo nhóm.</p>
+        <p *ngIf="!isTeamMode">Vui lòng chọn <strong>nhân viên</strong> và <strong>quý</strong> để xem dữ liệu tổng hợp. Mẫu KPI sẽ tự lấy theo nhân viên.</p>
       </div>
-      <div *ngIf="selectedEmployeeId && selectedQuarterId && selectedTemplateId && !summaryData && !loading">
+      <div *ngIf="!isMissingSelection() && !summaryData && !loading">
         <span nz-icon nzType="loading" nzTheme="outline" class="empty-icon"></span>
         <p>Đang tải dữ liệu...</p>
       </div>
-      <div *ngIf="selectedEmployeeId && selectedQuarterId && selectedTemplateId && summaryData && summaryData.items && summaryData.items.length === 0">
+      <div *ngIf="!isMissingSelection() && summaryData && summaryData.items && summaryData.items.length === 0">
         <span nz-icon nzType="file-search" nzTheme="outline" class="empty-icon"></span>
         <p>Không có dữ liệu KPI cho kỳ đã chọn.</p>
       </div>

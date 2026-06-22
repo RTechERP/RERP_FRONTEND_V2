@@ -3,30 +3,39 @@
     <div class="kpi-sale-page">
       <div class="kpi-toolbar">
         <div class="toolbar-actions">
-          <button nz-button nzType="default" nzSize="small" (click)="openTemplateIndexTab()">
+          <!-- <button nz-button nzType="default" nzSize="small" (click)="openTemplateIndexTab()">
             <i nz-icon nzType="setting"></i> Mẫu & Chỉ tiêu
           </button>
           <button nz-button nzType="default" nzSize="small" (click)="openPeriodManagerTab()">
             <i nz-icon nzType="calendar"></i> Quản lý kỳ KPI
-          </button>
-          <button nz-button nzType="default" nzSize="small" (click)="openAllowedDataTab()">
+          </button> -->
+          <button nz-button nzType="default" nzSize="small" (click)="openAllowedDataTab()" *hasPermission="'N1'">
             <i nz-icon nzType="database"></i> Dữ liệu được phép
           </button>
-          <button nz-button nzType="default" nzSize="small" (click)="openDataSourceTab()">
+          <button nz-button nzType="default" nzSize="small" (click)="openDataSourceTab()" *hasPermission="'N1'">
             <i nz-icon nzType="database"></i> Nguồn dữ liệu
           </button>
-          <button nz-button nzType="default" nzSize="small" (click)="openMappingTab()">
+          <!-- <button nz-button nzType="default" nzSize="small" (click)="openMappingTab()">
             <i nz-icon nzType="link"></i> Ánh xạ & Bộ lọc
-          </button>
-          <button nz-button nzType="default" nzSize="small" (click)="openFormulaTab()">
+          </button> -->
+          <!-- <button nz-button nzType="default" nzSize="small" (click)="openFormulaTab()">
             <i nz-icon nzType="calculator"></i> Công thức & Chấm điểm
-          </button>
-          <button nz-button nzType="default" nzSize="small" (click)="openTargetTab()">
+          </button> -->
+          <!-- <button nz-button nzType="default" nzSize="small" (click)="openTargetTab()">
             <i nz-icon nzType="percentage"></i> Mục tiêu KPI
           </button>
           <button nz-button nzType="default" nzSize="small" (click)="openSummaryTab()">
             <i nz-icon nzType="dashboard"></i> Tổng hợp KPI
+          </button> -->
+          <!-- <button nz-button nzType="default" nzSize="small" (click)="openTeamTab()">
+            <i nz-icon nzType="team"></i> Quản lý Team
           </button>
+          <button nz-button nzType="default" nzSize="small" (click)="openRankingTab()">
+            <i nz-icon nzType="trophy"></i> Ranking & Thưởng
+          </button>
+          <button nz-button nzType="default" nzSize="small" (click)="openRewardConfigTab()">
+            <i nz-icon nzType="setting"></i> Cấu hình thưởng
+          </button> -->
           <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="runCalculate()">
             <img src="assets/icon/btn_refresh.png" alt="" /> Tính KPI
           </button>
@@ -34,7 +43,7 @@
             <img src="assets/icon/action_export_excel_16.png" alt="" /> Xuất CSV
           </button>
           <button nz-button nzType="default" nzSize="small" (click)="reloadFromApi()">
-            <img src="assets/icon/btn_refresh.png" alt="" /> Tải API
+            <img src="assets/icon/btn_refresh.png" alt="" /> Tải dữ liệu
           </button>
         </div>
       </div>
@@ -75,12 +84,34 @@
         <section class="panel result-filter">
           <form nz-form nzLayout="inline" class="result-form">
             <nz-form-item>
+              <nz-form-label>Kiểu tính</nz-form-label>
+              <nz-form-control>
+                <nz-radio-group nzSize="small" [(ngModel)]="isTeamMode" name="calculateMode"
+                  (ngModelChange)="onCalculateModeChange()">
+                  <label nz-radio-button [nzValue]="false">Cá nhân</label>
+                  <label nz-radio-button [nzValue]="true">Nhóm (Team)</label>
+                </nz-radio-group>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item *ngIf="!isTeamMode">
               <nz-form-label>Nhân viên</nz-form-label>
               <nz-form-control>
                 <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="calculateEmployee"
                   nzShowSearch [(ngModel)]="selectedEmployeeId" (ngModelChange)="onResultFilterChange()">
                   <nz-option *ngFor="let item of employees; trackBy: trackById" [nzValue]="item.id"
                     [nzLabel]="item.code + ' - ' + item.fullName">
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item *ngIf="isTeamMode">
+              <nz-form-label>Team <span style="color: #ff4d4f;">*</span></nz-form-label>
+              <nz-form-control>
+                <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="calculateTeam"
+                  nzShowSearch [(ngModel)]="selectedTeamId" (ngModelChange)="onTeamSelectionChange()"
+                  nzPlaceHolder="Chọn team đã khai báo" class="team-select">
+                  <nz-option *ngFor="let item of teamOptions" [nzValue]="item.id"
+                    [nzLabel]="item.teamCode + ' - ' + item.teamName + ' (' + item.employeeIDs.length + ' người)'">
                   </nz-option>
                 </nz-select>
               </nz-form-control>
@@ -98,12 +129,20 @@
             <nz-form-item>
               <nz-form-label>Mẫu KPI</nz-form-label>
               <nz-form-control>
-                <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="calculateTemplate"
-                  [(ngModel)]="selectedTemplateId" (ngModelChange)="onTemplateChange($event)">
-                  <nz-option *ngFor="let item of templates; trackBy: trackById" [nzValue]="item.id"
-                    [nzLabel]="item.templateName">
-                  </nz-option>
-                </nz-select>
+                <ng-container *ngIf="boundTemplateName; else noBindingTpl">
+                  <nz-tag nzColor="processing" nz-tooltip
+                    [nzTooltipTitle]="'Mẫu được tự động binding theo kỳ KPI + nhân viên đang chọn'">
+                    <i nz-icon nzType="link"></i>
+                    {{ boundTemplateName }}
+                  </nz-tag>
+                </ng-container>
+                <ng-template #noBindingTpl>
+                  <span class="binding-empty">
+                    <i nz-icon nzType="warning" nzTheme="outline"></i>
+                    Chưa gán mẫu cho {{ getSelectedEmployeeName() || 'nhân viên' }} ở kỳ này.
+                    <a *ngIf="!isTeamMode" (click)="openTargetTab()">Gán ngay</a>
+                  </span>
+                </ng-template>
               </nz-form-control>
             </nz-form-item>
             <nz-form-item>
@@ -116,15 +155,24 @@
             <button nz-button nzType="primary" nzSize="small" type="button" (click)="runCalculate()">Tính
               KPI</button>
           </form>
-          <div class="snapshot-info">
+          <!-- <div class="snapshot-info">
+            <span *ngIf="!isTeamMode">Nhân viên: {{ getSelectedEmployeeName() }}</span>
+            <span *ngIf="isTeamMode">Nhóm: {{ getSelectedTeamLabel() }}</span>
             <span>Bản ghi: {{ lastCalculatedAt | date: 'dd/MM/yyyy HH:mm' }}</span>
             <span>{{ selectedTemplate?.templateName }}</span>
-          </div>
+          </div> -->
         </section>
 
         <section class="panel result-table">
-          <nz-table #resultTable [nzData]="resultTreeRowsFiltered" [nzFrontPagination]="false" nzSize="small"
-            nzBordered [nzScroll]="{ x: '1180px', y: 'calc(100vh - 350px)' }">
+          <!-- <div class="table-mode-banner" *ngIf="isTeamMode">
+            <nz-tag nzColor="processing">
+              Chế độ nhóm ({{ selectedEmployeeIds.length }} người)
+            </nz-tag>
+            <span class="text-muted">KPI tổng hợp: sum(target) / sum(result) → re-compute score</span>
+          </div> -->
+          <div class="result-table-container">
+            <nz-table #resultTable [nzData]="resultTreeRowsFiltered" [nzFrontPagination]="false" nzSize="small"
+              nzBordered [nzScroll]="{ x: '1180px', y: '65vh' }">
             <thead>
               <tr>
                 <th nzLeft>Kỳ KPI</th>
@@ -138,13 +186,13 @@
                 <th>Tỷ lệ đạt</th>
                 <th>Trọng số</th>
                 <th>Điểm cuối</th>
-                <th>Chính</th>
+                <!-- <th>Chính</th> -->
                 <th>Ngày tính</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let item of resultTable.data; trackBy: trackById"
-                [class.main-index-row]="item.row.isMainIndex" [class.fw-bold]="item.row.isBold">
+                [class.main-index-row]="false" [class.fw-bold]="item.row.isBold">
                 <td nzLeft>{{ item.row.periodCode || getPeriodName(item.row.periodId || selectedPeriodId) }}</td>
                 <td nzLeft class="mono" [nzIndentSize]="item.level * 20" [nzShowExpand]="item.expandable"
                   [nzExpand]="item.expanded" (nzExpandChange)="toggleResultExpand(item, $event)">
@@ -161,7 +209,7 @@
                   <ng-container *ngIf="item.row.indexType === 'REPORT'; else noAdjustment">
                     <ng-container *ngIf="item.row.periodType === 'MONTH'; else quarterAdjustment">
                       <div class="report-adjustment-cell">
-                          <span class="adjustment-type-label">{{ getAdjustmentTypeLabel(item.row.reportScoreAdjustmentType) }}</span>
+                          <span class="adjustment-type-label">{{ getAdjustmentTypeLabel(item.row.reportScoreAdjustmentType) }} </span>
                         <nz-input-number nzSize="small" style="width: 70px;" [nzMin]="0"
                           [(ngModel)]="item.row.reportScoreValue" [ngModelOptions]="{ standalone: true }"
                           (ngModelChange)="onReportAdjustmentChange(item.row)">
@@ -181,29 +229,30 @@
                 <td class="text-end">{{ formatMetric(item.row.resultValue, item.row.unitType) }}</td>
                 <td class="text-end">{{ formatPercent(item.row.achievedPercent) }}</td>
                 <td class="text-end">{{ item.row.weightPercent | number: '1.0-2' }}%</td>
-                <td class="text-end">{{ item.row.finalScore | number: '1.0-2' }}</td>
-                <td><label nz-checkbox [ngModel]="item.row.isMainIndex"
+                <td class="text-end">{{ item.row.finalScore | number: '1.0-2' }}%</td>
+                <!-- <td><label nz-checkbox [ngModel]="item.row.isMainIndex"
                     [ngModelOptions]="{ standalone: true }"></label>
-                </td>
+                </td> -->
                 <td>{{ item.row.calculatedDate | date: 'dd/MM/yyyy HH:mm' }}</td>
               </tr>
             </tbody>
           </nz-table>
+          </div>
         </section>
 
         <section class="panel total-performance-panel">
           <div class="total-performance-score-card">
             <span class="total-performance-score-label">Điểm tổng cuối</span>
-            <strong>{{ totalPerformanceScore | number: '1.0-2' }}</strong>
+            <strong>{{ totalPerformanceScore | number: '1.0-2' }}%</strong>
           </div>
         </section>
 
-        <section class="panel calculation-log">
+        <!-- <section class="panel calculation-log">
           <h6>Nhật ký tính toán</h6>
           <ol>
             <li *ngFor="let item of calculationLogs">{{ item }}</li>
           </ol>
-        </section>
+        </section> -->
       </div>
     </div>
   </nz-spin>

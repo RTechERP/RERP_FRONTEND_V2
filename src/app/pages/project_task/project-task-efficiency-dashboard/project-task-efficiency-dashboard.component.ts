@@ -18,13 +18,14 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
 import * as echarts from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
-import { BarChart } from 'echarts/charts';
+import { BarChart, RadarChart } from 'echarts/charts';
 import {
   TitleComponent,
   TooltipComponent,
   GridComponent,
   LegendComponent,
-  PolarComponent
+  PolarComponent,
+  RadarComponent
 } from 'echarts/components';
 
 // Services
@@ -36,11 +37,13 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 echarts.use([
   CanvasRenderer,
   BarChart,
+  RadarChart,
   TitleComponent,
   TooltipComponent,
   GridComponent,
   LegendComponent,
-  PolarComponent
+  PolarComponent,
+  RadarComponent
 ]);
 
 @Component({
@@ -486,59 +489,41 @@ export class ProjectTaskEfficiencyDashboardComponent implements OnInit {
       tooltip: {
         trigger: 'item',
         formatter: (params: any) => {
-          return `${params.seriesName}<br/>KPI: <b>${params.value[0]}%</b>`;
+          let html = `<div style="font-weight:bold; margin-bottom: 5px;">${params.name}</div>`;
+          const indicators = data.map(d => d.EmployeeFullName || 'Nhân viên');
+          params.value.forEach((val: any, idx: number) => {
+            html += `<div>${indicators[idx]}: <b>${val}%</b></div>`;
+          });
+          return html;
         }
       },
-      legend: {
-        type: 'scroll',
-        orient: 'vertical',
-        right: 10,
-        top: 40,
-        bottom: 20,
-        textStyle: { fontSize: 11 }
-      },
-      polar: {
-        center: ['40%', '55%'],
-        radius: [15, '75%']
-      },
-      angleAxis: {
-        type: 'value',
-        min: -180,
-        max: 180,
-        startAngle: 90,
-        clockwise: true,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: { show: false },
-        splitLine: { show: false }
-      },
-      radiusAxis: {
-        min: 0,
-        max: 100,
-        interval: 20,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: { show: false },
-        splitLine: {
-          show: true,
-          lineStyle: { color: '#000000', width: 1, type: 'solid' }
+      radar: {
+        indicator: data.map(d => ({ 
+          name: d.EmployeeFullName || 'Nhân viên', 
+          max: 100 
+        })),
+        radius: '65%',
+        center: ['50%', '55%'],
+        axisName: {
+           formatter: (value: string) => { 
+               return value.length > 15 ? value.substring(0, 15) + '...' : value; 
+           }
         }
       },
-      series: data.map((d, i) => {
-        const angle = (i - (data.length - 1) / 2) * 3.5; // spread angle
-        return {
-          name: d.EmployeeFullName || `Nhân viên ${i + 1}`,
-          type: 'bar',
-          coordinateSystem: 'polar',
-          data: [[d.FinalKPIScore || 0, angle]],
-          barWidth: 6, // thin spokes
-          roundCap: true,
-          itemStyle: {
-            color: `hsl(${(i * 137.5) % 360}, 70%, 50%)`
-          },
-          emphasis: { disabled: true }
-        };
-      })
+      series: [
+        {
+          name: 'KPI Tổng hợp',
+          type: 'radar',
+          data: [
+            {
+              value: data.map(d => d.FinalKPIScore || 0),
+              name: 'Final KPI',
+              itemStyle: { color: '#4f46e5' },
+              areaStyle: { color: 'rgba(79, 70, 229, 0.4)' }
+            }
+          ]
+        }
+      ]
     };
   }
 

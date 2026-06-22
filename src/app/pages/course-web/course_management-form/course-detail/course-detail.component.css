@@ -34,3 +34,122 @@ legend.reset {
   border: none;
 }
 
+/* ===== Thumbnail Upload ===== */
+.thumbnail-upload-area {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.thumbnail-preview-box {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  aspect-ratio: 16 / 9;
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #fafafa;
+  transition: border-color 0.2s, background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thumbnail-preview-box:hover {
+  border-color: #1890ff;
+  background: #f0f8ff;
+}
+
+.thumbnail-preview-box.thumbnail-has-image {
+  border-style: solid;
+  border-color: #d9d9d9;
+  cursor: default;
+}
+
+.thumbnail-preview-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #1a1a2e;
+  display: block;
+}
+
+/* Overlay khi hover có ảnh */
+.thumbnail-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #fff;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+
+.thumbnail-preview-box:hover .thumbnail-overlay {
+  opacity: 1;
+}
+
+.thumbnail-overlay i {
+  font-size: 1.1rem;
+}
+
+/* Placeholder khi chưa có ảnh */
+.thumbnail-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #bbb;
+  font-size: 0.75rem;
+  padding: 12px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.thumbnail-placeholder-icon {
+  font-size: 1.8rem;
+  color: #ccc;
+}
+
+.thumbnail-placeholder-hint {
+  font-size: 0.65rem;
+  color: #ccc;
+}
+
+/* Nút hành động */
+.thumbnail-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Thông tin file */
+.thumbnail-file-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: #555;
+}
+
+.thumbnail-filename {
+  font-weight: 500;
+  color: #333;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thumbnail-filesize {
+  color: #888;
+}

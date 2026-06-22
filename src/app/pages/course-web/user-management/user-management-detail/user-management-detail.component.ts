@@ -68,6 +68,7 @@ export class UserManagementDetailComponent implements OnInit {
       Address: [''],
       Organization: [''],
       Position: [''],
+      CanLearnAhead: [false],
     });
   }
 
@@ -83,6 +84,7 @@ export class UserManagementDetailComponent implements OnInit {
         Address: this.userData.Address || '',
         Organization: this.userData.Organization || '',
         Position: this.userData.Position || '',
+        CanLearnAhead: this.userData.CanLearnAhead || false,
       });
     }
   }
@@ -108,13 +110,14 @@ export class UserManagementDetailComponent implements OnInit {
       Address: formValue.Address,
       Organization: formValue.Organization,
       Position: formValue.Position,
+      CanLearnAhead: formValue.CanLearnAhead,
     };
 
     if (this.mode === 'add') {
       payload.PasswordHash = formValue.PasswordHash;
     }
 
-    if (this.mode === 'edit' ) {
+    if (this.mode === 'edit') {
       payload.ID = this.userData?.ID;
     }
 

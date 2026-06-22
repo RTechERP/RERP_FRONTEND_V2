@@ -143,6 +143,12 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
   isQuiz: boolean = false;
   isPractice: boolean = false;
   isExercise: boolean = false;
+
+  // Toggle panel danh sách bài học
+  isLessonPanelCollapsed: boolean = false;
+  toggleLessonPanel(): void {
+    this.isLessonPanelCollapsed = !this.isLessonPanelCollapsed;
+  }
   videoUrl: string = '';
   playbackRates: number[] = [1, 1.25, 1.5, 1.75, 2];
   selectedPlaybackRate: number = 1;

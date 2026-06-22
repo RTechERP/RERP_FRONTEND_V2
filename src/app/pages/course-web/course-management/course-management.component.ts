@@ -123,9 +123,9 @@ export class CourseWebManagementComponent implements OnInit, AfterViewInit {
   lessonData: Lesson[] = [];
   lessonID: number = 0;
 
-categoryMenuBars : MenuItem[] = [];
-courseMenuBars : MenuItem[] = [];
-lessonMenuBars : MenuItem[] = [];
+  categoryMenuBars: MenuItem[] = [];
+  courseMenuBars: MenuItem[] = [];
+  lessonMenuBars: MenuItem[] = [];
 
   searchParams = {
     categoryID: 0,
@@ -157,10 +157,10 @@ lessonMenuBars : MenuItem[] = [];
       .subscribe((result) => {
         this.splitterLayout = result.matches ? 'vertical' : 'horizontal';
       });
+    this.ngOnInitMenu();
   }
 
   ngAfterViewInit(): void {
-    this.ngOnInitMenu();
     this.draw_categoryTable();
     this.draw_courseTable();
     this.draw_lessonTable();
@@ -169,102 +169,102 @@ lessonMenuBars : MenuItem[] = [];
     // this.getDataTeam();
   }
   ngOnInitMenu(): void {
-   this.categoryMenuBars = [
-    {
-      label: 'Thêm',
-      icon: 'fa-solid fa-circle-plus fa-lg text-success',
-      visible: this.permissionService.hasPermission("N96"),
-      command: () => {
-        this.onAddCategory();
+    this.categoryMenuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-circle-plus fa-lg text-success',
+        visible: this.permissionService.hasPermission("N96"),
+        command: () => {
+          this.onAddCategory();
+        },
       },
-    },
 
-    {
-      label: 'Sửa',
-      icon: 'fa-solid fa-file-pen fa-lg text-primary',
-      visible: this.permissionService.hasPermission("N96"),
-      command: () => {
-        this.onEditCategory();
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-file-pen fa-lg text-primary',
+        visible: this.permissionService.hasPermission("N96"),
+        command: () => {
+          this.onEditCategory();
+        },
       },
-    },
-    {
-      label: 'Xóa',
-      icon: 'fa-solid fa-trash fa-lg text-danger',
-      visible: this.permissionService.hasPermission("N96"),
-      command: () => {
-        this.onDeleteCategory();
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        visible: this.permissionService.hasPermission("N96"),
+        command: () => {
+          this.onDeleteCategory();
+        },
       },
-    },
-    {
-      label: 'Copy Danh mục',
-      icon: 'fa-solid fa-copy fa-lg text-warning',
-      visible: this.permissionService.hasPermission("N96"),
-      command: () => {
-        this.openCopyCatalogModal();
+      {
+        label: 'Copy Danh mục',
+        icon: 'fa-solid fa-copy fa-lg text-warning',
+        visible: this.permissionService.hasPermission("N96"),
+        command: () => {
+          this.openCopyCatalogModal();
+        },
       },
-    },
 
-    { separator: true },
-  ];
+      { separator: true },
+    ];
 
-  this.courseMenuBars = [
-    {
-      label: 'Thêm',
-      icon: 'fa-solid fa-circle-plus fa-lg text-success',
-      visible: this.permissionService.hasPermission("N96"),
-      command: () => {
-        this.onAddCourse();
+    this.courseMenuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-circle-plus fa-lg text-success',
+        visible: this.permissionService.hasPermission("N96"),
+        command: () => {
+          this.onAddCourse();
+        },
       },
-    },
 
-    {
-      label: 'Sửa',
-      icon: 'fa-solid fa-file-pen fa-lg text-primary',
-      visible: this.permissionService.hasPermission("N96"),
-      command: () => {
-        this.onEditCourse();
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-file-pen fa-lg text-primary',
+        visible: this.permissionService.hasPermission("N96"),
+        command: () => {
+          this.onEditCourse();
+        },
       },
-    },
-    {
-      label: 'Xóa',
-      icon: 'fa-solid fa-trash fa-lg text-danger',
-      visible: this.permissionService.hasPermission("N96"),
-      command: () => {
-        this.onDeleteCourse();
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        visible: this.permissionService.hasPermission("N96"),
+        command: () => {
+          this.onDeleteCourse();
+        },
       },
-    },
 
-    { separator: true },
-  ];
+      { separator: true },
+    ];
 
-  this.lessonMenuBars = [
-    {
-      label: 'Thêm',
-      icon: 'fa-solid fa-circle-plus fa-lg text-success',
-      visible: this.permissionService.hasPermission("N96"),
-      command: () => {
-        this.onAddLesson();
+    this.lessonMenuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-circle-plus fa-lg text-success',
+        visible: this.permissionService.hasPermission("N96"),
+        command: () => {
+          this.onAddLesson();
+        },
       },
-    },
 
-    {
-      label: 'Sửa',
-      icon: 'fa-solid fa-file-pen fa-lg text-primary',
-      visible: this.permissionService.hasPermission("N96"),
-      command: () => {
-        this.onEditLesson();
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-file-pen fa-lg text-primary',
+        visible: this.permissionService.hasPermission("N96"),
+        command: () => {
+          this.onEditLesson();
+        },
       },
-    },
-    {
-      label: 'Xóa',
-      icon: 'fa-solid fa-trash fa-lg text-danger',
-      visible: this.permissionService.hasPermission("N96"),
-      command: () => {
-        this.onDeleteLesson();
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        visible: this.permissionService.hasPermission("N96"),
+        command: () => {
+          this.onDeleteLesson();
+        },
       },
-    },
-    { separator: true },
-  ];
+      { separator: true },
+    ];
   }
   getDataCategory() {
     this.courseService.getDataCategory(-1).subscribe(

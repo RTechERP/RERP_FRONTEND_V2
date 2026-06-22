@@ -36,6 +36,7 @@ import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { CourseTypeDetailComponent } from '../../course-type/course-type-detail/course-type-detail.component';
+import { environment } from '../../../../../environments/environment';
 
 interface Course {
   ID?: number;
@@ -51,6 +52,7 @@ interface Course {
   QuestionDuration: number;
   IdeaID?: number[] | null;
   KPIID?: number[] | null;
+  Thumbnail?: string | null;
 }
 
 @Component({
@@ -109,6 +111,13 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
   saving: boolean = false;
   disabled: boolean = false; // For fieldset 1 disable
 
+  // Thumbnail
+  thumbnailFile: File | null = null;
+  thumbnailPreviewUrl: string | null = null;
+  thumbnailUploading: boolean = false;
+  readonly MAX_THUMBNAIL_SIZE = 5 * 1024 * 1024; // 5MB
+  readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
   // Data for dropdowns
   typeData: any[] = [];
   tipTrickData: any[] = [];
@@ -139,6 +148,7 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
 
       TotalQuestions: [0, [Validators.min(0)]],
       QuestionDuration: [0, [Validators.min(0)]],
+      Thumbnail: [null, []],
     });
   }
 
@@ -183,7 +193,10 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
         EmployeeID: this.dataInput.EmployeeID || null,
         TotalQuestions: this.dataInput.MultiChoiceQuestions || 0,
         QuestionDuration: this.dataInput.QuestionDuration || 0,
+        Thumbnail: this.dataInput.Thumbnail || null,
       });
+      // Hiển thị ảnh thumbnail từ server nếu có
+      this.thumbnailPreviewUrl = this.getImageUrl(this.dataInput.Thumbnail || "") || null;
       // this.getIdeaByCourseID(this.dataInput.ID);
       // this.getKPIByCourseID(this.dataInput.ID);
     }
@@ -203,7 +216,14 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     });
 
   }
+  getImageUrl(imagePath: string): string {
 
+    const host = environment.host + 'api/share/';
+    let urlImage = imagePath.replace("\\\\192.168.1.190\\", "");
+    urlImage = urlImage.replace(/\\/g, '/');
+
+    return host + urlImage;
+  }
   ngAfterViewInit(): void {
     // Load dữ liệu dropdown
     this.loadTypeData();
@@ -263,6 +283,37 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
 
     this.saving = true;
 
+    // Nếu có file thumbnail mới → upload trước, sau đó mới lưu
+    if (this.thumbnailFile) {
+      this.thumbnailUploading = true;
+      this.courseService.uploadCourseThumbnail(this.thumbnailFile).subscribe({
+        next: (uploadRes: any) => {
+          this.thumbnailUploading = false;
+          let thumbnailUrl: string | null = null;
+          if (uploadRes && uploadRes.status === 1 && uploadRes.data) {
+            // Lấy URL ảnh đầu tiên từ response
+            const files = Array.isArray(uploadRes.data) ? uploadRes.data : [uploadRes.data];
+            thumbnailUrl = files[0]?.FilePath || files[0]?.url || files[0] || null;
+          }
+          this.doSaveCourse(thumbnailUrl);
+        },
+        error: (err: any) => {
+          this.thumbnailUploading = false;
+          this.saving = false;
+          this.notification.error(
+            'Thông báo',
+            'Không thể upload ảnh thumbnail! Vui lòng thử lại.',
+          );
+          console.error('Error uploading thumbnail:', err);
+        },
+      });
+    } else {
+      // Không có file mới → dùng URL hiện tại (ảnh cũ hoặc null nếu đã xóa)
+      this.doSaveCourse(this.dataInput.Thumbnail || null);
+    }
+  }
+
+  private doSaveCourse(thumbnailUrl: string | null) {
     const formValue = this.formGroup.value;
     const payload = {
       ID: this.dataInput?.ID || 0,
@@ -275,6 +326,7 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
       CourseTypeID: formValue.TypeID,
       EmployeeID: formValue.EmployeeID || 0,
       QuestionDuration: formValue.QuestionDuration || 0,
+      Thumbnail: thumbnailUrl || null,
     };
 
     this.courseService.saveCourse(payload).subscribe({
@@ -284,7 +336,7 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
           const message =
             this.mode === 'edit'
               ? 'Cập nhật khóa học thành công!'
-              : 'Thê mới khóa học thành công!';
+              : 'Thêm mới khóa học thành công!';
           this.notification.success('Thông báo', message);
           this.close();
         } else {
@@ -300,15 +352,9 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
           'Thông báo',
           err?.error?.message || 'Không thể lưu khóa học!',
         );
-        console.error('Error saving course catalog:', err);
+        console.error('Error saving course:', err);
       },
     });
-
-    // TODO: Implement API call
-    // setTimeout(() => {
-    //   this.saving = false;
-    //   this.notification.info('Thông báo', 'Chức năng lưu đang được phát triển');
-    // }, 500);
   }
 
   close() {
@@ -516,6 +562,9 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     this.formGroup.get('Name')?.setValue(courseInfor.NameCourse || '');
     this.formGroup.get('STT')?.setValue(courseInfor.STT || 1);
     this.formGroup.get('IsActive')?.setValue(true);
+    // Reset thumbnail khi copy từ khóa học khác
+    this.thumbnailFile = null;
+    this.thumbnailPreviewUrl = courseInfor.Thumbnail || null;
     this.formGroup.get('StudyDays')?.setValue(courseInfor.LeadTime || 0);
     this.formGroup.get('TypeID')?.setValue(courseInfor.CourseTypeID || null);
     this.formGroup.get('EmployeeID')?.setValue(courseInfor.EmployeeID || null);
@@ -613,7 +662,62 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
     return roots;
   }
 
+  // Xử lý khi user chọn file thumbnail
+  onThumbnailSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
 
+    const file = input.files[0];
 
+    // Validate định dạng
+    if (!this.ALLOWED_TYPES.includes(file.type)) {
+      this.notification.error(
+        'Thông báo',
+        'Chỉ chấp nhận ảnh định dạng JPG, PNG hoặc WEBP!',
+      );
+      input.value = '';
+      return;
+    }
+
+    // Validate kích thước
+    if (file.size > this.MAX_THUMBNAIL_SIZE) {
+      this.notification.error(
+        'Thông báo',
+        'Ảnh thumbnail không được vượt quá 5MB!',
+      );
+      input.value = '';
+      return;
+    }
+
+    this.thumbnailFile = file;
+
+    // Tạo preview base64 ngay lập tức
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.thumbnailPreviewUrl = e.target?.result as string;
+      this.cdr.detectChanges();
+    };
+    reader.readAsDataURL(file);
+
+    // Reset input để cho phép chọn lại cùng file
+    input.value = '';
+  }
+
+  // Xóa ảnh thumbnail đã chọn
+  removeThumbnail(): void {
+    this.thumbnailFile = null;
+    this.thumbnailPreviewUrl = null;
+    this.formGroup.get('Thumbnail')?.setValue(null);
+  }
+
+  // Lấy kích thước file dạng đọc được
+  getThumbnailFileSize(): string {
+    if (!this.thumbnailFile) return '';
+    const size = this.thumbnailFile.size;
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  }
 
 }
+

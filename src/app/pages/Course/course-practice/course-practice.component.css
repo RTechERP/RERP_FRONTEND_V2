@@ -82,7 +82,7 @@
 /* Adjust padding when expand button is visible */
 .box.with-hamburger ::ng-deep .card-header,
 .box.with-tree-btn ::ng-deep .card-header {
-    padding-left: 50px !important;
+    /* padding-left: 50px !important; */
 }
 
 /* Smooth transition for panel visibility */
@@ -92,7 +92,7 @@ nz-splitter-panel {
 
 /* Prevent hamburger button from overlapping with child component headers */
 .box.with-hamburger ::ng-deep .card-header {
-    padding-left: 50px !important;
+    /* padding-left: 50px !important; */
 }
 
 /* Responsive Design - Mobile Adjustments */

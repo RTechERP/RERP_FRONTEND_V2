@@ -134,7 +134,10 @@
                   </td>
                   <td style="text-align: center;">{{ rowIndex + 1 }}</td>
                   <td *ngFor="let col of columns" [style.width]="col.width"
-                    [class.text-center]="col.type === 'boolean' || col.type === 'date' || col.field === 'UserName'">
+                    [class.text-center]="col.type === 'boolean' || col.type === 'date' || col.field === 'UserName'"
+                    [style.cursor]="col.type === 'boolean' ? 'pointer' : ''"
+                    (click)="col.type === 'boolean' ? onBooleanCellClick(row, col.field, $event) : null"
+                    (dblclick)="col.type === 'boolean' ? onBooleanCellClick(row, col.field, $event) : null">
                     <ng-container [ngSwitch]="col.type">
                       <span *ngSwitchCase="'date'" style="font-size: 12px;">
                         {{ formatDate(row[col.field]) }}
@@ -183,7 +186,7 @@
           </div>
 
           <div class="detail-body-tabs" style="height: calc(100% - 60px); background-color: #f1f5f9;">
-            <nz-tabset [nzSelectedIndex]="0" nzSize="small">
+            <nz-tabset [(nzSelectedIndex)]="selectedTabIndex" nzSize="small">
 
               <!-- Tab 1: Thông tin cá nhân -->
               <nz-tab nzTitle="Thông tin cá nhân">
@@ -561,7 +564,8 @@
                           <tr *ngFor="let test of detailData.examResults; let i = index">
                             <td>{{ i + 1 }}</td>
                             <td class="text-start">
-                              <a href="javascript:void(0)" (click)="openExamDetails(test)">{{ test.NameExam || 'Bài thi trắc nghiệm' }}</a>
+                              <a href="javascript:void(0)" (click)="openExamDetails(test)">{{ test.NameExam || 'Bài thi
+                                trắc nghiệm' }}</a>
                             </td>
                             <td class="fw-bold text-success">{{ test.TotalScore != null ? test.TotalScore : test.Score
                               }} / {{ test.MaxPossibleScore || test.TotalQuestion }} điểm</td>

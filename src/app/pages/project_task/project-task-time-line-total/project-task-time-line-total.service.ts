@@ -36,6 +36,7 @@ export interface TimelineByTeamParams {
     userID?: number;
     projectID?: number;
     status?: string;
+    approve?: number;
     typeSearch?: number;
 }
 
@@ -66,6 +67,9 @@ export class ProjectTaskTimeLineTotalService {
         }
         if (params.status !== undefined && params.status !== '') {
             httpParams = httpParams.set('status', params.status);
+        }
+        if (params.approve !== undefined) {
+            httpParams = httpParams.set('approve', params.approve.toString());
         }
         if (params.typeSearch !== undefined) {
             httpParams = httpParams.set('typeSearch', params.typeSearch.toString());
@@ -99,7 +103,10 @@ export class ProjectTaskTimeLineTotalService {
         return this.http.get<IAPIResponse<any>>(
             `${this.apiUrl}/project-task-status`
         ).pipe(
-            map(response => response.data?.projectTaskStatuses || [])
+            map(response => {
+                const statuses = response.data?.projectTaskStatuses || [];
+                return statuses.sort((a: any, b: any) => a.ID - b.ID);
+            })
         );
     }
 }

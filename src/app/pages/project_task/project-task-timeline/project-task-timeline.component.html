@@ -40,8 +40,14 @@
                     <label class="search-label">Trạng thái</label>
                     <nz-select nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
                         nzMode="multiple" [nzMaxTagCount]="4" nzAllowClear style="width: 400px;">
-                        <nz-option *ngFor="let opt of statusOptions" [nzLabel]="opt.label" [nzValue]="opt.value">
-                        </nz-option>
+                        <nz-option-group nzLabel="Trạng thái">
+                            <nz-option *ngFor="let opt of statusType1Options" [nzLabel]="opt.label" [nzValue]="opt.value">
+                            </nz-option>
+                        </nz-option-group>
+                        <nz-option-group nzLabel="Duyệt">
+                            <nz-option *ngFor="let opt of statusType2Options" [nzLabel]="opt.label" [nzValue]="opt.value">
+                            </nz-option>
+                        </nz-option-group>
                     </nz-select>
                 </div>
                 <div class="filter-actions">

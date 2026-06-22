@@ -1284,7 +1284,7 @@ export class TaskDetailComponent implements OnInit {
         // Có đủ 2 ngày -> auto sinh dữ liệu và show thông báo nhắc nhở
         const workTabIndex = this._getTabIndexByKey('taskWork');
         if (workTabIndex !== -1 && this.activeMainTabIndex !== workTabIndex) {
-            this.message.info('Hãy kiểm tra lại lịch làm việc khi thay đổi khoảng thời gian dự kiến');
+            // this.message.info('Hãy kiểm tra lại lịch làm việc khi thay đổi khoảng thời gian dự kiến');
         }
 
         // Load day off rồi merge
@@ -3356,14 +3356,14 @@ export class TaskDetailComponent implements OnInit {
         if (activeRows.length === 0) return true;
 
         const isAllNew = activeRows.every(r => r.ID === 0);
-        if (isAllNew && !this.hasCheckedTaskWork) {
-            this.message.warning('Vui lòng kiểm tra lại Lịch làm việc trước khi lưu!');
-            const workTabIndex = this._getTabIndexByKey('taskWork');
-            if (workTabIndex !== -1) {
-                this.hasCheckedTaskWork = true; // Đánh dấu đã kiểm tra để lần click lưu tiếp theo được qua
-            }
-            return false;
-        }
+        // if (isAllNew && !this.hasCheckedTaskWork) {
+        //     this.message.warning('Vui lòng kiểm tra lại Lịch làm việc trước khi lưu!');
+        //     const workTabIndex = this._getTabIndexByKey('taskWork');
+        //     if (workTabIndex !== -1) {
+        //         this.hasCheckedTaskWork = true; // Đánh dấu đã kiểm tra để lần click lưu tiếp theo được qua
+        //     }
+        //     return false;
+        // }
         return true;
     }
 

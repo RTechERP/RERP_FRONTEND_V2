@@ -1,4 +1,4 @@
-import { Component, Input, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, ViewEncapsulation, ChangeDetectorRef, OnChanges, SimpleChanges, Optional, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
@@ -46,6 +46,7 @@ import { ProjectService } from '../project/project-service/project.service';
 
 @Component({
   selector: 'app-price-history-partlist-slick-grid',
+  standalone: true,
   templateUrl: './price-history-partlist-slick-grid.component.html',
   styleUrl: './price-history-partlist-slick-grid.component.css',
   imports: [
@@ -85,13 +86,16 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
     private modal: NzModalService,
     private modalService: NgbModal,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    @Optional() @Inject('tabData') private tabData: any
   ) { }
 
   angularGrid!: AngularGridInstance;
   columnDefinitions: Column[] = [];
   gridOptions: GridOption = {};
   dataset: any[] = [];
+
+  @Input() initialKeyword: string = '';
 
   isLoadTable: any = false;
   showSearchPanel: boolean = true;
@@ -108,17 +112,31 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
   pageSize: number = 50;
   totalPage: number = 1;
   readonly pageSizeOptions: number[] = [10, 20, 50, 100, 1000000];
+  tableId: string = '';
   //#endregion
 
   //#region Load dữ liệu
   ngOnInit(): void {
+    this.tableId = this.generateUUIDv4();
     this.initGrid();
     this.getProject();
     this.getEmployeeRequest();
     this.getSupplierSales();
   }
   ngAfterViewInit(): void {
+    const keywordFromTab = this.tabData?.keyword || this.initialKeyword || '';
+    if (keywordFromTab) {
+      this.keyword = keywordFromTab;
+    }
     setTimeout(() => this.getPriceHistoryPartlist(), 0);
+  }
+
+  generateUUIDv4(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
   }
   //#endregion
 

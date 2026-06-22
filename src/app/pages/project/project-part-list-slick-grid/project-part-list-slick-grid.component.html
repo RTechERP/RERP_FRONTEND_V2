@@ -68,10 +68,11 @@
                                     Làm mới
                                 </button>
                             </div>
-                            <div [id]="solutionContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-container"
+                            <div [id]="solutionContainerId"
+                                class="card-body p-0 flex-grow-1 overflow-hidden grid-solution-container"
                                 style="min-height: 0;">
-                                <angular-slickgrid *ngIf="gridsInitialized" [gridId]="solutionGridId" [columns]="solutionColumns"
-                                    [options]="solutionGridOptions" [dataset]="dataSolution"
+                                <angular-slickgrid *ngIf="gridsInitialized" [gridId]="solutionGridId"
+                                    [columns]="solutionColumns" [options]="solutionGridOptions" [dataset]="dataSolution"
                                     (onAngularGridCreated)="onSolutionGridReady($event)"
                                     (onSelectedRowsChanged)="onSolutionRowSelectionChanged($event)"></angular-slickgrid>
                             </div>
@@ -202,7 +203,8 @@
                                     Làm mới
                                 </button>
                             </div>
-                            <div [id]="versionContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-version-container"
+                            <div [id]="versionContainerId"
+                                class="card-body p-0 flex-grow-1 overflow-hidden grid-version-container"
                                 style="min-height: 0; height: 100%;">
                                 <angular-slickgrid *ngIf="gridsInitialized && versionColumns && versionGridOptions"
                                     [gridId]="versionGridId" [columns]="versionColumns" [options]="versionGridOptions"
@@ -290,6 +292,11 @@
                             <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" nzDanger
                                 (click)="deleteProjectPartList()" *hasPermission="'N38,N62,N1,N27,N28'">
                                 <img src="assets/icon/action_delete_item_16.png" alt="Xóa " /> Xóa
+                            </button>
+
+                            <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" nzDanger
+                                (click)="deleteProjectPartListTBP()" *hasPermission="'N98'">
+                                <img src="assets/icon/action_delete_item_16.png" alt="TBP Xóa" /> TBP Xóa
                             </button>
                         </ng-container>
                         <ng-container *ngIf="isHide">
@@ -530,15 +537,16 @@
                         </div>
                     </div>
 
-                    <div [id]="partListContainerId" class="card-body p-0 flex-grow-1 overflow-hidden grid-partlist-container"
+                    <div [id]="partListContainerId"
+                        class="card-body p-0 flex-grow-1 overflow-hidden grid-partlist-container"
                         style="min-height: 0; position: relative;">
                         <div *ngIf="isLoading"
                             class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75"
                             style="z-index: 10;">
                             <nz-spin nzSimple></nz-spin>
                         </div>
-                        <angular-slickgrid *ngIf="gridsInitialized" [gridId]="partListGridId" [columns]="partListColumns"
-                            [options]="partListGridOptions" [dataset]="dataProjectPartList"
+                        <angular-slickgrid *ngIf="gridsInitialized" [gridId]="partListGridId"
+                            [columns]="partListColumns" [options]="partListGridOptions" [dataset]="dataProjectPartList"
                             (onAngularGridCreated)="onPartListGridReady($event)"></angular-slickgrid>
                     </div>
                 </div>

@@ -169,12 +169,26 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       this.tableExcel = new Tabulator('#partlistTable', {
         data: this.dataTableExcel,
         layout: 'fitDataStretch',
-        height: '300px',
+        height: 'calc(92vh - 280px)',
         selectableRows: false,
         movableColumns: true,
         resizableRows: true,
         reactiveData: true,
-        columns: columns as any
+        columns: columns as any,
+        rowFormatter: (row: any) => {
+          const data = row.getData();
+          if (data._conflict) {
+            row.getElement().style.backgroundColor = '#fff1f0';
+            row.getElement().style.outline = '2px solid #ff4d4f';
+            row.getElement().style.outlineOffset = '-2px';
+            row.getElement().title = 'Vật tư này đã được đặt hàng hoặc đã được check giá, không thể ghi đè!';
+          } else {
+            row.getElement().style.backgroundColor = '';
+            row.getElement().style.outline = '';
+            row.getElement().style.outlineOffset = '';
+            row.getElement().title = '';
+          }
+        }
       });
 
       // Cập nhật dataTableExcel khi user chỉnh sửa dữ liệu trong bảng
@@ -190,6 +204,42 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       const columns = this.getTableColumns();
       this.tableExcel.setColumns(columns as any);
     }
+  }
+
+  // Highlight các dòng xung đột (vật tư đã đặt hàng hoặc check giá) trên bảng Tabulator
+  private highlightConflictRows(conflictTTs: string[]): void {
+    if (!this.tableExcel) return;
+    const conflictSet = new Set(conflictTTs);
+
+    // Cập nhật flag _conflict trực tiếp trên dataTableExcel
+    this.dataTableExcel.forEach((item: any) => {
+      const tt = (item.TT ?? '').toString().trim();
+      item._conflict = conflictSet.has(tt);
+    });
+
+    // Load lại dữ liệu vào Tabulator để vẽ lại bảng trong 1 chu kỳ duy nhất
+    this.tableExcel.setData(this.dataTableExcel).then(() => {
+      // Tìm dòng bị xung đột đầu tiên để scroll tới
+      const rows = this.tableExcel.getRows();
+      const firstConflictRow = rows.find((row: any) => {
+        const data = row.getData();
+        const tt = (data.TT ?? '').toString().trim();
+        return conflictSet.has(tt);
+      });
+
+      if (firstConflictRow) {
+        firstConflictRow.scrollTo();
+      }
+    });
+  }
+
+  // Xóa tất cả highlight conflict trên bảng
+  private clearConflictHighlight(): void {
+    if (!this.tableExcel) return;
+    this.dataTableExcel.forEach((item: any) => {
+      item._conflict = false;
+    });
+    this.tableExcel.setData(this.dataTableExcel);
   }
 
   getTableColumns() {
@@ -465,6 +515,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
 
       // Cập nhật Tabulator
       if (this.tableExcel) {
+        this.clearConflictHighlight();
         this.tableExcel.replaceData(this.dataTableExcel);
       } else {
         this.initTable();
@@ -987,12 +1038,117 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
         // Bước 2: Sau đó mới kiểm tra dữ liệu đã tồn tại
         this.partlistService.checkExist(this.checkPayload).subscribe({
           next: (res: any) => {
-            // Trường hợp 1: Có dữ liệu cũ - hiển thị modal ghi đè + warning
-            if (res.status === 1 && res.data.length > 0) {
+            const responseType: string = res.data?.type ?? res.data?.Type ?? '';
+            const responseDataList: any[] = res.data?.data ?? res.data?.Data ?? [];
+
+            // Trường hợp 1: Có vật tư đã được đặt hàng HOẶC ĐƯỢC CHECK BÁO GIÁ (PURCHASED_REQUEST)
+            if (res.status === 1 && responseType === 'PURCHASED_REQUEST') {
+              const purchasedItems: any[] = res.data?.PurchasedItems ?? res.data?.purchasedItems ?? [];
+              const protectedParents: any[] = res.data?.ProtectedParents ?? res.data?.protectedParents ?? [];
+              const excludeIds: number[] = res.data?.ExcludeIds ?? res.data?.excludeIds ?? [];
+
+              // So sánh TT của vật tư đặt hàng với TT trong Excel người dùng nhập
+              const purchasedTTs = new Set<string>(
+                purchasedItems.map((item: any) => (item.TT ?? item.tt ?? '').toString().trim()).filter(Boolean)
+              );
+              const excelTTs = (this.validDataToSaveForDiff || [])
+                .map((row: any) => (row.TT ?? '').toString().trim())
+                .filter(Boolean);
+              const conflictTTs = excelTTs.filter(tt => purchasedTTs.has(tt));
+
+              if (conflictTTs.length > 0) {
+                // Có TT trùng → highlight dòng đó trên bảng + notification, KHÔNG cho ghi đè
+                this.highlightConflictRows(conflictTTs);
+                this.notification.error(
+                  'Không thể ghi đè',
+                  `Có <b>${conflictTTs.length}</b> vật tư (TT: <b>${conflictTTs.join(', ')}</b>) đã được đặt hàng hoặc đã được check giá và không thể bị ghi đè. Vui lòng cập nhật lại TT của vật tư excel.`,
+                  { nzDuration: 8000 }
+                );
+                this.displayText = 'Đã hủy';
+                this.displayProgress = 0;
+                this.isSaving = false;
+                return;
+              }
+
+              // Không có TT trùng → hiện hộp thoại xác nhận ghi đè với cảnh báo chi tiết
+              const purchasedNote = `<span style="color: #d46b08;">(Lưu ý: Dữ liệu cũ sẽ bị XÓA và các vật tư đã được check đặt hàng hoặc đã được check giá sẽ không bị ghi đè!)</span>`;
+
+              // Build danh sách vật tư được bảo vệ (format compact)
+              let protectedSectionParts: string[] = [];
+
+              // if (purchasedItems.length > 0) {
+              //   const purchasedTTList = purchasedItems.map((x: any) => x.TT).join(', ');
+              //   protectedSectionParts.push(
+              //     `<div><b>Các vật tư [Đã check đặt hàng]:</b><br>
+              //      <span style="color:#cf1322; margin-left:8px;">${purchasedTTList}</span></div>`
+              //   );
+              // }
+
+              // if (protectedParents.length > 0) {
+              //   const parentTTList = protectedParents.map((x: any) => x.TT).join(', ');
+              //   protectedSectionParts.push(
+              //     `<div style="margin-top:6px;"><b>Các vật tư cha, được giữ lại:</b><br>
+              //      <span style="color:#d46b08; margin-left:8px;">${parentTTList}</span></div>`
+              //   );
+              // }
+
+              const protectedSection = protectedSectionParts.length > 0
+                ? `<div style="margin-top:10px; padding:10px; background:#fff7e6; border-left:4px solid #fa8c16; border-radius:4px; max-height:200px; overflow-y:auto;">
+                     ${protectedSectionParts.join('')}
+                   </div>`
+                : '';
+
+              const firmWarningSection = warningMessage
+                ? `<div style="margin-top:8px; padding:10px; background:#fff1f0; border-left:4px solid #ff4d4f; border-radius:4px; max-height:200px; overflow-y:auto;">${warningMessage}</div>`
+                : '';
+
+              const content = `
+                <div>
+                  <p>Danh mục đã tồn tại. Bạn có muốn ghi đè không? ${purchasedNote}</p>
+                  ${protectedSection}
+                  ${firmWarningSection}
+                </div>`;
+
+              this.modal.confirm({
+                nzTitle: 'Xác nhận ghi đè',
+                nzContent: content,
+                nzOkText: 'Có',
+                nzCancelText: 'Không',
+                nzOnOk: () => {
+                  // Gửi excludeIds về backend để bảo vệ vật tư đặt hàng + cha
+                  const overwritePayload = { ...this.checkPayload, ExcludeIds: excludeIds };
+                  this.partlistService.overwriteData(overwritePayload).subscribe({
+                    next: () => {
+                      if (this.isStock) {
+                        this.executeStockUpdate(this.setupPayload(this.validDataToSaveForDiff, []));
+                      } else if (hasDiff) {
+                        this.onConfirmDiff();
+                      } else {
+                        this.applyDiff(this.validDataToSaveForDiff, []);
+                      }
+                    },
+                    error: (err: any) => {
+                      const msg = err.error?.message || err.message || 'Lỗi khi ghi đè dữ liệu!';
+                      this.notification.error('Thông báo', msg);
+                      this.isSaving = false;
+                    }
+                  });
+                },
+                nzOnCancel: () => {
+                  this.displayText = 'Đã hủy';
+                  this.displayProgress = 0;
+                  this.isSaving = false;
+                }
+              });
+              return;
+            }
+
+            // Trường hợp 2: Có dữ liệu cũ thông thường (EXISTED, không có vật tư đặt hàng)
+            if (res.status === 1 && responseType === 'EXISTED' && responseDataList.length > 0) {
               const content = warningMessage
                 ? `
                   <div>
-                    <p>Danh mục đã tồn tại. Bạn có muốn ghi đè không? <span style="color: red;">(Lưu ý: Dữ liệu cũ sẽ bị XÓA! )</span></p>
+                    <p>Danh mục đã tồn tại. Bạn có muốn ghi đè không? <span style="color: red;">(Lưu ý: Dữ liệu cũ sẽ bị XÓA!)</span></p>
                     <br>
                     <div style="padding: 12px; background: #fff7e6; border-left: 4px solid #FF8C00; border-radius: 4px; max-height: 300px; overflow-y: auto;">
                       ${warningMessage}
@@ -1033,13 +1189,13 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
               return;
             }
 
-            // Trường hợp 2: Không có dữ liệu cũ
-            if (res.status === 1 && res.data.length === 0) {
-              // Nếu có warning message -> hiển thị modal xác nhận
-              if (warningMessage) {
-                this.modal.confirm({
-                  nzTitle: 'Xác nhận lưu',
-                  nzContent: `
+            // Trường hợp 3: Không có dữ liệu cũ
+            if (res.status === 1 && responseDataList.length === 0) {
+                // Nếu có warning message -> hiển thị modal xác nhận
+                if (warningMessage) {
+                  this.modal.confirm({
+                    nzTitle: 'Xác nhận lưu',
+                    nzContent: `
                   <div>
                     <p>Phát hiện dữ liệu sai thông tin. Bạn có muốn tiếp tục lưu không?</p>
                     <br>
@@ -1048,40 +1204,40 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
                     </div>
                   </div>
                 `,
-                  nzOkText: 'Tiếp tục',
-                  nzCancelText: 'Hủy',
-                  nzOkDanger: true,
-                  nzOnOk: () => {
-                    if (this.isStock) {
-                      this.executeStockUpdate(this.setupPayload(this.validDataToSaveForDiff, []));
-                    } else {
-                      this.applyDiff(this.validDataToSaveForDiff, []);
+                    nzOkText: 'Tiếp tục',
+                    nzCancelText: 'Hủy',
+                    nzOkDanger: true,
+                    nzOnOk: () => {
+                      if (this.isStock) {
+                        this.executeStockUpdate(this.setupPayload(this.validDataToSaveForDiff, []));
+                      } else {
+                        this.applyDiff(this.validDataToSaveForDiff, []);
+                      }
+                    },
+                    nzOnCancel: () => {
+                      this.displayText = 'Đã hủy';
+                      this.displayProgress = 0;
+                      this.isSaving = false;
                     }
-                  },
-                  nzOnCancel: () => {
-                    this.displayText = 'Đã hủy';
-                    this.displayProgress = 0;
-                    this.isSaving = false;
-                  }
-                });
-              } else {
-                // Không có warning -> lưu trực tiếp
-                if (this.isStock) {
-                  this.executeStockUpdate(this.setupPayload(this.validDataToSaveForDiff, []));
+                  });
                 } else {
-                  this.applyDiff(this.validDataToSaveForDiff, []);
+                  // Không có warning -> lưu trực tiếp
+                  if (this.isStock) {
+                    this.executeStockUpdate(this.setupPayload(this.validDataToSaveForDiff, []));
+                  } else {
+                    this.applyDiff(this.validDataToSaveForDiff, []);
+                  }
                 }
               }
+            },
+            error: (err: any) => {
+              const msg = err.error?.message || err.message || 'Lỗi kết nối server!';
+              this.notification.error('Thông báo', msg);
+              this.displayText = 'Lỗi khi kiểm tra dữ liệu!';
+              this.displayProgress = 0;
+              this.isSaving = false;
             }
-          },
-          error: (err: any) => {
-            const msg = err.error?.message || err.message || 'Lỗi kết nối server!';
-            this.notification.error('Thông báo', msg);
-            this.displayText = 'Lỗi khi kiểm tra dữ liệu!';
-            this.displayProgress = 0;
-            this.isSaving = false;
-          }
-        });
+          });
       },
       error: (err: any) => {
         const msg = err.error?.message || err.message || 'Lỗi kết nối server khi kiểm tra dữ liệu!';

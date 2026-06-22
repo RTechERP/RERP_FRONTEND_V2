@@ -1,5 +1,6 @@
 import { ProjectTaskSumaryAttendanceComponent } from './pages/project_task/project-task-sumary-attendance/project-task-sumary-attendance.component';
 import { Routes } from '@angular/router';
+import { CourseDashboardComponent } from './pages/course-web/course-dashboard/course-dashboard.component';
 import { WelcomeComponent } from './pages/old/welcome/welcome.component';
 import { LoginComponent } from './auth/login/login.component';
 import { LoginCandidateComponent } from './pages/hrm/hr-recruitment/hr-recruitment-application-form/login-candidate/login-candidate.component';
@@ -1301,6 +1302,7 @@ export const routes: Routes = [
             { path: 'project-join-summary', component: ProjectJoinSummaryComponent, canActivate: [authGuard] },
             // khai báo routes cho web khoá học
             { path: 'course-management-web', component: CourseWebManagementComponent, canActivate: [authGuard] },
+            { path: 'course-dashboard-web', component: CourseDashboardComponent, canActivate: [authGuard] },
             { path: 'summary-of-exam-results-web', component: SummaryOfExamResultsWebComponent, canActivate: [authGuard] },
             { path: 'course-type-web', component: CourseTypeWebComponent, canActivate: [authGuard] },
             { path: 'course-exam-web', component: CourseExamWebComponent, canActivate: [authGuard] },

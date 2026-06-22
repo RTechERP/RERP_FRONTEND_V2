@@ -26,7 +26,7 @@ export class CourseManagementService {
 
   // Lấy danh sách danh mục
   getDataCategory(catalogType: number): Observable<any> {
-     const params = new HttpParams().set(
+    const params = new HttpParams().set(
       'catalogType',
       catalogType.toString(),
     );
@@ -35,12 +35,12 @@ export class CourseManagementService {
 
   getDataCategoryOld(): Observable<any> {
 
-   return this.http.get<any>(this.apiUrl + 'get-catalog-old-web');
- }
- getDataCatalogType(): Observable<any> {
+    return this.http.get<any>(this.apiUrl + 'get-catalog-old-web');
+  }
+  getDataCatalogType(): Observable<any> {
 
-  return this.http.get<any>(this.apiUrl + 'get-catalog-type');
-}
+    return this.http.get<any>(this.apiUrl + 'get-catalog-type');
+  }
 
 
 
@@ -169,7 +169,7 @@ export class CourseManagementService {
     if (subPath && subPath.trim()) {
       formData.append('subPath', subPath.trim());
     }
-    return this.http.post<any>(this._url + 'home/upload-multiple', formData);
+    return this.http.post<any>(this._url + 'courseweb/upload-multiple', formData);
   }
 
   // Xóa file bài học theo ID
@@ -195,9 +195,14 @@ export class CourseManagementService {
     return this.http.get<any>(this.apiUrl + 'get-path-server?subPath=' + subPath);
   }
 
-   // Lấy danh sách loại danh mục khóa học
-   getCourseCatalogType(): Observable<any> {
+  // Lấy danh sách loại danh mục khóa học
+  getCourseCatalogType(): Observable<any> {
     return this.http.get<any>(this.apiUrl + 'get-course-catalog-type');
+  }
+
+  // Upload thumbnail cho khóa học
+  uploadCourseThumbnail(file: File): Observable<any> {
+    return this.uploadMultipleFiles([file], 'CourseThumbnail');
   }
 
   // Copy danh mục khóa học

@@ -1,0 +1,189 @@
+<nz-layout class="dashboard-layout">
+    <div class="dashboard-container">
+
+        <!-- Row 1: Summary Cards -->
+        <div nz-row [nzGutter]="[16, 16]" class="summary-cards">
+            <!-- Total Courses -->
+            <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="6">
+                <nz-card class="metric-card metric-primary">
+                    <div class="metric-content">
+                        <div class="metric-info">
+                            <h4 class="metric-title">Tổng khóa học</h4>
+                            <div class="metric-value">{{ totalCourses }}</div>
+                        </div>
+                        <div class="metric-icon-wrapper">
+                            <i nz-icon nzType="book" nzTheme="outline" class="metric-icon"></i>
+                        </div>
+                    </div>
+                </nz-card>
+            </div>
+
+            <!-- Total Enrollments -->
+            <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="6">
+                <nz-card class="metric-card metric-success">
+                    <div class="metric-content">
+                        <div class="metric-info">
+                            <h4 class="metric-title">Tổng lượt tham gia</h4>
+                            <div class="metric-value">{{ totalEnrollments | number }}</div>
+                        </div>
+                        <div class="metric-icon-wrapper">
+                            <i nz-icon nzType="team" nzTheme="outline" class="metric-icon"></i>
+                        </div>
+                    </div>
+                </nz-card>
+            </div>
+
+            <!-- Average Rating -->
+            <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="6">
+                <nz-card class="metric-card metric-warning">
+                    <div class="metric-content">
+                        <div class="metric-info">
+                            <h4 class="metric-title">Đánh giá trung bình</h4>
+                            <div class="metric-value">{{ averageRating | number:'1.1-1' }} <span style="font-size: 16px; color: #faad14;">★</span></div>
+                        </div>
+                        <div class="metric-icon-wrapper">
+                            <i nz-icon nzType="star" nzTheme="outline" class="metric-icon"></i>
+                        </div>
+                    </div>
+                </nz-card>
+            </div>
+
+            <!-- Most Popular Course -->
+            <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="6">
+                <nz-card class="metric-card metric-info-color">
+                    <div class="metric-content">
+                        <div class="metric-info">
+                            <h4 class="metric-title">Khóa phổ biến nhất</h4>
+                            <div class="metric-value text-truncate" nz-tooltip [nzTooltipTitle]="popularCourseName" style="max-width: 310px; font-size: 18px; line-height: 1.4; padding-top: 5px;">{{ popularCourseName }}</div>
+                            <div class="metric-desc">{{ popularCourseCount | number }} lượt tham gia</div>
+                        </div>
+                        <div class="metric-icon-wrapper">
+                            <i nz-icon nzType="fire" nzTheme="outline" class="metric-icon"></i>
+                        </div>
+                    </div>
+                </nz-card>
+            </div>
+        </div>
+
+        <!-- Row 2: Top Courses & Leaderboard -->
+        <div nz-row [nzGutter]="[16, 16]" class="mt-3">
+            <!-- Top 5 Popular Courses -->
+            <div nz-col [nzXs]="24" [nzLg]="12">
+                <nz-card nzTitle="📈 Top Khóa nhiều học viên" class="chart-card">
+                    <div class="bar-chart-container">
+                        <div class="chart-item" *ngFor="let item of top5Courses, let i = index">
+                            <div class="rank-badge" [ngClass]="{'rank-1': i === 0, 'rank-2': i === 1, 'rank-3': i === 2}" style="margin-right: 12px;">#{{ i + 1 }}</div>
+                            <div class="item-content">
+                                <div class="item-header">
+                                    <span class="item-name" [title]="item.NameCourse">{{ item.NameCourse }}</span>
+                                    <span class="item-value">{{ item.TotalParticipantsText || item.TotalParticipants }} Học viên</span>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill" [style.width]="getBarWidth(item.TotalParticipants)"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </nz-card>
+            </div>
+
+            <!-- Top Participation -->
+            <div nz-col [nzXs]="24" [nzLg]="12">
+                <nz-card nzTitle="📈 Top Khóa Tham Gia Nhiều" class="chart-card" [nzExtra]="timeFilterTpl">
+                    <nz-skeleton [nzActive]="true" [nzLoading]="isParticipationLoading" [nzParagraph]="{ rows: 3 }"></nz-skeleton>
+                    <div class="rating-list-container" *ngIf="!isParticipationLoading">
+                        <div class="rating-item" *ngFor="let item of topParticipationCourses; let i = index">
+                            <div class="rank-badge" [ngClass]="{'rank-1': i === 0, 'rank-2': i === 1, 'rank-3': i === 2}" style="margin-right: 12px;">#{{ i + 1 }}</div>
+                            <div class="rating-content">
+                                <div class="rating-name" [title]="item.NameCourse">{{ item.NameCourse }}</div>
+                                <div class="rating-stats">
+                                    <span class="user-score">{{ item.ParticipantCount }} lượt tham gia</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="topParticipationCourses.length === 0" style="text-align: center; color: #999; padding: 20px;">
+                            Không có dữ liệu</div>
+                    </div>
+                </nz-card>
+                <ng-template #timeFilterTpl>
+                    <nz-select [(ngModel)]="timeRangeFilter" (ngModelChange)="onTimeRangeChange()" style="width: 120px;">
+                        <nz-option nzValue="WEEK" nzLabel="Tuần này"></nz-option>
+                        <nz-option nzValue="MONTH" nzLabel="Tháng này"></nz-option>
+                        <nz-option nzValue="YEAR" nzLabel="Năm nay"></nz-option>
+                    </nz-select>
+                </ng-template>
+            </div>
+        </div>
+
+        <!-- Row 3: Top Rated, Top Commented & Needs Improvement -->
+        <div nz-row [nzGutter]="[16, 16]" class="mt-3">
+            <!-- Top 5 Rated Courses -->
+            <div nz-col [nzXs]="24" [nzLg]="8">
+                <nz-card nzTitle="⭐ Đánh giá cao" class="chart-card list-card">
+                    <div class="rating-list-container">
+                        <div class="rating-item" *ngFor="let item of top5RatingCourses">
+                            <div class="rating-content">
+                                <div class="rating-name" [title]="item.NameCourse">{{ item.NameCourse }}</div>
+                                <div class="rating-stats">
+                                    <span class="rating-star">⭐ {{ item.AverageRating | number:'1.1-1' }}</span>
+                                    <span class="rating-count">({{ item.TotalRatingsText || item.TotalRatings }} đánh giá)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </nz-card>
+            </div>
+
+            <!-- Top Commented Courses -->
+            <div nz-col [nzXs]="24" [nzLg]="8">
+                <nz-card nzTitle="💬 Thảo luận nhiều" class="chart-card list-card">
+                    <nz-skeleton [nzActive]="true" [nzLoading]="isCommentLoading" [nzParagraph]="{ rows: 3 }"></nz-skeleton>
+                    <div class="rating-list-container" *ngIf="!isCommentLoading">
+                        <div class="rating-item" *ngFor="let item of topCommentCourses">
+                            <div class="rating-content">
+                                <div class="rating-name" [title]="item.NameCourse">{{ item.NameCourse }}</div>
+                                <div class="rating-stats">
+                                    <span class="comment-count" style="color: #1890ff;">💬 {{ item.CommentCount }} bình luận</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="topCommentCourses.length === 0" style="text-align: center; color: #999; padding: 20px;">Không có dữ liệu</div>
+                    </div>
+                </nz-card>
+            </div>
+
+            <!-- Top Liked Courses -->
+            <div nz-col [nzXs]="24" [nzLg]="8">
+                <nz-card nzTitle="❤️ Khóa học yêu thích nhất" class="chart-card list-card">
+                    <div class="rating-list-container">
+                        <div class="rating-item" *ngFor="let item of topLikedCourses">
+                            <div class="rating-content">
+                                <div class="rating-name" [title]="item.NameCourse">{{ item.NameCourse }}</div>
+                                <div class="rating-stats">
+                                    <span class="comment-count" style="color: #eb2f96; font-weight: 500;">❤️ {{ item.TotalLikesText ||
+                    item.TotalLikes }} lượt thích</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="topLikedCourses.length === 0" style="text-align: center; color: #999; padding: 20px;">Không có dữ liệu</div>
+                    </div>
+                </nz-card>
+            </div>
+        </div>
+
+        <!-- Row 4: Data Table -->
+        <div nz-row class="mt-3">
+            <div nz-col nzSpan="24">
+                <nz-card nzTitle="📋 Bảng tổng hợp khóa học" [nzExtra]="exportTpl" class="table-card">
+                    <div #CourseTable></div>
+                </nz-card>
+                <ng-template #exportTpl>
+                    <button nz-button nzType="primary" (click)="exportToExcel()">
+            <i nz-icon nzType="download"></i> Xuất Excel
+          </button>
+                </ng-template>
+            </div>
+        </div>
+
+    </div>
+</nz-layout>

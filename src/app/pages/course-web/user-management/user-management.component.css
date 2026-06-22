@@ -112,3 +112,17 @@
 :host ::ng-deep .p-column-filter-row nz-date-picker .ant-picker-suffix {
     padding: 0 4px !important;
 }
+
+.status-filter {
+    width: 100%;
+    height: 22px !important;
+    padding: 0 4px !important;
+    border: 1px solid #d9d9d9 !important;
+    border-radius: 4px !important;
+    font-size: 11px !important;
+    background: #fff !important;
+    cursor: pointer !important;
+    margin: 0 !important;
+    vertical-align: middle !important;
+}
+

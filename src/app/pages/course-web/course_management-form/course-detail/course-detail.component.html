@@ -220,7 +220,71 @@
                     </nz-form-item>
                 </nz-col>
             </nz-row>
+
+            <!-- Thumbnail Upload -->
+            <nz-row [nzGutter]="24">
+                <nz-col [nzSpan]="24">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 p-0" [nzSpan]="24">Thumbnail (kích thước)</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <div class="thumbnail-upload-area">
+
+                                <!-- Preview box -->
+                                <div class="thumbnail-preview-box" [class.thumbnail-has-image]="thumbnailPreviewUrl"
+                                    (click)="!thumbnailPreviewUrl && thumbnailInput.click()">
+                                    <img *ngIf="thumbnailPreviewUrl" [src]="thumbnailPreviewUrl"
+                                        alt="Thumbnail preview" />
+                                    <div *ngIf="!thumbnailPreviewUrl" class="thumbnail-placeholder">
+                                        <i nz-icon nzType="picture" nzTheme="outline"
+                                            class="thumbnail-placeholder-icon"></i>
+                                        <span>Chọn ảnh thumbnail</span>
+                                        <span class="thumbnail-placeholder-hint">JPG, PNG, WEBP · Tối đa 5MB</span>
+                                    </div>
+                                    <!-- Overlay khi hover có ảnh -->
+                                    <div *ngIf="thumbnailPreviewUrl" class="thumbnail-overlay">
+                                        <i nz-icon nzType="edit" nzTheme="outline"></i>
+                                        <span>Thay đổi</span>
+                                    </div>
+                                </div>
+
+                                <!-- Input file ẩn -->
+                                <input #thumbnailInput type="file" accept="image/jpeg,image/png,image/webp"
+                                    style="display: none" (change)="onThumbnailSelected($event)" />
+                                <div class="mt-2 fs-12" style="color: #1890ff">
+                                    Kích thước lý tưởng: 16:9 (ví dụ: 1280x720).
+                                </div>
+                                <!-- Action buttons -->
+                                <div class="thumbnail-actions">
+                                    <button nz-button nzType="default" nzSize="small" type="button"
+                                        (click)="thumbnailInput.click()">
+                                        <i nz-icon nzType="upload" nzTheme="outline"></i>
+                                        {{ thumbnailPreviewUrl ? 'Thay đổi ảnh' : 'Chọn ảnh' }}
+                                    </button>
+                                    <button *ngIf="thumbnailPreviewUrl" nz-button nzType="default" nzDanger
+                                        nzSize="small" type="button" (click)="removeThumbnail()">
+                                        <i nz-icon nzType="delete" nzTheme="outline"></i>
+                                        Xóa ảnh
+                                    </button>
+                                </div>
+
+                                <!-- Thông tin file đã chọn -->
+                                <div *ngIf="thumbnailFile" class="thumbnail-file-info">
+                                    <i nz-icon nzType="check-circle" nzTheme="fill" class="text-success me-1"></i>
+                                    <span class="thumbnail-filename">{{ thumbnailFile.name }}</span>
+                                    <span class="thumbnail-filesize">({{ getThumbnailFileSize() }})</span>
+                                </div>
+                                <div *ngIf="!thumbnailFile && thumbnailPreviewUrl" class="thumbnail-file-info">
+                                    <i nz-icon nzType="link" nzTheme="outline" class="me-1" style="color:#1890ff"></i>
+                                    <span style="color:#1890ff; font-size:0.7rem;">Ảnh hiện tại từ server</span>
+                                </div>
+                            </div>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
         </fieldset>
+
 
         <!-- Fieldset 3: Thi quý -->
         <!-- <fieldset class="reset m-0 mb-3">

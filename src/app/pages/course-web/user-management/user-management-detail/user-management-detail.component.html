@@ -71,7 +71,9 @@
           ">
                         <input id="PasswordHashInput" nz-input type="password" formControlName="PasswordHash"
                             [placeholder]="mode === 'add' ? 'Nhập mật khẩu' : '••••••••'"
-                            [attr.disabled]="mode === 'edit' ? '' : null" />
+                            [attr.readonly]="mode === 'edit' ? '' : null"
+                            [style.background]="mode === 'edit' ? '#f5f5f5' : ''"
+                            [style.cursor]="mode === 'edit' ? 'not-allowed' : ''" />
                     </nz-form-control>
                 </nz-form-item>
             </nz-col>
@@ -89,8 +91,7 @@
               : undefined
           ">
                         <input id="PhoneNumberInput" nz-input formControlName="PhoneNumber"
-                            placeholder="Nhập số điện thoại"
-                            [attr.readonly]="mode === 'edit' ? '' : null"
+                            placeholder="Nhập số điện thoại" [attr.readonly]="mode === 'edit' ? '' : null"
                             [style.background]="mode === 'edit' ? '#f5f5f5' : ''"
                             [style.cursor]="mode === 'edit' ? 'not-allowed' : ''" />
                     </nz-form-control>
@@ -151,11 +152,19 @@
                 </nz-form-item>
             </nz-col>
 
-            <nz-col [nzSpan]="12">
+            <nz-col [nzSpan]="5">
                 <nz-form-item>
                     <nz-form-label class="fs-12 p-0">Kích hoạt</nz-form-label>
                     <nz-form-control [nzSpan]="24">
                         <label nz-checkbox formControlName="IsActive"></label>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <nz-col [nzSpan]="7">
+                <nz-form-item>
+                    <nz-form-label class="fs-12 p-0">Quyền học vượt</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <label nz-checkbox formControlName="CanLearnAhead"></label>
                     </nz-form-control>
                 </nz-form-item>
             </nz-col>

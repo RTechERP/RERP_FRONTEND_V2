@@ -182,7 +182,7 @@
             </button>
           </div>
 
-          <div class="detail-body-tabs" style="height: calc(100% - 60px); overflow-y: auto; background-color: #f1f5f9;">
+          <div class="detail-body-tabs" style="height: calc(100% - 60px); background-color: #f1f5f9;">
             <nz-tabset [nzSelectedIndex]="0" nzSize="small">
 
               <!-- Tab 1: Thông tin cá nhân -->
@@ -560,7 +560,9 @@
                         <tbody>
                           <tr *ngFor="let test of detailData.examResults; let i = index">
                             <td>{{ i + 1 }}</td>
-                            <td class="text-start">{{ test.NameExam || 'Bài thi trắc nghiệm' }}</td>
+                            <td class="text-start">
+                              <a href="javascript:void(0)" (click)="openExamDetails(test)">{{ test.NameExam || 'Bài thi trắc nghiệm' }}</a>
+                            </td>
                             <td class="fw-bold text-success">{{ test.TotalScore != null ? test.TotalScore : test.Score
                               }} / {{ test.MaxPossibleScore || test.TotalQuestion }} điểm</td>
 

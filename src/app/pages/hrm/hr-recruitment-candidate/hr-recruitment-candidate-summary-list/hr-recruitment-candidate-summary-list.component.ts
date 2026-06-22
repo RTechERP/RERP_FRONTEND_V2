@@ -22,6 +22,8 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HRRecruitmentCandidateService } from '../hr-recruitment-candidate.service';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { HRRecruitmentApplicationFormService } from '../../hr-recruitment/hr-recruitment-application-form/home-layout-candidate/hr-recruitment-application-form.service';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { ExamGradingDialogComponent } from '../../hr-recruitment-exam-score/exam-grading-dialog/exam-grading-dialog.component';
 
 export interface ColDef {
   field: string; header: string; width: string; type?: string;
@@ -155,7 +157,8 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
     private departmentService: DepartmentServiceService,
     private appFormService: HRRecruitmentApplicationFormService,
     private notification: NzNotificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private tabService: TabServiceService
   ) { }
 
   ngOnInit(): void {
@@ -549,5 +552,26 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
     if (val === 2) return 'badge-primary';
     if (val === 3) return 'badge-danger';
     return 'badge-secondary';
+  }
+
+  openExamDetails(test: any): void {
+    const tabKey = `exam-grading-${test.ExamResultID}`;
+    const title = `Chi tiết bài thi: ${this.selectedCandidate?.FullName || ''}`;
+
+    this.tabService.openTabComp({
+      comp: ExamGradingDialogComponent,
+      title: title,
+      key: tabKey,
+      data: {
+        tabKey: tabKey,
+        examResultID: test.ExamResultID,
+        candidateName: this.selectedCandidate?.FullName || '',
+        onSavedCallback: (result: any) => {
+          if (result?.success) {
+            this.loadCandidateDetail();
+          }
+        }
+      }
+    });
   }
 }

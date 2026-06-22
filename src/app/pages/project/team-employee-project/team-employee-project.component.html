@@ -1,0 +1,277 @@
+<p-contextMenu #cm [model]="contextMenuItems" [baseZIndex]="99999"></p-contextMenu>
+
+<div class="team-employee-project-container">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       FILTER BAR
+  ════════════════════════════════════════════════════════════ -->
+  <p-card styleClass="filter-card mb-2">
+    <div class="filter-bar">
+      <!-- Từ ngày -->
+      <div class="filter-item">
+        <label>Từ ngày</label>
+        <p-datepicker [(ngModel)]="dateFrom" dateFormat="dd/mm/yy" [showIcon]="true" placeholder="Từ ngày"
+          appendTo="body" styleClass="p-inputtext-sm">
+        </p-datepicker>
+      </div>
+
+      <!-- Đến ngày -->
+      <div class="filter-item">
+        <label>Đến ngày</label>
+        <p-datepicker [(ngModel)]="dateTo" dateFormat="dd/mm/yy" [showIcon]="true" placeholder="Đến ngày"
+          appendTo="body" styleClass="p-inputtext-sm">
+        </p-datepicker>
+      </div>
+
+      <!-- Phòng ban -->
+      <div class="filter-item">
+        <label>Phòng ban</label>
+        <p-select [(ngModel)]="selectedDepartmentId" [options]="departments()" optionLabel="name" optionValue="id"
+          placeholder="Chọn phòng ban" appendTo="body" [filter]="true" filterBy="name" styleClass="p-inputtext-sm"
+          (onChange)="onDepartmentChange()">
+        </p-select>
+      </div>
+
+      <!-- Team -->
+      <div class="filter-item">
+        <label>Team</label>
+        <p-select [(ngModel)]="selectedUserTeamId" [options]="userTeams()" optionLabel="name" optionValue="id"
+          placeholder="Chọn team" appendTo="body" [filter]="true" filterBy="name" styleClass="p-inputtext-sm"
+          (onChange)="onSearch()">
+        </p-select>
+      </div>
+
+      <!-- Actions -->
+      <div class="filter-actions">
+        <p-button label="Tìm kiếm" icon="pi pi-search" size="small" severity="primary" styleClass="p-button-sm"
+          (onClick)="onSearch()" [loading]="loadingEmployees()" (keyup.enter)="onSearch()">
+        </p-button>
+        <!-- <p-button label="Đặt lại" icon="pi pi-refresh" severity="secondary" [outlined]="true" size="small"
+          styleClass="p-button-sm" (onClick)="onClear()">
+        </p-button> -->
+      </div>
+    </div>
+  </p-card>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MAIN CONTENT: Split panel 30/70
+  ════════════════════════════════════════════════════════════ -->
+  <div class="split-panel">
+
+    <!-- ─── LEFT: Employee List (30%) ─── -->
+    <div class="panel-left">
+      <p-card styleClass="h-full">
+        <ng-template pTemplate="header">
+          <div class="panel-header">
+            <span class="panel-title">
+              Danh sách nhân viên
+            </span>
+            <!-- <span class="panel-count">({{ employees().length }})</span> -->
+          </div>
+        </ng-template>
+
+        <!-- Spin loading -->
+        @if (loadingEmployees()) {
+        <div class="loading-overlay">
+          <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color, #2196f3);"></i>
+          <span>Đang tải nhân viên...</span>
+        </div>
+        }
+
+        <!-- Employee Table -->
+        @if (!loadingEmployees()) {
+        <p-table [value]="employees()" [scrollable]="true" scrollHeight="calc(100vh - 230px)"
+          styleClass="p-datatable-sm p-datatable-striped" [rowHover]="true" [showGridlines]="true"
+          [resizableColumns]="true" columnResizeMode="fit" [reorderableColumns]="true" sortMode="single">
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width:3rem">
+                <p-checkbox [binary]="true" [ngModel]="allSelected()" (onChange)="onSelectAllChange($event.checked)">
+                </p-checkbox>
+              </th>
+              <th pResizableColumn pSortableColumn="fullName">
+                Nhân viên
+                <p-sortIcon field="fullName" />
+              </th>
+            </tr>
+            <tr>
+              <th></th>
+              <th>
+                <p-columnFilter type="text" field="searchKey" matchMode="contains" [showMenu]="false"
+                  placeholder="Lọc tên, mã..." />
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-emp>
+            <tr [class.row-highlighted]="isHighlighted(emp.id)" [class.row-selected]="isSelected(emp.id)"
+              (click)="onEmployeeRowClick(emp)" style="cursor:pointer">
+              <td (click)="$event.stopPropagation()">
+                <p-checkbox [binary]="true" [ngModel]="isSelected(emp.id)"
+                  (onChange)="onEmployeeCheckboxChange(emp.id)">
+                </p-checkbox>
+              </td>
+              <td>
+                <div class="employee-info">
+                  <span class="employee-name">{{ emp.fullName }}</span>
+                  <span class="employee-meta">{{ emp.code }} · {{ emp.userTeamName }}</span>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="footer">
+            <tr>
+              <td colspan="2" class="text-right font-bold" style="padding: 0.5rem 1rem;">
+                Tổng số nhân viên: {{ employees().length }} (Đã chọn: {{ selectedEmployeeIds().size }})
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="2" class="empty-msg">
+                <div class="empty-msg-content">
+                  <i class="pi pi-inbox"></i>
+                  <span>Không có dữ liệu</span>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+        }
+      </p-card>
+    </div>
+
+    <!-- ─── RIGHT: Project List (70%) ─── -->
+    <div class="panel-right">
+      <p-card styleClass="h-full">
+        <ng-template pTemplate="header">
+          <div class="panel-header">
+            <span class="panel-title">
+              Dự án tham gia
+            </span>
+            <!-- <span class="panel-count">({{ projects().length }})</span> -->
+          </div>
+        </ng-template>
+
+        <!-- Spin loading -->
+        @if (loadingProjects()) {
+        <div class="loading-overlay">
+          <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color, #2196f3);"></i>
+          <span>Đang tải dự án...</span>
+        </div>
+        }
+
+        <!-- Project Table -->
+        @if (!loadingProjects()) {
+        <p-table #dtProjects [value]="projects()" [scrollable]="true" scrollHeight="calc(100vh - 230px)"
+          styleClass="p-datatable-sm p-datatable-striped" [rowHover]="true" [showGridlines]="true"
+          [resizableColumns]="true" columnResizeMode="expand" [reorderableColumns]="true" sortMode="single"
+          [contextMenu]="cm" (onRowContextMenu)="onRowContextMenu($event)" selectionMode="single"
+          [(selection)]="selectedProject" [(contextMenuSelection)]="selectedProject" dataKey="projectID">
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th pResizableColumn pSortableColumn="projectStatusText" style="width:10rem">
+                Trạng thái
+                <p-sortIcon field="projectStatusText" />
+              </th>
+              <th pResizableColumn pSortableColumn="projectCode" style="width:9rem">
+                Mã dự án
+                <p-sortIcon field="projectCode" />
+              </th>
+              <th pResizableColumn pSortableColumn="projectName">
+                Tên dự án
+                <p-sortIcon field="projectName" />
+              </th>
+              <th pResizableColumn pSortableColumn="planDateStart" style="width:8rem">
+                BĐ dự kiến
+                <p-sortIcon field="planDateStart" />
+              </th>
+              <th pResizableColumn pSortableColumn="planDateEnd" style="width:8rem">
+                KT dự kiến
+                <p-sortIcon field="planDateEnd" />
+              </th>
+              <th pResizableColumn pSortableColumn="actualDateStart" style="width:8rem">
+                BĐ thực tế
+                <p-sortIcon field="actualDateStart" />
+              </th>
+              <th pResizableColumn pSortableColumn="actualDateEnd" style="width:8rem">
+                KT thực tế
+                <p-sortIcon field="actualDateEnd" />
+              </th>
+            </tr>
+            <tr>
+              <th>
+                <p-columnFilter field="projectStatusText" matchMode="equals" [showMenu]="false">
+                  <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                    <p-select [ngModel]="value" [options]="statusFilterOptions" (onChange)="filter($event.value)"
+                      placeholder="Tất cả" [showClear]="true" appendTo="body" styleClass="w-full p-inputtext-sm">
+                    </p-select>
+                  </ng-template>
+                </p-columnFilter>
+              </th>
+              <th>
+                <p-columnFilter type="text" field="projectCode" matchMode="contains" [showMenu]="false"
+                  placeholder="Lọc mã..." />
+              </th>
+              <th>
+                <p-columnFilter type="text" field="projectName" matchMode="contains" [showMenu]="false"
+                  placeholder="Lọc tên..." />
+              </th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th></th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-project>
+            <tr [pContextMenuRow]="project" [pSelectableRow]="project">
+              <td>
+                <p-tag [value]="project.projectStatusText" [severity]="getStatusSeverity(project.projectStatus)">
+                </p-tag>
+              </td>
+              <td>
+                <span class="project-code">{{ project.projectCode }}</span>
+              </td>
+              <td>{{ project.projectName }}</td>
+              <td class="text-center">{{ project.planDateStart | date:'dd/MM/yyyy' }}</td>
+              <td class="text-center">{{ project.planDateEnd | date:'dd/MM/yyyy' }}</td>
+              <td class="text-center">{{ project.actualDateStart | date:'dd/MM/yyyy' }}</td>
+              <td class="text-center">{{ project.actualDateEnd | date:'dd/MM/yyyy' }}</td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="footer">
+            <tr>
+              <td colspan="7" class="text-right font-bold" style="padding: 0.5rem 1rem;">
+                Tổng số dự án: {{ dtProjects.filteredValue ? dtProjects.filteredValue.length : projects().length }}
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="7" class="empty-msg">
+                <div class="empty-msg-content">
+                  <i class="pi pi-inbox"></i>
+                  <span>
+                    @if (selectedEmployeeIds().size === 0) {
+                    Chưa chọn nhân viên nào
+                    } @else {
+                    Không có dự án tham gia trong khoảng thời gian này
+                    }
+                  </span>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+        }
+      </p-card>
+    </div>
+  </div>
+</div>

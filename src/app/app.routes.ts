@@ -108,6 +108,7 @@ import { DailyReportSaleAdminComponent } from './pages/old/KPISale/daily-report-
 import { DailyReportSaleComponent } from './pages/old/KPISale/daily-report-sale/daily-report-sale.component';
 import { EmployeeSaleManagerComponent } from './pages/old/KPISale/employee-sale-manager/employee-sale-manager.component';
 import { KpiSaleManagementComponent } from './pages/old/KPISale/kpi-sale-management/kpi-sale-management.component';
+import { KpiSaleV2Component } from './pages/old/KPISale/kpi-sale-v2/kpi-sale-v2.component';
 import { PokhHistoryComponent } from './pages/old/pokh-history/pokh-history.component';
 import { PokhKpiComponent } from './pages/old/pokh-kpi/pokh-kpi.component';
 import { PokhComponent } from './pages/old/pokh/pokh.component';
@@ -391,6 +392,14 @@ import { ProjectTaskEfficiencyDashboardComponent } from './pages/project_task/pr
 import { EslTestTableComponent } from './pages/esl-test-registration/esl-test-table/esl-test-table.component';
 import { EslConfigComponent } from './pages/esl-test-registration/esl-config/esl-config.component';
 import { EslTestRegistrationComponent } from './pages/esl-test-registration/esl-test-registration.component';
+import { KpiTemplateIndexTabComponent } from './pages/old/KPISale/kpi-sale-v2/kpi-template-index-tab/kpi-template-index-tab.component';
+import { KpiPeriodTabComponent } from './pages/old/KPISale/kpi-sale-v2/kpi-period-tab/kpi-period-tab.component';
+import { KpiMappingTabComponent } from './pages/old/KPISale/kpi-sale-v2/kpi-mapping-tab/kpi-mapping-tab.component';
+import { KpiTargetTabComponent } from './pages/old/KPISale/kpi-sale-v2/kpi-target-tab/kpi-target-tab.component';
+import { KpiSummaryComponent } from './pages/old/KPISale/kpi-summary/kpi-summary.component';
+import { KpiTeamTabComponent } from './pages/old/KPISale/kpi-sale-v2/kpi-team-tab/kpi-team-tab.component';
+import { KpiRankingTabComponent } from './pages/old/KPISale/kpi-sale-v2/kpi-ranking-tab/kpi-ranking-tab.component';
+import { KpiRewardConfigTabComponent } from './pages/old/KPISale/kpi-sale-v2/kpi-reward-config-tab/kpi-reward-config-tab.component';
 export const routes: Routes = [
 
     {
@@ -591,6 +600,7 @@ export const routes: Routes = [
             { path: 'bonus-coefficient', component: BonusCoefficientComponent, canActivate: [authGuard] },
             { path: 'employee-sale-manager', component: EmployeeSaleManagerComponent, canActivate: [authGuard] },
             { path: 'kpi-sale-management', component: KpiSaleManagementComponent, canActivate: [authGuard] },
+            { path: 'kpi-sale-v2', component: KpiSaleV2Component, canActivate: [authGuard] },
             { path: 'daily-report-sale', component: DailyReportSaleSlickgridComponent, canActivate: [authGuard] },
             { path: 'daily-report-sale-admin', component: DailyReportSaleAdminSlickgridComponent, canActivate: [authGuard] },
             { path: 'request-invoice-old', component: RequestInvoiceComponent, canActivate: [authGuard] },
@@ -1313,7 +1323,16 @@ export const routes: Routes = [
             { path: 'project-task-efficiency-dashboard', component: ProjectTaskEfficiencyDashboardComponent, canActivate: [authGuard] },
             { path: 'esl-test-table', component: EslTestTableComponent, canActivate: [authGuard] },
             { path: 'esl-config', component: EslConfigComponent, canActivate: [authGuard] },
-            { path: 'esl-test-registration', component: EslTestRegistrationComponent, canActivate: [authGuard] }
+            { path: 'esl-test-registration', component: EslTestRegistrationComponent, canActivate: [authGuard] },
+            //KPISALE
+            { path: 'kpi-template-index-tab', component: KpiTemplateIndexTabComponent, canActivate: [authGuard] },
+            { path: 'kpi-period-tab', component: KpiPeriodTabComponent, canActivate: [authGuard] },
+            { path: 'kpi-mapping-tab', component: KpiMappingTabComponent, canActivate: [authGuard] },
+            { path: 'kpi-target-tab', component: KpiTargetTabComponent, canActivate: [authGuard] },
+            { path: 'kpi-summary-tab', component: KpiSummaryComponent, canActivate: [authGuard] },
+            { path: 'kpi-team-tab', component: KpiTeamTabComponent, canActivate: [authGuard] },
+            { path: 'kpi-ranking-tab', component: KpiRankingTabComponent, canActivate: [authGuard] },
+            { path: 'kpi-reward-config-tab', component: KpiRewardConfigTabComponent, canActivate: [authGuard] },
 
         ],
     },

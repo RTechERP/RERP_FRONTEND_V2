@@ -1,0 +1,300 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.page-container {
+  padding: 8px;
+  background-color: #f5f7fa;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.split-container {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Cột trái: Danh sách Team */
+.left-sidebar {
+  width: 380px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #d8dee9;
+  flex-shrink: 0;
+}
+
+.sidebar-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 13px;
+  color: #1e293b;
+}
+
+.filter-row {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.team-list-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.team-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.team-item:hover {
+  background-color: #f8fafc;
+}
+
+.team-item.selected {
+  background-color: #e6f7ff;
+  border-left: 3px solid #1890ff;
+}
+
+.team-item.inactive {
+  opacity: 0.6;
+}
+
+.team-item-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.team-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.team-code {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.team-name {
+  font-size: 13px;
+  color: #1e293b;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.team-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.member-count {
+  font-size: 11px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.leader-badge {
+  font-size: 11px;
+  color: #52c41a;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 500;
+}
+
+.team-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.empty-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  color: #94a3b8;
+  font-size: 13px;
+  gap: 8px;
+}
+
+.empty-list i {
+  font-size: 32px;
+}
+
+/* Cột phải: Thành viên */
+.right-content {
+  flex: 1;
+  min-width: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #d8dee9;
+}
+
+.member-header-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-header {
+  flex-shrink: 0;
+  margin-bottom: 0;
+  padding: 8px 12px;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.member-table-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.member-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.add-member-dropdown {
+  animation: fadeIn 0.15s ease;
+}
+
+.add-member-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.member-table-wrapper ::ng-deep .ant-table-wrapper {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.member-table-wrapper ::ng-deep .ant-table-wrapper .ant-table {
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+
+.member-table-wrapper ::ng-deep .ant-table-wrapper .ant-table-container {
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 13px;
+  gap: 12px;
+}
+
+.empty-state i {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+/* Action buttons */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.action-btn:hover {
+  background-color: #e6f7ff;
+}
+
+.text-primary { color: #1890ff; }
+.text-danger  { color: #ff4d4f; }
+.text-muted   { color: #94a3b8; }
+.muted { color: #94a3b8; font-weight: 400; }
+.required { color: #ff4d4f; }
+
+.mono {
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.w-100 { width: 100%; }

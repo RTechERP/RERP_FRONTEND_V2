@@ -24,6 +24,42 @@ export interface KpiCalculateResponse {
   TotalPerformance?: KpiTotalPerformanceResponse | null;
 }
 
+export interface KpiTeamCalculateRequest {
+  teamID?: number | null;
+  employeeIDs: number[];
+  periodID: number;
+  templateID: number;
+  saveSnapshot: boolean;
+  reportAdjustments: { kpiIndexId: number; reportScoreAdjustmentType: number; reportScoreValue: number; }[];
+}
+
+export interface KpiTeam {
+  id: number;
+  teamCode: string;
+  teamName: string;
+  description?: string;
+  isActive: boolean;
+  employeeIDs: number[];
+  leaderEmployeeId?: number | null;
+  leaderEmployeeName?: string;
+}
+
+export interface KpiTeamUpsertRequest {
+  id?: number | null;
+  teamCode: string;
+  teamName: string;
+  description?: string;
+  employeeIDs: number[];
+  leaderEmployeeId?: number | null;
+}
+
+// Team có TeamCode khớp pattern T_<hex> là team auto-created từ code cũ
+// - không cho phép CRUD từ UI.
+export function isAutoCreatedTeamCode(code: string | null | undefined): boolean {
+  if (!code) return false;
+  return /^T_[0-9A-Fa-f]+$/.test(code);
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -238,6 +274,95 @@ export class KpiSaleV2Service {
     return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/targets`, target);
   }
 
+  proposeTarget(target: any): Observable<KpiApiResponse<any>> {
+    return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/targets/propose`, target);
+  }
+
+  approveTarget(id: number): Observable<KpiApiResponse<any>> {
+    return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/targets/${id}/approve`, {});
+  }
+
+  rejectTarget(id: number, reason?: string): Observable<KpiApiResponse<any>> {
+    return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/targets/${id}/reject`, { reason: reason || '' });
+  }
+
+  // ============== Employee Template Assignment APIs ==============
+  getEmployeeTemplates(
+    employeeId?: number,
+    templateId?: number,
+    isActive?: boolean,
+    periodId?: number,
+    periodValue?: string,
+    periodType?: string
+  ): Observable<KpiApiResponse<any[]>> {
+    let params = new HttpParams();
+    if (employeeId) {
+      params = params.set('employeeId', employeeId.toString());
+    }
+    if (templateId) {
+      params = params.set('templateId', templateId.toString());
+    }
+    if (isActive !== undefined) {
+      params = params.set('isActive', String(isActive));
+    }
+    if (periodId) {
+      params = params.set('periodId', periodId.toString());
+    }
+    if (periodValue) {
+      params = params.set('periodValue', periodValue);
+    }
+    if (periodType) {
+      params = params.set('periodType', periodType);
+    }
+    return this.http.get<KpiApiResponse<any[]>>(`${this.apiUrl}/employee-templates`, { params });
+  }
+
+  saveEmployeeTemplate(request: any): Observable<KpiApiResponse<any>> {
+    return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/employee-templates`, request);
+  }
+
+  updateEmployeeTemplate(id: number, request: any): Observable<KpiApiResponse<any>> {
+    return this.http.put<KpiApiResponse<any>>(`${this.apiUrl}/employee-templates/${id}`, request);
+  }
+
+  deleteEmployeeTemplate(id: number): Observable<KpiApiResponse<any>> {
+    return this.http.delete<KpiApiResponse<any>>(`${this.apiUrl}/employee-templates/${id}`);
+  }
+
+  // ============== Team Template Assignment APIs ==============
+  getTeamTemplates(
+    teamId?: number,
+    isActive?: boolean,
+    periodValue?: string
+  ): Observable<KpiApiResponse<any[]>> {
+    let params = new HttpParams();
+    if (teamId) {
+      params = params.set('teamId', teamId.toString());
+    }
+    if (isActive !== undefined) {
+      params = params.set('isActive', String(isActive));
+    }
+    if (periodValue) {
+      params = params.set('periodValue', periodValue);
+    }
+    return this.http.get<KpiApiResponse<any[]>>(`${this.apiUrl}/team-templates`, { params });
+  }
+
+  saveTeamTemplate(request: {
+    TeamID: number;
+    TemplateID: number;
+    PeriodType: string;
+    PeriodValue: string;
+    IsActive?: boolean;
+    Note?: string;
+  }): Observable<KpiApiResponse<any>> {
+    return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/team-templates`, request);
+  }
+
+  deleteTeamTemplate(id: number): Observable<KpiApiResponse<any>> {
+    return this.http.delete<KpiApiResponse<any>>(`${this.apiUrl}/team-templates/${id}`);
+  }
+
   saveTargets(targets: any[]): Observable<KpiApiResponse<any>> {
     return this.http.put<KpiApiResponse<any>>(`${this.apiUrl}/targets`, targets);
   }
@@ -250,7 +375,38 @@ export class KpiSaleV2Service {
     return this.http.post<KpiApiResponse<KpiCalculateResponse>>(`${this.apiUrl}/calculate`, request);
   }
 
-  getResults(employeeId?: number, periodId?: number, templateId?: number): Observable<KpiApiResponse<KpiCalculateResponse>> {
+  calculateTeam(request: KpiTeamCalculateRequest): Observable<KpiApiResponse<KpiCalculateResponse>> {
+    return this.http.post<KpiApiResponse<KpiCalculateResponse>>(`${this.apiUrl}/calculate-team`, request);
+  }
+
+  getTeams(keyword?: string): Observable<KpiApiResponse<any[]>> {
+    let params = new HttpParams();
+    if (keyword) {
+      params = params.set('keyword', keyword);
+    }
+    return this.http.get<KpiApiResponse<any[]>>(`${this.apiUrl}/teams`, { params });
+  }
+
+  upsertTeam(request: KpiTeamUpsertRequest): Observable<KpiApiResponse<any>> {
+    return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/teams/upsert`, request);
+  }
+
+  deleteTeam(id: number, permanent: boolean = false): Observable<KpiApiResponse<any>> {
+    if (permanent) {
+      return this.http.delete<KpiApiResponse<any>>(`${this.apiUrl}/teams/${id}/permanent`);
+    }
+    return this.http.delete<KpiApiResponse<any>>(`${this.apiUrl}/teams/${id}`);
+  }
+
+  getTeamMembers(id: number): Observable<KpiApiResponse<any[]>> {
+    return this.http.get<KpiApiResponse<any[]>>(`${this.apiUrl}/teams/${id}/members`);
+  }
+
+  getMyLeaderTeams(): Observable<KpiApiResponse<{ isLeader: boolean; teams: any[] }>> {
+    return this.http.get<KpiApiResponse<{ isLeader: boolean; teams: any[] }>>(`${this.apiUrl}/teams/my-leader-teams`);
+  }
+
+  getResults(employeeId?: number, periodId?: number, templateId?: number, teamId?: number): Observable<KpiApiResponse<KpiCalculateResponse>> {
     let params = new HttpParams();
     if (employeeId) {
       params = params.set('employeeId', employeeId.toString());
@@ -261,6 +417,9 @@ export class KpiSaleV2Service {
     if (templateId) {
       params = params.set('templateId', templateId.toString());
     }
+    if (teamId) {
+      params = params.set('teamId', teamId.toString());
+    }
     return this.http.get<KpiApiResponse<KpiCalculateResponse>>(`${this.apiUrl}/results`, { params });
   }
 
@@ -268,5 +427,79 @@ export class KpiSaleV2Service {
     return this.http.get<KpiApiResponse<any[]>>(`${environment.host}api/Employee/employees`, {
       params: { status: 0 },
     });
+  }
+
+  // ============== Ranking APIs ==============
+  getRankingResult(params: { periodId: number; templateId: number; teamCode?: string }): Observable<KpiApiResponse<any[]>> {
+    let httpParams = new HttpParams()
+      .set('periodId', params.periodId.toString())
+      .set('templateId', params.templateId.toString());
+    if (params.teamCode) {
+      httpParams = httpParams.set('teamCode', params.teamCode);
+    }
+    return this.http.get<KpiApiResponse<any[]>>(`${this.apiUrl}/ranking/results`, { params: httpParams });
+  }
+
+  calculateRanking(params: { periodId: number; templateId: number; teamCode?: string }): Observable<KpiApiResponse<any>> {
+    return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/ranking/calculate`, params);
+  }
+
+  getRewardConfig(): Observable<KpiApiResponse<any>> {
+    return this.http.get<KpiApiResponse<any>>(`${this.apiUrl}/ranking/config`);
+  }
+
+  saveRewardConfig(config: any): Observable<KpiApiResponse<any>> {
+    return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/ranking/config`, config);
+  }
+
+  // ============== Reward Coefficient APIs ==============
+  getRewardCoefficients(configId?: number, employeeType?: string): Observable<KpiApiResponse<any[]>> {
+    let params = new HttpParams();
+    if (configId) {
+      params = params.set('configId', configId.toString());
+    }
+    if (employeeType) {
+      params = params.set('employeeType', employeeType);
+    }
+    return this.http.get<KpiApiResponse<any[]>>(`${this.apiUrl}/ranking/coefficients`, { params });
+  }
+
+  saveRewardCoefficient(coefficient: any): Observable<KpiApiResponse<any>> {
+    return coefficient.ID > 0
+      ? this.http.put<KpiApiResponse<any>>(`${this.apiUrl}/ranking/coefficients/${coefficient.ID}`, coefficient)
+      : this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/ranking/coefficients`, coefficient);
+  }
+
+  saveRewardCoefficients(coefficients: any[]): Observable<KpiApiResponse<any>> {
+    return this.http.put<KpiApiResponse<any>>(`${this.apiUrl}/ranking/coefficients`, coefficients);
+  }
+
+  deleteRewardCoefficient(id: number): Observable<KpiApiResponse<any>> {
+    return this.http.delete<KpiApiResponse<any>>(`${this.apiUrl}/ranking/coefficients/${id}`);
+  }
+
+  // ============== Employee Reward Mapping APIs ==============
+  getRewardMappings(configId?: number, employeeId?: number, isActive?: boolean): Observable<KpiApiResponse<any[]>> {
+    let params = new HttpParams();
+    if (configId) {
+      params = params.set('configId', configId.toString());
+    }
+    if (employeeId) {
+      params = params.set('employeeId', employeeId.toString());
+    }
+    if (isActive !== undefined) {
+      params = params.set('isActive', String(isActive));
+    }
+    return this.http.get<KpiApiResponse<any[]>>(`${this.apiUrl}/ranking/mappings`, { params });
+  }
+
+  saveRewardMapping(mapping: any): Observable<KpiApiResponse<any>> {
+    return mapping.ID > 0
+      ? this.http.put<KpiApiResponse<any>>(`${this.apiUrl}/ranking/mappings/${mapping.ID}`, mapping)
+      : this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/ranking/mappings`, mapping);
+  }
+
+  deleteRewardMapping(id: number): Observable<KpiApiResponse<any>> {
+    return this.http.delete<KpiApiResponse<any>>(`${this.apiUrl}/ranking/mappings/${id}`);
   }
 }

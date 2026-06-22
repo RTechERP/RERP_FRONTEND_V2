@@ -1,0 +1,359 @@
+.kpi-reward-config-page {
+  padding: 16px;
+  background: #fff;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.page-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.info-alert {
+  margin-bottom: 16px;
+}
+
+/* ============== REWARD TOOLBAR (filter 1 dòng) ============== */
+.reward-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: #fafafa;
+  border-radius: 4px;
+  border: 1px solid #f0f0f0;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1f2937;
+  white-space: nowrap;
+}
+
+/* ============== TAB CONTENT (chỉ bảng scroll ngang/dọc) ============== */
+nz-tabset {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+nz-tabset ::ng-deep .ant-tabs-content-holder {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+nz-tabset ::ng-deep .ant-tabs-tabpane {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+nz-tabset ::ng-deep .ant-tabs-tabpane-active {
+  overflow: hidden;
+}
+
+nz-tabset ::ng-deep .ant-table-wrapper {
+  width: 100%;
+}
+
+nz-tabset ::ng-deep .ant-table-body {
+  overflow-x: auto !important;
+}
+
+/* ============== TAB TOOLBAR ============== */
+.tab-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 4px;
+  border: 1px solid #f0f0f0;
+}
+
+.tab-toolbar .filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-toolbar .filter-group > label {
+  font-weight: 500;
+  color: #1f2937;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.tab-toolbar .toolbar-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+/* ============== FORM ============== */
+.reward-config-form {
+  padding: 4px 0;
+}
+
+/* Giới hạn body modal config form: cuộn bên trong modal thay vì kéo dài cả trang */
+.reward-config-modal ::ng-deep .ant-modal {
+  max-height: 85vh;
+  top: 7.5vh;
+  padding-bottom: 0;
+}
+
+.reward-config-modal ::ng-deep .ant-modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+  overflow: hidden;
+  padding: 0;
+}
+
+.reward-config-modal ::ng-deep .ant-modal-header {
+  flex-shrink: 0;
+  padding: 12px 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.reward-config-modal ::ng-deep .ant-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 24px;
+  max-height: calc(85vh - 110px);
+}
+
+.reward-config-modal ::ng-deep .ant-modal-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  flex-shrink: 0;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: none;
+  padding: 10px 16px;
+  margin-top: 0;
+  background: #fff;
+  text-align: right;
+}
+
+.reward-config-modal .reward-config-form-modal {
+  padding: 0 4px;
+}
+
+/* Nút compact: giữ text nhưng thu nhỏ kích thước */
+.tab-toolbar ::ng-deep .btn-compact.p-button {
+  font-size: 12px;
+  padding: 4px 10px;
+  height: 28px;
+}
+
+.tab-toolbar ::ng-deep .btn-compact.p-button .p-button-icon {
+  font-size: 11px;
+  margin-right: 4px;
+}
+
+.rate-value {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.money-value {
+  color: #52c41a;
+  font-weight: 500;
+  font-family: 'Roboto Mono', monospace;
+}
+
+code {
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #d4380d;
+}
+
+button[nz-button][nzType="link"] {
+  padding: 0 4px;
+}
+
+nz-table {
+  margin-top: 8px;
+}
+
+/* ============== COEFFICIENT TABLE ============== */
+.project-ids {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 12px;
+  color: #1f2937;
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  display: inline-block;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date-range {
+  font-size: 12px;
+  color: #595959;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.template-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: #e6f7ff;
+  border: 1px solid #91d5ff;
+  color: #096dd9;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.template-tag--global {
+  background: #f5f5f5;
+  border-color: #d9d9d9;
+  color: #8c8c8c;
+  font-style: italic;
+}
+
+.kpi-name {
+  color: #595959;
+  font-size: 12px;
+}
+
+.text-muted {
+  color: #bfbfbf;
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* ============== PRIME TABLE WRAP ============== */
+.prime-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.prime-table-wrap--compact {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.prime-table-wrap ::ng-deep .p-datatable {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.prime-table-wrap ::ng-deep .p-datatable .p-datatable-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto !important;
+}
+
+.prime-table-wrap ::ng-deep .p-datatable .p-datatable-thead > tr > th {
+  background: #fafafa;
+  color: #1f2937;
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 1px solid #e8e8e8;
+  white-space: nowrap;
+}
+
+.prime-table-wrap ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.prime-table-wrap ::ng-deep .p-datatable .p-datatable-tbody > tr:hover {
+  background: #f5f9ff;
+}
+
+.prime-table-wrap ::ng-deep .col-stt,
+.prime-table-wrap ::ng-deep .col-center {
+  text-align: center;
+}
+
+.prime-table-wrap ::ng-deep .col-money {
+  text-align: right;
+}
+
+.prime-table-wrap ::ng-deep .action-cell {
+  white-space: nowrap;
+}
+
+.prime-table-wrap ::ng-deep .action-cell .p-button {
+  padding: 2px 8px;
+}
+
+.prime-table-wrap ::ng-deep .empty-row {
+  text-align: center;
+  color: #8c8c8c;
+  padding: 24px 0;
+  font-style: italic;
+}
+
+.prime-table-wrap ::ng-deep .p-paginator {
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+/* PrimeNG Tag styling trong bảng */
+.prime-table-wrap ::ng-deep .p-tag {
+  font-weight: 500;
+}
+
+/* PrimeNG InputNumber full-width trong bảng hệ số */
+.prime-table-wrap ::ng-deep .p-inputnumber,
+.prime-table-wrap ::ng-deep .p-inputnumber-input {
+  width: 100%;
+}
+
+/* PrimeNG Checkbox căn giữa */
+.prime-table-wrap ::ng-deep .p-checkbox {
+  vertical-align: middle;
+}

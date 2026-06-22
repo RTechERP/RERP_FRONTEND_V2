@@ -1,0 +1,582 @@
+<ng-container>
+  <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+    <div class="kpi-reward-config-page">
+      <div class="page-header">
+        <h5 class="page-title">
+          <i nz-icon nzType="trophy"></i>
+          Cấu hình thưởng Ranking
+        </h5>
+      </div>
+
+      <!-- Toolbar: Kỳ KPI + Team tự resolve Template -->
+      <div class="reward-toolbar">
+        <div class="filter-item">
+          <label class="filter-label">Kỳ KPI</label>
+          <nz-select nzSize="small" [(ngModel)]="selectedPeriodId"
+            (ngModelChange)="onPeriodOrTeamChange()" nzShowSearch style="width: 200px;">
+            <nz-option *ngFor="let p of periods" [nzValue]="p.id" [nzLabel]="p.periodName"></nz-option>
+          </nz-select>
+        </div>
+
+        <div class="filter-item">
+          <label class="filter-label">Team</label>
+          <nz-select nzSize="small" [(ngModel)]="selectedTeamCode"
+            (ngModelChange)="onPeriodOrTeamChange()" nzAllowClear nzShowSearch style="width: 240px;">
+            <nz-option [nzValue]="null" nzLabel="Tất cả"></nz-option>
+            <nz-option *ngFor="let t of teams" [nzValue]="t.TeamCode ?? t.teamCode"
+              [nzLabel]="(t.TeamCode ?? t.teamCode) + ' - ' + (t.TeamName ?? t.teamName ?? '')">
+            </nz-option>
+          </nz-select>
+        </div>
+
+        <div class="filter-item">
+          <label class="filter-label">Mẫu KPI</label>
+          <nz-select nzSize="small" [(ngModel)]="selectedTemplateId" nzShowSearch style="width: 280px;">
+            <nz-option *ngFor="let t of templates"
+              [nzValue]="t.ID ?? t.id"
+              [nzLabel]="(t.TemplateCode ?? t.templateCode ?? '') + ' - ' + (t.TemplateName ?? t.templateName ?? '')">
+            </nz-option>
+          </nz-select>
+        </div>
+      </div>
+
+      <nz-alert nzType="info" nzShowIcon class="info-alert"
+        nzMessage="Cấu hình này áp dụng khi tính Ranking & Thưởng cho từng loại nhân viên (Sales, PM, Admin...).">
+      </nz-alert>
+
+      <nz-tabset [nzSelectedIndex]="activeTabIndex" (nzSelectChange)="onTabChange($event.index)" nzSize="default">
+        <!-- ============== TAB 1: CẤU HÌNH CHUNG ============== -->
+        <nz-tab nzTitle="Cấu hình chung">
+          <div class="tab-toolbar">
+            <button pButton type="button" icon="pi pi-plus" label="Thêm cấu hình"
+              styleClass="btn-compact"
+              (click)="openAddConfigForm()"></button>
+          </div>
+
+          <div class="prime-table-wrap">
+            <p-table #configTable [value]="configs" [paginator]="true" [rows]="20"
+              [scrollable]="true" scrollHeight="flex"
+              [tableStyle]="{ 'min-width': '1600px' }" styleClass="p-datatable-sm reward-config-grid">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width:60px" class="col-stt">STT</th>
+                  <th style="width:120px">Mã</th>
+                  <th>Tên cấu hình</th>
+                  <th style="width:160px">Template</th>
+                  <th style="width:170px">Loại nhân viên</th>
+                  <th style="width:120px" class="col-money">Tỷ lệ thưởng</th>
+                  <th style="width:140px" class="col-money">Thưởng Rank 1</th>
+                  <th style="width:220px">Chỉ tiêu New Account</th>
+                  <th style="width:220px">Chỉ tiêu Tiền về</th>
+                  <th style="width:220px">Chỉ tiêu Doanh số</th>
+                  <th style="width:140px" class="col-money">Thưởng / account</th>
+                  <th style="width:90px" class="col-center">Trạng thái</th>
+                  <th style="width:170px" class="col-center">Thao tác</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-c let-i="rowIndex">
+                <tr>
+                  <td class="col-stt">{{ i + 1 }}</td>
+                  <td><code>{{ c.configCode }}</code></td>
+                  <td><strong>{{ c.configName }}</strong></td>
+                  <td>
+                    <span class="template-tag" [class.template-tag--global]="!c.templateId">
+                      {{ getTemplateName(c.templateId) }}
+                    </span>
+                  </td>
+                  <td>
+                    <p-tag [value]="getEmployeeTypeLabel(c.employeeType)"
+                      [severity]="getPrimeSeverityFromNzColor(getEmployeeTypeColor(c.employeeType))"></p-tag>
+                  </td>
+                  <td class="col-money">
+                    <span class="rate-value">{{ formatPercent(c.rewardRate) }}</span>
+                  </td>
+                  <td class="col-money">
+                    <span class="money-value">{{ formatMoney(c.rank1BonusAmount) }}</span>
+                  </td>
+                  <td>
+                    <ng-container *ngIf="c.newAccountKpiIndexId; else naEmpty">
+                      <code>{{ c.newAccountKpiIndexCode }}</code>
+                      <span class="kpi-name"> - {{ c.newAccountKpiIndexName }}</span>
+                    </ng-container>
+                    <ng-template #naEmpty>
+                      <span class="text-muted">Tự động (tên chứa NEW/ACCOUNT)</span>
+                    </ng-template>
+                  </td>
+                  <td>
+                    <ng-container *ngIf="c.salesAmountKpiIndexId; else saEmpty">
+                      <code>{{ c.salesAmountKpiIndexCode }}</code>
+                      <span class="kpi-name"> - {{ c.salesAmountKpiIndexName }}</span>
+                    </ng-container>
+                    <ng-template #saEmpty>
+                      <span class="text-muted">Không sử dụng</span>
+                    </ng-template>
+                  </td>
+                  <td>
+                    <ng-container *ngIf="c.revenueKpiIndexId; else rvEmpty">
+                      <code>{{ c.revenueKpiIndexCode }}</code>
+                      <span class="kpi-name"> - {{ c.revenueKpiIndexName }}</span>
+                    </ng-container>
+                    <ng-template #rvEmpty>
+                      <span class="text-muted">Không sử dụng</span>
+                    </ng-template>
+                  </td>
+                  <td class="col-money">
+                    <span class="money-value">{{ formatMoney(c.newAccountBonusAmount) }}</span>
+                  </td>
+                  <td class="col-center">
+                    <p-tag [value]="c.isActive ? 'Đang dùng' : 'Tắt'"
+                      [severity]="c.isActive ? 'success' : 'secondary'"></p-tag>
+                  </td>
+                  <td class="col-center action-cell">
+                    <button pButton type="button" icon="pi pi-pencil" label="Sửa"
+                      size="small" [text]="true" (click)="openEditConfigForm(c)"></button>
+                    <button pButton type="button"
+                      [icon]="c.isActive ? 'pi pi-pause' : 'pi pi-check-circle'"
+                      [label]="c.isActive ? 'Tắt' : 'Bật'"
+                      size="small" [text]="true"
+                      [severity]="c.isActive ? 'danger' : 'success'"
+                      (click)="toggleConfigActive(c)"></button>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="13" class="empty-row">Chưa có cấu hình thưởng nào.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </nz-tab>
+
+        <!-- ============== TAB 2: BẬC THANG HỆ SỐ ============== -->
+        <nz-tab nzTitle="Bậc thang hệ số">
+          <nz-alert nzType="info" nzShowIcon class="info-alert"
+            nzMessage="Hệ số thưởng sẽ được nhân với % Achievement của nhân viên. Mặc định theo công thức: B14 < 50% = 0, 50% = 0.5, 60% = 0.6, 70% = 0.7, 80% = 0.8, 95% = 1, 100% = 1.1, 120% = 1.3, ≥150% = 2.">
+          </nz-alert>
+
+          <div class="tab-toolbar">
+            <div class="filter-group">
+              <label>Cấu hình áp dụng:</label>
+              <p-select
+                [(ngModel)]="selectedCoefficientConfigId"
+                (ngModelChange)="onCoefficientConfigChange()"
+                [options]="configSelectOptions"
+                optionLabel="label" optionValue="value"
+                placeholder="Chọn cấu hình"
+                size="small"
+                [style]="{ width: '280px' }"
+                [showClear]="false"
+                appendTo="body">
+              </p-select>
+            </div>
+            <div class="filter-group">
+              <label>Loại nhân viên:</label>
+              <p-select
+                [(ngModel)]="selectedCoefficientEmployeeType"
+                (ngModelChange)="onCoefficientConfigChange()"
+                [options]="employeeTypeOptions"
+                optionLabel="label" optionValue="value"
+                placeholder="Chọn loại"
+                size="small"
+                [style]="{ width: '200px' }"
+                appendTo="body">
+              </p-select>
+            </div>
+            <div class="toolbar-actions">
+              <button pButton type="button" size="small"
+                pTooltip="Nạp 9 dòng mặc định theo công thức Excel"
+                icon="pi pi-refresh" label="Nạp mặc định"
+                (click)="applyDefaultCoefficients()"></button>
+              <button pButton type="button" size="small" severity="primary"
+                icon="pi pi-save" label="Lưu"
+                [loading]="isCoefficientSaving"
+                (click)="saveCoefficients()"></button>
+            </div>
+          </div>
+
+          <div class="prime-table-wrap prime-table-wrap--compact">
+            <p-table [value]="coefficients" [scrollable]="true" scrollHeight="flex"
+              [tableStyle]="{ 'min-width': '900px' }" styleClass="p-datatable-sm coefficient-grid">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width:60px" class="col-stt">STT</th>
+                  <th style="width:180px">Min Performance (%)</th>
+                  <th style="width:200px">Max Performance (%)</th>
+                  <th style="width:160px">Hệ số</th>
+                  <th style="width:120px">Priority</th>
+                  <th style="width:100px" class="col-center">Active</th>
+                  <th style="width:80px" class="col-center">Thao tác</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-c let-i="rowIndex">
+                <tr>
+                  <td class="col-stt">{{ i + 1 }}</td>
+                  <td>
+                    <p-inputNumber [(ngModel)]="c.minPerformance" [min]="0" [max]="10000"
+                      [step]="1" [minFractionDigits]="0" [maxFractionDigits]="2"
+                      [style]="{ width: '100%' }"></p-inputNumber>
+                  </td>
+                  <td>
+                    <p-inputNumber [(ngModel)]="c.maxPerformance" [min]="0" [max]="10000"
+                      [step]="1" [minFractionDigits]="0" [maxFractionDigits]="2"
+                      placeholder="NULL = ∞"
+                      [style]="{ width: '100%' }"></p-inputNumber>
+                  </td>
+                  <td>
+                    <p-inputNumber [(ngModel)]="c.coefficient" [min]="0" [max]="10"
+                      [step]="0.1" [minFractionDigits]="0" [maxFractionDigits]="2"
+                      [style]="{ width: '100%' }"></p-inputNumber>
+                  </td>
+                  <td>
+                    <p-inputNumber [(ngModel)]="c.priority" [min]="0" [step]="10"
+                      [style]="{ width: '100%' }"></p-inputNumber>
+                  </td>
+                  <td class="col-center">
+                    <p-checkbox [(ngModel)]="c.isActive" [binary]="true"></p-checkbox>
+                  </td>
+                  <td class="col-center">
+                    <button pButton type="button" icon="pi pi-trash" size="small"
+                      [text]="true" severity="danger"
+                      (click)="removeCoefficientRow(i)"></button>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="7" class="empty-row">Chưa có bậc thang nào. Bấm "Nạp mặc định" hoặc "Thêm dòng".</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+
+          <div class="tab-toolbar" style="margin-top: 12px;">
+            <button pButton type="button" size="small" icon="pi pi-plus"
+              label="Thêm dòng" (click)="addCoefficientRow()"></button>
+          </div>
+        </nz-tab>
+
+        <!-- ============== TAB 3: GÁN NHÂN VIÊN ============== -->
+        <nz-tab nzTitle="Gán nhân viên">
+          <nz-alert nzType="info" nzShowIcon class="info-alert"
+            nzMessage="Map nhân viên với Cấu hình thưởng tương ứng. Có thể gán theo Team (Sales) hoặc theo Project (PM).">
+          </nz-alert>
+
+          <div class="tab-toolbar">
+            <button pButton type="button" icon="pi pi-plus" label="Thêm mapping"
+              size="small" severity="primary" (click)="openAddMappingForm()"></button>
+          </div>
+
+          <div class="prime-table-wrap">
+            <p-table #mappingTable [value]="mappings" [paginator]="true" [rows]="20"
+              [scrollable]="true" scrollHeight="flex"
+              [tableStyle]="{ 'min-width': '1200px' }" styleClass="p-datatable-sm mapping-grid">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width:60px" class="col-stt">STT</th>
+                  <th>Nhân viên</th>
+                  <th style="width:240px">Cấu hình thưởng</th>
+                  <th style="width:140px">Vị trí</th>
+                  <th style="width:160px">Team</th>
+                  <th style="width:200px">Hiệu lực</th>
+                  <th style="width:110px" class="col-center">Trạng thái</th>
+                  <th style="width:140px" class="col-center">Thao tác</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-m let-i="rowIndex">
+                <tr>
+                  <td class="col-stt">{{ i + 1 }}</td>
+                  <td><strong>{{ getEmployeeDisplay(m) }}</strong></td>
+                  <td>{{ getConfigNameById(m.rewardConfigId) }}</td>
+                  <td>
+                    <p-tag [value]="m.positionType" severity="info"></p-tag>
+                  </td>
+                  <td>{{ getTeamName(m.teamCode) }}</td>
+                  <td>
+                    <span class="date-range">
+                      {{ formatDate(m.effectiveFromDate) }} → {{ formatDate(m.effectiveToDate) || '...' }}
+                    </span>
+                  </td>
+                  <td class="col-center">
+                    <p-tag [value]="m.isActive ? 'Active' : 'Tắt'"
+                      [severity]="m.isActive ? 'success' : 'secondary'"></p-tag>
+                  </td>
+                  <td class="col-center action-cell">
+                    <button pButton type="button" icon="pi pi-pencil" label="Sửa"
+                      size="small" [text]="true" (click)="openEditMappingForm(m)"></button>
+                    <button pButton type="button" icon="pi pi-trash" label="Xóa"
+                      size="small" [text]="true" severity="danger"
+                      (click)="deleteMapping(m)"></button>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="8" class="empty-row">Chưa có mapping nào.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </nz-tab>
+      </nz-tabset>
+    </div>
+  </nz-spin>
+
+  <!-- ============== MODAL: CONFIG FORM ============== -->
+  <nz-modal
+    [(nzVisible)]="isConfigFormVisible"
+    [nzTitle]="configFormMode === 'add' ? 'Thêm cấu hình thưởng' : 'Sửa cấu hình thưởng'"
+    [nzOkText]="configFormMode === 'add' ? 'Thêm' : 'Lưu'"
+    nzCancelText="Hủy"
+    [nzOkLoading]="isConfigSaving"
+    [nzWidth]="720"
+    nzWrapClassName="reward-config-modal"
+    (nzOnCancel)="closeConfigForm()"
+    (nzOnOk)="saveConfig()">
+    <ng-container *nzModalContent>
+      <form nz-form nzLayout="vertical" class="reward-config-form reward-config-form-modal">
+        <div nz-row [nzGutter]="12">
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>Mã cấu hình</nz-form-label>
+              <nz-form-control nzErrorTip="Vui lòng nhập mã">
+                <input nz-input name="configCode" [(ngModel)]="configDraft.configCode"
+                  placeholder="VD: SALES_DEFAULT" maxlength="50" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>Loại nhân viên</nz-form-label>
+              <nz-form-control>
+                <nz-select name="employeeType" [(ngModel)]="configDraft.employeeType" nzPlaceHolder="Chọn loại nhân viên">
+                  <nz-option *ngFor="let opt of employeeTypeOptions" [nzValue]="opt.value" [nzLabel]="opt.label">
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <nz-form-item>
+          <nz-form-label nzRequired>Tên cấu hình</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng nhập tên">
+            <input nz-input name="configName" [(ngModel)]="configDraft.configName"
+              placeholder="VD: Cấu hình thưởng Sales Q1/2026" maxlength="200" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Template áp dụng</nz-form-label>
+          <nz-form-control nzExtra="Để trống = áp dụng chung cho mọi template. Nếu chọn template, config sẽ chỉ dùng riêng cho template đó.">
+            <nz-select name="templateId" [(ngModel)]="configDraft.templateId"
+              (ngModelChange)="onConfigDraftTemplateChange()"
+              nzPlaceHolder="Chung (mọi template)"
+              nzAllowClear>
+              <nz-option *ngFor="let t of templates"
+                [nzValue]="t.ID ?? t.id"
+                [nzLabel]="(t.TemplateCode ?? t.templateCode ?? '') + ' - ' + (t.TemplateName ?? t.templateName ?? '')">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <div nz-row [nzGutter]="12">
+          <div nz-col nzSpan="8">
+            <nz-form-item>
+              <nz-form-label nzRequired>Tỷ lệ thưởng (0.01 = 1%)</nz-form-label>
+              <nz-form-control>
+                <nz-input-number name="rewardRate" [(ngModel)]="configDraft.rewardRate"
+                  [nzMin]="0" [nzMax]="1" [nzStep]="0.001" [nzPrecision]="4"
+                  style="width: 100%;">
+                </nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col nzSpan="8">
+            <nz-form-item>
+              <nz-form-label nzRequired>Thưởng Rank 1 (VNĐ)</nz-form-label>
+              <nz-form-control>
+                <nz-input-number name="rank1BonusAmount" [(ngModel)]="configDraft.rank1BonusAmount"
+                  [nzMin]="0" [nzStep]="100000" [nzFormatter]="formatMoney"
+                  style="width: 100%;">
+                </nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col nzSpan="8">
+            <nz-form-item>
+              <nz-form-label nzRequired>Thưởng / account (VNĐ)</nz-form-label>
+              <nz-form-control>
+                <nz-input-number name="newAccountBonusAmount" [(ngModel)]="configDraft.newAccountBonusAmount"
+                  [nzMin]="0" [nzStep]="100000" [nzFormatter]="formatMoney"
+                  style="width: 100%;">
+                </nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <nz-form-item>
+          <nz-form-label>Chỉ tiêu New Account (KPI Index)</nz-form-label>
+          <nz-form-control
+            nzExtra="Chỉ tiêu trong template được tính là 'New Account'. Để trống = tự động tìm theo tên (chứa NEW/ACCOUNT/KHÁCH HÀNG).">
+            <nz-select name="newAccountKpiIndexId" [(ngModel)]="configDraft.newAccountKpiIndexId"
+              nzPlaceHolder="(Tự động theo tên)"
+              nzAllowClear
+              [nzDisabled]="!configDraft.templateId">
+              <nz-option *ngFor="let i of templateKpiIndices"
+                [nzValue]="i.ID ?? i.id"
+                [nzLabel]="(i.IndexCode ?? i.indexCode ?? '') + ' - ' + (i.IndexName ?? i.indexName ?? '')">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Chỉ tiêu Tiền về (KPI Index)</nz-form-label>
+          <nz-form-control
+            nzExtra="Chỉ tiêu trong template được dùng làm 'Tiền về'. Để trống = không tính thưởng doanh số.">
+            <nz-select name="salesAmountKpiIndexId" [(ngModel)]="configDraft.salesAmountKpiIndexId"
+              nzPlaceHolder="(Tự động theo tên)"
+              nzAllowClear
+              [nzDisabled]="!configDraft.templateId">
+              <nz-option *ngFor="let i of templateKpiIndices"
+                [nzValue]="i.ID ?? i.id"
+                [nzLabel]="(i.IndexCode ?? i.indexCode ?? '') + ' - ' + (i.IndexName ?? i.indexName ?? '')">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Chỉ tiêu Doanh số (KPI Index)</nz-form-label>
+          <nz-form-control
+            nzExtra="Chỉ tiêu trong template dùng để hiển thị cột 'Doanh số' (khác với Tiền về). Để trống = không hiển thị.">
+            <nz-select name="revenueKpiIndexId" [(ngModel)]="configDraft.revenueKpiIndexId"
+              nzPlaceHolder="(Không sử dụng)"
+              nzAllowClear
+              [nzDisabled]="!configDraft.templateId">
+              <nz-option *ngFor="let i of templateKpiIndices"
+                [nzValue]="i.ID ?? i.id"
+                [nzLabel]="(i.IndexCode ?? i.indexCode ?? '') + ' - ' + (i.IndexName ?? i.indexName ?? '')">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <label nz-checkbox name="isActive" [(ngModel)]="configDraft.isActive">
+            Kích hoạt cấu hình này
+          </label>
+        </nz-form-item>
+
+        <nz-alert nzType="warning" nzShowIcon
+          nzMessage="Khi lưu, cấu hình sẽ được dùng cho lần tính Ranking tiếp theo.">
+        </nz-alert>
+      </form>
+    </ng-container>
+  </nz-modal>
+
+  <!-- ============== MODAL: MAPPING FORM ============== -->
+  <nz-modal
+    [(nzVisible)]="isMappingFormVisible"
+    [nzTitle]="mappingFormMode === 'add' ? 'Thêm mapping nhân viên' : 'Sửa mapping nhân viên'"
+    [nzOkText]="mappingFormMode === 'add' ? 'Thêm' : 'Lưu'"
+    nzCancelText="Hủy"
+    [nzOkLoading]="isMappingSaving"
+    [nzWidth]="720"
+    (nzOnCancel)="closeMappingForm()"
+    (nzOnOk)="saveMapping()">
+    <ng-container *nzModalContent>
+      <form nz-form nzLayout="vertical" class="reward-config-form">
+        <div nz-row [nzGutter]="12">
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>Nhân viên</nz-form-label>
+              <nz-form-control>
+                <nz-select name="employeeId" [(ngModel)]="mappingDraft.employeeId"
+                  nzShowSearch nzPlaceHolder="Chọn nhân viên">
+                  <nz-option
+                    *ngFor="let e of employees"
+                    [nzValue]="e.ID ?? e.id"
+                    [nzLabel]="(e.EmployeeCode ?? e.employeeCode ?? '') + ' - ' + (e.FullName ?? e.fullName ?? '')">
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>Cấu hình thưởng</nz-form-label>
+              <nz-form-control>
+                <nz-select name="rewardConfigId" [(ngModel)]="mappingDraft.rewardConfigId"
+                  nzPlaceHolder="Chọn cấu hình">
+                  <nz-option *ngFor="let c of configs" [nzValue]="c.id" [nzLabel]="c.configName"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <div nz-row [nzGutter]="12">
+          <div nz-col nzSpan="8">
+            <nz-form-item>
+              <nz-form-label nzRequired>Loại vị trí</nz-form-label>
+              <nz-form-control>
+                <nz-select name="positionType" [(ngModel)]="mappingDraft.positionType" nzPlaceHolder="Chọn vị trí">
+                  <nz-option *ngFor="let opt of positionTypeOptions" [nzValue]="opt.value" [nzLabel]="opt.label">
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col nzSpan="8">
+            <nz-form-item>
+              <nz-form-label>Team</nz-form-label>
+              <nz-form-control nzExtra="Để trống nếu không theo team (PM / Admin)">
+                <nz-select
+                  name="teamCode"
+                  [(ngModel)]="mappingDraft.teamCode"
+                  nzPlaceHolder="Chọn team"
+                  nzAllowClear
+                  [nzShowSearch]="true">
+                  <nz-option
+                    *ngFor="let t of teams"
+                    [nzValue]="t.teamCode"
+                    [nzLabel]="(t.teamCode) + ' - ' + (t.teamName ?? '')">
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <div nz-row [nzGutter]="12">
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label>Hiệu lực từ</nz-form-label>
+              <nz-form-control>
+                <input nz-input type="date" name="effectiveFromDate" [(ngModel)]="mappingDraft.effectiveFromDate" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col nzSpan="12">
+            <nz-form-item>
+              <nz-form-label>Hiệu lực đến</nz-form-label>
+              <nz-form-control nzExtra="Để trống = vô thời hạn">
+                <input nz-input type="date" name="effectiveToDate" [(ngModel)]="mappingDraft.effectiveToDate" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <nz-form-item>
+          <label nz-checkbox name="isActive" [(ngModel)]="mappingDraft.isActive">
+            Kích hoạt mapping
+          </label>
+        </nz-form-item>
+      </form>
+    </ng-container>
+  </nz-modal>
+</ng-container>

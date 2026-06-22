@@ -87,6 +87,39 @@
   padding: 8px;
 }
 
+.target-table-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.target-table-wrapper ::ng-deep .ant-table-wrapper {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+}
+
+.target-table-wrapper ::ng-deep .ant-table-wrapper .ant-table {
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+
+.target-table-wrapper ::ng-deep .ant-table-wrapper .ant-table-container {
+  flex: 1 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.target-table-wrapper ::ng-deep .ant-table-wrapper .ant-table-body {
+  flex: 1 !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+
 .detail-section {
   flex: 1;
   display: flex;
@@ -225,4 +258,134 @@
   flex: 1 !important;
   min-height: 0 !important;
   max-height: none !important;
+  height: 100% !important;
+  overflow-y: auto !important;
+}
+
+/* Field hint */
+.field-hint {
+  display: block;
+  font-size: 11px;
+  margin-top: 4px;
+  font-style: italic;
+}
+.field-hint.success { color: #16a34a; }
+.field-hint.warn { color: #d97706; }
+
+/* Template assignment modal */
+.template-assignment-content {
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.assignment-list-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+/* Inline edit/remove actions on the assigned template tag (left sidebar) */
+.template-assign {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.template-assign nz-tag {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.template-assign-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.template-assign:hover .template-assign-actions {
+  opacity: 1;
+}
+
+.template-assign-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  color: #1890ff;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.template-assign-actions a:hover {
+  background: #e6f7ff;
+}
+
+.template-assign-actions a:last-child {
+  color: #ff4d4f;
+}
+
+.template-assign-actions a:last-child:hover {
+  background: #fff1f0;
+}
+
+/* Row states */
+.row-selected > td {
+  background-color: #e6f7ff !important;
+}
+
+.row-edited {
+  background-color: #fffbe6 !important;
+}
+
+.row-edited > td {
+  background-color: #fffbe6 !important;
+}
+
+/* Inline number input styling */
+nz-input-number.inline-edit {
+  width: 100%;
+}
+
+nz-input-number.inline-edit .ant-input-number {
+  text-align: right;
+  font-weight: 600;
+}
+
+/* Group header row */
+.group-header-row > td {
+  background-color: #f1f5f9 !important;
+  padding: 8px 12px !important;
+}
+
+.group-header-cell {
+  border-left: 3px solid #1890ff;
+}
+
+.group-header-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #1e293b;
+}
+
+.group-header-content i {
+  color: #1890ff;
+}
+
+.group-header-count {
+  color: #64748b;
+  font-weight: normal;
 }

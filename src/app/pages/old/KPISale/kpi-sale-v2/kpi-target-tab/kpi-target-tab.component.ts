@@ -3,6 +3,8 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Menubar } from 'primeng/menubar';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
+import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -13,19 +15,34 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { firstValueFrom, forkJoin, Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
 import { KpiSaleV2Service, KpiApiResponse } from '../kpi-sale-v2.service';
-import { 
-  KpiSaleTarget, 
-  KpiSalePeriod, 
-  KpiSaleTemplate, 
-  KpiSaleIndex, 
+import { KpiSaleTarget,
+  KpiSalePeriod,
+  KpiSaleTemplate,
+  KpiSaleIndex,
   EmployeeOption,
-  IndexTreeRow 
+  IndexTreeRow,
+  KpiSaleEmployeeTemplate
 } from '../kpi-sale-v2.component';
+import { AppUserService } from '../../../../../services/app-user.service';
+import { PermissionService } from '../../../../../services/permission.service';
+
+// Group header cho hiển thị bảng
+export interface TargetGroupHeader {
+  isGroupHeader: true;
+  periodCode: string;
+  parentPeriodCode?: string;
+  targetCount: number;
+}
+
+export type TableRow = TargetGroupHeader | KpiSaleTarget;
 
 @Component({
   selector: 'app-kpi-target-tab',
@@ -35,6 +52,9 @@ import {
     FormsModule,
     Menubar,
     NzButtonModule,
+    NzAlertModule,
+    NzCheckboxModule,
+    NzDividerModule,
     NzFormModule,
     NzIconModule,
     NzInputModule,
@@ -44,6 +64,8 @@ import {
     NzSelectModule,
     NzSpinModule,
     NzTableModule,
+    NzTagModule,
+    NzToolTipModule,
     NzTreeSelectModule
   ],
   templateUrl: './kpi-target-tab.component.html',
@@ -51,6 +73,8 @@ import {
 })
 export class KpiTargetTabComponent implements OnInit {
   @ViewChild('targetFormTemplate') targetFormTemplate!: TemplateRef<any>;
+  @ViewChild('quickAssignTemplate') quickAssignTemplate!: TemplateRef<any>;
+  @ViewChild('teamAssignTemplate') teamAssignTemplate!: TemplateRef<any>;
 
   menuBars: any[] = [];
   isLoading = false;
@@ -61,11 +85,50 @@ export class KpiTargetTabComponent implements OnInit {
   periods: KpiSalePeriod[] = [];
   employees: EmployeeOption[] = [];
   indexes: KpiSaleIndex[] = [];
+  teams: any[] = [];
+
+  // Leader check — user hiện tại là LEADER của những team nào
+  isLeader = false;
+  myLeaderTeams: { id: number; teamCode: string; teamName: string }[] = [];
+
+  // N1 (admin) cũng có toàn quyền duyệt như leader
+  isN1Admin = false;
+  /** Có quyền duyệt target hay không (leader team hoặc admin N1) */
+  get canApproveTargets(): boolean {
+    return this.isLeader || this.isN1Admin;
+  }
+
+  // EmployeeTemplate assignment data (chỉ các gán đang active trong kỳ đang chọn)
+  employeeTemplates: KpiSaleEmployeeTemplate[] = [];
+
+  // Team template data
+  teamTemplates: any[] = [];
+  teamAssignDraft: {
+    teamId: number;
+    teamName: string;
+    templateId: number;
+    periodValue: string;
+    note: string;
+  } = { teamId: 0, teamName: '', templateId: 0, periodValue: '', note: '' };
+  teamAssignModalRef?: NzModalRef;
+
+  // Quick assign modal draft — chỉ dùng để gán nhanh từ bảng trái
+  quickAssignDraft: {
+    employeeId: number;
+    employeeName: string;
+    templateId: number;
+    periodType: 'Month' | 'Quarter';
+    periodValue: string;
+  } = { employeeId: 0, employeeName: '', templateId: 0, periodType: 'Month', periodValue: '' };
+  quickAssignModalRef?: NzModalRef;
+  /** ID của assignment đang sửa (null = thêm mới) */
+  editingAssignmentId: number | null = null;
 
   // Filter models
   selectedTemplateId = 0;
   selectedPeriodId = 0;
   selectedEmployeeId = 0;
+  selectedEmployeeIds: number[] = [];
   searchText = '';
 
   // Data table source
@@ -73,6 +136,292 @@ export class KpiTargetTabComponent implements OnInit {
 
   get filteredTargets(): KpiSaleTarget[] {
     return this.targets;
+  }
+
+  // Table rows với group headers khi chọn QUÝ/YEAR
+  get tableRows(): TableRow[] {
+    const selectedPeriod = this.resolveSelectedPeriod();
+    if (!selectedPeriod) return this.targets;
+
+    // Nếu chọn QUÝ hoặc NĂM → thêm group header
+    if (selectedPeriod.periodType === 'QUARTER' || selectedPeriod.periodType === 'YEAR') {
+      return this.buildGroupedTargets();
+    }
+
+    // Chọn THÁNG → không group
+    return this.targets;
+  }
+
+  private buildGroupedTargets(): TableRow[] {
+    const rows: TableRow[] = [];
+    const targetsByPeriod = new Map<string, KpiSaleTarget[]>();
+
+    // Group targets theo periodCode (MONTH) thay vì parentPeriodCode (QUARTER)
+    for (const target of this.targets) {
+      const groupKey = target.periodCode || '';
+      if (!targetsByPeriod.has(groupKey)) {
+        targetsByPeriod.set(groupKey, []);
+      }
+      targetsByPeriod.get(groupKey)!.push(target);
+    }
+
+    // Sắp xếp theo key và thêm header
+    const sortedKeys = Array.from(targetsByPeriod.keys()).sort();
+    for (const key of sortedKeys) {
+      const periodTargets = targetsByPeriod.get(key)!;
+      rows.push({
+        isGroupHeader: true,
+        periodCode: key,
+        parentPeriodCode: periodTargets[0]?.parentPeriodCode,
+        targetCount: periodTargets.length
+      } as TargetGroupHeader);
+      rows.push(...periodTargets);
+    }
+
+    return rows;
+  }
+
+  isGroupHeader(row: TableRow): row is TargetGroupHeader {
+    return 'isGroupHeader' in row && row.isGroupHeader === true;
+  }
+
+  isTarget(row: TableRow): row is KpiSaleTarget {
+    return !('isGroupHeader' in row);
+  }
+
+  get isGoalValueLocked(): boolean {
+    return !!this.targetDraft
+      && !!this.targetDraft.id
+      && this.targetDraft.approvalStatus === 'Approved';
+  }
+
+  // Inline edit state — theo dõi các dòng đang được chọn
+  selectedTargetIds = new Set<number>();
+  inlineEditedTargets = new Map<number, { proposedGoalValue: number | null; goalValue: number | null }>();
+
+  isTargetSelected(id: number): boolean {
+    return this.selectedTargetIds.has(id);
+  }
+
+  toggleTargetSelection(id: number): void {
+    if (this.selectedTargetIds.has(id)) {
+      this.selectedTargetIds.delete(id);
+    } else {
+      this.selectedTargetIds.add(id);
+    }
+    this.selectedTargetIds = new Set(this.selectedTargetIds);
+  }
+
+  toggleSelectAll(): void {
+    if (this.selectedTargetIds.size === this.targets.length) {
+      this.selectedTargetIds.clear();
+    } else {
+      this.selectedTargetIds = new Set(this.targets.map(t => t.id));
+    }
+    this.selectedTargetIds = new Set(this.selectedTargetIds);
+  }
+
+  get allSelected(): boolean {
+    return this.targets.length > 0 && this.selectedTargetIds.size === this.targets.length;
+  }
+
+  get someSelected(): boolean {
+    return this.selectedTargetIds.size > 0 && this.selectedTargetIds.size < this.targets.length;
+  }
+
+  // Inline edit helpers
+  getInlineProposed(id: number): number | null {
+    const item = this.targets.find(t => t.id === id);
+    const edited = this.inlineEditedTargets.get(id);
+    return edited !== undefined ? edited.proposedGoalValue : (item?.proposedGoalValue ?? null);
+  }
+
+  getInlineGoal(id: number): number | null {
+    const item = this.targets.find(t => t.id === id);
+    const edited = this.inlineEditedTargets.get(id);
+    return edited !== undefined ? edited.goalValue : (item?.goalValue ?? null);
+  }
+
+  onInlineProposedChange(id: number, value: number | null): void {
+    const current = this.inlineEditedTargets.get(id) ?? { proposedGoalValue: null, goalValue: null };
+    this.inlineEditedTargets.set(id, { ...current, proposedGoalValue: value });
+    this.inlineEditedTargets = new Map(this.inlineEditedTargets);
+  }
+
+  onInlineGoalChange(id: number, value: number | null): void {
+    const current = this.inlineEditedTargets.get(id) ?? { proposedGoalValue: null, goalValue: null };
+    this.inlineEditedTargets.set(id, { ...current, goalValue: value });
+    this.inlineEditedTargets = new Map(this.inlineEditedTargets);
+  }
+
+  hasInlineChanges(id: number): boolean {
+    return this.inlineEditedTargets.has(id);
+  }
+
+  // Formatter: hiển thị số với dấu phẩy ngăn cách hàng nghìn, không thập phân
+  formatMoney(value: number | null): string {
+    if (value === null || value === undefined) return '';
+    return value.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+
+  // Parser: chuyển chuỗi đã format về số khi user nhập
+  parseMoney(value: string): number | null {
+    if (!value) return null;
+    const cleaned = value.replace(/,/g, '');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? null : num;
+  }
+
+  get changedTargets(): KpiSaleTarget[] {
+    return this.targets.filter(t => this.inlineEditedTargets.has(t.id));
+  }
+
+  get hasAnyChanges(): boolean {
+    return this.inlineEditedTargets.size > 0;
+  }
+
+  async saveInlineChanges(): Promise<void> {
+    if (this.inlineEditedTargets.size === 0) return;
+    this.isLoading = true;
+    let savedCount = 0;
+    let errorCount = 0;
+    try {
+      for (const [id, changes] of this.inlineEditedTargets) {
+        const target = this.targets.find(t => t.id === id);
+        if (!target) continue;
+        const updated: KpiSaleTarget = {
+          ...target,
+          proposedGoalValue: changes.proposedGoalValue,
+          goalValue: changes.goalValue ?? target.goalValue,
+        };
+        if (this.isApiMode) {
+          try {
+            const apiData = this.targetToApi(updated);
+            const res = await firstValueFrom(this.kpiSaleService.saveTarget(apiData));
+            if (res?.status === 1) {
+              savedCount++;
+            } else {
+              errorCount++;
+            }
+          } catch {
+            errorCount++;
+          }
+        } else {
+          // Mock: cập nhật local
+          const idx = this.targets.findIndex(t => t.id === id);
+          if (idx >= 0) {
+            this.targets[idx] = {
+              ...this.targets[idx],
+              proposedGoalValue: changes.proposedGoalValue,
+              goalValue: changes.goalValue ?? this.targets[idx].goalValue,
+            };
+            savedCount++;
+          }
+        }
+      }
+      this.inlineEditedTargets.clear();
+      this.inlineEditedTargets = new Map();
+      this.selectedTargetIds.clear();
+      this.selectedTargetIds = new Set();
+      if (errorCount === 0) {
+        this.notification.success('Thành công', `Đã lưu ${savedCount} mục tiêu`);
+      } else {
+        this.notification.warning('Cảnh báo', `Đã lưu ${savedCount}, thất bại ${errorCount}`);
+      }
+      this.tabService.notifyDataSaved('kpi-targets');
+      await this.loadTargets();
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  async approveSelected(): Promise<void> {
+    if (!this.canApproveTargets) return;
+    const ids = Array.from(this.selectedTargetIds);
+    if (ids.length === 0) return;
+    this.isLoading = true;
+    let approved = 0;
+    let skipped = 0;
+    try {
+      for (const id of ids) {
+        const item = this.targets.find(t => t.id === id);
+        if (!item) continue;
+        if (!item.proposedGoalValue && !this.getInlineProposed(id)) {
+          skipped++;
+          continue;
+        }
+        if (this.isApiMode) {
+          try {
+            const res = await firstValueFrom(this.kpiSaleService.approveTarget(id));
+            if (res?.status === 1) approved++;
+          } catch {
+            skipped++;
+          }
+        } else {
+          const idx = this.targets.findIndex(t => t.id === id);
+          if (idx >= 0) {
+            const propVal = this.getInlineProposed(id) ?? item.proposedGoalValue;
+            this.targets[idx] = {
+              ...this.targets[idx],
+              goalValue: propVal ?? this.targets[idx].goalValue,
+              approvalStatus: 'Approved',
+              proposedGoalValue: propVal ?? this.targets[idx].proposedGoalValue,
+            };
+            approved++;
+          }
+        }
+      }
+      this.targets = [...this.targets];
+      this.selectedTargetIds.clear();
+      this.selectedTargetIds = new Set();
+      if (skipped > 0) {
+        this.notification.warning('Thông báo', `Đã duyệt ${approved} mục tiêu, bỏ qua ${skipped} (chưa có giá trị đề xuất)`);
+      } else {
+        this.notification.success('Thành công', `Đã duyệt ${approved} mục tiêu`);
+      }
+      this.tabService.notifyDataSaved('kpi-targets');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  getApprovalStatusLabel(status?: string | null): string {
+    switch (status) {
+      case 'Approved': return 'Đã duyệt';
+      case 'Rejected': return 'Bị hủy';
+      case 'Pending': return 'Chờ duyệt';
+      default: return 'Mặc định';
+    }
+  }
+
+  getApprovalStatusColor(status?: string | null): string {
+    switch (status) {
+      case 'Approved': return 'green';
+      case 'Rejected': return 'red';
+      case 'Pending': return 'gold';
+      default: return 'default';
+    }
+  }
+
+  canApprove(item: KpiSaleTarget): boolean {
+    if (!item) return false;
+    if (item.approvalStatus === 'Approved' || item.approvalStatus === 'Rejected') return false;
+    if (!item.proposedGoalValue && item.proposedGoalValue !== 0) return false;
+    // Leader team hoặc admin N1 mới có quyền duyệt
+    if (this.isN1Admin) return true;
+    return this.isLeader && this.isMyTeamLeader(item);
+  }
+
+  // Kiểm tra user hiện tại (là leader) có phải leader của team chứa nhân viên trong target không
+  isMyTeamLeader(item: KpiSaleTarget): boolean {
+    // Leader có quyền duyệt tất cả target đang hiển thị
+    return this.isLeader;
+  }
+
+  // Lấy assignment active cho 1 employee trong kỳ hiện tại
+  getAssignmentForEmployee(employeeId: number): KpiSaleEmployeeTemplate | undefined {
+    if (!employeeId) return undefined;
+    return this.employeeTemplates.find(et => et.employeeId === employeeId && et.isActive);
   }
 
   // Modal draft
@@ -83,12 +432,28 @@ export class KpiTargetTabComponent implements OnInit {
     private kpiSaleService: KpiSaleV2Service,
     private tabService: TabServiceService,
     private modalService: NzModalService,
-    private notification: NzNotificationService
-  ) {}
+    private notification: NzNotificationService,
+    private appUserService: AppUserService,
+    private permissionService: PermissionService
+  ) {
+    this.isN1Admin = this.permissionService.hasPermission('N1');
+  }
 
   onEmployeeSelect(employeeId: number): void {
     this.selectedEmployeeId = employeeId;
-    void this.loadTargets();
+    this.selectedTemplateId = 0; // reset để onFilterChange tự derive từ assignment mới
+    void this.onFilterChange();
+  }
+
+  onEmployeesChange(values: number[]): void {
+    this.selectedEmployeeIds = values || [];
+    if (this.selectedEmployeeIds.length > 0) {
+      this.selectedEmployeeId = this.selectedEmployeeIds[0];
+    } else {
+      this.selectedEmployeeId = 0;
+    }
+    this.selectedTemplateId = 0; // reset để onFilterChange tự derive từ assignment mới
+    void this.onFilterChange();
   }
 
   ngOnInit(): void {
@@ -101,12 +466,19 @@ export class KpiTargetTabComponent implements OnInit {
         }
       },
       {
-        label: 'Thêm mục tiêu',
-        icon: 'fa-solid fa-plus fa-lg text-success',
+        label: 'Gán mẫu theo Team',
+        icon: 'fa-solid fa-users fa-lg text-warning',
         command: () => {
-          this.openTargetForm();
+          this.openTeamAssignModal();
         }
-      }
+      },
+      // {
+      //   label: 'Thêm mục tiêu',
+      //   icon: 'fa-solid fa-plus fa-lg text-success',
+      //   command: () => {
+      //     this.openTargetForm();
+      //   }
+      // }
     ];
 
     this.loadInitialData();
@@ -118,13 +490,18 @@ export class KpiTargetTabComponent implements OnInit {
       const response = await firstValueFrom(forkJoin({
         templates: this.safeApi<any[]>(this.kpiSaleService.getTemplates()),
         periods: this.safeApi<any[]>(this.kpiSaleService.getPeriods()),
-        employees: this.safeApi<any[]>(this.kpiSaleService.getEmployees())
+        employees: this.safeApi<any[]>(this.kpiSaleService.getEmployees()),
+        employeeTemplates: this.safeApi<any[]>(this.kpiSaleService.getEmployeeTemplates(undefined, undefined, true)),
+        teams: this.safeApi<any[]>(this.kpiSaleService.getTeams()),
+        teamTemplates: this.safeApi<any[]>(this.kpiSaleService.getTeamTemplates(undefined, true)),
+        leaderTeams: this.safeApi<{ isLeader: boolean; teams: any[] }>(this.kpiSaleService.getMyLeaderTeams())
       }));
 
       this.isApiMode = [
         response.templates,
         response.periods,
-        response.employees
+        response.employees,
+        response.employeeTemplates
       ].some(item => item?.status === 1);
 
       if (response.templates?.status === 1 && Array.isArray(response.templates.data)) {
@@ -137,6 +514,25 @@ export class KpiTargetTabComponent implements OnInit {
         this.employees = response.employees.data
           .map(item => this.normalizeEmployee(item))
           .filter(item => item.fullName);
+      }
+      if (response.employeeTemplates?.status === 1 && Array.isArray(response.employeeTemplates.data)) {
+        this.employeeTemplates = response.employeeTemplates.data.map(item => this.normalizeEmployeeTemplate(item));
+      }
+      if (response.teams?.status === 1 && Array.isArray(response.teams.data)) {
+        this.teams = response.teams.data.map((t: any) => ({
+          id: t.ID ?? t.id,
+          teamCode: t.TeamCode ?? t.teamCode,
+          teamName: t.TeamName ?? t.teamName,
+          employeeIDs: Array.isArray(t.EmployeeIDs) ? t.EmployeeIDs : [],
+          isActive: t.IsActive !== false
+        }));
+      }
+      if (response.teamTemplates?.status === 1 && Array.isArray(response.teamTemplates.data)) {
+        this.teamTemplates = response.teamTemplates.data;
+      }
+      if (response.leaderTeams?.status === 1 && response.leaderTeams.data) {
+        this.isLeader = response.leaderTeams.data.isLeader ?? false;
+        this.myLeaderTeams = response.leaderTeams.data.teams ?? [];
       }
 
       // Pre-select defaults
@@ -159,9 +555,68 @@ export class KpiTargetTabComponent implements OnInit {
     }
   }
 
+  /**
+   * Load lại employeeTemplates theo kỳ đang chọn (kỳ con của selectedPeriodId).
+   * Nếu chọn QUÝ → load assignment của cả 3 tháng con.
+   * Nếu chọn THÁNG → load assignment của tháng đó.
+   */
+  private async reloadEmployeeTemplatesForCurrentPeriod(): Promise<void> {
+    const period = this.resolveSelectedPeriod();
+    if (!period) {
+      this.employeeTemplates = [];
+      return;
+    }
+
+    // Tính danh sách kỳ cần load assignment
+    const periodCodesToLoad: string[] = [];
+    if (period.periodType === 'QUARTER') {
+      const childMonths = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId === period.id);
+      childMonths.forEach(m => m.periodCode && periodCodesToLoad.push(m.periodCode));
+    } else if (period.periodType === 'YEAR') {
+      const quarters = this.periods.filter(p => p.periodType === 'QUARTER' && p.parentPeriodId === period.id);
+      const quarterIds = quarters.map(q => q.id);
+      const months = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId && quarterIds.includes(p.parentPeriodId));
+      months.forEach(m => m.periodCode && periodCodesToLoad.push(m.periodCode));
+    } else {
+      if (period.periodCode) periodCodesToLoad.push(period.periodCode);
+    }
+
+    if (periodCodesToLoad.length === 0) {
+      this.employeeTemplates = [];
+      return;
+    }
+
+    // Gọi API song song cho từng kỳ
+    const responses = await Promise.all(
+      periodCodesToLoad.map(code =>
+        firstValueFrom(
+          this.safeApi<any[]>(this.kpiSaleService.getEmployeeTemplates(undefined, undefined, true, undefined, code))
+        )
+      )
+    );
+
+    const all: KpiSaleEmployeeTemplate[] = [];
+    for (const r of responses) {
+      if (r?.status === 1 && Array.isArray(r.data)) {
+        all.push(...r.data.map(item => this.normalizeEmployeeTemplate(item)));
+      }
+    }
+    this.employeeTemplates = all;
+  }
+
   async onFilterChange(): Promise<void> {
     this.isLoading = true;
     try {
+      await this.reloadEmployeeTemplatesForCurrentPeriod();
+
+      // Chỉ tự động fill selectedTemplateId từ assignment khi chưa có giá trị (lần đầu load)
+      if (!this.selectedTemplateId) {
+        const assigned = this.getAssignmentForEmployee(this.selectedEmployeeId);
+        if (assigned) {
+          this.selectedTemplateId = assigned.templateId;
+        }
+      }
+
       if (this.selectedTemplateId) {
         const indexResponse = await firstValueFrom(
           this.safeApi<any[]>(this.kpiSaleService.getIndexes(this.selectedTemplateId))
@@ -181,22 +636,34 @@ export class KpiTargetTabComponent implements OnInit {
   async loadTargets(): Promise<void> {
     this.isLoading = true;
     try {
-      const response = await firstValueFrom(
-        this.safeApi<any[]>(this.kpiSaleService.getTargets(
-          this.selectedEmployeeId || undefined,
-          this.selectedPeriodId || undefined,
-          this.selectedTemplateId || undefined
-        ))
-      );
-      if (response?.status === 1 && Array.isArray(response.data)) {
-        this.targets = response.data.map(item => this.normalizeTarget(item));
-      } else {
-        // Fallback sample data if API not connected
-        if (!this.isApiMode) {
-          this.targets = this.getMockTargets();
-        } else {
-          this.targets = [];
+      const employeeIds = this.selectedEmployeeIds && this.selectedEmployeeIds.length > 0
+        ? this.selectedEmployeeIds
+        : (this.selectedEmployeeId ? [this.selectedEmployeeId] : []);
+
+      if (employeeIds.length === 0) {
+        this.targets = [];
+        return;
+      }
+
+      // Gọi API cho từng employee và gộp kết quả
+      const allTargets: KpiSaleTarget[] = [];
+      for (const empId of employeeIds) {
+        const response = await firstValueFrom(
+          this.safeApi<any[]>(this.kpiSaleService.getTargets(
+            empId,
+            this.selectedPeriodId || undefined,
+            this.selectedTemplateId || undefined
+          ))
+        );
+        if (response?.status === 1 && Array.isArray(response.data)) {
+          const normalized = response.data.map(item => this.normalizeTarget(item));
+          allTargets.push(...normalized);
         }
+      }
+      this.targets = allTargets;
+
+      if (allTargets.length === 0 && !this.isApiMode) {
+        this.targets = this.getMockTargets();
       }
     } catch (err) {
       console.error(err);
@@ -232,6 +699,10 @@ export class KpiTargetTabComponent implements OnInit {
   }
 
   async saveTarget(): Promise<void> {
+    if (typeof this.targetDraft.periodId === 'string') {
+      this.targetDraft.periodId = parseInt(this.targetDraft.periodId, 10);
+    }
+
     const period = this.periods.find(p => p.id === this.targetDraft.periodId);
     if (!period) {
       this.notification.warning('Cảnh báo', 'Không tìm thấy kỳ KPI');
@@ -252,7 +723,14 @@ export class KpiTargetTabComponent implements OnInit {
         const apiData = this.targetToApi(this.targetDraft);
         const response = await firstValueFrom(this.kpiSaleService.saveTarget(apiData));
         if (response?.status === 1) {
-          this.notification.success('Thông báo', response.message || 'Lưu mục tiêu thành công');
+          const hasProposal = this.targetDraft.proposedGoalValue !== null
+            && this.targetDraft.proposedGoalValue !== undefined
+            && this.targetDraft.proposedGoalValue >= 0;
+          this.notification.success('Thông báo',
+            hasProposal
+              ? 'Lưu mục tiêu & gửi đề xuất thành công, chờ leader duyệt'
+              : (response.message || 'Lưu mục tiêu thành công')
+          );
           this.tabService.notifyDataSaved('kpi-targets');
           this.targetModalRef?.destroy();
           await this.loadTargets();
@@ -261,9 +739,9 @@ export class KpiTargetTabComponent implements OnInit {
         }
       } else {
         // Client side edit for mock data
-        const existingIdx = this.targets.findIndex(t => 
-          t.employeeId === this.targetDraft.employeeId && 
-          t.periodId === this.targetDraft.periodId && 
+        const existingIdx = this.targets.findIndex(t =>
+          t.employeeId === this.targetDraft.employeeId &&
+          t.periodId === this.targetDraft.periodId &&
           t.kpiIndexId === this.targetDraft.kpiIndexId
         );
         if (existingIdx !== -1) {
@@ -289,9 +767,9 @@ export class KpiTargetTabComponent implements OnInit {
   }
 
   // --- Draft Handlers ---
-  onTargetPeriodChange(val: string): void {
-    if (val) {
-      this.targetDraft.periodId = Number(val);
+  onTargetPeriodChange(val: number): void {
+    if (val !== undefined && val !== null) {
+      this.targetDraft.periodId = val;
       this.onTargetDraftChange();
     }
   }
@@ -377,6 +855,324 @@ export class KpiTargetTabComponent implements OnInit {
     }
   }
 
+  // --- Quick Assign Modal (từ bảng trái) ---
+
+  /**
+   * Chuẩn hoá selectedPeriodId (có thể là string từ nz-tree-select) về number
+   * và tìm KpiSalePeriod tương ứng. Trả về undefined nếu không hợp lệ.
+   */
+  private resolveSelectedPeriod(): KpiSalePeriod | undefined {
+    if (this.selectedPeriodId === null || this.selectedPeriodId === undefined || this.selectedPeriodId === 0) {
+      return undefined;
+    }
+    const id = typeof this.selectedPeriodId === 'string'
+      ? parseInt(this.selectedPeriodId, 10)
+      : this.selectedPeriodId;
+    if (!id || Number.isNaN(id)) return undefined;
+    return this.periods.find(p => p.id === id);
+  }
+
+  openQuickAssignModal(employee: EmployeeOption): void {
+    const currentPeriod = this.resolveSelectedPeriod();
+    if (!currentPeriod) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn kỳ KPI trước');
+      return;
+    }
+
+    // Mặc định chỉ gán theo QUÝ (1 quý = 1 mẫu chung)
+    const quarterPeriod = this.periods.find(p => p.periodType === 'QUARTER' && !p.isClosed);
+    this.quickAssignDraft = {
+      employeeId: employee.id,
+      employeeName: `${employee.code} - ${employee.fullName}`,
+      templateId: 0,
+      periodType: 'Quarter',
+      periodValue: quarterPeriod?.periodCode || ''
+    };
+    this.editingAssignmentId = null;
+
+    this.showQuickAssignModal('Gán nhanh mẫu KPI', 'Lưu gán');
+  }
+
+  /** Mở modal Sửa mẫu KPI đang gán cho nhân viên */
+  openEditAssignModal(employee: EmployeeOption, assignment: KpiSaleEmployeeTemplate): void {
+    // Chỉ cho sửa theo QUÝ — nếu dữ liệu cũ là Month vẫn hiển thị đúng quý tương ứng
+    const periodCode = assignment.periodValue || '';
+    const matchedQuarter = this.periods.find(p => p.periodType === 'QUARTER' && p.periodCode === periodCode);
+    this.quickAssignDraft = {
+      employeeId: employee.id,
+      employeeName: `${employee.code} - ${employee.fullName}`,
+      templateId: assignment.templateId,
+      periodType: 'Quarter',
+      periodValue: matchedQuarter ? matchedQuarter.periodCode : (periodCode || '')
+    };
+    this.editingAssignmentId = assignment.id;
+
+    this.showQuickAssignModal('Sửa mẫu KPI đã gán', 'Cập nhật');
+  }
+
+  private showQuickAssignModal(title: string, okLabel: string): void {
+    this.quickAssignModalRef = this.modalService.create({
+      nzTitle: title,
+      nzContent: this.quickAssignTemplate,
+      nzWidth: 560,
+      nzOnCancel: () => {
+        this.quickAssignModalRef?.destroy();
+        this.editingAssignmentId = null;
+      },
+      nzFooter: [
+        {
+          label: 'Hủy',
+          onClick: () => {
+            this.quickAssignModalRef?.destroy();
+            this.editingAssignmentId = null;
+          }
+        },
+        {
+          label: okLabel,
+          type: 'primary',
+          onClick: () => this.saveQuickAssign()
+        }
+      ]
+    });
+  }
+
+  /** Xóa mẫu KPI đang gán cho nhân viên */
+  removeQuickAssign(employee: EmployeeOption, assignment: KpiSaleEmployeeTemplate): void {
+    if (!assignment?.id) return;
+    this.modalService.confirm({
+      nzTitle: 'Xóa mẫu KPI đã gán?',
+      nzContent: `Bạn có chắc muốn xóa mẫu "${assignment.templateName || assignment.templateCode}" của ${employee.code} - ${employee.fullName} ở kỳ ${assignment.periodValue || ''}?`,
+      nzOkText: 'Xóa',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: async () => {
+        if (!this.isApiMode) {
+          this.notification.warning('Cảnh báo', 'Tính năng chỉ khả dụng khi kết nối API');
+          return;
+        }
+        try {
+          const response = await firstValueFrom(
+            this.kpiSaleService.deleteEmployeeTemplate(assignment.id)
+          );
+          if (response?.status === 1) {
+            this.notification.success('Thành công', 'Đã xóa mẫu KPI đã gán');
+            // Reload lại danh sách gán cho kỳ hiện tại
+            await this.reloadEmployeeTemplatesForCurrentPeriod();
+            if (assignment.employeeId === this.selectedEmployeeId) {
+              // Reload lại mục tiêu của nhân viên hiện tại
+              await this.loadTargets();
+            }
+          } else {
+            this.notification.error('Lỗi', response?.message || 'Không xóa được');
+          }
+        } catch (error: any) {
+          console.error('Delete employee template error:', error);
+          this.notification.error('Lỗi', error?.error?.message || error?.message || 'Lỗi khi xóa mẫu đã gán');
+        }
+      }
+    });
+  }
+
+  get canSaveQuickAssign(): boolean {
+    return !!this.quickAssignDraft.templateId
+      && !!this.quickAssignDraft.periodValue
+      && !!this.quickAssignDraft.employeeId;
+  }
+
+  refreshQuickAssignFooter(): void {
+    // No-op: nz-modal captures footer config 1 lần lúc create(),
+    // thuộc tính `disabled` không re-render khi updateConfig.
+    // Validation chuyển sang canSaveQuickAssign() trong saveQuickAssign().
+  }
+
+  onQuickAssignPeriodTypeChange(type: 'Month' | 'Quarter'): void {
+    this.quickAssignDraft.periodType = 'Quarter'; // Chỉ cho phép QUÝ
+    this.quickAssignDraft.periodValue = '';
+  }
+
+  get quickAssignQuarterOptions(): KpiSalePeriod[] {
+    return this.periods
+      .filter(p => p.periodType === 'QUARTER' && !p.isClosed)
+      .sort((a, b) => (a.periodCode || '').localeCompare(b.periodCode || ''));
+  }
+
+  get quickAssignMonthOptions(): KpiSalePeriod[] {
+    return []; // Không dùng — chỉ gán theo QUÝ
+  }
+
+  async saveQuickAssign(): Promise<void> {
+    if (!this.canSaveQuickAssign) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn đầy đủ mẫu KPI và kỳ áp dụng');
+      return;
+    }
+    this.isLoading = true;
+    try {
+      if (!this.isApiMode) {
+        this.notification.warning('Cảnh báo', 'Tính năng chỉ khả dụng khi kết nối API');
+        return;
+      }
+
+      const payload = {
+        EmployeeID: this.quickAssignDraft.employeeId,
+        TemplateID: this.quickAssignDraft.templateId,
+        PeriodType: this.quickAssignDraft.periodType,
+        PeriodValue: this.quickAssignDraft.periodValue,
+        IsActive: true
+      };
+
+      const isEdit = !!this.editingAssignmentId;
+      const response = await firstValueFrom(
+        isEdit
+          ? this.kpiSaleService.updateEmployeeTemplate(this.editingAssignmentId!, payload)
+          : this.kpiSaleService.saveEmployeeTemplate(payload)
+      );
+
+      if (response?.status === 1) {
+        this.notification.success(
+          'Thông báo',
+          response.message || (isEdit ? 'Cập nhật thành công' : 'Gán mẫu thành công')
+        );
+        this.quickAssignModalRef?.destroy();
+        this.editingAssignmentId = null;
+        // Reload assignment cho kỳ hiện tại
+        await this.reloadEmployeeTemplatesForCurrentPeriod();
+        // Reload target nếu employee đang chọn bị ảnh hưởng
+        if (this.quickAssignDraft.employeeId === this.selectedEmployeeId) {
+          this.selectedTemplateId = this.quickAssignDraft.templateId;
+          await this.onFilterChange();
+        }
+      } else {
+        this.notification.error('Lỗi', response?.message || (isEdit ? 'Không thể cập nhật' : 'Không thể gán mẫu KPI'));
+      }
+    } catch (err) {
+      console.error(err);
+      this.notification.error('Lỗi', this.editingAssignmentId ? 'Không thể cập nhật mẫu KPI' : 'Không thể gán mẫu KPI');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  // --- Team Template Methods ---
+
+  openTeamAssignModal(): void {
+    // Mặc định chọn quý đầu tiên chưa đóng
+    const defaultQuarter = this.periods.find(p => p.periodType === 'QUARTER' && !p.isClosed);
+    this.teamAssignDraft = {
+      teamId: 0,
+      teamName: '',
+      templateId: this.templates[0]?.id || 0,
+      periodValue: defaultQuarter?.periodCode || '',
+      note: ''
+    };
+
+    this.teamAssignModalRef = this.modalService.create({
+      nzTitle: 'Gán mẫu KPI theo Team',
+      nzContent: this.teamAssignTemplate,
+      nzWidth: 560,
+      nzOnCancel: () => {
+        this.teamAssignModalRef?.destroy();
+      },
+      nzFooter: [
+        {
+          label: 'Hủy',
+          onClick: () => this.teamAssignModalRef?.destroy()
+        },
+        {
+          label: 'Gán mẫu',
+          type: 'primary',
+          onClick: () => this.saveTeamAssign()
+        }
+      ]
+    });
+  }
+
+  onTeamSelect(teamId: number): void {
+    const team = this.teams.find(t => t.id === teamId);
+    if (team) {
+      this.teamAssignDraft.teamId = team.id;
+      this.teamAssignDraft.teamName = `${team.teamCode} - ${team.teamName}`;
+    }
+  }
+
+  async saveTeamAssign(): Promise<void> {
+    if (!this.teamAssignDraft.teamId) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn team');
+      return;
+    }
+    if (!this.teamAssignDraft.templateId) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn mẫu KPI');
+      return;
+    }
+    if (!this.teamAssignDraft.periodValue) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn quý');
+      return;
+    }
+
+    this.isLoading = true;
+    try {
+      const payload = {
+        TeamID: this.teamAssignDraft.teamId,
+        TemplateID: this.teamAssignDraft.templateId,
+        PeriodType: 'Quarter',
+        PeriodValue: this.teamAssignDraft.periodValue,
+        IsActive: true,
+        Note: this.teamAssignDraft.note
+      };
+
+      const response = await firstValueFrom(this.kpiSaleService.saveTeamTemplate(payload));
+      if (response?.status === 1) {
+        this.notification.success('Thành công', response.message || 'Gán mẫu KPI cho team thành công. Đã ghi đè mẫu của tất cả thành viên trong team.');
+        this.teamAssignModalRef?.destroy();
+        // Reload team templates + employee templates
+        await this.loadInitialData();
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể gán mẫu KPI');
+      }
+    } catch (err) {
+      console.error(err);
+      this.notification.error('Lỗi', 'Không thể gán mẫu KPI cho team');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  async removeTeamTemplate(teamTemplate: any): Promise<void> {
+    if (!teamTemplate?.id) return;
+    this.modalService.confirm({
+      nzTitle: 'Xóa gán mẫu team?',
+      nzContent: `Bạn có chắc muốn xóa gán mẫu "${teamTemplate.templateName || teamTemplate.templateCode}" cho team "${teamTemplate.teamName || teamTemplate.teamCode}" ở kỳ ${teamTemplate.periodValue}?`,
+      nzOkText: 'Xóa',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: async () => {
+        try {
+          const response = await firstValueFrom(this.kpiSaleService.deleteTeamTemplate(teamTemplate.id));
+          if (response?.status === 1) {
+            this.notification.success('Thành công', 'Đã xóa gán mẫu team');
+            await this.loadInitialData();
+          } else {
+            this.notification.error('Lỗi', response?.message || 'Không xóa được');
+          }
+        } catch (err) {
+          console.error(err);
+          this.notification.error('Lỗi', 'Lỗi khi xóa gán mẫu team');
+        }
+      }
+    });
+  }
+
+  get teamTemplateOptions(): any[] {
+    return this.periods
+      .filter(p => p.periodType === 'QUARTER' && !p.isClosed)
+      .sort((a, b) => (a.periodCode || '').localeCompare(b.periodCode || ''));
+  }
+
+  getTeamTemplateForTeam(teamId: number): any | undefined {
+    return this.teamTemplates.find(tt => tt.teamId === teamId || tt.teamID === teamId);
+  }
+
   // --- Getters & Tree helpers ---
   get indexesForTemplate(): KpiSaleIndex[] {
     return this.indexes
@@ -387,8 +1183,8 @@ export class KpiTargetTabComponent implements OnInit {
   get filteredEmployees(): EmployeeOption[] {
     const keyword = this.searchText.trim().toLowerCase();
     if (!keyword) return this.employees;
-    return this.employees.filter(e => 
-      e.code.toLowerCase().includes(keyword) || 
+    return this.employees.filter(e =>
+      e.code.toLowerCase().includes(keyword) ||
       e.fullName.toLowerCase().includes(keyword) ||
       (e.departmentName && e.departmentName.toLowerCase().includes(keyword))
     );
@@ -447,13 +1243,20 @@ export class KpiTargetTabComponent implements OnInit {
     return item.id || item.index?.id || _index;
   }
 
+  trackByEmployeeId(_index: number, item: EmployeeOption): number {
+    return item.id;
+  }
+
   getDefaultTargetDraft(): KpiSaleTarget {
     return {
       id: 0,
       employeeId: this.selectedEmployeeId || this.employees[0]?.id || 0,
       periodId: this.selectedPeriodId || this.periods[0]?.id || 0,
       kpiIndexId: this.indexesForTemplate[0]?.id || 0,
-      goalValue: 0
+      goalValue: 0,
+      weightPercent: 0,
+      proposedGoalValue: null,
+      approvalStatus: 'Default',
     };
   }
 
@@ -526,10 +1329,42 @@ export class KpiTargetTabComponent implements OnInit {
       periodId: this.read<number>(item, 'PeriodID', 'PeriodId', 'periodId') || 0,
       kpiIndexId: this.read<number>(item, 'KpiIndexID', 'KpiIndexId', 'kpiIndexId') || 0,
       goalValue: this.read<number>(item, 'GoalValue', 'goalValue') || 0,
+      weightPercent: this.read<number>(item, 'WeightPercent', 'weightPercent') ?? undefined,
+      proposedGoalValue: this.read<number>(item, 'ProposedGoalValue', 'proposedGoalValue') ?? undefined,
+      approvalStatus: this.read<string>(item, 'ApprovalStatus', 'approvalStatus') || 'Default',
+      approvedBy: this.read<string>(item, 'ApprovedBy', 'approvedBy'),
+      approvedDate: this.read<string>(item, 'ApprovedDate', 'approvedDate'),
+      rejectedBy: this.read<string>(item, 'RejectedBy', 'rejectedBy'),
+      rejectedDate: this.read<string>(item, 'RejectedDate', 'rejectedDate'),
       employeeName: this.read<string>(item, 'EmployeeName', 'employeeName'),
       periodCode: this.read<string>(item, 'PeriodCode', 'periodCode'),
+      periodType: this.read<string>(item, 'PeriodType', 'periodType'),
+      parentPeriodId: this.read<number>(item, 'ParentPeriodID', 'ParentPeriodId', 'parentPeriodId'),
+      parentPeriodCode: this.read<string>(item, 'ParentPeriodCode', 'parentPeriodCode'),
       indexCode: this.read<string>(item, 'IndexCode', 'indexCode'),
       indexName: this.read<string>(item, 'IndexName', 'indexName'),
+    };
+  }
+
+  private normalizeEmployeeTemplate(item: any): KpiSaleEmployeeTemplate {
+    return {
+      id: this.read<number>(item, 'ID', 'id') || 0,
+      employeeId: this.read<number>(item, 'EmployeeID', 'EmployeeId', 'employeeId') || 0,
+      employeeCode: this.read<string>(item, 'EmployeeCode', 'employeeCode'),
+      employeeName: this.read<string>(item, 'EmployeeName', 'employeeName'),
+      templateId: this.read<number>(item, 'TemplateID', 'TemplateId', 'templateId') || 0,
+      templateCode: this.read<string>(item, 'TemplateCode', 'templateCode'),
+      templateName: this.read<string>(item, 'TemplateName', 'templateName'),
+      periodType: this.read<string>(item, 'PeriodType', 'periodType'),
+      periodValue: this.read<string>(item, 'PeriodValue', 'periodValue'),
+      periodId: this.read<number>(item, 'PeriodID', 'PeriodId', 'periodId'),
+      periodName: this.read<string>(item, 'PeriodName', 'periodName'),
+      startDate: this.read<string>(item, 'StartDate', 'startDate'),
+      endDate: this.read<string>(item, 'EndDate', 'endDate'),
+      isActive: this.read<boolean>(item, 'IsActive', 'isActive') !== false,
+      assignedDate: this.read<string>(item, 'AssignedDate', 'assignedDate'),
+      assignedBy: this.read<string>(item, 'AssignedBy', 'assignedBy'),
+      note: this.read<string>(item, 'Note', 'note'),
     };
   }
 
@@ -540,7 +1375,76 @@ export class KpiTargetTabComponent implements OnInit {
       PeriodID: item.periodId,
       KpiIndexID: item.kpiIndexId,
       GoalValue: item.goalValue || 0,
+      WeightPercent: item.weightPercent ?? 0,
+      ProposedGoalValue: item.proposedGoalValue ?? null,
     };
+  }
+
+  async approveTarget(item: KpiSaleTarget): Promise<void> {
+    if (!item?.id) return;
+    if (!this.canApproveTargets) return;
+    this.isLoading = true;
+    try {
+      if (this.isApiMode) {
+        const res = await firstValueFrom(this.kpiSaleService.approveTarget(item.id));
+        if (res?.status === 1) {
+          this.notification.success('Thông báo', res.message || 'Duyệt thành công');
+          await this.loadTargets();
+        } else {
+          this.notification.error('Lỗi', res?.message || 'Không thể duyệt');
+        }
+      } else {
+        // Mock: gán goal = proposed, đổi trạng thái
+        const idx = this.targets.findIndex(t => t.id === item.id);
+        if (idx >= 0) {
+          this.targets[idx] = {
+            ...this.targets[idx],
+            goalValue: item.proposedGoalValue ?? this.targets[idx].goalValue,
+            approvalStatus: 'Approved',
+          };
+          this.targets = [...this.targets];
+        }
+        this.notification.success('Thông báo', 'Duyệt mục tiêu (mock) thành công');
+      }
+    } catch (e) {
+      console.error(e);
+      this.notification.error('Lỗi', 'Không thể duyệt mục tiêu');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  async rejectTarget(item: KpiSaleTarget): Promise<void> {
+    if (!item?.id) return;
+    if (!this.canApproveTargets) return;
+    this.isLoading = true;
+    try {
+      if (this.isApiMode) {
+        const res = await firstValueFrom(this.kpiSaleService.rejectTarget(item.id));
+        if (res?.status === 1) {
+          this.notification.success('Thông báo', res.message || 'Đã hủy đề xuất');
+          await this.loadTargets();
+        } else {
+          this.notification.error('Lỗi', res?.message || 'Không thể hủy');
+        }
+      } else {
+        const idx = this.targets.findIndex(t => t.id === item.id);
+        if (idx >= 0) {
+          this.targets[idx] = {
+            ...this.targets[idx],
+            proposedGoalValue: null,
+            approvalStatus: 'Rejected',
+          };
+          this.targets = [...this.targets];
+        }
+        this.notification.success('Thông báo', 'Đã hủy đề xuất (mock)');
+      }
+    } catch (e) {
+      console.error(e);
+      this.notification.error('Lỗi', 'Không thể hủy đề xuất');
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   private read<T>(item: any, ...keys: string[]): T | undefined {

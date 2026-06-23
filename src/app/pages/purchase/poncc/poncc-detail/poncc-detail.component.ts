@@ -777,7 +777,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
             data: this.ponccDetail || [],
             height: '100%',
             layout: 'fitDataStretch',
-            selectableRows: true,
+            selectableRows: 'highlight',
             pagination: false,
             columns: [
                 {

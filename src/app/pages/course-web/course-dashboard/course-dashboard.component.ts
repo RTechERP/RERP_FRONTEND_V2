@@ -187,7 +187,7 @@ export class CourseDashboardComponent implements OnInit, AfterViewInit {
       this.courseTable = new Tabulator(this.courseTableRef.nativeElement, {
         data: this.coursesData,
         ...DEFAULT_TABLE_CONFIG,
-        layout: 'fitDataTable',
+        layout: 'fitColumns',
         height: '83vh',
         selectableRows: false,
         pagination: false,
@@ -203,7 +203,7 @@ export class CourseDashboardComponent implements OnInit, AfterViewInit {
             field: 'NameCourse',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            width: 400,
+            minWidth: 400,
             bottomCalc: 'count',
             bottomCalcFormatter: (cell: any) => {
               return `Tổng cộng: ${cell.getValue()}`;
@@ -214,21 +214,21 @@ export class CourseDashboardComponent implements OnInit, AfterViewInit {
             field: 'Instructor',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            width: 250,
+            minWidth: 250,
           },
           {
             title: 'Số bài học',
             field: 'NumberLesson',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            width: 200,
+            minWidth: 200,
           },
           {
             title: 'Lượt tham gia',
             field: 'TotalParticipants',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            width: 200,
+            minWidth: 200,
             bottomCalc: 'sum',
             formatter: (cell: any) => {
               const rowData = cell.getRow().getData();
@@ -240,7 +240,7 @@ export class CourseDashboardComponent implements OnInit, AfterViewInit {
             field: 'TotalLikes',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            width: 200,
+            minWidth: 200,
             bottomCalc: 'sum',
             formatter: (cell: any) => {
               const rowData = cell.getRow().getData();
@@ -252,7 +252,7 @@ export class CourseDashboardComponent implements OnInit, AfterViewInit {
             field: 'AverageRating',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            width: 200,
+            minWidth: 200,
             bottomCalc: 'avg',
             bottomCalcFormatter: (cell: any) => {
               const val = cell.getValue();
@@ -268,7 +268,7 @@ export class CourseDashboardComponent implements OnInit, AfterViewInit {
             field: 'TotalRatings',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            width: 200,
+            minWidth: 200,
             bottomCalc: 'sum',
             formatter: (cell: any) => {
               const rowData = cell.getRow().getData();

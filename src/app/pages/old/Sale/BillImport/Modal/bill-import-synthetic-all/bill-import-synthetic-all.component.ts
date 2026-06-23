@@ -1804,11 +1804,29 @@ export class BillImportSyntheticAllComponent {
     const columns = this.angularGrid.slickGrid.getColumns();
     const filteredItems = this.angularGrid.dataView.getFilteredItems() || [];
 
-    const activeFilterColumnIds = new Set(
-      (this.angularGrid.filterService?.getCurrentLocalFilters() || [])
-        .filter((f: any) => f.searchTerms?.length > 0)
-        .map((f: any) => f.columnId)
+    const activeFilters = (this.angularGrid.filterService?.getCurrentLocalFilters() || [])
+      .filter((f: any) => f.searchTerms?.length > 0);
+    const activeFilterColumnIds = new Set(activeFilters.map((f: any) => f.columnId));
+
+    const fieldByColumnId = new Map<string, string>(
+      columns.map((c: any) => [c.id, c.field])
     );
+
+    // Kiểm tra 1 dòng dữ liệu có khớp với 1 filter (dựa trên searchTerms của multipleSelect)
+    const rowMatchesFilter = (row: any, filter: any): boolean => {
+      const field = fieldByColumnId.get(filter.columnId);
+      if (!field) return true;
+      const terms = (filter.searchTerms || []).map((t: any) => String(t));
+      return terms.includes(String(row?.[field] ?? ''));
+    };
+
+    // Lấy dữ liệu đã lọc theo TẤT CẢ filter khác, ngoại trừ filter của chính cột này
+    // để dropdown của cột đang được lọc vẫn phản ánh các filter khác (không quay về dataset gốc)
+    const getSourceDataExcludingColumn = (columnId: string): any[] => {
+      const otherFilters = activeFilters.filter((f: any) => f.columnId !== columnId);
+      if (otherFilters.length === 0) return this.dataset;
+      return this.dataset.filter((row: any) => otherFilters.every((f: any) => rowMatchesFilter(row, f)));
+    };
 
     const getUniqueValuesFromData = (data: any[], field: string): Array<{ value: string; label: string }> => {
       const map = new Map<string, string>();
@@ -1845,7 +1863,9 @@ export class BillImportSyntheticAllComponent {
         column.filter.model === Filters['multipleSelect'] &&
         multiSelectFields.includes(column.field)
       ) {
-        const sourceData = activeFilterColumnIds.has(column.id) ? this.dataset : filteredItems;
+        const sourceData = activeFilterColumnIds.has(column.id)
+          ? getSourceDataExcludingColumn(column.id)
+          : filteredItems;
         column.filter.collection = getUniqueValuesFromData(sourceData, column.field);
         hasChanges = true;
       }

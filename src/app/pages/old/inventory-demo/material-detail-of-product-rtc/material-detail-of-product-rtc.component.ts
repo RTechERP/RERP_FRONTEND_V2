@@ -123,6 +123,16 @@ export class MaterialDetailOfProductRtcComponent
   datasetImport: any[] = [];
   datasetExport: any[] = [];
 
+  // Suffix duy nhất cho mỗi instance để tránh trùng id/class khi mở nhiều tab cùng lúc (singlepage)
+  private static instanceCounter = 0;
+  private readonly instanceId = ++MaterialDetailOfProductRtcComponent.instanceCounter;
+  gridIdBorrow = `gridBorrow_${this.instanceId}`;
+  gridIdImport = `gridImport_${this.instanceId}`;
+  gridIdExport = `gridExport_${this.instanceId}`;
+  containerClassBorrow = `grid-container-borrow_${this.instanceId}`;
+  containerClassImport = `grid-container-import_${this.instanceId}`;
+  containerClassExport = `grid-container-export_${this.instanceId}`;
+
   private cdr = inject(ChangeDetectorRef);
 
   constructor(
@@ -387,7 +397,7 @@ export class MaterialDetailOfProductRtcComponent
     this.gridOptionsBorrow = {
       enableAutoResize: true,
       autoResize: {
-        container: '.grid-container-borrow',
+        container: `.${this.containerClassBorrow}`,
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container',
       },
@@ -406,7 +416,7 @@ export class MaterialDetailOfProductRtcComponent
     this.gridOptionsImport = {
       enableAutoResize: true,
       autoResize: {
-        container: '.grid-container-import',
+        container: `.${this.containerClassImport}`,
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container',
       },
@@ -425,7 +435,7 @@ export class MaterialDetailOfProductRtcComponent
     this.gridOptionsExport = {
       enableAutoResize: true,
       autoResize: {
-        container: '.grid-container-export',
+        container: `.${this.containerClassExport}`,
         calculateAvailableSizeBy: 'container',
         resizeDetection: 'container',
       },

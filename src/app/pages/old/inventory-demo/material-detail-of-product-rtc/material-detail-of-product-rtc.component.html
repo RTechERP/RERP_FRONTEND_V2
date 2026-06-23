@@ -163,9 +163,9 @@
         <!-- LEFT : Phiếu mượn -->
         <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="60%">
           <nz-card nzTitle="Danh sách Mượn" class="full-card">
-            <div class="grid-container-borrow">
+            <div [class]="containerClassBorrow">
               <angular-slickgrid
-                gridId="gridBorrow"
+                [gridId]="gridIdBorrow"
                 [columns]="columnDefinitionsBorrow"
                 [options]="gridOptionsBorrow"
                 [dataset]="datasetBorrow"
@@ -182,9 +182,9 @@
             <!-- TOP : Phiếu nhập -->
             <nz-splitter-panel>
               <nz-card nzTitle="Danh sách xuất" class="full-card">
-                <div class="grid-container-export">
+                <div [class]="containerClassExport">
                   <angular-slickgrid
-                    gridId="gridExport"
+                    [gridId]="gridIdExport"
                     [columns]="columnDefinitionsExport"
                     [options]="gridOptionsExport"
                     [dataset]="datasetExport"
@@ -201,9 +201,9 @@
             <!-- BOTTOM : Phiếu xuất -->
             <nz-splitter-panel>
               <nz-card nzTitle="Danh sách nhập" class="full-card">
-                <div class="grid-container-import">
+                <div [class]="containerClassImport">
                   <angular-slickgrid
-                    gridId="gridImport"
+                    [gridId]="gridIdImport"
                     [columns]="columnDefinitionsImport"
                     [options]="gridOptionsImport"
                     [dataset]="datasetImport"

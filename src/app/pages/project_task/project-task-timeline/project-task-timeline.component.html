@@ -1,9 +1,14 @@
 <div class="timeline-container">
     <p-contextMenu #cm [model]="contextMenuItems" appendTo="body" />
     <div class="timeline-header">
-        <h2 class="title">KẾ HOẠCH CÔNG VIỆC</h2>
+        <div class="header-top">
+            <h2 class="title">KẾ HOẠCH CÔNG VIỆC</h2>
+            <button nz-button nzType="default" class="mobile-filter-btn" (click)="toggleMobileFilters()">
+                <span nz-icon nzType="menu"></span> Bộ lọc
+            </button>
+        </div>
 
-        <div class="filters-bar">
+        <div class="filters-bar" [class.show-mobile]="showMobileFilters">
             <div class="legend-bar">
                 <div class="legend-item">
                     <span class="box planned"></span> Dự kiến

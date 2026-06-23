@@ -50,6 +50,11 @@ export class ProjectTaskTimelineComponent implements OnInit {
   private tabService = inject(TabServiceService);
 
   isOpeningDetail = false;
+  showMobileFilters = false;
+
+  toggleMobileFilters(): void {
+    this.showMobileFilters = !this.showMobileFilters;
+  }
 
   // Filters
   dateStart: string = this.getDefaultDateStart();

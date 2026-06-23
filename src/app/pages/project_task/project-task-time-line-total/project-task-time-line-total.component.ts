@@ -60,6 +60,11 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   private tabService = inject(TabServiceService);
 
   isOpeningDetail = false;
+  showMobileFilters = false;
+
+  toggleMobileFilters(): void {
+    this.showMobileFilters = !this.showMobileFilters;
+  }
 
   // ===== Context Menu =====
   contextMenuVisible = false;

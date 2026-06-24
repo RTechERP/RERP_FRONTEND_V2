@@ -125,3 +125,25 @@
   min-height: 0 !important;
   max-height: none !important;
 }
+
+.compact-form .form-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.compact-form .mode-toggle-link {
+  color: #1677ff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.compact-form .mode-toggle-link:hover {
+  color: #0958d9;
+  text-decoration: underline;
+}
+.compact-form .form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}

@@ -62,6 +62,34 @@ export class KpiAllowedDataTabComponent implements OnInit {
   tableModalRef?: NzModalRef;
   columnModalRef?: NzModalRef;
 
+  // Pre-filter state
+  preFilterColumn = '';
+  preFilterOperator = '=';
+  preFilterValueType: 'STATIC' | 'PARAM' | 'COLUMN' = 'STATIC';
+  preFilterValue1 = '';
+  preFilterValue2 = '';
+  preFilterMultiValue1: string[] = [];
+  preFilterMultiValue2: string[] = [];
+  preFilterUniqueValues: { value: string; display: string }[] = [];
+  isLoadingPreFilterUniqueValues = false;
+  isPreFilterManualInput = false;
+
+  // Lookup pre-filter state
+  lookupPreFilterColumn = '';
+  lookupPreFilterOperator = '=';
+  lookupPreFilterValueType: 'STATIC' | 'PARAM' | 'COLUMN' = 'STATIC';
+  lookupPreFilterValue1 = '';
+  lookupPreFilterValue2 = '';
+  lookupPreFilterMultiValue1: string[] = [];
+  lookupPreFilterMultiValue2: string[] = [];
+  lookupPreFilterUniqueValues: { value: string; display: string }[] = [];
+  isLoadingLookupPreFilterUniqueValues = false;
+  isLookupPreFilterManualInput = false;
+
+  readonly preFilterOperators = ['=', '<>', '>', '>=', '<', '<=', 'LIKE', 'IN', 'BETWEEN', 'IS NULL', 'IS NOT NULL'];
+  readonly preFilterValueTypes: ('STATIC' | 'PARAM' | 'COLUMN')[] = ['STATIC', 'PARAM', 'COLUMN'];
+  readonly preFilterSystemParams = ['EmployeeID', 'DateStart', 'DateEnd', 'DepartmentID', 'PeriodID'];
+
   constructor(
     private kpiSaleService: KpiSaleV2Service,
     private tabService: TabServiceService,
@@ -224,7 +252,27 @@ export class KpiAllowedDataTabComponent implements OnInit {
     }
 
     this.columnDraft = column ? { ...column } : this.getDefaultColumnDraft(this.selectedTableId || this.allowedTables[0]?.id);
-    
+
+    this.preFilterColumn = column?.preFilterColumn || '';
+    this.preFilterOperator = (column?.preFilterOperator as any) || '=';
+    this.preFilterValueType = (column?.preFilterValueType as any) || 'STATIC';
+    this.preFilterValue1 = column?.preFilterValue || '';
+    this.preFilterValue2 = column?.preFilterValue2 || '';
+    this.preFilterMultiValue1 = column?.preFilterValue ? column.preFilterValue.split(',').map(v => v.trim()).filter(Boolean) : [];
+    this.preFilterMultiValue2 = column?.preFilterValue2 ? column.preFilterValue2.split(',').map(v => v.trim()).filter(Boolean) : [];
+    this.preFilterUniqueValues = [];
+    this.isPreFilterManualInput = false;
+
+    this.lookupPreFilterColumn = column?.lookupPreFilterColumn || '';
+    this.lookupPreFilterOperator = (column?.lookupPreFilterOperator as any) || '=';
+    this.lookupPreFilterValueType = (column?.lookupPreFilterValueType as any) || 'STATIC';
+    this.lookupPreFilterValue1 = column?.lookupPreFilterValue || '';
+    this.lookupPreFilterValue2 = column?.lookupPreFilterValue2 || '';
+    this.lookupPreFilterMultiValue1 = column?.lookupPreFilterValue ? column.lookupPreFilterValue.split(',').map(v => v.trim()).filter(Boolean) : [];
+    this.lookupPreFilterMultiValue2 = column?.lookupPreFilterValue2 ? column.lookupPreFilterValue2.split(',').map(v => v.trim()).filter(Boolean) : [];
+    this.lookupPreFilterUniqueValues = [];
+    this.isLookupPreFilterManualInput = false;
+
     this.columnModalRef = this.modalService.create({
       nzTitle: column ? 'Sửa Cột dữ liệu' : 'Thêm Cột dữ liệu',
       nzContent: this.columnFormTemplate,
@@ -239,7 +287,7 @@ export class KpiAllowedDataTabComponent implements OnInit {
           onClick: () => this.saveColumn()
         }
       ],
-      nzWidth: 600
+      nzWidth: 720
     });
   }
 
@@ -247,6 +295,34 @@ export class KpiAllowedDataTabComponent implements OnInit {
     if (!this.columnDraft.columnName || !this.columnDraft.tableId) {
       this.notification.warning('Cảnh báo', 'Vui lòng nhập tên cột và chọn bảng');
       return;
+    }
+
+    this.columnDraft.preFilterColumn = this.preFilterColumn;
+    this.columnDraft.preFilterOperator = this.preFilterOperator;
+    this.columnDraft.preFilterValueType = this.preFilterValueType;
+    if (this.preFilterValueType === 'STATIC' && this.preFilterMultiValue1.length > 0) {
+      this.columnDraft.preFilterValue = this.preFilterMultiValue1.join(', ');
+    } else {
+      this.columnDraft.preFilterValue = this.preFilterValue1;
+    }
+    if (this.preFilterValueType === 'STATIC' && this.preFilterMultiValue2.length > 0) {
+      this.columnDraft.preFilterValue2 = this.preFilterMultiValue2.join(', ');
+    } else {
+      this.columnDraft.preFilterValue2 = this.preFilterValue2;
+    }
+
+    this.columnDraft.lookupPreFilterColumn = this.lookupPreFilterColumn;
+    this.columnDraft.lookupPreFilterOperator = this.lookupPreFilterOperator;
+    this.columnDraft.lookupPreFilterValueType = this.lookupPreFilterValueType;
+    if (this.lookupPreFilterValueType === 'STATIC' && this.lookupPreFilterMultiValue1.length > 0) {
+      this.columnDraft.lookupPreFilterValue = this.lookupPreFilterMultiValue1.join(', ');
+    } else {
+      this.columnDraft.lookupPreFilterValue = this.lookupPreFilterValue1;
+    }
+    if (this.lookupPreFilterValueType === 'STATIC' && this.lookupPreFilterMultiValue2.length > 0) {
+      this.columnDraft.lookupPreFilterValue2 = this.lookupPreFilterMultiValue2.join(', ');
+    } else {
+      this.columnDraft.lookupPreFilterValue2 = this.lookupPreFilterValue2;
     }
 
     if (this.isApiMode) {
@@ -323,7 +399,17 @@ export class KpiAllowedDataTabComponent implements OnInit {
       lookupTable: '',
       lookupValueColumn: '',
       lookupDisplayColumn: '',
-      manualValueMapJson: ''
+      manualValueMapJson: '',
+      preFilterColumn: '',
+      preFilterOperator: '',
+      preFilterValueType: '',
+      preFilterValue: '',
+      preFilterValue2: '',
+      lookupPreFilterColumn: '',
+      lookupPreFilterOperator: '',
+      lookupPreFilterValueType: '',
+      lookupPreFilterValue: '',
+      lookupPreFilterValue2: ''
     };
   }
 
@@ -364,6 +450,16 @@ export class KpiAllowedDataTabComponent implements OnInit {
       lookupValueColumn: item.LookupValueColumn || item.lookupValueColumn,
       lookupDisplayColumn: item.LookupDisplayColumn || item.lookupDisplayColumn,
       manualValueMapJson: item.ManualValueMapJson || item.manualValueMapJson,
+      preFilterColumn: item.PreFilterColumn || item.preFilterColumn,
+      preFilterOperator: item.PreFilterOperator || item.preFilterOperator,
+      preFilterValueType: item.PreFilterValueType || item.preFilterValueType,
+      preFilterValue: item.PreFilterValue || item.preFilterValue,
+      preFilterValue2: item.PreFilterValue2 || item.preFilterValue2,
+      lookupPreFilterColumn: item.LookupPreFilterColumn || item.lookupPreFilterColumn,
+      lookupPreFilterOperator: item.LookupPreFilterOperator || item.lookupPreFilterOperator,
+      lookupPreFilterValueType: item.LookupPreFilterValueType || item.lookupPreFilterValueType,
+      lookupPreFilterValue: item.LookupPreFilterValue || item.lookupPreFilterValue,
+      lookupPreFilterValue2: item.LookupPreFilterValue2 || item.lookupPreFilterValue2,
     };
   }
 
@@ -384,6 +480,16 @@ export class KpiAllowedDataTabComponent implements OnInit {
       LookupValueColumn: col.lookupValueColumn || null,
       LookupDisplayColumn: col.lookupDisplayColumn || null,
       ManualValueMapJson: col.manualValueMapJson || null,
+      PreFilterColumn: col.preFilterColumn || null,
+      PreFilterOperator: col.preFilterOperator || null,
+      PreFilterValueType: col.preFilterValueType || null,
+      PreFilterValue: col.preFilterValue || null,
+      PreFilterValue2: col.preFilterValue2 || null,
+      LookupPreFilterColumn: col.lookupPreFilterColumn || null,
+      LookupPreFilterOperator: col.lookupPreFilterOperator || null,
+      LookupPreFilterValueType: col.lookupPreFilterValueType || null,
+      LookupPreFilterValue: col.lookupPreFilterValue || null,
+      LookupPreFilterValue2: col.lookupPreFilterValue2 || null,
     };
   }
 
@@ -396,5 +502,96 @@ export class KpiAllowedDataTabComponent implements OnInit {
       BOOLEAN: 'Đúng/Sai',
     };
     return type ? labels[type] || type : '';
+  }
+
+  // --- Pre-filter helpers ---
+  getPreFilterOperatorLabel(operator?: string): string {
+    const labels: Record<string, string> = {
+      '=': 'Bằng',
+      '<>': 'Khác',
+      '>': 'Lớn hơn',
+      '>=': 'Lớn hơn hoặc bằng',
+      '<': 'Nhỏ hơn',
+      '<=': 'Nhỏ hơn hoặc bằng',
+      LIKE: 'Chứa',
+      IN: 'Nằm trong',
+      BETWEEN: 'Trong khoảng',
+      'IS NULL': 'Không có giá trị',
+      'IS NOT NULL': 'Có giá trị'
+    };
+    return operator ? labels[operator] || operator : '';
+  }
+
+  getPreFilterValueTypeLabel(type?: string): string {
+    const labels: Record<string, string> = {
+      STATIC: 'Giá trị cố định',
+      PARAM: 'Tham số hệ thống',
+      COLUMN: 'Cột dữ liệu'
+    };
+    return type ? labels[type] || type : '';
+  }
+
+  getPreFilterSystemParamLabel(param?: string): string {
+    const labels: Record<string, string> = {
+      EmployeeID: 'Nhân viên hiện tại',
+      DateStart: 'Ngày bắt đầu kỳ',
+      DateEnd: 'Ngày kết thúc kỳ',
+      DepartmentID: 'Phòng ban',
+      PeriodID: 'Kỳ KPI'
+    };
+    return param ? labels[param] || param : '';
+  }
+
+  async onPreFilterColumnChange(): Promise<void> {
+    this.preFilterMultiValue1 = [];
+    this.preFilterMultiValue2 = [];
+    this.preFilterValue1 = '';
+    this.preFilterValue2 = '';
+    await this.loadPreFilterUniqueValues();
+  }
+
+  async onPreFilterValueTypeChange(): Promise<void> {
+    this.preFilterMultiValue1 = [];
+    this.preFilterMultiValue2 = [];
+    this.preFilterValue1 = '';
+    this.preFilterValue2 = '';
+    await this.loadPreFilterUniqueValues();
+  }
+
+  async loadPreFilterUniqueValues(): Promise<void> {
+    this.preFilterUniqueValues = [];
+    const columnName = this.preFilterColumn;
+    if (!columnName || !this.selectedTableId) return;
+
+    if (this.preFilterValueType !== 'STATIC') return;
+
+    this.isLoadingPreFilterUniqueValues = true;
+    try {
+      const res = await firstValueFrom(this.kpiSaleService.getColumnUniqueValuesForAllowedColumn(this.selectedTableId, columnName));
+      if (res?.status === 1 && Array.isArray(res.data)) {
+        this.preFilterUniqueValues = (res.data as any[]).map(item => ({
+          value: String(item?.Value ?? item?.value ?? ''),
+          display: String(item?.Display ?? item?.display ?? item?.Value ?? item?.value ?? '')
+        }));
+      }
+    } catch (err) {
+      console.error('Lỗi tải pre-filter unique values:', err);
+    } finally {
+      this.isLoadingPreFilterUniqueValues = false;
+    }
+  }
+
+  async onLookupPreFilterColumnChange(): Promise<void> {
+    this.lookupPreFilterMultiValue1 = [];
+    this.lookupPreFilterMultiValue2 = [];
+    this.lookupPreFilterValue1 = '';
+    this.lookupPreFilterValue2 = '';
+  }
+
+  async onLookupPreFilterValueTypeChange(): Promise<void> {
+    this.lookupPreFilterMultiValue1 = [];
+    this.lookupPreFilterMultiValue2 = [];
+    this.lookupPreFilterValue1 = '';
+    this.lookupPreFilterValue2 = '';
   }
 }

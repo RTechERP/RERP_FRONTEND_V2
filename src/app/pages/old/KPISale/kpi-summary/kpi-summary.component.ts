@@ -337,8 +337,37 @@ export class KpiSummaryComponent implements OnInit {
     const wb = XLSX.utils.book_new();
     const wsData: any[] = [];
 
+    // Style helper: border mỏng cho mọi cạnh, dùng chung cho các cell có dữ liệu
+    const thin = { style: 'thin', color: { rgb: '7F7F7F' } };
+    const borderAll = { top: thin, bottom: thin, left: thin, right: thin };
+
+    // Style cho cell dữ liệu (font mặc định + border)
+    const dataCellStyle = (extra: any = {}): any => ({
+      font: { size: 11 },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border: borderAll,
+      ...extra,
+    });
+
+    // Style cho tiêu đề
+    const headerTitleStyle = {
+      font: { bold: true, size: 12, color: { rgb: 'FFFFFF' } },
+      fill: { fgColor: { rgb: '4472C4' } },
+      alignment: { horizontal: 'left', vertical: 'center' },
+      border: borderAll,
+    };
+    const headerCellStyle = {
+      font: { bold: true, size: 11, color: { rgb: 'FFFFFF' } },
+      fill: { fgColor: { rgb: '2E75B6' } },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border: borderAll,
+    };
+
     const getScoreStyle = (score: number, goal: number): any => {
-      const style: any = { font: { size: 11, alignment: { horizontal: 'center', vertical: 'center' } }, border: {} };
+      const style: any = {
+        font: { size: 11, alignment: { horizontal: 'center', vertical: 'center' } },
+        border: borderAll,
+      };
       if (!goal || goal === 0) {
         if (score > 0) style.font.color = { rgb: '00B050' };
         return style;
@@ -350,101 +379,172 @@ export class KpiSummaryComponent implements OnInit {
       return style;
     };
 
-    const applyStyle = (cell: any, style: any) => {
-      if (cell) cell.s = style;
-    };
-
     const getScoreValue = (score: number): string => {
       return ((score || 0) === 0 ? '-' : (score || 0).toFixed(2) + '%');
     };
 
+    // Format số đầy đủ: , ngăn hàng nghìn, . ngăn thập phân
+    // (bỏ dạng rút gọn M / K). Nếu số nguyên thì không hiển thị phần thập phân.
     const formatVal = (val: number): string => {
-      if (val === 0) return '-';
-      if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(1) + 'M';
-      if (Math.abs(val) >= 1000) return (val / 1000).toFixed(1) + 'K';
-      // Format: dấu , cho hàng nghìn và . cho hàng thập phân
-      return val.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+      if (val === 0 || val === null || val === undefined) return '-';
+      const isInteger = Number.isInteger(val);
+      return val.toLocaleString('en-US', {
+        minimumFractionDigits: isInteger ? 0 : 2,
+        maximumFractionDigits: isInteger ? 0 : 2,
+      });
     };
 
     // ===== INFO SECTION =====
-    wsData.push([`BÁO CÁO TỔNG HỢP KPI - ${this.boundTemplateName || ''}`, '', '', '', '', '', '', '', '', '', '', '', '', '']);
-    wsData.push([`${this.isTeamMode ? 'Nhóm' : 'Nhân viên'}: ${this.getSelectedSubjectName()}`, '', '', '', '', '', '', '', '', '', '', '', '', '']);
-    wsData.push([`Kỳ: ${this.summaryData.quarterName || this.summaryData.quarterCode}`, '', '', '', '', '', '', '', '', '', '', '', '', '']);
+    const infoCellStyle = { font: { size: 11 }, border: borderAll };
+    const infoTitleStyle = {
+      font: { bold: true, size: 14 },
+      fill: { fgColor: { rgb: 'D6DCE5' } },
+      alignment: { horizontal: 'left', vertical: 'center' },
+      border: borderAll,
+    };
+    const numPeriods = this.summaryData.periods?.length || 0;
+    const totalCols = 1 + numPeriods * 3 + 3; // cột tên + mỗi kỳ 3 cột + cột quý 3 cột
+
+    const emptyCells = (n: number): any[] => Array.from({ length: n }, () => ({ v: '', t: 's' }));
+
+    wsData.push([
+      { v: `BÁO CÁO TỔNG HỢP KPI - ${this.boundTemplateName || ''}`, t: 's', s: infoTitleStyle },
+      ...emptyCells(totalCols - 1),
+    ]);
+    wsData.push([
+      { v: `${this.isTeamMode ? 'Nhóm' : 'Nhân viên'}: ${this.getSelectedSubjectName()}`, t: 's', s: infoCellStyle },
+      ...emptyCells(totalCols - 1),
+    ]);
+    wsData.push([
+      { v: `Kỳ: ${this.summaryData.quarterName || this.summaryData.quarterCode}`, t: 's', s: infoCellStyle },
+      ...emptyCells(totalCols - 1),
+    ]);
     wsData.push([]);
 
     // ===== MAIN TABLE =====
     // Header row 1
-    const header1: any[] = ['Chỉ số KPI'];
+    const header1: any[] = [{ v: 'Chỉ số KPI', t: 's', s: headerCellStyle }];
     this.summaryData.periods.forEach(p => {
-      header1.push(p.periodName || p.periodCode, '', '');
+      const label = p.periodName || p.periodCode;
+      header1.push({ v: label, t: 's', s: headerCellStyle }, { v: '', t: 's' }, { v: '', t: 's' });
     });
-    header1.push(this.summaryData.quarterName || this.summaryData.quarterCode, '', '');
+    header1.push(
+      { v: this.summaryData.quarterName || this.summaryData.quarterCode, t: 's', s: headerCellStyle },
+      { v: '', t: 's' },
+      { v: '', t: 's' },
+    );
     wsData.push(header1);
 
     // Header row 2
-    const header2: any[] = [''];
+    const header2: any[] = [{ v: '', t: 's', s: headerCellStyle }];
     this.summaryData.periods.forEach(() => {
-      header2.push('Mục tiêu', 'Kết quả', 'Điểm');
+      header2.push(
+        { v: 'Mục tiêu', t: 's', s: headerCellStyle },
+        { v: 'Kết quả', t: 's', s: headerCellStyle },
+        { v: 'Điểm', t: 's', s: headerCellStyle },
+      );
     });
-    header2.push('Mục tiêu', 'Kết quả', 'Điểm');
+    header2.push(
+      { v: 'Mục tiêu', t: 's', s: headerCellStyle },
+      { v: 'Kết quả', t: 's', s: headerCellStyle },
+      { v: 'Điểm', t: 's', s: headerCellStyle },
+    );
     wsData.push(header2);
 
     // Data rows
-    this.regularRows.forEach((row, rowIdx) => {
+    this.regularRows.forEach((row) => {
       const rowData: any[] = [
-        { v: row.indexName, t: 's', s: { font: { bold: row.isBold || row.hasChildren, size: 11 }, alignment: { horizontal: 'left', vertical: 'center' }, border: {} } },
+        {
+          v: row.indexName,
+          t: 's',
+          s: {
+            font: { bold: row.isBold || row.hasChildren, size: 11 },
+            alignment: { horizontal: 'left', vertical: 'center' },
+            border: borderAll,
+          },
+        },
       ];
 
       // Monthly values
       row.monthlyValues.forEach((mv) => {
         rowData.push(
-          { v: mv.goal === 0 ? '-' : formatVal(mv.goal), t: 's', s: { font: { size: 11 }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} } },
-          { v: mv.result === 0 ? '-' : formatVal(mv.result), t: 's', s: { font: { size: 11 }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} } },
-          { v: getScoreValue(mv.score), t: 's', s: getScoreStyle(mv.score, mv.goal) }
+          { v: mv.goal === 0 ? '-' : formatVal(mv.goal), t: 's', s: dataCellStyle() },
+          { v: mv.result === 0 ? '-' : formatVal(mv.result), t: 's', s: dataCellStyle() },
+          { v: getScoreValue(mv.score), t: 's', s: getScoreStyle(mv.score, mv.goal) },
         );
       });
 
       // Quarterly values
       rowData.push(
-        { v: row.quarterValue.goal === 0 ? '-' : formatVal(row.quarterValue.goal), t: 's', s: { font: { size: 11 }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} } },
-        { v: row.quarterValue.result === 0 ? '-' : formatVal(row.quarterValue.result), t: 's', s: { font: { size: 11 }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} } },
-        { v: getScoreValue(row.quarterValue.score), t: 's', s: getScoreStyle(row.quarterValue.score, row.quarterValue.goal) }
+        { v: row.quarterValue.goal === 0 ? '-' : formatVal(row.quarterValue.goal), t: 's', s: dataCellStyle() },
+        { v: row.quarterValue.result === 0 ? '-' : formatVal(row.quarterValue.result), t: 's', s: dataCellStyle() },
+        { v: getScoreValue(row.quarterValue.score), t: 's', s: getScoreStyle(row.quarterValue.score, row.quarterValue.goal) },
       );
 
       wsData.push(rowData);
     });
 
     // Total row - calculated from regular rows only (excluding report adjustments)
-    const totalRow: any[] = [{ v: 'TỔNG ĐIỂM KPI', t: 's', s: { font: { bold: true, size: 11 }, border: {} } }];
+    const totalLabelStyle = {
+      font: { bold: true, size: 11 },
+      fill: { fgColor: { rgb: 'FFF2CC' } },
+      alignment: { horizontal: 'left', vertical: 'center' },
+      border: borderAll,
+    };
+    const totalCellStyle = {
+      font: { bold: true, size: 12 },
+      fill: { fgColor: { rgb: 'FFF2CC' } },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border: borderAll,
+    };
+    const totalRow: any[] = [{ v: 'TỔNG ĐIỂM KPI', t: 's', s: totalLabelStyle }];
     this.summaryData.periods.forEach((_, i) => {
-      totalRow.push({ v: '', t: 's' });
-      totalRow.push({ v: '', t: 's' });
-      totalRow.push({ v: getScoreValue(this.getRegularMonthScore(i)), t: 's', s: { font: { bold: true, size: 12 }, fill: { fgColor: { rgb: 'FFF2CC' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} } });
+      totalRow.push({ v: '', t: 's', s: totalCellStyle });
+      totalRow.push({ v: '', t: 's', s: totalCellStyle });
+      totalRow.push({ v: getScoreValue(this.getRegularMonthScore(i)), t: 's', s: totalCellStyle });
     });
-    totalRow.push({ v: '', t: 's' });
-    totalRow.push({ v: '', t: 's' });
-    totalRow.push({ v: getScoreValue(this.getRegularQuarterScore()), t: 's', s: { font: { bold: true, size: 12 }, fill: { fgColor: { rgb: 'FFF2CC' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} } });
+    totalRow.push({ v: '', t: 's', s: totalCellStyle });
+    totalRow.push({ v: '', t: 's', s: totalCellStyle });
+    totalRow.push({ v: getScoreValue(this.getRegularQuarterScore()), t: 's', s: totalCellStyle });
     wsData.push(totalRow);
 
     wsData.push([]);
 
     // ===== REPORT TABLE =====
-    wsData.push([{ v: 'ĐIỀU CHỈNH ĐIỂM BÁO CÁO', t: 's', s: { font: { bold: true, size: 12, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '4472C4' } }, alignment: { horizontal: 'left', vertical: 'center' }, border: {} } }, '', '', '', '']);
-    const reportHeader1: any[] = [{ v: 'Chỉ tiêu báo cáo', t: 's', s: { font: { bold: true, size: 11, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '2E75B6' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} } }];
+    const reportTitleRow: any[] = [
+      { v: 'ĐIỀU CHỈNH ĐIỂM BÁO CÁO', t: 's', s: headerTitleStyle },
+    ];
+    for (let i = 1; i < numPeriods + 2; i++) {
+      reportTitleRow.push({ v: '', t: 's', s: headerTitleStyle });
+    }
+    wsData.push(reportTitleRow);
+
+    const reportHeader1: any[] = [{ v: 'Chỉ tiêu báo cáo', t: 's', s: headerCellStyle }];
     this.summaryData.periods.forEach(p => {
-      reportHeader1.push({ v: p.periodName || p.periodCode, t: 's', s: { font: { bold: true, size: 11, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '2E75B6' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} } });
+      reportHeader1.push({ v: p.periodName || p.periodCode, t: 's', s: headerCellStyle });
     });
-    reportHeader1.push({ v: this.summaryData.quarterName || this.summaryData.quarterCode, t: 's', s: { font: { bold: true, size: 11, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '2E75B6' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} } });
+    reportHeader1.push({ v: this.summaryData.quarterName || this.summaryData.quarterCode, t: 's', s: headerCellStyle });
     wsData.push(reportHeader1);
-    const reportHeader2: any[] = [''];
+
+    const reportHeader2: any[] = [{ v: '', t: 's', s: headerCellStyle }];
     this.summaryData.periods.forEach(() => {
-      reportHeader2.push({ v: 'Điểm', t: 's', s: { font: { bold: true, size: 11, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '2E75B6' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} } });
+      reportHeader2.push({ v: 'Điểm', t: 's', s: headerCellStyle });
     });
-    reportHeader2.push({ v: 'Điểm', t: 's', s: { font: { bold: true, size: 11, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '2E75B6' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} } });
+    reportHeader2.push({ v: 'Điểm', t: 's', s: headerCellStyle });
     wsData.push(reportHeader2);
 
     this.reportRows.forEach((row) => {
-      const rowData: any[] = [{ v: row.indexName, t: 's', s: { font: { size: 11 }, alignment: { horizontal: 'left', vertical: 'center' }, border: {} } }];
+      const rowData: any[] = [
+        {
+          v: row.indexName,
+          t: 's',
+          s: {
+            font: { size: 11 },
+            alignment: { horizontal: 'left', vertical: 'center' },
+            border: borderAll,
+          },
+        },
+      ];
       row.monthlyValues.forEach(mv => {
         rowData.push({ v: getScoreValue(mv.score), t: 's', s: getScoreStyle(mv.score, 100) });
       });
@@ -455,15 +555,22 @@ export class KpiSummaryComponent implements OnInit {
     wsData.push([]);
 
     // ===== KPI TOTAL SCORE TABLE =====
-    wsData.push([{ v: 'TỔNG ĐIỂM KPI', t: 's', s: { font: { bold: true, size: 12, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '4472C4' } }, alignment: { horizontal: 'left', vertical: 'center' }, border: {} } }, '', '', '', '']);
-    const scoreHeader: any[] = [''];
+    const scoreTitleRow: any[] = [
+      { v: 'TỔNG ĐIỂM KPI', t: 's', s: headerTitleStyle },
+    ];
+    for (let i = 1; i < numPeriods + 2; i++) {
+      scoreTitleRow.push({ v: '', t: 's', s: headerTitleStyle });
+    }
+    wsData.push(scoreTitleRow);
+
+    const scoreHeader: any[] = [{ v: '', t: 's', s: headerCellStyle }];
     this.summaryData.periods.forEach(p => {
-      scoreHeader.push({ v: p.periodName || p.periodCode, t: 's', s: { font: { bold: true, size: 11, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '2E75B6' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} } });
+      scoreHeader.push({ v: p.periodName || p.periodCode, t: 's', s: headerCellStyle });
     });
-    scoreHeader.push({ v: this.summaryData.quarterName || this.summaryData.quarterCode, t: 's', s: { font: { bold: true, size: 11, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '2E75B6' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} } });
+    scoreHeader.push({ v: this.summaryData.quarterName || this.summaryData.quarterCode, t: 's', s: headerCellStyle });
     wsData.push(scoreHeader);
 
-    const scoreRow: any[] = [''];
+    const scoreRow: any[] = [{ v: '', t: 's', s: dataCellStyle() }];
     this.summaryData.periods.forEach((_, i) => {
       scoreRow.push({ v: getScoreValue(this.getMonthScore(i)), t: 's', s: getScoreStyle(this.getMonthScore(i), 100) });
     });
@@ -472,40 +579,57 @@ export class KpiSummaryComponent implements OnInit {
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-    // Apply merges and header styles
+    // Apply merges
     ws['!merges'] = [];
 
     // Title merge
-    ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 12 } });
-    // Info rows style
-    if (ws['A1']) ws['A1'].s = { font: { bold: true, size: 14 }, fill: { fgColor: { rgb: 'D6DCE5' } }, alignment: { horizontal: 'left', vertical: 'center' }, border: {} };
-    if (ws['A2']) ws['A2'].s = { font: { size: 11 }, border: {} };
-    if (ws['A3']) ws['A3'].s = { font: { size: 11 }, border: {} };
+    ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } });
 
-    // Main table header row 1
-    for (let c = 0; c < 13; c++) {
-      const cellAddr = XLSX.utils.encode_cell({ r: 4, c });
-      if (ws[cellAddr]) ws[cellAddr].s = { font: { bold: true, size: 12, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '1F4E79' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} };
-    }
-    ws['!merges'].push({ s: { r: 4, c: 1 }, e: { r: 4, c: 3 } });
-    ws['!merges'].push({ s: { r: 4, c: 4 }, e: { r: 4, c: 6 } });
-    ws['!merges'].push({ s: { r: 4, c: 7 }, e: { r: 4, c: 9 } });
-    ws['!merges'].push({ s: { r: 4, c: 10 }, e: { r: 4, c: 12 } });
-
-    // Main table header row 2
-    for (let c = 0; c < 13; c++) {
-      const cellAddr = XLSX.utils.encode_cell({ r: 5, c });
-      if (ws[cellAddr]) ws[cellAddr].s = { font: { bold: true, size: 11, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '2E75B6' } }, alignment: { horizontal: 'center', vertical: 'center' }, border: {} };
+    // Main table header row 1: merge 3 cột cho mỗi kỳ
+    for (let i = 0; i <= numPeriods; i++) {
+      const startCol = 1 + i * 3;
+      const endCol = startCol + 2;
+      ws['!merges'].push({ s: { r: 4, c: startCol }, e: { r: 4, c: endCol } });
     }
 
-    // Column widths
+    // Merge title rows of Report & Score tables (label cell + remaining cells of row)
+    // Row indexes: row 4 (main header1), report/score title rows are pushed after data + blanks
+    // We will re-derive them after building wsData.
+    // For simplicity, recompute row indices:
+    const mainDataStart = 6; // row 6 in 0-indexed = first data row after 2 header rows
+    const mainDataEnd = mainDataStart + this.regularRows.length; // exclusive (total row is at mainDataEnd)
+    const totalRowIdx = mainDataEnd;
+    const reportTitleRowIdx = totalRowIdx + 2; // +1 for blank row
+    const reportHeader1RowIdx = reportTitleRowIdx + 1;
+    const reportHeader2RowIdx = reportTitleRowIdx + 2;
+    const reportDataEndRowIdx = reportHeader2RowIdx + this.reportRows.length;
+    const scoreTitleRowIdx = reportDataEndRowIdx + 1; // +1 for blank row
+    const scoreHeaderRowIdx = scoreTitleRowIdx + 1;
+    const scoreDataRowIdx = scoreTitleRowIdx + 2;
+
+    // Merge report title row across all columns
+    ws['!merges'].push({ s: { r: reportTitleRowIdx, c: 0 }, e: { r: reportTitleRowIdx, c: numPeriods + 1 } });
+    // Merge score title row across all columns
+    ws['!merges'].push({ s: { r: scoreTitleRowIdx, c: 0 }, e: { r: scoreTitleRowIdx, c: numPeriods + 1 } });
+
+    // Re-apply title style for report/score title cells (already done via cell.s when pushing)
+    // Re-apply column widths
     ws['!cols'] = [
       { wch: 35 },
-      { wch: 12 }, { wch: 12 }, { wch: 10 },
-      { wch: 12 }, { wch: 12 }, { wch: 10 },
-      { wch: 12 }, { wch: 12 }, { wch: 10 },
-      { wch: 12 }, { wch: 12 }, { wch: 10 },
+      ...Array.from({ length: numPeriods + 1 }, () => ({ wch: 12 })),
+      { wch: 12 },
+      { wch: 10 },
     ];
+
+    // Ensure border applied to the merged "label" cells of title rows (aoa_to_sheet doesn't always carry style for empty cells in merges)
+    for (const r of [reportTitleRowIdx, scoreTitleRowIdx]) {
+      for (let c = 0; c <= numPeriods + 1; c++) {
+        const addr = XLSX.utils.encode_cell({ r, c });
+        if (ws[addr]) {
+          ws[addr].s = headerTitleStyle;
+        }
+      }
+    }
 
     XLSX.utils.book_append_sheet(wb, ws, 'KPI Summary');
 

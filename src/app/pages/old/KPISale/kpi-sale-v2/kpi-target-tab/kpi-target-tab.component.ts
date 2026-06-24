@@ -42,7 +42,33 @@ export interface TargetGroupHeader {
   targetCount: number;
 }
 
-export type TableRow = TargetGroupHeader | KpiSaleTarget;
+export interface QuarterlyPivotRow {
+  isPivotHeader: true;
+  quarterCode: string;
+  months: {
+    code: string;
+    name: string;
+  }[];
+}
+
+export interface QuarterlyTargetRow {
+  isPivotHeader?: false;
+  kpiIndexId: number;
+  indexCode: string;
+  indexName: string;
+  weightPercent: number;
+  months: {
+    periodId: number;
+    periodCode: string;
+    proposedGoalValue: number | null;
+    goalValue: number | null;
+    approvalStatus: string;
+    // raw target object for edit/approve actions
+    target: KpiSaleTarget | null;
+  }[];
+}
+
+export type TableRow = TargetGroupHeader | QuarterlyPivotRow | QuarterlyTargetRow | KpiSaleTarget;
 
 @Component({
   selector: 'app-kpi-target-tab',
@@ -129,27 +155,189 @@ export class KpiTargetTabComponent implements OnInit {
   selectedPeriodId = 0;
   selectedEmployeeId = 0;
   selectedEmployeeIds: number[] = [];
+  selectedTeamId: number | null = null;
   searchText = '';
 
   // Data table source
   targets: KpiSaleTarget[] = [];
 
+  // Pivot cache — invalidated only when targets/period changes
+  private _pivotCache: {
+    targetsRev: number;
+    periodIdRev: number;
+    rows: TableRow[];
+    qRows: QuarterlyTargetRow[];
+    qMeta: { quarterCode: string; monthCount: number }[];
+    qMetaFlat: { quarterCode: string; monthCode: string; monthName: string }[];
+  } | null = null;
+  private _pivotTargetsRev = -1;
+  private _pivotPeriodIdRev = -1;
+
   get filteredTargets(): KpiSaleTarget[] {
     return this.targets;
   }
 
-  // Table rows với group headers khi chọn QUÝ/YEAR
+  // Table rows — cached pivot on targets/period change
   get tableRows(): TableRow[] {
     const selectedPeriod = this.resolveSelectedPeriod();
     if (!selectedPeriod) return this.targets;
 
-    // Nếu chọn QUÝ hoặc NĂM → thêm group header
     if (selectedPeriod.periodType === 'QUARTER' || selectedPeriod.periodType === 'YEAR') {
-      return this.buildGroupedTargets();
+      return this.getCachedPivotRows();
     }
 
-    // Chọn THÁNG → không group
     return this.targets;
+  }
+
+  private getCachedPivotRows(): TableRow[] {
+    const currentPeriodId = this.selectedPeriodId || 0;
+    const rev = this.targets.length + this.targets.reduce((a, t) => a + (t.id || 0), 0);
+
+    console.log('[DEBUG getCachedPivotRows] currentPeriodId:', currentPeriodId, 'rev:', rev);
+    console.log('[DEBUG getCachedPivotRows] cache check:', {
+      hasCache: !!this._pivotCache,
+      cachedPeriodId: this._pivotCache ? this._pivotPeriodIdRev : null,
+      cachedRev: this._pivotCache ? this._pivotTargetsRev : null,
+      willHit: !!(this._pivotCache && this._pivotTargetsRev === rev && this._pivotPeriodIdRev === currentPeriodId)
+    });
+
+    if (this._pivotCache && this._pivotTargetsRev === rev && this._pivotPeriodIdRev === currentPeriodId) {
+      console.log('[DEBUG getCachedPivotRows] CACHE HIT — returning cached rows:', this._pivotCache.rows.length);
+      return this._pivotCache.rows;
+    }
+
+    console.log('[DEBUG getCachedPivotRows] CACHE MISS — building new pivot');
+    const rows = this.buildQuarterlyPivot();
+    const debugRows = rows.slice(0, 3).map(r => ({ type: (r as any)['isPivotHeader'], kpiIndexId: (r as any)['kpiIndexId'], isQuarterlyTarget: this.isQuarterlyTarget(r) }));
+    console.log('[DEBUG getCachedPivotRows] rows from buildQuarterlyPivot count:', rows.length, 'first few:', debugRows);
+    const qRows = rows.filter((r): r is QuarterlyTargetRow => this.isQuarterlyTarget(r));
+    console.log('[DEBUG getCachedPivotRows] qRows after filter:', qRows.length);
+    const selectedPeriod = this.resolveSelectedPeriod()!;
+    const qMeta: { quarterCode: string; monthCount: number }[] = [];
+    const qMetaFlat: { quarterCode: string; monthCode: string; monthName: string }[] = [];
+
+    if (selectedPeriod.periodType === 'QUARTER') {
+      const children = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId === selectedPeriod.id);
+      qMeta.push({ quarterCode: selectedPeriod.periodCode, monthCount: children.length });
+      for (const m of children.sort((a, b) => a.periodCode.localeCompare(b.periodCode))) {
+        qMetaFlat.push({ quarterCode: selectedPeriod.periodCode, monthCode: m.periodCode, monthName: m.periodName || m.periodCode });
+      }
+    } else if (selectedPeriod.periodType === 'YEAR') {
+      const quarters = this.periods
+        .filter(p => p.periodType === 'QUARTER' && p.parentPeriodId === selectedPeriod.id)
+        .sort((a, b) => a.periodCode.localeCompare(b.periodCode));
+      for (const q of quarters) {
+        const children = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId === q.id);
+        qMeta.push({ quarterCode: q.periodCode, monthCount: children.length });
+        for (const m of children.sort((a, b) => a.periodCode.localeCompare(b.periodCode))) {
+          qMetaFlat.push({ quarterCode: q.periodCode, monthCode: m.periodCode, monthName: m.periodName || m.periodCode });
+        }
+      }
+    }
+
+    this._pivotCache = { targetsRev: rev, periodIdRev: currentPeriodId, rows, qRows, qMeta, qMetaFlat };
+    this._pivotTargetsRev = rev;
+    this._pivotPeriodIdRev = currentPeriodId;
+    return rows;
+  }
+
+  private buildQuarterlyPivot(): TableRow[] {
+    const selectedPeriod = this.resolveSelectedPeriod();
+    if (!selectedPeriod) return [];
+
+    // DEBUG: trace quarter filter data
+    console.log('[DEBUG buildQuarterlyPivot] selectedPeriod:', selectedPeriod);
+    console.log('[DEBUG buildQuarterlyPivot] this.periods count:', this.periods.length);
+    console.log('[DEBUG buildQuarterlyPivot] this.targets count:', this.targets.length);
+    console.log('[DEBUG buildQuarterlyPivot] selectedPeriod.id:', selectedPeriod.id, 'type:', selectedPeriod.periodType);
+
+    // Determine child months based on selected period
+    const quarterPeriods: KpiSalePeriod[] = [];
+    const monthPeriods: KpiSalePeriod[] = [];
+
+    if (selectedPeriod.periodType === 'QUARTER') {
+      const children = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId === selectedPeriod.id);
+      console.log('[DEBUG buildQuarterlyPivot] QUARTER mode, children count:', children.length, 'children:', children.map(c => ({id: c.id, code: c.periodCode, parentId: c.parentPeriodId})));
+      console.log('[DEBUG buildQuarterlyPivot] targets sample:', this.targets.slice(0, 3).map(t => ({id: t.id, kpiIndexId: t.kpiIndexId, periodId: t.periodId, periodCode: t.periodCode})));
+      monthPeriods.push(...children);
+      quarterPeriods.push(selectedPeriod);
+    } else if (selectedPeriod.periodType === 'YEAR') {
+      const quarters = this.periods
+        .filter(p => p.periodType === 'QUARTER' && p.parentPeriodId === selectedPeriod.id)
+        .sort((a, b) => a.periodCode.localeCompare(b.periodCode));
+      for (const q of quarters) {
+        const months = this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId === q.id);
+        monthPeriods.push(...months);
+        quarterPeriods.push(q);
+      }
+    }
+
+    // Duy trì thứ tự: Q1(Tháng 1,2,3), Q2(Tháng 4,5,6), ...
+    const sortedMonths = monthPeriods.sort((a, b) => a.periodCode.localeCompare(b.periodCode));
+    console.log('[DEBUG buildQuarterlyPivot] sortedMonths:', sortedMonths);
+    console.log('[DEBUG buildQuarterlyPivot] indexMap from targets:', Array.from(new Map(this.targets.map(t => [t.kpiIndexId, {code: t.indexCode, name: t.indexName}])).entries()));
+    if (sortedMonths.length === 0) {
+      console.warn('[DEBUG buildQuarterlyPivot] sortedMonths is EMPTY — returning []');
+      return [];
+    }
+
+    // Lấy unique KPI indexes từ targets hiện tại
+    const indexMap = new Map<number, { code: string; name: string; weight: number }>();
+    for (const t of this.targets) {
+      if (!indexMap.has(t.kpiIndexId)) {
+        indexMap.set(t.kpiIndexId, {
+          code: t.indexCode || '',
+          name: t.indexName || t.indexCode || `Chỉ tiêu #${t.kpiIndexId}`,
+          weight: t.weightPercent ?? 0
+        });
+      }
+    }
+    console.log('[DEBUG buildQuarterlyPivot] indexMap size:', indexMap.size, 'keys:', Array.from(indexMap.keys()));
+
+    const rows: TableRow[] = [];
+
+    // Header row for each quarter group
+    for (const q of quarterPeriods) {
+      const qMonths = sortedMonths.filter(m => m.parentPeriodId === q.id);
+      if (qMonths.length === 0) continue;
+
+      rows.push({
+        isPivotHeader: true,
+        quarterCode: q.periodCode,
+        months: qMonths.map(m => ({ code: m.periodCode, name: m.periodName || m.periodCode }))
+      } as QuarterlyPivotRow);
+
+      // One row per KPI index
+      console.log('[DEBUG buildQuarterlyPivot] qMonths:', qMonths.map(m => ({id: m.id, code: m.periodCode})));
+      console.log('[DEBUG buildQuarterlyPivot] indexMap keys (kpiIndexIds):', Array.from(indexMap.keys()));
+      for (const [kpiIndexId, meta] of indexMap) {
+        const row: QuarterlyTargetRow = {
+          isPivotHeader: false,
+          kpiIndexId,
+          indexCode: meta.code,
+          indexName: meta.name,
+          weightPercent: meta.weight,
+          months: qMonths.map(m => {
+            const target = this.targets.find(t =>
+              t.kpiIndexId === kpiIndexId && t.periodId === m.id
+            ) || null;
+            return {
+              periodId: m.id,
+              periodCode: m.periodCode,
+              proposedGoalValue: target?.proposedGoalValue ?? null,
+              goalValue: target?.goalValue ?? null,
+              approvalStatus: target?.approvalStatus || 'Pending',
+              target
+            };
+          })
+        };
+        rows.push(row);
+      }
+    }
+
+    const debugRows = rows.slice(0, 5).map(r => ({ type: (r as any)['isPivotHeader'] ? 'header' : 'data', kpiIndexId: (r as any)['kpiIndexId'] }));
+    console.log('[DEBUG buildQuarterlyPivot] returning rows count:', rows.length, 'first few:', debugRows);
+    return rows;
   }
 
   private buildGroupedTargets(): TableRow[] {
@@ -185,8 +373,89 @@ export class KpiTargetTabComponent implements OnInit {
     return 'isGroupHeader' in row && row.isGroupHeader === true;
   }
 
+  isPivotHeader(row: TableRow): row is QuarterlyPivotRow {
+    return 'isPivotHeader' in row && row.isPivotHeader === true;
+  }
+
+  isQuarterlyTarget(row: TableRow): row is QuarterlyTargetRow {
+    return !('isGroupHeader' in row) && !this.isPivotHeader(row) && 'months' in row;
+  }
+
   isTarget(row: TableRow): row is KpiSaleTarget {
-    return !('isGroupHeader' in row);
+    return !('isGroupHeader' in row) && !('isPivotHeader' in row) && !('months' in row);
+  }
+
+  /** Get target ID from any row type */
+  getRowId(row: TableRow): number {
+    if (this.isTarget(row)) return row.id;
+    if (this.isQuarterlyTarget(row)) return row.months[0]?.target?.id ?? 0;
+    return 0;
+  }
+
+  /** Helper: lấy children months của selected period */
+  getCurrentQuarterMonths(): KpiSalePeriod[] {
+    const selectedPeriod = this.resolveSelectedPeriod();
+    if (!selectedPeriod) return [];
+    if (selectedPeriod.periodType === 'QUARTER') {
+      return this.periods
+        .filter(p => p.periodType === 'MONTH' && p.parentPeriodId === selectedPeriod.id)
+        .sort((a, b) => a.periodCode.localeCompare(b.periodCode));
+    }
+    if (selectedPeriod.periodType === 'YEAR') {
+      const allMonths: KpiSalePeriod[] = [];
+      const quarters = this.periods
+        .filter(p => p.periodType === 'QUARTER' && p.parentPeriodId === selectedPeriod.id)
+        .sort((a, b) => a.periodCode.localeCompare(b.periodCode));
+      for (const q of quarters) {
+        const months = this.periods
+          .filter(p => p.periodType === 'MONTH' && p.parentPeriodId === q.id)
+          .sort((a, b) => a.periodCode.localeCompare(b.periodCode));
+        allMonths.push(...months);
+      }
+      return allMonths;
+    }
+    return [];
+  }
+
+  /** Chế độ hiển thị pivot: true khi chọn QUÝ hoặc NĂM */
+  isQuarterMode(): boolean {
+    const selectedPeriod = this.resolveSelectedPeriod();
+    return !!selectedPeriod && (selectedPeriod.periodType === 'QUARTER' || selectedPeriod.periodType === 'YEAR');
+  }
+
+  /** Flat list cho pivot table — đọc từ cache */
+  get quarterlyRows(): QuarterlyTargetRow[] {
+    console.log('[DEBUG quarterlyRows getter] _pivotCache is', this._pivotCache ? 'SET' : 'NULL', 'qRows length:', this._pivotCache?.qRows?.length);
+    if (!this._pivotCache) return [];
+    return this._pivotCache.qRows;
+  }
+
+  /** Metadata cho pivot table header (số quý, số tháng mỗi quý) — đọc từ cache */
+  get quarterlyMeta(): { quarterCode: string; monthCount: number }[] {
+    console.log('[DEBUG quarterlyMeta getter] _pivotCache is', this._pivotCache ? 'SET' : 'NULL', 'qMeta length:', this._pivotCache?.qMeta?.length);
+    if (!this._pivotCache) return [];
+    return this._pivotCache.qMeta;
+  }
+
+  /** Flat list tháng cho header row 2 — đọc từ cache */
+  get quarterlyMetaFlat(): { quarterCode: string; monthCode: string; monthName: string }[] {
+    console.log('[DEBUG quarterlyMetaFlat getter] _pivotCache is', this._pivotCache ? 'SET' : 'NULL', 'qMetaFlat length:', this._pivotCache?.qMetaFlat?.length);
+    if (!this._pivotCache) return [];
+    return this._pivotCache.qMetaFlat;
+  }
+
+  /** Inline edit handlers for pivot cells */
+  onPivotProposedChange(target: KpiSaleTarget, value: number | null): void {
+    this.onInlineProposedChange(target.id, value);
+  }
+
+  onPivotGoalChange(target: KpiSaleTarget, value: number | null): void {
+    this.onInlineGoalChange(target.id, value);
+  }
+
+  /** TrackBy for pivot table */
+  trackByKpiIndex(index: number, row: QuarterlyTargetRow): number {
+    return row.kpiIndexId;
   }
 
   get isGoalValueLocked(): boolean {
@@ -198,6 +467,9 @@ export class KpiTargetTabComponent implements OnInit {
   // Inline edit state — theo dõi các dòng đang được chọn
   selectedTargetIds = new Set<number>();
   inlineEditedTargets = new Map<number, { proposedGoalValue: number | null; goalValue: number | null }>();
+
+  // Weight change tracking — keyed by kpiIndexId (weight belongs to index, shared across months)
+  weightEditedIndexes = new Map<number, number | null>();
 
   isTargetSelected(id: number): boolean {
     return this.selectedTargetIds.has(id);
@@ -258,10 +530,120 @@ export class KpiTargetTabComponent implements OnInit {
     return this.inlineEditedTargets.has(id);
   }
 
+  hasWeightChanges(): boolean {
+    return this.weightEditedIndexes.size > 0;
+  }
+
+  getRowWeightPercent(row: QuarterlyTargetRow): number | null {
+    const edited = this.weightEditedIndexes.get(row.kpiIndexId);
+    return edited !== undefined ? edited : row.weightPercent;
+  }
+
+  onWeightChange(row: QuarterlyTargetRow, value: number | null): void {
+    this.weightEditedIndexes.set(row.kpiIndexId, value);
+    this.weightEditedIndexes = new Map(this.weightEditedIndexes);
+  }
+
+  async saveWeightChanges(): Promise<void> {
+    if (this.weightEditedIndexes.size === 0) return;
+    this.isLoading = true;
+    let savedCount = 0;
+    let errorCount = 0;
+    try {
+      const selectedPeriod = this.resolveSelectedPeriod();
+
+      // Xác định danh sách periodId cần cập nhật
+      let targetPeriodIds: number[] = [];
+      if (selectedPeriod) {
+        if (selectedPeriod.periodType === 'MONTH') {
+          targetPeriodIds = [selectedPeriod.id];
+        } else if (selectedPeriod.periodType === 'QUARTER') {
+          targetPeriodIds = this.periods
+            .filter(p => p.periodType === 'MONTH' && p.parentPeriodId === selectedPeriod.id)
+            .map(p => p.id);
+        } else if (selectedPeriod.periodType === 'YEAR') {
+          const quarterIds = this.periods
+            .filter(p => p.periodType === 'QUARTER' && p.parentPeriodId === selectedPeriod.id)
+            .map(p => p.id);
+          targetPeriodIds = this.periods
+            .filter(p => p.periodType === 'MONTH' && p.parentPeriodId && quarterIds.includes(p.parentPeriodId))
+            .map(p => p.id);
+        }
+      }
+
+      // Xác định employeeId để upsert (dùng selectedEmployeeId đầu tiên)
+      const employeeId = this.selectedEmployeeId;
+
+      if (this.isApiMode) {
+        // Chuẩn bị payload upsert: với mỗi KPI, tạo/upsert record cho TỪNG tháng
+        const upsertPayload: any[] = [];
+        for (const [kpiIndexId, weightPercent] of this.weightEditedIndexes) {
+          for (const periodId of targetPeriodIds) {
+            // Tìm xem bản ghi đã có chưa trong this.targets
+            const existing = this.targets.find(t =>
+              t.kpiIndexId === kpiIndexId && t.periodId === periodId
+            );
+            upsertPayload.push({
+              ID: existing?.id || 0,
+              EmployeeID: employeeId,
+              PeriodID: periodId,
+              KpiIndexID: kpiIndexId,
+              GoalValue: existing?.goalValue || 0,
+              WeightPercent: weightPercent ?? 0,
+              IsProposed: false,
+            });
+          }
+        }
+
+        // Gọi bulk upsert 1 lần cho tất cả
+        if (upsertPayload.length > 0) {
+          try {
+            const res = await firstValueFrom(this.kpiSaleService.saveTargets(upsertPayload));
+            if (res?.status === 1) {
+              savedCount = upsertPayload.length;
+              await this.loadTargets(); // reload để cập nhật local cache
+            } else {
+              errorCount = upsertPayload.length;
+            }
+          } catch {
+            errorCount = upsertPayload.length;
+          }
+        }
+      } else {
+        // Mock: cập nhật local cho tất cả target của chỉ tiêu
+        for (const [kpiIndexId, weightPercent] of this.weightEditedIndexes) {
+          const targetsForIndex = this.targets.filter(t => t.kpiIndexId === kpiIndexId);
+          for (const target of targetsForIndex) {
+            const idx = this.targets.findIndex(t => t.id === target.id);
+            if (idx >= 0) {
+              this.targets[idx] = { ...this.targets[idx], weightPercent: weightPercent ?? 0 };
+              savedCount++;
+            }
+          }
+        }
+      }
+      this.weightEditedIndexes.clear();
+      this.weightEditedIndexes = new Map();
+    } finally {
+      this.isLoading = false;
+    }
+    if (savedCount > 0) {
+      this.notification.success('Thông báo', `Đã lưu trọng số cho ${savedCount} chỉ tiêu (đồng bộ cho các tháng trong kỳ)`);
+    }
+    if (errorCount > 0) {
+      this.notification.error('Lỗi', `Có ${errorCount} chỉ tiêu lưu thất bại`);
+    }
+  }
+
   // Formatter: hiển thị số với dấu phẩy ngăn cách hàng nghìn, không thập phân
   formatMoney(value: number | null): string {
     if (value === null || value === undefined) return '';
     return value.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+
+  parseFloat(value: string): number | null {
+    const num = parseFloat(value);
+    return isNaN(num) ? null : num;
   }
 
   // Parser: chuyển chuỗi đã format về số khi user nhập
@@ -456,6 +838,20 @@ export class KpiTargetTabComponent implements OnInit {
     void this.onFilterChange();
   }
 
+  onTeamFilterChange(teamId: number | null): void {
+    this.selectedTeamId = teamId;
+    // Reset selected employee về first trong filtered list
+    const filtered = this.filteredEmployees;
+    if (teamId && filtered.length > 0) {
+      this.selectedEmployeeId = filtered[0].id;
+    } else if (!teamId && this.employees.length > 0) {
+      this.selectedEmployeeId = this.employees[0].id;
+    } else {
+      this.selectedEmployeeId = 0;
+    }
+    void this.onFilterChange();
+  }
+
   ngOnInit(): void {
     this.menuBars = [
       {
@@ -509,6 +905,8 @@ export class KpiTargetTabComponent implements OnInit {
       }
       if (response.periods?.status === 1 && Array.isArray(response.periods.data)) {
         this.periods = response.periods.data.map(item => this.normalizePeriod(item));
+        console.log('[DEBUG loadInitialData] this.periods loaded, count:', this.periods.length);
+        console.log('[DEBUG loadInitialData] Q1-2026 month check:', this.periods.filter(p => p.periodType === 'MONTH' && p.parentPeriodId === 30));
       }
       if (response.employees?.status === 1 && Array.isArray(response.employees.data)) {
         this.employees = response.employees.data
@@ -661,6 +1059,16 @@ export class KpiTargetTabComponent implements OnInit {
         }
       }
       this.targets = allTargets;
+      this._pivotCache = null; // force rebuild on next access
+      console.log('[DEBUG loadTargets] allTargets count:', allTargets.length);
+      if (allTargets.length > 0) {
+        console.log('[DEBUG loadTargets] first target:', JSON.stringify(allTargets[0]));
+        console.log('[DEBUG loadTargets] periodIds:', allTargets.map(t => t.periodId));
+      }
+      // Kick off cache build so quarterlyRows/quarterlyMeta getters have data ready
+      if (this.resolveSelectedPeriod() && allTargets.length > 0) {
+        this.getCachedPivotRows();
+      }
 
       if (allTargets.length === 0 && !this.isApiMode) {
         this.targets = this.getMockTargets();
@@ -696,6 +1104,49 @@ export class KpiTargetTabComponent implements OnInit {
       ],
       nzWidth: 500
     });
+  }
+
+  async autoAddMissingTargets(): Promise<void> {
+    if (!this.selectedEmployeeId || !this.selectedPeriodId || !this.selectedTemplateId) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn đủ nhân viên, kỳ KPI và mẫu KPI');
+      return;
+    }
+
+    const confirmed = await new Promise<boolean>((resolve) => {
+      this.modalService.confirm({
+        nzTitle: 'Tự động thêm chỉ tiêu theo mẫu',
+        nzContent: 'Sẽ thêm tất cả chỉ tiêu chưa có trong mục tiêu cho nhân viên này với:<br><b>Trọng số = 0</b> và <b>Giá trị mục tiêu = 0</b><br><br>Các chỉ tiêu đã có target sẽ không bị ảnh hưởng.',
+        nzOkText: 'Đồng ý',
+        nzCancelText: 'Hủy',
+        nzOnOk: () => resolve(true),
+        nzOnCancel: () => resolve(false)
+      });
+    });
+
+    if (!confirmed) return;
+
+    this.isLoading = true;
+    try {
+      const response = await firstValueFrom(
+        this.safeApi<any>(this.kpiSaleService.autoCreateTargets(
+          this.selectedEmployeeId,
+          this.selectedPeriodId,
+          this.selectedTemplateId
+        ))
+      );
+
+      if (response?.status === 1) {
+        const createdCount = response.data?.CreatedCount ?? 0;
+        this.notification.success('Thành công', response.message || `Đã thêm ${createdCount} chỉ tiêu`);
+        await this.loadTargets();
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể thêm chỉ tiêu');
+      }
+    } catch (err) {
+      this.notification.error('Lỗi', 'Không thể thêm chỉ tiêu');
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   async saveTarget(): Promise<void> {
@@ -1182,8 +1633,20 @@ export class KpiTargetTabComponent implements OnInit {
 
   get filteredEmployees(): EmployeeOption[] {
     const keyword = this.searchText.trim().toLowerCase();
-    if (!keyword) return this.employees;
-    return this.employees.filter(e =>
+
+    // Bước 1: lọc theo team (nếu có chọn)
+    let list = this.employees;
+    if (this.selectedTeamId) {
+      const team = this.teams.find(t => t.id === this.selectedTeamId);
+      if (team && Array.isArray(team.employeeIDs)) {
+        const ids = new Set(team.employeeIDs);
+        list = list.filter(e => ids.has(e.id));
+      }
+    }
+
+    // Bước 2: lọc theo từ khóa tìm kiếm
+    if (!keyword) return list;
+    return list.filter(e =>
       e.code.toLowerCase().includes(keyword) ||
       e.fullName.toLowerCase().includes(keyword) ||
       (e.departmentName && e.departmentName.toLowerCase().includes(keyword))

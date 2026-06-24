@@ -225,12 +225,6 @@ export class KpiTemplateIndexTabComponent implements OnInit {
     return treeRows;
   }
 
-  get totalWeight(): number {
-    return this.indexesForTemplate
-      .filter((item) => item.isActive && item.indexType !== 'GROUP')
-      .reduce((sum, item) => sum + (item.weightPercent || 0), 0);
-  }
-
   get activeGroupIndexes(): KpiSaleIndex[] {
     return this.indexesForTemplate.filter((item) => item.isActive && item.indexType === 'GROUP');
   }
@@ -342,12 +336,6 @@ export class KpiTemplateIndexTabComponent implements OnInit {
   async saveIndex(): Promise<void> {
     if (!this.indexDraft.indexCode.trim() || !this.indexDraft.indexName.trim()) {
       this.notification.warning('Cảnh báo', 'Vui lòng điền mã và tên chỉ tiêu');
-      return;
-    }
-
-    const validationMessage = this.validateIndexWeight(this.indexDraft);
-    if (validationMessage) {
-      this.notification.warning('Cảnh báo', validationMessage);
       return;
     }
 
@@ -594,37 +582,6 @@ export class KpiTemplateIndexTabComponent implements OnInit {
 
   getFormulaText(index: KpiSaleIndex): string {
     return index.indexType === 'GROUP' ? 'Tổng chỉ tiêu con' : '';
-  }
-
-  private validateIndexWeight(draft: KpiSaleIndex): string | null {
-    const weightPercent = Number(draft.weightPercent || 0);
-    if (weightPercent < 0 || weightPercent > 100) {
-      return 'Trọng số chỉ tiêu phải nằm trong khoảng từ 0 đến 100%';
-    }
-
-    const otherIndexes = this.indexesForTemplate.filter((item) => item.id !== draft.id && item.isActive);
-    const parentIndex = draft.parentId ? this.indexesForTemplate.find((item) => item.id === draft.parentId) : undefined;
-
-    if (parentIndex) {
-      const siblingWeight = otherIndexes
-        .filter((item) => item.parentId === draft.parentId)
-        .reduce((sum, item) => sum + Number(item.weightPercent || 0), 0);
-
-      if (siblingWeight + weightPercent > Number(parentIndex.weightPercent || 0)) {
-        return `Tổng trọng số các chỉ tiêu con của nhóm '${parentIndex.indexName}' không được vượt quá ${parentIndex.weightPercent}%`;
-      }
-    }
-
-    const totalNonGroupWeight = otherIndexes
-      .filter((item) => item.indexType !== 'GROUP')
-      .reduce((sum, item) => sum + Number(item.weightPercent || 0), 0);
-    const nextTotalWeight = draft.indexType === 'GROUP' ? totalNonGroupWeight : totalNonGroupWeight + weightPercent;
-
-    if (nextTotalWeight > 100) {
-      return 'Tổng trọng số toàn bộ chỉ tiêu, không tính dòng nhóm, không được vượt quá 100%';
-    }
-
-    return null;
   }
 
   trackById(_index: number, item: any): number {

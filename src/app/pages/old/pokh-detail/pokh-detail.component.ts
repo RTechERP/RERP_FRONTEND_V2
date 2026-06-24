@@ -1967,6 +1967,11 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       return false;
     }
 
+    if (!this.poFormData.userId || this.poFormData.userId === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn Sales phụ trách.');
+      return false;
+    }
+
     // Kiểm tra các trường input text
     if (
       !this.poFormData.poCode ||
@@ -2008,6 +2013,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       }
       if (controls['poType'] && controls['poType'].invalid) {
         this.notification.error('Thông báo', 'Vui lòng chọn loại PO.');
+        return false;
+      }
+      if (controls['userId'] && controls['userId'].invalid) {
+        this.notification.error('Thông báo', 'Vui lòng chọn Sales phụ trách.');
         return false;
       }
       return false;

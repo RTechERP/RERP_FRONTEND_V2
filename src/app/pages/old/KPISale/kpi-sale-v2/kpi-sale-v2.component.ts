@@ -121,6 +121,16 @@ export interface AllowedColumn {
   lookupValueColumn?: string;
   lookupDisplayColumn?: string;
   manualValueMapJson?: string;
+  preFilterColumn?: string;
+  preFilterOperator?: string;
+  preFilterValueType?: string;
+  preFilterValue?: string;
+  preFilterValue2?: string;
+  lookupPreFilterColumn?: string;
+  lookupPreFilterOperator?: string;
+  lookupPreFilterValueType?: string;
+  lookupPreFilterValue?: string;
+  lookupPreFilterValue2?: string;
 }
 
 export interface KpiSaleDataSource {
@@ -2347,7 +2357,7 @@ export class KpiSaleV2Component implements OnInit {
           `Tính KPI nhóm thành công: ${childMonths.length} tháng (${childNames}) + quý '${periodName}'`
         );
       } else {
-        this.notification.error('Lỗi', quarterResponse?.message || 'Không thể tính KPI nhóm quý');
+        this.notification.error('Lỗi', quarterResponse?.message || quarterResponse?.error?.split('\n')[0] || 'Không thể tính KPI nhóm quý');
       }
 
       this.lastCalculatedAt = new Date();
@@ -3123,6 +3133,7 @@ export class KpiSaleV2Component implements OnInit {
       periodId: this.read<number>(item, 'PeriodID', 'PeriodId', 'periodId') || 0,
       kpiIndexId: this.read<number>(item, 'KpiIndexID', 'KpiIndexId', 'kpiIndexId') || 0,
       goalValue: this.read<number>(item, 'GoalValue', 'goalValue') || 0,
+      weightPercent: this.read<number>(item, 'WeightPercent', 'weightPercent'),
       employeeName: this.read<string>(item, 'EmployeeName', 'employeeName'),
       periodCode: this.read<string>(item, 'PeriodCode', 'periodCode'),
       indexCode: this.read<string>(item, 'IndexCode', 'indexCode'),

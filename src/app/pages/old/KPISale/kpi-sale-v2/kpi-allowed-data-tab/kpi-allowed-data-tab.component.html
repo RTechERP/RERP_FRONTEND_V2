@@ -177,7 +177,87 @@
         <input nz-input name="lookupDisplayColumn" [(ngModel)]="columnDraft.lookupDisplayColumn" placeholder="Ví dụ: FullName" />
       </div>
     </div>
-    <div class="field">
+
+    <div class="form-section" style="margin-top: 16px; padding: 12px; background: #f0f5ff; border-radius: 6px; border: 1px solid #adc6ff;">
+      <div style="font-weight: 600; margin-bottom: 12px; color: #1d39c4;">Pre-Filter (Lọc trước khi lấy giá trị)</div>
+
+      <div class="inline-control mb-3">
+        <div class="field" style="flex: 2;">
+          <span>Cột lọc trước</span>
+          <nz-select nzDropdownClassName="select-dropdown" name="preFilterColumn" [(ngModel)]="preFilterColumn" (ngModelChange)="onPreFilterColumnChange()" nzPlaceHolder="Chọn cột lọc" nzAllowClear class="w-100">
+            <nz-option *ngFor="let item of columnsForSelectedTable" [nzValue]="item.columnName" [nzLabel]="item.displayName + ' (' + item.columnName + ')'"></nz-option>
+          </nz-select>
+        </div>
+        <div class="field">
+          <span>Toán tử</span>
+          <nz-select nzDropdownClassName="select-dropdown" name="preFilterOperator" [(ngModel)]="preFilterOperator" class="w-100">
+            <nz-option *ngFor="let item of preFilterOperators" [nzValue]="item" [nzLabel]="getPreFilterOperatorLabel(item)"></nz-option>
+          </nz-select>
+        </div>
+        <div class="field">
+          <span>Loại giá trị</span>
+          <nz-select nzDropdownClassName="select-dropdown" name="preFilterValueType" [(ngModel)]="preFilterValueType" (ngModelChange)="onPreFilterValueTypeChange()" class="w-100">
+            <nz-option *ngFor="let item of preFilterValueTypes" [nzValue]="item" [nzLabel]="getPreFilterValueTypeLabel(item)"></nz-option>
+          </nz-select>
+        </div>
+      </div>
+
+      <div class="form-section" *ngIf="preFilterOperator !== 'IS NULL' && preFilterOperator !== 'IS NOT NULL'">
+        <div class="form-section-header">
+          <div class="form-section-title mb-0">Giá trị điều kiện</div>
+          <a class="mode-toggle-link" *ngIf="preFilterValueType === 'STATIC' && preFilterUniqueValues.length > 0" (click)="isPreFilterManualInput = !isPreFilterManualInput">
+            {{ isPreFilterManualInput ? 'Chọn từ danh sách' : 'Nhập thủ công' }}
+          </a>
+        </div>
+        <div class="form-grid form-grid-2">
+          <div class="field">
+            <span>Giá trị 1</span>
+            <nz-select nzDropdownClassName="select-dropdown" *ngIf="preFilterValueType === 'PARAM'" name="preFilterParamValue1" [(ngModel)]="preFilterValue1" class="w-100" nzPlaceHolder="Chọn tham số hệ thống">
+              <nz-option *ngFor="let item of preFilterSystemParams" [nzValue]="item" [nzLabel]="getPreFilterSystemParamLabel(item)"></nz-option>
+            </nz-select>
+            <nz-select nzDropdownClassName="select-dropdown" *ngIf="preFilterValueType === 'COLUMN'" name="preFilterColumnValue1" [(ngModel)]="preFilterValue1" class="w-100" nzPlaceHolder="Chọn cột dữ liệu">
+              <nz-option *ngFor="let item of columnsForSelectedTable" [nzValue]="item.columnName" [nzLabel]="item.displayName + ' (' + item.columnName + ')'"></nz-option>
+            </nz-select>
+            <ng-container *ngIf="preFilterValueType === 'STATIC'">
+              <ng-container *ngIf="!isPreFilterManualInput; else preFilterPlainText1Tpl">
+                <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzMode="multiple" [nzDropdownMatchSelectWidth]="false" name="preFilterStaticMulti1" [(ngModel)]="preFilterMultiValue1" class="w-100" nzPlaceHolder="Chọn một hoặc nhiều giá trị" [nzLoading]="isLoadingPreFilterUniqueValues">
+                  <nz-option *ngFor="let val of preFilterUniqueValues" [nzValue]="val.value" [nzLabel]="val.display"></nz-option>
+                </nz-select>
+              </ng-container>
+              <ng-template #preFilterPlainText1Tpl>
+                <input nz-input name="preFilterStaticText1" [(ngModel)]="preFilterValue1" placeholder="Nhập giá trị 1" />
+              </ng-template>
+            </ng-container>
+            <input *ngIf="!preFilterValueType" nz-input disabled placeholder="Chọn loại giá trị trước" />
+          </div>
+          <div class="field">
+            <span>Giá trị 2</span>
+            <nz-select nzDropdownClassName="select-dropdown" *ngIf="preFilterValueType === 'PARAM'" name="preFilterParamValue2" [(ngModel)]="preFilterValue2" class="w-100" nzPlaceHolder="Chọn tham số hệ thống" [nzDisabled]="preFilterOperator !== 'BETWEEN'">
+              <nz-option *ngFor="let item of preFilterSystemParams" [nzValue]="item" [nzLabel]="getPreFilterSystemParamLabel(item)"></nz-option>
+            </nz-select>
+            <nz-select nzDropdownClassName="select-dropdown" *ngIf="preFilterValueType === 'COLUMN'" name="preFilterColumnValue2" [(ngModel)]="preFilterValue2" class="w-100" nzPlaceHolder="Chọn cột dữ liệu" [nzDisabled]="preFilterOperator !== 'BETWEEN'">
+              <nz-option *ngFor="let item of columnsForSelectedTable" [nzValue]="item.columnName" [nzLabel]="item.displayName + ' (' + item.columnName + ')'"></nz-option>
+            </nz-select>
+            <ng-container *ngIf="preFilterValueType === 'STATIC'">
+              <ng-container *ngIf="!isPreFilterManualInput; else preFilterPlainText2Tpl">
+                <nz-select nzDropdownClassName="select-dropdown" nzShowSearch nzAllowClear nzMode="multiple" [nzDropdownMatchSelectWidth]="false" name="preFilterStaticMulti2" [(ngModel)]="preFilterMultiValue2" class="w-100" nzPlaceHolder="Chọn một hoặc nhiều giá trị" [nzLoading]="isLoadingPreFilterUniqueValues" [nzDisabled]="preFilterOperator !== 'BETWEEN'">
+                  <nz-option *ngFor="let val of preFilterUniqueValues" [nzValue]="val.value" [nzLabel]="val.display"></nz-option>
+                </nz-select>
+              </ng-container>
+              <ng-template #preFilterPlainText2Tpl>
+                <input nz-input name="preFilterStaticText2" [(ngModel)]="preFilterValue2" placeholder="Nhập giá trị giới hạn trên" [disabled]="preFilterOperator !== 'BETWEEN'" />
+              </ng-template>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 8px; font-size: 12px; color: #666;">
+        <i>* Khi config pre-filter, danh sách giá trị sẽ được lọc theo điều kiện này trước khi hiển thị.</i>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top: 16px;">
       <span>Mapping tay value → text (JSON)</span>
       <textarea nz-input name="manualValueMapJson" [(ngModel)]="columnDraft.manualValueMapJson" rows="5" placeholder='Ví dụ: {"1":"Nam","2":"Nữ"} hoặc [{"value":"1","label":"Nam"}]'></textarea>
     </div>
@@ -188,6 +268,58 @@
       <label nz-checkbox name="isEmployeeColumn" [(ngModel)]="columnDraft.isEmployeeColumn">Cột nhân viên</label>
       <label nz-checkbox name="isDateColumn" [(ngModel)]="columnDraft.isDateColumn">Cột ngày</label>
       <label nz-checkbox name="isValueColumn" [(ngModel)]="columnDraft.isValueColumn">Cột giá trị</label>
+    </div>
+
+    <div class="form-section" *ngIf="columnDraft.lookupTable" style="margin-top: 16px; padding: 12px; background: #fff7e6; border-radius: 6px; border: 1px solid #ffd591;">
+      <div style="font-weight: 600; margin-bottom: 12px; color: #d46b00;">Lookup Pre-Filter (Lọc trên bảng khóa ngoại)</div>
+      <div style="font-size: 12px; color: #8c8c8c; margin-bottom: 12px;">
+        <i>* Áp dụng điều kiện WHERE trên bảng khóa ngoại ({{ columnDraft.lookupTable }}) để lọc dữ liệu trước khi hiển thị.</i>
+      </div>
+
+      <div class="inline-control mb-3">
+        <div class="field" style="flex: 2;">
+          <span>Cột lọc (lookup)</span>
+          <input nz-input name="lookupPreFilterColumn" [(ngModel)]="lookupPreFilterColumn" placeholder="Tên cột trên bảng lookup, ví dụ: IsActive" />
+        </div>
+        <div class="field">
+          <span>Toán tử</span>
+          <nz-select nzDropdownClassName="select-dropdown" name="lookupPreFilterOperator" [(ngModel)]="lookupPreFilterOperator" class="w-100">
+            <nz-option *ngFor="let item of preFilterOperators" [nzValue]="item" [nzLabel]="getPreFilterOperatorLabel(item)"></nz-option>
+          </nz-select>
+        </div>
+        <div class="field">
+          <span>Loại giá trị</span>
+          <nz-select nzDropdownClassName="select-dropdown" name="lookupPreFilterValueType" [(ngModel)]="lookupPreFilterValueType" (ngModelChange)="onLookupPreFilterValueTypeChange()" class="w-100">
+            <nz-option *ngFor="let item of preFilterValueTypes" [nzValue]="item" [nzLabel]="getPreFilterValueTypeLabel(item)"></nz-option>
+          </nz-select>
+        </div>
+      </div>
+
+      <div class="form-section" *ngIf="lookupPreFilterOperator !== 'IS NULL' && lookupPreFilterOperator !== 'IS NOT NULL'">
+        <div class="form-grid form-grid-2">
+          <div class="field">
+            <span>Giá trị 1</span>
+            <nz-select nzDropdownClassName="select-dropdown" *ngIf="lookupPreFilterValueType === 'PARAM'" name="lookupPreFilterParamValue1" [(ngModel)]="lookupPreFilterValue1" class="w-100" nzPlaceHolder="Chọn tham số hệ thống">
+              <nz-option *ngFor="let item of preFilterSystemParams" [nzValue]="item" [nzLabel]="getPreFilterSystemParamLabel(item)"></nz-option>
+            </nz-select>
+            <nz-select nzDropdownClassName="select-dropdown" *ngIf="lookupPreFilterValueType === 'COLUMN'" name="lookupPreFilterColumnValue1" [(ngModel)]="lookupPreFilterValue1" class="w-100" nzPlaceHolder="Chọn cột dữ liệu">
+              <nz-option *ngFor="let item of columnsForSelectedTable" [nzValue]="item.columnName" [nzLabel]="item.displayName + ' (' + item.columnName + ')'"></nz-option>
+            </nz-select>
+            <input nz-input *ngIf="lookupPreFilterValueType === 'STATIC'" name="lookupPreFilterStaticText1" [(ngModel)]="lookupPreFilterValue1" placeholder="Nhập giá trị" />
+            <input *ngIf="!lookupPreFilterValueType" nz-input disabled placeholder="Chọn loại giá trị trước" />
+          </div>
+          <div class="field">
+            <span>Giá trị 2</span>
+            <nz-select nzDropdownClassName="select-dropdown" *ngIf="lookupPreFilterValueType === 'PARAM'" name="lookupPreFilterParamValue2" [(ngModel)]="lookupPreFilterValue2" class="w-100" nzPlaceHolder="Chọn tham số hệ thống" [nzDisabled]="lookupPreFilterOperator !== 'BETWEEN'">
+              <nz-option *ngFor="let item of preFilterSystemParams" [nzValue]="item" [nzLabel]="getPreFilterSystemParamLabel(item)"></nz-option>
+            </nz-select>
+            <nz-select nzDropdownClassName="select-dropdown" *ngIf="lookupPreFilterValueType === 'COLUMN'" name="lookupPreFilterColumnValue2" [(ngModel)]="lookupPreFilterValue2" class="w-100" nzPlaceHolder="Chọn cột dữ liệu" [nzDisabled]="lookupPreFilterOperator !== 'BETWEEN'">
+              <nz-option *ngFor="let item of columnsForSelectedTable" [nzValue]="item.columnName" [nzLabel]="item.displayName + ' (' + item.columnName + ')'"></nz-option>
+            </nz-select>
+            <input nz-input *ngIf="lookupPreFilterValueType === 'STATIC'" name="lookupPreFilterStaticText2" [(ngModel)]="lookupPreFilterValue2" placeholder="Nhập giá trị giới hạn trên" [disabled]="lookupPreFilterOperator !== 'BETWEEN'" />
+          </div>
+        </div>
+      </div>
     </div>
   </form>
 </ng-template>

@@ -73,7 +73,6 @@
     <div style="flex: 5; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
       <div class="table-title" style="flex-shrink: 0; padding-top: 8px;">
         <h6>{{ selectedTemplate ? selectedTemplate.templateName : 'Chỉ tiêu KPI' }}</h6>
-        <span style="font-weight: 600; color: #10766e; font-size: 13px;">Tổng trọng số: {{ totalWeight | number: '1.0-2' }}%</span>
       </div>
       <div style="flex: 1; min-height: 0; overflow: hidden;">
         <nz-table #indexTable [nzData]="indexesTreeForTemplate" [nzFrontPagination]="false" nzSize="small" nzBordered [nzLoading]="isLoading" [nzScroll]="{ y: '240px' }" style="height: 100%;">
@@ -86,7 +85,6 @@
               <th nzWidth="100px">Loại</th>
               <th nzWidth="80px">Đơn vị</th>
               <th nzWidth="140px">Điều chỉnh điểm</th>
-              <th nzWidth="90px" nzAlign="right">Trọng số</th>
               <th nzWidth="100px" nzAlign="center">Đang dùng</th>
               <th nzWidth="100px" nzAlign="center">Hành động</th>
             </tr>
@@ -114,7 +112,6 @@
                 </ng-container>
                 <ng-template #emptyReportAdjustment>-</ng-template>
               </td>
-              <td nzAlign="right">{{ item.index.weightPercent | number: '1.0-2' }}%</td>
               <td nzAlign="center">
                 <nz-switch nzSize="small" [ngModel]="item.index.isActive" nzDisabled></nz-switch>
               </td>
@@ -175,7 +172,7 @@
       </nz-select>
     </div>
     
-    <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
       <div class="field">
         <span>Loại chỉ tiêu</span>
         <nz-select nzDropdownClassName="select-dropdown" name="indexType" [(ngModel)]="indexDraft.indexType" class="w-100">
@@ -187,10 +184,6 @@
         <nz-select nzDropdownClassName="select-dropdown" name="unitType" [(ngModel)]="indexDraft.unitType" class="w-100">
           <nz-option *ngFor="let item of unitTypes" [nzValue]="item" [nzLabel]="getUnitTypeLabel(item)"></nz-option>
         </nz-select>
-      </div>
-      <div class="field">
-        <span>Trọng số (%)</span>
-        <nz-input-number name="weightPercent" [(ngModel)]="indexDraft.weightPercent" [nzMin]="0" [nzMax]="100" class="w-100"></nz-input-number>
       </div>
       <div class="field">
         <span>Thứ tự</span>

@@ -655,6 +655,14 @@ export class KpiMappingTabComponent implements OnInit {
     return this.dataSources.find(s => s.id === sourceId)?.sourceName || '';
   }
 
+  getColumnLabel(sourceId: number, columnName: string | undefined): string {
+    if (!columnName) return '-';
+    const source = this.dataSources.find(s => s.id === sourceId);
+    if (!source) return columnName;
+    const col = this.allowedColumns.find(c => c.tableId === source.allowedTableId && c.columnName === columnName);
+    return col?.displayName || col?.columnName || columnName;
+  }
+
   getIndexName(indexId: number): string {
     return this.indexes.find(item => item.id === indexId)?.indexName || '';
   }
@@ -969,7 +977,12 @@ export class KpiMappingTabComponent implements OnInit {
       lookupTable: this.read<string>(item, 'LookupTable', 'lookupTable'),
       lookupValueColumn: this.read<string>(item, 'LookupValueColumn', 'lookupValueColumn'),
       lookupDisplayColumn: this.read<string>(item, 'LookupDisplayColumn', 'lookupDisplayColumn'),
-      manualValueMapJson: this.read<string>(item, 'ManualValueMapJson', 'manualValueMapJson')
+      manualValueMapJson: this.read<string>(item, 'ManualValueMapJson', 'manualValueMapJson'),
+      preFilterColumn: this.read<string>(item, 'PreFilterColumn', 'preFilterColumn'),
+      preFilterOperator: this.read<string>(item, 'PreFilterOperator', 'preFilterOperator'),
+      preFilterValueType: this.read<string>(item, 'PreFilterValueType', 'preFilterValueType'),
+      preFilterValue: this.read<string>(item, 'PreFilterValue', 'preFilterValue'),
+      preFilterValue2: this.read<string>(item, 'PreFilterValue2', 'preFilterValue2')
     };
   }
 

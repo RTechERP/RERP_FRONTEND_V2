@@ -94,7 +94,7 @@
 .kpi-tabs {
   flex: 1;
   padding: 0 8px 8px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .tab-layout {
@@ -134,7 +134,7 @@
 
 .panel-table,
 .result-table {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .compact-form {
@@ -226,7 +226,7 @@
 }
 
 .result-table {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .result-table-container {
@@ -371,7 +371,7 @@
 .total-performance-panel {
   border-color: #e2e8f0;
   background: #ffffff;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .total-performance-score-card {

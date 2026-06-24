@@ -62,8 +62,7 @@
       </div>
 
       <div class="toolbar-field">
-        <label></label>
-        <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" [disabled]="!summaryData">
+        <button nz-button nzType="default" (click)="exportToExcel()" [disabled]="!summaryData">
           <span nz-icon nzType="file-excel"></span> Xuất Excel
         </button>
       </div>
@@ -189,20 +188,38 @@
     <nz-spin [nzSpinning]="loading" nzSize="small">
       <div class="report-table-scroll report-table-scroll--compact">
         <table class="kpi-report-table kpi-report-table--ultra-compact">
+          <!-- Header Row 1: month group headers -->
           <thead>
-            <tr class="report-header-row-2">
-              <th class="col-report-index col-report-index--slim">Chỉ tiêu báo cáo</th>
-              <th class="col-report-score col-report-quarter">
+            <tr class="report-header-row-1">
+              <th class="col-report-index" rowspan="2">Chỉ tiêu báo cáo</th>
+              <ng-container *ngFor="let p of summaryData.periods">
+                <th class="col-report-period-group">{{ p.periodName || p.periodCode }}</th>
+              </ng-container>
+              <th class="col-report-period-group col-report-quarter">
                 {{ summaryData.quarterName || summaryData.quarterCode }}
               </th>
+            </tr>
+            <!-- Header Row 2: score sub-headers -->
+            <tr class="report-header-row-2">
+              <ng-container *ngFor="let p of summaryData.periods">
+                <th class="col-report-score">Điểm</th>
+              </ng-container>
+              <th class="col-report-score col-report-quarter">Điểm</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let row of reportRows; let rowIndex = index"
                 [ngClass]="{'row-even': rowIndex % 2 === 1}">
-              <td class="col-report-index col-report-index--slim">
+              <td class="col-report-index">
                 <span class="index-name">{{ row.indexName }}</span>
               </td>
+              <!-- Monthly Scores -->
+              <ng-container *ngFor="let mv of row.monthlyValues">
+                <td class="col-report-score" [class]="getScoreClass(mv.score, 100)">
+                  <span class="score-text">{{ round(mv.score) }}%</span>
+                </td>
+              </ng-container>
+              <!-- Quarterly Score -->
               <td class="col-report-score col-report-quarter" [class]="getScoreClass(row.quarterValue.score, 100)">
                 <span class="score-text">{{ round(row.quarterValue.score) }}%</span>
               </td>

@@ -36,9 +36,9 @@
           <button nz-button nzType="default" nzSize="small" (click)="openRewardConfigTab()">
             <i nz-icon nzType="setting"></i> Cấu hình thưởng
           </button> -->
-          <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="runCalculate()">
+          <!-- <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="runCalculate()">
             <img src="assets/icon/btn_refresh.png" alt="" /> Tính KPI
-          </button>
+          </button> -->
           <button nz-button nzType="default" nzSize="small" (click)="exportCsv()">
             <img src="assets/icon/action_export_excel_16.png" alt="" /> Xuất CSV
           </button>
@@ -172,39 +172,34 @@
           </div> -->
           <div class="result-table-container">
             <nz-table #resultTable [nzData]="resultTreeRowsFiltered" [nzFrontPagination]="false" nzSize="small"
-              nzBordered [nzScroll]="{ x: '1180px', y: '65vh' }">
+              nzBordered [nzScroll]="{ x: '1060px', y: '65vh' }">
             <thead>
               <tr>
-                <th nzLeft>Kỳ KPI</th>
-                <th nzLeft>Mã chỉ tiêu</th>
-                <th>Tên chỉ tiêu</th>
-              <th>Loại chỉ tiêu</th>
-              <th>Đơn vị</th>
-              <th>Điểm điều chỉnh</th>
-              <th>Giá trị mục tiêu</th>
-                <th>Giá trị kết quả</th>
-                <th>Tỷ lệ đạt</th>
-                <th>Trọng số</th>
-                <th>Điểm cuối</th>
-                <!-- <th>Chính</th> -->
-                <th>Ngày tính</th>
+                <th nzLeft nzWidth="220px">Mã chỉ tiêu</th>
+                <th nzLeft nzWidth="80px">Trọng số</th>
+                <th nzWidth="280px">Tên chỉ tiêu</th>
+              <th nzWidth="100px">Loại</th>
+              <th nzWidth="110px">Điều chỉnh</th>
+              <th nzWidth="110px">Mục tiêu</th>
+                <th nzWidth="110px">Kết quả</th>
+                <th nzWidth="80px">Tỷ lệ</th>
+                <th nzWidth="80px">Điểm cuối</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let item of resultTable.data; trackBy: trackById"
                 [class.main-index-row]="false" [class.fw-bold]="item.row.isBold">
-                <td nzLeft>{{ item.row.periodCode || getPeriodName(item.row.periodId || selectedPeriodId) }}</td>
                 <td nzLeft class="mono" [nzIndentSize]="item.level * 20" [nzShowExpand]="item.expandable"
                   [nzExpand]="item.expanded" (nzExpandChange)="toggleResultExpand(item, $event)">
                   {{ item.row.indexCode }}
                 </td>
+                <td nzLeft class="text-end">{{ item.row.weightPercent | number: '1.0-2' }}%</td>
                 <td>{{ item.row.indexName }}</td>
                 <td>
                   <nz-tag [nzColor]="getTypeColor(item.row.indexType)">
                     {{ getIndexTypeLabel(item.row.indexType) }}
                   </nz-tag>
                 </td>
-                <td>{{ getUnitTypeLabel(item.row.unitType) }}</td>
                 <td class="text-end">
                   <ng-container *ngIf="item.row.indexType === 'REPORT'; else noAdjustment">
                     <ng-container *ngIf="item.row.periodType === 'MONTH'; else quarterAdjustment">
@@ -220,7 +215,7 @@
                       <span class="text-muted">
                         {{ getAdjustmentTypeLabel(item.row.reportScoreAdjustmentType) }}:
                         {{ item.row.reportScoreValue | number: '1.0-2' }}
-                      </span> 
+                      </span>
                     </ng-template>
                   </ng-container>
                   <ng-template #noAdjustment>-</ng-template>
@@ -228,12 +223,7 @@
                 <td class="text-end">{{ formatMetric(item.row.goalValue, item.row.unitType) }}</td>
                 <td class="text-end">{{ formatMetric(item.row.resultValue, item.row.unitType) }}</td>
                 <td class="text-end">{{ formatPercent(item.row.achievedPercent) }}</td>
-                <td class="text-end">{{ item.row.weightPercent | number: '1.0-2' }}%</td>
                 <td class="text-end">{{ item.row.finalScore | number: '1.0-2' }}%</td>
-                <!-- <td><label nz-checkbox [ngModel]="item.row.isMainIndex"
-                    [ngModelOptions]="{ standalone: true }"></label>
-                </td> -->
-                <td>{{ item.row.calculatedDate | date: 'dd/MM/yyyy HH:mm' }}</td>
               </tr>
             </tbody>
           </nz-table>

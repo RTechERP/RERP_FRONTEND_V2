@@ -207,7 +207,7 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
       ProjectManagerID: [null, [Validators.required]],
       EmployeeID: [null],
       PIC: [null],
-      ReceiverID: [[], [Validators.required]],
+      ReceiverID: [[]],
 
       PriorityLevel: [null, [Validators.required]],
       StatusProblem: [null, [Validators.required]],
@@ -261,7 +261,7 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
     });
 
     const updateTeamDepartment = () => {
-      const pmId = this.form.get('ProjectManagerID')?.value;
+      const pmId = this.form.get('PerformerID')?.value;
       if (pmId) {
         this.projectHistoryProblemNewService.getDepartmentByEmployees([pmId]).subscribe((res: any) => {
           if (res.status === 1) {
@@ -274,7 +274,35 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
       }
     };
 
-    this.form.get('ProjectManagerID')?.valueChanges.subscribe(() => updateTeamDepartment());
+    this.form.get('PerformerID')?.valueChanges.subscribe(() => updateTeamDepartment());
+
+    this.form.get('StatusProblem')?.valueChanges.subscribe(status => {
+      const reasonCtrl = this.form.get('Reason');
+      const impactCtrl = this.form.get('Impact');
+      const remediesCtrl = this.form.get('Remedies');
+      const issueConclusionCtrl = this.form.get('IssueConclusion');
+
+      if (status === 2 || status === 3) {
+        reasonCtrl?.setValidators([Validators.required]);
+        impactCtrl?.setValidators([Validators.required]);
+        remediesCtrl?.setValidators([Validators.required]);
+      } else {
+        reasonCtrl?.clearValidators();
+        impactCtrl?.clearValidators();
+        remediesCtrl?.clearValidators();
+      }
+
+      if (status === 3) {
+        issueConclusionCtrl?.setValidators([Validators.required]);
+      } else {
+        issueConclusionCtrl?.clearValidators();
+      }
+
+      reasonCtrl?.updateValueAndValidity();
+      impactCtrl?.updateValueAndValidity();
+      remediesCtrl?.updateValueAndValidity();
+      issueConclusionCtrl?.updateValueAndValidity();
+    });
 
     this.form.get('ReceiverID')?.valueChanges.pipe(
       switchMap(receiverIds => {

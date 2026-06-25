@@ -80,15 +80,37 @@ export class TabulatorPopupService {
     
     // Tính toán vị trí
     const rect = triggerElement.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const spaceAbove = rect.top;
+    const edgeMargin = 8;
+
+    // Nếu trigger nằm trong modal (ngb-modal/nz-modal) thì kẹp popup theo biên của modal
+    // thay vì cả viewport, tránh tràn popup ra ngoài hộp thoại đè lên nội dung trang phía sau
+    const boundaryEl = triggerElement.closest(
+      '.modal-content, .modal-dialog, .ant-modal-content, nz-modal-container'
+    ) as HTMLElement | null;
+    const boundaryRect = boundaryEl
+      ? boundaryEl.getBoundingClientRect()
+      : { left: 0, right: viewportWidth, top: 0, bottom: viewportHeight };
+
+    const spaceBelow = boundaryRect.bottom - rect.bottom;
+    const spaceAbove = rect.top - boundaryRect.top;
+
+    // Responsive: nếu maxWidth/minWidth cấu hình rộng hơn vùng chứa (modal hoặc viewport) thì co lại cho vừa
+    const parsePx = (value: string | undefined, fallback: number): number => {
+      const n = parseInt(value || '', 10);
+      return isNaN(n) ? fallback : n;
+    };
+    const availableWidth = Math.max(boundaryRect.right - boundaryRect.left - edgeMargin * 2, 0);
+    const maxWidthPx = Math.min(parsePx(config.maxWidth, 700), availableWidth);
+    const minWidthPx = Math.min(parsePx(config.minWidth, 500), maxWidthPx);
 
     // Set position
     this.popupContainer.style.position = 'fixed';
     this.popupContainer.style.zIndex = '10000';
-    this.popupContainer.style.minWidth = config.minWidth || '500px';
-    this.popupContainer.style.maxWidth = config.maxWidth || '700px';
+    this.popupContainer.style.minWidth = minWidthPx + 'px';
+    this.popupContainer.style.maxWidth = maxWidthPx + 'px';
+    this.popupContainer.style.width = maxWidthPx + 'px';
 
     // Custom position hoặc auto-calculate
     if (config.position) {
@@ -97,9 +119,16 @@ export class TabulatorPopupService {
       if (config.position.right) this.popupContainer.style.right = config.position.right;
       if (config.position.bottom) this.popupContainer.style.bottom = config.position.bottom;
     } else {
-      // Auto position
-      this.popupContainer.style.left = rect.left + 'px';
-      
+      // Auto position theo chiều ngang, kẹp lại trong biên modal/viewport để không bị tràn ra ngoài
+      let left = rect.left;
+      if (left + maxWidthPx > boundaryRect.right - edgeMargin) {
+        left = boundaryRect.right - maxWidthPx - edgeMargin;
+      }
+      if (left < boundaryRect.left + edgeMargin) {
+        left = boundaryRect.left + edgeMargin;
+      }
+      this.popupContainer.style.left = left + 'px';
+
       if (spaceBelow < 300 && spaceAbove > spaceBelow) {
         // Hiển thị phía trên
         this.popupContainer.style.bottom = (viewportHeight - rect.top) + 'px';

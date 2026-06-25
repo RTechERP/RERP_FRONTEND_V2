@@ -83,7 +83,7 @@
             <nz-form-item>
               <nz-form-label nzRequired>Ngày kết thúc</nz-form-label>
               <nz-form-control nzErrorTip="Vui lòng chọn ngày kết thúc!">
-                <nz-date-picker formControlName="EndDate" nzFormat="dd/MM/yyyy" style="width: 100%"></nz-date-picker>
+                <nz-date-picker formControlName="EndDate" nzFormat="dd/MM/yyyy" style="width: 100%" nzDisabled></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
           </div>
@@ -91,7 +91,7 @@
       </form>
     </nz-card>
 
-    <nz-card *ngIf="isEdit && maxNo > 1" class="mt-3" nzTitle="Lịch sử Lần đầu / Gia hạn / Bàn giao">
+    <nz-card *ngIf="isEdit && detailsList.length > 0" class="mt-3" nzTitle="Lịch sử Lần đầu / Gia hạn / Bàn giao">
       <p-table [value]="detailsList" styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
         responsiveLayout="scroll">
         <ng-template pTemplate="header">
@@ -103,25 +103,25 @@
         </ng-template>
         <ng-template pTemplate="body" let-rowData>
           <tr>
-            <td class="text-center">Lần {{ rowData.No - 1 }}</td>
+            <td class="text-center">{{ rowData.No === 1 ? 'Đăng ký gốc' : 'Lần ' + (rowData.No - 1) }}</td>
             <td class="text-center">
               <p-tag [value]="getTypeLabel(rowData.Type)"
                 [severity]="rowData.Type === 1 ? 'info' : (rowData.Type === 2 ? 'warn' : 'success')"></p-tag>
             </td>
             <td class="text-center">
-              <ng-container *ngIf="rowData.No === maxNo && rowData.Status < 1; else textStartDate">
-                <nz-date-picker [(ngModel)]="rowData.StartDate" nzFormat="dd/MM/yyyy" style="width: 100%"></nz-date-picker>
+              <ng-container *ngIf="rowData.No > 1 && rowData.No === maxNo && rowData.Status < 1; else textStartDate">
+                <nz-date-picker [(ngModel)]="rowData.StartDate" (ngModelChange)="onStartDateChange($event, rowData)" nzFormat="dd/MM/yyyy" style="width: 100%"></nz-date-picker>
               </ng-container>
               <ng-template #textStartDate>{{ rowData.StartDate | date:'dd/MM/yyyy' }}</ng-template>
             </td>
             <td class="text-center">
-              <ng-container *ngIf="rowData.No === maxNo && rowData.Status < 1; else textEndDate">
-                <nz-date-picker [(ngModel)]="rowData.EndDate" nzFormat="dd/MM/yyyy" style="width: 100%"></nz-date-picker>
+              <ng-container *ngIf="rowData.No > 1 && rowData.No === maxNo && rowData.Status < 1; else textEndDate">
+                <nz-date-picker [(ngModel)]="rowData.EndDate" nzFormat="dd/MM/yyyy" style="width: 100%" nzDisabled></nz-date-picker>
               </ng-container>
               <ng-template #textEndDate>{{ rowData.EndDate | date:'dd/MM/yyyy' }}</ng-template>
             </td>
             <td class="text-center">
-              <ng-container *ngIf="rowData.No === maxNo && rowData.Status < 1; else textOwner">
+              <ng-container *ngIf="rowData.No > 1 && rowData.No === maxNo && rowData.Status < 1; else textOwner">
                 <nz-select [(ngModel)]="rowData.OwnerID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn người nhận" [nzFilterOption]="filterEmployeeOption" style="width: 100%">
                   <nz-option *ngFor="let e of employees" [nzValue]="e.ID" [nzLabel]="(e.Code || '') + ' - ' + e.FullName" nzCustomContent>
                     <div>{{ e.Code }} - {{ e.FullName }}</div>
@@ -131,7 +131,7 @@
               <ng-template #textOwner>{{ rowData.OwnerName }}</ng-template>
             </td>
             <td class="text-center">
-              <ng-container *ngIf="rowData.No === maxNo && rowData.Status < 1; else textApprover">
+              <ng-container *ngIf="rowData.No > 1 && rowData.No === maxNo && rowData.Status < 1; else textApprover">
                 <nz-select [(ngModel)]="rowData.ApproverID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn người duyệt" [nzFilterOption]="filterEmployeeOption" style="width: 100%">
                   <nz-option *ngFor="let a of approvers" [nzValue]="a.ID" [nzLabel]="(a.Code || '') + ' - ' + a.FullName" nzCustomContent>
                     <div>{{ a.Code }} - {{ a.FullName }}</div>

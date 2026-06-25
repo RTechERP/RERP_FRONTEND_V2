@@ -310,6 +310,9 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
           if (item.DetailsJson) {
             try {
               item.children = JSON.parse(item.DetailsJson);
+              if (item.children.some((c: any) => c.Status === 0)) {
+                this.expandedRows[item.ID] = true;
+              }
             } catch (e) {
               item.children = [];
             }

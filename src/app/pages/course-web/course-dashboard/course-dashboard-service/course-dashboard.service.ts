@@ -16,13 +16,13 @@ export class CourseDashboardService {
     return this.http.get<any>(`${this.apiUrl}get-course-summary`);
   }
 
-  getCourseEvaluateSummary(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}get-course-evaluate-summary`);
-  }
+  // getCourseEvaluateSummary(): Observable<any> {
+  //   return this.http.get<any>(`${this.apiUrl}get-course-evaluate-summary`);
+  // }
 
-  getLeaderboard(limit: number = 10): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}leaderboard?limit=${limit}`);
-  }
+  // getLeaderboard(limit: number = 10): Observable<any> {
+  //   return this.http.get<any>(`${this.apiUrl}leaderboard?limit=${limit}`);
+  // }
 
   getCourseCommentSummary(limit: number = 5): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}get-course-comment-summary?limit=${limit}`);

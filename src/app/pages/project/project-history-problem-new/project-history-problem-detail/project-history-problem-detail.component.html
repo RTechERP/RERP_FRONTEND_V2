@@ -67,8 +67,8 @@
             </div>
             <div class="col-md-12">
               <nz-form-item>
-                <nz-form-label>Nguyên nhân</nz-form-label>
-                <nz-form-control>
+                <nz-form-label [nzRequired]="form.get('StatusProblem')?.value === 2 || form.get('StatusProblem')?.value === 3">Nguyên nhân</nz-form-label>
+                <nz-form-control nzErrorTip="Vui lòng nhập nguyên nhân">
                   <textarea nz-input formControlName="Reason" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
                     placeholder="Nhập nguyên nhân..."></textarea>
                 </nz-form-control>
@@ -76,8 +76,8 @@
             </div>
             <div class="col-md-12">
               <nz-form-item>
-                <nz-form-label>Ảnh hưởng </nz-form-label>
-                <nz-form-control>
+                <nz-form-label [nzRequired]="form.get('StatusProblem')?.value === 2 || form.get('StatusProblem')?.value === 3">Ảnh hưởng </nz-form-label>
+                <nz-form-control nzErrorTip="Vui lòng nhập ảnh hưởng">
                   <textarea nz-input formControlName="Impact" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
                     placeholder="Nhập ảnh hưởng..."></textarea>
                 </nz-form-control>
@@ -87,8 +87,8 @@
 
           <!-- <h6 class="text-secondary mb-3"><i class="fa-solid fa-screwdriver-wrench me-2"></i>Phân tích & Giải pháp</h6> -->
           <nz-form-item>
-            <nz-form-label>Phương án xử lý</nz-form-label>
-            <nz-form-control>
+            <nz-form-label [nzRequired]="form.get('StatusProblem')?.value === 2 || form.get('StatusProblem')?.value === 3">Phương án xử lý</nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng nhập phương án xử lý">
               <textarea nz-input formControlName="Remedies" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
                 placeholder="Nhập phương án xử lý..."></textarea>
             </nz-form-control>
@@ -104,8 +104,8 @@
         </nz-form-item> -->
 
           <nz-form-item>
-            <nz-form-label>Kết quả sau xử lý </nz-form-label>
-            <nz-form-control>
+            <nz-form-label [nzRequired]="form.get('StatusProblem')?.value === 3">Kết quả sau xử lý </nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng nhập kết quả sau xử lý">
               <textarea nz-input formControlName="IssueConclusion" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
                 placeholder="Nhập kết quả sau xử lý..."></textarea>
             </nz-form-control>
@@ -186,9 +186,9 @@
             </div>
             <div class="col-md-6">
               <nz-form-item>
-                <nz-form-label nzRequired>Người chịu trách nhiệm xử lý</nz-form-label>
-                <nz-form-control nzErrorTip="Vui lòng chọn người chịu trách nhiệm xử lý">
-                  <nz-select formControlName="PerformerID" nzPlaceHolder="Người chịu trách nhiệm xử lý" nzAllowClear
+                <nz-form-label nzRequired>PM phụ trách</nz-form-label>
+                <nz-form-control nzErrorTip="Vui lòng chọn PM phụ trách">
+                  <nz-select formControlName="ProjectManagerID" nzPlaceHolder="Chọn PM phụ trách" nzAllowClear
                     nzShowSearch>
                     <nz-option *ngFor="let option of employeeOptions" [nzValue]="option.value"
                       [nzLabel]="option.label"></nz-option>
@@ -201,9 +201,9 @@
           <div class="row">
             <div class="col-md-6">
               <nz-form-item>
-                <nz-form-label nzRequired>PM phụ trách</nz-form-label>
-                <nz-form-control nzErrorTip="Vui lòng chọn PM phụ trách">
-                  <nz-select formControlName="ProjectManagerID" nzPlaceHolder="Chọn PM phụ trách" nzAllowClear
+                <nz-form-label nzRequired>Người chịu trách nhiệm xử lý</nz-form-label>
+                <nz-form-control nzErrorTip="Vui lòng chọn người chịu trách nhiệm xử lý">
+                  <nz-select formControlName="PerformerID" nzPlaceHolder="Người chịu trách nhiệm xử lý" nzAllowClear
                     nzShowSearch>
                     <nz-option *ngFor="let option of employeeOptions" [nzValue]="option.value"
                       [nzLabel]="option.label"></nz-option>
@@ -227,8 +227,8 @@
           <div class="row">
             <div class="col-md-6">
               <nz-form-item>
-                <nz-form-label nzRequired>Người liên quan</nz-form-label>
-                <nz-form-control nzErrorTip="Vui lòng chọn người liên quan">
+                <nz-form-label>Người liên quan</nz-form-label>
+                <nz-form-control>
                   <nz-select formControlName="ReceiverID" nzMode="multiple" nzPlaceHolder="Chọn người liên quan"
                     nzAllowClear nzShowSearch>
                     <nz-option *ngFor="let option of employeeOptions" [nzValue]="option.value"
@@ -239,8 +239,8 @@
             </div>
             <div class="col-md-6">
               <nz-form-item>
-                <nz-form-label nzRequired>Phòng ban (Người liên quan)</nz-form-label>
-                <nz-form-control nzErrorTip="Vui lòng chọn phòng ban">
+                <nz-form-label>Phòng ban (Người liên quan)</nz-form-label>
+                <nz-form-control>
                   <nz-select formControlName="ReceiverDepartment" nzMode="multiple" nzPlaceHolder="Chọn phòng ban..."
                     nzAllowClear nzShowSearch>
                     <nz-option *ngFor="let option of departmentOptions" [nzValue]="option.value"

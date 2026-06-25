@@ -60,6 +60,11 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   private tabService = inject(TabServiceService);
 
   isOpeningDetail = false;
+  showMobileFilters = false;
+
+  toggleMobileFilters(): void {
+    this.showMobileFilters = !this.showMobileFilters;
+  }
 
   // ===== Context Menu =====
   contextMenuVisible = false;
@@ -97,10 +102,12 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
   filterEmployeeColumn: number[] = [];
   filterTaskKeyword = '';
   filterProjectKeyword = '';
-  selectedStatuses: number[] = [0, 1];
+  selectedStatuses: string[] = ['1_0', '1_1'];
   filterStatusColumn: number[] = [];
 
   statusOptions: any[] = [];
+  statusType1Options: any[] = [];
+  statusType2Options: any[] = [];
   columnStatusOptions: any[] = [];
   employeeColumnOptions: any[] = [];
 
@@ -144,16 +151,27 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
           this.statusMap.set(`${s.Type}_${s.No}`, s);
         });
         const type1Statuses = statuses.filter((s: any) => s.Type === 1);
+        const type2Statuses = statuses.filter((s: any) => s.Type === 2);
+
+        // For column filter (Type=1 only, number values)
         this.statusOptions = type1Statuses.map((s: any) => ({
           label: s.Title,
           value: s.No
         }));
 
+        // For search bar dropdown groups (string values: 'type_no')
+        this.statusType1Options = type1Statuses.map((s: any) => ({
+          label: s.Title,
+          value: `1_${s.No}`
+        }));
+        this.statusType2Options = type2Statuses.map((s: any) => ({
+          label: s.Title,
+          value: `2_${s.No}`
+        }));
+
         // columnStatusOptions = Type 1 + Type 2 (Approve/Reject) cho filter cột
         this.columnStatusOptions = [...this.statusOptions];
-        const type2Statuses = statuses.filter((s: any) => s.Type === 2);
         type2Statuses.forEach((s: any) => {
-          // Dùng mã giả lập 22, 23 (hoặc tùy biến) để filter
           const customValue = s.No === 1 ? 22 : 23;
           this.columnStatusOptions.push({
             label: s.Title,
@@ -279,7 +297,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
     this.teamId = 0;
     this.userId = 0;
     this.projectId = 0;
-    this.selectedStatuses = [0, 1];
+    this.selectedStatuses = ['1_0', '1_1'];
     this.filterEmployeeColumn = [];
     this.filterTaskKeyword = '';
     this.filterProjectKeyword = '';
@@ -305,11 +323,28 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
       const startDate = new Date(this.dateStart);
       const endDate = new Date(this.dateEnd);
 
+      // Parse selected statuses: split 'type_no' into Type=1 and Type=2 groups
+      const selectedType1Nos = this.selectedStatuses
+        .filter(s => s.startsWith('1_'))
+        .map(s => parseInt(s.split('_')[1]));
+      const selectedType2Nos = this.selectedStatuses
+        .filter(s => s.startsWith('2_'))
+        .map(s => parseInt(s.split('_')[1]));
+
       let statusStr = '';
-      if (this.selectedStatuses.length === 0 || this.selectedStatuses.length === this.statusOptions.length) {
+      if (selectedType1Nos.length === 0 || selectedType1Nos.length === this.statusType1Options.length) {
         statusStr = '-1';
       } else {
-        statusStr = this.selectedStatuses.join(',');
+        statusStr = selectedType1Nos.join(',');
+      }
+
+      let approveVal = 2;
+      if (selectedType2Nos.length === 0) {
+        approveVal = 2;
+      } else if (selectedType2Nos.length === this.statusType2Options.length) {
+        approveVal = -1;
+      } else {
+        approveVal = selectedType2Nos[0];
       }
 
       forkJoin({
@@ -321,6 +356,7 @@ export class ProjectTaskTimeLineTotalComponent implements OnInit {
           userID: this.userId || 0,
           projectID: this.projectId || 0,
           status: statusStr,
+          approve: approveVal,
           typeSearch: -1
         }),
         dayOffData: this.timelineService.getProjectTaskGetDayOff(this.dateStart, this.dateEnd)

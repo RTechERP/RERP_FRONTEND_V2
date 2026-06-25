@@ -24,12 +24,12 @@
 ::ng-deep .ant-card-body {
   padding: 0px !important;
 }
-::ng-deep #gridBorrow {
+::ng-deep [id^='gridBorrow_'] {
   height: 79vh !important;
 }
-::ng-deep #gridExport {
+::ng-deep [id^='gridExport_'] {
   height: 37vh !important;
 }
-::ng-deep #gridImport {
+::ng-deep [id^='gridImport_'] {
   height: 37vh !important;
 }

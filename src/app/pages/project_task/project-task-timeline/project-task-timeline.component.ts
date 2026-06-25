@@ -50,6 +50,11 @@ export class ProjectTaskTimelineComponent implements OnInit {
   private tabService = inject(TabServiceService);
 
   isOpeningDetail = false;
+  showMobileFilters = false;
+
+  toggleMobileFilters(): void {
+    this.showMobileFilters = !this.showMobileFilters;
+  }
 
   // Filters
   dateStart: string = this.getDefaultDateStart();
@@ -78,11 +83,13 @@ export class ProjectTaskTimelineComponent implements OnInit {
   filterKeyword = '';
   filterProjectKeyword = '';
   filterParentCode = '';
-  selectedStatuses: number[] = [];
+  selectedStatuses: string[] = [];
   filterStatusColumn: string[] = [];
   contextMenuItems: MenuItem[] = [];
 
   statusOptions: any[] = [];
+  statusType1Options: any[] = [];
+  statusType2Options: any[] = [];
   columnStatusOptions: any[] = [];
 
   ngOnInit() {
@@ -103,9 +110,22 @@ export class ProjectTaskTimelineComponent implements OnInit {
           this.statusMap.set(`${s.Type}_${s.No}`, s);
         });
         const type1Statuses = statuses.filter((s: any) => s.Type === 1);
+        const type2Statuses = statuses.filter((s: any) => s.Type === 2);
+
+        // For column filter (Type=1 only, number values)
         this.statusOptions = type1Statuses.map((s: any) => ({
           label: s.Title,
           value: s.No
+        }));
+
+        // For search bar dropdown groups (string values: 'type_no')
+        this.statusType1Options = type1Statuses.map((s: any) => ({
+          label: s.Title,
+          value: `1_${s.No}`
+        }));
+        this.statusType2Options = type2Statuses.map((s: any) => ({
+          label: s.Title,
+          value: `2_${s.No}`
         }));
 
         // Xây dựng danh sách tùy chọn cột kết hợp Type 1 và Type 2
@@ -182,12 +202,28 @@ export class ProjectTaskTimelineComponent implements OnInit {
       const startDate = new Date(this.dateStart);
       const endDate = new Date(this.dateEnd);
 
-      // Build status string: "0,1" hoặc "-1" nếu chọn tất cả hoặc không chọn gì
+      // Parse selected statuses: split 'type_no' into Type=1 and Type=2 groups
+      const selectedType1Nos = this.selectedStatuses
+        .filter(s => s.startsWith('1_'))
+        .map(s => parseInt(s.split('_')[1]));
+      const selectedType2Nos = this.selectedStatuses
+        .filter(s => s.startsWith('2_'))
+        .map(s => parseInt(s.split('_')[1]));
+
       let statusStr = '';
-      if (this.selectedStatuses.length === 0 || this.selectedStatuses.length === this.statusOptions.length) {
+      if (selectedType1Nos.length === 0 || selectedType1Nos.length === this.statusType1Options.length) {
         statusStr = '-1';
       } else {
-        statusStr = this.selectedStatuses.join(',');
+        statusStr = selectedType1Nos.join(',');
+      }
+
+      let approveVal = 2;
+      if (selectedType2Nos.length === 0) {
+        approveVal = 2;
+      } else if (selectedType2Nos.length === this.statusType2Options.length) {
+        approveVal = -1;
+      } else {
+        approveVal = selectedType2Nos[0];
       }
 
       forkJoin({
@@ -199,6 +235,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
           userID: this.selectedEmployee || this.appUserService.id || undefined,
           projectID: undefined,
           status: statusStr,
+          approve: approveVal,
           typeSearch: 1
         }),
         dayOffData: this.timelineService.getProjectTaskGetDayOff(this.dateStart, this.dateEnd)
@@ -708,7 +745,7 @@ export class ProjectTaskTimelineComponent implements OnInit {
     this.filterKeyword = '';
     this.filterProjectKeyword = '';
     this.filterParentCode = '';
-    this.selectedStatuses = [0, 1];
+    this.selectedStatuses = ['1_0', '1_1'];
     this.filterStatusColumn = [];
     this.loadTimeline();
   }

@@ -22,6 +22,8 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HRRecruitmentCandidateService } from '../hr-recruitment-candidate.service';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { HRRecruitmentApplicationFormService } from '../../hr-recruitment/hr-recruitment-application-form/home-layout-candidate/hr-recruitment-application-form.service';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { ExamGradingDialogComponent } from '../../hr-recruitment-exam-score/exam-grading-dialog/exam-grading-dialog.component';
 
 export interface ColDef {
   field: string; header: string; width: string; type?: string;
@@ -92,6 +94,8 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
   selectedCandidateId: number = 0;
   selectedCandidate: any = null;
   imagePreview: string | null = null;
+  selectedTabIndex: number = 0;
+  pendingTabIndex: number | null = null;
 
   detailData: any = {
     applicationForm: {
@@ -155,7 +159,8 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
     private departmentService: DepartmentServiceService,
     private appFormService: HRRecruitmentApplicationFormService,
     private notification: NzNotificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private tabService: TabServiceService
   ) { }
 
   ngOnInit(): void {
@@ -307,6 +312,8 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
   onRowDblClick(row: any): void {
     this.selectedCandidate = row;
     this.selectedCandidateId = row.ID;
+    this.selectedTabIndex = 0;
+    this.pendingTabIndex = 0;
     this.loadCandidateDetail();
   }
 
@@ -316,6 +323,35 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
 
   onRowUnselect(event: any): void {
     this.selectedCandidates = [...this.selectedCandidates];
+  }
+
+  onBooleanCellClick(row: any, field: string, event: Event): void {
+    event.stopPropagation();
+    
+    // Đảm bảo dòng được chọn (highlight)
+    if (!this.selectedCandidates.find(c => c.ID === row.ID)) {
+      this.selectedCandidates = [row];
+    }
+    
+    let tabIndex = 0;
+    if (field === 'HasApplicationForm') {
+      tabIndex = 1;
+    } else if (field === 'HasExam') {
+      tabIndex = 2;
+    } else if (field === 'HasInterviewForm') {
+      tabIndex = 3;
+    } else if (field === 'HasApproveForm') {
+      tabIndex = 4;
+    }
+
+    if (this.selectedCandidateId !== row.ID) {
+      this.pendingTabIndex = tabIndex;
+      this.selectedCandidate = row;
+      this.selectedCandidateId = row.ID;
+      this.loadCandidateDetail();
+    } else {
+      this.selectedTabIndex = tabIndex;
+    }
   }
 
   private loadCandidateDetail(): void {
@@ -433,6 +469,14 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
         this.showDetail = true;
         this.isLoadingTable = false;
         this.cdr.detectChanges();
+        
+        setTimeout(() => {
+          if (this.pendingTabIndex !== null) {
+            this.selectedTabIndex = this.pendingTabIndex;
+            this.pendingTabIndex = null;
+            this.cdr.detectChanges();
+          }
+        }, 50);
       },
       error: (err) => {
         this.isLoadingTable = false;
@@ -549,5 +593,26 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
     if (val === 2) return 'badge-primary';
     if (val === 3) return 'badge-danger';
     return 'badge-secondary';
+  }
+
+  openExamDetails(test: any): void {
+    const tabKey = `exam-grading-${test.ExamResultID}`;
+    const title = `Chi tiết bài thi: ${this.selectedCandidate?.FullName || ''}`;
+
+    this.tabService.openTabComp({
+      comp: ExamGradingDialogComponent,
+      title: title,
+      key: tabKey,
+      data: {
+        tabKey: tabKey,
+        examResultID: test.ExamResultID,
+        candidateName: this.selectedCandidate?.FullName || '',
+        onSavedCallback: (result: any) => {
+          if (result?.success) {
+            this.loadCandidateDetail();
+          }
+        }
+      }
+    });
   }
 }

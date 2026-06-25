@@ -6211,6 +6211,7 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
             { header: 'SL đã về', field: 'QuantityReturn', width: 12, isNumber: true },
             { header: 'Mã nội bộ', field: 'ProductNewCode', width: 15 },
             { header: 'Số HĐ đầu vào', field: 'SomeBill', width: 18 },
+            { header: 'Công ty', field: 'CompanyName', width: 18 },
             { header: 'SL đã xuất', field: 'TotalExport', width: 12, isNumber: true },
             { header: 'SL còn lại', field: 'RemainQuantity', width: 12, isNumber: true },
         ];

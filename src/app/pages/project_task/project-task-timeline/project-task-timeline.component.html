@@ -1,9 +1,14 @@
 <div class="timeline-container">
     <p-contextMenu #cm [model]="contextMenuItems" appendTo="body" />
     <div class="timeline-header">
-        <h2 class="title">KẾ HOẠCH CÔNG VIỆC</h2>
+        <div class="header-top">
+            <h2 class="title">KẾ HOẠCH CÔNG VIỆC</h2>
+            <button nz-button nzType="default" class="mobile-filter-btn" (click)="toggleMobileFilters()">
+                <span nz-icon nzType="menu"></span> Bộ lọc
+            </button>
+        </div>
 
-        <div class="filters-bar">
+        <div class="filters-bar" [class.show-mobile]="showMobileFilters">
             <div class="legend-bar">
                 <div class="legend-item">
                     <span class="box planned"></span> Dự kiến
@@ -40,8 +45,14 @@
                     <label class="search-label">Trạng thái</label>
                     <nz-select nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
                         nzMode="multiple" [nzMaxTagCount]="4" nzAllowClear style="width: 400px;">
-                        <nz-option *ngFor="let opt of statusOptions" [nzLabel]="opt.label" [nzValue]="opt.value">
-                        </nz-option>
+                        <nz-option-group nzLabel="Trạng thái">
+                            <nz-option *ngFor="let opt of statusType1Options" [nzLabel]="opt.label" [nzValue]="opt.value">
+                            </nz-option>
+                        </nz-option-group>
+                        <nz-option-group nzLabel="Duyệt">
+                            <nz-option *ngFor="let opt of statusType2Options" [nzLabel]="opt.label" [nzValue]="opt.value">
+                            </nz-option>
+                        </nz-option-group>
                     </nz-select>
                 </div>
                 <div class="filter-actions">

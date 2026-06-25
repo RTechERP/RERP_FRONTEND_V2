@@ -62,8 +62,7 @@
       </div>
 
       <div class="toolbar-field">
-        <label></label>
-        <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" [disabled]="!summaryData">
+        <button nz-button nzType="default" (click)="exportToExcel()" [disabled]="!summaryData">
           <span nz-icon nzType="file-excel"></span> Xuất Excel
         </button>
       </div>
@@ -74,7 +73,7 @@
     </div>
   </div>
 
-  <!-- Summary Info Bar -->
+  <!-- Summary Info Bar
   <div class="summary-info-bar" *ngIf="summaryData">
     <span class="info-tag" *ngIf="!isTeamMode">
       <span nz-icon nzType="user" nzTheme="outline"></span>
@@ -96,7 +95,7 @@
       <span nz-icon nzType="warning" nzTheme="outline"></span>
       {{ summaryData.warnings.length }} cảnh báo
     </span>
-  </div>
+  </div> -->
 
   <!-- Table -->
   <!-- <div class="table-mode-banner" *ngIf="isTeamMode && summaryData">
@@ -136,18 +135,32 @@
           <!-- Body -->
           <tbody>
             <tr
-              *ngFor="let row of regularRows; let rowIndex = index; trackBy: trackByIndex"
-              [ngClass]="getRowClasses(row, rowIndex)">
+              *ngFor="let node of regularTreeRows; let rowIndex = index; trackBy: trackByIndex"
+              [ngClass]="getRowClasses(node.row, rowIndex)"
+              [class.row-group]="isGroupRow(node.row)"
+              [class.row-leaf]="!isGroupRow(node.row)">
               <!-- Index Column -->
               <td class="col-index">
-                <div class="index-cell">
-                  <span class="index-name" [nz-tooltip]="row.indexName">{{ row.indexName }}</span>
-                  <span class="weight-badge" *ngIf="row.weightPercent > 0">{{ row.weightPercent }}%</span>
+                <div class="index-cell" [style.padding-left.px]="node.level * 18">
+                  <ng-container *ngIf="node.expandable; else leafSpacer">
+                    <button
+                      type="button"
+                      class="tree-toggle"
+                      (click)="toggleGroupExpanded(node.row.indexId)"
+                      [attr.aria-label]="node.expanded ? 'Thu gọn' : 'Mở rộng'">
+                      <span class="caret" [class.caret-down]="node.expanded" [class.caret-right]="!node.expanded">▶</span>
+                    </button>
+                  </ng-container>
+                  <ng-template #leafSpacer>
+                    <span class="tree-leaf-spacer"></span>
+                  </ng-template>
+                  <span class="index-name" [nz-tooltip]="node.row.indexName">{{ node.row.indexName }}</span>
+                  <span class="weight-badge" *ngIf="node.row.weightPercent > 0">{{ node.row.weightPercent }}%</span>
                 </div>
               </td>
 
               <!-- Monthly Values -->
-              <ng-container *ngFor="let mv of row.monthlyValues; let i = index">
+              <ng-container *ngFor="let mv of node.row.monthlyValues; let i = index">
                 <td class="col-goal" [class]="getResultClass(mv.goal, mv.goal)">
                   <span [class]="'val-text ' + (mv.goal > 0 ? 'val-non-zero' : 'val-zero')">
                     {{ formatVal(mv.goal) }}
@@ -158,24 +171,24 @@
                     {{ formatVal(mv.result) }}
                   </span>
                 </td>
-                <td class="col-score" [class]="getScoreClass(mv.score, mv.goal)">
+                <td class="col-score" [class]="getScoreClass(mv.score, mv.goal, node.row.weightPercent)">
                   <span class="score-text">{{ round(mv.score) }}%</span>
                 </td>
               </ng-container>
 
               <!-- Quarterly Values -->
-              <td class="col-goal col-quarter" [class]="getResultClass(row.quarterValue.goal, row.quarterValue.goal)">
-                <span [class]="'val-text ' + (row.quarterValue.goal > 0 ? 'val-non-zero' : 'val-zero')">
-                  {{ formatVal(row.quarterValue.goal) }}
+              <td class="col-goal col-quarter" [class]="getResultClass(node.row.quarterValue.goal, node.row.quarterValue.goal)">
+                <span [class]="'val-text ' + (node.row.quarterValue.goal > 0 ? 'val-non-zero' : 'val-zero')">
+                  {{ formatVal(node.row.quarterValue.goal) }}
                 </span>
               </td>
-              <td class="col-result col-quarter" [class]="getResultClass(row.quarterValue.result, row.quarterValue.goal)">
-                <span [class]="'val-text ' + getResultClass(row.quarterValue.result, row.quarterValue.goal)">
-                  {{ formatVal(row.quarterValue.result) }}
+              <td class="col-result col-quarter" [class]="getResultClass(node.row.quarterValue.result, node.row.quarterValue.goal)">
+                <span [class]="'val-text ' + getResultClass(node.row.quarterValue.result, node.row.quarterValue.goal)">
+                  {{ formatVal(node.row.quarterValue.result) }}
                 </span>
               </td>
-              <td class="col-score col-quarter" [class]="getScoreClass(row.quarterValue.score, row.quarterValue.goal)">
-                <span class="score-text">{{ round(row.quarterValue.score) }}%</span>
+              <td class="col-score col-quarter" [class]="getScoreClass(node.row.quarterValue.score, node.row.quarterValue.goal, node.row.weightPercent)">
+                <span class="score-text">{{ round(node.row.quarterValue.score) }}%</span>
               </td>
             </tr>
           </tbody>
@@ -189,20 +202,38 @@
     <nz-spin [nzSpinning]="loading" nzSize="small">
       <div class="report-table-scroll report-table-scroll--compact">
         <table class="kpi-report-table kpi-report-table--ultra-compact">
+          <!-- Header Row 1: month group headers -->
           <thead>
-            <tr class="report-header-row-2">
-              <th class="col-report-index col-report-index--slim">Chỉ tiêu báo cáo</th>
-              <th class="col-report-score col-report-quarter">
+            <tr class="report-header-row-1">
+              <th class="col-report-index" rowspan="2">Chỉ tiêu báo cáo</th>
+              <ng-container *ngFor="let p of summaryData.periods">
+                <th class="col-report-period-group">{{ p.periodName || p.periodCode }}</th>
+              </ng-container>
+              <th class="col-report-period-group col-report-quarter">
                 {{ summaryData.quarterName || summaryData.quarterCode }}
               </th>
+            </tr>
+            <!-- Header Row 2: score sub-headers -->
+            <tr class="report-header-row-2">
+              <ng-container *ngFor="let p of summaryData.periods">
+                <th class="col-report-score">Điểm</th>
+              </ng-container>
+              <th class="col-report-score col-report-quarter">Điểm</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let row of reportRows; let rowIndex = index"
                 [ngClass]="{'row-even': rowIndex % 2 === 1}">
-              <td class="col-report-index col-report-index--slim">
+              <td class="col-report-index">
                 <span class="index-name">{{ row.indexName }}</span>
               </td>
+              <!-- Monthly Scores -->
+              <ng-container *ngFor="let mv of row.monthlyValues">
+                <td class="col-report-score" [class]="getScoreClass(mv.score, 100)">
+                  <span class="score-text">{{ round(mv.score) }}%</span>
+                </td>
+              </ng-container>
+              <!-- Quarterly Score -->
               <td class="col-report-score col-report-quarter" [class]="getScoreClass(row.quarterValue.score, 100)">
                 <span class="score-text">{{ round(row.quarterValue.score) }}%</span>
               </td>

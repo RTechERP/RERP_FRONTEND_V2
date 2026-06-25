@@ -1,10 +1,15 @@
-<div class="timeline-container">
+<div class="timeline-container"> 
 
     <!-- ===== PHẦN TÌM KIẾM ===== -->
     <div class="card border-0 rounded-0 sticky-header">
         <div class="card-header bg-white p-2">
-            <div class="d-flex justify-content-between align-items-center mb-1">
+            <div class="header-top d-flex justify-content-between align-items-center mb-1">
                 <h6 class="m-0 text-uppercase fw-bold">Kế hoạch công việc theo nhân viên</h6>
+                <button nz-button nzType="default" class="mobile-filter-btn" (click)="toggleMobileFilters()">
+                    <span nz-icon nzType="menu"></span> Bộ lọc
+                </button>
+            </div>
+            <div class="filters-container" [class.show-mobile]="showMobileFilters">
                 <div class="legend-bar">
                     <div class="legend-item">
                         <span class="box planned"></span> Dự kiến
@@ -25,7 +30,6 @@
                     <div class="legend-item"><span class="legend-sep">|</span></div>
                     <div class="legend-item"><strong>/S</strong>&nbsp;= Buổi sáng &nbsp; <strong>/C</strong>&nbsp;= Buổi chiều &nbsp; (không có hậu tố = cả ngày)</div>
                 </div>
-            </div>
             <nz-row [nzGutter]="[8, 8]" nzAlign="bottom" nzJustify="space-between">
                 <!-- Từ ngày -->
                 <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" [nzLg]="5" [nzXl]="2">
@@ -115,8 +119,14 @@
                         <nz-select class="timeline-combo-select" nzDropdownClassName="timeline-combo-dropdown"
                             nzPlaceHolder="Chọn trạng thái" [(ngModel)]="selectedStatuses" nzSize="small"
                             nzMode="multiple" [nzMaxTagCount]="4" nzAllowClear (ngModelChange)="loadTimeline()" style="width: 100%;">
-                            <nz-option *ngFor="let opt of statusOptions" [nzLabel]="opt.label" [nzValue]="opt.value">
-                            </nz-option>
+                            <nz-option-group nzLabel="Trạng thái">
+                                <nz-option *ngFor="let opt of statusType1Options" [nzLabel]="opt.label" [nzValue]="opt.value">
+                                </nz-option>
+                            </nz-option-group>
+                            <nz-option-group nzLabel="Duyệt">
+                                <nz-option *ngFor="let opt of statusType2Options" [nzLabel]="opt.label" [nzValue]="opt.value">
+                                </nz-option>
+                            </nz-option-group>
                         </nz-select>
                     </div>
                 </nz-col>
@@ -138,6 +148,7 @@
                     </div>
                 </nz-col>
             </nz-row>
+            </div>
         </div>
     </div>
 

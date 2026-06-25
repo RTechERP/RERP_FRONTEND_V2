@@ -208,6 +208,10 @@ export class KpiSaleV2Service {
     return this.http.get<KpiApiResponse<any[]>>(`${this.apiUrl}/mappings/${mappingId}/columns/${columnName}/unique-values`);
   }
 
+  getColumnUniqueValuesForAllowedColumn(tableId: number, columnName: string): Observable<KpiApiResponse<any[]>> {
+    return this.http.get<KpiApiResponse<any[]>>(`${this.apiUrl}/allowed-tables/${tableId}/columns/${columnName}/unique-values`);
+  }
+
   saveFilterGroup(group: any): Observable<KpiApiResponse<any>> {
     return group.ID > 0
       ? this.http.put<KpiApiResponse<any>>(`${this.apiUrl}/filter-groups/${group.ID}`, group)
@@ -274,6 +278,14 @@ export class KpiSaleV2Service {
     return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/targets`, target);
   }
 
+  autoCreateTargets(employeeId: number, periodId: number, templateId: number): Observable<KpiApiResponse<any>> {
+    return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/targets/auto-create`, {
+      employeeId,
+      periodId,
+      templateId
+    });
+  }
+
   proposeTarget(target: any): Observable<KpiApiResponse<any>> {
     return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/targets/propose`, target);
   }
@@ -284,6 +296,10 @@ export class KpiSaleV2Service {
 
   rejectTarget(id: number, reason?: string): Observable<KpiApiResponse<any>> {
     return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/targets/${id}/reject`, { reason: reason || '' });
+  }
+
+  updateTargetWeight(id: number, weightPercent: number | null): Observable<KpiApiResponse<any>> {
+    return this.http.put<KpiApiResponse<any>>(`${this.apiUrl}/targets/${id}/weight`, { weightPercent: weightPercent });
   }
 
   // ============== Employee Template Assignment APIs ==============

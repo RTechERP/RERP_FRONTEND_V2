@@ -217,11 +217,10 @@ export class CourseDetailComponent implements OnInit, AfterViewInit {
 
   }
   getImageUrl(imagePath: string): string {
-
+    if (!imagePath) return '';
     const host = environment.host + 'api/share/';
     let urlImage = imagePath.replace("\\\\192.168.1.190\\", "");
     urlImage = urlImage.replace(/\\/g, '/');
-
     return host + urlImage;
   }
   ngAfterViewInit(): void {

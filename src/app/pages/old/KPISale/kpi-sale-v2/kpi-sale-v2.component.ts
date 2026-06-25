@@ -121,6 +121,16 @@ export interface AllowedColumn {
   lookupValueColumn?: string;
   lookupDisplayColumn?: string;
   manualValueMapJson?: string;
+  preFilterColumn?: string;
+  preFilterOperator?: string;
+  preFilterValueType?: string;
+  preFilterValue?: string;
+  preFilterValue2?: string;
+  lookupPreFilterColumn?: string;
+  lookupPreFilterOperator?: string;
+  lookupPreFilterValueType?: string;
+  lookupPreFilterValue?: string;
+  lookupPreFilterValue2?: string;
 }
 
 export interface KpiSaleDataSource {
@@ -2347,7 +2357,7 @@ export class KpiSaleV2Component implements OnInit {
           `Tính KPI nhóm thành công: ${childMonths.length} tháng (${childNames}) + quý '${periodName}'`
         );
       } else {
-        this.notification.error('Lỗi', quarterResponse?.message || 'Không thể tính KPI nhóm quý');
+        this.notification.error('Lỗi', quarterResponse?.message || quarterResponse?.error?.split('\n')[0] || 'Không thể tính KPI nhóm quý');
       }
 
       this.lastCalculatedAt = new Date();
@@ -2829,11 +2839,33 @@ export class KpiSaleV2Component implements OnInit {
 
   private buildResultRows(refresh = false): KpiResultRow[] {
     const rows = this.indexesForTemplate.map((index, rowIndex) => {
-      const goalValue = this.targets.find((item) =>
-        item.employeeId === this.selectedEmployeeId &&
-        item.periodId === this.selectedPeriodId &&
-        item.kpiIndexId === index.id
-      )?.goalValue || 0;
+      // Với dòng GROUP: goalValue lấy thẳng từ kpisaletarget, sum tất cả record
+      // của GROUP cùng (employeeId, kpiIndexId) trong các tháng MONTH thuộc kỳ đang chọn
+      // (giống cách DETAIL đang hoạt động).
+      // Với DETAIL/REPORT: giữ nguyên logic cũ - lấy target của đúng (employeeId, periodId, kpiIndexId).
+      let goalValue = 0;
+      let weightPercent = 0;
+      if (index.indexType === 'GROUP') {
+        const monthPeriodIds = this.getMonthPeriodIdsForSelected();
+        const groupTargets = this.targets.filter((item) =>
+          item.employeeId === this.selectedEmployeeId &&
+          item.kpiIndexId === index.id &&
+          monthPeriodIds.includes(item.periodId)
+        );
+        goalValue = groupTargets.reduce((sum, item) => sum + (item.goalValue || 0), 0);
+        // CHỈ lấy weightPercent từ kpisaletarget (groupTargets). KHÔNG fallback
+        // sang indexesForTemplate (kpisaleindex) — trọng số phải đúng theo
+        // cái user đã lưu ở tab Target cho kỳ hiện tại.
+        weightPercent = groupTargets.reduce((sum, item) => sum + (item.weightPercent || 0), 0);
+      } else {
+        const matchedTarget = this.targets.find((item) =>
+          item.employeeId === this.selectedEmployeeId &&
+          item.periodId === this.selectedPeriodId &&
+          item.kpiIndexId === index.id
+        );
+        goalValue = matchedTarget?.goalValue || 0;
+        weightPercent = matchedTarget?.weightPercent || 0;
+      }
       const reportScoreAdjustmentType = (index.reportScoreAdjustmentType ?? 0) as ReportScoreAdjustmentType;
       const reportScoreValue = 0;
       const resultValue = index.indexType === 'GROUP'
@@ -2854,10 +2886,10 @@ export class KpiSaleV2Component implements OnInit {
         goalValue: index.indexType === 'REPORT' ? 0 : goalValue,
         resultValue,
         achievedPercent,
-        weightPercent: index.weightPercent,
+        weightPercent,
         finalScore: index.indexType === 'REPORT' 
           ? achievedPercent 
-          : Math.min(achievedPercent * index.weightPercent / 100, 2.5 * index.weightPercent / 100),
+          : Math.min(achievedPercent * weightPercent / 100, 2.5 * weightPercent / 100),
         reportScoreAdjustmentType,
         reportScoreValue,
         isTotalPerformance: false,
@@ -2885,7 +2917,36 @@ export class KpiSaleV2Component implements OnInit {
       }));
   }
 
+  /**
+   * Trả về danh sách periodId thuộc loại MONTH trong kỳ đang chọn.
+   * - Nếu kỳ đang chọn là MONTH: trả về [selectedPeriodId].
+   * - Nếu kỳ đang chọn là QUARTER: trả về các tháng con của quý đó.
+   * - Nếu kỳ đang chọn là YEAR: trả về tất cả các tháng trong năm.
+   */
+  private getMonthPeriodIdsForSelected(): number[] {
+    const selected = this.selectedPeriod;
+    if (!selected) return [];
+    if (selected.periodType === 'MONTH') return [selected.id];
+    if (selected.periodType === 'QUARTER') {
+      return this.periods
+        .filter((p) => p.periodType === 'MONTH' && p.parentPeriodId === selected.id)
+        .map((p) => p.id);
+    }
+    if (selected.periodType === 'YEAR') {
+      const quarterIds = this.periods
+        .filter((p) => p.periodType === 'QUARTER' && p.parentPeriodId === selected.id)
+        .map((p) => p.id);
+      return this.periods
+        .filter((p) => p.periodType === 'MONTH' && p.parentPeriodId && quarterIds.includes(p.parentPeriodId))
+        .map((p) => p.id);
+    }
+    return [selected.id];
+  }
+
   private mergeFormulaResult(row: KpiResultRow, rows: KpiResultRow[]): KpiResultRow {
+    // Bỏ qua row GROUP: goalValue đã được tính thẳng từ kpisaletarget ở buildResultRows
+    if (row.indexType === 'GROUP') return row;
+
     const formulaItems = this.formulaItemsForIndex(row.kpiIndexId);
     if (!formulaItems.length) {
       return row;
@@ -3123,6 +3184,7 @@ export class KpiSaleV2Component implements OnInit {
       periodId: this.read<number>(item, 'PeriodID', 'PeriodId', 'periodId') || 0,
       kpiIndexId: this.read<number>(item, 'KpiIndexID', 'KpiIndexId', 'kpiIndexId') || 0,
       goalValue: this.read<number>(item, 'GoalValue', 'goalValue') || 0,
+      weightPercent: this.read<number>(item, 'WeightPercent', 'weightPercent'),
       employeeName: this.read<string>(item, 'EmployeeName', 'employeeName'),
       periodCode: this.read<string>(item, 'PeriodCode', 'periodCode'),
       indexCode: this.read<string>(item, 'IndexCode', 'indexCode'),
@@ -3195,7 +3257,8 @@ export class KpiSaleV2Component implements OnInit {
       goalValue: this.read<number>(item, 'GoalValue', 'goalValue') || 0,
       resultValue: this.read<number>(item, 'ResultValue', 'resultValue') || 0,
       achievedPercent: this.read<number>(item, 'AchievedPercent', 'achievedPercent') || 0,
-      weightPercent: this.read<number>(item, 'WeightPercent', 'weightPercent') || 0,
+      weightPercent: this.read<number>(item, 'WeightPercent', 'weightPercent') ||
+        this.targets.find(t => t.kpiIndexId === kpiIndexId && t.employeeId === (this.read<number>(item, 'EmployeeID', 'EmployeeId', 'employeeId') || this.selectedEmployeeId) && t.periodId === periodId)?.weightPercent || 0,
       finalScore: this.read<number>(item, 'FinalScore', 'finalScore') || 0,
       unitType: (this.read<UnitType>(item, 'UnitType', 'unitType') || 'MONEY') as UnitType,
       reportScoreAdjustmentType: (matchedIndex?.reportScoreAdjustmentType ?? this.read<any>(item, 'ReportScoreAdjustmentType', 'reportScoreAdjustmentType') ?? 0) as ReportScoreAdjustmentType,

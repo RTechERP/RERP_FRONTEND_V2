@@ -90,8 +90,8 @@
                   [class.selected-row]="item.id === selectedMappingId" (click)="onMappingSelect(item.id)" class="cursor-pointer">
                   <td>{{ getSourceName(item.dataSourceId) }}</td>
                   <td><nz-tag nzColor="blue">{{ getAggregateTypeLabel(item.aggregateType) }}</nz-tag></td>
-                  <td class="mono">{{ item.valueColumn }}</td>
-                  <td class="mono">{{ item.distinctColumn }}</td>
+                  <td class="mono">{{ getColumnLabel(item.dataSourceId, item.valueColumn) }}</td>
+                  <td class="mono">{{ getColumnLabel(item.dataSourceId, item.distinctColumn) }}</td>
                   <td nzAlign="center">
                     <nz-switch nzSize="small" [ngModel]="item.isActive" nzDisabled></nz-switch>
                   </td>

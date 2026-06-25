@@ -389,3 +389,70 @@ nz-input-number.inline-edit .ant-input-number {
   color: #64748b;
   font-weight: normal;
 }
+
+/* Row cho chỉ tiêu NHÓM (GROUP) — highlight để dễ nhận biết */
+.row-group > td {
+  background-color: #f0f5ff !important;
+  font-weight: 500;
+}
+
+.row-group.row-selected > td,
+.row-group.row-edited > td {
+  /* Override các style row khác để giữ tone xanh dương nhạt */
+  background-color: #e6f7ff !important;
+}
+
+.row-group .sticky-col-cell {
+  background-color: #f0f5ff !important;
+}
+
+/* ===== Pivot Table Styles ===== */
+.sticky-col-header,
+.sticky-col-cell {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: white;
+}
+
+.sticky-col-header {
+  z-index: 3;
+}
+
+.sticky-col-cell {
+  background: white;
+}
+
+.pivot-row > td {
+  vertical-align: middle;
+}
+
+.quarter-header {
+  background: #e6f7ff !important;
+  color: #1890ff;
+  font-weight: 700;
+  font-size: 12px;
+  border-bottom: 2px solid #91d5ff !important;
+}
+
+.month-header-proposed {
+  background: #fffbe6 !important;
+  color: #d46b00;
+  font-size: 11px;
+  border-bottom: 1px solid #ffe58f !important;
+}
+
+.month-header-goal {
+  background: #f6ffed !important;
+  color: #389e0d;
+  font-size: 11px;
+  border-bottom: 1px solid #b7eb8f !important;
+}
+
+.cell-proposed {
+  background: #fffbe6 !important;
+}
+
+.cell-goal {
+  background: #f6ffed !important;
+}

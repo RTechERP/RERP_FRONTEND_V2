@@ -20,11 +20,22 @@
     z-index: 20;
 }
 
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
 .title {
     font-size: 18px;
     font-weight: 700;
     color: #1e293b;
-    margin-bottom: 12px;
+    margin-bottom: 0;
+}
+
+.mobile-filter-btn {
+    display: none;
 }
 
 .filters-bar {
@@ -488,4 +499,70 @@ td.col-status[rowspan] {
     width: 18px !important;
     height: 18px !important;
     flex-shrink: 0 !important;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+    .mobile-filter-btn {
+        display: inline-flex;
+    }
+
+    .filters-bar {
+        display: none;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filters-bar.show-mobile {
+        display: flex;
+    }
+
+    .search-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .search-field {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .search-field input,
+    .search-field nz-select {
+        width: 100% !important;
+    }
+
+    .legend-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .legend-item {
+        font-size: 11px;
+    }
+
+    .search-bar button {
+        width: 100%;
+    }
+
+    /* Hủy bỏ hoàn toàn tính năng cố định ngang (Sticky ngang) trên mobile */
+    .sticky-col {
+        position: static !important;
+    }
+
+    /* Tuy nhiên, vẫn giữ cố định dòng tiêu đề (thead) dọc để xem dễ hơn */
+    thead th.sticky-col {
+        position: sticky !important;
+        top: 0 !important;
+        left: auto !important; /* Xóa sticky ngang */
+        z-index: 10 !important;
+    }
+
+    thead tr:nth-child(2) th.sticky-col {
+        top: 26px !important;
+    }
 }

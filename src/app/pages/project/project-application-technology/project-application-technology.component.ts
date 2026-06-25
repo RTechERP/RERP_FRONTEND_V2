@@ -39,6 +39,9 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { combineLatest, Subject, takeUntil } from 'rxjs';
 import { DateTime } from 'luxon';
 import { PermissionService } from '../../../services/permission.service';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ProjectTechnologyFormComponent } from '../project-application-types/project-technology-form/project-technology-form.component';
+import { ProjectApplicationTypesFormComponent } from '../project-application-types/project-application-types-form/project-application-types-form.component';
 
 @Component({
   selector: 'app-project-application-technology',
@@ -162,6 +165,7 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
     private notification: NzNotificationService,
     private modalService: NzModalService,
     private permissionService: PermissionService,
+    private ngbModal: NgbModal,
   ) { }
 
 
@@ -301,8 +305,8 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
     });
   }
 
-  getApplicationTypes() {
-    this.projectService.getApplicationTypes().subscribe({
+  getApplicationTypes(projectTypeIds?: string) {
+    this.projectService.getApplicationTypes(projectTypeIds).subscribe({
       next: (res: any) => {
         this.applicationTypes = res.data || [];
         this.updateLookupConfigs();
@@ -310,12 +314,60 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
     });
   }
 
-  getTechnologies() {
-    this.projectService.getTechnologies().subscribe({
+  getTechnologies(projectTypeIds?: string) {
+    this.projectService.getTechnologies(projectTypeIds).subscribe({
       next: (res: any) => {
         this.technologies = res.data || [];
         this.updateLookupConfigs();
       }
+    });
+  }
+
+  onProjectTypeChange() {
+    const idsStr = this.projectTypeIds && this.projectTypeIds.length > 0
+      ? this.projectTypeIds.filter(id => id !== null && id !== undefined && id !== 0).join(',')
+      : '';
+    this.getApplicationTypes(idsStr);
+    this.getTechnologies(idsStr);
+  }
+
+  // TN.Bình update 15/04/26: Hàm mở modal thêm mới kiểu ứng dụng
+  openAddApplicationTypeModal(rowData: any) {
+    const modalRef = this.ngbModal.open(ProjectApplicationTypesFormComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      windowClass: 'high-zindex-modal',
+      backdropClass: 'high-zindex-backdrop'
+    });
+    // Truyền ProjectTypeID hiện tại vào modal
+    modalRef.componentInstance.projectTypeID = rowData?.ProjectTypeID || rowData?.ID || 0;
+    modalRef.result.then((result) => {
+      // result = hasSaved flag từ NgbActiveModal.close()
+      if (result) {
+        this.getApplicationTypes(); // Load lại dữ liệu combobox sau khi thêm mới
+      }
+    }).catch((res) => {
+      // Catch trường hợp đóng modal bằng cách khác nhưng vẫn cần reload nếu res = true
+      if (res === true) this.getApplicationTypes();
+    });
+  }
+
+  // TN.Bình update 15/04/26: Hàm mở modal thêm mới công nghệ
+  openAddTechnologyModal(rowData: any) {
+    const modalRef = this.ngbModal.open(ProjectTechnologyFormComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      windowClass: 'high-zindex-modal',
+      backdropClass: 'high-zindex-backdrop'
+    });
+    // Truyền ProjectTypeID hiện tại vào modal
+    modalRef.componentInstance.projectTypeID = rowData?.ProjectTypeID || rowData?.ID || 0;
+    modalRef.result.then((result) => {
+      if (result) {
+        this.getTechnologies(); // Load lại dữ liệu combobox sau khi thêm mới
+      }
+    }).catch((res) => {
+      if (res === true) this.getTechnologies();
     });
   }
 
@@ -340,6 +392,7 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
       valueField: 'ID',
       displayField: 'ApplicationName',
       multiSelect: true,
+      addAction: (rowData: any) => this.openAddApplicationTypeModal(rowData),
       loadData: (query: string, rowData?: any) => {
         const typeId = rowData?.ProjectTypeID || rowData?.ID;
         let filtered = this.applicationTypes.filter(x => x.ProjectTypeID === typeId);
@@ -360,6 +413,7 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
       valueField: 'ID',
       displayField: 'TechnologyName',
       multiSelect: true,
+      addAction: (rowData: any) => this.openAddTechnologyModal(rowData),
       loadData: (query: string, rowData?: any) => {
         const typeId = rowData?.ProjectTypeID || rowData?.ID;
         let filtered = this.technologies.filter(x => x.ProjectTypeID === typeId);
@@ -656,6 +710,15 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
         // Map selections
         this.selectedTypeNodes = [];
         this.getFlatNodes(this.projectTypeNodes, this.selectedTypeNodes);
+
+        // Load application types and technologies filtered by selected ProjectType IDs
+        const selectedIds = this.selectedTypeNodes
+          .map(node => node.data.ProjectTypeID || node.data.ID)
+          .filter(id => id > 0);
+        const idsStr = selectedIds.join(',');
+        this.getApplicationTypes(idsStr);
+        this.getTechnologies(idsStr);
+
         this.isDetailLoading = false;
       },
       error: (err: any) => {
@@ -710,6 +773,12 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
 
   onSelectionChange(event: any) {
     this.syncSelectionToData(this.projectTypeNodes, this.selectedTypeNodes);
+    const selectedIds = this.selectedTypeNodes
+      .map(node => node.data.ProjectTypeID || node.data.ID)
+      .filter(id => id > 0);
+    const idsStr = selectedIds.join(',');
+    this.getApplicationTypes(idsStr);
+    this.getTechnologies(idsStr);
   }
 
   syncSelectionToData(nodes: TreeNode[], selection: TreeNode[]) {

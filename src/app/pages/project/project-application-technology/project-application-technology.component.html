@@ -24,9 +24,21 @@
         <nz-form-label class="fs-12 m-0" style="font-size: 12px">Đến ngày</nz-form-label>
         <input nz-input type="date" [(ngModel)]="dateEnd" style="width: 140px" nzSize="small" />
 
+        <nz-form-label class="fs-12 m-0" style="font-size: 12px">Kiểu dự án</nz-form-label>
+        <nz-select [(ngModel)]="projectTypeIds" (ngModelChange)="onProjectTypeChange()" nzMode="multiple" nzShowSearch
+          nzAllowClear nzSize="small" nzPlaceHolder="Kiểu dự án" style="min-width: 200px; max-width: 280px;"
+          nzDropdownClassName="select-dropdown" [nzMaxTagCount]="1">
+          <nz-option [nzLabel]="'Tất cả'" [nzValue]=""></nz-option>
+          @for (item of projectTypes; track $index) {
+          <nz-option nzCustomContent="true" [nzLabel]="item.ProjectTypeName" [nzValue]="item.ID">
+            {{ item.ProjectTypeName }}
+          </nz-option>
+          }
+        </nz-select>
 
 
-        <nz-form-label class="fs-12 m-0" style="font-size: 12px">Lĩnh vực ứng dụng</nz-form-label>
+
+        <nz-form-label class="fs-12 m-0" style="font-size: 12px">Kiểu ứng dụng</nz-form-label>
         <nz-select [(ngModel)]="selectedAppTypeIds" nzMode="multiple" nzShowSearch nzAllowClear nzSize="small"
           nzPlaceHolder="Lĩnh vực ứng dụng" style="min-width: 200px; max-width: 280px;"
           nzDropdownClassName="select-dropdown" [nzMaxTagCount]="1">
@@ -211,78 +223,78 @@
                 <td style="width: 12%" class="cell-wrap" title="{{ rowData.ProjectTypeNames }}">
                   <div class="list-container">
                     @for (line of rowData.ProjectTypeNames?.split('\n'); track $index) {
-                      <div class="list-item project-type-item d-flex align-items-center">
-                        <i class="fa-solid fa-cube text-primary me-2 fs-10"></i>
-                        <span>{{ line }}</span>
-                      </div>
+                    <div class="list-item project-type-item d-flex align-items-center">
+                      <i class="fa-solid fa-cube text-primary me-2 fs-10"></i>
+                      <span>{{ line }}</span>
+                    </div>
                     }
                   </div>
                 </td>
                 <td style="width: 14%" class="cell-wrap" title="{{ rowData.ApplicationTypeNames }}">
                   <div class="list-container">
                     @for (line of rowData.ApplicationTypeNames?.split('\n'); track $index) {
-                      @let parsedLine = parseAppTechLine(line);
-                      <div class="app-tech-group mb-2">
-                        <!-- Parent Header with Cube Icon -->
-                        @if (parsedLine.parent) {
-                          <div class="parent-header d-flex align-items-center mb-1">
-                            <i class="fa-solid fa-cube text-primary me-2 fs-10"></i>
-                            <span class="fw-500">{{ parsedLine.parent }}</span>
-                          </div>
-                        }
-                        <!-- Children list with Bullet Dots -->
-                        <div class="child-list ps-3">
-                          @if (parsedLine.children.length > 0) {
-                            <div class="child-item d-flex align-items-center" [title]="parsedLine.full">
-                              <span class="bullet-dot text-primary me-2">•</span>
-                              <span>{{ parsedLine.display }}</span>
-                              @if (parsedLine.moreCount > 0) {
-                                <span class="badge-more">+{{ parsedLine.moreCount }}</span>
-                              }
-                            </div>
-                          }
-                          @if (parsedLine.children.length === 0) {
-                            <div class="child-item d-flex align-items-center text-muted fs-11" style="font-style: italic;">
-                              <span class="bullet-dot text-secondary me-2">•</span>
-                              <span>Chưa cấu hình</span>
-                            </div>
+                    @let parsedLine = parseAppTechLine(line);
+                    <div class="app-tech-group mb-2">
+                      <!-- Parent Header with Cube Icon -->
+                      @if (parsedLine.parent) {
+                      <div class="parent-header d-flex align-items-center mb-1">
+                        <i class="fa-solid fa-cube text-primary me-2 fs-10"></i>
+                        <span class="fw-500">{{ parsedLine.parent }}</span>
+                      </div>
+                      }
+                      <!-- Children list with Bullet Dots -->
+                      <div class="child-list ps-3">
+                        @if (parsedLine.children.length > 0) {
+                        <div class="child-item d-flex align-items-center" [title]="parsedLine.full">
+                          <span class="bullet-dot text-primary me-2">•</span>
+                          <span>{{ parsedLine.display }}</span>
+                          @if (parsedLine.moreCount > 0) {
+                          <span class="badge-more">+{{ parsedLine.moreCount }}</span>
                           }
                         </div>
+                        }
+                        @if (parsedLine.children.length === 0) {
+                        <div class="child-item d-flex align-items-center text-muted fs-11" style="font-style: italic;">
+                          <span class="bullet-dot text-secondary me-2">•</span>
+                          <span>Chưa cấu hình</span>
+                        </div>
+                        }
                       </div>
+                    </div>
                     }
                   </div>
                 </td>
                 <td style="width: 14%" class="cell-wrap" title="{{ rowData.TechnologyNames }}">
                   <div class="list-container">
                     @for (line of rowData.TechnologyNames?.split('\n'); track $index) {
-                      @let parsedLine = parseAppTechLine(line);
-                      <div class="app-tech-group mb-2">
-                        <!-- Parent Header with Cube Icon -->
-                        @if (parsedLine.parent) {
-                          <div class="parent-header d-flex align-items-center mb-1">
-                            <i class="fa-solid fa-cube text-primary me-2 fs-10"></i>
-                            <span class="fw-500">{{ parsedLine.parent }}</span>
-                          </div>
-                        }
-                        <!-- Children list with Bullet Dots -->
-                        <div class="child-list ps-3">
-                          @if (parsedLine.children.length > 0) {
-                            <div class="child-item d-flex align-items-center" [title]="parsedLine.full">
-                              <span class="bullet-dot text-primary me-2">•</span>
-                              <span>{{ parsedLine.display }}</span>
-                              @if (parsedLine.moreCount > 0) {
-                                <span class="badge-more">+{{ parsedLine.moreCount }}</span>
-                              }
-                            </div>
-                          }
-                          @if (parsedLine.children.length === 0) {
-                            <div class="child-item d-flex align-items-center text-muted fs-11" style="font-style: italic;">
-                              <span class="bullet-dot text-secondary me-2">•</span>
-                              <span>Chưa cấu hình</span>
-                            </div>
+                    @let parsedLine = parseAppTechLine(line);
+                    <div class="app-tech-group mb-2">
+                      <!-- Parent Header with Cube Icon -->
+                      @if (parsedLine.parent) {
+                      <div class="parent-header d-flex align-items-center mb-1">
+                        <i class="fa-solid fa-cube text-primary me-2 fs-10"></i>
+                        <span class="fw-500">{{ parsedLine.parent }}</span>
+                      </div>
+                      }
+                      <!-- Children list with Bullet Dots -->
+                      <div class="child-list ps-3">
+                        @if (parsedLine.children.length > 0) {
+                        <div class="child-item d-flex align-items-center" [title]="parsedLine.full">
+                          <span class="bullet-dot text-primary me-2">•</span>
+                          <span>{{ parsedLine.display }}</span>
+                          @if (parsedLine.moreCount > 0) {
+                          <span class="badge-more">+{{ parsedLine.moreCount }}</span>
                           }
                         </div>
+                        }
+                        @if (parsedLine.children.length === 0) {
+                        <div class="child-item d-flex align-items-center text-muted fs-11" style="font-style: italic;">
+                          <span class="bullet-dot text-secondary me-2">•</span>
+                          <span>Chưa cấu hình</span>
+                        </div>
+                        }
                       </div>
+                    </div>
                     }
                   </div>
                 </td>
@@ -413,17 +425,17 @@
         </nz-select>
       </nz-form-control>
     </nz-form-item>
-    <nz-form-item class="mb-2">
+    <!-- <nz-form-item class="mb-2">
       <nz-form-label class="fs-12">Kiểu dự án</nz-form-label>
       <nz-form-control>
-        <nz-select [(ngModel)]="projectTypeIds" name="projectTypeIds" nzMode="multiple" nzAllowClear [nzMaxTagCount]="2"
+        <nz-select [(ngModel)]="projectTypeIds" (ngModelChange)="onProjectTypeChange()" name="projectTypeIds" nzMode="multiple" nzAllowClear [nzMaxTagCount]="2"
           nzSize="small" nzPlaceHolder="Chọn kiểu dự án" style="width: 100%">
           @for (item of projectTypes; track $index) {
           <nz-option [nzLabel]="item.ProjectTypeCode + ' - ' + item.ProjectTypeName" [nzValue]="item.ID"></nz-option>
           }
         </nz-select>
       </nz-form-control>
-    </nz-form-item>
+    </nz-form-item> -->
     <nz-form-item class="mb-2" *ngIf="isHide">
       <nz-form-label class="fs-12">Trạng thái</nz-form-label>
       <nz-form-control>

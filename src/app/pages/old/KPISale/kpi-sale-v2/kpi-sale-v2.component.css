@@ -317,6 +317,26 @@
   background: #f0f7ee;
 } */
 
+:host ::ng-deep .row-group > td {
+  background: #e6f4ff !important;
+  color: #0b3a66;
+  font-weight: 600;
+  border-top: 1px solid #91caff;
+  border-bottom: 1px solid #91caff;
+}
+
+:host ::ng-deep .row-group > td:first-child {
+  border-left: 3px solid #1677ff;
+}
+
+:host ::ng-deep .row-group > td:last-child {
+  border-right: 1px solid #91caff;
+}
+
+:host ::ng-deep .row-group > td .ant-tag {
+  font-weight: 600;
+}
+
 :host ::ng-deep .ant-tabs-content-holder {
   min-height: 0;
 }

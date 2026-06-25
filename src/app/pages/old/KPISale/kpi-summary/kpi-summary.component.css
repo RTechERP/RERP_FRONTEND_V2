@@ -190,6 +190,66 @@
   color: #333;
 }
 
+/* ===== Tree view: chỉ tiêu nhóm (GROUP) ===== */
+.kpi-summary-table tbody tr.row-group > td {
+  background: #e6f4ff !important;
+  font-weight: 600;
+  border-top: 1px solid #91caff;
+  border-bottom: 1px solid #91caff;
+}
+
+.kpi-summary-table tbody tr.row-group > td.col-index {
+  border-left: 3px solid #1677ff;
+}
+
+.kpi-summary-table tbody tr.row-group > td:last-child {
+  border-right: 1px solid #91caff;
+}
+
+.kpi-summary-table tbody tr.row-group .index-name {
+  color: #0b3a66 !important;
+  font-weight: 600;
+}
+
+.tree-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: #1677ff;
+  font-size: 10px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.tree-toggle:hover {
+  background: #bae0ff;
+  border-radius: 3px;
+}
+
+.tree-toggle .caret {
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: center;
+}
+
+.tree-toggle .caret-down {
+  transform: rotate(90deg);
+}
+
+.tree-leaf-spacer {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 /* Index cell */
 .index-cell {
   display: flex;

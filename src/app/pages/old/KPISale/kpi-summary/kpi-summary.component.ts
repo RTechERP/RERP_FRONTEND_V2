@@ -25,6 +25,14 @@ import {
 
 type PeriodType = 'MONTH' | 'QUARTER' | 'YEAR';
 
+interface KpiSummaryTreeNode {
+  row: KpiSummaryRow;
+  level: number;
+  hasChildren: boolean;
+  expandable: boolean;
+  expanded: boolean;
+}
+
 export interface KpiSalePeriod {
   id: number;
   periodCode: string;
@@ -79,6 +87,10 @@ export class KpiSummaryComponent implements OnInit {
 
   summaryData: KpiSummaryResponse | null = null;
   loading = false;
+
+  // Tree view: lưu trạng thái expand của các chỉ tiêu nhóm (key = indexId cha)
+  // Mặc định mở rộng tất cả.
+  private expandedGroups = new Set<number>();
 
   constructor(
     private kpiSummaryService: KpiSummaryService,
@@ -166,6 +178,7 @@ export class KpiSummaryComponent implements OnInit {
         this.loading = false;
         if (res.status === 1 && res.data) {
           this.summaryData = res.data;
+          this.resetExpandedGroups();
           if (res.data.warnings?.length > 0) {
             res.data.warnings.slice(0, 3).forEach((w: string) =>
               this.notification.warning('Cảnh báo', w)
@@ -197,6 +210,7 @@ export class KpiSummaryComponent implements OnInit {
         this.loading = false;
         if (res.status === 1 && res.data) {
           this.summaryData = res.data;
+          this.resetExpandedGroups();
         } else {
           this.notification.error('Lỗi', res.message || 'Không lấy được dữ liệu tổng hợp nhóm');
         }
@@ -264,6 +278,85 @@ export class KpiSummaryComponent implements OnInit {
     return Math.round(sum * 100) / 100;
   }
 
+  private resetExpandedGroups(): void {
+    // Mặc định mở rộng tất cả các chỉ tiêu nhóm (GROUP) để user thấy cha-con ngay.
+    this.expandedGroups = new Set<number>();
+    (this.summaryData?.items ?? [])
+      .filter(r => r.indexType?.toUpperCase() === 'GROUP' || r.hasChildren)
+      .forEach(r => this.expandedGroups.add(r.indexId));
+  }
+
+  toggleGroupExpanded(parentId: number): void {
+    if (this.expandedGroups.has(parentId)) {
+      this.expandedGroups.delete(parentId);
+    } else {
+      this.expandedGroups.add(parentId);
+    }
+  }
+
+  isGroupExpanded(parentId: number): boolean {
+    return this.expandedGroups.has(parentId);
+  }
+
+  /**
+   * Flatten cây chỉ tiêu (regularRows) theo parentId + sortOrder để render tree view.
+   * - Bỏ qua các chỉ tiêu bị ẩn do cha collapsed.
+   * - Trả về KpiSummaryTreeNode có kèm level/expandable/expanded.
+   */
+  get regularTreeRows(): KpiSummaryTreeNode[] {
+    const rows = this.regularRows;
+    if (!rows.length) return [];
+
+    const byParent = new Map<number | null, KpiSummaryRow[]>();
+    rows.forEach(r => {
+      const key = r.parentId ?? null;
+      if (!byParent.has(key)) byParent.set(key, []);
+      byParent.get(key)!.push(r);
+    });
+    // sort theo sortOrder tăng dần cho mỗi nhóm cha
+    byParent.forEach(list => list.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)));
+
+    const childIndexMap = new Map<number | null, Set<number>>();
+    rows.forEach(r => {
+      if (r.parentId == null) return;
+      if (!childIndexMap.has(r.parentId)) childIndexMap.set(r.parentId, new Set());
+      childIndexMap.get(r.parentId)!.add(r.indexId);
+    });
+
+    const result: KpiSummaryTreeNode[] = [];
+
+    const walk = (parentId: number | null, level: number, ancestorExpanded: boolean): void => {
+      const list = byParent.get(parentId) ?? [];
+      list.forEach(row => {
+        const isGroup = row.indexType?.toUpperCase() === 'GROUP' || row.hasChildren;
+        const expandable = isGroup && (childIndexMap.get(row.indexId)?.size ?? 0) > 0;
+        const expanded = this.expandedGroups.has(row.indexId);
+        if (ancestorExpanded) {
+          result.push({
+            row,
+            level,
+            hasChildren: isGroup,
+            expandable,
+            expanded,
+          });
+        }
+        // Nếu cha hiện tại collapsed → các con vẫn bị ẩn (không đẩy vào result).
+        // Nếu cha expanded → tiếp tục walk sâu.
+        const nextAncestor = ancestorExpanded && expanded;
+        if (nextAncestor) {
+          walk(row.indexId, level + 1, nextAncestor);
+        }
+      });
+    };
+
+    walk(null, 0, true);
+    return result;
+  }
+
+  isGroupRow(row: KpiSummaryRow): boolean {
+    return row.indexType?.toUpperCase() === 'GROUP' || row.hasChildren === true;
+  }
+
   getRowClasses(row: KpiSummaryRow, rowIndex: number): Record<string, boolean> {
     return {
       'row-bold': row.isBold,
@@ -272,9 +365,12 @@ export class KpiSummaryComponent implements OnInit {
     };
   }
 
-  getScoreClass(score: number, goal: number): string {
-    if (!goal || goal === 0) return score > 0 ? 'score-positive' : 'score-neutral';
-    const pct = score / goal;
+  getScoreClass(score: number, goal: number, weightPercent?: number): string {
+    // score là điểm KPI đã nhân trọng số (FinalScore = achieved% * weight / 100),
+    // KHÔNG chia cho goal (goal là mục tiêu doanh số). Ngưỡng phải dựa trên weightPercent.
+    const expected = weightPercent && weightPercent > 0 ? weightPercent : 0;
+    if (expected === 0) return score > 0 ? 'score-positive' : 'score-neutral';
+    const pct = score / expected;
     if (pct >= 1) return 'score-good';
     if (pct >= 0.8) return 'score-warning';
     return 'score-bad';
@@ -300,8 +396,8 @@ export class KpiSummaryComponent implements OnInit {
     return val.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   }
 
-  trackByIndex(index: number, row: KpiSummaryRow): number {
-    return row.indexId;
+  trackByIndex(index: number, node: KpiSummaryTreeNode): number {
+    return node.row.indexId;
   }
 
   getTotalWeight(): number {
@@ -372,9 +468,8 @@ export class KpiSummaryComponent implements OnInit {
         if (score > 0) style.font.color = { rgb: '00B050' };
         return style;
       }
-      const pct = score / goal;
-      if (pct >= 1) style.font.color = { rgb: '00B050' };
-      else if (pct >= 0.8) style.font.color = { rgb: 'FFC000' };
+      if (score >= 100) style.font.color = { rgb: '00B050' };
+      else if (score >= 80) style.font.color = { rgb: 'FFC000' };
       else style.font.color = { rgb: 'FF0000' };
       return style;
     };
@@ -613,13 +708,66 @@ export class KpiSummaryComponent implements OnInit {
     ws['!merges'].push({ s: { r: scoreTitleRowIdx, c: 0 }, e: { r: scoreTitleRowIdx, c: numPeriods + 1 } });
 
     // Re-apply title style for report/score title cells (already done via cell.s when pushing)
-    // Re-apply column widths
-    ws['!cols'] = [
-      { wch: 35 },
-      ...Array.from({ length: numPeriods + 1 }, () => ({ wch: 12 })),
-      { wch: 12 },
-      { wch: 10 },
-    ];
+    // Auto-fit widths: đo độ dài nội dung của từng cột (header + các ô dữ liệu)
+    const measureWidth = (val: any): number => {
+      if (val === null || val === undefined) return 0;
+      if (typeof val === 'number') return String(val).length + 1;
+      return String(val).length;
+    };
+    const colCount = totalCols;
+    const colWidths: number[] = new Array(colCount).fill(0);
+    const bumpCell = (c: number, text: string, extra = 2) => {
+      const w = measureWidth(text) + extra;
+      if (w > colWidths[c]) colWidths[c] = w;
+    };
+
+    // Header & data rows
+    bumpCell(0, 'Chỉ số KPI', 4);
+    this.summaryData.periods.forEach((p, i) => {
+      const baseCol = 1 + i * 3;
+      const label = p.periodName || p.periodCode;
+      bumpCell(baseCol, label, 4);
+      bumpCell(baseCol + 1, label, 4);
+      bumpCell(baseCol + 2, label, 4);
+    });
+    const qBaseCol = 1 + numPeriods * 3;
+    const qLabel = this.summaryData.quarterName || this.summaryData.quarterCode || '';
+    bumpCell(qBaseCol, qLabel, 4);
+    bumpCell(qBaseCol + 1, qLabel, 4);
+    bumpCell(qBaseCol + 2, qLabel, 4);
+
+    this.regularRows.forEach((row) => {
+      bumpCell(0, row.indexName || '', 4);
+      row.monthlyValues.forEach((mv, i) => {
+        const baseCol = 1 + i * 3;
+        bumpCell(baseCol, formatVal(mv.goal), 2);
+        bumpCell(baseCol + 1, formatVal(mv.result), 2);
+        bumpCell(baseCol + 2, getScoreValue(mv.score), 2);
+      });
+      bumpCell(qBaseCol, formatVal(row.quarterValue.goal), 2);
+      bumpCell(qBaseCol + 1, formatVal(row.quarterValue.result), 2);
+      bumpCell(qBaseCol + 2, getScoreValue(row.quarterValue.score), 2);
+    });
+
+    this.reportRows.forEach((row) => {
+      bumpCell(0, row.indexName || '', 4);
+      row.monthlyValues.forEach((mv, i) => {
+        bumpCell(1 + i, getScoreValue(mv.score), 2);
+      });
+      bumpCell(qBaseCol, getScoreValue(row.quarterValue.score), 2);
+    });
+
+    // Cột tên thường dài → set min 30; các cột số min 10; max để tránh quá rộng 50
+    const widths = colWidths.map((w, idx) => {
+      const min = idx === 0 ? 30 : 10;
+      return { wch: Math.min(Math.max(w, min), 50) };
+    });
+    // Đảm bảo cột "Kết quả" rộng hơn một chút vì dễ chứa số lớn có dấu phẩy
+    for (let i = 0; i < numPeriods; i++) {
+      const resultCol = 2 + i * 3;
+      if (widths[resultCol]) widths[resultCol].wch = Math.max(widths[resultCol].wch, 14);
+    }
+    ws['!cols'] = widths;
 
     // Ensure border applied to the merged "label" cells of title rows (aoa_to_sheet doesn't always carry style for empty cells in merges)
     for (const r of [reportTitleRowIdx, scoreTitleRowIdx]) {

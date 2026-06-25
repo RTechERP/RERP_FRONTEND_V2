@@ -135,18 +135,32 @@
           <!-- Body -->
           <tbody>
             <tr
-              *ngFor="let row of regularRows; let rowIndex = index; trackBy: trackByIndex"
-              [ngClass]="getRowClasses(row, rowIndex)">
+              *ngFor="let node of regularTreeRows; let rowIndex = index; trackBy: trackByIndex"
+              [ngClass]="getRowClasses(node.row, rowIndex)"
+              [class.row-group]="isGroupRow(node.row)"
+              [class.row-leaf]="!isGroupRow(node.row)">
               <!-- Index Column -->
               <td class="col-index">
-                <div class="index-cell">
-                  <span class="index-name" [nz-tooltip]="row.indexName">{{ row.indexName }}</span>
-                  <span class="weight-badge" *ngIf="row.weightPercent > 0">{{ row.weightPercent }}%</span>
+                <div class="index-cell" [style.padding-left.px]="node.level * 18">
+                  <ng-container *ngIf="node.expandable; else leafSpacer">
+                    <button
+                      type="button"
+                      class="tree-toggle"
+                      (click)="toggleGroupExpanded(node.row.indexId)"
+                      [attr.aria-label]="node.expanded ? 'Thu gọn' : 'Mở rộng'">
+                      <span class="caret" [class.caret-down]="node.expanded" [class.caret-right]="!node.expanded">▶</span>
+                    </button>
+                  </ng-container>
+                  <ng-template #leafSpacer>
+                    <span class="tree-leaf-spacer"></span>
+                  </ng-template>
+                  <span class="index-name" [nz-tooltip]="node.row.indexName">{{ node.row.indexName }}</span>
+                  <span class="weight-badge" *ngIf="node.row.weightPercent > 0">{{ node.row.weightPercent }}%</span>
                 </div>
               </td>
 
               <!-- Monthly Values -->
-              <ng-container *ngFor="let mv of row.monthlyValues; let i = index">
+              <ng-container *ngFor="let mv of node.row.monthlyValues; let i = index">
                 <td class="col-goal" [class]="getResultClass(mv.goal, mv.goal)">
                   <span [class]="'val-text ' + (mv.goal > 0 ? 'val-non-zero' : 'val-zero')">
                     {{ formatVal(mv.goal) }}
@@ -157,24 +171,24 @@
                     {{ formatVal(mv.result) }}
                   </span>
                 </td>
-                <td class="col-score" [class]="getScoreClass(mv.score, mv.goal)">
+                <td class="col-score" [class]="getScoreClass(mv.score, mv.goal, node.row.weightPercent)">
                   <span class="score-text">{{ round(mv.score) }}%</span>
                 </td>
               </ng-container>
 
               <!-- Quarterly Values -->
-              <td class="col-goal col-quarter" [class]="getResultClass(row.quarterValue.goal, row.quarterValue.goal)">
-                <span [class]="'val-text ' + (row.quarterValue.goal > 0 ? 'val-non-zero' : 'val-zero')">
-                  {{ formatVal(row.quarterValue.goal) }}
+              <td class="col-goal col-quarter" [class]="getResultClass(node.row.quarterValue.goal, node.row.quarterValue.goal)">
+                <span [class]="'val-text ' + (node.row.quarterValue.goal > 0 ? 'val-non-zero' : 'val-zero')">
+                  {{ formatVal(node.row.quarterValue.goal) }}
                 </span>
               </td>
-              <td class="col-result col-quarter" [class]="getResultClass(row.quarterValue.result, row.quarterValue.goal)">
-                <span [class]="'val-text ' + getResultClass(row.quarterValue.result, row.quarterValue.goal)">
-                  {{ formatVal(row.quarterValue.result) }}
+              <td class="col-result col-quarter" [class]="getResultClass(node.row.quarterValue.result, node.row.quarterValue.goal)">
+                <span [class]="'val-text ' + getResultClass(node.row.quarterValue.result, node.row.quarterValue.goal)">
+                  {{ formatVal(node.row.quarterValue.result) }}
                 </span>
               </td>
-              <td class="col-score col-quarter" [class]="getScoreClass(row.quarterValue.score, row.quarterValue.goal)">
-                <span class="score-text">{{ round(row.quarterValue.score) }}%</span>
+              <td class="col-score col-quarter" [class]="getScoreClass(node.row.quarterValue.score, node.row.quarterValue.goal, node.row.weightPercent)">
+                <span class="score-text">{{ round(node.row.quarterValue.score) }}%</span>
               </td>
             </tr>
           </tbody>

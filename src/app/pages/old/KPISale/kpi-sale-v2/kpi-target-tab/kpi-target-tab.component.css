@@ -390,6 +390,22 @@ nz-input-number.inline-edit .ant-input-number {
   font-weight: normal;
 }
 
+/* Row cho chỉ tiêu NHÓM (GROUP) — highlight để dễ nhận biết */
+.row-group > td {
+  background-color: #f0f5ff !important;
+  font-weight: 500;
+}
+
+.row-group.row-selected > td,
+.row-group.row-edited > td {
+  /* Override các style row khác để giữ tone xanh dương nhạt */
+  background-color: #e6f7ff !important;
+}
+
+.row-group .sticky-col-cell {
+  background-color: #f0f5ff !important;
+}
+
 /* ===== Pivot Table Styles ===== */
 .sticky-col-header,
 .sticky-col-cell {

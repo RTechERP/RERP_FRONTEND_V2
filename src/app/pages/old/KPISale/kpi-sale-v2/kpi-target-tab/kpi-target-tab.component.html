@@ -196,20 +196,28 @@
                 <tr>
                   <ng-container *ngFor="let m of quarterlyMetaFlat">
                     <th nzAlign="center" class="month-header-proposed">
-                      {{ m.monthCode }}<br><small style="font-weight:400;color:#8c8c8c;">Mục tiêu đề xuất</small>
+                      {{ m.monthName }}<br><small style="font-weight:400;color:#8c8c8c;">Mục tiêu đề xuất</small>
                     </th>
                     <th nzAlign="center" class="month-header-goal">
-                      {{ m.monthCode }}<br><small style="font-weight:400;color:#8c8c8c;">Mục tiêu</small>
+                      {{ m.monthName }}<br><small style="font-weight:400;color:#8c8c8c;">Mục tiêu</small>
                     </th>
                   </ng-container>
                 </tr>
               </thead>
               <tbody>
                 <ng-container *ngFor="let row of pivotTable.data; trackBy: trackByKpiIndex">
-                  <tr class="pivot-row">
+                  <tr class="pivot-row" [class.row-group]="isGroupIndex(row.kpiIndexId)">
                     <!-- Chỉ tiêu KPI -->
                     <td nzLeft="0" class="sticky-col-cell">
-                      <span class="mono">{{ row.indexCode ? row.indexCode + ' - ' + row.indexName : row.indexName }}</span>
+                      <span class="mono">
+                        <nz-tag *ngIf="isGroupIndex(row.kpiIndexId)" nzColor="green" style="margin-right:6px;">
+                          <i nz-icon nzType="folder"></i> Nhóm
+                        </nz-tag>
+                        <nz-tag *ngIf="isDetailIndex(row.kpiIndexId)" nzColor="blue" style="margin-right:6px;">
+                          <i nz-icon nzType="unordered-list"></i> Chi tiết
+                        </nz-tag>
+                        {{ row.indexCode ? row.indexCode + ' - ' + row.indexName : row.indexName }}
+                      </span>
                     </td>
                     <!-- Trọng số -->
                     <td nzAlign="center" style="font-weight: 600; background: #f8fafc;">
@@ -228,32 +236,66 @@
                       <td nzAlign="right"
                         (click)="cell.target && $event.stopPropagation()"
                         class="cell-proposed">
-                        <ng-container *ngIf="cell.target; else emptyProposed">
-                          <input nz-input nzSize="small" type="text"
-                            [value]="formatMoney(getInlineProposed(cell.target!.id))"
-                            (blur)="onPivotProposedChange(cell.target!, parseMoney($any($event.target).value))"
-                            (focus)="$any($event.target).select()"
-                            style="width: 100%; text-align: right; font-weight: 600;"
-                            [style.color]="getInlineProposed(cell.target!.id) ? '#d48806' : 'inherit'" />
+                        <ng-container *ngIf="!isGroupIndex(row.kpiIndexId); else groupPivotProposedCell">
+                          <ng-container *ngIf="cell.target; else emptyProposed">
+                            <input nz-input nzSize="small" type="text"
+                              [value]="formatMoney(getDisplayPivotProposed(row, cell.periodId))"
+                              (blur)="onPivotProposedChange(cell.target!, parseMoney($any($event.target).value))"
+                              (focus)="$any($event.target).select()"
+                              style="width: 100%; text-align: right; font-weight: 600;"
+                              [style.color]="getDisplayPivotProposed(row, cell.periodId) ? '#d48806' : 'inherit'" />
+                            <div *ngIf="canApproveTargets && cell.approvalStatus === 'Pending' && cell.target.proposedGoalValue != null" style="margin-top: 2px; display: flex; gap: 2px; justify-content: flex-end;">
+                              <a nz-tooltip nzTooltipTitle="Duyệt"
+                                class="action-btn text-success"
+                                style="font-size: 11px; padding: 0 2px;"
+                                (click)="approveTargetById(cell.target!.id)">
+                                <i nz-icon nzType="check-circle"></i>
+                              </a>
+                              <a nz-tooltip nzTooltipTitle="Hủy đề xuất"
+                                class="action-btn text-danger"
+                                style="font-size: 11px; padding: 0 2px;"
+                                nz-popconfirm
+                                nzPopconfirmTitle="Hủy đề xuất này?"
+                                nzOkText="Hủy"
+                                nzCancelText="Đóng"
+                                (nzOnConfirm)="rejectTargetById(cell.target!.id)">
+                                <i nz-icon nzType="close-circle"></i>
+                              </a>
+                            </div>
+                          </ng-container>
+                          <ng-template #emptyProposed>
+                            <span style="color: #d9d9d9;">—</span>
+                          </ng-template>
                         </ng-container>
-                        <ng-template #emptyProposed>
-                          <span style="color: #d9d9d9;">—</span>
+                        <ng-template #groupPivotProposedCell>
+                          <div style="text-align: right; padding: 2px 6px; background: #f6ffed; border-radius: 4px; color: #389e0d; font-weight: 600; font-size: 12px;">
+                            <i nz-icon nzType="calculator"></i>
+                            {{ formatMoney(getDisplayPivotProposed(row, cell.periodId)) }}
+                          </div>
                         </ng-template>
                       </td>
                       <!-- Goal -->
                       <td nzAlign="right"
                         (click)="cell.target && $event.stopPropagation()"
                         class="cell-goal">
-                        <ng-container *ngIf="cell.target; else emptyGoal">
-                          <input nz-input nzSize="small" type="text"
-                            [value]="formatMoney(getInlineGoal(cell.target!.id))"
-                            (blur)="onPivotGoalChange(cell.target!, parseMoney($any($event.target).value))"
-                            (focus)="$any($event.target).select()"
-                            [disabled]="cell.approvalStatus === 'Approved' || !canApproveTargets"
-                            style="width: 100%; text-align: right; font-weight: 600;" />
+                        <ng-container *ngIf="!isGroupIndex(row.kpiIndexId); else groupPivotGoalCell">
+                          <ng-container *ngIf="cell.target; else emptyGoal">
+                            <input nz-input nzSize="small" type="text"
+                              [value]="formatMoney(getDisplayPivotGoal(row, cell.periodId))"
+                              (blur)="onPivotGoalChange(cell.target!, parseMoney($any($event.target).value))"
+                              (focus)="$any($event.target).select()"
+                              [disabled]="cell.approvalStatus === 'Approved' || !canApproveTargets"
+                              style="width: 100%; text-align: right; font-weight: 600;" />
+                          </ng-container>
+                          <ng-template #emptyGoal>
+                            <span style="color: #d9d9d9;">—</span>
+                          </ng-template>
                         </ng-container>
-                        <ng-template #emptyGoal>
-                          <span style="color: #d9d9d9;">—</span>
+                        <ng-template #groupPivotGoalCell>
+                          <div style="text-align: right; padding: 2px 6px; background: #f6ffed; border-radius: 4px; color: #389e0d; font-weight: 600; font-size: 12px;">
+                            <i nz-icon nzType="calculator"></i>
+                            {{ formatMoney(getDisplayPivotGoal(row, cell.periodId)) }}
+                          </div>
                         </ng-template>
                       </td>
                     </ng-container>
@@ -308,10 +350,11 @@
                   <!-- TARGET DATA ROW -->
                   <tr *ngIf="isTarget(row)" class="cursor-pointer"
                     [class.row-selected]="isTargetSelected(row.id)"
-                    [class.row-edited]="hasInlineChanges(row.id)">
+                    [class.row-edited]="hasInlineChanges(row.id)"
+                    [class.row-group]="isGroupIndex(row.kpiIndexId)">
                     <!-- Checkbox -->
                     <td nzAlign="center" (click)="$event.stopPropagation()">
-                      <label nz-checkbox
+                      <label nz-checkbox *ngIf="!isGroupIndex(row.kpiIndexId)"
                         [nzChecked]="isTargetSelected(row.id)"
                         (nzCheckedChange)="toggleTargetSelection(row.id)">
                       </label>
@@ -322,60 +365,92 @@
                     <td>{{ row.periodCode || getPeriodName(row.periodId) }}</td>
                     <!-- Chỉ tiêu KPI -->
                     <td>
-                      <span class="mono">{{ row.indexCode ? row.indexCode + ' - ' + (row.indexName || getIndexName(row.kpiIndexId)) : getIndexName(row.kpiIndexId) }}</span>
+                      <span class="mono">
+                        <nz-tag *ngIf="isGroupIndex(row.kpiIndexId)" nzColor="green" style="margin-right:6px;">
+                          <i nz-icon nzType="folder"></i> Nhóm
+                        </nz-tag>
+                        <nz-tag *ngIf="isDetailIndex(row.kpiIndexId)" nzColor="blue" style="margin-right:6px;">
+                          <i nz-icon nzType="unordered-list"></i> Chi tiết
+                        </nz-tag>
+                        {{ row.indexCode ? row.indexCode + ' - ' + (row.indexName || getIndexName(row.kpiIndexId)) : getIndexName(row.kpiIndexId) }}
+                      </span>
                     </td>
                     <!-- Trọng số -->
                     <td nzAlign="right" style="font-weight: 600;">{{ (row.weightPercent ?? 0) | number: '1.0-2' }}%</td>
                     <!-- Giá trị đề xuất (inline edit) -->
                     <td nzAlign="right" (click)="$event.stopPropagation()">
-                      <input nz-input nzSize="small"
-                        type="text"
-                        [value]="formatMoney(getInlineProposed(row.id))"
-                        (blur)="onInlineProposedChange(row.id, parseMoney($any($event.target).value))"
-                        (focus)="$any($event.target).select()"
-                        style="width: 100%; font-weight: 600; text-align: right;"
-                        [style.color]="getInlineProposed(row.id) ? '#d48806' : 'inherit'" />
+                      <ng-container *ngIf="!isGroupIndex(row.kpiIndexId); else groupProposedCell">
+                        <input nz-input nzSize="small"
+                          type="text"
+                          [value]="formatMoney(getInlineProposed(row.id))"
+                          (blur)="onInlineProposedChange(row.id, parseMoney($any($event.target).value))"
+                          (focus)="$any($event.target).select()"
+                          style="width: 100%; font-weight: 600; text-align: right;"
+                          [style.color]="getInlineProposed(row.id) ? '#d48806' : 'inherit'" />
+                      </ng-container>
+                      <ng-template #groupProposedCell>
+                        <div style="text-align: right; padding: 4px 8px; background: #f6ffed; border-radius: 4px; color: #389e0d; font-weight: 600;">
+                          <i nz-icon nzType="calculator"></i>
+                          {{ formatMoney(getDisplayProposedGoalValue(row)) }}
+                          <small style="display:block; font-weight:400; color:#8c8c8c;">Tự động sum từ chỉ tiêu con</small>
+                        </div>
+                      </ng-template>
                     </td>
                     <!-- Mục tiêu đã duyệt (inline edit) -->
                     <td nzAlign="right" (click)="$event.stopPropagation()">
-                      <input nz-input nzSize="small"
-                        type="text"
-                        [value]="formatMoney(getInlineGoal(row.id))"
-                        (blur)="onInlineGoalChange(row.id, parseMoney($any($event.target).value))"
-                        (focus)="$any($event.target).select()"
-                        [disabled]="row.approvalStatus === 'Approved' || !canApproveTargets"
-                        style="width: 100%; font-weight: 600; text-align: right;" />
+                      <ng-container *ngIf="!isGroupIndex(row.kpiIndexId); else groupGoalCell">
+                        <input nz-input nzSize="small"
+                          type="text"
+                          [value]="formatMoney(getInlineGoal(row.id))"
+                          (blur)="onInlineGoalChange(row.id, parseMoney($any($event.target).value))"
+                          (focus)="$any($event.target).select()"
+                          [disabled]="row.approvalStatus === 'Approved' || !canApproveTargets"
+                          style="width: 100%; font-weight: 600; text-align: right;" />
+                      </ng-container>
+                      <ng-template #groupGoalCell>
+                        <div style="text-align: right; padding: 4px 8px; background: #f6ffed; border-radius: 4px; color: #389e0d; font-weight: 600;">
+                          <i nz-icon nzType="calculator"></i>
+                          {{ formatMoney(getDisplayGoalValue(row)) }}
+                          <small style="display:block; font-weight:400; color:#8c8c8c;">Tự động sum từ chỉ tiêu con</small>
+                        </div>
+                      </ng-template>
                     </td>
                     <!-- Trạng thái -->
                     <td nzAlign="center">
-                      <nz-tag [nzColor]="getApprovalStatusColor(row.approvalStatus)">
+                      <nz-tag *ngIf="!isGroupIndex(row.kpiIndexId)" [nzColor]="getApprovalStatusColor(row.approvalStatus)">
                         {{ getApprovalStatusLabel(row.approvalStatus) }}
+                      </nz-tag>
+                      <nz-tag *ngIf="isGroupIndex(row.kpiIndexId)" nzColor="default">
+                        <i nz-icon nzType="info-circle"></i> Tự tính
                       </nz-tag>
                     </td>
                     <!-- Hành động -->
                     <td nzAlign="center" (click)="$event.stopPropagation()">
-                      <a *ngIf="row.approvalStatus !== 'Approved'"
-                        class="action-btn text-primary"
-                        nz-tooltip nzTooltipTitle="Chỉnh sửa mục tiêu"
-                        (click)="openTargetForm(row)">
-                        <i nz-icon nzType="edit"></i> Sửa
-                      </a>
-                      <a *ngIf="canApprove(row)"
-                        class="action-btn text-success"
-                        nz-tooltip nzTooltipTitle="Duyệt giá trị đề xuất"
-                        (click)="approveTarget(row)">
-                        <i nz-icon nzType="check-circle"></i> Duyệt
-                      </a>
-                      <a *ngIf="canApprove(row)"
-                        class="action-btn text-danger"
-                        nz-tooltip nzTooltipTitle="Hủy giá trị đề xuất"
-                        nz-popconfirm
-                        nzPopconfirmTitle="Hủy giá trị đề xuất của mục tiêu này?"
-                        nzOkText="Hủy đề xuất"
-                        nzCancelText="Đóng"
-                        (nzOnConfirm)="rejectTarget(row)">
-                        <i nz-icon nzType="close-circle"></i> Hủy
-                      </a>
+                      <ng-container *ngIf="!isGroupIndex(row.kpiIndexId)">
+                        <a *ngIf="row.approvalStatus !== 'Approved'"
+                          class="action-btn text-primary"
+                          nz-tooltip nzTooltipTitle="Chỉnh sửa mục tiêu"
+                          (click)="openTargetForm(row)">
+                          <i nz-icon nzType="edit"></i> Sửa
+                        </a>
+                        <a *ngIf="canApprove(row)"
+                          class="action-btn text-success"
+                          nz-tooltip nzTooltipTitle="Duyệt giá trị đề xuất"
+                          (click)="approveTarget(row)">
+                          <i nz-icon nzType="check-circle"></i> Duyệt
+                        </a>
+                        <a *ngIf="canApprove(row)"
+                          class="action-btn text-danger"
+                          nz-tooltip nzTooltipTitle="Hủy giá trị đề xuất"
+                          nz-popconfirm
+                          nzPopconfirmTitle="Hủy giá trị đề xuất của mục tiêu này?"
+                          nzOkText="Hủy đề xuất"
+                          nzCancelText="Đóng"
+                          (nzOnConfirm)="rejectTarget(row)">
+                          <i nz-icon nzType="close-circle"></i> Hủy
+                        </a>
+                      </ng-container>
+                      <span *ngIf="isGroupIndex(row.kpiIndexId)" style="color:#94a3b8; font-style:italic;">—</span>
                     </td>
                   </tr>
                 </ng-container>

@@ -93,7 +93,10 @@ export class EslTestRegistrationFormComponent implements OnInit {
       this.loadDetails(this.data.RegistrationID);
     } else {
       const currentUser = this.appUserService.currentUser;
-      this.form.patchValue({ OwnerID: currentUser?.EmployeeID });
+      this.form.patchValue({ 
+        OwnerID: currentUser?.EmployeeID,
+        StartDate: new Date()
+      });
     }
 
     this.form.get('ProjectCode')?.valueChanges.subscribe(code => {
@@ -105,6 +108,16 @@ export class EslTestRegistrationFormComponent implements OnInit {
         });
       } else {
         this.form.patchValue({ RegistrationContent: null, ProjectID: null });
+      }
+    });
+
+    this.form.get('StartDate')?.valueChanges.subscribe((val: Date) => {
+      if (val) {
+        const newEnd = new Date(val);
+        newEnd.setDate(newEnd.getDate() + 7);
+        this.form.patchValue({ EndDate: newEnd }, { emitEvent: false });
+      } else {
+        this.form.patchValue({ EndDate: null }, { emitEvent: false });
       }
     });
   }
@@ -185,7 +198,7 @@ export class EslTestRegistrationFormComponent implements OnInit {
     this.eslService.getDetails(registrationId).subscribe({
       next: (res: any) => {
         const rawDetails = res.data || [];
-        this.detailsList = rawDetails.filter((x: any) => x.No > 1);
+        this.detailsList = rawDetails.filter((x: any) => x.Status !== 1);
 
         if (this.isEdit && rawDetails.length > 0) {
           const latestDetail = rawDetails.reduce((prev: any, current: any) => (prev.No > current.No) ? prev : current);
@@ -235,6 +248,16 @@ export class EslTestRegistrationFormComponent implements OnInit {
       case 1: return 'Đã duyệt';
       case 2: return 'Từ chối';
       default: return 'Khác';
+    }
+  }
+
+  onStartDateChange(date: Date, rowData: any): void {
+    if (date) {
+      const end = new Date(date);
+      end.setDate(end.getDate() + 7);
+      rowData.EndDate = end;
+    } else {
+      rowData.EndDate = null;
     }
   }
 

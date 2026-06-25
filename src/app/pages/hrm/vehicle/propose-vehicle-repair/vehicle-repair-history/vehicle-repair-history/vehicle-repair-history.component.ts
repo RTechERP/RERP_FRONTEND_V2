@@ -655,7 +655,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
     const headerRow = worksheet.addRow(headers);
 
     // Gán style màu xám cho từng ô trong dòng header
-    headerRow.eachCell((cell, colNumber) => {
+    headerRow.eachCell((cell: any, colNumber) => {
       cell.fill = {
         type: 'pattern',
         pattern: 'solid',
@@ -699,7 +699,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
     // Format cột có giá trị là Date
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return; // bỏ qua tiêu đề
-      row.eachCell((cell, colNumber) => {
+      row.eachCell((cell: any, colNumber) => {
         if (cell.value instanceof Date) {
           cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
         }
@@ -729,7 +729,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
     };
 
     worksheet.eachRow((row, rowNumber) => {
-      row.eachCell((cell, colNumber) => {
+      row.eachCell((cell: any, colNumber) => {
         cell.alignment = {
           ...cell.alignment,
           wrapText: true,
@@ -837,13 +837,14 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
       });
   }
   async exportAllVehicles_ByTemplateRow5() {
+    console.log('--- Đã bấm nút Xuất Excel ---');
     const vehicles = this.vehicleMnagemens || [];
+    console.log('Dữ liệu xe hiện tại:', vehicles);
     if (!vehicles.length) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xe');
       return;
     }
-
-    // Lấy template từ API share trên server
+    console.log('luongdepzai', vehicles);
     const templateUrl = environment.host + 'api/share/Software/Template/ExportExcel/MauTheoDoiXeTemplate.xlsx';
     const tmplWb = await this.loadTemplate(templateUrl);
     const tmpl = tmplWb.getWorksheet('Template') ?? tmplWb.worksheets[0];
@@ -927,6 +928,8 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
       const START_ROW = 5;
       const columns: ColumnDef[] = [
         { key: 'STT' },
+        { key: 'VehicleType' },
+        { key: 'DriverName' },
         { key: 'DateReport', type: COL.date },
         { key: 'EmployeeRepairName' },
         { key: 'ProposeContent' },
@@ -959,6 +962,8 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
 
         return {
           STT: i + 1,
+          VehicleType: [v?.LicensePlate, v?.VehicleName].filter(Boolean).join(' - '),
+          DriverName: v?.DriverName || '',
           DateReport: r?.DateReport,
           EmployeeRepairName: r?.EmployeeRepairName ?? r?.ApproveName ?? '',
           ProposeContent:
@@ -983,12 +988,13 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
       this.writeDataAt(ws, START_ROW, 1, columns, data);
     }
 
-    await this.downloadXlsx(outWb, `TheoDoiXe_${this.dateStamp()}.xlsx`);
+    await this.downloadXlsx(outWb, `TheoDoiXez_${this.dateStamp()}.xlsx`);
   }
 
   // ==== helpers ====
   private async loadTemplate(url: string): Promise<ExcelJS.Workbook> {
-    const resp = await fetch(url);
+    const urlWithTimestamp = `${url}?v=${new Date().getTime()}`;
+    const resp = await fetch(urlWithTimestamp, { cache: 'no-store' });
 
     if (!resp.ok) {
       throw new Error(

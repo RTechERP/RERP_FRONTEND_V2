@@ -129,6 +129,20 @@ export class FlightBookingManagementComponent implements OnInit {
 
       },
       {
+        label: 'Copy',
+        icon: 'fa-solid fa-copy fa-lg text-secondary',
+        command: () => {
+          if (this.selectedBookings.length === 1) {
+            this.onCopy(this.selectedBookings[0]);
+          } else if (this.selectedBookings.length > 1) {
+            this.message.warning('Vui lòng chỉ chọn 1 bản ghi để copy');
+          } else {
+            this.message.warning('Vui lòng chọn bản ghi cần copy');
+          }
+        },
+        visible: this.permissionService.hasPermission("N1,N2,N34"),
+      },
+      {
         label: 'Sửa',
         icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
         command: () => {
@@ -351,6 +365,10 @@ export class FlightBookingManagementComponent implements OnInit {
     this.openForm(item.ID);
   }
 
+  onCopy(item: any): void {
+    this.openForm(item.ID, true);
+  }
+
   onDelete(item: any): void {
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
@@ -411,7 +429,7 @@ export class FlightBookingManagementComponent implements OnInit {
     });
   }
 
-  private openForm(id?: number): void {
+  private openForm(id?: number, isCopy: boolean = false): void {
     const modalRef = this.modalService.open(FlightBookingFormComponent, {
       backdrop: 'static',
       keyboard: false,
@@ -421,6 +439,9 @@ export class FlightBookingManagementComponent implements OnInit {
     });
 
     modalRef.componentInstance.id = id;
+    if (isCopy) {
+      modalRef.componentInstance.isCopy = true;
+    }
 
     modalRef.result.then(result => {
       if (result) {

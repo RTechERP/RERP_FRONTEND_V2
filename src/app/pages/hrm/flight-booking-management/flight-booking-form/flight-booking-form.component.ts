@@ -56,6 +56,7 @@ import { EmployeeService } from '../../employee/employee-service/employee.servic
 })
 export class FlightBookingFormComponent implements OnInit, OnChanges {
   @Input() id?: number;
+  @Input() isCopy: boolean = false;
 
   private fb = inject(NonNullableFormBuilder);
   private service = inject(FlightBookingManagementService);
@@ -155,7 +156,7 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
 
   private loadForm(master: any, proposals: any[]): void {
     this.validateForm.patchValue({
-      ID: master.ID ?? 0,
+      ID: this.isCopy ? 0 : (master.ID ?? 0),
       EmployeeRequestID: master.EmployeeRequestID ?? null,
       EmployeeIDs: [master.EmployeeID], // In edit mode, usually editing one record
       ProjectID: master.ProjectID ?? null,
@@ -171,7 +172,12 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
       this.proposals.removeAt(0);
     }
     if (proposals && proposals.length > 0) {
-      proposals.forEach(p => this.addProposal(p));
+      proposals.forEach(p => {
+        if (this.isCopy) {
+          p = { ...p, ID: 0, id: 0, IsApprove: 0, isApprove: 0, HCNSProposal: false, hcnsProposal: false, ReasonHCNSProposal: '', reasonHCNSProposal: '' };
+        }
+        this.addProposal(p);
+      });
     } else {
       this.addProposal();
     }

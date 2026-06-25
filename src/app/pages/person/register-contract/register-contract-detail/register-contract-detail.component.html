@@ -251,9 +251,6 @@
 </div>
 
 <div class="modal-footer bg-light p-2">
-    <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">
-        Đóng
-    </button>
     <button nz-button nzType="primary" (click)="saveDailyReport()" [disabled]="saving">
         <i *ngIf="saving" nz-icon nzType="loading" class="me-2"></i>
         {{ saving ? "Đang lưu..." : mode === "add" ? "Lưu" : "Cập nhật" }}

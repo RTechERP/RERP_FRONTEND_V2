@@ -1382,10 +1382,10 @@ export class BillExportDetailNewComponent
         if (column.id === 'POKHID') {
             if (clickedElement.classList.contains('fa-download')) {
                 const item = args.grid.getDataItem(args.row);
-                const poNumber = item.PONumber;
-                console.log('Download PO clicked, PONumber:', poNumber, 'Data:', item);
-                if (poNumber) {
-                    this.downloadPOFiles(poNumber);
+                const pokhID = item.POKHID;
+                console.log('Download PO clicked, POKHID:', pokhID, 'Data:', item);
+                if (pokhID) {
+                    this.downloadPOFiles(pokhID, item.PONumber);
                 } else {
                     this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy số PO');
                 }
@@ -3105,86 +3105,43 @@ export class BillExportDetailNewComponent
 
     //#region Download PO Files
     /**
-     * Download all files associated with a PO Number
-     * @param poNumber - The PO Number to download files for
+     * Download toàn bộ file của một POKH dưới dạng 1 file ZIP duy nhất
+     * @param pokhID - The POKHID to download files for
+     * @param poNumberForDisplay - PO Number, chỉ dùng để hiển thị thông báo/đặt tên file
      */
-    downloadPOFiles(poNumber: string): void {
-        if (!poNumber) {
+    downloadPOFiles(pokhID: number, poNumberForDisplay?: string): void {
+        if (!pokhID) {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có số PO để tải file');
             return;
         }
 
         this.isLoading = true;
+        const displayLabel = poNumberForDisplay || String(pokhID);
 
-        // First, get list of files for this PO
-        this.billExportService.getPOKHFiles(poNumber).subscribe({
-            next: (res: any) => {
-                if (res.status === 1 && res.data && res.data.length > 0) {
-                    const files = res.data;
-                    this.notification.success(
-                        'Thông báo',
-                        `Đang tải ${files.length} file...`
-                    );
-
-                    // Download each file
-                    files.forEach((file: any, index: number) => {
-                        this.downloadSinglePOFile(poNumber, file.FileName || file.fileName, index === files.length - 1);
-                    });
-                } else {
-                    this.notification.warning(
-                        NOTIFICATION_TITLE.warning,
-                        `Không tìm thấy file nào cho PO ${poNumber}`
-                    );
-                    this.isLoading = false;
-                }
-            },
-            error: (err: any) => {
-                console.error('Error getting PO files:', err);
-                this.notification.error(
-                    NOTIFICATION_TITLE.error,
-                    `Lỗi khi lấy danh sách file: ${err?.error?.message || err?.message}`
-                );
-                this.isLoading = false;
-            },
-        });
-    }
-
-    /**
-     * Download a single file from PO
-     * @param poNumber - The PO Number
-     * @param fileName - The file name to download
-     * @param isLast - Whether this is the last file (to hide loading)
-     */
-    private downloadSinglePOFile(poNumber: string, fileName: string, isLast: boolean): void {
-        this.billExportService.downloadPOKHFile(poNumber, fileName).subscribe({
+        this.billExportService.downloadPOKHFiles(pokhID).subscribe({
             next: (blob: Blob) => {
-                // Create download link and trigger download
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = fileName;
+                a.download = `PO_${displayLabel}.zip`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);
 
-                if (isLast) {
-                    this.isLoading = false;
-                    this.notification.success(
-                        NOTIFICATION_TITLE.success,
-                        `Đã tải xong files cho PO ${poNumber}`
-                    );
-                }
+                this.isLoading = false;
+                this.notification.success(
+                    NOTIFICATION_TITLE.success,
+                    `Đã tải xong files cho PO ${displayLabel}`
+                );
             },
             error: (err: any) => {
-                console.error(`Error downloading file ${fileName}:`, err);
+                console.error('Error downloading PO files:', err);
                 this.notification.error(
                     NOTIFICATION_TITLE.error,
-                    `Lỗi khi tải file ${fileName}: ${err?.error?.message || err?.message}`
+                    `Lỗi khi tải file: ${err?.error?.message || err?.message}`
                 );
-                if (isLast) {
-                    this.isLoading = false;
-                }
+                this.isLoading = false;
             },
         });
     }

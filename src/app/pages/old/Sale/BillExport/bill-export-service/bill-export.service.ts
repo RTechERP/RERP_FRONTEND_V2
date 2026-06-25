@@ -399,20 +399,10 @@ export class BillExportService {
         );
     }
 
-    // Get POKH Files by PO Number
-    getPOKHFiles(poNumber: string): Observable<any> {
-        return this.http.get<any>(
-            environment.host + `api/BillExport/get-pokh-files/${encodeURIComponent(poNumber)}`
-        );
-    }
-
-    // Download POKH File
-    downloadPOKHFile(poNumber: string, fileName: string): Observable<Blob> {
-        const url = `${environment.host}api/BillExport/download-pokh-file/${encodeURIComponent(poNumber)}`;
-        return this.http.get(url, {
-            responseType: 'blob',
-            params: { fileName },
-        });
+    // Download tất cả file của POKH dưới dạng 1 file ZIP duy nhất
+    downloadPOKHFiles(pokhID: number): Observable<Blob> {
+        const url = `${environment.host}api/BillExport/download-pokh-files/${pokhID}`;
+        return this.http.get(url, { responseType: 'blob' });
     }
     getInventoryProjectImportExport(
         warehouseID: number,

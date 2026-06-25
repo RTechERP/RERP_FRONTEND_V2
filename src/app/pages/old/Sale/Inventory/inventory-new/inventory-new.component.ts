@@ -57,6 +57,7 @@ import { AppUserService } from '../../../../../services/app-user.service';
 import { ProjectPartlistPriceRequestFormComponent } from '../../../project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
 import { ProductLocationService } from '../../../../general-category/product-location/product-location-service/product-location.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { InventoryProjectDetailComponent } from '../../../../purchase/inventory-project/inventory-project-detail/inventory-project-detail.component';
 
 interface ProductGroup {
     ID?: number;
@@ -541,6 +542,17 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                             }
                         },
                     },
+                    {
+                        command: 'KeepProject',
+                        title: 'Giữ hàng',
+                        iconCssClass: 'fa fa-archive',
+                        action: (_e: any, args: MenuCommandItemCallbackArgs) => {
+                            const dataContext = args.dataContext;
+                            if (dataContext) {
+                                this.openGiuHangModal(dataContext);
+                            }
+                        },
+                    },
                 ],
             },
             // Footer row configuration
@@ -604,7 +616,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.angularGridInventory.slickGrid.setFooterRowVisibility(true);
 
         // Set footer values
-        const columns = this.angularGridInventory.slickGrid.getColumns();
+        // getColumns() có thể trả về phần tử null khi grid đang re-render/destroy
+        const columns = (this.angularGridInventory.slickGrid.getColumns() || []).filter((c: any) => !!c);
 
         columns.forEach((col: any) => {
             const footerCell = this.angularGridInventory.slickGrid.getFooterRowColumn(
@@ -661,24 +674,20 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     resizeGrids(): void {
+        // resizeGrid() trả về Promise, reject của nó không bị try/catch đồng bộ bắt được
+        // nên phải catch trên Promise để tránh unhandled rejection khi grid đang re-render/destroy
         try {
-            if (this.angularGridProductGroup?.resizerService) {
-                this.angularGridProductGroup.resizerService.resizeGrid();
-            }
+            this.angularGridProductGroup?.resizerService?.resizeGrid()?.catch(() => {});
         } catch (e) {
             // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
         try {
-            if (this.angularGridPGWarehouse?.resizerService) {
-                this.angularGridPGWarehouse.resizerService.resizeGrid();
-            }
+            this.angularGridPGWarehouse?.resizerService?.resizeGrid()?.catch(() => {});
         } catch (e) {
             // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
         try {
-            if (this.angularGridInventory?.resizerService) {
-                this.angularGridInventory.resizerService.resizeGrid();
-            }
+            this.angularGridInventory?.resizerService?.resizeGrid()?.catch(() => {});
         } catch (e) {
             // Ignore resize errors khi grid chưa sẵn sàng hoặc đã bị destroy
         }
@@ -1035,7 +1044,8 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private updateGridFilterCollections(angularGrid: AngularGridInstance, dataset: any[]): void {
-        const columns = angularGrid.slickGrid.getColumns();
+        // getColumns() có thể trả về phần tử null khi grid đang re-render/destroy
+        const columns = (angularGrid.slickGrid.getColumns() || []).filter((c: any) => !!c);
 
         // Helper function to get unique values for a field
         const getUniqueValues = (field: string): Array<{ value: string; label: string }> => {
@@ -1680,6 +1690,30 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 wareHouseCode: this.warehouseCode || 'HN',
             }
         });
+    }
+
+    openGiuHangModal(productData: any) {
+        const modalRef = this.modalService.open(InventoryProjectDetailComponent, {
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+
+        modalRef.componentInstance.dataInput = {
+            ProductSaleID: productData.ProductSaleID || 0,
+            WarehouseID: this.warehouseId || null,
+            WarehouseCode: this.warehouseCode || '',
+        };
+
+        modalRef.result.then(
+            () => {
+                this.getInventory();
+            },
+            () => {
+                console.log('Modal dismissed');
+            }
+        );
     }
 
     //#endregion

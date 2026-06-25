@@ -6,6 +6,7 @@
 </div>
 
 <div class="modal-body p-2" style="max-height: 70vh; overflow-y: auto; overflow-x: hidden;">
+  <nz-spin [nzSpinning]="loading">
   <form nz-form [formGroup]="formGroup" nzLayout="vertical">
     <!-- Dự án (span 24) -->
     <nz-row [nzGutter]="16">
@@ -13,7 +14,23 @@
         <nz-form-item>
           <nz-form-label class="fs-12" [nzSpan]="24">Dự án</nz-form-label>
           <nz-form-control [nzSpan]="24">
-            <input nz-input nzSize="default" formControlName="projectInfo" class="fs-12" />
+            <nz-select
+              *ngIf="isCreateMode; else projectReadonly"
+              nzSize="default"
+              formControlName="projectID"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Chọn dự án..."
+              class="fs-12 w-100">
+              <nz-option
+                *ngFor="let p of projectList"
+                [nzValue]="p.ID"
+                [nzLabel]="getProjectLabel(p)">
+              </nz-option>
+            </nz-select>
+            <ng-template #projectReadonly>
+              <input nz-input nzSize="default" formControlName="projectInfo" class="fs-12" />
+            </ng-template>
           </nz-form-control>
         </nz-form-item>
       </nz-col>
@@ -35,7 +52,7 @@
               <nz-option
                 *ngFor="let c of customers"
                 [nzValue]="c.ID"
-                [nzLabel]="c.CustomerName">
+                [nzLabel]="getCustomerLabel(c)">
               </nz-option>
             </nz-select>
           </nz-form-control>
@@ -45,19 +62,15 @@
         <nz-form-item>
           <nz-form-label class="fs-12" [nzSpan]="24">Số POKH</nz-form-label>
           <nz-form-control [nzSpan]="24">
-            <nz-select
+            <input
+              nz-input
               nzSize="default"
-              formControlName="pokhDetailID"
-              nzShowSearch
-              nzAllowClear
-              nzPlaceHolder="Chọn POKH..."
-              class="fs-12 w-100">
-              <nz-option
-                *ngFor="let p of pokhList"
-                [nzValue]="p.ID"
-                [nzLabel]="p.PONumber || p.POCode || p.DisplayText">
-              </nz-option>
-            </nz-select>
+              formControlName="pokhInfo"
+              class="fs-12"
+              readonly
+              placeholder="Click để chọn số PO..."
+              style="cursor: pointer;"
+              (click)="openPOKHPopup($event)" />
           </nz-form-control>
         </nz-form-item>
       </nz-col>
@@ -69,7 +82,15 @@
         <nz-form-item>
           <nz-form-label class="fs-12" [nzSpan]="24">Mã sản phẩm</nz-form-label>
           <nz-form-control [nzSpan]="24">
-            <input nz-input nzSize="default" formControlName="productCode" class="fs-12" />
+            <input
+              nz-input
+              nzSize="default"
+              formControlName="productCode"
+              class="fs-12"
+              readonly
+              [placeholder]="isCreateMode ? 'Click để chọn sản phẩm...' : ''"
+              [style.cursor]="isCreateMode ? 'pointer' : 'default'"
+              (click)="openProductPopup($event)" />
           </nz-form-control>
         </nz-form-item>
       </nz-col>
@@ -78,7 +99,7 @@
         <nz-form-item>
           <nz-form-label class="fs-12" [nzSpan]="24">Mã nội bộ</nz-form-label>
           <nz-form-control [nzSpan]="24">
-            <input nz-input nzSize="default" formControlName="productNewCode" class="fs-12" />
+            <input nz-input nzSize="default" formControlName="productNewCode" class="fs-12" readonly />
           </nz-form-control>
         </nz-form-item>
       </nz-col>
@@ -106,7 +127,7 @@
         <nz-form-item>
           <nz-form-label class="fs-12" [nzSpan]="24">Tên sản phẩm</nz-form-label>
           <nz-form-control [nzSpan]="24">
-            <input nz-input nzSize="default" formControlName="productName" class="fs-12" />
+            <input nz-input nzSize="default" formControlName="productName" class="fs-12" readonly />
           </nz-form-control>
         </nz-form-item>
       </nz-col>
@@ -170,11 +191,12 @@
       </nz-col>
     </nz-row>
   </form>
+  </nz-spin>
 </div>
 
 <div class="modal-footer p-2">
   <button nz-button nzType="default" nzSize="default" nzDanger (click)="close()">Đóng</button>
-  <button nz-button nzType="primary" nzSize="default" (click)="save()">Lưu</button>
+  <button nz-button nzType="primary" nzSize="default" [disabled]="loading" (click)="save()">Lưu</button>
 </div>
 
 

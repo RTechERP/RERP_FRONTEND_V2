@@ -406,7 +406,28 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         this.initGridPOKHProduct();
         this.initGridPOKHFile();
 
-        // Subscribe vào queryParams để nhận update từ layout
+        // Tab này được mở qua hệ thống tab component (ngComponentOutlet): nhiều tab
+        // sống đồng thời và dùng chung route.queryParams của Router, nên khi người
+        // dùng chuyển sang tab khác (router điều hướng bất đồng bộ, dễ bị lag so với
+        // việc UI đổi tab ngay), subscribe route.queryParams sẽ nhận nhầm params của
+        // tab khác hoặc giá trị mặc định -> chỉ dùng đúng 1 lần snapshot từ tabData.
+        if (this.tabData) {
+            this.filters.warehouseId = warehouseId;
+            this.isInitialized = true;
+            this.loadCustomers();
+            this.loadUser();
+            this.loadEmployeeTeamSale();
+            this.loadProjects();
+            this.loadTypePO();
+            this.loadFilterMainIndexes();
+            this.loadCurrencies();
+            this.loadProducts();
+            this.loadPOKH();
+            return;
+        }
+
+        // Subscribe vào queryParams để nhận update từ layout (chỉ áp dụng khi component
+        // được render trực tiếp qua router-outlet, không phải qua tab component)
         this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
             //   const warehouseId = params['warehouseId'];
             const warehouseId =

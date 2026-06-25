@@ -237,7 +237,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       SupplierSaleID: [null, this.supplierOrCustomerValidator.bind(this)],
       RulePayID: [34, Validators.required],
       CustomerID: [null, this.supplierOrCustomerValidator.bind(this)],
-      ApproverID: [this.warehouseID == 6 ? 1544 : this.warehouseType === 2 ? 97 : 54, Validators.required], //54:Phạm Văn Quyền; 97:Bùi Mạnh Cần
+      ApproverID: [this.warehouseID == 6 ? 558 : this.warehouseType === 2 ? 97 : 54, Validators.required], //54:Phạm Văn Quyền; 97:Bùi Mạnh Cần
       Receiver: [''],
       Status: [false],
       Suplier: [''],

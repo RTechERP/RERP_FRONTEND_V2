@@ -344,8 +344,9 @@
                 }
               </nz-select>
 
-              <input #keywordInput nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 220px" [(ngModel)]="keyword"
-                [ngModelOptions]="{ standalone: true }" (keyup.enter)="searchProjects(1, pageSize)" />
+              <input #keywordInput nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 220px"
+                [(ngModel)]="keyword" [ngModelOptions]="{ standalone: true }"
+                (keyup.enter)="searchProjects(1, pageSize)" />
 
               <button nz-button nzType="primary" nzSize="small" (click)="searchProjects(1, pageSize)">
                 <nz-icon nzType="search" />
@@ -378,10 +379,11 @@
                 <div class="table-container" style="height: 100%">
                   <p-table #dtProjects [value]="dataset" selectionMode="single" [(selection)]="selectedRow" dataKey="ID"
                     [scrollable]="true" scrollHeight="flex" [virtualScroll]="true"
-                    [virtualScrollItemSize]="projectVirtualRowHeight" [virtualScrollOptions]="projectVirtualScrollOptions"
-                    [rowTrackBy]="trackProjectById" [paginator]="true" [rows]="pageSize"
-                    [totalRecords]="totalRecords" [lazy]="true" (onLazyLoad)="loadProjectsLazy($event)"
-                    [rowsPerPageOptions]="projectRowsPerPageOptions" [resizableColumns]="true" columnResizeMode="expand"
+                    [virtualScrollItemSize]="projectVirtualRowHeight"
+                    [virtualScrollOptions]="projectVirtualScrollOptions" [rowTrackBy]="trackProjectById"
+                    [paginator]="true" [rows]="pageSize" [totalRecords]="totalRecords" [lazy]="true"
+                    (onLazyLoad)="loadProjectsLazy($event)" [rowsPerPageOptions]="projectRowsPerPageOptions"
+                    [resizableColumns]="true" columnResizeMode="expand"
                     styleClass="project-master-table p-datatable-sm p-datatable-gridlines p-datatable-striped"
                     [contextMenu]="cm" [loading]="isLoading" (onRowContextMenu)="onRowContextMenu($event)"
                     (onFilter)="handleTableFilter($event)">
@@ -445,7 +447,7 @@
                           Khách hàng
                           <p-sortIcon field="CustomerName"></p-sortIcon>
                         </th>
-                        <th pSortableColumn="ApplicationTypeNames" pResizableColumn
+                        <!-- <th pSortableColumn="ApplicationTypeNames" pResizableColumn
                           style="width: 6.2%; min-width: 4.2%; max-width: 8.2%">
                           Kiểu ứng dụng
                           <p-sortIcon field="CurrentState"></p-sortIcon>
@@ -454,7 +456,7 @@
                           style="width: 6 .2%; min-width: 4.2%; max-width: 8.2%">
                           Công nghệ
                           <p-sortIcon field="CurrentState"></p-sortIcon>
-                        </th>
+                        </th> -->
                         <th pSortableColumn="PO" pResizableColumn style="width: 3.9%; min-width: 3.9%; max-width: 3.9%">
                           PO <p-sortIcon field="PO"></p-sortIcon>
                         </th>
@@ -462,25 +464,25 @@
                           style="width: 4.2%; min-width: 4.2%; max-width: 4.2%">
                           Ngày PO <p-sortIcon field="PODate"></p-sortIcon>
                         </th>
-                        <th pSortableColumn="PlanDateStart" pResizableColumn
+                        <th pSortableColumn="ExpectedPlanDate" pResizableColumn
                           style="width: 4.6%; min-width: 4.6%; max-width: 4.6%">
                           Dự kiến bắt đầu
-                          <p-sortIcon field="PlanDateStart"></p-sortIcon>
+                          <p-sortIcon field="ExpectedPlanDate"></p-sortIcon>
                         </th>
-                        <th pSortableColumn="PlanDateEnd" pResizableColumn
+                        <th pSortableColumn="ExpectedQuotationDate" pResizableColumn
                           style="width: 4.6%; min-width: 4.6%; max-width: 4.6%">
                           Dự kiến kết thúc
-                          <p-sortIcon field="PlanDateEnd"></p-sortIcon>
+                          <p-sortIcon field="ExpectedQuotationDate"></p-sortIcon>
                         </th>
-                        <th pSortableColumn="ActualDateStart" pResizableColumn
+                        <th pSortableColumn="RealityPlanDate" pResizableColumn
                           style="width: 4.6%; min-width: 4.6%; max-width: 4.6%">
                           Thực tế bắt đầu
-                          <p-sortIcon field="ActualDateStart"></p-sortIcon>
+                          <p-sortIcon field="RealityPlanDate"></p-sortIcon>
                         </th>
-                        <th pSortableColumn="ActualDateEnd" pResizableColumn
+                        <th pSortableColumn="RealityProjectEndDate" pResizableColumn
                           style="width: 4.6%; min-width: 4.6%; max-width: 4.6%">
                           Thực tế kết thúc
-                          <p-sortIcon field="ActualDateEnd"></p-sortIcon>
+                          <p-sortIcon field="RealityProjectEndDate"></p-sortIcon>
                         </th>
                         <th pSortableColumn="CreatedDate" pResizableColumn
                           style="width: 4.2%; min-width: 4.2%; max-width: 4.2%">
@@ -595,7 +597,7 @@
                             </ng-template>
                           </p-columnFilter>
                         </th>
-                        <th style="width: 8.2%; min-width: 8.2%; max-width: 8.2%">
+                        <!-- <th style="width: 8.2%; min-width: 8.2%; max-width: 8.2%">
                           <p-columnFilter field="ApplicationTypeNames" matchMode="contains" [showMenu]="false">
                             <ng-template pTemplate="filter" let-filter="filterCallback">
                               <input pInputText type="text" (keyup.enter)="filter($any($event.target).value)"
@@ -612,7 +614,7 @@
                                 placeholder="Công nghệ..." />
                             </ng-template>
                           </p-columnFilter>
-                        </th>
+                        </th> -->
                         <th style="width: 3.9%; min-width: 3.9%; max-width: 3.9%">
                           <p-columnFilter field="PO" matchMode="contains" [showMenu]="false">
                             <ng-template pTemplate="filter" let-filter="filterCallback">
@@ -626,16 +628,16 @@
                           <p-columnFilter type="date" field="PODate" class="w-full"></p-columnFilter>
                         </th>
                         <th style="width: 4.6%; min-width: 4.6%; max-width: 4.6%">
-                          <p-columnFilter type="date" field="PlanDateStart" class="w-full"></p-columnFilter>
+                          <p-columnFilter type="date" field="ExpectedPlanDate" class="w-full"></p-columnFilter>
                         </th>
                         <th style="width: 4.6%; min-width: 4.6%; max-width: 4.6%">
-                          <p-columnFilter type="date" field="PlanDateEnd" class="w-full"></p-columnFilter>
+                          <p-columnFilter type="date" field="ExpectedQuotationDate" class="w-full"></p-columnFilter>
                         </th>
                         <th style="width: 4.6%; min-width: 4.6%; max-width: 4.6%">
-                          <p-columnFilter type="date" field="ActualDateStart" class="w-full"></p-columnFilter>
+                          <p-columnFilter type="date" field="RealityPlanDate" class="w-full"></p-columnFilter>
                         </th>
                         <th style="width: 4.6%; min-width: 4.6%; max-width: 4.6%">
-                          <p-columnFilter type="date" field="ActualDateEnd" class="w-full"></p-columnFilter>
+                          <p-columnFilter type="date" field="RealityProjectEndDate" class="w-full"></p-columnFilter>
                         </th>
                         <th style="width: 4.2%; min-width: 4.2%; max-width: 4.2%">
                           <p-columnFilter type="date" field="CreatedDate" class="w-full"></p-columnFilter>
@@ -784,28 +786,28 @@
                             min-width: 140px;
                             max-width: 140px;
                           " class="text-center">
-                          {{ rowData.PlanDateStart | date: "dd/MM/yyyy" }}
+                          {{ rowData.ExpectedPlanDate | date: "dd/MM/yyyy" }}
                         </td>
                         <td style="
                             width: 140px;
                             min-width: 140px;
                             max-width: 140px;
                           " class="text-center">
-                          {{ rowData.PlanDateEnd | date: "dd/MM/yyyy" }}
+                          {{ rowData.ExpectedQuotationDate | date: "dd/MM/yyyy" }}
                         </td>
                         <td style="
                             width: 140px;
                             min-width: 140px;
                             max-width: 140px;
                           " class="text-center">
-                          {{ rowData.ActualDateStart | date: "dd/MM/yyyy" }}
+                          {{ rowData.RealityPlanDate | date: "dd/MM/yyyy" }}
                         </td>
                         <td style="
                             width: 140px;
                             min-width: 140px;
                             max-width: 140px;
                           " class="text-center">
-                          {{ rowData.ActualDateEnd | date: "dd/MM/yyyy" }}
+                          {{ rowData.RealityProjectEndDate | date: "dd/MM/yyyy" }}
                         </td>
                         <td style="
                             width: 130px;

@@ -77,13 +77,21 @@ export class ProjectService {
   }
 
   // Danh sách ProjectApplicationTypes
-  getApplicationTypes(): Observable<any> {
-    return this.http.get<any>(this.urlProject + 'get-application-types');
+  getApplicationTypes(projectTypeIds?: string): Observable<any> {
+    let params = new HttpParams();
+    if (projectTypeIds) {
+      params = params.set('projectTypeIds', projectTypeIds);
+    }
+    return this.http.get<any>(this.urlProject + 'get-application-types', { params });
   }
 
   // Danh sách ProjectTechnologies
-  getTechnologies(): Observable<any> {
-    return this.http.get<any>(this.urlProject + 'get-technologies');
+  getTechnologies(projectTypeIds?: string): Observable<any> {
+    let params = new HttpParams();
+    if (projectTypeIds) {
+      params = params.set('projectTypeIds', projectTypeIds);
+    }
+    return this.http.get<any>(this.urlProject + 'get-technologies', { params });
   }
 
   // Lấy các kiểu ứng dụng đã chọn

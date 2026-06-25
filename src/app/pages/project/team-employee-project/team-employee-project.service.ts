@@ -15,15 +15,21 @@ export class TeamEmployeeProjectService {
    * Get employees in team (still working: EndWorking IS NULL).
    * Filtered optionally by UserTeam and/or Department.
    */
-  getEmployeesInTeam(userTeamId?: number, departmentId?: number): Observable<any> {
+  getEmployeesInTeam(userTeamIds?: number | number[], departmentId?: number): Observable<any> {
     let params = new HttpParams();
-    if (userTeamId != null && userTeamId > 0) {
-      params = params.set('userTeamID', userTeamId.toString());
+    if (userTeamIds != null) {
+      if (Array.isArray(userTeamIds)) {
+        if (userTeamIds.length > 0) {
+          params = params.set('userTeamIDs', userTeamIds.join(','));
+        }
+      } else if (userTeamIds > 0) {
+        params = params.set('userTeamIDs', userTeamIds.toString());
+      }
     }
     if (departmentId != null && departmentId > 0) {
       params = params.set('departmentid', departmentId.toString());
     }
-    return this.http.get<any>(environment.host + 'api/Course/get-employees', { params });
+    return this.http.get<any>(this.apiUrl + 'get-employees', { params });
   }
 
   /**

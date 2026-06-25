@@ -1,7 +1,24 @@
+/* --- Layout parent container fixes on initial boot --- */
+::ng-deep .content-host {
+  height: 100% !important;
+}
+
+::ng-deep .tab-pane {
+  height: 100% !important;
+}
+
+:host {
+  display: block;
+  height: 100%;
+}
+
 .team-employee-project-container {
   padding: 4px;
   background-color: var(--surface-ground, #f8f9fa);
   box-sizing: border-box;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* --- Filter Bar --- */
@@ -31,8 +48,10 @@
 
 .filter-item ::ng-deep p-datepicker,
 .filter-item ::ng-deep p-select,
+.filter-item ::ng-deep p-multiSelect,
 .filter-item ::ng-deep .p-datepicker,
 .filter-item ::ng-deep .p-select,
+.filter-item ::ng-deep .p-multiselect,
 .filter-item ::ng-deep .p-calendar,
 .filter-item ::ng-deep .p-dropdown {
   width: 100%;
@@ -57,7 +76,8 @@
   width: 100%;
 }
 
-.filter-item ::ng-deep .p-select {
+.filter-item ::ng-deep .p-select,
+.filter-item ::ng-deep .p-multiselect {
   height: 28px !important;
   min-height: 28px !important;
   padding: 0 !important;
@@ -67,7 +87,8 @@
   align-items: center !important;
 }
 
-.filter-item ::ng-deep .p-select-label {
+.filter-item ::ng-deep .p-select-label,
+.filter-item ::ng-deep .p-multiselect-label {
   padding: 0 8px !important;
   margin: 0 !important;
   height: 100% !important;
@@ -79,6 +100,8 @@
 
 .filter-item ::ng-deep .p-select-dropdown,
 .filter-item ::ng-deep .p-select-trigger,
+.filter-item ::ng-deep .p-multiselect-dropdown,
+.filter-item ::ng-deep .p-multiselect-trigger,
 .filter-item ::ng-deep .p-datepicker-trigger {
   width: 28px !important;
   height: 100% !important;
@@ -108,18 +131,45 @@
 /* --- Split Panel Layout --- */
 .split-panel {
   display: flex;
-  gap: 1.5rem;
   margin-top: 0.75rem;
-  /* Chiều cao = viewport - header app (~60px) - filter card (~70px) - padding (~16px) - margin-top (~12px) */
   height: calc(100vh - 160px);
   overflow: hidden;
 }
 
 .panel-left {
-  flex: 0 0 30%;
-  max-width: 30%;
+  flex: 0 0 20%;
+  max-width: 20%;
   height: 100%;
   overflow: hidden;
+}
+
+/* --- Draggable Gutter --- */
+.split-gutter {
+  flex: 0 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: col-resize;
+  background: transparent;
+  transition: background-color 0.2s;
+  z-index: 1;
+}
+
+.split-gutter:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.split-gutter-handle {
+  width: 3px;
+  height: 40px;
+  border-radius: 2px;
+  background: var(--surface-border, #dee2e6);
+  transition: background-color 0.2s, height 0.2s;
+}
+
+.split-gutter:hover .split-gutter-handle {
+  background: var(--primary-color, #2196f3);
+  height: 60px;
 }
 
 .panel-right {
@@ -307,10 +357,14 @@
     overflow: visible;
   }
 
+  .split-gutter {
+    display: none;
+  }
+
   .panel-left,
   .panel-right {
     flex: none;
-    max-width: 100%;
+    max-width: 100% !important;
     height: 400px;
     overflow: hidden;
   }
@@ -338,7 +392,8 @@
 /* Compact filter inputs (both select and text input) height */
 ::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter input,
 ::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-inputtext,
-::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-select {
+::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-select,
+::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-multiselect {
   height: 26px !important;
   padding: 2px 6px !important;
   font-size: 0.75rem !important;
@@ -349,7 +404,8 @@
 }
 
 /* Adjust select label alignment inside table filter */
-::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-select-label {
+::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-select-label,
+::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-multiselect-label {
   padding: 0 6px !important;
   height: 100% !important;
   line-height: 24px !important;
@@ -357,7 +413,8 @@
   align-items: center !important;
 }
 
-::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-select-trigger {
+::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-select-trigger,
+::ng-deep .p-datatable .p-datatable-thead>tr>th p-columnfilter .p-multiselect-trigger {
   width: 24px !important;
   height: 100% !important;
 }

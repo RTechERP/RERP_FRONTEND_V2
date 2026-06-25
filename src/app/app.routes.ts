@@ -143,6 +143,7 @@ import { WorkplanComponent } from './pages/person/workplan/workplan.component';
 import { WorkplanSummaryComponent } from './pages/person/workplan/workplan-summary/workplan-summary.component';
 import { WorkplanSummaryNewComponent } from './pages/person/workplan/workplan-summary-new/workplan-summary-new.component';
 import { AssetPersonalComponent } from './pages/hrm/asset/asset/asset-personal/asset-personal.component';
+//import { TeamEmployeeProjectComponent } from './pages/project/team-employee-project/team-employee-project.component';
 import { LeaderProjectComponent } from './pages/project/leader-project/leader-project.component';
 import { MeetingMinuteTypeComponent } from './pages/project/meeting-minute/meeting-minute-type/meeting-minute-type.component';
 import { MeetingMinuteComponent } from './pages/project/meeting-minute/meeting-minute.component';
@@ -200,6 +201,7 @@ import { SummaryProjectJoinComponent } from './pages/person/summary-project-join
 import { ProjectSlickGrid2Component } from './pages/project/project-slick-grid2/project-slick-grid2.component';
 import { ProjectApplicationTechnologyComponent } from './pages/project/project-application-technology/project-application-technology.component';
 import { ProjectPartListSlickGridComponent } from './pages/project/project-part-list-slick-grid/project-part-list-slick-grid.component';
+//import { ProjectWokerSlickGridComponent } from './pages/project/project-woker-slick-grid/project-woker-slick-grid.component';
 import { InventoryNewComponent } from './pages/old/Sale/Inventory/inventory-new/inventory-new.component';
 import { BillImportTechnicalNewComponent } from './pages/old/bill-import-technical/bill-import-technical-new/bill-import-technical-new.component';
 import { InventoryDemoNewComponent } from './pages/old/inventory-demo/inventory-demo-new/inventory-demo-new.component';
@@ -262,6 +264,7 @@ import { KpiErrorComponent } from './pages/old/Technical/kpi-error/kpi-error.com
 import { KpiErrorEmployeeComponent } from './pages/old/Technical/kpi-error-employee/kpi-error-employee.component';
 import { KpiErrorEmployeeSummaryMaxComponent } from './pages/old/Technical/kpi-error-employee-summary-max/kpi-error-employee-summary-max.component';
 import { SummaryKpiErrorEmployeeMonthComponent } from './pages/old/Technical/summary-kpi-error-employee-month/summary-kpi-error-employee-month.component';
+//import { KpiEvaluationSummaryCacheComponent } from './pages/old/Technical/kpi-evaluation-summary-cache/kpi-evaluation-summary-cache.component';
 import { InventoryProjectProductSaleLinkComponent } from './pages/purchase/inventory-project-product-sale-link/inventory-project-product-sale-link.component';
 import { HistoryImportExportNewComponent } from './pages/old/Sale/HistoryImportExport/history-import-export-new/history-import-export-new.component';
 import { ReportImportExportNewComponent } from './pages/old/Sale/ReportImportExport/report-import-export-new/report-import-export-new.component';
@@ -800,6 +803,7 @@ export const routes: Routes = [
       { path: 'project-item-person', component: ProjectItemPersonComponent, canActivate: [authGuard] },
       { path: 'summary-project-join', component: SummaryProjectJoinComponent, canActivate: [authGuard] },
       { path: 'project-part-list', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
+      //{ path: 'project-worker', component: ProjectWokerSlickGridComponent, canActivate: [authGuard] },
       { path: 'project-task-setting', component: ProjectTaskSettingComponent, canActivate: [authGuard] },
       { path: 'project-task-time-line-project', component: ProjectTaskTimeLineProjectComponent, canActivate: [authGuard] },
 

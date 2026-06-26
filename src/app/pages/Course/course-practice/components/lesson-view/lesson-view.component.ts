@@ -68,7 +68,7 @@ interface LessonFile {
   NameFile: string;
   ServerPath: string;
   TypeFile?: string;
-  OriginPath?:string;
+  OriginPath?: string;
 }
 
 interface CourseLesson {
@@ -216,7 +216,7 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
     private permissionService: PermissionService,
     private http: HttpClient,
   ) {
-    this.canSeekForward = this.permissionService.hasPermission('N1,N93');
+    this.canSeekForward = this.permissionService.hasPermission('N1,N103');
   }
 
   /**
@@ -807,7 +807,7 @@ export class LessonViewComponent implements OnChanges, OnInit, OnDestroy {
             //   error: () => {
             //   }
             // });
-            if(file?.OriginPath){
+            if (file?.OriginPath) {
               file.OriginPath = this.getFileNameWithExtension(file.OriginPath);
             }
           });

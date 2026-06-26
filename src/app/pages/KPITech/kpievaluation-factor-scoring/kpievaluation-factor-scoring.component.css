@@ -413,10 +413,6 @@ nz-tabset {
   justify-content: end !important;
 }
 
-:host ::ng-deep .kpi-factor-scoring-wrapper .slick-viewport .slick-viewport-top .slick-viewport-left {
-  max-height: 250px !important;
-}
-
 :host ::ng-deep .kpi-factor-scoring-wrapper .type-select-dropdown {
   min-width: 35vh !important;
 }

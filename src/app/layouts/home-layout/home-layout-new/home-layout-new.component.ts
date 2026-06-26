@@ -52,6 +52,7 @@ interface LiXi {
 import { HistoryBorrowSaleService } from '../../../pages/old/Sale/HistoryBorrowSale/history-borrow-sale-service/history-borrow-sale.service';
 import { ProjectTaskService } from '../../../pages/project_task/project-task/project-task.service';
 import { PollFormService } from '../../../pages/poll-form/poll-form.service';
+import { ConfigNotificationService } from '../../../pages/systems/app-user/config-notification-key/config-notification-service/config-notification.service';
 @Component({
     selector: 'app-home-layout-new',
     imports: [
@@ -82,8 +83,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     currentAppVersion: string = '';
     userAppVersion: string = localStorage.getItem('currentAppVersion') || '1.0.3';
     lixis: LiXi[] = [];
-    isPollModalVisible: boolean = false;
-    currentPopupPoll: any = null;
+    isNotifModalVisible: boolean = false;
     pendingPolls: any[] = [];
     showLixiRain: boolean = false;
     hasNewVersion: boolean = false;
@@ -93,6 +93,12 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     private clickCount = 0;
     private clickTimer: any;
     isMobile = window.innerHeight <= 768;
+
+    isExpireSessionNotificationEnabled: boolean = true;
+    hasShownExpireModal: boolean = false;
+
+    sessionCountdown: string = '';
+    private countdownIntervalId: any;
 
     isAppMenuVisible = false;
     selectedModuleKey = '';
@@ -178,13 +184,16 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         private projectTaskService: ProjectTaskService,
         private projectTaskAttendanceService: ProjectTaskSumaryAttendanceService,
         private pollFormService: PollFormService,
+        private configNotificationService: ConfigNotificationService
     ) { }
 
     get notifItems(): NotifyItem[] { return this.notifService.items; }
 
     ngOnInit(): void {
+        this.startSessionCountdown();
         this.appUserService.user$.subscribe(() => {
             this.permissionService.refreshPermissions();
+            this.checkExpireSessionConfig();
             this.cdr.markForCheck?.();
 
             // this.id = this.appUserService.currentUser?.ID || 0;
@@ -224,14 +233,44 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                 console.log('Tất cả API quan trọng đã load xong. Khởi tạo SSE và check version...');
                 // this.loadCurrentVersion();
                 // this.initSseConnection();
+                this.showNotificationPopup();
             },
             error: (err) => {
                 console.error('Có lỗi khi load API quan trọng, vẫn khởi tạo SSE...', err);
                 // this.loadCurrentVersion();
                 // this.initSseConnection();
+                this.showNotificationPopup();
             }
         });
     }
+    isExpireSessionConfigLoaded: boolean = false;
+    checkExpireSessionConfig() {
+        console.log('[checkExpireSessionConfig] Called!');
+        const employeeId = this.appUserService.currentUser?.EmployeeID;
+        if (employeeId) {
+            console.log(`[checkExpireSessionConfig] Calling API with employeeId: ${employeeId}`);
+            this.configNotificationService.checkNotification('EXPIRE_SESSION', employeeId).subscribe({
+                next: (res) => {
+                    console.log('[checkExpireSessionConfig] API response:', res);
+                    if (res && res.status === 1) {
+                        this.isExpireSessionNotificationEnabled = res.data;
+                        console.log('[checkExpireSessionConfig] Updated isExpireSessionNotificationEnabled to:', this.isExpireSessionNotificationEnabled);
+                    } else {
+                        console.log('[checkExpireSessionConfig] API returned invalid status or res is null');
+                    }
+                    this.isExpireSessionConfigLoaded = true;
+                },
+                error: (err) => {
+                    console.log('[checkExpireSessionConfig] API Error:', err);
+                    this.isExpireSessionConfigLoaded = true;
+                }
+            });
+        } else {
+            console.log('[checkExpireSessionConfig] employeeId is null or undefined!');
+            this.isExpireSessionConfigLoaded = true;
+        }
+    }
+
     getQuantityApprove() {
         if (!this.permissionService.hasPermission('N1,N85,N32')) {
             this.quantityApprove = { Count: 0 };
@@ -606,35 +645,42 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
                     route: 'poll-vote',
                     queryParams: {}
                 });
-
-                this.showPollPopup(pendingPolls);
             }),
             catchError(() => of(null))
         );
     }
 
-    showPollPopup(polls: any[]) {
-        const hasUnseen = polls.some(p => !sessionStorage.getItem(`poll_popup_dismissed_${p.ID}`));
-        if (hasUnseen) {
-            this.isPollModalVisible = true;
+    /** Kiểm tra tất cả thông báo quan trọng và hiện popup chung nếu có */
+    showNotificationPopup() {
+        const todayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        if (sessionStorage.getItem(`notif_popup_dismissed_${todayKey}`)) {
+            return; // Đã dismiss trong ngày, không hiện lại
+        }
+
+        const hasOverdueDemo = this.quantityBorrowExpried > 0;
+        const hasSemiExpiredDemo = this.quantityBorrow > 0;
+        const hasOverdueSale = this.quantityBorrowExpriedSale > 0;
+        const hasSemiExpiredSale = this.quantityBorrowSale > 0;
+        const hasPendingPolls = this.pendingPolls && this.pendingPolls.length > 0;
+
+        if (hasOverdueDemo || hasSemiExpiredDemo || hasOverdueSale || hasSemiExpiredSale
+            || hasPendingPolls) {
+            this.isNotifModalVisible = true;
         }
     }
 
-    handlePollModalCancel() {
-        this.isPollModalVisible = false;
-        if (this.pendingPolls && this.pendingPolls.length > 0) {
-            this.pendingPolls.forEach(p => {
-                sessionStorage.setItem(`poll_popup_dismissed_${p.ID}`, 'true');
-            });
-        }
+    handleNotifModalCancel() {
+        this.isNotifModalVisible = false;
+        const todayKey = new Date().toISOString().slice(0, 10);
+        sessionStorage.setItem(`notif_popup_dismissed_${todayKey}`, 'true');
     }
 
     goToPollVote(id?: any) {
-        this.isPollModalVisible = false;
-        const pollId = id || (this.currentPopupPoll ? this.currentPopupPoll.ID : null);
-        if (pollId) {
-            sessionStorage.setItem(`poll_popup_dismissed_${pollId}`, 'true');
-            this.newTab('poll-vote/' + pollId, 'Bình chọn');
+        this.isNotifModalVisible = false;
+        if (id) {
+            const todayKey = new Date().toISOString().slice(0, 10);
+            sessionStorage.setItem(`notif_popup_dismissed_${todayKey}`, 'true');
+            this.newTab('poll-vote/' + id, 'Bình chọn');
         }
     }
 
@@ -788,8 +834,48 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
 
         return host + urlImage;
     }
+
+    startSessionCountdown() {
+        this.countdownIntervalId = setInterval(() => {
+            const expiresStr = localStorage.getItem('token_expires');
+            if (expiresStr) {
+                const expiresDate = new Date(expiresStr);
+                const now = new Date();
+                const diff = expiresDate.getTime() - now.getTime();
+
+                if (diff > 0) {
+                    const h = Math.floor(diff / (1000 * 60 * 60));
+                    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((diff % (1000 * 60)) / 1000);
+                    this.sessionCountdown = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+                    if (diff <= 130000) {
+                        console.log(`[Session Countdown] diff: ${diff}, isEnabled: ${this.isExpireSessionNotificationEnabled}, hasShown: ${this.hasShownExpireModal}`);
+                    }
+
+                    if (this.isExpireSessionConfigLoaded && this.isExpireSessionNotificationEnabled && diff <= 120000 && !this.hasShownExpireModal) {
+                        this.hasShownExpireModal = true;
+                        this.nzModal.warning({
+                            nzTitle: 'Phiên đăng nhập sắp hết hạn',
+                            nzContent: 'Phiên đăng nhập của bạn sẽ hết hạn sau chưa đầy 2 phút nữa. Vui lòng đăng nhập lại để tiếp tục sử dụng hệ thống.',
+                            nzOkText: 'Đóng'
+                        });
+                    }
+
+                    this.cdr.markForCheck?.();
+                } else {
+                    this.sessionCountdown = '00:00:00';
+                    this.cdr.markForCheck?.();
+                }
+            }
+        }, 1000);
+    }
+
     ngOnDestroy(): void {
         clearTimeout(this.clickTimer);
+        if (this.countdownIntervalId) {
+            clearInterval(this.countdownIntervalId);
+        }
         if (this.eventSource) {
             this.eventSource.close();
             this.eventSource = null;

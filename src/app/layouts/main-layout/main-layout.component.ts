@@ -57,6 +57,8 @@ import { take, filter, tap, catchError } from 'rxjs/operators';
 import { Subscription, forkJoin, of } from 'rxjs';
 import { TabServiceService, TabCompPayload } from '../tab-service.service';
 import { PersonalInfomationComponent } from '../../pages/general-category/infomation-personal/personal-infomation.component';
+import { ConfigNotificationService } from '../../pages/systems/app-user/config-notification-key/config-notification-service/config-notification.service';
+import { AppUserService } from '../../services/app-user.service';
 
 type TabItem = {
     title: string;
@@ -156,6 +158,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         private nzModal: NzModalService,
         private modalService: NgbModal,
         private notifService: NotificationService,
+        private appUserService: AppUserService,
+        private configNotificationService: ConfigNotificationService
     ) {
         // this.menuComps = this.menuService.getMenus();
     }
@@ -181,6 +185,13 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     hasNewVersion: boolean = false;
     latestVersionDetails: any = null;
     isAppMenuVisible = false;
+
+    isExpireSessionNotificationEnabled: boolean = true;
+    hasShownExpireModal: boolean = false;
+
+    sessionCountdown: string = '';
+    private countdownIntervalId: any;
+
     private eventSource: EventSource | null = null;
     notifItems: NotifyItem[] = [
         // {
@@ -246,6 +257,8 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
     tabOpens: string[] = [];
 
     ngOnInit(): void {
+        this.checkExpireSessionConfig();
+        this.startSessionCountdown();
         this.notifService.items$.subscribe(items => this.notifItems = items);
 
         const tabOpenedsRaw = localStorage.getItem('tabOpeneds');
@@ -318,7 +331,69 @@ export class MainLayoutComponent implements OnInit, AfterViewInit, OnDestroy {
         );
     }
 
+    startSessionCountdown() {
+        this.countdownIntervalId = setInterval(() => {
+            const expiresStr = localStorage.getItem('token_expires');
+            if (expiresStr) {
+                const expiresDate = new Date(expiresStr);
+                const now = new Date();
+                const diff = expiresDate.getTime() - now.getTime();
+
+                if (diff > 0) {
+                    const h = Math.floor(diff / (1000 * 60 * 60));
+                    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const s = Math.floor((diff % (1000 * 60)) / 1000);
+                    this.sessionCountdown = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+                    if (diff <= 130000) {
+                    }
+
+                    if (this.isExpireSessionConfigLoaded && this.isExpireSessionNotificationEnabled && diff <= 120000 && !this.hasShownExpireModal) {
+                        this.hasShownExpireModal = true;
+                        this.nzModal.warning({
+                            nzTitle: 'Phiên đăng nhập sắp hết hạn',
+                            nzContent: 'Phiên đăng nhập của bạn sẽ hết hạn sau chưa đầy 2 phút nữa. Vui lòng đăng nhập lại để tiếp tục sử dụng hệ thống.',
+                            nzOkText: 'Đóng'
+                        });
+                    }
+
+                    this.cd.markForCheck?.();
+                } else {
+                    this.sessionCountdown = '00:00:00';
+                    this.cd.markForCheck?.();
+                }
+            }
+        }, 1000);
+    }
+
+    isExpireSessionConfigLoaded: boolean = false;
+    checkExpireSessionConfig() {
+        // Since main layout might not always have currentUser fully loaded right away, we might want to subscribe to user$
+        this.appUserService.user$.subscribe(() => {
+            const employeeId = this.appUserService.currentUser?.EmployeeID;
+            if (employeeId) {
+                this.configNotificationService.checkNotification('EXPIRE_SESSION', employeeId).subscribe({
+                    next: (res) => {
+                        if (res && res.status === 1) {
+                            this.isExpireSessionNotificationEnabled = res.data;
+                        }
+                        this.isExpireSessionConfigLoaded = true;
+                    },
+                    error: (err) => {
+                        this.isExpireSessionConfigLoaded = true;
+                    }
+                });
+            } else {
+                this.isExpireSessionConfigLoaded = true;
+            }
+        });
+    }
+
     ngOnDestroy(): void {
+        if (this.countdownIntervalId) {
+            clearInterval(this.countdownIntervalId);
+        }
+
         if (this.routerSubscription) {
             this.routerSubscription.unsubscribe();
         }

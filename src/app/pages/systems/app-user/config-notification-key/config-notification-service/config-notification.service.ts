@@ -29,4 +29,11 @@ export class ConfigNotificationService {
   updateLinkStatus(payload: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/update-link-status`, payload);
   }
+
+  checkNotification(code: string, employeeId: number): Observable<any> {
+    const params = new HttpParams()
+      .set('code', code)
+      .set('employeeId', employeeId.toString());
+    return this.http.get<any>(`${this.apiUrl}/check-notification`, { params });
+  }
 }

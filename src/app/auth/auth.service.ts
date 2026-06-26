@@ -32,6 +32,9 @@ export class AuthService {
             tap((response: any) => {
                 if (response && response.access_token) {
                     localStorage.setItem(this.tokenkey, response.access_token);
+                    if (response.expires) {
+                        localStorage.setItem('token_expires', response.expires);
+                    }
 
                     // Gọi getCurrentUser ngay sau khi login thành công
                     this.getCurrentUser().subscribe({
@@ -195,6 +198,7 @@ export class AuthService {
 
     logout() {
         localStorage.removeItem(this.tokenkey);
+        localStorage.removeItem('token_expires');
         sessionStorage.clear();
 
         this.permissionService.clearPermissions();

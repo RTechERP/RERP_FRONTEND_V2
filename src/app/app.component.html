@@ -128,7 +128,12 @@
                         </nz-tab>
                     </nz-tabset>
                 </div>
-                <div class="header-trigger">
+                <div class="header-trigger d-flex align-items-center">
+                    <span *ngIf="sessionCountdown" class="text-white fw-bold me-3 d-inline-flex align-items-center"
+                        style="font-size: 13px; border: 1px solid rgba(255,255,255,0.5); padding: 0 6px; border-radius: 4px; height: 22px; white-space: nowrap;">
+                        {{ sessionCountdown }}
+                    </span>
+
                     <nz-dropdown-menu #appmenu="nzDropdownMenu">
                         <div class="app-launcher">
 

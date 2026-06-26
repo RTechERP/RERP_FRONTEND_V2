@@ -135,6 +135,14 @@ export class EslTestTableComponent implements OnInit, AfterViewInit {
         sortable: true,
         cssClass: 'text-center',
         format: (val) => `<span class="badge ${val ? 'bg-success' : 'bg-secondary'}">${val ? 'Hoạt động' : 'Tạm khóa'}</span>`
+      },
+      {
+        field: 'isRegistrated',
+        header: 'Tình trạng',
+        width: '130px',
+        sortable: true,
+        cssClass: 'text-center',
+        format: (val) => `<span class="badge ${val === 1 ? 'bg-danger' : 'bg-success'}">${val === 1 ? 'Đang sử dụng' : 'Sẵn sàng'}</span>`
       }
     ];
   }

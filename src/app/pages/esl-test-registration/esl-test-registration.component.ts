@@ -214,12 +214,37 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
     // Rule 2: Duyệt (Chỉ người duyệt được chỉ định của yêu cầu đó mới được phép duyệt)
     const hasApproveAccess = currentUserId && (currentUserId === itemApproverId);
 
+    // Logic for Extend / Handover / Return based on max No
+    let latestDetailOwnerId = null;
+    let latestDetailApproverId = null;
+    let isLatestDetailApproved = false;
+
+    if (masterItem) {
+      if (masterItem.children && masterItem.children.length > 0) {
+        const maxNoDetail = masterItem.children.reduce((prev: any, current: any) => 
+          (prev.No > current.No) ? prev : current
+        );
+        latestDetailOwnerId = maxNoDetail.OwnerID;
+        latestDetailApproverId = maxNoDetail.ApproverID;
+        isLatestDetailApproved = maxNoDetail.Status === 1;
+      } else {
+        latestDetailOwnerId = masterItem.OwnerID;
+        latestDetailApproverId = masterItem.ApproverID;
+        isLatestDetailApproved = masterItem.Status === 1;
+      }
+    }
+
+    const canExtendOrReturn = currentUserId && 
+                              (currentUserId === latestDetailOwnerId || currentUserId === latestDetailApproverId || isApproverInList) && 
+                              isLatestDetailApproved && 
+                              !masterItem?.ActualReturnDate;
+
     this.menuBars = this.menuBars.map(m => {
       if (m.label === 'Sửa') return { ...m, disabled: !isValidSelection || !canEdit || !hasRule1Access };
       if (m.label === 'Xóa') return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasRule1Access };
       if (m.label === 'Duyệt') return { ...m, disabled: !isValidSelection || item?.Status !== 0 || !hasApproveAccess };
-      if (m.label === 'Gia hạn/Bàn giao') return { ...m, disabled: lenMaster !== 1 || !canAction || !hasRule1Access }; // limit to master for now
-      if (m.label === 'Trả bàn') return { ...m, disabled: lenMaster !== 1 || !canAction || !hasRule1Access }; // limit to master for now
+      if (m.label === 'Gia hạn/Bàn giao') return { ...m, disabled: lenMaster !== 1 || !canExtendOrReturn }; // limit to master for now
+      if (m.label === 'Trả bàn') return { ...m, disabled: lenMaster !== 1 || !canExtendOrReturn }; // limit to master for now
       if (m.label === 'Binding lại') return { ...m, disabled: lenMaster !== 1 };
       return m;
     });
@@ -320,6 +345,19 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
             item.children = [];
           }
         });
+        
+        const currentUserId = this.appUserService.currentUser?.EmployeeID;
+        const canViewAll = this.permissionService.hasPermission('ESL_Test_Registration_ViewAll');
+
+        if (currentUserId && !canViewAll) {
+          results = results.filter((item: any) => {
+            if (!item.children || item.children.length === 0) return false;
+            return item.children.some((c: any) => 
+              c.OwnerID === currentUserId || c.ApproverID === currentUserId
+            );
+          });
+        }
+
         this.dataset = results;
         this.selectedItems = [];
         this.refreshFilters();

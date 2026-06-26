@@ -87,6 +87,16 @@ export class EslTestRegistrationFormComponent implements OnInit {
     this.loadApprovers();
     this.loadProjects();
 
+    this.form.get('StartDate')?.valueChanges.subscribe((val: Date) => {
+      if (val) {
+        const newEnd = new Date(val);
+        newEnd.setDate(newEnd.getDate() + 7);
+        this.form.patchValue({ EndDate: newEnd }, { emitEvent: false });
+      } else {
+        this.form.patchValue({ EndDate: null }, { emitEvent: false });
+      }
+    });
+
     if (this.data) {
       this.isEdit = true;
       this.patchFormData(this.data);
@@ -108,16 +118,6 @@ export class EslTestRegistrationFormComponent implements OnInit {
         });
       } else {
         this.form.patchValue({ RegistrationContent: null, ProjectID: null });
-      }
-    });
-
-    this.form.get('StartDate')?.valueChanges.subscribe((val: Date) => {
-      if (val) {
-        const newEnd = new Date(val);
-        newEnd.setDate(newEnd.getDate() + 7);
-        this.form.patchValue({ EndDate: newEnd }, { emitEvent: false });
-      } else {
-        this.form.patchValue({ EndDate: null }, { emitEvent: false });
       }
     });
   }
@@ -218,6 +218,7 @@ export class EslTestRegistrationFormComponent implements OnInit {
       this.allowEdit = true;
       if (no === 1) {
         this.form.enable();
+        this.form.get('EndDate')?.disable({ emitEvent: false });
       } else {
         this.form.disable();
       }

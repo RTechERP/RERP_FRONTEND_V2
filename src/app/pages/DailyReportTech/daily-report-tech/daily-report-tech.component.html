@@ -104,7 +104,8 @@
                             <nz-form-control>
                                 <nz-select nzDropdownClassName="select-dropdown" [(ngModel)]="userId" name="userId"
                                     nzShowSearch nzAllowClear="false" nzSize="small" nzPlaceHolder="Chọn nhân viên"
-                                    class="w-100">
+                                    class="w-100" (ngModelChange)="searchDailyReports()">
+
                                     <nz-option [nzValue]="0" nzLabel="Tất cả">Tất cả</nz-option>
                                     <nz-option-group *ngFor="let parent of users" [nzLabel]="parent.label">
                                         <nz-option *ngFor="let child of parent.options" nzCustomContent="true"

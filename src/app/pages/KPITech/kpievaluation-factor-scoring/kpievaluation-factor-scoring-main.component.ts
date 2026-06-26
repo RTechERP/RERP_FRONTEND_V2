@@ -1824,7 +1824,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
           if (results.ruleTeam.data.dtKpiRule) {
             const tempRuleData = this.transformToTreeData(results.ruleTeam.data.dtKpiRule, false);
 
-            // TN.Binh update 18/04/2026: Add Row STT 3.9 NewLine 
+            // TN.Binh update 18/04/2026: Add Row STT 3.9 NewLine
+            // __treeLevel và parentId bắt buộc phải có cho SlickGrid treeDataOptions
             tempRuleData.push({
               id: 'newline_3_9',
               ID: -9999,
@@ -1835,7 +1836,10 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
               ThirdMonth: 0,
               RuleContent: '',
               ParentID: 0,
-              __hasChildren: false
+              parentId: null,          // SlickGrid treeData: root node
+              __treeLevel: 0,          // SlickGrid treeData: bắt buộc có
+              __hasChildren: false,
+              __collapsed: false
             });
             this.dataRule = tempRuleData;
           }
@@ -3872,6 +3876,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
 
       // Buộc render lại mà không reset cột (tránh lỗi Sortable null)
       grid.slickGrid.invalidate();
+      // resizeCanvas() đồng bộ canvas height cho frozen panel, tránh lỗi dữ liệu bị cắt khi scroll
+      grid.slickGrid.resizeCanvas();
       grid.slickGrid.render();
 
       // Áp dụng sắp xếp theo cột STT nếu cột đó tồn tại
@@ -3893,6 +3899,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
 
       if (grid.slickGrid) {
         grid.slickGrid.invalidate();
+        // Đồng bộ lại canvas height cho frozen panel sau khi resize
+        grid.slickGrid.resizeCanvas();
         grid.slickGrid.render();
       }
 

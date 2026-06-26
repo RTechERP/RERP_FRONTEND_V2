@@ -319,7 +319,7 @@
 
                             <input nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 220px"
                                 [(ngModel)]="keyword" [ngModelOptions]="{ standalone: true }"
-                                (keyup.enter)="searchProjects()" (ngModelChange)="onSearchChange($event)" />
+                                (keyup.enter)="searchProjects()">
 
                             <button nz-button nzType="primary" nzSize="small" (click)="searchProjects()">
                                 <nz-icon nzType="search" />

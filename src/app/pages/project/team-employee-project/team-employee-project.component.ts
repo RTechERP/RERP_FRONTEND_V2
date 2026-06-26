@@ -3,6 +3,7 @@ import { CommonModule, formatDate } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import * as ExcelJS from 'exceljs';
 
 // PrimeNG
 import { TableModule } from 'primeng/table';
@@ -617,5 +618,202 @@ export class TeamEmployeeProjectComponent implements OnInit, AfterViewInit, OnDe
         console.error('Lỗi:', err);
       }
     });
+  }
+
+  exportToExcel(): void {
+    if (!this.projects() || this.projects().length === 0) {
+      this.notification.warning('Cảnh báo', 'Không có dữ liệu dự án để xuất Excel');
+      return;
+    }
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Dự án tham gia');
+
+      // Title row
+      const titleCell = worksheet.getCell('A2');
+      titleCell.value = 'DANH SÁCH DỰ ÁN THAM GIA CỦA NHÂN VIÊN';
+      titleCell.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FF1F497D' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      worksheet.mergeCells('A2:H2');
+      worksheet.getRow(2).height = 30;
+
+      // Metadata block configuration
+      const addMetaRow = (rowNum: number, label: string, val: string) => {
+        const row = worksheet.getRow(rowNum);
+        row.getCell(1).value = label;
+        row.getCell(1).font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF595959' } };
+        row.getCell(1).alignment = { horizontal: 'left' };
+        
+        row.getCell(2).value = val;
+        row.getCell(2).font = { name: 'Arial', size: 10, color: { argb: 'FF000000' } };
+        row.getCell(2).alignment = { horizontal: 'left' };
+        worksheet.mergeCells(`B${rowNum}:H${rowNum}`);
+      };
+
+      const deptName = this.departments().find(d => d.id === this.selectedDepartmentId)?.name || 'Tất cả';
+      const teamNames = this.userTeams()
+        .filter(t => this.selectedUserTeamIds.includes(t.id))
+        .map(t => t.name)
+        .join(', ') || 'Tất cả';
+      const dateFromStr = this.dateFrom ? this.formatDateExcel(this.dateFrom) : '...';
+      const dateToStr = this.dateTo ? this.formatDateExcel(this.dateTo) : '...';
+      
+      const selectedEmps = this.employees().filter(e => this.selectedEmployeeIds().has(e.id));
+      const empNames = selectedEmps.length === this.employees().length
+        ? 'Tất cả nhân viên trong nhóm'
+        : selectedEmps.map(e => e.fullName).join(', ') || 'Không có';
+
+      addMetaRow(4, 'Phòng ban:', deptName);
+      addMetaRow(5, 'Nhóm / Team:', teamNames);
+      addMetaRow(6, 'Thời gian:', `Từ ngày ${dateFromStr} Đến ngày ${dateToStr}`);
+      addMetaRow(7, 'Nhân viên:', empNames);
+
+      // Define columns widths
+      worksheet.columns = [
+        { width: 14 },  // STT
+        { width: 18 },  // Trạng thái
+        { width: 15 },  // Mã dự án
+        { width: 45 },  // Tên dự án
+        { width: 14 },  // BĐ dự kiến
+        { width: 14 },  // KT dự kiến
+        { width: 14 },  // BĐ thực tế
+        { width: 14 }   // KT thực tế
+      ];
+
+      // Table headers
+      const headers = [
+        'STT',
+        'Trạng thái',
+        'Mã dự án',
+        'Tên dự án',
+        'BĐ dự kiến',
+        'KT dự kiến',
+        'BĐ thực tế',
+        'KT thực tế'
+      ];
+      
+      const headerRow = worksheet.getRow(9);
+      headerRow.height = 25;
+      headers.forEach((h, index) => {
+        const cell = headerRow.getCell(index + 1);
+        cell.value = h;
+        cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF1890FF' } // Matching primary blue
+        };
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'medium' },
+          right: { style: 'thin' }
+        };
+      });
+
+      // Data Rows
+      this.projects().forEach((p, idx) => {
+        const rNum = 10 + idx;
+        const row = worksheet.getRow(rNum);
+
+        const data = [
+          idx + 1,
+          p.projectStatusText || '',
+          p.projectCode || '',
+          p.projectName || '',
+          this.formatDateExcel(p.planDateStart),
+          this.formatDateExcel(p.planDateEnd),
+          this.formatDateExcel(p.actualDateStart),
+          this.formatDateExcel(p.actualDateEnd)
+        ];
+
+        data.forEach((val, colIdx) => {
+          const cell = row.getCell(colIdx + 1);
+          cell.value = val;
+          cell.font = { name: 'Arial', size: 10 };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+
+          // Zebra striping
+          if (rNum % 2 === 0) {
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFF9FAFB' }
+            };
+          }
+
+          // Alignment
+          if (colIdx === 3) {
+            cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+          } else {
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          }
+        });
+      });
+
+      // Summary Row
+      const totalRows = this.projects().length;
+      const summaryRowNum = 10 + totalRows;
+      const summaryRow = worksheet.getRow(summaryRowNum);
+      summaryRow.height = 22;
+
+      worksheet.mergeCells(`A${summaryRowNum}:C${summaryRowNum}`);
+      const sumLabelCell = summaryRow.getCell(1);
+      sumLabelCell.value = 'Tổng số dự án:';
+      sumLabelCell.font = { name: 'Arial', size: 10, bold: true };
+      sumLabelCell.alignment = { horizontal: 'right', vertical: 'middle' };
+
+      const sumValCell = summaryRow.getCell(4);
+      sumValCell.value = totalRows;
+      sumValCell.font = { name: 'Arial', size: 10, bold: true };
+      sumValCell.alignment = { horizontal: 'left', vertical: 'middle' };
+
+      // Set borders for summary row
+      for (let i = 1; i <= 8; i++) {
+        summaryRow.getCell(i).border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'double' },
+          right: { style: 'thin' }
+        };
+      }
+
+      // Generate File
+      workbook.xlsx.writeBuffer().then((buffer) => {
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `DuAnThamGia_NhanVien_${new Date().getTime()}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      });
+
+      this.notification.success('Thành công', `Xuất Excel thành công!`);
+    } catch (error) {
+      console.error('Excel export error:', error);
+      this.notification.error('Lỗi', 'Không thể xuất file Excel');
+    }
+  }
+
+  private formatDateExcel(dateVal: any): string {
+    if (!dateVal) return '';
+    try {
+      const date = new Date(dateVal);
+      if (isNaN(date.getTime())) return String(dateVal);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch {
+      return String(dateVal);
+    }
   }
 }

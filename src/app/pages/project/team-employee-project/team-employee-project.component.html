@@ -43,9 +43,13 @@
         </div>
 
         <!-- Actions -->
-        <div class="filter-actions">
+        <div class="filter-actions text-nowrap d-flex align-items-center">
           <p-button label="Tìm kiếm" icon="pi pi-search" size="small" severity="primary" styleClass="p-button-sm"
             (onClick)="onSearch()" [loading]="loadingEmployees()" (keyup.enter)="onSearch()">
+          </p-button>
+          <span class="mx-2 text-muted">|</span>
+          <p-button label="Xuất Excel" icon="pi pi-file-excel" severity="success" size="small"
+            styleClass="p-button-sm" (onClick)="exportToExcel()" [disabled]="projects().length === 0">
           </p-button>
           <!-- <p-button label="Đặt lại" icon="pi pi-refresh" severity="secondary" [outlined]="true" size="small"
             styleClass="p-button-sm" (onClick)="onClear()">

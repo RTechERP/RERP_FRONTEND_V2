@@ -469,10 +469,10 @@
                           Dự kiến bắt đầu
                           <p-sortIcon field="ExpectedPlanDate"></p-sortIcon>
                         </th>
-                        <th pSortableColumn="ExpectedQuotationDate" pResizableColumn
+                        <th pSortableColumn="ExpectedProjectEndDate" pResizableColumn
                           style="width: 4.6%; min-width: 4.6%; max-width: 4.6%">
                           Dự kiến kết thúc
-                          <p-sortIcon field="ExpectedQuotationDate"></p-sortIcon>
+                          <p-sortIcon field="ExpectedProjectEndDate"></p-sortIcon>
                         </th>
                         <th pSortableColumn="RealityPlanDate" pResizableColumn
                           style="width: 4.6%; min-width: 4.6%; max-width: 4.6%">
@@ -631,7 +631,7 @@
                           <p-columnFilter type="date" field="ExpectedPlanDate" class="w-full"></p-columnFilter>
                         </th>
                         <th style="width: 4.6%; min-width: 4.6%; max-width: 4.6%">
-                          <p-columnFilter type="date" field="ExpectedQuotationDate" class="w-full"></p-columnFilter>
+                          <p-columnFilter type="date" field="ExpectedProjectEndDate" class="w-full"></p-columnFilter>
                         </th>
                         <th style="width: 4.6%; min-width: 4.6%; max-width: 4.6%">
                           <p-columnFilter type="date" field="RealityPlanDate" class="w-full"></p-columnFilter>
@@ -753,7 +753,7 @@
                           " title="{{ rowData.CustomerName }}" class="cell-wrap">
                           {{ rowData.CustomerName }}
                         </td>
-                        <td style="
+                        <!-- <td style="
                             width: 250px;
                             min-width: 250px;
                             max-width: 250px;
@@ -766,7 +766,7 @@
                             max-width: 250px;
                           " title="{{ rowData.TechnologyNames }}" class="cell-wrap">
                           {{ rowData.TechnologyNames }}
-                        </td>
+                        </td> -->
                         <td style="
                             width: 120px;
                             min-width: 120px;
@@ -793,7 +793,7 @@
                             min-width: 140px;
                             max-width: 140px;
                           " class="text-center">
-                          {{ rowData.ExpectedQuotationDate | date: "dd/MM/yyyy" }}
+                          {{ rowData.ExpectedProjectEndDate | date: "dd/MM/yyyy" }}
                         </td>
                         <td style="
                             width: 140px;

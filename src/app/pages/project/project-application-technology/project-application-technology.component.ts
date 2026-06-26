@@ -42,6 +42,7 @@ import { PermissionService } from '../../../services/permission.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectTechnologyFormComponent } from '../project-application-types/project-technology-form/project-technology-form.component';
 import { ProjectApplicationTypesFormComponent } from '../project-application-types/project-application-types-form/project-application-types-form.component';
+import * as ExcelJS from 'exceljs';
 
 @Component({
   selector: 'app-project-application-technology',
@@ -670,6 +671,11 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
         visible: hasPermission,
         //disabled: !this.selectedRow,
         command: () => this.openEditMappingModal()
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => this.exportToExcel()
       }
     ];
   }
@@ -753,7 +759,7 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
     const childrenStr = trimmed.substring(colonIndex + 1).trim();
     let children = childrenStr ? childrenStr.split(',').map(c => c.trim()).filter(Boolean) : [];
     children = children.filter(c => c.toLowerCase() !== 'chưa cấu hình' && c !== '');
-    
+
     const full = children.join(', ');
     const display = children.slice(0, 3).join(', ');
     const moreCount = children.length > 3 ? children.length - 3 : 0;
@@ -814,6 +820,86 @@ export class ProjectApplicationTechnologyComponent implements OnInit, OnDestroy 
         event.rowData.LeaderID = 0;
         event.rowData.EmployeeID = 0;
       }
+    }
+  }
+
+  exportToExcel(): void {
+    if (!this.dataset || this.dataset.length === 0) {
+      this.notification.warning('Cảnh báo', 'Không có dữ liệu để export');
+      return;
+    }
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Danh sách ánh xạ');
+
+      // Define columns
+      const cols = [
+        { header: 'Trạng thái', key: 'ProjectStatusName', width: 15 },
+        { header: 'Mã dự án', key: 'ProjectCode', width: 15 },
+        { header: 'Tên dự án', key: 'ProjectName', width: 35 },
+        { header: 'End User', key: 'EndUserName', width: 25 },
+        { header: 'Khách hàng', key: 'CustomerName', width: 25 },
+        { header: 'Kiểu dự án', key: 'ProjectTypeNames', width: 30 },
+        { header: 'Kiểu ứng dụng', key: 'ApplicationTypeNames', width: 40 },
+        { header: 'Công nghệ ứng dụng', key: 'TechnologyNames', width: 40 },
+      ];
+
+      worksheet.columns = cols;
+
+      // Header style
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      headerRow.eachCell((cell) => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF2E75B6' }
+        };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+
+      // Add data
+      this.dataset.forEach(item => {
+        worksheet.addRow(item);
+      });
+
+      // Data style
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber > 1) {
+          row.eachCell(cell => {
+            cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' }
+            };
+          });
+        }
+      });
+
+      // Export
+      workbook.xlsx.writeBuffer().then((buffer) => {
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `TongHopKieuUngDung_CongNghe_${new Date().getTime()}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      });
+
+      this.notification.success('Thành công', `Xuất excel thành công!`);
+    } catch (error) {
+      console.error('Excel export error:', error);
+      this.notification.error('Lỗi', 'Không thể export file Excel');
     }
   }
 

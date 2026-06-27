@@ -86,3 +86,9 @@
 /* ::ng-deep div[id^="grid-product-group-"] .slick-row:hover .slick-cell {
   background-color: inherit !important;
 } */
+
+/* Cell ProductCode bôi màu khi dòng có IsFix = true */
+:host ::ng-deep .slick-cell.cell-is-fix {
+  background-color: #4682B4 !important;
+  color: white !important;
+}

@@ -1608,6 +1608,97 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         }, () => { });
     }
 
+    // Mở modal Yêu cầu mua hàng để thêm nhiều dòng mới vào bảng Hàng tiền (không gắn vào 1 dòng cụ thể)
+    openYCMHModalAddRows() {
+        const supplierSaleId = this.informationForm.get('SupplierSaleID')?.value;
+        if (!supplierSaleId) {
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn Nhà cung cấp trước!');
+            return;
+        }
+        const modalRef = this.modalService.open(ProjectPartListPurchaseRequestSlickGridComponent, {
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+            windowClass: 'full-screen-modal',
+        });
+
+        modalRef.componentInstance.showHeader = true;
+        modalRef.componentInstance.headerText = "Yêu cầu mua hàng";
+        modalRef.componentInstance.showCloseButton = true;
+        modalRef.componentInstance.supplierId = supplierSaleId;
+        modalRef.componentInstance.isYCMH = true;
+
+        modalRef.result.then((selectedData) => {
+            if (!selectedData || !selectedData.selectedRows || !selectedData.selectedRows.length) {
+                return;
+            }
+            this.addRowsFromYCMH(selectedData.selectedRows);
+        }, () => { });
+    }
+
+    // Map data đầy đủ của các dòng YCMH được chọn vào bảng Hàng tiền, giống cách map khi tạo PONCC từ YCMH
+    private addRowsFromYCMH(rows: any[]) {
+        const tabulator = this.tabulatorHangTien;
+        if (!tabulator) return;
+        const existingData = tabulator.getData();
+        let maxSTT = existingData.length > 0 ? Math.max(...existingData.map((row: any) => Number(row.STT) || 0)) : 0;
+        const productGroupIDHR = [77, 80];
+        const currencys: number[] = [];
+
+        rows.forEach((row: any) => {
+            const currencyId = Number(row.CurrencyID || 0);
+            // if (currencyId > 0) currencys.push(currencyId);
+            maxSTT++;
+            const quantity = Number(row.Quantity || 0);
+            const unitPrice = Number(row.UnitPrice || 0);
+            const vat = Number(row.VAT || 0);
+            const thanhTien = quantity * unitPrice;
+            const vatMoney = thanhTien * (vat / 100);
+            const productGroupID = Number(row.ProductGroupID || 0);
+
+            let productCodeOfSupplier = productGroupIDHR.includes(productGroupID)
+                ? String(row.ProductName || '')
+                : String((row.ProductName || '') + ' ' + (row.ProductCode || ''));
+            if (String(row.GuestCode || '').trim()) {
+                productCodeOfSupplier = String(row.GuestCode);
+            }
+            if (String(row.SpecialCode || '').trim()) {
+                productCodeOfSupplier = String(row.SpecialCode);
+            }
+
+            tabulator.addRow({
+                ID: 0,
+                STT: maxSTT,
+                ProductSaleID: Number(row.ProductSaleID || 0),
+                ProductRTCID: Number(row.ProductRTCID || 0),
+                ProductName: row.ProductName || '',
+                ProductNewCode: row.ProductNewCode || '',
+                ProductGroupName: row.ProductGroupName || '',
+                ProductCodeOfSupplier: productCodeOfSupplier,
+                ProjectID: Number(row.ProjectID || 0),
+                ProjectName: row.ProjectName || '',
+                UnitName: row.UnitName || '',
+                QtyRequest: quantity,
+                UnitPrice: unitPrice,
+                ThanhTien: thanhTien,
+                VAT: vat,
+                VATMoney: vatMoney,
+                DiscountPercent: Number(row.DiscountPercent || 0),
+                FeeShip: Number(row.FeeShip || 0),
+                PriceHistory: Number(row.HistoryPrice || 0),
+                YCMHCode: row.ProductNewCode || '',
+                PONCCDetailRequestBuyID: String(row.ID || ''),
+            }, false);
+        });
+
+        // const uniqueCurrencies = [...new Set(currencys)];
+        // if (uniqueCurrencies.length === 1) {
+        //     this.companyForm.patchValue({ CurrencyID: uniqueCurrencies[0] });
+        // }
+
+        this.resetSTT();
+    }
+
     onAddSupplierSale() {
         const modalRef = this.modalService.open(SupplierSaleDetailComponent, {
             backdrop: 'static',

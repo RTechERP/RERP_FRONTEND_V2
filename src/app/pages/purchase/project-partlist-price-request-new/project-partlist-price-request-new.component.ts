@@ -290,6 +290,12 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     const d = this.appUserService.departmentID ?? 0;
     return d === 4 && !this.appUserService.isAdmin;
   }
+  // Nhân viên phòng mua (N33, N35) không phải admin thì không được Thêm/Sửa
+  get hidePurchaseStaffAddEdit(): boolean {
+    const isPurchaseStaff =
+      this.appUserService.hasPermission('N33') || this.appUserService.hasPermission('N35');
+    return isPurchaseStaff && !this.appUserService.isAdmin;
+  }
   get shouldShowSearchBar(): boolean {
     // Hiển thị search bar khi showSearchBar = true và:
     // - Không phải HR, HOẶC
@@ -1346,13 +1352,21 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
     const columns = angularGrid.slickGrid.getColumns();
     if (!columns) return;
 
+    // Dữ liệu gốc (chưa bị lọc bởi header filter) dùng để tính lại datafilter
+    // cho chính cột đang active filter, để mở lại dropdown của 1 cột vẫn phản ánh
+    // đúng các filter header KHÁC (không bị giới hạn bởi filter của chính nó)
+    const fullDataset = this.datasetsAllMap.get(typeId) || data;
+    const activeFilters = (angularGrid.filterService?.getCurrentLocalFilters() || []).filter(
+      (f: any) => f.searchTerms?.length > 0
+    );
+
     // Update collections
-    this.updateFilterCollections(columns, data);
+    this.updateFilterCollections(columns, data, fullDataset, activeFilters);
 
     // Update column definitions in the map
     const columnDefs = this.columnDefinitionsMap.get(typeId);
     if (columnDefs) {
-      this.updateFilterCollections(columnDefs, data);
+      this.updateFilterCollections(columnDefs, data, fullDataset, activeFilters);
     }
 
     // Force refresh columns
@@ -1367,7 +1381,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
   /**
    * Helper method để update filter collections
    */
-  private updateFilterCollections(columns: any[], data: any[]): void {
+  private updateFilterCollections(columns: any[], data: any[], fullDataset?: any[], activeFilters?: any[]): void {
     // Helper function to get unique values
     const getUniqueValues = (data: any[], field: string): Array<{ value: string; label: string }> => {
       const map = new Map<string, string>();
@@ -1384,6 +1398,28 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         .sort((a, b) => a.label.localeCompare(b.label));
     };
 
+    // Lấy dữ liệu nguồn cho cột đang có filter active: lọc dataset gốc theo TẤT CẢ
+    // filter header khác (loại trừ filter của chính cột này), để dropdown của cột đó
+    // vẫn phản ánh đúng các filter khác thay vì bị thu hẹp theo lựa chọn của chính nó
+    const getSourceDataForColumn = (columnId: string): any[] => {
+      if (!fullDataset || !activeFilters?.length) return data;
+      const isSelfActive = activeFilters.some((f: any) => f.columnId === columnId);
+      if (!isSelfActive) return data;
+
+      const fieldByColumnId = new Map<string, string>(columns.map((c: any) => [c.id, c.field]));
+      const otherFilters = activeFilters.filter((f: any) => f.columnId !== columnId);
+      if (otherFilters.length === 0) return fullDataset;
+
+      return fullDataset.filter((row: any) =>
+        otherFilters.every((f: any) => {
+          const field = fieldByColumnId.get(f.columnId);
+          if (!field) return true;
+          const terms = (f.searchTerms || []).map((t: any) => String(t));
+          return terms.includes(String(row?.[field] ?? ''));
+        })
+      );
+    };
+
     columns.forEach((column: any) => {
       if (column.filter && column.filter.model === Filters['multipleSelect']) {
         const field = column.field;
@@ -1398,7 +1434,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           const filteredCollection = this.getSupplierCollection().filter((x) => x.value > 0);
           column.filter.collection = filteredCollection;
         } else {
-          column.filter.collection = getUniqueValues(data, field);
+          column.filter.collection = getUniqueValues(getSourceDataForColumn(column.id), field);
         }
       }
 
@@ -6260,13 +6296,13 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
           label: 'Thêm',
           icon: 'fa-solid fa-plus fa-lg text-success',
           command: () => this.OnAddClick(),
-          visible: true
+          visible: !this.hidePurchaseStaffAddEdit
         },
         {
           label: 'Sửa',
           icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
           command: () => this.OnEditClick(),
-          visible: true
+          visible: !this.hidePurchaseStaffAddEdit
         },
         {
           label: 'Xóa',
@@ -6330,7 +6366,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         label: 'Thêm',
         icon: 'fa-solid fa-plus fa-lg text-success',
         command: () => this.OnAddClick(),
-        visible: true // Will be controlled by *hasPermission in template
+        visible: !this.hidePurchaseStaffAddEdit // Will be controlled by *hasPermission in template
       });
     }
 
@@ -6340,7 +6376,7 @@ export class ProjectPartlistPriceRequestNewComponent implements OnInit, OnDestro
         label: 'Sửa',
         icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
         command: () => this.OnEditClick(),
-        visible: true // Will be controlled by *hasPermission in template
+        visible: !this.hidePurchaseStaffAddEdit // Will be controlled by *hasPermission in template
       });
     }
 

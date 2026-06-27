@@ -13,6 +13,12 @@
   filter: brightness(0.95);
 }
 
+/* Cell ProductCode bôi màu khi dòng có IsFix = true */
+:host ::ng-deep .slick-cell.cell-is-fix {
+  background-color: #4682B4 !important;
+  color: white !important;
+}
+
 /* Loading overlay */
 .loading-overlay {
   position: absolute;

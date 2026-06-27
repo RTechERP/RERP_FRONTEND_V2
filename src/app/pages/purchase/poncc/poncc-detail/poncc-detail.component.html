@@ -4,10 +4,12 @@
     <div class="card h-100 border-0 rounded-0" style="display: flex; flex-direction: column; height: 100%">
       <div class="card-header d-flex bg-white p-1">
         <div class="d-flex gap-1 me-1">
-          <button nz-button nzSize="small" nzType="default" (click)="saveOnly()" *hasPermission="'N33,N35,N1,N36'" [disabled]="isSaving" [nzLoading]="isSaving">
+          <button nz-button nzSize="small" nzType="default" (click)="saveOnly()" *hasPermission="'N33,N35,N1,N36'"
+            [disabled]="isSaving" [nzLoading]="isSaving">
             <i class="fas fa-save me-1"></i> Lưu
           </button>
-          <button nz-button nzSize="small" nzType="primary" (click)="saveAndClose()" *hasPermission="'N33,N35,N1,N36'" [disabled]="isSaving" [nzLoading]="isSaving">
+          <button nz-button nzSize="small" nzType="primary" (click)="saveAndClose()" *hasPermission="'N33,N35,N1,N36'"
+            [disabled]="isSaving" [nzLoading]="isSaving">
             <i class="fas fa-save me-1"></i> Lưu và đóng
           </button>
           <button nz-button nzSize="small" nzType="default" nz-dropdown [nzDropdownMenu]="menuPrintPO"
@@ -32,6 +34,9 @@
           <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openModalProductSale()"
             *hasPermission="'N33,N35,N1'">
             <img class="btn-action-icon" src="assets/icon/action_add_24.svg" alt="Thêm sản phẩm" />Thêm sản phẩm
+          </button>
+          <button nz-button nzType="primary" nzSize="small" (click)="openYCMHModalAddRows()" hidden>
+            <i class="fas fa-plus"></i> Chọn từ yêu cầu mua hàng
           </button>
         </div>
       </div>

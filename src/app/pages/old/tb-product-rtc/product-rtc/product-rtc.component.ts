@@ -764,11 +764,6 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         this.angularGrid.slickGrid.render();
     }
 
-    onKeywordChange(value: string): void {
-        this.keyWord = value;
-        this.getProduct();
-    }
-
     onSearchModeChange(mode: string): void {
         this.searchMode = mode;
         if (mode === 'all') {

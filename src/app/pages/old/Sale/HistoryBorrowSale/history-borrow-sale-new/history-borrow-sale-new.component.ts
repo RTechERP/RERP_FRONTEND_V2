@@ -23,7 +23,7 @@ import {
 } from 'angular-slickgrid';
 import { DateTime } from 'luxon';
 import { HistoryBorrowSaleService } from '../history-borrow-sale-service/history-borrow-sale.service';
-import { BillExportService } from '../../BillExport/bill-export-service/bill-export.service';
+import { ProductsaleServiceService } from '../../ProductSale/product-sale-service/product-sale-service.service';
 import { BillImportTabsComponent } from '../../BillImport/Modal/bill-import-tabs/bill-import-tabs.component';
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { SummaryReturnDetailComponent } from '../../BillImport/Modal/summary-return-detail/summary-return-detail.component';
@@ -66,7 +66,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
         private historyBorrowSaleService: HistoryBorrowSaleService,
         private notification: NzNotificationService,
         private modalService: NgbModal,
-        private billExportService: BillExportService,
+        private productsaleSV: ProductsaleServiceService,
         private route: ActivatedRoute,
         private permissionService: PermissionService,
         private appUserService: AppUserService,
@@ -204,13 +204,13 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
     }
 
     getCbbProductGroup() {
-        this.billExportService.getCbbProductGroup().subscribe({
+        // Lấy nhóm vật tư theo kho (giống cách inventory-new.component đang làm), thay vì danh sách chung
+        this.productsaleSV.getdataProductGroupNew(this.warehouseID, false, true).subscribe({
             next: (res: any) => {
-                console.log(res.data);
-
+                const data = res?.data?.data1 || [];
                 this.cbbProductGroup = [
                     { ID: 0, ProductGroupName: '--Chọn--' },
-                    ...res.data
+                    ...data
                 ];
             },
             error: (err: any) => {

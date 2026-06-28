@@ -368,6 +368,12 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
         `;
     };
 
+    // Formatter cho cột ProductCode: wrap text + bôi màu cell khi dòng có IsFix = true
+    productCodeFormatter: Formatter = (row, cell, value, column, dataContext, grid) => {
+        const html = this.wrapTextFormatter(row, cell, value, column, dataContext, grid) as string;
+        return dataContext?.IsFix === true ? { text: html, addClasses: 'cell-is-fix' } : html;
+    };
+
     // Tree formatter for hierarchical display
     treeFormatter: Formatter = (_row, _cell, value, _column, dataContext, grid) => {
         if (!value || !dataContext) return '';
@@ -1750,7 +1756,7 @@ export class InventoryNewComponent implements OnInit, AfterViewInit, OnDestroy {
                 width: 150,
                 sortable: true,
                 filterable: true,
-                formatter: this.wrapTextFormatter,
+                formatter: this.productCodeFormatter,
                 filter: {
                     model: Filters['compoundInput'],
                 },

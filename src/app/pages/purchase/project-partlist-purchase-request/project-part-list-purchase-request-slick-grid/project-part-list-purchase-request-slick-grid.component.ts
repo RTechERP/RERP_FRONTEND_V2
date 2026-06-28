@@ -115,6 +115,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   datasetsAllMap: Map<number, any[]> = new Map();
   // Store selected row IDs for each tab
   selectedRowIdsSetMap: Map<number, Set<number>> = new Map();
+  // Debounce timers for dynamic filter collection updates, keyed by tab id
+  private filterCollectionUpdateTimers: Map<number, ReturnType<typeof setTimeout>> = new Map();
 
   // Tabs
   tabs: Tab[] = [];
@@ -2853,6 +2855,8 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       angularGrid.dataView.onRowCountChanged.subscribe(() => {
         // Update footer trực tiếp không dùng setTimeout để tránh re-render gây mất focus
         this.updateFooterRow(typeId);
+        // Update datafilter của các cột multipleSelect khác theo các filter header đang active
+        this.updateFilterCollectionsFromFilteredData(typeId);
       });
     }
 
@@ -5556,6 +5560,7 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       this.activeModal.close({
         strLstRequestBuyIDs: strLstRequestBuyIDs,
         strLstCodes: strLstCodes,
+        selectedRows: selected,
       });
     }
   }
@@ -6103,6 +6108,95 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       from: { row: 1, column: 1 },
       to: { row: 1, column: headers.length },
     };
+  }
+
+  // Các field dùng collection lấy từ editor (master data theo ID), không tính lại datafilter theo dataset
+  private readonly idBasedCollectionFields = new Set([
+    'CurrencyID',
+    'SupplierSaleID',
+    'WarehouseID',
+    'ProductGroupID',
+    'ProductGroupRTCID',
+  ]);
+
+  private updateFilterCollectionsFromFilteredData(typeId: number): void {
+    clearTimeout(this.filterCollectionUpdateTimers.get(typeId));
+    this.filterCollectionUpdateTimers.set(
+      typeId,
+      setTimeout(() => this.applyFilterCollections(typeId), 400)
+    );
+  }
+
+  // Cập nhật datafilter của các cột multipleSelect (trừ các cột lấy collection từ master data theo ID)
+  // dựa trên các filter header khác đang active, để mở lại dropdown của 1 cột vẫn phản ánh đúng
+  // các filter khác (không quay về dataset gốc, và không bị giới hạn bởi filter của chính nó)
+  private applyFilterCollections(typeId: number): void {
+    const angularGrid = this.angularGrids.get(typeId);
+    if (!angularGrid || !angularGrid.slickGrid || !angularGrid.dataView) return;
+
+    const columns = angularGrid.slickGrid.getColumns();
+    const dataset = this.datasetsAllMap.get(typeId) || [];
+    const filteredItems = angularGrid.dataView.getFilteredItems() || [];
+
+    const activeFilters = (angularGrid.filterService?.getCurrentLocalFilters() || []).filter(
+      (f: any) => f.searchTerms?.length > 0
+    );
+    const activeFilterColumnIds = new Set(activeFilters.map((f: any) => f.columnId));
+
+    const fieldByColumnId = new Map<string, string>(columns.map((c: any) => [c.id, c.field]));
+
+    const rowMatchesFilter = (row: any, filter: any): boolean => {
+      const field = fieldByColumnId.get(filter.columnId);
+      if (!field) return true;
+      const terms = (filter.searchTerms || []).map((t: any) => String(t));
+      return terms.includes(String(row?.[field] ?? ''));
+    };
+
+    const getSourceDataExcludingColumn = (columnId: string): any[] => {
+      const otherFilters = activeFilters.filter((f: any) => f.columnId !== columnId);
+      if (otherFilters.length === 0) return dataset;
+      return dataset.filter((row: any) => otherFilters.every((f: any) => rowMatchesFilter(row, f)));
+    };
+
+    const getUniqueValuesFromData = (data: any[], field: string): Array<{ value: string; label: string }> => {
+      const map = new Map<string, string>();
+      let hasBlank = false;
+      data.forEach((row: any) => {
+        const value = String(row?.[field] ?? '');
+        if (value.trim() === '') {
+          hasBlank = true;
+        } else if (!map.has(value)) {
+          map.set(value, value);
+        }
+      });
+      const result = Array.from(map.entries())
+        .map(([value, label]) => ({ value, label }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+      if (hasBlank) {
+        result.unshift({ value: '', label: '' });
+      }
+      return result;
+    };
+
+    let hasChanges = false;
+    columns.forEach((column: any) => {
+      if (
+        column.filter &&
+        column.filter.model === Filters['multipleSelect'] &&
+        column.field &&
+        !this.idBasedCollectionFields.has(column.field)
+      ) {
+        const sourceData = activeFilterColumnIds.has(column.id)
+          ? getSourceDataExcludingColumn(column.id)
+          : filteredItems;
+        column.filter.collection = getUniqueValuesFromData(sourceData, column.field);
+        hasChanges = true;
+      }
+    });
+
+    if (hasChanges) {
+      angularGrid.slickGrid.setColumns(columns);
+    }
   }
 
   // Apply distinct filters for multiple columns after data is loaded

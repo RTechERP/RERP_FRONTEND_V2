@@ -897,6 +897,48 @@
                   </div>
                 </div>
               </nz-tab>
+              <!-- Tab 5: Hồ sơ đính kèm -->
+              <nz-tab nzTitle="Hồ sơ đính kèm">
+                <div class="tab-content-container p-2">
+                  <div class="preview-paper">
+                    <h6 class="border-bottom pb-2 mb-3 text-primary fw-bold fs-13" style="font-size: 13px !important;">
+                      DANH SÁCH TÀI LIỆU ĐÍNH KÈM</h6>
+
+                    <div class="table-responsive" *ngIf="selectedCandidate?.FileCVName; else noCV">
+                      <table class="table table-sm table-bordered fs-12 text-center"
+                        style="font-size: 12px; margin-bottom: 0;">
+                        <thead class="table-light">
+                          <tr>
+                            <th style="width: 50px;">STT</th>
+                            <th>Tên tài liệu</th>
+                            <th style="width: 150px;">Chức năng</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>1</td>
+                            <td class="text-start">
+                              <i nz-icon nzType="paper-clip" nzTheme="outline" class="me-1"></i>{{
+                              selectedCandidate?.FileCVName }}
+                            </td>
+                            <td>
+                              <button nz-button nzType="primary" nzSize="small" (click)="viewCV()">
+                                <i nz-icon nzType="eye" nzTheme="outline" class="me-1"></i> Xem file
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <ng-template #noCV>
+                      <div class="text-center text-muted p-4 border border-dashed rounded bg-light mb-3">
+                        <nz-icon nzType="info-circle" style="font-size: 24px;" class="text-primary mb-2" />
+                        <div>Không tìm thấy tài liệu đính kèm của ứng viên này.</div>
+                      </div>
+                    </ng-template>
+                  </div>
+                </div>
+              </nz-tab>
 
             </nz-tabset>
           </div>

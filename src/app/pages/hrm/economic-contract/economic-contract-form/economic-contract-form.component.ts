@@ -181,6 +181,7 @@ export class EconomicContractFormComponent implements OnInit {
     }
 
     onSubmit() {
+        if (this.isLoading) return;
         if (this.form.invalid) {
             Object.values(this.form.controls).forEach(control => {
                 if (control.invalid) {

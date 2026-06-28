@@ -90,6 +90,8 @@ export class FlightBookingManagementComponent implements OnInit {
 
   // Dữ liệu combobox
   projects: any[] = [];
+  groupedEmployees: any[] = [];
+  employeeBookerID: number | null = null;
 
   // Các mục menu cho PrimeNG Menubar
   menuItems: MenuItem[] = [];
@@ -116,7 +118,35 @@ export class FlightBookingManagementComponent implements OnInit {
   ngOnInit(): void {
     this.initMenus();
     this.loadProjects();
+    this.loadEmployees();
     this.onSearch();
+  }
+
+  loadEmployees(): void {
+    this.service.getEmployees().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 1) {
+          this.groupEmployees(res.data || []);
+        } else {
+          this.groupEmployees(res || []);
+        }
+      }
+    });
+  }
+
+  private groupEmployees(employees: any[]): void {
+    const groups: any[] = [];
+    const map = new Map();
+    for (const emp of employees) {
+      const deptName = emp.DepartmentName || 'Khác';
+      if (!map.has(deptName)) {
+        const newGroup = { DepartmentName: deptName, items: [] };
+        groups.push(newGroup);
+        map.set(deptName, newGroup);
+      }
+      map.get(deptName).items.push(emp);
+    }
+    this.groupedEmployees = groups;
   }
 
   initMenus(): void {
@@ -200,7 +230,8 @@ export class FlightBookingManagementComponent implements OnInit {
       Keyword: this.keyword,
       StartDate: this.dateStart,
       EndDate: this.dateEnd,
-      ProjectID: this.projectID === -1 ? undefined : this.projectID
+      ProjectID: this.projectID === -1 ? undefined : this.projectID,
+      EmployeeBookerID: this.employeeBookerID || undefined
     };
 
     this.service.getList(params).subscribe({
@@ -463,6 +494,7 @@ export class FlightBookingManagementComponent implements OnInit {
       StartDate: this.dateStart,
       EndDate: this.dateEnd,
       ProjectID: this.projectID === -1 ? undefined : this.projectID,
+      EmployeeBookerID: this.employeeBookerID || undefined,
       SelectedIDs: this.selectedBookings.length > 0 ? this.selectedBookings.map(x => x.ID) : undefined
     };
 

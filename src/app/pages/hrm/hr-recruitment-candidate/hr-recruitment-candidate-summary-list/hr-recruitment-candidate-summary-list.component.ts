@@ -24,6 +24,7 @@ import { DepartmentServiceService } from '../../department/department-service/de
 import { HRRecruitmentApplicationFormService } from '../../hr-recruitment/hr-recruitment-application-form/home-layout-candidate/hr-recruitment-application-form.service';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
 import { ExamGradingDialogComponent } from '../../hr-recruitment-exam-score/exam-grading-dialog/exam-grading-dialog.component';
+import { environment } from '../../../../../environments/environment';
 
 export interface ColDef {
   field: string; header: string; width: string; type?: string;
@@ -491,6 +492,26 @@ export class HRRecruitmentCandidateSummaryListComponent implements OnInit, After
     this.selectedCandidateId = 0;
     this.selectedCandidate = null;
     this.cdr.detectChanges();
+  }
+
+  viewCV(): void {
+    const filePath = this.selectedCandidate?.ServerPath || '';
+    if (filePath) {
+      const host = environment.host + 'api/share';
+      let urlImg = filePath.replace("\\\\192.168.1.190", host) + `/${this.selectedCandidate?.FileCVName}`;
+      const newWindow = window.open(
+        urlImg,
+        '_blank',
+      );
+
+      if (newWindow) {
+        newWindow.onload = () => {
+          newWindow.document.title = this.selectedCandidate?.FileCVName;
+        };
+      }
+    } else {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Ứng viên này không có file CV đính kèm.');
+    }
   }
 
   get recruitmentSurvey(): any {

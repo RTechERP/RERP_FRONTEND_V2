@@ -44,7 +44,7 @@
           </nz-col>
 
           <!-- Dự án -->
-          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="6" [nzXl]="5">
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="5" [nzXl]="4">
             <nz-form-item class="mb-0">
               <nz-form-label class="fs-12">Dự án</nz-form-label>
               <nz-form-control>
@@ -58,8 +58,25 @@
             </nz-form-item>
           </nz-col>
 
+          <!-- Người đặt -->
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="5" [nzXl]="5">
+            <nz-form-item class="mb-0">
+              <nz-form-label class="fs-12">Người đặt</nz-form-label>
+              <nz-form-control>
+                <nz-select name="employeeBookerID" [(ngModel)]="employeeBookerID" nzPlaceHolder="Tất cả"
+                  nzDropdownClassName="select-dropdown" nzSize="small" class="w-100" nzAllowClear nzShowSearch
+                  (ngModelChange)="onSearch()">
+                  <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
+                    <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID"
+                      [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                  </nz-option-group>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
           <!-- Từ khóa -->
-          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="9" [nzXl]="10">
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="5" [nzXl]="6">
             <nz-form-item class="mb-0">
               <nz-form-label class="fs-12">Từ khóa</nz-form-label>
               <nz-form-control>
@@ -115,6 +132,20 @@
                     nzAllowClear nzShowSearch>
                     <nz-option *ngFor="let p of projects" [nzValue]="p.ID"
                       [nzLabel]="p.ProjectCode + ' - ' + p.ProjectName"></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Người đặt</nz-form-label>
+                <nz-form-control>
+                  <nz-select name="employeeBookerID_m" [(ngModel)]="employeeBookerID" nzPlaceHolder="Tất cả người đặt"
+                    class="w-100" nzAllowClear nzShowSearch>
+                    <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
+                      <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID"
+                        [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                    </nz-option-group>
                   </nz-select>
                 </nz-form-control>
               </nz-form-item>
@@ -274,7 +305,8 @@
                         </td>
                         <td>{{ p.Baggage }}</td>
                         <td style="text-align: center;">
-                          <i *ngIf="p.HCNSProposal" nz-icon nzType="check-circle" nzTheme="fill" style="color: #52c41a; font-size: 16px;"></i>
+                          <i *ngIf="p.HCNSProposal" nz-icon nzType="check-circle" nzTheme="fill"
+                            style="color: #52c41a; font-size: 16px;"></i>
                         </td>
                         <td style="text-align: center;">
                           <nz-tag [nzColor]="p.IsApprove === 1 ? 'success' : (p.IsApprove === 2 ? 'error' : 'default')"

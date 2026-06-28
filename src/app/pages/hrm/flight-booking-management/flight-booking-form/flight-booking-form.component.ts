@@ -90,10 +90,11 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
   approvers: any[] = [];
 
   // Gợi ý lịch sử
-  historicalSuggestions: any = { departures: [], arrivals: [], airlines: [] };
+  historicalBookings: any[] = [];
   filteredDepartures: string[] = [];
   filteredArrivals: string[] = [];
   filteredAirlines: string[] = [];
+  filteredBaggages: string[] = [];
 
   timeHours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
   timeMinutes = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
@@ -258,29 +259,46 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
     this.service.getHistoricalSuggestions().subscribe({
       next: (res: any) => {
         if (res && res.status === 1) {
-          this.historicalSuggestions = res.data;
-          // Initialize filtered lists with full data
-          this.filteredDepartures = [...this.historicalSuggestions.departures];
-          this.filteredArrivals = [...this.historicalSuggestions.arrivals];
-          this.filteredAirlines = [...this.historicalSuggestions.airlines];
+          this.historicalBookings = res.data || [];
         }
       }
     });
   }
 
-  onDepartureInput(value: string): void {
-    const val = (value || '').toLowerCase();
-    this.filteredDepartures = (this.historicalSuggestions.departures || []).filter((x: string) => x.toLowerCase().includes(val));
+  onDepartureInput(value: string | any): void {
+    const valStr = (value || '').toString().toLowerCase();
+    this.filteredDepartures = Array.from(new Set(
+      this.historicalBookings
+        .filter(s => s.DepartureAddress && s.DepartureAddress.toString().toLowerCase().includes(valStr))
+        .map(s => s.DepartureAddress)
+    ));
   }
 
-  onArrivalInput(value: string): void {
-    const val = (value || '').toLowerCase();
-    this.filteredArrivals = (this.historicalSuggestions.arrivals || []).filter((x: string) => x.toLowerCase().includes(val));
+  onArrivalInput(value: string | any): void {
+    const valStr = (value || '').toString().toLowerCase();
+    this.filteredArrivals = Array.from(new Set(
+      this.historicalBookings
+        .filter(s => s.ArrivesAddress && s.ArrivesAddress.toString().toLowerCase().includes(valStr))
+        .map(s => s.ArrivesAddress)
+    ));
   }
 
-  onAirlineInput(value: string): void {
-    const val = (value || '').toLowerCase();
-    this.filteredAirlines = (this.historicalSuggestions.airlines || []).filter((x: string) => x.toLowerCase().includes(val));
+  onAirlineInput(value: string | any): void {
+    const valStr = (value || '').toString().toLowerCase();
+    this.filteredAirlines = Array.from(new Set(
+      this.historicalBookings
+        .filter(s => s.Airline && s.Airline.toString().toLowerCase().includes(valStr))
+        .map(s => s.Airline)
+    ));
+  }
+
+  onBaggageInput(value: string | any): void {
+    const valStr = (value || '').toString().toLowerCase();
+    this.filteredBaggages = Array.from(new Set(
+      this.historicalBookings
+        .filter(s => s.Baggage && s.Baggage.toString().toLowerCase().includes(valStr))
+        .map(s => s.Baggage)
+    ));
   }
 
   onSubmit(): void {

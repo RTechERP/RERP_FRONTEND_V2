@@ -211,7 +211,13 @@
                   <nz-form-label [nzSpan]="24" class="fw-semibold">Hành lý / Thông tin thêm</nz-form-label>
                   <nz-form-control>
                     <input nz-input formControlName="Baggage" placeholder="Hành lý, hạng vé..." nzSize="small"
-                      class="fs-12" />
+                      class="fs-12" autocomplete="off"
+                      (ngModelChange)="onBaggageInput($event)"
+                      (focus)="onBaggageInput(control.get('Baggage')?.value || '')"
+                      [nzAutocomplete]="autoBaggage" />
+                    <nz-autocomplete #autoBaggage>
+                      <nz-auto-option *ngFor="let option of filteredBaggages" [nzValue]="option">{{ option }}</nz-auto-option>
+                    </nz-autocomplete>
                   </nz-form-control>
                 </nz-form-item>
               </div>

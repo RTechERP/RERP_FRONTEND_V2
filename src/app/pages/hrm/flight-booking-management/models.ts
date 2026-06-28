@@ -65,5 +65,6 @@ export interface FlightBookingRequestParam {
     Keyword?: string;
     EmployeeID?: number;
     ProjectID?: number;
+    EmployeeBookerID?: number;
     SelectedIDs?: number[];
 }

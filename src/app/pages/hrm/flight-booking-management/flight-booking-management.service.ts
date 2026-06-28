@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { Observable } from 'rxjs';
 import { FlightBookingRequestParam, FlightBookingSaveDTO } from './models';
@@ -29,11 +29,18 @@ export class FlightBookingManagementService {
   }
 
   getHistoricalSuggestions(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/get-historical-suggestions`);
+    return this.http.post(`${this.apiUrl}/get-historical-suggestions`, {});
   }
 
   getEmployees(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/get-employees`);
+    const headers = new HttpHeaders({
+      Accept: 'application/json',
+    });
+    const request = { status: 0, departmentid: 0, keyword: '' };
+    return this.http.get<any>(`${environment.host}api/employee/`, {
+      headers,
+      params: request as any,
+    });
   }
 
   getProjects(): Observable<any> {

@@ -6,10 +6,11 @@
                     <p-menubar [model]="menuBarsEmployee" [style]="{'border': 'none', 'padding': '0'}"></p-menubar>
                     <div class="d-flex gap-2 align-items-center" style="width: 15vw;">
                         <label for="" class="fs-12 fw-bold text-nowrap mb-0">Phòng ban</label>
-                        <nz-tree-select [(ngModel)]="department" (ngModelChange)="onDepartmentChange()"  nzDefaultExpandAll
+                        <nz-tree-select [(ngModel)]="department" (ngModelChange)="onDepartmentChange()"
+                            nzDefaultExpandAll
                             style="font-size: 0.75rem; font-weight: bold; height: 3vh !important; width: 100%;"
-                            nzPlaceHolder="Tất cả phòng ban" nzAllowClear nzShowSearch
-                            [nzNodes]="departmentNodes" nzDropdownClassName="type-select-dropdown"
+                            nzPlaceHolder="Tất cả phòng ban" nzAllowClear nzShowSearch [nzNodes]="departmentNodes"
+                            nzDropdownClassName="type-select-dropdown"
                             [nzDropdownStyle]="{ 'max-height': '250px', 'overflow': 'auto', 'font-size': '12px' }">
                         </nz-tree-select>
                     </div>
@@ -68,8 +69,8 @@
             <nz-form-item class="mb-1">
                 <nz-form-label [nzSpan]="24">Phòng ban <span class="text-danger ps-1">*</span></nz-form-label>
                 <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn phòng ban">
-                    <nz-tree-select formControlName="DepartmentID" nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch
-                        [nzNodes]="departmentNodes" nzDropdownClassName="type-select-dropdown"
+                    <nz-tree-select formControlName="DepartmentID" nzPlaceHolder="Chọn phòng ban" nzAllowClear
+                        nzShowSearch [nzNodes]="departmentNodes" nzDropdownClassName="type-select-dropdown"
                         [nzDropdownStyle]="{ 'max-height': '250px', 'overflow': 'auto', 'font-size': '12px' }">
                     </nz-tree-select>
                 </nz-form-control>
@@ -136,8 +137,8 @@
                 <nz-form-control [nzSpan]="9" nzErrorTip="Vui lòng chọn phòng ban">
                     <nz-tree-select id="departmentEmployee" [(ngModel)]="departmentEmployee" name="departmentEmployee"
                         (ngModelChange)="onDepartmentEmployeeChange()" nzPlaceHolder="Tất cả phòng ban" nzAllowClear
-                        [nzDisabled]="true" nzShowSearch style="width: 100%;"
-                        [nzNodes]="departmentNodes" nzDropdownClassName="type-select-dropdown"
+                        [nzDisabled]="true" nzShowSearch style="width: 100%;" [nzNodes]="departmentNodes"
+                        nzDropdownClassName="type-select-dropdown"
                         [nzDropdownStyle]="{ 'max-height': '250px', 'overflow': 'auto', 'font-size': '12px' }">
                     </nz-tree-select>
                 </nz-form-control>

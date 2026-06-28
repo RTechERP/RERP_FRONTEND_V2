@@ -26,6 +26,9 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { ProjectService } from '../../project/project-service/project.service';
 import { PermissionService } from '../../../services/permission.service';
+import * as ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 @Component({
   selector: 'app-team',
   templateUrl: './team.component.html',
@@ -145,6 +148,13 @@ export class TeamComponent implements OnInit, AfterViewInit {
           this.openDeleteModal();
         },
       },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => {
+          this.exportTeamExcel();
+        },
+      },
     ];
 
     this.menuBarsEmployee = [
@@ -163,6 +173,13 @@ export class TeamComponent implements OnInit, AfterViewInit {
         visible: this.permissionService.hasPermission('N26,N40,N1'),
         command: () => {
           this.removeEmployeeFromTeam();
+        },
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-success',
+        command: () => {
+          this.exportEmployeeExcel();
         },
       },
     ];
@@ -447,7 +464,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
   }
 
   private initializeTeamTable(): void {
-    this.teamTabulator = new Tabulator('#team-table', {
+    this.teamTabulator = new Tabulator('#team-table', Object.assign({}, DEFAULT_TABLE_CONFIG, {
       data: this.teamList,
       layout: 'fitColumns',
       selectableRows: 1,
@@ -463,13 +480,17 @@ export class TeamComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           formatter: 'tree' as any,
+          bottomCalc: 'count'
+          // bottomCalcFormatter: function (cell: any) {
+          //   return 'Tổng: ' + cell.getValue();
+          // }
         },
         {
           title: 'Trưởng nhóm',
           field: 'Leader',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          formatter: function (cell) {
+          formatter: function (cell: any) {
             return cell.getValue() || '';
           },
         },
@@ -478,12 +499,12 @@ export class TeamComponent implements OnInit, AfterViewInit {
           field: 'TypeName',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          formatter: function (cell) {
+          formatter: function (cell: any) {
             return cell.getValue() || '';
           },
         },
       ],
-    });
+    }));
 
     // Khi selection thay đổi
     this.teamTabulator.on('rowSelectionChanged', (data: any[]) => {
@@ -522,7 +543,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
 
 
   private initializeEmployeeTable(): void {
-    this.employeeTabulator = new Tabulator('#employee-table', {
+    this.employeeTabulator = new Tabulator('#employee-table', Object.assign({}, DEFAULT_TABLE_CONFIG, {
       data: this.employeeList,
       layout: 'fitColumns',
       selectableRows: true,
@@ -548,7 +569,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
         hozAlign: "center"
       },
       groupBy: "Team",
-      groupHeader: function (value, count) {
+      groupHeader: function (value: any, count: any) {
         const displayValue = value || 'Không có thông tin';
         return `${displayValue} <span style="color:#d00;">(${count} thành viên)</span>`;
       },
@@ -560,6 +581,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           headerFilter: 'input',
           headerFilterPlaceholder: 'Lọc mã...',
+          bottomCalc: 'count'
         },
         {
           title: 'Tên nhân viên',
@@ -570,12 +592,12 @@ export class TeamComponent implements OnInit, AfterViewInit {
           headerFilterPlaceholder: 'Lọc tên...',
         }
       ],
-    });
+    }));
   }
 
   private initializeEmployeeTeamTable(): void {
     if (document.getElementById('employee-team-table')) {
-      this.employeeTeamTabulator = new Tabulator('#employee-team-table', {
+      this.employeeTeamTabulator = new Tabulator('#employee-team-table', Object.assign({}, DEFAULT_TABLE_CONFIG, {
         data: this.employeeTeamList,
         layout: "fitColumns",
         responsiveLayout: true,
@@ -598,6 +620,10 @@ export class TeamComponent implements OnInit, AfterViewInit {
             hozAlign: 'center',
             headerHozAlign: 'center',
             width: '20vw',
+            bottomCalc: 'count',
+            bottomCalcFormatter: function (cell: any) {
+              return 'Tổng: ' + cell.getValue();
+            }
           },
           {
             title: 'Tên nhân viên',
@@ -607,7 +633,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
             width: '70vw',
           }
         ],
-      });
+      }));
 
 
     }
@@ -799,6 +825,98 @@ export class TeamComponent implements OnInit, AfterViewInit {
         this.notification.error(NOTIFICATION_TITLE.error, 'Thêm nhân viên vào team thất bại: ' + error.message);
         this.notification.error(NOTIFICATION_TITLE.error, 'Thêm nhân viên vào team thất bại: ' + error.message);
       }
+    });
+  }
+
+  exportTeamExcel() {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('DanhSachTeam');
+    worksheet.columns = [
+      { header: 'Tên nhóm', key: 'Name', width: 30 },
+      { header: 'Trưởng nhóm', key: 'Leader', width: 30 },
+      { header: 'Loại', key: 'TypeName', width: 20 },
+    ];
+
+    this.flattenedTeamList.forEach(item => {
+      worksheet.addRow({
+        Name: item.Name,
+        Leader: item.Leader,
+        TypeName: item.TypeName
+      });
+    });
+
+    worksheet.eachRow((row, rowNumber) => {
+      for (let i = 1; i <= worksheet.columns.length; i++) {
+        const cell = row.getCell(i);
+        cell.font = {
+          name: 'Times New Roman',
+          size: 11,
+          bold: rowNumber === 1
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+        if (rowNumber === 1) {
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFD3D3D3' }
+          };
+        }
+      }
+    });
+
+    workbook.xlsx.writeBuffer().then((data) => {
+      const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      saveAs(blob, 'DanhSachTeam.xlsx');
+    });
+  }
+
+  exportEmployeeExcel() {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('DanhSachNhanVien');
+    worksheet.columns = [
+      { header: 'Mã nhân viên', key: 'Code', width: 20 },
+      { header: 'Tên nhân viên', key: 'FullName', width: 30 },
+    ];
+
+    this.employeeList.forEach(item => {
+      worksheet.addRow({
+        Code: item.Code,
+        FullName: item.FullName,
+      });
+    });
+
+    worksheet.eachRow((row, rowNumber) => {
+      for (let i = 1; i <= worksheet.columns.length; i++) {
+        const cell = row.getCell(i);
+        cell.font = {
+          name: 'Times New Roman',
+          size: 11,
+          bold: rowNumber === 1
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+        if (rowNumber === 1) {
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFD3D3D3' }
+          };
+        }
+      }
+    });
+
+    workbook.xlsx.writeBuffer().then((data) => {
+      const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      saveAs(blob, 'DanhSachNhanVienTrongTeam.xlsx');
     });
   }
 

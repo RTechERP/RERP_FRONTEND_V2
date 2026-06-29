@@ -1,0 +1,22 @@
+/* Styles are now handled by standard project classes and Ant Design components */
+.modal-body.fs-12 ::ng-deep .ant-form-item-label>label {
+  font-size: 12px;
+}
+
+.reset {
+  all: revert;
+  padding: 0.5rem;
+}
+
+fieldset.reset {
+  border: 1px solid #c0bfbf;
+  /* Làm đậm viền lên 1 chút */
+  border-radius: 4px;
+  /* Thêm chút bo góc cho mềm mại */
+}
+
+legend.reset {
+  font-weight: 600;
+  /* Làm chữ đậm lên 1 chút */
+  padding: 0 4px;
+}

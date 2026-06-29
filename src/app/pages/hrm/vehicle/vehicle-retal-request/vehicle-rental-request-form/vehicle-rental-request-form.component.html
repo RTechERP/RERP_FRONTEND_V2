@@ -1,0 +1,221 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-uppercase text-white">
+    {{ title }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body fs-12">
+  <nz-spin [nzSpinning]="loading">
+    <form nz-form [formGroup]="form" nzLayout="vertical">
+
+      <fieldset class="reset m-0">
+        <legend class="reset fs-12 p-0">THÔNG TIN CHUNG</legend>
+        <nz-row [nzGutter]="16">
+          <nz-col [nzSpan]="2">
+            <nz-form-item class="mb-2">
+              <nz-form-label>STT</nz-form-label>
+              <nz-form-control>
+                <nz-input-number formControlName="STT" [nzMin]="1" style="width: 100%" nzSize="small"></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="5">
+            <nz-form-item class="mb-2">
+              <nz-form-label [nzRequired]="true">Ngày yêu cầu</nz-form-label>
+              <nz-form-control nzErrorTip="Bắt buộc">
+                <nz-date-picker formControlName="DateRequest" nzFormat="dd/MM/yyyy" style="width: 100%"
+                  nzSize="small"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="5">
+            <nz-form-item class="mb-2">
+              <nz-form-label [nzRequired]="true">Loại xe</nz-form-label>
+              <nz-form-control nzErrorTip="Vui lòng chọn loại xe">
+                <nz-select formControlName="VehicleType" nzPlaceHolder="Chọn loại xe" nzAllowClear style="width: 100%"
+                  nzSize="small">
+                  <nz-option [nzValue]="1" nzLabel="Xe tải"></nz-option>
+                  <nz-option [nzValue]="2" nzLabel="Xe tải có cẩu"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="6">
+            <nz-form-item class="mb-2">
+              <nz-form-label [nzRequired]="true">Người yêu cầu</nz-form-label>
+              <nz-form-control nzErrorTip="Vui lòng chọn">
+                <nz-select formControlName="EmployeeRequestID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên"
+                  style="width: 100%" nzSize="small">
+                  <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
+                    <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID"
+                      [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                  </nz-option-group>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="6">
+            <nz-form-item class="mb-2">
+              <nz-form-label>Phòng ban</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="DepartmentID" nzShowSearch nzDisabled style="width: 100%" nzSize="small">
+                  <nz-option *ngFor="let dep of departments" [nzValue]="dep.ID" [nzLabel]="dep.Name"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+
+        </nz-row>
+      </fieldset>
+
+      <fieldset class="reset m-0 mt-2">
+        <legend class="reset fs-12 p-0">THÔNG TIN HÀNG HÓA</legend>
+        <nz-row [nzGutter]="16">
+          <nz-col [nzSpan]="14">
+            <nz-form-item class="mb-2">
+              <nz-form-label [nzRequired]="true">Tên gói hàng</nz-form-label>
+              <nz-form-control nzErrorTip="Vui lòng nhập tên gói hàng">
+                <input nz-input formControlName="PackageName" placeholder="Nhập tên gói hàng" nzSize="small" />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="10">
+            <nz-form-item class="mb-2">
+              <nz-form-label>Dự án</nz-form-label>
+              <nz-form-control>
+                <nz-select formControlName="ProjectID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn dự án"
+                  style="width: 100%" nzSize="small">
+                  <nz-option *ngFor="let prj of projects" [nzValue]="prj.ID"
+                    [nzLabel]="prj.ProjectCode + ' - ' + prj.ProjectName"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
+
+        <nz-row [nzGutter]="16">
+          <nz-col [nzSpan]="4">
+            <nz-form-item class="mb-2">
+              <nz-form-label [nzRequired]="true">Số lượng</nz-form-label>
+              <nz-form-control nzErrorTip="Bắt buộc">
+                <nz-input-number formControlName="PackageQuantity" [nzMin]="1" style="width: 100%"
+                  nzSize="small"></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="5">
+            <nz-form-item class="mb-2">
+              <nz-form-label>Dài (cm)</nz-form-label>
+              <nz-form-control>
+                <nz-input-number formControlName="PackageLengthCm" [nzMin]="0" [nzStep]="0.1" style="width: 100%"
+                  nzSize="small"></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="5">
+            <nz-form-item class="mb-2">
+              <nz-form-label>Rộng (cm)</nz-form-label>
+              <nz-form-control>
+                <nz-input-number formControlName="PackageWidthCm" [nzMin]="0" [nzStep]="0.1" style="width: 100%"
+                  nzSize="small"></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="5">
+            <nz-form-item class="mb-2">
+              <nz-form-label>Cao (cm)</nz-form-label>
+              <nz-form-control>
+                <nz-input-number formControlName="PackageHeightCm" [nzMin]="0" [nzStep]="0.1" style="width: 100%"
+                  nzSize="small"></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="5">
+            <nz-form-item class="mb-2">
+              <nz-form-label>Nặng (kg)</nz-form-label>
+              <nz-form-control>
+                <nz-input-number formControlName="PackageWeightKg" [nzMin]="0" [nzStep]="0.1" style="width: 100%"
+                  nzSize="small"></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
+      </fieldset>
+
+      <fieldset class="reset m-0 mt-2">
+        <legend class="reset fs-12 p-0">LỘ TRÌNH & CHI PHÍ</legend>
+        <nz-row [nzGutter]="16">
+          <nz-col [nzSpan]="12">
+            <nz-form-item class="mb-2">
+              <nz-form-label [nzRequired]="true">Nơi xuất phát</nz-form-label>
+              <nz-form-control nzErrorTip="Vui lòng nhập nơi xuất phát">
+                <textarea nz-input formControlName="DepartureLocation" placeholder="Nhập địa điểm xuất phát"
+                  [nzAutosize]="{ minRows: 2, maxRows: 4 }" nzSize="small"></textarea>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="12">
+            <nz-form-item class="mb-2">
+              <nz-form-label [nzRequired]="true">Nơi đến</nz-form-label>
+              <nz-form-control nzErrorTip="Vui lòng nhập nơi đến">
+                <textarea nz-input formControlName="AddressLocation" placeholder="Nhập địa điểm cần đến" nzSize="small"
+                  [nzAutosize]="{ minRows: 2, maxRows: 4 }"></textarea>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
+
+        <nz-row [nzGutter]="16">
+          <nz-col [nzSpan]="6">
+            <nz-form-item class="mb-2">
+              <nz-form-label>Khoảng cách (km)</nz-form-label>
+              <nz-form-control>
+                <nz-input-number formControlName="DistanceKm" [nzMin]="0" [nzStep]="0.1" style="width: 100%"
+                  nzSize="small"></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="8">
+            <nz-form-item class="mb-2">
+              <nz-form-label>Chi phí dự kiến (VND)</nz-form-label>
+              <nz-form-control>
+                <nz-input-number formControlName="Cost" [nzMin]="0" [nzStep]="1000" style="width: 100%"
+                  [nzFormatter]="formatterVND" [nzParser]="parserVND" nzSize="small"></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="10">
+            <nz-form-item class="mb-2">
+              <nz-form-label>Đơn vị vận chuyển</nz-form-label>
+              <nz-form-control>
+                <input nz-input formControlName="NameNCC" placeholder="Nhập tên đơn vị vận chuyển" nzSize="small" />
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
+      </fieldset>
+
+      <fieldset class="reset m-0 mt-2">
+        <legend class="reset fs-12 p-0">GHI CHÚ</legend>
+        <nz-row [nzGutter]="16">
+          <nz-col [nzSpan]="24">
+            <nz-form-item class="mb-0">
+              <nz-form-control>
+                <textarea nz-input formControlName="Note" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+                  placeholder="Nhập ghi chú (nếu có)" nzSize="small"></textarea>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
+      </fieldset>
+
+    </form>
+  </nz-spin>
+</div>
+
+<div class="modal-footer fs-12 p-2">
+  <button nz-button type="button" nzType="default" (click)="onCancel()" [nzLoading]="loading">Hủy</button>
+  <button nz-button type="button" nzType="primary" (click)="onSave()" [nzLoading]="loading">Lưu</button>
+</div>

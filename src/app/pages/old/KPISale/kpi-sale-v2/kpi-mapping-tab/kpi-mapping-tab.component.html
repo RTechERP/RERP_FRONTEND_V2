@@ -201,7 +201,7 @@
     <div class="field">
       <span>Nguồn dữ liệu</span>
       <nz-select nzDropdownClassName="select-dropdown" name="mappingSourceId" [(ngModel)]="mappingDraft.dataSourceId" (ngModelChange)="onMappingSourceChange($event)" class="w-100">
-        <nz-option *ngFor="let item of activeDataSources; trackBy: trackById" [nzValue]="item.id" [nzLabel]="item.sourceCode + ' - ' + item.sourceName">
+        <nz-option *ngFor="let item of activeDataSources; trackBy: trackById" [nzValue]="item.id" [nzLabel]="item.sourceName">
         </nz-option>
       </nz-select>
     </div>

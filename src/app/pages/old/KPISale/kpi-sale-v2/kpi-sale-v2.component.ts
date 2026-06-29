@@ -1535,11 +1535,11 @@ export class KpiSaleV2Component implements OnInit {
       }
       this.selectedTeamId = null;
       this.selectedTeamInfo = null;
+      void this.loadTargetsAndResults();
     } else {
-      // Chuyển sang chế độ nhóm: load danh sách team đã khai báo
-      void this.loadTeamOptions();
+      // Chuyển sang chế độ nhóm: load danh sách team, rồi resolve template + results
+      void this.loadTeamOptions().then(() => this.onResultFilterChange());
     }
-    void this.loadTargetsAndResults();
   }
 
   async loadTeamOptions(): Promise<void> {
@@ -1594,7 +1594,8 @@ export class KpiSaleV2Component implements OnInit {
     } else {
       this.selectedTeamInfo = null;
     }
-    await this.loadTargetsAndResults();
+    // Load teamTemplates + resolve template for current period, then load targets/results
+    await this.onResultFilterChange();
   }
 
   getSelectedEmployeeName(): string {
@@ -2318,6 +2319,7 @@ export class KpiSaleV2Component implements OnInit {
               periodID: month.id,
               templateID: this.selectedTemplateId!,
               saveSnapshot: this.saveSnapshot,
+              recalcPerEmployee: true,
               reportAdjustments: [],
             })
           )
@@ -2338,6 +2340,7 @@ export class KpiSaleV2Component implements OnInit {
             periodID: this.selectedPeriodId!,
             templateID: this.selectedTemplateId!,
             saveSnapshot: this.saveSnapshot,
+            recalcPerEmployee: true,
             reportAdjustments: this.getReportAdjustmentsPayload().map((item) => ({
               kpiIndexId: item.kpiIndexId,
               reportScoreAdjustmentType: item.reportScoreAdjustmentType,
@@ -2379,6 +2382,7 @@ export class KpiSaleV2Component implements OnInit {
         periodID: this.selectedPeriodId,
         templateID: this.selectedTemplateId,
         saveSnapshot: this.saveSnapshot,
+        recalcPerEmployee: true,
         reportAdjustments: this.getReportAdjustmentsPayload().map((item) => ({
           kpiIndexId: item.kpiIndexId,
           reportScoreAdjustmentType: item.reportScoreAdjustmentType,

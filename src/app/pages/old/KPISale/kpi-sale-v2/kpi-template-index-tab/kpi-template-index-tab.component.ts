@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { Menubar } from 'primeng/menubar';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -31,6 +32,7 @@ type UnitType = 'MONEY' | 'NUMBER' | 'PERCENT';
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     Menubar,
     NzButtonModule,
     NzCheckboxModule,
@@ -52,25 +54,29 @@ type UnitType = 'MONEY' | 'NUMBER' | 'PERCENT';
 export class KpiTemplateIndexTabComponent implements OnInit {
   @ViewChild('templateFormTemplate') templateFormTemplate!: TemplateRef<any>;
   @ViewChild('indexFormTemplate') indexFormTemplate!: TemplateRef<any>;
+  @ViewChild('copyTemplateFormTemplate') copyTemplateFormTemplate!: TemplateRef<any>;
 
   menuBars: any[] = [];
-  
+
   // Data lists
   templates: KpiSaleTemplate[] = [];
   indexes: KpiSaleIndex[] = [];
-  
+
   // Selected values
   selectedTemplateId = 0;
   selectedIndexId = 0;
   searchText = '';
-  
+
   isLoading = false;
   isApiMode = false;
 
   // Forms drafts
   templateDraft: KpiSaleTemplate = this.getDefaultTemplateDraft();
   indexDraft: KpiSaleIndex = this.getDefaultIndexDraft();
-  
+
+  // Copy template form draft
+  copyForm!: FormGroup;
+
   indexExpandState: Record<number, boolean> = {};
 
   readonly indexTypes: IndexType[] = ['DETAIL', 'GROUP', 'FORMULA', 'REPORT'];
@@ -80,6 +86,7 @@ export class KpiTemplateIndexTabComponent implements OnInit {
 
   templateModalRef?: NzModalRef;
   indexModalRef?: NzModalRef;
+  copyTemplateModalRef?: NzModalRef;
 
   constructor(
     private kpiSaleService: KpiSaleV2Service,
@@ -115,7 +122,7 @@ export class KpiTemplateIndexTabComponent implements OnInit {
         label: 'Sao chép mẫu',
         icon: 'fa-solid fa-copy fa-lg text-warning',
         command: () => {
-          this.copyTemplate();
+          this.openCopyTemplateForm();
         }
       }
     ];
@@ -379,41 +386,79 @@ export class KpiTemplateIndexTabComponent implements OnInit {
     this.indexModalRef?.destroy();
   }
 
-  async copyTemplate(): Promise<void> {
-    const template = this.selectedTemplate;
-    if (!template) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn một mẫu để sao chép');
+  // --- Copy template form ---
+
+  openCopyTemplateForm(): void {
+    const defaultSourceId = this.selectedTemplateId || this.templates[0]?.id || 0;
+
+    this.copyForm = new FormGroup({
+      sourceTemplateId: new FormControl(defaultSourceId),
+      targetTemplateId: new FormControl(0),
+      includeInactiveIndexes: new FormControl(true),
+    });
+
+    this.copyTemplateModalRef = this.modalService.create({
+      nzTitle: 'Sao chép chỉ tiêu sang mẫu khác',
+      nzContent: this.copyTemplateFormTemplate,
+      nzWidth: 560,
+      nzFooter: [
+        {
+          label: 'Hủy',
+          onClick: () => this.copyTemplateModalRef?.destroy(),
+        },
+        {
+          label: 'Sao chép',
+          type: 'primary',
+          disabled: this.copyForm.invalid,
+          onClick: () => this.confirmCopyTemplate(),
+        },
+      ],
+    });
+  }
+
+  getTemplateIndexesCount(templateId: number): number {
+    if (!templateId) return 0;
+    return this.indexes.filter((i) => i.templateId === templateId).length;
+  }
+
+  getTemplateName(templateId: number): string {
+    return this.templates.find((t) => t.id === templateId)?.templateName || '';
+  }
+
+  async confirmCopyTemplate(): Promise<void> {
+    if (this.copyForm.invalid) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn đầy đủ mẫu nguồn và mẫu đích');
       return;
     }
 
-    const newTemplateId = this.nextId(this.templates);
-    const copiedTemplate: KpiSaleTemplate = {
-      ...template,
-      id: newTemplateId,
-      templateCode: `${template.templateCode}_COPY`,
-      templateName: `${template.templateName} Bản sao`,
-    };
-    const copiedIndexes = this.indexesForTemplate.map((item, index) => ({
-      ...item,
-      id: this.nextId([...this.indexes, ...this.indexesForTemplate]) + index,
-      templateId: newTemplateId,
-    }));
-    
+    const sourceId = this.copyForm.value.sourceTemplateId;
+    const targetId = this.copyForm.value.targetTemplateId;
+
     if (this.isApiMode) {
       this.isLoading = true;
       try {
-        const templateResponse = await firstValueFrom(this.safeApi<any>(this.kpiSaleService.saveTemplate(this.templateToApi(copiedTemplate, true))));
-        if (templateResponse?.status !== 1) {
-          this.notification.error('Lỗi', templateResponse?.message || 'Không thể sao chép mẫu KPI');
+        const resp = await firstValueFrom(
+          this.safeApi<{ targetTemplateID: number; targetTemplateName: string; copiedIndexCount: number; newIndexIDs: number[] }>(
+            this.kpiSaleService.copyTemplate({
+              sourceTemplateID: sourceId,
+              targetTemplateID: targetId,
+              copyIndexes: true,
+              includeInactiveIndexes: this.copyForm.value.includeInactiveIndexes,
+            }),
+          ),
+        );
+
+        if (resp?.status !== 1) {
+          this.notification.error('Lỗi', resp?.message || 'Không thể sao chép mẫu KPI');
           return;
         }
 
-        const savedTemplateId = this.read<number>(templateResponse.data, 'ID', 'id') || newTemplateId;
-        for (const item of copiedIndexes) {
-          await firstValueFrom(this.safeApi<any>(this.kpiSaleService.saveIndex(this.indexToApi({ ...item, templateId: savedTemplateId }, true))));
-        }
-        this.notification.success('Thông báo', 'Sao chép mẫu KPI thành công');
+        this.notification.success(
+          'Thành công',
+          `Đã sao chép ${resp.data?.copiedIndexCount ?? 0} chỉ tiêu sang mẫu "${resp.data?.targetTemplateName}"`,
+        );
         this.tabService.notifyDataSaved('kpi-templates');
+        this.copyTemplateModalRef?.destroy();
         await this.loadInitialData();
       } catch (err) {
         console.error(err);
@@ -424,9 +469,33 @@ export class KpiTemplateIndexTabComponent implements OnInit {
       return;
     }
 
-    this.templates = [...this.templates, copiedTemplate];
-    this.indexes = [...this.indexes, ...copiedIndexes];
-    await this.onTemplateChange(newTemplateId);
+    // Mode offline
+    const sourceIndexes = this.indexes.filter(
+      (i) => i.templateId === sourceId && (this.copyForm.value.includeInactiveIndexes || i.isActive),
+    );
+
+    const idMap = new Map<number, number>();
+    const ordered = [...sourceIndexes].sort((a, b) => a.sortOrder - b.sortOrder);
+    let baseId = this.nextId([...this.indexes, ...sourceIndexes]);
+    for (const src of ordered) {
+      idMap.set(src.id, baseId);
+      baseId++;
+    }
+    const copied = ordered.map((src) => ({
+      ...src,
+      id: idMap.get(src.id)!,
+      templateId: targetId,
+      parentId: src.parentId && idMap.has(src.parentId) ? idMap.get(src.parentId) : undefined,
+    }));
+    this.indexes = [...this.indexes, ...copied];
+
+    const targetTemplate = this.templates.find((t) => t.id === targetId);
+    await this.onTemplateChange(targetId);
+    this.copyTemplateModalRef?.destroy();
+    this.notification.success(
+      'Thành công',
+      `Đã sao chép ${sourceIndexes.length} chỉ tiêu sang mẫu "${targetTemplate?.templateName}"`,
+    );
   }
 
   async deleteTemplate(id: number): Promise<void> {

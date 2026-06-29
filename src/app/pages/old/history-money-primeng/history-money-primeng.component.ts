@@ -16,6 +16,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzModalModule, NzModalRef, NzModalService } from 'ng-zorro-antd/modal';
 import { CommonModule } from '@angular/common';
+import { forkJoin, Observable } from 'rxjs';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -77,6 +78,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
 
   // Selection
   selectedProduct: any = null;
+  selectedProducts: any[] = [];
   selectedPOKHDetailIds: number[] = []; // Lưu danh sách POKHDetail IDs từ dataProduct
   isMultiPOMode: boolean = false; // Flag để phân biệt single-PO và multi-PO mode
 
@@ -85,6 +87,9 @@ export class HistoryMoneyPrimengComponent implements OnInit {
   rowSelectedPokhDetailId: number = 0;
   rowSelectedPokhId: number = 0;
   listIdsDel: any[] = [];
+
+  // Selected POKH Info map: POKHDetailId -> { pokhId, totalMoneyIncludeVAT, ponumber }
+  selectedPOKHInfoMap: Map<number, { pokhId: number; totalMoneyIncludeVAT: number; ponumber?: string }> = new Map();
 
   // Row key sequence for new rows
   private dataRowKeySequence = 0;
@@ -207,8 +212,8 @@ export class HistoryMoneyPrimengComponent implements OnInit {
 
           // Auto select first row
           if (this.dataProduct && this.dataProduct.length > 0) {
-            this.selectedProduct = this.dataProduct[0];
-            this.onProductRowSelect({ data: this.selectedProduct });
+            this.selectedProducts = [this.dataProduct[0]];
+            this.onProductSelectionChange(this.selectedProducts);
           }
         } else {
           this.notification.error('Lỗi khi tải sản phẩm:', response.message);
@@ -236,10 +241,10 @@ export class HistoryMoneyPrimengComponent implements OnInit {
           // Lưu danh sách POKHDetail IDs
           this.selectedPOKHDetailIds = this.dataProduct.map((p: any) => p.ID).filter((id: number) => id > 0);
 
-          // Auto select first row - sẽ trigger loadHistoryMoneyPO
+          // Auto select all rows by default in multi-PO mode
           if (this.dataProduct && this.dataProduct.length > 0) {
-            this.selectedProduct = this.dataProduct[0];
-            this.onProductRowSelect({ data: this.selectedProduct });
+            this.selectedProducts = [...this.dataProduct];
+            this.onProductSelectionChange(this.selectedProducts);
           }
         } else {
           this.notification.error('Lỗi khi tải sản phẩm:', response.message);
@@ -292,7 +297,6 @@ export class HistoryMoneyPrimengComponent implements OnInit {
   }
   //#endregion
 
-  //#region Row events
   onProductRowSelect(event: any): void {
     const data = event.data;
     this.rowSelectedPokhDetailId = data['ID'];
@@ -302,12 +306,61 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       this.loadHistoryMoneyPO(this.rowSelectedPokhDetailId);
     }
   }
+
+  onProductSelectionChange(selectedList: any[]): void {
+    this.selectedProducts = selectedList || [];
+    this.selectedPOKHDetailIds = this.selectedProducts.map((p: any) => p.ID).filter((id: number) => id > 0);
+
+    // Build POKH Info Map
+    this.selectedPOKHInfoMap.clear();
+    this.selectedProducts.forEach((p: any) => {
+      this.selectedPOKHInfoMap.set(p.ID, {
+        pokhId: p.POKHID,
+        totalMoneyIncludeVAT: p.TotalPriceIncludeVAT,
+        ponumber: p.PONumber || p.POKHCode || ''
+      });
+    });
+    
+    // Sync selectedProduct for single-PO checks/fallback
+    this.selectedProduct = this.selectedProducts.length > 0 ? this.selectedProducts[0] : null;
+
+    if (this.selectedPOKHDetailIds.length > 0) {
+      if (this.selectedPOKHDetailIds.length === 1) {
+        const singleSelected = this.selectedProducts[0];
+        this.rowSelectedPokhDetailId = singleSelected.ID;
+        this.rowSelectedTotalPriceIncludeVAT = singleSelected.TotalPriceIncludeVAT;
+        this.rowSelectedPokhId = singleSelected.POKHID;
+        this.loadHistoryMoneyPO(this.rowSelectedPokhDetailId);
+      } else {
+        this.rowSelectedPokhDetailId = 0;
+        this.rowSelectedTotalPriceIncludeVAT = 0;
+        this.rowSelectedPokhId = 0;
+        this.loadHistoryMoneyPOMultiple(this.selectedPOKHDetailIds);
+      }
+    } else {
+      this.rowSelectedPokhDetailId = 0;
+      this.rowSelectedTotalPriceIncludeVAT = 0;
+      this.rowSelectedPokhId = 0;
+      this.mainData = [];
+    }
+  }
+
+  isRowSelected(rowData: any): boolean {
+    return this.selectedProducts && this.selectedProducts.some((p: any) => p.ID === rowData.ID);
+  }
   //#endregion
 
   //#region Add / Delete rows
-  addNewRow(): void {
+
+  // Add new row for a specific product (called from + button on left table)
+  addNewRowForProduct(product: any): void {
     const newRow = {
       ID: 0,
+      POKHDetailID: product.ID,
+      POKHID: product.POKHID,
+      POCode: product.POCode || '',
+      PONumber: product.PONumber || product.POKHCode || '',
+      ProductNewCode: product.ProductNewCode || '',
       MoneyDate: null,
       Money: 0,
       Note: '',
@@ -316,10 +369,62 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       VAT: 0,
       MoneyVAT: 0,
       UserID: null,
+      PMUserID: null,
       IsFilm: false,
       IsDeleted: false,
     };
     this.mainData = this.normalizeDataRows([...this.mainData, newRow]);
+  }
+
+  addNewRow(): void {
+    // For multi-select mode, add a new row for each selected POKHDetail
+    if (this.selectedPOKHDetailIds.length > 1) {
+      // Multi-select: add row for each selected PO
+      const newRows = this.selectedProducts
+        .filter((p: any) => p.ID > 0)
+        .map((p: any) => ({
+          ID: 0,
+          POKHDetailID: p.ID,
+          POKHID: p.POKHID,
+          PONumber: p.PONumber || p.POKHCode || '',
+          POCode: p.POCode || '',
+          ProductNewCode: p.ProductNewCode || '',
+          MoneyDate: null,
+          Money: 0,
+          Note: '',
+          BankName: '',
+          InvoiceNo: '',
+          VAT: 0,
+          MoneyVAT: 0,
+          UserID: null,
+          PMUserID: null,
+          IsFilm: false,
+          IsDeleted: false,
+        }));
+      this.mainData = this.normalizeDataRows([...this.mainData, ...newRows]);
+    } else {
+      // Single select: add one row
+      const newRow = {
+        ID: 0,
+        POKHDetailID: this.rowSelectedPokhDetailId,
+        POKHID: this.rowSelectedPokhId,
+        PONumber: '',
+        POCode: '',
+        ProductNewCode: '',
+        MoneyDate: null,
+        Money: 0,
+        Note: '',
+        BankName: '',
+        InvoiceNo: '',
+        VAT: 0,
+        MoneyVAT: 0,
+        UserID: null,
+        PMUserID: null,
+        IsFilm: false,
+        IsDeleted: false,
+      };
+      this.mainData = this.normalizeDataRows([...this.mainData, newRow]);
+    }
   }
 
   deleteDataRow(row: any): void {
@@ -346,55 +451,116 @@ export class HistoryMoneyPrimengComponent implements OnInit {
 
   //#region Save
   saveAndClose() {
-    if (!this.selectedProduct || !this.rowSelectedPokhDetailId) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 dòng PO trước khi lưu');
+    if (this.selectedProducts.length === 0 || this.selectedPOKHDetailIds.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 PO trước khi lưu');
       return;
     }
 
+    // Normalize data
     const normalizedTableData = this.mainData.map((row) => {
       const { __rowKey, ...rest } = row;
       return {
         ...rest,
         VAT: this.convertVatToDecimal(row.VAT),
+        PMUserID: row.PMUserID ?? null,
       };
     });
 
-    const requestBody = {
-      historyMoneyPOs: normalizedTableData,
-      pokhDetailId: this.rowSelectedPokhDetailId,
-      pokhId: this.rowSelectedPokhId,
-      totalMoneyIncludeVAT: this.rowSelectedTotalPriceIncludeVAT,
-      listIdsDel: this.listIdsDel,
-    };
+    // Group rows by POKHDetailID
+    const rowsByPOKHDetailId = new Map<number, any[]>();
+    normalizedTableData.forEach(row => {
+      const pokhDetailId = row.POKHDetailID || this.rowSelectedPokhDetailId;
+      if (!rowsByPOKHDetailId.has(pokhDetailId)) {
+        rowsByPOKHDetailId.set(pokhDetailId, []);
+      }
+      rowsByPOKHDetailId.get(pokhDetailId)!.push(row);
+    });
 
-    this.historyMoneyService.saveHistoryMoney(requestBody).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
+    // Get rows to delete by POKHDetailID (only for existing records)
+    const rowsDelByPOKHDetailId = new Map<number, any[]>();
+    this.mainData.forEach(row => {
+      if (row.ID > 0) {
+        const pokhDetailId = row.POKHDetailID || this.rowSelectedPokhDetailId;
+        if (!rowsDelByPOKHDetailId.has(pokhDetailId)) {
+          rowsDelByPOKHDetailId.set(pokhDetailId, []);
+        }
+        // Check if this row ID is in listIdsDel
+        if (this.listIdsDel.includes(row.ID)) {
+          rowsDelByPOKHDetailId.get(pokhDetailId)!.push(row.ID);
+        }
+      }
+    });
 
-          // Update TotalMoneyRemaining for the selected product row
-          if (response.data && response.data.TotalMoneyRemaining !== undefined) {
-            const selectedIdx = this.dataProduct.findIndex(
-              (p: any) => p.ID === this.rowSelectedPokhDetailId
-            );
+    // Build requests for each POKHDetailID
+    const saveRequests: Observable<any>[] = [];
+    const pokhDetailIdList = Array.from(rowsByPOKHDetailId.keys());
+
+    pokhDetailIdList.forEach(pokhDetailId => {
+      const rows = rowsByPOKHDetailId.get(pokhDetailId) || [];
+      const pokhInfo = this.selectedPOKHInfoMap.get(pokhDetailId);
+
+      const requestBody = {
+        historyMoneyPOs: rows,
+        pokhDetailId: pokhDetailId,
+        pokhId: pokhInfo?.pokhId || 0,
+        totalMoneyIncludeVAT: pokhInfo?.totalMoneyIncludeVAT || 0,
+        listIdsDel: rowsDelByPOKHDetailId.get(pokhDetailId) || [],
+      };
+
+      saveRequests.push(this.historyMoneyService.saveHistoryMoney(requestBody));
+    });
+
+    // Execute all save requests
+    forkJoin(saveRequests).subscribe({
+      next: (responses: any[]) => {
+        let allSuccess = true;
+        let totalMoneyRemainingMap = new Map<number, number>();
+
+        responses.forEach((response, index) => {
+          if (response.status === 1) {
+            // Collect TotalMoneyRemaining updates
+            if (response.data && response.data.TotalMoneyRemaining !== undefined) {
+              const pokhDetailId = pokhDetailIdList[index];
+              totalMoneyRemainingMap.set(pokhDetailId, response.data.TotalMoneyRemaining);
+            }
+          } else {
+            allSuccess = false;
+            this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Lỗi khi lưu dữ liệu');
+          }
+        });
+
+        if (allSuccess) {
+          this.notification.success(NOTIFICATION_TITLE.success, `Lưu thành công cho ${pokhDetailIdList.length} PO`);
+
+          // Update TotalMoneyRemaining in dataProduct
+          totalMoneyRemainingMap.forEach((remaining, pokhDetailId) => {
+            const selectedIdx = this.dataProduct.findIndex((p: any) => p.ID === pokhDetailId);
             if (selectedIdx >= 0) {
               this.dataProduct[selectedIdx] = {
                 ...this.dataProduct[selectedIdx],
-                TotalMoneyRemaining: response.data.TotalMoneyRemaining,
+                TotalMoneyRemaining: remaining,
               };
-              this.dataProduct = [...this.dataProduct];
             }
+          });
+          this.dataProduct = [...this.dataProduct];
+
+          // Clear listIdsDel
+          this.listIdsDel = [];
+
+          // Reload history money for current selection
+          if (this.selectedPOKHDetailIds.length === 1) {
+            this.loadHistoryMoneyPO(this.rowSelectedPokhDetailId);
+          } else {
+            this.loadHistoryMoneyPOMultiple(this.selectedPOKHDetailIds);
           }
 
           if (this.activeModal) {
             this.activeModal.close({ success: true });
           }
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Không thể lưu dữ liệu');
         }
       },
       error: (err: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, err?.message || 'Không thể lưu dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, err?.message || 'Lỗi khi lưu dữ liệu');
       },
     });
   }
@@ -516,6 +682,24 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       } else if (row.userId !== undefined && row.UserID === undefined) {
         row.UserID = row.userId;
       }
+
+      // Get PONumber and POCode from dataProduct if not present
+      if (!row.PONumber || !row.POCode) {
+        const pokhDetailId = row.POKHDetailID;
+        const productInfo = this.dataProduct.find((p: any) => p.ID === pokhDetailId);
+        if (productInfo) {
+          if (!row.PONumber) {
+            row.PONumber = productInfo.PONumber || productInfo.POKHCode || '';
+          }
+          if (!row.POCode) {
+            row.POCode = productInfo.POCode || '';
+          }
+          if (!row.ProductNewCode) {
+            row.ProductNewCode = productInfo.ProductNewCode || '';
+          }
+        }
+      }
+
       return {
         ...row,
         __rowKey: row.__rowKey || this.createDataRowKey(row),
@@ -536,10 +720,15 @@ export class HistoryMoneyPrimengComponent implements OnInit {
     if (!Array.isArray(data)) {
       return [];
     }
-    return data.map((item) => ({
-      ...item,
-      VAT: this.convertVatToPercent(item?.VAT),
-    }));
+    return data.map((item) => {
+      // Lấy ProductNewCode từ dataProduct nếu có
+      const productInfo = this.dataProduct.find((p: any) => p.ID === item.POKHDetailID);
+      return {
+        ...item,
+        VAT: this.convertVatToPercent(item?.VAT),
+        ProductNewCode: item.ProductNewCode || productInfo?.ProductNewCode || ''
+      };
+    });
   }
 
   private convertVatToPercent(value: any): number {

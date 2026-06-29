@@ -495,6 +495,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 this.isLoadingPOKH = false;
                 setTimeout(() => {
                     this.applyDistinctFiltersToGrid(this.angularGridPOKH, this.columnDefinitionsPOKH, ['MainIndex', 'CurrencyCode', 'AccountTypeText'], this.datasetPOKH);
+                    this.updatePOKHFooterRow();
                 }, 0);
             },
             error: (err: any) => {
@@ -2077,6 +2078,9 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     }
                 },
             },
+            createFooterRow: true,
+            showFooterRow: true,
+            footerRowHeight: 30,
         };
 
     }
@@ -2086,7 +2090,42 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         this.angularGridPOKH.slickGrid?.onSelectedRowsChanged.subscribe(() => {
             this.syncSelectedPOKHRows();
         });
-        // this.loadPOKH();
+        setTimeout(() => {
+            this.updatePOKHFooterRow();
+        }, 100);
+    }
+
+    updatePOKHFooterRow(): void {
+        if (!this.angularGridPOKH || !this.angularGridPOKH.slickGrid) return;
+
+        const items = this.angularGridPOKH.dataView.getItems();
+        const totalMoneyKoVAT = items.reduce((sum: number, item: any) => {
+            return sum + (Number(item.TotalMoneyKoVAT) || 0);
+        }, 0);
+        const totalMoneyPO = items.reduce((sum: number, item: any) => {
+            return sum + (Number(item.TotalMoneyPO) || 0);
+        }, 0);
+        const totalMoneyDiscount = items.reduce((sum: number, item: any) => {
+            return sum + (Number(item.TotalMoneyDiscount) || 0);
+        }, 0);
+
+        this.angularGridPOKH.slickGrid.setFooterRowVisibility(true);
+
+        const columns = this.angularGridPOKH.slickGrid.getColumns();
+        columns.forEach((col: any) => {
+            const footerCell = this.angularGridPOKH.slickGrid.getFooterRowColumn(col.id);
+            if (!footerCell) return;
+
+            if (col.id === 'TotalMoneyKoVAT') {
+                footerCell.innerHTML = `<div style="text-align: right; padding-right: 4px;"><b>${totalMoneyKoVAT.toLocaleString('vi-VN')}</b></div>`;
+            } else if (col.id === 'TotalMoneyPO') {
+                footerCell.innerHTML = `<div style="text-align: right; padding-right: 4px;"><b>${totalMoneyPO.toLocaleString('vi-VN')}</b></div>`;
+            } else if (col.id === 'TotalMoneyDiscount') {
+                footerCell.innerHTML = `<div style="text-align: right; padding-right: 4px;"><b>${totalMoneyDiscount.toLocaleString('vi-VN')}</b></div>`;
+            } else {
+                footerCell.innerHTML = '';
+            }
+        });
     }
 
     private syncSelectedPOKHRows(): void {

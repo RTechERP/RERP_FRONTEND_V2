@@ -2425,6 +2425,15 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
         filterable: true,
         filter: { model: Filters['compoundInputText'] },
       },
+      {
+        id: 'FullNameSale',
+        field: 'FullNameSale',
+        name: 'Sale phụ trách',
+        width: 120,
+        sortable: true,
+        filterable: true,
+        filter: { model: Filters['compoundInputText'] },
+      },
       // Inventory columns
       {
         id: 'TotalHN',

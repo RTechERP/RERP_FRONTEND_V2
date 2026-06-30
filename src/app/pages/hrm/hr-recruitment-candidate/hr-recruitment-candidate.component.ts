@@ -237,7 +237,7 @@ export class HRRecruitmentCandidateComponent implements OnInit, AfterViewInit {
             },
             {
                 label: 'Tải file Cv',
-                visible: this.permissionService.hasPermission('N1,N2,N94'),
+                visible: this.permissionService.hasPermission('N1,N2,N94,N32'),
                 icon: 'fa-solid fa-file-arrow-down fa-lg text-warning',
                 command: () => this.onDownloadCV(),
             },

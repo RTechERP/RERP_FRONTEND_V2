@@ -395,6 +395,7 @@ export class KpiTemplateIndexTabComponent implements OnInit {
       sourceTemplateId: new FormControl(defaultSourceId),
       targetTemplateId: new FormControl(0),
       includeInactiveIndexes: new FormControl(true),
+      copyMappings: new FormControl(true),
     });
 
     this.copyTemplateModalRef = this.modalService.create({
@@ -438,12 +439,13 @@ export class KpiTemplateIndexTabComponent implements OnInit {
       this.isLoading = true;
       try {
         const resp = await firstValueFrom(
-          this.safeApi<{ targetTemplateID: number; targetTemplateName: string; copiedIndexCount: number; newIndexIDs: number[] }>(
+          this.safeApi<{ targetTemplateID: number; targetTemplateName: string; copiedIndexCount: number; copiedMappingCount: number; newIndexIDs: number[] }>(
             this.kpiSaleService.copyTemplate({
               sourceTemplateID: sourceId,
               targetTemplateID: targetId,
               copyIndexes: true,
               includeInactiveIndexes: this.copyForm.value.includeInactiveIndexes,
+              copyMappings: this.copyForm.value.copyMappings,
             }),
           ),
         );
@@ -453,10 +455,12 @@ export class KpiTemplateIndexTabComponent implements OnInit {
           return;
         }
 
-        this.notification.success(
-          'Thành công',
-          `Đã sao chép ${resp.data?.copiedIndexCount ?? 0} chỉ tiêu sang mẫu "${resp.data?.targetTemplateName}"`,
-        );
+        let message = `Đã sao chép ${resp.data?.copiedIndexCount ?? 0} chỉ tiêu`;
+        if (resp.data?.copiedMappingCount > 0) {
+          message += ` và ${resp.data.copiedMappingCount} ánh xạ`;
+        }
+        message += ` sang mẫu "${resp.data?.targetTemplateName}"`;
+        this.notification.success('Thành công', message);
         this.tabService.notifyDataSaved('kpi-templates');
         this.copyTemplateModalRef?.destroy();
         await this.loadInitialData();

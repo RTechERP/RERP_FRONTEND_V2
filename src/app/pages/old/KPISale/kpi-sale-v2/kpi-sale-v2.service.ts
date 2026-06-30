@@ -405,7 +405,8 @@ export class KpiSaleV2Service {
     targetTemplateID: number;
     copyIndexes?: boolean;
     includeInactiveIndexes?: boolean;
-  }): Observable<KpiApiResponse<{ targetTemplateID: number; targetTemplateName: string; copiedIndexCount: number; newIndexIDs: number[] }>> {
+    copyMappings?: boolean;
+  }): Observable<KpiApiResponse<{ targetTemplateID: number; targetTemplateName: string; copiedIndexCount: number; copiedMappingCount: number; newIndexIDs: number[] }>> {
     return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/templates/copy`, request);
   }
 

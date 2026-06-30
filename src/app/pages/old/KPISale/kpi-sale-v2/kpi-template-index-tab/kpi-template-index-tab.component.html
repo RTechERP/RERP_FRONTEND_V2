@@ -271,10 +271,15 @@
       Bao gồm chỉ tiêu đang tắt
     </label>
 
+    <label nz-checkbox formControlName="copyMappings">
+      Sao chép ánh xạ & bộ lọc
+    </label>
+
     <div class="copy-preview" *ngIf="copyForm.value.sourceTemplateId && copyForm.value.targetTemplateId">
       <i nz-icon nzType="info-circle" nzTheme="outline"></i>
       <span>
         Sẽ sao chép <strong>{{ getTemplateIndexesCount(copyForm.value.sourceTemplateId) }}</strong> chỉ tiêu
+        <ng-container *ngIf="copyForm.value.copyMappings"> và ánh xạ</ng-container>
         sang mẫu <strong>{{ getTemplateName(copyForm.value.targetTemplateId) }}</strong>.
       </span>
     </div>

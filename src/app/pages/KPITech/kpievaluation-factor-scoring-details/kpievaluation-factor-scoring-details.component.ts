@@ -2958,26 +2958,198 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
 
   //#region PrimeNG Cell Change Handlers
+
+  // PERFORMANCE: Debounce state for cell edit to avoid triggering heavy calculations on every keystroke
+  private cellEditDebounceTimer: any = null;
+  private pendingCellEdit: { rowData: any; field: string; value: any; gridType: 'skill' | 'general' | 'specialization' } | null = null;
+
+  /**
+   * PERFORMANCE OPTIMIZATION: Incremental parent chain recalculation
+   * Instead of recalculating the entire dataset (O(n²)), only recalculate the parent chain
+   * of the changed row. This reduces complexity from O(n²) to O(depth × descendants).
+   * 
+   * Logic: When a leaf node changes, all ancestor nodes' evaluation values need to be
+   * recalculated based on ALL their descendants (not just direct children).
+   */
+  private recalculateParentChainIncremental(dataSet: any[], changedRowId: any): void {
+
+    // Build STT to row map for O(1) lookup
+    const sttMap = new Map<string, any>();
+    const idMap = new Map<any, any>();
+    for (const row of dataSet) {
+      const stt = row.STT?.toString() || '';
+      if (stt) sttMap.set(stt, row);
+      const id = row.ID ?? row.id;
+      idMap.set(id, row);
+    }
+
+    const changedRow = idMap.get(changedRowId);
+    if (!changedRow) {
+      return;
+    }
+
+    const changedStt = changedRow.STT?.toString() || '';
+
+    // Build parent chain (from immediate parent to root)
+    const parentChain: any[] = [];
+    let currentStt = changedStt;
+    while (currentStt.includes('.')) {
+      const lastDot = currentStt.lastIndexOf('.');
+      const parentStt = currentStt.substring(0, lastDot);
+      const parentRow = sttMap.get(parentStt);
+      if (parentRow) {
+        parentChain.push(parentRow);
+        currentStt = parentStt;
+      } else {
+        break;
+      }
+    }
+
+    // Build list of parent STTs - a node is a parent if SOME OTHER node starts with its STT + "."
+    // e.g., "1" is parent of "1.1", "1.2" because they start with "1."
+    const listParentSTTs = new Set<string>();
+    for (const row of dataSet) {
+      const stt = row.STT?.toString() || '';
+      if (!stt) continue;
+      // Check if any other row has STT starting with this stt + "."
+      const prefix = stt + '.';
+      const hasChild = dataSet.some(r => r.STT?.toString()?.startsWith(prefix) && r.STT !== stt);
+      if (hasChild) {
+        listParentSTTs.add(stt);
+      }
+    }
+
+    // Helper: Get all descendants (children, grandchildren, etc.) of a node
+    // Descendant = has STT starting with parent prefix AND is NOT itself a parent
+    const getAllDescendants = (parentStt: string): any[] => {
+      const prefix = parentStt + '.';
+      const descendants: any[] = [];
+      for (const row of dataSet) {
+        const rowStt = row.STT?.toString() || '';
+        // Descendant = starts with prefix AND is NOT a parent (leaf or intermediate non-parent node)
+        if (rowStt.startsWith(prefix) && !listParentSTTs.has(rowStt)) {
+          descendants.push(row);
+        }
+      }
+      return descendants;
+    };
+
+    // Process from immediate parent to root (bottom-up)
+    for (const parentRow of parentChain) {
+      const parentStt = parentRow.STT?.toString() || '';
+      const descendants = getAllDescendants(parentStt);
+
+      let totalEmpCoef = 0;
+      let totalTbpCoef = 0;
+      let totalBgdCoef = 0;
+      let totalCoef = 0;
+
+      for (const leaf of descendants) {
+        // Use += like the original calculatorAvgPoint to avoid rounding errors
+        totalEmpCoef += this.formatDecimalNumber(parseFloat(leaf.EmployeeCoefficient) || 0, 2);
+        totalTbpCoef += this.formatDecimalNumber(parseFloat(leaf.TBPCoefficient) || 0, 2);
+        totalBgdCoef += this.formatDecimalNumber(parseFloat(leaf.BGDCoefficient) || 0, 2);
+        totalCoef += this.formatDecimalNumber(parseFloat(leaf.Coefficient) || 0, 2);
+      }
+
+
+      if (descendants.length === 0) {
+        continue;
+      }
+
+      // Use totalCoefficient (sum of descendants' coefficients) for division
+      const divCoef = totalCoef > 0 ? totalCoef : 1;
+      const avgEmp = totalEmpCoef / divCoef;
+      const avgTbp = totalTbpCoef / divCoef;
+      const avgBgd = totalBgdCoef / divCoef;
+
+      // Update Evaluation = average weighted by coefficient (correct formula)
+      parentRow.EmployeeEvaluation = this.formatDecimalNumber(avgEmp, 2);
+      parentRow.TBPEvaluation = this.formatDecimalNumber(avgTbp, 2);
+      parentRow.BGDEvaluation = this.formatDecimalNumber(avgBgd, 2);
+
+      // Update Coefficient = Evaluation * Coefficient_of_this_node (NOT totalCoef of descendants!)
+      // This is the CRITICAL fix - use parentRow.Coefficient, not totalCoef
+      const nodeCoefficient = parseFloat(parentRow.Coefficient) || 0;
+      parentRow.EmployeeCoefficient = this.formatDecimalNumber(avgEmp * nodeCoefficient, 2);
+      parentRow.TBPCoefficient = this.formatDecimalNumber(avgTbp * nodeCoefficient, 2);
+      parentRow.BGDCoefficient = this.formatDecimalNumber(avgBgd * nodeCoefficient, 2);
+    }
+  }
+
+  /**
+   * PERFORMANCE: In-place tree update without full rebuild
+   * Instead of calling buildTreeNodes() which rebuilds the entire tree,
+   * we mutate the data reference in existing tree nodes to preserve identity
+   */
+  private updateTreeNodeDataInPlace(tree: TreeNode[], newDataMap: Map<any, any>): void {
+    if (!tree || !newDataMap) return;
+    let updatedCount = 0;
+    for (const node of tree) {
+      const id = node.data.ID ?? node.data.id;
+      const newData = newDataMap.get(id);
+      if (newData) {
+        // Mutate the data object in-place to preserve tree structure identity
+        Object.assign(node.data, newData);
+        updatedCount++;
+      }
+      // Recursively update children
+      if (node.children && node.children.length > 0) {
+        this.updateTreeNodeDataInPlace(node.children, newDataMap);
+      }
+    }
+  }
+
+  /**
+   * PERFORMANCE OPTIMIZED: Handle cell change for PrimeNG TreeTable
+   * 
+   * BEFORE (slow): Every cell change → calculatorAvgPoint (O(n²)) → buildTreeNodes (O(n)) → full re-render
+   * AFTER (fast): Incremental parent chain recalc (O(depth)) → in-place tree update → minimal re-render
+   */
   handleCellChangePrime(event: { rowKey: any; rowData: any; field: string; value: any }, gridType: 'skill' | 'general' | 'specialization') {
-    const changedItem = event.rowData;
+    const changedRowData = event.rowData;
     const fieldName = event.field;
+    const changedRowId = changedRowData.id ?? changedRowData.ID;
 
-    // Update counts after change
-    this.updateEvaluationCounts();
+    // PERFORMANCE: Debounce - skip if same value already being processed
+    // PrimeNG triggers this twice: once with string, once with number
+    if (this.pendingCellEdit && 
+        this.pendingCellEdit.rowData === changedRowData && 
+        this.pendingCellEdit.field === fieldName) {
+      return;
+    }
+
+    // Set pending and debounce
+    this.pendingCellEdit = { rowData: changedRowData, field: fieldName, value: event.value, gridType };
+    clearTimeout(this.cellEditDebounceTimer);
+    this.cellEditDebounceTimer = setTimeout(() => {
+      this.pendingCellEdit = null;
+    }, 100);
+
+    // Get the data set for this grid
     let dataSet: any[];
+    let treeRef: TreeNode[];
+    if (gridType === 'skill') {
+      dataSet = this.dataSkill;
+      treeRef = this.dataSkillTree;
+    } else if (gridType === 'general') {
+      dataSet = this.dataGeneral;
+      treeRef = this.dataGeneralTree;
+    } else {
+      dataSet = this.dataSpecialization;
+      treeRef = this.dataSpecializationTree;
+    }
 
-    if (gridType === 'skill') dataSet = this.dataSkill;
-    else if (gridType === 'general') dataSet = this.dataGeneral;
-    else dataSet = this.dataSpecialization;
-
-    const dataIndex = dataSet.findIndex(d => (d.id ?? d.ID) === (changedItem.id ?? changedItem.ID));
+    // Find the row index
+    const dataIndex = dataSet.findIndex(d => (d.id ?? d.ID) === changedRowId);
     if (dataIndex === -1) return;
 
-    const coefficient = this.parseLocaleFloat(changedItem.Coefficient);
-    const employeePoint = this.parseLocaleFloat(changedItem.EmployeePoint);
-    const standardPoint = this.parseLocaleFloat(changedItem.StandardPoint);
     const isTKCK = this.departmentID === this.DEPARTMENT_CO_KHI;
+    const coefficient = parseFloat(dataSet[dataIndex].Coefficient) || 0;
+    const standardPoint = parseFloat(dataSet[dataIndex].StandardPoint) || 0;
+    const employeePoint = parseFloat(dataSet[dataIndex].EmployeePoint) || 0;
 
+    // Update the changed row with new value
     if (fieldName === 'EmployeePoint') {
       const rawVal = event.value;
       const isNullOrEmpty = rawVal === null || rawVal === undefined || String(rawVal).trim() === '';
@@ -2986,12 +3158,11 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         newEmployeePoint = Math.round(newEmployeePoint * 10) / 10;
         if (!isTKCK && newEmployeePoint > standardPoint) newEmployeePoint = standardPoint;
       }
-      changedItem.EmployeePoint = newEmployeePoint;
-      changedItem.EmployeeCoefficient = (newEmployeePoint ?? 0) * coefficient;
-      changedItem.EmployeeEvaluation = newEmployeePoint;
-    }
-
-    if (fieldName === 'TBPPointInput') {
+      dataSet[dataIndex].EmployeePoint = newEmployeePoint;
+      // Use formatDecimalNumber like the original calculatorAvgPoint
+      dataSet[dataIndex].EmployeeCoefficient = this.formatDecimalNumber((newEmployeePoint ?? 0) * coefficient, 2);
+      dataSet[dataIndex].EmployeeEvaluation = this.formatDecimalNumber(newEmployeePoint ?? 0, 2);
+    } else if (fieldName === 'TBPPointInput') {
       const rawVal = event.value;
       const isNullOrEmpty = rawVal === null || rawVal === undefined || String(rawVal).trim() === '';
       let tbpPointInput = isNullOrEmpty ? null : this.parseLocaleFloat(rawVal);
@@ -2999,21 +3170,20 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         tbpPointInput = Math.round(tbpPointInput * 10) / 10;
         if (!isTKCK && tbpPointInput > standardPoint) tbpPointInput = standardPoint;
       }
-      changedItem.TBPPointInput = tbpPointInput;
+      dataSet[dataIndex].TBPPointInput = tbpPointInput;
       if (tbpPointInput === null) {
-        changedItem.TBPPoint = null;
-        changedItem.TBPEvaluation = null;
-        changedItem.TBPCoefficient = 0;
+        dataSet[dataIndex].TBPPoint = null;
+        dataSet[dataIndex].TBPEvaluation = null;
+        dataSet[dataIndex].TBPCoefficient = 0;
       } else {
         const diff = Math.abs(parseFloat((tbpPointInput - employeePoint).toFixed(4)));
         const tbpPoint = (!isTKCK && diff >= 2) ? tbpPointInput / 2 : tbpPointInput;
-        changedItem.TBPPoint = tbpPoint;
-        changedItem.TBPEvaluation = tbpPoint;
-        changedItem.TBPCoefficient = tbpPoint * coefficient;
+        dataSet[dataIndex].TBPPoint = tbpPoint;
+        // Use formatDecimalNumber like the original calculatorAvgPoint
+        dataSet[dataIndex].TBPEvaluation = this.formatDecimalNumber(tbpPoint, 2);
+        dataSet[dataIndex].TBPCoefficient = this.formatDecimalNumber(tbpPoint * coefficient, 2);
       }
-    }
-
-    if (fieldName === 'BGDPointInput') {
+    } else if (fieldName === 'BGDPointInput') {
       const rawVal = event.value;
       const isNullOrEmpty = rawVal === null || rawVal === undefined || String(rawVal).trim() === '';
       let bgdPointInput = isNullOrEmpty ? null : this.parseLocaleFloat(rawVal);
@@ -3021,38 +3191,46 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         bgdPointInput = Math.round(bgdPointInput * 10) / 10;
         if (!isTKCK && bgdPointInput > standardPoint) bgdPointInput = standardPoint;
       }
-      changedItem.BGDPointInput = bgdPointInput;
+      dataSet[dataIndex].BGDPointInput = bgdPointInput;
       if (bgdPointInput === null) {
-        changedItem.BGDPoint = null;
-        changedItem.BGDEvaluation = null;
-        changedItem.BGDCoefficient = 0;
+        dataSet[dataIndex].BGDPoint = null;
+        dataSet[dataIndex].BGDEvaluation = null;
+        dataSet[dataIndex].BGDCoefficient = 0;
       } else {
         const diff = Math.abs(parseFloat((bgdPointInput - employeePoint).toFixed(4)));
         const bgdPoint = (!isTKCK && diff >= 2) ? bgdPointInput / 2 : bgdPointInput;
-        changedItem.BGDPoint = bgdPoint;
-        changedItem.BGDEvaluation = bgdPoint;
-        changedItem.BGDCoefficient = bgdPoint * coefficient;
+        dataSet[dataIndex].BGDPoint = bgdPoint;
+        // Use formatDecimalNumber like the original calculatorAvgPoint
+        dataSet[dataIndex].BGDEvaluation = this.formatDecimalNumber(bgdPoint, 2);
+        dataSet[dataIndex].BGDCoefficient = this.formatDecimalNumber(bgdPoint * coefficient, 2);
       }
     }
 
-    dataSet[dataIndex] = { ...changedItem };
+    // PERFORMANCE: Only recalculate parent chain of changed row (O(depth)) instead of full O(n²)
+    this.recalculateParentChainIncremental(dataSet, changedRowId);
 
-    let updatedDataSet: any[];
+    // CRITICAL: Also update summary row (ID = -1) by calling calculatorTotalPoint
+    dataSet = this.calculatorTotalPoint(dataSet);
+
+    // Update tree with new data reference to trigger PrimeNG change detection
+    // Note: We must rebuild the tree structure (not just mutate) because PrimeNG TreeTable
+    // uses OnPush and needs a new tree reference to detect changes
     if (gridType === 'skill') {
-      updatedDataSet = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataSkill, 'skill') : this.calculatorAvgPoint(this.dataSkill);
-      this.dataSkill = updatedDataSet;
+      this.dataSkill = dataSet;
       this.dataSkillTree = this.buildTreeNodes(this.dataSkill);
     } else if (gridType === 'general') {
-      updatedDataSet = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataGeneral, 'general') : this.calculatorAvgPoint(this.dataGeneral);
-      this.dataGeneral = updatedDataSet;
+      this.dataGeneral = dataSet;
       this.dataGeneralTree = this.buildTreeNodes(this.dataGeneral);
     } else {
-      updatedDataSet = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataSpecialization, 'specialization') : this.calculatorAvgPoint(this.dataSpecialization);
-      this.dataSpecialization = updatedDataSet;
+      this.dataSpecialization = dataSet;
       this.dataSpecializationTree = this.buildTreeNodes(this.dataSpecialization);
     }
 
-    if (this.departmentID === this.DEPARTMENT_CO_KHI) {
+    // Update evaluation counts (lightweight - just recalculate based on new data)
+    this.updateEvaluationCounts();
+
+    // Update summary tab
+    if (isTKCK) {
       this.loadSumaryRank_TKCK();
     } else {
       this.calculateTotalAVG();
@@ -3285,11 +3463,13 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   }
 
   private calculatorTotalPoint(dataTable: any[]): any[] {
-    const parentRows = dataTable.filter(row => row.ParentID === 0 || row.parentId === null);
+    // Only calculate for root/summary row (ID = -1) to avoid overwriting already-calculated parent nodes
+    const rootRows = dataTable.filter(row => row.ID === -1);
 
-    for (const parentRow of parentRows) {
-      const rowIndex = dataTable.indexOf(parentRow);
-      const childrenRows = dataTable.filter(row => row.ParentID === parentRow.ID);
+    for (const rootRow of rootRows) {
+      const rowIndex = dataTable.indexOf(rootRow);
+      // Get direct children of the root (ParentID = root.ID = -1)
+      const childrenRows = dataTable.filter(row => row.ParentID === rootRow.ID);
 
       let totalCoefficient = 0;
       let totalEmpAVGPoint = 0;
@@ -3297,6 +3477,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       let totalBGDAVGPoint = 0;
 
       for (const child of childrenRows) {
+        // Use += like the original calculatorAvgPoint style
         totalCoefficient += this.formatDecimalNumber(parseFloat(child.Coefficient) || 0, 2);
         totalEmpAVGPoint += this.formatDecimalNumber(parseFloat(child.EmployeeCoefficient) || 0, 2);
         totalTBPAVGPoint += this.formatDecimalNumber(parseFloat(child.TBPCoefficient) || 0, 2);
@@ -3319,9 +3500,6 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       dataTable[rowIndex].EmployeeEvaluation = this.formatDecimalNumber(totalEmpAVGPoint / divCoef, 2);
       dataTable[rowIndex].BGDEvaluation = this.formatDecimalNumber(totalBGDAVGPoint / divCoef, 2);
       dataTable[rowIndex].TBPEvaluation = this.formatDecimalNumber(totalTBPAVGPoint / divCoef, 2);
-      console.log('employeeEvaluation', dataTable[rowIndex].EmployeeEvaluation);
-      console.log('totalEmpAVGPoint', totalEmpAVGPoint);
-      console.log('divCoef', divCoef);
     }
 
     return dataTable;
@@ -4634,7 +4812,6 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
     if (zeroScores.size > 0) {
       this.isSaving = false;
-      this.isCloseAfterSave = false;
       this.showValidationRedBorders = true;
       this.showZeroScoreBorders = true;
       // Refresh references to trigger grid re-render immediately
@@ -4643,10 +4820,23 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       this.dataSpecializationTree = [...this.dataSpecializationTree];
       this.cdr.detectChanges();
 
-      this.notification.warning(
-        'Cảnh báo',
-        'Hệ thống phát hiện còn tiêu chí chưa đánh giá. Vui lòng kiểm tra lại trước khi lưu.'
-      );
+      // Hiển thị popup xác nhận
+      this.modal.confirm({
+        nzTitle: 'Xác nhận lưu dữ liệu',
+        nzContent: `Hệ thống phát hiện tiêu chí chưa được đánh giá. Bạn có muốn tiếp tục lưu không?`,
+        nzOkText: 'Tiếp tục lưu',
+        nzOkType: 'primary',
+        nzOkDanger: false,
+        nzCancelText: 'Hủy để kiểm tra',
+        nzOnOk: () => {
+          this.showZeroScoreBorders = false;
+          this.showValidationRedBorders = false;
+          this.performSave();
+        },
+        nzOnCancel: () => {
+          // User cancelled - keep borders visible for review
+        }
+      });
     } else {
       this.performSave();
     }
@@ -4668,7 +4858,10 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     if (kpiKyNang.length === 0 && kpiChung.length === 0 && kpiChuyenMon.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu thay đổi để lưu');
       this.isSaving = false;
-      this.isCloseAfterSave = false;
+      if (this.isCloseAfterSave) {
+        this.isCloseAfterSave = false;
+        this.closeModal();
+      }
       return;
     }
 

@@ -208,6 +208,7 @@ export class CustomTreeTableKpi implements OnChanges, OnInit {
     }
 
     onCellEditComplete(rowData: any, field: string) {
+        console.log('[TreeTable onCellEditComplete]', { field, value: rowData[field], rowData: { STT: rowData.STT, ID: rowData.ID, id: rowData.id } });
         this.cellValueChange.emit({ rowKey: rowData[this.dataKey] ?? rowData['_id'], rowData, field, value: rowData[field] });
     }
 
@@ -1047,28 +1048,37 @@ export class CustomTreeTableKpi implements OnChanges, OnInit {
         this.focusedCell = { rowData: nextRowData, colField: nextCol.field };
         this.focusedRowIdx = nextRowIdx;
 
-        // Attempt to focus the new cell DOM element
-        setTimeout(() => {
+        // PERFORMANCE: Use requestAnimationFrame instead of fixed 50ms setTimeout
+        // This schedules the focus operation for the next paint, which is faster and more efficient
+        requestAnimationFrame(() => {
             const selector = `tbody .focused-cell`;
             const cellEl = this.el.nativeElement.querySelector(selector) as HTMLElement;
-            console.log('Cell Element found:', !!cellEl, 'Selector:', selector);
             if (cellEl) {
                 cellEl.focus();
                 // If the user was editing, they probably want to continue editing the next cell
-                // We can trigger a click to activate PrimeNG's edit mode
                 if (this.editMode && (nextCol.isEditable ? nextCol.isEditable(nextRowData) : nextCol.editable)) {
                     cellEl.click();
                 }
             }
-        }, 50);
+        });
     }
 
+    /**
+     * PERFORMANCE: Optimized getVisibleNodes - avoids creating new arrays on each iteration
+     * Uses push() + spread instead of concat() which creates new arrays
+     */
     private getVisibleNodes(nodes: TreeNode[]): TreeNode[] {
-        let result: TreeNode[] = [];
-        for (const node of nodes) {
+        const result: TreeNode[] = [];
+        const stack: TreeNode[] = [...nodes];
+
+        while (stack.length > 0) {
+            const node = stack.pop()!;
             result.push(node);
             if (node.expanded && node.children && node.children.length > 0) {
-                result = result.concat(this.getVisibleNodes(node.children));
+                // Add children in reverse order to maintain original order (stack is LIFO)
+                for (let i = node.children.length - 1; i >= 0; i--) {
+                    stack.push(node.children[i]);
+                }
             }
         }
         return result;

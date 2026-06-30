@@ -30,6 +30,8 @@ export interface KpiTeamCalculateRequest {
   periodID: number;
   templateID: number;
   saveSnapshot: boolean;
+  /** Khi true: tính lại data cá nhân cho từng employee và lưu snapshot. Default: false. */
+  recalcPerEmployee?: boolean;
   reportAdjustments: { kpiIndexId: number; reportScoreAdjustmentType: number; reportScoreValue: number; }[];
 }
 
@@ -393,6 +395,18 @@ export class KpiSaleV2Service {
 
   calculateTeam(request: KpiTeamCalculateRequest): Observable<KpiApiResponse<KpiCalculateResponse>> {
     return this.http.post<KpiApiResponse<KpiCalculateResponse>>(`${this.apiUrl}/calculate-team`, request);
+  }
+
+  /**
+   * Sao chép toàn bộ chỉ tiêu từ 1 mẫu nguồn sang 1 mẫu đích (đều là mẫu có sẵn).
+   */
+  copyTemplate(request: {
+    sourceTemplateID: number;
+    targetTemplateID: number;
+    copyIndexes?: boolean;
+    includeInactiveIndexes?: boolean;
+  }): Observable<KpiApiResponse<{ targetTemplateID: number; targetTemplateName: string; copiedIndexCount: number; newIndexIDs: number[] }>> {
+    return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/templates/copy`, request);
   }
 
   getTeams(keyword?: string): Observable<KpiApiResponse<any[]>> {

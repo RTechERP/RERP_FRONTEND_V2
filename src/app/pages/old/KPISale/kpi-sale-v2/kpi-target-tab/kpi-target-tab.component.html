@@ -151,8 +151,8 @@
                 (click)="saveInlineChanges()">
                 <i nz-icon nzType="save"></i> Lưu ({{ changedTargets.length }})
               </button>
-              <!-- Nút Lưu trọng số (chỉ khi có thay đổi) -->
-              <button nz-button nzType="default" nzSize="small"
+              <!-- Nút Lưu trọng số (chỉ leader/admin) -->
+              <button *ngIf="canApproveTargets" nz-button nzType="default" nzSize="small"
                 nz-tooltip nzTooltipTitle="Lưu trọng số đã chỉnh sửa (Admin/Leader)"
                 [disabled]="!hasWeightChanges()"
                 (click)="saveWeightChanges()">
@@ -244,7 +244,7 @@
                               (focus)="$any($event.target).select()"
                               style="width: 100%; text-align: right; font-weight: 600;"
                               [style.color]="getDisplayPivotProposed(row, cell.periodId) ? '#d48806' : 'inherit'" />
-                            <div *ngIf="canApproveTargets && cell.approvalStatus === 'Pending' && cell.target.proposedGoalValue != null" style="margin-top: 2px; display: flex; gap: 2px; justify-content: flex-end;">
+                            <div *ngIf="canApprove(cell.target) && cell.approvalStatus === 'Pending' && cell.target.proposedGoalValue != null" style="margin-top: 2px; display: flex; gap: 2px; justify-content: flex-end;">
                               <a nz-tooltip nzTooltipTitle="Duyệt"
                                 class="action-btn text-success"
                                 style="font-size: 11px; padding: 0 2px;"
@@ -404,7 +404,7 @@
                           [value]="formatMoney(getInlineGoal(row.id))"
                           (blur)="onInlineGoalChange(row.id, parseMoney($any($event.target).value))"
                           (focus)="$any($event.target).select()"
-                          [disabled]="row.approvalStatus === 'Approved' || !canApproveTargets"
+                          [disabled]="row.approvalStatus === 'Approved' || !canApproveTargets || isRestrictedUser"
                           style="width: 100%; font-weight: 600; text-align: right;" />
                       </ng-container>
                       <ng-template #groupGoalCell>
@@ -427,7 +427,7 @@
                     <!-- Hành động -->
                     <td nzAlign="center" (click)="$event.stopPropagation()">
                       <ng-container *ngIf="!isGroupIndex(row.kpiIndexId)">
-                        <a *ngIf="row.approvalStatus !== 'Approved'"
+                        <a *ngIf="canEditTarget(row)"
                           class="action-btn text-primary"
                           nz-tooltip nzTooltipTitle="Chỉnh sửa mục tiêu"
                           (click)="openTargetForm(row)">
@@ -474,11 +474,15 @@
     <div class="field">
       <span>Nhân viên</span>
       <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="targetEmployee" nzShowSearch
-        [(ngModel)]="targetDraft.employeeId" (ngModelChange)="onTargetDraftChange()" class="w-100">
+        [(ngModel)]="targetDraft.employeeId" (ngModelChange)="onTargetDraftChange()" class="w-100"
+        [nzDisabled]="isRestrictedUser">
         <nz-option *ngFor="let item of employees; trackBy: trackById" [nzValue]="item.id"
           [nzLabel]="item.code + ' - ' + item.fullName">
         </nz-option>
       </nz-select>
+      <small *ngIf="isRestrictedUser" class="field-hint">
+        <i nz-icon nzType="info-circle"></i> Bạn chỉ có thể thêm mục tiêu cho chính mình.
+      </small>
     </div>
 
     <div class="field">

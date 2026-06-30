@@ -14,7 +14,7 @@
   </div>
 
   <!-- Filter bar -->
-  <div class="filter-header" style="flex-shrink: 0; margin-bottom: 8px; padding: 6px 8px; background: white; border-radius: 4px; border: 1px solid #d8dee9;">
+  <!-- <div class="filter-header" style="flex-shrink: 0; margin-bottom: 8px; padding: 6px 8px; background: white; border-radius: 4px; border: 1px solid #d8dee9;">
     <form nz-form nzLayout="inline" class="toolbar-filters d-flex align-items-center gap-2 flex-wrap">
       <nz-form-item style="margin: 0; width: 180px; margin-left: auto;">
         <nz-form-control>
@@ -23,7 +23,7 @@
         </nz-form-control>
       </nz-form-item>
     </form>
-  </div>
+  </div> -->
 
   <div class="content-container">
     <!-- Upper panel: KPI Templates (Master) - 50% -->
@@ -214,6 +214,69 @@
       <label nz-checkbox name="isMainIndex" [(ngModel)]="indexDraft.isMainIndex">Chỉ tiêu chính</label>
       <label nz-checkbox name="isBold" [(ngModel)]="indexDraft.isBold">In đậm</label>
       <label nz-checkbox name="indexActive" [(ngModel)]="indexDraft.isActive">Đang dùng</label>
+    </div>
+  </form>
+</ng-template>
+
+<!-- Template: Form Sao chép mẫu (Copy từ mẫu có sẵn sang mẫu có sẵn) -->
+<ng-template #copyTemplateFormTemplate>
+  <form nz-form nzLayout="vertical" class="compact-form copy-form" [formGroup]="copyForm">
+    <div class="copy-row">
+      <div class="field">
+        <span>Từ mẫu <span class="required">*</span></span>
+        <nz-select
+          nzDropdownClassName="select-dropdown"
+          name="copySourceTemplateId"
+          nzShowSearch
+          nzPlaceHolder="Chọn mẫu nguồn"
+          formControlName="sourceTemplateId"
+          style="width: 100%;">
+          <nz-option
+            *ngFor="let item of templates; trackBy: trackById"
+            [nzValue]="item.id"
+            [nzLabel]="item.templateCode + ' - ' + item.templateName + ' (' + getTemplateIndexesCount(item.id) + ' chỉ tiêu)'"
+            [nzDisabled]="item.id === copyForm.value.targetTemplateId">
+          </nz-option>
+        </nz-select>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="copy-arrow">
+        <i nz-icon nzType="arrow-down" nzTheme="outline"></i>
+      </div>
+    </div>
+
+    <div class="copy-row">
+      <div class="field">
+        <span>Sang mẫu <span class="required">*</span></span>
+        <nz-select
+          nzDropdownClassName="select-dropdown"
+          name="copyTargetTemplateId"
+          nzShowSearch
+          nzPlaceHolder="Chọn mẫu đích"
+          formControlName="targetTemplateId"
+          style="width: 100%;">
+          <nz-option
+            *ngFor="let item of templates; trackBy: trackById"
+            [nzValue]="item.id"
+            [nzLabel]="item.templateCode + ' - ' + item.templateName + ' (' + getTemplateIndexesCount(item.id) + ' chỉ tiêu)'"
+            [nzDisabled]="item.id === copyForm.value.sourceTemplateId">
+          </nz-option>
+        </nz-select>
+      </div>
+    </div>
+
+    <label nz-checkbox formControlName="includeInactiveIndexes">
+      Bao gồm chỉ tiêu đang tắt
+    </label>
+
+    <div class="copy-preview" *ngIf="copyForm.value.sourceTemplateId && copyForm.value.targetTemplateId">
+      <i nz-icon nzType="info-circle" nzTheme="outline"></i>
+      <span>
+        Sẽ sao chép <strong>{{ getTemplateIndexesCount(copyForm.value.sourceTemplateId) }}</strong> chỉ tiêu
+        sang mẫu <strong>{{ getTemplateName(copyForm.value.targetTemplateId) }}</strong>.
+      </span>
     </div>
   </form>
 </ng-template>

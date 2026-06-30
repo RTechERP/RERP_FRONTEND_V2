@@ -119,6 +119,18 @@ export class KpiTargetTabComponent implements OnInit {
 
   // N1 (admin) cũng có toàn quyền duyệt như leader
   isN1Admin = false;
+
+  // User hiện tại
+  currentUserId = 0;
+
+  /**
+   * User bị hạn chế: KHÔNG phải leader VÀ KHÔNG phải admin N1
+   * → Chỉ được xem/sửa mục tiêu của chính mình
+   */
+  get isRestrictedUser(): boolean {
+    return !this.isLeader && !this.isN1Admin;
+  }
+
   /** Có quyền duyệt target hay không (leader team hoặc admin N1) */
   get canApproveTargets(): boolean {
     return this.isLeader || this.isN1Admin;
@@ -877,6 +889,31 @@ export class KpiTargetTabComponent implements OnInit {
     return this.isLeader && this.isMyTeamLeader(item);
   }
 
+  /**
+   * Kiểm tra user hiện tại có quyền sửa/xóa target không.
+   * - Leader/Admin N1: được sửa tất cả
+   * - Restricted user: chỉ được sửa target của chính mình
+   */
+  canEditTarget(item: KpiSaleTarget): boolean {
+    if (!item) return false;
+    // Leader hoặc admin N1: được sửa tất cả
+    if (this.isLeader || this.isN1Admin) return true;
+    // Restricted user: chỉ được sửa target của chính mình
+    return item.employeeId === this.currentUserId;
+  }
+
+  /**
+   * Kiểm tra user hiện tại có quyền sửa mục tiêu bảng (inline edit) không.
+   * - Leader/Admin N1: được sửa tất cả
+   * - Restricted user: chỉ được sửa mục tiêu của chính mình
+   */
+  canEditOwnTarget(employeeId: number): boolean {
+    // Leader hoặc admin N1: được sửa tất cả
+    if (this.isLeader || this.isN1Admin) return true;
+    // Restricted user: chỉ được sửa mục tiêu của chính mình
+    return employeeId === this.currentUserId;
+  }
+
   // Kiểm tra user hiện tại (là leader) có phải leader của team chứa nhân viên trong target không
   isMyTeamLeader(item: KpiSaleTarget): boolean {
     // Leader có quyền duyệt tất cả target đang hiển thị
@@ -902,6 +939,7 @@ export class KpiTargetTabComponent implements OnInit {
     private permissionService: PermissionService
   ) {
     this.isN1Admin = this.permissionService.hasPermission('N1');
+    this.currentUserId = this.appUserService.id || 0;
   }
 
   onEmployeeSelect(employeeId: number): void {
@@ -1024,7 +1062,12 @@ export class KpiTargetTabComponent implements OnInit {
         this.selectedPeriodId = this.periods.find(p => !p.isClosed)?.id || this.periods[0].id;
       }
       if (this.employees.length > 0 && !this.selectedEmployeeId) {
-        this.selectedEmployeeId = this.employees[0].id;
+        // Nếu là restricted user → auto chọn đúng nhân viên hiện tại
+        if (this.isRestrictedUser && this.currentUserId) {
+          this.selectedEmployeeId = this.currentUserId;
+        } else {
+          this.selectedEmployeeId = this.employees[0].id;
+        }
       }
 
       await this.onFilterChange();
@@ -1169,6 +1212,10 @@ export class KpiTargetTabComponent implements OnInit {
       this.targetDraft = { ...target };
     } else {
       this.targetDraft = this.getDefaultTargetDraft();
+      // Restricted user: chỉ được thêm mục tiêu cho chính mình
+      if (this.isRestrictedUser && this.currentUserId) {
+        this.targetDraft.employeeId = this.currentUserId;
+      }
     }
 
     this.targetModalRef = this.modalService.create({
@@ -1248,6 +1295,19 @@ export class KpiTargetTabComponent implements OnInit {
     }
     if (!this.targetDraft.employeeId || !this.targetDraft.periodId || !this.targetDraft.kpiIndexId) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn đầy đủ thông tin nhân viên, kỳ và chỉ tiêu KPI');
+      return;
+    }
+
+    // Validate trùng lặp: kiểm tra xem đã có target cùng employee + period + kpiIndex chưa
+    const isEditMode = !!this.targetDraft.id;
+    const duplicateTarget = this.targets.find(t =>
+      t.employeeId === this.targetDraft.employeeId &&
+      t.periodId === this.targetDraft.periodId &&
+      t.kpiIndexId === this.targetDraft.kpiIndexId &&
+      t.id !== this.targetDraft.id // loại trừ chính record đang sửa
+    );
+    if (duplicateTarget && !isEditMode) {
+      this.notification.warning('Cảnh báo', 'Mục tiêu này đã tồn tại cho nhân viên và kỳ KPI đã chọn. Vui lòng chọn chỉ tiêu hoặc kỳ khác.');
       return;
     }
 
@@ -1736,7 +1796,12 @@ export class KpiTargetTabComponent implements OnInit {
       }
     }
 
-    // Bước 2: lọc theo từ khóa tìm kiếm
+    // Bước 2: Nếu user bị hạn chế (không phải leader/admin) → chỉ thấy đúng mình
+    if (this.isRestrictedUser && this.currentUserId) {
+      list = list.filter(e => e.id === this.currentUserId);
+    }
+
+    // Bước 3: lọc theo từ khóa tìm kiếm
     if (!keyword) return list;
     return list.filter(e =>
       e.code.toLowerCase().includes(keyword) ||

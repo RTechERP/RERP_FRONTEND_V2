@@ -21,7 +21,7 @@
             <button nz-button nzType="default" nzSize="default" (click)="openExportFilterModal()" class="me-2">
                 <i class="fas fa-filter text-primary me-1"></i> Xuất Excel (Lọc)
             </button>
-            <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
+            <button *ngIf="selectedProducts && selectedProducts.length > 0" nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu ({{ selectedProducts.length }} PO)</button>
         </div>
     </div>
     <nz-splitter class="h-100">
@@ -29,13 +29,19 @@
         <nz-splitter-panel>
             <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                 <div class="card-body p-0 flex-grow-1 grid-container" style="overflow: hidden;">
-                    <p-table [value]="dataProduct" dataKey="ID" selectionMode="single" [(selection)]="selectedProduct"
-                        (onRowSelect)="onProductRowSelect($event)" [scrollable]="true" scrollHeight="flex"
+                    <p-table [value]="dataProduct" dataKey="ID" selectionMode="multiple" [selection]="selectedProducts"
+                        (selectionChange)="onProductSelectionChange($event)" [scrollable]="true" scrollHeight="flex"
                         styleClass="p-datatable-sm p-datatable-gridlines hm-prime-table" [resizableColumns]="true"
-                        columnResizeMode="expand" [paginator]="true" [rows]="15" [rowsPerPageOptions]="[15, 30, 50]">
+                        columnResizeMode="expand">
 
                         <ng-template pTemplate="header">
                             <tr>
+                                <th style="width: 60px; min-width: 60px;">
+                                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                                </th>
+                                <th style="width: 40px; min-width: 40px;" class="text-center">
+                                    <i class="fas fa-plus text-success" title="Thêm dòng tiền về"></i>
+                                </th>
                                 <th pResizableColumn pSortableColumn="ProductNewCode"
                                     style="min-width: 50px; width: 120px;">
                                     <div class="table-header-cell">
@@ -72,8 +78,14 @@
                                 </th>
                                 <th pResizableColumn pSortableColumn="POCode" style="min-width: 150px; width: 150px;">
                                     <div class="table-header-cell">
-                                        <span>PO</span>
+                                        <span>Mã PO</span>
                                         <p-sortIcon field="POCode"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="PONumber" style="min-width: 120px; width: 120px;">
+                                    <div class="table-header-cell">
+                                        <span>Số POKH</span>
+                                        <p-sortIcon field="PONumber"></p-sortIcon>
                                     </div>
                                 </th>
                                 <th pResizableColumn pSortableColumn="BillNumber"
@@ -88,7 +100,17 @@
 
                         <ng-template pTemplate="body" let-rowData>
                             <tr [pSelectableRow]="rowData" class="data-row"
-                                [ngClass]="{ 'selected-row': selectedProduct?.ID === rowData.ID }">
+                                [ngClass]="{ 'selected-row': isRowSelected(rowData) }">
+                                <td style="width: 60px;" class="text-center">
+                                    <p-tableCheckbox [value]="rowData"></p-tableCheckbox>
+                                </td>
+                                <td style="width: 40px;" class="text-center">
+                                    <button pButton type="button" icon="pi pi-plus"
+                                        class="p-button-text p-button-success p-button-sm table-icon-btn"
+                                        (click)="addNewRowForProduct(rowData); $event.stopPropagation()"
+                                        title="Thêm dòng tiền về cho PO này">
+                                    </button>
+                                </td>
                                 <td>
                                     <span class="cell-content">{{ rowData.ProductNewCode }}</span>
                                 </td>
@@ -108,6 +130,9 @@
                                     <span class="cell-content">{{ rowData.POCode }}</span>
                                 </td>
                                 <td>
+                                    <span class="cell-content">{{ rowData.PONumber }}</span>
+                                </td>
+                                <td>
                                     <span class="cell-content">{{ rowData.BillNumber }}</span>
                                 </td>
                             </tr>
@@ -115,7 +140,7 @@
 
                         <ng-template pTemplate="emptymessage">
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-3">
+                                <td colspan="10" class="text-center text-muted py-3">
                                     Không có dữ liệu
                                 </td>
                             </tr>
@@ -137,9 +162,30 @@
                         <ng-template pTemplate="header">
                             <tr>
                                 <th style="width: 40px; min-width: 40px;">
-                                    <div style="display: flex; justify-content: center; align-items: center; cursor: pointer;"
-                                        (click)="addNewRow()" title="Thêm dòng">
+                                    <div *ngIf="selectedProducts && selectedProducts.length > 0" style="display: flex; justify-content: center; align-items: center; cursor: pointer;"
+                                         (click)="addNewRow()" title="Thêm dòng">
                                         <i class="fas fa-plus text-danger"></i>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="POCode"
+                                    style="min-width: 100px; width: 100px;">
+                                    <div class="table-header-cell">
+                                        <span>Mã PO</span>
+                                        <p-sortIcon field="POCode"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="ProductNewCode"
+                                    style="min-width: 90px; width: 90px;">
+                                    <div class="table-header-cell">
+                                        <span>Mã SP</span>
+                                        <p-sortIcon field="ProductNewCode"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="PONumber"
+                                    style="min-width: 100px; width: 100px;">
+                                    <div class="table-header-cell">
+                                        <span>Số POKH</span>
+                                        <p-sortIcon field="PONumber"></p-sortIcon>
                                     </div>
                                 </th>
                                 <th pResizableColumn pSortableColumn="MoneyDate"
@@ -186,10 +232,16 @@
                                         <p-sortIcon field="MoneyVAT"></p-sortIcon>
                                     </div>
                                 </th>
-                                <th pResizableColumn pSortableColumn="UserID" style="min-width: 150px; width: 150px;">
+                                <th pResizableColumn pSortableColumn="UserID" style="min-width: 180px; width: 180px;">
                                     <div class="d-flex align-items-center justify-content-between">
-                                        Người phụ trách
+                                        Người phụ trách (Admin)
                                         <p-sortIcon field="UserID"></p-sortIcon>
+                                    </div>
+                                </th>
+                                <th pResizableColumn pSortableColumn="PMUserID" style="min-width: 150px; width: 150px;">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        Người phụ trách (PM)
+                                        <p-sortIcon field="PMUserID"></p-sortIcon>
                                     </div>
                                 </th>
                                 <th pResizableColumn style="min-width: 60px; width: 60px;">
@@ -210,8 +262,23 @@
                                     </button>
                                 </td>
 
+                                <!-- POCode (Mã PO) -->
+                                <td>
+                                    <span class="cell-content">{{ rowData.POCode }}</span>
+                                </td>
+
+                                <!-- ProductNewCode (Mã sản phẩm) -->
+                                <td>
+                                    <span class="cell-content">{{ rowData.ProductNewCode || '' }}</span>
+                                </td>
+
+                                <!-- PONumber (Số POKH) -->
+                                <td>
+                                    <span class="cell-content">{{ rowData.PONumber }}</span>
+                                </td>
+
                                 <!-- MoneyDate (editable) -->
-                                <td [pEditableColumn]="rowData" pEditableColumnField="MoneyDate" class="text-center">
+                                <td pEditableColumn="rowData" pEditableColumnField="MoneyDate" class="text-center">
                                     <p-cellEditor>
                                         <ng-template pTemplate="input">
                                             <input type="date" class="table-cell-input"
@@ -225,7 +292,7 @@
                                 </td>
 
                                 <!-- Money (editable) -->
-                                <td [pEditableColumn]="rowData" pEditableColumnField="Money" class="text-end">
+                                <td pEditableColumn="rowData" pEditableColumnField="Money" class="text-end">
                                     <p-cellEditor>
                                         <ng-template pTemplate="input">
                                             <input type="number" pInputText class="table-cell-input text-end"
@@ -236,7 +303,7 @@
                                 </td>
 
                                 <!-- Note (editable) -->
-                                <td [pEditableColumn]="rowData" pEditableColumnField="Note">
+                                <td pEditableColumn="rowData" pEditableColumnField="Note">
                                     <p-cellEditor>
                                         <ng-template pTemplate="input">
                                             <input pInputText class="table-cell-input" [(ngModel)]="rowData.Note"
@@ -247,7 +314,7 @@
                                 </td>
 
                                 <!-- BankName (editable - dropdown) -->
-                                <td [pEditableColumn]="rowData" pEditableColumnField="BankName">
+                                <td pEditableColumn="rowData" pEditableColumnField="BankName">
                                     <p-cellEditor>
                                         <ng-template pTemplate="input">
                                             <p-select [options]="bankNameOptions" optionLabel="label"
@@ -261,7 +328,7 @@
                                 </td>
 
                                 <!-- InvoiceNo (editable) -->
-                                <td [pEditableColumn]="rowData" pEditableColumnField="InvoiceNo">
+                                <td pEditableColumn="rowData" pEditableColumnField="InvoiceNo">
                                     <p-cellEditor>
                                         <ng-template pTemplate="input">
                                             <input pInputText class="table-cell-input" [(ngModel)]="rowData.InvoiceNo"
@@ -272,7 +339,7 @@
                                 </td>
 
                                 <!-- VAT (editable) -->
-                                <td [pEditableColumn]="rowData" pEditableColumnField="VAT" class="text-end">
+                                <td pEditableColumn="rowData" pEditableColumnField="VAT" class="text-end">
                                     <p-cellEditor>
                                         <ng-template pTemplate="input">
                                             <input type="number" pInputText class="table-cell-input text-end"
@@ -283,7 +350,7 @@
                                 </td>
 
                                 <!-- MoneyVAT (editable) -->
-                                <td [pEditableColumn]="rowData" pEditableColumnField="MoneyVAT" class="text-end">
+                                <td pEditableColumn="rowData" pEditableColumnField="MoneyVAT" class="text-end">
                                     <p-cellEditor>
                                         <ng-template pTemplate="input">
                                             <input type="number" pInputText class="table-cell-input text-end"
@@ -296,7 +363,7 @@
                                 </td>
 
                                 <!-- UserID (editable - dropdown) -->
-                                <td [pEditableColumn]="rowData" pEditableColumnField="UserID">
+                                <td pEditableColumn="rowData" pEditableColumnField="UserID">
                                     <p-cellEditor>
                                         <ng-template pTemplate="input">
                                             <p-select [options]="salesEmployeeOptions" optionLabel="label"
@@ -306,6 +373,21 @@
                                             </p-select>
                                         </ng-template>
                                         <ng-template pTemplate="output">{{ getEmployeeName(rowData.UserID)
+                                            }}</ng-template>
+                                    </p-cellEditor>
+                                </td>
+
+                                <!-- PMUserID (editable - dropdown) -->
+                                <td pEditableColumn="rowData" pEditableColumnField="PMUserID">
+                                    <p-cellEditor>
+                                        <ng-template pTemplate="input">
+                                            <p-select [options]="salesEmployeeOptions" optionLabel="label"
+                                                optionValue="value" [filter]="true" [showClear]="true" appendTo="body"
+                                                styleClass="w-100" [(ngModel)]="rowData.PMUserID"
+                                                [ngModelOptions]="{ standalone: true }">
+                                            </p-select>
+                                        </ng-template>
+                                        <ng-template pTemplate="output">{{ getEmployeeName(rowData.PMUserID)
                                             }}</ng-template>
                                     </p-cellEditor>
                                 </td>
@@ -320,8 +402,8 @@
 
                         <ng-template pTemplate="emptymessage">
                             <tr>
-                                <td colspan="9" class="text-center text-muted py-3">
-                                    Không có dữ liệu
+                                <td [attr.colspan]="14" class="text-center text-muted py-3">
+                                    Không có dữ liệu - Vui lòng chọn PO từ bảng bên trái
                                 </td>
                             </tr>
                         </ng-template>

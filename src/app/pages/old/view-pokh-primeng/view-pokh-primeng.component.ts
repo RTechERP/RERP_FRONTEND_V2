@@ -360,11 +360,18 @@ export class ViewPokhPrimengComponent implements OnInit {
     const nextIds = new Set(nextRows.map((row) => row.ID));
     const previousIds = new Set(this.selectedRowsAll.map((row) => row.ID));
 
+    // Remove parents that are in current dataset but NOT in new selection (explicitly unchecked)
+    const removedParentIds = new Set(
+      [...currentDatasetIds].filter((id) => previousIds.has(id) && !nextIds.has(id))
+    );
+    if (removedParentIds.size > 0) {
+      this.selectedExportRowsAll = this.selectedExportRowsAll.filter(
+        (row) => !removedParentIds.has(row.POKHDetailID)
+      );
+    }
+
     this.selectedRowsAll = this.selectedRowsAll.filter(
       (row) => !currentDatasetIds.has(row.ID) || nextIds.has(row.ID)
-    );
-    this.selectedExportRowsAll = this.selectedExportRowsAll.filter(
-      (row) => !currentDatasetIds.has(row.POKHDetailID) || nextIds.has(row.POKHDetailID)
     );
 
     nextRows.forEach((row) => {

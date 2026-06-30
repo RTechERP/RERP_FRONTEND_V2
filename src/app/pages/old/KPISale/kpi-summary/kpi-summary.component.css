@@ -120,44 +120,38 @@
 }
 
 /* Header */
-.header-row-1 th,
-.header-row-2 th {
-  background: #fafafa;
-  font-weight: 600;
-  font-size: 12px;
-  color: #333;
-}
-
 .header-row-1 th {
-  background: #f0f0f0;
   font-size: 13px;
-  border-bottom: 2px solid #d9d9d9;
+  border-bottom: 1px solid #999 !important;
 }
 
 .col-period-group {
-  background: #f5f5f5 !important;
+  background: #fff !important;
 }
 
 .col-quarter {
-  background: #e6f7ff !important;
-  border-left: 2px solid #91d5ff !important;
+  background: #fff !important;
+  border-left: 2px solid #999 !important;
 }
 
 .col-index {
   position: sticky;
   left: 0;
   z-index: 5;
-  min-width: 220px;
-  max-width: 320px;
+  min-width: 280px;
+  max-width: 400px;
+  width: 300px;
   text-align: left !important;
-  background: inherit;
+  background-color: #fff;
   border-right: 2px solid #d9d9d9;
+  vertical-align: middle;
 }
 
 .header-row-1 .col-index,
 .header-row-2 .col-index {
   z-index: 15;
-  background: #f0f0f0 !important;
+  background-color: #fff !important;
+  border-right: 2px solid #d9d9d9;
 }
 
 .col-goal,
@@ -181,34 +175,31 @@
 
 .row-bold td {
   font-weight: 700;
-  background: #f5f5f5 !important;
 }
 
 .row-parent td {
-  background: #fafafa !important;
   font-weight: 600;
-  color: #333;
 }
 
 /* ===== Tree view: chỉ tiêu nhóm (GROUP) ===== */
 .kpi-summary-table tbody tr.row-group > td {
-  background: #e6f4ff !important;
   font-weight: 600;
+  background-color: #e6f4ff !important;
   border-top: 1px solid #91caff;
   border-bottom: 1px solid #91caff;
 }
 
 .kpi-summary-table tbody tr.row-group > td.col-index {
   border-left: 3px solid #1677ff;
+  background-color: #e6f4ff !important;
 }
 
 .kpi-summary-table tbody tr.row-group > td:last-child {
   border-right: 1px solid #91caff;
 }
 
-.kpi-summary-table tbody tr.row-group .index-name {
-  color: #0b3a66 !important;
-  font-weight: 600;
+.kpi-summary-table tbody tr.row-group:hover > td {
+  background-color: #bae0ff !important;
 }
 
 .tree-toggle {
@@ -253,18 +244,16 @@
 /* Index cell */
 .index-cell {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   text-align: left;
 }
 
 .index-name {
-  color: #333;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 260px;
-  display: inline-block;
+  color: #000;
+  word-break: break-word;
+  white-space: normal;
+  line-height: 1.4;
 }
 
 .weight-badge {
@@ -427,32 +416,36 @@
 }
 
 .kpi-report-table thead th {
-  background: #f5f5f5;
+  background: #fff;
   font-weight: 600;
   font-size: 12px;
-  color: #333;
+  color: #000;
   position: sticky;
   top: 0;
   z-index: 5;
 }
 
 .report-header-row-1 th {
-  background: #f0f0f0 !important;
+  background: #fff !important;
+  color: #000;
 }
 
 .report-header-row-2 th {
-  background: #fafafa !important;
+  background: #fff !important;
+  color: #000;
 }
 
 .col-report-index {
   position: sticky;
   left: 0;
   z-index: 3;
-  min-width: 200px;
-  max-width: 300px;
+  min-width: 220px;
+  max-width: 350px;
   text-align: left !important;
-  background: inherit;
+  background-color: #fff;
   border-right: 2px solid #d9d9d9;
+  vertical-align: middle;
+  word-break: break-word;
 }
 
 .report-header-row-1 .col-report-index,
@@ -462,12 +455,12 @@
 }
 
 .col-report-period-group {
-  background: #f5f5f5 !important;
+  background: #fff !important;
 }
 
 .col-report-quarter {
-  background: #e6f7ff !important;
-  border-left: 2px solid #91d5ff !important;
+  background: #fff !important;
+  border-left: 2px solid #999 !important;
 }
 
 .col-report-adjustment,
@@ -657,8 +650,8 @@
 }
 
 .kpi-report-table--ultra-compact thead th {
-  background: #f0f0f0;
-  color: #555;
+  background: #fff;
+  color: #000;
   font-size: 11px;
   font-weight: 600;
   padding: 4px 10px;
@@ -669,18 +662,21 @@
   position: sticky;
   left: 0;
   z-index: 3;
-  min-width: 160px;
-  max-width: 240px;
+  min-width: 200px;
+  max-width: 320px;
+  width: 240px;
   text-align: left;
-  color: #333;
+  color: #000;
   padding-right: 16px;
-  background: inherit;
-  border-right: 2px solid #d9d9d9;
+  background-color: #fff;
+  border-right: 2px solid #999;
+  vertical-align: middle;
+  word-break: break-word;
 }
 
 .report-header-row-1 .col-report-index {
   z-index: 6;
-  background: #f0f0f0 !important;
+  background: #fff !important;
 }
 
 .kpi-report-table--ultra-compact .col-report-score {

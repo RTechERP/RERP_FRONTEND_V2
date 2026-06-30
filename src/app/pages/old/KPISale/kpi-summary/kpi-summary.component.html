@@ -161,15 +161,11 @@
 
               <!-- Monthly Values -->
               <ng-container *ngFor="let mv of node.row.monthlyValues; let i = index">
-                <td class="col-goal" [class]="getResultClass(mv.goal, mv.goal)">
-                  <span [class]="'val-text ' + (mv.goal > 0 ? 'val-non-zero' : 'val-zero')">
-                    {{ formatVal(mv.goal) }}
-                  </span>
+                <td class="col-goal">
+                  <span class="val-text">{{ formatVal(mv.goal) }}</span>
                 </td>
-                <td class="col-result" [class]="getResultClass(mv.result, mv.goal)">
-                  <span [class]="'val-text ' + getResultClass(mv.result, mv.goal)">
-                    {{ formatVal(mv.result) }}
-                  </span>
+                <td class="col-result">
+                  <span class="val-text">{{ formatVal(mv.result) }}</span>
                 </td>
                 <td class="col-score" [class]="getScoreClass(mv.score, mv.goal, node.row.weightPercent)">
                   <span class="score-text">{{ round(mv.score) }}%</span>
@@ -177,15 +173,11 @@
               </ng-container>
 
               <!-- Quarterly Values -->
-              <td class="col-goal col-quarter" [class]="getResultClass(node.row.quarterValue.goal, node.row.quarterValue.goal)">
-                <span [class]="'val-text ' + (node.row.quarterValue.goal > 0 ? 'val-non-zero' : 'val-zero')">
-                  {{ formatVal(node.row.quarterValue.goal) }}
-                </span>
+              <td class="col-goal col-quarter">
+                <span class="val-text">{{ formatVal(node.row.quarterValue.goal) }}</span>
               </td>
-              <td class="col-result col-quarter" [class]="getResultClass(node.row.quarterValue.result, node.row.quarterValue.goal)">
-                <span [class]="'val-text ' + getResultClass(node.row.quarterValue.result, node.row.quarterValue.goal)">
-                  {{ formatVal(node.row.quarterValue.result) }}
-                </span>
+              <td class="col-result col-quarter">
+                <span class="val-text">{{ formatVal(node.row.quarterValue.result) }}</span>
               </td>
               <td class="col-score col-quarter" [class]="getScoreClass(node.row.quarterValue.score, node.row.quarterValue.goal, node.row.weightPercent)">
                 <span class="score-text">{{ round(node.row.quarterValue.score) }}%</span>

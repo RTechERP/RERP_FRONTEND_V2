@@ -310,6 +310,8 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
       { key: 'TotalCommercialQuoteRequests', header: 'SL yêu cầu báo giá TM', isNum: true },
       { key: 'TotalCommercialQuoteRequestCompleted', header: 'SL hoàn thành báo giá TM', isNum: true },
       { key: 'TotalRequest', header: 'Tổng SL yêu cầu báo giá', isNum: true },
+      { key: 'TotalCompletedRequestsOnTime', header: 'SL báo giá đúng hạn', isNum: true },
+      { key: 'TotalCompletedRequestsOverDue', header: 'SL báo giá quá hạn', isNum: true },
       { key: 'TotalRequestCompleted', header: 'Tổng SL hoàn thành báo giá', isNum: true },
       { key: 'TotalPurchaseRequestPONCC', header: 'SL đơn hàng (poncc)', isNum: true },
       { key: 'TotalPaymentRequests', header: 'SL ĐNTT', isNum: true },
@@ -775,6 +777,34 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
           this.formatNumberEnUS(value),
       },
       {
+        id: 'TotalCompletedRequestsOnTime',
+        name: 'SL báo giá đúng hạn',
+        field: 'TotalCompletedRequestsOnTime',
+        cssClass: 'text-end',
+        minWidth: 80,
+        width: 180,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        filter: { model: Filters['compoundInputText'] },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
+      },
+      {
+        id: 'TotalCompletedRequestsOverDue',
+        name: 'SL báo giá quá hạn',
+        field: 'TotalCompletedRequestsOverDue',
+        cssClass: 'text-end',
+        minWidth: 80,
+        width: 180,
+        sortable: true,
+        filterable: true,
+        type: 'number',
+        filter: { model: Filters['compoundInputText'] },
+        formatter: (row: number, cell: number, value: any) =>
+          this.formatNumberEnUS(value),
+      },
+      {
         id: 'TotalRequestCompleted',
         name: 'Tổng SL hoàn thành báo giá',
         field: 'TotalRequestCompleted',
@@ -864,6 +894,8 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
             acc.TotalCommercialQuoteRequests += Number(item.TotalCommercialQuoteRequests) || 0;
             acc.TotalCommercialQuoteRequestCompleted += Number(item.TotalCommercialQuoteRequestCompleted) || 0;
             acc.TotalRequest += Number(item.TotalRequest) || 0;
+            acc.TotalCompletedRequestsOnTime += Number(item.TotalCompletedRequestsOnTime) || 0;
+            acc.TotalCompletedRequestsOverDue += Number(item.TotalCompletedRequestsOverDue) || 0;
             acc.TotalRequestCompleted += Number(item.TotalRequestCompleted) || 0;
             acc.TotalPurchaseRequestPONCC += Number(item.TotalPurchaseRequestPONCC) || 0;
             acc.TotalPaymentRequests += Number(item.TotalPaymentRequests) || 0;
@@ -874,6 +906,8 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
             TotalCommercialQuoteRequests: 0,
             TotalCommercialQuoteRequestCompleted: 0,
             TotalRequest: 0,
+            TotalCompletedRequestsOnTime: 0,
+            TotalCompletedRequestsOverDue: 0,
             TotalRequestCompleted: 0,
             TotalPurchaseRequestPONCC: 0,
             TotalPaymentRequests: 0,
@@ -918,6 +952,8 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
           setNumCell('TotalCommercialQuoteRequests', totals.TotalCommercialQuoteRequests);
           setNumCell('TotalCommercialQuoteRequestCompleted', totals.TotalCommercialQuoteRequestCompleted);
           setNumCell('TotalRequest', totals.TotalRequest);
+          setNumCell('TotalCompletedRequestsOnTime', totals.TotalCompletedRequestsOnTime);
+          setNumCell('TotalCompletedRequestsOverDue', totals.TotalCompletedRequestsOverDue);
           setNumCell('TotalRequestCompleted', totals.TotalRequestCompleted);
           setNumCell('TotalPurchaseRequestPONCC', totals.TotalPurchaseRequestPONCC);
           setNumCell('TotalPaymentRequests', totals.TotalPaymentRequests);
@@ -953,6 +989,8 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
 
             // Consider the footer content sizes as well
             if (col.id === 'FullName' && String(rowCount).length > maxLen) maxLen = String(rowCount).length;
+            if (col.id === 'TotalCompletedRequestsOnTime' && String(totals.TotalCompletedRequestsOnTime).length > maxLen) maxLen = String(totals.TotalCompletedRequestsOnTime).length;
+            if (col.id === 'TotalCompletedRequestsOverDue' && String(totals.TotalCompletedRequestsOverDue).length > maxLen) maxLen = String(totals.TotalCompletedRequestsOverDue).length;
             if (col.id === 'TotalRequests' && String(totals.TotalRequests).length > maxLen) maxLen = String(totals.TotalRequests).length;
 
             // Constrain and add padding
@@ -1084,6 +1122,8 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
         TotalCommercialQuoteRequests: sum('TotalCommercialQuoteRequests'),
         TotalCommercialQuoteRequestCompleted: sum('TotalCommercialQuoteRequestCompleted'),
         TotalRequest: sum('TotalRequest'),
+        TotalCompletedRequestsOnTime: sum('TotalCompletedRequestsOnTime'),
+        TotalCompletedRequestsOverDue: sum('TotalCompletedRequestsOverDue'),
         TotalRequestCompleted: sum('TotalRequestCompleted'),
         TotalPurchaseRequestPONCC: sum('TotalPurchaseRequestPONCC'),
         TotalPaymentRequests: sum('TotalPaymentRequests'),
@@ -1112,6 +1152,12 @@ export class PurchaseQuoteSummaryComponent implements OnInit {
             break;
           case 'TotalRequest':
             footerCell.innerHTML = `<b>${this.formatNumberEnUS(totals.TotalRequest)}</b>`;
+            break;
+          case 'TotalCompletedRequestsOnTime':
+            footerCell.innerHTML = `<b>${this.formatNumberEnUS(totals.TotalCompletedRequestsOnTime)}</b>`;
+            break;
+          case 'TotalCompletedRequestsOverDue':
+            footerCell.innerHTML = `<b>${this.formatNumberEnUS(totals.TotalCompletedRequestsOverDue)}</b>`;
             break;
           case 'TotalRequestCompleted':
             footerCell.innerHTML = `<b>${this.formatNumberEnUS(totals.TotalRequestCompleted)}</b>`;

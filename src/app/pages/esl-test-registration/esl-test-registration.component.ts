@@ -351,10 +351,15 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
 
         if (currentUserId && !canViewAll) {
           results = results.filter((item: any) => {
-            if (!item.children || item.children.length === 0) return false;
-            return item.children.some((c: any) => 
-              c.OwnerID === currentUserId || c.ApproverID === currentUserId
-            );
+            if (item.OwnerID === currentUserId || item.ApproverID === currentUserId) {
+              return true;
+            }
+            if (item.children && item.children.length > 0) {
+              return item.children.some((c: any) => 
+                c.OwnerID === currentUserId || c.ApproverID === currentUserId
+              );
+            }
+            return false;
           });
         }
 

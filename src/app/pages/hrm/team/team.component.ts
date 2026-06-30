@@ -101,7 +101,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
       ID: [0],
       DepartmentID: [null, Validators.required],
       ParentID: [null],
-      LeaderID: [null, Validators.required],
+      LeaderID: [null],
       Name: ['', Validators.required],
       ProjectTypeID: [null],
     });

@@ -222,6 +222,7 @@ export class PaymentOrderComponent implements OnInit {
   ];
 
   isPermisstion: boolean = false;
+  isPermisstionViewAllInDept: boolean = false;
   isPermisstionDB: boolean = false;
   isPermisstionHR: boolean = false;
 
@@ -270,7 +271,8 @@ export class PaymentOrderComponent implements OnInit {
     const permissionCodeKTT = "N61";
     const permissionCodeBGD = "N58";
     const permissionCodeSale = "N83";
-
+    const permissionCodeViewAllInDept = "N104";
+    this.isPermisstionViewAllInDept = (this.appUserService.currentUser?.Permissions.includes(permissionCodeViewAllInDept) || this.appUserService.currentUser?.IsAdmin) || false;
     this.isPermisstion = (this.appUserService.currentUser?.Permissions.includes(permissionCodeTBP) ||
       this.appUserService.currentUser?.Permissions.includes(permissionCodeHR) ||
       this.appUserService.currentUser?.Permissions.includes(permissionCodeTbpHR) ||
@@ -3075,6 +3077,8 @@ export class PaymentOrderComponent implements OnInit {
     if (this.isPermisstion && this.isApprove) {
       emp = this.param.employeeID;
     } else if (this.appUserService.currentUser?.EmployeeID == 0 && this.appUserService.currentUser?.IsAdmin) {
+      emp = this.param.employeeID;
+    } else if (this.isPermisstionViewAllInDept) {
       emp = this.param.employeeID;
     } else emp = this.appUserService.currentUser?.EmployeeID == 0 ? -1 : (this.appUserService.currentUser?.EmployeeID || 0);
 

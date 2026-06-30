@@ -1,600 +1,573 @@
 <p-menubar [model]="menuBars">
-    <ng-template pTemplate="item" let-item>
-        <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command($event) : null">
-            <i [class]="item.icon"></i>
-            <span class="p-menuitem-text">{{ item.label }}</span>
-        </a>
-    </ng-template>
-    <ng-template #end>
-        <div class="flex items-center gap-2">
-            <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile"
-                (click)="isShowModal = true; $event.stopPropagation()"><nz-icon nzType="search" /></button>
-            <button nz-button nzType="text" (click)="isAdvandShow = !isAdvandShow"
-                [title]="isAdvandShow ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'">
-                <i [class]="isAdvandShow ? 'fa-solid fa-chevron-up' : 'fa-solid fa-filter'"></i>
-            </button>
-        </div>
-    </ng-template>
+  <ng-template pTemplate="item" let-item>
+    <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command($event) : null">
+      <i [class]="item.icon"></i>
+      <span class="p-menuitem-text">{{ item.label }}</span>
+    </a>
+  </ng-template>
+  <ng-template #end>
+    <div class="flex items-center gap-2">
+      <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile"
+        (click)="isShowModal = true; $event.stopPropagation()"><nz-icon nzType="search" /></button>
+      <button nz-button nzType="text" (click)="isAdvandShow = !isAdvandShow"
+        [title]="isAdvandShow ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'">
+        <i [class]="isAdvandShow ? 'fa-solid fa-chevron-up' : 'fa-solid fa-filter'"></i>
+      </button>
+    </div>
+  </ng-template>
 </p-menubar>
 <p-contextmenu #cm [model]="contextMenuItems" appendTo="body"></p-contextmenu>
 <p-contextmenu #cmHeader [model]="contextMenuItemsHeader" appendTo="body"></p-contextmenu>
 <div style="display: flex; flex-direction: column; height: calc(100vh - 6rem); overflow: hidden;">
-    <nz-card class="w-100 p-0" *ngIf="isAdvandShow && !isMobile" style="border-bottom: 1px solid #f0f0f0;">
+  <nz-card class="w-100 p-0" *ngIf="isAdvandShow && !isMobile" style="border-bottom: 1px solid #f0f0f0;">
+    <form nz-form class="ant-advanced-search-form">
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="4">
+          <nz-form-item>
+            <nz-form-label>Từ ngày</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker class="w-100" [(ngModel)]="param.dateStart" nzFormat="dd/MM/yyyy"
+                [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="4">
+          <nz-form-item>
+            <nz-form-label>Đến ngày</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker class="w-100" [(ngModel)]="param.dateEnd" nzFormat="dd/MM/yyyy"
+                [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label>Nhân viên</nz-form-label>
+            <nz-form-control>
+              <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên" [(ngModel)]="param.employeeID"
+                [ngModelOptions]="{ standalone: true }" nzSize="small"
+                [disabled]="(!isPermisstion && !isPermisstionDB)">
+                @for (g of employees; track $index) {
+                <nz-option-group [nzLabel]="g.DepartmentName || ''">
+                  @for (item of g.items; track $index) {
+                  <nz-option nzLabel="{{item.Code}} - {{item.FullName}}" [nzValue]="item.ID"
+                    *ngIf="item.FullName != ''"></nz-option>
+                  }
+                </nz-option-group>
+
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label>Từ khóa</nz-form-label>
+            <nz-form-control>
+              <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="small">
+                <input type="text" [(ngModel)]="param.keyword" nz-input placeholder="Nhập từ khóa"
+                  [ngModelOptions]="{ standalone: true }" />
+              </nz-input-group>
+              <ng-template #suffixIconButton>
+                <button nz-button nzType="primary" nzSearch nzSize="small"><span nz-icon nzType="search"
+                    (click)="loadData()"></span></button>
+              </ng-template>
+            </nz-form-control>
+
+
+          </nz-form-item>
+        </div>
+
+        <!-- <p style="white-space: pre-line;">ádads</p> -->
+
+      </div>
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="4">
+          <nz-form-item>
+            <nz-form-label>Phòng ban</nz-form-label>
+            <nz-form-control>
+              <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban" [(ngModel)]="param.departmentID"
+                [ngModelOptions]="{ standalone: true }" nzSize="small" [disabled]="!isPermisstion">
+                @for (item of departments; track item) {
+                <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="6">
+          <nz-form-item>
+            <nz-form-label>Tình trạng</nz-form-label>
+            <nz-form-control>
+              <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn tình trạng" [(ngModel)]="param.step"
+                [ngModelOptions]="{ standalone: true }" nzSize="small">
+                @for (item of steps; track item) {
+                <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="4">
+          <nz-form-item>
+            <nz-form-label>Trạng thái</nz-form-label>
+            <nz-form-control>
+              <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn tình trạng" [(ngModel)]="param.isApproved"
+                [ngModelOptions]="{ standalone: true }" nzSize="small">
+                @for (item of isApproveds; track item) {
+                <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="4">
+          <nz-form-item>
+            <nz-form-label>Loại đề nghị</nz-form-label>
+            <nz-form-control>
+              <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại" [(ngModel)]="param.typeOrder"
+                [ngModelOptions]="{ standalone: true }" nzSize="small">
+                @for (item of typeOrders; track item) {
+                <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="6">
+          <nz-form-item>
+            <nz-form-label>Loại nội dung</nz-form-label>
+            <nz-form-control>
+              <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nội dung" [(ngModel)]="param.paymentOrderTypeID"
+                [ngModelOptions]="{ standalone: true }" nzSize="small">
+                @for (item of paymentOrderTypes; track item) {
+                <nz-option [nzLabel]="item.TypeName" [nzValue]="item.ID" nzSize="small"></nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+
+    <nz-modal [(nzVisible)]="isShowModal" nzTitle="Tìm kiếm" nzWidth="100vw" nzCentered
+      [nzBodyStyle]="{padding: '0px 24px' }" (nzOnCancel)="isShowModal = false">
+      <ng-container *nzModalContent>
         <form nz-form class="ant-advanced-search-form">
-            <div nz-row [nzGutter]="16">
-                <div nz-col [nzSpan]="4">
-                    <nz-form-item>
-                        <nz-form-label>Từ ngày</nz-form-label>
-                        <nz-form-control>
-                            <nz-date-picker class="w-100" [(ngModel)]="param.dateStart" nzFormat="dd/MM/yyyy"
-                                [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
-                        </nz-form-control>
-                    </nz-form-item>
-                </div>
-
-                <div nz-col [nzSpan]="4">
-                    <nz-form-item>
-                        <nz-form-label>Đến ngày</nz-form-label>
-                        <nz-form-control>
-                            <nz-date-picker class="w-100" [(ngModel)]="param.dateEnd" nzFormat="dd/MM/yyyy"
-                                [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
-                        </nz-form-control>
-                    </nz-form-item>
-                </div>
-
-                <div nz-col [nzSpan]="8">
-                    <nz-form-item>
-                        <nz-form-label>Nhân viên</nz-form-label>
-                        <nz-form-control>
-                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên"
-                                [(ngModel)]="param.employeeID" [ngModelOptions]="{ standalone: true }" nzSize="small"
-                                [disabled]="(!isPermisstion && !isPermisstionDB)">
-                                @for (g of employees; track $index) {
-                                <nz-option-group [nzLabel]="g.DepartmentName || ''">
-                                    @for (item of g.items; track $index) {
-                                    <nz-option nzLabel="{{item.Code}} - {{item.FullName}}" [nzValue]="item.ID"
-                                        *ngIf="item.FullName != ''"></nz-option>
-                                    }
-                                </nz-option-group>
-
-                                }
-                            </nz-select>
-                        </nz-form-control>
-                    </nz-form-item>
-                </div>
-
-                <div nz-col [nzSpan]="8">
-                    <nz-form-item>
-                        <nz-form-label>Từ khóa</nz-form-label>
-                        <nz-form-control>
-                            <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="small">
-                                <input type="text" [(ngModel)]="param.keyword" nz-input placeholder="Nhập từ khóa"
-                                    [ngModelOptions]="{ standalone: true }" />
-                            </nz-input-group>
-                            <ng-template #suffixIconButton>
-                                <button nz-button nzType="primary" nzSearch nzSize="small"><span nz-icon nzType="search"
-                                        (click)="loadData()"></span></button>
-                            </ng-template>
-                        </nz-form-control>
-
-
-                    </nz-form-item>
-                </div>
-
-                <!-- <p style="white-space: pre-line;">ádads</p> -->
-
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>Từ ngày</nz-form-label>
+                <nz-form-control>
+                  <nz-date-picker class="w-100" [(ngModel)]="param.dateStart" nzFormat="dd/MM/yyyy"
+                    [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
+                </nz-form-control>
+              </nz-form-item>
             </div>
-            <div nz-row [nzGutter]="16">
-                <div nz-col [nzSpan]="4">
-                    <nz-form-item>
-                        <nz-form-label>Phòng ban</nz-form-label>
-                        <nz-form-control>
-                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban"
-                                [(ngModel)]="param.departmentID" [ngModelOptions]="{ standalone: true }" nzSize="small"
-                                [disabled]="!isPermisstion">
-                                @for (item of departments; track item) {
-                                <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
-                                }
-                            </nz-select>
-                        </nz-form-control>
-                    </nz-form-item>
-                </div>
 
-                <div nz-col [nzSpan]="6">
-                    <nz-form-item>
-                        <nz-form-label>Tình trạng</nz-form-label>
-                        <nz-form-control>
-                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn tình trạng"
-                                [(ngModel)]="param.step" [ngModelOptions]="{ standalone: true }" nzSize="small">
-                                @for (item of steps; track item) {
-                                <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
-                                }
-                            </nz-select>
-                        </nz-form-control>
-                    </nz-form-item>
-                </div>
-                <div nz-col [nzSpan]="4">
-                    <nz-form-item>
-                        <nz-form-label>Trạng thái</nz-form-label>
-                        <nz-form-control>
-                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn tình trạng"
-                                [(ngModel)]="param.isApproved" [ngModelOptions]="{ standalone: true }" nzSize="small">
-                                @for (item of isApproveds; track item) {
-                                <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
-                                }
-                            </nz-select>
-                        </nz-form-control>
-                    </nz-form-item>
-                </div>
-                <div nz-col [nzSpan]="4">
-                    <nz-form-item>
-                        <nz-form-label>Loại đề nghị</nz-form-label>
-                        <nz-form-control>
-                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại" [(ngModel)]="param.typeOrder"
-                                [ngModelOptions]="{ standalone: true }" nzSize="small">
-                                @for (item of typeOrders; track item) {
-                                <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
-                                }
-                            </nz-select>
-                        </nz-form-control>
-                    </nz-form-item>
-                </div>
-                <div nz-col [nzSpan]="6">
-                    <nz-form-item>
-                        <nz-form-label>Loại nội dung</nz-form-label>
-                        <nz-form-control>
-                            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nội dung"
-                                [(ngModel)]="param.paymentOrderTypeID" [ngModelOptions]="{ standalone: true }"
-                                nzSize="small">
-                                @for (item of paymentOrderTypes; track item) {
-                                <nz-option [nzLabel]="item.TypeName" [nzValue]="item.ID" nzSize="small"></nz-option>
-                                }
-                            </nz-select>
-                        </nz-form-control>
-                    </nz-form-item>
-                </div>
+            <div nz-col [nzSpan]="12">
+              <nz-form-item>
+                <nz-form-label>Đến ngày</nz-form-label>
+                <nz-form-control>
+                  <nz-date-picker class="w-100" [(ngModel)]="param.dateEnd" nzFormat="dd/MM/yyyy"
+                    [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
+                </nz-form-control>
+              </nz-form-item>
             </div>
+
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Loại đề nghị</nz-form-label>
+                <nz-form-control>
+                  <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại" [(ngModel)]="param.typeOrder"
+                    [ngModelOptions]="{ standalone: true }" nzSize="small">
+                    @for (item of typeOrders; track item) {
+                    <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Loại nội dung</nz-form-label>
+                <nz-form-control>
+                  <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nội dung"
+                    [(ngModel)]="param.paymentOrderTypeID" [ngModelOptions]="{ standalone: true }" nzSize="small">
+                    @for (item of paymentOrderTypes; track item) {
+                    <nz-option [nzLabel]="item.TypeName" [nzValue]="item.ID" nzSize="small"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Tình trạng</nz-form-label>
+                <nz-form-control>
+                  <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn tình trạng" [(ngModel)]="param.step"
+                    [ngModelOptions]="{ standalone: true }" nzSize="small">
+                    @for (item of steps; track item) {
+                    <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+
+          </div>
+
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Phòng ban</nz-form-label>
+                <nz-form-control>
+                  <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban" [(ngModel)]="param.departmentID"
+                    [ngModelOptions]="{ standalone: true }" nzSize="small" [disabled]="!isPermisstion">
+                    @for (item of departments; track item) {
+                    <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Nhân viên</nz-form-label>
+                <nz-form-control>
+                  <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên" [(ngModel)]="param.employeeID"
+                    [ngModelOptions]="{ standalone: true }" nzSize="small"
+                    [disabled]="(!isPermisstion && !isPermisstionDB && !isPermisstionViewAllInDept)">
+                    @for (g of employees; track $index) {
+                    <nz-option-group [nzLabel]="g.DepartmentName || ''">
+                      @for (item of g.items; track $index) {
+                      <nz-option nzLabel="{{item.Code}} - {{item.FullName}}" [nzValue]="item.ID"
+                        *ngIf="item.FullName != ''"></nz-option>
+                      }
+                    </nz-option-group>
+
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+
+            <div nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label>Từ khóa</nz-form-label>
+                <nz-form-control>
+                  <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="small">
+                    <input type="text" [(ngModel)]="param.keyword" nz-input placeholder="Nhập từ khóa"
+                      [ngModelOptions]="{ standalone: true }" />
+                  </nz-input-group>
+                  <ng-template #suffixIconButton>
+                    <button nz-button (click)="loadData()" nzType="primary" nzSearch nzSize="small"><span nz-icon
+                        nzType="search"></span></button>
+                  </ng-template>
+                </nz-form-control>
+
+
+              </nz-form-item>
+            </div>
+
+
+
+          </div>
         </form>
 
-        <nz-modal [(nzVisible)]="isShowModal" nzTitle="Tìm kiếm" nzWidth="100vw" nzCentered
-            [nzBodyStyle]="{padding: '0px 24px' }" (nzOnCancel)="isShowModal = false">
-            <ng-container *nzModalContent>
-                <form nz-form class="ant-advanced-search-form">
-                    <div nz-row [nzGutter]="16">
-                        <div nz-col [nzSpan]="12">
-                            <nz-form-item>
-                                <nz-form-label>Từ ngày</nz-form-label>
-                                <nz-form-control>
-                                    <nz-date-picker class="w-100" [(ngModel)]="param.dateStart" nzFormat="dd/MM/yyyy"
-                                        [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
+      </ng-container>
+    </nz-modal>
+  </nz-card>
 
-                        <div nz-col [nzSpan]="12">
-                            <nz-form-item>
-                                <nz-form-label>Đến ngày</nz-form-label>
-                                <nz-form-control>
-                                    <nz-date-picker class="w-100" [(ngModel)]="param.dateEnd" nzFormat="dd/MM/yyyy"
-                                        [ngModelOptions]="{ standalone: true }" nzSize="small"></nz-date-picker>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
+  <p-splitter layout="vertical" [panelSizes]="[60, 40]" [minSizes]="[20,20]" style="flex: 1; min-height: 0;">
+    <ng-template pTemplate>
+      <div style="width:100%;height:100%;display:flex;flex-direction:column;">
+        <p-tabs [(value)]="activeTab" (valueChange)="tabValueChange($event + '')">
+          <p-tablist>
+            <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
+            <p-tab value="1" class="p-2">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
+          </p-tablist>
+          <p-tabpanels class="p-0" style="flex:1;min-height:0;">
+            <p-tabpanel value="0" style="height:100%;padding:0;">
+              <div class="grid-wrapper prime-table">
+                <div class="spinner-overlay" *ngIf="isLoading">
+                  <i class="pi pi-spin pi-spinner" style="font-size:2rem"></i>
+                </div>
+                <p-table #dtMain [value]="filteredDataset" [scrollable]="true" scrollHeight="flex"
+                  [virtualScroll]="true" [virtualScrollItemSize]="30" selectionMode="multiple"
+                  [(selection)]="selectedItems" dataKey="ID" [rowHover]="true" (onRowSelect)="onRowSelect($event)"
+                  [tableStyle]="{'min-width':'2500px'}" [loading]="isLoading" [globalFilterFields]="globalFilterFields"
+                  [resizableColumns]="true" columnResizeMode="expand">
 
-                        <div nz-col [nzSpan]="24">
-                            <nz-form-item>
-                                <nz-form-label>Loại đề nghị</nz-form-label>
-                                <nz-form-control>
-                                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại"
-                                        [(ngModel)]="param.typeOrder" [ngModelOptions]="{ standalone: true }"
-                                        nzSize="small">
-                                        @for (item of typeOrders; track item) {
-                                        <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
-                                        }
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
-                        <div nz-col [nzSpan]="24">
-                            <nz-form-item>
-                                <nz-form-label>Loại nội dung</nz-form-label>
-                                <nz-form-control>
-                                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nội dung"
-                                        [(ngModel)]="param.paymentOrderTypeID" [ngModelOptions]="{ standalone: true }"
-                                        nzSize="small">
-                                        @for (item of paymentOrderTypes; track item) {
-                                        <nz-option [nzLabel]="item.TypeName" [nzValue]="item.ID"
-                                            nzSize="small"></nz-option>
-                                        }
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th style="width:40px"><p-tableHeaderCheckbox /></th>
+                      <th *ngFor="let col of columns" [pSortableColumn]="col.field" [style.width]="col.width"
+                        [style.min-width]="col.width" [style.text-align]="col.align || 'left'" pResizableColumn
+                        (contextmenu)="onHeaderRightClick($event, col, 'main')">
+                        {{col.header}}
+                        <p-sortIcon [field]="col.field" />
+                      </th>
+                    </tr>
+                    <tr>
+                      <th style="width:40px"></th>
+                      <th *ngFor="let col of columns" class="filter-header">
+                        <p-multiselect *ngIf="col.filterType==='multiselect'" [options]="col.filterOptions||[]"
+                          [(ngModel)]="col.filterValue" (onChange)="onFilterChange()" placeholder="Tất cả"
+                          [showHeader]="true" [filter]="true" appendTo="body" [virtualScroll]="true"
+                          [virtualScrollItemSize]="30" [style]="{'width':'100%','font-size':'11px'}"
+                          [maxSelectedLabels]="1" selectedItemsLabel="{0} đã chọn">
+                        </p-multiselect>
+                        <input *ngIf="col.filterType==='text'" pInputText [(ngModel)]="col.filterValue"
+                          (input)="onFilterChange()" placeholder="Lọc..."
+                          style="width:100%;font-size:11px;padding:2px 4px">
+                        <input *ngIf="col.filterType==='number'" pInputText type="number" [(ngModel)]="col.filterValue"
+                          (input)="onFilterChange()" placeholder="Lọc..."
+                          style="width:100%;font-size:11px;padding:2px 4px">
+                      </th>
+                    </tr>
+                  </ng-template>
 
-                        <div nz-col [nzSpan]="24">
-                            <nz-form-item>
-                                <nz-form-label>Tình trạng</nz-form-label>
-                                <nz-form-control>
-                                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn tình trạng"
-                                        [(ngModel)]="param.step" [ngModelOptions]="{ standalone: true }" nzSize="small">
-                                        @for (item of steps; track item) {
-                                        <nz-option [nzLabel]="item.text" [nzValue]="item.value"></nz-option>
-                                        }
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
+                  <ng-template pTemplate="body" let-row>
+                    <tr [ngClass]="getRowClass(row)" (contextmenu)="onRowRightClick($event, row)"
+                      (dblclick)="onRowDblClick(row)">
+                      <td style="width:40px"><p-tableCheckbox [value]="row" /></td>
+                      <td *ngFor="let col of columns" [style.text-align]="col.align || 'left'" [style.width]="col.width"
+                        [style.min-width]="col.width" [class.text-uppercase]="col.uppercase"
+                        [class.active-cell]="activeRowData === row && activeColumnField === col.field"
+                        (click)="onCellClick(row, col.field)">
+                        <ng-container [ngSwitch]="col.type">
+                          <span *ngSwitchCase="'date'">{{row[col.field] |
+                            date:col.dateFormat}}</span>
+                          <span *ngSwitchCase="'number'">{{row[col.field] |
+                            number:'1.0-2'}}</span>
+                          <span *ngSwitchCase="'boolean'">
+                            <i class="pi pi-check" *ngIf="row[col.field]" style="color:green"></i>
+                          </span>
+                          <span *ngSwitchDefault>{{row[col.field]}}</span>
+                        </ng-container>
+                      </td>
+                    </tr>
+                  </ng-template>
 
-                    </div>
+                  <ng-template pTemplate="footer">
+                    <tr>
+                      <td [colSpan]="columns.length + 1" class="footer-total">
+                        Tổng: {{filteredDataset.length}} dòng
+                      </td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
+            </p-tabpanel>
 
-                    <div nz-row [nzGutter]="16">
-                        <div nz-col [nzSpan]="24">
-                            <nz-form-item>
-                                <nz-form-label>Phòng ban</nz-form-label>
-                                <nz-form-control>
-                                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn phòng ban"
-                                        [(ngModel)]="param.departmentID" [ngModelOptions]="{ standalone: true }"
-                                        nzSize="small" [disabled]="!isPermisstion">
-                                        @for (item of departments; track item) {
-                                        <nz-option [nzLabel]="item.Name" [nzValue]="item.ID"></nz-option>
-                                        }
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
+            <p-tabpanel value="1" style="height:100%;padding:0;">
+              <div class="grid-wrapper prime-table">
+                <div class="spinner-overlay" *ngIf="isLoading">
+                  <i class="pi pi-spin pi-spinner" style="font-size:2rem"></i>
+                </div>
+                <p-table #dtSpecial [value]="filteredDatasetSpecial" [scrollable]="true" scrollHeight="flex"
+                  [virtualScroll]="true" [virtualScrollItemSize]="30" selectionMode="multiple"
+                  [(selection)]="selectedItems" dataKey="ID" [rowHover]="true" (onRowSelect)="onRowSelect($event)"
+                  [tableStyle]="{'min-width':'2500px'}" [resizableColumns]="true" columnResizeMode="expand">
 
-                        <div nz-col [nzSpan]="24">
-                            <nz-form-item>
-                                <nz-form-label>Nhân viên</nz-form-label>
-                                <nz-form-control>
-                                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên"
-                                        [(ngModel)]="param.employeeID" [ngModelOptions]="{ standalone: true }"
-                                        nzSize="small" [disabled]="(!isPermisstion && !isPermisstionDB)">
-                                        @for (g of employees; track $index) {
-                                        <nz-option-group [nzLabel]="g.DepartmentName || ''">
-                                            @for (item of g.items; track $index) {
-                                            <nz-option nzLabel="{{item.Code}} - {{item.FullName}}" [nzValue]="item.ID"
-                                                *ngIf="item.FullName != ''"></nz-option>
-                                            }
-                                        </nz-option-group>
+                  <ng-template pTemplate="header">
+                    <tr>
+                      <th style="width:40px"><p-tableHeaderCheckbox /></th>
+                      <th *ngFor="let col of columnsSpecial" [pSortableColumn]="col.field" [style.width]="col.width"
+                        [style.text-align]="col.align||'left'" pResizableColumn
+                        (contextmenu)="onHeaderRightClick($event, col, 'special')">
+                        {{col.header}} <p-sortIcon [field]="col.field" />
+                      </th>
+                    </tr>
+                    <tr>
+                      <th style="width:40px"></th>
+                      <th *ngFor="let col of columnsSpecial" class="filter-header">
+                        <p-multiselect *ngIf="col.filterType==='multiselect'" [options]="col.filterOptions||[]"
+                          [(ngModel)]="col.filterValue" (onChange)="onFilterChangeSpecial()" placeholder="Tất cả"
+                          [filter]="true" appendTo="body" [virtualScroll]="true" [virtualScrollItemSize]="30"
+                          [style]="{'width':'100%','font-size':'11px'}" [maxSelectedLabels]="1"
+                          selectedItemsLabel="{0} đã chọn">
+                        </p-multiselect>
+                        <input *ngIf="col.filterType==='text'" pInputText [(ngModel)]="col.filterValue"
+                          (input)="onFilterChangeSpecial()" placeholder="Lọc..."
+                          style="width:100%;font-size:11px;padding:2px 4px">
+                        <input *ngIf="col.filterType==='number'" pInputText type="number" [(ngModel)]="col.filterValue"
+                          (input)="onFilterChangeSpecial()" placeholder="Lọc..."
+                          style="width:100%;font-size:11px;padding:2px 4px">
+                      </th>
+                    </tr>
+                  </ng-template>
 
-                                        }
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                        </div>
+                  <ng-template pTemplate="body" let-row>
+                    <tr [ngClass]="getRowClass(row)" (contextmenu)="onRowRightClick($event, row)"
+                      (dblclick)="onRowDblClick(row)">
+                      <td style="width:40px"><p-tableCheckbox [value]="row" /></td>
+                      <td *ngFor="let col of columnsSpecial" [style.text-align]="col.align||'left'"
+                        [style.width]="col.width" [class.text-uppercase]="col.uppercase"
+                        [class.active-cell]="activeRowData === row && activeColumnField === col.field"
+                        (click)="onCellClick(row, col.field)">
+                        <ng-container [ngSwitch]="col.type">
+                          <span *ngSwitchCase="'date'">{{row[col.field] |
+                            date:col.dateFormat}}</span>
+                          <span *ngSwitchCase="'number'">{{row[col.field] |
+                            number:'1.0-2'}}</span>
+                          <span *ngSwitchCase="'boolean'">
+                            <i class="pi pi-check" *ngIf="row[col.field]" style="color:green"></i>
+                          </span>
+                          <span *ngSwitchDefault>{{row[col.field]}}</span>
+                        </ng-container>
+                      </td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              </div>
+            </p-tabpanel>
+          </p-tabpanels>
+        </p-tabs>
+      </div>
+    </ng-template>
 
-                        <div nz-col [nzSpan]="24">
-                            <nz-form-item>
-                                <nz-form-label>Từ khóa</nz-form-label>
-                                <nz-form-control>
-                                    <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="small">
-                                        <input type="text" [(ngModel)]="param.keyword" nz-input
-                                            placeholder="Nhập từ khóa" [ngModelOptions]="{ standalone: true }" />
-                                    </nz-input-group>
-                                    <ng-template #suffixIconButton>
-                                        <button nz-button (click)="loadData()" nzType="primary" nzSearch
-                                            nzSize="small"><span nz-icon nzType="search"></span></button>
-                                    </ng-template>
-                                </nz-form-control>
-
-
-                            </nz-form-item>
-                        </div>
-
-
-
-                    </div>
-                </form>
-
-            </ng-container>
-        </nz-modal>
-    </nz-card>
-
-    <p-splitter layout="vertical" [panelSizes]="[60, 40]" [minSizes]="[20,20]" style="flex: 1; min-height: 0;">
+    <ng-template pTemplate>
+      <p-splitter [panelSizes]="[70, 30]" [style]="{height:'100%'}" [minSizes]="[20,20]">
         <ng-template pTemplate>
-            <div style="width:100%;height:100%;display:flex;flex-direction:column;">
-                <p-tabs [(value)]="activeTab" (valueChange)="tabValueChange($event + '')">
-                    <p-tablist>
-                        <p-tab value="0" class="p-2">ĐỀ NGHỊ THANH TOÁN</p-tab>
-                        <p-tab value="1" class="p-2">ĐỀ NGHỊ THANH TOÁN ĐẶC BIỆT</p-tab>
-                    </p-tablist>
-                    <p-tabpanels class="p-0" style="flex:1;min-height:0;">
-                        <p-tabpanel value="0" style="height:100%;padding:0;">
-                            <div class="grid-wrapper prime-table">
-                                <div class="spinner-overlay" *ngIf="isLoading">
-                                    <i class="pi pi-spin pi-spinner" style="font-size:2rem"></i>
-                                </div>
-                                <p-table #dtMain [value]="filteredDataset" [scrollable]="true" scrollHeight="flex"
-                                    [virtualScroll]="true" [virtualScrollItemSize]="30" selectionMode="multiple"
-                                    [(selection)]="selectedItems" dataKey="ID" [rowHover]="true"
-                                    (onRowSelect)="onRowSelect($event)" [tableStyle]="{'min-width':'2500px'}"
-                                    [loading]="isLoading" [globalFilterFields]="globalFilterFields"
-                                    [resizableColumns]="true" columnResizeMode="expand">
-
-                                    <ng-template pTemplate="header">
-                                        <tr>
-                                            <th style="width:40px"><p-tableHeaderCheckbox /></th>
-                                            <th *ngFor="let col of columns" [pSortableColumn]="col.field"
-                                                [style.width]="col.width" [style.min-width]="col.width"
-                                                [style.text-align]="col.align || 'left'" pResizableColumn
-                                                (contextmenu)="onHeaderRightClick($event, col, 'main')">
-                                                {{col.header}}
-                                                <p-sortIcon [field]="col.field" />
-                                            </th>
-                                        </tr>
-                                        <tr>
-                                            <th style="width:40px"></th>
-                                            <th *ngFor="let col of columns" class="filter-header">
-                                                <p-multiselect *ngIf="col.filterType==='multiselect'"
-                                                    [options]="col.filterOptions||[]" [(ngModel)]="col.filterValue"
-                                                    (onChange)="onFilterChange()" placeholder="Tất cả"
-                                                    [showHeader]="true" [filter]="true" appendTo="body"
-                                                    [virtualScroll]="true" [virtualScrollItemSize]="30"
-                                                    [style]="{'width':'100%','font-size':'11px'}"
-                                                    [maxSelectedLabels]="1" selectedItemsLabel="{0} đã chọn">
-                                                </p-multiselect>
-                                                <input *ngIf="col.filterType==='text'" pInputText
-                                                    [(ngModel)]="col.filterValue" (input)="onFilterChange()"
-                                                    placeholder="Lọc..."
-                                                    style="width:100%;font-size:11px;padding:2px 4px">
-                                                <input *ngIf="col.filterType==='number'" pInputText type="number"
-                                                    [(ngModel)]="col.filterValue" (input)="onFilterChange()"
-                                                    placeholder="Lọc..."
-                                                    style="width:100%;font-size:11px;padding:2px 4px">
-                                            </th>
-                                        </tr>
-                                    </ng-template>
-
-                                    <ng-template pTemplate="body" let-row>
-                                        <tr [ngClass]="getRowClass(row)" (contextmenu)="onRowRightClick($event, row)"
-                                            (dblclick)="onRowDblClick(row)">
-                                            <td style="width:40px"><p-tableCheckbox [value]="row" /></td>
-                                            <td *ngFor="let col of columns" [style.text-align]="col.align || 'left'"
-                                                [style.width]="col.width" [style.min-width]="col.width"
-                                                [class.text-uppercase]="col.uppercase"
-                                                [class.active-cell]="activeRowData === row && activeColumnField === col.field"
-                                                (click)="onCellClick(row, col.field)">
-                                                <ng-container [ngSwitch]="col.type">
-                                                    <span *ngSwitchCase="'date'">{{row[col.field] |
-                                                        date:col.dateFormat}}</span>
-                                                    <span *ngSwitchCase="'number'">{{row[col.field] |
-                                                        number:'1.0-2'}}</span>
-                                                    <span *ngSwitchCase="'boolean'">
-                                                        <i class="pi pi-check" *ngIf="row[col.field]"
-                                                            style="color:green"></i>
-                                                    </span>
-                                                    <span *ngSwitchDefault>{{row[col.field]}}</span>
-                                                </ng-container>
-                                            </td>
-                                        </tr>
-                                    </ng-template>
-
-                                    <ng-template pTemplate="footer">
-                                        <tr>
-                                            <td [colSpan]="columns.length + 1" class="footer-total">
-                                                Tổng: {{filteredDataset.length}} dòng
-                                            </td>
-                                        </tr>
-                                    </ng-template>
-                                </p-table>
-                            </div>
-                        </p-tabpanel>
-
-                        <p-tabpanel value="1" style="height:100%;padding:0;">
-                            <div class="grid-wrapper prime-table">
-                                <div class="spinner-overlay" *ngIf="isLoading">
-                                    <i class="pi pi-spin pi-spinner" style="font-size:2rem"></i>
-                                </div>
-                                <p-table #dtSpecial [value]="filteredDatasetSpecial" [scrollable]="true"
-                                    scrollHeight="flex" [virtualScroll]="true" [virtualScrollItemSize]="30"
-                                    selectionMode="multiple" [(selection)]="selectedItems" dataKey="ID"
-                                    [rowHover]="true" (onRowSelect)="onRowSelect($event)"
-                                    [tableStyle]="{'min-width':'2500px'}" [resizableColumns]="true"
-                                    columnResizeMode="expand">
-
-                                    <ng-template pTemplate="header">
-                                        <tr>
-                                            <th style="width:40px"><p-tableHeaderCheckbox /></th>
-                                            <th *ngFor="let col of columnsSpecial" [pSortableColumn]="col.field"
-                                                [style.width]="col.width" [style.text-align]="col.align||'left'"
-                                                pResizableColumn
-                                                (contextmenu)="onHeaderRightClick($event, col, 'special')">
-                                                {{col.header}} <p-sortIcon [field]="col.field" />
-                                            </th>
-                                        </tr>
-                                        <tr>
-                                            <th style="width:40px"></th>
-                                            <th *ngFor="let col of columnsSpecial" class="filter-header">
-                                                <p-multiselect *ngIf="col.filterType==='multiselect'"
-                                                    [options]="col.filterOptions||[]" [(ngModel)]="col.filterValue"
-                                                    (onChange)="onFilterChangeSpecial()" placeholder="Tất cả"
-                                                    [filter]="true" appendTo="body" [virtualScroll]="true"
-                                                    [virtualScrollItemSize]="30"
-                                                    [style]="{'width':'100%','font-size':'11px'}"
-                                                    [maxSelectedLabels]="1" selectedItemsLabel="{0} đã chọn">
-                                                </p-multiselect>
-                                                <input *ngIf="col.filterType==='text'" pInputText
-                                                    [(ngModel)]="col.filterValue" (input)="onFilterChangeSpecial()"
-                                                    placeholder="Lọc..."
-                                                    style="width:100%;font-size:11px;padding:2px 4px">
-                                                <input *ngIf="col.filterType==='number'" pInputText type="number"
-                                                    [(ngModel)]="col.filterValue" (input)="onFilterChangeSpecial()"
-                                                    placeholder="Lọc..."
-                                                    style="width:100%;font-size:11px;padding:2px 4px">
-                                            </th>
-                                        </tr>
-                                    </ng-template>
-
-                                    <ng-template pTemplate="body" let-row>
-                                        <tr [ngClass]="getRowClass(row)" (contextmenu)="onRowRightClick($event, row)"
-                                            (dblclick)="onRowDblClick(row)">
-                                            <td style="width:40px"><p-tableCheckbox [value]="row" /></td>
-                                            <td *ngFor="let col of columnsSpecial"
-                                                [style.text-align]="col.align||'left'" [style.width]="col.width"
-                                                [class.text-uppercase]="col.uppercase"
-                                                [class.active-cell]="activeRowData === row && activeColumnField === col.field"
-                                                (click)="onCellClick(row, col.field)">
-                                                <ng-container [ngSwitch]="col.type">
-                                                    <span *ngSwitchCase="'date'">{{row[col.field] |
-                                                        date:col.dateFormat}}</span>
-                                                    <span *ngSwitchCase="'number'">{{row[col.field] |
-                                                        number:'1.0-2'}}</span>
-                                                    <span *ngSwitchCase="'boolean'">
-                                                        <i class="pi pi-check" *ngIf="row[col.field]"
-                                                            style="color:green"></i>
-                                                    </span>
-                                                    <span *ngSwitchDefault>{{row[col.field]}}</span>
-                                                </ng-container>
-                                            </td>
-                                        </tr>
-                                    </ng-template>
-                                </p-table>
-                            </div>
-                        </p-tabpanel>
-                    </p-tabpanels>
-                </p-tabs>
-            </div>
+          <div style="width:100%;height:100%;display:flex;flex-direction:column;">
+            <p-tabs [(value)]="activeDetailTab">
+              <p-tablist>
+                <p-tab value="0" class="p-2">Chi tiết</p-tab>
+                <p-tab value="1" class="p-2">Bước duyệt</p-tab>
+              </p-tablist>
+              <p-tabpanels class="p-0" style="flex:1;min-height:0;">
+                <p-tabpanel value="0" style="height:100%;padding:0;">
+                  <div class="grid-wrapper prime-table">
+                    <p-table [value]="datasetDetails" [scrollable]="true" scrollHeight="flex" dataKey="Id"
+                      [tableStyle]="{'min-width':'800px'}" [resizableColumns]="true" columnResizeMode="expand">
+                      <ng-template pTemplate="header">
+                        <tr>
+                          <th *ngFor="let col of columnsDetail" [style.width]="col.width"
+                            [style.text-align]="col.align||'left'" pResizableColumn>
+                            {{col.header}}</th>
+                        </tr>
+                      </ng-template>
+                      <ng-template pTemplate="body" let-row>
+                        <tr [style.font-weight]="isRomanNumeral(row.Stt) ? 'bold' : 'normal'"
+                          [style.padding-left.px]="row.ParentId>0?20:0"
+                          (contextmenu)="onRowRightClickDetail($event, row)">
+                          <td *ngFor="let col of columnsDetail" [style.text-align]="col.align||'left'"
+                            [style.width]="col.width"
+                            [class.active-cell]="activeRowData === row && activeColumnField === col.field"
+                            (click)="onCellClickGeneric(row, col.field)">
+                            <ng-container [ngSwitch]="col.type">
+                              <span *ngSwitchCase="'number'">{{row[col.field] |
+                                number:'1.0-2'}}</span>
+                              <span *ngSwitchDefault>{{row[col.field]}}</span>
+                            </ng-container>
+                          </td>
+                        </tr>
+                      </ng-template>
+                    </p-table>
+                  </div>
+                </p-tabpanel>
+                <p-tabpanel value="1" style="height:100%;padding:0;">
+                  <div class="grid-wrapper prime-table">
+                    <p-table [value]="datasetLog" [scrollable]="true" scrollHeight="flex" dataKey="ID"
+                      [resizableColumns]="true" columnResizeMode="expand">
+                      <ng-template pTemplate="header">
+                        <tr>
+                          <th *ngFor="let col of columnsLog" [style.width]="col.width" pResizableColumn>{{col.header}}
+                          </th>
+                        </tr>
+                      </ng-template>
+                      <ng-template pTemplate="body" let-row>
+                        <tr>
+                          <td *ngFor="let col of columnsLog" [style.width]="col.width"
+                            [style.color]="col.field==='IsApprovedText'?(row.IsApproved===1?'#16a34a':row.IsApproved===2?'#dc2626':'#ca8a04'):''"
+                            [class.active-cell]="activeRowData === row && activeColumnField === col.field"
+                            (click)="onCellClickGeneric(row, col.field)">
+                            <ng-container [ngSwitch]="col.type">
+                              <span *ngSwitchCase="'date'">{{row[col.field] |
+                                date:'dd/MM/yyyy HH:mm'}}</span>
+                              <span *ngSwitchDefault>{{row[col.field]}}</span>
+                            </ng-container>
+                          </td>
+                        </tr>
+                      </ng-template>
+                    </p-table>
+                  </div>
+                </p-tabpanel>
+              </p-tabpanels>
+            </p-tabs>
+          </div>
         </ng-template>
 
         <ng-template pTemplate>
-            <p-splitter [panelSizes]="[70, 30]" [style]="{height:'100%'}" [minSizes]="[20,20]">
-                <ng-template pTemplate>
-                    <div style="width:100%;height:100%;display:flex;flex-direction:column;">
-                        <p-tabs [(value)]="activeDetailTab">
-                            <p-tablist>
-                                <p-tab value="0" class="p-2">Chi tiết</p-tab>
-                                <p-tab value="1" class="p-2">Bước duyệt</p-tab>
-                            </p-tablist>
-                            <p-tabpanels class="p-0" style="flex:1;min-height:0;">
-                                <p-tabpanel value="0" style="height:100%;padding:0;">
-                                    <div class="grid-wrapper prime-table">
-                                        <p-table [value]="datasetDetails" [scrollable]="true" scrollHeight="flex"
-                                            dataKey="Id" [tableStyle]="{'min-width':'800px'}" [resizableColumns]="true"
-                                            columnResizeMode="expand">
-                                            <ng-template pTemplate="header">
-                                                <tr>
-                                                    <th *ngFor="let col of columnsDetail" [style.width]="col.width"
-                                                        [style.text-align]="col.align||'left'" pResizableColumn>
-                                                        {{col.header}}</th>
-                                                </tr>
-                                            </ng-template>
-                                            <ng-template pTemplate="body" let-row>
-                                                <tr [style.font-weight]="isRomanNumeral(row.Stt) ? 'bold' : 'normal'"
-                                                    [style.padding-left.px]="row.ParentId>0?20:0"
-                                                    (contextmenu)="onRowRightClickDetail($event, row)">
-                                                    <td *ngFor="let col of columnsDetail"
-                                                        [style.text-align]="col.align||'left'" [style.width]="col.width"
-                                                        [class.active-cell]="activeRowData === row && activeColumnField === col.field"
-                                                        (click)="onCellClickGeneric(row, col.field)">
-                                                        <ng-container [ngSwitch]="col.type">
-                                                            <span *ngSwitchCase="'number'">{{row[col.field] |
-                                                                number:'1.0-2'}}</span>
-                                                            <span *ngSwitchDefault>{{row[col.field]}}</span>
-                                                        </ng-container>
-                                                    </td>
-                                                </tr>
-                                            </ng-template>
-                                        </p-table>
-                                    </div>
-                                </p-tabpanel>
-                                <p-tabpanel value="1" style="height:100%;padding:0;">
-                                    <div class="grid-wrapper prime-table">
-                                        <p-table [value]="datasetLog" [scrollable]="true" scrollHeight="flex"
-                                            dataKey="ID" [resizableColumns]="true" columnResizeMode="expand">
-                                            <ng-template pTemplate="header">
-                                                <tr>
-                                                    <th *ngFor="let col of columnsLog" [style.width]="col.width"
-                                                        pResizableColumn>{{col.header}}</th>
-                                                </tr>
-                                            </ng-template>
-                                            <ng-template pTemplate="body" let-row>
-                                                <tr>
-                                                    <td *ngFor="let col of columnsLog" [style.width]="col.width"
-                                                        [style.color]="col.field==='IsApprovedText'?(row.IsApproved===1?'#16a34a':row.IsApproved===2?'#dc2626':'#ca8a04'):''"
-                                                        [class.active-cell]="activeRowData === row && activeColumnField === col.field"
-                                                        (click)="onCellClickGeneric(row, col.field)">
-                                                        <ng-container [ngSwitch]="col.type">
-                                                            <span *ngSwitchCase="'date'">{{row[col.field] |
-                                                                date:'dd/MM/yyyy HH:mm'}}</span>
-                                                            <span *ngSwitchDefault>{{row[col.field]}}</span>
-                                                        </ng-container>
-                                                    </td>
-                                                </tr>
-                                            </ng-template>
-                                        </p-table>
-                                    </div>
-                                </p-tabpanel>
-                            </p-tabpanels>
-                        </p-tabs>
-                    </div>
-                </ng-template>
-
-                <ng-template pTemplate>
-                    <div style="width:100%;height:100%;display:flex;flex-direction:column;">
-                        <p-tabs value="0">
-                            <p-tablist>
-                                <p-tab value="0" class="p-2">File đính kèm</p-tab>
-                                <p-tab value="1" class="p-2">File bankslip</p-tab>
-                            </p-tablist>
-                            <p-tabpanels class="p-0" style="flex:1;min-height:0;">
-                                <p-tabpanel value="0" style="padding:0;">
-                                    <div class="grid-wrapper prime-table">
-                                        <p-table [value]="datasetFiles" [scrollable]="true" scrollHeight="flex"
-                                            selectionMode="multiple" [(selection)]="selectedFiles" dataKey="Id"
-                                            [resizableColumns]="true" columnResizeMode="expand">
-                                            <ng-template pTemplate="header">
-                                                <tr>
-                                                    <th style="width:40px"><p-tableHeaderCheckbox /></th>
-                                                    <th pResizableColumn>File đính kèm</th>
-                                                </tr>
-                                            </ng-template>
-                                            <ng-template pTemplate="body" let-row>
-                                                <tr (dblclick)="onDownloadFile(row)"
-                                                    (contextmenu)="onRowRightClickFile($event, row)">
-                                                    <td style="width:40px"><p-tableCheckbox [value]="row" /></td>
-                                                    <td [class.active-cell]="activeRowData === row && activeColumnField === 'FileName'"
-                                                        (click)="onCellClickGeneric(row, 'FileName')">{{row.FileName}}
-                                                    </td>
-                                                </tr>
-                                            </ng-template>
-                                        </p-table>
-                                    </div>
-                                </p-tabpanel>
-                                <p-tabpanel value="1" style="padding:0;">
-                                    <div class="grid-wrapper prime-table">
-                                        <p-table [value]="datasetFileBankslip" [scrollable]="true" scrollHeight="flex"
-                                            selectionMode="multiple" [(selection)]="selectedFilesBankslip" dataKey="ID"
-                                            [resizableColumns]="true" columnResizeMode="expand">
-                                            <ng-template pTemplate="header">
-                                                <tr>
-                                                    <th style="width:40px"><p-tableHeaderCheckbox /></th>
-                                                    <th pResizableColumn>File bankslip</th>
-                                                </tr>
-                                            </ng-template>
-                                            <ng-template pTemplate="body" let-row>
-                                                <tr (dblclick)="onDownloadFile(row)"
-                                                    (contextmenu)="onRowRightClickBankslip($event, row)">
-                                                    <td style="width:40px"><p-tableCheckbox [value]="row" /></td>
-                                                    <td [class.active-cell]="activeRowData === row && activeColumnField === 'FileName'"
-                                                        (click)="onCellClickGeneric(row, 'FileName')">{{row.FileName}}
-                                                    </td>
-                                                </tr>
-                                            </ng-template>
-                                        </p-table>
-                                    </div>
-                                </p-tabpanel>
-                            </p-tabpanels>
-                        </p-tabs>
-                    </div>
-                </ng-template>
-            </p-splitter>
+          <div style="width:100%;height:100%;display:flex;flex-direction:column;">
+            <p-tabs value="0">
+              <p-tablist>
+                <p-tab value="0" class="p-2">File đính kèm</p-tab>
+                <p-tab value="1" class="p-2">File bankslip</p-tab>
+              </p-tablist>
+              <p-tabpanels class="p-0" style="flex:1;min-height:0;">
+                <p-tabpanel value="0" style="padding:0;">
+                  <div class="grid-wrapper prime-table">
+                    <p-table [value]="datasetFiles" [scrollable]="true" scrollHeight="flex" selectionMode="multiple"
+                      [(selection)]="selectedFiles" dataKey="Id" [resizableColumns]="true" columnResizeMode="expand">
+                      <ng-template pTemplate="header">
+                        <tr>
+                          <th style="width:40px"><p-tableHeaderCheckbox /></th>
+                          <th pResizableColumn>File đính kèm</th>
+                        </tr>
+                      </ng-template>
+                      <ng-template pTemplate="body" let-row>
+                        <tr (dblclick)="onDownloadFile(row)" (contextmenu)="onRowRightClickFile($event, row)">
+                          <td style="width:40px"><p-tableCheckbox [value]="row" /></td>
+                          <td [class.active-cell]="activeRowData === row && activeColumnField === 'FileName'"
+                            (click)="onCellClickGeneric(row, 'FileName')">{{row.FileName}}
+                          </td>
+                        </tr>
+                      </ng-template>
+                    </p-table>
+                  </div>
+                </p-tabpanel>
+                <p-tabpanel value="1" style="padding:0;">
+                  <div class="grid-wrapper prime-table">
+                    <p-table [value]="datasetFileBankslip" [scrollable]="true" scrollHeight="flex"
+                      selectionMode="multiple" [(selection)]="selectedFilesBankslip" dataKey="ID"
+                      [resizableColumns]="true" columnResizeMode="expand">
+                      <ng-template pTemplate="header">
+                        <tr>
+                          <th style="width:40px"><p-tableHeaderCheckbox /></th>
+                          <th pResizableColumn>File bankslip</th>
+                        </tr>
+                      </ng-template>
+                      <ng-template pTemplate="body" let-row>
+                        <tr (dblclick)="onDownloadFile(row)" (contextmenu)="onRowRightClickBankslip($event, row)">
+                          <td style="width:40px"><p-tableCheckbox [value]="row" /></td>
+                          <td [class.active-cell]="activeRowData === row && activeColumnField === 'FileName'"
+                            (click)="onCellClickGeneric(row, 'FileName')">{{row.FileName}}
+                          </td>
+                        </tr>
+                      </ng-template>
+                    </p-table>
+                  </div>
+                </p-tabpanel>
+              </p-tabpanels>
+            </p-tabs>
+          </div>
         </ng-template>
-    </p-splitter>
+      </p-splitter>
+    </ng-template>
+  </p-splitter>
 
-    <p-contextmenu #cmDetail [model]="contextMenuItemsDetail" appendTo="body"></p-contextmenu>
-    <p-contextmenu #cmFile [model]="contextMenuItemsFile" appendTo="body"></p-contextmenu>
-    <p-contextmenu #cmBankslip [model]="contextMenuItemsBankslip" appendTo="body"></p-contextmenu>
+  <p-contextmenu #cmDetail [model]="contextMenuItemsDetail" appendTo="body"></p-contextmenu>
+  <p-contextmenu #cmFile [model]="contextMenuItemsFile" appendTo="body"></p-contextmenu>
+  <p-contextmenu #cmBankslip [model]="contextMenuItemsBankslip" appendTo="body"></p-contextmenu>
 
 
 

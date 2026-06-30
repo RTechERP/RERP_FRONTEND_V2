@@ -81,7 +81,7 @@ export class EmployeeTeamFormComponent implements OnInit {
       Code: ['', [Validators.required]],
       Name: ['', [Validators.required]],
       DepartmentID: [null, [Validators.required]],
-      LeaderID: [null, [Validators.required]],
+      LeaderID: [null],
       ParentID: ['0', [Validators.required]],
       IsDeleted: [0]
     });

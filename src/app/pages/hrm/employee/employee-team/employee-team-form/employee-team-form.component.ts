@@ -174,7 +174,8 @@ export class EmployeeTeamFormComponent implements OnInit {
     if (this.form.valid) {
       const payload = {
         ...this.form.value,
-        ParentID: Number(this.form.value.ParentID)
+        ParentID: Number(this.form.value.ParentID),
+        LeaderID: this.form.value.LeaderID ? Number(this.form.value.LeaderID) : 0
       };
       this.employeeService.saveEmployeeTeam(payload).subscribe({
         next: (response: any) => {

@@ -747,6 +747,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
 
     this.isSubmitting = true;
     const formData = this.teamForm.value;
+    formData.LeaderID = formData.LeaderID ? Number(formData.LeaderID) : 0;
 
     this.teamService.saveTeam(formData).subscribe({
       next: () => {

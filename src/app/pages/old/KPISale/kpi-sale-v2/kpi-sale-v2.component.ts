@@ -144,6 +144,7 @@ export interface KpiSaleDataSource {
   dateColumn: string;
   employeeColumn?: string;
   valueColumn?: string;
+  useEmployeeId?: boolean;
   isActive: boolean;
 }
 

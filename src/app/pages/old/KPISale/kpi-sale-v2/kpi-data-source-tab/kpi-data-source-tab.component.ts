@@ -262,6 +262,7 @@ export class KpiDataSourceTabComponent implements OnInit {
       dateColumn: '',
       employeeColumn: '',
       valueColumn: '',
+      useEmployeeId: false,
       isActive: true
     };
   }
@@ -286,6 +287,7 @@ export class KpiDataSourceTabComponent implements OnInit {
       dateColumn: this.read<string>(item, 'DateColumn', 'dateColumn') || '',
       employeeColumn: this.read<string>(item, 'EmployeeColumn', 'employeeColumn'),
       valueColumn: this.read<string>(item, 'ValueColumn', 'valueColumn'),
+      useEmployeeId: this.read<boolean>(item, 'UseEmployeeID', 'useEmployeeId') || false,
       isActive: this.read<boolean>(item, 'IsActive', 'isActive') !== false
     };
   }
@@ -326,6 +328,7 @@ export class KpiDataSourceTabComponent implements OnInit {
       DateColumn: item.dateColumn,
       EmployeeColumn: item.employeeColumn || null,
       ValueColumn: item.valueColumn || null,
+      UseEmployeeID: item.useEmployeeId || false,
       IsActive: item.isActive
     };
   }

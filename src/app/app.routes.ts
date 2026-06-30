@@ -404,6 +404,8 @@ import { KpiTeamTabComponent } from './pages/old/KPISale/kpi-sale-v2/kpi-team-ta
 import { KpiRankingTabComponent } from './pages/old/KPISale/kpi-sale-v2/kpi-ranking-tab/kpi-ranking-tab.component';
 import { KpiRewardConfigTabComponent } from './pages/old/KPISale/kpi-sale-v2/kpi-reward-config-tab/kpi-reward-config-tab.component';
 import { TeamEmployeeProjectComponent } from './pages/project/team-employee-project/team-employee-project.component';
+import { OrgChartRtcNewComponent } from './pages/hrm/org-chart-rtc/org-chart-rtc-new/org-chart-rtc-new.component';
+import { VehicleRentalRequestComponent } from './pages/hrm/vehicle/vehicle-retal-request/vehicle-rental-request.component';
 export const routes: Routes = [
 
   {
@@ -1339,6 +1341,9 @@ export const routes: Routes = [
       { path: 'kpi-ranking-tab', component: KpiRankingTabComponent, canActivate: [authGuard] },
       { path: 'kpi-reward-config-tab', component: KpiRewardConfigTabComponent, canActivate: [authGuard] },
       { path: 'team-employee-project', component: TeamEmployeeProjectComponent, canActivate: [authGuard] },
+
+      { path: 'org-chart-rtc-new', component: OrgChartRtcNewComponent, canActivate: [authGuard] },
+      { path: 'vehicle-rental-request', component: VehicleRentalRequestComponent, canActivate: [authGuard] },
     ],
   },
 ];

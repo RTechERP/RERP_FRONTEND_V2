@@ -23,6 +23,7 @@
           <th nzWidth="120px">Cột ngày</th>
           <th nzWidth="150px">Cột nhân viên</th>
           <th nzWidth="150px">Cột giá trị</th>
+          <th nzWidth="110px" nzAlign="center">Dùng EmployeeID</th>
           <th nzWidth="100px" nzAlign="center">Đang dùng</th>
           <th nzWidth="100px" nzAlign="center">Hành động</th>
         </tr>
@@ -35,6 +36,10 @@
           <td class="mono">{{ item.dateColumn }}</td>
           <td class="mono">{{ item.employeeColumn }}</td>
           <td class="mono">{{ item.valueColumn }}</td>
+          <td nzAlign="center">
+            <nz-tag *ngIf="item.useEmployeeId" nzColor="blue">Có</nz-tag>
+            <nz-tag *ngIf="!item.useEmployeeId" nzColor="default">Không</nz-tag>
+          </td>
           <td nzAlign="center">
             <nz-switch nzSize="small" [ngModel]="item.isActive" nzDisabled></nz-switch>
           </td>
@@ -83,6 +88,18 @@
       <nz-select nzDropdownClassName="select-dropdown" name="employeeColumn" nzAllowClear [(ngModel)]="dataSourceDraft.employeeColumn" class="w-100" nzPlaceHolder="Chọn cột nhân viên (không bắt buộc)">
         <nz-option *ngFor="let item of columnsForDraftSource" [nzValue]="item.columnName" [nzLabel]="item.columnName"></nz-option>
       </nz-select>
+    </div>
+
+    <div class="inline-control mt-2" *ngIf="dataSourceDraft.employeeColumn">
+      <span>Dùng EmployeeID để query</span>
+      <nz-switch name="useEmployeeId" [(ngModel)]="dataSourceDraft.useEmployeeId"></nz-switch>
+      <span class="field-hint" *ngIf="dataSourceDraft.useEmployeeId">
+        (Từ UserID sẽ tra bảng Employee để lấy EmployeeID)
+      </span>
+    </div>
+    <div class="field-hint" *ngIf="dataSourceDraft.employeeColumn && !dataSourceDraft.useEmployeeId">
+      <i nz-icon nzType="info-circle" nzTheme="outline"></i>
+      Query trực tiếp với UserID vào cột "{{ dataSourceDraft.employeeColumn }}"
     </div>
     
     <div class="field">

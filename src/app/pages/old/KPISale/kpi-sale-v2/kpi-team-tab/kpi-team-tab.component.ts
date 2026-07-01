@@ -16,7 +16,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { KpiSaleV2Service, KpiApiResponse, KpiTeam, KpiTeamUpsertRequest, isAutoCreatedTeamCode } from '../kpi-sale-v2.service';
+import { KpiSaleV2Service, KpiApiResponse, KpiTeam, KpiTeamUpsertRequest, KpiTeamMemberItem, isAutoCreatedTeamCode } from '../kpi-sale-v2.service';
 import { EmployeeOption } from '../kpi-sale-v2.component';
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
 
@@ -27,7 +27,7 @@ interface KpiTeamRow {
   description?: string;
   isActive: boolean;
   createdDate?: Date;
-  employeeIDs: number[];
+  employeeIDs: KpiTeamMemberItem[];
   leaderEmployeeId?: number | null;
   leaderEmployeeName?: string;
   isAutoCreated: boolean;
@@ -38,7 +38,7 @@ interface KpiTeamDraft {
   teamCode: string;
   teamName: string;
   description: string;
-  employeeIDs: number[];
+  employeeIDs: KpiTeamMemberItem[];
   leaderEmployeeId?: number | null;
 }
 
@@ -104,14 +104,14 @@ export class KpiTeamTabComponent implements OnInit {
     const team = this.selectedTeam;
     if (!team) return [];
     return team.employeeIDs
-      .map(id => this.employees.find(e => e.id === id))
+      .map(item => this.employees.find(e => e.id === item.employeeId))
       .filter((e): e is EmployeeOption => !!e);
   }
 
   // For draft leader dropdown: show only employees already selected as team members
   get selectedTeamMembersForDraft(): EmployeeOption[] {
     return this.draft.employeeIDs
-      .map(id => this.employees.find(e => e.id === id))
+      .map(item => this.employees.find(e => e.id === item.employeeId))
       .filter((e): e is EmployeeOption => !!e);
   }
 
@@ -131,7 +131,8 @@ export class KpiTeamTabComponent implements OnInit {
   get availableEmployees(): EmployeeOption[] {
     const team = this.selectedTeam;
     if (!team) return [];
-    return this.employees.filter(e => !team.employeeIDs.includes(e.id));
+    const currentIds = team.employeeIDs.map(item => item.employeeId);
+    return this.employees.filter(e => !currentIds.includes(e.id));
   }
 
   // Remove member from selected team
@@ -141,7 +142,7 @@ export class KpiTeamTabComponent implements OnInit {
 
     this.isLoading = true;
     try {
-      const updatedEmployeeIds = team.employeeIDs.filter(id => id !== employeeId);
+      const updatedEmployeeIds = team.employeeIDs.filter(item => item.employeeId !== employeeId);
       const newLeaderId = team.leaderEmployeeId === employeeId ? null : (team as any).leaderEmployeeId;
       const payload: KpiTeamUpsertRequest = {
         id: team.id,
@@ -195,7 +196,12 @@ export class KpiTeamTabComponent implements OnInit {
 
     this.isAddingMembers = true;
     try {
-      const updatedEmployeeIds = [...team.employeeIDs, ...this.selectedMemberIds];
+      const newMembers: KpiTeamMemberItem[] = this.selectedMemberIds.map(id => ({
+        employeeId: id,
+        isAdmin: false,
+        isPM: false
+      }));
+      const updatedEmployeeIds = [...team.employeeIDs, ...newMembers];
       const payload: KpiTeamUpsertRequest = {
         id: team.id,
         teamCode: team.teamCode,
@@ -211,7 +217,7 @@ export class KpiTeamTabComponent implements OnInit {
         this.teams = [...this.teams];
         this.selectedMemberIds = [];
         this.showAddMember = false;
-        this.notification.success('Thành công', `Đã thêm ${this.selectedMemberIds.length} thành viên vào team`);
+        this.notification.success('Thành công', `Đã thêm ${newMembers.length} thành viên vào team`);
         this.tabService.notifyDataSaved('kpi-teams');
       } else {
         this.notification.error('Lỗi', response?.message || 'Không thể thêm thành viên');
@@ -227,6 +233,73 @@ export class KpiTeamTabComponent implements OnInit {
   cancelAddMembers(): void {
     this.selectedMemberIds = [];
     this.showAddMember = false;
+  }
+
+  // ============== MEMBER ADMIN/PM TOGGLE ==============
+  getMemberIsAdmin(employeeId: number): boolean {
+    const team = this.selectedTeam;
+    if (!team) return false;
+    const member = team.employeeIDs.find(m => m.employeeId === employeeId);
+    return member?.isAdmin ?? false;
+  }
+
+  getMemberIsPM(employeeId: number): boolean {
+    const team = this.selectedTeam;
+    if (!team) return false;
+    const member = team.employeeIDs.find(m => m.employeeId === employeeId);
+    return member?.isPM ?? false;
+  }
+
+  async toggleMemberAdmin(employeeId: number, isAdmin: boolean): Promise<void> {
+    const team = this.selectedTeam;
+    if (!team) return;
+
+    // Nếu check Admin thì uncheck PM
+    const member = team.employeeIDs.find(m => m.employeeId === employeeId);
+    if (member && isAdmin) {
+      member.isPM = false;
+    }
+    member!.isAdmin = isAdmin;
+
+    await this.saveMemberChanges(team, member!);
+  }
+
+  async toggleMemberPM(employeeId: number, isPM: boolean): Promise<void> {
+    const team = this.selectedTeam;
+    if (!team) return;
+
+    // Nếu check PM thì uncheck Admin
+    const member = team.employeeIDs.find(m => m.employeeId === employeeId);
+    if (member && isPM) {
+      member.isAdmin = false;
+    }
+    member!.isPM = isPM;
+
+    await this.saveMemberChanges(team, member!);
+  }
+
+  private async saveMemberChanges(team: KpiTeamRow, changedMember: KpiTeamMemberItem): Promise<void> {
+    const payload: KpiTeamUpsertRequest = {
+      id: team.id,
+      teamCode: team.teamCode,
+      teamName: team.teamName,
+      description: team.description,
+      employeeIDs: [...team.employeeIDs],
+      leaderEmployeeId: team.leaderEmployeeId ?? undefined,
+    };
+    try {
+      const response = await firstValueFrom(this.kpiSaleService.upsertTeam(payload));
+      if (response?.status === 1) {
+        this.teams = [...this.teams];
+        this.notification.success('Thành công', 'Đã cập nhật vai trò thành viên');
+        this.tabService.notifyDataSaved('kpi-teams');
+      } else {
+        this.notification.error('Lỗi', response?.message || 'Không thể cập nhật');
+      }
+    } catch (err) {
+      console.error(err);
+      this.notification.error('Lỗi', 'Không thể cập nhật vai trò');
+    }
   }
 
   ngOnInit(): void {
@@ -297,7 +370,7 @@ export class KpiTeamTabComponent implements OnInit {
       teamCode: team.teamCode,
       teamName: team.teamName,
       description: team.description || '',
-      employeeIDs: [...team.employeeIDs],
+      employeeIDs: team.employeeIDs ? [...team.employeeIDs] : [],
       leaderEmployeeId: team.leaderEmployeeId ?? null,
     };
     this.draftErrors = {};
@@ -470,11 +543,25 @@ export class KpiTeamTabComponent implements OnInit {
       description: this.read<string>(item, 'Description', 'description'),
       isActive: this.read<boolean>(item, 'IsActive', 'isActive') !== false,
       createdDate: this.read<any>(item, 'CreatedDate', 'createdDate'),
-      employeeIDs: Array.isArray(item.EmployeeIDs) ? item.EmployeeIDs : Array.isArray(item.employeeIDs) ? item.employeeIDs : [],
+      employeeIDs: this.normalizeTeamMembers(item.EmployeeIDs ?? item.employeeIDs),
       leaderEmployeeId: this.read<number | null>(item, 'LeaderEmployeeID', 'leaderEmployeeId'),
       leaderEmployeeName: this.read<string>(item, 'LeaderEmployeeName', 'leaderEmployeeName'),
       isAutoCreated: isAutoCreatedTeamCode(code),
     };
+  }
+
+  private normalizeTeamMembers(raw: any): KpiTeamMemberItem[] {
+    if (!Array.isArray(raw)) return [];
+    return raw.map((item: any) => {
+      if (typeof item === 'number') {
+        return { employeeId: item, isAdmin: false, isPM: false };
+      }
+      return {
+        employeeId: item.EmployeeId ?? item.employeeId ?? item.EmployeeID ?? item.employeeId ?? 0,
+        isAdmin: item.IsAdmin ?? item.isAdmin ?? false,
+        isPM: item.IsPM ?? item.isPM ?? false,
+      };
+    });
   }
 
   private read<T>(item: any, ...keys: string[]): T | undefined {

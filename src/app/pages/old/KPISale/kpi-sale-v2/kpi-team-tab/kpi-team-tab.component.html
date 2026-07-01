@@ -122,7 +122,9 @@
                   <th nzWidth="120px">Mã NV</th>
                   <th>Họ tên</th>
                   <th>Phòng ban</th>
-                  <th nzWidth="110px" nzAlign="center">Trưởng nhóm</th>
+                  <th nzWidth="80px" nzAlign="center">Trưởng nhóm</th>
+                  <th nzWidth="80px" nzAlign="center">Admin</th>
+                  <th nzWidth="70px" nzAlign="center">PM</th>
                   <th nzWidth="80px" nzAlign="center">Hành động</th>
                 </tr>
               </thead>
@@ -134,8 +136,20 @@
                   <td>{{ member.departmentName || '—' }}</td>
                   <td nzAlign="center">
                     <nz-tag *ngIf="selectedTeam.leaderEmployeeId === member.id" nzColor="green">
-                      <i nz-icon nzType="crown" nzTheme="fill"></i> TL
+                      <i nz-icon nzType="crown" nzTheme="fill"></i>
                     </nz-tag>
+                  </td>
+                  <td nzAlign="center">
+                    <label nz-checkbox
+                      [ngModel]="getMemberIsAdmin(member.id)"
+                      (ngModelChange)="toggleMemberAdmin(member.id, $event)"
+                      nz-tooltip nzTooltipTitle="Đánh dấu là Admin"></label>
+                  </td>
+                  <td nzAlign="center">
+                    <label nz-checkbox
+                      [ngModel]="getMemberIsPM(member.id)"
+                      (ngModelChange)="toggleMemberPM(member.id, $event)"
+                      nz-tooltip nzTooltipTitle="Đánh dấu là PM"></label>
                   </td>
                   <td nzAlign="center">
                     <a *ngIf="selectedTeam"
@@ -148,7 +162,7 @@
                   </td>
                 </tr>
                 <tr *ngIf="memberTable.data.length === 0">
-                  <td colspan="6" style="text-align: center; color: #94a3b8; padding: 24px;">
+                  <td colspan="8" style="text-align: center; color: #94a3b8; padding: 24px;">
                     Team này chưa có thành viên
                   </td>
                 </tr>

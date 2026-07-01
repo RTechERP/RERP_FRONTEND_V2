@@ -46,12 +46,18 @@ export interface KpiTeam {
   leaderEmployeeName?: string;
 }
 
+export interface KpiTeamMemberItem {
+  employeeId: number;
+  isAdmin: boolean;
+  isPM: boolean;
+}
+
 export interface KpiTeamUpsertRequest {
   id?: number | null;
   teamCode: string;
   teamName: string;
   description?: string;
-  employeeIDs: number[];
+  employeeIDs: KpiTeamMemberItem[];
   leaderEmployeeId?: number | null;
 }
 

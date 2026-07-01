@@ -86,15 +86,16 @@ export class EslTestRegistrationComponent implements OnInit, OnDestroy {
   columns: ColDef[] = [
     { field: 'RegistrationCode', header: 'Mã đăng ký', width: '140px', filterType: 'text' },
     { field: 'TestTableName', header: 'Bàn test', width: '130px', filterType: 'multiselect' },
-    { field: 'TableSide', header: 'Mặt bàn', width: '90px', filterType: 'multiselect' },
+    { field: 'TableSide', header: 'Mặt bàn', width: '90px', filterType: 'multiselect', align: 'center' },
     { field: 'ProjectCode', header: 'Mã dự án', width: '140px', filterType: 'text' },
     { field: 'RegistrationContent', header: 'Nội dung', width: '250px', filterType: 'text' },
     { field: 'OwnerFullName', header: 'Người đăng ký', width: '150px', filterType: 'multiselect' },
+    { field: 'OwnerCode', header: 'Mã nhân viên', width: '120px', filterType: 'text', align: 'center' },
+    { field: 'OwnerSDTCaNhan', header: 'Số điện thoại', width: '130px', filterType: 'text', align: 'center' },
     { field: 'ApproverFullName', header: 'Người duyệt', width: '150px', filterType: 'multiselect' },
     { field: 'DetailStartDate', header: 'Ngày bắt đầu', width: '110px', filterType: 'date', type: 'date' },
     { field: 'DetailEndDate', header: 'Ngày kết thúc', width: '110px', filterType: 'date', type: 'date' },
-    { field: 'ActualReturnDate', header: 'Ngày trả', width: '110px', filterType: 'date', type: 'date' },
-    { field: 'esl_battery', header: 'Pin (mV)', width: '100px', align: 'right' },
+    { field: 'esl_battery', header: 'Pin (mV)', width: '100px', align: 'center' },
     { field: 'online', header: 'Kết nối', width: '90px', align: 'center' },
     { field: 'Status', header: 'Trạng thái', width: '120px', filterType: 'multiselect' }
   ];

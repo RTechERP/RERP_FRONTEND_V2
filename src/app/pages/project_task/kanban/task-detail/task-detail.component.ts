@@ -3145,6 +3145,7 @@ export class TaskDetailComponent implements OnInit {
     }
 
     save() {
+        if (this.isSaving) return;
         if (this.isReadOnly) {
             this.message.error('Bạn không có quyền sửa công việc này.');
             return;
@@ -3304,14 +3305,19 @@ export class TaskDetailComponent implements OnInit {
             })
         ).subscribe({
             next: (res) => {
-                this.isSaving = false;
                 if (res.status === 200 || res.status === 1) {
                     this.message.success('Lưu thành công');
                     this.tabService.notifyDataSaved('project-task');
                     if (this.isFullPage) {
-                        setTimeout(() => this.close(), 500);
+                        setTimeout(() => {
+                            this.close();
+                            this.isSaving = false;
+                        }, 500);
+                    } else {
+                        this.isSaving = false;
                     }
                 } else {
+                    this.isSaving = false;
                     this.message.error(res.message || 'Lưu thất bại');
                 }
             },
@@ -3406,6 +3412,7 @@ export class TaskDetailComponent implements OnInit {
     }
 
     saveNewTask(stayOpen: boolean = false): void {
+        if (this.isSaving) return;
         if (this.isReadOnly) {
             this.message.error('Bạn không có quyền thêm công việc mới.');
             return;
@@ -3556,20 +3563,29 @@ export class TaskDetailComponent implements OnInit {
             })
         ).subscribe({
             next: (res: any) => {
-                this.isSaving = false;
-                if (!res) return;
+                if (!res) {
+                    this.isSaving = false;
+                    return;
+                }
                 if (res.status === 200 || res.status === 1) {
                     if (stayOpen) {
                         this.message.success('Đã lưu và sẵn sàng thêm công việc mới');
                         this.resetFormAfterSave();
+                        this.isSaving = false;
                     } else {
                         if (this.isFullPage) {
                             this.message.success('Tạo công việc thành công');
                             this.tabService.notifyDataSaved('project-task');
-                            setTimeout(() => this.close(), 500);
+                            setTimeout(() => {
+                                this.close();
+                                this.isSaving = false;
+                            }, 500);
+                        } else {
+                            this.isSaving = false;
                         }
                     }
                 } else {
+                    this.isSaving = false;
                     this.message.error(res.message || 'Lỗi khi tạo công việc');
                 }
             },
@@ -3638,6 +3654,7 @@ export class TaskDetailComponent implements OnInit {
     }
 
     autoSaveTask(data: any): void {
+        if (this.isSaving) return;
         const activeTask = this.currentTaskData || this.task;
         if (!activeTask?.ID) return;
 

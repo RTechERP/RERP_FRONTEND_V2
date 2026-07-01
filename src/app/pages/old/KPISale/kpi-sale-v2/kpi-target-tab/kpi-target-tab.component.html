@@ -66,13 +66,12 @@
 
         <div class="indicators-table-wrapper">
           <nz-table #employeeTable [nzData]="filteredEmployees" [nzFrontPagination]="false" nzSize="small"
-            nzBordered [nzScroll]="{ y: 'calc(100vh - 320px)' }" style="height: 100%;">
+            nzBordered [nzScroll]="{ y: 'calc(100vh - 320px)' }" style="height: 100%;" class="no-x-scroll">
             <thead>
               <tr>
                 <th nzWidth="50px" nzAlign="right">STT</th>
                 <th>Nhân viên</th>
-                <th nzWidth="180px">
-                  Mẫu KPI
+                <th nzWidth="130px">Mẫu KPI
                   <small style="display:block; font-weight:400; color:#94a3b8;">(Kỳ đang chọn)</small>
                 </th>
               </tr>
@@ -209,14 +208,14 @@
                   <tr class="pivot-row" [class.row-group]="isGroupIndex(row.kpiIndexId)">
                     <!-- Chỉ tiêu KPI -->
                     <td nzLeft="0" class="sticky-col-cell">
-                      <span class="mono">
+                      <span>
                         <nz-tag *ngIf="isGroupIndex(row.kpiIndexId)" nzColor="green" style="margin-right:6px;">
                           <i nz-icon nzType="folder"></i> Nhóm
                         </nz-tag>
                         <nz-tag *ngIf="isDetailIndex(row.kpiIndexId)" nzColor="blue" style="margin-right:6px;">
                           <i nz-icon nzType="unordered-list"></i> Chi tiết
                         </nz-tag>
-                        {{ row.indexCode ? row.indexCode + ' - ' + row.indexName : row.indexName }}
+                        {{ row.indexName }}
                       </span>
                     </td>
                     <!-- Trọng số -->
@@ -238,29 +237,29 @@
                         class="cell-proposed">
                         <ng-container *ngIf="!isGroupIndex(row.kpiIndexId); else groupPivotProposedCell">
                           <ng-container *ngIf="cell.target; else emptyProposed">
-                            <input nz-input nzSize="small" type="text"
-                              [value]="formatMoney(getDisplayPivotProposed(row, cell.periodId))"
-                              (blur)="onPivotProposedChange(cell.target!, parseMoney($any($event.target).value))"
-                              (focus)="$any($event.target).select()"
-                              style="width: 100%; text-align: right; font-weight: 600;"
-                              [style.color]="getDisplayPivotProposed(row, cell.periodId) ? '#d48806' : 'inherit'" />
-                            <div *ngIf="canApprove(cell.target) && cell.approvalStatus === 'Pending' && cell.target.proposedGoalValue != null" style="margin-top: 2px; display: flex; gap: 2px; justify-content: flex-end;">
-                              <a nz-tooltip nzTooltipTitle="Duyệt"
-                                class="action-btn text-success"
-                                style="font-size: 11px; padding: 0 2px;"
-                                (click)="approveTargetById(cell.target!.id)">
-                                <i nz-icon nzType="check-circle"></i>
-                              </a>
-                              <a nz-tooltip nzTooltipTitle="Hủy đề xuất"
-                                class="action-btn text-danger"
-                                style="font-size: 11px; padding: 0 2px;"
-                                nz-popconfirm
-                                nzPopconfirmTitle="Hủy đề xuất này?"
-                                nzOkText="Hủy"
-                                nzCancelText="Đóng"
-                                (nzOnConfirm)="rejectTargetById(cell.target!.id)">
-                                <i nz-icon nzType="close-circle"></i>
-                              </a>
+                            <div style="display: flex; flex-direction: column; justify-content: flex-end; min-height: 58px;">
+                              <input nz-input nzSize="small" type="text"
+                                [value]="formatMoney(getDisplayPivotProposed(row, cell.periodId))"
+                                (blur)="onPivotProposedChange(cell.target!, parseMoney($any($event.target).value))"
+                                (focus)="$any($event.target).select()"
+                                style="width: 100%; text-align: right; font-weight: 600; margin-top: auto;"
+                                [style.color]="getDisplayPivotProposed(row, cell.periodId) ? '#d48806' : 'inherit'" />
+                              <ng-container *ngIf="canApprove(cell.target) && cell.approvalStatus === 'Pending' && cell.target.proposedGoalValue != null">
+                                <div style="display: flex; justify-content: flex-end; gap: 4px; margin-top: 2px;">
+                                  <i nz-icon nzType="check-circle" class="text-success pointer-cursor"
+                                    nz-tooltip nzTooltipTitle="Duyệt"
+                                    style="font-size: 13px;"
+                                    (click)="approveTargetById(cell.target!.id)"></i>
+                                  <i nz-icon nzType="close-circle" class="text-danger pointer-cursor"
+                                    nz-tooltip nzTooltipTitle="Hủy đề xuất"
+                                    nz-popconfirm
+                                    nzPopconfirmTitle="Hủy đề xuất này?"
+                                    nzOkText="Hủy"
+                                    nzCancelText="Đóng"
+                                    style="font-size: 13px;"
+                                    (nzOnConfirm)="rejectTargetById(cell.target!.id)"></i>
+                                </div>
+                              </ng-container>
                             </div>
                           </ng-container>
                           <ng-template #emptyProposed>

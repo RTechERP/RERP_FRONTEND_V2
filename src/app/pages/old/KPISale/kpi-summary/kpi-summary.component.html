@@ -190,27 +190,20 @@
   </div>
 
   <!-- Report Adjustments Table -->
-  <div class="report-table-wrapper report-table-wrapper--compact" *ngIf="hasReportRows && summaryData && !isTeamMode">
+  <div class="report-table-wrapper report-table-wrapper--compact report-table-wrapper--full" *ngIf="hasReportRows && summaryData && !isTeamMode">
     <nz-spin [nzSpinning]="loading" nzSize="small">
-      <div class="report-table-scroll report-table-scroll--compact">
-        <table class="kpi-report-table kpi-report-table--ultra-compact">
+      <div class="report-table-scroll report-table-scroll--compact report-table-scroll--full">
+        <table class="kpi-report-table kpi-report-table--ultra-compact kpi-report-table--full">
           <!-- Header Row 1: month group headers -->
           <thead>
             <tr class="report-header-row-1">
-              <th class="col-report-index" rowspan="2">Chỉ tiêu báo cáo</th>
+              <th class="col-report-index">Chỉ tiêu báo cáo</th>
               <ng-container *ngFor="let p of summaryData.periods">
                 <th class="col-report-period-group">{{ p.periodName || p.periodCode }}</th>
               </ng-container>
               <th class="col-report-period-group col-report-quarter">
                 {{ summaryData.quarterName || summaryData.quarterCode }}
               </th>
-            </tr>
-            <!-- Header Row 2: score sub-headers -->
-            <tr class="report-header-row-2">
-              <ng-container *ngFor="let p of summaryData.periods">
-                <th class="col-report-score">Điểm</th>
-              </ng-container>
-              <th class="col-report-score col-report-quarter">Điểm</th>
             </tr>
           </thead>
           <tbody>

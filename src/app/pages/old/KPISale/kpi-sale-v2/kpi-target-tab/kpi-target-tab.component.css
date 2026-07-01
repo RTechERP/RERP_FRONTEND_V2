@@ -287,6 +287,11 @@
   border-radius: 4px;
 }
 
+/* Cấm scroll ngang cho bảng nhân viên bên trái */
+.no-x-scroll ::ng-deep .ant-table-body {
+  overflow-x: hidden !important;
+}
+
 /* Inline edit/remove actions on the assigned template tag (left sidebar) */
 .template-assign {
   display: flex;
@@ -421,9 +426,15 @@ nz-input-number.inline-edit .ant-input-number {
 
 .sticky-col-cell {
   background: white;
+  min-width: 180px;
+  max-width: 220px;
 }
 
 .pivot-row > td {
+  vertical-align: top;
+}
+
+.pivot-row > td:not(.sticky-col-cell) {
   vertical-align: middle;
 }
 
@@ -451,8 +462,32 @@ nz-input-number.inline-edit .ant-input-number {
 
 .cell-proposed {
   background: #fffbe6 !important;
+  padding: 4px 8px !important;
+}
+
+.cell-proposed input {
+  width: 100%;
+}
+
+.cell-proposed .approval-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 2px;
 }
 
 .cell-goal {
   background: #f6ffed !important;
+  padding: 4px 8px !important;
+}
+
+.cell-goal input {
+  width: 100%;
+}
+
+.cell-proposed .approval-buttons {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  padding-top: 4px;
 }

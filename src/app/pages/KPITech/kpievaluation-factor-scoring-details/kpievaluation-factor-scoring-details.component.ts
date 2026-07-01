@@ -468,7 +468,39 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   }
 
   ngOnDestroy(): void {
-    // Cleanup if needed
+    // Emit destroy signal to cancel all active subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    // Clear pending timeouts
+    if (this.cellEditDebounceTimer) {
+      clearTimeout(this.cellEditDebounceTimer);
+      this.cellEditDebounceTimer = null;
+    }
+    if (this.calculationDebounceTimer) {
+      clearTimeout(this.calculationDebounceTimer);
+      this.calculationDebounceTimer = null;
+    }
+    if (this.summaryDebounceTimer) {
+      clearTimeout(this.summaryDebounceTimer);
+      this.summaryDebounceTimer = null;
+    }
+
+    // Clear large data arrays to free memory
+    this.dataSkill = [];
+    this.dataSkillTree = [];
+    this.dataGeneral = [];
+    this.dataGeneralTree = [];
+    this.dataSpecialization = [];
+    this.dataSpecializationTree = [];
+    this.dataRule = [];
+    this.dataMaster = [];
+
+    // Clear edit command queue
+    this.editCommandQueue = [];
+    this.cellCssStyleQueue = [];
+
+    console.log('[FactorScoringDetails] Component destroyed, memory cleaned up');
   }
 
   //#region Visibility and Permission Rules
@@ -2227,7 +2259,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.isLockEvents = true; // Khóa toàn bộ các sự kiện thay đổi trong quá trình init
 
     // Bước 1: Load KPI Sessions
-    this.kpiService.getComboboxSession().subscribe({
+    this.kpiService.getComboboxSession().pipe(takeUntil(this.destroy$)).subscribe({
       next: (sessions) => {
         this.kpiSessions = sessions;
 
@@ -2254,7 +2286,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   private loadKPIExams(kpiSessionId: number): void {
     if (!kpiSessionId) return;
 
-    this.kpiService.getComboboxExam(kpiSessionId).subscribe({
+    this.kpiService.getComboboxExam(kpiSessionId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (exams) => {
         this.kpiExams = exams;
 
@@ -2275,7 +2307,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
    * Mapping: LoadEmployee() trong WinForms
    */
   private loadEmployees(): void {
-    this.kpiService.getComboboxEmployee().subscribe({
+    this.kpiService.getComboboxEmployee().pipe(takeUntil(this.destroy$)).subscribe({
       next: (employees) => {
         this.employees = employees;
 
@@ -2347,7 +2379,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
           return of(null);
         }
       })
-    ).subscribe({
+    ).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         // Nếu res có data (từ API getIsPublic), lấy isPublish
         let isPublish = false;
@@ -2423,7 +2455,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
    * Tải KPI Kỹ năng
    */
   private loadKPIKyNang(empId: number, examId: number, isPublicTBP: boolean, isPublicBGD: boolean): void {
-    this.kpiSharedService.loadKPIKyNangFactorScoring(examId, isPublicTBP, isPublicBGD, empId).subscribe({
+    this.kpiSharedService.loadKPIKyNangFactorScoring(examId, isPublicTBP, isPublicBGD, empId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         if (res.data) {
           this.dataSkill = this.transformToTreeData(res.data);
@@ -2455,7 +2487,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
    * Tải KPI Chung
    */
   private loadKPIChung(empId: number, examId: number, isPublicTBP: boolean, isPublicBGD: boolean): void {
-    this.kpiSharedService.loadKPIChungFactorScoring(examId, isPublicTBP, isPublicBGD, empId).subscribe({
+    this.kpiSharedService.loadKPIChungFactorScoring(examId, isPublicTBP, isPublicBGD, empId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         if (res.data) {
           let dataLocal = this.transformToTreeData(res.data);
@@ -2485,7 +2517,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
    * Tải KPI Chuyên môn
    */
   private loadKPIChuyenMon(empId: number, examId: number, isPublicTBP: boolean, isPublicBGD: boolean): void {
-    this.kpiSharedService.loadKPIChuyenMonFactorScoring(examId, isPublicTBP, isPublicBGD, empId).subscribe({
+    this.kpiSharedService.loadKPIChuyenMonFactorScoring(examId, isPublicTBP, isPublicBGD, empId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         if (res.data) {
           let dataLocal = this.transformToTreeData(res.data);
@@ -2516,7 +2548,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
    */
   private loadKPIRuleAndTeam(empId: number, examId: number, isPublic: boolean): void {
     const sessionId = this.selectedKPISessionId || 0;
-    this.kpiSharedService.loadKPIRuleAndTeamFactorScoring(examId, isPublic, empId, sessionId).subscribe({
+    this.kpiSharedService.loadKPIRuleAndTeamFactorScoring(examId, isPublic, empId, sessionId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         if (res.status === 1 && res.data) {
           const rawRuleData = res.data.dtKpiRule || [];
@@ -2593,7 +2625,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
           //#endregion
 
           // Lấy điểm cuối cùng 
-          this.kpiSharedService.getFinalPoint(empId, sessionId).subscribe({
+          this.kpiSharedService.getFinalPoint(empId, sessionId).pipe(takeUntil(this.destroy$)).subscribe({
             next: (finalRes) => {
               if (finalRes.data) {
                 this.totalPercentActual = Number(finalRes.data.TotalPercentActual) || 0;
@@ -2962,6 +2994,14 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   // PERFORMANCE: Debounce state for cell edit to avoid triggering heavy calculations on every keystroke
   private cellEditDebounceTimer: any = null;
   private pendingCellEdit: { rowData: any; field: string; value: any; gridType: 'skill' | 'general' | 'specialization' } | null = null;
+
+  // PERFORMANCE: Debounce calculation timer - tránh tính toán nặng mỗi khi nhập
+  private calculationDebounceTimer: any = null;
+  private readonly CALC_DEBOUNCE_MS = 300;
+  private pendingCalculationData: { dataSet: any[]; gridType: string } | null = null;
+
+  // PERFORMANCE: Debounce summary calculations
+  private summaryDebounceTimer: any = null;
 
   /**
    * PERFORMANCE OPTIMIZATION: Incremental parent chain recalculation
@@ -3779,32 +3819,19 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     // Cập nhật item đã tính toán vào dataSet
     dataSet[dataIndex] = { ...changedItem };
 
-    // 2. Tính toán lại các giá trị phụ thuộc (hàng cha)
-    // Không tạo mảng mới để giữ tham chiếu đúng
-    let updatedDataSet: any[];
-    if (dataSet === this.dataSkill) {
-      updatedDataSet = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataSkill, 'skill') : this.calculatorAvgPoint(this.dataSkill);
-      this.dataSkill = updatedDataSet;
-      this.dataSkillTree = this.buildTreeNodes(this.dataSkill);
-    } else if (dataSet === this.dataGeneral) {
-      updatedDataSet = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataGeneral, 'general') : this.calculatorAvgPoint(this.dataGeneral);
-      this.dataGeneral = updatedDataSet;
-      this.dataGeneralTree = this.buildTreeNodes(this.dataGeneral);
-    } else if (dataSet === this.dataSpecialization) {
-      updatedDataSet = this.departmentID === this.DEPARTMENT_CO_KHI ? this.calculatorAvgPointTKCK(this.dataSpecialization, 'specialization') : this.calculatorAvgPoint(this.dataSpecialization);
-      this.dataSpecialization = updatedDataSet;
-      this.dataSpecializationTree = this.buildTreeNodes(this.dataSpecialization);
-    } else {
-      updatedDataSet = dataSet;
-    }
+    // 2. Debounce calculation để tránh tính toán nặng mỗi khi nhập
+    // Chỉ debounce phần tạo tree, phần update grid vẫn làm ngay để UX tốt
+    this.pendingCalculationData = { dataSet, gridType: dataSet === this.dataSkill ? 'skill' : dataSet === this.dataGeneral ? 'general' : 'specialization' };
+    clearTimeout(this.calculationDebounceTimer);
+    this.calculationDebounceTimer = setTimeout(() => {
+      this.performDebouncedCalculation();
+    }, this.CALC_DEBOUNCE_MS);
 
-    // 3. Batch update DataView để tránh nhiều refresh events
+    // 3. Batch update DataView để tránh nhiều refresh events (chỉ update item vừa thay đổi)
     dataView.beginUpdate();
     try {
-      for (const item of updatedDataSet) {
-        const itemId = item.id ?? item.ID;
-        dataView.updateItem(itemId, item);
-      }
+      const itemId = changedItem.id ?? changedItem.ID;
+      dataView.updateItem(itemId, changedItem);
     } finally {
       dataView.endUpdate();
     }
@@ -3818,21 +3845,75 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       grid.focus(); // Đảm bảo grid có focus
     }
 
-    // 8. Tính toán lại bảng tổng hợp (Master Grid)
-    if (this.departmentID === this.DEPARTMENT_CO_KHI) {
-      this.loadSumaryRank_TKCK();
-    } else {
-      this.calculateTotalAVG();
-    }
+    // 6. Debounce summary calculations (Master Grid)
+    clearTimeout(this.summaryDebounceTimer);
+    this.summaryDebounceTimer = setTimeout(() => {
+      if (this.departmentID === this.DEPARTMENT_CO_KHI) {
+        this.loadSumaryRank_TKCK();
+      } else {
+        this.calculateTotalAVG();
+      }
+      // Cập nhật footer row sau khi tính toán xong
+      this.updateEvaluationFooter(gridInstance, dataSet);
+    }, this.CALC_DEBOUNCE_MS);
 
-    // 8. Highlight ô đã thay đổi
+    // 7. Highlight ô đã thay đổi (chỉ update cell vừa thay đổi)
     const column = grid.getColumns()[args.cell];
     if (column) {
       this.renderUnsavedCellStyling(changedItem, column, { row: args.row } as EditCommand);
     }
+  }
 
-    // 9. Cập nhật footer row
-    this.updateEvaluationFooter(gridInstance, dataSet);
+  /**
+   * PERFORMANCE: Thực hiện calculation đã được debounce
+   * Chỉ chạy sau khi user ngừng nhập 300ms
+   */
+  private performDebouncedCalculation(): void {
+    if (!this.pendingCalculationData) return;
+
+    const { dataSet, gridType } = this.pendingCalculationData;
+    // Clear reference ngay để GC có thể giải phóng memory nếu cần
+    this.pendingCalculationData = null;
+
+    // Tính toán lại toàn bộ dataset (chỉ khi debounce kết thúc)
+    let updatedDataSet: any[];
+    let angularGrid: AngularGridInstance | null = null;
+
+    if (this.departmentID === this.DEPARTMENT_CO_KHI) {
+      updatedDataSet = this.calculatorAvgPointTKCK(dataSet, gridType);
+    } else {
+      updatedDataSet = this.calculatorAvgPoint(dataSet);
+    }
+
+    // Cập nhật data property theo gridType
+    if (gridType === 'skill') {
+      this.dataSkill = updatedDataSet;
+      this.dataSkillTree = this.buildTreeNodes(updatedDataSet);
+      angularGrid = this.angularGridSkill;
+    } else if (gridType === 'general') {
+      this.dataGeneral = updatedDataSet;
+      this.dataGeneralTree = this.buildTreeNodes(updatedDataSet);
+      angularGrid = this.angularGridGeneral;
+    } else {
+      this.dataSpecialization = updatedDataSet;
+      this.dataSpecializationTree = this.buildTreeNodes(updatedDataSet);
+      angularGrid = this.angularGridSpecialization;
+    }
+
+    // Update grid với batch
+    if (angularGrid?.slickGrid && angularGrid.dataView) {
+      const dataView = angularGrid.dataView;
+      dataView.beginUpdate();
+      try {
+        for (const item of updatedDataSet) {
+          const itemId = item.id ?? item.ID;
+          dataView.updateItem(itemId, item);
+        }
+      } finally {
+        dataView.endUpdate();
+      }
+      angularGrid.slickGrid.invalidate();
+    }
   }
 
   //#region ===== KPI RULE GRID - CELL CHANGE HANDLER =====
@@ -4561,7 +4642,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
           modalRef.componentInstance.lstEmp = lstTeam;
 
           // 6. Xử lý khi người dùng xác nhận chọn nhân viên
-          modalRef.closed.subscribe({
+          modalRef.closed.pipe(takeUntil(this.destroy$)).subscribe({
             next: (lstEmpChose: any[]) => {
               if (!lstEmpChose || lstEmpChose.length === 0) {
                 this.notification.info('Thông báo', 'Không có nhân viên nào được chọn');
@@ -4687,7 +4768,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     //#region Bước 4: Gọi API update-row-rule
     const isAmdinConfirm = this.typePoint === 2 || this.typePoint === 3 || this.isPublish === true;
 
-    this.kpiService.updateRowRule(kpiExamID, isAmdinConfirm, employeeID, kpiSessionID).subscribe({
+    this.kpiService.updateRowRule(kpiExamID, isAmdinConfirm, employeeID, kpiSessionID).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
         const lstResult: any[] = response?.data || [];
 
@@ -4884,7 +4965,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     // Admin chỉ lưu Rule
     debugger
     if (isAdmin) {
-      this.saveRuleData().subscribe({
+      this.saveRuleData().pipe(takeUntil(this.destroy$)).subscribe({
         next: (isRuleSaved) => {
           if (isRuleSaved) {
             this.handleSaveSuccess('Lưu dữ liệu Rule thành công');
@@ -4913,6 +4994,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
           );
         })
       )
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
           if (!res) {

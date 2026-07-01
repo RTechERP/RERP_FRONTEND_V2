@@ -1217,9 +1217,9 @@
 
             <ng-container *ngIf="!isReadOnly">
                 <button *ngIf="isCreateMode" nz-button nzType="default" (click)="saveAndAddNew()" [nzLoading]="isSaving"
-                    class="flex-mobile-1">Lưu & Thêm mới</button>
+                    [disabled]="isSaving" class="flex-mobile-1">Lưu & Thêm mới</button>
                 <button nz-button nzType="primary" (click)="isCreateMode ? saveNewTask() : save()"
-                    [nzLoading]="isSaving" class="flex-mobile-1">Lưu</button>
+                    [nzLoading]="isSaving" [disabled]="isSaving" class="flex-mobile-1">Lưu</button>
             </ng-container>
         </div>
     </div>

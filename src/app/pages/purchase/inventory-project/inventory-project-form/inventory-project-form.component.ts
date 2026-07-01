@@ -59,6 +59,7 @@ export class InventoryProjectFormComponent implements OnInit, AfterViewInit {
   pokhPopupPosition: { top: string; left: string } = { top: '0px', left: '0px' };
   pokhTable: Tabulator | null = null;
   pokhSearchText: string = '';
+  saving: boolean = false;
   private searchSubject = new Subject<string>();
   
   @ViewChild('pokhButton', { static: false }) pokhButton!: ElementRef;
@@ -350,6 +351,10 @@ export class InventoryProjectFormComponent implements OnInit, AfterViewInit {
   }
 
   saveStatus() {
+    if (this.saving) {
+      return;
+    }
+
     // Mark all fields as touched
     Object.keys(this.formGroup.controls).forEach(key => {
       const control = this.formGroup.get(key);
@@ -404,6 +409,8 @@ export class InventoryProjectFormComponent implements OnInit, AfterViewInit {
       UpdatedDate: new Date().toISOString(),
     };
 
+    this.saving = true;
+
     this.inventoryProjectService.saveData(updatePayload).subscribe({
       next: (updateResponse: any) => {
         if (updateResponse.status === 1) {
@@ -428,6 +435,7 @@ export class InventoryProjectFormComponent implements OnInit, AfterViewInit {
 
             this.inventoryProjectService.saveData(insertPayload).subscribe({
               next: (insertResponse: any) => {
+                this.saving = false;
                 if (insertResponse.status === 1) {
                   this.notification.success(NOTIFICATION_TITLE.success, 'Nhả giữ thành công!');
                   this.formSubmitted.emit();
@@ -440,6 +448,7 @@ export class InventoryProjectFormComponent implements OnInit, AfterViewInit {
                 }
               },
               error: (error: any) => {
+                this.saving = false;
                 this.notification.error(
                   NOTIFICATION_TITLE.error,
                   error.error?.message || 'Lỗi khi tạo bản ghi mới!'
@@ -447,11 +456,13 @@ export class InventoryProjectFormComponent implements OnInit, AfterViewInit {
               }
             });
           } else {
+            this.saving = false;
             this.notification.success(NOTIFICATION_TITLE.success, 'Nhả giữ thành công!');
             this.formSubmitted.emit();
             this.activeModal.close(true);
           }
         } else {
+          this.saving = false;
           this.notification.error(
             NOTIFICATION_TITLE.error,
             updateResponse.message || 'Lỗi khi cập nhật số lượng!'
@@ -459,6 +470,7 @@ export class InventoryProjectFormComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error: any) => {
+        this.saving = false;
         this.notification.error(
           NOTIFICATION_TITLE.error,
           error.error?.message || 'Lỗi khi cập nhật số lượng!'

@@ -77,7 +77,8 @@ export class CheckHistoryTechComponent implements OnInit, AfterViewInit {
         employeeId: 0,
         employeeBorrowId: 0,
         keyword: '',
-        warehouseId: 0
+        warehouseId: 0,
+        warehouseType: 1,
     };
 
     // Tabulator
@@ -128,6 +129,11 @@ export class CheckHistoryTechComponent implements OnInit, AfterViewInit {
             this.warehouseID =
                 params['warehouseID']
                 ?? this.tabData?.warehouseID
+                ?? 1;
+
+            this.filter.warehouseType =
+                params['warehouseType']
+                ?? this.tabData?.warehouseType
                 ?? 1;
 
             this.warehouseType =
@@ -373,7 +379,8 @@ export class CheckHistoryTechComponent implements OnInit, AfterViewInit {
             employeeBorrowId: this.filter.employeeBorrowId || 0,
             supplierId: this.filter.supplierId || 0,
             wareHouseId: this.filter.warehouseId || 0,
-            filterText: this.filter.keyword || ''
+            filterText: this.filter.keyword || '',
+            warehouseType: this.filter.warehouseType,
         };
 
         this.isLoading = true;
@@ -459,7 +466,6 @@ export class CheckHistoryTechComponent implements OnInit, AfterViewInit {
     copyCell(event: KeyboardEvent) {
         if (this.currentCellValue) {
             navigator.clipboard.writeText(this.currentCellValue).then(() => {
-                this.notification.success(NOTIFICATION_TITLE.success, 'Đã sao chép');
             });
         }
     }

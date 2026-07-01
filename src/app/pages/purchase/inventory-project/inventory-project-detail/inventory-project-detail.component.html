@@ -196,7 +196,7 @@
 
 <div class="modal-footer p-2">
   <button nz-button nzType="default" nzSize="default" nzDanger (click)="close()">Đóng</button>
-  <button nz-button nzType="primary" nzSize="default" [disabled]="loading" (click)="save()">Lưu</button>
+  <button nz-button nzType="primary" nzSize="default" [disabled]="loading || saving" [nzLoading]="saving" (click)="save()">Lưu</button>
 </div>
 
 

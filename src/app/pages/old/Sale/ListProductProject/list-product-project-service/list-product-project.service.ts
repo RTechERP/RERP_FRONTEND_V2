@@ -13,17 +13,27 @@ export class ListProductProjectService {
   getData(
     projectCode: string,
     projectID: number,
-    warehousecode: string
+    warehousecode: string,
+    productGroupID: string = ''
   ): Observable<any> {
     const params: any = {
       projectId: projectID,
       projectCode: projectCode,
       WarehouseCode: warehousecode,
+      ProductGroupID: productGroupID,
     };
     return this.http.post(
       environment.host + `api/BillExport/get-product-project`,
       params
     );
+  }
+
+  getProductGroup(isAdmin: boolean, departmentID: number): Observable<any> {
+    const params: any = {
+      isAdmin: isAdmin.toString(),
+      deparmentID: departmentID.toString(),
+    };
+    return this.http.get(environment.host + `api/BillExport/get-product-group`, params);
   }
   getDataCustomer(
     projectCode: string,

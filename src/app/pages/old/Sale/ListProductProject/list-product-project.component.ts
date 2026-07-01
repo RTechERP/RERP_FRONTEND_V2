@@ -52,6 +52,8 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import { ListProductProjectService } from './list-product-project-service/list-product-project.service';
+import { WarehouseService } from '../../../general-category/wearhouse/warehouse-service/warehouse.service';
+import { AppUserService } from '../../../../services/app-user.service';
 // import { ClipboardService } from '../../../../services/clipboard.service';
 
 @Component({
@@ -80,6 +82,8 @@ export class ListProductProjectComponent
   implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private listproductprojectService: ListProductProjectService,
+    private warehouseService: WarehouseService,
+    private appUserService: AppUserService,
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
@@ -90,6 +94,9 @@ export class ListProductProjectComponent
 
   listProductMenu: MenuItem[] = [];
   cbbProject: any;
+  cbbWarehouse: any[] = [];
+  dataProductGroup: any[] = [];
+  selectedProductGroupIDs: number[] = [];
   isLoading: boolean = false;
   warehouseCode: string = 'HN';
   sreachParam = {
@@ -100,6 +107,7 @@ export class ListProductProjectComponent
       // ProjectName: ""
     },
     WareHouseCode: this.warehouseCode,
+    ProductGroupID: '',
   };
 
   angularGrid!: AngularGridInstance;
@@ -134,8 +142,9 @@ export class ListProductProjectComponent
 
     this.loadMenu();
     this.getProject();
+    this.getWarehouses();
     this.initAngularGrid();
-    this.loadData();
+    this.getProductGroup();
   }
 
   ngOnDestroy(): void {
@@ -186,12 +195,16 @@ export class ListProductProjectComponent
         ID: 0,
       };
     }
+    if (!this.sreachParam.WareHouseCode) {
+      this.sreachParam.WareHouseCode = '';
+    }
     this.isLoading = true;
     this.listproductprojectService
       .getData(
         this.sreachParam.selectedProject.ProjectCode,
         this.sreachParam.selectedProject.ID,
         this.sreachParam.WareHouseCode,
+        this.sreachParam.ProductGroupID,
       )
       .subscribe({
         next: (res) => {
@@ -273,6 +286,54 @@ export class ListProductProjectComponent
         );
       },
     });
+  }
+
+  getWarehouses() {
+    this.warehouseService.getWarehouses().subscribe({
+      next: (res) => {
+        this.cbbWarehouse = res.data || res;
+      },
+      error: (err) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Có lỗi xảy ra khi lấy danh sách kho',
+        );
+      },
+    });
+  }
+
+  getProductGroup() {
+    this.listproductprojectService
+      .getProductGroup(
+        this.appUserService.isAdmin ?? false,
+        this.appUserService.departmentID ?? 0,
+      )
+      .subscribe({
+        next: (res) => {
+          if (res?.data && Array.isArray(res.data)) {
+            this.dataProductGroup = res.data;
+            // Mặc định chọn tất cả nhóm kho vì SP yêu cầu danh sách ID không rỗng
+            this.selectedProductGroupIDs = this.dataProductGroup.map((item) => item.ID);
+            this.sreachParam.ProductGroupID = this.selectedProductGroupIDs.join(',');
+          } else {
+            this.sreachParam.ProductGroupID = '';
+          }
+          this.loadData();
+        },
+        error: (err) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Có lỗi xảy ra khi lấy nhóm kho',
+          );
+          this.sreachParam.ProductGroupID = '';
+          this.loadData();
+        },
+      });
+  }
+
+  onProductGroupChange(selected: number[]): void {
+    this.selectedProductGroupIDs = selected;
+    this.sreachParam.ProductGroupID = selected.join(',');
   }
 
   angularGridReady(angularGrid: AngularGridInstance) {

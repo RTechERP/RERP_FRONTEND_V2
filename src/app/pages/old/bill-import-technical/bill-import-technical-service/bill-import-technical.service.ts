@@ -120,6 +120,7 @@ export class BillImportTechnicalService {
     supplierId: number;
     wareHouseId: number;
     filterText?: string;
+    warehouseType: number;
   }): Observable<any> {
     // Format date để tương thích với backend C# DateTime
     const formatDate = (date: Date | string): string => {
@@ -136,7 +137,8 @@ export class BillImportTechnicalService {
       .set('employeeBorrowId', params.employeeBorrowId.toString())
       .set('supplierId', params.supplierId.toString())
       .set('wareHouseId', params.wareHouseId.toString())
-      .set('filterText', params.filterText || '');
+      .set('filterText', params.filterText || '')
+      .set('warehouseType', params.warehouseType.toString());
     
     return this.http.get<any>(`${this.url}get-check-history-tech`, { params: httpParams });
   }

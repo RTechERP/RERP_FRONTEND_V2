@@ -44,6 +44,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
@@ -90,6 +91,7 @@ interface Tab {
     NzIconModule,
     NzDatePickerModule,
     NzInputModule,
+    NzInputNumberModule,
     NzTabsModule,
     NzSpinModule,
     NzModalModule,
@@ -105,6 +107,11 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
   implements OnInit, AfterViewInit, OnDestroy, OnChanges {
   @ViewChild('rejectReasonTpl', { static: false })
   rejectReasonTpl!: TemplateRef<any>;
+
+  @ViewChild('duplicateSplitQuantityTpl', { static: false })
+  duplicateSplitQuantityTpl!: TemplateRef<any>;
+  duplicateSplitQuantity: number | null = null;
+  duplicateSourceQuantity: number = 0;
 
   // Grid instances for each tab
   angularGrids: Map<number, AngularGridInstance> = new Map();
@@ -5150,219 +5157,148 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
     }
 
     const originalRow = selected[0];
-    const originalId = Number(originalRow.ID || 0);
-    const originalDuplicateId = Number(originalRow.DuplicateID || 0);
     const productCode = String(originalRow.ProductCode || '');
+    const sourceQuantity = Number(originalRow.Quantity || 0);
 
-    this.modal.confirm({
-      nzTitle: `Bạn có chắc muốn duplicate yêu cầu mua vật tư [${productCode}] không?`,
+    if (sourceQuantity <= 0) {
+      this.notify.warning(
+        NOTIFICATION_TITLE.warning,
+        `Sản phẩm [${productCode}] không còn số lượng để tách!`
+      );
+      return;
+    }
+
+    this.duplicateSourceQuantity = sourceQuantity;
+    this.duplicateSplitQuantity = null;
+
+    this.modal.create({
+      nzTitle: `Nhân bản yêu cầu mua vật tư [${productCode}] sang nhà cung cấp khác`,
+      nzContent: this.duplicateSplitQuantityTpl,
       nzOkText: 'Ok',
       nzOkType: 'primary',
       nzCancelText: 'Hủy',
-      nzOkDanger: false,
       nzClosable: false,
       nzOnOk: () => {
-        this.isLoading = true;
-        const sub = this.srv.duplicate(selected).subscribe({
-          next: (rs) => {
-            this.notify.success(
-              NOTIFICATION_TITLE.success,
-              rs.message || 'Duplicate thành công'
-            );
+        const splitQuantity = Number(this.duplicateSplitQuantity || 0);
+        if (splitQuantity <= 0 || splitQuantity >= sourceQuantity) {
+          this.notify.warning(
+            NOTIFICATION_TITLE.warning,
+            `Số lượng tách phải lớn hơn 0 và nhỏ hơn số lượng hiện tại (${sourceQuantity})!`
+          );
+          return false;
+        }
 
-            // Reload data và sau đó tìm và select cả 2 dòng (gốc và mới)
-            this.onSearch();
-            // Đợi data load xong rồi tìm và select cả 2 dòng
-            setTimeout(() => {
-              this.selectAndEditDuplicateRows(
-                tabIndex,
-                originalId,
-                originalDuplicateId
-              );
-            }, 500);
-
-            this.isLoading = false;
-          },
-          error: (error) => {
-            this.notify.error(NOTIFICATION_TITLE.error, error?.error?.message || `${error.error}\n${error.message}`, {
-              nzStyle: { whiteSpace: 'pre-line' }
-            });
-            this.isLoading = false;
-          },
-        });
-        this.subscriptions.push(sub);
+        this.createDuplicateRowLocally(typeId, originalRow, splitQuantity);
+        return true;
       },
     });
   }
 
-  // Method để tìm và select cả 2 dòng (gốc và mới) sau khi duplicate
-  private selectAndEditDuplicateRows(
-    tabIndex: number,
-    originalId: number,
-    originalDuplicateId: number
+  // Tạo dòng tách hoàn toàn ở client, không gọi API - chỉ đẩy lên backend khi bấm Lưu
+  private createDuplicateRowLocally(
+    typeId: number,
+    originalRow: any,
+    splitQuantity: number
   ): void {
-    const typeId = this.getTypeIdFromTabIndex(tabIndex);
-    if (!typeId) return;
-
     const angularGrid = this.angularGrids.get(typeId);
     if (!angularGrid || !angularGrid.dataView) return;
 
-    // Lấy tất cả dữ liệu từ grid
-    const allItems: any[] = [];
-    for (let i = 0; i < angularGrid.dataView.getLength(); i++) {
-      const item = angularGrid.dataView.getItem(i);
-      if (item) {
-        allItems.push(item);
-      }
+    const originalDuplicateId = Number(originalRow.DuplicateID || 0);
+    const groupId =
+      originalDuplicateId > 0 ? originalDuplicateId : Number(originalRow.ID);
+    const originQuantity =
+      originalDuplicateId > 0
+        ? Number(originalRow.OriginQuantity) || Number(originalRow.Quantity)
+        : Number(originalRow.Quantity);
+
+    // Cập nhật dòng gốc: trừ đi số lượng đã tách
+    originalRow.Quantity = Number(originalRow.Quantity) - splitQuantity;
+    originalRow.DuplicateID = groupId;
+    originalRow.OriginQuantity = originQuantity;
+    this.recalculateTotals(originalRow);
+    angularGrid.dataView.updateItem(originalRow.id, originalRow);
+    this.trackChangedRow(originalRow);
+
+    // Dòng ảo cho NCC khác - ID âm để backend nhận diện là dòng mới khi Lưu
+    const tempId = -Date.now();
+    const newRow = {
+      ...originalRow,
+      ID: tempId,
+      id: tempId,
+      Quantity: splitQuantity,
+      DuplicateID: groupId,
+      OriginQuantity: originQuantity,
+      InventoryProjectID: null,
+    };
+    this.recalculateTotals(newRow);
+
+    angularGrid.dataView.addItem(newRow);
+    this.allData = [...this.allData, newRow];
+    this.trackChangedRow(newRow);
+
+    if (!this.duplicateIdList.includes(groupId)) {
+      this.duplicateIdList.push(groupId);
     }
 
-    // Tìm dòng gốc và dòng mới
-    const originalRow = allItems.find(
-      (item: any) => Number(item.ID) === originalId
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
+
+    // Select cả 2 dòng và focus vào cột NCC của dòng mới để chọn NCC khác
+    setTimeout(() => {
+      this.selectAndFocusSupplier(angularGrid, originalRow.id, newRow.id);
+    }, 50);
+
+    this.notify.success(
+      NOTIFICATION_TITLE.success,
+      `Đã tách [${splitQuantity}] sản phẩm [${originalRow.ProductCode}] sang dòng mới. Vui lòng chọn NCC khác và bấm Lưu để hoàn tất!`
     );
+  }
 
-    // Tìm dòng mới: có DuplicateID = originalId hoặc ID = originalDuplicateId (nếu có)
-    // Hoặc tìm dòng có cùng ProductCode, ProjectID và các field khác giống nhưng ID khác originalId
-    let newRow = allItems.find((item: any) => {
-      const itemId = Number(item.ID || 0);
-      const itemDuplicateId = Number(item.DuplicateID || 0);
-
-      // Dòng mới sẽ có DuplicateID = originalId
-      if (itemDuplicateId === originalId && itemId !== originalId) {
-        return true;
-      }
-
-      // Hoặc nếu originalDuplicateId > 0, tìm dòng có ID = originalDuplicateId
-      if (originalDuplicateId > 0 && itemId === originalDuplicateId) {
-        return true;
-      }
-
-      return false;
-    });
-
-    // Nếu không tìm thấy bằng DuplicateID, tìm bằng cách so sánh các field khác
-    if (!newRow && originalRow) {
-      newRow = allItems.find((item: any) => {
-        const itemId = Number(item.ID || 0);
-        if (itemId === originalId) return false; // Bỏ qua dòng gốc
-
-        // So sánh các field quan trọng để tìm dòng duplicate
-        return (
-          item.ProductCode === originalRow.ProductCode &&
-          item.ProjectID === originalRow.ProjectID &&
-          item.SupplierSaleID === originalRow.SupplierSaleID &&
-          item.CurrencyID === originalRow.CurrencyID &&
-          item.DateRequest === originalRow.DateRequest
-        );
-      });
-    }
-
-    if (!originalRow) {
-      console.warn('Không tìm thấy dòng gốc sau khi duplicate');
-      return;
-    }
-
-    if (!newRow) {
-      console.warn('Không tìm thấy dòng mới sau khi duplicate');
-      // Chỉ select dòng gốc nếu không tìm thấy dòng mới
-      this.selectRowAndFocusQuantity(angularGrid, originalRow);
-      return;
-    }
-
-    // Select cả 2 dòng
-    const originalRowIndex = allItems.findIndex(
-      (item: any) => Number(item.ID) === Number(originalRow.ID)
+  private trackChangedRow(row: any): void {
+    const rowId = Number(row.ID);
+    const existingIndex = this.changedRows.findIndex(
+      (r: any) => Number(r.ID) === rowId
     );
-    const newRowIndex = allItems.findIndex(
-      (item: any) => Number(item.ID) === Number(newRow.ID)
-    );
-
-    if (originalRowIndex >= 0 && newRowIndex >= 0) {
-      // Select cả 2 dòng
-      angularGrid.slickGrid.setSelectedRows([originalRowIndex, newRowIndex]);
-
-      // Refresh grid để đảm bảo selection được hiển thị
-      angularGrid.slickGrid.invalidate();
-      angularGrid.slickGrid.render();
-
-      // Đợi một chút để grid render xong
-      setTimeout(() => {
-        // Focus vào cột Quantity của dòng đầu tiên (dòng gốc)
-        const quantityColumn = angularGrid.slickGrid
-          .getColumns()
-          .find((col: any) => col.field === 'Quantity');
-        if (quantityColumn) {
-          const quantityColIndex = angularGrid.slickGrid.getColumnIndex(
-            quantityColumn.id
-          );
-          if (quantityColIndex >= 0) {
-            // Scroll đến dòng đầu tiên được select
-            angularGrid.slickGrid.scrollRowIntoView(originalRowIndex, false);
-
-            // Focus vào cell Quantity của dòng gốc và bắt đầu edit
-            angularGrid.slickGrid.setActiveCell(
-              originalRowIndex,
-              quantityColIndex
-            );
-
-            // Đợi một chút rồi mới edit để đảm bảo cell đã được focus
-            setTimeout(() => {
-              angularGrid.slickGrid.editActiveCell();
-            }, 100);
-          }
-        }
-      }, 100);
-    } else if (originalRowIndex >= 0) {
-      this.selectRowAndFocusQuantity(angularGrid, originalRow);
+    if (existingIndex >= 0) {
+      this.changedRows[existingIndex] = { ...row };
+    } else {
+      this.changedRows.push({ ...row });
     }
   }
 
-  // Helper method để select một dòng và focus vào cột Quantity
-  private selectRowAndFocusQuantity(
+  // Select dòng gốc + dòng mới, focus vào cột NCC (SupplierSaleID) của dòng mới
+  private selectAndFocusSupplier(
     angularGrid: AngularGridInstance,
-    row: any
+    originalRowDataViewId: any,
+    newRowDataViewId: any
   ): void {
-    const allItems: any[] = [];
-    for (let i = 0; i < angularGrid.dataView.getLength(); i++) {
-      const item = angularGrid.dataView.getItem(i);
-      if (item) {
-        allItems.push(item);
-      }
-    }
-
-    const rowIndex = allItems.findIndex(
-      (item: any) => Number(item.ID) === Number(row.ID)
+    const originalRowIndex = angularGrid.dataView.getRowById(
+      originalRowDataViewId
     );
-    if (rowIndex >= 0) {
-      angularGrid.slickGrid.setSelectedRows([rowIndex]);
+    const newRowIndex = angularGrid.dataView.getRowById(newRowDataViewId);
+    if (originalRowIndex === undefined || newRowIndex === undefined) return;
 
-      // Refresh grid để đảm bảo selection được hiển thị
-      angularGrid.slickGrid.invalidate();
-      angularGrid.slickGrid.render();
+    angularGrid.slickGrid.setSelectedRows([originalRowIndex, newRowIndex]);
+    angularGrid.slickGrid.invalidate();
+    angularGrid.slickGrid.render();
 
-      // Đợi một chút để grid render xong
-      setTimeout(() => {
-        const quantityColumn = angularGrid.slickGrid
-          .getColumns()
-          .find((col: any) => col.field === 'Quantity');
-        if (quantityColumn) {
-          const quantityColIndex = angularGrid.slickGrid.getColumnIndex(
-            quantityColumn.id
-          );
-          if (quantityColIndex >= 0) {
-            angularGrid.slickGrid.scrollRowIntoView(rowIndex, false);
-
-            // Focus vào cell Quantity và bắt đầu edit
-            angularGrid.slickGrid.setActiveCell(rowIndex, quantityColIndex);
-
-            // Đợi một chút rồi mới edit để đảm bảo cell đã được focus
-            setTimeout(() => {
-              angularGrid.slickGrid.editActiveCell();
-            }, 100);
-          }
+    setTimeout(() => {
+      const supplierColumn = angularGrid.slickGrid
+        .getColumns()
+        .find((col: any) => col.field === 'SupplierSaleID');
+      if (supplierColumn) {
+        const supplierColIndex = angularGrid.slickGrid.getColumnIndex(
+          supplierColumn.id
+        );
+        if (supplierColIndex >= 0) {
+          angularGrid.slickGrid.scrollRowIntoView(newRowIndex, false);
+          angularGrid.slickGrid.setActiveCell(newRowIndex, supplierColIndex);
+          setTimeout(() => {
+            angularGrid.slickGrid.editActiveCell();
+          }, 100);
         }
-      }, 100);
-    }
+      }
+    }, 100);
   }
 
   onKeepProduct(tabIndex: number, isKeep: boolean = true): void {
@@ -5388,6 +5324,19 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       return;
     }
 
+    if (isKeep) {
+      const missingWarehouseRow = selected.find(
+        (row: any) => !(Number(row.WarehouseID) > 0)
+      );
+      if (missingWarehouseRow) {
+        this.notify.warning(
+          NOTIFICATION_TITLE.warning,
+          `Vui lòng chọn và lưu Kho nhập hàng cho sản phẩm [${missingWarehouseRow.ProductCode}] trước khi giữ hàng!`
+        );
+        return;
+      }
+    }
+
     this.modal.confirm({
       nzTitle: `Bạn có chắc muốn ${isKeepText} danh sách sản phẩm đã chọn không?\nNhững sản phẩm NV mua không phải bạn sẽ tự động được bỏ qua!`,
       nzOkText: 'Ok',
@@ -5395,23 +5344,25 @@ export class ProjectPartListPurchaseRequestSlickGridComponent
       nzCancelText: 'Hủy',
       nzOkDanger: false,
       nzClosable: false,
-      nzOnOk: () => {
-        const sub = this.srv.keepProduct(selected).subscribe({
-          next: (rs) => {
-            this.notify.success(
-              NOTIFICATION_TITLE.success,
-              rs.message || `${isKeepText} thành công`
-            );
-            this.onSearch();
-          },
-          error: (error) =>
-            this.notify.error(NOTIFICATION_TITLE.error, error?.error?.message || `${error.error}\n${error.message}`, {
-              nzStyle: { whiteSpace: 'pre-line' }
-            }),
-        });
-        this.subscriptions.push(sub);
-      },
+      nzOnOk: () => this.submitKeepProduct(selected, isKeepText),
     });
+  }
+
+  private submitKeepProduct(selected: any[], isKeepText: string): void {
+    const sub = this.srv.keepProduct(selected).subscribe({
+      next: (rs) => {
+        this.notify.success(
+          NOTIFICATION_TITLE.success,
+          rs.message || `${isKeepText} thành công`
+        );
+        this.onSearch();
+      },
+      error: (error) =>
+        this.notify.error(NOTIFICATION_TITLE.error, error?.error?.message || `${error.error}\n${error.message}`, {
+          nzStyle: { whiteSpace: 'pre-line' }
+        }),
+    });
+    this.subscriptions.push(sub);
   }
 
   updateProductImport(tabIndex: number, isImport: boolean): void {

@@ -96,6 +96,7 @@ export class CheckHistoryTechSlickGridComponent implements OnInit, OnDestroy {
     employeeBorrowId: 0,
     keyword: '',
     warehouseId: 0,
+    warehouseType: 1,
   };
 
   // SlickGrid
@@ -127,6 +128,7 @@ export class CheckHistoryTechSlickGridComponent implements OnInit, OnDestroy {
       this.filter.warehouseId = params['warehouseID'] || 1;
       this.warehouseID = params['warehouseID'] || 1;
       this.warehouseType = params['warehouseType'] || 1;
+      this.filter.warehouseType = this.warehouseType;
     });
 
     this.initDate();
@@ -477,6 +479,7 @@ export class CheckHistoryTechSlickGridComponent implements OnInit, OnDestroy {
       supplierId: this.filter.supplierId || 0,
       wareHouseId: this.filter.warehouseId || 0,
       filterText: this.filter.keyword || '',
+      warehouseType: this.filter.warehouseType,
     };
 
     this.isLoading = true;

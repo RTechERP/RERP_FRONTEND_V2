@@ -214,3 +214,23 @@
         </form>
     </div>
 </ng-template>
+
+<ng-template #duplicateSplitQuantityTpl>
+    <form nz-form>
+        <nz-form-item>
+            <nz-form-label class="fs-12" [nzSpan]="24">Số lượng hiện tại</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+                <input nz-input class="fs-12" [value]="duplicateSourceQuantity" disabled />
+            </nz-form-control>
+        </nz-form-item>
+        <nz-form-item class="mt-2">
+            <nz-form-label class="fs-12" [nzSpan]="24">Số lượng tách sang nhà cung cấp khác</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+                <nz-input-number style="width: 100%" name="duplicateSplitQuantity"
+                    [(ngModel)]="duplicateSplitQuantity" [nzMin]="0" [nzMax]="duplicateSourceQuantity" [nzStep]="1"
+                    nzPlaceHolder="Nhập số lượng tách...">
+                </nz-input-number>
+            </nz-form-control>
+        </nz-form-item>
+    </form>
+</ng-template>

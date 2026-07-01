@@ -156,10 +156,12 @@
 
 <div class="modal-footer p-2">
   <button nz-button nzType="default" nzSize="default" nzDanger (click)="close()">Đóng</button>
-  <button 
-    *ngIf="isRejectMode" 
-    nz-button 
-    nzType="primary" 
+  <button
+    *ngIf="isRejectMode"
+    nz-button
+    nzType="primary"
     nzSize="default"
+    [disabled]="saving"
+    [nzLoading]="saving"
     (click)="saveStatus()">Lưu</button>
 </div>

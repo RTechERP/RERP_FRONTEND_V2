@@ -54,6 +54,7 @@ export class InventoryProjectDetailComponent implements OnInit {
 
   formGroup: FormGroup;
   loading: boolean = true;
+  saving: boolean = false;
   currentUser: any = null;
   customers: any[] = [];
   pokhList: any[] = [];
@@ -332,6 +333,10 @@ export class InventoryProjectDetailComponent implements OnInit {
   }
 
   save(): void {
+    if (this.saving) {
+      return;
+    }
+
     // getRawValue() để lấy luôn giá trị của các control đã disable (totalQuantityLast, warehouseID)
     const value = this.formGroup.getRawValue();
 
@@ -367,7 +372,10 @@ export class InventoryProjectDetailComponent implements OnInit {
         CreatedDate: new Date().toISOString(),
       };
 
-      this.inventoryProjectService.saveData(createPayload).subscribe({
+      this.saving = true;
+      this.inventoryProjectService.saveData(createPayload).pipe(
+        finalize(() => { this.saving = false; })
+      ).subscribe({
         next: (res: any) => {
           if (res?.status === 1 || res?.success === true) {
             this.notification.success(NOTIFICATION_TITLE.success, 'Giữ hàng thành công!');
@@ -400,7 +408,10 @@ export class InventoryProjectDetailComponent implements OnInit {
       UpdatedDate: new Date().toISOString(),
     };
 
-    this.inventoryProjectService.saveData(payload).subscribe({
+    this.saving = true;
+    this.inventoryProjectService.saveData(payload).pipe(
+      finalize(() => { this.saving = false; })
+    ).subscribe({
       next: (res: any) => {
         if (res?.status === 1 || res?.success === true) {
           this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công!');

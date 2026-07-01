@@ -290,7 +290,22 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
 
   initGrid() {
     this.columnDefinitions = [
-      {
+     {
+        id: 'ProjectTypeName',
+        name: 'Kiểu dự án',
+        field: 'ProjectTypeName',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        filter: {
+          model: Filters['multipleSelect'],
+          collection: [],
+          filterOptions: {
+            filter: true,
+            autoAdjustDropWidthByTextSize: true,
+          } as MultipleSelectOption,
+        },
+      }, {
         id: 'ProductCode',
         name: 'Mã sản phẩm',
         field: 'ProductCode',
@@ -440,6 +455,28 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
         },
         cssClass: 'text-center',
         filter: { model: Filters['compoundDate'] }
+      },
+      {
+        id: 'FullName',
+        name: 'Người báo giá',
+        field: 'FullName',
+        width: 150,
+        sortable: true,
+        filterable: true,
+        formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+          if (!value) return '';
+          return `
+            <span
+              title="${dataContext.Maker}"
+              style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+            >
+              ${value}
+            </span>
+          `;
+        },
+        customTooltip: {
+          useRegularTooltip: true,
+        },
       },
       {
         id: 'UnitPrice',
@@ -641,9 +678,11 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
       enableAutoResize: true,
       gridWidth: '100%',
       forceFitColumns: false,
-      enableRowSelection: true,
       enableCellNavigation: true,
       enableExcelCopyBuffer: true,
+      excelCopyBufferOptions: {
+        readOnlyMode: true,
+      },
       enableFiltering: true,
       enableSorting: true,
       multiColumnSort: true,

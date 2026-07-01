@@ -2503,7 +2503,7 @@ export class BillImportDetailNewComponent
             }
         }
 
-        const payload = [
+        const payload = 
             {
                 billImport: {
                     ID: this.newBillImport.Id || 0,
@@ -2547,8 +2547,8 @@ export class BillImportDetailNewComponent
                 DeletedDetailIds: this.deletedDetailIds || [],
                 billDocumentImports: [],
                 pONCCID: this.poNCCId || 0,
-            },
-        ];
+            }
+        ;
 
         this.billImportService.saveBillImport(payload).subscribe({
             next: (res) => {

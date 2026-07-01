@@ -104,7 +104,7 @@ export class BillImportServiceService {
             billImportIDs
         );
     }
-    saveBillImport(payload: any[]): Observable<any> {
+    saveBillImport(payload: any): Observable<any> {
         const headers = new HttpHeaders({
             'Content-Type': 'application/json',
         });

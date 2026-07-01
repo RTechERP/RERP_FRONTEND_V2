@@ -10,13 +10,46 @@
           nzAllowClear
           nzPlaceHolder="Chọn dự án"
           name="projectID"
-          (ngModelChange)="loadData()"
         >
           <nz-option
             style="width: 500px"
             *ngFor="let id of cbbProject"
             [nzValue]="id"
             [nzLabel]="id.ProjectCode + ' - ' + id.ProjectName"
+          >
+          </nz-option>
+        </nz-select>
+        <nz-select
+          class="fs-12 list-product-project-fs-12"
+          style="width: 200px"
+          [(ngModel)]="sreachParam.WareHouseCode"
+          nzShowSearch
+          nzAllowClear
+          nzPlaceHolder="Chọn kho"
+          name="warehouseCode"
+        >
+          <nz-option
+            *ngFor="let w of cbbWarehouse"
+            [nzValue]="w.WarehouseCode"
+            [nzLabel]="w.WarehouseName || w.WarehouseCode"
+          >
+          </nz-option>
+        </nz-select>
+        <nz-select
+          class="fs-12 list-product-project-fs-12"
+          style="width: 20vw"
+          [(ngModel)]="selectedProductGroupIDs"
+          (ngModelChange)="onProductGroupChange($event)"
+          [nzMode]="'multiple'"
+          nzAllowClear
+          nzPlaceHolder="Chọn nhóm kho"
+          [nzMaxTagCount]="3"
+          name="selectedProductGroupIDs"
+        >
+          <nz-option
+            *ngFor="let item of dataProductGroup"
+            [nzLabel]="item.ProductGroupName"
+            [nzValue]="item.ID"
           >
           </nz-option>
         </nz-select>

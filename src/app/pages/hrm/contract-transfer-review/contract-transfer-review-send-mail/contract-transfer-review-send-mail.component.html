@@ -55,6 +55,16 @@
               </div>
             </div>
 
+            <!-- Dòng CC thêm (tùy chọn) -->
+            <div class="fields-row">
+              <div class="field-group flex1">
+                <label class="field-label">
+                  <i class="fa-solid fa-at text-muted"></i> CC thêm
+                </label>
+                <input nz-input [(ngModel)]="mail.ccEmailOther" placeholder="Nhập email CC thêm nếu cần" />
+              </div>
+            </div>
+
 
             <!-- Tiêu đề -->
             <div class="field-group">
@@ -148,10 +158,13 @@
                   <span class="echeader-val">{{ mail.employeeName }}{{ mail.toEmail ? ' &lt;' + mail.toEmail + '&gt;' :
                     ' (chưa nhập email)' }}</span>
                 </div>
-                <div class="echeader-row" *ngIf="mail.ccEmailBgd || mail.ccEmail">
+                <div class="echeader-row" *ngIf="mail.ccEmailBgd || mail.ccEmail || mail.ccEmailOther">
                   <span class="echeader-key">CC:</span>
-                  <span class="echeader-val" *ngIf="mail.ccEmailBgd">Manager &lt;{{ mail.ccEmailBgd }}&gt;;</span>
-                  <span class="echeader-val" *ngIf="mail.ccEmail"> {{ mail.evaluatorName }} &lt;{{mail.ccEmail}}&gt; </span>
+                  <span class="echeader-val">
+                    <ng-container *ngIf="mail.ccEmail">{{ mail.evaluatorName }} &lt;{{ mail.ccEmail }}&gt;; </ng-container>
+                    <ng-container *ngIf="mail.ccEmailBgd">Manager &lt;{{ mail.ccEmailBgd }}&gt;; </ng-container>
+                    <ng-container *ngIf="mail.ccEmailOther">{{ mail.ccEmailOther }}</ng-container>
+                  </span>
                 </div>
                 
                 <div class="echeader-row">

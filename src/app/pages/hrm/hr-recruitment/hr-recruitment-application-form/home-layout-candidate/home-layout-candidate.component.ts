@@ -17,6 +17,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HRRecruitmentApplicationFormService } from './hr-recruitment-application-form.service';
 
@@ -39,6 +40,7 @@ import { HRRecruitmentApplicationFormService } from './hr-recruitment-applicatio
         NzFormModule,
         NzGridModule,
         NzModalModule,
+        NzSpinModule,
     ],
     templateUrl: './home-layout-candidate.component.html',
     styleUrl: './home-layout-candidate.component.css'

@@ -3025,7 +3025,124 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         }
       });
   }
-  //#region Export Excel Functions
+
+  btnLoadDataTeam_Click_New(): void {
+    const empID = this.selectedEmployeeID;
+    const kpiSessionID = this.selectedKPISessionID;
+
+    if (!kpiSessionID || kpiSessionID <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn Kỳ đánh giá!');
+      return;
+    }
+
+    if (!empID || empID <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên!');
+      return;
+    }
+
+    this.kpiService.getAllTeamByEmployeeIDNew(empID, kpiSessionID)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.status != 1) {
+            this.notification.error('Lỗi', response.message || 'Không thể lấy danh sách team');
+            return;
+          }
+
+          const lstTeam = response.data || [];
+
+          if (lstTeam.length <= 0) {
+            this.notification.info('Thông báo', 'Không tìm thấy team nào cho nhân viên này');
+            return;
+          }
+
+          const modalRef = this.ngbModal.open(KpiRuleSumarizeTeamChooseEmployeeComponent, {
+            size: 'lg',
+            backdrop: 'static'
+          });
+
+          modalRef.componentInstance.lstEmp = lstTeam;
+
+          modalRef.closed.subscribe({
+            next: (lstEmpChose: any[]) => {
+              if (!lstEmpChose || lstEmpChose.length === 0) {
+                this.notification.info('Thông báo', 'Không có nhân viên nào được chọn');
+                return;
+              }
+
+              const loadRequest = {
+                employeeID: empID,
+                kpiSessionID: kpiSessionID,
+                lstEmpChose: lstEmpChose.map(emp => ({ ID: emp.ID }))
+              };
+
+              this.kpiService.loadDataTeam(loadRequest)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                  next: (loadResponse: any) => {
+                    if (loadResponse.status != 1) {
+                      this.notification.error('Lỗi', loadResponse.message || 'Không thể load dữ liệu team');
+                      return;
+                    }
+
+                    const empPointMaster = loadResponse.data || 0;
+
+                    if (empPointMaster <= 0) {
+                      this.notification.warning('Thông báo', 'Không tìm thấy điểm KPI của nhân viên');
+                      return;
+                    }
+
+                    const sessionID = this.selectedKPISessionID || 0;
+                    this.kpiService.loadPointRuleNew(this.selectedExamID, this.selectedEmployeeID, sessionID)
+                      .pipe(takeUntil(this.destroy$))
+                      .subscribe({
+                        next: (ruleResponse: any) => {
+                          if (ruleResponse.status != 1) {
+                            this.notification.error('Lỗi', ruleResponse.message || 'Không thể load KPI Rule');
+                            return;
+                          }
+
+                          let ruleData = ruleResponse.data || [];
+                          ruleData = this.transformToTreeData(ruleData);
+
+                          this.dataRule = ruleData;
+                          this.updateGrid(this.angularGridRule, this.dataRule);
+
+                          setTimeout(() => {
+                            this.loadTeamSummaryAndAddTeamNodes();
+                            this.refreshGrid(this.angularGridRule, this.dataRule);
+                            this.updateRuleFooter();
+                          }, 200);
+
+                          this.notification.success(
+                            'Thành công',
+                            `Đã load KPI cho ${lstEmpChose.length} nhân viên trong team`
+                          );
+                        },
+                        error: (error: any) => {
+                          console.error('Lỗi load KPI Rule:', error);
+                          this.notification.error('Lỗi', error.error?.message || 'Lỗi khi load KPI Rule');
+                        }
+                      });
+                  },
+                  error: (error: any) => {
+                    console.error('Lỗi load data team:', error);
+                    this.notification.error('Lỗi', error.error?.message || 'Lỗi khi load dữ liệu team');
+                  }
+                });
+            },
+            error: (error: any) => {
+              console.error('Lỗi modal:', error);
+            }
+          });
+        },
+        error: (error: any) => {
+          console.error('Lỗi get team:', error);
+          this.notification.error('Lỗi', error.error?.message || 'Lỗi khi lấy danh sách team');
+        }
+      });
+  }
+  //#endregion
 
   /**
    * btnExportExcelByTeam - Xuất Excel theo Team

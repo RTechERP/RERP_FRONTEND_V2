@@ -165,7 +165,20 @@
 }
 
 :host ::ng-deep div[id^="billImportSyntheticGrid-"] {
-  height: calc(91vh - 80px) !important;
+  height: calc(91vh - 70px) !important;
+}
+
+.active-filter-bar {
+  flex-shrink: 0;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  background: #fff;
+  border-top: 1px solid #e8e8e8;
+  font-size: 11px;
+  padding: 0 4px;
 }
 
 :host ::ng-deep .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {

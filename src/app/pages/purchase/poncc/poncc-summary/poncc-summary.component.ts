@@ -1585,6 +1585,9 @@ export class PonccSummaryComponent implements OnInit, AfterViewInit, OnDestroy {
               dateValue = DateTime.fromJSDate(value);
             } else if (typeof value === 'string') {
               dateValue = DateTime.fromISO(value);
+              if (!dateValue.isValid) {
+                dateValue = DateTime.fromFormat(value.trim(), 'dd/MM/yyyy');
+              }
             }
             return dateValue && dateValue.isValid
               ? dateValue.toFormat('dd/MM/yyyy')

@@ -185,7 +185,8 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
 
     get totalMoneyText(): string {
         const unit = this.validateForm?.value?.Unit || 'vnd';
-        return this.paymentService.readMoney(this.currentTotal, unit);
+        const amount = this.paymentOrder.TypeOrder === 2 ? this.totalDiff : this.currentTotal;
+        return this.paymentService.readMoney(amount, unit);
     }
 
     get filteredBankList(): any[] {
@@ -405,14 +406,17 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                 this.poNCCs = v ? this.poNCCsAll.filter(x => x.SupplierSaleID == v) : [...this.poNCCsAll];
                 const s = this.supplierSalesAll.find(x => x.ID == v);
                 if (s) {
-                    const bankListID = s.BankListID || 187;
+                    const currentUnit = this.validateForm.get('Unit')?.value?.toLowerCase();
+                    const bankExistsInList = s.BankListID && this.bankList.some(b => b.ID === s.BankListID);
+                    const bankListID = bankExistsInList
+                        ? s.BankListID
+                        : (currentUnit !== 'vnd' ? 187 : null);
                     this.validateForm.patchValue({
                         AccountNumber: s.SoTK,
                         ReceiverInfo: s.NameNCC,
                         Bank: s.NganHang,
                         BankListID: bankListID
                     });
-
                 }
             });
 
@@ -623,6 +627,16 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
                 const diff2 = t2Headers.find(r => r._id === 5);
                 this.dataset2 = [rowI, rowII, ...t2DetailRows, rowIII, diff1, diff2].filter(Boolean);
                 console.log('[PONCC flow] dataset chi tiết:', this.dataset);
+
+                // Nếu VND: không cho phép 'Khác' (BankListID=187 hoặc không có trong list)
+                const finalUnit = (poNCC.Unit || '').toLowerCase();
+                if (finalUnit === 'vnd') {
+                    const currentBankListID = this.validateForm.get('BankListID')?.value;
+                    const bankExistsInList = currentBankListID && this.bankList.some(b => b.ID === currentBankListID);
+                    if (!bankExistsInList || currentBankListID === 187) {
+                        this.validateForm.patchValue({ BankListID: null }, { emitEvent: false });
+                    }
+                }
             },
             error: (err) => {
                 console.error('[PONCC flow] lỗi API:', err);
@@ -870,7 +884,10 @@ export class PaymentOrderDetailOldComponent implements OnInit, OnDestroy {
 
         const doSave = () => {
             const unit = this.validateForm.value.Unit;
-            const totalMoney = this.currentTotal;
+            const rowIII = details.find(r => String(r.Stt ?? '').trim() === 'III');
+            const totalMoney = this.paymentOrder.TypeOrder === 2 && rowIII
+                ? this.parseNum(rowIII.TotalPaymentAmount)
+                : this.currentTotal;
             this.paymentOrder = {
                 ...this.paymentOrder,
                 ...formRawValue,

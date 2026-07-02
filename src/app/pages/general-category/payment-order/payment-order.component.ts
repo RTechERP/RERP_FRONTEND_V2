@@ -1051,10 +1051,10 @@ export class PaymentOrderComponent implements OnInit {
       },
 
       {
-        id: PaymentOrderField.TotalMoney.field,
-        name: 'Số tiền',
-        field: PaymentOrderField.TotalMoney.field,
-        type: PaymentOrderField.TotalMoney.type,
+        id: PaymentOrderField.TotalMoneyAdvance.field,
+        name: 'Số tiền tạm ứng',
+        field: PaymentOrderField.TotalMoneyAdvance.field,
+        type: PaymentOrderField.TotalMoneyAdvance.type,
         sortable: true, filterable: true,
         width: 150,
         formatter: Formatters.decimal, params: { minDecimal: 0, maxDecimal: 2 },
@@ -1091,7 +1091,7 @@ export class PaymentOrderComponent implements OnInit {
       },
       {
         id: PaymentOrderField.TotalPaymentActual.field,
-        name: 'Số tiền thanh toán thực tế',
+        name: 'Chênh lệch',
         field: PaymentOrderField.TotalPaymentActual.field,
         type: PaymentOrderField.TotalPaymentActual.type,
         sortable: true, filterable: true,

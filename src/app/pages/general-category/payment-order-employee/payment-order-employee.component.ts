@@ -329,8 +329,8 @@ export class PaymentOrderEmployeeComponent implements OnInit {
             },
             // --- Số tiền ---
             {
-                field: 'TotalMoney',
-                header: 'Số tiền',
+                field: 'TotalMoneyAdvance',
+                header: 'Số tiền tạm ứng',
                 width: '120px',
                 filterType: 'numeric',
                 format: fmtMoney,
@@ -338,7 +338,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
             },
             {
                 field: 'TotalPayment',
-                header: 'Số tiền TT',
+                header: 'Số tiền thanh toán',
                 width: '120px',
                 filterType: 'numeric',
                 format: fmtMoney,
@@ -346,7 +346,7 @@ export class PaymentOrderEmployeeComponent implements OnInit {
             },
             {
                 field: 'TotalPaymentActual',
-                header: 'Số tiền TT thực tế',
+                header: 'Chênh lệch',
                 width: '130px',
                 filterType: 'numeric',
                 format: fmtMoney,

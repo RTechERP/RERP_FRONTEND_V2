@@ -488,7 +488,8 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             GraduatedTime: [null, [Validators.required, Validators.maxLength(150)]],
             QualificationLevel: [null, [Validators.required]]
         }));
-    }
+    } 
+    
     removeEducation(i: number) {
         if (this.educations.length > 1) {
             const item = this.educations.at(i).value;

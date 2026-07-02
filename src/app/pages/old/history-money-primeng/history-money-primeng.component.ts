@@ -86,7 +86,8 @@ export class HistoryMoneyPrimengComponent implements OnInit {
   rowSelectedTotalPriceIncludeVAT: any;
   rowSelectedPokhDetailId: number = 0;
   rowSelectedPokhId: number = 0;
-  listIdsDel: any[] = [];
+  listIdsDel: { id: number; pokhDetailId: number }[] = [];
+  isSaving = false; // Chặn spam nút Lưu
 
   // Selected POKH Info map: POKHDetailId -> { pokhId, totalMoneyIncludeVAT, ponumber }
   selectedPOKHInfoMap: Map<number, { pokhId: number; totalMoneyIncludeVAT: number; ponumber?: string }> = new Map();
@@ -441,9 +442,14 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       nzOnOk: () => {
         const id = row.ID;
         if (id > 0) {
-          if (!this.listIdsDel.includes(id)) this.listIdsDel.push(id);
+          // Lưu lại POKHDetailID để biết dòng này thuộc POKHDetail nào
+          const pokhDetailId = row.POKHDetailID || this.rowSelectedPokhDetailId;
+          // Thêm vào list xóa kèm POKHDetailID
+          this.listIdsDel.push({ id, pokhDetailId });
         }
-        this.mainData = this.mainData.filter((item) => item.__rowKey !== row.__rowKey);
+        // Đánh dấu IsDeleted = true để giữ row trong array (để build rowsDelByPOKHDetailId)
+        row.IsDeleted = true;
+        this.mainData = [...this.mainData]; // Trigger change detection
       },
     });
   }
@@ -451,20 +457,25 @@ export class HistoryMoneyPrimengComponent implements OnInit {
 
   //#region Save
   saveAndClose() {
+    if (this.isSaving) return; // Chặn spam
     if (this.selectedProducts.length === 0 || this.selectedPOKHDetailIds.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 PO trước khi lưu');
       return;
     }
 
-    // Normalize data
-    const normalizedTableData = this.mainData.map((row) => {
-      const { __rowKey, ...rest } = row;
-      return {
-        ...rest,
-        VAT: this.convertVatToDecimal(row.VAT),
-        PMUserID: row.PMUserID ?? null,
-      };
-    });
+    this.isSaving = true;
+
+    // Normalize data - filter out deleted rows for sending to API
+    const normalizedTableData = this.mainData
+      .filter(row => !row.IsDeleted) // Loại bỏ rows đã đánh dấu xóa
+      .map((row) => {
+        const { __rowKey, ...rest } = row;
+        return {
+          ...rest,
+          VAT: this.convertVatToDecimal(row.VAT),
+          PMUserID: row.PMUserID ?? null,
+        };
+      });
 
     // Group rows by POKHDetailID
     const rowsByPOKHDetailId = new Map<number, any[]>();
@@ -476,19 +487,13 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       rowsByPOKHDetailId.get(pokhDetailId)!.push(row);
     });
 
-    // Get rows to delete by POKHDetailID (only for existing records)
+    // Get rows to delete by POKHDetailID from listIdsDel (now contains {id, pokhDetailId})
     const rowsDelByPOKHDetailId = new Map<number, any[]>();
-    this.mainData.forEach(row => {
-      if (row.ID > 0) {
-        const pokhDetailId = row.POKHDetailID || this.rowSelectedPokhDetailId;
-        if (!rowsDelByPOKHDetailId.has(pokhDetailId)) {
-          rowsDelByPOKHDetailId.set(pokhDetailId, []);
-        }
-        // Check if this row ID is in listIdsDel
-        if (this.listIdsDel.includes(row.ID)) {
-          rowsDelByPOKHDetailId.get(pokhDetailId)!.push(row.ID);
-        }
+    this.listIdsDel.forEach(delItem => {
+      if (!rowsDelByPOKHDetailId.has(delItem.pokhDetailId)) {
+        rowsDelByPOKHDetailId.set(delItem.pokhDetailId, []);
       }
+      rowsDelByPOKHDetailId.get(delItem.pokhDetailId)!.push(delItem.id);
     });
 
     // Build requests for each POKHDetailID
@@ -524,12 +529,14 @@ export class HistoryMoneyPrimengComponent implements OnInit {
               totalMoneyRemainingMap.set(pokhDetailId, response.data.TotalMoneyRemaining);
             }
           } else {
+            this.isSaving = false;
             allSuccess = false;
             this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Lỗi khi lưu dữ liệu');
           }
         });
 
         if (allSuccess) {
+          this.isSaving = false;
           this.notification.success(NOTIFICATION_TITLE.success, `Lưu thành công cho ${pokhDetailIdList.length} PO`);
 
           // Update TotalMoneyRemaining in dataProduct
@@ -560,6 +567,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
         }
       },
       error: (err: any) => {
+        this.isSaving = false;
         this.notification.error(NOTIFICATION_TITLE.error, err?.message || 'Lỗi khi lưu dữ liệu');
       },
     });

@@ -167,3 +167,15 @@
     height: 3vh;
     width: 100%;
 }
+
+/* Deleted row styling */
+:host ::ng-deep .hm-prime-table .deleted-row > td {
+    background-color: #fff1f0 !important;
+    color: #ff4d4f !important;
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+
+:host ::ng-deep .hm-prime-table .deleted-row > td:first-child {
+    text-align: center;
+}

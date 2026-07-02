@@ -477,6 +477,13 @@ export class KPIService {
     return this.http.get<any>(this.apiUrlFactorScoring + 'get-all-team-by-empID', { params });
   }
 
+  getAllTeamByEmployeeIDNew(employeeID: number, kpiSessionID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('employeeID', employeeID.toString())
+      .set('kpiSessionID', kpiSessionID.toString());
+    return this.http.get<any>(this.apiUrlFactorScoring + 'get-all-team-by-empID-new', { params });
+  }
+
   /**
    * Load dữ liệu team và xử lý điểm KPI cho team
    * API: POST api/KPIEvaluationFactorScoring/load-data-team

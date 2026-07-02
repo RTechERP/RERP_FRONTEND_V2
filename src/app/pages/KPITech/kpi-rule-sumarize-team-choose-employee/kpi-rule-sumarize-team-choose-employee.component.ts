@@ -59,17 +59,25 @@ export class KpiRuleSumarizeTeamChooseEmployeeComponent implements OnInit {
   initGrid(): void {
     this.employeeColumns = [
       {
-        id: 'Code',
-        field: 'Code',
+        id: 'EmployeeCode',
+        field: 'EmployeeCode',
         name: 'Mã nhân viên',
         width: 120,
         sortable: true,
         filterable: true,
       },
       {
-        id: 'FullName',
-        field: 'FullName',
+        id: 'EmployeeName',
+        field: 'EmployeeName',
         name: 'Tên nhân viên',
+        width: 300,
+        sortable: true,
+        filterable: true,
+      },
+      {
+        id: 'StatusKPIExamText',
+        field: 'StatusKPIExamText',
+        name: 'Trạng thái bài đánh giá',
         width: 300,
         sortable: true,
         filterable: true,

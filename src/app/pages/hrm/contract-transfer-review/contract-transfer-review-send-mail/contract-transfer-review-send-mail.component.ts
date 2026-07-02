@@ -44,6 +44,7 @@ export interface ContractReviewMail {
   toEmail: string;       // gửi đến nhân viên
   ccEmail: string;       // CC quản lý
   ccEmailBgd: string;    // CC BGD
+  ccEmailOther: string;  // CC thêm (tùy chọn, có nhập thì mới CC)
   subject: string;
   // Deadline nộp
   deadlineDate: any;
@@ -143,6 +144,7 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
         toEmail: r.EmployeeEmailCongTy || r.EmployeeEmailCaNhan || '',
         ccEmail: r.LeaderEmail || '',
         ccEmailBgd: 'dept_manager@rtc.edu.vn',
+        ccEmailOther: '',  // CC thêm (tùy chọn)
         subject: '',
         deadlineDate: dl,
         deadlineHour: '17',
@@ -395,7 +397,7 @@ export class ContractTransferReviewSendMailComponent implements OnInit {
         ID: mail.recordId,
         Subject: mail.subject,
         EmailTo: mail.toEmail,
-        EmailCC: [mail.ccEmail, mail.ccEmailBgd].filter(Boolean).join(';'),
+        EmailCC: [mail.ccEmail, mail.ccEmailBgd, mail.ccEmailOther].filter(Boolean).join(';'),
         Body: this.getMailBody(mail),
       };
     });

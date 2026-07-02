@@ -135,6 +135,8 @@
 .flex1 { flex: 1; }
 .flex2 { flex: 2; }
 
+.field-group .text-muted { color: #95a5a6; }
+
 /* ===========================
    PREVIEW PANEL (phải) — 60%
 =========================== */

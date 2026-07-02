@@ -381,7 +381,8 @@
                     <div class="sig-location-placeholder"></div>
                     <p class="sig-title">NGƯỜI ĐƯỢC ĐÁNH GIÁ</p>
                     <div class="sig-space">{{form.EmployeeName || ''}}</div>
-                    <div *ngIf="form.PERApprovedDate" class="sig-space-date">{{ formatDateTimeISO(form.PERApprovedDate)}}
+                    <div *ngIf="form.PERApprovedDate" class="sig-space-date">{{
+                        formatDateTimeISO(form.PERApprovedDate)}}
                     </div>
                 </div>
                 <!-- Cột 2: Trưởng bộ phận -->

@@ -500,29 +500,35 @@ td.row-error:last-child {
     body>* {
         display: none !important;
     }
+
     #cbqlPrintArea {
         display: block !important;
     }
+
     .no-print,
     .modal-header,
     .modal-footer {
         display: none !important;
     }
+
     .cbql-modal-body {
         background: white !important;
         padding: 0 !important;
         height: auto !important;
     }
+
     .cbql-sheet {
         box-shadow: none !important;
         padding: 5mm 8mm !important;
         max-width: 100%;
     }
+
     .eval-textarea-sm {
         overflow: visible !important;
         height: auto !important;
         max-height: none !important;
     }
+
     .score-input {
         border: none !important;
     }

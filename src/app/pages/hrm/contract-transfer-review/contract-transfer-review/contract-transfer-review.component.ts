@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -57,7 +59,9 @@ import { LOGO_RTC_BASE64 } from '../../../../shared/pdf/logo-base64';
   templateUrl: './contract-transfer-review.component.html',
   styleUrl: './contract-transfer-review.component.css',
 })
-export class ContractTransferReviewComponent implements OnInit {
+export class ContractTransferReviewComponent implements OnInit, OnDestroy {
+  searchSubject: Subject<void> = new Subject<void>();
+  private searchSubscription!: Subscription;
 
   menuItems: MenuItem[] = [];
 
@@ -99,6 +103,8 @@ export class ContractTransferReviewComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  showSearchBar: boolean = true;
+
   stepOptions = [
     { label: 'NV đánh giá', value: 1 },
     { label: 'TBP đánh giá', value: 2 },
@@ -113,7 +119,7 @@ export class ContractTransferReviewComponent implements OnInit {
     { field: 'DepartmentName', header: 'Phòng ban', width: '150px', sortable: true },
     { field: 'EmployeeEvaluationName', header: 'Người đánh giá', width: '170px', sortable: true },
     { field: 'EvaluationLoaiHDName', header: 'Loại HĐ đánh giá', width: '250px', sortable: true },
-    { field: 'TBPConclusionEmployeeLoaiHDID', header: 'Kết luận HĐ', width: '200px', sortable: true },
+    { field: 'ConclusionLoaiHDName', header: 'Kết luận HĐ', width: '200px', sortable: true },
     { field: 'DateStart', header: 'Ngày bắt đầu', width: '110px', sortable: true, format: (v) => v ? new Date(v).toLocaleDateString('vi-VN') : '' },
     { field: 'DateEnd', header: 'Ngày kết thúc', width: '110px', sortable: true, format: (v) => v ? new Date(v).toLocaleDateString('vi-VN') : '' },
     {
@@ -160,6 +166,12 @@ export class ContractTransferReviewComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.searchSubscription = this.searchSubject.pipe(
+      debounceTime(1000)
+    ).subscribe(() => {
+      this.loadData();
+    });
+
     this.initDefaultDates();
     this.onChangeTextWithRole();
     this.loadDepartments();
@@ -179,7 +191,7 @@ export class ContractTransferReviewComponent implements OnInit {
       this.step = 4
     }
 
-    this.onSearch();
+    this.loadData();
   }
 
   loadDepartments() {
@@ -205,7 +217,13 @@ export class ContractTransferReviewComponent implements OnInit {
   }
 
   onSearch() {
-    this.loadData();
+    this.searchSubject.next();
+  }
+
+  ngOnDestroy(): void {
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
   }
   onChangeTextWithRole() {
     const role = this.checkRole();
@@ -252,7 +270,7 @@ export class ContractTransferReviewComponent implements OnInit {
       {
         label: 'Đánh giá',
         icon: 'fa-solid fa-file-lines fa-lg text-info',
-        visible: this.permissionService.hasPermission('N93'),
+        visible: this.permissionService.hasPermission('N2'),
         command: () => this.onEdit(),
       },
 
@@ -385,12 +403,14 @@ export class ContractTransferReviewComponent implements OnInit {
     // ── Kiểm tra TBP có phải là TBP được chỉ định của phiếu này không ──────
     // TBP (manager) chỉ được duyệt phiếu mà mình là LeaderID của phiếu đó.
     // Nếu không phải → bỏ qua, tránh TBP phòng ban khác duyệt nhầm.
+    // Ngoại lệ: EmployeeID = 54 được duyệt mọi phiếu có DepartmentID = 2.
     if (role === 'manager') {
       const currentEmployeeId = Number(
         this.appUserService.currentUser?.EmployeeID || this.appUserService.employeeID || 0
       );
       const TBPApproveID = Number(row?.TBPApproveID || 0);
-      if (TBPApproveID === 0 || currentEmployeeId === 0 || currentEmployeeId !== TBPApproveID) {
+      const isSpecialTBP = currentEmployeeId === 54 && Number(row?.DepartmentID) === 2;
+      if (!isSpecialTBP && (TBPApproveID === 0 || currentEmployeeId === 0 || currentEmployeeId !== TBPApproveID)) {
         return false;
       }
     }
@@ -516,12 +536,20 @@ export class ContractTransferReviewComponent implements OnInit {
 
     // ── Phase 1 (chỉ với TBP): kiểm tra quyền sở hữu phiếu ─────────────────
     // TBP chỉ được duyệt phiếu mà mình là TBPApproveID.
-    // Tách thành 2 bước để thông báo rõ ràng: "không có quyền" vs "chưa đến bước"
+    // Tách thành 2 bước để thông báo rõ ràng: "không có quyền" vs "chưa đến bước".
+    // Ngoại lệ: EmployeeID = 54 được duyệt mọi phiếu có DepartmentID = 2.
     if (role === 'manager') {
       const currentEmployeeId = Number(
         this.appUserService.currentUser?.EmployeeID || this.appUserService.employeeID || 0
       );
-      const myRows = listToProcess.filter(row => Number(row?.TBPApproveID || 0) === currentEmployeeId);
+      const myRows = listToProcess.filter((row: any) => {
+        // TBP đặc biệt (EmployeeID = 54) được xử lý toàn bộ phòng 2
+        if (currentEmployeeId === 54) {
+          return Number(row?.DepartmentID) === 2;
+        }
+        // Các TBP khác xử lý như cũ
+        return Number(row?.TBPApproveID || 0) === currentEmployeeId;
+      });
       if (myRows.length === 0) {
         this.notification.warning(
           'Không có quyền',
@@ -840,18 +868,23 @@ export class ContractTransferReviewComponent implements OnInit {
       return;
     }
 
-    if (this.checkRole() !== 'hr') {
-      this.notification.warning('Không có quyền', 'Chỉ HR được xóa phiếu.');
-      return;
-    }
+    const isAdminWithEmployee = this.appUserService.currentUser?.IsAdmin === true
+      && Number(this.appUserService.currentUser?.EmployeeID || 0) !== 0;
 
-    // TBP / Leader đã đánh giá rồi → không cho xóa
-    if (Number(target.Step) > 1) {
-      this.notification.warning(
-        'Không thể xóa',
-        `Phiếu đã được TBP/Leader đánh giá, không thể xóa!`
-      );
-      return;
+    if (!isAdminWithEmployee) {
+      if (this.checkRole() !== 'hr') {
+        this.notification.warning('Không có quyền', 'Chỉ HR được xóa phiếu.');
+        return;
+      }
+
+      // TBP / Leader đã đánh giá rồi → không cho xóa
+      if (Number(target.Step) > 1) {
+        this.notification.warning(
+          'Không thể xóa',
+          `Phiếu đã được TBP/Leader đánh giá, không thể xóa!`
+        );
+        return;
+      }
     }
 
     this.nzModal.confirm({
@@ -964,7 +997,7 @@ export class ContractTransferReviewComponent implements OnInit {
       return 'hr';
     } else if (this.permissionService.hasPermission('N1')) {
       return 'bgd';
-    } else if (this.permissionService.hasPermission('N93')) {
+    } else if (this.permissionService.hasPermission('N93,N85')) {
       // } else if (this.permissionService.hasPermission('N32')) {
       return 'tbp';
     } else
@@ -985,6 +1018,21 @@ export class ContractTransferReviewComponent implements OnInit {
 
   get isEmployee(): boolean {
     return this.checkRole() === 'employee';
+  }
+
+  get shouldShowSearchBar(): boolean {
+    return this.showSearchBar;
+  }
+
+  isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
+  ToggleSearchPanelNew(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showSearchBar = !this.showSearchBar;
   }
   get isTBP(): boolean {
     // nếu department =-1 thì không disabled ( trả về false)

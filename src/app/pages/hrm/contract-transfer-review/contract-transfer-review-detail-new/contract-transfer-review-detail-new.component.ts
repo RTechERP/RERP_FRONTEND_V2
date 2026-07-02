@@ -154,6 +154,7 @@ const EVAL_TYPES = [
   { id: 1, name: 'Đánh giá thử việc' },
   { id: 4, name: 'Đánh giá HĐLĐ XĐTH (12T) Lần 1' },
   { id: 7, name: 'Đánh giá HĐLĐ XĐTH (12T) Lần 2' },
+  { id: 5, name: 'Ký HĐLĐ KXĐ thời hạn' },
   { id: 8, name: 'Đánh giá nghỉ việc' },
 ];
 
@@ -472,7 +473,7 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
     const status = Number(this.statusApprove);
     if (this.role === 'employee' && step <= 1 && (status === 0 || status === -1)) return true;
     if (status !== 0) return false;
-    if ((this.role === 'manager' || this.role === 'tbp') && step === 2) return true;
+    if ((this.role === 'manager' || this.role === 'tbp') && (step === 2 && this.permissionService.hasPermission('N1,N93'))) return true;
     if (this.role === 'hr' && step === 3) return true;
     if (this.role === 'bgd' && step === 4) return true;
     return false;

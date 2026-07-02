@@ -88,9 +88,12 @@ export class KpiRuleSumarizeTeamChooseEmployeeComponent implements OnInit {
         name: 'Điểm đánh giá',
         width: 300,
         sortable: true,
-        formatter: (_value: any, rowData: any) => {
-          const totalPercent = rowData?.TotalPercent;
-          return `<span class="text-success" style="font-weight: bold; text-align: center; display: block;">${totalPercent != null && totalPercent !== undefined ? totalPercent.toFixed(2) : '0.00'}</span>`;
+        formatter: (_row: any, _cell: any, value: any, _colDef: any, dataContext: any) => {
+          // Angular-Slickgrid signature: (rowIndex, cellIndex, cellValue, colDef, dataContext)
+          // cellValue = tham số thứ 3
+          const totalPercent = dataContext?.TotalPercent ?? value;
+          const displayValue = totalPercent != null && !isNaN(totalPercent) ? Number(totalPercent).toFixed(2) : '0.00';
+          return `<span class="text-success" style="font-weight: bold; text-align: center; display: block;">${displayValue}</span>`;
         },
         filterable: true,
       }

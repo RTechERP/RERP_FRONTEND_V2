@@ -88,6 +88,10 @@ export class KpiRuleSumarizeTeamChooseEmployeeComponent implements OnInit {
         name: 'Điểm đánh giá',
         width: 300,
         sortable: true,
+        formatter: (_value: any, rowData: any) => {
+          const totalPercent = rowData?.TotalPercent;
+          return `<span class="text-success" style="font-weight: bold; text-align: center; display: block;">${totalPercent != null && totalPercent !== undefined ? totalPercent.toFixed(2) : '0.00'}</span>`;
+        },
         filterable: true,
       }
     ];

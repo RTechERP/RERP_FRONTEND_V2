@@ -269,6 +269,26 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   // Subject for cleanup
   private destroy$ = new Subject<void>();
 
+  // FIX MEMORY LEAK: Lưu tất cả SlickGrid subscriptions để unsubscribe khi destroy
+  // SlickGrid subscriptions có method unsubscribe(), RxJS subscriptions cũng vậy
+  private gridSubscriptions: any[] = [];
+
+  // FIX MEMORY LEAK: Lưu original getItemMetadata để restore khi destroy
+  // Sử dụng Map thay vì WeakMap để có thể iterate và clear
+  private originalGetItemMetadataMap: Map<any, any> = new Map();
+
+  // FIX MEMORY LEAK: Debounce tree rebuild để tránh tạo quá nhiều object mỗi khi nhập
+  private treeRebuildDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly TREE_REBUILD_DEBOUNCE_MS = 5000;
+
+  // FIX MEMORY LEAK: Flag để phân biệt nguồn cell change (PrimeNG vs SlickGrid)
+  // PrimeNG: cần debounce tree rebuild
+  // SlickGrid: tính toán ngay, rebuild tree sau debounce
+  private isPrimeNGCellChange = false;
+
+  // FIX MEMORY LEAK: Lưu gridType để sử dụng trong debounced tree rebuild callback
+  private pendingTreeRebuildGridType: 'skill' | 'general' | 'specialization' | null = null;
+
   //#region Tooltip Formatters cho các cột tính toán
   /**
    * Formatter cho cột EmployeePoint (Mức tự đánh giá)
@@ -461,30 +481,48 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
   ngAfterViewInit(): void {
     // Delay initialization to ensure DOM is ready and sized for SlickGrid
-    setTimeout(() => {
+    // FIX MEMORY LEAK: Lưu timeout để clear khi destroy
+    const timer = setTimeout(() => {
+      // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
+      if (this.isDestroyed) return;
       this.gridsInitialized = true;
       this.cdr.detectChanges();
     }, 100);
+    this.gridTimeouts.push(timer);
   }
 
   ngOnDestroy(): void {
+    // FIX MEMORY LEAK: Đánh dấu destroy TRƯỚC KHI hủy subscriptions
+    this.isDestroyed = true;
+
     // Emit destroy signal to cancel all active subscriptions
     this.destroy$.next();
     this.destroy$.complete();
 
+    // FIX MEMORY LEAK: Unsubscribe tất cả SlickGrid subscriptions
+    this.gridSubscriptions.forEach(sub => {
+      try {
+        sub.unsubscribe();
+      } catch (e) {
+        console.warn('[MemoryLeakFix] Error unsubscribing:', e);
+      }
+    });
+    this.gridSubscriptions = [];
+
+    // FIX MEMORY LEAK: Restore getItemMetadata cho tất cả grids
+    this.originalGetItemMetadataMap.forEach((originalFn, dataView) => {
+      try {
+        if (dataView && typeof dataView.getItemMetadata === 'function') {
+          dataView.getItemMetadata = originalFn;
+        }
+      } catch (e) {
+        console.warn('[MemoryLeakFix] Error restoring getItemMetadata:', e);
+      }
+    });
+    this.originalGetItemMetadataMap.clear();
+
     // Clear pending timeouts
-    if (this.cellEditDebounceTimer) {
-      clearTimeout(this.cellEditDebounceTimer);
-      this.cellEditDebounceTimer = null;
-    }
-    if (this.calculationDebounceTimer) {
-      clearTimeout(this.calculationDebounceTimer);
-      this.calculationDebounceTimer = null;
-    }
-    if (this.summaryDebounceTimer) {
-      clearTimeout(this.summaryDebounceTimer);
-      this.summaryDebounceTimer = null;
-    }
+    this.clearAllPendingTimeouts();
 
     // Clear large data arrays to free memory
     this.dataSkill = [];
@@ -502,6 +540,36 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
     console.log('[FactorScoringDetails] Component destroyed, memory cleaned up');
   }
+
+  // FIX MEMORY LEAK: Flag để kiểm tra component đã destroy chưa
+  private isDestroyed = false;
+
+  // FIX MEMORY LEAK: Helper để clear tất cả pending timeouts
+  private clearAllPendingTimeouts(): void {
+    if (this.cellEditDebounceTimer) {
+      clearTimeout(this.cellEditDebounceTimer);
+      this.cellEditDebounceTimer = null;
+    }
+    if (this.calculationDebounceTimer) {
+      clearTimeout(this.calculationDebounceTimer);
+      this.calculationDebounceTimer = null;
+    }
+    if (this.summaryDebounceTimer) {
+      clearTimeout(this.summaryDebounceTimer);
+      this.summaryDebounceTimer = null;
+    }
+    if (this.treeRebuildDebounceTimer) {
+      clearTimeout(this.treeRebuildDebounceTimer);
+      this.treeRebuildDebounceTimer = null;
+    }
+    this.pendingTreeRebuildGridType = null;
+    // Clear grid-specific timeouts (nếu có stored references)
+    this.gridTimeouts?.forEach(timer => clearTimeout(timer));
+    this.gridTimeouts = [];
+  }
+
+  // FIX MEMORY LEAK: Lưu grid timeouts để clear khi destroy
+  private gridTimeouts: ReturnType<typeof setTimeout>[] = [];
 
   //#region Visibility and Permission Rules
   private applyVisibilityRules(): void {
@@ -559,7 +627,10 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   private resetColumnWidths(angularGrid: any, originalColumns: Column[]): void {
     if (!this.isValidGrid(angularGrid)) return;
 
-    setTimeout(() => {
+    // FIX MEMORY LEAK: Lưu timeout để clear khi destroy
+    const timer = setTimeout(() => {
+      // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
+      if (this.isDestroyed) return;
       if (!this.isValidGrid(angularGrid)) return;
 
       const grid = angularGrid.slickGrid;
@@ -585,6 +656,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         console.warn('Error resetting column widths (Details):', e);
       }
     }, 150);
+    this.gridTimeouts.push(timer);
   }
 
   /**
@@ -592,7 +664,10 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
    * Giải quyết vấn đề: forceFitColumns=false nhưng tổng minWidth nhỏ hơn container.
    */
   private stretchMainColumn(angularGrid: any): void {
-    setTimeout(() => {
+    // FIX MEMORY LEAK: Lưu timeout để clear khi destroy
+    const timer = setTimeout(() => {
+      // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
+      if (this.isDestroyed) return;
       if (!this.isValidGrid(angularGrid)) return;
       const grid = angularGrid.slickGrid;
       if (!grid?.getColumns || !grid?.setColumns) return;
@@ -630,6 +705,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         }
       } catch (e) { /* safely ignore */ }
     }, 300);
+    this.gridTimeouts.push(timer);
   }
 
   private createBaseEvaluationColumns(): Column[] {
@@ -2041,10 +2117,12 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       this.updateGrid(this.angularGridSkill, this.dataSkill);
     }
 
+    // FIX MEMORY LEAK: Lưu subscription để unsubscribe khi destroy
     if (this.angularGridSkill?.slickGrid) {
-      this.angularGridSkill.slickGrid.onCellChange.subscribe((e: any, args: any) => {
+      const sub = this.angularGridSkill.slickGrid.onCellChange.subscribe((e: any, args: any) => {
         this.handleCellChange(e, args, this.angularGridSkill, this.dataSkill);
       });
+      this.gridSubscriptions.push(sub);
     }
   }
 
@@ -2057,10 +2135,12 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       this.updateGrid(this.angularGridGeneral, this.dataGeneral);
     }
 
+    // FIX MEMORY LEAK: Lưu subscription để unsubscribe khi destroy
     if (this.angularGridGeneral?.slickGrid) {
-      this.angularGridGeneral.slickGrid.onCellChange.subscribe((e: any, args: any) => {
+      const sub = this.angularGridGeneral.slickGrid.onCellChange.subscribe((e: any, args: any) => {
         this.handleCellChange(e, args, this.angularGridGeneral, this.dataGeneral);
       });
+      this.gridSubscriptions.push(sub);
     }
   }
 
@@ -2073,10 +2153,12 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       this.updateGrid(this.angularGridSpecialization, this.dataSpecialization);
     }
 
+    // FIX MEMORY LEAK: Lưu subscription để unsubscribe khi destroy
     if (this.angularGridSpecialization?.slickGrid) {
-      this.angularGridSpecialization.slickGrid.onCellChange.subscribe((e: any, args: any) => {
+      const sub = this.angularGridSpecialization.slickGrid.onCellChange.subscribe((e: any, args: any) => {
         this.handleCellChange(e, args, this.angularGridSpecialization, this.dataSpecialization);
       });
+      this.gridSubscriptions.push(sub);
     }
   }
 
@@ -2096,33 +2178,50 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     // Reset columns and resize - following parent component stable logic
     this.resetColumnWidths(this.angularGridRule, this.ruleColumns);
     this.stretchMainColumn(this.angularGridRule);
-    setTimeout(() => {
+
+    // FIX MEMORY LEAK: Lưu timeout để clear khi destroy
+    const resizeTimer = setTimeout(() => {
+      // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
+      if (this.isDestroyed) return;
       if (this.angularGridRule?.resizerService) {
         this.angularGridRule.resizerService.resizeGrid();
       }
     }, 200);
+    this.gridTimeouts.push(resizeTimer);
 
+    // FIX MEMORY LEAK: Lưu subscription để unsubscribe khi destroy
     if (this.angularGridRule?.slickGrid) {
-      this.angularGridRule.slickGrid.onCellChange.subscribe((e: any, args: any) => {
+      const sub = this.angularGridRule.slickGrid.onCellChange.subscribe((e: any, args: any) => {
         // Sử dụng handler riêng cho Rule Grid
         this.handleRuleCellChange(e, args);
       });
+      this.gridSubscriptions.push(sub);
     }
 
     if (this.dataRule && this.dataRule.length > 0) {
       this.updateGrid(this.angularGridRule, this.dataRule);
       // Cập nhật footer cho Rule grid
-      setTimeout(() => this.updateRuleFooter(), 250);
+      // FIX MEMORY LEAK: Lưu timeout để clear khi destroy
+      const footerTimer = setTimeout(() => {
+        // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
+        if (this.isDestroyed) return;
+        this.updateRuleFooter();
+      }, 250);
+      this.gridTimeouts.push(footerTimer);
     }
   }
 
   onTeamGridReady(angularGrid: any): void {
     this.angularGridTeam = angularGrid.detail ?? angularGrid;
     this.stretchMainColumn(this.angularGridTeam);
-    setTimeout(() => {
+    // FIX MEMORY LEAK: Lưu timeout để clear khi destroy
+    const timer = setTimeout(() => {
+      // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
+      if (this.isDestroyed) return;
       this.angularGridTeam?.resizerService?.resizeGrid();
       this.updateTeamFooter();
     }, 100);
+    this.gridTimeouts.push(timer);
   }
 
   /**
@@ -2188,8 +2287,11 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
     const dataView = angularGrid.dataView;
 
-    // Override getItemMetadata để thêm CSS class cho parent rows
+    // FIX MEMORY LEAK: Lưu original function để restore khi destroy
     const originalGetItemMetadata = dataView.getItemMetadata;
+    this.originalGetItemMetadataMap.set(dataView, originalGetItemMetadata);
+
+    // Override getItemMetadata để thêm CSS class cho parent rows
     dataView.getItemMetadata = (rowIndex: number) => {
       const item = dataView.getItem(rowIndex);
 
@@ -3151,6 +3253,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     const fieldName = event.field;
     const changedRowId = changedRowData.id ?? changedRowData.ID;
 
+    // FIX MEMORY LEAK: Đánh dấu đây là PrimeNG cell change để performDebouncedCalculation bỏ qua buildTreeNodes
+    this.isPrimeNGCellChange = true;
+
     // PERFORMANCE: Debounce - skip if same value already being processed
     // PrimeNG triggers this twice: once with string, once with number
     if (this.pendingCellEdit && 
@@ -3163,6 +3268,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.pendingCellEdit = { rowData: changedRowData, field: fieldName, value: event.value, gridType };
     clearTimeout(this.cellEditDebounceTimer);
     this.cellEditDebounceTimer = setTimeout(() => {
+      // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
+      if (this.isDestroyed) return;
       this.pendingCellEdit = null;
     }, 100);
 
@@ -3250,31 +3357,65 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.recalculateParentChainIncremental(dataSet, changedRowId);
 
     // CRITICAL: Also update summary row (ID = -1) by calling calculatorTotalPoint
-    dataSet = this.calculatorTotalPoint(dataSet);
+    // NOTE: Không gán lại dataSet = calculatorTotalPoint(dataSet) vì sẽ tạo array mới và gây mất focus
+    // Summary row sẽ được cập nhật trong debounced tree rebuild callback
 
-    // Update tree with new data reference to trigger PrimeNG change detection
-    // Note: We must rebuild the tree structure (not just mutate) because PrimeNG TreeTable
-    // uses OnPush and needs a new tree reference to detect changes
-    if (gridType === 'skill') {
-      this.dataSkill = dataSet;
-      this.dataSkillTree = this.buildTreeNodes(this.dataSkill);
-    } else if (gridType === 'general') {
-      this.dataGeneral = dataSet;
-      this.dataGeneralTree = this.buildTreeNodes(this.dataGeneral);
-    } else {
-      this.dataSpecialization = dataSet;
-      this.dataSpecializationTree = this.buildTreeNodes(this.dataSpecialization);
+    // FIX MEMORY LEAK: Debounce tree rebuild để tránh tạo quá nhiều object mỗi khi nhập
+    // Chỉ rebuild tree sau khi user ngừng nhập TREE_REBUILD_DEBOUNCE_MS ms
+    if (this.treeRebuildDebounceTimer) {
+      clearTimeout(this.treeRebuildDebounceTimer);
     }
+    // Lưu gridType để sử dụng trong callback
+    this.pendingTreeRebuildGridType = gridType;
+    this.treeRebuildDebounceTimer = setTimeout(() => {
+      // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
+      if (this.isDestroyed) return;
 
-    // Update evaluation counts (lightweight - just recalculate based on new data)
-    this.updateEvaluationCounts();
+      // Sử dụng gridType đã lưu thay vì reference
+      const pendingGridType = this.pendingTreeRebuildGridType;
+      if (!pendingGridType) return;
 
-    // Update summary tab
-    if (isTKCK) {
-      this.loadSumaryRank_TKCK();
-    } else {
-      this.calculateTotalAVG();
-    }
+      // Tính toán lại summary row - tạo copy để không mutate original
+      let updatedDataSet: any[];
+      if (pendingGridType === 'skill') {
+        updatedDataSet = this.calculatorTotalPoint([...this.dataSkill]);
+      } else if (pendingGridType === 'general') {
+        updatedDataSet = this.calculatorTotalPoint([...this.dataGeneral]);
+      } else {
+        updatedDataSet = this.calculatorTotalPoint([...this.dataSpecialization]);
+      }
+
+      // Update tree with new data reference to trigger PrimeNG change detection
+      // Note: We must rebuild the tree structure (not just mutate) because PrimeNG TreeTable
+      // uses OnPush and needs a new tree reference to detect changes
+      if (pendingGridType === 'skill') {
+        this.dataSkill = updatedDataSet;
+        this.dataSkillTree = this.buildTreeNodes(this.dataSkill);
+      } else if (pendingGridType === 'general') {
+        this.dataGeneral = updatedDataSet;
+        this.dataGeneralTree = this.buildTreeNodes(this.dataGeneral);
+      } else {
+        this.dataSpecialization = updatedDataSet;
+        this.dataSpecializationTree = this.buildTreeNodes(this.dataSpecialization);
+      }
+
+      // Update evaluation counts (lightweight - just recalculate based on new data)
+      this.updateEvaluationCounts();
+
+      // Update summary tab
+      if (this.departmentID === this.DEPARTMENT_CO_KHI) {
+        this.loadSumaryRank_TKCK();
+      } else {
+        this.calculateTotalAVG();
+      }
+
+      // Clear pending grid type
+      this.pendingTreeRebuildGridType = null;
+    }, this.TREE_REBUILD_DEBOUNCE_MS);
+
+    // NOTE: KHÔNG gán lại data reference ở đây
+    // Việc gán lại và rebuild tree sẽ được thực hiện trong debounced callback
+    // Điều này giữ nguyên focus khi navigation
   }
 
   handleRuleCellChangePrime(event: { rowKey: any; rowData: any; field: string; value: any }): void {
@@ -3290,9 +3431,19 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     changedItem[fieldName] = this.parseLocaleFloat(event.value);
     this.dataRule[dataIndex] = { ...changedItem };
 
+    // Tính toán điểm (chỉ tính toán, không tạo object mới)
     this.calculatorPointForRule();
-    this.dataRuleTree = this.buildTreeNodes(this.dataRule);
-    this.updateRuleFooter();
+
+    // FIX MEMORY LEAK: Debounce tree rebuild
+    if (this.treeRebuildDebounceTimer) {
+      clearTimeout(this.treeRebuildDebounceTimer);
+    }
+    this.treeRebuildDebounceTimer = setTimeout(() => {
+      // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
+      if (this.isDestroyed) return;
+      this.dataRuleTree = this.buildTreeNodes(this.dataRule);
+      this.updateRuleFooter();
+    }, this.TREE_REBUILD_DEBOUNCE_MS);
   }
 
   private buildTreeNodes(data: any[]): TreeNode[] {
@@ -3683,7 +3834,10 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
 
       // Áp dụng sắp xếp theo cột STT nếu cột đó tồn tại
       // Thêm setTimeout để đảm bảo grid đã ổn định sau khi gán data
-      setTimeout(() => {
+      // FIX MEMORY LEAK: Lưu timeout để clear khi destroy
+      const timer = setTimeout(() => {
+        // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
+        if (this.isDestroyed) return;
         this.applyDefaultSort(grid);
         // Cập nhật footer row dựa trên loại grid
         if (grid === this.angularGridSkill || grid === this.angularGridGeneral || grid === this.angularGridSpecialization) {
@@ -3694,6 +3848,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
           this.updateTeamFooter();
         }
       }, 200);
+      this.gridTimeouts.push(timer);
     } catch (error) {
       console.warn('Lỗi khi cập nhật grid:', error);
     }
@@ -3824,6 +3979,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.pendingCalculationData = { dataSet, gridType: dataSet === this.dataSkill ? 'skill' : dataSet === this.dataGeneral ? 'general' : 'specialization' };
     clearTimeout(this.calculationDebounceTimer);
     this.calculationDebounceTimer = setTimeout(() => {
+      // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
+      if (this.isDestroyed) return;
       this.performDebouncedCalculation();
     }, this.CALC_DEBOUNCE_MS);
 
@@ -3848,6 +4005,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     // 6. Debounce summary calculations (Master Grid)
     clearTimeout(this.summaryDebounceTimer);
     this.summaryDebounceTimer = setTimeout(() => {
+      // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
+      if (this.isDestroyed) return;
       if (this.departmentID === this.DEPARTMENT_CO_KHI) {
         this.loadSumaryRank_TKCK();
       } else {
@@ -3867,8 +4026,11 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   /**
    * PERFORMANCE: Thực hiện calculation đã được debounce
    * Chỉ chạy sau khi user ngừng nhập 300ms
+   * NOTE: Nếu là PrimeNG cell change, bỏ qua buildTreeNodes vì đã được debounce riêng
    */
   private performDebouncedCalculation(): void {
+    // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy
+    if (this.isDestroyed) return;
     if (!this.pendingCalculationData) return;
 
     const { dataSet, gridType } = this.pendingCalculationData;
@@ -3886,19 +4048,30 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     }
 
     // Cập nhật data property theo gridType
+    // NOTE: Nếu là PrimeNG cell change, KHÔNG gọi buildTreeNodes ở đây
+    // Tree rebuild sẽ được gọi trong debounced callback của handleCellChangePrime
     if (gridType === 'skill') {
       this.dataSkill = updatedDataSet;
-      this.dataSkillTree = this.buildTreeNodes(updatedDataSet);
+      if (!this.isPrimeNGCellChange) {
+        this.dataSkillTree = this.buildTreeNodes(updatedDataSet);
+      }
       angularGrid = this.angularGridSkill;
     } else if (gridType === 'general') {
       this.dataGeneral = updatedDataSet;
-      this.dataGeneralTree = this.buildTreeNodes(updatedDataSet);
+      if (!this.isPrimeNGCellChange) {
+        this.dataGeneralTree = this.buildTreeNodes(updatedDataSet);
+      }
       angularGrid = this.angularGridGeneral;
     } else {
       this.dataSpecialization = updatedDataSet;
-      this.dataSpecializationTree = this.buildTreeNodes(updatedDataSet);
+      if (!this.isPrimeNGCellChange) {
+        this.dataSpecializationTree = this.buildTreeNodes(updatedDataSet);
+      }
       angularGrid = this.angularGridSpecialization;
     }
+
+    // Reset flag sau khi xử lý xong
+    this.isPrimeNGCellChange = false;
 
     // Update grid với batch
     if (angularGrid?.slickGrid && angularGrid.dataView) {
@@ -4486,13 +4659,17 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       this.loadTeamSummaryAndAddTeamNodes();
 
       // Refresh grid và update footer
-      setTimeout(() => {
+      // FIX MEMORY LEAK: Lưu timeout để clear khi destroy
+      const timer = setTimeout(() => {
+        // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
+        if (this.isDestroyed) return;
         if (this.angularGridRule?.slickGrid) {
           this.angularGridRule.slickGrid.invalidate();
           this.angularGridRule.slickGrid.render();
         }
         this.notification.success('Thành công', 'Đã tải dữ liệu Team thành công');
       }, 200);
+      this.gridTimeouts.push(timer);
     } catch (error) {
       console.error('Lỗi khi tải dữ liệu Team:', error);
       this.notification.error('Lỗi', 'Không thể tải dữ liệu Team');
@@ -4862,11 +5039,51 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   //#endregion
 
   //#region Save Data
+
+  /**
+   * Trigger tree rebuild NGAY LẬP TỨC trước khi lưu
+   * Đảm bảo dữ liệu mới nhất được lưu (sau khi user nhập và đợi debounce)
+   */
+  private flushPendingTreeRebuild(): void {
+    // Clear pending debounce timer
+    if (this.treeRebuildDebounceTimer) {
+      clearTimeout(this.treeRebuildDebounceTimer);
+      this.treeRebuildDebounceTimer = null;
+    }
+
+    // Nếu có pending grid type, trigger rebuild ngay
+    if (this.pendingTreeRebuildGridType) {
+      const gridType = this.pendingTreeRebuildGridType;
+
+      // Tính toán lại summary row
+      let updatedDataSet: any[];
+      if (gridType === 'skill') {
+        updatedDataSet = this.calculatorTotalPoint([...this.dataSkill]);
+        this.dataSkill = updatedDataSet;
+        this.dataSkillTree = this.buildTreeNodes(this.dataSkill);
+      } else if (gridType === 'general') {
+        updatedDataSet = this.calculatorTotalPoint([...this.dataGeneral]);
+        this.dataGeneral = updatedDataSet;
+        this.dataGeneralTree = this.buildTreeNodes(this.dataGeneral);
+      } else {
+        updatedDataSet = this.calculatorTotalPoint([...this.dataSpecialization]);
+        this.dataSpecialization = updatedDataSet;
+        this.dataSpecializationTree = this.buildTreeNodes(this.dataSpecialization);
+      }
+
+      this.pendingTreeRebuildGridType = null;
+    }
+  }
+
   saveData(closeAfterSave: boolean = false): void {
     if (this.isSaving) return;
     this.isSaving = true;
 
     this.isCloseAfterSave = closeAfterSave;
+
+    // FIX MEMORY LEAK: Trigger tree rebuild ngay để đảm bảo dữ liệu mới nhất trước khi lưu
+    this.flushPendingTreeRebuild();
+
     //#region Validate dữ liệu bắt buộc
     if (!this.selectedKPISessionId) {
       this.notification.warning('Cảnh báo', 'Hãy chọn Kỳ đánh giá KPI');
@@ -4924,6 +5141,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   }
 
   private performSave(): void {
+    // FIX MEMORY LEAK: Đảm bảo tree đã được rebuild trước khi lưu
+    this.flushPendingTreeRebuild();
+
     //#region Chuẩn bị payload SaveDataKPI
     // Luôn tính lại bảng tổng hợp để đảm bảo số liệu mới nhất
     if (this.departmentID === this.DEPARTMENT_CO_KHI) {
@@ -5362,7 +5582,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   // chặn edit ở node cha và rule grid
   private subscribeToEditPrevention(angularGrid: any): void {
     if (angularGrid?.slickGrid) {
-      angularGrid.slickGrid.onBeforeEditCell.subscribe((e: any, args: any) => {
+      // FIX MEMORY LEAK: Lưu subscription để unsubscribe khi destroy
+      const sub = angularGrid.slickGrid.onBeforeEditCell.subscribe((e: any, args: any) => {
         // Kiểm tra xem có phải Rule Grid không
         const isRuleGrid = angularGrid === this.angularGridRule;
 
@@ -5392,6 +5613,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         }
         return true;
       });
+      this.gridSubscriptions.push(sub);
     }
   }
   //#endregion

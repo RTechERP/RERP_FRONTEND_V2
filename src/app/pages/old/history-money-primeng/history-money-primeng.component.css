@@ -47,6 +47,30 @@
     font-size: 11px;
 }
 
+/* Filter row */
+:host ::ng-deep .hm-prime-table tr.filter-row {
+    background-color: #fafafa;
+}
+
+:host ::ng-deep .hm-prime-table tr.filter-row th {
+    padding: 4px 8px;
+}
+
+:host ::ng-deep .hm-prime-table tr.filter-row .p-column-filter {
+    width: 100%;
+}
+
+:host ::ng-deep .hm-prime-table tr.filter-row .p-column-filter.p-column-filter-input {
+    width: 100%;
+}
+
+:host ::ng-deep .hm-prime-table tr.filter-row .p-column-filter input {
+    width: 100%;
+    height: 24px;
+    font-size: 12px;
+    padding: 2px 6px;
+}
+
 :host ::ng-deep .hm-prime-table .p-paginator .p-select .p-select-label {
     padding: 2px 4px;
     font-size: 11px;

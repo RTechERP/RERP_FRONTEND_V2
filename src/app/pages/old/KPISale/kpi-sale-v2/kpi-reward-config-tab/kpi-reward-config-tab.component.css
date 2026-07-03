@@ -29,6 +29,22 @@
   color: #1f2937;
 }
 
+.col-hint {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  color: #8c8c8c;
+  font-style: italic;
+}
+
+.form-role-tag {
+  margin-left: 8px;
+  font-size: 11px;
+  padding: 0 6px;
+  line-height: 18px;
+}
+
 .info-alert {
   margin-bottom: 16px;
 }

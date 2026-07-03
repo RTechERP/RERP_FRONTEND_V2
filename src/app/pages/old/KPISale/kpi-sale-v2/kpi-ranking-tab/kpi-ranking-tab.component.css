@@ -106,17 +106,13 @@
   border: 1px solid #e8e8e8;
 }
 
-.ranking-table-container ::ng-deep .ant-table-wrapper {
+.ranking-table-container ::ng-deep .p-datatable-wrapper {
   width: 100%;
 }
 
-.ranking-table-container ::ng-deep .ant-table-body {
+.ranking-table-container ::ng-deep .p-datatable .p-datatable-wrapper {
   overflow-x: auto !important;
   overflow-y: auto !important;
-}
-
-.ranking-table-container ::ng-deep .ant-table-body-inner {
-  overflow-x: auto !important;
 }
 
 .money-value {
@@ -170,27 +166,70 @@ tfoot td {
   font-weight: 600;
 }
 
-/* Đảm bảo tag Rank 3 (volcano) có chữ trắng rõ, không bị trùng nền */
-.ranking-table-container .ant-tag-volcano {
-  color: #ffffff !important;
-  background: #d4380d !important;
-  border-color: #d4380d !important;
-  font-weight: 600;
+.empty-row {
+  text-align: center;
+  padding: 32px 12px !important;
+  color: #8c8c8c;
+  font-style: italic;
 }
 
-/* Giữ tương phản cho Rank 1 (gold) & Rank 2 (silver) */
-.ranking-table-container .ant-tag-gold {
-  color: #874d00 !important;
+.text-muted {
+  color: #bfbfbf;
+}
+
+.header-hint {
+  font-size: 11px;
+  color: #8c8c8c;
+  margin-left: 2px;
+  vertical-align: middle;
+}
+
+.config-hint {
+  font-weight: 400;
+  color: #8c8c8c;
+  font-size: 11px;
+  font-style: italic;
+  margin-left: 2px;
+}
+
+/* ===== PrimeNG p-tag rank colors (override severity) ===== */
+.ranking-table-container ::ng-deep .p-tag.p-tag-warn {
   background: #ffe58f !important;
-  border-color: #ffe58f !important;
+  color: #874d00 !important;
+}
+
+.ranking-table-container ::ng-deep .p-tag.p-tag-secondary {
+  background: #d9d9d9 !important;
+  color: #595959 !important;
+}
+
+.ranking-table-container ::ng-deep .p-tag.p-tag-danger {
+  background: #d4380d !important;
+  color: #ffffff !important;
+}
+
+/* ===== Row hover effect (PrimeNG) ===== */
+.ranking-table-container ::ng-deep .p-datatable-tbody > tr:hover > td {
+  background: #e6f7ff !important;
+}
+
+/* ===== Leader row (SALES_LEADER / LEADER) highlight ===== */
+.ranking-table-container ::ng-deep .p-datatable-tbody > tr.leader-row > td {
+  background: #fff7e6 !important;
   font-weight: 600;
 }
 
-.ranking-table-container .ant-tag-silver {
-  color: #595959 !important;
-  background: #d9d9d9 !important;
-  border-color: #d9d9d9 !important;
-  font-weight: 600;
+/* ===== Column alignment helpers ===== */
+.ranking-table-container ::ng-deep .col-center {
+  text-align: center !important;
+}
+
+.ranking-table-container ::ng-deep .col-money {
+  text-align: right !important;
+}
+
+.ranking-table-container ::ng-deep .col-center > * {
+  justify-content: center;
 }
 
 /* ===== Row hover effect ===== */

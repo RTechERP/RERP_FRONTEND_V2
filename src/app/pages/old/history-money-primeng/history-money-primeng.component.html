@@ -100,6 +100,28 @@
                                     </div>
                                 </th>
                             </tr>
+                            <tr class="filter-row">
+                                <th style="width: 60px; min-width: 60px;"></th>
+                                <th style="width: 40px; min-width: 40px;"></th>
+                                <th style="min-width: 50px; width: 120px;">
+                                    <p-columnFilter type="text" field="ProductNewCode" display="row" [showMenu]="false" placeholder="Tìm" matchMode="contains"></p-columnFilter>
+                                </th>
+                                <th style="min-width: 180px; width: 180px;">
+                                    <p-columnFilter type="text" field="ProductName" display="row" [showMenu]="false" placeholder="Tìm" matchMode="contains"></p-columnFilter>
+                                </th>
+                                <th style="min-width: 130px; width: 130px;"></th>
+                                <th style="min-width: 130px; width: 130px;"></th>
+                                <th style="min-width: 70px; width: 70px;"></th>
+                                <th style="min-width: 150px; width: 150px;">
+                                    <p-columnFilter type="text" field="POCode" display="row" [showMenu]="false" placeholder="Tìm" matchMode="contains"></p-columnFilter>
+                                </th>
+                                <th style="min-width: 120px; width: 120px;">
+                                    <p-columnFilter type="text" field="PONumber" display="row" [showMenu]="false" placeholder="Tìm" matchMode="contains"></p-columnFilter>
+                                </th>
+                                <th style="min-width: 130px; width: 130px;">
+                                    <p-columnFilter type="text" field="BillNumber" display="row" [showMenu]="false" placeholder="Tìm" matchMode="contains"></p-columnFilter>
+                                </th>
+                            </tr>
                         </ng-template>
 
                         <ng-template pTemplate="body" let-rowData>
@@ -262,6 +284,39 @@
                                         <span>Film</span>
                                     </div>
                                 </th>
+                            </tr>
+                            <tr class="filter-row">
+                                <th style="width: 50px; min-width: 50px;"></th>
+                                <th style="width: 40px; min-width: 40px;"></th>
+                                <th style="min-width: 100px; width: 100px;">
+                                    <p-columnFilter type="text" field="POCode" display="row" [showMenu]="false" placeholder="Tìm" matchMode="contains"></p-columnFilter>
+                                </th>
+                                <th style="min-width: 90px; width: 90px;">
+                                    <p-columnFilter type="text" field="ProductNewCode" display="row" [showMenu]="false" placeholder="Tìm" matchMode="contains"></p-columnFilter>
+                                </th>
+                                <th style="min-width: 100px; width: 100px;">
+                                    <p-columnFilter type="text" field="PONumber" display="row" [showMenu]="false" placeholder="Tìm" matchMode="contains"></p-columnFilter>
+                                </th>
+                                <th style="min-width: 130px; width: 130px;"></th>
+                                <th style="min-width: 130px; width: 130px;"></th>
+                                <th style="min-width: 130px; width: 130px;">
+                                    <p-columnFilter type="text" field="Note" display="row" [showMenu]="false" placeholder="Tìm" matchMode="contains"></p-columnFilter>
+                                </th>
+                                <th style="min-width: 200px; width: 200px;">
+                                    <p-columnFilter type="text" field="BankName" display="row" [showMenu]="false" placeholder="Tìm" matchMode="contains"></p-columnFilter>
+                                </th>
+                                <th style="min-width: 120px; width: 120px;">
+                                    <p-columnFilter type="text" field="InvoiceNo" display="row" [showMenu]="false" placeholder="Tìm" matchMode="contains"></p-columnFilter>
+                                </th>
+                                <th style="min-width: 70px; width: 70px;"></th>
+                                <th style="min-width: 130px; width: 130px;"></th>
+                                <th style="min-width: 180px; width: 180px;">
+                                    <p-columnFilter type="text" field="UserID" display="row" [showMenu]="false" placeholder="Tìm" matchMode="contains"></p-columnFilter>
+                                </th>
+                                <th style="min-width: 150px; width: 150px;">
+                                    <p-columnFilter type="text" field="PMUserID" display="row" [showMenu]="false" placeholder="Tìm" matchMode="contains"></p-columnFilter>
+                                </th>
+                                <th style="min-width: 60px; width: 60px;"></th>
                             </tr>
                         </ng-template>
 

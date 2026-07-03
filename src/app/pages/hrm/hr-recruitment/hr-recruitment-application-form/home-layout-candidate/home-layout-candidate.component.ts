@@ -426,6 +426,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             Height: [null],
             Weight: [null],
             MaritalStatus: [null, [Validators.required]],
+            WorkExperienceLevel: [null, [Validators.required]],
             InjuriesOrSeriousIll: [false, [Validators.required]],
             IfYesSpecify: [null, [Validators.maxLength(550)]],
             CurrentlyPregnant: [false],

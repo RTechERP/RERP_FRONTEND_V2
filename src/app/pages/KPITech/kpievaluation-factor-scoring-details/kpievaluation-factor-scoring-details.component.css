@@ -167,6 +167,20 @@ angular-slickgrid,
     z-index: 1;
 }
 
+/* MA cells with value > 0 should be orange (placed after editable-cell to not conflict) */
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td.kpi-ma-cell {
+    background-color: #FFD580 !important;
+}
+
+/* WorkLate and NotWorking cells with value > 0 */
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td.kpi-worklate-cell {
+    background-color: #FFD580 !important;
+}
+
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td.kpi-notworking-cell {
+    background-color: #FFD580 !important;
+}
+
 /* ==================== ISSUE 1: CELL COLORS (Point input columns) ==================== */
 /* SlickGrid: customEditableInputFormatter â†’ addClasses: 'editable-field' â†’ #e6f7ff */
 

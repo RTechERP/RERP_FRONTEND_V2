@@ -69,6 +69,10 @@ export class PaymentOrderService {
     return this.http.post(`${this.url}/download-zip`, file, { responseType: 'blob' });
   }
 
+  downloadFile(file: DownloadPaymentOrderFileDTO): Observable<Blob> {
+    return this.http.post(`${this.url}/download`, file, { responseType: 'blob' });
+  }
+
   uploadFile(files: File[], paymentOrderID: number, paymentOrderFileID: string): Observable<any> {
     const formData = new FormData();
     if (files) {
@@ -294,6 +298,12 @@ export interface DownloadPaymentOrderDTO {
   PaymentOrderId: number;
   PaymentOrderCode: string;
   FilePath: string[];
+}
+
+export interface DownloadPaymentOrderFileDTO {
+  PaymentOrderId: number;
+  PaymentOrderCode: string;
+  FilePath: string;
 }
 
 export const CURRENCY_CONFIGS: CurrencyConfig[] = [

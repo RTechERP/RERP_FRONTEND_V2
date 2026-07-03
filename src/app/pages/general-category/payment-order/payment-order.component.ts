@@ -11,7 +11,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { Fluid } from 'primeng/fluid';
 import { SplitterModule } from 'primeng/splitter';
-import { DownloadPaymentOrderDTO, PaymentOrderService } from './payment-order.service';
+import { DownloadPaymentOrderDTO, DownloadPaymentOrderFileDTO, PaymentOrderService } from './payment-order.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PaymentOrderDetailComponent } from './payment-order-detail/payment-order-detail.component';
 import {
@@ -5680,10 +5680,16 @@ export class PaymentOrderComponent implements OnInit {
     }
 
     selectedItems.forEach((item: any) => {
-      const url = this.buildShareDownloadUrl(item);
-      if (!url) return;
+      const serverFilePath = this.buildServerFilePath(item);
+      if (!serverFilePath) return;
 
-      this.http.get(url, { responseType: 'blob' }).subscribe({
+      const payload: DownloadPaymentOrderFileDTO = {
+        PaymentOrderId: Number(item?.PaymentOrderID || item?.PaymentOrderId || this.currentPaymentOrder?.ID || 0),
+        PaymentOrderCode: String(item?.PaymentOrderCode || this.currentPaymentOrder?.Code || item?.Code || ''),
+        FilePath: serverFilePath,
+      };
+
+      this.paymentService.downloadFile(payload).subscribe({
         next: (blob: Blob) => this.saveBlob(blob, item?.FileName || 'download'),
         error: (err) => {
           this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || `${err.error}\n${err.message}`,

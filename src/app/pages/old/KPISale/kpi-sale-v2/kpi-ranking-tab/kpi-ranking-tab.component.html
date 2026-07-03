@@ -58,8 +58,12 @@
         <span class="config-item">
           <strong>Thưởng Rank 1:</strong> {{ formatMoney(rewardConfig.rank1BonusAmount) }}
         </span>
-        <span class="config-item">
-          <strong>Tiền về:</strong>
+        <span class="config-item" [pTooltip]="
+            rewardConfig.employeeType === 'PM' || rewardConfig.employeeType === 'ADMIN'
+              ? 'Cột Tiền về — chỉ PM và Admin dùng để tính thưởng'
+              : 'Cột Tiền về — không áp dụng cho Sales/Leader (dùng cột Doanh số tiền về)'"
+          tooltipPosition="top">
+          <strong>Tiền về <small class="config-hint">(dùng cho PM/Admin)</small>:</strong>
           <ng-container *ngIf="rewardConfig.salesAmountKpiIndexId; else noSA">
             <nz-tag nzColor="blue">{{ rewardConfig.salesAmountKpiIndexCode }}</nz-tag>
           </ng-container>
@@ -67,8 +71,12 @@
             <span class="auto-label">(không sử dụng)</span>
           </ng-template>
         </span>
-        <span class="config-item">
-          <strong>Doanh số:</strong>
+        <span class="config-item" [pTooltip]="
+            rewardConfig.employeeType === 'SALES' || rewardConfig.employeeType === 'SALES_LEADER'
+              ? 'Cột Doanh số tiền về — Sales và Sales Leader dùng để tính thưởng'
+              : 'Cột Doanh số tiền về — không áp dụng cho PM/Admin (dùng cột Tiền về)'"
+          tooltipPosition="top">
+          <strong>Doanh số tiền về <small class="config-hint">(dùng cho Sales/Leader)</small>:</strong>
           <ng-container *ngIf="rewardConfig.revenueKpiIndexId; else noRV">
             <nz-tag nzColor="cyan">{{ rewardConfig.revenueKpiIndexCode }}</nz-tag>
           </ng-container>
@@ -104,46 +112,60 @@
 
       <!-- Ranking Table -->
       <div class="ranking-table-container">
-        <nz-table #rankingTable [nzData]="rankingData" [nzPageSize]="50" [nzScroll]="{ x: '1800px', y: 'calc(100vh - 360px)' }"
-          nzSize="small" [nzLoading]="isLoading">
-          <thead>
+        <p-table #rankingTable [value]="rankingData" [paginator]="true" [rows]="50"
+          [scrollable]="true" scrollHeight="flex"
+          [tableStyle]="{ 'min-width': '1800px' }"
+          styleClass="p-datatable-sm reward-ranking-grid"
+          [loading]="isLoading"
+          [resizableColumns]="true"
+          [reorderableColumns]="false"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Hiển thị {first} - {last} / {totalRecords} dòng">
+          <ng-template pTemplate="header">
             <tr>
-              <th nzWidth="50px">STT</th>
-              <th nzWidth="60px">Mã NV</th>
-              <th nzWidth="100px">Tên nhân viên</th>
-              <th nzWidth="140px">Team</th>
-              <th nzWidth="130px">Vị trí</th>
-              <th nzWidth="130px" nzAlign="right">Tiền về</th>
-              <th nzWidth="130px" nzAlign="right">Doanh số</th>
-              <th nzWidth="100px" nzAlign="right">Performance</th>
-              <th nzWidth="70px" nzAlign="center">Hệ số</th>
-              <th nzWidth="100px" nzAlign="center">Rank</th>
-              <th nzWidth="130px" nzAlign="right">Thưởng DS</th>
-              <th nzWidth="130px" nzAlign="right">Thưởng Rank</th>
-              <th nzWidth="100px" nzAlign="center">New AC</th>
-              <th nzWidth="130px" nzAlign="right">Thưởng N.A</th>
-              <th nzWidth="140px" nzAlign="right">Tổng thưởng</th>
+              <th style="width:50px" class="col-center">STT</th>
+              <th style="width:80px">Mã NV</th>
+              <th style="width:140px">Tên nhân viên</th>
+              <th style="width:160px">Team</th>
+              <th style="width:120px" class="col-center">Vị trí</th>
+              <th *ngIf="hasPmOrAdminRow()" style="width:130px" class="col-money">
+                <span pTooltip="Cột Tiền về — dùng để tính thưởng cho PM và Admin theo công thức: RewardRate × Hệ số × Tiền về"
+                      tooltipPosition="top">
+                  Tiền về <i nz-icon nzType="info-circle" nzTheme="outline" class="header-hint"></i>
+                </span>
+              </th>
+              <th *ngIf="hasSalesRow()" style="width:140px" class="col-money">
+                <span pTooltip="Cột Doanh số tiền về — dùng để tính thưởng cho Sales &amp; Sales Leader theo công thức: Hệ số × (Tổng thưởng DS cả team / Tổng hệ số cả team)"
+                      tooltipPosition="top">
+                  Doanh số tiền về <i nz-icon nzType="info-circle" nzTheme="outline" class="header-hint"></i>
+                </span>
+              </th>
+              <th style="width:100px" class="col-money">Performance</th>
+              <th style="width:80px" class="col-center">Hệ số</th>
+              <th style="width:110px" class="col-center">Rank</th>
+              <th style="width:130px" class="col-money">Thưởng DS</th>
+              <th style="width:130px" class="col-money">Thưởng Rank</th>
+              <th style="width:90px" class="col-center">New AC</th>
+              <th style="width:130px" class="col-money">Thưởng N.A</th>
+              <th style="width:150px" class="col-money">Tổng thưởng</th>
             </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let row of rankingTable.data; let i = index"
-                [class.leader-row]="row.positionType === 'SALES_LEADER'">
-              <td nzAlign="center">{{ i + 1 }}</td>
+          </ng-template>
+          <ng-template pTemplate="body" let-row let-i="rowIndex">
+            <tr [class.leader-row]="row.positionType === 'SALES_LEADER' || row.positionType === 'LEADER'">
+              <td class="col-center">{{ i + 1 + (rankingTable.first ?? 0) }}</td>
               <td>{{ row.employeeCode }}</td>
               <td><strong>{{ row.employeeName }}</strong></td>
               <td>{{ row.teamCode }}</td>
-              <td>
-                <nz-tag [nzColor]="getPositionColor(row.positionType)">
-                  {{ row.positionType }}
-                </nz-tag>
+              <td class="col-center">
+                <p-tag [value]="row.positionType" [severity]="getPrimeSeverity(row.positionType)"></p-tag>
               </td>
-              <td nzAlign="right">
+              <td *ngIf="hasPmOrAdminRow()" class="col-money">
                 <span class="money-value">{{ formatMoney(row.totalSalesAmount) }}</span>
               </td>
-              <td nzAlign="right">
+              <td *ngIf="hasSalesRow()" class="col-money">
                 <span class="money-value">{{ formatMoney(row.totalRevenue) }}</span>
               </td>
-              <td nzAlign="right">
+              <td class="col-money">
                 <span class="percent-value"
                   [class.high-achievement]="row.achievementPercent >= 100"
                   [class.mid-achievement]="row.achievementPercent >= 80 && row.achievementPercent < 100"
@@ -151,59 +173,65 @@
                   {{ formatPercent(row.achievementPercent) }}
                 </span>
               </td>
-              <td nzAlign="center">
-                <nz-tag nzColor="blue">{{ formatCoefficient(row.coefficient) }}</nz-tag>
+              <td class="col-center">
+                <p-tag [value]="formatCoefficient(row.coefficient)" severity="info"></p-tag>
               </td>
-              <td nzAlign="center">
-                <nz-tag *ngIf="row.rank" [nzColor]="getRankTagColor(row.rank)">
-                  {{ getRankTagText(row.rank) }}
-                </nz-tag>
-                <span *ngIf="!row.rank">-</span>
+              <td class="col-center">
+                <p-tag *ngIf="row.rank" [value]="getRankTagText(row.rank)"
+                  [severity]="getPrimeRankSeverity(row.rank)"></p-tag>
+                <span *ngIf="!row.rank" class="text-muted">-</span>
               </td>
-              <td nzAlign="right">
+              <td class="col-money">
                 <span class="bonus-value">{{ formatMoney(row.salesBonusAmount) }}</span>
               </td>
-              <td nzAlign="right">
+              <td class="col-money">
                 <span class="bonus-value ranking-bonus"
                   [class.has-bonus]="row.rankingBonusAmount > 0">
                   {{ formatMoney(row.rankingBonusAmount) }}
                 </span>
               </td>
-              <td nzAlign="center">
+              <td class="col-center">
                 <span *ngIf="row.newAccountCount > 0" class="new-account-count">
                   {{ row.newAccountCount }}
                 </span>
-                <span *ngIf="row.newAccountCount === 0">-</span>
+                <span *ngIf="row.newAccountCount === 0" class="text-muted">-</span>
               </td>
-              <td nzAlign="right">
+              <td class="col-money">
                 <span class="bonus-value">{{ formatMoney(row.newAccountBonus) }}</span>
               </td>
-              <td nzAlign="right">
+              <td class="col-money">
                 <strong class="total-bonus">{{ formatMoney(row.totalBonus) }}</strong>
               </td>
             </tr>
-          </tbody>
-          <tfoot>
+          </ng-template>
+          <ng-template pTemplate="footer">
             <tr>
-              <td colspan="10" nzAlign="right"><strong>Tổng cộng:</strong></td>
-              <td nzAlign="right">
+              <td [attr.colspan]="getFooterColspan()" class="col-money"><strong>Tổng cộng:</strong></td>
+              <td class="col-money">
                 <strong class="money-value">{{ formatMoney(getTotalSalesBonus()) }}</strong>
               </td>
-              <td nzAlign="right">
+              <td class="col-money">
                 <strong class="money-value">{{ formatMoney(getTotalRankingBonus()) }}</strong>
               </td>
-              <td nzAlign="right">
+              <td class="col-center">
                 <strong>{{ getTotalNewAccounts() }}</strong>
               </td>
-              <td nzAlign="right">
+              <td class="col-money">
                 <strong class="money-value">{{ formatMoney(getTotalNewAccountBonus()) }}</strong>
               </td>
-              <td nzAlign="right">
+              <td class="col-money">
                 <strong class="total-bonus">{{ formatMoney(getTotalBonus()) }}</strong>
               </td>
             </tr>
-          </tfoot>
-        </nz-table>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="getVisibleColumnCount()" class="empty-row">
+                Chưa có dữ liệu ranking cho kỳ này. Chọn Kỳ + Team rồi bấm "Xem Ranking".
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
       </div>
     </div>
   </nz-spin>

@@ -9,8 +9,11 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
 import { KpiSaleV2Service, KpiApiResponse } from '../kpi-sale-v2.service';
 import { EmployeeOption } from '../kpi-sale-v2.component';
 
@@ -67,8 +70,11 @@ export interface KpiRankingConfig {
     NzInputModule,
     NzSelectModule,
     NzSpinModule,
-    NzTableModule,
     NzTagModule,
+    TableModule,
+    TagModule,
+    ButtonModule,
+    TooltipModule,
   ],
   templateUrl: './kpi-ranking-tab.component.html',
   styleUrl: './kpi-ranking-tab.component.css',
@@ -500,6 +506,39 @@ export class KpiRankingTabComponent implements OnInit {
     }
   }
 
+  // Map sang severity của PrimeNG p-tag
+  getPrimeSeverity(positionType: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+    switch (positionType) {
+      case 'SALES_STAFF':
+        return 'success';
+      case 'SALES_LEADER':
+      case 'LEADER':
+        return 'info';
+      case 'PM':
+        return 'info';
+      case 'ADMIN':
+        return 'warn';
+      case 'ADMIN_SUB_LEADER':
+        return 'danger';
+      default:
+        return 'secondary';
+    }
+  }
+
+  getPrimeRankSeverity(rank: number | undefined): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
+    if (!rank) return 'secondary';
+    switch (rank) {
+      case 1:
+        return 'warn';    // gold → warn
+      case 2:
+        return 'secondary'; // silver → secondary
+      case 3:
+        return 'danger';  // volcano → danger
+      default:
+        return 'info';
+    }
+  }
+
   getRankTagText(rank: number | undefined): string {
     if (!rank) return '-';
     switch (rank) {
@@ -526,9 +565,53 @@ export class KpiRankingTabComponent implements OnInit {
         return 'magenta';
       case 'PM':
         return 'cyan';
+      case 'LEADER':
+        return 'purple';
       default:
         return 'default';
     }
+  }
+
+  // Nhóm B: PM / ADMIN — dùng cột "Tiền về" (TotalSalesAmount) để tính thưởng
+  // Khi bảng rỗng (chưa load) → mặc định hiện để giữ cấu trúc bảng
+  hasPmOrAdminRow(): boolean {
+    if (!this.rankingData || this.rankingData.length === 0) return true;
+    return this.rankingData.some(
+      (r) => r.positionType === 'PM' || r.positionType === 'ADMIN'
+    );
+  }
+
+  // Nhóm A: SALES_STAFF / SALES_LEADER / LEADER — dùng cột "Doanh số" (TotalRevenue)
+  // Khi bảng rỗng (chưa load) → mặc định hiện để giữ cấu trúc bảng
+  hasSalesRow(): boolean {
+    if (!this.rankingData || this.rankingData.length === 0) return true;
+    return this.rankingData.some(
+      (r) =>
+        r.positionType === 'SALES_STAFF' ||
+        r.positionType === 'SALES_LEADER' ||
+        r.positionType === 'LEADER'
+    );
+  }
+
+  // Cột cố định trong bảng = 9 (STT, Mã NV, Tên NV, Team, Vị trí, Performance, Hệ số, Rank, New AC, Thưởng N.A, Tổng thưởng)
+  // + 1 nếu có nhóm B (Tiền về) + 1 nếu có nhóm A (Doanh số)
+  // + Thưởng DS, Thưởng Rank luôn hiển thị → 2 cột cố định cuối body nhưng được "merge" vào footer
+  // Đếm thủ công để colspan tfoot luôn khớp với số cột header thực tế
+  getVisibleColumnCount(): number {
+    let count = 0;
+    // Cột cố định luôn hiện (theo thứ tự header)
+    count += 8; // STT, Mã NV, Tên NV, Team, Vị trí, Performance, Hệ số, Rank
+    // Cột động theo dữ liệu
+    if (this.hasPmOrAdminRow()) count += 1; // Tiền về
+    if (this.hasSalesRow()) count += 1;     // Doanh số
+    count += 4; // Thưởng DS, Thưởng Rank, New AC, Thưởng N.A
+    count += 1; // Tổng thưởng
+    return count;
+  }
+
+  getFooterColspan(): number {
+    return this.getVisibleColumnCount() - 5;
+    // -5 vì 5 cột cuối có tổng riêng: Thưởng DS, Thưởng Rank, New AC, Thưởng N.A, Tổng thưởng
   }
 
   // Footer totals

@@ -67,8 +67,14 @@
                   <th style="width:120px" class="col-money">Tỷ lệ thưởng</th>
                   <th style="width:140px" class="col-money">Thưởng Rank 1</th>
                   <th style="width:220px">Chỉ tiêu New Account</th>
-                  <th style="width:220px">Chỉ tiêu Tiền về</th>
-                  <th style="width:220px">Chỉ tiêu Doanh số</th>
+                  <th style="width:220px">
+                    Chỉ tiêu Tiền về
+                    <small class="col-hint">(PM/Admin)</small>
+                  </th>
+                  <th style="width:220px">
+                    Chỉ tiêu Doanh số tiền về
+                    <small class="col-hint">(Sales/Leader)</small>
+                  </th>
                   <th style="width:140px" class="col-money">Thưởng / account</th>
                   <th style="width:90px" class="col-center">Trạng thái</th>
                   <th style="width:170px" class="col-center">Thao tác</th>
@@ -418,7 +424,7 @@
         </div>
 
         <nz-form-item>
-          <nz-form-label>Chỉ tiêu New Account (KPI Index)</nz-form-label>
+          <nz-form-label>Chỉ tiêu New Account</nz-form-label>
           <nz-form-control>
             <nz-select name="newAccountKpiIndexId" [(ngModel)]="configDraft.newAccountKpiIndexId"
               nzPlaceHolder="(Tự động theo tên)"
@@ -433,9 +439,12 @@
         </nz-form-item>
 
         <nz-form-item>
-          <nz-form-label>Chỉ tiêu Tiền về (KPI Index)</nz-form-label>
+          <nz-form-label>
+            Chỉ tiêu Tiền về
+            <nz-tag nzColor="orange" class="form-role-tag">PM / Admin</nz-tag>
+          </nz-form-label>
           <nz-form-control
-            nzExtra="Chỉ tiêu trong template được dùng làm 'Tiền về'. Để trống = không tính thưởng doanh số.">
+            nzExtra="Dùng cho PM và Admin để tính thưởng: RewardRate × Hệ số × Tiền về. Để trống = không tính thưởng.">
             <nz-select name="salesAmountKpiIndexId" [(ngModel)]="configDraft.salesAmountKpiIndexId"
               nzPlaceHolder="(Tự động theo tên)"
               nzAllowClear
@@ -449,9 +458,12 @@
         </nz-form-item>
 
         <nz-form-item>
-          <nz-form-label>Chỉ tiêu Doanh số (KPI Index)</nz-form-label>
+          <nz-form-label>
+            Chỉ tiêu Doanh số tiền về
+            <nz-tag nzColor="green" class="form-role-tag">Sales / Leader</nz-tag>
+          </nz-form-label>
           <nz-form-control
-            nzExtra="Chỉ tiêu trong template dùng để hiển thị cột 'Doanh số' (khác với Tiền về). Để trống = không hiển thị.">
+            nzExtra="Dùng cho Sales và Sales Leader để tính thưởng: Hệ số × (Tổng thưởng DS cả team / Tổng hệ số cả team). Để trống = không hiển thị.">
             <nz-select name="revenueKpiIndexId" [(ngModel)]="configDraft.revenueKpiIndexId"
               nzPlaceHolder="(Không sử dụng)"
               nzAllowClear

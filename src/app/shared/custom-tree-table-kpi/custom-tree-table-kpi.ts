@@ -49,6 +49,10 @@ export class CustomTreeTableKpi implements OnChanges, OnInit {
     private userService = inject(UserService);
     @HostBinding('attr.tabindex') tabindex = '0';
 
+    // --- Navigation Callback ---
+    // Called before navigation starts - parent can set flag to skip tree rebuild
+    @Input() onNavigationStart: (() => void) | null = null;
+
     // --- Highlighting State ---
     globalFilterValue: string = '';
 
@@ -985,6 +989,12 @@ export class CustomTreeTableKpi implements OnChanges, OnInit {
 
     private navigateFocus(direction: string) {
         if (!this.focusedCell) return;
+
+        // FIX FOCUS: Notify parent we're about to navigate
+        // Parent can set flag to skip tree rebuild until focus is restored
+        if (this.onNavigationStart) {
+            this.onNavigationStart();
+        }
 
         const currentField = this.focusedCell.colField;
         const currentRowData = this.focusedCell.rowData;

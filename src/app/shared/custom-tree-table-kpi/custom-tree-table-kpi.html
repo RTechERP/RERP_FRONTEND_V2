@@ -201,16 +201,15 @@
                                             <ng-template #textareaOrTreeInput>
                                                 <textarea *ngIf="col.editType === 'textarea'; else defaultTreeInput"
                                                     pTextarea [ngModel]="rowData[col.field]"
-                                                    (ngModelChange)="emitCellValueChange(rowData, col.field, $event)"
+                                                    (ngModelChange)="rowData[col.field] = $event"
                                                     (blur)="onCellEditComplete(rowData, col.field)"
-                                                    (keydown.enter)="onCellEditComplete(rowData, col.field)"
                                                     (focus)="onInputFocus($event)"
                                                     [autoResize]="true" rows="3" class="w-full"></textarea>
                                                 <ng-template #defaultTreeInput>
                                                     <input pInputText
                                                         [type]="col.editType === 'number' ? 'number' : 'text'"
                                                         [ngModel]="rowData[col.field]"
-                                                        (ngModelChange)="emitCellValueChange(rowData, col.field, col.editMin !== undefined && +$event < col.editMin ? col.editMin : $event)"
+                                                        (ngModelChange)="rowData[col.field] = $event"
                                                         (blur)="onCellEditComplete(rowData, col.field)"
                                                         (keydown.enter)="onCellEditComplete(rowData, col.field)"
                                                         (focus)="onInputFocus($event)"

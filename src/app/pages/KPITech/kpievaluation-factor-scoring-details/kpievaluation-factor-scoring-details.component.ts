@@ -289,6 +289,9 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
   // FIX MEMORY LEAK: Lưu gridType để sử dụng trong debounced tree rebuild callback
   private pendingTreeRebuildGridType: 'skill' | 'general' | 'specialization' | null = null;
 
+  // FIX FOCUS: Flag để skip tree rebuild khi đang navigate (không phải edit)
+  private isNavigatingWithArrow = false;
+
   //#region Tooltip Formatters cho các cột tính toán
   /**
    * Formatter cho cột EmployeePoint (Mức tự đánh giá)
@@ -489,6 +492,21 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       this.cdr.detectChanges();
     }, 100);
     this.gridTimeouts.push(timer);
+  }
+
+  // FIX FOCUS: Called before tree table navigation starts
+  // This clears pending tree rebuild so navigation focus isn't destroyed
+  onSkillGridNavigationStart(): void {
+    this.isNavigatingWithArrow = true;
+    // Clear pending tree rebuild timer
+    if (this.treeRebuildDebounceTimer) {
+      clearTimeout(this.treeRebuildDebounceTimer);
+      this.treeRebuildDebounceTimer = null;
+    }
+    // Reset flag after a short delay to allow navigation to complete
+    setTimeout(() => {
+      this.isNavigatingWithArrow = false;
+    }, 500);
   }
 
   ngOnDestroy(): void {
@@ -1684,10 +1702,33 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       return displayValue;
     };
 
-    const monthColumnCellClass = (rowData: any) => {
+    // Cell class cho FirstMonth - chỉ tô màu nếu giá trị > 0 và đúng loại mã
+    const firstMonthCellClass = (rowData: any) => {
       const ruleCode = String(rowData?.EvaluationCode || '').toUpperCase();
-      const isNewLine = ruleCode === 'NEWLINE';
-      if (isNewLine) return 'kpi-gray-cell';
+      if (ruleCode === 'NEWLINE') return 'kpi-gray-cell';
+      if (ruleCode.startsWith('MA') && rowData?.FirstMonth > 0) return 'kpi-ma-cell';
+      if (ruleCode === 'WORKLATE' && rowData?.FirstMonth > 0) return 'kpi-worklate-cell';
+      if (ruleCode === 'NOTWORKING' && rowData?.FirstMonth > 0) return 'kpi-notworking-cell';
+      return getBgColorClass(rowData);
+    };
+
+    // Cell class cho SecondMonth - chỉ tô màu nếu giá trị > 0 và đúng loại mã
+    const secondMonthCellClass = (rowData: any) => {
+      const ruleCode = String(rowData?.EvaluationCode || '').toUpperCase();
+      if (ruleCode === 'NEWLINE') return 'kpi-gray-cell';
+      if (ruleCode.startsWith('MA') && rowData?.SecondMonth > 0) return 'kpi-ma-cell';
+      if (ruleCode === 'WORKLATE' && rowData?.SecondMonth > 0) return 'kpi-worklate-cell';
+      if (ruleCode === 'NOTWORKING' && rowData?.SecondMonth > 0) return 'kpi-notworking-cell';
+      return getBgColorClass(rowData);
+    };
+
+    // Cell class cho ThirdMonth - chỉ tô màu nếu giá trị > 0 và đúng loại mã
+    const thirdMonthCellClass = (rowData: any) => {
+      const ruleCode = String(rowData?.EvaluationCode || '').toUpperCase();
+      if (ruleCode === 'NEWLINE') return 'kpi-gray-cell';
+      if (ruleCode.startsWith('MA') && rowData?.ThirdMonth > 0) return 'kpi-ma-cell';
+      if (ruleCode === 'WORKLATE' && rowData?.ThirdMonth > 0) return 'kpi-worklate-cell';
+      if (ruleCode === 'NOTWORKING' && rowData?.ThirdMonth > 0) return 'kpi-notworking-cell';
       return getBgColorClass(rowData);
     };
 
@@ -1716,7 +1757,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         sortable: false,
         isEditable: (rowData: any) => this.canEditRuleCell(rowData, 'FirstMonth'),
         editType: 'number',
-        cellClass: monthColumnCellClass,
+        cellClass: firstMonthCellClass,
         format: (value: any, rowData: any) => monthColumnFormat(value, rowData, 'FirstMonth'),
         footerClass: 'text-right custom-footer-cell',
         footer: () => `<b>${this.ruleFooterFirstMonth.toFixed(2)}</b>`
@@ -1729,7 +1770,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         sortable: false,
         isEditable: (rowData: any) => this.canEditRuleCell(rowData, 'SecondMonth'),
         editType: 'number',
-        cellClass: monthColumnCellClass,
+        cellClass: secondMonthCellClass,
         format: (value: any, rowData: any) => monthColumnFormat(value, rowData, 'SecondMonth'),
         footerClass: 'text-right custom-footer-cell',
         footer: () => `<b>${this.ruleFooterSecondMonth.toFixed(2)}</b>`
@@ -1742,7 +1783,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
         sortable: false,
         isEditable: (rowData: any) => this.canEditRuleCell(rowData, 'ThirdMonth'),
         editType: 'number',
-        cellClass: monthColumnCellClass,
+        cellClass: thirdMonthCellClass,
         format: (value: any, rowData: any) => monthColumnFormat(value, rowData, 'ThirdMonth'),
         footerClass: 'text-right custom-footer-cell',
         footer: () => `<b>${this.ruleFooterThirdMonth.toFixed(2)}</b>`
@@ -1897,8 +1938,8 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
       return false;
     }
 
-    // Kiểm tra quyền: Admin (typePoint=4) hoặc TBP (typePoint=2)
-    const hasEditPermission = this.typePoint === 2 || this.typePoint === 4;
+    // Kiểm tra quyền: Admin (typePoint=4) hoặc TBP (typePoint=2) hoặc BGD (typePoint=3)
+    const hasEditPermission = this.typePoint === 2 || this.typePoint === 3 || this.typePoint === 4;
     if (!hasEditPermission) {
       return false;
     }
@@ -1906,6 +1947,7 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     // Không cho phép edit nếu là node cha (có children)
     if (dataContext.__hasChildren) {
       return false;
+
     }
 
     const ruleCode = String(dataContext.EvaluationCode || '').toUpperCase();
@@ -3370,6 +3412,12 @@ export class KPIEvaluationFactorScoringDetailsComponent implements OnInit, After
     this.treeRebuildDebounceTimer = setTimeout(() => {
       // FIX MEMORY LEAK: Kiểm tra destroy trước khi chạy callback
       if (this.isDestroyed) return;
+
+      // FIX FOCUS: Skip rebuild nếu đang navigate - navigation đã handle focus rồi
+      if (this.isNavigatingWithArrow) {
+        console.log('Tree rebuild skipped: navigation in progress');
+        return;
+      }
 
       // Sử dụng gridType đã lưu thay vì reference
       const pendingGridType = this.pendingTreeRebuildGridType;

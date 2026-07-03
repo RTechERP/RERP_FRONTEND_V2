@@ -507,20 +507,47 @@ export class HistoryMoneyPrimengComponent implements OnInit {
     const saveRequests: Observable<any>[] = [];
     const pokhDetailIdList = Array.from(rowsByPOKHDetailId.keys());
 
-    pokhDetailIdList.forEach(pokhDetailId => {
-      const rows = rowsByPOKHDetailId.get(pokhDetailId) || [];
-      const pokhInfo = this.selectedPOKHInfoMap.get(pokhDetailId);
+    if (pokhDetailIdList.length === 0 && this.listIdsDel.length === 0) {
+      this.isSaving = false;
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu nào để lưu');
+      return;
+    }
 
-      const requestBody = {
-        historyMoneyPOs: rows,
-        pokhDetailId: pokhDetailId,
-        pokhId: pokhInfo?.pokhId || 0,
-        totalMoneyIncludeVAT: pokhInfo?.totalMoneyIncludeVAT || 0,
-        listIdsDel: rowsDelByPOKHDetailId.get(pokhDetailId) || [],
-      };
+    // Khi xóa hết rows (pokhDetailIdList rỗng) nhưng listIdsDel có → cần tạo request để xóa
+    if (pokhDetailIdList.length === 0 && this.listIdsDel.length > 0) {
+      const rowsDelByPOKHDetailIdForDelete = new Map<number, any[]>();
+      this.listIdsDel.forEach(delItem => {
+        if (!rowsDelByPOKHDetailIdForDelete.has(delItem.pokhDetailId)) {
+          rowsDelByPOKHDetailIdForDelete.set(delItem.pokhDetailId, []);
+        }
+        rowsDelByPOKHDetailIdForDelete.get(delItem.pokhDetailId)!.push(delItem.id);
+      });
+      rowsDelByPOKHDetailIdForDelete.forEach((ids, pokhDetailId) => {
+        const pokhInfo = this.selectedPOKHInfoMap.get(pokhDetailId);
+        saveRequests.push(this.historyMoneyService.saveHistoryMoney({
+          historyMoneyPOs: [],
+          pokhDetailId: pokhDetailId,
+          pokhId: pokhInfo?.pokhId || 0,
+          totalMoneyIncludeVAT: pokhInfo?.totalMoneyIncludeVAT || 0,
+          listIdsDel: ids,
+        }));
+      });
+    } else {
+      pokhDetailIdList.forEach(pokhDetailId => {
+        const rows = rowsByPOKHDetailId.get(pokhDetailId) || [];
+        const pokhInfo = this.selectedPOKHInfoMap.get(pokhDetailId);
 
-      saveRequests.push(this.historyMoneyService.saveHistoryMoney(requestBody));
-    });
+        const requestBody = {
+          historyMoneyPOs: rows,
+          pokhDetailId: pokhDetailId,
+          pokhId: pokhInfo?.pokhId || 0,
+          totalMoneyIncludeVAT: pokhInfo?.totalMoneyIncludeVAT || 0,
+          listIdsDel: rowsDelByPOKHDetailId.get(pokhDetailId) || [],
+        };
+
+        saveRequests.push(this.historyMoneyService.saveHistoryMoney(requestBody));
+      });
+    }
 
     // Execute all save requests
     forkJoin(saveRequests).subscribe({

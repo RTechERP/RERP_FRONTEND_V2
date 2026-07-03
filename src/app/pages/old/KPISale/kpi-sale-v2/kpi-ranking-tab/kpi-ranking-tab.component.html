@@ -98,15 +98,15 @@
       <!-- Tổng doanh số & Tổng thưởng doanh số cả team (theo công thức 1% * Σ(Coef_i × Doanh số_i)) -->
       <div class="reward-config-info team-revenue-summary" *ngIf="rewardConfig && rewardConfig.revenueKpiIndexId && rankingData.length > 0">
         <span class="config-item">
-          <strong>Tổng doanh số cả team:</strong>
+          <strong>Tổng doanh số cả team: </strong>
           <span class="money-value">{{ formatMoney(getTeamTotalRevenue()) }}</span>
         </span>
         <span class="config-item">
-          <strong>Tổng thưởng doanh số cả team:</strong>
+          <strong>Tổng thưởng doanh số cả team: </strong>
           <strong class="money-value highlight">{{ formatMoney(getTeamRevenueBonus()) }}</strong>
-          <span class="auto-label">
+          <!-- <span class="auto-label">
             ( = 1% × Σ Hệ số_i × Doanh số_i )
-          </span>
+          </span> -->
         </span>
       </div>
 

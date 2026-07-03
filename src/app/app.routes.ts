@@ -406,6 +406,7 @@ import { KpiRewardConfigTabComponent } from './pages/old/KPISale/kpi-sale-v2/kpi
 import { TeamEmployeeProjectComponent } from './pages/project/team-employee-project/team-employee-project.component';
 import { OrgChartRtcNewComponent } from './pages/hrm/org-chart-rtc/org-chart-rtc-new/org-chart-rtc-new.component';
 import { VehicleRentalRequestComponent } from './pages/hrm/vehicle/vehicle-retal-request/vehicle-rental-request.component';
+import { VisaRequestComponent } from './pages/hrm/visa-request/visa-request.component';
 export const routes: Routes = [
 
   {
@@ -1344,6 +1345,7 @@ export const routes: Routes = [
 
       { path: 'org-chart-rtc-new', component: OrgChartRtcNewComponent, canActivate: [authGuard] },
       { path: 'vehicle-rental-request', component: VehicleRentalRequestComponent, canActivate: [authGuard] },
+      { path: 'business-visa-request', component: VisaRequestComponent, canActivate: [authGuard] },
     ],
   },
 ];

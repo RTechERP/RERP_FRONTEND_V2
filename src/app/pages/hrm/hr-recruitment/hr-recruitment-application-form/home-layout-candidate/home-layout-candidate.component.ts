@@ -569,7 +569,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             IsPlanPregnant: [false],
             WorkExperienceLevel: [null, [Validators.required]],
             OtherActivities: [null, [Validators.maxLength(550)]],
-            Experiences: [null, [Validators.required, Validators.maxLength(550)]],
+            Experiences: [null, [Validators.required]],
             ReasonApplication: [null, [Validators.required, Validators.maxLength(550)]],
             AcceptedSalary: [null, [Validators.required]],
             DateOfStart: [null, [Validators.required]],

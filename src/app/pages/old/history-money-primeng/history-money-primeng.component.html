@@ -15,7 +15,7 @@
         <div class="ms-auto d-flex gap-2">
             <button *ngIf="activeModal" nz-button nzType="default" nzDanger="true" nzSize="default"
                 (click)="closeModal()">Đóng</button>
-            <button nz-button nzType="default" nzSize="default" (click)="exportExcel()" class="me-2">
+            <button nz-button nzType="default" nzSize="default" (click)="exportExcelFromMainData()" class="me-2">
                 <i class="fas fa-file-excel text-success me-1"></i> Xuất Excel
             </button>
             <button nz-button nzType="default" nzSize="default" (click)="openExportFilterModal()" class="me-2">
@@ -35,7 +35,8 @@
                     <p-table [value]="dataProduct" dataKey="ID" selectionMode="multiple" [selection]="selectedProducts"
                         (selectionChange)="onProductSelectionChange($event)" [scrollable]="true" scrollHeight="flex"
                         styleClass="p-datatable-sm p-datatable-gridlines hm-prime-table" [resizableColumns]="true"
-                        columnResizeMode="expand">
+                        columnResizeMode="expand"
+                        [virtualScroll]="true" [virtualScrollItemSize]="41">
 
                         <ng-template pTemplate="header">
                             <tr>
@@ -157,13 +158,22 @@
         <nz-splitter-panel nzDefaultSize="50%">
             <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                 <div class="card-body p-0 flex-grow-1 grid-container" style="overflow: hidden;">
+                    <!-- Selection info bar -->
+                    <div *ngIf="selectedMainRows.length > 0" class="selection-info-bar px-2 py-1 d-flex align-items-center justify-content-between">
+                        <span><i class="fas fa-check-square me-1"></i> Đã chọn {{ selectedMainRows.length }} dòng</span>
+                        <span class="text-muted small">Sửa 1 dòng để áp dụng cho tất cả các dòng đã chọn</span>
+                    </div>
                     <p-table [value]="mainData" dataKey="__rowKey" [scrollable]="true" scrollHeight="flex"
                         styleClass="p-datatable-sm p-datatable-gridlines hm-prime-table" [resizableColumns]="true"
-                        columnResizeMode="expand" [paginator]="true" [rows]="15" [rowsPerPageOptions]="[15, 30, 50]"
-                        editMode="cell">
+                        columnResizeMode="expand"
+                        editMode="cell" [(selection)]="selectedMainRows" (selectionChange)="onMainSelectionChange($event)"
+                        [virtualScroll]="true" [virtualScrollItemSize]="41">
 
                         <ng-template pTemplate="header">
                             <tr>
+                                <th style="width: 50px; min-width: 50px;">
+                                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                                </th>
                                 <th style="width: 40px; min-width: 40px;">
                                     <div *ngIf="selectedProducts && selectedProducts.length > 0" style="display: flex; justify-content: center; align-items: center; cursor: pointer;"
                                          (click)="addNewRow()" title="Thêm dòng">
@@ -256,7 +266,11 @@
                         </ng-template>
 
                         <ng-template pTemplate="body" let-rowData let-rowIndex="rowIndex">
-                            <tr class="data-row" [ngClass]="{ 'deleted-row': rowData.IsDeleted }">
+                            <tr class="data-row" [ngClass]="{ 'deleted-row': rowData.IsDeleted, 'selected-row': isMainRowSelected(rowData), 'new-row': rowData.ID === 0 }">
+                                <!-- Selection checkbox -->
+                                <td class="text-center">
+                                    <p-tableCheckbox [value]="rowData" [disabled]="rowData.IsDeleted"></p-tableCheckbox>
+                                </td>
                                 <!-- Delete button -->
                                 <td class="text-center">
                                     <button *ngIf="!rowData.IsDeleted" pButton type="button" icon="pi pi-trash"
@@ -287,7 +301,8 @@
                                             <input type="date" class="table-cell-input"
                                                 [ngModel]="toDateInputValue(rowData.MoneyDate)"
                                                 [ngModelOptions]="{ standalone: true }"
-                                                (ngModelChange)="onMoneyDateChanged(rowData, $event)" />
+                                                (ngModelChange)="onMoneyDateChanged(rowData, $event)"
+                                                (blur)="onCellEditComplete(rowData, 'MoneyDate')" />
                                         </ng-template>
                                         <ng-template pTemplate="output">{{ formatDateVi(rowData.MoneyDate)
                                             }}</ng-template>
@@ -299,7 +314,8 @@
                                     <p-cellEditor>
                                         <ng-template pTemplate="input">
                                             <input type="number" pInputText class="table-cell-input text-end"
-                                                [(ngModel)]="rowData.Money" [ngModelOptions]="{ standalone: true }" />
+                                                [(ngModel)]="rowData.Money" [ngModelOptions]="{ standalone: true }"
+                                                (blur)="onCellEditComplete(rowData, 'Money')" />
                                         </ng-template>
                                         <ng-template pTemplate="output">{{ formatMoney(rowData.Money) }}</ng-template>
                                     </p-cellEditor>
@@ -310,7 +326,8 @@
                                     <p-cellEditor>
                                         <ng-template pTemplate="input">
                                             <input pInputText class="table-cell-input" [(ngModel)]="rowData.Note"
-                                                [ngModelOptions]="{ standalone: true }" />
+                                                [ngModelOptions]="{ standalone: true }"
+                                                (blur)="onCellEditComplete(rowData, 'Note')" />
                                         </ng-template>
                                         <ng-template pTemplate="output">{{ rowData.Note }}</ng-template>
                                     </p-cellEditor>
@@ -323,7 +340,8 @@
                                             <p-select [options]="bankNameOptions" optionLabel="label"
                                                 optionValue="value" [filter]="true" [showClear]="true" appendTo="body"
                                                 styleClass="w-100" [(ngModel)]="rowData.BankName"
-                                                [ngModelOptions]="{ standalone: true }">
+                                                [ngModelOptions]="{ standalone: true }"
+                                                (onHide)="onCellEditComplete(rowData, 'BankName')">
                                             </p-select>
                                         </ng-template>
                                         <ng-template pTemplate="output">{{ rowData.BankName }}</ng-template>
@@ -335,7 +353,8 @@
                                     <p-cellEditor>
                                         <ng-template pTemplate="input">
                                             <input pInputText class="table-cell-input" [(ngModel)]="rowData.InvoiceNo"
-                                                [ngModelOptions]="{ standalone: true }" />
+                                                [ngModelOptions]="{ standalone: true }"
+                                                (blur)="onCellEditComplete(rowData, 'InvoiceNo')" />
                                         </ng-template>
                                         <ng-template pTemplate="output">{{ rowData.InvoiceNo }}</ng-template>
                                     </p-cellEditor>
@@ -346,7 +365,8 @@
                                     <p-cellEditor>
                                         <ng-template pTemplate="input">
                                             <input type="number" pInputText class="table-cell-input text-end"
-                                                [(ngModel)]="rowData.VAT" [ngModelOptions]="{ standalone: true }" />
+                                                [(ngModel)]="rowData.VAT" [ngModelOptions]="{ standalone: true }"
+                                                (blur)="onCellEditComplete(rowData, 'VAT')" />
                                         </ng-template>
                                         <ng-template pTemplate="output">{{ rowData.VAT }}%</ng-template>
                                     </p-cellEditor>
@@ -358,7 +378,8 @@
                                         <ng-template pTemplate="input">
                                             <input type="number" pInputText class="table-cell-input text-end"
                                                 [(ngModel)]="rowData.MoneyVAT"
-                                                [ngModelOptions]="{ standalone: true }" />
+                                                [ngModelOptions]="{ standalone: true }"
+                                                (blur)="onCellEditComplete(rowData, 'MoneyVAT')" />
                                         </ng-template>
                                         <ng-template pTemplate="output">{{ formatMoney(rowData.MoneyVAT)
                                             }}</ng-template>
@@ -372,7 +393,8 @@
                                             <p-select [options]="salesEmployeeOptions" optionLabel="label"
                                                 optionValue="value" [filter]="true" [showClear]="true" appendTo="body"
                                                 styleClass="w-100" [(ngModel)]="rowData.UserID"
-                                                [ngModelOptions]="{ standalone: true }">
+                                                [ngModelOptions]="{ standalone: true }"
+                                                (onHide)="onCellEditComplete(rowData, 'UserID')">
                                             </p-select>
                                         </ng-template>
                                         <ng-template pTemplate="output">{{ getEmployeeName(rowData.UserID)
@@ -387,7 +409,8 @@
                                             <p-select [options]="salesEmployeeOptions" optionLabel="label"
                                                 optionValue="value" [filter]="true" [showClear]="true" appendTo="body"
                                                 styleClass="w-100" [(ngModel)]="rowData.PMUserID"
-                                                [ngModelOptions]="{ standalone: true }">
+                                                [ngModelOptions]="{ standalone: true }"
+                                                (onHide)="onCellEditComplete(rowData, 'PMUserID')">
                                             </p-select>
                                         </ng-template>
                                         <ng-template pTemplate="output">{{ getEmployeeName(rowData.PMUserID)
@@ -398,14 +421,15 @@
                                 <!-- IsFilm (checkbox) -->
                                 <td class="text-center">
                                     <input type="checkbox" class="form-check-input table-checkbox"
-                                        [(ngModel)]="rowData.IsFilm" [ngModelOptions]="{ standalone: true }" />
+                                        [(ngModel)]="rowData.IsFilm" [ngModelOptions]="{ standalone: true }"
+                                        (change)="onCellEditComplete(rowData, 'IsFilm')" />
                                 </td>
                             </tr>
                         </ng-template>
 
                         <ng-template pTemplate="emptymessage">
                             <tr>
-                                <td [attr.colspan]="14" class="text-center text-muted py-3">
+                                <td [attr.colspan]="15" class="text-center text-muted py-3">
                                     Không có dữ liệu - Vui lòng chọn PO từ bảng bên trái
                                 </td>
                             </tr>

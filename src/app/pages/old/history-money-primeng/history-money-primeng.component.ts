@@ -30,6 +30,7 @@ import { InputTextModule as PrimeInputTextModule } from 'primeng/inputtext';
 
 import { HistoryMoneyService } from '../history-money/history-money-service/history-money.service';
 import { PokhService } from '../pokh/pokh-service/pokh.service';
+import * as ExcelJS from 'exceljs';
 
 @Component({
   selector: 'app-history-money-primeng',
@@ -94,6 +95,11 @@ export class HistoryMoneyPrimengComponent implements OnInit {
 
   // Row key sequence for new rows
   private dataRowKeySequence = 0;
+
+  // Selection for main table (right panel) - for bulk edit
+  selectedMainRows: any[] = [];
+  masterRowField: string | null = null; // Trường đang được chọn làm "master" để propagate
+  masterRowValue: any = null;
 
   constructor(
     @Optional() public activeModal: NgbActiveModal,
@@ -235,7 +241,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       return;
     }
 
-    this.historyMoneyService.getProductsByPOKHIds(pokhIds.join(',')).subscribe(
+    this.historyMoneyService.getProductsByPOKHIds(pokhIds).subscribe(
       (response) => {
         if (response.status === 1) {
           this.dataProduct = response.data;
@@ -283,7 +289,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       return;
     }
 
-    this.historyMoneyService.getHistoryMoneyPOMultiple(pokhDetailIds.join(',')).subscribe(
+    this.historyMoneyService.getHistoryMoneyPOMultiple(pokhDetailIds).subscribe(
       (response) => {
         if (response.status === 1) {
           this.mainData = this.normalizeDataRows(this.prepareVatForTable(response.data));
@@ -363,7 +369,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       PONumber: product.PONumber || product.POKHCode || '',
       ProductNewCode: product.ProductNewCode || '',
       MoneyDate: null,
-      Money: 0,
+      Money: product.TotalPriceIncludeVAT || 0, // Auto-fill từ cột tổng tiền bảng trái
       Note: '',
       BankName: '',
       InvoiceNo: '',
@@ -391,7 +397,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
           POCode: p.POCode || '',
           ProductNewCode: p.ProductNewCode || '',
           MoneyDate: null,
-          Money: 0,
+          Money: p.TotalPriceIncludeVAT || 0, // Auto-fill từ cột tổng tiền bảng trái
           Note: '',
           BankName: '',
           InvoiceNo: '',
@@ -405,15 +411,16 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       this.mainData = this.normalizeDataRows([...this.mainData, ...newRows]);
     } else {
       // Single select: add one row
+      const selectedProduct = this.selectedProducts.find((p: any) => p.ID === this.rowSelectedPokhDetailId);
       const newRow = {
         ID: 0,
         POKHDetailID: this.rowSelectedPokhDetailId,
         POKHID: this.rowSelectedPokhId,
-        PONumber: '',
-        POCode: '',
-        ProductNewCode: '',
+        PONumber: selectedProduct?.PONumber || selectedProduct?.POKHCode || '',
+        POCode: selectedProduct?.POCode || '',
+        ProductNewCode: selectedProduct?.ProductNewCode || '',
         MoneyDate: null,
-        Money: 0,
+        Money: selectedProduct?.TotalPriceIncludeVAT || 0, // Auto-fill từ cột tổng tiền bảng trái
         Note: '',
         BankName: '',
         InvoiceNo: '',
@@ -584,6 +591,77 @@ export class HistoryMoneyPrimengComponent implements OnInit {
     }
   }
 
+  // Xuất Excel trực tiếp từ mainData (có đầy đủ cột như bảng)
+  exportExcelFromMainData() {
+    if (!this.mainData || this.mainData.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('LichSuTienVe');
+
+    worksheet.columns = [
+      { header: 'Mã PO', key: 'POCode', width: 15 },
+      { header: 'Mã sản phẩm', key: 'ProductNewCode', width: 15 },
+      { header: 'Số POKH', key: 'PONumber', width: 15 },
+      { header: 'Ngày tiền về', key: 'MoneyDate', width: 15 },
+      { header: 'Tiền về', key: 'Money', width: 18 },
+      { header: 'Ghi chú', key: 'Note', width: 25 },
+      { header: 'Tên ngân hàng', key: 'BankName', width: 25 },
+      { header: 'Số hóa đơn', key: 'InvoiceNo', width: 18 },
+      { header: 'VAT (%)', key: 'VAT', width: 10 },
+      { header: 'Tiền trước VAT', key: 'MoneyVAT', width: 18 },
+      { header: 'Người phụ trách (Admin)', key: 'UserID', width: 20 },
+      { header: 'Người phụ trách (PM)', key: 'PMUserID', width: 20 },
+      { header: 'Film', key: 'IsFilm', width: 8 },
+    ];
+
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' }
+    };
+
+    this.mainData.forEach((row) => {
+      if (!row.IsDeleted) {
+        worksheet.addRow({
+          POCode: row.POCode || '',
+          ProductNewCode: row.ProductNewCode || '',
+          PONumber: row.PONumber || '',
+          MoneyDate: row.MoneyDate ? new Date(row.MoneyDate).toLocaleDateString('vi-VN') : '',
+          Money: row.Money || 0,
+          Note: row.Note || '',
+          BankName: row.BankName || '',
+          InvoiceNo: row.InvoiceNo || '',
+          VAT: row.VAT || 0,
+          MoneyVAT: row.MoneyVAT || 0,
+          UserID: this.getEmployeeName(row.UserID) || '',
+          PMUserID: this.getEmployeeName(row.PMUserID) || '',
+          IsFilm: row.IsFilm ? 'Có' : 'Không',
+        });
+      }
+    });
+
+    // Format tiền
+    worksheet.getColumn(5).numFmt = '#,##0';
+    worksheet.getColumn(10).numFmt = '#,##0';
+
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `LichSuTienVe_${new Date().toLocaleDateString('vi-VN').replace(/\//g, '-')}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công');
+    });
+  }
+
   private exportExcelSingle() {
     this.historyMoneyService.exportHistoryMoneyExcel(this.rowSelectedPokhDetailId).subscribe({
       next: (blob) => {
@@ -608,7 +686,7 @@ export class HistoryMoneyPrimengComponent implements OnInit {
       return;
     }
 
-    this.historyMoneyService.exportHistoryMoneyExcelMultiple(this.selectedPOKHDetailIds.join(',')).subscribe({
+    this.historyMoneyService.exportHistoryMoneyExcelMultiple(this.selectedPOKHDetailIds).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -808,5 +886,50 @@ export class HistoryMoneyPrimengComponent implements OnInit {
     rowData.MoneyDate = value || null;
     this.mainData = [...this.mainData];
   }
+
+  //#region Bulk Edit - Propagate values to selected rows
+  onMainSelectionChange(selected: any[]): void {
+    this.selectedMainRows = selected || [];
+  }
+
+  isMainRowSelected(rowData: any): boolean {
+    return this.selectedMainRows.some((r: any) => r.__rowKey === rowData.__rowKey);
+  }
+
+  onCellEditInit(rowData: any, field: string): void {
+    // Khi bắt đầu edit 1 ô, set master row và giá trị
+    this.masterRowField = field;
+    this.masterRowValue = rowData[field];
+  }
+
+  onCellEditComplete(rowData: any, field: string): void {
+    // Khi hoàn thành edit, propagate giá trị cho các dòng đã chọn
+    if (this.selectedMainRows.length > 1) {
+      const newValue = rowData[field];
+      this.selectedMainRows.forEach((row: any) => {
+        if (row.__rowKey !== rowData.__rowKey && !row.IsDeleted) {
+          row[field] = newValue;
+        }
+      });
+      this.mainData = [...this.mainData];
+    }
+    this.masterRowField = null;
+    this.masterRowValue = null;
+  }
+
+  applyValueToSelectedRows(field: string, value: any): void {
+    if (this.selectedMainRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 dòng để áp dụng');
+      return;
+    }
+    this.selectedMainRows.forEach((row: any) => {
+      if (!row.IsDeleted) {
+        row[field] = value;
+      }
+    });
+    this.mainData = [...this.mainData];
+    this.notification.success(NOTIFICATION_TITLE.success, `Đã áp dụng cho ${this.selectedMainRows.length} dòng`);
+  }
+  //#endregion
   //#endregion
 }

@@ -126,7 +126,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let row of rankingTable.data; let i = index">
+            <tr *ngFor="let row of rankingTable.data; let i = index"
+                [class.leader-row]="row.positionType === 'SALES_LEADER'">
               <td nzAlign="center">{{ i + 1 }}</td>
               <td>{{ row.employeeCode }}</td>
               <td><strong>{{ row.employeeName }}</strong></td>

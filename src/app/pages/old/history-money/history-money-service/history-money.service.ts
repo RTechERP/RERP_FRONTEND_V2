@@ -26,12 +26,8 @@ export class HistoryMoneyService {
     });
   }
 
-  getProductsByPOKHIds(pokhIds: string): Observable<any> {
-    return this.http.get<any>(this._url + 'load-products-by-pokh-ids', {
-      params: {
-        pokhIds: pokhIds,
-      },
-    });
+  getProductsByPOKHIds(pokhIds: number[]): Observable<any> {
+    return this.http.post<any>(this._url + 'load-products-by-pokh-ids', pokhIds);
   }
 
   getHistoryMoneyPO(pokhDetailId: number): Observable<any> {
@@ -42,12 +38,8 @@ export class HistoryMoneyService {
     });
   }
 
-  getHistoryMoneyPOMultiple(pokhDetailIds: string): Observable<any> {
-    return this.http.get<any>(this._url + 'load-history-money-po-multiple', {
-      params: {
-        pokhDetailIds: pokhDetailIds,
-      },
-    });
+  getHistoryMoneyPOMultiple(pokhDetailIds: number[]): Observable<any> {
+    return this.http.post<any>(this._url + 'load-history-money-po-multiple', pokhDetailIds);
   }
 
   getDepartments(): Observable<any> {
@@ -63,11 +55,8 @@ export class HistoryMoneyService {
     });
   }
 
-  exportHistoryMoneyExcelMultiple(pokhDetailIds: string): Observable<Blob> {
-    return this.http.get(`${this._url}export-excel-multiple`, {
-      params: {
-        pokhDetailIds: pokhDetailIds,
-      },
+  exportHistoryMoneyExcelMultiple(pokhDetailIds: number[]): Observable<Blob> {
+    return this.http.post(`${this._url}export-excel-multiple`, pokhDetailIds, {
       responseType: 'blob'
     });
   }

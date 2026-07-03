@@ -1568,7 +1568,11 @@ export class KpiSaleV2Component implements OnInit {
       teamName: this.readTeamField<string>(item, 'TeamName', 'teamName') || '',
       description: this.readTeamField<string>(item, 'Description', 'description'),
       isActive: this.readTeamField<boolean>(item, 'IsActive', 'isActive') !== false,
-      employeeIDs: Array.isArray(item.EmployeeIDs) ? item.EmployeeIDs : Array.isArray(item.employeeIDs) ? item.employeeIDs : [],
+      employeeIDs: Array.isArray(item.EmployeeIDs)
+        ? item.EmployeeIDs.map((m: any) => typeof m === 'object' && m !== null ? m.EmployeeId : m).filter((id: any) => typeof id === 'number')
+        : Array.isArray(item.employeeIDs)
+          ? item.employeeIDs.map((m: any) => typeof m === 'object' && m !== null ? m.EmployeeId : m).filter((id: any) => typeof id === 'number')
+          : [],
     };
   }
 

@@ -172,12 +172,18 @@
   background: #fafafa;
 }
 
+/* Ensure hover applies to ALL cells including sticky-left (col-index) and quarter columns.
+   Using td:hover inside hovered tr overrides the !important background set on those cells. */
+.kpi-summary-table tbody tr:hover > td {
+  background: #e6f7ff !important;
+}
+
 .kpi-summary-table tbody tr.row-even {
   background: #fafafa;
 }
 
-.kpi-summary-table tbody tr.row-even:hover {
-  background: #f0f0f0;
+.kpi-summary-table tbody tr.row-even:hover > td {
+  background: #d9eaff !important;
 }
 
 .row-bold td {
@@ -479,6 +485,10 @@
   background: #fafafa;
 }
 
+.kpi-report-table tbody tr:hover > td {
+  background: #e6f7ff !important;
+}
+
 .kpi-report-table tbody tr.row-even {
   background: #fafafa;
 }
@@ -733,4 +743,8 @@
 
 .kpi-report-table--ultra-compact tbody tr:hover {
   background: #fafafa;
+}
+
+.kpi-report-table--ultra-compact tbody tr:hover > td {
+  background: #e6f7ff !important;
 }

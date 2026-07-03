@@ -4463,9 +4463,9 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         const ruleCode = String(row.EvaluationCode || '').toUpperCase();
 
         // Mặc định ThirdMonth = 1 cho các mã lỗi đặc biệt
-        if (['AMA14', 'AMA15', 'AMA16', 'AMA17', 'AMA18'].includes(ruleCode)) {
-          row.ThirdMonth = 1;
-        }
+        // if (['AMA14', 'AMA15', 'AMA16', 'AMA17', 'AMA18'].includes(ruleCode)) {
+        //   row.ThirdMonth = 1;
+        // }
 
         const isDiemThuong = ruleCode === 'THUONG';
         console.log(`[FactorScoring] Start - STT: ${stt}, Rule: ${ruleCode}`);

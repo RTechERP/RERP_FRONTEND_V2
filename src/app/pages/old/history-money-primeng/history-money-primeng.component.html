@@ -21,7 +21,10 @@
             <button nz-button nzType="default" nzSize="default" (click)="openExportFilterModal()" class="me-2">
                 <i class="fas fa-filter text-primary me-1"></i> Xuất Excel (Lọc)
             </button>
-            <button *ngIf="selectedProducts && selectedProducts.length > 0" nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu ({{ selectedProducts.length }} PO)</button>
+            <button *ngIf="selectedProducts && selectedProducts.length > 0" nz-button nzType="primary" nzSize="default" (click)="saveAndClose()" [disabled]="isSaving">
+                <span *ngIf="!isSaving">Lưu ({{ selectedProducts.length }} PO)</span>
+                <span *ngIf="isSaving"><i class="fas fa-spinner fa-spin me-1"></i> Đang lưu...</span>
+            </button>
         </div>
     </div>
     <nz-splitter class="h-100">
@@ -253,7 +256,7 @@
                         </ng-template>
 
                         <ng-template pTemplate="body" let-rowData let-rowIndex="rowIndex">
-                            <tr class="data-row">
+                            <tr class="data-row" [ngClass]="{ 'deleted-row': rowData.IsDeleted }">
                                 <!-- Delete button -->
                                 <td class="text-center">
                                     <button *ngIf="!rowData.IsDeleted" pButton type="button" icon="pi pi-trash"

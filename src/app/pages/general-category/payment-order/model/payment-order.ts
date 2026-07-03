@@ -276,6 +276,7 @@ export const PaymentOrderField = {
     CostCategory: { name: 'Khoản mục chi phí', field: 'CostCategory', type: 'string' },
     AccountingAccount: { name: 'Tài khoản hạch toán', field: 'AccountingAccount', type: 'string' },
     TotalPaymentWithInvoice: { name: 'Tổng tiền có hóa đơn', field: 'TotalPaymentWithInvoice', type: 'number' },
+    TotalMoneyAdvance: { name: 'Tổng tiền tạm ứng', field: 'TotalMoneyAdvance', type: 'number' },
 } as const
 
 

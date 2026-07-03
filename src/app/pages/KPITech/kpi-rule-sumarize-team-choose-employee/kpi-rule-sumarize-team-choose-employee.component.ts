@@ -62,7 +62,7 @@ export class KpiRuleSumarizeTeamChooseEmployeeComponent implements OnInit {
         id: 'EmployeeCode',
         field: 'EmployeeCode',
         name: 'Mã nhân viên',
-        width: 120,
+        width: 100,
         sortable: true,
         filterable: true,
       },
@@ -70,7 +70,7 @@ export class KpiRuleSumarizeTeamChooseEmployeeComponent implements OnInit {
         id: 'EmployeeName',
         field: 'EmployeeName',
         name: 'Tên nhân viên',
-        width: 300,
+        width: 250,
         sortable: true,
         filterable: true,
       },
@@ -80,6 +80,21 @@ export class KpiRuleSumarizeTeamChooseEmployeeComponent implements OnInit {
         name: 'Trạng thái bài đánh giá',
         width: 300,
         sortable: true,
+        filterable: true,
+      },
+      {
+        id: 'TotalPercent',
+        field: 'TotalPercent',
+        name: 'Điểm đánh giá',
+        width: 300,
+        sortable: true,
+        formatter: (_row: any, _cell: any, value: any, _colDef: any, dataContext: any) => {
+          // Angular-Slickgrid signature: (rowIndex, cellIndex, cellValue, colDef, dataContext)
+          // cellValue = tham số thứ 3
+          const totalPercent = dataContext?.TotalPercent ?? value;
+          const displayValue = totalPercent != null && !isNaN(totalPercent) ? Number(totalPercent).toFixed(2) : '0.00';
+          return `<span class="text-success" style="font-weight: bold; text-align: center; display: block;">${displayValue}</span>`;
+        },
         filterable: true,
       }
     ];

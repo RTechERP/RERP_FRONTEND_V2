@@ -1,0 +1,144 @@
+:host {
+    font-size: 12px !important;
+}
+
+.fs-12 {
+    font-size: 12px !important;
+}
+
+/* Card styles */
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body>div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: visible;
+}
+
+/* Search form positioning and z-index fixes */
+.filter-bar {
+    position: relative;
+    z-index: 10;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Menubar adjustments */
+::ng-deep .p-menubar {
+    padding: 0.25rem 0.5rem !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+::ng-deep .p-menuitem-text {
+    font-size: 12px !important;
+}
+
+/* Mobile modal styles */
+@media (max-width: 768px) {
+    .filter-bar.mobile-modal {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        background: white;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        max-height: 70vh;
+        overflow-y: auto;
+        margin: 16px;
+        border-radius: 8px;
+    }
+
+    .filter-backdrop {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1040;
+    }
+}
+
+/* Desktop - keep search form always visible */
+@media (min-width: 769px) {
+    .filter-backdrop {
+        display: none !important;
+    }
+
+    .filter-bar {
+        position: static !important;
+        z-index: 1 !important;
+    }
+}
+
+::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    padding: 0.5rem;
+    font-size: 12px;
+    white-space: normal !important;
+    word-wrap: break-word;
+}
+
+::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    padding: 0.5rem;
+    font-size: 12px;
+    white-space: normal !important;
+    word-wrap: break-word;
+}
+
+/* Table container styling to ensure it fills available space */
+.table-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+::ng-deep .table-section .p-datatable {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+::ng-deep .table-section .p-datatable-wrapper {
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+::ng-deep .table-section .p-datatable-scrollable-body {
+    flex: 1 1 auto;
+}
+
+/* Ensure PrimeNG table header stays sticky inside the scrollable container */
+::ng-deep .table-section .p-datatable .p-datatable-thead > tr > th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+/* Group Headers Styling */
+::ng-deep .department-header {
+    background-color: #f0f2f5 !important;
+}
+
+::ng-deep .department-header td {
+    padding: 8px 12px !important;
+    border-bottom: 2px solid #dee2e6 !important;
+}

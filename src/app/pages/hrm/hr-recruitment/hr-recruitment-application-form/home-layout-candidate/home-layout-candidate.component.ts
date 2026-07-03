@@ -309,6 +309,8 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
                             ),
                             Mobile: candidate.PhoneNumber || null,
                             ChucVuHDID: candidate.EmployeeChucVuHDID || null,
+                            Position: candidate.PositionName || candidate.Position || null,
+                            PositionName: candidate.PositionName || candidate.Position || null,
                         });
                         if (candidate.EmployeeChucVuHDID) {
                             this.onPositionChange(candidate.EmployeeChucVuHDID);
@@ -391,8 +393,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             });
         } else {
             this.form.patchValue({
-                ChucVuHDID: null,
-                Position: null
+                ChucVuHDID: id ?? null
             });
         }
     }
@@ -404,6 +405,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             HRRecruitmentCandidateID: [null],
             Image3x4: [null, [Validators.maxLength(550)]],
             Position: [null],
+            PositionName: [null],
             ChucVuHDID: [null, [Validators.required]],
             FileName: [null],
             FullName: [null, [Validators.required, Validators.maxLength(250)]],
@@ -424,6 +426,7 @@ export class HomeLayoutCandidateComponent implements OnInit, OnDestroy, OnChange
             Height: [null],
             Weight: [null],
             MaritalStatus: [null, [Validators.required]],
+            WorkExperienceLevel: [null, [Validators.required]],
             InjuriesOrSeriousIll: [false, [Validators.required]],
             IfYesSpecify: [null, [Validators.maxLength(550)]],
             CurrentlyPregnant: [false],

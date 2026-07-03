@@ -1,0 +1,238 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-uppercase text-white">
+    {{ record ? 'Cập nhật yêu cầu làm visa' : 'Thêm mới yêu cầu làm visa' }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="dismiss()"></button>
+</div>
+
+<div class="modal-body fs-12">
+  <form nz-form nzLayout="vertical">
+
+    <fieldset class="reset m-0">
+      <legend class="reset fs-12 p-0">THÔNG TIN CHUNG</legend>
+      <nz-row [nzGutter]="16">
+        <nz-col [nzSpan]="4">
+          <nz-form-item class="mb-2">
+            <nz-form-label nzRequired>Phân loại</nz-form-label>
+            <nz-form-control>
+              <nz-select [(ngModel)]="formData.Type" name="type" nzSize="small" style="width: 100%"
+                (ngModelChange)="onTypeChange()">
+                <nz-option [nzValue]="1" nzLabel="Nhân viên công ty"></nz-option>
+                <nz-option [nzValue]="2" nzLabel="Đối tác"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col *ngIf="formData.Type === 1" [nzSpan]="6">
+          <nz-form-item class="mb-2">
+            <nz-form-label [nzRequired]="formData.Type === 1">Nhân viên</nz-form-label>
+            <nz-form-control>
+              <nz-select [(ngModel)]="formData.EmployeeID" name="employeeId" nzShowSearch nzAllowClear nzSize="small"
+                style="width: 100%" nzPlaceHolder="Chọn nhân viên" (ngModelChange)="onEmployeeChange()"
+                [nzDisabled]="formData.Type !== 1">
+                <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
+                  <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID"
+                    [nzLabel]="emp.Code + '-' + emp.FullName"></nz-option>
+                </nz-option-group>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="formData.Type === 1 ? 6 : 8">
+          <nz-form-item class="mb-2">
+            <nz-form-label [nzRequired]="formData.Type === 2">Họ và tên</nz-form-label>
+            <nz-form-control>
+              <input nz-input [(ngModel)]="formData.FullName" name="fullName" nzSize="small"
+                [disabled]="formData.Type === 1" autocomplete="off" (ngModelChange)="onFullNameInput($event)"
+                (focus)="onFullNameInput(formData.FullName)" [nzAutocomplete]="autoFullName" />
+              <nz-autocomplete #autoFullName>
+                <nz-auto-option *ngFor="let option of filteredFullNames" [nzValue]="option">{{ option
+                  }}</nz-auto-option>
+              </nz-autocomplete>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="formData.Type === 1 ? 4 : 6">
+          <nz-form-item class="mb-2">
+            <nz-form-label>Ngày sinh</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker [(ngModel)]="formData.DateOfBirth" name="dob" nzFormat="dd/MM/yyyy" nzSize="small"
+                style="width: 100%" [nzDisabled]="formData.Type === 1"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="formData.Type === 1 ? 4 : 6">
+          <nz-form-item class="mb-2">
+            <nz-form-label>Giới tính</nz-form-label>
+            <nz-form-control>
+              <nz-select [(ngModel)]="formData.Gender" name="gender" nzSize="small" style="width: 100%">
+                <nz-option [nzValue]="1" nzLabel="Nam"></nz-option>
+                <nz-option [nzValue]="2" nzLabel="Nữ"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="16">
+        <nz-col [nzSpan]="5">
+          <nz-form-item class="mb-2">
+            <nz-form-label>Quốc tịch</nz-form-label>
+            <nz-form-control>
+              <input nz-input [(ngModel)]="formData.Nation" name="nation" nzSize="small" autocomplete="off"
+                (ngModelChange)="onNationInput($event)" (focus)="onNationInput(formData.Nation)"
+                [nzAutocomplete]="autoNation" />
+              <nz-autocomplete #autoNation>
+                <nz-auto-option *ngFor="let option of filteredNations" [nzValue]="option">{{ option }}</nz-auto-option>
+              </nz-autocomplete>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="5">
+          <nz-form-item class="mb-2">
+            <nz-form-label>Số hộ chiếu</nz-form-label>
+            <nz-form-control>
+              <input nz-input [(ngModel)]="formData.HoChieu" name="passport" nzSize="small" autocomplete="off"
+                (ngModelChange)="onPassportInput($event)" (focus)="onPassportInput(formData.HoChieu)"
+                [nzAutocomplete]="autoPassport" />
+              <nz-autocomplete #autoPassport>
+                <nz-auto-option *ngFor="let option of filteredPassports" [nzValue]="option">{{ option
+                  }}</nz-auto-option>
+              </nz-autocomplete>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="4">
+          <nz-form-item class="mb-2">
+            <nz-form-label>Nghề nghiệp</nz-form-label>
+            <nz-form-control>
+              <input nz-input [(ngModel)]="formData.NgheNghiep" name="job" nzSize="small" autocomplete="off"
+                (ngModelChange)="onJobInput($event)" (focus)="onJobInput(formData.NgheNghiep)"
+                [nzAutocomplete]="autoJob" />
+              <nz-autocomplete #autoJob>
+                <nz-auto-option *ngFor="let option of filteredJobs" [nzValue]="option">{{ option }}</nz-auto-option>
+              </nz-autocomplete>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="5">
+          <nz-form-item class="mb-2">
+            <nz-form-label>Công ty</nz-form-label>
+            <nz-form-control>
+              <input nz-input [(ngModel)]="formData.CompanyName" name="company" nzSize="small" autocomplete="off"
+                (ngModelChange)="onCompanyInput($event)" (focus)="onCompanyInput(formData.CompanyName)"
+                [nzAutocomplete]="autoCompany" />
+              <nz-autocomplete #autoCompany>
+                <nz-auto-option *ngFor="let option of filteredCompanies" [nzValue]="option">{{ option
+                  }}</nz-auto-option>
+              </nz-autocomplete>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="5">
+          <nz-form-item class="mb-2">
+            <nz-form-label nzRequired>Điểm đến</nz-form-label>
+            <nz-form-control>
+              <input nz-input [(ngModel)]="formData.Destination" name="destination" nzSize="small" autocomplete="off"
+                (ngModelChange)="onDestinationInput($event)" (focus)="onDestinationInput(formData.Destination)"
+                [nzAutocomplete]="autoDestination" />
+              <nz-autocomplete #autoDestination>
+                <nz-auto-option *ngFor="let option of filteredDestinations" [nzValue]="option">{{ option
+                  }}</nz-auto-option>
+              </nz-autocomplete>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </fieldset>
+
+    <fieldset class="reset m-0 mt-2">
+      <legend class="reset fs-12 p-0">THÔNG TIN VISA & CHI PHÍ</legend>
+      <nz-row [nzGutter]="16">
+        <nz-col [nzSpan]="8">
+          <nz-form-item class="mb-2">
+            <nz-form-label>Thời gian công tác</nz-form-label>
+            <nz-form-control>
+              <nz-range-picker [(ngModel)]="tripDates" name="tripDates" (ngModelChange)="onTripDatesChange($event)"
+                nzFormat="dd/MM/yyyy" nzSize="small" style="width: 100%"></nz-range-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="8">
+          <nz-form-item class="mb-2">
+            <nz-form-label>Thời gian có visa</nz-form-label>
+            <nz-form-control>
+              <input nz-input [(ngModel)]="formData.VisaIssueDate" name="visaIssueDate"
+                placeholder="VD: 5 ngày làm việc" nzSize="small" autocomplete="off"
+                (ngModelChange)="onVisaIssueDateInput($event)" (focus)="onVisaIssueDateInput(formData.VisaIssueDate)"
+                [nzAutocomplete]="autoVisaIssueDate" />
+              <nz-autocomplete #autoVisaIssueDate>
+                <nz-auto-option *ngFor="let option of filteredVisaIssueDates" [nzValue]="option">{{ option
+                  }}</nz-auto-option>
+              </nz-autocomplete>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="8">
+          <nz-form-item class="mb-2">
+            <nz-form-label>Chi phí dự kiến (VND)</nz-form-label>
+            <nz-form-control>
+              <input nz-input [ngModel]="formatterVND(formData.Cost || 0)" (ngModelChange)="onCostChange($event)"
+                name="cost" nzSize="small" autocomplete="off" (focus)="onCostInput(formData.Cost)"
+                [nzAutocomplete]="autoCost" />
+              <nz-autocomplete #autoCost>
+                <nz-auto-option *ngFor="let option of filteredCosts" [nzValue]="formatterVND(option)">{{
+                  formatterVND(option) }}</nz-auto-option>
+              </nz-autocomplete>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="16">
+        <nz-col [nzSpan]="24">
+          <nz-form-item class="mb-2">
+            <nz-form-label>Trạng thái visa</nz-form-label>
+            <nz-form-control>
+              <textarea nz-input [(ngModel)]="formData.Status" name="status" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+                placeholder="Nhập trạng thái visa" nzSize="small" autocomplete="off"
+                (ngModelChange)="onStatusInput($event)" (focus)="onStatusInput(formData.Status)"
+                [nzAutocomplete]="autoStatus"></textarea>
+              <nz-autocomplete #autoStatus>
+                <nz-auto-option *ngFor="let option of filteredStatuses" [nzValue]="option">{{ option }}</nz-auto-option>
+              </nz-autocomplete>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="16">
+        <nz-col [nzSpan]="24">
+          <nz-form-item class="mb-0">
+            <nz-form-label>Ghi chú</nz-form-label>
+            <nz-form-control>
+              <textarea nz-input [(ngModel)]="formData.Note" name="note" [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+                placeholder="Nhập ghi chú (nếu có)" nzSize="small"></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </fieldset>
+
+  </form>
+</div>
+
+<div class="modal-footer fs-12 p-2">
+  <button nz-button type="button" nzType="default" (click)="dismiss()">Hủy</button>
+  <button nz-button type="button" nzType="primary" (click)="save()" [nzLoading]="isSaving">Lưu</button>
+</div>

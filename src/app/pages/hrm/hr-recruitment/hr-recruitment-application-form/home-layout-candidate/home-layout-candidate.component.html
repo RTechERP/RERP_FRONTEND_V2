@@ -334,6 +334,10 @@
                                     </nz-row>
                                 </nz-radio-group>
                             </div>
+                            <div class="text-danger fs-11 mt-1"
+                                *ngIf="form.get('WorkExperienceLevel')?.invalid && form.get('WorkExperienceLevel')?.dirty">
+                                Vui lòng chọn số năm kinh nghiệm!
+                            </div>
                         </div>
                     </nz-col>
                 </nz-row>

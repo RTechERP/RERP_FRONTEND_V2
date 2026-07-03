@@ -1475,7 +1475,7 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
       { text: 'Trọng số', rowSpan: 2, bold: true, alignment: 'center', margin: [0, 8], fillColor: '#D9E1F2' },
       { text: 'NLĐ tự đánh giá', colSpan: 2, bold: true, alignment: 'center', fillColor: '#D9E1F2' },
       { text: '', fillColor: '#D9E1F2' },
-      { text: 'TBP đánh giá', colSpan: 2, bold: true, alignment: 'center', fillColor: '#D9E1F2' },
+      { text: 'QLTT đánh giá', colSpan: 2, bold: true, alignment: 'center', fillColor: '#D9E1F2' },
       { text: '', fillColor: '#D9E1F2' }
     ]);
     tableBody.push([

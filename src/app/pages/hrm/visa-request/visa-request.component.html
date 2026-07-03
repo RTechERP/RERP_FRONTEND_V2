@@ -1,0 +1,197 @@
+<p-menubar [model]="menuBars">
+  <ng-template pTemplate="item" let-item>
+    <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command() : null">
+      <i [class]="item.icon"></i>
+      <span class="p-menuitem-text">{{ item.label }}</span>
+    </a>
+  </ng-template>
+
+  <ng-template #end>
+    <div class="flex items-center gap-2">
+      <button nz-button nzType="text" nzShape="circle" *ngIf="isMobile()"
+        (click)="ToggleSearchPanelNew($event); $event.stopPropagation()">
+        <nz-icon nzType="search" />
+      </button>
+    </div>
+  </ng-template>
+</p-menubar>
+
+<ng-container class="w-100">
+  <div class="card border-0 rounded-0" style="height: 89vh !important;">
+    <!-- Backdrop overlay cho mobile -->
+    <div class="filter-backdrop" *ngIf="showSearchBar && isMobile()" (click)="ToggleSearchPanelNew()"></div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar bg-light border-bottom p-2" *ngIf="showSearchBar" [class.mobile-modal]="true">
+      <div class="filter-bar-header d-flex justify-content-between align-items-center mb-2" *ngIf="isMobile()">
+        <span class="fw-bold" style="font-size: 12px;">Tìm kiếm yêu cầu</span>
+        <button nz-button nzType="text" nzShape="circle" nzSize="small" nzDanger (click)="ToggleSearchPanelNew()">
+          <nz-icon nzType="close" />
+        </button>
+      </div>
+      <div class="mobile-filter-form">
+        <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+          <!-- Ngày bắt đầu -->
+          <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="3" [nzXl]="3">
+            <nz-form-item class="mb-0">
+              <nz-form-control>
+                <nz-date-picker [(ngModel)]="startDate" (ngModelChange)="onSearch()" nzFormat="dd/MM/yyyy"
+                  nzSize="small" class="w-100" [nzAllowClear]="true"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <!-- Ngày kết thúc -->
+          <nz-col [nzXs]="12" [nzSm]="6" [nzMd]="4" [nzLg]="3" [nzXl]="3">
+            <nz-form-item class="mb-0">
+              <nz-form-control>
+                <nz-date-picker [(ngModel)]="endDate" (ngModelChange)="onSearch()" nzFormat="dd/MM/yyyy" nzSize="small"
+                  class="w-100" [nzAllowClear]="true"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Loại đối tượng -->
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="4" [nzLg]="4" [nzXl]="3">
+            <nz-form-item class="mb-0">
+              <nz-form-control>
+                <nz-select [(ngModel)]="selectedType" (ngModelChange)="onSearch()" nzAllowClear nzSize="small"
+                  nzPlaceHolder="Loại đối tượng" class="w-100" nzDropdownClassName="select-dropdown">
+                  <nz-option [nzValue]="1" nzLabel="Nhân viên công ty"></nz-option>
+                  <nz-option [nzValue]="2" nzLabel="Đối tác"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Nhân viên -->
+          <nz-col [nzXs]="12" [nzSm]="12" [nzMd]="5" [nzLg]="4" [nzXl]="4">
+            <nz-form-item class="mb-0">
+              <nz-form-control>
+                <nz-select [(ngModel)]="selectedEmployeeID" (ngModelChange)="onSearch()" nzShowSearch nzAllowClear
+                  nzSize="small" nzPlaceHolder="Chọn nhân viên" class="w-100" nzDropdownClassName="select-dropdown">
+                  <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
+                    <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID"
+                      [nzLabel]="emp.Code + '-' + emp.FullName"></nz-option>
+                  </nz-option-group>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <!-- Từ khóa và nút tìm kiếm -->
+          <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="7" [nzLg]="10" [nzXl]="11">
+            <nz-form-item class="mb-0">
+              <nz-form-control>
+                <div class="d-flex gap-1">
+                  <input nz-input placeholder="Tên, Điểm đến, Ghi chú..." nzSize="small" [(ngModel)]="keyword"
+                    class="flex-grow-1" (keyup.enter)="onSearch()" />
+                  <button nz-button nzType="primary" style="width: 40px;" nzSize="small" (click)="onSearch()">
+                    <nz-icon nzType="search" />
+                  </button>
+                </div>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
+      </div>
+    </div>
+
+    <!-- Data Table Container -->
+    <div class="card-body p-0 position-relative">
+      <div *ngIf="loading">
+        <nz-spin [nzSpinning]="loading" nzSimple [style]="{
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(255,255,255,0.4)',
+                    zIndex: '999',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }"></nz-spin>
+      </div>
+
+      <div class="table-section" style="height: 100%;">
+        <p-table #dt [value]="requests" [loading]="loading" [paginator]="true" [rows]="50" [rowHover]="true"
+          [(selection)]="selectedRequests" styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped"
+          [rowsPerPageOptions]="[20, 50, 100, 500]"
+          currentPageReportTemplate="Hiển thị {first} đến {last} của {totalRecords} bản ghi"
+          [showCurrentPageReport]="true" [scrollable]="true" scrollHeight="flex" dataKey="ID"
+          sortField="Type" sortMode="single" rowGroupMode="subheader" groupRowsBy="Type">
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="min-width: 50px" class="text-center">
+                <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+              </th>
+              <th style="min-width: 50px" class="text-center">STT</th>
+
+
+              <th style="min-width: 100px">Họ và tên</th>
+              <th style="min-width: 120px" class="text-center">Ngày sinh</th>
+              <th style="min-width: 100px" class="text-center">Giới tính</th>
+              <th style="min-width: 150px">Quốc tịch</th>
+              <th style="min-width: 150px">Số hộ chiếu</th>
+              <th style="min-width: 150px">Công ty</th>
+              <th style="min-width: 150px">Nghề nghiệp</th>
+              <th style="min-width: 150px">Điểm đến</th>
+              <th style="min-width: 200px" class="text-center">Thời gian visa</th>
+              <th style="min-width: 100px" class="text-right">Chi phí</th>
+              <th style="min-width:100px" class="text-center">TG có visa</th>
+              <th style="min-width: 300px">Ghi chú</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="groupheader" let-item>
+            <tr pRowGroupHeader>
+              <td colspan="14" class="fw-bold" style="background-color: #e6f7ff; color: #0050b3; font-size: 13px;">
+                {{ item.Type === 1 ? 'NHÂN VIÊN CÔNG TY' : 'ĐỐI TÁC' }}
+              </td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-item let-i="rowIndex">
+            <tr>
+              <td class="text-center">
+                <p-tableCheckbox [value]="item"></p-tableCheckbox>
+              </td>
+              <td class="text-center">{{ item.STT }}</td>
+
+
+              <td>{{ item.FullName }}</td>
+              <td class="text-center">{{ item.DateOfBirth | date:'dd/MM/yyyy' }}</td>
+              <td class="text-center">{{ item.Gender === 1 ? 'Nam' : (item.Gender === 2 ? 'Nữ' : '') }}</td>
+              <td>{{ item.Nation }}</td>
+              <td>{{ item.HoChieu }}</td>
+              <td>{{ item.CompanyName }}</td>
+              <td>{{ item.NgheNghiep }}</td>
+              <td>{{ item.Destination }}</td>
+              <td class="text-center">
+                <ng-container *ngIf="item.BusinessTripFromDate || item.BusinessTripToDate">
+                  {{ item.BusinessTripFromDate | date:'dd/MM/yyyy' }} - {{ item.BusinessTripToDate | date:'dd/MM/yyyy'
+                  }}
+                </ng-container>
+              </td>
+              <td class="text-right">{{ item.Cost | number }}</td>
+              <td class="text-center">{{ item.VisaIssueDate }}</td>
+              <td>{{ item.Note }}</td>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="14" class="text-center py-5">
+                <i class="fa-solid fa-inbox fa-3x text-muted mb-3 d-block"></i>
+                Không tìm thấy dữ liệu yêu cầu visa
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </div>
+
+  <p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+</ng-container>

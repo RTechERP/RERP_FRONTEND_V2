@@ -1704,6 +1704,32 @@ export class ProjectPartListSlickGridComponent implements OnInit, AfterViewInit,
                     useRegularTooltip: true,
                 },
             },
+             {
+                id: 'ReasonUnPrice', field: 'ReasonUnPrice', name: 'Lý do từ chối báo giá', width: 200, columnGroup: 'Yêu cầu báo giá', filterable: true, filter: { model: Filters['compoundInputText'] },
+                formatter: (_row: any, _cell: any, value: any, _column: any, dataContext: any) => {
+                    if (!value) return '';
+                    return `
+            <span
+              title="${dataContext.ReasonUnPrice}"
+              style="
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                word-break: break-word;
+                line-height: 1.4;
+              "
+            >
+              ${value}
+            </span>
+          `;
+                },
+                customTooltip: {
+                    useRegularTooltip: true,
+                },
+            },
             // ==================== NHÓM: Yêu cầu mua hàng ====================
             {
                 id: 'IsApprovedPurchase', field: 'IsApprovedPurchase', name: 'Yêu cầu mua', width: 90, columnGroup: 'Yêu cầu mua hàng',

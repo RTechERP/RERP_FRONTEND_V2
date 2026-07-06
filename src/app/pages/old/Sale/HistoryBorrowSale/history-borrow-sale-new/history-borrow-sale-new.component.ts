@@ -443,6 +443,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                         </span>
                     `;
                 },
+                excelExportOptions: { valueParserCallback: (_val, args) => args.dataContext['ProductName'] || '' },
                 customTooltip: {
                     renderRegularTooltipAsHtml: true,
 
@@ -482,6 +483,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                         </span>
                     `;
                 },
+                excelExportOptions: { valueParserCallback: (_val, args) => args.dataContext['CustomerName'] || '' },
                 customTooltip: {
                     useRegularTooltip: true,
                 },
@@ -564,6 +566,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                         </span>
                     `;
                 },
+                excelExportOptions: { valueParserCallback: (_val, args) => args.dataContext['ProjectNameText'] || '' },
                 customTooltip: {
                     useRegularTooltip: true,
                 },

@@ -2218,7 +2218,7 @@ export class PaymentOrderComponent implements OnInit {
         field: 'CreatedDate',
         type: 'string',
         width: 120,
-        formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
+        formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY HH:mm:ss' },
         filter: { model: Filters['compoundDate'] },
         cssClass: 'text-center'
       },

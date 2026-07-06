@@ -81,8 +81,8 @@
     background-color: #fff3cd !important;
 }
 
-/* Row styling for different rating (matching C# grvData_RowStyle LightBlue) */
-:host ::ng-deep .slick-row.row-rating-different {
+/* Cell styling for different rating (matching C# grvData_RowStyle LightBlue) */
+:host ::ng-deep .slick-cell.cell-rating-different {
     background-color: #add8e6 !important;
 }
 

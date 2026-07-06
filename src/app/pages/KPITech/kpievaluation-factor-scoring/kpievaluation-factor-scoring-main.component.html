@@ -344,4 +344,11 @@
             </nz-splitter>
         </div>
     </div>
+    <nz-dropdown-menu #contextMenu="nzDropdownMenu">
+        <ul nz-menu>
+            <li nz-menu-item (click)="viewErrorDetails()">
+                <i nz-icon nzType="zoom-in" nzTheme="outline" class="mr-2"></i>Xem chi tiết lỗi
+            </li>
+        </ul>
+    </nz-dropdown-menu>
 </div>

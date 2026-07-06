@@ -46,7 +46,6 @@ export class KpiRankingComponent implements OnInit {
   departments: any[] = [];
 
   // Chart State
-  selectedChartType: string = 'TotalPoinKPI';
   chartData: any = { labels: [], datasets: [] };
   chartOptions: any = {};
   chartPlugins: any[] = [{
@@ -66,7 +65,6 @@ export class KpiRankingComponent implements OnInit {
             const x = bar.x;
             const y = bar.y;
             const base = bar.base;
-            // Draw in the middle of the bar
             ctx.fillText(value.toString(), x, y + (base - y) / 2);
             ctx.restore();
           }
@@ -76,11 +74,36 @@ export class KpiRankingComponent implements OnInit {
   }];
   rawChartData: any[] = [];
   allEmployees: any[] = [];
+  selectedChartTypes: string[] = ['TotalPoinKPI', 'TotalPoinKPILast'];
+
+  get showKPI(): boolean {
+    return this.selectedChartTypes.includes('TotalPoinKPI');
+  }
+  set showKPI(val: boolean) {
+    this.toggleChartType('TotalPoinKPI', val);
+  }
+
+  get showKPILast(): boolean {
+    return this.selectedChartTypes.includes('TotalPoinKPILast');
+  }
+  set showKPILast(val: boolean) {
+    this.toggleChartType('TotalPoinKPILast', val);
+  }
+
+  private toggleChartType(tag: string, checked: boolean): void {
+    const idx = this.selectedChartTypes.indexOf(tag);
+    if (checked && idx === -1) {
+      this.selectedChartTypes = [...this.selectedChartTypes, tag];
+    } else if (!checked && idx >= 0) {
+      this.selectedChartTypes = this.selectedChartTypes.filter(t => t !== tag);
+    }
+  }
 
   // Grid State
   grid!: AngularGridInstance;
   dataset: any[] = [];
   colDef: Column[] = [];
+  gridId: string = `gridEmployee-${Math.random().toString(36).slice(2, 9)}`;
 
   gridOptions: GridOption = {
     enableAutoResize: true,
@@ -263,15 +286,18 @@ export class KpiRankingComponent implements OnInit {
   updateChartVisibility(): void {
     const labels = this.rawChartData.map((x: any) => x.KPILevel);
     const datasets = [];
+    const selected = this.selectedChartTypes;
 
-    if (this.selectedChartType === 'TotalPoinKPI') {
+    if (selected.includes('TotalPoinKPI')) {
       datasets.push({
         label: 'Tổng điểm KPI',
         data: this.rawChartData.map((x: any) => x.SoLuongExpected),
         backgroundColor: '#60B5CC',
         tag: 'TotalPoinKPI'
       });
-    } else {
+    }
+
+    if (selected.includes('TotalPoinKPILast')) {
       datasets.push({
         label: 'Tổng điểm cuối cùng',
         data: this.rawChartData.map((x: any) => x.SoLuongActual),
@@ -288,9 +314,10 @@ export class KpiRankingComponent implements OnInit {
   }
 
   onDataSelect(event: any): void {
-    if (!event.element) return;
+    if (!event || !event.element) return;
+    const selectedDataset = this.chartData.datasets[event.element.datasetIndex];
+    const isActual = selectedDataset?.tag === 'TotalPoinKPILast';
     const kpiLevel = this.chartData.labels[event.element.index];
-    const isActual = this.selectedChartType === 'TotalPoinKPILast';
     this.loadEmployeesByKpiLevel(kpiLevel, isActual);
   }
 
@@ -380,7 +407,7 @@ export class KpiRankingComponent implements OnInit {
       this.tabService.closeTabByKey(this.tabData._tabKey);
     } else {
       // Fallback close by key based on how it was opened
-      const key = `kpi-ranking-${this.year}-${this.quarter}-${this.departmentId}`;
+      const key = 'kpi-ranking';
       this.tabService.closeTabByKey(key);
     }
   }

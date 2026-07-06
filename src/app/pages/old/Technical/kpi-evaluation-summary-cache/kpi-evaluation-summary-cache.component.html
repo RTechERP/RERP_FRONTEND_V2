@@ -1,0 +1,200 @@
+<div class="card border-0 rounded-0 d-flex flex-column" style="height: calc(100vh - 40px - 1rem); overflow: hidden;">
+
+  <!-- ===== FILTER BAR ===== -->
+  <div class="filter-bar bg-light border-bottom p-2 d-flex align-items-center justify-content-between" style="flex-shrink: 0; gap: 8px;">
+
+    <!-- Left: Title & Badges -->
+    <div class="d-flex align-items-center gap-2">
+      <h5 class="mb-0 text-primary fw-bold" style="font-size: 14px;">
+        <i nz-icon nzType="table" nzTheme="outline"></i>
+        Bảng Điểm KPI
+      </h5>
+      <span class="badge bg-info text-dark" *ngIf="employeeName" style="font-size: 12px; padding: 4px 8px;">
+        {{ employeeCode }} - {{ employeeName }}
+      </span>
+      <span class="badge bg-warning text-dark" style="font-size: 12px; padding: 4px 8px;"
+        *ngIf="selectedQuarter && selectedYear">
+        Quý {{ selectedQuarter }} / {{ selectedYear }}
+      </span>
+    </div>
+
+    <!-- Right: Search Input & Action Buttons -->
+    <div class="d-flex align-items-center gap-2">
+      <!-- Keyword search -->
+      <div class="d-flex align-items-center gap-1">
+        <span class="fs-12 text-muted fw-semibold" style="white-space: nowrap;">Tìm kiếm:</span>
+        <input nz-input placeholder="Mã/Nội dung tiêu chí" nzSize="small" [(ngModel)]="keyword"
+          (ngModelChange)="onKeywordChange()" style="width: 180px; font-size: 12px;" />
+      </div>
+
+      <!-- Action buttons -->
+      <div class="d-flex align-items-center gap-1">
+        <button nz-button nzType="primary" nzSize="small" (click)="loadData()" [nzLoading]="isLoading"
+          [disabled]="selectedEmployeeId <= 0">
+          <i nz-icon nzType="reload"></i> Tìm kiếm
+        </button>
+      </div>
+    </div>
+
+    <!-- Hidden dropdowns to preserve bindings -->
+    <div *ngIf="false">
+      <nz-select [(ngModel)]="selectedDepartmentId" (ngModelChange)="onDepartmentChange()"></nz-select>
+      <nz-select [(ngModel)]="selectedUserTeamId" (ngModelChange)="onTeamChange()"></nz-select>
+      <nz-select [(ngModel)]="selectedEmployeeId" (ngModelChange)="onEmployeeChange()"></nz-select>
+      <nz-select [(ngModel)]="selectedQuarter" (ngModelChange)="onFilterChange()"></nz-select>
+      <nz-select [(ngModel)]="selectedYear" (ngModelChange)="onFilterChange()"></nz-select>
+    </div>
+
+  </div>
+
+  <!-- ===== TABLE CONTENT ===== -->
+  <div class="card-body p-0 flex-grow-1 position-relative" style="min-height: 0; overflow: hidden; height: 100%;">
+
+    <!-- Loading overlay -->
+    <div class="grid-loading-overlay" *ngIf="isLoading" style="position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(255,255,255,0.7);
+                display:flex; justify-content:center; align-items:center; z-index: 10;">
+      <nz-spin nzSimple nzTip="Đang tải dữ liệu cache..."></nz-spin>
+    </div>
+
+    <!-- Empty state when no employee selected -->
+    <div *ngIf="selectedEmployeeId <= 0 && !isLoading"
+      class="d-flex flex-column align-items-center justify-content-center h-100 text-muted"
+      style="font-size: 14px; gap: 8px;">
+      <i nz-icon nzType="user" nzTheme="outline" style="font-size: 48px; opacity: 0.3;"></i>
+      <span>Vui lòng chọn nhân viên để xem dữ liệu</span>
+    </div>
+
+    <!-- Data table -->
+    <p-table *ngIf="selectedEmployeeId > 0" [value]="filteredDataset" [columns]="columns" [scrollable]="true"
+      scrollHeight="flex" dataKey="EvaluationCode"
+      styleClass="p-datatable-sm p-datatable-gridlines kpi-prime-table h-100">
+
+      <ng-template pTemplate="header" let-columns>
+        <tr>
+          <th style="width: 3rem; padding: 8px;"></th>
+          <th *ngFor="let col of columns" [style.width]="col.width" class="fw-bold bg-light text-dark text-center"
+            style="font-size: 12px; padding: 8px;">
+            {{ col.name }}
+          </th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-rowData let-columns="columns">
+        <tr class="data-row" (click)="toggleRow(rowData)" style="cursor: pointer;">
+          <td style="width: 3rem; text-align: center; padding: 6px;">
+            <span class="d-inline-flex justify-content-center align-items-center text-muted"
+              style="width: 24px; height: 24px;">
+              <i class="pi"
+                [ngClass]="expandedRowsState[rowData.EvaluationCode] ? 'pi-chevron-down' : 'pi-chevron-right'"
+                style="font-size: 11px;"></i>
+            </span>
+          </td>
+          <td [style.width]="columns[0].width" class="text-center font-monospace fw-semibold"
+            style="font-size: 12px; padding: 6px;">
+            {{ rowData.EvaluationCode }}
+          </td>
+          <td [style.width]="columns[1].width" style="font-size: 12px; padding: 6px; white-space: normal;">
+            {{ rowData.EvaluationName || 'N/A' }}
+          </td>
+          <td [style.width]="columns[2].width" class="text-end fw-semibold"
+            style="font-size: 12px; padding: 6px; color: #198754;">
+            {{ formatValue(rowData.FirstMonth) }}
+          </td>
+          <td [style.width]="columns[3].width" class="text-end fw-semibold"
+            style="font-size: 12px; padding: 6px; color: #0d6efd;">
+            {{ formatValue(rowData.SecondMonth) }}
+          </td>
+          <td [style.width]="columns[4].width" class="text-end fw-semibold"
+            style="font-size: 12px; padding: 6px; color: #dc3545;">
+            {{ formatValue(rowData.ThirdMonth) }}
+          </td>
+        </tr>
+
+        <!-- Details Row inline (No rowexpansion template needed) -->
+        <tr *ngIf="expandedRowsState[rowData.EvaluationCode]" class="bg-light">
+          <td colspan="6" class="p-3">
+            <div class="card shadow-sm border-0">
+              <div class="card-header bg-white py-2 d-flex flex-column gap-1 border-bottom">
+                <!-- <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-bold text-secondary" style="font-size: 12px;">
+                    <i nz-icon nzType="profile" nzTheme="outline" class="me-1"></i>
+                    Chi tiết vi phạm: {{ rowData.EvaluationCode }} - {{ rowData.EvaluationName }}
+                  </span>
+                </div> -->
+                <!-- Nội dung tiêu chí (Description) hiển thị nổi bật nếu có -->
+                <!-- <div *ngIf="rowData.EvaluationName" class="text-muted fst-italic" style="font-size: 11px;">
+                  <i nz-icon nzType="info-circle" nzTheme="outline" class="me-1"></i>
+                  <span class="fw-semibold text-primary">Nội dung tiêu chí:</span>
+                  <span class="text-dark">{{ rowData.EvaluationName }}</span>
+                </div> -->
+              </div>
+              <div class="card-body p-0 position-relative" style="min-height: 60px;">
+                <!-- Loading spinner for child table -->
+                <div class="d-flex justify-content-center align-items-center py-3"
+                  *ngIf="expandedRowsData[rowData.EvaluationCode]?.loading">
+                  <nz-spin nzSimple nzTip="Đang tải chi tiết lỗi..."></nz-spin>
+                </div>
+
+                <!-- Details table -->
+                <table class="table table-sm table-bordered mb-0"
+                  *ngIf="!expandedRowsData[rowData.EvaluationCode]?.loading && expandedRowsData[rowData.EvaluationCode]?.data?.length">
+                  <thead class="bg-light">
+                    <tr>
+                      <th class="text-center font-weight-bold" style="font-size: 11px; width: 13%;">Ngày vi phạm</th>
+                      <th class="text-center font-weight-bold" style="font-size: 11px; width: 12%;">Mã lỗi</th>
+                      <th class="text-center font-weight-bold" style="font-size: 11px; width: 15%;">Tên lỗi</th>
+                      <th class="font-weight-bold" style="font-size: 11px; width: 30%;">Nội dung tiêu chí</th>
+                      <th class="font-weight-bold" style="font-size: 11px; width: 20%;">Nội dung chi tiết (Ghi chú/Hạng
+                        mục)</th>
+                      <th class="text-end font-weight-bold" style="font-size: 11px; width: 10%;">Số lượng</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let err of expandedRowsData[rowData.EvaluationCode]?.data"
+                      [ngClass]="getRowClassByMonth(err?.ErrorDate ?? err?.errorDate)">
+                      <td class="text-center text-muted" style="font-size: 11px;">
+                        {{ (err?.ErrorDate ?? err?.errorDate) | date:'dd/MM/yyyy' }}
+                      </td>
+                      <td class="text-center font-monospace" style="font-size: 11px;">
+                        {{ err?.ErrorCode ?? err?.errorCode }}
+                      </td>
+                      <td class="text-center text-secondary" style="font-size: 11px;">
+                        {{ err?.ErrorName ?? err?.errorName }}
+                      </td>
+                      <td style="font-size: 11px; white-space: normal; color: #0d6efd;">
+                        {{ (err?.EvaluationContent ?? err?.evaluationContent ?? rowData?.EvaluationName) || 'N/A' }}
+                      </td>
+                      <td style="font-size: 11px; white-space: normal;">
+                        {{ err?.Note ?? err?.note ?? 'N/A' }}
+                      </td>
+                      <td class="text-end fw-semibold text-danger" style="font-size: 11px;">
+                        {{ err?.ErrorNumber ?? err?.errorNumber }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <!-- Empty state for details -->
+                <div class="text-center text-muted py-4"
+                  *ngIf="!expandedRowsData[rowData.EvaluationCode]?.loading && !expandedRowsData[rowData.EvaluationCode]?.data?.length"
+                  style="font-size: 12px;">
+                  <i nz-icon nzType="info-circle" nzTheme="outline" class="me-1"></i>
+                  Không tìm thấy chi tiết lỗi phát sinh cho tiêu chí này.
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center text-muted py-4" style="font-size: 13px;">
+            <i nz-icon nzType="info-circle" nzTheme="outline"></i>
+            Không có dữ liệu lưu trữ cho nhân viên này trong Quý {{ selectedQuarter }}/{{ selectedYear }}
+          </td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </div>
+</div>

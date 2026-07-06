@@ -64,7 +64,7 @@ import { TabServiceService } from '../../../../layouts/tab-service.service';
 })
 export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
   // SlickGrid
-  gridId: string = 'summary-kpi-' + Math.random().toString(36).substring(2, 9);
+  gridId: string = '';
   angularGrid!: AngularGridInstance;
   columnDefinitions: Column[] = [];
   gridOptions: GridOption = {};
@@ -105,6 +105,8 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
+    // Generate unique gridId for this instance (fix duplicate ID when opening multiple tabs)
+    this.gridId = 'summary-kpi-' + Math.random().toString(36).substring(2, 9);
     this.initMenuBar();
     this.initGrid();
 
@@ -425,10 +427,11 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
     const summary = this.getKpiLevelSummary();
 
     // Mở như tab thực sự thông qua TabService
+    // Dùng key cố định "kpi-ranking" để tránh trùng gridId, data chứa thông tin phân biệt
     this.tabService.openTabComp({
       comp: KpiRankingComponent,
-      title: `Xếp loại KPI - Q${this.quarter}/${this.year}`,
-      key: `kpi-ranking-${this.year}-${this.quarter}-${this.departmentId}`,
+      title: `Xếp loại KPI - Q${this.quarter}/${this.year} - ${this.departmentId || 'Tất cả'}`,
+      key: 'kpi-ranking',
       data: {
         dtData: this.dataset,
         dtSummary: summary,
@@ -749,7 +752,10 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
           // Highlight if ratings are different (matching C# logic)
           if (totalPercentText && totalPercentTextActual && totalPercentText !== totalPercentTextActual) {
             metadata = metadata || {};
-            metadata.cssClasses = (metadata.cssClasses || '') + ' row-rating-different';
+            metadata.columns = metadata.columns || {};
+            metadata.columns['TotalPercentActual'] = {
+              cssClass: (metadata.columns['TotalPercentActual']?.cssClass || '') + ' cell-rating-different'
+            };
           }
         }
 

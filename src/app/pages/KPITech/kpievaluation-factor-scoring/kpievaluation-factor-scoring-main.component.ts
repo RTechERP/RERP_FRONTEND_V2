@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, inject, ChangeDetectorRef, Input, OnChanges, SimpleChanges, Inject, Optional } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, ChangeDetectorRef, Input, OnChanges, SimpleChanges, Inject, Optional, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -25,7 +25,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzDropDownModule, NzContextMenuService, NzDropdownMenuComponent } from 'ng-zorro-antd/dropdown';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
@@ -38,6 +38,7 @@ import { KpiRuleSumarizeTeamChooseEmployeeComponent } from '../kpi-rule-sumarize
 import { KPIEvaluationFactorScoringDetailsComponent } from '../kpievaluation-factor-scoring-details/kpievaluation-factor-scoring-details.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { ActivityLogKpiComponent } from './activity-log-kpi/activity-log-kpi.component';
+import { KpiEvaluationSummaryCacheComponent } from '../../old/Technical/kpi-evaluation-summary-cache/kpi-evaluation-summary-cache.component';
 
 // PrimeNG / Custom Components
 import { CustomTableKpi } from '../../../shared/custom-table-kpi/custom-table-kpi';
@@ -73,6 +74,10 @@ import { MenuItem, TreeNode } from 'primeng/api';
   styleUrl: './kpievaluation-factor-scoring.component.css'
 })
 export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
+  @ViewChild('contextMenu', { static: true }) contextMenu!: NzDropdownMenuComponent;
+  private nzContextMenuService = inject(NzContextMenuService);
+  contextMenuRowData: any = null;
+
   // Grid instances
   angularGridExam!: AngularGridInstance;
   angularGridEmployee!: AngularGridInstance;
@@ -755,6 +760,34 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
 
     this.evaluationGridOptions = {
       enableAutoResize: true,
+      enableExcelCopyBuffer: true,
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'viewErrorDetails',
+            title: 'Xem chi tiết lỗi',
+            iconCssClass: 'fa fa-search-plus',
+            itemVisibilityOverride: (args: any) => {
+              const rowData = args?.dataContext;
+              const code = rowData?.EvaluationCode?.toUpperCase() || '';
+              return !!(
+                rowData &&
+                code &&
+                code !== 'NEWLINE' &&
+                !code.startsWith('KPI') &&
+                !code.startsWith('TEAMKPI') &&
+                !rowData.__hasChildren &&
+                this.selectedEmployeeID > 0
+              );
+            },
+            action: (_e: any, args: any) => {
+              this.contextMenuRowData = args.dataContext;
+              this.viewErrorDetails();
+            }
+          }
+        ]
+      },
       autoResize: {
         container: '#' + this.gridIdPrefix + '-evaluation-container',
         calculateAvailableSizeBy: 'container',
@@ -1208,6 +1241,34 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
 
     this.ruleGridOptions = {
       enableAutoResize: true,
+      enableExcelCopyBuffer: true,
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'viewErrorDetails',
+            title: 'Xem chi tiết lỗi',
+            iconCssClass: 'fa fa-search-plus',
+            itemVisibilityOverride: (args: any) => {
+              const rowData = args?.dataContext;
+              const code = rowData?.EvaluationCode?.toUpperCase() || '';
+              return !!(
+                rowData &&
+                code &&
+                code !== 'NEWLINE' &&
+                !code.startsWith('KPI') &&
+                !code.startsWith('TEAMKPI') &&
+                !rowData.__hasChildren &&
+                this.selectedEmployeeID > 0
+              );
+            },
+            action: (_e: any, args: any) => {
+              this.contextMenuRowData = args.dataContext;
+              this.viewErrorDetails();
+            }
+          }
+        ]
+      },
       autoResize: {
         container: '#' + this.gridIdPrefix + '-rule-container',
         calculateAvailableSizeBy: 'container',
@@ -1376,6 +1437,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
 
     this.teamGridOptions = {
       enableAutoResize: true,
+      enableExcelCopyBuffer: true,
+      enableContextMenu: true,
       autoResize: {
         container: '#' + this.gridIdPrefix + '-team-container',
         calculateAvailableSizeBy: 'container',
@@ -1480,6 +1543,59 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
     this.resetColumnWidths(this.angularGridRule, this.ruleColumns);
     this.stretchMainColumn(this.angularGridRule);
     setTimeout(() => this.angularGridRule?.resizerService?.resizeGrid(), 100);
+  }
+
+  private registerContextMenuForGrid(angularGrid: any): void {
+    if (angularGrid?.slickGrid) {
+      angularGrid.slickGrid.onContextMenu.subscribe((e: any, args: any) => {
+        const grid = args.grid;
+        const cell = grid.getCellFromEvent(e);
+        if (!cell || cell.row == null) return;
+
+        const rowData = grid.getDataItem(cell.row);
+        const evaluationCode = rowData?.EvaluationCode;
+
+        if (
+          rowData &&
+          evaluationCode &&
+          evaluationCode.toLowerCase() !== 'newline' &&
+          !evaluationCode.toUpperCase().startsWith('KPI') &&
+          !evaluationCode.toUpperCase().startsWith('TEAMKPI') &&
+          !rowData.__hasChildren &&
+          this.selectedEmployeeID > 0
+        ) {
+          if (e?.preventDefault) e.preventDefault();
+
+          this.contextMenuRowData = rowData;
+          if (this.contextMenu) {
+            this.nzContextMenuService.create(e, this.contextMenu);
+          }
+        }
+      });
+    }
+  }
+
+  viewErrorDetails(): void {
+    if (!this.contextMenuRowData || this.selectedEmployeeID <= 0) return;
+    const evaluationCode = this.contextMenuRowData.EvaluationCode;
+    const selectedSession = this.kpiSessionData.find(s => s.ID === this.selectedKPISessionID);
+    const year = selectedSession?.YearEvaluation || new Date().getFullYear();
+    const quarter = selectedSession?.QuarterEvaluation || 1;
+
+    if (this.tabService) {
+      this.tabService.openTabComp({
+        comp: KpiEvaluationSummaryCacheComponent,
+        title: `Chi tiết lỗi - ${evaluationCode}`,
+        key: `kpi-evaluation-summary-cache-${evaluationCode}`,
+        data: {
+          employeeId: this.selectedEmployeeID,
+          quarter: quarter,
+          year: year,
+          keyword: evaluationCode,
+          evaluationCode: evaluationCode
+        }
+      });
+    }
   }
 
   onTeamGridReady(angularGrid: any): void {
@@ -1784,8 +1900,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         // Tab 1 (UI Index 1) - Chung (Grid Evaluation4)
         if (results.chung?.data) {
           const rawChung = this.transformToTreeData(results.chung.data);
-          this.dataEvaluation4 = this.selectedDepartmentID === this.departmentCK 
-            ? this.calculatorAvgPointTKCK(rawChung, 'general') 
+          this.dataEvaluation4 = this.selectedDepartmentID === this.departmentCK
+            ? this.calculatorAvgPointTKCK(rawChung, 'general')
             : this.calculatorAvgPoint(rawChung);
           this.isTab2Loaded = true;
 
@@ -1798,8 +1914,8 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         // Tab 2 (UI Index 2) - Chuyên môn (Grid Evaluation2)
         if (results.chuyenMon?.data) {
           const rawChuyenMon = this.transformToTreeData(results.chuyenMon.data);
-          this.dataEvaluation2 = this.selectedDepartmentID === this.departmentCK 
-            ? this.calculatorAvgPointTKCK(rawChuyenMon, 'specialization') 
+          this.dataEvaluation2 = this.selectedDepartmentID === this.departmentCK
+            ? this.calculatorAvgPointTKCK(rawChuyenMon, 'specialization')
             : this.calculatorAvgPoint(rawChuyenMon);
           this.isTab3Loaded = true;
 
@@ -5244,7 +5360,6 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
 
     const divSkill = totalSkillPoint + totalCMPoint;
     const totalStandart = totalSkillPoint + totalCMPoint;
-    debugger;
     this.dataMaster = [
       {
         id: 1,

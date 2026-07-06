@@ -49,17 +49,17 @@
             <nz-splitter-panel nzDefaultSize="65%" [nzMin]="'40%'" [nzMax]="'85%'">
                 <div class="chart-panel h-100 w-100">
                     <div class="chart-wrapper h-100 position-relative shadow-sm border rounded bg-white p-3">
-                        <!-- Radio buttons overlay -->
+                        <!-- Checkbox overlay -->
                         <div class="radio-overlay">
                             <label class="radio-item kpi-expected">
-                                <input type="radio" name="chartType" value="TotalPoinKPI"
-                                    [(ngModel)]="selectedChartType" (change)="onChartTypeChange()">
+                                <input type="checkbox" name="chartTypeKPI" value="TotalPoinKPI"
+                                    [(ngModel)]="showKPI" (change)="onChartTypeChange()">
                                 <span class="radio-dot"></span>
                                 Tổng điểm KPI
                             </label>
                             <label class="radio-item kpi-actual">
-                                <input type="radio" name="chartType" value="TotalPoinKPILast"
-                                    [(ngModel)]="selectedChartType" (change)="onChartTypeChange()">
+                                <input type="checkbox" name="chartTypeKPILast" value="TotalPoinKPILast"
+                                    [(ngModel)]="showKPILast" (change)="onChartTypeChange()">
                                 <span class="radio-dot"></span>
                                 Tổng điểm cuối cùng
                             </label>
@@ -84,7 +84,7 @@
                             <span class="badge bg-info text-white">{{dataset.length}} nhân viên</span>
                         </div>
                         <div class="grid-content flex-grow-1">
-                            <angular-slickgrid gridId="gridEmployee" [columns]="colDef" [options]="gridOptions"
+                            <angular-slickgrid [gridId]="gridId" [columns]="colDef" [options]="gridOptions"
                                 [dataset]="dataset" (onAngularGridCreated)="onGridReady($event.detail)">
                             </angular-slickgrid>
                         </div>

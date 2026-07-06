@@ -584,6 +584,37 @@ export class KPIService {
       .set('kpiSessionID', kpiSessionID.toString());
     return this.http.get<any>(this.apiUrlFactorScoring + 'get-log-activity-kpi', { params });
   }
+
+  // ==================== KPI Cache Operations ====================
+
+  /**
+   * Lấy dữ liệu KPI từ cache (KPIEvaluationSummaryCache)
+   */
+  getSummaryCache(employeeID: number, quarter: number, year: number): Observable<any> {
+    const params = new HttpParams()
+      .set('employeeID', employeeID.toString())
+      .set('quarter', quarter.toString())
+      .set('year', year.toString());
+    return this.http.get<any>(this.apiUrl + 'get-summary-cache', { params });
+  }
+
+  getErrorDetailsByEvaluation(employeeID: number, quarter: number, year: number, evaluationCode: string): Observable<any> {
+    const params = new HttpParams()
+      .set('employeeID', employeeID.toString())
+      .set('quarter', quarter.toString())
+      .set('year', year.toString())
+      .set('evaluationCode', evaluationCode);
+    return this.http.get<any>(this.apiUrl + 'get-error-details-by-evaluation', { params });
+  }
+
+  lockKPIEmployee(employeeID: number, quarter: number, year: number): Observable<any> {
+    const body = {
+      EmployeeID: employeeID,
+      Quarter: quarter,
+      Year: year
+    };
+    return this.http.post<any>(this.apiUrl + 'lock-employee', body);
+  }
 }
 
 

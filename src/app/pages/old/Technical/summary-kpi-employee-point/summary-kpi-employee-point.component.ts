@@ -752,7 +752,10 @@ export class SummaryKpiEmployeePointComponent implements OnInit, AfterViewInit {
           // Highlight if ratings are different (matching C# logic)
           if (totalPercentText && totalPercentTextActual && totalPercentText !== totalPercentTextActual) {
             metadata = metadata || {};
-            metadata.cssClasses = (metadata.cssClasses || '') + ' row-rating-different';
+            metadata.columns = metadata.columns || {};
+            metadata.columns['TotalPercentActual'] = {
+              cssClass: (metadata.columns['TotalPercentActual']?.cssClass || '') + ' cell-rating-different'
+            };
           }
         }
 

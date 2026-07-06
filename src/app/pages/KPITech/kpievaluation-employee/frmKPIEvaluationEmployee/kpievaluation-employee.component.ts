@@ -30,6 +30,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzContextMenuService, NzDropdownMenuComponent, NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { KPIService } from '../../kpi-service/kpi.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { AuthService } from '../../../../auth/auth.service';
@@ -37,6 +38,7 @@ import { HostListener } from '@angular/core';
 import { KPIEvaluationFactorScoringDetailsComponent } from '../../kpievaluation-factor-scoring-details/kpievaluation-factor-scoring-details.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { KpiEvaluationSummaryCacheComponent } from '../../../old/Technical/kpi-evaluation-summary-cache/kpi-evaluation-summary-cache.component';
 
 // PrimeNG / Custom Components
 import { CustomTableKpi } from '../../../../shared/custom-table-kpi/custom-table-kpi';
@@ -72,6 +74,7 @@ interface LiXi {
     NzModalModule,
     NzDividerModule,
     NzSpinModule,
+    NzDropDownModule,
     CustomTableKpi,
     CustomTreeTableKpi,
   ],
@@ -80,6 +83,10 @@ interface LiXi {
 })
 export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, OnDestroy {
   gridIdPrefix: string = 'emp-' + Math.random().toString(36).substring(2, 9);
+
+  @ViewChild('contextMenu', { static: true }) contextMenu!: NzDropdownMenuComponent;
+  private nzContextMenuService = inject(NzContextMenuService);
+  contextMenuRowData: any = null;
 
   // Lì xì rơi variables
   lixis: LiXi[] = [];
@@ -1706,6 +1713,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     this.angularGridEvaluation = angularGrid.detail ?? angularGrid;
     this.autoFillLastColumn(this.angularGridEvaluation);
     this.applyEvaluationRowStyling(this.angularGridEvaluation);
+    this.registerContextMenuForGrid(this.angularGridEvaluation);
 
     // Restore data khi grid được recreate bởi *ngIf (do switch tab)
     if (this.dataEvaluation.length > 0 && this.angularGridEvaluation?.dataView) {
@@ -1726,6 +1734,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     this.angularGridEvaluation2 = angularGrid.detail ?? angularGrid;
     this.autoFillLastColumn(this.angularGridEvaluation2);
     this.applyEvaluationRowStyling(this.angularGridEvaluation2);
+    this.registerContextMenuForGrid(this.angularGridEvaluation2);
 
     // Restore data khi grid được recreate bởi *ngIf (do switch tab)
     if (this.dataEvaluation2.length > 0 && this.angularGridEvaluation2?.dataView) {
@@ -1746,6 +1755,7 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     this.angularGridEvaluation4 = angularGrid.detail ?? angularGrid;
     this.autoFillLastColumn(this.angularGridEvaluation4);
     this.applyEvaluationRowStyling(this.angularGridEvaluation4);
+    this.registerContextMenuForGrid(this.angularGridEvaluation4);
 
     // Restore data khi grid được recreate bởi *ngIf (do switch tab)
     if (this.dataEvaluation4.length > 0 && this.angularGridEvaluation4?.dataView) {
@@ -1782,6 +1792,59 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     }
   }
 
+  private registerContextMenuForGrid(angularGrid: any): void {
+    if (angularGrid?.slickGrid) {
+      angularGrid.slickGrid.onContextMenu.subscribe((e: any, args: any) => {
+        const grid = args.grid;
+        const cell = grid.getCellFromEvent(e);
+        if (!cell || cell.row == null) return;
+
+        const rowData = grid.getDataItem(cell.row);
+        const evaluationCode = rowData?.EvaluationCode;
+
+        // Chỉ hiển thị context menu với dòng có mã lỗi hợp lệ (không phải node cha, không phải newline)
+        if (
+          rowData &&
+          evaluationCode &&
+          evaluationCode.toLowerCase() !== 'newline' &&
+          !evaluationCode.toUpperCase().startsWith('KPI') &&
+          !evaluationCode.toUpperCase().startsWith('TEAMKPI') &&
+          !rowData.__hasChildren
+        ) {
+          // Ngăn context menu mặc định của trình duyệt
+          if (e?.preventDefault) e.preventDefault();
+
+          this.contextMenuRowData = rowData;
+          if (this.contextMenu) {
+            this.nzContextMenuService.create(e, this.contextMenu);
+          }
+        }
+      });
+    }
+  }
+
+  viewErrorDetails(): void {
+    if (!this.contextMenuRowData) return;
+    const evaluationCode = this.contextMenuRowData.EvaluationCode;
+    const year = this.selectedSession?.YearEvaluation || this.txtYear;
+    const quarter = this.selectedSession?.QuarterEvaluation || 1;
+
+    if (this.tabService) {
+      this.tabService.openTabComp({
+        comp: KpiEvaluationSummaryCacheComponent,
+        title: `Chi tiết điểm lỗi - ${evaluationCode}`,
+        key: `kpi-evaluation-summary-cache-${evaluationCode}`,
+        data: {
+          employeeId: this.employeeID,
+          quarter: quarter,
+          year: year,
+          keyword: evaluationCode,
+          evaluationCode: evaluationCode
+        }
+      });
+    }
+  }
+
 
   onMasterGridReady(angularGrid: any): void {
     this.angularGridMaster = angularGrid.detail ?? angularGrid;
@@ -1797,6 +1860,51 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
     this.angularGridRule = angularGrid.detail ?? angularGrid;
     this.autoFillLastColumn(this.angularGridRule);
     this.applyRuleGridRowStyling(this.angularGridRule);
+    this.registerContextMenuForGrid(this.angularGridRule);
+
+    if (this.angularGridRule?.slickGrid) {
+      // Click chuột trái vẫn giữ hành vi cũ (mở tab cache theo tháng được click) - tương thích ngược
+      this.angularGridRule.slickGrid.onClick.subscribe((e: any, args: any) => {
+        const grid = args.grid;
+        const rowData = grid.getDataItem(args.row);
+        const column = grid.getColumns()[args.cell];
+
+        if (rowData && column && ['FirstMonth', 'SecondMonth', 'ThirdMonth'].includes(column.id)) {
+          const evaluationCode = rowData.EvaluationCode;
+          const hasChildren = rowData.__hasChildren;
+          if (evaluationCode && evaluationCode.toLowerCase() !== 'newline' && !hasChildren) {
+            // Xác định khoảng thời gian (startDate, endDate) của tháng được click
+            const year = this.selectedSession?.YearEvaluation || this.txtYear;
+            const quarter = this.selectedSession?.QuarterEvaluation || 1;
+            let indexMonth = 1;
+            if (column.id === 'SecondMonth') indexMonth = 2;
+            else if (column.id === 'ThirdMonth') indexMonth = 3;
+
+            const actualMonth = (quarter - 1) * 3 + indexMonth;
+            const startDate = `${year}-${String(actualMonth).padStart(2, '0')}-01`;
+            const lastDay = new Date(year, actualMonth, 0).getDate();
+            const endDate = `${year}-${String(actualMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+            // Mở tab hiển thị cache KPI (KPIEvaluationSummaryCache)
+            if (this.tabService) {
+              this.tabService.openTabComp({
+                comp: KpiEvaluationSummaryCacheComponent,
+                title: 'Chi tiết điểm lưu trữ (Cache)',
+                key: 'kpi-evaluation-summary-cache',
+                data: {
+                  employeeId: this.employeeID,
+                  quarter: quarter,
+                  year: year,
+                  keyword: evaluationCode,
+                  evaluationCode: evaluationCode
+                }
+              });
+            }
+
+          }
+        }
+      });
+    }
 
     // Nếu data đã load từ background API trước khi grid render (do *ngIf lazy),
     // cần setItems lại vì grid mới tạo có dataView rỗng

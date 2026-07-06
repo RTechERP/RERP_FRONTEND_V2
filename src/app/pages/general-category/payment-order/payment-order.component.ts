@@ -2114,11 +2114,7 @@ export class PaymentOrderComponent implements OnInit {
         maxDecimal: 2,
         thousandSeparator: ',',
       },
-
-
     }
-
-
     this.columnDefinitionFiles = [
       {
         id: 'FileName',
@@ -2215,6 +2211,16 @@ export class PaymentOrderComponent implements OnInit {
         sortable: true, filterable: true,
         // formatter: Formatters.iconBoolean,
         filter: { model: Filters['compoundInputText'] },
+      },
+      {
+        id: 'CreatedDate',
+        name: 'Ngày tạo',
+        field: 'CreatedDate',
+        type: 'string',
+        width: 120,
+        formatter: Formatters.date, params: { dateFormat: 'DD/MM/YYYY' },
+        filter: { model: Filters['compoundDate'] },
+        cssClass: 'text-center'
       },
     ]
 

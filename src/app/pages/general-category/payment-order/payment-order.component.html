@@ -388,7 +388,7 @@
               </angular-slickgrid>
             </p-tabpanel>
             <p-tabpanel value="1" class="grid-container-filebankslip" style="display: block; height: 100px;">
-              <angular-slickgrid gridId="grvFileBankslip" [columns]="columnDefinitionFiles"
+              <angular-slickgrid gridId="grvFileBankslip" [columns]="columnDefinitionFileBankSlips"
                 [options]="gridOptionFileBankSlips" [dataset]="datasetFileBankslip"
                 (onAngularGridCreated)="angularGridFileBankslipReady($event.detail)"
                 (onSelectedRowsChanged)="handleRowSelection($event.detail.eventData, $event.detail.args)"

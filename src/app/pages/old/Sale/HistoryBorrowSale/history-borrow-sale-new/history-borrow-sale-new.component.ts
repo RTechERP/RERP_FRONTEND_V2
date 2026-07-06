@@ -340,6 +340,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                         </span>
                     `;
                 },
+                excelExportOptions: { valueParserCallback: (_val, args) => args.dataContext['FullName'] || '' },
                 customTooltip: {
                     useRegularTooltip: true,
                 },

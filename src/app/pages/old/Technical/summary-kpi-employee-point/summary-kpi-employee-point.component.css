@@ -86,6 +86,13 @@
     background-color: #add8e6 !important;
 }
 
+/* Active cell focus border */
+:host ::ng-deep .slick-cell.active {
+    outline: 2px solid #1890ff !important;
+    outline-offset: -2px;
+    z-index: 10;
+}
+
 /* Text alignment helpers */
 .text-end {
     text-align: right !important;

@@ -1167,7 +1167,7 @@ export class BillImportSyntheticAllComponent {
       if (id <= 0) return;
 
       const deliverID = row.DeliverID || 0;
-      if (deliverID !== this.currentUserID && !this.isAdmin) {
+      if (deliverID !== this.currentUserID && !this.isAdmin && !this.appUserService.hasPermission('N105')) {
         deniedRows.push(row.BillImportCode || `ID: ${id}`);
         return;
       }

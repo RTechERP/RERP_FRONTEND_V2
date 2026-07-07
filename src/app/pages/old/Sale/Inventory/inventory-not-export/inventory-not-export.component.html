@@ -1,0 +1,89 @@
+<div class="card h-100 border-0 rounded-0 inventory-new-card">
+    <div class="card-header bg-white p-1">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+
+            <!-- Kho -->
+            <div class="d-flex align-items-center">
+                <label class="font-12 me-2 text-nowrap">Kho</label>
+                <nz-select [(ngModel)]="warehouseId" (ngModelChange)="onWarehouseChange($event)" nzShowSearch
+                    nzSize="small" style="width: 140px;" nzPlaceHolder="Chọn kho">
+                    @for (item of warehouses; track item.id) {
+                    <nz-option [nzLabel]="item.name" [nzValue]="item.id"></nz-option>
+                    }
+                </nz-select>
+            </div>
+
+            <!-- Từ ngày -->
+            <div class="d-flex align-items-center">
+                <label class="font-12 me-2 text-nowrap">Từ ngày</label>
+                <nz-date-picker [(ngModel)]="searchParam.fromDate" nzSize="small" nzFormat="dd/MM/yyyy"
+                    style="width: 130px;"></nz-date-picker>
+            </div>
+
+            <!-- Đến ngày -->
+            <div class="d-flex align-items-center">
+                <label class="font-12 me-2 text-nowrap">Đến ngày</label>
+                <nz-date-picker [(ngModel)]="searchParam.toDate" nzSize="small" nzFormat="dd/MM/yyyy"
+                    style="width: 130px;"></nz-date-picker>
+            </div>
+
+            <!-- Từ khóa -->
+            <div class="d-flex align-items-center gap-2">
+                <label class="font-12 text-nowrap">Từ khóa</label>
+                <div style="position: relative;">
+                    <input nz-input nzSize="small" style="width: 280px" type="text"
+                        placeholder="Tìm kiếm mã, tên sản phẩm..." [(ngModel)]="searchParam.Find"
+                        (keyup.enter)="getdataFind()" (focus)="showSearchHistory = true"
+                        (blur)="showSearchHistory = false" />
+                    @if (showSearchHistory && searchHistory.length > 0) {
+                    <div style="position: absolute; top: 100%; left: 0; z-index: 1050; background: #fff;
+                                border: 1px solid #d9d9d9; border-radius: 4px; min-width: 100%;
+                                max-height: 220px; overflow-y: auto; box-shadow: 0 3px 8px rgba(0,0,0,0.12);">
+                        @for (item of searchHistory; track item) {
+                        <div style="padding: 5px 12px; cursor: pointer; font-size: 13px; white-space: nowrap;"
+                            (mousedown)="selectHistoryItem(item)">
+                            <span style="color: #999; margin-right: 6px;">⏱</span>{{ item }}
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
+                <button nz-button nzType="primary" nzSize="small" (click)="getdataFind()">
+                    Tìm kiếm
+                </button>
+                <button nz-button nzType="default" nzSize="small" (click)="exportExcel()"
+                    style="border-color: #52c41a; color: #52c41a;">
+                    <span nz-icon nzType="file-excel"></span>
+                    Xuất Excel
+                </button>
+            </div>
+
+            <!-- Tag chú thích highlight — click để lọc -->
+            <div class="d-flex align-items-center ms-2" style="cursor: pointer;" (click)="toggleFilterBorrowOnly()"
+                title="Mượn/trả trong 1 năm nhưng không có xuất đi hẳn. Click để lọc/bỏ lọc.">
+                <nz-tag [nzColor]="filterBorrowOnly ? 'red' : 'default'"
+                    style="display:flex; align-items:center; gap:4px; border: 1px solid #cf1322; cursor:pointer;">
+                    <span style="width:12px; height:12px; background:#fff1f0; border:1px solid #ffa39e; display:inline-block; border-radius:2px; flex-shrink:0;"></span>
+                    <span style="color:#cf1322; font-size:12px;">
+                        Mượn/trả 1 năm chưa xuất ({{ borrowOnlyCount }})
+                    </span>
+                    <span *ngIf="filterBorrowOnly" nz-icon nzType="filter" nzTheme="fill" style="color:#cf1322; font-size:11px;"></span>
+                </nz-tag>
+            </div>
+
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div [class]="'grid-container-inventory-' + componentId" style="height: 90vh;">
+            <div *ngIf="isLoadingInventory"
+                class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75"
+                style="z-index: 1000">
+                <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+            </div>
+            <angular-slickgrid [gridId]="'grid-inventory-' + componentId" [columns]="columnDefinitionsInventory"
+                [options]="gridOptionsInventory" [dataset]="datasetInventory"
+                (onAngularGridCreated)="angularGridReadyInventory($any($event).detail)">
+            </angular-slickgrid>
+        </div>
+    </div>
+</div>

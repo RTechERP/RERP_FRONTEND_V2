@@ -135,4 +135,27 @@ export class InventoryService {
     };
     return this.httpclient.post(`${environment.host}api/inventory/set-location-list`, params);
   }
+    getInventoryNotExport(
+    checkAll: boolean,
+    Find: string,
+    WarehouseCode: string,
+    IsStock: boolean,
+    productGroupID: number,
+    fromDate?: Date | null,
+    toDate?: Date | null
+  ): Observable<any> {
+    const params: any = {
+      checkAll: checkAll,
+      Find: Find.trim(),
+      WarehouseCode: WarehouseCode.trim(),
+      IsStock: IsStock,
+      productGroupID: productGroupID.toString(),
+    };
+    if (fromDate) params.FromDate = fromDate.toISOString();
+    if (toDate) params.ToDate = toDate.toISOString();
+    return this.httpclient.post(
+      environment.host + `api/inventory/inventory-not-export`,
+      params
+    );
+  }
 }

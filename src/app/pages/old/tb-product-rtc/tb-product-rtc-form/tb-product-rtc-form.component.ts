@@ -48,6 +48,7 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
 import { FirmFormComponent } from '../../../general-category/firm/firm-form/firm-form.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { ProductLocationTechnicalDetailComponent } from '../../Technical/product-location-technical/product-location-technical-detail/product-location-technical-detail.component';
+import { AppUserService } from '../../../../services/app-user.service';
 @Component({
   standalone: true,
   selector: 'app-tb-product-rtc-form',
@@ -93,7 +94,8 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   constructor(
     private unitService: UnitService,
     private notification: NzNotificationService,
-    private tbProductRtcService: TbProductRtcService
+    private tbProductRtcService: TbProductRtcService,
+    private appUserService: AppUserService
   ) {}
   unitData: any[] = [];
   firmData: any[] = [];
@@ -195,7 +197,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
         null,
         [Validators.required, this.inIdListValidator(() => this.locationData)],
       ],
-      NumberInStore: [{ value: null, disabled: true }],
+      NumberInStore: [{ value: null, disabled: !this.appUserService.isAdmin }],
       LocationImg: [null],
     });
   }

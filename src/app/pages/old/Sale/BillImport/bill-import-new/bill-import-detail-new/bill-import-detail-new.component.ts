@@ -377,7 +377,8 @@ export class BillImportDetailNewComponent
         const newActivePur =
             this.appUserService.isAdmin ||
             this.appUserService.departmentID === 4 ||
-            isDeliverer;
+            isDeliverer ||
+            this.appUserService.hasPermission('N105');
 
         // Nếu activePur thay đổi, cần reinitialize document columns
         if (this.activePur !== newActivePur) {
@@ -456,9 +457,10 @@ export class BillImportDetailNewComponent
     }
 
     private clearRestrictedFieldsIfNeeded(deliverID: number): void {
-        const canEdit = !(
-            this.appUserService.id != deliverID && !this.appUserService.isAdmin
-        );
+        const canEdit =
+            this.appUserService.isAdmin ||
+            this.appUserService.id === deliverID ||
+            this.appUserService.hasPermission('N105');
 
         if (!canEdit && this.dataDetail.length > 0) {
             this.dataDetail = this.dataDetail.map((row: any) => {
@@ -1228,7 +1230,7 @@ export class BillImportDetailNewComponent
                 const userId = this.appUserService.id;
                 const isAdmin = this.appUserService.isAdmin;
                 const isDeliverer = currentDeliverID === userId;
-                const canEdit = isAdmin || isDeliverer;
+                const canEdit = isAdmin || isDeliverer || this.appUserService.hasPermission('N105');
 
                 if (!canEdit) {
                     // Chặn edit - hiển thị thông báo và ngăn SlickGrid mở editor

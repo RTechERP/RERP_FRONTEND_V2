@@ -900,6 +900,33 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
 
     this.evaluationGridOptions = {
       enableAutoResize: true,
+      enableExcelCopyBuffer: true,
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'viewErrorDetails',
+            title: 'Xem chi tiết lỗi',
+            iconCssClass: 'fa fa-search-plus',
+            itemVisibilityOverride: (args: any) => {
+              const rowData = args?.dataContext;
+              const code = rowData?.EvaluationCode?.toUpperCase() || '';
+              return !!(
+                rowData &&
+                code &&
+                code !== 'NEWLINE' &&
+                !code.startsWith('KPI') &&
+                !code.startsWith('TEAMKPI') &&
+                !rowData.__hasChildren
+              );
+            },
+            action: (_e: any, args: any) => {
+              this.contextMenuRowData = args.dataContext;
+              this.viewErrorDetails();
+            }
+          }
+        ]
+      },
       autoResize: {
         container: '#' + this.gridIdPrefix + '-evaluation-container',
         calculateAvailableSizeBy: 'container',
@@ -1385,6 +1412,33 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
 
     this.ruleGridOptions = {
       enableAutoResize: true,
+      enableExcelCopyBuffer: true,
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'viewErrorDetails',
+            title: 'Xem chi tiết lỗi',
+            iconCssClass: 'fa fa-search-plus',
+            itemVisibilityOverride: (args: any) => {
+              const rowData = args?.dataContext;
+              const code = rowData?.EvaluationCode?.toUpperCase() || '';
+              return !!(
+                rowData &&
+                code &&
+                code !== 'NEWLINE' &&
+                !code.startsWith('KPI') &&
+                !code.startsWith('TEAMKPI') &&
+                !rowData.__hasChildren
+              );
+            },
+            action: (_e: any, args: any) => {
+              this.contextMenuRowData = args.dataContext;
+              this.viewErrorDetails();
+            }
+          }
+        ]
+      },
       autoResize: {
         container: '#' + this.gridIdPrefix + '-rule-container',
         calculateAvailableSizeBy: 'container',
@@ -1558,6 +1612,33 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
 
     this.teamGridOptions = {
       enableAutoResize: true,
+      enableExcelCopyBuffer: true,
+      enableContextMenu: true,
+      contextMenu: {
+        commandItems: [
+          {
+            command: 'viewErrorDetails',
+            title: 'Xem chi tiết lỗi',
+            iconCssClass: 'fa fa-search-plus',
+            itemVisibilityOverride: (args: any) => {
+              const rowData = args?.dataContext;
+              const code = rowData?.EvaluationCode?.toUpperCase() || '';
+              return !!(
+                rowData &&
+                code &&
+                code !== 'NEWLINE' &&
+                !code.startsWith('KPI') &&
+                !code.startsWith('TEAMKPI') &&
+                !rowData.__hasChildren
+              );
+            },
+            action: (_e: any, args: any) => {
+              this.contextMenuRowData = args.dataContext;
+              this.viewErrorDetails();
+            }
+          }
+        ]
+      },
       autoResize: {
         container: '#' + this.gridIdPrefix + '-team-container',
         calculateAvailableSizeBy: 'container',
@@ -1793,34 +1874,8 @@ export class KPIEvaluationEmployeeComponent implements OnInit, AfterViewInit, On
   }
 
   private registerContextMenuForGrid(angularGrid: any): void {
-    if (angularGrid?.slickGrid) {
-      angularGrid.slickGrid.onContextMenu.subscribe((e: any, args: any) => {
-        const grid = args.grid;
-        const cell = grid.getCellFromEvent(e);
-        if (!cell || cell.row == null) return;
-
-        const rowData = grid.getDataItem(cell.row);
-        const evaluationCode = rowData?.EvaluationCode;
-
-        // Chỉ hiển thị context menu với dòng có mã lỗi hợp lệ (không phải node cha, không phải newline)
-        if (
-          rowData &&
-          evaluationCode &&
-          evaluationCode.toLowerCase() !== 'newline' &&
-          !evaluationCode.toUpperCase().startsWith('KPI') &&
-          !evaluationCode.toUpperCase().startsWith('TEAMKPI') &&
-          !rowData.__hasChildren
-        ) {
-          // Ngăn context menu mặc định của trình duyệt
-          if (e?.preventDefault) e.preventDefault();
-
-          this.contextMenuRowData = rowData;
-          if (this.contextMenu) {
-            this.nzContextMenuService.create(e, this.contextMenu);
-          }
-        }
-      });
-    }
+    // Không sử dụng ng-zorro context menu để tránh đè lên menu Copy mặc định của slickgrid.
+    // Dữ liệu và chức năng Xem chi tiết lỗi đã được chuyển sang cấu hình built-in contextMenu của SlickGrid.
   }
 
   viewErrorDetails(): void {

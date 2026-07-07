@@ -407,6 +407,7 @@ import { TeamEmployeeProjectComponent } from './pages/project/team-employee-proj
 import { OrgChartRtcNewComponent } from './pages/hrm/org-chart-rtc/org-chart-rtc-new/org-chart-rtc-new.component';
 import { VehicleRentalRequestComponent } from './pages/hrm/vehicle/vehicle-retal-request/vehicle-rental-request.component';
 import { VisaRequestComponent } from './pages/hrm/visa-request/visa-request.component';
+import { InventoryNotExportComponent } from './pages/old/Sale/Inventory/inventory-not-export/inventory-not-export.component';
 export const routes: Routes = [
 
   {
@@ -1346,6 +1347,8 @@ export const routes: Routes = [
       { path: 'org-chart-rtc-new', component: OrgChartRtcNewComponent, canActivate: [authGuard] },
       { path: 'vehicle-rental-request', component: VehicleRentalRequestComponent, canActivate: [authGuard] },
       { path: 'business-visa-request', component: VisaRequestComponent, canActivate: [authGuard] },
+      { path: 'inventory-not-export', component: InventoryNotExportComponent, canActivate: [authGuard] },
+
     ],
   },
 ];

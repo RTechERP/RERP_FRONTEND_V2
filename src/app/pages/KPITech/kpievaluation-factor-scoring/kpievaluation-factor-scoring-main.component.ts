@@ -5228,27 +5228,41 @@ export class KPIEvaluationFactorScoringMain implements OnInit, AfterViewInit {
         if (stt === fatherId) {
           // Đây là node cha hiện tại
           fatherRowIndex = rowIndex;
+
           if (gridType === 'specialization') {
-            // Chuyên môn: TBP nhập ở node CON, node cha cộng dồn -> bắt đầu từ 0
+            // Chuyên môn: TBP nhập ở node CON, node CHA sẽ cộng dồn nên khởi tạo = 0
             totalTbpPoint = 0;
             totalBgdPoint = 0;
           } else {
-            // Kỹ năng / Chung: TBP nhập trực tiếp tại node cha
-            totalTbpPoint = this.formatDecimalNumber(parseFloat(row.TBPPoint) || parseFloat(row.TBPEvaluation) || 0, 2);
-            totalBgdPoint = this.formatDecimalNumber(parseFloat(row.TBPPoint) || parseFloat(row.BGDEvaluation) || 0, 2);
+            // Kỹ năng / Chung: TBP nhập trực tiếp tại node CHA
+            // Lấy giá trị TBPPointInput của node cha (nếu có) - khớp với WinForm
+            totalTbpPoint = this.formatDecimalNumber(parseFloat(row.TBPPointInput) || 0, 2);
+            totalBgdPoint = this.formatDecimalNumber(parseFloat(row.TBPPointInput) || 0, 2); // WinForm dùng TBPPointInput cho cả BGD
           }
         } else if (stt.startsWith(startStt)) {
           // Đây là node con
           if (isParentNode) continue; // Bỏ qua nếu là node cha của một nhánh khác
 
-          // Cộng dồn điểm từ các node con
-          totalEmpPoint += this.formatDecimalNumber(parseFloat(row.EmployeePoint) || 0, 2);
+          // Cập nhật điểm cho node con
+          row.EmployeeEvaluation = this.formatDecimalNumber(parseFloat(row.EmployeePoint) || 0, 2);
+
+          // Cộng dồn điểm NV từ các node con
+          totalEmpPoint += parseFloat(row.EmployeeEvaluation);
           totalStandardPoint += this.formatDecimalNumber(parseFloat(row.StandardPoint) || 0, 2);
+
           if (gridType === 'specialization') {
-            // Chuyên môn: TBP/BGĐ nhập ở node CON (TBPPoint), cộng dồn lên node cha
-            totalTbpPoint += this.formatDecimalNumber(parseFloat(row.TBPPoint) || parseFloat(row.TBPPoint) || 0, 2);
-            totalBgdPoint += this.formatDecimalNumber(parseFloat(row.BGDPoint) || parseFloat(row.BGDPoint) || parseFloat(row.TBPPoint) || 0, 2);
+            // Chuyên môn: Cộng dồn điểm TBP từ các node con
+            row.TBPEvaluation = this.formatDecimalNumber(parseFloat(row.TBPPointInput) || parseFloat(row.TBPPoint) || 0, 2);
+            row.BGDEvaluation = this.formatDecimalNumber(parseFloat(row.BGDPointInput) || parseFloat(row.BGDPoint) || parseFloat(row.TBPPointInput) || 0, 2);
+
+            totalTbpPoint += parseFloat(row.TBPEvaluation);
+            totalBgdPoint += parseFloat(row.BGDEvaluation);
+          } else {
+            // Kỹ năng / Chung: Xoá điểm đánh giá TBP/BGĐ ở node con vì điểm được nhập ở node cha
+            row.TBPEvaluation = null;
+            row.BGDEvaluation = null;
           }
+
           count++;
         }
       }

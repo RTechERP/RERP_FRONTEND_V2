@@ -30,6 +30,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
+import * as ExcelJS from 'exceljs';
 @Component({
   standalone: true,
   selector: 'app-commercial-price-request',
@@ -157,6 +158,23 @@ export class CommercialPriceRequestComponent implements OnInit {
         icon: 'fa-solid fa-file-excel fa-lg text-success',
         command: () => this.onImportExcel(),
         visible: this.permissionService.hasPermission('N33,N35,N1')
+      },
+      {
+        label: 'Xuất Excel',
+        icon: 'fa-solid fa-file-excel fa-lg text-primary',
+        visible: this.permissionService.hasPermission('N33,N35,N1'),
+        items: [
+          {
+            label: 'Theo trang hiện tại',
+            icon: 'fa-solid fa-file-excel text-info',
+            command: () => this.onExportExcel(false)
+          },
+          {
+            label: 'Toàn bộ dữ liệu',
+            icon: 'fa-solid fa-file-excel text-success',
+            command: () => this.onExportExcel(true)
+          }
+        ]
       },
       {
         label: 'Xóa',
@@ -458,5 +476,198 @@ export class CommercialPriceRequestComponent implements OnInit {
         });
       }
     });
+  }
+
+  async onExportExcel(exportAll: boolean): Promise<void> {
+    const dataToExport = exportAll ? this._fullDataset : this.dataset;
+    if (!dataToExport || dataToExport.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      return;
+    }
+
+    this.isLoading = true;
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Commercial Price Requests');
+
+      const headers = [
+        'PIC (pur)',
+        'RFQ No',
+        'Item Code',
+        'Description',
+        'Specification',
+        'Est. Qty',
+        'Unit',
+        'MOQ',
+        'Giờ Admin gửi',
+        'Ngày Admin gửi',
+        'Hạn check giá',
+        'Giờ Pur gửi',
+        'Ngày Pur gửi',
+        'Unit Price',
+        'Chi phí vận chuyển',
+        'Nhà cung cấp',
+        'Leadtime',
+        'Ghi chú',
+        'Note của Sales',
+        'Tỉ lệ margin',
+        'Đơn giá báo',
+        'Ghi chú',
+        'Sale báo giá',
+        'Pur check giá',
+        'Ghi chú lý do',
+        'Tuần',
+        'Tháng',
+        'Năm'
+      ];
+
+      const headerRow = worksheet.addRow(headers);
+      headerRow.height = 25;
+      headerRow.eachCell((cell) => {
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF4D94FF' },
+        };
+        cell.font = {
+          name: 'Times New Roman',
+          size: 11,
+          bold: true,
+          color: { argb: 'FFFFFFFF' },
+        };
+        cell.alignment = {
+          horizontal: 'center',
+          vertical: 'middle',
+          wrapText: true,
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+      });
+
+      dataToExport.forEach((item) => {
+        const adminSentDate = item.AdminSentAtDate ? this.getFormattedDate(item.AdminSentAtDate) : (item.AdminSentAt ? this.getFormattedDate(item.AdminSentAt) : '');
+        const adminSentHour = item.AdminSentAtHour || (item.AdminSentAt ? this.getFormattedHour(item.AdminSentAt) : '');
+        
+        const purSentDate = item.PurSentAtDate ? this.getFormattedDate(item.PurSentAtDate) : (item.PurSentAt ? this.getFormattedDate(item.PurSentAt) : '');
+        const purSentHour = item.PurSentAtHour || (item.PurSentAt ? this.getFormattedHour(item.PurSentAt) : '');
+        
+        const deadlineDate = item.QuoteDeadline ? this.getFormattedDate(item.QuoteDeadline) : '';
+
+        const rowData = [
+          item.PicPurName || '',
+          item.RfqNo || '',
+          item.ProductCode || '',
+          item.Description || '',
+          item.Specification || item.ProductName || '',
+          item.Qty !== null && item.Qty !== undefined ? Number(item.Qty) : '',
+          item.Unit || '',
+          item.Moq !== null && item.Moq !== undefined ? Number(item.Moq) : '',
+          adminSentHour,
+          adminSentDate,
+          deadlineDate,
+          purSentHour,
+          purSentDate,
+          item.UnitPrice || '',
+          item.ShippingCost !== null && item.ShippingCost !== undefined ? Number(item.ShippingCost) : '',
+          item.Supplier || '',
+          item.Leadtime || '',
+          item.RequestNote || '',
+          item.SaleNote || '',
+          item.MarginRate !== null && item.MarginRate !== undefined ? Number(item.MarginRate) : '',
+          item.SaleUnitPrice !== null && item.SaleUnitPrice !== undefined ? Number(item.SaleUnitPrice) : '',
+          item.ImportPriceNote || '',
+          item.IsSaleQuotedText || '',
+          item.IsPurQuotedText || '',
+          item.NoteReason || '',
+          item.WeekNo !== null && item.WeekNo !== undefined ? Number(item.WeekNo) : '',
+          item.MonthNo !== null && item.MonthNo !== undefined ? Number(item.MonthNo) : '',
+          item.YearNo !== null && item.YearNo !== undefined ? Number(item.YearNo) : ''
+        ];
+
+        const excelRow = worksheet.addRow(rowData);
+        excelRow.font = {
+          name: 'Times New Roman',
+          size: 10,
+        };
+
+        excelRow.eachCell((cell, colNumber) => {
+          let alignment: any = {
+            vertical: 'middle',
+            wrapText: true,
+          };
+
+          const numericCols = [6, 8, 15, 20, 21, 26, 27, 28];
+          if (numericCols.includes(colNumber)) {
+            alignment.horizontal = 'right';
+            if (typeof cell.value === 'number') {
+              if (colNumber === 20) {
+                cell.numFmt = '#,##0.00"%"';
+              } else if (colNumber === 21 || colNumber === 15) {
+                cell.numFmt = '#,##0.00';
+              } else {
+                cell.numFmt = '#,##0';
+              }
+            }
+          } else {
+            alignment.horizontal = 'left';
+          }
+
+          cell.alignment = alignment;
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+          };
+        });
+      });
+
+      worksheet.columns.forEach((column: any) => {
+        column.width = 15;
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const today = new Date();
+      const dateStr = `${today.getDate().toString().padStart(2, '0')}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getFullYear()}`;
+
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `YeuCauBaoGiaThuongMai_${dateStr}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+
+      this.notification.success('Thành công', 'Xuất Excel thành công!');
+      this.isLoading = false;
+    } catch (error) {
+      console.error('Lỗi khi xuất Excel:', error);
+      this.notification.error('Lỗi', 'Lỗi khi xuất file Excel!');
+      this.isLoading = false;
+    }
+  }
+
+  private getFormattedDate(dVal: any): string {
+    if (!dVal) return '';
+    const d = new Date(dVal);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+  }
+
+  private getFormattedHour(dVal: any): string {
+    if (!dVal) return '';
+    const d = new Date(dVal);
+    if (isNaN(d.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 }

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Menubar } from 'primeng/menubar';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -169,6 +169,13 @@ export class KpiTargetTabComponent implements OnInit {
   selectedEmployeeIds: number[] = [];
   selectedTeamId: number | null = null;
   searchText = '';
+
+  sidebarWidth = 350;
+  private readonly sidebarMinWidth = 280;
+  private readonly sidebarMaxWidth = 640;
+  private resizingSidebar = false;
+  private resizeStartX = 0;
+  private resizeStartWidth = 0;
 
   // Data table source
   targets: KpiSaleTarget[] = [];
@@ -942,6 +949,28 @@ export class KpiTargetTabComponent implements OnInit {
     this.currentUserId = this.appUserService.id || 0;
   }
 
+  startSidebarResize(event: MouseEvent): void {
+    event.preventDefault();
+    this.resizingSidebar = true;
+    this.resizeStartX = event.clientX;
+    this.resizeStartWidth = this.sidebarWidth;
+    document.body.classList.add('kpi-target-resizing');
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  onSidebarResizeMove(event: MouseEvent): void {
+    if (!this.resizingSidebar) return;
+    const nextWidth = this.resizeStartWidth + event.clientX - this.resizeStartX;
+    this.sidebarWidth = Math.min(Math.max(nextWidth, this.sidebarMinWidth), this.sidebarMaxWidth);
+  }
+
+  @HostListener('document:mouseup')
+  stopSidebarResize(): void {
+    if (!this.resizingSidebar) return;
+    this.resizingSidebar = false;
+    document.body.classList.remove('kpi-target-resizing');
+  }
+
   onEmployeeSelect(employeeId: number): void {
     this.selectedEmployeeId = employeeId;
     this.selectedTemplateId = 0; // reset để onFilterChange tự derive từ assignment mới
@@ -1038,13 +1067,21 @@ export class KpiTargetTabComponent implements OnInit {
         this.employeeTemplates = response.employeeTemplates.data.map(item => this.normalizeEmployeeTemplate(item));
       }
       if (response.teams?.status === 1 && Array.isArray(response.teams.data)) {
-        this.teams = response.teams.data.map((t: any) => ({
-          id: t.ID ?? t.id,
-          teamCode: t.TeamCode ?? t.teamCode,
-          teamName: t.TeamName ?? t.teamName,
-          employeeIDs: Array.isArray(t.EmployeeIDs) ? t.EmployeeIDs : [],
-          isActive: t.IsActive !== false
-        }));
+        this.teams = response.teams.data.map((t: any) => {
+          // Backend (GetTeams) trả EmployeeIDs là mảng object { EmployeeId, IsAdmin, IsPM }
+          // → chuẩn hoá về mảng number (id nhân viên) để filterEmployees tra cứu bằng Set
+          const rawIds = Array.isArray(t.EmployeeIDs) ? t.EmployeeIDs : [];
+          const normalizedIds = rawIds
+            .map((x: any) => (typeof x === 'object' && x !== null ? (x.EmployeeId ?? x.employeeId ?? x.ID ?? x.id) : x))
+            .filter((x: any) => typeof x === 'number' || (typeof x === 'string' && x !== ''));
+          return {
+            id: t.ID ?? t.id,
+            teamCode: t.TeamCode ?? t.teamCode,
+            teamName: t.TeamName ?? t.teamName,
+            employeeIDs: normalizedIds,
+            isActive: t.IsActive !== false
+          };
+        });
       }
       if (response.teamTemplates?.status === 1 && Array.isArray(response.teamTemplates.data)) {
         this.teamTemplates = response.teamTemplates.data;

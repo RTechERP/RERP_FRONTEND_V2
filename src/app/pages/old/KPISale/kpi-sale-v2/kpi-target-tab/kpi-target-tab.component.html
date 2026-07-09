@@ -17,7 +17,7 @@
 
     <div class="split-container">
       <!-- Cột bên trái: Bộ lọc & Bảng nhân viên (Master) -->
-      <div class="left-sidebar">
+      <div class="left-sidebar" [style.width.px]="sidebarWidth">
         <div class="sidebar-title">
           <h6>Bộ lọc &amp; Nhân viên</h6>
         </div>
@@ -66,12 +66,13 @@
 
         <div class="indicators-table-wrapper">
           <nz-table #employeeTable [nzData]="filteredEmployees" [nzFrontPagination]="false" nzSize="small"
-            nzBordered [nzScroll]="{ y: 'calc(100vh - 320px)' }" style="height: 100%;" class="no-x-scroll">
+            nzBordered [nzScroll]="{ y: 'calc(100vh - 320px)' }" style="height: 100%;"
+            class="no-x-scroll" [nzTableLayout]="'fixed'">
             <thead>
               <tr>
-                <th nzWidth="50px" nzAlign="right">STT</th>
+                <th nzWidth="14%" nzAlign="right">STT</th>
                 <th>Nhân viên</th>
-                <th nzWidth="130px">Mẫu KPI
+                <th nzWidth="38%">Mẫu KPI
                   <small style="display:block; font-weight:400; color:#94a3b8;">(Kỳ đang chọn)</small>
                 </th>
               </tr>
@@ -129,6 +130,8 @@
           </nz-table>
         </div>
       </div>
+
+      <div class="splitter-handle" (mousedown)="startSidebarResize($event)" nz-tooltip nzTooltipTitle="Kéo để thay đổi độ rộng"></div>
 
       <!-- Cột bên phải: Danh sách mục tiêu (Detail) -->
       <div class="right-content">

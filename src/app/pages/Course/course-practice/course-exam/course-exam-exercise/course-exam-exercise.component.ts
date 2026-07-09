@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -134,7 +134,7 @@ export class CourseExamExerciseComponent implements OnInit, OnDestroy {
           // Map answers to questions
           const questionsWithAnswers = listQuestion.map((q: any) => {
             const answersForQuestion = listAnswer.filter(
-              (a: any) => a.CourseQuestionId === q.ID
+              (a: any) => (a.CourseQuestionId ?? a.courseQuestionId) === (q.ID ?? q.id)
             );
             return {
               ...q,
@@ -215,8 +215,22 @@ export class CourseExamExerciseComponent implements OnInit, OnDestroy {
   }
 
   onPrevious(): void {
-    if (this.currentIndex > 0) {
-      this.currentIndex--;
+    this.saveCurrentAnswer().then(() => {
+      if (this.currentIndex > 0) {
+        this.currentIndex--;
+      }
+    });
+  }
+
+  @HostListener('window:keyup', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    // Disable keyboard navigation if submitted or saving
+    if (this.isSubmitted || this.isSaving) return;
+    
+    if (event.key === 'ArrowRight') {
+      this.onNext();
+    } else if (event.key === 'ArrowLeft') {
+      this.onPrevious();
     }
   }
 
@@ -225,9 +239,11 @@ export class CourseExamExerciseComponent implements OnInit, OnDestroy {
   }
 
   goToQuestion(index: number): void {
-    if (index >= 0 && index < this.questions.length) {
-      this.currentIndex = index;
-    }
+    this.saveCurrentAnswer().then(() => {
+      if (index >= 0 && index < this.questions.length) {
+        this.currentIndex = index;
+      }
+    });
   }
 
   async saveCurrentAnswer(): Promise<void> {
@@ -317,8 +333,8 @@ export class CourseExamExerciseComponent implements OnInit, OnDestroy {
       this.coursePracticeService.SubmitExamResult(this.courseExamResultID).subscribe({
         next: (response: any) => {
           if (response?.status === 1 && response.data) {
-            this.numCorrectAnswers = response.data.NumCorrectAnswers || 0;
-            this.numIncorrectAnswers = response.data.NumIncorrectAnswers || 0;
+            this.numCorrectAnswers = response.data.numCorrectAnswers ?? response.data.NumCorrectAnswers ?? 0;
+            this.numIncorrectAnswers = response.data.numIncorrectAnswers ?? response.data.NumIncorrectAnswers ?? 0;
 
             // Get list of correct questions
             this.loadQuestionResults();

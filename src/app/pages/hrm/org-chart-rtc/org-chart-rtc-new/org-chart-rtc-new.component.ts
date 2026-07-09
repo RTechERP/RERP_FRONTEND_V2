@@ -52,26 +52,30 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
     private workplanService: WorkplanService
   ) { }
 
+  /** Khởi tạo component — load danh sách phòng ban */
   ngOnInit(): void {
     this.loadDepartments();
   }
 
+  /** Sau khi view render xong — khởi tạo GoJS Diagram */
   ngAfterViewInit(): void {
     this.initializeDiagram();
   }
 
+  /** Hủy component — giải phóng tài nguyên GoJS */
   ngOnDestroy(): void {
     if (this.diagram) {
       this.diagram.div = null;
     }
   }
 
+  /** Tải danh sách phòng ban từ API, sau đó tự động load sơ đồ tổ chức */
   loadDepartments(): void {
     this.workplanService.getDepartments().subscribe({
       next: (response: any) => {
         if (response && response.status === 1) {
           this.departments = response.data || [];
-          // Auto load first tab (all departments = 0)
+          // Tự động load tab đầu tiên (tất cả phòng ban = 0)
           this.loadOrgChart();
         }
       },
@@ -88,16 +92,18 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
+  /** Xử lý khi click vào tab phòng ban — load lại sơ đồ theo phòng ban đã chọn */
   onDepartmentTabClick(departmentId: number): void {
     this.selectedDepartmentId = departmentId;
     this.loadOrgChart();
   }
 
+  /** Xử lý khi đổi tab phòng ban — map index tab sang DepartmentID rồi load lại */
   onDepartmentTabChange(index: number): void {
     this.selectedTabIndex = index;
-    // Clear search when changing tab
+    // Xóa tìm kiếm khi chuyển tab
     this.selectedNodeKey = '';
-    // Map tab index to department ID
+    // Map index tab sang DepartmentID tương ứng
     if (index === 0) {
       this.selectedDepartmentId = 0; // "Tất cả"
     } else if (index > 0 && this.departments.length >= index) {
@@ -106,6 +112,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
     this.loadOrgChart();
   }
 
+  /** Gọi API lấy dữ liệu sơ đồ tổ chức theo phòng ban đã chọn */
   loadOrgChart(): void {
     this.isLoading = true;
     this.orgChartService.getOrgChart(this.selectedDepartmentId).subscribe({
@@ -133,6 +140,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
+  /** Khởi tạo GoJS Diagram — cấu hình layout, node template, link template, group template */
   private initializeDiagram(): void {
     const $ = go.GraphObject.make;
 
@@ -152,10 +160,10 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
       }),
     });
 
-    // Group templates
+    // Cấu hình group template cho các nhóm nhân viên
     this.setupGroupTemplates($);
 
-    // Link template
+    // Cấu hình đường nối giữa các node
     this.diagram.linkTemplate = $(go.Link,
       {
         routing: go.Routing.Orthogonal,
@@ -165,7 +173,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
       $(go.Shape, { strokeWidth: 1, stroke: "#aeaeae" })
     );
 
-    // Node template
+    // Cấu hình template cho từng node (ô chức danh/team)
     this.diagram.nodeTemplate = $(go.Node, "Auto",
       {
         minSize: new go.Size(180, 60),
@@ -183,7 +191,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
           padding: 6,
           defaultAlignment: go.Spot.Center
         },
-        // Position text
+        // Dòng 1: Hiển thị tên chức danh/team (bold) — chỉ hiện khi có cả name
         $(go.TextBlock,
           {
             row: 0, column: 0, columnSpan: 2,
@@ -204,7 +212,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
           new go.Binding("visible", "name", (addr: string) => addr !== ""),
           new go.Binding("text", "", (d: any) => (d.position || "") + (d.totalCount > 0 ? ` (${d.totalCount})` : ""))
         ),
-        // Position only (no name)
+        // Dòng 1 (full height): Hiển thị chức danh khi KHÔNG có tên người — chiếm cả 2 row
         $(go.TextBlock,
           {
             row: 0, column: 0, columnSpan: 2, rowSpan: 2,
@@ -225,7 +233,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
           new go.Binding("visible", "name", (addr: string) => addr === ""),
           new go.Binding("text", "", (d: any) => (d.position || "") + (d.totalCount > 0 ? ` (${d.totalCount})` : ""))
         ),
-        // Name text
+        // Dòng 2: Hiển thị tên người (italic) — chỉ hiện khi có chức danh
         $(go.TextBlock,
           {
             row: 1, column: 0, columnSpan: 2,
@@ -245,7 +253,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
           new go.Binding("visible", "position", (addr: string) => addr !== ""),
           new go.Binding("text", "name"),
         ),
-        // Name only (no position)
+        // Dòng 1 (full height): Hiển thị tên khi KHÔNG có chức danh — chiếm cả 2 row
         $(go.TextBlock,
           {
             row: 0, column: 0, columnSpan: 2, rowSpan: 2,
@@ -270,6 +278,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
     );
   }
 
+  /** Tạo các group template cho nhóm nhân viên (col1, col2, col4) — khung viền đỏ nét đứt */
   private setupGroupTemplates($: any): void {
     if (!this.diagram) return;
 
@@ -315,6 +324,11 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
     this.diagram.groupTemplateMap.add("col1", createGroupTemplate(1));
   }
 
+  /**
+   * Render sơ đồ tổ chức GoJS từ dữ liệu orgChartData + orgChartDetail.
+   * - Tab master (departmentId=0): RTC → Phòng ban → Team (ẩn team Manager, hiện leader trên node phòng ban)
+   * - Tab phòng ban: Phòng ban → Team → Nhân viên (hiện chi tiết nhân viên trong group)
+   */
   private renderDiagram(): void {
     if (!this.diagram) return;
 
@@ -324,6 +338,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
 
     const $ = go.GraphObject.make;
 
+    // Cấu hình layout riêng cho tab master (rộng hơn) và tab phòng ban (gọn hơn)
     if (departmentId === 0) {
       this.diagram.layout = $(go.TreeLayout, {
         angle: 90,
@@ -346,12 +361,12 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
       });
     }
 
-    // 1. Pre-calculate recursive totals from ALL raw data
+    // Bước 1: Tính tổng số nhân viên đệ quy cho mỗi node từ dữ liệu gốc
     const childrenMapFull = new Map<any, any[]>();
     const localCountsFull = new Map<any, number>();
 
     data.forEach((item: any) => {
-      // Normalize ParentID
+      // Chuẩn hóa ParentID: null/undefined → 0 (node gốc)
       if (item.ParentID === null || item.ParentID === undefined) item.ParentID = 0;
 
       localCountsFull.set(item.ID, item.EmployeeCount || 0);
@@ -361,6 +376,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
       }
     });
 
+    // Hàm đệ quy: tính tổng nhân viên = bản thân + tất cả con cháu
     const totalCountsPre = new Map<any, number>();
     const calculateTotal = (id: any): number => {
       if (totalCountsPre.has(id)) return totalCountsPre.get(id)!;
@@ -373,7 +389,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
       return total;
     };
 
-    // Root key 0 calculation if applicable
+    // Tính tổng nhân viên toàn bộ công ty (tổng các node gốc)
     const getRootTotal = () => {
       let rootTotal = 0;
       data.forEach(item => {
@@ -382,17 +398,37 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
       return rootTotal;
     };
 
-    // 2. Build diagram nodes
+    // Bước 2: Xây dựng danh sách node và link cho diagram
     let assistantBgd = 0;
     let assistantTech = 0;
     const nodeDataArray: any[] = [];
     const linkDataArray: any[] = [];
 
-    // Synthetic dept root key — used when a specific department tab is selected
+    // Key gốc ảo cho node phòng ban — chỉ dùng khi xem tab phòng ban cụ thể
     const deptRootKey = departmentId !== 0 ? `dept-root-${departmentId}` : null;
 
+    // Xây dựng map tên leader cho các team quản lý (Manager, Chief Accountant...)
+    // Ở tab master: ẩn node team quản lý, hiện tên leader ngay trên node phòng ban
+    const managerLeaderMap = new Map<number, string>();
+    const managerTeamIds = new Set<number>();
+    if (departmentId === 0) {
+      // Danh sách tên team được coi là team quản lý (sẽ bị ẩn, leader hiện trên node phòng ban)
+      const leaderTeamNames = ['Manager', 'Chief Accountant'];
+      data.forEach((item: any) => {
+        const teamName = (item.TeamName || item.Name || '').trim();
+        if (item.ParentID === 0 && leaderTeamNames.includes(teamName)) {
+          managerTeamIds.add(item.ID);
+          // Tên leader không có trong dt (luôn rỗng) → tìm từ dtDetail theo OrganizationalChartID
+          const leaderDetail = dataDetail.find((d: any) => d.OrganizationalChartID === item.ID);
+          if (leaderDetail?.FullName?.trim()) {
+            managerLeaderMap.set(item.DepartmentID, leaderDetail.FullName.trim());
+          }
+        }
+      });
+    }
+
     if (data.length > 0) {
-      // Inject synthetic root node (department name) when viewing a specific dept tab
+      // Tạo node gốc ảo (tên phòng ban) khi xem tab phòng ban cụ thể
       if (deptRootKey) {
         const currentDept = this.departments.find((d: any) => d.ID === departmentId);
         const deptName = currentDept?.Name || '';
@@ -427,9 +463,13 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
         const displayCount = (hasChildren && (departmentId === 0 || item.Level === 0 || item.Level === 1 || item.Level === 2 || item.Level === 3 || item.Level === 4 || item.Level === 5)) ? totalForThisNode : 0;
 
         if (departmentId === 0) {
-          // ── MASTER VIEW: RTC → Phòng ban → Team ──
+          // ── CHẾ ĐỘ TỔNG QUAN: RTC → Phòng ban → Team ──
+
+          // Bỏ qua team quản lý (Manager...) — tên leader đã hiện trên node phòng ban
+          if (managerTeamIds.has(item.ID)) return;
+
           if (item.ParentID === 0) {
-            // Ensure RTC root exists
+            // Đảm bảo node gốc RTC đã được tạo
             if (!nodeDataArray.some((n: any) => n.key === 0)) {
               nodeDataArray.push({
                 key: 0,
@@ -442,21 +482,24 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
               });
             }
 
-            // Inject intermediate department node if not already added
+            // Tạo node trung gian phòng ban (nếu chưa tồn tại)
             const deptNodeKey = `dept-${item.DepartmentID}`;
             if (!nodeDataArray.some((n: any) => n.key === deptNodeKey)) {
               const deptInfo = this.departments.find((d: any) => d.ID === item.DepartmentID);
               const deptName = deptInfo?.Name || `Phòng ban ${item.DepartmentID}`;
-              // Calculate dept total = sum of all top-level teams in this dept
+              // Tổng nhân viên phòng ban = tổng các team gốc trong phòng ban
               const deptTotal = data
                 .filter((x: any) => x.DepartmentID === item.DepartmentID && x.ParentID === 0)
                 .reduce((sum: number, x: any) => sum + calculateTotal(x.ID), 0);
+
+              // Lấy tên leader từ map (hiển thị in nghiêng dưới tên phòng ban)
+              const managerLeader = managerLeaderMap.get(item.DepartmentID) || '';
 
               nodeDataArray.push({
                 key: deptNodeKey,
                 parent: 0,
                 position: deptName,
-                name: "",
+                name: managerLeader,
                 color: TAGS_COLORS[0] || "#fff",
                 colorStroke: "black",
                 totalCount: deptTotal
@@ -464,7 +507,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
               linkDataArray.push({ from: 0, to: deptNodeKey });
             }
 
-            // Team links to its department node
+            // Tạo node team và liên kết đến node phòng ban
             nodeDataArray.push({
               key: item.ID,
               parent: deptNodeKey,
@@ -493,7 +536,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
             linkDataArray.push({ from: item.ParentID, to: item.ID });
           }
         } else {
-          // ── DEPARTMENT TAB VIEW ──
+          // ── CHẾ ĐỘ XEM THEO PHÒNG BAN ──
           if (item.DepartmentID === 22 && departmentId === 0) return;
           if (item.Level >= 4 && departmentId === 0) return;
           const parentKey = (item.ParentID === 0 && deptRootKey) ? deptRootKey : item.ParentID;
@@ -564,7 +607,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
       });
     }
 
-    // Add Assistant nodes
+    // Thêm các node trợ lý đặc biệt (hardcode)
     if (departmentId === 2) {
       nodeDataArray.push({
         key: "Admin",
@@ -591,13 +634,13 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
       linkDataArray.push({ from: assistantBgd, to: "Bob" });
     }
 
-    // Update diagram model
+    // Cập nhật model cho diagram
     this.diagram.model = new go.GraphLinksModel({
       nodeDataArray: nodeDataArray,
       linkDataArray: linkDataArray
     });
 
-    // Build search options
+    // Xây dựng danh sách option cho ô tìm kiếm
     this.nodeOptions = nodeDataArray
       .filter((node: any) => node.position !== 'RTC')
       .map((node: any) => {
@@ -613,7 +656,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
         return { key: String(node.key), label: optionText };
       });
 
-    // Center on first node
+    // Căn giữa diagram vào node đầu tiên sau khi layout xong
     this.diagram.addDiagramListener("InitialLayoutCompleted", () => {
       const firstNode = this.diagram?.nodes.first();
       if (firstNode && this.diagram) {
@@ -622,6 +665,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
+  /** Tìm kiếm và highlight node trên diagram theo key */
   searchDiagram(nodeKey: string): void {
     if (!this.diagram) return;
 
@@ -653,6 +697,7 @@ export class OrgChartRtcNewComponent implements OnInit, AfterViewInit, OnDestroy
     this.diagram.commitTransaction('highlight search');
   }
 
+  /** Xuất sơ đồ tổ chức ra file PDF chất lượng cao (scale 2x-4x tùy kích thước) */
   exportToPDF(): void {
     if (typeof jspdf === 'undefined') {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Thư viện xuất PDF (jsPDF) chưa được tải');

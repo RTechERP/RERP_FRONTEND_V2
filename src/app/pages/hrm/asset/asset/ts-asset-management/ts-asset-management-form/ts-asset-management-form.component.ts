@@ -356,7 +356,7 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
                     STT: formValue.STT || this.dataInput?.STT || 0,
                     Note: formValue.Note || '',
                     IsAllocation: formValue.IsAllocation || false,
-                    StatusID: this.dataInput?.StatusID || 0,
+                    StatusID: this.dataInput?.StatusID || 1,
                     DepartmentID: this.dataInput?.DepartmentID || 0,
                     EmployeeID: formValue.EmployeeID || 0,
                     TSAssetID: formValue.TSAssetID || 0,

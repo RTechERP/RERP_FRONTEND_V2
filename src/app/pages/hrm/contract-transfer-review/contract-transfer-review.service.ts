@@ -119,4 +119,28 @@ export class ContractTransferReviewService {
   saveNew(data: any, role?: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/save-new`, { ...data, Role: role ?? '' });
   }
+
+  /**
+   * Lấy lịch sử thao tác của phiếu đánh giá chuyển hợp đồng theo ID phiếu.
+   * API: GET api/jobperfomanceevaluation/get-log-activity?id={id}
+   * @param id - ID phiếu đánh giá (JobPerfomanceEvaluationNew.ID)
+   */
+  getLogActivity(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/get-log-activity?id=${id}`);
+  }
+
+  /**
+   * Lưu lịch sử thao tác chi tiết thay đổi từng hạng mục đánh giá.
+   * API: POST api/jobperfomanceevaluation/save-log-activity
+   * @param id - ID phiếu đánh giá (JobPerfomanceEvaluationNew.ID)
+   * @param typeLog - Loại thao tác (VD: "NLĐ LƯU PHIẾU ĐÁNH GIÁ", "TBP LƯU PHIẾU ĐÁNH GIÁ")
+   * @param contentLog - Nội dung log chi tiết từng hạng mục thay đổi
+   */
+  saveLogActivity(id: number, typeLog: string, contentLog: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/save-log-activity`, {
+      JobPerfomanceEvaluationID: id,
+      TypeLog: typeLog,
+      ContentLog: contentLog
+    });
+  }
 }

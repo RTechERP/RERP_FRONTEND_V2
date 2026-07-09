@@ -223,7 +223,8 @@
       <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="teamEmployees"
         nzMode="multiple" nzShowSearch
         [nzMaxTagCount]="5" [nzMaxTagPlaceholder]="overflowTpl"
-        [(ngModel)]="draft.employeeIDs" nzPlaceHolder="Tìm và chọn nhân viên..." class="w-100">
+        [(ngModel)]="draftEmployeeIdValues" (ngModelChange)="syncDraftEmployeeIds($event)"
+        nzPlaceHolder="Tìm và chọn nhân viên..." class="w-100">
         <nz-option *ngFor="let item of employees; trackBy: trackByEmployeeId" [nzValue]="item.id"
           [nzLabel]="item.code + ' - ' + item.fullName">
         </nz-option>

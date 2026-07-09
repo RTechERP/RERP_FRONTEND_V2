@@ -203,3 +203,13 @@
     padding: 2px 6px;
     font-size: 12px;
 }
+
+.add-file-only-mode {
+    opacity: 0.92;
+    pointer-events: none;
+}
+
+.add-file-only-mode .file-add-section,
+.add-file-only-mode .file-add-section * {
+    pointer-events: auto;
+}

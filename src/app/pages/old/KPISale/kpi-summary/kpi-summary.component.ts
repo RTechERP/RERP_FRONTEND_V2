@@ -3,13 +3,17 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzStepsModule } from 'ng-zorro-antd/steps';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzTagModule } from 'ng-zorro-antd/tag';
@@ -17,10 +21,18 @@ import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import * as XLSX from 'xlsx-js-style';
 import { KpiSummaryService, KpiSaleTemplateMapped, KpiSalePeriodMapped } from './kpi-summary.service';
+import { PermissionService } from '../../../../services/permission.service';
+import { AppUserService } from '../../../../services/app-user.service';
 import {
   KpiSummaryResponse,
   KpiSummaryRow,
   KpiSummaryValue,
+  KPISaleApprovalDto,
+  KPISaleApprovalStepRequest,
+  ApprovalScope,
+  ApprovalCurrentStep,
+  APPROVAL_STEPS,
+  ApprovalStepDef,
 } from './kpi-summary.model';
 
 type PeriodType = 'MONTH' | 'QUARTER' | 'YEAR';
@@ -58,12 +70,16 @@ export interface KpiSaleTemplate {
   imports: [
     CommonModule,
     FormsModule,
+    NzAlertModule,
     NzButtonModule,
     NzFormModule,
     NzIconModule,
     NzInputModule,
+    NzModalModule,
+    NzPopconfirmModule,
     NzSelectModule,
     NzSpinModule,
+    NzStepsModule,
     NzTableModule,
     NzToolTipModule,
     NzTagModule,
@@ -88,13 +104,33 @@ export class KpiSummaryComponent implements OnInit {
   summaryData: KpiSummaryResponse | null = null;
   loading = false;
 
+  // ====== APPROVAL STATE ======
+  readonly approvalSteps = APPROVAL_STEPS;
+  currentApproval: KPISaleApprovalDto | null = null;
+  approving = false;
+  approveModalVisible = false;
+  approveNote: string = '';
+
+  get currentScope(): ApprovalScope {
+    return this.isTeamMode ? 'TEAM' : 'EMPLOYEE';
+  }
+
+  get currentStepIndex(): number {
+    const order: ApprovalCurrentStep[] = ['PENDING', 'P0_APPROVED', 'P1_APPROVED', 'P2_APPROVED', 'P3_APPROVED', 'P4_APPROVED', 'DONE'];
+    const cur = this.currentApproval?.CurrentStep ?? 'PENDING';
+    const idx = order.indexOf(cur);
+    return Math.max(idx, 0);
+  }
+
   // Tree view: lưu trạng thái expand của các chỉ tiêu nhóm (key = indexId cha)
   // Mặc định mở rộng tất cả.
   private expandedGroups = new Set<number>();
 
   constructor(
     private kpiSummaryService: KpiSummaryService,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+    private permissionService: PermissionService,
+    private appUserService: AppUserService
   ) {}
 
   ngOnInit(): void {
@@ -128,16 +164,25 @@ export class KpiSummaryComponent implements OnInit {
 
   onQuarterChange(quarterId: number | null): void {
     this.selectedQuarterId = quarterId;
+    this.resetApprovalState();
     this.loadSummary();
   }
 
-  onEmployeeChange(): void { this.loadSummary(); }
-  onTeamChange(): void { this.loadSummary(); }
+  onEmployeeChange(): void { this.resetApprovalState(); this.loadSummary(); }
+  onTeamChange(): void { this.resetApprovalState(); this.loadSummary(); }
   onSummaryModeChange(): void {
     this.summaryData = null;
     this.boundTemplateId = null;
     this.boundTemplateName = null;
+    this.resetApprovalState();
     this.loadSummary();
+  }
+
+  private resetApprovalState(): void {
+    this.currentApproval = null;
+    this.approving = false;
+    this.approveModalVisible = false;
+    this.approveNote = '';
   }
 
   loadSummary(): void {
@@ -184,6 +229,7 @@ export class KpiSummaryComponent implements OnInit {
               this.notification.warning('Cảnh báo', w)
             );
           }
+          this.loadApprovalStatus();
         } else {
           this.notification.error('Lỗi', res.message || 'Không lấy được dữ liệu tổng hợp');
         }
@@ -211,6 +257,7 @@ export class KpiSummaryComponent implements OnInit {
         if (res.status === 1 && res.data) {
           this.summaryData = res.data;
           this.resetExpandedGroups();
+          this.loadApprovalStatus();
         } else {
           this.notification.error('Lỗi', res.message || 'Không lấy được dữ liệu tổng hợp nhóm');
         }
@@ -425,6 +472,255 @@ export class KpiSummaryComponent implements OnInit {
     if (!this.selectedQuarterId) return true;
     if (this.isTeamMode) return !this.selectedTeamId;
     return !this.selectedEmployeeId;
+  }
+
+  // ============================================================
+  // APPROVAL METHODS
+  // ============================================================
+
+  private loadApprovalStatus(): void {
+    const refId = this.getCurrentRefId();
+    if (!refId || !this.selectedQuarterId) {
+      this.currentApproval = null;
+      return;
+    }
+    this.kpiSummaryService.getApprovalStatus(this.currentScope, refId, this.selectedQuarterId).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.currentApproval = res.data ?? null;
+        }
+      },
+      error: () => {
+        this.currentApproval = null;
+      },
+    });
+  }
+
+  private getCurrentRefId(): number | null {
+    return this.isTeamMode ? this.selectedTeamId : this.selectedEmployeeId;
+  }
+
+  /**
+   * Trả về step definition cho bước hiện tại (sắp được duyệt tiếp theo).
+   * Ví dụ CurrentStep='PENDING' → trả về step P0 (Admin).
+   * CurrentStep='P1_APPROVED' → trả về step P2 (Kế toán).
+   */
+  getNextStepDef(): ApprovalStepDef | null {
+    const order: ApprovalCurrentStep[] = ['PENDING', 'P0_APPROVED', 'P1_APPROVED', 'P2_APPROVED', 'P3_APPROVED', 'P4_APPROVED', 'DONE'];
+    const cur = this.currentApproval?.CurrentStep ?? 'PENDING';
+    const idx = order.indexOf(cur);
+    const nextIdx = Math.min(idx + 1, order.length - 1);
+    return this.approvalSteps[nextIdx - 1] ?? null;
+  }
+
+  /**
+   * Trả về step definition cho bước hiện tại (đã duyệt).
+   * Ví dụ CurrentStep='P1_APPROVED' → trả về step P1 (Sales Manager).
+   * Nếu chưa duyệt bước nào (PENDING) → trả về null.
+   */
+  getCurrentStepDef(): ApprovalStepDef | null {
+    const order: ApprovalCurrentStep[] = ['PENDING', 'P0_APPROVED', 'P1_APPROVED', 'P2_APPROVED', 'P3_APPROVED', 'P4_APPROVED', 'DONE'];
+    const cur = this.currentApproval?.CurrentStep ?? 'PENDING';
+    const idx = order.indexOf(cur);
+    if (idx <= 0) return null;
+    return this.approvalSteps[idx - 1] ?? null;
+  }
+
+  getUnapprovePermissionStepDef(): ApprovalStepDef | null {
+    const order: ApprovalCurrentStep[] = ['PENDING', 'P0_APPROVED', 'P1_APPROVED', 'P2_APPROVED', 'P3_APPROVED', 'P4_APPROVED', 'DONE'];
+    const cur = this.currentApproval?.CurrentStep ?? 'PENDING';
+    const idx = order.indexOf(cur);
+    if (idx <= 0) return null;
+    const permissionIdx = Math.max(idx - 1, 1);
+    return this.approvalSteps[permissionIdx - 1] ?? null;
+  }
+
+  /** Quyền cao nhất (admin tổng) được phép thao tác tất cả các bước. */
+  private isGlobalAdmin(): boolean {
+    return this.appUserService?.currentUser?.IsAdmin === true ||
+           this.permissionService.hasPermission('N1');
+  }
+
+  /** Kiểm tra user có quyền thao tác trên step hay không. */
+  private canActOnStep(step: ApprovalStepDef | null): boolean {
+    if (!step) return false;
+    if (this.isGlobalAdmin()) return true;
+    const codes = (step.permissionCode || '').split(',').map(s => s.trim()).filter(Boolean);
+    return codes.some(code => this.permissionService.hasPermission(code));
+  }
+
+  canApprove(): boolean {
+    if (!this.summaryData) return false;
+    if (this.isMissingSelection()) return false;
+    if (this.approving) return false;
+    if (this.currentApproval?.CurrentStep === 'DONE') return false;
+    // Phải có quyền cho bước sắp duyệt
+    return this.canActOnStep(this.getNextStepDef());
+  }
+
+  canUnapprove(): boolean {
+    if (!this.summaryData) return false;
+    if (!this.currentApproval) return false;
+    if (this.currentApproval.CurrentStep === 'PENDING') return false;
+    return this.canActOnStep(this.getUnapprovePermissionStepDef());
+  }
+
+  /**
+   * Lý do không thể duyệt/hủy (dùng cho tooltip & disable).
+   * Trả về chuỗi rỗng nếu được phép.
+   */
+  getApproveDisabledReason(): string {
+    if (this.approving) return 'Đang xử lý...';
+    if (!this.summaryData) return 'Chưa có dữ liệu';
+    if (this.isMissingSelection()) return 'Chưa chọn nhân viên/team';
+    if (this.currentApproval?.CurrentStep === 'DONE') return 'Quy trình đã hoàn tất';
+    if (!this.canActOnStep(this.getNextStepDef())) {
+      const step = this.getNextStepDef();
+      const codes = step?.permissionCode ?? '';
+      return `Bạn không có quyền duyệt bước "${step?.shortLabel ?? ''}"`;
+    }
+    return '';
+  }
+
+  getUnapproveDisabledReason(): string {
+    if (!this.summaryData || !this.currentApproval) return '';
+    if (this.currentApproval.CurrentStep === 'PENDING') return 'Chưa có bước nào để hủy';
+    if (!this.canActOnStep(this.getUnapprovePermissionStepDef())) {
+      const step = this.getUnapprovePermissionStepDef();
+      const codes = step?.permissionCode ?? '';
+      return `Bạn không có quyền hủy về bước "${step?.shortLabel ?? ''}"`;
+    }
+    return '';
+  }
+
+  openApproveConfirm(): void {
+    if (!this.canApprove()) return;
+    this.approveNote = '';
+    this.approveModalVisible = true;
+  }
+
+  onApprove(): void {
+    if (!this.canApprove()) {
+      this.approveModalVisible = false;
+      return;
+    }
+    const refId = this.getCurrentRefId();
+    if (!refId || !this.selectedQuarterId) {
+      this.approveModalVisible = false;
+      return;
+    }
+
+    const req: KPISaleApprovalStepRequest = {
+      approvalScope: this.currentScope,
+      employeeID: this.isTeamMode ? null : refId,
+      teamID: this.isTeamMode ? refId : null,
+      periodID: this.selectedQuarterId,
+      note: this.approveNote || null,
+    };
+
+    const approvedStepLabel = this.getNextStepLabel();
+
+    this.approving = true;
+    this.kpiSummaryService.approveStep(req).subscribe({
+      next: (res) => {
+        this.approving = false;
+        if (res.status === 1 && res.data) {
+          this.currentApproval = res.data;
+          this.approveModalVisible = false;
+          this.notification.success(
+            'Thành công',
+            `Đã duyệt bước ${approvedStepLabel}`
+          );
+        } else {
+          this.notification.error('Lỗi', res.message || 'Không duyệt được');
+        }
+      },
+      error: (err) => {
+        this.approving = false;
+        this.notification.error('Lỗi', err?.message || 'Không duyệt được');
+      },
+    });
+  }
+
+  onUnapprove(): void {
+    if (!this.canUnapprove()) return;
+    const refId = this.getCurrentRefId();
+    if (!refId || !this.selectedQuarterId) return;
+
+    const req: KPISaleApprovalStepRequest = {
+      approvalScope: this.currentScope,
+      employeeID: this.isTeamMode ? null : refId,
+      teamID: this.isTeamMode ? refId : null,
+      periodID: this.selectedQuarterId,
+      note: 'Hủy duyệt',
+    };
+
+    this.approving = true;
+    this.kpiSummaryService.unapproveStep(req).subscribe({
+      next: (res) => {
+        this.approving = false;
+        if (res.status === 1 && res.data) {
+          this.currentApproval = res.data;
+          this.notification.success('Thành công', 'Đã hủy duyệt');
+        } else {
+          this.notification.error('Lỗi', res.message || 'Không hủy duyệt được');
+        }
+      },
+      error: (err) => {
+        this.approving = false;
+        this.notification.error('Lỗi', err?.message || 'Không hủy duyệt được');
+      },
+    });
+  }
+
+  getNextStepLabel(): string {
+    const order: ApprovalCurrentStep[] = ['PENDING', 'P0_APPROVED', 'P1_APPROVED', 'P2_APPROVED', 'P3_APPROVED', 'P4_APPROVED', 'DONE'];
+    const cur = this.currentApproval?.CurrentStep ?? 'PENDING';
+    const idx = order.indexOf(cur);
+    const nextIdx = Math.min(idx + 1, order.length - 1);
+    const step = this.approvalSteps[nextIdx - 1]; // step đầu tiên (P0) nằm ở index 0
+    return step ? step.longLabel : 'Hoàn tất';
+  }
+
+  getStepStatusText(stepIdx: number): string {
+    const order: ApprovalCurrentStep[] = ['PENDING', 'P0_APPROVED', 'P1_APPROVED', 'P2_APPROVED', 'P3_APPROVED', 'P4_APPROVED', 'DONE'];
+    const cur = this.currentApproval?.CurrentStep ?? 'PENDING';
+    const curIdx = order.indexOf(cur);
+    // Quan hệ: curIdx = 0 (PENDING) chưa có step nào xong; curIdx = k ≥ 1 nghĩa là
+    // step đầu (idx = k-1) của approvalSteps vừa được duyệt xong.
+    // Ví dụ cur='P1_APPROVED' → curIdx=2 → step 0 (Admin) & step 1 (SM) đã duyệt,
+    // step 2 (Kế toán) đang đợi duyệt.
+    if (stepIdx < curIdx) return 'Đã duyệt';
+    if (stepIdx === curIdx) return 'Đang đợi duyệt';
+    return '';
+  }
+
+  getCurrentStepLabel(step?: ApprovalCurrentStep | null): string {
+    const cur = step ?? this.currentApproval?.CurrentStep ?? 'PENDING';
+    switch (cur) {
+      case 'PENDING': return 'Chưa duyệt';
+      case 'P0_APPROVED': return 'Admin đã duyệt';
+      case 'P1_APPROVED': return 'Sales Manager đã duyệt';
+      case 'P2_APPROVED': return 'Kế toán đã duyệt';
+      case 'P3_APPROVED': return 'Trưởng kế toán đã duyệt';
+      case 'P4_APPROVED': return 'Giám đốc đã duyệt';
+      case 'DONE': return 'Hoàn tất';
+      default: return cur;
+    }
+  }
+
+  getCurrentStepColor(step?: ApprovalCurrentStep | null): string {
+    const cur = step ?? this.currentApproval?.CurrentStep ?? 'PENDING';
+    switch (cur) {
+      case 'PENDING': return 'default';
+      case 'DONE': return 'success';
+      case 'P0_APPROVED': return 'processing';
+      case 'P1_APPROVED':
+      case 'P2_APPROVED':
+      case 'P3_APPROVED':
+      case 'P4_APPROVED': return 'cyan';
+      default: return 'default';
+    }
   }
 
   exportToExcel(): void {

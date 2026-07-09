@@ -73,6 +73,148 @@
     </div>
   </div>
 
+  <!-- Approval Workflow Bar (hiển thị trên cùng dưới toolbar) -->
+  <div class="approval-workflow-bar" *ngIf="summaryData">
+    <div class="approval-workflow-bar__head">
+      <span class="approval-workflow-bar__title">
+        <span nz-icon nzType="audit"></span>
+        Quy trình phê duyệt KPI
+        <nz-tag [nzColor]="currentScope === 'TEAM' ? 'geekblue' : 'cyan'">
+          {{ currentScope === 'TEAM' ? 'Theo TEAM' : 'Theo CÁ NHÂN' }}
+        </nz-tag>
+      </span>
+      <div class="approval-workflow-bar__current">
+        <ng-container *ngIf="currentApproval; else pendingActions">
+          <ng-container *ngIf="currentApproval.CurrentStep !== 'DONE'">
+            <button
+              nz-button
+              nzType="primary"
+              nzSize="small"
+              [nzLoading]="approving"
+              [disabled]="!canApprove()"
+              [nz-tooltip]="getApproveDisabledReason() || null"
+              (click)="openApproveConfirm()">
+              <span nz-icon nzType="check-circle"></span>
+               {{ getNextStepLabel() }}
+            </button>
+            <button
+              nz-button
+              nzDanger
+              nzSize="small"
+              [nzLoading]="approving"
+              [disabled]="!canUnapprove()"
+              [nz-tooltip]="getUnapproveDisabledReason() || null"
+              nz-popconfirm
+              nzPopconfirmTitle="Hủy duyệt về bước trước?"
+              (nzOnConfirm)="onUnapprove()">
+              <span nz-icon nzType="rollback"></span>
+              Hủy duyệt
+            </button>
+          </ng-container>
+          <nz-tag *ngIf="currentApproval.CurrentStep === 'DONE'" nzColor="success">
+            <span nz-icon nzType="check"></span> Hoàn tất toàn bộ quy trình
+          </nz-tag>
+        </ng-container>
+        <ng-template #pendingActions>
+          <button
+            nz-button
+            nzType="primary"
+            nzSize="small"
+            [nzLoading]="approving"
+            [disabled]="!canApprove()"
+            [nz-tooltip]="getApproveDisabledReason() || null"
+            (click)="openApproveConfirm()">
+            <span nz-icon nzType="play-circle"></span>
+            Duyệt (Admin)
+          </button>
+        </ng-template>
+      </div>
+    </div>
+
+    <nz-steps
+      [nzCurrent]="currentStepIndex"
+      [nzStatus]="currentApproval?.CurrentStep === 'DONE' ? 'finish' : (currentApproval?.CurrentStep === 'PENDING' ? 'wait' : 'process')"
+      nzSize="small"
+      class="approval-workflow-bar__steps">
+      <nz-step
+        *ngFor="let step of approvalSteps; let i = index"
+        [nzTitle]="step.shortLabel"
+        [nzDescription]="getStepStatusText(i)"
+        [nzIcon]="step.icon">
+      </nz-step>
+    </nz-steps>
+
+    <!-- Thông tin chi tiết của từng bước -->
+    <!-- <div class="approval-workflow-bar__details" *ngIf="currentApproval">
+      <div class="approval-workflow-bar__detail">
+        <span class="label">Admin:</span>
+        <span class="value">
+          <ng-container *ngIf="currentApproval.adminApprovedBy; else pendingAdmin">
+            <nz-icon nzType="user" theme="outline"></nz-icon>
+            {{ currentApproval.adminApprovedBy }}
+            <span class="date">({{ currentApproval.adminApprovedDate | date:'dd/MM/yyyy HH:mm' }})</span>
+          </ng-container>
+          <ng-template #pendingAdmin><span class="muted">Chưa duyệt</span></ng-template>
+        </span>
+      </div>
+      <div class="approval-workflow-bar__detail">
+        <span class="label">Sales Manager:</span>
+        <span class="value">
+          <ng-container *ngIf="currentApproval.salesManagerApprovedBy; else pendingSm">
+            <nz-icon nzType="user" theme="outline"></nz-icon>
+            {{ currentApproval.salesManagerApprovedBy }}
+            <span class="date">({{ currentApproval.salesManagerApprovedDate | date:'dd/MM/yyyy HH:mm' }})</span>
+          </ng-container>
+          <ng-template #pendingSm><span class="muted">Chưa duyệt</span></ng-template>
+        </span>
+      </div>
+      <div class="approval-workflow-bar__detail">
+        <span class="label">Kế toán:</span>
+        <span class="value">
+          <ng-container *ngIf="currentApproval.accountantApprovedBy; else pendingAcc">
+            <nz-icon nzType="user" theme="outline"></nz-icon>
+            {{ currentApproval.accountantApprovedBy }}
+            <span class="date">({{ currentApproval.accountantApprovedDate | date:'dd/MM/yyyy HH:mm' }})</span>
+          </ng-container>
+          <ng-template #pendingAcc><span class="muted">Chưa duyệt</span></ng-template>
+        </span>
+      </div>
+      <div class="approval-workflow-bar__detail">
+        <span class="label">Trưởng KT:</span>
+        <span class="value">
+          <ng-container *ngIf="currentApproval.seniorAccountantApprovedBy; else pendingSacc">
+            <nz-icon nzType="user" theme="outline"></nz-icon>
+            {{ currentApproval.seniorAccountantApprovedBy }}
+            <span class="date">({{ currentApproval.seniorAccountantApprovedDate | date:'dd/MM/yyyy HH:mm' }})</span>
+          </ng-container>
+          <ng-template #pendingSacc><span class="muted">Chưa duyệt</span></ng-template>
+        </span>
+      </div>
+      <div class="approval-workflow-bar__detail">
+        <span class="label">Giám đốc:</span>
+        <span class="value">
+          <ng-container *ngIf="currentApproval.directorApprovedBy; else pendingDir">
+            <nz-icon nzType="user" theme="outline"></nz-icon>
+            {{ currentApproval.directorApprovedBy }}
+            <span class="date">({{ currentApproval.directorApprovedDate | date:'dd/MM/yyyy HH:mm' }})</span>
+          </ng-container>
+          <ng-template #pendingDir><span class="muted">Chưa duyệt</span></ng-template>
+        </span>
+      </div>
+      <div class="approval-workflow-bar__detail">
+        <span class="label">HR chi thưởng:</span>
+        <span class="value">
+          <ng-container *ngIf="currentApproval.hrDisbursedBy; else pendingHr">
+            <nz-icon nzType="user" theme="outline"></nz-icon>
+            {{ currentApproval.hrDisbursedBy }}
+            <span class="date">({{ currentApproval.hrDisbursedDate | date:'dd/MM/yyyy HH:mm' }})</span>
+          </ng-container>
+          <ng-template #pendingHr><span class="muted">Chưa chi</span></ng-template>
+        </span>
+      </div>
+    </div> -->
+  </div>
+
   <!-- Summary Info Bar
   <div class="summary-info-bar" *ngIf="summaryData">
     <span class="info-tag" *ngIf="!isTeamMode">
@@ -291,4 +433,44 @@
     <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
     <p>Đang tải dữ liệu tổng hợp KPI...</p>
   </div>
+
+  <!-- Modal xác nhận duyệt -->
+  <nz-modal
+    [(nzVisible)]="approveModalVisible"
+    nzTitle="Xác nhận phê duyệt"
+    [nzOkLoading]="approving"
+    (nzOnCancel)="approveModalVisible = false"
+    (nzOnOk)="onApprove()"
+    [nzOkText]="'Xác nhận duyệt'"
+    [nzCancelText]="'Hủy'">
+    <ng-container *nzModalContent>
+      <p>
+        Bạn đang duyệt bước
+        <strong>{{ getNextStepLabel() }}</strong>
+        cho
+        <strong>{{ isTeamMode ? 'Team: ' + getTeamName() : 'Nhân viên: ' + getEmployeeName() }}</strong>
+        - Kỳ: <strong>{{ summaryData?.quarterName || summaryData?.quarterCode }}</strong>
+      </p>
+      <nz-form-item>
+        <nz-form-label>Ghi chú (tùy chọn)</nz-form-label>
+        <nz-form-control>
+          <textarea
+            nz-input
+            [(ngModel)]="approveNote"
+            rows="3"
+            placeholder="Nhập ghi chú cho bước duyệt này..."></textarea>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-alert
+        *ngIf="currentScope === 'TEAM'"
+        nzType="info"
+        nzMessage="Duyệt Team"
+        nzDescription="Khi duyệt, tất cả thành viên hiện tại của team sẽ được duyệt theo."></nz-alert>
+      <nz-alert
+        *ngIf="getNextStepLabel() === 'Admin' && currentApproval === null"
+        nzType="warning"
+        nzMessage="Lưu ý"
+        nzDescription="Sau khi Admin duyệt, toàn bộ tính KPI và sửa Target cho quý này sẽ bị khóa (theo cả 3 tháng trong quý)."></nz-alert>
+    </ng-container>
+  </nz-modal>
 </div>

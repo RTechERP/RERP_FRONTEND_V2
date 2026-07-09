@@ -17,7 +17,6 @@
 
 .split-container {
   display: flex;
-  gap: 8px;
   flex: 1;
   overflow: hidden;
   min-height: 0;
@@ -25,7 +24,6 @@
 
 /* Cột trái */
 .left-sidebar {
-  width: 350px;
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -34,6 +32,35 @@
   overflow: hidden;
   border: 1px solid #d8dee9;
   flex-shrink: 0;
+}
+
+.splitter-handle {
+  position: relative;
+  flex: 0 0 12px;
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.splitter-handle::before {
+  content: '';
+  width: 4px;
+  height: 42px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.splitter-handle:hover::before,
+.splitter-handle:active::before {
+  background: #1890ff;
+  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.14);
+}
+
+::ng-deep body.kpi-target-resizing {
+  cursor: col-resize !important;
+  user-select: none;
 }
 
 .sidebar-title {

@@ -121,10 +121,10 @@
   <div class="ctr-table-area">
     <app-custom-table [data]="tableData" [textWrap]="true" [columns]="columns" [loading]="isLoading" dataKey="ID"
       [scrollable]="true" scrollHeight="flex" [showGlobalFilter]="false" [paginator]="false" [rows]="20"
-      rowGroupMode="subheader" groupRowsBy="DepartmentName" [expandableRowGroups]="true"
-      [rowsPerPageOptions]="[20, 50, 100]" fontSize="12px" [clickSelectRow]="true"
-      (rowClick)="onRowClickToggleSelection($event)" selectionMode="multiple" [(selection)]="selectedRequests"
-      [contextMenuItems]="contextMenuItems" (contextMenuSelectionChange)="onContextMenuSelectionChange($event)">
+      rowGroupMode="subheader" groupRowsBy="DepartmentName" [rowsPerPageOptions]="[20, 50, 100]" fontSize="12px"
+      [clickSelectRow]="true" (rowClick)="onRowClickToggleSelection($event)" selectionMode="multiple"
+      [(selection)]="selectedRequests" [contextMenuItems]="contextMenuItems"
+      (contextMenuSelectionChange)="onContextMenuSelectionChange($event)">
       <ng-template #cellTemplate let-rowData let-col="col">
         <!-- Trạng thái -->
         <ng-container *ngIf="col.field === 'StatusName'">

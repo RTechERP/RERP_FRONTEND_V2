@@ -17,14 +17,16 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { ProjectService } from '../../../project/project-service/project.service';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
-import { CustomTable } from '../../../../shared/components/custom-table/custom-table';
-import { ColumnDef } from '../../../../shared/components/custom-table/column-def.model';
+import { CustomTable } from '../../../../shared/custom-table/custom-table';
+import { ColumnDef } from '../../../../shared/custom-table/column-def.model';
 import { ContractTransferReviewService } from '../contract-transfer-review.service';
 import { ContractTransferReviewDetailComponent } from '../contract-transfer-review-detail/contract-transfer-review-detail.component';
 import { ContractTransferReviewDetailNewComponent } from '../contract-transfer-review-detail-new/contract-transfer-review-detail-new.component';
 import { ContractTransferReviewSendMailComponent } from '../contract-transfer-review-send-mail/contract-transfer-review-send-mail.component';
+import { ActivityLogCtrComponent } from '../activity-log-ctr/activity-log-ctr.component';
 import { Menubar } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
+import { ContextMenuModule } from 'primeng/contextmenu';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { AppUserService } from '../../../../services/app-user.service';
 import { PermissionService } from '../../../../services/permission.service';
@@ -53,7 +55,7 @@ import { LOGO_RTC_BASE64 } from '../../../../shared/pdf/logo-base64';
     NzButtonModule, NzIconModule, NzDatePickerModule,
     NzSelectModule, NzTagModule, NzSpinModule, NzInputModule,
     NzFormModule, NzDropDownModule,
-    CustomTable, Menubar, NzModalModule,
+    CustomTable, Menubar, NzModalModule, ContextMenuModule,
     ContractTransferReviewSendMailComponent,
   ],
   templateUrl: './contract-transfer-review.component.html',
@@ -64,6 +66,7 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
   private searchSubscription!: Subscription;
 
   menuItems: MenuItem[] = [];
+  selectedContextRow: any = null;
 
   isLoading = false;
   tableData: any[] = [];
@@ -177,6 +180,7 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
     this.loadDepartments();
     this.getEmployees();
     this.initMenu();
+    this.initContextMenu();
     if (this.checkRole() === 'employee') {
       this.employeeRequestId = this.appUserService.currentUser?.EmployeeID || -1;
       this.departmentId = this.appUserService.currentUser?.DepartmentID || -1;
@@ -368,6 +372,12 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
         icon: 'fa-solid fa-print fa-lg text-info',
         visible: true,
         command: () => this.printReviewForm(),
+      },
+      {
+        label: 'Lịch sử thao tác',
+        icon: 'fa-solid fa-clock-rotate-left fa-lg text-primary',
+        visible: true,
+        command: () => this.openActivityLogModal(),
       },
       { separator: true },
     ];
@@ -1248,6 +1258,63 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
     const date = typeof d === 'string' ? new Date(d) : d;
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T00:00:00`;
+  }
+
+  /**
+   * Mở modal xem lịch sử thao tác của phiếu đánh giá được chọn.
+   * Yêu cầu chọn đúng 1 dòng.
+   */
+  openActivityLogModal(): void {
+    let listToProcess: any[] = this.selectedRequests?.length > 0 ? this.selectedRequests : [];
+    if (listToProcess.length === 0 && this.selectedRow) {
+      listToProcess = [this.selectedRow];
+    }
+    if (listToProcess.length !== 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 dòng để xem lịch sử thao tác!');
+      return;
+    }
+    this.openRowActivityLog(listToProcess[0]);
+  }
+
+  /**
+   * Mở modal lịch sử thao tác cho một row cụ thể (dùng từ action cột hoặc menubar).
+   */
+  openRowActivityLog(row: any): void {
+    if (!row?.ID) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Dòng được chọn không hợp lệ!');
+      return;
+    }
+
+    const ref = this.modalService.open(ActivityLogCtrComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+      size: 'xl',
+      scrollable: true,
+      windowClass: 'ctr-activity-log-modal',
+    });
+    ref.componentInstance.jobPerfomanceEvaluationID = Number(row.ID);
+    ref.componentInstance.employeeName = row.EmployeeName || row.EmployeeEvaluationName || '';
+    ref.componentInstance.employeeCode = row.EmployeeCode || row.Code || '';
+  }
+
+  contextMenuItems: MenuItem[] = [];
+
+  initContextMenu(): void {
+    this.contextMenuItems = [
+      {
+        label: 'Xem lịch sử thao tác',
+        icon: 'fa-solid fa-clock-rotate-left text-primary',
+        command: () => this.openRowActivityLog(this.selectedContextRow)
+      }
+    ];
+  }
+
+  /**
+   * Xử lý khi chọn từ context menu
+   */
+  onContextMenuSelectionChange(row: any): void {
+    this.selectedContextRow = row;
   }
 
   printReviewForm(): void {

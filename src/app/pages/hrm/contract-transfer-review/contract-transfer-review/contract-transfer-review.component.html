@@ -1,12 +1,6 @@
 <div class="ctr-page-container">
   <!-- ===== Thanh menu ===== -->
   <p-menubar [model]="menuItems" styleClass="border-0 mb-0 ctr-menubar">
-    <ng-template pTemplate="start">
-      <div class="page-title ms-2 me-3">
-        <span nz-icon nzType="file-done" nzTheme="outline" class="me-2"></span>
-        Phê Duyệt Đánh Giá Hợp Đồng (HR)
-      </div>
-    </ng-template>
 
     <ng-template #end>
       <div class="flex items-center gap-2">
@@ -60,7 +54,8 @@
           <nz-form-item class="mb-0">
             <nz-form-label class="fs-12" style="font-size: 12px;">Trạng thái</nz-form-label>
             <nz-form-control>
-              <nz-select [(ngModel)]="step" name="step" nzPlaceHolder="-- Tất cả --" nzAllowClear nzShowSearch nzSize="small" class="w-100" (ngModelChange)="onSearch()">
+              <nz-select [(ngModel)]="step" name="step" nzPlaceHolder="-- Tất cả --" nzAllowClear nzShowSearch
+                nzSize="small" class="w-100" (ngModelChange)="onSearch()">
                 <nz-option [nzValue]="-1" nzLabel="-- Tất cả --"></nz-option>
                 <nz-option *ngFor="let s of stepOptions" [nzValue]="s.value" [nzLabel]="s.label"></nz-option>
               </nz-select>
@@ -73,8 +68,9 @@
           <nz-form-item class="mb-0">
             <nz-form-label class="fs-12" style="font-size: 12px;">Phòng ban</nz-form-label>
             <nz-form-control>
-              <nz-select name="departmentId" [(ngModel)]="departmentId" nzSize="small" class="w-100" nzShowSearch nzAllowClear
-                nzPlaceHolder="Tất cả phòng ban" [nzDisabled]="isEmployee || isTBP" (ngModelChange)="onSearch()">
+              <nz-select name="departmentId" [(ngModel)]="departmentId" nzSize="small" class="w-100" nzShowSearch
+                nzAllowClear nzPlaceHolder="Tất cả phòng ban" [nzDisabled]="isEmployee || isTBP"
+                (ngModelChange)="onSearch()">
                 <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name">
                 </nz-option>
               </nz-select>
@@ -87,8 +83,9 @@
           <nz-form-item class="mb-0">
             <nz-form-label class="fs-12" style="font-size: 12px;">Nhân viên</nz-form-label>
             <nz-form-control>
-              <nz-select name="employeeRequestId" [(ngModel)]="employeeRequestId" nzSize="small" class="w-100" nzShowSearch nzAllowClear
-                nzPlaceHolder="--Chọn nhân viên--" [nzDisabled]="isEmployee" (ngModelChange)="onSearch()">
+              <nz-select name="employeeRequestId" [(ngModel)]="employeeRequestId" nzSize="small" class="w-100"
+                nzShowSearch nzAllowClear nzPlaceHolder="--Chọn nhân viên--" [nzDisabled]="isEmployee"
+                (ngModelChange)="onSearch()">
                 <ng-container *ngFor="let group of employees">
                   <nz-option-group [nzLabel]="group.label">
                     <nz-option *ngFor="let option of group.options"
@@ -107,8 +104,8 @@
             <nz-form-label class="fs-12" style="font-size: 12px;">Từ khóa</nz-form-label>
             <nz-form-control>
               <div class="d-flex gap-1">
-                <input nz-input placeholder="Nhập từ khóa..." nzSize="small" [(ngModel)]="keyword" name="keyword" class="flex-grow-1"
-                  (keyup.enter)="onSearch()" />
+                <input nz-input placeholder="Nhập từ khóa..." nzSize="small" [(ngModel)]="keyword" name="keyword"
+                  class="flex-grow-1" (keyup.enter)="onSearch()" />
                 <button nz-button nzType="primary" style="width: 40px;" nzSize="small" (click)="onSearch()">
                   <nz-icon nzType="search" />
                 </button>
@@ -126,7 +123,8 @@
       [scrollable]="true" scrollHeight="flex" [showGlobalFilter]="false" [paginator]="false" [rows]="20"
       rowGroupMode="subheader" groupRowsBy="DepartmentName" [expandableRowGroups]="true"
       [rowsPerPageOptions]="[20, 50, 100]" fontSize="12px" [clickSelectRow]="true"
-      (rowClick)="onRowClickToggleSelection($event)" selectionMode="multiple" [(selection)]="selectedRequests">
+      (rowClick)="onRowClickToggleSelection($event)" selectionMode="multiple" [(selection)]="selectedRequests"
+      [contextMenuItems]="contextMenuItems" (contextMenuSelectionChange)="onContextMenuSelectionChange($event)">
       <ng-template #cellTemplate let-rowData let-col="col">
         <!-- Trạng thái -->
         <ng-container *ngIf="col.field === 'StatusName'">
@@ -152,6 +150,12 @@
             <button *ngIf="canDeleteRow(rowData)" nz-button nzSize="small" nzDanger (click)="onDelete(rowData)"
               title="Xóa phiếu">
               <span nz-icon nzType="delete"></span>
+            </button>
+
+            <!-- Lịch sử thao tác -->
+            <button nz-button nzSize="small" nzType="default" style="background:#17a2b8;border-color:#17a2b8;color:#fff"
+              (click)="openRowActivityLog(rowData)" title="Xem lịch sử thao tác">
+              <span nz-icon nzType="history"></span>
             </button>
           </div>
         </ng-container>

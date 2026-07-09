@@ -583,8 +583,24 @@ export class HistoryProductRtcPersonalComponent implements OnInit, AfterViewInit
             },
             {
                 id: 'ProductGroupName',
-                name: 'Loại kho',
+                name: 'Nhóm kho',
                 field: 'ProductGroupName',
+                sortable: true,
+                filterable: true,
+                width: 150,
+                filter: {
+                    collection: [],
+                    model: Filters['multipleSelect'],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                        filter: true,
+                    } as MultipleSelectOption,
+                },
+            },
+            {
+                id: 'WarehouseType',
+                name: 'Loại kho',
+                field: 'WarehouseType',
                 sortable: true,
                 filterable: true,
                 width: 150,

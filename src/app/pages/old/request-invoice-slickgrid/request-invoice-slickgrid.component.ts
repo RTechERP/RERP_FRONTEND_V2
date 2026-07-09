@@ -259,6 +259,40 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         ];
     }
 
+    canEdit(): boolean {
+        if (!this.selectedRow) {
+            return false;
+        }
+        const statusId = Number(this.selectedRow.StatusID);
+        const isApproved = Number(this.selectedRow.IsApproved);
+        // StatusID=1 và IsApproved=0 hoặc 1 -> cho sửa
+        if (statusId === 1 && (isApproved === 0 || isApproved === 1)) {
+            return true;
+        }
+        // StatusID=2 và IsApproved=4 -> cho sửa (chỉ đọc các input, chỉ cho thêm file)
+        if (statusId === 2 && isApproved === 4) {
+            return true;
+        }
+        return false;
+    }
+
+    isReadOnlyMode(): boolean {
+        if (!this.selectedRow) {
+            return false;
+        }
+        // Khi StatusID=2 và IsApproved=4 thì chỉ cho xem và chọn file
+        return Number(this.selectedRow.StatusID) === 2 && Number(this.selectedRow.IsApproved) === 4;
+    }
+
+    canDelete(): boolean {
+        if (!this.selectedRow) {
+            return false;
+        }
+        const statusId = Number(this.selectedRow.StatusID);
+        const isApproved = Number(this.selectedRow.IsApproved);
+        return statusId === 1 && (isApproved === 0 || isApproved === 1);
+    }
+
     onFilesTabChange(tabIndex: number): void {
         // Lazy render Contract File grid only when user opens the tab
         if (tabIndex === 1 && !this.isContractFileGridRendered) {
@@ -1081,67 +1115,81 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             );
             return;
         }
-        this.RequestInvoiceSlickgridService.getDetail(this.selectedId).subscribe({
-            next: (response) => {
-                if (response.status === 1) {
-                    const DETAIL = response.data;
-                    const FILE = response.files;
-                    const MAINDATA = this.data.find(
-                        (item) => item.ID === this.selectedId
-                    );
-                    const groupedData = [
-                        {
-                            MainData: MAINDATA,
-                            ID: this.selectedId,
-                            items: DETAIL,
-                            files: FILE,
-                        },
-                    ];
-                    const modalRef = this.modalService.open(
-                        RequestInvoiceDetailNewPrimengComponent,
-                        {
-                            centered: true,
-                            windowClass: 'full-screen-modal',
-                            backdrop: 'static',
-                        }
-                    );
-                    modalRef.componentInstance.groupedData = groupedData;
-                    modalRef.componentInstance.isEditMode = true;
-                    modalRef.componentInstance.selectedId = this.selectedId;
-                    modalRef.componentInstance.POKHID = DETAIL[0]?.POKHID || 0;
-                    modalRef.result.then(
-                        (result) => {
-                            if (result.success && result.reloadData) {
-                                this.loadMainData(
-                                    this.filters.startDate,
-                                    this.filters.endDate,
-                                    this.filters.filterText
-                                );
-                            }
-                        },
-                        (reason) => {
-                            console.log('Modal closed');
-                        }
-                    );
-                } else {
+
+        if (!this.canEdit()) {
+            this.notification.warning(
+                'Không thể sửa',
+                'Chỉ có thể sửa khi trạng thái là Yêu cầu xuất hóa đơn - Chờ duyệt.',
+                { nzStyle: { whiteSpace: 'pre-line' } }
+            );
+            return;
+        }
+
+        // Gọi 2 API song song: getDetail và getRequestInvoiceById
+        forkJoin({
+            detail: this.RequestInvoiceSlickgridService.getDetail(this.selectedId),
+            main: this.RequestInvoiceSlickgridService.getRequestInvoiceById(this.selectedId),
+        }).subscribe({
+            next: ({ detail, main }) => {
+                if (detail.status !== 1) {
                     this.notification.create(
-                        NOTIFICATION_TYPE_MAP[response.status] || 'error',
-                        NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
-                        response.message || 'Lỗi khi lấy dữ liệu chỉnh sửa',
-                        {
-                            nzStyle: { whiteSpace: 'pre-line' }
-                        }
+                        NOTIFICATION_TYPE_MAP[detail.status] || 'error',
+                        NOTIFICATION_TITLE_MAP[detail.status as RESPONSE_STATUS] || 'Lỗi',
+                        detail.message || 'Lỗi khi lấy chi tiết',
+                        { nzStyle: { whiteSpace: 'pre-line' } }
                     );
+                    return;
                 }
+
+                const DETAIL = detail.data;
+                const FILE = detail.files;
+                // Ưu tiên lấy MainData từ API, fallback về this.data.find()
+                const MAINDATA = (main.status === 1 && main.data)
+                    ? main.data
+                    : (this.data.find((item) => item.ID === this.selectedId) || null);
+
+                const groupedData = [
+                    {
+                        MainData: MAINDATA,
+                        ID: this.selectedId,
+                        items: DETAIL,
+                        files: FILE,
+                    },
+                ];
+                const modalRef = this.modalService.open(
+                    RequestInvoiceDetailNewPrimengComponent,
+                    {
+                        centered: true,
+                        windowClass: 'full-screen-modal',
+                        backdrop: 'static',
+                    }
+                );
+                modalRef.componentInstance.groupedData = groupedData;
+                modalRef.componentInstance.isEditMode = true;
+                modalRef.componentInstance.isReadOnlyMode = this.isReadOnlyMode();
+                modalRef.componentInstance.selectedId = this.selectedId;
+                modalRef.componentInstance.POKHID = DETAIL[0]?.POKHID || 0;
+                modalRef.result.then(
+                    (result) => {
+                        if (result.success && result.reloadData) {
+                            this.loadMainData(
+                                this.filters.startDate,
+                                this.filters.endDate,
+                                this.filters.filterText
+                            );
+                        }
+                    },
+                    (reason) => {
+                        console.log('Modal closed');
+                    }
+                );
             },
             error: (err: any) => {
                 this.notification.create(
-                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
-                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-                    err?.error?.message || `${err.error}\n${err.message}`,
-                    {
-                        nzStyle: { whiteSpace: 'pre-line' }
-                    }
+                    NOTIFICATION_TYPE_MAP[RESPONSE_STATUS.ERROR] || 'error',
+                    NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR] || 'Lỗi',
+                    err?.error?.message || 'Lỗi khi lấy dữ liệu',
+                    { nzStyle: { whiteSpace: 'pre-line' } }
                 );
             },
         });
@@ -1312,6 +1360,16 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
             );
             return;
         }
+
+        if (!this.canDelete()) {
+            this.notification.warning(
+                'Không thể xóa',
+                'Yêu cầu xuất hóa đơn này đang ở trạng thái không cho phép xóa.\nChỉ có thể xóa khi trạng thái là Yêu cầu xuất hóa đơn -  Chờ duyệt',
+                { nzStyle: { whiteSpace: 'pre-line' } }
+            );
+            return;
+        }
+
         this.modal.confirm({
             nzTitle: 'Bạn có chắc chắn muốn xóa?',
             nzContent: 'Hành động này không thể hoàn tác.',

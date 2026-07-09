@@ -87,6 +87,10 @@ export class KpiTeamTabComponent implements OnInit {
   draftErrors: { teamCode?: string; teamName?: string; employeeIDs?: string } = {};
   teamModalRef?: NzModalRef;
 
+  // Select multi-mode của nz-select chỉ bind được number[], không bind object array.
+  // Đây là mảng "view" dùng cho [(ngModel)] của nz-select; mỗi lần đổi sẽ sync lại draft.employeeIDs.
+  draftEmployeeIdValues: number[] = [];
+
   constructor(
     private kpiSaleService: KpiSaleV2Service,
     private modalService: NzModalService,
@@ -360,6 +364,7 @@ export class KpiTeamTabComponent implements OnInit {
   // ============== CREATE / EDIT ==============
   openCreateForm(): void {
     this.draft = this.getDefaultDraft();
+    this.draftEmployeeIdValues = [];
     this.draftErrors = {};
     this.openModal(false);
   }
@@ -373,6 +378,8 @@ export class KpiTeamTabComponent implements OnInit {
       employeeIDs: team.employeeIDs ? [...team.employeeIDs] : [],
       leaderEmployeeId: team.leaderEmployeeId ?? null,
     };
+    // Bind cho nz-select multi-mode: chỉ lấy employeeId thành number[].
+    this.draftEmployeeIdValues = (team.employeeIDs || []).map(m => m.employeeId);
     this.draftErrors = {};
     this.openModal(true);
   }
@@ -387,6 +394,22 @@ export class KpiTeamTabComponent implements OnInit {
       ],
       nzWidth: 600,
     });
+  }
+
+  // nz-select multi-mode bind vào mảng number[]; mỗi khi user thêm/bỏ tick cần
+  // đồng bộ lại draft.employeeIDs thành KpiTeamMemberItem[] (giữ isAdmin/isPM
+  // từ bản ghi cũ nếu có, với thành viên mới thì mặc định false/false).
+  syncDraftEmployeeIds(values: number[] | null | undefined): void {
+    const ids = values || [];
+    const next: KpiTeamMemberItem[] = ids.map(id => {
+      const existing = this.draft.employeeIDs.find(m => m.employeeId === id);
+      return existing ?? { employeeId: id, isAdmin: false, isPM: false };
+    });
+    this.draft.employeeIDs = next;
+    // Reset leader nếu leader không còn thuộc team
+    if (this.draft.leaderEmployeeId != null && !ids.includes(this.draft.leaderEmployeeId)) {
+      this.draft.leaderEmployeeId = null;
+    }
   }
 
   validateDraft(): boolean {

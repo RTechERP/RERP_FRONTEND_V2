@@ -8,6 +8,9 @@ import {
   PeriodInfo,
   KpiSummaryRow,
   KpiSummaryValue,
+  KPISaleApprovalDto,
+  KPISaleApprovalStepRequest,
+  ApprovalScope,
 } from './kpi-summary.model';
 
 export interface KpiApiResponse<T> {
@@ -445,5 +448,71 @@ export class KpiSummaryService {
     return this.http.get<KpiApiResponse<any[]>>(`${environment.host}api/Employee/employees`, {
       params: { status: '0' },
     });
+  }
+
+  // ============================================================
+  // APPROVAL WORKFLOW (Backend: KPISaleController /api/kpi/approval*)
+  // ============================================================
+
+  private readonly approvalBaseUrl = `${environment.host}api/kpi/approval`;
+
+  /**
+   * Lấy trạng thái duyệt cho (scope, refId, periodId).
+   * Gọi: GET /api/kpi/approval?scope=&periodID=&employeeID=|teamID=
+   */
+  getApprovalStatus(
+    scope: ApprovalScope,
+    refId: number,
+    periodId: number
+  ): Observable<KpiApiResponse<KPISaleApprovalDto | null>> {
+    let params = new HttpParams()
+      .set('scope', scope)
+      .set('periodID', periodId.toString());
+    if (scope === 'EMPLOYEE') params = params.set('employeeID', refId.toString());
+    else params = params.set('teamID', refId.toString());
+
+    return this.http
+      .get<KpiApiResponse<KPISaleApprovalDto | null>>(`${this.approvalBaseUrl}`, { params })
+      .pipe(
+        catchError((err) => of({
+          status: 0 as const,
+          data: null as any,
+          message: 'Lỗi khi lấy trạng thái duyệt: ' + (err?.message || ''),
+        }))
+      );
+  }
+
+  /**
+   * Duyệt 1 bước.
+   * Gọi: POST /api/kpi/approval/approve
+   * Body: { approvalScope, periodID, employeeID?, teamID?, note? }
+   */
+  approveStep(request: KPISaleApprovalStepRequest): Observable<KpiApiResponse<KPISaleApprovalDto>> {
+    return this.http
+      .post<KpiApiResponse<KPISaleApprovalDto>>(`${this.approvalBaseUrl}/approve`, request)
+      .pipe(
+        catchError((err) => of({
+          status: 0 as const,
+          data: null as any,
+          message: 'Lỗi khi duyệt: ' + (err?.error?.message || err?.message || ''),
+        }))
+      );
+  }
+
+  /**
+   * Hủy duyệt 1 bước.
+   * Gọi: POST /api/kpi/approval/unapprove
+   * Body: { approvalScope, periodID, employeeID?, teamID?, note? }
+   */
+  unapproveStep(request: KPISaleApprovalStepRequest): Observable<KpiApiResponse<KPISaleApprovalDto>> {
+    return this.http
+      .post<KpiApiResponse<KPISaleApprovalDto>>(`${this.approvalBaseUrl}/unapprove`, request)
+      .pipe(
+        catchError((err) => of({
+          status: 0 as const,
+          data: null as any,
+          message: 'Lỗi khi hủy duyệt: ' + (err?.error?.message || err?.message || ''),
+        }))
+      );
   }
 }

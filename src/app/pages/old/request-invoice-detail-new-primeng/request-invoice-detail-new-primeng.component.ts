@@ -102,6 +102,7 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
   @Input() selectedId = 0;
   @Input() groupedData: any[] = [];
   @Input() isEditMode: boolean = false;
+  @Input() isReadOnlyMode: boolean = false;
   @Input() POKHID: number = 0;
 
   //Form data
@@ -430,47 +431,50 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
   }
 
   saveAndClose(): void {
-    // Validate header fields
-    if (!this.formData.taxCompanyId) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn Công ty bán');
-      return;
-    }
-    if (!this.formData.customerId) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn Khách hàng');
-      return;
-    }
-    if (!this.formData.userId) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn Người yêu cầu');
-      return;
-    }
-    if (!this.formData.requestDate) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn Ngày yêu cầu');
-      return;
-    }
-    if (!this.formData.exportDate) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn Ngày xuất');
-      return;
-    }
-    if (!this.formData.accountingContractType) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn Loại hợp đồng');
-      return;
-    }
+    // Validate header fields (chỉ khi không phải read-only mode)
+    if (!this.isReadOnlyMode) {
+      if (!this.formData.taxCompanyId) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn Công ty bán');
+        return;
+      }
+      if (!this.formData.customerId) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn Khách hàng');
+        return;
+      }
+      if (!this.formData.userId) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn Người yêu cầu');
+        return;
+      }
+      if (!this.formData.requestDate) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn Ngày yêu cầu');
+        return;
+      }
+      if (!this.formData.exportDate) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn Ngày xuất');
+        return;
+      }
+      if (!this.formData.accountingContractType) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn Loại hợp đồng');
+        return;
+      }
 
-    const requiredContractTypeIds = [2, 3, 15];
-    if (requiredContractTypeIds.includes(this.formData.accountingContractType)) {
-      if (!this.contractFiles || this.contractFiles.length === 0) {
-        this.notification.warning('Thông báo', 'Vui lòng đính kèm file hợp đồng cho loại hợp đồng này');
+      const requiredContractTypeIds = [2, 3, 15];
+      if (requiredContractTypeIds.includes(this.formData.accountingContractType)) {
+        if (!this.contractFiles || this.contractFiles.length === 0) {
+          this.notification.warning('Thông báo', 'Vui lòng đính kèm file hợp đồng cho loại hợp đồng này');
+          return;
+        }
+      }
+
+      if (!this.formData.status) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn Trạng thái');
+        return;
+      }
+      if (!this.validateDetails()) {
         return;
       }
     }
 
-    if (!this.formData.status) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn Trạng thái');
-      return;
-    }
-    if (!this.validateDetails()) {
-      return;
-    }
     const requestInvoices = {
       ID: this.selectedId || 0,
       Code: this.formData.Code,
@@ -503,6 +507,14 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
       RequestInvoices: requestInvoices,
       RequestInvoiceDetails: requestInvoiceDetails,
       DeletedDetailIds: this.deletedRequestInvoiceDetailIds,
+      AddedInvoiceFiles: this.files
+        .filter((file: any) => file.file)
+        .map((file: any) => file.file),
+      AddedContractFiles: this.contractFiles
+        .filter((file: any) => file.file)
+        .map((file: any) => file.file),
+      DeletedInvoiceFileIds: this.deletedFileIds,
+      DeletedContractFileIds: this.deletedContractFileIds,
     };
 
     this.RIDService.saveData(payload).subscribe({
@@ -536,6 +548,9 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
    * Validate
    */
   validateDetails(): boolean {
+    if (this.isReadOnlyMode) {
+      return true;
+    }
     const currentData = this.details;
     for (let i = 0; i < currentData.length; i++) {
       const row = currentData[i];
@@ -571,6 +586,57 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
     }
     return true;
   }
+
+  handleAddFileOnlySave(): void {
+    const payload = {
+      RequestInvoices: {
+        ID: this.selectedId || 0,
+      },
+      RequestInvoiceDetails: [],
+      DeletedDetailIds: [],
+      AddedInvoiceFiles: this.files
+        .filter((file: any) => file.file)
+        .map((file: any) => file.file),
+      AddedContractFiles: this.contractFiles
+        .filter((file: any) => file.file)
+        .map((file: any) => file.file),
+      DeletedInvoiceFileIds: this.deletedFileIds,
+      DeletedContractFileIds: this.deletedContractFileIds,
+    };
+
+    this.RIDService.saveData(payload).subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu file đính kèm thành công');
+          this.activeModal.close({
+            success: true,
+            reloadData: true,
+            data: response.data,
+          });
+        } else {
+          this.notification.create(
+            NOTIFICATION_TYPE_MAP[response.status] || 'error',
+            NOTIFICATION_TITLE_MAP[response.status as RESPONSE_STATUS] || 'Lỗi',
+            response.message || 'Không thể lưu file đính kèm!',
+            {
+              nzStyle: { whiteSpace: 'pre-line' }
+            }
+          );
+        }
+      },
+      error: (err: any) => {
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          {
+            nzStyle: { whiteSpace: 'pre-line' }
+          }
+        );
+      },
+    });
+  }
+
   handleSuccess(response: any) {
     const ID = response.data.id;
     if (this.files.length > 0 || this.deletedFileIds.length > 0) {

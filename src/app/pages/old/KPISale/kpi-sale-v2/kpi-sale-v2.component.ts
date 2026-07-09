@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, forkJoin, Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -918,7 +919,15 @@ export class KpiSaleV2Component implements OnInit {
   }
 
   private safeApi<T>(request: Observable<KpiApiResponse<T>>): Observable<KpiApiResponse<T>> {
-    return request.pipe(catchError(() => of({ status: 0, data: null } as KpiApiResponse<T>)));
+    return request.pipe(
+      catchError((err: HttpErrorResponse) => {
+        const body = err.error as KpiApiResponse<T> | undefined;
+        if (body && typeof body.status !== 'undefined') {
+          return of(body as KpiApiResponse<T>);
+        }
+        return of({ status: 0, data: null, message: err.message || 'Lỗi HTTP' } as KpiApiResponse<T>);
+      })
+    );
   }
 
   private async loadAllowedColumnsForTables(): Promise<void> {

@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, OnInit, Optional } from '@angular/core';
+import { Component, HostListener, Input, OnInit, Optional, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { FormsModule } from '@angular/forms';
@@ -55,6 +55,7 @@ import { PermissionService } from '../../../services/permission.service';
 export class ProjectHistoryProblemNewComponent implements OnInit {
   @Input() projectId: number = 0;
   @Input() projectCode: string = '';
+  @Input() pmID: number = 0;
 
   // Bảng 1: Lịch sử phát sinh
   dataHistory: any[] = [];
@@ -72,6 +73,8 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
   // Preview state
   previewRow: any = null;
   previewImages: any[] = [];
+  previewImagesBefore: any[] = [];
+  previewImagesAfter: any[] = [];
   selectedPreviewImage: any = null;
 
   // Context menu state
@@ -101,9 +104,16 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
     private projectService: ProjectService,
     private appUserService: AppUserService,
     private permissionService: PermissionService,
+    @Optional() @Inject('tabData') private tabData?: any
   ) { }
 
   ngOnInit(): void {
+    if (this.tabData) {
+      console.log('[ProjectHistoryProblemNew] Read data from tabData:', this.tabData);
+      if (this.tabData.projectId !== undefined) this.projectId = this.tabData.projectId;
+      if (this.tabData.projectCode !== undefined) this.projectCode = this.tabData.projectCode;
+      if (this.tabData.pmID !== undefined) this.pmID = this.tabData.pmID;
+    }
     this.loadProjectInfo();
     this.initMenuBar();
     this.initColumns();
@@ -256,7 +266,9 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       this.notification.warning('Thông báo', 'Chỉ được chọn duy nhất một dòng để sửa!');
       return;
     }
-    this.openDetailForm(this.getLatestHistoryRow(this.selectedHistoryRows[0]));
+    const selectedRow = this.getLatestHistoryRow(this.selectedHistoryRows[0]);
+    console.log('[ProjectHistoryProblemNew] editSelectedRow - Dữ liệu chuẩn bị sửa:', selectedRow);
+    this.openDetailForm(selectedRow);
   }
 
   deleteSelectedRow(): void {
@@ -292,6 +304,8 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
               if (this.previewRow && ids.includes(this.previewRow.ID)) {
                 this.previewRow = null;
                 this.previewImages = [];
+                this.previewImagesBefore = [];
+                this.previewImagesAfter = [];
                 this.linkedProjectItems = [];
                 this.linkedWorkerVersions = [];
                 this.linkedPartListVersions = [];
@@ -396,7 +410,8 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
 
   // Map dữ liệu từ API (dtMaster) vào format của bảng
   mapMasterDataToTable(item: any): any {
-    return {
+    console.log('[ProjectHistoryProblemNew] mapMasterDataToTableitem:', item);
+    const mapped = {
       ID: item.ID || 0,
       STT: item.STT || 1,
       IssueLogType: parseInt(item.IssueLogType, 10) || null,
@@ -420,7 +435,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       Impact: item.Impact || '',
       ErrorLocation: item.ErrorLocation || '',
       Note: item.Note || '',
-      ProjectManagerID: item.ProjectManagerID || null,
+      ProjectManagerID: item.ProjectManagerID || item.PMID || null,
       // Fields mapped từ Store Procedure
       IssueLogTypeName: item.IssueLogTypeName || '',
       StatusName: item.StatusName || '',
@@ -436,6 +451,8 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       ProjectCode: item.ProjectCode || '',
       ProjectName: item.ProjectName || '',
     };
+    console.log('[ProjectHistoryProblemNew] mapMasterDataToTable:', { original: item, mapped: mapped });
+    return mapped;
   }
 
   // Mở modal form Thêm/Sửa
@@ -443,7 +460,7 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
     const modalRef = this.modal.create({
       nzTitle: rowData ? 'Sửa phát sinh (Issue Log)' : 'Thêm phát sinh (Issue Log)',
       nzContent: ProjectHistoryProblemDetailComponent,
-      nzData: { data: rowData || { ProjectID: this.projectId } },
+      nzData: { data: rowData || { ProjectID: this.projectId, PMID: this.pmID } },
       nzWidth: 1400,
       nzFooter: null,
       nzClosable: true,
@@ -451,6 +468,13 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
       nzStyle: { top: '20px' },
       nzBodyStyle: { 'max-height': 'calc(100vh - 120px)', 'display': 'flex', 'flex-direction': 'column', 'padding': '0', 'overflow': 'hidden' }
     });
+
+    const instance = modalRef.getContentComponent();
+    if (instance && instance.onSaved) {
+      instance.onSaved.subscribe(() => {
+        this.loadData();
+      });
+    }
 
     modalRef.afterClose.subscribe(result => {
       if (result === true || result?.saved === true) {
@@ -718,6 +742,8 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
     this.previewRow = rowData;
     this.selectedPreviewImage = null;
     this.previewImages = [];
+    this.previewImagesBefore = [];
+    this.previewImagesAfter = [];
     this.linkedProjectItems = [];
     this.linkedWorkerVersions = [];
     this.linkedPartListVersions = [];
@@ -727,12 +753,18 @@ export class ProjectHistoryProblemNewComponent implements OnInit {
         next: (res: any) => {
           if (res.status === 1 && res.data) {
             this.previewImages = res.data;
+            this.previewImagesBefore = res.data.filter((x: any) => (x.FileType !== undefined ? Number(x.FileType) : (x.Type !== undefined ? Number(x.Type) : 1)) === 1);
+            this.previewImagesAfter = res.data.filter((x: any) => (x.FileType !== undefined ? Number(x.FileType) : (x.Type !== undefined ? Number(x.Type) : 1)) === 2);
           } else {
             this.previewImages = [];
+            this.previewImagesBefore = [];
+            this.previewImagesAfter = [];
           }
         },
         error: () => {
           this.previewImages = [];
+          this.previewImagesBefore = [];
+          this.previewImagesAfter = [];
         }
       });
 

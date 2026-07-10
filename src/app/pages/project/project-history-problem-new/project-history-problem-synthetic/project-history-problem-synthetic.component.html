@@ -1,0 +1,73 @@
+<div class="project-history-problem-page" style="height: calc(100vh - 40px - 1rem); display: flex; flex-direction: column; overflow: hidden;">
+  <!-- Menubar -->
+  <p-menubar [model]="menuBars" class="p-1">
+    <ng-template pTemplate="item" let-item>
+      <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command($event) : null">
+        <i [class]="item.icon"></i>
+        <span class="p-menuitem-text">{{ item.label }}</span>
+      </a>
+    </ng-template>
+  </p-menubar>
+
+  <!-- Thanh tìm kiếm -->
+  <div class="bg-light border-bottom p-2">
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+      <span class="fs-12" style="font-size: 12px; font-weight: 500;">Từ ngày</span>
+      <input nz-input type="date" [(ngModel)]="dateStart" style="width: 140px" nzSize="small" />
+      
+      <span class="fs-12" style="font-size: 12px; font-weight: 500;">Đến ngày</span>
+      <input nz-input type="date" [(ngModel)]="dateEnd" style="width: 140px" nzSize="small" />
+
+      <span class="fs-12" style="font-size: 12px; font-weight: 500;">Dự án</span>
+      <nz-select [(ngModel)]="selectedProjectId" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Chọn dự án" style="width: 350px">
+        @for (item of projectOptions; track $index) {
+          <nz-option [nzLabel]="item.label" [nzValue]="item.value">
+            {{ item.label }}
+          </nz-option>
+        }
+      </nz-select>
+
+      <span class="fs-12" style="font-size: 12px; font-weight: 500;">Người liên quan</span>
+      <nz-select [(ngModel)]="selectedEmployeeId" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Chọn người liên quan" style="width: 250px">
+        @for (item of employeeOptions; track $index) {
+          <nz-option [nzLabel]="item.label" [nzValue]="item.value">
+            {{ item.label }}
+          </nz-option>
+        }
+      </nz-select>
+
+      <span class="fs-12" style="font-size: 12px; font-weight: 500;">Từ khóa</span>
+      <input nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 220px" [(ngModel)]="keyword" (keyup.enter)="loadData()" />
+
+      <button nz-button nzType="primary" nzSize="small" (click)="loadData()">
+        <nz-icon nzType="search" /> Tìm kiếm
+      </button>
+
+      <button nz-button nzType="default" nzSize="small" (click)="resetFilters()">
+        Đặt lại
+      </button>
+    </div>
+  </div>
+
+  <!-- Phần bảng -->
+  <div style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
+    <app-custom-table style="height: 100%" 
+      fontSize="12px"
+      [columns]="columns" 
+      [data]="dataHistory" 
+      [loading]="isLoadHistory"
+      [showFooter]="true"
+      dataKey="ID" 
+      [paginator]="false" 
+      [scrollable]="true" 
+      scrollHeight="flex" 
+      [lazyRenderThreshold]="0"
+      [virtualScroll]="false" 
+      selectionMode="multiple" 
+      [(selection)]="selectedHistoryRows" 
+      [clickSelectRow]="true"
+      rowGroupMode="subheader"
+      groupRowsBy="ProjectGroupKey">
+    </app-custom-table>
+  </div>
+</div>

@@ -44,10 +44,10 @@
         </span>
       </h6> -->
 
-      <div style="flex: 1; min-height: 0; display: flex; gap: 6px; overflow: hidden;">
+      <div style="flex: 1; min-height: 0; display: flex; gap: 8px; overflow: hidden;">
 
-        <!-- Bên trái: 3 bảng link liên quan -->
-        <div style="flex: 1; height: 100%; overflow: hidden; display: flex; flex-direction: column;">
+        <!-- Bên trái: 3 bảng link liên quan (Chiếm 60%) -->
+        <div style="width: 60%; flex-shrink: 0; height: 100%; overflow: hidden; display: flex; flex-direction: column;">
           <p-tabs [(value)]="activeLinkTab" class="link-tabs">
             <p-tablist>
               <p-tab value="0" class="p-2">Hạng mục công việc</p-tab>
@@ -72,19 +72,16 @@
                   <tbody>
                     <tr *ngFor="let item of linkedProjectItems; let i = index" style="font-size: 12px;">
                       <td class="text-center py-1">{{ item.STT || (i + 1) }}</td>
-                      <td class="py-1 text-truncate" style="max-width: 80px;" [title]="item.Code">{{ item.Code }}</td>
-                      <td class="py-1 text-truncate" style="max-width: 200px;" [title]="item.Mission">{{ item.Mission }}
-                      </td>
+                      <td class="py-1 text-wrap" style="word-break: break-word;" [title]="item.Code">{{ item.Code }}</td>
+                      <td class="py-1 text-wrap" style="word-break: break-word;" [title]="item.Mission">{{ item.Mission }}</td>
                       <td class="py-1">
                         <span *ngIf="item.Status === 1">Chưa làm</span>
                         <span *ngIf="item.Status === 2">Đang làm</span>
                         <span *ngIf="item.Status === 3">Hoàn thành</span>
                         <span *ngIf="!item.Status">—</span>
                       </td>
-                      <td class="text-center py-1">{{ item.PlanStartDate ? (item.PlanStartDate | date:'dd/MM/yyyy') : ''
-                        }}</td>
-                      <td class="text-center py-1">{{ item.PlanEndDate ? (item.PlanEndDate | date:'dd/MM/yyyy') : '' }}
-                      </td>
+                      <td class="text-center py-1">{{ item.PlanStartDate ? (item.PlanStartDate | date:'dd/MM/yyyy') : '' }}</td>
+                      <td class="text-center py-1">{{ item.PlanEndDate ? (item.PlanEndDate | date:'dd/MM/yyyy') : '' }}</td>
                     </tr>
                     <tr *ngIf="linkedProjectItems.length === 0">
                       <td colspan="6" class="text-center text-muted py-2" style="font-size: 12px;">
@@ -113,17 +110,13 @@
                   <tbody>
                     <tr *ngFor="let item of linkedWorkerVersions; let i = index" style="font-size: 12px;">
                       <td class="text-center py-1">{{ item.STT || (i + 1) }}</td>
-                      <td class="py-1 text-truncate" style="max-width: 100px;" [title]="item.Code">{{ item.Code }}</td>
-                      <td class="py-1 text-truncate" style="max-width: 120px;" [title]="item.ProjectTypeName">{{
-                        item.ProjectTypeName }}</td>
-                      <td class="py-1 text-truncate" style="max-width: 220px;" [title]="item.DescriptionVersion">{{
-                        item.DescriptionVersion }}</td>
-                      <td class="py-1">{{ item.StatusVersionText || (item.StatusVersion === 1 ? 'Giải pháp' :
-                        item.StatusVersion === 2 ? 'PO' : '—') }}</td>
+                      <td class="py-1 text-wrap" style="word-break: break-word;" [title]="item.Code">{{ item.Code }}</td>
+                      <td class="py-1 text-truncate" style="max-width: 120px;" [title]="item.ProjectTypeName">{{ item.ProjectTypeName }}</td>
+                      <td class="py-1 text-wrap" style="word-break: break-word;" [title]="item.DescriptionVersion">{{ item.DescriptionVersion }}</td>
+                      <td class="py-1">{{ item.StatusVersionText || (item.StatusVersion === 1 ? 'Giải pháp' : item.StatusVersion === 2 ? 'PO' : '—') }}</td>
                       <td class="py-1 text-truncate" style="max-width: 140px;"
                         [title]="item.ApprovedByName || item.ApprovedName || item.ApproverName || item.ApprovedBy || item.UpdatedBy || item.ApprovedID || '—'">
-                        {{ item.ApprovedByName || item.ApprovedName || item.ApproverName || item.ApprovedBy ||
-                        item.UpdatedBy || item.ApprovedID || '—' }}
+                        {{ item.ApprovedByName || item.ApprovedName || item.ApproverName || item.ApprovedBy || item.UpdatedBy || item.ApprovedID || '—' }}
                       </td>
                       <td class="text-center py-1">{{ item.IsActive ? 'Có' : 'Không' }}</td>
                     </tr>
@@ -154,17 +147,13 @@
                   <tbody>
                     <tr *ngFor="let item of linkedPartListVersions; let i = index" style="font-size: 12px;">
                       <td class="text-center py-1">{{ item.STT || (i + 1) }}</td>
-                      <td class="py-1 text-truncate" style="max-width: 100px;" [title]="item.Code">{{ item.Code }}</td>
-                      <td class="py-1 text-truncate" style="max-width: 120px;" [title]="item.ProjectTypeName">{{
-                        item.ProjectTypeName }}</td>
-                      <td class="py-1 text-truncate" style="max-width: 220px;" [title]="item.DescriptionVersion">{{
-                        item.DescriptionVersion }}</td>
-                      <td class="py-1">{{ item.StatusVersionText || (item.StatusVersion === 1 ? 'Giải pháp' :
-                        item.StatusVersion === 2 ? 'PO' : '—') }}</td>
+                      <td class="py-1 text-wrap" style="word-break: break-word;" [title]="item.Code">{{ item.Code }}</td>
+                      <td class="py-1 text-truncate" style="max-width: 120px;" [title]="item.ProjectTypeName">{{ item.ProjectTypeName }}</td>
+                      <td class="py-1 text-wrap" style="word-break: break-word;" [title]="item.DescriptionVersion">{{ item.DescriptionVersion }}</td>
+                      <td class="py-1">{{ item.StatusVersionText || (item.StatusVersion === 1 ? 'Giải pháp' : item.StatusVersion === 2 ? 'PO' : '—') }}</td>
                       <td class="py-1 text-truncate" style="max-width: 140px;"
                         [title]="item.ApprovedByName || item.ApprovedName || item.ApproverName || item.ApprovedTBPName || item.ApprovedBy || item.ApprovedID || item.ApprovedTBPID || '—'">
-                        {{ item.ApprovedByName || item.ApprovedName || item.ApproverName || item.ApprovedTBPName ||
-                        item.ApprovedBy || item.ApprovedID || item.ApprovedTBPID || '—' }}
+                        {{ item.ApprovedByName || item.ApprovedName || item.ApproverName || item.ApprovedTBPName || item.ApprovedBy || item.ApprovedID || item.ApprovedTBPID || '—' }}
                       </td>
                       <td class="text-center py-1">{{ item.IsApproved ? 'Đã duyệt' : 'Chưa duyệt' }}</td>
                     </tr>
@@ -181,39 +170,75 @@
           </p-tabs>
         </div>
 
-        <!-- Bên phải: ảnh đính kèm (danh sách dọc, full chiều cao) -->
-        <div
-          style="width: 320px; min-width: 280px; height: 100%; overflow: hidden; display: flex; flex-direction: column;">
-          <div class="d-flex align-items-center mb-1" style="flex-shrink: 0;">
-            <span style="font-size: 12px; font-weight: 600; color: #555;">
-              <i class="fa-solid fa-images me-1"></i>Ảnh đính kèm
+        <!-- Bên phải: ảnh đính kèm (Chiếm 40% - 2 bảng Trước và Sau xử lý đặt song song) -->
+        <div style="width: 40%; flex-shrink: 0; height: 100%; overflow: hidden; display: flex; flex-direction: column;">
+          <div class="d-flex align-items-center justify-content-between mb-2" 
+               style="flex-shrink: 0; height: 41px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+            <span style="font-size: 13px; font-weight: 600; color: #333;">
+              <i class="fa-solid fa-images me-1 text-primary"></i>Ảnh đính kèm
             </span>
           </div>
-          <nz-table #imgTable [nzData]="previewImages" nzSize="small" [nzShowPagination]="false" nzBordered
-            [nzFrontPagination]="false" [nzScroll]="{ y: '25vh' }" style="flex: 1; min-height: 0;">
-            <thead>
-              <tr>
-                <th nzWidth="50px" class="text-center py-1">STT</th>
-                <th class="py-1">Tên ảnh</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let img of previewImages; let i = index" style="font-size: 12px; cursor: pointer;"
-                [class.table-active]="selectedPreviewImage === img" (click)="selectedPreviewImage = img"
-                (dblclick)="openImageInNewTab(img)" (contextmenu)="onImageContextMenu($event, img)">
-                <td class="text-center py-1">{{ i + 1 }}</td>
-                <td class="text-truncate py-1" style="max-width: 200px;" [title]="img.FileName">
-                  {{ img.FileName }}
-                </td>
-              </tr>
-              <tr *ngIf="previewImages.length === 0">
-                <td colspan="2" class="text-center text-muted py-1" style="font-size: 11px;">
-                  <span *ngIf="!previewRow">Click dòng để xem ảnh</span>
-                  <span *ngIf="previewRow">Không có ảnh</span>
-                </td>
-              </tr>
-            </tbody>
-          </nz-table>
+          <div class="d-flex gap-2" style="flex: 1; min-height: 0;">
+            <!-- Bảng 1: Ảnh trước khi xử lý -->
+            <div class="d-flex flex-column" style="flex: 1; min-width: 0;">
+              <div class="text-muted mb-1" style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Trước xử lý</div>
+              <nz-table #imgTableBefore [nzData]="previewImagesBefore" nzSize="small" [nzShowPagination]="false" nzBordered
+                [nzFrontPagination]="false" [nzScroll]="{ y: '25vh' }" style="flex: 1; min-height: 0;">
+                <thead>
+                  <tr>
+                    <th nzWidth="50px" class="text-center py-1">STT</th>
+                    <th class="py-1">Tên ảnh</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let img of previewImagesBefore; let i = index" style="font-size: 12px; cursor: pointer;"
+                    [class.table-active]="selectedPreviewImage === img" (click)="selectedPreviewImage = img"
+                    (dblclick)="openImageInNewTab(img)" (contextmenu)="onImageContextMenu($event, img)">
+                    <td class="text-center py-1">{{ i + 1 }}</td>
+                    <td class="py-1 text-wrap" style="word-break: break-word;" [title]="img.FileName">
+                      {{ img.FileName }}
+                    </td>
+                  </tr>
+                  <tr *ngIf="previewImagesBefore.length === 0">
+                    <td colspan="2" class="text-center text-muted py-2" style="font-size: 11px;">
+                      <span *ngIf="!previewRow">Chọn dòng xem ảnh</span>
+                      <span *ngIf="previewRow">Không có ảnh</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </div>
+
+            <!-- Bảng 2: Ảnh sau khi xử lý -->
+            <div class="d-flex flex-column" style="flex: 1; min-width: 0;">
+              <div class="text-muted mb-1" style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Sau xử lý</div>
+              <nz-table #imgTableAfter [nzData]="previewImagesAfter" nzSize="small" [nzShowPagination]="false" nzBordered
+                [nzFrontPagination]="false" [nzScroll]="{ y: '25vh' }" style="flex: 1; min-height: 0;">
+                <thead>
+                  <tr>
+                    <th nzWidth="50px" class="text-center py-1">STT</th>
+                    <th class="py-1">Tên ảnh</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let img of previewImagesAfter; let i = index" style="font-size: 12px; cursor: pointer;"
+                    [class.table-active]="selectedPreviewImage === img" (click)="selectedPreviewImage = img"
+                    (dblclick)="openImageInNewTab(img)" (contextmenu)="onImageContextMenu($event, img)">
+                    <td class="text-center py-1">{{ i + 1 }}</td>
+                    <td class="py-1 text-wrap" style="word-break: break-word;" [title]="img.FileName">
+                      {{ img.FileName }}
+                    </td>
+                  </tr>
+                  <tr *ngIf="previewImagesAfter.length === 0">
+                    <td colspan="2" class="text-center text-muted py-2" style="font-size: 11px;">
+                      <span *ngIf="!previewRow">Chọn dòng xem ảnh</span>
+                      <span *ngIf="previewRow">Không có ảnh</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </div>
+          </div>
         </div>
 
         <!-- Context menu chuột phải -->

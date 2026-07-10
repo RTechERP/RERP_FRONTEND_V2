@@ -153,4 +153,15 @@ export class ProjectHistoryProblemNewService {
     const params = new HttpParams().set('projectHistoryProblemID', problemId.toString());
     return this.http.get<any>(this._urlProjectHistoryProblem + 'get-log', { params });
   }
+
+  getDataHistoryProblemSynthetic(dateStart?: string, dateEnd?: string, projectID?: number, employeeID?: number, keyword?: string): Observable<any> {
+    let params = new HttpParams();
+    if (projectID) params = params.append('projectID', projectID.toString());
+    if (employeeID) params = params.append('employeeID', employeeID.toString());
+    if (dateStart) params = params.set('dateStart', dateStart);
+    if (dateEnd) params = params.set('dateEnd', dateEnd);
+    if (keyword) params = params.set('keyword', keyword);
+
+    return this.http.post<any>(this._urlProjectHistoryProblem + 'data-synthetic', null, { params });
+  }
 }

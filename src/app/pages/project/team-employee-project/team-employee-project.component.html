@@ -192,11 +192,12 @@
             </tr>
             <tr>
               <th>
-                <p-columnFilter field="projectStatusText" matchMode="equals" [showMenu]="false">
+                <p-columnFilter field="projectStatusText" matchMode="in" [showMenu]="false">
                   <ng-template pTemplate="filter" let-value let-filter="filterCallback">
-                    <p-select [ngModel]="value" [options]="statusFilterOptions" (onChange)="filter($event.value)"
-                      placeholder="Tất cả" [showClear]="true" appendTo="body" styleClass="w-full p-inputtext-sm">
-                    </p-select>
+                    <p-multiSelect [ngModel]="value" [options]="statusFilterOptions" optionLabel="label" optionValue="value"
+                      (onChange)="filter($event.value)" placeholder="Tất cả" appendTo="body" styleClass="w-full p-inputtext-sm"
+                      selectedItemsLabel="{0} trạng thái">
+                    </p-multiSelect>
                   </ng-template>
                 </p-columnFilter>
               </th>

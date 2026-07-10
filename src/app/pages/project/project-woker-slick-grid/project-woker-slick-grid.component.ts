@@ -1481,6 +1481,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
 
   deleteProjectSolutionVersion(typeNumber: number): void {
     let ID: number = 0;
+    let selectedData: any = null;
 
     if (typeNumber === 1) {
       const selectedRows = this.angularGridSolutionVersion?.slickGrid?.getSelectedRows() || [];
@@ -1494,6 +1495,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         return;
       }
       ID = data?.ID || 0;
+      selectedData = data;
     } else {
       const selectedRows = this.angularGridPOVersion?.slickGrid?.getSelectedRows() || [];
       if (selectedRows.length === 0) {
@@ -1506,6 +1508,7 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
         return;
       }
       ID = data?.ID || 0;
+      selectedData = data;
     }
 
     this.modal.confirm({
@@ -1515,7 +1518,14 @@ export class ProjectWokerSlickGridComponent implements OnInit, AfterViewInit, On
       nzOkType: 'primary',
       nzOkDanger: true,
       nzOnOk: () => {
-        this.projectWorkerService.saveSolutionVersion({ ID, IsDeleted: true }).subscribe({
+        const payloadToSend = { ...selectedData };
+        delete payloadToSend.id;
+        payloadToSend.IsDeleted = true;
+        const payload = {
+          ProjectWorkerVersion: payloadToSend,
+          ProjectHistoryProblemIds: selectedData?.ProjectHistoryProblemIds || []
+        };
+        this.projectWorkerService.saveSolutionVersion(payload).subscribe({
           next: (response: any) => {
             if (response.status === 1) {
               this.notification.success('Thành công', response.message);

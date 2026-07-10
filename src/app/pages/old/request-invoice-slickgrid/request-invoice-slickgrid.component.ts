@@ -259,29 +259,17 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         ];
     }
 
-    canEdit(): boolean {
+    isReadOnlyMode(): boolean {
         if (!this.selectedRow) {
             return false;
         }
         const statusId = Number(this.selectedRow.StatusID);
         const isApproved = Number(this.selectedRow.IsApproved);
-        // StatusID=1 và IsApproved=0 hoặc 1 -> cho sửa
-        if (statusId === 1 && (isApproved === 0 || isApproved === 1)) {
-            return true;
-        }
-        // StatusID=2 và IsApproved=4 -> cho sửa (chỉ đọc các input, chỉ cho thêm file)
+        // Khi StatusID=2 và IsApproved=4 thì chỉ cho xem và chọn file
         if (statusId === 2 && isApproved === 4) {
             return true;
         }
         return false;
-    }
-
-    isReadOnlyMode(): boolean {
-        if (!this.selectedRow) {
-            return false;
-        }
-        // Khi StatusID=2 và IsApproved=4 thì chỉ cho xem và chọn file
-        return Number(this.selectedRow.StatusID) === 2 && Number(this.selectedRow.IsApproved) === 4;
     }
 
     canDelete(): boolean {
@@ -290,7 +278,8 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         }
         const statusId = Number(this.selectedRow.StatusID);
         const isApproved = Number(this.selectedRow.IsApproved);
-        return statusId === 1 && (isApproved === 0 || isApproved === 1);
+        // Chỉ cho xóa khi StatusID=1 và IsApproved=1
+        return statusId === 1 && isApproved === 1;
     }
 
     onFilesTabChange(tabIndex: number): void {
@@ -1112,15 +1101,6 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 {
                     nzStyle: { whiteSpace: 'pre-line' }
                 }
-            );
-            return;
-        }
-
-        if (!this.canEdit()) {
-            this.notification.warning(
-                'Không thể sửa',
-                'Chỉ có thể sửa khi trạng thái là Yêu cầu xuất hóa đơn - Chờ duyệt.',
-                { nzStyle: { whiteSpace: 'pre-line' } }
             );
             return;
         }

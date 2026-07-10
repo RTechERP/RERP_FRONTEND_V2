@@ -158,7 +158,7 @@
                                 <tr [pSelectableRow]="file"
                                     (dblclick)="selectedInvoiceFile = file; downloadInvoiceFile(file)">
                                     <td class="text-center">
-                                        <button *ngIf="!file.IsDeleted" pButton type="button" icon="pi pi-trash"
+                                        <button *ngIf="!file.IsDeleted && !isReadOnlyMode" pButton type="button" icon="pi pi-trash"
                                             class="p-button-text p-button-danger p-button-sm table-icon-btn"
                                             (click)="deleteInvoiceFile(file); $event.stopPropagation()">
                                         </button>
@@ -197,7 +197,7 @@
                                 <tr [pSelectableRow]="file"
                                     (dblclick)="selectedContractFile = file; downloadContractFile(file)">
                                     <td class="text-center">
-                                        <button *ngIf="!file.IsDeleted" pButton type="button" icon="pi pi-trash"
+                                        <button *ngIf="!file.IsDeleted && !isReadOnlyMode" pButton type="button" icon="pi pi-trash"
                                             class="p-button-text p-button-danger p-button-sm table-icon-btn"
                                             (click)="deleteContractFile(file); $event.stopPropagation()">
                                         </button>

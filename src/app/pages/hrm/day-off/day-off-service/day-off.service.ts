@@ -16,6 +16,12 @@ export class DayOffService {
       employeeOnLeaveParam
     );
   }
+  getEmployeeOnLeavePersonal(employeeOnLeaveParam: any): Observable<any> {
+    return this.http.post<any>(
+      this._url + 'EmployeeOnLeave/get-employee-onleave-person',
+      employeeOnLeaveParam
+    );
+  }
 
   saveEmployeeOnLeave(employeeOnLeave: any): Observable<any> {
     return this.http.post<any>(

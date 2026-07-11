@@ -16,7 +16,12 @@ export class FoodOrderService {
             employeeFoodOrderParam
         );
     }
-
+    getEmployeeFoodOrderPerson(employeeFoodOrderParam: any): Observable<any> {
+        return this.http.post<any>(
+            this._url + 'EmployeeFoodOrder/get-foodorder-personal',
+            employeeFoodOrderParam
+        );
+    }
     getEmployeeFoodOrderByMonth(
         employeeFoodOrderByMonthParam: any
     ): Observable<any> {

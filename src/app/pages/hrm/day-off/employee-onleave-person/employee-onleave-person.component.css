@@ -1,0 +1,198 @@
+:host {
+    font-size: 12px !important;
+}
+
+.fs-12 {
+    font-size: 12px !important;
+}
+
+/* Card styles */
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 93vh;
+    overflow: hidden;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body>div {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: visible;
+}
+
+.card-header {
+    flex-shrink: 0;
+    position: relative;
+    z-index: 20;
+    background: white;
+}
+
+/* SlickGrid container - full height */
+#grvDayOffContainer,
+.grid-container-dayoff {
+    width: 100% !important;
+    height: 100% !important;
+    overflow: visible !important;
+}
+
+/* Ensure grid fills the container */
+::ng-deep #grvDayOff {
+    min-height: 80vh !important;
+}
+
+/* SlickGrid styles */
+::ng-deep #grvDayOffContainer .slickgrid-container {
+    font-size: 12px !important;
+    height: 100% !important;
+    min-height: 790px !important;
+    overflow: visible !important;
+}
+
+
+/* Allow grid canvas to expand horizontally */
+::ng-deep #grvDayOffContainer .slick-grid {
+    width: auto !important;
+    min-width: 100% !important;
+}
+
+::ng-deep #grvDayOffContainer .grid-canvas {
+    min-height: 300px !important;
+}
+
+::ng-deep .slick-header-column {
+    font-size: 12px !important;
+    font-weight: bold;
+}
+
+::ng-deep .slick-cell {
+    font-size: 12px !important;
+}
+
+::ng-deep .slick-footerrow-cell {
+    font-size: 12px !important;
+    font-weight: bold;
+    background-color: #f0f0f0 !important;
+    border-top: 2px solid #1677ff !important;
+}
+
+::ng-deep .slick-footerrow {
+    background-color: #f0f0f0 !important;
+}
+
+/* Badge styles in grid */
+::ng-deep .badge {
+    font-size: 10px !important;
+    padding: 3px 6px !important;
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.6);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Search form positioning and z-index fixes */
+.filter-bar {
+    position: relative;
+    z-index: 10;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Menubar adjustments */
+::ng-deep .p-menubar {
+    padding: 0.25rem 0.5rem !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+::ng-deep .p-menuitem-text {
+    font-size: 12px !important;
+}
+
+/* Card body with search bar height adjustment */
+.card-body.with-search-bar {
+    height: calc(100% - 100px);
+}
+
+.card-body.without-search-bar {
+    height: 100%;
+}
+
+/* Modal fullscreen */
+::ng-deep .modal-fullscreen {
+    max-width: 100%;
+    margin: 0;
+    height: 100vh;
+}
+
+::ng-deep .modal-fullscreen .modal-content {
+    height: 100vh;
+    border-radius: 0;
+}
+
+/* Mobile modal styles */
+@media (max-width: 768px) {
+    .filter-bar.mobile-modal {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        background: white;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        max-height: 70vh;
+        overflow-y: auto;
+        margin: 16px;
+        border-radius: 8px;
+    }
+
+    .filter-backdrop {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1040;
+    }
+
+    .grid-container-dayoff {
+        min-height: 300px;
+    }
+}
+
+/* Desktop - keep search form always visible when toggled */
+@media (min-width: 769px) {
+    .filter-backdrop {
+        display: none !important;
+    }
+
+    .filter-bar {
+        position: static !important;
+        z-index: 1 !important;
+    }
+}
+
+::ng-deep .type-select-dropdown {
+    min-width: 35vh !important;
+}

@@ -127,7 +127,7 @@ export class EmployeeTeamComponent implements OnInit {
   }
 
   loadAllEmployees(callback?: () => void) {
-    this.employeeService.getAllEmployee().subscribe({
+    this.employeeService.getEmployees().subscribe({
       next: (res: any) => {
         this.allEmployees = res.data || [];
         if (callback) callback();

@@ -97,10 +97,14 @@
                                     <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel"
                                         style="width:16px; height:16px; object-fit:contain" />Xuất excel
                                 </button>
+                                <button nz-button nzType="default" nzSize="small" class="me-1"
+                                    *hasPermission="'N26,N38,N1,N73,N80'" (click)="onDuplicateProduct()">
+                                    <img src="assets/icon/action_copy_16.png" alt="Copy sản phẩm"
+                                        style="width:16px; height:16px; object-fit:contain" />Copy sản phẩm
+                                </button>
                             </div>
                         </div>
                     </div>
-
                     <!-- Dòng lọc dữ liệu -->
                     <div class="border-top pt-2 mt-2">
                         <div class="d-flex gap-2 align-items-end flex-wrap">

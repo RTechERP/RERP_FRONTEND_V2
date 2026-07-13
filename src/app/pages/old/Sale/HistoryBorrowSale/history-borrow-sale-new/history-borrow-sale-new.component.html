@@ -10,13 +10,23 @@
         <div
           class="d-flex gap-2 align-items-center history-borrow-sale-new-d-flex history-borrow-sale-new-gap-2 history-borrow-sale-new-align-items-center"
         >
-          <div class="color-legend history-borrow-sale-new-color-legend">
+          <div
+            class="color-legend history-borrow-sale-new-color-legend"
+            [class.active]="dueFilter === 1"
+            title="Lọc các dòng sắp hết hạn"
+            (click)="toggleDueFilter(1)"
+          >
             <span
               class="color-box color-dual history-borrow-sale-new-color-box history-borrow-sale-new-color-dual"
             ></span>
             <span class="fs-12 history-borrow-sale-new-fs-12">Sắp hết hạn</span>
           </div>
-          <div class="color-legend history-borrow-sale-new-color-legend">
+          <div
+            class="color-legend history-borrow-sale-new-color-legend"
+            [class.active]="dueFilter === 2"
+            title="Lọc các dòng quá hạn"
+            (click)="toggleDueFilter(2)"
+          >
             <span
               class="color-box color-overdue history-borrow-sale-new-color-box history-borrow-sale-new-color-overdue"
             ></span>

@@ -250,6 +250,13 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                     });
                 },
             },
+            {
+                label: 'Xuất excel',
+                icon: 'fa-solid fa-file-excel fa-lg text-success',
+                command: () => {
+                    this.exportToExcelJS(this.activeTab !== '0');
+                },
+            },
 
         ];
     }
@@ -1053,6 +1060,155 @@ export class PaymentOrderEmployeeComponent implements OnInit {
                 this.cdr.markForCheck();
             },
         });
+    }
+
+    // ===== Xuất excel =====
+
+    async exportToExcelJS(isSpecial: boolean = false) {
+        const ExcelJSModule = await import('exceljs');
+        // esbuild/webpack có thể wrap CJS → default. Fallback để tương thích
+        const WorkbookClass: any =
+            (ExcelJSModule as any).Workbook ??
+            (ExcelJSModule as any).default?.Workbook ??
+            (ExcelJSModule as any).default;
+        const workbook = new WorkbookClass();
+        const sheet = workbook.addWorksheet('Danh sách');
+
+        const columns = (isSpecial ? this.columnDefsSpecial : this.columnDefs).filter(
+            (c) => c.visible !== false && !c.excludeFromExport,
+        );
+        const data = isSpecial ? this.datasetSpecial : this.dataset;
+        const MONEY_FIELDS = new Set(
+            isSpecial
+                ? ['TotalMoney']
+                : ['TotalMoneyAdvance', 'TotalPayment', 'TotalPaymentActual', 'TotalPaymentWithInvoice'],
+        );
+        const countFieldIdx = columns.findIndex((c) => c.field === 'RowNum');
+
+        // ===== Header =====
+        const headerRow = sheet.getRow(1);
+        columns.forEach((col, idx) => {
+            const cell = headerRow.getCell(idx + 1);
+            cell.value = col.header;
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E75B6' } };
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            cell.border = {
+                top: { style: 'thin' }, left: { style: 'thin' },
+                bottom: { style: 'thin' }, right: { style: 'thin' },
+            };
+        });
+        headerRow.height = 30;
+
+        // ===== Dữ liệu =====
+        data.forEach((item: any, rowIdx: number) => {
+            const row = sheet.getRow(rowIdx + 2);
+            columns.forEach((col, ci) => {
+                const cell = row.getCell(ci + 1);
+                const raw = col.computed ? col.computed(item) : item[col.field];
+                if (MONEY_FIELDS.has(col.field)) {
+                    cell.value = raw ?? 0;
+                    cell.numFmt = '#,##0';
+                    cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                } else {
+                    cell.value = col.format ? col.format(raw, item) : (raw ?? '');
+                    const horizontal = col.cssClass?.includes('text-center')
+                        ? 'center'
+                        : col.cssClass?.includes('text-right')
+                            ? 'right'
+                            : undefined;
+                    cell.alignment = { horizontal, vertical: 'middle', wrapText: !!col.textWrap };
+                }
+                cell.border = {
+                    top: { style: 'thin' }, left: { style: 'thin' },
+                    bottom: { style: 'thin' }, right: { style: 'thin' },
+                };
+            });
+            row.commit();
+        });
+
+        // ===== Độ rộng cột (px → excel width) =====
+        columns.forEach((col, i) => {
+            const px = typeof col.width === 'string' ? parseFloat(col.width) : 100;
+            sheet.getColumn(i + 1).width = Math.max(8, Math.round((px || 100) / 7));
+        });
+
+        const colLetter = (n: number): string => {
+            let s = '';
+            let num = n;
+            while (num > 0) {
+                num--;
+                s = String.fromCharCode(65 + (num % 26)) + s;
+                num = Math.floor(num / 26);
+            }
+            return s;
+        };
+
+        const totalCols = columns.length;
+        const dataStartRow = 2;
+        const lastDataRow = data.length + 1;
+
+        sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: totalCols } };
+
+        // ===== Dòng TỔNG CỘNG =====
+        if (data.length > 0) {
+            const totalRowIdx = lastDataRow + 1;
+            const totalRow = sheet.getRow(totalRowIdx);
+            for (let ci = 1; ci <= totalCols; ci++) {
+                const cell = totalRow.getCell(ci);
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD6E4F0' } };
+                cell.border = {
+                    top: { style: 'medium' }, left: { style: 'thin' },
+                    bottom: { style: 'medium' }, right: { style: 'thin' },
+                };
+            }
+
+            const labelCell = totalRow.getCell(1);
+            labelCell.value = 'TỔNG CỘNG';
+            labelCell.font = { bold: true, color: { argb: 'FF1F4E79' }, size: 10 };
+            labelCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+            if (countFieldIdx >= 0) {
+                const cntCell = totalRow.getCell(countFieldIdx + 1);
+                cntCell.value = {
+                    formula: `COUNTA(${colLetter(countFieldIdx + 1)}${dataStartRow}:${colLetter(countFieldIdx + 1)}${lastDataRow})`,
+                };
+                cntCell.font = { bold: true, color: { argb: 'FF1F4E79' } };
+                cntCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            }
+
+            columns.forEach((col, ci) => {
+                if (!MONEY_FIELDS.has(col.field)) return;
+                const cell = totalRow.getCell(ci + 1);
+                cell.value = {
+                    formula: `SUM(${colLetter(ci + 1)}${dataStartRow}:${colLetter(ci + 1)}${lastDataRow})`,
+                };
+                cell.numFmt = '#,##0';
+                cell.font = { bold: true, color: { argb: 'FF1F4E79' } };
+                cell.alignment = { horizontal: 'right', vertical: 'middle' };
+            });
+
+            totalRow.height = 22;
+            totalRow.commit();
+        }
+
+        sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1, activeCell: 'A2' }];
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        const dateStart = DateTime.fromJSDate(this.param.dateStart).toFormat('ddMMyyyy');
+        const dateEnd = DateTime.fromJSDate(this.param.dateEnd).toFormat('ddMMyyyy');
+        const now = DateTime.now().toFormat('HHmmss');
+        anchor.href = url;
+        anchor.download = isSpecial
+            ? `DeNghiThanhToanDacBietNV_${dateStart}_${dateEnd}_${now}.xlsx`
+            : `DeNghiThanhToanNV_${dateStart}_${dateEnd}_${now}.xlsx`;
+        anchor.click();
+        URL.revokeObjectURL(url);
     }
 
     // ===== CRUD Actions (Replicated from original) =====

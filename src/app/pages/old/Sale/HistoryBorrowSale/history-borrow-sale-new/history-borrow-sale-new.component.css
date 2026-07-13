@@ -3,6 +3,20 @@
     display: flex;
     align-items: center;
     gap: 5px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+}
+
+.history-borrow-sale-new-color-legend:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.history-borrow-sale-new-color-legend.active {
+    border-color: #999;
+    background-color: rgba(0, 0, 0, 0.08);
+    font-weight: 600;
 }
 
 .history-borrow-sale-new-color-box {

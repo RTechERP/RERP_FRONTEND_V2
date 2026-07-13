@@ -104,11 +104,15 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
         warehouseID: 0
     };
 
+    // 0 = không lọc, 1 = sắp hết hạn, 2 = quá hạn
+    dueFilter: 0 | 1 | 2 = 0;
+
     // SlickGrid variables
     angularGrid!: AngularGridInstance;
     columnDefinitions: Column[] = [];
     gridOptions: GridOption = {};
     dataset: any[] = [];
+    fullDataset: any[] = [];
 
     selectedRows: any[] = [];
     selectedBorrowIDs: number[] = [];
@@ -294,6 +298,18 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                 formatter: this.dateFormatter,
                 filter: { model: Filters['compoundDate'] },
                 cssClass: 'text-center'
+            },
+            {
+                id: 'OverdueDays',
+                name: 'Số ngày quá hạn',
+                field: 'OverdueDays',
+                sortable: true,
+                filterable: true,
+                width: 130,
+                formatter: Formatters.decimal,
+                params: { minDecimal: 0, maxDecimal: 0 },
+                filter: { model: Filters['compoundInputNumber'] },
+                cssClass: 'text-end'
             },
             {
                 id: 'ExpectedReturnDate',
@@ -781,7 +797,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
             .subscribe({
                 next: (res: any) => {
                     let index = 1;
-                    this.dataset = (res.data || []).map((item: any) => {
+                    this.fullDataset = (res.data || []).map((item: any) => {
                         // Apply row formatting logic
                         let rowClass = '';
                         if (item.DualDate === 1) {
@@ -798,8 +814,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
                         };
                     });
 
-                    // Update filter collections from dataset
-                    this.updateFilterCollections();
+                    this.applyDueFilter();
                     this.loading = false;
                 },
                 error: (_err: any) => {
@@ -820,6 +835,7 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
             employeeID: 0,
             warehouseID: this.warehouseID
         };
+        this.dueFilter = 0;
         this.loadData();
     }
 
@@ -837,6 +853,18 @@ export class HistoryBorrowSaleNewComponent implements OnInit {
 
     onEmployeeChange(value: number | null) {
         this.searchParams.employeeID = value ?? 0;
+    }
+
+    toggleDueFilter(type: 1 | 2) {
+        this.dueFilter = this.dueFilter === type ? 0 : type;
+        this.applyDueFilter();
+    }
+
+    applyDueFilter() {
+        this.dataset = this.dueFilter === 0
+            ? this.fullDataset
+            : this.fullDataset.filter(item => item.DualDate === this.dueFilter);
+        this.updateFilterCollections();
     }
 
     createImport() {

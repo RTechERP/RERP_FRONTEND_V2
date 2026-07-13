@@ -1329,7 +1329,16 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       this.selectedDevices.push(newRow);
 
       // FIX: Sử dụng addRow() thay vì setData() để tránh re-render toàn bộ table
-      this.deviceTempTable.addRow(newRow);
+      this.deviceTempTable.addRow(newRow).then((row: any) => {
+        row.scrollTo().then(() => {
+          setTimeout(() => {
+            const cell = row.getCell('ProductCode');
+            if (cell) {
+              cell.edit();
+            }
+          }, 100);
+        });
+      });
     }
   }
 

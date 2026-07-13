@@ -109,7 +109,23 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     if (!this.dataInput) {
       this.dataInput = {};
     }
-    if (this.dataInput && this.dataInput.ID) {
+    if (this.dataInput && this.dataInput.isDuplicate) {
+      // Chế độ copy/duplicate
+      this.patchFormData(this.dataInput);
+      this.dataInput.ID = 0; // Ensure it saves as new
+      this.dataInput.BorrowCustomer = this.dataInput.BorrowCustomer ?? false;
+      this.formDeviceInfo.patchValue({ CreateDate: this.CreateDate });
+      
+      // Clear unique fields to avoid duplicate errors right away
+      this.formDeviceInfo.patchValue({
+        ProductCode: '',
+        SerialNumber: '',
+        Serial: '',
+        PartNumber: ''
+      });
+      
+      this.getProductCode();
+    } else if (this.dataInput && this.dataInput.ID) {
       // Chế độ sửa
       this.patchFormData(this.dataInput);
       this.dataInput.BorrowCustomer = this.dataInput.BorrowCustomer ?? false;

@@ -1012,6 +1012,37 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         );
     }
 
+    onDuplicateProduct() {
+        const selected = this.getSelectedRows();
+        if (!selected || selected.length === 0) {
+            this.notification.warning(
+                'Thông báo',
+                'Vui lòng chọn một sản phẩm để copy!'
+            );
+            return;
+        }
+        const selectedProduct = { ...selected[0], isDuplicate: true };
+
+        const modalRef = this.modalService.open(TbProductRtcFormComponent, {
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+        modalRef.componentInstance.dataInput = selectedProduct;
+        modalRef.componentInstance.warehouseType = this.warehouseType;
+        modalRef.result.then(
+            (result) => {
+                this.getProduct();
+            },
+            () => {
+                // Modal dismissed
+            }
+        );
+    }
+
+
+
     onDeleteProduct() {
         const selectedRows = this.getSelectedRows();
         if (!selectedRows || selectedRows.length === 0) {

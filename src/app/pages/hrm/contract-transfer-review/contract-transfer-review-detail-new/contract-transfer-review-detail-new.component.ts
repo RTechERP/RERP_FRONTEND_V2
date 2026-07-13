@@ -353,12 +353,14 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
   /** NV được nhập cột NLĐ */
   get canEditNLD(): boolean {
     if (this.isViewOnly) return false;
+    if (this.role === 'hr') return true; // HR luôn có quyền sửa
     return this.role === 'employee' && Number(this.step) <= 1 && (Number(this.statusApprove) === 0 || Number(this.statusApprove) === -1);
   }
 
   /** TBP/Manager được nhập cột điểm TBP + nhận xét ở bước 2 */
   get canEditTBP(): boolean {
     if (this.isViewOnly) return false;
+    if (this.role === 'hr') return true; // HR luôn có quyền sửa
     if (Number(this.step) !== 2 || Number(this.statusApprove) !== 0) return false;
     if (this.role === 'hr' &&
       Number(this.step) === 2 &&
@@ -378,11 +380,13 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
 
   get canEditHR(): boolean {
     if (this.isViewOnly) return false;
+    if (this.role === 'hr') return true; // HR luôn có quyền sửa
     return this.role === 'hr' && Number(this.step) === 3 && Number(this.statusApprove) === 0;
   }
 
   get canHrCreate(): boolean {
     if (this.isViewOnly) return false;
+    if (this.role === 'hr') return true; // HR luôn có quyền sửa
     if (this.role !== 'hr') return false;
     if (!this.id) return true;
     // statusApprove = -2: HR chưa gửi mail | 0: đang chờ NV tự đánh giá
@@ -1179,6 +1183,68 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
   /** Validate form theo từng role — trả về mảng lỗi (rỗng = hợp lệ) */
   private validateForm(): string[] {
     const errors: string[] = [];
+
+    // ── Nếu là HR (role === 'hr') ───────────────────────────────────────
+    if (this.role === 'hr') {
+      // 1. Nếu là tạo mới (id === 0), bắt buộc các trường cơ bản
+      if (!this.id) {
+        if (this.form.EmployeeEvaluationID === null || this.form.EmployeeEvaluationID === undefined)
+          errors.push('Vui lòng chọn <b>Cán bộ Quản lý</b>.');
+        if (this.form.EvaluationEmployeeLoaiHDID === null || this.form.EvaluationEmployeeLoaiHDID === undefined || this.form.EvaluationEmployeeLoaiHDID < 0)
+          errors.push('Vui lòng chọn <b>Loại đánh giá</b>.');
+
+        if (!this.form.DateStart || !this.form.DateStart.trim())
+          errors.push('Vui lòng nhập <b>Thời gian đánh giá (Từ)</b>.');
+        else if (!this.isValidDateISO(this.form.DateStart))
+          errors.push('<b>Thời gian đánh giá (Từ)</b> không đúng định dạng ngày hợp lệ (YYYY-MM-DD).');
+        else if (!this.isDateInAllowedYearRange(this.form.DateStart))
+          errors.push('<b>Thời gian đánh giá (Từ)</b> phải nằm trong khoảng năm <b>1900 - 2100</b>.');
+
+        if (!this.form.DateEnd || !this.form.DateEnd.trim())
+          errors.push('Vui lòng nhập <b>Thời gian đánh giá (Đến)</b>.');
+        else if (!this.isValidDateISO(this.form.DateEnd))
+          errors.push('<b>Thời gian đánh giá (Đến)</b> không đúng định dạng ngày hợp lệ (YYYY-MM-DD).');
+        else if (!this.isDateInAllowedYearRange(this.form.DateEnd))
+          errors.push('<b>Thời gian đánh giá (Đến)</b> phải nằm trong khoảng năm <b>1900 - 2100</b>.');
+
+        if (this.isValidDateISO(this.form.DateStart) && this.isValidDateISO(this.form.DateEnd)
+          && this.isDateInAllowedYearRange(this.form.DateStart) && this.isDateInAllowedYearRange(this.form.DateEnd)) {
+          if (new Date(this.form.DateEnd) < new Date(this.form.DateStart)) {
+            errors.push('Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.');
+          }
+        }
+
+        if (this.form.EmployeeID === null || this.form.EmployeeID === undefined)
+          errors.push('Vui lòng chọn <b>Người được đánh giá</b>.');
+      } else {
+        // 2. Nếu là chỉnh sửa (id > 0), chỉ validate định dạng ngày và khoảng điểm (nếu có nhập)
+        if (this.form.DateStart && this.form.DateEnd && this.isValidDateISO(this.form.DateStart) && this.isValidDateISO(this.form.DateEnd)) {
+          if (new Date(this.form.DateEnd) < new Date(this.form.DateStart)) {
+            errors.push('Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.');
+          }
+        }
+
+        const invalidNld = this.leafItems.filter(it => {
+          if (it.nldScore === null || it.nldScore === undefined) return false;
+          return it.nldScore < 0 || it.nldScore > 100;
+        });
+        if (invalidNld.length > 0) {
+          const names = invalidNld.map(it => `<b>${it.name}</b>`).join(', ');
+          errors.push(`Điểm tự đánh giá phải từ 0–100: ${names}.`);
+        }
+
+        const invalidTbp = this.leafItems.filter(it => {
+          if (it.tbpScore === null || it.tbpScore === undefined) return false;
+          return it.tbpScore < 0 || it.tbpScore > 100;
+        });
+        if (invalidTbp.length > 0) {
+          const names = invalidTbp.map(it => `<b>${it.name}</b>`).join(', ');
+          errors.push(`Điểm TBP phải từ 0–100: ${names}.`);
+        }
+      }
+
+      return errors;
+    }
 
     // ── HR tạo mới: 4 trường bắt buộc ────────────────────────────────────
     if (this.canHrCreate) {

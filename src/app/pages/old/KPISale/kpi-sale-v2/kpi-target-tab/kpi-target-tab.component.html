@@ -139,8 +139,15 @@
           <div class="table-title">
             <h6>Danh sách mục tiêu KPI</h6>
             <div class="table-actions">
-              <!-- Nút Duyệt nhanh — leader team hoặc admin N1 -->
-              <button *ngIf="canApproveTargets" nz-button nzType="primary" nzSize="small"
+              <!-- Nút Duyệt nhanh — Quarter Mode (chọn nhiều dòng) -->
+              <button *ngIf="canApproveTargets && isQuarterMode()" nz-button nzType="primary" nzSize="small"
+                nz-tooltip nzTooltipTitle="Duyệt tất cả các dòng đã chọn (Quarter mode)"
+                [disabled]="selectedPivotTargetIds.size === 0"
+                (click)="approveSelectedPivot()">
+                <i nz-icon nzType="check-circle"></i> Duyệt ({{ selectedPivotTargetIds.size }})
+              </button>
+              <!-- Nút Duyệt nhanh — Month Mode (chọn nhiều dòng) -->
+              <button *ngIf="canApproveTargets && !isQuarterMode()" nz-button nzType="primary" nzSize="small"
                 nz-tooltip nzTooltipTitle="Duyệt tất cả các dòng đã chọn"
                 [disabled]="selectedTargetIds.size === 0"
                 (click)="approveSelected()">
@@ -153,18 +160,18 @@
                 (click)="saveInlineChanges()">
                 <i nz-icon nzType="save"></i> Lưu ({{ changedTargets.length }})
               </button>
-              <!-- Nút Lưu trọng số (chỉ leader/admin) -->
-              <button *ngIf="canApproveTargets" nz-button nzType="default" nzSize="small"
-                nz-tooltip nzTooltipTitle="Lưu trọng số đã chỉnh sửa (Admin/Leader)"
+              <!-- Nút Lưu trọng số (admin/N1/N27 hoặc Leader) -->
+              <button *ngIf="hasFullPermission" nz-button nzType="default" nzSize="small"
+                nz-tooltip nzTooltipTitle="Lưu trọng số đã chỉnh sửa (Admin/Leader/N27)"
                 [disabled]="!hasWeightChanges()"
                 (click)="saveWeightChanges()">
                 <i nz-icon nzType="save"></i> Lưu Trọng số ({{ weightEditedIndexes.size }})
               </button>
-              <!-- Nút Thêm mục tiêu -->
-              <button nz-button nzType="primary" nzSize="small" (click)="openTargetForm()">
+              <!-- Nút Thêm mục tiêu (Ẩn với N27 — chỉ sửa Proposed inline) -->
+              <button *ngIf="!isN27Only" nz-button nzType="primary" nzSize="small" (click)="openTargetForm()">
                 <i nz-icon nzType="plus"></i> Thêm mục tiêu
               </button>
-              <!-- Nút Tự động thêm chỉ tiêu theo mẫu -->
+              <!-- Nút Tự động thêm chỉ tiêu theo mẫu (hiện cho cả N27) -->
               <button nz-button nzType="default" nzSize="small" nz-tooltip nzTooltipTitle="Thêm tất cả chỉ tiêu chưa có trong mục tiêu (weight=0, goal=0)"
                 [disabled]="!selectedEmployeeId || !selectedPeriodId || !selectedTemplateId"
                 (click)="autoAddMissingTargets()">
@@ -179,9 +186,17 @@
               nzSize="small" nzBordered style="height: 100%;"
               [nzScroll]="{ x: '900px', y: 'calc(100vh - 340px)' }">
               <thead>
-                <!-- Row 1: Quarter + Month names -->
+                <!-- Row 1: Select all + Quarter + Month names -->
                 <tr>
-                  <th nzLeft="0" nzWidth="220px" nzAlign="center" rowspan="2" class="sticky-col-header">
+                  <th nzLeft="0" nzWidth="42px" nzAlign="center" rowspan="2" class="sticky-col-header sticky-col-checkbox">
+                    <label nz-checkbox *ngIf="canApproveTargets"
+                      [nzChecked]="allPivotSelected"
+                      [nzIndeterminate]="somePivotSelected"
+                      (nzCheckedChange)="toggleSelectAllPivot()"
+                      nz-tooltip nzTooltipTitle="Chọn tất cả các dòng có thể duyệt">
+                    </label>
+                  </th>
+                  <th nzLeft="42px" nzWidth="220px" nzAlign="center" rowspan="2" class="sticky-col-header">
                     Chỉ tiêu KPI
                   </th>
                   <th nzWidth="80px" nzAlign="center" rowspan="2" style="background: #f1f5f9;">
@@ -209,8 +224,18 @@
               <tbody>
                 <ng-container *ngFor="let row of pivotTable.data; trackBy: trackByKpiIndex">
                   <tr class="pivot-row" [class.row-group]="isGroupIndex(row.kpiIndexId)">
+                    <!-- Checkbox chọn tất cả cell của dòng -->
+                    <td nzLeft="0" nzAlign="center" class="sticky-col-cell sticky-col-checkbox">
+                      <label nz-checkbox *ngIf="canApproveTargets && !isGroupIndex(row.kpiIndexId)"
+                        [nzChecked]="hasAnyPivotApproveableCellSelected(row)"
+                        [nzIndeterminate]="isPivotRowSelected(row) && !hasAnyPivotApproveableCellSelected(row)"
+                        [nzDisabled]="!hasAnyPivotApproveableCell(row)"
+                        (nzCheckedChange)="toggleAllCellsForRow(row)"
+                        nz-tooltip nzTooltipTitle="Chọn tất cả các tháng trong dòng này">
+                      </label>
+                    </td>
                     <!-- Chỉ tiêu KPI -->
-                    <td nzLeft="0" class="sticky-col-cell">
+                    <td nzLeft="42px" class="sticky-col-cell">
                       <span>
                         <nz-tag *ngIf="isGroupIndex(row.kpiIndexId)" nzColor="green" style="margin-right:6px;">
                           <i nz-icon nzType="folder"></i> Nhóm
@@ -223,14 +248,14 @@
                     </td>
                     <!-- Trọng số -->
                     <td nzAlign="center" style="font-weight: 600; background: #f8fafc;">
-                      <input *ngIf="canApproveTargets" nz-input nzSize="small" type="number"
+                      <input *ngIf="canEditWeight" nz-input nzSize="small" type="number"
                         [value]="getRowWeightPercent(row)"
                         (change)="onWeightChange(row, parseFloat($any($event.target).value))"
                         (blur)="onWeightChange(row, parseFloat($any($event.target).value))"
-                        nz-tooltip nzTooltipTitle="Chỉnh sửa trọng số (Admin/Leader)"
+                        nz-tooltip nzTooltipTitle="Chỉnh sửa trọng số (Admin/Leader/N27)"
                         style="width: 70px; text-align: center; font-weight: 600; border-radius: 4px; border: 1px solid #d9d9d9;"
                         [min]="0" [max]="100" [step]="1" />
-                      <span *ngIf="!canApproveTargets">{{ row.weightPercent | number: '1.0-2' }}%</span>
+                      <span *ngIf="!canEditWeight">{{ row.weightPercent | number: '1.0-2' }}%</span>
                     </td>
                     <!-- Per-month cells -->
                     <ng-container *ngFor="let cell of row.months">
@@ -240,15 +265,15 @@
                         class="cell-proposed">
                         <ng-container *ngIf="!isGroupIndex(row.kpiIndexId); else groupPivotProposedCell">
                           <ng-container *ngIf="cell.target; else emptyProposed">
-                            <div style="display: flex; flex-direction: column; justify-content: flex-end; min-height: 58px;">
+                            <div style="display: flex; align-items: center; gap: 4px; min-height: 58px; padding: 4px;">
                               <input nz-input nzSize="small" type="text"
                                 [value]="formatMoney(getDisplayPivotProposed(row, cell.periodId))"
                                 (blur)="onPivotProposedChange(cell.target!, parseMoney($any($event.target).value))"
                                 (focus)="$any($event.target).select()"
-                                style="width: 100%; text-align: right; font-weight: 600; margin-top: auto;"
+                                style="flex: 1; text-align: right; font-weight: 600;"
                                 [style.color]="getDisplayPivotProposed(row, cell.periodId) ? '#d48806' : 'inherit'" />
-                              <ng-container *ngIf="canApprove(cell.target) && cell.approvalStatus === 'Pending' && cell.target.proposedGoalValue != null">
-                                <div style="display: flex; justify-content: flex-end; gap: 4px; margin-top: 2px;">
+                              <div style="display: flex; gap: 4px; flex-shrink: 0;">
+                                <ng-container *ngIf="canApprove(cell.target) && cell.approvalStatus === 'Pending' && cell.target.proposedGoalValue != null">
                                   <i nz-icon nzType="check-circle" class="text-success pointer-cursor"
                                     nz-tooltip nzTooltipTitle="Duyệt"
                                     style="font-size: 13px;"
@@ -261,8 +286,8 @@
                                     nzCancelText="Đóng"
                                     style="font-size: 13px;"
                                     (nzOnConfirm)="rejectTargetById(cell.target!.id)"></i>
-                                </div>
-                              </ng-container>
+                                </ng-container>
+                              </div>
                             </div>
                           </ng-container>
                           <ng-template #emptyProposed>
@@ -286,7 +311,7 @@
                               [value]="formatMoney(getDisplayPivotGoal(row, cell.periodId))"
                               (blur)="onPivotGoalChange(cell.target!, parseMoney($any($event.target).value))"
                               (focus)="$any($event.target).select()"
-                              [disabled]="cell.approvalStatus === 'Approved' || !canApproveTargets"
+                              [disabled]="cell.approvalStatus === 'Approved' || !canEditGoal"
                               style="width: 100%; text-align: right; font-weight: 600;" />
                           </ng-container>
                           <ng-template #emptyGoal>
@@ -304,7 +329,7 @@
                   </tr>
                 </ng-container>
                 <tr *ngIf="quarterlyRows.length === 0">
-                  <td [attr.colspan]="2 + quarterlyMetaFlat.length * 2" style="text-align: center; color: #94a3b8; padding: 24px;">
+                  <td [attr.colspan]="3 + quarterlyMetaFlat.length * 2" style="text-align: center; color: #94a3b8; padding: 24px;">
                     Chưa có mục tiêu nào cho kỳ này.
                   </td>
                 </tr>
@@ -406,7 +431,7 @@
                           [value]="formatMoney(getInlineGoal(row.id))"
                           (blur)="onInlineGoalChange(row.id, parseMoney($any($event.target).value))"
                           (focus)="$any($event.target).select()"
-                          [disabled]="row.approvalStatus === 'Approved' || !canApproveTargets || isRestrictedUser"
+                          [disabled]="row.approvalStatus === 'Approved' || !canEditGoal || isRestrictedUser"
                           style="width: 100%; font-weight: 600; text-align: right;" />
                       </ng-container>
                       <ng-template #groupGoalCell>

@@ -434,27 +434,47 @@ nz-input-number.inline-edit .ant-input-number {
   background-color: #e6f7ff !important;
 }
 
-.row-group .sticky-col-cell {
+.row-group .sticky-col-cell:not(.sticky-col-checkbox) {
   background-color: #f0f5ff !important;
 }
 
 /* ===== Pivot Table Styles ===== */
+/* Checkbox column = left anchor (nzLeft="0"), KPI column = offset (nzLeft="42px") */
 .sticky-col-header,
 .sticky-col-cell {
   position: sticky;
-  left: 0;
   z-index: 2;
   background: white;
 }
 
-.sticky-col-header {
-  z-index: 3;
+/* Cột checkbox ở vị trí 0 (anchor) */
+.sticky-col-checkbox.sticky-col-header,
+.sticky-col-checkbox.sticky-col-cell {
+  left: 0;
 }
 
-.sticky-col-cell {
+/* Cột "Chỉ tiêu KPI" dịch sang phải theo độ rộng của cột checkbox */
+.sticky-col-header:not(.sticky-col-checkbox) {
+  left: 42px;
+  z-index: 3;
+  min-width: 180px;
+  max-width: 220px;
+}
+
+.sticky-col-cell:not(.sticky-col-checkbox) {
+  left: 42px;
   background: white;
   min-width: 180px;
   max-width: 220px;
+}
+
+/* Highlight dòng pivot được chọn */
+.pivot-row-selected > td:not(.sticky-col-checkbox) {
+  background-color: #e6f7ff !important;
+}
+
+.pivot-row-selected .sticky-col-cell:not(.sticky-col-checkbox) {
+  background-color: #bae7ff !important;
 }
 
 .pivot-row > td {

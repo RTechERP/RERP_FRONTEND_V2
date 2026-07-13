@@ -1688,7 +1688,6 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       this.deviceTempTable.setData(this.selectedDevices);
     }
   }
-  // Thêm dòng trống vào bảng
   addRow() {
     if (this.deviceTempTable) {
       // IMPORTANT: Đồng bộ selectedDevices với dữ liệu thực tế trong Tabulator
@@ -1702,7 +1701,20 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         Note: '',
       };
       this.selectedDevices.push(newRow);
-      this.deviceTempTable.setData(this.selectedDevices);
+      this.deviceTempTable.setData(this.selectedDevices).then(() => {
+        const rows = this.deviceTempTable?.getRows();
+        if (rows && rows.length > 0) {
+          const lastRow = rows[rows.length - 1];
+          lastRow.scrollTo().then(() => {
+            setTimeout(() => {
+              const cell = lastRow.getCell('ProductCode');
+              if (cell) {
+                cell.edit();
+              }
+            }, 100);
+          });
+        }
+      });
     }
   }
   // mở modal thêm sản phẩm

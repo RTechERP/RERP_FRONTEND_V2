@@ -272,6 +272,16 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
         return false;
     }
 
+    isHeaderReadOnly(): boolean {
+        if (!this.selectedRow) {
+            return false;
+        }
+        const statusId = Number(this.selectedRow.StatusID);
+        const isApproved = Number(this.selectedRow.IsApproved);
+        // Header read-only khi KHÔNG phải StatusID=1 và IsApproved=1
+        return !(statusId === 1 && isApproved === 1);
+    }
+
     canDelete(): boolean {
         if (!this.selectedRow) {
             return false;
@@ -1147,6 +1157,8 @@ export class RequestInvoiceSlickgridComponent implements OnInit, AfterViewInit {
                 modalRef.componentInstance.groupedData = groupedData;
                 modalRef.componentInstance.isEditMode = true;
                 modalRef.componentInstance.isReadOnlyMode = this.isReadOnlyMode();
+                modalRef.componentInstance.isHeaderReadOnly = this.isHeaderReadOnly();
+                modalRef.componentInstance.canDelete = this.canDelete();
                 modalRef.componentInstance.selectedId = this.selectedId;
                 modalRef.componentInstance.POKHID = DETAIL[0]?.POKHID || 0;
                 modalRef.result.then(

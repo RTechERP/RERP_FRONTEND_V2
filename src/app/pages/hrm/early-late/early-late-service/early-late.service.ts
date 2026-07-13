@@ -16,6 +16,12 @@ export class EarlyLateService {
       employeeEarlyLateParam
     );
   }
+ getEmployeeEarlyLatePersonal(employeeEarlyLateParam: any): Observable<any> {
+    return this.http.post<any>(
+      this._url + 'EmployeeEarlyLate/person',
+      employeeEarlyLateParam
+    );
+  }
 
   saveEmployeeEarlyLate(employeeEarlyLate: any): Observable<any> {
     return this.http.post<any>(

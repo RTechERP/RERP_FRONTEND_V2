@@ -242,6 +242,10 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
   employeeConclusions = EMPLOYEECONCLUSIONS;
   rankTable = RANK_TABLE;
 
+  // ─── Snapshot gốc để track thay đổi cho activity log ────────────────────
+  private originalFormSnapshot: any = null;
+  private originalItemsSnapshot: CbqlItem[] = [];
+
   // ─── Computed: tổng điểm & xếp loại ────────────────────────────────────
 
   get nldTotal(): number {
@@ -728,6 +732,10 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
           this.onEmployeeChange(this.form.EmployeeID);
         }
 
+        // ── Lưu snapshot gốc để track thay đổi cho activity log ────────────
+        this.originalFormSnapshot = JSON.parse(JSON.stringify(this.form));
+        this.originalItemsSnapshot = JSON.parse(JSON.stringify(this.items));
+
         // nzAutosize lắng nghe sự kiện 'input' để tính lại chiều cao.
         // Khi data được gán từ code (không phải người dùng gõ), không có event nào được fire.
         // Cần dispatch thủ công để nzAutosize resize đúng chiều cao.
@@ -931,6 +939,119 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
     const d = new Date(date);
     if (isNaN(d.getTime())) return '';
     return d.toLocaleDateString('en-CA'); // YYYY-MM-DD
+  }
+
+  /** Build nội dung log chi tiết thay đổi từng hạng mục đánh giá.
+   *  So sánh giá trị gốc (lúc load) vs giá trị hiện tại (trước khi syncScoresToForm).
+   *  Trả về chuỗi mô tả thay đổi hoặc null nếu không có thay đổi nào.
+   */
+  buildActivityLog(): string | null {
+    if (!this.originalFormSnapshot || this.originalItemsSnapshot.length === 0) return null;
+
+    const changes: string[] = [];
+    const now = this.formatDateTimeISO(new Date());
+
+    // ── So sánh điểm NLĐ từng hạng mục ──────────────────────────────────
+    const scoreFields: { code: string; field: string }[] = [
+      { code: '1', field: 'ProfessionalKnowledge' },
+      { code: '2', field: 'ToolAndSystemSkills' },
+      { code: '3', field: 'WorkQuality' },
+      { code: '4', field: 'WorkProgress' },
+      { code: '5', field: 'ProblemSolvingAbility' },
+      { code: '6', field: 'Proactiveness' },
+      { code: '7', field: 'CollaborationAndSupport' },
+      { code: '8', field: 'CommunicationAndTeamwork' },
+      { code: '9', field: 'WorkOutputKPI' },
+      { code: '10', field: 'ComplianceWithRegulations' },
+      { code: '11', field: 'Attendance' },
+      { code: '12', field: 'WorkStyle' },
+      { code: '13', field: 'AttitudeAndResponsibility' },
+      { code: '14', field: 'CulturalFitRTC' },
+      { code: '15', field: 'LearningAndGrowthMindset' },
+      { code: '16', field: 'CompanyCommitment' },
+    ];
+
+    const scoreChanges: string[] = [];
+    for (const { code, field } of scoreFields) {
+      const oldVal = this.originalItemsSnapshot.find(i => i.code === code)?.nldScore;
+      const newVal = this.items.find(i => i.code === code)?.nldScore;
+      if (oldVal !== newVal) {
+        const oldDisplay = oldVal !== null && oldVal !== undefined ? oldVal : '(trống)';
+        const newDisplay = newVal !== null && newVal !== undefined ? newVal : '(trống)';
+        const itemName = this.items.find(i => i.code === code)?.name || field;
+        scoreChanges.push(`• ${code}: ${oldDisplay} → ${newDisplay} (${itemName})`);
+      }
+    }
+
+    // ── So sánh điểm TBP từng hạng mục ───────────────────────────────────
+    const tbpFields: { code: string; field: string }[] = [
+      { code: '1', field: 'TBPProfessionalKnowledge' },
+      { code: '2', field: 'TBPToolAndSystemSkills' },
+      { code: '3', field: 'TBPWorkQuality' },
+      { code: '4', field: 'TBPWorkProgress' },
+      { code: '5', field: 'TBPProblemSolvingAbility' },
+      { code: '6', field: 'TBPProactiveness' },
+      { code: '7', field: 'TBPCollaborationAndSupport' },
+      { code: '8', field: 'TBPCommunicationAndTeamwork' },
+      { code: '9', field: 'TBPWorkOutputKPI' },
+      { code: '10', field: 'TBPComplianceWithRegulations' },
+      { code: '11', field: 'TBPAttendance' },
+      { code: '12', field: 'TBPWorkStyle' },
+      { code: '13', field: 'TBPAttitudeAndResponsibility' },
+      { code: '14', field: 'TBPCulturalFitRTC' },
+      { code: '15', field: 'TBPLearningAndGrowthMindset' },
+      { code: '16', field: 'TBPCompanyCommitment' },
+    ];
+
+    const tbpChanges: string[] = [];
+    for (const { code, field } of tbpFields) {
+      const oldVal = this.originalItemsSnapshot.find(i => i.code === code)?.tbpScore;
+      const newVal = this.items.find(i => i.code === code)?.tbpScore;
+      if (oldVal !== newVal) {
+        const oldDisplay = oldVal !== null && oldVal !== undefined ? oldVal : '(trống)';
+        const newDisplay = newVal !== null && newVal !== undefined ? newVal : '(trống)';
+        const itemName = this.items.find(i => i.code === code)?.name || field;
+        tbpChanges.push(`• ${code}: ${oldDisplay} → ${newDisplay} (${itemName})`);
+      }
+    }
+
+    // ── So sánh các trường text khác ─────────────────────────────────────
+    const textFields: { field: string; label: string }[] = [
+      { field: 'MainJobmainResponsibilities', label: 'Công việc chính' },
+      { field: 'Strengths', label: 'Điểm mạnh' },
+      { field: 'AreasForImprovement', label: 'Điểm cần cải thiện' },
+      { field: 'RecommendationsOrOther', label: 'Khuyến nghị khác' },
+      { field: 'OtherConclusion', label: 'Kết luận khác' },
+    ];
+
+    for (const { field, label } of textFields) {
+      const key = field as keyof CbqlFormModel;
+      const oldVal = ((this.originalFormSnapshot[key] as any) ?? '').toString().trim();
+      const newVal = ((this.form[key] as any) ?? '').toString().trim();
+      if (oldVal !== newVal) {
+        changes.push(`• ${label}: "${oldVal || '(trống)'}" → "${newVal || '(trống)'}"`);
+      }
+    }
+
+    // ── Tổng hợp log ──────────────────────────────────────────────────────
+    const lines: string[] = [];
+    if (scoreChanges.length > 0) {
+      lines.push('【Điểm NLĐ tự đánh giá thay đổi】');
+      lines.push(...scoreChanges);
+    }
+    if (tbpChanges.length > 0) {
+      lines.push('【Điểm TBP đánh giá thay đổi】');
+      lines.push(...tbpChanges);
+    }
+    if (changes.length > 0) {
+      lines.push('【Các trường khác thay đổi】');
+      lines.push(...changes);
+    }
+
+    if (lines.length === 0) return null;
+
+    lines.unshift(`📅 ${now}`);
+    return lines.join('\n');
   }
   formatDateTimeISO(date: any): string {
     if (!date) return '';
@@ -1172,7 +1293,10 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
     // 3. Build payload (bỏ UI-only fields)
     const payload = this.buildPayload();
 
-    // 4. Gọi API
+    // 4. Build activity log trước khi gửi lên (so sánh cũ vs mới)
+    const activityLogContent = this.buildActivityLog();
+
+    // 5. Gọi API
     this.isSaving = true;
     this.service.saveNew(payload, this.role).subscribe({
       next: (res: any) => {
@@ -1183,6 +1307,18 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
           if (savedId > 0) {
             this.form.ID = savedId;
             this.id = savedId;
+          }
+          // Lưu activity log chi tiết sau khi lưu thành công
+          if (savedId > 0 && activityLogContent) {
+            const typeLog = this.canEditNLD
+              ? 'NLĐ LƯU PHIẾU ĐÁNH GIÁ'
+              : this.canEditTBP
+                ? 'TBP LƯU PHIẾU ĐÁNH GIÁ'
+                : 'HR LƯU PHIẾU ĐÁNH GIÁ';
+            this.service.saveLogActivity(savedId, typeLog, activityLogContent).subscribe({
+              next: () => { /* log lưu thành công, không cần thông báo */ },
+              error: (err) => console.error('Error saving activity log:', err)
+            });
           }
           if (this.role === 'hr' && this.shouldOpenSendMailAfterSave(res)) {
             this.activeModal.close({ action: 'send_mail', form: this.form });
@@ -1239,6 +1375,8 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
       // 2. Sync điểm & lưu trước
       this.syncScoresToForm();
       const payload = this.buildPayload();
+      // Build activity log trước khi lưu (so sánh cũ vs mới)
+      const activityLogContent = this.buildActivityLog();
       this.isSaving = true;
 
       this.service.saveNew(payload, this.role).subscribe({
@@ -1249,13 +1387,27 @@ export class ContractTransferReviewDetailNewComponent implements OnInit {
             return;
           }
           // Cập nhật ID nếu vừa tạo mới
-          if (!this.form.ID && saveRes.data) {
-            this.form.ID = saveRes.data;
-            this.id = saveRes.data;
+          const savedId = Number(saveRes?.data?.ID ?? saveRes?.data ?? this.form.ID ?? this.id ?? 0);
+          if (!this.form.ID && savedId > 0) {
+            this.form.ID = savedId;
+            this.id = savedId;
+          }
+
+          // Lưu activity log chi tiết sau khi lưu thành công
+          if (savedId > 0 && activityLogContent) {
+            const typeLog = this.canEditNLD
+              ? 'NLĐ LƯU PHIẾU ĐÁNH GIÁ'
+              : this.canEditTBP
+                ? 'TBP LƯU PHIẾU ĐÁNH GIÁ'
+                : 'HR LƯU PHIẾU ĐÁNH GIÁ';
+            this.service.saveLogActivity(savedId, typeLog, activityLogContent).subscribe({
+              next: () => { /* log lưu thành công, không cần thông báo */ },
+              error: (err) => console.error('Error saving activity log:', err)
+            });
           }
 
           // 3. Sau khi lưu thành công → gọi confirm
-          this.service.confirm(this.id, this.getApiRole() as any, 1, '').subscribe({
+          this.service.confirm(savedId || this.id, this.getApiRole() as any, 1, '').subscribe({
             next: (res: any) => {
               this.isSaving = false;
               if (res?.status === 1) {

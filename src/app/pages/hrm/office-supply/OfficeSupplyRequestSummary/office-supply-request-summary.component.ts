@@ -164,7 +164,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
     const worksheet = workbook.addWorksheet('Danh sách tổng hợp VPP');
 
     // Định nghĩa các cột số lượng
-    const quantityFields = ['GD', 'HR', 'KT', 'MH', 'MKT', 'KD', 'KYTHUAT', 'TKCK', 'AGV', 'BN', 'HP', 'HCM', 'LR', 'SDD', 'RPV', 'VPV', 'RDV', 'BSD', 'SSD', 'BoBSD', 'TotalQuantity'];
+    const quantityFields = ['GD', 'HR', 'KT', 'MH', 'MKT', 'KD', 'KYTHUAT', 'TKCK', 'AGV', 'BN', 'HP', 'HCM', 'LR', 'BSD', 'SSD', 'BoBSD', 'TotalQuantity'];
 
     // Định nghĩa headers thủ công với cột Đơn vị tính
     const headers = [
@@ -185,10 +185,6 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
       'Văn Phòng HP',
       'Văn Phòng HCM',
       'Lắp ráp',
-      'Software Development Dept',
-      'R-Project/Vision Division',
-      'V-Project/Vision Division',
-      'R&D/Vision Division',
       'BLESS Dept/Sales Division',
       'Shark Dept/Sales Division',
       'BoB Dept/Sales Division',
@@ -217,10 +213,6 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
       'HP',
       'HCM',
       'LR',
-      'SDD',
-      'RPV',
-      'VPV',
-      'RDV',
       'BSD',
       'SSD',
       'BoBSD',
@@ -493,22 +485,6 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
                 },
                 {
                   title: "Lắp ráp", field: "LR", hozAlign: "right", resizable: true,
-                  bottomCalc: "sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter
-                },
-                {
-                  title: "Software Development Dept", field: "SDD", hozAlign: "right", resizable: true,
-                  bottomCalc: "sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter
-                },
-                {
-                  title: "R-Project/Vision Division", field: "RPV", hozAlign: "right", resizable: true,
-                  bottomCalc: "sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter
-                },
-                {
-                  title: "V-Project/Vision Division", field: "VPV", hozAlign: "right", resizable: true,
-                  bottomCalc: "sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter
-                },
-                {
-                  title: "R&D/Vision Division", field: "RDV", hozAlign: "right", resizable: true,
                   bottomCalc: "sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter
                 },
                 {

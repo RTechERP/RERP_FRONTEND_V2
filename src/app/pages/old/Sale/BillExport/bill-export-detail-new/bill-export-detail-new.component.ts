@@ -362,7 +362,7 @@ export class BillExportDetailNewComponent
             .get('IsTransfer')
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((isTransfer: boolean) => {
-                if (isTransfer) {
+                if (isTransfer && !this.isCheckmode) {
                     this.validateForm.patchValue({ CustomerID: 2017 }, { emitEvent: false });
                 }
             });

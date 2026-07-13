@@ -3,36 +3,21 @@
     <div class="card-header bg-white p-0">
       <p-toolbar class="p-1">
         <ng-template #start>
-          <p-menubar
-            [model]="supplierSaleMenu"
-            class="p-0 border-0"
-          ></p-menubar>
+          <p-menubar [model]="supplierSaleMenu" class="p-0 border-0"></p-menubar>
         </ng-template>
 
         <ng-template #end>
           <div class="d-flex align-items-center justify-content-end gap-2">
-            <input
-              type="text"
-              pInputText
-              placeholder="Tìm kiếm"
-              pSize="small"
-              [(ngModel)]="keyword"
-              style="width: 350px; padding: 3px"
-              (keyup.enter)="onSearch()"
-            />
-            <p-menubar
-              [model]="supplierSaleMenuSearch"
-              class="p-0 border-0"
-            ></p-menubar>
+            <input type="text" pInputText placeholder="Tìm kiếm" pSize="small" [(ngModel)]="keyword"
+              style="width: 350px; padding: 3px" (keyup.enter)="onSearch()" />
+            <p-menubar [model]="supplierSaleMenuSearch" class="p-0 border-0"></p-menubar>
           </div>
         </ng-template>
       </p-toolbar>
     </div>
 
     <div class="card-body p-0">
-      <div
-        *ngIf="isLoading"
-        style="
+      <div *ngIf="isLoading" style="
           position: absolute;
           top: 0;
           left: 0;
@@ -43,52 +28,32 @@
           display: flex;
           align-items: center;
           justify-content: center;
-        "
-      >
+        ">
         <nz-spin [nzSpinning]="isLoading"></nz-spin>
       </div>
       <nz-splitter>
         <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
           <div [class]="'grid-container-' + idMaster" style="height: 100%">
-            <angular-slickgrid
-              [gridId]="'gridSupplierSale-' + idMaster"
-              [columns]="columnDefinitions"
-              [options]="gridOptions"
-              [dataset]="dataset"
-              (onAngularGridCreated)="angularGridReady($event.detail)"
-              (onClick)="onActiveRowChanged($event.detail.args?.row)"
-              (onPaginationChanged)="closeDetail()"
-              (onDblClick)="onMasterDblClick($event.detail)"
-            >
+            <angular-slickgrid [gridId]="'gridSupplierSale-' + idMaster" [columns]="columnDefinitions"
+              [options]="gridOptions" [dataset]="dataset" (onAngularGridCreated)="angularGridReady($event.detail)"
+              (onClick)="onActiveRowChanged($event.detail.args.row)" (onPaginationChanged)="closeDetail()"
+              (onDblClick)="onMasterDblClick($event.detail)">
             </angular-slickgrid>
           </div>
         </nz-splitter-panel>
-        <nz-splitter-panel
-          [nzSize]="sizeTbDetail"
-          [nzCollapsible]="true"
-          nzResizable="true"
-        >
+        <nz-splitter-panel [nzSize]="sizeTbDetail" [nzCollapsible]="true" nzResizable="true">
           <nz-spin [nzSpinning]="isLoadingDetail">
             <div class="d-flex align-items-center justify-content-between p-1">
               <span class="text-primary">NCC: {{ nameNcc }}</span>
-              <button
-                nz-button
-                nzType="default"
-                nzSize="small"
-                style="background-color: red; color: white"
-                (click)="closeDetail()"
-              >
+              <button nz-button nzType="default" nzSize="small" style="background-color: red; color: white"
+                (click)="closeDetail()">
                 X
               </button>
             </div>
             <div [class]="'grid-container-' + idDetail" style="height: 100%">
-              <angular-slickgrid
-                [gridId]="'gridSupplierSaleDetail-' + idDetail"
-                [columns]="columnDefinitionsDetail"
-                [options]="gridOptionsDetail"
-                [dataset]="datasetDetail"
-                (onAngularGridCreated)="angularGridDetailReady($event.detail)"
-              >
+              <angular-slickgrid [gridId]="'gridSupplierSaleDetail-' + idDetail" [columns]="columnDefinitionsDetail"
+                [options]="gridOptionsDetail" [dataset]="datasetDetail"
+                (onAngularGridCreated)="angularGridDetailReady($event.detail)">
               </angular-slickgrid>
             </div>
           </nz-spin>

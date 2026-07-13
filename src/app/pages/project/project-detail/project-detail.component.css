@@ -1,9 +1,9 @@
 .reset {
-  all: revert;
+    all: revert;
 }
 
 .fs-12 {
-  font-size: 0.75rem;
+    font-size: 0.75rem;
 }
 
 /* PrimeNG TreeTable Styling */
@@ -11,7 +11,7 @@
     font-size: 11px;
 }
 
-:host ::ng-deep .p-treetable .p-treetable-thead > tr > th {
+:host ::ng-deep .p-treetable .p-treetable-thead>tr>th {
     padding: 0.5rem;
     background: #f8f9fa;
     color: #495057;
@@ -19,7 +19,7 @@
     text-align: center;
 }
 
-:host ::ng-deep .p-treetable .p-treetable-tbody > tr > td {
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td {
     padding: 2px 4px;
     border: 1px solid #dee2e6;
 }
@@ -45,10 +45,10 @@
 }
 
 ::ng-deep .ant-select-item-group {
-  color: #4a5568 !important;
-  font-weight: bold;
-  font-size: 15px !important;
-  background-color: rgb(232, 234, 235) !important;
+    color: #4a5568 !important;
+    font-weight: bold;
+    font-size: 15px !important;
+    background-color: rgb(232, 234, 235) !important;
 }
 
 /* Fix for p-multiSelect inside table */
@@ -81,14 +81,57 @@
     padding-bottom: 2px !important;
 }
 
-:host ::ng-deep .ant-form-item-label > label {
+:host ::ng-deep .ant-form-item-label>label {
     height: auto !important;
     min-height: 0 !important;
 }
 
-/* Compact fieldsets */
 fieldset.reset {
     padding: 8px !important;
     border: 1px solid #f0f0f0;
     border-radius: 4px;
+}
+
+/* Dynamic Tabs & Tables Styling */
+:host ::ng-deep .p-datatable {
+    font-size: 12px !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    font-size: 12px !important;
+    padding: 0.5rem !important;
+    background: #f8f9fa !important;
+    color: #495057 !important;
+    border: 1px solid #dee2e6 !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    font-size: 12px !important;
+    padding: 4px 6px !important;
+    border: 1px solid #dee2e6 !important;
+}
+
+.btn-delete-step {
+    color: #dc3545 !important;
+    font-size: 12px !important;
+}
+
+.btn-delete-step:hover {
+    color: #a71d2a !important;
+}
+
+/* Premium row group header styling */
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr.row-group-header>td {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    background-color: #fff3cd !important;
+    color: #000000 !important;
+    padding: 6px 12px !important;
+    border: 1px solid #dee2e6 !important;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tfoot>tr>td {
+    font-size: 12px !important;
+    padding: 6px 12px !important;
+    border: 1px solid #dee2e6 !important;
 }

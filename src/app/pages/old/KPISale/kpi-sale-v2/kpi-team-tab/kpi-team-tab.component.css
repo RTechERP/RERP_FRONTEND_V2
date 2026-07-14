@@ -298,3 +298,14 @@
 }
 
 .w-100 { width: 100%; }
+
+/* Trưởng nhóm trong select multi-mode: tag có viền vàng nhạt để phân biệt */
+::ng-deep .ant-select-selection-item .is-leader {
+  color: #ad6800;
+  font-weight: 600;
+}
+
+::ng-deep .ant-select-selection-item:has(.is-leader) {
+  background: #fffbe6;
+  border-color: #ffe58f;
+}

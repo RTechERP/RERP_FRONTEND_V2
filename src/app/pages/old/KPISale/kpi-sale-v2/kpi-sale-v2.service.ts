@@ -481,8 +481,12 @@ export class KpiSaleV2Service {
     return this.http.post<KpiApiResponse<any>>(`${this.apiUrl}/ranking/calculate`, params);
   }
 
-  getRewardConfig(): Observable<KpiApiResponse<any>> {
-    return this.http.get<KpiApiResponse<any>>(`${this.apiUrl}/ranking/config`);
+  getRewardConfig(templateId?: number): Observable<KpiApiResponse<any>> {
+    let params = new HttpParams();
+    if (templateId) {
+      params = params.set('templateId', templateId.toString());
+    }
+    return this.http.get<KpiApiResponse<any>>(`${this.apiUrl}/ranking/config`, { params });
   }
 
   saveRewardConfig(config: any): Observable<KpiApiResponse<any>> {
@@ -516,7 +520,7 @@ export class KpiSaleV2Service {
   }
 
   // ============== Employee Reward Mapping APIs ==============
-  getRewardMappings(configId?: number, employeeId?: number, isActive?: boolean): Observable<KpiApiResponse<any[]>> {
+  getRewardMappings(configId?: number, employeeId?: number, isActive?: boolean, periodValue?: string, teamCode?: string): Observable<KpiApiResponse<any[]>> {
     let params = new HttpParams();
     if (configId) {
       params = params.set('configId', configId.toString());
@@ -526,6 +530,12 @@ export class KpiSaleV2Service {
     }
     if (isActive !== undefined) {
       params = params.set('isActive', String(isActive));
+    }
+    if (periodValue) {
+      params = params.set('periodValue', periodValue);
+    }
+    if (teamCode) {
+      params = params.set('teamCode', teamCode);
     }
     return this.http.get<KpiApiResponse<any[]>>(`${this.apiUrl}/ranking/mappings`, { params });
   }

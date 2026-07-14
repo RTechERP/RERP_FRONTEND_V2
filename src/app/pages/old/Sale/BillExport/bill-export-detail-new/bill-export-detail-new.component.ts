@@ -362,7 +362,10 @@ export class BillExportDetailNewComponent
             .get('IsTransfer')
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((isTransfer: boolean) => {
-                if (isTransfer && !this.isCheckmode) {
+                if (!isTransfer) return;
+                const currentCustomerID = this.validateForm.get('CustomerID')?.value;
+                // Khi sửa: chỉ mặc định 2017 nếu bản ghi gốc chưa có khách hàng, còn lại giữ nguyên khách hàng gốc
+                if (!this.isCheckmode || !currentCustomerID || currentCustomerID <= 0) {
                     this.validateForm.patchValue({ CustomerID: 2017 }, { emitEvent: false });
                 }
             });

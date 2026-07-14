@@ -16,6 +16,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { KpiSaleV2Service, KpiApiResponse, KpiTeam, KpiTeamUpsertRequest, KpiTeamMemberItem, isAutoCreatedTeamCode } from '../kpi-sale-v2.service';
 import { EmployeeOption } from '../kpi-sale-v2.component';
 import { TabServiceService } from '../../../../../layouts/tab-service.service';
@@ -60,6 +61,7 @@ interface KpiTeamDraft {
     NzSpinModule,
     NzTableModule,
     NzTagModule,
+    NzToolTipModule,
   ],
   templateUrl: './kpi-team-tab.component.html',
   styleUrl: './kpi-team-tab.component.css',
@@ -112,11 +114,11 @@ export class KpiTeamTabComponent implements OnInit {
       .filter((e): e is EmployeeOption => !!e);
   }
 
-  // For draft leader dropdown: show only employees already selected as team members
-  get selectedTeamMembersForDraft(): EmployeeOption[] {
-    return this.draft.employeeIDs
-      .map(item => this.employees.find(e => e.id === item.employeeId))
-      .filter((e): e is EmployeeOption => !!e);
+  // Chọn trưởng nhóm từ toàn bộ danh sách nhân viên.
+  // Khi chọn leader, hệ thống tự động đảm bảo leader có trong danh sách thành viên
+  // và ngăn xóa leader khỏi select thành viên (logic ở syncDraftEmployeeIds).
+  get selectableEmployeesForLeader(): EmployeeOption[] {
+    return this.employees;
   }
 
   // Check if a team is selected
@@ -146,8 +148,9 @@ export class KpiTeamTabComponent implements OnInit {
 
     this.isLoading = true;
     try {
+      const isLeader = team.leaderEmployeeId === employeeId;
       const updatedEmployeeIds = team.employeeIDs.filter(item => item.employeeId !== employeeId);
-      const newLeaderId = team.leaderEmployeeId === employeeId ? null : (team as any).leaderEmployeeId;
+      const newLeaderId = isLeader ? null : team.leaderEmployeeId;
       const payload: KpiTeamUpsertRequest = {
         id: team.id,
         teamCode: team.teamCode,
@@ -160,12 +163,17 @@ export class KpiTeamTabComponent implements OnInit {
       if (response?.status === 1) {
         // Update local data
         team.employeeIDs = updatedEmployeeIds;
-        if (team.leaderEmployeeId === employeeId) {
+        if (isLeader) {
           team.leaderEmployeeId = null;
           team.leaderEmployeeName = undefined;
         }
         this.teams = [...this.teams];
-        this.notification.success('Thành công', 'Đã xóa thành viên khỏi team');
+        this.notification.success(
+          'Thành công',
+          isLeader
+            ? 'Đã xóa thành viên và bỏ chức trưởng nhóm'
+            : 'Đã xóa thành viên khỏi team',
+        );
         this.tabService.notifyDataSaved('kpi-teams');
       } else {
         this.notification.error('Lỗi', response?.message || 'Không thể xóa thành viên');
@@ -176,6 +184,18 @@ export class KpiTeamTabComponent implements OnInit {
     } finally {
       this.isLoading = false;
     }
+  }
+
+  // ============== MEMBER ROW HELPERS ==============
+  isMemberLeader(memberId: number): boolean {
+    const team = this.selectedTeam;
+    return team?.leaderEmployeeId === memberId;
+  }
+
+  getMemberRemoveTooltip(memberId: number): string {
+    return this.isMemberLeader(memberId)
+      ? 'Bỏ chức trưởng nhóm và xóa khỏi team'
+      : 'Xóa khỏi team';
   }
 
   toggleAddMember(): void {
@@ -370,6 +390,7 @@ export class KpiTeamTabComponent implements OnInit {
   }
 
   openEditForm(team: KpiTeamRow): void {
+    const employeeIds = (team.employeeIDs || []).map(m => m.employeeId);
     this.draft = {
       id: team.id,
       teamCode: team.teamCode,
@@ -379,7 +400,12 @@ export class KpiTeamTabComponent implements OnInit {
       leaderEmployeeId: team.leaderEmployeeId ?? null,
     };
     // Bind cho nz-select multi-mode: chỉ lấy employeeId thành number[].
-    this.draftEmployeeIdValues = (team.employeeIDs || []).map(m => m.employeeId);
+    // Đảm bảo leader luôn nằm trong danh sách thành viên (phòng trường hợp data lệch).
+    this.draftEmployeeIdValues = this.ensureLeaderInMembers(
+      employeeIds,
+      team.leaderEmployeeId ?? null,
+    );
+    this.syncDraftEmployeeIds(this.draftEmployeeIdValues);
     this.draftErrors = {};
     this.openModal(true);
   }
@@ -399,17 +425,60 @@ export class KpiTeamTabComponent implements OnInit {
   // nz-select multi-mode bind vào mảng number[]; mỗi khi user thêm/bỏ tick cần
   // đồng bộ lại draft.employeeIDs thành KpiTeamMemberItem[] (giữ isAdmin/isPM
   // từ bản ghi cũ nếu có, với thành viên mới thì mặc định false/false).
+  // Nếu đã có leader thì ID của leader bị khóa — không thể xóa khỏi danh sách
+  // thành viên (vì leader phải là thành viên của team).
   syncDraftEmployeeIds(values: number[] | null | undefined): void {
-    const ids = values || [];
+    let ids = (values || []).slice();
+
+    const leaderId = this.draft.leaderEmployeeId ?? null;
+    let leaderProtected = false;
+    if (leaderId != null && !ids.includes(leaderId)) {
+      ids = [leaderId, ...ids];
+      leaderProtected = true;
+    }
+
     const next: KpiTeamMemberItem[] = ids.map(id => {
       const existing = this.draft.employeeIDs.find(m => m.employeeId === id);
       return existing ?? { employeeId: id, isAdmin: false, isPM: false };
     });
     this.draft.employeeIDs = next;
-    // Reset leader nếu leader không còn thuộc team
-    if (this.draft.leaderEmployeeId != null && !ids.includes(this.draft.leaderEmployeeId)) {
-      this.draft.leaderEmployeeId = null;
+    // Cập nhật lại mảng view cho [(ngModel)] của nz-select để phản ánh danh sách
+    // đã được bảo vệ (đặc biệt khi người dùng vừa cố xóa leader).
+    this.draftEmployeeIdValues = ids;
+
+    if (leaderProtected) {
+      const leaderEmp = this.employees.find(e => e.id === leaderId);
+      const leaderName = leaderEmp ? `${leaderEmp.code} - ${leaderEmp.fullName}` : `ID ${leaderId}`;
+      this.notification.warning(
+        'Trưởng nhóm phải là thành viên',
+        `Đã tự động giữ lại ${leaderName} trong danh sách thành viên.`,
+      );
     }
+  }
+
+  // Khi đổi trưởng nhóm:
+  //   - Nếu chọn leader mới: tự thêm vào danh sách thành viên nếu chưa có.
+  //     Leader cũ (nếu khác leader mới) vẫn ở lại danh sách thành viên như
+  //     thành viên thường.
+  //   - Nếu clear leader (set null): giữ nguyên danh sách thành viên.
+  onLeaderChange(leaderId: number | null | undefined): void {
+    this.draft.leaderEmployeeId = leaderId ?? null;
+    if (leaderId == null) return;
+    if (!this.draft.employeeIDs.some(m => m.employeeId === leaderId)) {
+      this.draft.employeeIDs = [
+        ...this.draft.employeeIDs,
+        { employeeId: leaderId, isAdmin: false, isPM: false },
+      ];
+    }
+    this.draftEmployeeIdValues = this.draft.employeeIDs.map(m => m.employeeId);
+  }
+
+  // Đảm bảo leader có trong danh sách thành viên; dùng khi mở form edit
+  // hoặc ngay sau khi chọn leader.
+  private ensureLeaderInMembers(ids: number[], leaderId: number | null): number[] {
+    if (leaderId == null) return ids;
+    if (ids.includes(leaderId)) return ids;
+    return [leaderId, ...ids];
   }
 
   validateDraft(): boolean {

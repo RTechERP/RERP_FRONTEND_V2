@@ -153,10 +153,17 @@
                   </td>
                   <td nzAlign="center">
                     <a *ngIf="selectedTeam"
-                      class="action-btn text-danger" nz-tooltip nzTooltipTitle="Xóa khỏi team"
-                      nz-popconfirm nzPopconfirmTitle="Xóa thành viên khỏi team?"
-                      nzOkText="Xóa" nzCancelText="Hủy"
-                      (nzOnConfirm)="removeMember(member.id)">
+                      class="action-btn text-danger"
+                      nz-popconfirm
+                      [nzPopconfirmTitle]="isMemberLeader(member.id)
+                        ? 'Người này là trưởng nhóm. Xóa sẽ bỏ chức trưởng nhóm. Tiếp tục?'
+                        : 'Xóa thành viên khỏi team?'"
+                      nzOkText="Vẫn xóa" nzCancelText="Hủy"
+                      (nzOnConfirm)="removeMember(member.id)"
+                      nz-tooltip
+                      [nzTooltipTitle]="isMemberLeader(member.id)
+                        ? 'Bỏ chức trưởng nhóm và xóa khỏi team'
+                        : 'Xóa khỏi team'">
                       <i nz-icon nzType="user-delete"></i>
                     </a>
                   </td>
@@ -207,13 +214,22 @@
     <div class="field">
       <span>Trưởng nhóm <small class="muted">(tùy chọn)</small></span>
       <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="leaderEmployeeId"
-        nzShowSearch nzAllowClear nzPlaceHolder="Chọn trưởng nhóm từ thành viên..."
-        [(ngModel)]="draft.leaderEmployeeId" class="w-100"
-        [nzDisabled]="draft.employeeIDs.length === 0">
-        <nz-option *ngFor="let item of selectedTeamMembersForDraft; trackBy: trackByEmployeeId"
-          [nzValue]="item.id" [nzLabel]="item.code + ' - ' + item.fullName">
+        nzShowSearch nzAllowClear nzPlaceHolder="Chọn trưởng nhóm..."
+        [(ngModel)]="draft.leaderEmployeeId"
+        (ngModelChange)="onLeaderChange($event)"
+        class="w-100">
+        <nz-option *ngFor="let item of selectableEmployeesForLeader; trackBy: trackByEmployeeId"
+          [nzValue]="item.id" [nzLabel]="item.code + ' - ' + item.fullName" nzCustomContent>
+          <span>
+            <i nz-icon nzType="crown" nzTheme="fill" style="color: #faad14; margin-right: 4px;"></i>
+            {{ item.code }} - {{ item.fullName }}
+          </span>
         </nz-option>
       </nz-select>
+      <small class="muted" *ngIf="draft.leaderEmployeeId">
+        <i nz-icon nzType="info-circle"></i>
+        Trưởng nhóm sẽ tự động được thêm vào danh sách thành viên và không thể xóa ở đó.
+      </small>
     </div>
 
     <div class="field">
@@ -223,12 +239,21 @@
       <nz-select nzDropdownClassName="select-dropdown" nzSize="small" name="teamEmployees"
         nzMode="multiple" nzShowSearch
         [nzMaxTagCount]="5" [nzMaxTagPlaceholder]="overflowTpl"
+        [nzCustomTemplate]="memberTagTpl"
         [(ngModel)]="draftEmployeeIdValues" (ngModelChange)="syncDraftEmployeeIds($event)"
         nzPlaceHolder="Tìm và chọn nhân viên..." class="w-100">
         <nz-option *ngFor="let item of employees; trackBy: trackByEmployeeId" [nzValue]="item.id"
           [nzLabel]="item.code + ' - ' + item.fullName">
         </nz-option>
       </nz-select>
+      <ng-template #memberTagTpl let-selected>
+        <span [class.is-leader]="selected.nzValue === draft.leaderEmployeeId">
+          <i *ngIf="selected.nzValue === draft.leaderEmployeeId"
+            nz-icon nzType="crown" nzTheme="fill"
+            style="color: #faad14; margin-right: 4px;"></i>
+          {{ selected.nzLabel }}
+        </span>
+      </ng-template>
       <ng-template #overflowTpl let-list>
         +{{ list.length }} người
       </ng-template>

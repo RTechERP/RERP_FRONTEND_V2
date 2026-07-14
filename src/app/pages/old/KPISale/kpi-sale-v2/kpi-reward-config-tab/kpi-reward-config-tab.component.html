@@ -8,8 +8,9 @@
         </h5>
       </div>
 
-      <!-- Toolbar: Kỳ KPI + Team tự resolve Template -->
+      <!-- Toolbar: chỉ lọc theo Mẫu KPI -->
       <div class="reward-toolbar">
+        <!--
         <div class="filter-item">
           <label class="filter-label">Kỳ KPI</label>
           <nz-select nzSize="small" [(ngModel)]="selectedPeriodId"
@@ -28,10 +29,12 @@
             </nz-option>
           </nz-select>
         </div>
+        -->
 
         <div class="filter-item">
           <label class="filter-label">Mẫu KPI</label>
-          <nz-select nzSize="small" [(ngModel)]="selectedTemplateId" nzShowSearch style="width: 280px;">
+          <nz-select nzSize="small" [(ngModel)]="selectedTemplateId"
+            (ngModelChange)="onTemplateChange()" nzShowSearch style="width: 280px;">
             <nz-option *ngFor="let t of templates"
               [nzValue]="t.ID ?? t.id"
               [nzLabel]="(t.TemplateCode ?? t.templateCode ?? '') + ' - ' + (t.TemplateName ?? t.templateName ?? '')">
@@ -263,7 +266,7 @@
         </nz-tab>
 
         <!-- ============== TAB 3: GÁN NHÂN VIÊN ============== -->
-        <nz-tab nzTitle="Gán nhân viên">
+        <!-- <nz-tab nzTitle="Gán nhân viên">
           <nz-alert nzType="info" nzShowIcon class="info-alert"
             nzMessage="Map nhân viên với Cấu hình thưởng tương ứng. Có thể gán theo Team (Sales) hoặc theo Project (PM).">
           </nz-alert>
@@ -323,7 +326,7 @@
               </ng-template>
             </p-table>
           </div>
-        </nz-tab>
+        </nz-tab> -->
       </nz-tabset>
     </div>
   </nz-spin>

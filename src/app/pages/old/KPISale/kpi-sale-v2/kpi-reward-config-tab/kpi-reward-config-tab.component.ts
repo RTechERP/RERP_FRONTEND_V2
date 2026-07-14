@@ -206,9 +206,6 @@ export class KpiRewardConfigTabComponent implements OnInit {
       this.loadTemplates(),
       this.loadPeriods(),
     ]);
-    if (this.selectedPeriodId) {
-      await this.resolveTeamTemplate();
-    }
   }
 
   async loadPeriods(): Promise<void> {
@@ -221,10 +218,6 @@ export class KpiRewardConfigTabComponent implements OnInit {
             periodName: p.PeriodName ?? p.periodName ?? '',
           }))
         : [];
-      // Auto-select kỳ mới nhất
-      if (this.periods.length > 0 && !this.selectedPeriodId) {
-        this.selectedPeriodId = this.periods[0].id;
-      }
     } catch (error) {
       console.error('Load periods error:', error);
       this.periods = [];
@@ -233,6 +226,24 @@ export class KpiRewardConfigTabComponent implements OnInit {
 
   async onPeriodOrTeamChange(): Promise<void> {
     await this.resolveTeamTemplate();
+    // Reload data for current active tab
+    if (this.activeTabIndex === 0) {
+      await this.loadConfigs();
+    } else if (this.activeTabIndex === 1) {
+      await this.loadCoefficients();
+    } else if (this.activeTabIndex === 2) {
+      await this.loadMappings();
+    }
+  }
+
+  async onTemplateChange(): Promise<void> {
+    if (this.activeTabIndex === 0) {
+      await this.loadConfigs();
+    } else if (this.activeTabIndex === 1) {
+      await this.loadCoefficients();
+    } else if (this.activeTabIndex === 2) {
+      await this.loadMappings();
+    }
   }
 
   private async resolveTeamTemplate(): Promise<void> {
@@ -255,8 +266,7 @@ export class KpiRewardConfigTabComponent implements OnInit {
           return (!teamPv || ttTeamCode === teamPv) && (!periodValue || ttPeriodValue === periodValue);
         });
         if (matched) {
-          const tid = matched.TemplateID ?? matched.templateId ?? matched.ID ?? 0;
-          this.selectedTemplateId = tid;
+          // User tự chọn template, không auto-resolve
         }
       }
     } catch (error) {
@@ -307,7 +317,7 @@ export class KpiRewardConfigTabComponent implements OnInit {
   async loadConfigs(): Promise<void> {
     this.isLoading = true;
     try {
-      const response = await firstValueFrom(this.kpiSaleService.getRewardConfig());
+      const response = await firstValueFrom(this.kpiSaleService.getRewardConfig(this.selectedTemplateId ?? undefined));
       const list = (response?.status === 1 && response.data) ? (response.data as any[]) : [];
       this.configs = list.map((c) => this.normalizeConfig(c));
       // Nếu chưa chọn configId cho coefficient, lấy cái đầu tiên
@@ -351,8 +361,14 @@ export class KpiRewardConfigTabComponent implements OnInit {
   }
 
   async loadMappings(): Promise<void> {
+    const period = this.periods.find((p) => p.id === this.selectedPeriodId);
+    const periodValue = period?.periodCode || '';
     try {
-      const response = await firstValueFrom(this.kpiSaleService.getRewardMappings(undefined, undefined, true));
+      const response = await firstValueFrom(
+        this.kpiSaleService.getRewardMappings(
+          undefined, undefined, true, periodValue || undefined, this.selectedTeamCode || undefined
+        )
+      );
       const list = (response?.status === 1 && response.data) ? (response.data as any[]) : [];
       this.mappings = list.map((m) => this.normalizeMapping(m));
     } catch (error) {

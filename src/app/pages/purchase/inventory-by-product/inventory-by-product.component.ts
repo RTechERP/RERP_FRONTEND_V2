@@ -18,9 +18,10 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { InventoryByProductService } from './inventory-by-product-service/inventory-by-product.service';
 import { MaterialDetailOfProductRtcComponent } from '../../old/inventory-demo/material-detail-of-product-rtc/material-detail-of-product-rtc.component';
-import { ChiTietSanPhamSaleComponent } from '../../old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
+import { ChiTietSanPhamSaleNewComponent } from '../../old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale-new/chi-tiet-san-pham-sale-new.component';
 import { WarehouseService } from '../../general-category/wearhouse/warehouse-service/warehouse.service';
 import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
+import { TabServiceService } from '../../../layouts/tab-service.service';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
 import {
@@ -40,7 +41,6 @@ import {
     FieldType,
     MultipleSelectOption,
 } from 'angular-slickgrid';
-import { environment } from '../../../../environments/environment';
 
 @Component({
     standalone: true,
@@ -81,7 +81,8 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
         private inventoryByProductService: InventoryByProductService,
         private warehouseService: WarehouseService,
         private menuEventService: MenuEventService,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private tabService: TabServiceService
     ) { }
     //#endregion
 
@@ -665,25 +666,26 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
         warehouse: any,
         rowData: any
     ): void {
-        const numberDauKy = '0';
-        const numberCuoiKy = String(rowData.InventoryTotal || 0);
+        const productCode = rowData.ProductCode || rowData.ProductNewCode || '';
+        const productName = rowData.ProductName || productCode;
         const warehouseCode = warehouse.WarehouseCode || '';
-        const productName = rowData.ProductName || rowData.ProductCode || '';
 
-        const title = `Chi tiết sản phẩm Sale: ${productName}`;
-        const params = new URLSearchParams({
-            productSaleID: String(productID || 0),
-            wareHouseCode: warehouseCode,
-            numberDauKy: String(numberDauKy || 0),
-            numberCuoiKy: String(numberCuoiKy || 0),
+        this.tabService.openTabComp({
+            comp: ChiTietSanPhamSaleNewComponent,
+            title: `Chi tiết SP - ${productCode}`,
+            key: `chi-tiet-san-pham-sale-${productID || 0}`,
+            data: {
+                code: productCode,
+                suplier: rowData.SupplierName || '',
+                productName: productName,
+                numberDauKy: '0',
+                numberCuoiKy: String(rowData.InventoryTotal || 0),
+                import: '0',
+                export: '0',
+                productSaleID: productID || 0,
+                wareHouseCode: warehouseCode,
+            },
         });
-
-        //this.menuEventService.openNewTab(ChiTietSanPhamSaleComponent, title, data);
-        window.open(
-            `${environment.baseHref}/chi-tiet-san-pham-sale?${params.toString()}`,
-            '_blank',
-            'width=1200,height=800,scrollbars=yes,resizable=yes'
-        );
     }
 
     openMaterialDetailOfProductRTC(
@@ -691,41 +693,27 @@ export class InventoryByProductComponent implements OnInit, AfterViewInit {
         warehouse: any,
         rowData: any
     ): void {
-        const productName = rowData.ProductName || '';
-        const productCode = rowData.ProductCode || '';
-        const numberDauKy = '0';
-        const numberCuoiKy = String(rowData.InventoryTotal || 0);
-        const importValue = '0';
-        const exportValue = '0';
-        const borrowing = String(rowData.NumberBorrowing || 0);
-        const numberReal = String(rowData.InventoryReal || 0);
+        const productCode = rowData.ProductCode || rowData.ProductNewCode || '';
+        const productName = rowData.ProductName || productCode;
         const warehouseID = warehouse.ID || warehouse.Id || warehouse.id || 0;
 
-        const title = `Chi tiết: ${productName || productCode}`;
-        const params = new URLSearchParams({
-            productRTCID1: String(productID || 0),
-            warehouseID1: String(warehouseID || 1),
-            ProductCode: productCode || '',
-            ProductName: productName || '',
-            NumberBegin: String(numberDauKy || 0),
-            InventoryLatest: String(numberCuoiKy || 0),
-            NumberImport: String(importValue || 0),
-            NumberExport: String(exportValue || 0),
-            NumberBorrowing: String(borrowing || 0),
-            InventoryReal: String(numberReal || 0),
+        this.tabService.openTabComp({
+            comp: MaterialDetailOfProductRtcComponent,
+            title: `Chi tiết SP - ${productCode}`,
+            key: `material-detail-product-rtc-${productID || 0}`,
+            data: {
+                productRTCID1: productID || 0,
+                warehouseID1: warehouseID || 1,
+                ProductCode: productCode,
+                ProductName: productName,
+                NumberBegin: 0,
+                InventoryLatest: rowData.InventoryTotal || 0,
+                NumberImport: 0,
+                NumberExport: 0,
+                NumberBorrowing: rowData.NumberBorrowing || 0,
+                InventoryReal: rowData.InventoryReal || 0,
+            },
         });
-
-        // this.menuEventService.openNewTab(
-        //   MaterialDetailOfProductRtcComponent,
-        //   title,
-        //   data
-        // );
-
-        window.open(
-            `${environment.baseHref}/material-detail-of-product-rtc?${params.toString()}`,
-            '_blank',
-            'width=1200,height=800,scrollbars=yes,resizable=yes'
-        );
     }
     //#endregion
 

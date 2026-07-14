@@ -151,7 +151,7 @@ export class DailyReportSaleSlickgridComponent implements OnInit, AfterViewInit 
 
     // Pagination
     totalPage: number = 1;
-    readonly pageSizeOptions: number[] = [10, 30, 50, 100, 200, 300, 500];
+    readonly pageSizeOptions: number[] = [10, 30, 50, 100, 200, 300, 500, 999999];
 
     filters: any = {
         dateStart: DateTime.local().minus({ months: 1 }).toFormat('yyyy-MM-dd'),

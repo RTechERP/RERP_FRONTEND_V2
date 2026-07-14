@@ -362,7 +362,7 @@ export class BillExportDetailNewComponent
             .get('IsTransfer')
             ?.valueChanges.pipe(takeUntil(this.destroy$))
             .subscribe((isTransfer: boolean) => {
-                if (isTransfer) {
+                if (isTransfer && !this.isCheckmode) {
                     this.validateForm.patchValue({ CustomerID: 2017 }, { emitEvent: false });
                 }
             });
@@ -505,7 +505,7 @@ export class BillExportDetailNewComponent
         this.newBillExport.Status = this.newBillExport.Status || 6;
 
         let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
-        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : null;
 
         // Bind selectedList vào dataDetail
         if (this.selectedList && this.selectedList.length > 0) {
@@ -591,7 +591,7 @@ export class BillExportDetailNewComponent
         }
 
         let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
-        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : null;
 
         // Bind selectedList vào dataDetail
         if (this.selectedList && this.selectedList.length > 0) {
@@ -694,7 +694,7 @@ export class BillExportDetailNewComponent
         this.getNewCode();
 
         let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
-        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : null;
 
         if (this.selectedList && this.selectedList.length > 0) {
             this.dataDetail = this.selectedList.map((item: any, index: number) => ({
@@ -1511,7 +1511,7 @@ export class BillExportDetailNewComponent
         const nextTempId = tempIds.length > 0 ? Math.max(...tempIds) + 1 : 1;
 
         let isBorrow = this.newBillExport.Status === 0 || this.newBillExport.Status === 7;
-        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : new Date();
+        let expectReturnDate = isBorrow ? new Date(new Date().setMonth(new Date().getMonth() + 1)) : null;
 
         const newRow = {
             ID: -nextTempId,
@@ -1751,7 +1751,7 @@ export class BillExportDetailNewComponent
                             Note: item.Note || '',
                             ExpectReturnDate: item.ExpectReturnDate
                                 ? new Date(item.ExpectReturnDate)
-                                : new Date(),
+                                : null,
                             UnitPricePOKH: item.UnitPricePOKH || 0,
                             UnitPricePurchase: item.UnitPricePurchase || 0,
                             BillCode: item.BillCode || '',
@@ -1810,7 +1810,7 @@ export class BillExportDetailNewComponent
                         Note: item.Note || '',
                         ExpectReturnDate: item.ExpectReturnDate
                             ? new Date(item.ExpectReturnDate)
-                            : new Date(),
+                            : null,
                         UnitPricePOKH: item.UnitPricePOKH || 0,
                         UnitPricePurchase: item.UnitPricePurchase || 0,
                         BillCode: item.BillCode || '',
@@ -3135,12 +3135,23 @@ export class BillExportDetailNewComponent
                     `Đã tải xong files cho PO ${displayLabel}`
                 );
             },
-            error: (err: any) => {
+            error: async (err: any) => {
                 console.error('Error downloading PO files:', err);
-                this.notification.error(
-                    NOTIFICATION_TITLE.error,
-                    `Lỗi khi tải file: ${err?.error?.message || err?.message}`
-                );
+                let errorMessage = err?.message;
+
+                if (err?.error instanceof Blob) {
+                    try {
+                        const text = await err.error.text();
+                        const json = JSON.parse(text);
+                        errorMessage = json?.message || json?.Message || errorMessage;
+                    } catch {
+                        // blob không parse được, giữ nguyên errorMessage mặc định
+                    }
+                } else {
+                    errorMessage = err?.error?.message || errorMessage;
+                }
+
+                this.notification.error(NOTIFICATION_TITLE.error, `Lỗi khi tải file: ${errorMessage}`);
                 this.isLoading = false;
             },
         });

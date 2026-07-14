@@ -15,7 +15,7 @@
                                 <div class="input-group input-group-sm">
                                     <input type="text" class="form-control form-control-sm fs-12"
                                         [(ngModel)]="formData.Code" name="Code" disabled>
-                                    <button *ngIf="!isReadOnlyMode" class="btn btn-outline-secondary" type="button" 
+                                    <button *ngIf="!isHeaderReadOnly" class="btn btn-outline-secondary" type="button" 
                                         (click)="generateBillNumber(selectedId)" 
                                         title="Làm mới số phiếu">
                                         <i class="fas fa-sync-alt"></i>
@@ -26,7 +26,7 @@
                                 <label class="mb-0 fs-12">Công ty bán <span class="text-danger">*</span></label>
                                 <nz-select nzShowSearch name="taxCompany" nzPlaceHolder="Chọn công ty bán" nzAllowClear
                                     nzSize="default" class="w-100" [(ngModel)]="formData.taxCompanyId"
-                                    [nzDisabled]="isReadOnlyMode">
+                                    [nzDisabled]="isHeaderReadOnly">
                                     <nz-option *ngFor="let item of taxCompanyOptions" [nzValue]="item.value"
                                         [nzLabel]="item.label"></nz-option>
                                 </nz-select>
@@ -35,7 +35,7 @@
                                 <label class="mb-0 fs-12">Khách hàng <span class="text-danger">*</span></label>
                                 <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
                                     nzSize="default" class="w-100" [(ngModel)]="formData.customerId"
-                                    [nzDisabled]="isReadOnlyMode"
+                                    [nzDisabled]="isHeaderReadOnly"
                                     (ngModelChange)="onCustomerChange($event)">
                                     <nz-option *ngFor="let customer of customers" [nzValue]="customer.ID"
                                         [nzLabel]="customer.CustomerName"></nz-option>
@@ -50,7 +50,7 @@
                                 <label class="mb-0 fs-12">Ghi chú</label>
                                 <textarea class="form-control form-control-sm fs-12" [(ngModel)]="formData.note"
                                     name="note" rows="4" placeholder="Nhập ghi chú"
-                                    [disabled]="isReadOnlyMode"></textarea>
+                                    [disabled]="isHeaderReadOnly"></textarea>
                             </div>
                         </div>
                     </div>
@@ -61,7 +61,7 @@
                                 <label class="mb-0 fs-12">Người yêu cầu <span class="text-danger">*</span></label>
                                 <nz-select nzShowSearch name="userId" nzPlaceHolder="Chọn người yêu cầu" nzAllowClear
                                     nzSize="default" class="w-100" [(ngModel)]="formData.userId"
-                                    [nzDisabled]="isReadOnlyMode">
+                                    [nzDisabled]="isHeaderReadOnly">
                                     <nz-option *ngFor="let user of employees" [nzValue]="user.ID"
                                         [nzLabel]="user.FullName"></nz-option>
                                 </nz-select>
@@ -70,13 +70,13 @@
                                 <label class="mb-0 fs-12">Ngày yêu cầu <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control form-control-sm fs-12"
                                     [(ngModel)]="formData.requestDate" name="requestDate"
-                                    [disabled]="isReadOnlyMode">
+                                    [disabled]="isHeaderReadOnly">
                             </div>
                             <div class="col-md-12 mb-2">
                                 <label class="mb-0 fs-12">Ngày xuất <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control form-control-sm fs-12"
                                     [(ngModel)]="formData.exportDate" name="createDate"
-                                    [disabled]="isReadOnlyMode">
+                                    [disabled]="isHeaderReadOnly">
                             </div>
                             <div class="col-md-12 mb-2">
                                 <div class="row">
@@ -85,7 +85,7 @@
                                         <nz-select nzShowSearch name="accountingContractType"
                                             nzPlaceHolder="Chọn loại hợp đồng" nzAllowClear nzSize="default"
                                             class="w-100" [(ngModel)]="formData.accountingContractType"
-                                            [nzDisabled]="isReadOnlyMode">
+                                            [nzDisabled]="isHeaderReadOnly">
                                             <nz-option *ngFor="let item of accountingContractTypeOptions"
                                                 [nzValue]="item.ID"
                                                 [nzLabel]="item.TypeCode + ' - ' + item.TypeName"></nz-option>
@@ -99,7 +99,7 @@
                                         <label class="mb-0 fs-12">Trạng thái <span class="text-danger">*</span></label>
                                         <nz-select nzShowSearch name="status" nzPlaceHolder="Chọn trạng thái"
                                             nzAllowClear nzSize="default" class="w-100" [(ngModel)]="formData.status"
-                                            [nzDisabled]="isReadOnlyMode">
+                                            [nzDisabled]="isHeaderReadOnly">
                                             <nz-option *ngFor="let item of statuses" [nzValue]="item.value"
                                                 [nzLabel]="item.label"></nz-option>
                                         </nz-select>
@@ -108,7 +108,7 @@
                                         <label class="mb-0 fs-12">Deadline</label>
                                         <input type="date" class="form-control form-control-sm fs-12"
                                             [(ngModel)]="formData.deadline" name="deadline"
-                                            [disabled]="isReadOnlyMode || !formData.isUrgency">
+                                            [disabled]="isHeaderReadOnly || !formData.isUrgency">
                                     </div>
                                 </div>
                             </div>
@@ -118,7 +118,7 @@
                                         <div class="d-flex align-items-center mt-2">
                                             <input type="checkbox" [(ngModel)]="formData.isCustomsDeclared"
                                                 name="isCustomsDeclared" class="form-check-input me-2"
-                                                [disabled]="isReadOnlyMode" />
+                                                [disabled]="isHeaderReadOnly" />
                                             <label class="mb-0 fs-12">Tờ khai hải quan</label>
                                         </div>
                                     </div>
@@ -126,7 +126,7 @@
                                         <div class="d-flex align-items-center mt-2">
                                             <input type="checkbox" [(ngModel)]="formData.isUrgency" name="isUrgency"
                                                 class="form-check-input me-2" (change)="onUrgencyChange()"
-                                                [disabled]="isReadOnlyMode" />
+                                                [disabled]="isHeaderReadOnly" />
                                             <label class="mb-0 fs-12">Cần gấp</label>
                                         </div>
                                     </div>
@@ -158,7 +158,7 @@
                                 <tr [pSelectableRow]="file"
                                     (dblclick)="selectedInvoiceFile = file; downloadInvoiceFile(file)">
                                     <td class="text-center">
-                                        <button *ngIf="!file.IsDeleted" pButton type="button" icon="pi pi-trash"
+                                        <button *ngIf="!file.IsDeleted && canDelete" pButton type="button" icon="pi pi-trash"
                                             class="p-button-text p-button-danger p-button-sm table-icon-btn"
                                             (click)="deleteInvoiceFile(file); $event.stopPropagation()">
                                         </button>
@@ -197,7 +197,7 @@
                                 <tr [pSelectableRow]="file"
                                     (dblclick)="selectedContractFile = file; downloadContractFile(file)">
                                     <td class="text-center">
-                                        <button *ngIf="!file.IsDeleted" pButton type="button" icon="pi pi-trash"
+                                        <button *ngIf="!file.IsDeleted && canDelete" pButton type="button" icon="pi pi-trash"
                                             class="p-button-text p-button-danger p-button-sm table-icon-btn"
                                             (click)="deleteContractFile(file); $event.stopPropagation()">
                                         </button>
@@ -318,7 +318,7 @@
                                     <ng-template pTemplate="body" let-rowData let-rowIndex="rowIndex">
                                         <tr [class.p-highlight]="isDetailRowSelected(rowData)">
                                             <td class="text-center">
-                                                <button *ngIf="!rowData.IsDeleted && !isReadOnlyMode" pButton type="button"
+                                                <button *ngIf="!rowData.IsDeleted && canDelete" pButton type="button"
                                                     icon="pi pi-trash"
                                                     class="p-button-text p-button-danger p-button-sm table-icon-btn"
                                                     (click)="deleteDetailRow(rowData); $event.stopPropagation()">

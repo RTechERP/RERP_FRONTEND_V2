@@ -103,6 +103,8 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
   @Input() groupedData: any[] = [];
   @Input() isEditMode: boolean = false;
   @Input() isReadOnlyMode: boolean = false;
+  @Input() isHeaderReadOnly: boolean = false;
+  @Input() canDelete: boolean = false;
   @Input() POKHID: number = 0;
 
   //Form data

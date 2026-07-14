@@ -117,23 +117,47 @@ export class KpiTargetTabComponent implements OnInit {
   isLeader = false;
   myLeaderTeams: { id: number; teamCode: string; teamName: string }[] = [];
 
-  // N1 (admin) cũng có toàn quyền duyệt như leader
+  // N1 / N27 (admin phòng sale) — cũng có toàn quyền duyệt như leader
   isN1Admin = false;
+  isN27Admin = false;
 
   // User hiện tại
   currentUserId = 0;
 
+  // Admin tổng (cờ User.IsAdmin trong JWT/user hiện tại) — được xem và sửa KPI của tất cả mọi người
+  isGlobalAdmin = false;
+
+  /** N27 chỉ được xem tất cả nhân viên và điền Proposed, KHÔNG có quyền duyệt hay sửa Goal. */
+  get isN27Only(): boolean {
+    return this.isN27Admin && !this.isGlobalAdmin && !this.isN1Admin;
+  }
+
+  /** Có quyền xem/sửa toàn bộ nhân viên (N1, N27, admin tổng). N27 chỉ được điền Proposed. */
+  get hasFullPermission(): boolean {
+    return this.isGlobalAdmin || this.isN1Admin || this.isN27Admin;
+  }
+
   /**
-   * User bị hạn chế: KHÔNG phải leader VÀ KHÔNG phải admin N1
+   * User bị hạn chế: KHÔNG phải leader, KHÔNG phải admin (cả admin tổng, N1, N27).
    * → Chỉ được xem/sửa mục tiêu của chính mình
    */
   get isRestrictedUser(): boolean {
-    return !this.isLeader && !this.isN1Admin;
+    return !this.isLeader && !this.hasFullPermission;
   }
 
-  /** Có quyền duyệt target hay không (leader team hoặc admin N1) */
+  /** Có quyền duyệt target hay không (chỉ admin tổng / N1 hoặc leader team, KHÔNG phải N27) */
   get canApproveTargets(): boolean {
-    return this.isLeader || this.isN1Admin;
+    return this.isLeader || this.isGlobalAdmin || this.isN1Admin;
+  }
+
+  /** Có quyền sửa cột Goal (mục tiêu đã duyệt, màu xanh lá) — chỉ admin tổng / N1 hoặc leader team, KHÔNG phải N27 */
+  get canEditGoal(): boolean {
+    return this.isLeader || this.isGlobalAdmin || this.isN1Admin;
+  }
+
+  /** Có quyền sửa trọng số (WeightPercent) — admin tổng / N1 / N27 hoặc leader team */
+  get canEditWeight(): boolean {
+    return this.isLeader || this.isGlobalAdmin || this.isN1Admin || this.isN27Admin;
   }
 
   // EmployeeTemplate assignment data (chỉ các gán đang active trong kỳ đang chọn)
@@ -483,6 +507,88 @@ export class KpiTargetTabComponent implements OnInit {
 
   // Weight change tracking — keyed by kpiIndexId (weight belongs to index, shared across months)
   weightEditedIndexes = new Map<number, number | null>();
+
+  // Pivot table selection (Quarter mode) — keyed by target ID
+  selectedPivotTargetIds = new Set<number>();
+
+  isPivotTargetSelected(id: number): boolean {
+    return this.selectedPivotTargetIds.has(id);
+  }
+
+  togglePivotTargetSelection(id: number): void {
+    if (this.selectedPivotTargetIds.has(id)) {
+      this.selectedPivotTargetIds.delete(id);
+    } else {
+      this.selectedPivotTargetIds.add(id);
+    }
+    this.selectedPivotTargetIds = new Set(this.selectedPivotTargetIds);
+  }
+
+  get allPivotSelected(): boolean {
+    return this.quarterlyRows.length > 0 && this.getAllApproveablePivotTargetIds().length > 0
+      && this.getAllApproveablePivotTargetIds().length === this.selectedPivotTargetIds.size;
+  }
+
+  get somePivotSelected(): boolean {
+    const total = this.getAllApproveablePivotTargetIds().length;
+    return this.selectedPivotTargetIds.size > 0 && this.selectedPivotTargetIds.size < total;
+  }
+
+  toggleSelectAllPivot(): void {
+    const allIds = this.getAllApproveablePivotTargetIds();
+    if (this.selectedPivotTargetIds.size === allIds.length) {
+      this.selectedPivotTargetIds.clear();
+      this.selectedPivotTargetIds = new Set();
+    } else {
+      this.selectedPivotTargetIds = new Set(allIds);
+    }
+  }
+
+  private getAllApproveablePivotTargetIds(): number[] {
+    const ids: number[] = [];
+    for (const row of this.quarterlyRows) {
+      if (this.isGroupIndex(row.kpiIndexId)) continue;
+      for (const cell of row.months) {
+        if (cell.target && this.canApprove(cell.target)) {
+          ids.push(cell.target.id);
+        }
+      }
+    }
+    return ids;
+  }
+
+  hasAnyPivotApproveableCell(row: QuarterlyTargetRow): boolean {
+    return row.months.some(cell => cell.target && this.canApprove(cell.target));
+  }
+
+  hasAnyPivotApproveableCellSelected(row: QuarterlyTargetRow): boolean {
+    const rowIds = row.months
+      .filter(cell => cell.target && this.canApprove(cell.target))
+      .map(cell => cell.target!.id);
+    return rowIds.length > 0 && rowIds.every(id => this.selectedPivotTargetIds.has(id));
+  }
+
+  toggleAllCellsForRow(row: QuarterlyTargetRow): void {
+    const rowIds = row.months
+      .filter(cell => cell.target && this.canApprove(cell.target))
+      .map(cell => cell.target!.id);
+    if (rowIds.length === 0) return;
+    const allSelected = rowIds.every(id => this.selectedPivotTargetIds.has(id));
+    if (allSelected) {
+      for (const id of rowIds) {
+        this.selectedPivotTargetIds.delete(id);
+      }
+    } else {
+      for (const id of rowIds) {
+        this.selectedPivotTargetIds.add(id);
+      }
+    }
+    this.selectedPivotTargetIds = new Set(this.selectedPivotTargetIds);
+  }
+
+  isPivotRowSelected(row: QuarterlyTargetRow): boolean {
+    return row.months.some(cell => cell.target && this.selectedPivotTargetIds.has(cell.target.id));
+  }
 
   isTargetSelected(id: number): boolean {
     return this.selectedTargetIds.has(id);
@@ -869,6 +975,63 @@ export class KpiTargetTabComponent implements OnInit {
     }
   }
 
+  async approveSelectedPivot(): Promise<void> {
+    if (!this.canApproveTargets) return;
+    const ids = Array.from(this.selectedPivotTargetIds);
+    if (ids.length === 0) return;
+    this.isLoading = true;
+    let approved = 0;
+    let skipped = 0;
+    try {
+      for (const id of ids) {
+        const item = this.targets.find(t => t.id === id);
+        if (!item) continue;
+        const inline = this.inlineEditedTargets.get(id);
+        const proposedValue = inline?.proposedGoalValue ?? item.proposedGoalValue;
+        if (!proposedValue && proposedValue !== 0) {
+          skipped++;
+          continue;
+        }
+        if (this.isApiMode) {
+          try {
+            const res = await firstValueFrom(this.kpiSaleService.approveTarget(id));
+            if (res?.status === 1) approved++;
+          } catch {
+            skipped++;
+          }
+        } else {
+          const idx = this.targets.findIndex(t => t.id === id);
+          if (idx >= 0) {
+            this.targets[idx] = {
+              ...this.targets[idx],
+              goalValue: proposedValue ?? this.targets[idx].goalValue,
+              approvalStatus: 'Approved',
+              proposedGoalValue: proposedValue ?? this.targets[idx].proposedGoalValue,
+            };
+            approved++;
+          }
+        }
+      }
+      this.targets = [...this.targets];
+      if (this._pivotCache) {
+        this._pivotCache = null;
+        this._pivotTargetsRev = -1;
+        this._pivotPeriodIdRev = -1;
+      }
+      this.inlineEditedTargets = new Map(this.inlineEditedTargets);
+      this.selectedPivotTargetIds.clear();
+      this.selectedPivotTargetIds = new Set();
+      if (skipped > 0) {
+        this.notification.warning('Thông báo', `Đã duyệt ${approved} mục tiêu, bỏ qua ${skipped} (chưa có giá trị đề xuất)`);
+      } else {
+        this.notification.success('Thành công', `Đã duyệt ${approved} mục tiêu`);
+      }
+      this.tabService.notifyDataSaved('kpi-targets');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
   getApprovalStatusLabel(status?: string | null): string {
     switch (status) {
       case 'Approved': return 'Đã duyệt';
@@ -887,36 +1050,47 @@ export class KpiTargetTabComponent implements OnInit {
     }
   }
 
+  /**
+   * Có quyền bấm nút Duyệt / Hủy trên 1 target cụ thể hay không.
+   * Chỉ admin tổng / N1 hoặc leader team mới có quyền duyệt, KHÔNG phải N27.
+   */
   canApprove(item: KpiSaleTarget): boolean {
     if (!item) return false;
     if (item.approvalStatus === 'Approved' || item.approvalStatus === 'Rejected') return false;
     if (!item.proposedGoalValue && item.proposedGoalValue !== 0) return false;
-    // Leader team hoặc admin N1 mới có quyền duyệt
-    if (this.isN1Admin) return true;
-    return this.isLeader && this.isMyTeamLeader(item);
+    // Admin tổng / N1 hoặc Leader: được duyệt
+    if (this.isLeader || this.isGlobalAdmin || this.isN1Admin) return true;
+    return false;
   }
 
   /**
    * Kiểm tra user hiện tại có quyền sửa/xóa target không.
-   * - Leader/Admin N1: được sửa tất cả
-   * - Restricted user: chỉ được sửa target của chính mình
+   * - Admin tổng / N1 / Leader: được sửa tất cả (kể cả Approved)
+   * - N27: được sửa tất cả nhưng KHÔNG được sửa target đã Approved
+   * - Restricted user: chỉ được sửa target của chính mình và KHÔNG được sửa Approved
    */
   canEditTarget(item: KpiSaleTarget): boolean {
     if (!item) return false;
-    // Leader hoặc admin N1: được sửa tất cả
-    if (this.isLeader || this.isN1Admin) return true;
-    // Restricted user: chỉ được sửa target của chính mình
-    return item.employeeId === this.currentUserId;
+    const isApproved = item.approvalStatus === 'Approved';
+    // Admin tổng / N1 hoặc Leader: được sửa tất cả (kể cả Approved)
+    if (this.isLeader || this.isGlobalAdmin || this.isN1Admin) return true;
+    // N27: được sửa tất cả nhưng KHÔNG được sửa Approved
+    if (this.isN27Admin && !isApproved) return true;
+    // Restricted user: chỉ được sửa target của chính mình và KHÔNG được sửa Approved
+    return !isApproved && item.employeeId === this.currentUserId;
   }
 
   /**
    * Kiểm tra user hiện tại có quyền sửa mục tiêu bảng (inline edit) không.
-   * - Leader/Admin N1: được sửa tất cả
+   * - Admin tổng / N1 / Leader: được sửa tất cả
+   * - N27: được sửa tất cả
    * - Restricted user: chỉ được sửa mục tiêu của chính mình
    */
   canEditOwnTarget(employeeId: number): boolean {
-    // Leader hoặc admin N1: được sửa tất cả
-    if (this.isLeader || this.isN1Admin) return true;
+    // Admin tổng / N1 / Leader: được sửa tất cả
+    if (this.isLeader || this.isGlobalAdmin || this.isN1Admin) return true;
+    // N27: được sửa tất cả
+    if (this.isN27Admin) return true;
     // Restricted user: chỉ được sửa mục tiêu của chính mình
     return employeeId === this.currentUserId;
   }
@@ -946,6 +1120,8 @@ export class KpiTargetTabComponent implements OnInit {
     private permissionService: PermissionService
   ) {
     this.isN1Admin = this.permissionService.hasPermission('N1');
+    this.isN27Admin = this.permissionService.hasPermission('N27');
+    this.isGlobalAdmin = this.appUserService.isAdmin === true;
     this.currentUserId = this.appUserService.id || 0;
   }
 

@@ -105,12 +105,17 @@
 }
 
 ::ng-deep .ant-table-placeholder .ant-empty {
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
-::ng-deep .ant-table-placeholder .ant-empty .ant-empty-image svg {
-  width: 40px;
-  height: 26px;
+::ng-deep .ant-table-placeholder .ant-empty-image {
+  display: none !important;
+}
+
+::ng-deep .ant-table-placeholder .ant-empty-description {
+  margin-top: 0 !important;
+  font-size: 11px;
+  color: #999;
 }
 
 .log-modal-header {

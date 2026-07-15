@@ -66,6 +66,7 @@ import { ProjectReportSlickGridComponent } from '../project-report-slick-grid/pr
 import { ProjectWokerSlickGridComponent } from '../project-woker-slick-grid/project-woker-slick-grid.component';
 import { TabServiceService } from '../../../layouts/tab-service.service';
 import { ProjectHistoryProblemNewComponent } from '../project-history-problem-new/project-history-problem-new.component';
+import { ProjectHistoryProblemSyntheticComponent } from '../project-history-problem-new/project-history-problem-synthetic/project-history-problem-synthetic.component';
 import { DrawingProjectComponent } from '../drawing-project/drawing-project.component';
 
 @Component({
@@ -348,6 +349,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 command: () => this.openProjectPartListTab(),
             },
             {
+                label: 'Tổng hợp Issue Log',
+                icon: 'fa-solid fa-rectangle-list fa-lg text-danger',
+                command: () => this.openProjectHistoryProblemSyntheticTab(),
+            },
+            {
                 label: 'Xuất Excel',
                 icon: 'fa-solid fa-file-excel fa-lg text-success',
                 command: () => this.exportToExcel(),
@@ -505,7 +511,7 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 command: () => this.openDrawingProjectModal()
             },
             {
-                label: 'Lịch sử phát sinh',
+                label: 'Issue Log',
                 icon: 'pi pi-history',
                 command: () => this.openProjectHistoryProblemModal()
             },
@@ -1751,22 +1757,56 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
     }
 
     openProjectHistoryProblemModal() {
+        // const selectedIDs = this.getSelectedIds();
+
+        // if (selectedIDs.length != 1) {
+        //     this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+        //     return;
+        // }
+
+        // const modalRef = this.modalService.open(ProjectHistoryProblemNewComponent, {
+        //     centered: true,
+        //     backdrop: 'static',
+        //     keyboard: false,
+        //     windowClass: 'full-screen-modal',
+        // });
+
+        // modalRef.componentInstance.projectId = this.projectId;
+        // modalRef.componentInstance.projectCode = this.projectCode;
+
         const selectedIDs = this.getSelectedIds();
+        const selectedRows = this.getSelectedRows();
+        console.log('[ProjectSlickGrid] Selected rows:', selectedRows);
 
         if (selectedIDs.length != 1) {
             this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
             return;
         }
 
-        const modalRef = this.modalService.open(ProjectHistoryProblemNewComponent, {
-            centered: true,
-            backdrop: 'static',
-            keyboard: false,
-            windowClass: 'full-screen-modal',
-        });
+        const projectId = selectedIDs[0];
+        const projectCode = selectedRows[0]?.ProjectCode;
+        const pmID = selectedRows[0]?.PMID;
+        console.log('[ProjectSlickGrid] PMID from selected row =', pmID);
 
-        modalRef.componentInstance.projectId = this.projectId;
-        modalRef.componentInstance.projectCode = this.projectCode;
+        this.tabService.openTabComp({
+            comp: ProjectHistoryProblemNewComponent,
+            title: `Issue Log - ${projectCode}`,
+            key: `project-history-problem-${projectId}`,
+            data: {
+                projectId: projectId,
+                projectCode: projectCode,
+                pmID: pmID,
+            }
+        });
+    }
+
+    openProjectHistoryProblemSyntheticTab() {
+        this.tabService.openTabComp({
+            comp: ProjectHistoryProblemSyntheticComponent,
+            title: `Tổng hợp Issue Log`,
+            key: `project-history-problem-synthetic`,
+            data: {}
+        });
     }
 
     openDrawingProjectModal() {

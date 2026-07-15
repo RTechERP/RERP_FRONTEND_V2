@@ -1,0 +1,45 @@
+/* Màu vàng nhạt làm nổi bật dòng group header */
+:host ::ng-deep .p-rowgroup-header td,
+:host ::ng-deep tr[pRowGroupHeader] td,
+:host ::ng-deep .p-datatable-rowgroup-header td {
+  background-color: #fffbe6 !important;
+  color: #d46b08 !important;
+  font-weight: 700 !important;
+  border-left: none !important; /* Bỏ border trên td vì td không sticky */
+  font-size: 11px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  padding-left: 0 !important; /* Xóa padding-left để span có thể chạm sát lề trái */
+  overflow: visible !important; /* Cho phép phần tử con bên trong dùng position: sticky */
+}
+
+/* Giữ text của group header cố định ở lề trái khi scroll ngang */
+:host ::ng-deep .p-rowgroup-header td span,
+:host ::ng-deep tr[pRowGroupHeader] td span,
+:host ::ng-deep .p-datatable-rowgroup-header td span {
+  font-size: 12px !important;
+  color: #d46b08 !important;
+  font-weight: 700 !important;
+  position: sticky !important;
+  left: 0 !important; /* Dán chặt vào mép trái phần scroll */
+  display: inline-block !important;
+  z-index: 10 !important;
+  border-left: 4px solid #ffc069 !important; /* Thay thế border-left của td */
+  padding-left: 12px !important;
+  padding-top: 6px !important; /* Kéo giãn border khớp chiều cao dòng */
+  padding-bottom: 6px !important;
+  margin-top: -6px !important;
+  margin-bottom: -6px !important;
+  vertical-align: middle !important;
+}
+
+::ng-deep .ant-select-item-option-content {
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
+/* Tăng padding-left của ô datepicker để tránh bị đè lên icon lịch */
+::ng-deep .p-datepicker-input,
+::ng-deep .p-datepicker input {
+  padding-left: 22px !important;
+}

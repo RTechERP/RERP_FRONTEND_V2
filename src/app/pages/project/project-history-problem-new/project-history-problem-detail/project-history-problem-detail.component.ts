@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzModalRef, NzModalModule, NZ_MODAL_DATA } from 'ng-zorro-antd/modal';
@@ -10,6 +10,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { ProjectHistoryProblemNewService } from '../project-history-problem-service/project-history-problem-new.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { forkJoin, of } from 'rxjs';
@@ -28,7 +29,8 @@ import { switchMap, catchError, map } from 'rxjs/operators';
     NzDatePickerModule,
     NzButtonModule,
     NzCardModule,
-    NzTableModule
+    NzTableModule,
+    NzTabsModule
   ],
   templateUrl: './project-history-problem-detail.component.html',
   styleUrl: './project-history-problem-detail.component.css'
@@ -36,6 +38,8 @@ import { switchMap, catchError, map } from 'rxjs/operators';
 export class ProjectHistoryProblemDetailComponent implements OnInit {
   private nzModalData = inject(NZ_MODAL_DATA);
   data: any = null;
+
+  @Output() onSaved = new EventEmitter<any>();
 
   private fb = inject(FormBuilder);
   private modalRef = inject(NzModalRef);
@@ -77,6 +81,7 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.data = this.nzModalData?.data || null;
+    console.log('[ProjectHistoryProblemDetail] ngOnInit - Data nhận được từ modal:', this.data);
     this.initForm();
     this.loadDropdowns();
 
@@ -103,7 +108,33 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
       } else {
         this.data.ReceiverDepartment = [];
       }
+      if (this.data.ProjectManagerID || this.data.PMID) {
+        const parsedPM = Number(this.data.ProjectManagerID || this.data.PMID);
+        if (!isNaN(parsedPM)) {
+          this.data.ProjectManagerID = parsedPM;
+        }
+      }
+      if (this.data.CreatorID) {
+        const parsedCreator = Number(this.data.CreatorID);
+        if (!isNaN(parsedCreator)) {
+          this.data.CreatorID = parsedCreator;
+        }
+      }
+      if (this.data.PerformerID) {
+        const parsedPerformer = Number(this.data.PerformerID);
+        if (!isNaN(parsedPerformer)) {
+          this.data.PerformerID = parsedPerformer;
+        }
+      }
+      if (this.data.ProjectID) {
+        const parsedProjectID = Number(this.data.ProjectID);
+        if (!isNaN(parsedProjectID)) {
+          this.data.ProjectID = parsedProjectID;
+        }
+      }
+      console.log('[ProjectHistoryProblemDetail] Dữ liệu trước khi patchValue:', this.data);
       this.form.patchValue(this.data);
+      console.log('[ProjectHistoryProblemDetail] Giá trị Form sau khi patchValue:', this.form.getRawValue());
       if (this.data.ProjectID) {
         this.isProjectLocked = true;
         this.form.get('ProjectID')?.disable();
@@ -132,7 +163,8 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
             fileType: this.getFileType(f.FileName),
             file: null, // file cũ trên server, không có File object
             serverFile: true,
-            id: f.ID
+            id: f.ID,
+            imageCategory: f.FileType !== undefined ? Number(f.FileType) : (f.Type !== undefined ? Number(f.Type) : 1)
           }));
         }
       },
@@ -339,7 +371,7 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
     });
   }
 
-  submitForm(): void {
+  submitForm(isSaveAndNew: boolean = false): void {
     if (this.isSubmitting) return;
 
     if (this.form.valid) {
@@ -373,11 +405,17 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
             }
 
             this.message.success('Lưu dữ liệu thành công!');
-            this.modalRef.close({
-              saved: true,
-              id: savedId,
-              data: { ...payloadItem, ID: savedId }
-            });
+            this.onSaved.emit({ ...payloadItem, ID: savedId });
+
+            if (isSaveAndNew) {
+              this.resetFormAfterSaveAndNew();
+            } else {
+              this.modalRef.close({
+                saved: true,
+                id: savedId,
+                data: { ...payloadItem, ID: savedId }
+              });
+            }
           } else {
             this.message.error(res.message || 'Lỗi khi lưu dữ liệu!');
             this.isSubmitting = false;
@@ -397,6 +435,67 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
         }
       });
       this.message.warning('Vui lòng điền đủ thông tin bắt buộc');
+    }
+  }
+
+  resetFormAfterSaveAndNew(): void {
+    const projectId = this.form.get('ProjectID')?.value;
+    const pmId = this.form.get('ProjectManagerID')?.value;
+    const creatorId = this.form.get('CreatorID')?.value;
+
+    this.form.reset({
+      ID: 0,
+      STT: null,
+      ProjectID: projectId,
+      TeamDepartment: null,
+      ReceiverDepartment: [],
+      IssueLogType: null,
+      ErrorLocation: null,
+      ContentError: null,
+      Reason: null,
+      Remedies: null,
+      IssueConclusion: null,
+      Impact: null,
+      Note: null,
+      DateProblem: new Date(),
+      DateImplementation: null,
+      CreatorID: creatorId || this.appUserService.employeeID || null,
+      PerformerID: null,
+      ProjectManagerID: pmId,
+      EmployeeID: null,
+      PIC: null,
+      ReceiverID: [],
+      PriorityLevel: null,
+      StatusProblem: null,
+      ProjectItemIds: [],
+      IsApproved_PM: false,
+      IsApproved_TP: false,
+      IsApproved_PP: false
+    });
+
+    this.attachedFiles = [];
+    this.deletedFileIds = [];
+    this.isSubmitting = false;
+
+    if (projectId && projectId > 0) {
+      this.projectHistoryProblemNewService.getMaxSTTByProject(projectId).subscribe((res: any) => {
+        if (res.status === 1 && res.data) {
+          const nextSTT = (res.data.maxSTT || 0) + 1;
+          this.form.patchValue({ STT: nextSTT }, { emitEvent: false });
+        }
+      });
+
+      this.projectHistoryProblemNewService.getEmployeeSuggest(projectId).subscribe((res: any) => {
+        if (res && (res.isSuccess || res.status === 1) && res.data) {
+          const leaders = res.data
+            .filter((x: any) => x.IsLeader === true || x.isLeader === true)
+            .map((x: any) => x.EmployeeID || x.employeeId);
+
+          if (leaders && leaders.length > 0) {
+            this.form.patchValue({ ReceiverID: leaders });
+          }
+        }
+      });
     }
   }
 
@@ -428,7 +527,7 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
     };
   }
 
-  onFileSelected(event: any): void {
+  onFileSelected(event: any, category: number): void {
     const files = event.target.files;
     if (files && files.length > 0) {
       const MAX_FILE_SIZE = 50 * 1024 * 1024;
@@ -446,19 +545,22 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
           fileName: fileObj.name,
           fileSize: this.formatFileSize(fileObj.size),
           fileType: this.getFileType(fileObj.name),
-          file: fileObj
+          file: fileObj,
+          imageCategory: category
         }];
       });
     }
   }
 
-  removeFile(index: number): void {
-    const file = this.attachedFiles[index];
-    // Nếu là file đã có trên server, lưu ID vào list tạm để xóa khi bấm Lưu
+  removeFile(file: any): void {
     if (file && file.serverFile && file.id) {
       this.deletedFileIds.push(file.id);
     }
-    this.attachedFiles = this.attachedFiles.filter((_, i) => i !== index);
+    this.attachedFiles = this.attachedFiles.filter((f) => f !== file);
+  }
+
+  getAttachedFilesByCategory(category: number): any[] {
+    return this.attachedFiles.filter(f => f.imageCategory === category);
   }
 
   formatFileSize(bytes: number): string {
@@ -474,29 +576,46 @@ export class ProjectHistoryProblemDetailComponent implements OnInit {
   }
 
   uploadFiles(problemId: number): void {
-    const newFiles = this.attachedFiles.filter((f: any) => f.file);
-    if (newFiles.length === 0) return;
+    const filesBefore = this.attachedFiles.filter((f: any) => f.file && f.imageCategory === 1);
+    const filesAfter = this.attachedFiles.filter((f: any) => f.file && f.imageCategory === 2);
 
-    const formData = new FormData();
-    newFiles.forEach((fileObj: any) => {
-      formData.append('files', fileObj.file);
-    });
-    formData.append('key', 'ProjectHistoryProblemFile');
+    if (filesBefore.length > 0) {
+      const formData = new FormData();
+      filesBefore.forEach((fileObj: any) => {
+        formData.append('files', fileObj.file);
+      });
+      formData.append('key', 'ProjectHistoryProblemFile');
 
-    this.projectHistoryProblemNewService.uploadFiles(formData, problemId, 1).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          const uploaded = response.data as any[];
-          this.message.success(`${uploaded.length} file đã được tải lên!`);
-        } else {
-          this.message.error(response.message || 'Upload file thất bại!');
+      this.projectHistoryProblemNewService.uploadFiles(formData, problemId, 1).subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            console.log('[ProjectHistoryProblemDetail] Uploaded before files successfully');
+          }
+        },
+        error: (err: any) => {
+          console.error('[ProjectHistoryProblemDetail] Upload before error:', err);
         }
-      },
-      error: (err: any) => {
-        console.error('Upload error:', err);
-        this.message.error('Lỗi khi upload file!');
-      }
-    });
+      });
+    }
+
+    if (filesAfter.length > 0) {
+      const formData = new FormData();
+      filesAfter.forEach((fileObj: any) => {
+        formData.append('files', fileObj.file);
+      });
+      formData.append('key', 'ProjectHistoryProblemFile');
+
+      this.projectHistoryProblemNewService.uploadFiles(formData, problemId, 2).subscribe({
+        next: (response: any) => {
+          if (response.status === 1) {
+            console.log('[ProjectHistoryProblemDetail] Uploaded after files successfully');
+          }
+        },
+        error: (err: any) => {
+          console.error('[ProjectHistoryProblemDetail] Upload after error:', err);
+        }
+      });
+    }
   }
 
   destroyModal(): void {

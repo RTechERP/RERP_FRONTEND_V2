@@ -75,6 +75,9 @@ export class VisaRequestFormComponent implements OnInit {
 
     if (this.record) {
       this.formData = { ...this.record };
+      if (this.formData.DateOfBirth) {
+        this.formData.DateOfBirth = this.formatDate(this.formData.DateOfBirth) || '';
+      }
       if (this.formData.BusinessTripFromDate && this.formData.BusinessTripToDate) {
         this.tripDates = [new Date(this.formData.BusinessTripFromDate), new Date(this.formData.BusinessTripToDate)];
       }
@@ -133,7 +136,7 @@ export class VisaRequestFormComponent implements OnInit {
       const selectedEmp = this.employees.find(x => x.ID === this.formData.EmployeeID);
       if (selectedEmp) {
         this.formData.FullName = selectedEmp.FullName;
-        this.formData.DateOfBirth = selectedEmp.BirthOfDate;
+        this.formData.DateOfBirth = this.formatDate(selectedEmp.BirthOfDate) || '';
         this.formData.Gender = selectedEmp.Gender; // Giả sử Gender có trong employee
       }
     }
@@ -279,6 +282,16 @@ export class VisaRequestFormComponent implements OnInit {
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra');
       }
     });
+  }
+
+  formatDate(date: any): string | null {
+    if (!date) return null;
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return null;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   formatterVND = (value: number): string => (value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '');

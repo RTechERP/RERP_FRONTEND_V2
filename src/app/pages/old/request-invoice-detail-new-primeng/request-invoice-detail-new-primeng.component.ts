@@ -451,10 +451,11 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
         this.notification.warning('Thông báo', 'Vui lòng chọn Ngày yêu cầu');
         return;
       }
-      if (!this.formData.exportDate) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn Ngày xuất');
-        return;
-      }
+      // [TODO] Ngày xuất - tạm thời bỏ, chưa có trường ExportDate bên BE
+      // if (!this.formData.exportDate) {
+      //   this.notification.warning('Thông báo', 'Vui lòng chọn Ngày xuất');
+      //   return;
+      // }
       if (!this.formData.accountingContractType) {
         this.notification.warning('Thông báo', 'Vui lòng chọn Loại hợp đồng');
         return;
@@ -1134,7 +1135,8 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
       address: '',
       userId: null,
       requestDate: new Date().toISOString().split('T')[0],
-      exportDate: new Date().toISOString().split('T')[0],
+      // [TODO] Ngày xuất - tạm thời bỏ, chưa có trường ExportDate bên BE
+      // exportDate: new Date().toISOString().split('T')[0],
       taxCompanyId: null,
       status: null,
       note: '',
@@ -1559,9 +1561,6 @@ export class RequestInvoiceDetailNewPrimengComponent implements OnInit {
         } else {
           this.formData.requestDate = new Date().toISOString().split('T')[0];
         }
-        this.formData.exportDate = data.MainData.ExportDate
-          ? new Date(data.MainData.ExportDate).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0];
         this.formData.taxCompanyId = data.MainData.TaxCompanyID || null;
         this.formData.status = data.MainData.Status || null;
         this.formData.note = data.MainData.Note || '';

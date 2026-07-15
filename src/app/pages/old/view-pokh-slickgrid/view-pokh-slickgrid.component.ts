@@ -1091,6 +1091,7 @@ export class ViewPokhSlickgridComponent implements OnInit, AfterViewInit, OnDest
     modalRef.componentInstance.customerID = currentGroup.customerID;
     modalRef.componentInstance.customerName = currentGroup.customerName;
     modalRef.componentInstance.isFromPOKH = true;
+    modalRef.componentInstance.canDelete = true;
     if (currentGroup.data?.length > 0) {
       modalRef.componentInstance.POKHID = currentGroup.data[0].POKHID || 0;
     }

@@ -10,9 +10,9 @@
   <div class="modal-body p-0 px-3">
     <nz-spin [nzSpinning]="isLoading">
       <form nz-form [formGroup]="validateForm" class="container-fluid mt-3">
-        <!-- Hàng 1: Người yêu cầu, Nhân viên, Dự án & Người đặt -->
+        <!-- Hàng 1: Người yêu cầu, Dự án -->
         <div nz-row [nzGutter]="[16, 0]">
-          <div nz-col [nzXs]="24" [nzSm]="8">
+          <div nz-col [nzXs]="24" [nzSm]="12">
             <nz-form-item>
               <nz-form-label [nzSpan]="24" class="fw-semibold text-primary">
                 Người yêu cầu
@@ -29,24 +29,7 @@
             </nz-form-item>
           </div>
 
-          <div nz-col [nzXs]="24" [nzSm]="8">
-            <nz-form-item>
-              <nz-form-label [nzSpan]="24" class="fw-semibold text-primary">
-                Nhân viên đi<span class="text-danger ms-1">(*)</span>
-              </nz-form-label>
-              <nz-form-control [nzSpan]="24" nzErrorTip="Bắt buộc!">
-                <nz-select nzMode="multiple" nzShowSearch nzAllowClear formControlName="EmployeeIDs"
-                  nzPlaceHolder="Chọn nhân viên" class="fs-12" style="width: 100%">
-                  <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
-                    <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID"
-                      [nzLabel]="(emp.Code || '') + ' - ' + (emp.FullName || '')"></nz-option>
-                  </nz-option-group>
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
-          </div>
-
-          <div nz-col [nzXs]="24" [nzSm]="8">
+          <div nz-col [nzXs]="24" [nzSm]="12">
             <nz-form-item>
               <nz-form-label [nzSpan]="24" class="fw-semibold">
                 Dự án <span class="text-danger ms-1">(*)</span>
@@ -61,10 +44,75 @@
             </nz-form-item>
           </div>
         </div>
+
+        <!-- Section: Danh sách hành khách -->
+        <div class="card border-primary-subtle mb-3">
+          <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+            <span class="fw-bold text-primary fs-12">
+              <i class="fa fa-users me-1"></i> Danh sách người đi / hành khách <span class="text-danger">(*)</span>
+            </span>
+            <button type="button" class="btn btn-xs btn-outline-primary px-2 py-0-5 fs-11 fw-semibold"
+              (click)="addPassenger()">
+              <i class="fa fa-plus me-1"></i> Thêm người đi
+            </button>
+          </div>
+          <div class="card-body p-2">
+            <div formArrayName="Passengers">
+              <div *ngFor="let passGroup of passengers.controls; let i = index" [formGroupName]="i"
+                class="row g-2 align-items-center mb-2 pb-2 border-bottom border-light">
+
+                <!-- Loại hành khách -->
+                <div class="col-sm-3">
+                  <nz-select formControlName="Type" class="fs-12 w-100" nzPlaceHolder="Loại người đi" nzSize="small">
+                    <nz-option [nzValue]="1" nzLabel="CBNV Công ty"></nz-option>
+                    <nz-option [nzValue]="2" nzLabel="Khách/Đối tác"></nz-option>
+                  </nz-select>
+                </div>
+
+                <!-- Chọn nhân viên (nếu loại == 1) -->
+                <div class="col-sm-5" *ngIf="passGroup.get('Type')?.value === 1">
+                  <nz-select nzShowSearch nzAllowClear formControlName="EmployeeID" nzSize="small"
+                    nzPlaceHolder="Tìm chọn nhân viên" class="fs-12 w-100" nzDropdownClassName="select-dropdown">
+                    <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
+                      <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID"
+                        [nzLabel]="(emp.Code || '') + ' - ' + (emp.FullName || '')"></nz-option>
+                    </nz-option-group>
+                  </nz-select>
+                </div>
+
+                <!-- Nhập tên (nếu loại == 2) -->
+                <div class="col-sm-5" *ngIf="passGroup.get('Type')?.value === 2">
+                  <input nz-input formControlName="FullName" placeholder="Nhập họ tên khách/đối tác" class="fs-12 w-100"
+                    nzSize="small" />
+                </div>
+
+                <!-- Họ tên hiển thị (nếu loại == 1) -->
+                <div class="col-sm-3" *ngIf="passGroup.get('Type')?.value === 1">
+                  <input nz-input formControlName="FullName" placeholder="Họ và tên" class="fs-12 w-100"
+                    [disabled]="true" nzSize="small" />
+                </div>
+
+                <div class="col-sm-3" *ngIf="passGroup.get('Type')?.value === 2">
+                  <span class="text-muted fs-11 ps-2">Đối tác/khách hàng</span>
+                </div>
+
+                <!-- Nút xóa -->
+                <div class="col-sm-1 text-center">
+                  <button type="button" class="btn btn-link text-danger p-0 fs-13" (click)="removePassenger(i)"
+                    title="Xóa người đi" [disabled]="passengers.length <= 1">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
         <div nz-row [nzGutter]="[16, 0]">
-          <div nz-col [nzXs]="24" [nzSm]="8">
+          <div nz-col [nzXs]="24" [nzSm]="7">
             <nz-form-item>
-              <nz-form-label [nzSpan]="24" class="fw-semibold">Điểm đi <span class="text-danger ms-1">(*)</span></nz-form-label>
+              <nz-form-label [nzSpan]="24" class="fw-semibold">Điểm đi <span
+                  class="text-danger ms-1">(*)</span></nz-form-label>
               <nz-form-control [nzSpan]="24" nzErrorTip="Bắt buộc!">
                 <input nz-input formControlName="DepartureAddress" placeholder="Từ..." autocomplete="off"
                   (ngModelChange)="onDepartureInput($event)"
@@ -78,9 +126,10 @@
             </nz-form-item>
           </div>
 
-          <div nz-col [nzXs]="24" [nzSm]="8">
+          <div nz-col [nzXs]="24" [nzSm]="7">
             <nz-form-item>
-              <nz-form-label [nzSpan]="24" class="fw-semibold">Điểm đến <span class="text-danger ms-1">(*)</span></nz-form-label>
+              <nz-form-label [nzSpan]="24" class="fw-semibold">Điểm đến <span
+                  class="text-danger ms-1">(*)</span></nz-form-label>
               <nz-form-control [nzSpan]="24" nzErrorTip="Bắt buộc!">
                 <input nz-input formControlName="ArrivesAddress" placeholder="Đến..." autocomplete="off"
                   (ngModelChange)="onArrivalInput($event)"
@@ -94,7 +143,7 @@
             </nz-form-item>
           </div>
 
-          <div nz-col [nzXs]="24" [nzSm]="8">
+          <div nz-col [nzXs]="24" [nzSm]="7">
             <nz-form-item>
               <nz-form-label [nzSpan]="24" class="fw-semibold">
                 Người duyệt <span class="text-danger ms-1">(*)</span>
@@ -105,6 +154,15 @@
                   <nz-option *ngFor="let emp of approvers" [nzValue]="emp.ID"
                     [nzLabel]="(emp.Code || '') + ' - ' + (emp.FullName || '')"></nz-option>
                 </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <div nz-col [nzXs]="24" [nzSm]="3">
+            <nz-form-item>
+              <nz-form-label [nzSpan]="24" class="fw-semibold text-center">Khứ hồi</nz-form-label>
+              <nz-form-control [nzSpan]="24" class="text-center pt-1">
+                <label nz-checkbox formControlName="IsRoundTrip"></label>
               </nz-form-control>
             </nz-form-item>
           </div>
@@ -193,6 +251,37 @@
                 </nz-form-item>
               </div>
 
+              <!-- Dòng 1b: Ngày về, Giờ về (Hiển thị nếu là khứ hồi) -->
+              <ng-container *ngIf="validateForm.get('IsRoundTrip')?.value">
+                <div nz-col [nzXs]="24" [nzSm]="12">
+                  <nz-form-item class="mb-0">
+                    <nz-form-label [nzSpan]="24" class="fw-semibold">Ngày về <span
+                        class="text-danger ms-1">(*)</span></nz-form-label>
+                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn ngày về!">
+                      <input nz-input type="date" formControlName="ReturnDate" class="w-100 fs-12" />
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+
+                <div nz-col [nzXs]="24" [nzSm]="12">
+                  <nz-form-item class="mb-0">
+                    <nz-form-label [nzSpan]="24" class="fw-semibold">Giờ về <span
+                        class="text-danger ms-1">(*)</span></nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                      <div class="d-flex gap-2">
+                        <nz-select formControlName="ReturnTimeHour" style="flex: 1" nzPlaceHolder="Giờ" class="fs-12">
+                          <nz-option *ngFor="let h of timeHours" [nzValue]="h" [nzLabel]="h + 'h'"></nz-option>
+                        </nz-select>
+                        <nz-select formControlName="ReturnTimeMinute" style="flex: 1" nzPlaceHolder="Phút"
+                          class="fs-12">
+                          <nz-option *ngFor="let m of timeMinutes" [nzValue]="m" [nzLabel]="m + 'p'"></nz-option>
+                        </nz-select>
+                      </div>
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+              </ng-container>
+
               <!-- Dòng 2: Giá vé, Hành lý, HCNS Đề xuất -->
               <div nz-col [nzXs]="24" [nzSm]="4">
                 <nz-form-item class="mb-0">
@@ -211,12 +300,11 @@
                   <nz-form-label [nzSpan]="24" class="fw-semibold">Hành lý / Thông tin thêm</nz-form-label>
                   <nz-form-control>
                     <input nz-input formControlName="Baggage" placeholder="Hành lý, hạng vé..." nzSize="small"
-                      class="fs-12" autocomplete="off"
-                      (ngModelChange)="onBaggageInput($event)"
-                      (focus)="onBaggageInput(control.get('Baggage')?.value || '')"
-                      [nzAutocomplete]="autoBaggage" />
+                      class="fs-12" autocomplete="off" (ngModelChange)="onBaggageInput($event)"
+                      (focus)="onBaggageInput(control.get('Baggage')?.value || '')" [nzAutocomplete]="autoBaggage" />
                     <nz-autocomplete #autoBaggage>
-                      <nz-auto-option *ngFor="let option of filteredBaggages" [nzValue]="option">{{ option }}</nz-auto-option>
+                      <nz-auto-option *ngFor="let option of filteredBaggages" [nzValue]="option">{{ option
+                        }}</nz-auto-option>
                     </nz-autocomplete>
                   </nz-form-control>
                 </nz-form-item>

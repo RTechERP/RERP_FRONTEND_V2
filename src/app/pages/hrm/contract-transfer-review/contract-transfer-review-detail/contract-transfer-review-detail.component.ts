@@ -152,6 +152,7 @@ export class ContractTransferReviewDetailComponent implements OnInit {
 
   /** NV được sửa khi TBP chưa đánh giá (step=1, SA=0 hoặc SA=-1 khi vừa nhận mail) */
   get canEditEmployee(): boolean {
+    if (this.role === 'hr') return true; // HR luôn có quyền sửa
     const sa = Number(this.statusApprove);
     return this.role === 'employee'
       && Number(this.step) <= 1
@@ -161,6 +162,7 @@ export class ContractTransferReviewDetailComponent implements OnInit {
   /** Leader được sửa phần đánh giá ở bước 2 trước khi TBP duyệt.
    *  Điều kiện thêm: EmployeeEvaluationID phải trùng với người đang đăng nhập (trừ Admin/BGĐ/HR). */
   get canEditManager(): boolean {
+    if (this.role === 'hr') return true; // HR luôn có quyền sửa
     if (Number(this.step) !== 2 || Number(this.statusApprove) !== 0) return false;
     // Admin, BGĐ, HR được phép sửa mà không cần kiểm tra EmployeeEvaluationID
     if (this.isAdmin || this.role === 'bgd' || this.role === 'hr') return true;
@@ -173,6 +175,7 @@ export class ContractTransferReviewDetailComponent implements OnInit {
 
   /** HR được sửa mức lương / loại HĐ khi đến lượt HR (step=3, statusApprove=0) */
   get canEditHR(): boolean {
+    if (this.role === 'hr') return true; // HR luôn có quyền sửa
     return this.role === 'hr'
       && Number(this.step) === 3
       && Number(this.statusApprove) === 0;

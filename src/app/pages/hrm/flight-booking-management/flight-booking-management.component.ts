@@ -17,6 +17,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 
 // PrimeNG
 import { Table, TableModule } from 'primeng/table';
@@ -57,6 +58,7 @@ import { PermissionService } from '../../../services/permission.service';
     NzSplitterModule,
     NzTabsModule,
     NzTableModule,
+    NzCheckboxModule,
 
     TableModule,
     ButtonModule,

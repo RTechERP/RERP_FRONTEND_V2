@@ -159,6 +159,31 @@
 .table-container {
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Fix: ép p-table fill container và không bị resize khi paginate */
+:host ::ng-deep .p-datatable {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-wrapper {
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+/* Fix: khóa splitter-panel không cho tự scroll khi content thay đổi */
+:host ::ng-deep .ant-splitter-panel {
+    overflow: hidden;
+    min-height: 0;
+}
+
+:host ::ng-deep .ant-splitter-panel .ant-splitter-panel-content {
+    overflow: hidden;
 }
 
 :host ::ng-deep .ant-tabs-nav {

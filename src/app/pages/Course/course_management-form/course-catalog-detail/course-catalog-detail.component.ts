@@ -119,10 +119,6 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
   saving: boolean = false;
   private patchTimeout: any;
 
-  // Track original values for edit mode
-  private originalTypeID: number | null = null;
-  private originalDepartmentID: number | null = null;
-
   // Data for dropdowns
   typeData: any[] = [];
   teamData: any[] = [];
@@ -162,18 +158,6 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
         this.dataTeam = response.data || response || [];
       });
     }
-
-    // Listen to TypeID and DepartmentID changes to fetch max STT
-    this.formGroup.get('TypeID')?.valueChanges.subscribe(() => {
-      this.updateSTTFromAPI();
-    });
-
-    this.formGroup.get('DepartmentID')?.valueChanges.subscribe(() => {
-      this.updateSTTFromAPI();
-    });
-
-    // Note: Không cần gọi updateSTTFromAPI ngay vì TypeID và DepartmentID
-    // đều do user chọn, sẽ trigger qua valueChanges
   }
 
   private initFormData() {
@@ -204,10 +188,6 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
       console.log('🔍 teamIDs (parsed):', teamIDs);
       console.log('🔍 dataTeam standardizedIDs:', this._dataTeam.map(t => t.standardizedID));
 
-      // Track original values for edit mode
-      this.originalTypeID = typeID;
-      this.originalDepartmentID = deptID;
-
       if (this.patchTimeout) clearTimeout(this.patchTimeout);
       this.patchTimeout = setTimeout(() => {
         if (!this.formGroup) return;
@@ -227,10 +207,9 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
         this.cdr.detectChanges();
       }, 200);
     } else if (this.mode === 'add') {
-      // Nếu thêm mới thì STT ban đầu = 0
       this.formGroup.patchValue(
         {
-          STT: 1,
+          STT: 0,
         },
         { emitEvent: false },
       );
@@ -297,47 +276,6 @@ export class CourseCatalogDetailComponent implements OnInit, AfterViewInit {
         .filter((v) => !isNaN(v) && v !== 0);
     }
     return [];
-  }
-
-  // Cập nhật STT từ API khi có đủ TypeID và DepartmentID
-  private updateSTTFromAPI(): void {
-    const typeID = this.formGroup.get('TypeID')?.value;
-    const departmentID = this.formGroup.get('DepartmentID')?.value;
-    console.log('TypeID or DepartmentID changed:', typeID, departmentID);
-
-    // Nếu là mode add: luôn gọi API khi có đủ 2 giá trị
-    // Nếu là mode edit: chỉ gọi API khi có sự thay đổi so với giá trị ban đầu
-    const shouldFetchSTT =
-      this.mode === 'add'
-        ? typeID && departmentID // Add mode: có đủ 2 giá trị
-        : typeID &&
-        departmentID &&
-        (typeID !== this.originalTypeID ||
-          departmentID !== this.originalDepartmentID); // Edit mode: có thay đổi
-
-    if (shouldFetchSTT) {
-      console.log('Fetching new STT from API...');
-      this.courseService.getSTTCourseCatalog(typeID, departmentID).subscribe({
-        next: (response: any) => {
-          const maxSTT = response?.data ?? response?.STT ?? response ?? 0;
-          console.log('Received max STT from API:', maxSTT);
-          this.formGroup.patchValue(
-            {
-              STT: maxSTT,
-            },
-            { emitEvent: false },
-          );
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Error fetching max STT:', err);
-        },
-      });
-    } else {
-      console.log(
-        'No need to fetch STT (no change detected or missing values)',
-      );
-    }
   }
 
   saveCourseCatalog() {

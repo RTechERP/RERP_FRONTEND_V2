@@ -21,7 +21,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { FlightBookingManagementService } from '../flight-booking-management.service';
-import { FlightBookingSaveDTO } from '../models';
+import { FlightBookingSaveDTO, FlightBookingPassenger } from '../models';
 import { ProjectService } from '../../../project/project-service/project.service';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 import { UserService } from '../../../../services/user.service';
@@ -70,13 +70,14 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
   validateForm = this.fb.group({
     ID: this.fb.control(0),
     EmployeeRequestID: this.fb.control<number | null>(null),
-    EmployeeIDs: this.fb.control<number[]>([], [Validators.required]),
     ProjectID: this.fb.control<number | null>(null, [Validators.required]),
     DepartureAddress: this.fb.control('', [Validators.required]),
     ArrivesAddress: this.fb.control('', [Validators.required]),
     Reason: this.fb.control('', [Validators.required]),
     Note: this.fb.control(''),
     ApproveID: this.fb.control<number | null>(null, [Validators.required]),
+    IsRoundTrip: this.fb.control(false),
+    Passengers: this.fb.array([]),
     Proposals: this.fb.array([])
   });
 
@@ -110,15 +111,25 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
     return this.validateForm.controls.Proposals as FormArray;
   }
 
+  get passengers() {
+    return this.validateForm.controls.Passengers as FormArray;
+  }
+
   ngOnInit(): void {
     this.loadEmployees();
     this.loadProjects();
     this.loadHistoricalSuggestions();
+
+    this.validateForm.get('IsRoundTrip')?.valueChanges.subscribe(val => {
+      this.updateRoundTripValidators(val || false);
+    });
+
     if (this.id) {
       this.loadData(this.id);
     } else {
-      // Default one proposal row for new record
+      // Default one proposal row and one passenger row for new record
       this.addProposal();
+      this.addPassenger();
     }
   }
 
@@ -136,7 +147,8 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
           const data = res.data;
           const master = data.master || data.Master;
           const proposals = data.proposals || data.Proposals;
-          this.loadForm(master, proposals);
+          const passengers = data.passengers || data.Passengers || [];
+          this.loadForm(master, proposals, passengers);
         }
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -155,16 +167,16 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
     });
   }
 
-  private loadForm(master: any, proposals: any[]): void {
+  private loadForm(master: any, proposals: any[], passengers: any[]): void {
     this.validateForm.patchValue({
       ID: this.isCopy ? 0 : (master.ID ?? 0),
       EmployeeRequestID: master.EmployeeRequestID ?? null,
-      EmployeeIDs: [master.EmployeeID], // In edit mode, usually editing one record
       ProjectID: master.ProjectID ?? null,
       DepartureAddress: master.DepartureAddress ?? '',
       ArrivesAddress: master.ArrivesAddress ?? '',
       Reason: master.Reason ?? '',
       Note: master.Note ?? '',
+      IsRoundTrip: master.IsRoundTrip ?? false,
       ApproveID: (proposals && proposals.length > 0) ? proposals[0].ApproveID : null
     });
 
@@ -182,15 +194,38 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
     } else {
       this.addProposal();
     }
+
+    // Clear and load passengers
+    while (this.passengers.length) {
+      this.passengers.removeAt(0);
+    }
+    if (passengers && passengers.length > 0) {
+      passengers.forEach(pass => {
+        if (this.isCopy) {
+          pass = { ...pass, ID: 0, id: 0 };
+        }
+        this.addPassenger(pass);
+      });
+    } else {
+      this.addPassenger();
+    }
+
+    this.updateRoundTripValidators(master.IsRoundTrip ?? false);
     this.cdr.detectChanges();
   }
 
   addProposal(data?: any): void {
+    const isRoundTrip = this.validateForm.get('IsRoundTrip')?.value ?? false;
     const proposalGroup = this.fb.group({
       ID: this.fb.control(data?.ID ?? data?.id ?? 0),
       DepartureDate: this.fb.control(this.formatDateForInput(data?.DepartureDate ?? data?.departureDate ?? new Date()), [Validators.required]),
       DepartureTimeHour: this.fb.control(data?.DepartureTime || data?.departureTime ? String(new Date(data?.DepartureTime || data?.departureTime).getHours()).padStart(2, '0') : '08', [Validators.required]),
       DepartureTimeMinute: this.fb.control(data?.DepartureTime || data?.departureTime ? String(new Date(data?.DepartureTime || data?.departureTime).getMinutes()).padStart(2, '0') : '00', [Validators.required]),
+      
+      ReturnDate: this.fb.control(this.formatDateForInput(data?.ReturnDate ?? data?.returnDate ?? ''), isRoundTrip ? [Validators.required] : []),
+      ReturnTimeHour: this.fb.control(data?.ReturnTime || data?.returnTime ? String(new Date(data?.ReturnTime || data?.returnTime).getHours()).padStart(2, '0') : '08', isRoundTrip ? [Validators.required] : []),
+      ReturnTimeMinute: this.fb.control(data?.ReturnTime || data?.returnTime ? String(new Date(data?.ReturnTime || data?.returnTime).getMinutes()).padStart(2, '0') : '00', isRoundTrip ? [Validators.required] : []),
+
       Airline: this.fb.control(data?.Airline ?? data?.airline ?? '', [Validators.required]),
       Price: this.fb.control(data?.Price ?? data?.price ?? 0, [Validators.required]),
       Baggage: this.fb.control(data?.Baggage ?? data?.baggage ?? ''),
@@ -200,6 +235,78 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
     });
     this.proposals.push(proposalGroup);
     this.cdr.detectChanges();
+  }
+
+  addPassenger(data?: any): void {
+    const type = data?.Type ?? data?.type ?? 1;
+    const group = this.fb.group({
+      ID: this.fb.control(data?.ID ?? data?.id ?? 0),
+      Type: this.fb.control(type, [Validators.required]),
+      EmployeeID: this.fb.control<number | null>(data?.EmployeeID ?? data?.employeeID ?? null),
+      FullName: this.fb.control(data?.FullName ?? data?.fullName ?? '', [Validators.required])
+    });
+
+    // Subscriptions for dynamics
+    group.get('Type')?.valueChanges.subscribe(typeVal => {
+      const empIdCtrl = group.get('EmployeeID');
+      const nameCtrl = group.get('FullName');
+      if (typeVal === 1) {
+        empIdCtrl?.setValidators([Validators.required]);
+        nameCtrl?.disable();
+      } else {
+        empIdCtrl?.clearValidators();
+        empIdCtrl?.setValue(null);
+        nameCtrl?.enable();
+      }
+      empIdCtrl?.updateValueAndValidity();
+      nameCtrl?.updateValueAndValidity();
+    });
+
+    group.get('EmployeeID')?.valueChanges.subscribe(empId => {
+      if (group.get('Type')?.value === 1 && empId) {
+        const emp = this.employees.find(e => e.ID === empId);
+        if (emp) {
+          group.get('FullName')?.setValue(emp.FullName);
+        }
+      }
+    });
+
+    if (type === 1) {
+      group.get('EmployeeID')?.setValidators([Validators.required]);
+      group.get('FullName')?.disable();
+    }
+
+    this.passengers.push(group);
+    this.cdr.detectChanges();
+  }
+
+  removePassenger(index: number): void {
+    if (this.passengers.length > 1) {
+      this.passengers.removeAt(index);
+    } else {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Cần ít nhất một người đi');
+    }
+  }
+
+  updateRoundTripValidators(isRoundTrip: boolean): void {
+    this.proposals.controls.forEach((group: any) => {
+      const returnDateCtrl = group.get('ReturnDate');
+      const returnTimeHourCtrl = group.get('ReturnTimeHour');
+      const returnTimeMinuteCtrl = group.get('ReturnTimeMinute');
+      
+      if (isRoundTrip) {
+        returnDateCtrl?.setValidators([Validators.required]);
+        returnTimeHourCtrl?.setValidators([Validators.required]);
+        returnTimeMinuteCtrl?.setValidators([Validators.required]);
+      } else {
+        returnDateCtrl?.clearValidators();
+        returnTimeHourCtrl?.clearValidators();
+        returnTimeMinuteCtrl?.clearValidators();
+      }
+      returnDateCtrl?.updateValueAndValidity();
+      returnTimeHourCtrl?.updateValueAndValidity();
+      returnTimeMinuteCtrl?.updateValueAndValidity();
+    });
   }
 
   removeProposal(index: number): void {
@@ -301,6 +408,7 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
     ));
   }
 
+
   onSubmit(): void {
     if (this.validateForm.invalid) {
       Object.keys(this.validateForm.controls).forEach(key => {
@@ -317,12 +425,21 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
         });
       });
 
+      // Mark passengers as touched
+      this.passengers.controls.forEach((group: any) => {
+        Object.keys(group.controls).forEach(k => {
+          group.get(k).markAsTouched();
+          group.get(k).updateValueAndValidity();
+        });
+      });
+
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ các thông tin bắt buộc');
       return;
     }
 
     this.isSaving = true;
     const formData = this.validateForm.getRawValue();
+    const isRoundTrip = formData.IsRoundTrip;
 
     const formattedProposals = formData.Proposals.map((p: any) => {
       let departureTimeStr = '';
@@ -332,9 +449,22 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
         const pad = (n: number) => String(n).padStart(2, '0');
         departureTimeStr = `${dTime.getFullYear()}-${pad(dTime.getMonth() + 1)}-${pad(dTime.getDate())}T${pad(dTime.getHours())}:${pad(dTime.getMinutes())}:${pad(dTime.getSeconds())}`;
       }
+
+      let returnTimeStr = '';
+      let returnDateStr = '';
+      if (isRoundTrip && p.ReturnDate) {
+        const [year, month, day] = p.ReturnDate.split('-').map(Number);
+        const rTime = new Date(year, month - 1, day, +(p.ReturnTimeHour || '00'), +(p.ReturnTimeMinute || '00'), 0);
+        const pad = (n: number) => String(n).padStart(2, '0');
+        returnTimeStr = `${rTime.getFullYear()}-${pad(rTime.getMonth() + 1)}-${pad(rTime.getDate())}T${pad(rTime.getHours())}:${pad(rTime.getMinutes())}:${pad(rTime.getSeconds())}`;
+        returnDateStr = p.ReturnDate;
+      }
+
       return {
         ...p,
         DepartureTime: departureTimeStr,
+        ReturnDate: returnDateStr ? returnDateStr : null,
+        ReturnTime: returnTimeStr ? returnTimeStr : null,
         ApproveID: formData.ApproveID
       };
     });
@@ -347,8 +477,12 @@ export class FlightBookingFormComponent implements OnInit, OnChanges {
       DepartureAddress: formData.DepartureAddress,
       ArrivesAddress: formData.ArrivesAddress,
       Note: formData.Note,
-      TravelerIDs: formData.EmployeeIDs,
-      Proposals: formattedProposals as any
+      TravelerIDs: (formData.Passengers as FlightBookingPassenger[])
+        .filter(p => p.Type === 1 && p.EmployeeID)
+        .map(p => p.EmployeeID as number),
+      Passengers: formData.Passengers as FlightBookingPassenger[],
+      Proposals: formattedProposals as any,
+      IsRoundTrip: formData.IsRoundTrip
     };
 
     this.service.saveData(body).subscribe({

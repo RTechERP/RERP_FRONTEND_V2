@@ -1,0 +1,12 @@
+:host {
+    display: block;
+    font-size: 12px !important;
+}
+
+:host ::ng-deep * {
+    font-size: 12px !important;
+}
+
+.fs-12 {
+    font-size: 12px !important;
+}

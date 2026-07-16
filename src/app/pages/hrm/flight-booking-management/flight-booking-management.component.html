@@ -186,11 +186,13 @@
                   <th style="width: 50px; text-align: center;">STT</th>
                   <th pSortableColumn="RequesterName" style="width: 180px;">Người yêu cầu <p-sortIcon
                       field="RequesterName"></p-sortIcon></th>
-                  <th pSortableColumn="PassengerName" style="width: 180px;">Nhân viên <p-sortIcon
+                  <th pSortableColumn="PassengerName" style="width: 180px;">Người đi / Hành khách <p-sortIcon
                       field="PassengerName"></p-sortIcon></th>
                   <th pSortableColumn="ProjectName" style="width: 180px;">Dự án <p-sortIcon
                       field="ProjectName"></p-sortIcon>
                   </th>
+                  <th pSortableColumn="IsRoundTrip" style="width: 90px; text-align: center;">Khứ hồi <p-sortIcon
+                      field="IsRoundTrip"></p-sortIcon></th>
                   <th pSortableColumn="DepartureAddress" style="width: 140px;">Điểm đi <p-sortIcon
                       field="DepartureAddress"></p-sortIcon></th>
                   <th pSortableColumn="ArrivesAddress" style="width: 140px;">Điểm đến <p-sortIcon
@@ -208,6 +210,7 @@
                       class="w-100" placeholder="Lọc..."></p-columnFilter></th>
                   <th><p-columnFilter type="text" field="ProjectName" matchMode="contains" [showMenu]="false"
                       class="w-100" placeholder="Lọc..."></p-columnFilter></th>
+                  <th style="text-align: center;"></th>
                   <th><p-columnFilter type="text" field="DepartureAddress" matchMode="contains" [showMenu]="false"
                       class="w-100" placeholder="Lọc..."></p-columnFilter></th>
                   <th><p-columnFilter type="text" field="ArrivesAddress" matchMode="contains" [showMenu]="false"
@@ -226,8 +229,13 @@
                   </td>
                   <td style="text-align: center;">{{ (dt.first ?? 0) + rowIndex + 1 }}</td>
                   <td>{{ item.RequesterName }}</td>
-                  <td>{{ item.PassengerName }}</td>
+                  <td>
+                    <div style="white-space: pre-line;">{{ item.PassengerName ? item.PassengerName.split(', ').join('\n') : '' }}</div>
+                  </td>
                   <td>{{ item.ProjectName }}</td>
+                  <td style="text-align: center;">
+                    <label nz-checkbox [ngModel]="item.IsRoundTrip" nzDisabled></label>
+                  </td>
                   <td>{{ item.DepartureAddress }}</td>
                   <td>{{ item.ArrivesAddress }}</td>
                   <td>{{ item.Reason }}</td>
@@ -237,7 +245,7 @@
 
               <ng-template pTemplate="emptymessage">
                 <tr>
-                  <td colspan="9" style="text-align: center; padding: 20px; color: #8c8c8c;">
+                  <td colspan="10" style="text-align: center; padding: 20px; color: #8c8c8c;">
                     <span nz-icon nzType="inbox" style="font-size: 24px; display: block; margin-bottom: 8px;"></span>
                     Không có dữ liệu
                   </td>
@@ -246,7 +254,7 @@
 
               <ng-template pTemplate="footer">
                 <tr *ngIf="allBookings().length > 0">
-                  <td colspan="9" class="footer-summary"
+                  <td colspan="10" class="footer-summary"
                     style="background: #f8f9fa; font-weight: 600; padding: 8px 16px;">
                     Tổng cộng: <span class="text-primary">{{ totalRecords() }}</span> bản ghi
                   </td>
@@ -271,6 +279,8 @@
                         <th style="width: 150px; text-align: center;">Hãng hàng không</th>
                         <th style="width: 110px; text-align: center;">Ngày đi</th>
                         <th style="width: 90px; text-align: center;">Giờ đi</th>
+                        <th style="width: 110px; text-align: center;">Ngày về</th>
+                        <th style="width: 90px; text-align: center;">Giờ về</th>
                         <th style="width: 120px; text-align: center;">Giá vé (VND)</th>
                         <th style="width: 150px; text-align: center;">Hành lý</th>
                         <th style="width: 100px; text-align: center;">HCNS đề xuất</th>
@@ -300,6 +310,8 @@
                         <td>{{ p.Airline }}</td>
                         <td style="text-align: center;">{{ formatDate(p.DepartureDate) }}</td>
                         <td style="text-align: center;">{{ p.DepartureTime | date: 'HH:mm' }}</td>
+                        <td style="text-align: center;">{{ p.ReturnDate ? formatDate(p.ReturnDate) : '-' }}</td>
+                        <td style="text-align: center;">{{ p.ReturnTime ? (p.ReturnTime | date: 'HH:mm') : '-' }}</td>
                         <td style="text-align: right; font-weight: 600; color: #f5222d;">
                           {{ p.Price | number:'1.0-0':'vi-VN' }}
                         </td>
@@ -318,7 +330,7 @@
                     </ng-template>
                     <ng-template pTemplate="emptymessage">
                       <tr>
-                        <td colspan="9" class="text-center p-4 text-muted">
+                        <td colspan="11" class="text-center p-4 text-muted">
                           <i nz-icon nzType="info-circle" nzTheme="outline" class="me-2"></i>
                           {{ selectedBookings.length > 0 ? 'Yêu cầu chưa có phương án bay nào.' : 'Vui lòng chọn yêu cầu
                           để xem chi tiết phương án.' }}

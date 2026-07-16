@@ -241,13 +241,16 @@
                             <!-- NLĐ: input -->
                             <td class="text-center" [class.row-error]="isRowInvalid(it)">
                                 <ng-container *ngIf="canHrCreate; else nldDisplay">
-                                    <input type="number" min="0" max="100" class="score-input" [(ngModel)]="it.nldScore"
-                                        [id]="'nld-score-' + i"
-                                        (keydown.arrowdown)="moveFocus($any($event), i, 'down', 'nld')"
-                                        (keydown.arrowup)="moveFocus($any($event), i, 'up', 'nld')"
-                                        (blur)="clampScore(it, 'nld')"
-                                        [class.score-invalid]="it.nldScore !== null && it.nldScore !== undefined && (it.nldScore < 0 || it.nldScore > 100)"
-                                        placeholder="-" />
+                                    <div class="score-input-wrap">
+                                        <input type="number" min="0" max="100" class="score-input"
+                                            [(ngModel)]="it.nldScore" [id]="'nld-score-' + i"
+                                            (keydown.arrowdown)="moveFocus($any($event), i, 'down', 'nld')"
+                                            (keydown.arrowup)="moveFocus($any($event), i, 'up', 'nld')"
+                                            (blur)="clampScore(it, 'nld')"
+                                            [class.score-invalid]="it.nldScore !== null && it.nldScore !== undefined && (it.nldScore < 0 || it.nldScore > 100)"
+                                            placeholder="-" />
+                                        <span class="score-pct-suffix">%</span>
+                                    </div>
                                 </ng-container>
                                 <ng-template #nldDisplay>
                                     <span class="score-readonly">
@@ -264,13 +267,16 @@
                             <!-- TBP: input -->
                             <td class="text-center" [class.row-error]="isRowInvalid(it)">
                                 <ng-container *ngIf="canEditTBPScores; else tbpDisplay">
-                                    <input type="number" min="0" max="100" class="score-input" [(ngModel)]="it.tbpScore"
-                                        [id]="'tbp-score-' + i"
-                                        (keydown.arrowdown)="moveFocus($any($event), i, 'down', 'tbp')"
-                                        (keydown.arrowup)="moveFocus($any($event), i, 'up', 'tbp')"
-                                        (blur)="clampScore(it, 'tbp')"
-                                        [class.score-invalid]="it.tbpScore !== null && it.tbpScore !== undefined && (it.tbpScore < 0 || it.tbpScore > 100)"
-                                        placeholder="–" />
+                                    <div class="score-input-wrap">
+                                        <input type="number" min="0" max="100" class="score-input"
+                                            [(ngModel)]="it.tbpScore" [id]="'tbp-score-' + i"
+                                            (keydown.arrowdown)="moveFocus($any($event), i, 'down', 'tbp')"
+                                            (keydown.arrowup)="moveFocus($any($event), i, 'up', 'tbp')"
+                                            (blur)="clampScore(it, 'tbp')"
+                                            [class.score-invalid]="it.tbpScore !== null && it.tbpScore !== undefined && (it.tbpScore < 0 || it.tbpScore > 100)"
+                                            placeholder="–" />
+                                        <span class="score-pct-suffix">%</span>
+                                    </div>
                                 </ng-container>
                                 <ng-template #tbpDisplay>
                                     <span class="score-readonly">

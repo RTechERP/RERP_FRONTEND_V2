@@ -213,11 +213,14 @@
                             <!-- NLĐ: Employee có thể nhập hoặc chỉ xem -->
                             <td class="text-center" [class.row-error]="isRowInvalid(it)">
                                 <ng-container *ngIf="canEditNLDScores; else nldDisplay">
-                                    <input type="number" min="0" max="100" class="score-input" [(ngModel)]="it.nldScore"
-                                        [id]="'nld-score-' + i" (keydown.arrowdown)="moveFocus($any($event), i, 'down')"
-                                        (keydown.arrowup)="moveFocus($any($event), i, 'up')" (blur)="clampScore(it)"
-                                        [class.score-invalid]="it.nldScore !== null && it.nldScore !== undefined && (it.nldScore < 0 || it.nldScore > 100)"
-                                        placeholder="-" />
+                                    <div class="score-input-wrap">
+                                        <input type="number" min="0" max="100" class="score-input" [(ngModel)]="it.nldScore"
+                                            [id]="'nld-score-' + i" (keydown.arrowdown)="moveFocus($any($event), i, 'down')"
+                                            (keydown.arrowup)="moveFocus($any($event), i, 'up')" (blur)="clampScore(it)"
+                                            [class.score-invalid]="it.nldScore !== null && it.nldScore !== undefined && (it.nldScore < 0 || it.nldScore > 100)"
+                                            placeholder="-" />
+                                        <span class="score-pct-suffix">%</span>
+                                    </div>
                                 </ng-container>
                                 <ng-template #nldDisplay>
                                     <span class="score-readonly">

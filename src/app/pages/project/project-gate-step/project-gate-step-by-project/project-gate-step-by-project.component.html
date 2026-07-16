@@ -1,3 +1,5 @@
+<p-contextMenu #cm [model]="contextMenuItems" [baseZIndex]="99999"></p-contextMenu>
+
 <div class="d-flex flex-column w-100" style="font-size: 12px !important; height:94vh !important;">
 
 
@@ -96,7 +98,12 @@
               <th style="width: 180px;" class="text-center">Phòng ban</th>
               <th style="width: 320px;" class="text-center">Nội dung công việc</th>
               <th style="width: 180px;" class="text-center">Vị trí/PIC</th>
-              <th style="width: 250px;" class="text-center">Checklist/Output bắt buộc</th>
+              <th style="width: 180px;" class="text-center">Phòng ban thực tế</th>
+              <th style="width: 320px;" class="text-center">Nội dung thực tế</th>
+              <th style="width: 180px;" class="text-center">Vị trí thực tế</th>
+              <th style="width: 200px;" class="text-center">Đường dẫn</th>
+              <th style="width: 220px;" class="text-center">File đính kèm</th>
+
               <th style="width: 120px;" class="text-center">Ngày bắt đầu</th>
               <th style="width: 80px;" class="text-center">Repeat</th>
               <th style="width: 80px;" class="text-center">Số người</th>
@@ -111,14 +118,14 @@
           <ng-template pTemplate="groupheader" let-item>
             @if (isFirstSubgroupOfMachine(activeProjectTypeId + '_' + activeDepartmentId, item)) {
             <tr class="machine-group-header">
-              <td colspan="16" class="fw-bold text-primary px-3 py-2 text-start"
+              <td colspan="20" class="fw-bold text-primary px-3 py-2 text-start"
                 style="font-size: 12px !important; font-weight: 800 !important; background-color: #e6f7ff !important; color: #0050b3 !important; border: 1px solid #dee2e6 !important;">
                 {{ getMachineHeaderName(item) }}
               </td>
             </tr>
             }
             <tr pRowGroupHeader class="row-group-header">
-              <td colspan="13" class="bg-light fw-bold text-primary px-3 py-1 text-start" style="font-size: 12px;">
+              <td colspan="17" class="bg-light fw-bold text-primary px-3 py-1 text-start" style="font-size: 12px;">
                 {{ getSubgroupHeaderName(item) }}
               </td>
               <td class="bg-light fw-bold text-primary text-center px-1 py-1" style="width: 100px; font-size: 12px;">
@@ -134,7 +141,8 @@
           </ng-template>
 
           <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
-            <tr class="body-row">
+            <tr class="body-row" [class.passed-step]="isStepPassed(item)"
+              (contextmenu)="onRowContextMenu($event, item)">
               <td class="text-center" style="width: 60px;">
                 <button nz-button nzType="text" nzDanger
                   (click)="removeStep(activeProjectTypeId + '_' + activeDepartmentId, item.ID)"
@@ -162,10 +170,36 @@
                 }
               </td>
               <td style="width: 180px; white-space: pre-wrap;">{{ item.isNew ? '' : item.DepartmentNames }}</td>
-              <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content
-                }}</td>
+              <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content }}</td>
               <td style="width: 180px; white-space: pre-wrap;">{{ item.isNew ? '' : item.PositionNames }}</td>
-              <td style="width: 250px; white-space: pre-wrap;">{{ item.isNew ? '' : item.CheckListNames }}</td>
+              <td style="width: 180px; white-space: pre-wrap;">{{ item.isNew ? '' : item.DepartmentNames }}</td>
+              <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content }}</td>
+              <td style="width: 180px; white-space: pre-wrap;">{{ item.isNew ? '' : item.PositionNames }}</td>
+              <!-- Cột Đường dẫn -->
+              <td style="width: 200px; font-size: 11px; word-break: break-all;">
+                @if (!item.isNew && item.CheckLists && item.CheckLists.length > 0) {
+                @for (cl of item.CheckLists; track cl.ProjectGateStepCheckListID) {
+                @if (cl.PathFolder) {
+                <div class="text-muted" style="line-height: 1.4; padding: 1px 0;" [title]="cl.PathFolder">
+                  <i class="fa-solid fa-folder-open text-warning me-1" style="font-size: 10px;"></i>
+                  {{ cl.PathFolder }}
+                </div>
+                }
+                }
+                }
+              </td>
+              <!-- Cột File đính kèm -->
+              <td style="width: 220px; font-size: 11px; text-align: center;">
+                @if (!item.isNew && item.CheckLists && item.CheckLists.length > 0) {
+                <div style="height: 20px; display: flex; align-items: center; justify-content: center;">
+                  <button nz-button nzType="link" nzSize="small" (click)="openFileListModal(item)"
+                    class="p-0 d-inline-flex align-items-center" [class.text-muted]="getStepFilesCount(item) === 0">
+                    <i class="fa-solid me-1" [class.fa-paperclip]="getStepFilesCount(item) > 0" [class.fa-arrow-up-from-bracket]="getStepFilesCount(item) === 0"></i>
+                    {{ getStepFilesCount(item) > 0 ? 'Xem thêm (' + getStepFilesCount(item) + ')' : 'Tải lên' }}
+                  </button>
+                </div>
+                }
+              </td>
               <td style="width: 120px; text-align: center;">
                 <input type="date" nz-input nzSize="small" class="text-center w-100 input-date" style="font-size: 12px;"
                   [(ngModel)]="item.StartDate"
@@ -216,7 +250,7 @@
 
           <ng-template pTemplate="footer">
             <tr class="fw-bold bg-light footer-row">
-              <td colspan="13" class="text-end pe-3" style="font-size: 12px;">Tổng cộng:</td>
+              <td colspan="17" class="text-end pe-3" style="font-size: 12px;">Tổng cộng:</td>
               <td style="width: 100px; text-align: center; font-size: 12px;">
                 {{ getTotalEffort(activeProjectTypeId + '_' + activeDepartmentId) | number:'1.0-2' }}
               </td>
@@ -230,7 +264,7 @@
 
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="16" class="text-center p-3 text-muted">Không có dữ liệu</td>
+              <td colspan="20" class="text-center p-3 text-muted">Không có dữ liệu</td>
             </tr>
           </ng-template>
         </p-table>

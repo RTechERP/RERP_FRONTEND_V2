@@ -68,8 +68,10 @@ import { EmployeeTeamComponent } from './pages/hrm/employee/employee-team/employ
 import { SummaryEmployeeComponent } from './pages/hrm/employee/summary-employee/summary-employee.component';
 import { FilmManagementComponent } from './pages/hrm/film-management/film-management.component';
 import { HandoverComponent } from './pages/hrm/handover/handover.component';
+import { ProjectGateStepManagementComponent } from './pages/project/project-gate-step/project-gate-step-management/project-gate-step-management.component';
+import { ProjectGateStepByProjectComponent } from './pages/project/project-gate-step/project-gate-step-by-project/project-gate-step-by-project.component';
 //import { HandoverNewComponent } from './pages/hrm/handover/handover-new/handover-new.component';
-
+import { ProjectGateManagementComponent } from './pages/project/project-gate/project-gate-management/project-gate-management.component';
 import { HolidayComponent } from './pages/hrm/holiday/holiday.component';
 import { HrPurchaseProposalComponent } from './pages/hrm/hr-purchase-proposal/hr-purchase-proposal.component';
 import { HrhiringRequestComponent } from './pages/hrm/hr-recruitment/hrhiring-request/hrhiring-request.component';
@@ -186,6 +188,7 @@ import { SearchProductTechSerialComponent } from './pages/old/Technical/search-p
 // import { InventoryNewComponent } from './pages/old/Sale/Inventory/inventory-new/inventory-new.component';
 // import { BillImportTechnicalNewComponent } from './pages/old/bill-import-technical/bill-import-technical-new/bill-import-technical-new.component';
 import { VehicleRepairTypeComponent } from './pages/hrm/vehicle/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
+
 import { OfficeSupplyUnitComponent } from './pages/hrm/office-supply/OfficeSupplyUnit/office-supply-unit.component';
 import { ProjectItemPersonComponent } from './pages/project/project-item-person/project-item-person.component';
 import { DailyReportMarComponent } from './pages/daily-report-mar/daily-report-mar.component';
@@ -407,9 +410,13 @@ import { TeamEmployeeProjectComponent } from './pages/project/team-employee-proj
 import { OrgChartRtcNewComponent } from './pages/hrm/org-chart-rtc/org-chart-rtc-new/org-chart-rtc-new.component';
 import { VehicleRentalRequestComponent } from './pages/hrm/vehicle/vehicle-retal-request/vehicle-rental-request.component';
 import { VisaRequestComponent } from './pages/hrm/visa-request/visa-request.component';
-import { InventoryNotExportComponent } from './pages/old/Sale/Inventory/inventory-not-export/inventory-not-export.component';
 import { ContractTransferReviewTbpComponent } from './pages/hrm/contract-transfer-review/contract-transfer-review-tbp/contract-transfer-review-tbp.component';
 import { ContractTransferReviewBgdComponent } from './pages/hrm/contract-transfer-review/contract-transfer-review-bgd/contract-transfer-review-bgd.component';
+import { EmployeeOnleavePersonComponent } from './pages/hrm/day-off/employee-onleave-person/employee-onleave-person.component';
+import { FoodOrderPersonalComponent } from './pages/hrm/food-order/food-order-personal/food-order-personal.component';
+import { EarlyLatePersonComponent } from './pages/hrm/early-late/early-late-person/early-late-person.component';
+import { InventoryNotExportComponent } from './pages/old/Sale/Inventory/inventory-not-export/inventory-not-export.component';
+import { ProjectTypeDepartmentComponent } from './pages/project/project-gate/project-type-department/project-type-department.component';
 export const routes: Routes = [
 
   {
@@ -623,6 +630,7 @@ export const routes: Routes = [
       { path: 'accounting-contract', component: AccountingContractComponent, canActivate: [authGuard] },
       //{ path: 'payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
       { path: 'person-day-off', component: PersonDayOffComponent, canActivate: [authGuard] },
+      { path: 'employee-on-leave-person', component: EmployeeOnleavePersonComponent, canActivate: [authGuard] },
       { path: 'early-late-summary', component: EarlyLateSummaryComponent, canActivate: [authGuard] },
       { path: 'wfh-summary', component: WFHSummaryComponent, canActivate: [authGuard] },
       { path: 'employee-no-finger-summary', component: EmployeeNoFingerSummaryComponent, canActivate: [authGuard] },
@@ -650,6 +658,7 @@ export const routes: Routes = [
 
       { path: 'project-partlist', component: ProjectPartListComponent, canActivate: [authGuard] },
       { path: 'org-chart-rtc', component: OrgChartRtcComponent, canActivate: [authGuard] },
+      { path: 'org-chart-rtc-new', component: OrgChartRtcNewComponent, canActivate: [authGuard] },
       { path: 'org-chart-rtc-management', component: OrgChartRtcManagementComponent, canActivate: [authGuard] },
       { path: 'economic-contract-term', component: EconimicContractTermComponent, canActivate: [authGuard] },
       { path: 'economic-contract-type', component: EconomicContractTypeComponent, canActivate: [authGuard] },
@@ -676,13 +685,9 @@ export const routes: Routes = [
       { path: 'bgd-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
       { path: 'bgd-job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
       { path: 'bgd-project-partlist-purchase-request', component: ProjectPartListPurchaseRequestSlickGridComponent, canActivate: [authGuard] },
-
       { path: 'sale-payment-order', component: PaymentOrderComponent, canActivate: [authGuard] },
       { path: 'tbp-approve', component: ApproveTpComponent, canActivate: [authGuard] },
       { path: 'senior-approve', component: ApproveTpComponent, canActivate: [authGuard] },
-
-
-
       //Tổng hợp công
       { path: 'person-dayoff', component: PersonDayOffComponent, canActivate: [authGuard] },
       { path: 'early-late-summary', component: EarlyLateSummaryComponent, canActivate: [authGuard] },
@@ -691,12 +696,12 @@ export const routes: Routes = [
       { path: 'overtime-summary', component: OverTimeSummaryPersonComponent, canActivate: [authGuard] },
       { path: 'bussiness-summary', component: EmployeeBussinessPersonSummaryComponent, canActivate: [authGuard] },
       { path: 'nightshift-summary', component: EmployeeNightShiftPersonSummaryComponent, canActivate: [authGuard] },
-
-
       //đăng ký công
       { path: 'food-order', component: FoodOrderComponent, canActivate: [authGuard] },
+      { path: 'food-order-personal', component: FoodOrderPersonalComponent, canActivate: [authGuard] },
       { path: 'dayoff', component: DayOffComponent, canActivate: [authGuard] },
       { path: 'early-late', component: EarlyLateComponent, canActivate: [authGuard] },
+      { path: 'early-late-person', component: EarlyLatePersonComponent, canActivate: [authGuard] },
       { path: 'overtime', component: OverTimePersonComponent, canActivate: [authGuard] },
       { path: 'bussiness', component: EmployeeRegisterBussinessComponent, canActivate: [authGuard] },
       { path: 'nightshift', component: EmployeeNightShiftComponent, canActivate: [authGuard] },
@@ -705,13 +710,13 @@ export const routes: Routes = [
       { path: 'person-summary', component: SummaryEmployeeComponent, canActivate: [authGuard] },
       { path: 'person-summary-payroll', component: EmployeeSyntheticPersonalComponent, canActivate: [authGuard] },
       { path: 'personal-information', component: PersonalInfomationComponent, canActivate: [authGuard] },
-
-
       //Đăng ký chung
       { path: 'booking-room', component: BookingRoomComponent, canActivate: [authGuard] },
       { path: 'tracking-mark', component: TrackingMarksComponent, canActivate: [authGuard] },
       { path: 'booking-vehicle', component: VehicleBookingManagementSlickgridComponent, canActivate: [authGuard] },
       { path: 'booking-vehicle-backup', component: VehicleBookingManagementComponent, canActivate: [authGuard] },
+      { path: 'vehicle-rental-request', component: VehicleRentalRequestComponent, canActivate: [authGuard] },
+
       { path: 'payment-order', component: PaymentOrderEmployeeComponent, canActivate: [authGuard] },
       { path: 'payment-order-special', component: PaymentOrderEmployeeComponent, canActivate: [authGuard] },
       { path: 'job-requirement', component: JobRequirementComponent, canActivate: [authGuard] },
@@ -809,6 +814,8 @@ export const routes: Routes = [
       { path: 'project-item-person', component: ProjectItemPersonComponent, canActivate: [authGuard] },
       { path: 'summary-project-join', component: SummaryProjectJoinComponent, canActivate: [authGuard] },
       { path: 'project-part-list', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
+      { path: 'project-gate-step-by-project', component: ProjectGateStepByProjectComponent, canActivate: [authGuard] },
+      { path: 'project-gate-step-by-project/:id', component: ProjectGateStepByProjectComponent, canActivate: [authGuard] },
       //{ path: 'project-worker', component: ProjectWokerSlickGridComponent, canActivate: [authGuard] },
       { path: 'project-task-setting', component: ProjectTaskSettingComponent, canActivate: [authGuard] },
       { path: 'project-task-time-line-project', component: ProjectTaskTimeLineProjectComponent, canActivate: [authGuard] },
@@ -1335,7 +1342,6 @@ export const routes: Routes = [
       { path: 'esl-config', component: EslConfigComponent, canActivate: [authGuard] },
       { path: 'esl-test-registration', component: EslTestRegistrationComponent, canActivate: [authGuard] },
       //KPISALE
-      { path: 'kpi-sale-v2', component: KpiSaleV2Component, canActivate: [authGuard] },
       { path: 'kpi-template-index-tab', component: KpiTemplateIndexTabComponent, canActivate: [authGuard] },
       { path: 'kpi-period-tab', component: KpiPeriodTabComponent, canActivate: [authGuard] },
       { path: 'kpi-mapping-tab', component: KpiMappingTabComponent, canActivate: [authGuard] },
@@ -1350,7 +1356,9 @@ export const routes: Routes = [
       { path: 'vehicle-rental-request', component: VehicleRentalRequestComponent, canActivate: [authGuard] },
       { path: 'business-visa-request', component: VisaRequestComponent, canActivate: [authGuard] },
       { path: 'inventory-not-export', component: InventoryNotExportComponent, canActivate: [authGuard] },
-
+      { path: 'project-gate-step', component: ProjectGateStepManagementComponent, canActivate: [authGuard] },
+      { path: 'project-gate', component: ProjectGateManagementComponent, canActivate: [authGuard] },
+      { path: 'project-type-department', component: ProjectTypeDepartmentComponent, canActivate: [authGuard] },
     ],
   },
 ];

@@ -28,12 +28,14 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 })
 export class ProjectGateStepFilesModalComponent implements OnInit {
   @Input() checklistLink!: any; // CheckListLinkDto
+  @Input() checklists: any[] = []; // List of checklists
   @Input() gateCode: string = '';
   @Input() gateName: string = '';
 
   selectedFileIds = new Set<number>();
   allChecked = false;
   indeterminate = false;
+  checklistDetails: any[] = [];
 
   constructor(
     public activeModal: NgbActiveModal,
@@ -44,11 +46,46 @@ export class ProjectGateStepFilesModalComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    if (this.checklistLink?.ID) {
-      this.loadFiles();
-    } else {
-      this.updateCheckedState();
+    if (this.checklists && this.checklists.length > 0) {
+      if (this.checklistLink) {
+        const found = this.checklists.find(c => c.ProjectGateStepCheckListID === this.checklistLink.ProjectGateStepCheckListID);
+        this.checklistLink = found || this.checklists[0];
+      } else {
+        this.checklistLink = this.checklists[0];
+      }
     }
+    this.loadChecklistDetails();
+    this.updateCheckedState();
+  }
+
+  onChecklistChange(cl: any): void {
+    this.checklistLink = cl;
+    this.selectedFileIds.clear();
+    this.allChecked = false;
+    this.indeterminate = false;
+    this.loadChecklistDetails();
+    this.updateCheckedState();
+  }
+
+  loadChecklistDetails(): void {
+    const checklistId = this.checklistLink?.ProjectGateStepCheckListID;
+    if (!checklistId) {
+      this.checklistDetails = [];
+      return;
+    }
+    this.projectGateStepService.getCheckListDetailsOnly(checklistId).subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          this.checklistDetails = res.data || [];
+        } else {
+          this.checklistDetails = [];
+        }
+      },
+      error: (err: any) => {
+        console.error('Lỗi tải quy tắc file:', err);
+        this.checklistDetails = [];
+      }
+    });
   }
 
   loadFiles(): void {

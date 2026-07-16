@@ -1,7 +1,7 @@
-import { Component, Input, OnInit, Optional, Inject } from '@angular/core';
+import { Component, Input, OnInit, Optional, Inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -15,7 +15,8 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem, TreeNode } from 'primeng/api';
-import { combineLatest } from 'rxjs';
+import { ContextMenuModule } from 'primeng/contextmenu';
+import { combineLatest, forkJoin, Observable } from 'rxjs';
 import { DateTime } from 'luxon';
 import { finalize } from 'rxjs/operators';
 
@@ -25,6 +26,8 @@ import { AuthService } from '../../../../auth/auth.service';
 import { ProjectTypeDepartmentService } from '../../project-gate/project-type-department/project-type-department.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { ProjectWorkerService } from '../../project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
+import { ProjectGateStepFilesModalComponent } from '../project-gate-step-files-modal/project-gate-step-files-modal.component';
 
 @Component({
   selector: 'app-project-gate-step-by-project',
@@ -41,13 +44,19 @@ import { TabServiceService } from '../../../../layouts/tab-service.service';
     CheckboxModule,
     ButtonModule,
     InputTextModule,
-    MenubarModule
+    MenubarModule,
+    ContextMenuModule,
+    ProjectGateStepFilesModalComponent
   ],
   templateUrl: './project-gate-step-by-project.component.html',
   styleUrls: ['./project-gate-step-by-project.component.css'],
   providers: [NzNotificationService, NzModalService]
 })
 export class ProjectGateStepByProjectComponent implements OnInit {
+  @ViewChild('cm') cm!: any;
+  contextMenuItems: MenuItem[] = [];
+  selectedStepForMenu: any = null;
+
   @Input() projectId!: number;
   @Input() projectCode!: string;
   @Input() projectName!: string;
@@ -103,7 +112,10 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     private projectService: ProjectService,
     private authService: AuthService,
     private notification: NzNotificationService,
-    private projectTypeDeptService: ProjectTypeDepartmentService
+    private projectTypeDeptService: ProjectTypeDepartmentService,
+    private projectWorkerService: ProjectWorkerService,
+    private modalService: NzModalService,
+    private ngbModal: NgbModal
   ) { }
 
   ngOnInit(): void {
@@ -352,6 +364,30 @@ export class ProjectGateStepByProjectComponent implements OnInit {
                 step.StartDate = originalItem.StartDate ? originalItem.StartDate.substring(0, 10) : null;
                 step.isRepeatChecked = !!repeatedItem;
 
+                if (originalItem.CheckLists && originalItem.CheckLists.length > 0) {
+                  step.CheckLists = (step.CheckLists || []).map((tc: any) => {
+                    const savedLink = originalItem.CheckLists.find((c: any) => c.ProjectGateStepCheckListID === tc.ID);
+                    if (savedLink) {
+                      return {
+                        ...savedLink,
+                        Description: tc.Description || savedLink.Description,
+                        IsRequired: tc.IsCheck || savedLink.IsRequired || tc.IsRequired,
+                        Type: tc.Type || savedLink.Type
+                      };
+                    }
+                    return {
+                      ID: 0,
+                      ProjectGateStepCheckListID: tc.ID,
+                      PathFolder: tc.PathFolder || '',
+                      IsPass: false,
+                      IsRequired: tc.IsCheck || tc.IsRequired,
+                      Description: tc.Description,
+                      Type: tc.Type,
+                      Files: []
+                    };
+                  });
+                }
+
                 if (originalItem.Workers && originalItem.Workers.length > 0) {
                   step.Workers = originalItem.Workers.map((w: any) => w.EmployeeID);
                   step.PeopleCount = originalItem.Workers.length;
@@ -398,6 +434,31 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
             if (repeatedStep && repeatedItem) {
               repeatedStep.StartDate = repeatedItem.StartDate ? repeatedItem.StartDate.substring(0, 10) : null;
+              
+              if (repeatedItem.CheckLists && repeatedItem.CheckLists.length > 0) {
+                repeatedStep.CheckLists = (repeatedStep.CheckLists || []).map((tc: any) => {
+                  const savedLink = repeatedItem.CheckLists.find((c: any) => c.ProjectGateStepCheckListID === tc.ID);
+                  if (savedLink) {
+                    return {
+                      ...savedLink,
+                      Description: tc.Description || savedLink.Description,
+                      IsRequired: tc.IsCheck || savedLink.IsRequired || tc.IsRequired,
+                      Type: tc.Type || savedLink.Type
+                    };
+                  }
+                  return {
+                    ID: 0,
+                    ProjectGateStepCheckListID: tc.ID,
+                    PathFolder: tc.PathFolder || '',
+                    IsPass: false,
+                    IsRequired: tc.IsCheck || tc.IsRequired,
+                    Description: tc.Description,
+                    Type: tc.Type,
+                    Files: []
+                  };
+                });
+              }
+
               if (repeatedItem.Workers && repeatedItem.Workers.length > 0) {
                 repeatedStep.Workers = repeatedItem.Workers.map((w: any) => w.EmployeeID);
                 repeatedStep.PeopleCount = repeatedItem.Workers.length;
@@ -1240,6 +1301,204 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     // Show all templates for this project type, regardless of which department group is active
     // A template for Vision should appear for ALL departments that have Vision
     return this.templates.filter(t => t.ProjectTypeID === this.activeProjectTypeId);
+  }
+
+  hasUploadFolder(item: any): boolean {
+    if (!item || !item.CheckLists) return false;
+    return item.CheckLists.some((c: any) => c.PathFolder && c.PathFolder.trim() !== '');
+  }
+
+  isStepPassed(item: any): boolean {
+    if (!item || !item.CheckLists || item.CheckLists.length === 0) return false;
+    return item.CheckLists.every((c: any) => c.IsPass === true);
+  }
+
+  getRelativeSubPath(pathFolder: string): string {
+    if (!pathFolder) return '';
+    const match = pathFolder.match(/[\\\/]projects[\\\/](.*)$/i);
+    if (match) {
+      return match[1];
+    }
+    return pathFolder.replace(/^\\\\192\.168\.1\.190\\duan\\projects\\/i, '')
+      .replace(/^\\\\192\.168\.1\.190\\duan\\/i, '')
+      .replace(/^\\+/g, '');
+  }
+
+  getFileIcon(contentType: string, fileName: string): string {
+    const ext = (fileName || '').split('.').pop()?.toLowerCase() || '';
+    const mime = (contentType || '').toLowerCase();
+
+    if (mime.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg'].includes(ext))
+      return 'fa-solid fa-file-image text-success';
+    if (mime === 'application/pdf' || ext === 'pdf')
+      return 'fa-solid fa-file-pdf text-danger';
+    if (['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(mime) || ['doc', 'docx'].includes(ext))
+      return 'fa-solid fa-file-word text-primary';
+    if (['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(mime) || ['xls', 'xlsx'].includes(ext))
+      return 'fa-solid fa-file-excel text-success';
+    if (['application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'].includes(mime) || ['ppt', 'pptx'].includes(ext))
+      return 'fa-solid fa-file-powerpoint text-warning';
+    if (['application/zip', 'application/x-rar-compressed', 'application/x-7z-compressed'].includes(mime) || ['zip', 'rar', '7z', 'tar', 'gz'].includes(ext))
+      return 'fa-solid fa-file-zipper text-secondary';
+    if (mime.startsWith('video/') || ['mp4', 'avi', 'mov', 'mkv'].includes(ext))
+      return 'fa-solid fa-file-video text-info';
+    if (mime.startsWith('audio/') || ['mp3', 'wav', 'ogg'].includes(ext))
+      return 'fa-solid fa-file-audio text-info';
+    if (ext === 'dwg' || ext === 'dxf')
+      return 'fa-solid fa-drafting-compass text-primary';
+
+    return 'fa-solid fa-file text-secondary';
+  }
+
+  onRowContextMenu(event: MouseEvent, item: any) {
+    if (!this.hasUploadFolder(item)) {
+      event.preventDefault();
+      return;
+    }
+
+    this.selectedStepForMenu = item;
+    this.contextMenuItems = [
+      {
+        label: 'Tải file lên (Upload file)',
+        icon: 'pi pi-upload text-primary',
+        command: () => this.triggerFileUpload(item)
+      }
+    ];
+
+    if (this.cm) {
+      this.cm.show(event);
+    }
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  triggerFileUpload(item: any, cl?: any) {
+    if (!item) return;
+    let targetCl = cl;
+    if (!targetCl && item.CheckLists) {
+      targetCl = item.CheckLists.find((c: any) => c.PathFolder && c.PathFolder.trim() !== '');
+    }
+    if (!targetCl) return;
+
+    const pathFolder = targetCl.PathFolder;
+    const subPath = this.getRelativeSubPath(pathFolder);
+
+    if (!subPath) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xác định đường dẫn lưu file!');
+      return;
+    }
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.style.display = 'none';
+
+    fileInput.addEventListener('change', (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      const files = target.files;
+      if (!files || files.length === 0) return;
+
+      const filesToUpload = Array.from(files);
+      this.notification.info('Đang upload', 'Đang tải file lên...');
+
+      this.projectWorkerService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
+        next: (res: any) => {
+          if (res?.status === 1) {
+            const uploadedFiles = res.data || [];
+            if (uploadedFiles.length > 0) {
+              const saveRequests: Observable<any>[] = uploadedFiles.map((fData: any) => {
+                const fileDto = {
+                  FileName: fData.savedFileName || fData.SavedFileName || fData.originalFileName || fData.OriginalFileName,
+                  FilePath: fData.filePath || fData.FilePath,
+                  FileSize: fData.fileSize || fData.FileSize,
+                  ContentType: fData.contentType || fData.ContentType
+                };
+                return this.projectGateStepService.saveFile(targetCl.ID, fileDto);
+              });
+
+              forkJoin(saveRequests).subscribe({
+                next: (saveResults: any[]) => {
+                  this.notification.success(NOTIFICATION_TITLE.success, `Đã tải lên và lưu ${uploadedFiles.length} file thành công!`);
+                  targetCl.IsPass = true;
+
+                  // Thêm file vào mảng cục bộ để update UI
+                  targetCl.Files = targetCl.Files || [];
+                  saveResults.forEach((saveRes: any, index: number) => {
+                    const fData = uploadedFiles[index];
+                    if (saveRes?.status === 1) {
+                      targetCl.Files.push({
+                        ID: saveRes.data,
+                        FileName: fData.originalFileName || fData.OriginalFileName || fData.savedFileName || fData.SavedFileName,
+                        FilePath: fData.filePath || fData.FilePath,
+                        FileSize: fData.fileSize || fData.FileSize,
+                        ContentType: fData.contentType || fData.ContentType,
+                        CreatedBy: 'You',
+                        CreatedDate: new Date()
+                      });
+                    }
+                  });
+                },
+                error: (saveErr: any) => {
+                  console.error('Lỗi lưu file vào DB:', saveErr);
+                  this.notification.error(NOTIFICATION_TITLE.error, 'Tải file lên thành công nhưng không thể ghi nhận dữ liệu vào cơ sở dữ liệu.');
+                }
+              });
+            } else {
+              this.notification.success(NOTIFICATION_TITLE.success, `Tải file lên thành công!`);
+              targetCl.IsPass = true;
+            }
+          } else {
+            const msg = res?.message || 'Upload file không thành công.';
+            this.notification.error(NOTIFICATION_TITLE.error, msg);
+          }
+        },
+        error: (error: any) => {
+          console.error('Lỗi upload file:', error);
+          const msg = error.message || 'Lỗi kết nối khi tải file lên.';
+          this.notification.error(NOTIFICATION_TITLE.error, msg);
+        }
+      });
+    });
+
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    setTimeout(() => document.body.removeChild(fileInput), 100);
+  }
+
+  getStepFilesCount(item: any): number {
+    if (!item.CheckLists || item.CheckLists.length === 0) return 0;
+    let count = 0;
+    for (const cl of item.CheckLists) {
+      if (cl.Files) {
+        count += cl.Files.length;
+      }
+    }
+    return count;
+  }
+
+  openFileListModal(item: any, cl?: any) {
+    const modalRef = this.ngbModal.open(ProjectGateStepFilesModalComponent, {
+      centered: true,
+      size: 'xl',
+      keyboard: false,
+    });
+
+    modalRef.componentInstance.checklists = item.CheckLists || [];
+    modalRef.componentInstance.checklistLink = cl || (item.CheckLists && item.CheckLists[0]);
+    modalRef.componentInstance.gateCode = item.GateCode || '';
+    modalRef.componentInstance.gateName = item.GateName || '';
+
+    modalRef.result
+      .then((result: any) => {
+        if (cl && cl.Files && cl.Files.length > 0) {
+          cl.IsPass = true;
+        }
+      })
+      .catch((error: any) => {
+        if (cl && cl.Files && cl.Files.length > 0) {
+          cl.IsPass = true;
+        }
+      });
   }
 
   closeModal() {

@@ -147,3 +147,9 @@
   border-radius: 4px;
   padding: 4px;
 }
+
+/* Màu nền xanh lá nhạt cho các dòng có isPass = true */
+::ng-deep .p-datatable .p-datatable-tbody>tr.passed-step>td {
+  background-color: #d4edda !important; /* Xanh lá nhạt của Bootstrap */
+  color: #155724 !important;
+}

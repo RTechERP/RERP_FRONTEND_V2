@@ -408,6 +408,8 @@ import { OrgChartRtcNewComponent } from './pages/hrm/org-chart-rtc/org-chart-rtc
 import { VehicleRentalRequestComponent } from './pages/hrm/vehicle/vehicle-retal-request/vehicle-rental-request.component';
 import { VisaRequestComponent } from './pages/hrm/visa-request/visa-request.component';
 import { InventoryNotExportComponent } from './pages/old/Sale/Inventory/inventory-not-export/inventory-not-export.component';
+import { ContractTransferReviewTbpComponent } from './pages/hrm/contract-transfer-review/contract-transfer-review-tbp/contract-transfer-review-tbp.component';
+import { ContractTransferReviewBgdComponent } from './pages/hrm/contract-transfer-review/contract-transfer-review-bgd/contract-transfer-review-bgd.component';
 export const routes: Routes = [
 
   {

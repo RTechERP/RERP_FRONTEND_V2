@@ -96,13 +96,13 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private tbProductRtcService: TbProductRtcService,
     private appUserService: AppUserService
-  ) {}
+  ) { }
   unitData: any[] = [];
   firmData: any[] = [];
   productData: any[] = [];
   locationData: any[] = [];
   modalData: any = [];
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
   ngOnInit() {
     console.log('dataInput gốc:', this.dataInput);
     this.initForm();
@@ -115,7 +115,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       this.dataInput.ID = 0; // Ensure it saves as new
       this.dataInput.BorrowCustomer = this.dataInput.BorrowCustomer ?? false;
       this.formDeviceInfo.patchValue({ CreateDate: this.CreateDate });
-      
+
       // Clear unique fields to avoid duplicate errors right away
       this.formDeviceInfo.patchValue({
         ProductCode: '',
@@ -123,7 +123,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
         Serial: '',
         PartNumber: ''
       });
-      
+
       this.getProductCode();
     } else if (this.dataInput && this.dataInput.ID) {
       // Chế độ sửa
@@ -250,8 +250,8 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
             lower.endsWith('.jpg') || lower.endsWith('.jpeg')
               ? 'image/jpeg'
               : lower.endsWith('.png')
-              ? 'image/png'
-              : 'application/octet-stream';
+                ? 'image/png'
+                : 'application/octet-stream';
           const blob = new Blob([buffer], { type: mime });
           if (this.previewObjectUrl) URL.revokeObjectURL(this.previewObjectUrl);
           this.previewObjectUrl = URL.createObjectURL(blob);
@@ -305,7 +305,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       .getLocation(warehouseID)
       .subscribe((response: any) => {
         this.locationData = response.data.location;
-        if(this.warehouseType === 2){
+        if (this.warehouseType === 2) {
           this.locationData = this.locationData.filter((item: any) => item.LocationType === 4);
         }
         console.log('Location', this.locationData);
@@ -321,7 +321,24 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     this.tbProductRtcService.getFirm(firmType).subscribe((response: any) => {
       this.firmData = response.data;
       console.log('Firm:', this.firmData);
-      this.revalidateSelects();
+
+      const incomingID = +(this.dataInput?.FirmID || 0);
+      setTimeout(() => {
+        if (incomingID) {
+          const matched = this.firmData.find((x: any) => x.ID === incomingID);
+          if (matched) {
+            this.formDeviceInfo.patchValue({ FirmID: matched.ID });
+          }
+        } else if (this.dataInput?.Maker) {
+          // Binding fallback by Maker name
+          const matched = this.firmData.find((x: any) => x.FirmName === this.dataInput.Maker);
+          if (matched) {
+            this.formDeviceInfo.patchValue({ FirmID: matched.ID });
+            this.dataInput.FirmID = matched.ID;
+          }
+        }
+        this.revalidateSelects();
+      });
     });
   }
   close() {
@@ -373,7 +390,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   }
   getProductCode() {
     let productGroupID = this.formDeviceInfo.get('ProductGroupRTCID')?.value || this.dataInput?.ProductGroupRTCID || 0;
-      this.tbProductRtcService.getProductRTCCode(productGroupID).subscribe((resppon: any) => {
+    this.tbProductRtcService.getProductRTCCode(productGroupID).subscribe((resppon: any) => {
       this.productCode = resppon.data;
       console.log('Code', this.productCode);
     });
@@ -401,25 +418,25 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
           const isDuplicateCode = list.some(
             (item: any) =>
               item.ProductCode?.trim().toLowerCase() ===
-                productCode?.trim().toLowerCase() &&
+              productCode?.trim().toLowerCase() &&
               item.ID !== currentProductID
           );
           const isDuplicateSerialNumber = list.some(
             (item: any) =>
               item.SerialNumber?.trim().toLowerCase() ===
-                serialNumber?.trim().toLowerCase() &&
+              serialNumber?.trim().toLowerCase() &&
               item.ID !== currentProductID
           );
           const isDuplicateSerial = list.some(
             (item: any) =>
               item.Serial?.trim().toLowerCase() ===
-                serial?.trim().toLowerCase() && item.ID !== currentProductID
+              serial?.trim().toLowerCase() && item.ID !== currentProductID
           );
 
           const isDuplicatePartNumber = list.some(
             (item: any) =>
               item.PartNumber?.trim().toLowerCase() ===
-                partNumber?.trim().toLowerCase() && item.ID !== currentProductID
+              partNumber?.trim().toLowerCase() && item.ID !== currentProductID
           );
           // Hiển thị cảnh báo và set lỗi vào form
           if (isDuplicateCode) {
@@ -458,9 +475,9 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
           }
           resolve(
             isDuplicateCode ||
-              isDuplicateSerialNumber ||
-              isDuplicateSerial ||
-              isDuplicatePartNumber
+            isDuplicateSerialNumber ||
+            isDuplicateSerial ||
+            isDuplicatePartNumber
           );
         },
         (_) => resolve(false)
@@ -627,7 +644,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
             this.notification.error(
               NOTIFICATION_TITLE.error,
               'Upload ảnh thất bại: ' +
-                (err.error?.message || err.message || '')
+              (err.error?.message || err.message || '')
             );
           },
         });

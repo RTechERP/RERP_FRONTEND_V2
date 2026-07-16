@@ -1,0 +1,94 @@
+<div class="activity-log-container">
+    <!-- Header -->
+    <div class="activity-log-header">
+        <div class="section-title d-flex align-items-center justify-content-between mb-0">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa fa-history fs-18"></i>
+                <span class="fs-16" style="font-weight: 600;">Lịch sử thao tác dự án [{{ projectCode || 'N/A' }}]</span>
+            </div>
+            <button nz-button nzType="link" nzSize="small" (click)="handleReload()">
+                <i class="fa fa-refresh" [class.fa-spin]="isLoadingLogs"></i> Tải lại
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters Toolbar -->
+    <div class="filters-toolbar d-flex align-items-center gap-3">
+        <div class="filter-item flex-grow-1">
+            <nz-input-group [nzPrefix]="prefixTemplate">
+                <input type="text" nz-input placeholder="Tìm kiếm nội dung, thao tác, người thực hiện..."
+                    [(ngModel)]="searchTerm" (ngModelChange)="onFilterChange()" />
+            </nz-input-group>
+            <ng-template #prefixTemplate><i class="fa fa-search"></i></ng-template>
+        </div>
+        <div class="filter-item" style="width: 220px;">
+            <nz-select style="width: 100%;" [(ngModel)]="selectedCategory" (ngModelChange)="onFilterChange()">
+                @for (cat of categories; track cat.value) {
+                <nz-option [nzValue]="cat.value" [nzLabel]="cat.label"></nz-option>
+                }
+            </nz-select>
+        </div>
+    </div>
+
+    <!-- Body (Scrollable) -->
+    <div class="activity-log-body">
+        @if (isLoadingLogs) {
+        <div class="text-center py-5">
+            <i class="fa fa-spinner fa-spin fs-32 text-primary"></i>
+            <p class="text-muted mt-2">Đang tải lịch sử thao tác dự án...</p>
+        </div>
+        } @else if (filteredLogs.length === 0) {
+        <div class="text-center py-5">
+            <i class="fa fa-inbox fs-40 text-muted"></i>
+            <p class="text-muted mt-2">Chưa có lịch sử hoạt động phù hợp bộ lọc</p>
+        </div>
+        } @else {
+        <div class="log-timeline">
+            @for (log of filteredLogs; track log.ID) {
+            <div class="log-item">
+                <div class="log-icon-wrapper">
+                    <div class="log-icon" [ngClass]="log.colorClass">
+                        <i [class]="log.iconName"></i>
+                    </div>
+                    <div class="log-line"></div>
+                </div>
+                <div class="log-body">
+                    <div class="log-type d-flex align-items-center gap-2 flex-wrap">
+                        @if (log.VersionCode) {
+                        <nz-tag [nzColor]="log.StatusVersion === 2 ? 'blue' : 'orange'" style="margin: 0;">
+                            {{ log.StatusVersion === 2 ? 'PO' : 'GP' }}: {{ log.VersionCode }} - {{log.ProjectTypeName}}
+                        </nz-tag>
+                        }
+                        <span class="log-action-text" [ngClass]="log.colorClass">{{ log.ActionType
+                            }}</span>
+                        <span class="text-muted">-</span>
+                        <span class="log-author">
+                            <i class="fa fa-user"></i>
+                            {{ log.CreatedBy }}
+                        </span>
+                        <span class="text-muted">-</span>
+                        <span class="log-time">
+                            <i class="fa fa-clock-o"></i>
+                            {{ log.CreatedDate | date:'dd/MM/yyyy HH:mm:ss' }}
+                        </span>
+                    </div>
+                    <div class="log-content">{{ log.ContentLog }}</div>
+                </div>
+            </div>
+            }
+        </div>
+        @if (hasMoreLogs) {
+        <div class="text-center py-3">
+            <button nz-button nzType="default" [nzLoading]="isLoadingMore" (click)="loadMore()">
+                Xem thêm (Còn {{ remainingLogsCount }} hoạt động)
+            </button>
+        </div>
+        }
+        }
+    </div>
+
+    <!-- Footer -->
+    <div class="activity-log-footer d-flex justify-content-end">
+        <button nz-button nzDanger (click)="handleClose()">Đóng</button>
+    </div>
+</div>

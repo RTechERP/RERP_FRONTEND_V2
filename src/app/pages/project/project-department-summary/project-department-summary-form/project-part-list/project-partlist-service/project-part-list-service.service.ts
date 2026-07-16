@@ -124,6 +124,16 @@ export class ProjectPartListService {
   getLogActivityPartlist(partlistID: number): Observable<any> {
     return this.http.get<any>(`${this.urlProjectPartList}/get-log-activity-partlist?partlistID=${partlistID}`);
   }
+  // Get Project PartList Unified Operation History Log
+  getLogHistoryPartlist(projectId?: number, versionId?: number): Observable<any> {
+    let queryParams = '';
+    if (versionId) {
+      queryParams = `versionId=${versionId}`;
+    } else if (projectId) {
+      queryParams = `projectId=${projectId}`;
+    }
+    return this.http.get<any>(`${this.urlProjectPartList}/get-log-history-partlist?${queryParams}`);
+  }
   // Delete PartList
   deletePartList(payload: any[]): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/delete-partlist`, payload);
@@ -133,8 +143,19 @@ export class ProjectPartListService {
     return this.http.post<any>(`${this.urlProjectPartList}/delete-partlist-tbp`, ids);
   }
 
-  cloneProjectPartList(payload: any): Observable<any> {
-    return this.http.post<any>(`${this.urlProjectPartList}/clone-projectpartlist`, payload);
+  cloneProjectPartList(payload: any, sourceProjectId?: number, sourceVersionId?: number): Observable<any> {
+    let url = `${this.urlProjectPartList}/clone-projectpartlist`;
+    const params: string[] = [];
+    if (sourceProjectId !== undefined && sourceProjectId !== null) {
+      params.push(`sourceProjectId=${sourceProjectId}`);
+    }
+    if (sourceVersionId !== undefined && sourceVersionId !== null) {
+      params.push(`sourceVersionId=${sourceVersionId}`);
+    }
+    if (params.length > 0) {
+      url += `?${params.join('&')}`;
+    }
+    return this.http.post<any>(url, payload);
   }
 
   // Lấy lịch sử giá và sản phẩm trong kho

@@ -1,0 +1,16 @@
+.active-row {
+  background-color: #e6f7ff !important;
+}
+
+.active-row td {
+  font-weight: bold !important;
+  color: #1890ff !important;
+}
+
+::ng-deep .fs-12, ::ng-deep .fs-12 * {
+  font-size: 12px !important;
+}
+
+.custom-menubar {
+  border-bottom: 1px solid #dee2e6 !important;
+}

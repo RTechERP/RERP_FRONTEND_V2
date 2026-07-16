@@ -16,6 +16,7 @@ export interface FlightBookingManagement {
     UpdatedBy?: string;
     UpdatedDate?: Date;
     IsDeleted?: boolean;
+    IsRoundTrip?: boolean;
 
     // Join fields
     EmployeeName?: string;
@@ -42,6 +43,8 @@ export interface FlightBookingProposal {
     IsDeleted?: boolean;
     DepartureDate?: string;
     DepartureTime?: string;
+    ReturnDate?: string;
+    ReturnTime?: string;
 }
 
 export interface FlightBookingSaveDTO {
@@ -55,8 +58,18 @@ export interface FlightBookingSaveDTO {
     Note?: string;
     EmployeeRequestID?: number | null;
     EmployeeBookerID?: number;
-    TravelerIDs: number[];
+    TravelerIDs?: number[];
+    Passengers: FlightBookingPassenger[];
     Proposals: FlightBookingProposal[];
+    IsRoundTrip?: boolean;
+}
+
+export interface FlightBookingPassenger {
+    ID: number;
+    FlightBookingManagementID?: number;
+    Type?: number; // 1: CBNV cty, 2: Khách/đối tác
+    EmployeeID?: number | null;
+    FullName?: string;
 }
 
 export interface FlightBookingRequestParam {

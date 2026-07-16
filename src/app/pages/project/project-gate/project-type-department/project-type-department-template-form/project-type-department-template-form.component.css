@@ -1,0 +1,11 @@
+.modal-header {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+  border-top: 1px solid #dee2e6;
+}
+
+::ng-deep .fs-12, ::ng-deep .fs-12 * {
+  font-size: 12px !important;
+}

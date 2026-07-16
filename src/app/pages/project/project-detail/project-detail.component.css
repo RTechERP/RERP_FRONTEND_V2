@@ -1,9 +1,9 @@
 .reset {
-  all: revert;
+    all: revert;
 }
 
 .fs-12 {
-  font-size: 0.75rem;
+    font-size: 0.75rem;
 }
 
 /* PrimeNG TreeTable Styling */
@@ -11,7 +11,7 @@
     font-size: 11px;
 }
 
-:host ::ng-deep .p-treetable .p-treetable-thead > tr > th {
+:host ::ng-deep .p-treetable .p-treetable-thead>tr>th {
     padding: 0.5rem;
     background: #f8f9fa;
     color: #495057;
@@ -19,7 +19,7 @@
     text-align: center;
 }
 
-:host ::ng-deep .p-treetable .p-treetable-tbody > tr > td {
+:host ::ng-deep .p-treetable .p-treetable-tbody>tr>td {
     padding: 2px 4px;
     border: 1px solid #dee2e6;
 }
@@ -45,10 +45,10 @@
 }
 
 ::ng-deep .ant-select-item-group {
-  color: #4a5568 !important;
-  font-weight: bold;
-  font-size: 15px !important;
-  background-color: rgb(232, 234, 235) !important;
+    color: #4a5568 !important;
+    font-weight: bold;
+    font-size: 15px !important;
+    background-color: rgb(232, 234, 235) !important;
 }
 
 /* Fix for p-multiSelect inside table */
@@ -81,7 +81,7 @@
     padding-bottom: 2px !important;
 }
 
-:host ::ng-deep .ant-form-item-label > label {
+:host ::ng-deep .ant-form-item-label>label {
     height: auto !important;
     min-height: 0 !important;
 }

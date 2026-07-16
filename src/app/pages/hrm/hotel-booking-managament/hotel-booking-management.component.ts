@@ -29,16 +29,17 @@ import { MenubarModule } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 
-import { FlightBookingManagementService } from './flight-booking-management.service';
-import { FlightBookingFormComponent } from './flight-booking-form/flight-booking-form.component';
-import { FlightBookingRequestParam } from './models';
+import { HotelBookingManagementService } from './hotel-booking-management.service';
+import { HotelBookingFormComponent } from './hotel-booking-form/hotel-booking-form.component';
+import { HotelBookingRequestParam } from './models';
 import { ProjectService } from '../../project/project-service/project.service';
+import { EmployeeService } from '../employee/employee-service/employee.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../app.config';
 import { PermissionService } from '../../../services/permission.service';
 
 @Component({
-  selector: 'app-flight-booking-management',
+  selector: 'app-hotel-booking-management',
   standalone: true,
   imports: [
     CommonModule,
@@ -68,20 +69,20 @@ import { PermissionService } from '../../../services/permission.service';
     MenubarModule,
     NgbModalModule
   ],
-  templateUrl: './flight-booking-management.component.html',
-  styleUrl: './flight-booking-management.component.css'
+  templateUrl: './hotel-booking-management.component.html',
+  styleUrl: './hotel-booking-management.component.css'
 })
-export class FlightBookingManagementComponent implements OnInit {
+export class HotelBookingManagementComponent implements OnInit {
   @ViewChild('dt') dt!: Table;
   @ViewChild('rejectTemplate') rejectTemplate!: TemplateRef<any>;
 
-  // Tham số tìm kiếm
+  // Search parameters
   keyword: string = '';
   dateStart: Date = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   dateEnd: Date = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
   projectID: number = -1;
 
-  // Dữ liệu
+  // Data bindings
   allBookings = signal<any[]>([]);
   selectedProposals = signal<any[]>([]);
   selectedBookings: any[] = [];
@@ -90,15 +91,15 @@ export class FlightBookingManagementComponent implements OnInit {
   totalRecords = computed(() => this.allBookings().length);
   rejectReason: string = '';
 
-  // Dữ liệu combobox
+  // Combobox options
   projects: any[] = [];
   groupedEmployees: any[] = [];
   employeeBookerID: number | null = null;
 
-  // Các mục menu cho PrimeNG Menubar
+  // Menubar items
   menuItems: MenuItem[] = [];
 
-  // Trạng thái mobile
+  // Mobile state
   isMobile = window.innerWidth <= 768;
   isShowModal = false;
 
@@ -106,15 +107,18 @@ export class FlightBookingManagementComponent implements OnInit {
   onWindowResize() {
     this.isMobile = window.innerWidth <= 768;
   }
+
   private projectService = inject(ProjectService);
+  private employeeService = inject(EmployeeService);
+
   constructor(
-    private service: FlightBookingManagementService,
+    private service: HotelBookingManagementService,
     private modal: NzModalService,
     private modalService: NgbModal,
     private message: NzMessageService,
     private notification: NzNotificationService,
     private cdr: ChangeDetectorRef,
-    private permissionService: PermissionService,
+    private permissionService: PermissionService
   ) { }
 
   ngOnInit(): void {
@@ -125,7 +129,7 @@ export class FlightBookingManagementComponent implements OnInit {
   }
 
   loadEmployees(): void {
-    this.service.getEmployees().subscribe({
+    this.employeeService.getEmployees().subscribe({
       next: (res: any) => {
         if (res && res.status === 1) {
           this.groupEmployees(res.data || []);
@@ -158,7 +162,6 @@ export class FlightBookingManagementComponent implements OnInit {
         icon: 'fa-solid fa-plus fa-lg text-success',
         command: () => this.onAdd(),
         visible: this.permissionService.hasPermission("N1,N2,N34"),
-
       },
       {
         label: 'Copy',
@@ -228,7 +231,7 @@ export class FlightBookingManagementComponent implements OnInit {
   onSearch(): void {
     this.isLoading = true;
     this.selectedBookings = [];
-    const params: FlightBookingRequestParam = {
+    const params: HotelBookingRequestParam = {
       Keyword: this.keyword,
       StartDate: this.dateStart,
       EndDate: this.dateEnd,
@@ -244,7 +247,7 @@ export class FlightBookingManagementComponent implements OnInit {
           this.allBookings.set(res || []);
         }
         this.isLoading = false;
-        this.onRowUnselect(); // Clear details when refreshing list
+        this.onRowUnselect(); // Clear details
         this.cdr.detectChanges();
       },
       error: (err: any) => {
@@ -304,7 +307,7 @@ export class FlightBookingManagementComponent implements OnInit {
       next: (res) => {
         if (res.status === 1) {
           this.message.success('Duyệt phương án thành công');
-          this.refreshDetails(item.FlightBookingManagementID);
+          this.refreshDetails(item.HotelBookingManagementID);
         } else {
           this.message.error(res.message || 'Lỗi khi duyệt');
         }
@@ -317,7 +320,7 @@ export class FlightBookingManagementComponent implements OnInit {
       next: (res) => {
         if (res.status === 1) {
           this.message.success('Hủy duyệt thành công');
-          this.refreshDetails(item.FlightBookingManagementID);
+          this.refreshDetails(item.HotelBookingManagementID);
         } else {
           this.message.error(res.message || 'Lỗi khi hủy duyệt');
         }
@@ -342,13 +345,13 @@ export class FlightBookingManagementComponent implements OnInit {
             next: (res) => {
               if (res.status === 1) {
                 this.message.success('Từ chối thành công');
-                this.refreshDetails(item.FlightBookingManagementID);
+                this.refreshDetails(item.HotelBookingManagementID);
                 resolve(true);
               } else {
                 this.notification.create(
                   NOTIFICATION_TYPE_MAP[0],
                   NOTIFICATION_TITLE_MAP[RESPONSE_STATUS.ERROR],
-                  res.message || 'Lỗi khi từ chối',
+                  res.message || 'Lỗi khi từ chối'
                 );
                 resolve(false);
               }
@@ -405,7 +408,7 @@ export class FlightBookingManagementComponent implements OnInit {
   onDelete(item: any): void {
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc muốn xóa bản ghi của nhân viên <b>${item.RequesterName}</b>?`,
+      nzContent: `Bạn có chắc muốn xóa yêu cầu đặt phòng khách sạn của <b>${item.RequesterName}</b>?`,
       nzOkText: 'Xóa',
       nzOkDanger: true,
       nzCancelText: 'Hủy',
@@ -463,7 +466,7 @@ export class FlightBookingManagementComponent implements OnInit {
   }
 
   private openForm(id?: number, isCopy: boolean = false): void {
-    const modalRef = this.modalService.open(FlightBookingFormComponent, {
+    const modalRef = this.modalService.open(HotelBookingFormComponent, {
       backdrop: 'static',
       keyboard: false,
       centered: true,
@@ -491,7 +494,7 @@ export class FlightBookingManagementComponent implements OnInit {
 
   onExportExcel(): void {
     this.isLoading = true;
-    const params: FlightBookingRequestParam = {
+    const params: HotelBookingRequestParam = {
       Keyword: this.keyword,
       StartDate: this.dateStart,
       EndDate: this.dateEnd,
@@ -508,10 +511,9 @@ export class FlightBookingManagementComponent implements OnInit {
         a.setAttribute('style', 'display: none');
         a.href = url;
 
-        // Format filename: FlightBooking_tu_ddMMyyyy_den_ddMMyyyy.xlsx
         const ds = this.dateStart ? this.formatDateFilename(this.dateStart) : 'dau';
         const de = this.dateEnd ? this.formatDateFilename(this.dateEnd) : 'cuoi';
-        a.download = `DSDatVMB_tu_${ds}_den_${de}.xlsx`;
+        a.download = `DSDatPKS_tu_${ds}_den_${de}.xlsx`;
 
         a.click();
         window.URL.revokeObjectURL(url);

@@ -1,0 +1,35 @@
+<div class="modal-header bg-light py-2">
+  <h6 class="modal-title fw-bold text-uppercase" style="font-size: 12px; color: #fa8c16;">
+    Thêm template - {{ projectTypeName }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()" style="font-size: 10px;"></button>
+</div>
+
+<div class="modal-body p-3" style="font-size: 12px;">
+  <nz-spin [nzSpinning]="loading" nzTip="Đang xử lý...">
+    <div class="row g-3">
+      <!-- Mã Template -->
+      <div class="col-12">
+        <label class="form-label fw-semibold mb-1" style="font-size: 12px;">Mã Template <span class="text-danger">*</span></label>
+        <input nz-input placeholder="Nhập mã template (ví dụ: TPL_001)..." nzSize="small" [(ngModel)]="code"
+          class="fs-12 w-100" style="font-size: 12px;" />
+      </div>
+
+      <!-- Tên Template -->
+      <div class="col-12">
+        <label class="form-label fw-semibold mb-1" style="font-size: 12px;">Tên Template <span class="text-danger">*</span></label>
+        <input nz-input placeholder="Nhập tên template..." nzSize="small" [(ngModel)]="name"
+          class="fs-12 w-100" style="font-size: 12px;" />
+      </div>
+    </div>
+  </nz-spin>
+</div>
+
+<div class="modal-footer bg-light py-2">
+  <button nz-button nzType="default" nzSize="small" (click)="onCancel()" style="font-size: 12px;">
+    Hủy
+  </button>
+  <button nz-button nzType="primary" nzSize="small" [nzLoading]="loading" (click)="onSubmit()" style="font-size: 12px; background-color: #fa8c16; border-color: #fa8c16;">
+    Lưu
+  </button>
+</div>

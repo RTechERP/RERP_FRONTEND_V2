@@ -54,7 +54,8 @@
 }
 
 .sidebar-menu .nav-link.active {
-  background-color: #23458a !important; /* The same primary blue of the app header/menu */
+  background-color: #23458a !important;
+  /* The same primary blue of the app header/menu */
   color: #ffffff !important;
   box-shadow: 0 2px 4px rgba(35, 69, 138, 0.2);
 }
@@ -145,10 +146,4 @@
   border: 1px solid #ced4da;
   border-radius: 4px;
   padding: 4px;
-}
-
-/* Màu nền xanh lá nhạt cho các dòng có isPass = true */
-::ng-deep .p-datatable .p-datatable-tbody>tr.passed-step>td {
-  background-color: #d4edda !important; /* Xanh lá nhạt của Bootstrap */
-  color: #155724 !important;
 }

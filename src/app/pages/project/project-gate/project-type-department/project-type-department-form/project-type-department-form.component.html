@@ -1,0 +1,55 @@
+<div class="modal-header bg-light py-2">
+  <h6 class="modal-title fw-bold text-uppercase" style="font-size: 12px; color: #1890ff;">
+    Thêm kiểu dự án - {{ departmentName }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()" style="font-size: 10px;"></button>
+</div>
+
+<div class="modal-body p-2 fs-12" style="font-size: 12px;">
+  <nz-spin [nzSpinning]="loading" nzTip="Đang xử lý...">
+    <!-- Search Bar -->
+    <div class="mb-2">
+      <input type="text" class="form-control form-control-sm fs-12" placeholder="Tìm kiếm mã, tên kiểu dự án..."
+        [(ngModel)]="searchKeyword" style="font-size: 12px;" />
+    </div>
+
+    <!-- Table Listing -->
+    <div class="border rounded overflow-hidden" style="max-height: 400px;">
+      <p-table [value]="filteredProjectTypes" [(selection)]="selectedProjectTypes" dataKey="ID"
+        styleClass="p-datatable-sm p-datatable-gridlines fs-12" [scrollable]="true" scrollHeight="350px">
+        <ng-template pTemplate="header">
+          <tr>
+            <th style="width: 3rem; text-align: center;">
+              <p-tableHeaderCheckbox />
+            </th>
+            <th style="width: 150px; font-size: 12px;">Mã kiểu dự án</th>
+            <th style="font-size: 12px;">Tên kiểu dự án</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr [pSelectableRow]="row">
+            <td class="text-center" style="width: 3rem;">
+              <p-tableCheckbox [value]="row" />
+            </td>
+            <td style="font-size: 12px;">{{ row.ProjectTypeCode }}</td>
+            <td style="font-size: 12px;" class="fw-semibold">{{ row.ProjectTypeName }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="3" class="text-center text-muted py-3" style="font-size: 12px;">Không tìm thấy kiểu dự án nào</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </nz-spin>
+</div>
+
+<div class="modal-footer bg-light py-2">
+  <button nz-button nzType="default" nzSize="small" (click)="onCancel()" style="font-size: 12px;">
+    Hủy
+  </button>
+  <button nz-button nzType="primary" nzSize="small" [nzLoading]="loading" (click)="onSubmit()" style="font-size: 12px;">
+    Lưu
+  </button>
+</div>

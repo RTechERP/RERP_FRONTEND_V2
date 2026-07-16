@@ -34,11 +34,13 @@
             Mẫu công việc
           </nz-form-label>
           <nz-form-control [nzSpan]="24">
-            <nz-select formControlName="ProjectGateStepTemplateID" nzPlaceHolder="-- Chọn mẫu template --" nzAllowClear nzShowSearch
-              style="width: 100%; font-size: 12px;">
-              <nz-option *ngFor="let t of templateList" [nzValue]="t.ID"
-                [nzLabel]="t.Code + ' - ' + t.Name">
-              </nz-option>
+            <nz-select formControlName="ProjectGateStepTemplateID" nzPlaceHolder="-- Chọn mẫu template --" nzAllowClear
+              nzShowSearch style="width: 100%; font-size: 12px;">
+              <nz-option-group *ngFor="let group of templateGroups" [nzLabel]="group.label">
+                <nz-option *ngFor="let t of group.templates" [nzValue]="t.ID"
+                  [nzLabel]="t.Code + ' - ' + t.Name + (t.ProjectTypeName ? ' (' + t.ProjectTypeName + ')' : '')">
+                </nz-option>
+              </nz-option-group>
             </nz-select>
           </nz-form-control>
         </nz-form-item>

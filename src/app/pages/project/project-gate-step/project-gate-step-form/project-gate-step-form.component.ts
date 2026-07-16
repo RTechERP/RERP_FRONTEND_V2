@@ -39,8 +39,54 @@ export class ProjectGateStepFormComponent implements OnInit {
   @Input() departmentList: any[] = [];
   /** Danh sách chức vụ để multi-select */
   @Input() positionList: any[] = [];
-  /** Danh sách template */
-  @Input() templateList: any[] = [];
+  private _templateList: any[] = [];
+  templateGroups: Array<{ label: string; templates: any[] }> = [];
+
+  @Input()
+  set templateList(value: any[]) {
+    this._templateList = value || [];
+    this.groupTemplates();
+  }
+
+  get templateList(): any[] {
+    return this._templateList;
+  }
+
+  groupTemplates(): void {
+    const groupsMap: { [key: string]: any[] } = {};
+    const noDeptTemplates: any[] = [];
+
+    this._templateList.forEach(t => {
+      const dept = t.DepartmentName ? t.DepartmentName.trim() : '';
+      if (dept) {
+        if (!groupsMap[dept]) {
+          groupsMap[dept] = [];
+        }
+        groupsMap[dept].push(t);
+      } else {
+        noDeptTemplates.push(t);
+      }
+    });
+
+    const groups: Array<{ label: string; templates: any[] }> = [];
+    const sortedDepts = Object.keys(groupsMap).sort((a, b) => a.localeCompare(b));
+
+    sortedDepts.forEach(dept => {
+      groups.push({
+        label: dept,
+        templates: groupsMap[dept]
+      });
+    });
+
+    if (noDeptTemplates.length > 0) {
+      groups.push({
+        label: 'Mẫu chung',
+        templates: noDeptTemplates
+      });
+    }
+
+    this.templateGroups = groups;
+  }
 
   form!: FormGroup;
   isEdit = false;

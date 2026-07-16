@@ -1,7 +1,7 @@
-import { Component, Input, OnInit, Optional, Inject, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, Optional, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -15,18 +15,16 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MenubarModule } from 'primeng/menubar';
 import { MenuItem, TreeNode } from 'primeng/api';
-import { ContextMenuModule } from 'primeng/contextmenu';
-import { combineLatest, forkJoin, Observable } from 'rxjs';
+import { combineLatest } from 'rxjs';
 import { DateTime } from 'luxon';
 import { finalize } from 'rxjs/operators';
 
 import { ProjectGateStepService } from '../project-gate-step.service';
 import { ProjectService } from '../../project-service/project.service';
 import { AuthService } from '../../../../auth/auth.service';
+import { ProjectTypeDepartmentService } from '../../project-gate/project-type-department/project-type-department.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
-import { ProjectWorkerService } from '../../project-department-summary/project-department-summary-form/project-woker/project-worker-service/project-worker.service';
-import { ProjectGateStepFilesModalComponent } from '../project-gate-step-files-modal/project-gate-step-files-modal.component';
 
 @Component({
   selector: 'app-project-gate-step-by-project',
@@ -43,30 +41,28 @@ import { ProjectGateStepFilesModalComponent } from '../project-gate-step-files-m
     CheckboxModule,
     ButtonModule,
     InputTextModule,
-    MenubarModule,
-    ContextMenuModule,
-    ProjectGateStepFilesModalComponent
+    MenubarModule
   ],
   templateUrl: './project-gate-step-by-project.component.html',
   styleUrls: ['./project-gate-step-by-project.component.css'],
   providers: [NzNotificationService, NzModalService]
 })
 export class ProjectGateStepByProjectComponent implements OnInit {
-  @ViewChild('cm') cm!: any;
-  contextMenuItems: MenuItem[] = [];
-  selectedStepForMenu: any = null;
-
   @Input() projectId!: number;
   @Input() projectCode!: string;
   @Input() projectName!: string;
 
   activeProjectTypeId: number | null = null;
+  activeDepartmentId: number | null = null;
   checkedProjectTypes: any[] = [];
+  groupedMenuDepartments: any[] = [];
+  departments: any[] = [];
   menuItems: MenuItem[] = [];
   allGateSteps: any[] = [];
-  projectTypeStepsMap: { [key: number]: any[] } = {};
+  projectTypeStepsMap: { [key: string]: any[] } = {};
   savedGateSteps: any[] = [];
   isGateStepsLoaded: boolean = false;
+  projectTypeDepartmentLinks: any[] = [];
 
   usersFlat: any[] = [];
   users: any[] = [];
@@ -81,7 +77,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   // For templates
   templates: any[] = [];
   selectedTemplateId: number | null = null;
-  projectTypeTemplateMap: { [key: number]: number | null } = {};
+  projectTypeTemplateMap: { [key: string]: number | null } = {};
 
   // For deleted steps list
   showDeletedModal: boolean = false;
@@ -107,9 +103,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     private projectService: ProjectService,
     private authService: AuthService,
     private notification: NzNotificationService,
-    private projectWorkerService: ProjectWorkerService,
-    private modalService: NzModalService,
-    private ngbModal: NgbModal
+    private projectTypeDeptService: ProjectTypeDepartmentService
   ) { }
 
   ngOnInit(): void {
@@ -129,6 +123,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
     this.isLoading = true;
     this.getUsers();
+    this.loadDepartments();
+    this.loadProjectTypeDepartmentLinks();
     this.getFollowProjectBase();
     this.getProjectTypeLinks();
     this.loadAllGateSteps();
@@ -255,11 +251,15 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       this.checkedProjectTypes = list.filter(item => item.Selected);
     }
 
-    // Set active Project Type to the first tab if not selected yet
-    if (this.checkedProjectTypes.length > 0 && !this.activeProjectTypeId) {
-      const ptId = this.checkedProjectTypes[0].ID;
-      this.activeProjectTypeId = ptId;
-      this.selectedTemplateId = this.projectTypeTemplateMap[ptId] || null;
+    this.updateGroupedMenuDepartments();
+
+    // Set active Project Type and Department to the first item if not selected yet
+    if (this.groupedMenuDepartments.length > 0 && !this.activeProjectTypeId) {
+      const firstGroup = this.groupedMenuDepartments[0];
+      if (firstGroup.projectTypes && firstGroup.projectTypes.length > 0) {
+        const pt = firstGroup.projectTypes[0];
+        this.selectProjectType(pt.ID, firstGroup.id);
+      }
     }
 
     this.updateMenuItems();
@@ -309,103 +309,121 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     if (!this.isGateStepsLoaded) {
       return;
     }
-    this.checkedProjectTypes.forEach(pt => {
-      if (!this.projectTypeStepsMap[pt.ID]) {
-        const allSteps = JSON.parse(JSON.stringify(this.allGateSteps));
 
-        // Check if there is saved data for this project type
-        const savedForThisType = (this.savedGateSteps || []).filter((x: any) => x.ProjectTypeID === pt.ID);
+    this.groupedMenuDepartments.forEach(group => {
+      const deptId = group.id; // number or null
+      group.projectTypes.forEach((pt: any) => {
+        const key = `${pt.ID}_${deptId}`;
 
-        let steps: any[];
+        if (!this.projectTypeStepsMap[key]) {
+          const allSteps = JSON.parse(JSON.stringify(this.allGateSteps));
 
-        if (savedForThisType.length > 0) {
-          // Only include steps that exist in saved data
-          steps = allSteps.filter((step: any) => savedForThisType.some((s: any) => s.ProjectGateStepID === step.ID));
-          steps.forEach((step: any) => {
-            step.machineIndex = 1;
-            step.isRepeatChecked = false;
-            step.repeatOrder = 0;
-            step.isRepeated = false;
-            step.parentStepId = null;
-            step.groupName = this.getGateGroupNameForMachine(step.GateCode, 1);
-            step.PeopleCount = null;
-            step.DayCount = null;
-            step.TotalEffort = 1;
-            step.UnitPrice = null;
-            step.Workers = [];
+          // Check if there is saved data for this combo
+          const savedForThisCombo = (this.savedGateSteps || []).filter((x: any) => {
+            if (x.ProjectTypeID !== pt.ID) return false;
+            if (deptId === null) return true;
+            const step = this.allGateSteps.find(s => s.ID === x.ProjectGateStepID);
+            return step && step.DepartmentIDs && step.DepartmentIDs.includes(deptId);
+          });
 
-            const savedItems = savedForThisType.filter((x: any) => x.ProjectGateStepID === step.ID);
-            const originalItem = savedItems.find((x: any) => !x.IsRepeat) || savedItems[0];
-            const repeatedItem = savedItems.find((x: any) => x.IsRepeat);
+          let steps: any[];
 
-            if (originalItem) {
-              step.StartDate = originalItem.StartDate ? originalItem.StartDate.substring(0, 10) : null;
-              step.isRepeatChecked = !!repeatedItem;
-              step.CheckLists = originalItem.CheckLists || [];
+          if (savedForThisCombo.length > 0) {
+            // Only include steps that exist in saved data for this combo
+            steps = allSteps.filter((step: any) => savedForThisCombo.some((s: any) => s.ProjectGateStepID === step.ID));
+            steps.forEach((step: any) => {
+              step.machineIndex = 1;
+              step.isRepeatChecked = false;
+              step.repeatOrder = 0;
+              step.isRepeated = false;
+              step.parentStepId = null;
+              step.groupName = this.getGateGroupNameForMachine(step.GateCode, 1);
+              step.PeopleCount = null;
+              step.DayCount = null;
+              step.TotalEffort = 1;
+              step.UnitPrice = null;
+              step.Workers = [];
 
-              if (originalItem.Workers && originalItem.Workers.length > 0) {
-                step.Workers = originalItem.Workers.map((w: any) => w.EmployeeID);
-                step.PeopleCount = originalItem.Workers.length;
-                step.DayCount = originalItem.Workers[0].DayCount;
-                step.UnitPrice = originalItem.Workers[0].UnitPrice;
-                step.TotalEffort = step.PeopleCount * step.DayCount;
+              const savedItems = savedForThisCombo.filter((x: any) => x.ProjectGateStepID === step.ID);
+              const originalItem = savedItems.find((x: any) => !x.IsRepeat) || savedItems[0];
+              const repeatedItem = savedItems.find((x: any) => x.IsRepeat);
+
+              if (originalItem) {
+                step.StartDate = originalItem.StartDate ? originalItem.StartDate.substring(0, 10) : null;
+                step.isRepeatChecked = !!repeatedItem;
+
+                if (originalItem.Workers && originalItem.Workers.length > 0) {
+                  step.Workers = originalItem.Workers.map((w: any) => w.EmployeeID);
+                  step.PeopleCount = originalItem.Workers.length;
+                  step.DayCount = originalItem.Workers[0].DayCount;
+                  step.UnitPrice = originalItem.Workers[0].UnitPrice;
+                  step.TotalEffort = step.PeopleCount * step.DayCount;
+                }
+              }
+            });
+          } else {
+            // No saved data - use default steps for this combo, optionally filtered by template
+            const ptTemplateId = this.projectTypeTemplateMap[key] || null;
+            if (ptTemplateId) {
+              steps = allSteps.filter((step: any) => step.ProjectGateStepTemplateID === ptTemplateId);
+            } else {
+              // Filter steps that belong to this department
+              steps = allSteps.filter((step: any) =>
+                deptId === null || (step.DepartmentIDs && step.DepartmentIDs.includes(deptId))
+              );
+            }
+            steps.forEach((step: any) => {
+              step.machineIndex = 1;
+              step.isRepeatChecked = false;
+              step.repeatOrder = 0;
+              step.isRepeated = false;
+              step.parentStepId = null;
+              step.groupName = this.getGateGroupNameForMachine(step.GateCode, 1);
+              step.PeopleCount = null;
+              step.DayCount = null;
+              step.TotalEffort = 1;
+              step.UnitPrice = null;
+              step.Workers = [];
+            });
+          }
+
+          this.projectTypeStepsMap[key] = steps;
+
+          steps.filter((s: any) => s.isRepeatChecked).forEach((s: any) => {
+            this.addRepeatedStep(key, s);
+
+            // Bind data for the repeated step
+            const repeatedStep = this.projectTypeStepsMap[key].find((x: any) => x.isRepeated && x.parentStepId === s.ID);
+            const repeatedItem = savedForThisCombo.find((x: any) => x.ProjectGateStepID === s.ID && x.IsRepeat);
+
+            if (repeatedStep && repeatedItem) {
+              repeatedStep.StartDate = repeatedItem.StartDate ? repeatedItem.StartDate.substring(0, 10) : null;
+              if (repeatedItem.Workers && repeatedItem.Workers.length > 0) {
+                repeatedStep.Workers = repeatedItem.Workers.map((w: any) => w.EmployeeID);
+                repeatedStep.PeopleCount = repeatedItem.Workers.length;
+                repeatedStep.DayCount = repeatedItem.Workers[0].DayCount;
+                repeatedStep.UnitPrice = repeatedItem.Workers[0].UnitPrice;
+                repeatedStep.TotalEffort = repeatedStep.PeopleCount * repeatedStep.DayCount;
               }
             }
           });
-        } else {
-          // No saved data - use all default steps, optionally filtered by template
-          const ptTemplateId = this.projectTypeTemplateMap[pt.ID] || null;
-          if (ptTemplateId) {
-            steps = allSteps.filter((step: any) => step.ProjectGateStepTemplateID === ptTemplateId);
-          } else {
-            steps = allSteps;
-          }
-          steps.forEach((step: any) => {
-            step.machineIndex = 1;
-            step.isRepeatChecked = false;
-            step.repeatOrder = 0;
-            step.isRepeated = false;
-            step.parentStepId = null;
-            step.groupName = this.getGateGroupNameForMachine(step.GateCode, 1);
-            step.PeopleCount = null;
-            step.DayCount = null;
-            step.TotalEffort = 1;
-            step.UnitPrice = null;
-            step.Workers = [];
-          });
+
+          this.recalculateSequenceNumbers(key);
         }
-
-        this.projectTypeStepsMap[pt.ID] = steps;
-
-        steps.filter((s: any) => s.isRepeatChecked).forEach((s: any) => {
-          this.addRepeatedStep(pt.ID, s);
-
-          // Bind data for the repeated step
-          const repeatedStep = this.projectTypeStepsMap[pt.ID].find((x: any) => x.isRepeated && x.parentStepId === s.ID);
-          const repeatedItem = savedForThisType.find((x: any) => x.ProjectGateStepID === s.ID && x.IsRepeat);
-
-          if (repeatedStep && repeatedItem) {
-            repeatedStep.StartDate = repeatedItem.StartDate ? repeatedItem.StartDate.substring(0, 10) : null;
-            repeatedStep.CheckLists = repeatedItem.CheckLists || [];
-            if (repeatedItem.Workers && repeatedItem.Workers.length > 0) {
-              repeatedStep.Workers = repeatedItem.Workers.map((w: any) => w.EmployeeID);
-              repeatedStep.PeopleCount = repeatedItem.Workers.length;
-              repeatedStep.DayCount = repeatedItem.Workers[0].DayCount;
-              repeatedStep.UnitPrice = repeatedItem.Workers[0].UnitPrice;
-              repeatedStep.TotalEffort = repeatedStep.PeopleCount * repeatedStep.DayCount;
-            }
-          }
-        });
-
-        this.recalculateSequenceNumbers(pt.ID);
-      }
+      });
     });
 
-    const checkedIds = this.checkedProjectTypes.map(pt => pt.ID);
-    Object.keys(this.projectTypeStepsMap).forEach(key => {
-      const id = Number(key);
-      if (!checkedIds.includes(id)) {
-        delete this.projectTypeStepsMap[id];
+    // Cleanup keys that are no longer active
+    const activeKeys = new Set<string>();
+    this.groupedMenuDepartments.forEach(group => {
+      group.projectTypes.forEach((pt: any) => {
+        activeKeys.add(`${pt.ID}_${group.id}`);
+      });
+    });
+
+    Object.keys(this.projectTypeStepsMap).forEach(k => {
+      if (!activeKeys.has(k)) {
+        delete this.projectTypeStepsMap[k];
       }
     });
   }
@@ -418,15 +436,17 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         icon: 'fa-solid fa-users text-primary',
         styleClass: isActive ? 'active-menu-item' : 'inactive-menu-item',
         command: () => {
-          this.selectProjectType(pt.ID);
+          this.selectProjectType(pt.ID, null);
         }
       };
     });
   }
 
-  selectProjectType(ptId: number): void {
+  selectProjectType(ptId: number, deptId: number | null): void {
     this.activeProjectTypeId = ptId;
-    this.selectedTemplateId = this.projectTypeTemplateMap[ptId] || null;
+    this.activeDepartmentId = deptId;
+    const key = `${ptId}_${deptId}`;
+    this.selectedTemplateId = this.projectTypeTemplateMap[key] || null;
     this.updateMenuItems();
   }
 
@@ -453,17 +473,17 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     return `${prefix}${subGroup2} Triển khai G4->G12`;
   }
 
-  onRepeatToggle(ptId: number, item: any) {
+  onRepeatToggle(comboKey: string, item: any) {
     if (item.isRepeatChecked) {
-      this.addRepeatedStep(ptId, item);
+      this.addRepeatedStep(comboKey, item);
     } else {
-      this.removeRepeatedStep(ptId, item);
+      this.removeRepeatedStep(comboKey, item);
     }
-    this.recalculateSequenceNumbers(ptId);
+    this.recalculateSequenceNumbers(comboKey);
   }
 
-  addRepeatedStep(ptId: number, item: any) {
-    const steps = this.projectTypeStepsMap[ptId] || [];
+  addRepeatedStep(comboKey: string, item: any) {
+    const steps = this.projectTypeStepsMap[comboKey] || [];
     const alreadyExists = steps.some((step: any) => step.isRepeated && step.parentStepId === item.ID);
     if (alreadyExists) return;
 
@@ -476,19 +496,19 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     repeatedStep.groupName = this.getGateGroupNameForMachine(item.GateCode, 2);
     repeatedStep.repeatOrder = Date.now();
 
-    this.projectTypeStepsMap[ptId] = [...steps, repeatedStep];
+    this.projectTypeStepsMap[comboKey] = [...steps, repeatedStep];
   }
 
-  removeRepeatedStep(ptId: number, item: any) {
-    if (this.projectTypeStepsMap[ptId]) {
-      this.projectTypeStepsMap[ptId] = this.projectTypeStepsMap[ptId].filter(
+  removeRepeatedStep(comboKey: string, item: any) {
+    if (this.projectTypeStepsMap[comboKey]) {
+      this.projectTypeStepsMap[comboKey] = this.projectTypeStepsMap[comboKey].filter(
         (step: any) => !(step.isRepeated && step.parentStepId === item.ID)
       );
     }
   }
 
-  recalculateSequenceNumbers(ptId: number) {
-    const steps = this.projectTypeStepsMap[ptId] || [];
+  recalculateSequenceNumbers(comboKey: string) {
+    const steps = this.projectTypeStepsMap[comboKey] || [];
 
     steps.forEach((step: any) => {
       if (step.machineIndex === undefined || step.machineIndex === null) {
@@ -541,24 +561,25 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       counters[prefix]++;
     });
 
-    this.projectTypeStepsMap[ptId] = [...steps];
+    this.projectTypeStepsMap[comboKey] = [...steps];
     // Only recalculate dates if there is no saved data for this project type
+    const ptId = Number(comboKey.split('_')[0]);
     const hasSavedData = this.savedGateSteps && this.savedGateSteps.some(x => x.ProjectTypeID === ptId);
     if (!hasSavedData) {
-      this.recalculateAllStepsDates(ptId);
+      this.recalculateAllStepsDates(comboKey);
     }
   }
 
-  onStartDateValueChange(item: any, ptId: number) {
-    const steps = this.projectTypeStepsMap[ptId] || [];
+  onStartDateValueChange(item: any, comboKey: string) {
+    const steps = this.projectTypeStepsMap[comboKey] || [];
     const index = steps.findIndex((s: any) => s.ID === item.ID);
     if (index !== -1) {
-      this.updateSubsequentStepsDates(ptId, index);
+      this.updateSubsequentStepsDates(comboKey, index);
     }
   }
 
-  updateSubsequentStepsDates(ptId: number, startFromIndex: number) {
-    const steps = this.projectTypeStepsMap[ptId] || [];
+  updateSubsequentStepsDates(comboKey: string, startFromIndex: number) {
+    const steps = this.projectTypeStepsMap[comboKey] || [];
     if (startFromIndex < 0 || startFromIndex >= steps.length) return;
 
     let currentDate = DateTime.fromISO(steps[startFromIndex].StartDate);
@@ -574,8 +595,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     }
   }
 
-  recalculateAllStepsDates(ptId: number) {
-    const steps = this.projectTypeStepsMap[ptId] || [];
+  recalculateAllStepsDates(comboKey: string) {
+    const steps = this.projectTypeStepsMap[comboKey] || [];
     let baseDate: DateTime;
     if (this.expectedPlanDate) {
       baseDate = DateTime.fromISO(this.expectedPlanDate);
@@ -596,9 +617,9 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     });
   }
 
-  removeStep(projectTypeId: number, stepId: number) {
-    if (this.projectTypeStepsMap[projectTypeId]) {
-      const steps = this.projectTypeStepsMap[projectTypeId];
+  removeStep(comboKey: string, stepId: number) {
+    if (this.projectTypeStepsMap[comboKey]) {
+      const steps = this.projectTypeStepsMap[comboKey];
       const stepToDelete = steps.find((s: any) => s.ID === stepId);
       if (stepToDelete) {
         if (stepToDelete.isRepeated) {
@@ -607,22 +628,22 @@ export class ProjectGateStepByProjectComponent implements OnInit {
             parent.isRepeatChecked = false;
           }
         } else {
-          this.projectTypeStepsMap[projectTypeId] = steps.filter(
+          this.projectTypeStepsMap[comboKey] = steps.filter(
             (step: any) => step.ID !== stepId && !(step.isRepeated && step.parentStepId === stepId)
           );
-          this.recalculateSequenceNumbers(projectTypeId);
+          this.recalculateSequenceNumbers(comboKey);
           return;
         }
       }
-      this.projectTypeStepsMap[projectTypeId] = steps.filter(
+      this.projectTypeStepsMap[comboKey] = steps.filter(
         (step: any) => step.ID !== stepId
       );
-      this.recalculateSequenceNumbers(projectTypeId);
+      this.recalculateSequenceNumbers(comboKey);
     }
   }
 
-  isFirstSubgroupOfMachine(ptId: number, item: any): boolean {
-    const steps = this.projectTypeStepsMap[ptId] || [];
+  isFirstSubgroupOfMachine(comboKey: string, item: any): boolean {
+    const steps = this.projectTypeStepsMap[comboKey] || [];
     const firstStepForMachine = steps.find((s: any) => s.machineIndex === item.machineIndex);
     return firstStepForMachine ? firstStepForMachine.groupName === item.groupName : false;
   }
@@ -640,13 +661,13 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     return item.groupName.replace(/^[IVX]+\.\s*/, '');
   }
 
-  getTotalEffort(ptId: number): number {
-    const steps = this.projectTypeStepsMap[ptId] || [];
+  getTotalEffort(comboKey: string): number {
+    const steps = this.projectTypeStepsMap[comboKey] || [];
     return steps.reduce((sum, item) => sum + (Number(item.TotalEffort) || 0), 0);
   }
 
-  getTotalAmount(ptId: number): number {
-    const steps = this.projectTypeStepsMap[ptId] || [];
+  getTotalAmount(comboKey: string): number {
+    const steps = this.projectTypeStepsMap[comboKey] || [];
     return steps.reduce((sum, item) => {
       const effort = Number(item.TotalEffort) || 0;
       const price = Number(item.UnitPrice) || 0;
@@ -654,15 +675,15 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     }, 0);
   }
 
-  getGroupTotalEffort(ptId: number, groupName: string): number {
-    const steps = this.projectTypeStepsMap[ptId] || [];
+  getGroupTotalEffort(comboKey: string, groupName: string): number {
+    const steps = this.projectTypeStepsMap[comboKey] || [];
     return steps
       .filter(x => x.groupName === groupName)
       .reduce((sum, item) => sum + (Number(item.TotalEffort) || 0), 0);
   }
 
-  getGroupTotalAmount(ptId: number, groupName: string): number {
-    const steps = this.projectTypeStepsMap[ptId] || [];
+  getGroupTotalAmount(comboKey: string, groupName: string): number {
+    const steps = this.projectTypeStepsMap[comboKey] || [];
     return steps
       .filter(x => x.groupName === groupName)
       .reduce((sum, item) => {
@@ -694,9 +715,9 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     lookupPanel.toggle(event);
   }
 
-  addBlankStep(ptId: number) {
-    if (!ptId) return;
-    const steps = this.projectTypeStepsMap[ptId] || [];
+  addBlankStep(comboKey: string) {
+    if (!comboKey) return;
+    const steps = this.projectTypeStepsMap[comboKey] || [];
 
     // Check if there is already a blank step
     const hasBlank = steps.some((s: any) => s.isNew);
@@ -731,17 +752,21 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       Workers: []
     };
 
-    this.projectTypeStepsMap[ptId] = [...steps, blankStep];
+    this.projectTypeStepsMap[comboKey] = [...steps, blankStep];
   }
 
-  getAvailableStepsForSelect(ptId: number): any[] {
-    const steps = this.projectTypeStepsMap[ptId] || [];
+  getAvailableStepsForSelect(comboKey: string): any[] {
+    const steps = this.projectTypeStepsMap[comboKey] || [];
+    const deptIdStr = comboKey.split('_')[1];
+    const deptId = deptIdStr === 'null' ? null : Number(deptIdStr);
+
     return this.allGateSteps.filter((templateStep: any) =>
-      !steps.some((s: any) => s.ID === templateStep.ID && !s.isNew)
+      !steps.some((s: any) => s.ID === templateStep.ID && !s.isNew) &&
+      (deptId === null || (templateStep.DepartmentIDs && templateStep.DepartmentIDs.includes(deptId)))
     );
   }
 
-  onNewStepSelect(ptId: number, item: any, templateStepId: any) {
+  onNewStepSelect(comboKey: string, item: any, templateStepId: any) {
     if (!templateStepId) return;
     const templateStep = this.allGateSteps.find(s => s.ID === templateStepId);
     if (!templateStep) return;
@@ -771,7 +796,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     item.Workers = [];
 
     // Recalculate sort, sequence numbers and dates
-    this.recalculateSequenceNumbers(ptId);
+    this.recalculateSequenceNumbers(comboKey);
   }
 
   filterWorkersData() {
@@ -857,7 +882,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     this.isSaving = true;
     let allSteps: any[] = [];
     Object.keys(this.projectTypeStepsMap).forEach(key => {
-      let typeId = Number(key);
+      const parts = key.split('_');
+      const typeId = Number(parts[0]);
       let steps = (this.projectTypeStepsMap as any)[key]
         .filter((s: any) => !s.isNew)
         .map((s: any) => {
@@ -878,10 +904,10 @@ export class ProjectGateStepByProjectComponent implements OnInit {
               };
             }),
             CheckLists: (s.CheckLists || [])
-              .filter((c: any) => c.PathFolder && c.PathFolder.trim() !== '')
+              .filter((c: any) => (c.Type === 'File_Path' || c.type === 'File_Path') && c.PathFolder && c.PathFolder.trim() !== '')
               .map((c: any) => {
                 return {
-                  ProjectGateStepCheckListID: c.ProjectGateStepCheckListID || c.ID,
+                  ProjectGateStepCheckListID: c.ID,
                   PathFolder: c.PathFolder || '',
                   IsPass: c.IsPass || false
                 };
@@ -959,17 +985,23 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     });
   }
 
-  hasNoSavedSteps(ptId: number | null): boolean {
+  hasNoSavedSteps(ptId: number | null, deptId: number | null): boolean {
     if (!ptId) return false;
-    const savedForThisType = (this.savedGateSteps || []).filter((x: any) => x.ProjectTypeID === ptId);
-    return savedForThisType.length === 0;
+    const savedForThisCombo = (this.savedGateSteps || []).filter((x: any) => {
+      if (x.ProjectTypeID !== ptId) return false;
+      if (deptId === null) return true;
+      const step = this.allGateSteps.find(s => s.ID === x.ProjectGateStepID);
+      return step && step.DepartmentIDs && step.DepartmentIDs.includes(deptId);
+    });
+    return savedForThisCombo.length === 0;
   }
 
-  onTemplateChange(ptId: number, templateId: any) {
+  onTemplateChange(ptId: number, deptId: number | null, templateId: any) {
     const numericId = templateId ? Number(templateId) : null;
-    this.projectTypeTemplateMap[ptId] = numericId;
-    // Clear current steps for this project type so updateTabsSteps will recreate it
-    delete this.projectTypeStepsMap[ptId];
+    const key = `${ptId}_${deptId}`;
+    this.projectTypeTemplateMap[key] = numericId;
+    // Clear current steps for this combo so updateTabsSteps will recreate it
+    delete this.projectTypeStepsMap[key];
     this.updateTabsSteps();
   }
 
@@ -1025,92 +1057,97 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
     selected.forEach(link => {
       const ptId = link.ProjectTypeID;
-      if (!this.projectTypeStepsMap[ptId]) {
-        this.projectTypeStepsMap[ptId] = [];
-      }
+      // Find the department groups that contain this project type
+      const deptGroups = this.groupedMenuDepartments.filter(g =>
+        g.projectTypes.some((pt: any) => pt.ID === ptId)
+      );
+      const comboKeys: string[] = deptGroups.length > 0
+        ? deptGroups.map(g => `${ptId}_${g.id}`)
+        : [`${ptId}_null`];
 
-      const steps = this.projectTypeStepsMap[ptId];
-      const template = this.allGateSteps.find(s => s.ID === link.ProjectGateStepID);
-      if (!template) return;
-
-      if (link.IsRepeat) {
-        // Parent original step needs to be present in active steps
-        let parentStep = steps.find(s => s.ID === link.ProjectGateStepID && !s.isRepeated);
-        if (!parentStep) {
-          parentStep = JSON.parse(JSON.stringify(template));
-          parentStep.machineIndex = 1;
-          parentStep.isRepeatChecked = true;
-          parentStep.repeatOrder = 0;
-          parentStep.isRepeated = false;
-          parentStep.parentStepId = null;
-          parentStep.groupName = this.getGateGroupNameForMachine(parentStep.GateCode, 1);
-          parentStep.PeopleCount = null;
-          parentStep.DayCount = null;
-          parentStep.TotalEffort = 1;
-          parentStep.UnitPrice = null;
-          parentStep.Workers = [];
-          parentStep.CheckLists = link.CheckLists || [];
-          steps.push(parentStep);
-        } else {
-          parentStep.isRepeatChecked = true;
-          parentStep.CheckLists = link.CheckLists || [];
+      comboKeys.forEach(comboKey => {
+        if (!this.projectTypeStepsMap[comboKey]) {
+          this.projectTypeStepsMap[comboKey] = [];
         }
 
-        // Add repeated step
-        const repeatedExists = steps.some(s => s.isRepeated && s.parentStepId === link.ProjectGateStepID);
-        if (!repeatedExists) {
-          const repeatedStep = JSON.parse(JSON.stringify(parentStep));
-          repeatedStep.ID = -Date.now() - Math.floor(Math.random() * 1000);
-          repeatedStep.machineIndex = 2;
-          repeatedStep.isRepeated = true;
-          repeatedStep.parentStepId = link.ProjectGateStepID;
-          repeatedStep.isRepeatChecked = false;
-          repeatedStep.groupName = this.getGateGroupNameForMachine(parentStep.GateCode, 2);
-          repeatedStep.repeatOrder = Date.now();
+        const steps = this.projectTypeStepsMap[comboKey];
+        const template = this.allGateSteps.find(s => s.ID === link.ProjectGateStepID);
+        if (!template) return;
 
-          repeatedStep.StartDate = link.StartDate ? link.StartDate.substring(0, 10) : null;
-          repeatedStep.CheckLists = link.CheckLists || [];
-          if (link.Workers && link.Workers.length > 0) {
-            repeatedStep.Workers = link.Workers.map((w: any) => w.EmployeeID);
-            repeatedStep.PeopleCount = link.Workers.length;
-            repeatedStep.DayCount = link.Workers[0].DayCount;
-            repeatedStep.UnitPrice = link.Workers[0].UnitPrice;
-            repeatedStep.TotalEffort = repeatedStep.PeopleCount * repeatedStep.DayCount;
+        if (link.IsRepeat) {
+          // Parent original step needs to be present in active steps
+          let parentStep = steps.find(s => s.ID === link.ProjectGateStepID && !s.isRepeated);
+          if (!parentStep) {
+            parentStep = JSON.parse(JSON.stringify(template));
+            parentStep.machineIndex = 1;
+            parentStep.isRepeatChecked = true;
+            parentStep.repeatOrder = 0;
+            parentStep.isRepeated = false;
+            parentStep.parentStepId = null;
+            parentStep.groupName = this.getGateGroupNameForMachine(parentStep.GateCode, 1);
+            parentStep.PeopleCount = null;
+            parentStep.DayCount = null;
+            parentStep.TotalEffort = 1;
+            parentStep.UnitPrice = null;
+            parentStep.Workers = [];
+            steps.push(parentStep);
+          } else {
+            parentStep.isRepeatChecked = true;
           }
-          steps.push(repeatedStep);
-        }
-      } else {
-        // Original step
-        let existingStep = steps.find(s => s.ID === link.ProjectGateStepID && !s.isRepeated);
-        if (!existingStep) {
-          existingStep = JSON.parse(JSON.stringify(template));
-          existingStep.machineIndex = 1;
-          existingStep.isRepeatChecked = false;
-          existingStep.repeatOrder = 0;
-          existingStep.isRepeated = false;
-          existingStep.parentStepId = null;
-          existingStep.groupName = this.getGateGroupNameForMachine(existingStep.GateCode, 1);
-          existingStep.PeopleCount = null;
-          existingStep.DayCount = null;
-          existingStep.TotalEffort = 1;
-          existingStep.UnitPrice = null;
-          existingStep.Workers = [];
-          existingStep.CheckLists = link.CheckLists || [];
-          steps.push(existingStep);
+
+          // Add repeated step
+          const repeatedExists = steps.some(s => s.isRepeated && s.parentStepId === link.ProjectGateStepID);
+          if (!repeatedExists) {
+            const repeatedStep = JSON.parse(JSON.stringify(parentStep));
+            repeatedStep.ID = -Date.now() - Math.floor(Math.random() * 1000);
+            repeatedStep.machineIndex = 2;
+            repeatedStep.isRepeated = true;
+            repeatedStep.parentStepId = link.ProjectGateStepID;
+            repeatedStep.isRepeatChecked = false;
+            repeatedStep.groupName = this.getGateGroupNameForMachine(parentStep.GateCode, 2);
+            repeatedStep.repeatOrder = Date.now();
+
+            repeatedStep.StartDate = link.StartDate ? link.StartDate.substring(0, 10) : null;
+            if (link.Workers && link.Workers.length > 0) {
+              repeatedStep.Workers = link.Workers.map((w: any) => w.EmployeeID);
+              repeatedStep.PeopleCount = link.Workers.length;
+              repeatedStep.DayCount = link.Workers[0].DayCount;
+              repeatedStep.UnitPrice = link.Workers[0].UnitPrice;
+              repeatedStep.TotalEffort = repeatedStep.PeopleCount * repeatedStep.DayCount;
+            }
+            steps.push(repeatedStep);
+          }
+        } else {
+          // Original step
+          let existingStep = steps.find(s => s.ID === link.ProjectGateStepID && !s.isRepeated);
+          if (!existingStep) {
+            existingStep = JSON.parse(JSON.stringify(template));
+            existingStep.machineIndex = 1;
+            existingStep.isRepeatChecked = false;
+            existingStep.repeatOrder = 0;
+            existingStep.isRepeated = false;
+            existingStep.parentStepId = null;
+            existingStep.groupName = this.getGateGroupNameForMachine(existingStep.GateCode, 1);
+            existingStep.PeopleCount = null;
+            existingStep.DayCount = null;
+            existingStep.TotalEffort = 1;
+            existingStep.UnitPrice = null;
+            existingStep.Workers = [];
+            steps.push(existingStep);
+          }
+
+          existingStep.StartDate = link.StartDate ? link.StartDate.substring(0, 10) : null;
+          if (link.Workers && link.Workers.length > 0) {
+            existingStep.Workers = link.Workers.map((w: any) => w.EmployeeID);
+            existingStep.PeopleCount = link.Workers.length;
+            existingStep.DayCount = link.Workers[0].DayCount;
+            existingStep.UnitPrice = link.Workers[0].UnitPrice;
+            existingStep.TotalEffort = existingStep.PeopleCount * existingStep.DayCount;
+          }
         }
 
-        existingStep.StartDate = link.StartDate ? link.StartDate.substring(0, 10) : null;
-        existingStep.CheckLists = link.CheckLists || [];
-        if (link.Workers && link.Workers.length > 0) {
-          existingStep.Workers = link.Workers.map((w: any) => w.EmployeeID);
-          existingStep.PeopleCount = link.Workers.length;
-          existingStep.DayCount = link.Workers[0].DayCount;
-          existingStep.UnitPrice = link.Workers[0].UnitPrice;
-          existingStep.TotalEffort = existingStep.PeopleCount * existingStep.DayCount;
-        }
-      }
-
-      this.recalculateSequenceNumbers(ptId);
+        this.recalculateSequenceNumbers(comboKey);
+      });
     });
 
     this.notification.success(NOTIFICATION_TITLE.success, 'Khôi phục các bước công việc thành công! Vui lòng bấm "Lưu thông tin" để hoàn tất.', {
@@ -1119,187 +1156,90 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     this.showDeletedModal = false;
   }
 
-  hasUploadFolder(item: any): boolean {
-    if (!item || !item.CheckLists) return false;
-    return item.CheckLists.some((c: any) => c.PathFolder && c.PathFolder.trim() !== '');
-  }
-
-  isStepPassed(item: any): boolean {
-    if (!item || !item.CheckLists || item.CheckLists.length === 0) return false;
-    return item.CheckLists.every((c: any) => c.IsPass === true);
-  }
-
-  getRelativeSubPath(pathFolder: string): string {
-    if (!pathFolder) return '';
-    const match = pathFolder.match(/[\\\/]projects[\\\/](.*)$/i);
-    if (match) {
-      return match[1];
-    }
-    return pathFolder.replace(/^\\\\192\.168\.1\.190\\duan\\projects\\/i, '')
-      .replace(/^\\\\192\.168\.1\.190\\duan\\/i, '')
-      .replace(/^\\+/g, '');
-  }
-
-  getFileIcon(contentType: string, fileName: string): string {
-    const ext = (fileName || '').split('.').pop()?.toLowerCase() || '';
-    const mime = (contentType || '').toLowerCase();
-
-    if (mime.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg'].includes(ext))
-      return 'fa-solid fa-file-image text-success';
-    if (mime === 'application/pdf' || ext === 'pdf')
-      return 'fa-solid fa-file-pdf text-danger';
-    if (['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(mime) || ['doc', 'docx'].includes(ext))
-      return 'fa-solid fa-file-word text-primary';
-    if (['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(mime) || ['xls', 'xlsx'].includes(ext))
-      return 'fa-solid fa-file-excel text-success';
-    if (['application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'].includes(mime) || ['ppt', 'pptx'].includes(ext))
-      return 'fa-solid fa-file-powerpoint text-warning';
-    if (['application/zip', 'application/x-rar-compressed', 'application/x-7z-compressed'].includes(mime) || ['zip', 'rar', '7z', 'tar', 'gz'].includes(ext))
-      return 'fa-solid fa-file-zipper text-secondary';
-    if (mime.startsWith('video/') || ['mp4', 'avi', 'mov', 'mkv'].includes(ext))
-      return 'fa-solid fa-file-video text-info';
-    if (mime.startsWith('audio/') || ['mp3', 'wav', 'ogg'].includes(ext))
-      return 'fa-solid fa-file-audio text-info';
-    if (ext === 'dwg' || ext === 'dxf')
-      return 'fa-solid fa-drafting-compass text-primary';
-
-    return 'fa-solid fa-file text-secondary';
-  }
-
-  onRowContextMenu(event: MouseEvent, item: any) {
-    if (!this.hasUploadFolder(item)) {
-      event.preventDefault();
-      return;
-    }
-
-    this.selectedStepForMenu = item;
-    this.contextMenuItems = [
-      {
-        label: 'Tải file lên (Upload file)',
-        icon: 'pi pi-upload text-primary',
-        command: () => this.triggerFileUpload(item)
+  loadDepartments(): void {
+    this.projectService.getDepartment().subscribe({
+      next: (res: any) => {
+        this.departments = res.data || [];
+        this.updateGroupedMenuDepartments();
+      },
+      error: (err: any) => {
+        console.error('Error loading departments:', err);
       }
-    ];
-
-    if (this.cm) {
-      this.cm.show(event);
-    }
-    event.preventDefault();
-    event.stopPropagation();
+    });
   }
 
-  triggerFileUpload(item: any) {
-    if (!item || !item.CheckLists) return;
-    const cl = item.CheckLists.find((c: any) => c.PathFolder && c.PathFolder.trim() !== '');
-    if (!cl) return;
+  loadProjectTypeDepartmentLinks(): void {
+    this.projectTypeDeptService.getAll().subscribe({
+      next: (res: any) => {
+        this.projectTypeDepartmentLinks = res.data || [];
+        this.updateGroupedMenuDepartments();
+        this.updateTabsSteps();
+      },
+      error: (err: any) => {
+        console.error('Error loading project type department links:', err);
+      }
+    });
+  }
 
-    const pathFolder = cl.PathFolder;
-    const subPath = this.getRelativeSubPath(pathFolder);
-
-    if (!subPath) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xác định đường dẫn lưu file!');
+  updateGroupedMenuDepartments(): void {
+    if (!this.checkedProjectTypes || this.checkedProjectTypes.length === 0 || this.departments.length === 0) {
+      this.groupedMenuDepartments = [];
       return;
     }
 
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.multiple = true;
-    fileInput.style.display = 'none';
+    const groupsMap = new Map<number | null, any[]>();
 
-    fileInput.addEventListener('change', (event: Event) => {
-      const target = event.target as HTMLInputElement;
-      const files = target.files;
-      if (!files || files.length === 0) return;
+    this.departments.forEach(dept => {
+      // Find all project types linked to this department in configurations
+      const linksForDept = this.projectTypeDepartmentLinks.filter(l => l.DepartmentID === dept.ID && !l.IsDeleted);
+      const linkedTypeIds = new Set(linksForDept.map(l => l.ProjectTypeID));
 
-      const filesToUpload = Array.from(files);
-      this.notification.info('Đang upload', 'Đang tải file lên...');
+      // Filter checked project types of this project that are linked to this department
+      const ptsInDept = this.checkedProjectTypes.filter(pt => linkedTypeIds.has(pt.ID));
 
-      this.projectWorkerService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
-        next: (res: any) => {
-          if (res?.status === 1) {
-            const uploadedFiles = res.data || [];
-            if (uploadedFiles.length > 0) {
-              const saveRequests: Observable<any>[] = uploadedFiles.map((fData: any) => {
-                const fileDto = {
-                  FileName: fData.savedFileName || fData.SavedFileName || fData.originalFileName || fData.OriginalFileName,
-                  FilePath: fData.filePath || fData.FilePath,
-                  FileSize: fData.fileSize || fData.FileSize,
-                  ContentType: fData.contentType || fData.ContentType
-                };
-                return this.projectGateStepService.saveFile(cl.ID, fileDto);
-              });
+      if (ptsInDept.length > 0) {
+        groupsMap.set(dept.ID, ptsInDept);
+      }
+    });
 
-              forkJoin(saveRequests).subscribe({
-                next: (saveResults: any[]) => {
-                  this.notification.success(NOTIFICATION_TITLE.success, `Đã tải lên và lưu ${uploadedFiles.length} file thành công!`);
-                  cl.IsPass = true;
+    // Handle project types that are not linked to any department
+    const allLinkedTypeIds = new Set(this.projectTypeDepartmentLinks.filter(l => !l.IsDeleted).map(l => l.ProjectTypeID));
+    const unlinkedPts = this.checkedProjectTypes.filter(pt => !allLinkedTypeIds.has(pt.ID));
+    if (unlinkedPts.length > 0) {
+      groupsMap.set(null, unlinkedPts);
+    }
 
-                  // Thêm file vào mảng cục bộ để update UI
-                  cl.Files = cl.Files || [];
-                  saveResults.forEach((saveRes: any, index: number) => {
-                    const fData = uploadedFiles[index];
-                    if (saveRes?.status === 1) {
-                      cl.Files.push({
-                        ID: saveRes.data,
-                        FileName: fData.originalFileName || fData.OriginalFileName || fData.savedFileName || fData.SavedFileName,
-                        FilePath: fData.filePath || fData.FilePath,
-                        FileSize: fData.fileSize || fData.FileSize,
-                        ContentType: fData.contentType || fData.ContentType,
-                        CreatedBy: 'You',
-                        CreatedDate: new Date()
-                      });
-                    }
-                  });
-                },
-                error: (saveErr: any) => {
-                  console.error('Lỗi lưu file vào DB:', saveErr);
-                  this.notification.error(NOTIFICATION_TITLE.error, 'Tải file lên thành công nhưng không thể ghi nhận dữ liệu vào cơ sở dữ liệu.');
-                }
-              });
-            } else {
-              this.notification.success(NOTIFICATION_TITLE.success, `Tải file lên thành công!`);
-              cl.IsPass = true;
-            }
-          } else {
-            const msg = res?.message || 'Upload file không thành công.';
-            this.notification.error(NOTIFICATION_TITLE.error, msg);
-          }
-        },
-        error: (error: any) => {
-          console.error('Lỗi upload file:', error);
-          const msg = error.message || 'Lỗi kết nối khi tải file lên.';
-          this.notification.error(NOTIFICATION_TITLE.error, msg);
+    const groups: any[] = [];
+    groupsMap.forEach((pts, deptId) => {
+      let deptName = 'Chưa phân phòng ban';
+      if (deptId !== null) {
+        const dept = this.departments.find(d => d.ID === deptId || d.id === deptId);
+        if (dept) {
+          deptName = dept.Name || dept.name || `Phòng ban ${deptId}`;
         }
+      }
+      groups.push({
+        id: deptId,
+        name: deptName,
+        projectTypes: pts
       });
     });
 
-    document.body.appendChild(fileInput);
-    fileInput.click();
-    setTimeout(() => document.body.removeChild(fileInput), 100);
+    // Sort groups so "Chưa phân phòng ban" is last, and others sorted alphabetically
+    groups.sort((a, b) => {
+      if (a.id === null) return 1;
+      if (b.id === null) return -1;
+      return a.name.localeCompare(b.name);
+    });
+
+    this.groupedMenuDepartments = groups;
   }
 
-  openFileListModal(item: any, cl: any) {
-    const modalRef = this.ngbModal.open(ProjectGateStepFilesModalComponent, {
-      centered: true,
-      size: 'xl',
-      keyboard: false,
-    });
-
-    modalRef.componentInstance.checklistLink = cl;
-    modalRef.componentInstance.gateCode = item.GateCode || '';
-    modalRef.componentInstance.gateName = item.GateName || '';
-
-    modalRef.result
-      .then((result: any) => {
-        if (cl.Files && cl.Files.length > 0) {
-          cl.IsPass = true;
-        }
-      })
-      .catch((error: any) => {
-        if (cl.Files && cl.Files.length > 0) {
-          cl.IsPass = true;
-        }
-      });
+  getTemplatesForActiveType(): any[] {
+    if (!this.activeProjectTypeId) return [];
+    // Show all templates for this project type, regardless of which department group is active
+    // A template for Vision should appear for ALL departments that have Vision
+    return this.templates.filter(t => t.ProjectTypeID === this.activeProjectTypeId);
   }
 
   closeModal() {

@@ -1,0 +1,79 @@
+:host ::ng-deep .ant-card-head {
+    min-height: 32px !important;
+    height: 32px !important;
+    padding: 0 12px !important;
+    background: #f7f9fa;
+}
+
+:host ::ng-deep .ant-card-head-title {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #404040;
+    padding: 6px 0 !important;
+}
+
+:host ::ng-deep .ant-card-extra {
+    padding: 4px 0 !important;
+}
+
+:host ::ng-deep .ant-card-body {
+    padding: 10px 12px 12px 12px !important;
+}
+
+:host ::ng-deep .ant-form-item-label {
+    padding: 0 0 2px 0 !important;
+}
+
+:host ::ng-deep .ant-form-item {
+    margin-bottom: 8px !important;
+}
+
+:host ::ng-deep .ant-form-item-explain {
+    font-size: 10px !important;
+    min-height: 12px !important;
+}
+
+:host ::ng-deep .fs-12 {
+    font-size: 12px !important;
+}
+
+:host ::ng-deep .fs-11 {
+    font-size: 11px !important;
+}
+
+:host ::ng-deep .fs-13 {
+    font-size: 13px !important;
+}
+
+.custom-card {
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+}
+
+.custom-card:hover {
+    border-color: #40a9ff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+}
+
+.btn-xs {
+    padding: 1px 5px;
+    font-size: 11px;
+    line-height: 1.5;
+    border-radius: 3px;
+}
+
+.py-0-5 {
+    padding-top: 0.125rem !important;
+    padding-bottom: 0.125rem !important;
+}
+
+.modal-dialog-scrollable {
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+.modal-body {
+    overflow-y: auto;
+    max-height: calc(90vh - 110px);
+}

@@ -538,3 +538,80 @@ nz-input-number.inline-edit .ant-input-number {
   justify-content: flex-end;
   padding-top: 4px;
 }
+
+/* ===== Team Weight Override Section ===== */
+.team-weight-section {
+  flex: 1;
+  min-height: 0;
+  /* KHÔNG overflow ở đây — để footer cố định bên dưới, body tự cuộn riêng */
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+/* Phần thân (header + table) — chiếm hết không gian còn lại, tự sinh scrollbar */
+.team-weight-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+}
+
+/* Footer cố định — luôn dính ở dưới, không cuộn theo bảng */
+.team-weight-footer {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin: 0;
+  background: #ffffff;
+  border-top: 1px solid #e8e8e8;
+  border-radius: 4px;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+}
+
+.team-weight-header h6 {
+  margin-bottom: 4px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.team-weight-header small {
+  display: block;
+  line-height: 1.5;
+}
+
+/* Bôi màu các chỉ tiêu loại "Nhóm" — đồng bộ style với kpi-sale-v2.component */
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-group > td {
+  background: #e6f4ff !important;
+  color: #0b3a66;
+  font-weight: 600;
+  border-top: 1px solid #91caff;
+  border-bottom: 1px solid #91caff;
+}
+
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-group > td:first-child {
+  border-left: 3px solid #1677ff;
+}
+
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-group > td:last-child {
+  border-right: 1px solid #91caff;
+}
+
+::ng-deep .team-weight-section .ant-table-tbody > tr.row-group > td .ant-tag {
+  font-weight: 600;
+}
+

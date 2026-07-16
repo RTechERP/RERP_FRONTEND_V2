@@ -174,6 +174,53 @@ export class KpiTargetTabComponent implements OnInit {
   } = { teamId: 0, teamName: '', templateId: 0, periodValue: '', note: '' };
   teamAssignModalRef?: NzModalRef;
 
+  // === Team Weight Override (KPISaleTarget với EmployeeID=0) ===
+  isTeamWeightMode = false;
+  teamWeightTemplateName = '';
+  teamWeightItems: {
+    kpiIndexId: number;
+    indexCode: string;
+    indexName: string;
+    indexType: string;
+    unitType: string;
+    defaultWeightPercent: number | null;
+    teamWeightPercent: number | null;
+  }[] = [];
+  teamWeightEdited = new Map<number, number | null>();
+  isTeamWeightLoading = false;
+
+  /** Trả label tiếng Việt cho IndexType (giống component kpi-sale-v2). */
+  getTeamWeightIndexTypeLabel(type?: string | null): string {
+    switch ((type ?? '').toUpperCase()) {
+      case 'DETAIL': return 'Chi tiết';
+      case 'GROUP': return 'Nhóm';
+      case 'FORMULA': return 'Công thức';
+      case 'REPORT': return 'Báo cáo';
+      default: return '—';
+    }
+  }
+
+  /** Trả màu cho nz-tag theo IndexType. */
+  getTeamWeightIndexTypeColor(type?: string | null): string {
+    switch ((type ?? '').toUpperCase()) {
+      case 'DETAIL': return 'blue';
+      case 'GROUP': return 'green';
+      case 'FORMULA': return 'orange';
+      case 'REPORT': return 'purple';
+      default: return 'default';
+    }
+  }
+
+  get canEditTeamWeight(): boolean {
+    if (!this.selectedTeamId) return false;
+    const isMyLeaderTeam = this.myLeaderTeams.some(t => t.id === this.selectedTeamId);
+    return isMyLeaderTeam || this.hasFullPermission;
+  }
+
+  get canViewTeamWeight(): boolean {
+    return !!this.selectedTeamId;
+  }
+
   // Quick assign modal draft — chỉ dùng để gán nhanh từ bảng trái
   quickAssignDraft: {
     employeeId: number;
@@ -1176,6 +1223,10 @@ export class KpiTargetTabComponent implements OnInit {
       this.selectedEmployeeId = 0;
     }
     void this.onFilterChange();
+    // Nếu đang ở chế độ Trọng số Team thì reload ngay khi đổi team
+    if (this.isTeamWeightMode && teamId) {
+      void this.loadTeamWeights();
+    }
   }
 
   ngOnInit(): void {
@@ -1363,6 +1414,11 @@ export class KpiTargetTabComponent implements OnInit {
         }
       }
       await this.loadTargets();
+
+      // Nếu đang ở chế độ Trọng số Team thì reload data team weights theo filter mới
+      if (this.isTeamWeightMode && this.selectedTeamId && this.selectedPeriodId) {
+        await this.loadTeamWeights();
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -1416,6 +1472,134 @@ export class KpiTargetTabComponent implements OnInit {
       console.error(err);
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  // === Team Weight Override methods ===
+
+  async loadTeamWeights(): Promise<void> {
+    if (!this.selectedTeamId || !this.selectedPeriodId) {
+      this.teamWeightItems = [];
+      this.teamWeightTemplateName = '';
+      return;
+    }
+    this.isTeamWeightLoading = true;
+    try {
+      const res = await firstValueFrom(
+        this.safeApi<any>(this.kpiSaleService.getTeamWeights(this.selectedTeamId, this.selectedPeriodId))
+      );
+      if (res?.status === 1 && res.data) {
+        this.teamWeightTemplateName = res.data.templateName ?? '';
+        this.teamWeightItems = (res.data.items ?? []).map((it: any) => ({
+          kpiIndexId: it.kpiIndexID ?? it.KpiIndexID,
+          indexCode: it.indexCode ?? it.IndexCode ?? '',
+          indexName: it.indexName ?? it.IndexName ?? '',
+          indexType: (it.indexType ?? it.IndexType ?? 'DETAIL') as string,
+          unitType: (it.unitType ?? it.UnitType ?? '') as string,
+          defaultWeightPercent: it.defaultWeightPercent ?? it.DefaultWeightPercent ?? null,
+          teamWeightPercent: it.teamWeightPercent ?? it.TeamWeightPercent ?? null
+        }));
+        this.teamWeightEdited.clear();
+      } else {
+        this.teamWeightItems = [];
+        this.teamWeightTemplateName = '';
+        this.teamWeightEdited.clear();
+      }
+    } catch (err) {
+      console.error('[loadTeamWeights] error:', err);
+    } finally {
+      this.isTeamWeightLoading = false;
+    }
+  }
+
+  getTeamWeightValue(kpiIndexId: number): number | null {
+    if (this.teamWeightEdited.has(kpiIndexId)) return this.teamWeightEdited.get(kpiIndexId)!;
+    const found = this.teamWeightItems.find(i => i.kpiIndexId === kpiIndexId);
+    return found?.teamWeightPercent ?? null;
+  }
+
+  onTeamWeightChange(kpiIndexId: number, value: number | null): void {
+    this.teamWeightEdited.set(kpiIndexId, value);
+    // Trigger change detection
+    this.teamWeightEdited = new Map(this.teamWeightEdited);
+  }
+
+  calculateTotalTeamWeight(): number {
+    return this.teamWeightItems.reduce((sum, it) => {
+      const v = this.getTeamWeightValue(it.kpiIndexId);
+      return sum + (v ?? it.defaultWeightPercent ?? 0);
+    }, 0);
+  }
+
+  hasTeamWeightChanges(): boolean {
+    return this.teamWeightEdited.size > 0;
+  }
+
+  async saveTeamWeightChanges(): Promise<void> {
+    if (!this.selectedTeamId || !this.selectedPeriodId) return;
+    if (this.teamWeightEdited.size === 0) return;
+    const payload = Array.from(this.teamWeightEdited.entries()).map(([kpiIndexId, wp]) => ({
+      PeriodID: this.selectedPeriodId,
+      KpiIndexID: kpiIndexId,
+      WeightPercent: wp ?? 0
+    }));
+    const res = await firstValueFrom(
+      this.safeApi<any>(this.kpiSaleService.updateTeamWeights(
+        this.selectedTeamId, this.selectedPeriodId, payload))
+    );
+    if (res?.status === 1) {
+      const cascaded = res?.data?.cascadedMonths ?? 0;
+      const toastMsg = cascaded > 0
+        ? `Đã lưu trọng số Team và đồng bộ cho ${cascaded} tháng con`
+        : 'Đã lưu trọng số Team';
+      this.notification.success('Thành công', toastMsg);
+      this.teamWeightEdited.clear();
+      await this.loadTeamWeights();
+    } else {
+      this.notification.error('Lỗi', res?.message ?? 'Không thể lưu trọng số Team');
+    }
+  }
+
+  async resetTeamWeight(kpiIndexId: number): Promise<void> {
+    if (!this.selectedTeamId || !this.selectedPeriodId) return;
+    const res = await firstValueFrom(
+      this.safeApi<any>(this.kpiSaleService.deleteTeamWeight(
+        this.selectedTeamId, this.selectedPeriodId, kpiIndexId))
+    );
+    if (res?.status === 1) {
+      const removed = res?.data?.removedCount ?? 1;
+      const toastMsg = removed > 1
+        ? `Đã reset về weight mặc định (đồng bộ cho ${removed} kỳ)`
+        : 'Đã reset về weight mặc định';
+      this.notification.success('Thành công', toastMsg);
+      this.teamWeightEdited.delete(kpiIndexId);
+      this.teamWeightEdited = new Map(this.teamWeightEdited);
+      await this.loadTeamWeights();
+    } else {
+      this.notification.error('Lỗi', res?.message ?? 'Không thể reset trọng số');
+    }
+  }
+
+  /** Trả về 'MONTH' | 'QUARTER' | 'YEAR' | '' cho kỳ đang chọn. */
+  getCurrentSelectedPeriodType(): string {
+    const p = this.periods.find(x => x.id === this.selectedPeriodId);
+    return (p?.periodType ?? '').toUpperCase();
+  }
+
+  getCurrentSelectedPeriodCode(): string {
+    const p = this.periods.find(x => x.id === this.selectedPeriodId);
+    return p?.periodCode ?? '';
+  }
+
+  async toggleTeamWeightMode(): Promise<void> {
+    this.isTeamWeightMode = !this.isTeamWeightMode;
+    if (this.isTeamWeightMode) {
+      if (!this.selectedTeamId) {
+        this.notification.warning('Chú ý', 'Vui lòng chọn Team trước');
+        this.isTeamWeightMode = false;
+        return;
+      }
+      await this.loadTeamWeights();
     }
   }
 
@@ -2062,6 +2246,14 @@ export class KpiTargetTabComponent implements OnInit {
   getEmployeeName(employeeId: number): string {
     const employee = this.employees.find(item => item.id === employeeId);
     return employee ? `${employee.code} - ${employee.fullName}` : '';
+  }
+
+  getTeamName(teamId: number): string {
+    const team = this.teams.find(t => t.id === teamId);
+    if (!team) return '';
+    const code = team.teamCode ?? '';
+    const name = team.teamName ?? '';
+    return code && name ? `${code} - ${name}` : (name || code);
   }
 
   getPeriodName(periodId: number): string {

@@ -1,0 +1,74 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">
+      Quản lý file đính kèm - Bước: {{ gateCode }} - {{ gateName }}
+    </h6>
+    <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"></button>
+  </div>
+
+  <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="d-flex gap-2">
+        <button nz-button nzType="primary" nzSize="small" (click)="triggerUpload()">
+          <i class="fa-solid fa-plus me-1"></i> Thêm file
+        </button>
+        <button nz-button nzDanger nzType="default" nzSize="small" [disabled]="selectedFileIds.size === 0"
+          (click)="deleteSelectedFiles()">
+          <i class="fa-solid fa-trash me-1"></i> Xóa đã chọn ({{ selectedFileIds.size }})
+        </button>
+      </div>
+    </div>
+
+    <div class="mb-2 text-muted fs-11 word-break-all">
+      <i class="fa-solid fa-folder me-1 text-warning"></i>
+      <!-- <strong>Thư mục lưu trữ:</strong> {{ checklistLink?.PathFolder || 'Chưa cấu hình' }} -->
+    </div>
+
+    <nz-table #fileTable [nzData]="checklistLink?.Files || []" [nzSize]="'small'" [nzShowPagination]="false"
+      [nzScroll]="{ y: '350px' }" [nzBordered]="true">
+      <thead>
+        <tr>
+          <th nzWidth="40px" class="text-center">
+            <label nz-checkbox [ngModel]="allChecked" [nzIndeterminate]="indeterminate"
+              (ngModelChange)="onAllChecked($event)"></label>
+          </th>
+          <th>Tên file</th>
+          <th nzWidth="120px">Người tải lên</th>
+          <th nzWidth="140px">Ngày tải lên</th>
+          <th nzWidth="70px" class="text-center">Tác vụ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let file of fileTable.data">
+          <td class="text-center">
+            <label nz-checkbox [ngModel]="selectedFileIds.has(file.ID)"
+              (ngModelChange)="onItemChecked(file.ID, $event)"></label>
+          </td>
+          <td class="word-break-all">
+            <div class="d-flex align-items-center gap-2">
+              <i [class]="getFileIcon(file.ContentType, file.FileName)" style="font-size: 14px;"></i>
+              <a class="file-name-link text-primary font-weight-500" (click)="downloadFile(file)"
+                [title]="'Tải xuống: ' + file.FileName">
+                {{ file.FileName }}
+              </a>
+            </div>
+          </td>
+          <td class="word-break-all">{{ file.CreatedBy || 'System' }}</td>
+          <td>{{ file.CreatedDate ? (file.CreatedDate | date:'dd/MM/yyyy HH:mm') : '' }}</td>
+          <td class="text-center">
+            <button nz-button nzType="text" nzDanger nzSize="small" (click)="deleteOneFile(file.ID)" title="Xóa file">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="(!checklistLink?.Files || checklistLink.Files.length === 0)">
+          <td colspan="5" class="text-center text-muted py-4">Chưa có tài liệu đính kèm nào.</td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </div>
+
+  <div class="modal-footer py-2">
+    <button nz-button nzType="default" (click)="activeModal.close()">Đóng</button>
+  </div>
+</div>

@@ -1,0 +1,184 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-uppercase text-white">
+    {{ isEdit ? 'CẬP NHẬT BƯỚC / CÔNG ĐOẠN GATE' : 'THÊM MỚI BƯỚC / CÔNG ĐOẠN GATE' }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body fs-12" style="font-size: 12px;">
+  <form nz-form [formGroup]="form" nzLayout="vertical">
+
+    <!-- Row 1: Gate + Template -->
+    <nz-row [nzGutter]="[16, 8]">
+      <!-- Gate cha (bắt buộc) -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">
+            Gate <span class="text-danger ps-1">*</span>
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn Gate">
+            <nz-select formControlName="ProjectGateID" nzPlaceHolder="-- Chọn Gate --" nzAllowClear nzShowSearch
+              style="width: 100%; font-size: 12px;">
+              <nz-option *ngFor="let gate of gateList" [nzValue]="gate.ID"
+                [nzLabel]="gate.GateCode + ' - ' + gate.GateName">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- Template -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">
+            Mẫu công việc
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-select formControlName="ProjectGateStepTemplateID" nzPlaceHolder="-- Chọn mẫu template --" nzAllowClear nzShowSearch
+              style="width: 100%; font-size: 12px;">
+              <nz-option *ngFor="let t of templateList" [nzValue]="t.ID"
+                [nzLabel]="t.Code + ' - ' + t.Name">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <!-- Row 2: TT + SortOrder -->
+    <nz-row [nzGutter]="[16, 8]">
+      <!-- TT -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">TT</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input formControlName="TT" placeholder="Thứ tự hiển thị" style="font-size: 12px;" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- SortOrder -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">Thứ tự sắp xếp</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-input-number formControlName="SortOrder" [nzMin]="1" [nzStep]="1" class="w-100"
+              style="font-size: 12px;">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <!-- Row 2: Content -->
+    <nz-form-item class="mb-2">
+      <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">Nội dung công việc </nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Tối đa 550 ký tự">
+        <textarea nz-input formControlName="Content"
+          placeholder="Nhập nội dung, bước thực hiện hoặc yêu cầu cần xử lý..." rows="4" style="font-size: 12px;">
+        </textarea>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-row [nzGutter]="[16, 8]">
+      <!-- Phòng ban multi-select -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">
+            Phòng ban
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-select formControlName="DepartmentIDs" nzMode="multiple" nzPlaceHolder="-- Chọn phòng ban --"
+              nzShowSearch nzAllowClear style="width: 100%; font-size: 12px;">
+              <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- Chức vụ multi-select -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">
+            Chức vụ
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-select formControlName="PositionIDs" nzMode="multiple" nzPlaceHolder="-- Chọn chức vụ --" nzShowSearch
+              nzAllowClear style="width: 100%; font-size: 12px;">
+              <nz-option *ngFor="let pos of positionList" [nzValue]="pos.ID" [nzLabel]="pos.Code + ' - ' + pos.Name">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <!-- Checklist hoàn thành -->
+    <div class="mt-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="fw-bold" style="font-size: 12px;">Danh sách checklist yêu cầu</span>
+        <button nz-button nzType="dashed" nzSize="small" type="button" (click)="addCheckListItem()"
+          style="font-size: 12px;">
+          <i class="fa-solid fa-plus me-1"></i> Thêm checklist
+        </button>
+      </div>
+
+      <div formArrayName="CheckLists">
+        <div *ngFor="let item of checkListsFormArray.controls; let i = index" [formGroupName]="i"
+          class="mb-2 card p-2 bg-light border-0">
+          <nz-row [nzGutter]="[8, 8]" class="align-items-center">
+            <!-- Type -->
+            <nz-col [nzSpan]="8">
+              <nz-form-item class="mb-0">
+                <nz-form-control nzErrorTip="Chọn loại checklist">
+                  <nz-select formControlName="Type" nzPlaceHolder="-- Loại checklist --"
+                    style="width: 100%; font-size: 12px;">
+                    <nz-option nzValue="File_Path" nzLabel="File_Path"></nz-option>
+                    <nz-option nzValue="Part_list" nzLabel="Part_list"></nz-option>
+                    <nz-option nzValue="Document" nzLabel="Document"></nz-option>
+                    <nz-option nzValue="Folder" nzLabel="Folder"></nz-option>
+                    <nz-option nzValue="Form" nzLabel="Form"></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
+
+            <!-- Description -->
+            <nz-col [nzSpan]="14">
+              <nz-form-item class="mb-0">
+                <nz-form-control nzErrorTip="Vui lòng nhập mô tả (Tối đa 550 ký tự)">
+                  <input nz-input formControlName="Description" placeholder="Mô tả checklist..."
+                    style="font-size: 12px;" />
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
+
+            <!-- Action -->
+            <nz-col [nzSpan]="2" class="text-end">
+              <button nz-button nzType="text" nzDanger type="button" (click)="removeCheckListItem(i)"
+                style="font-size: 12px;">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </nz-col>
+          </nz-row>
+        </div>
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<div class="modal-footer fs-12 py-2" style="font-size: 12px;">
+  <button nz-button nzType="default" nzDanger nzSize="small" (click)="onCancel()" style="font-size: 12px;">
+    <i class="fa-solid fa-xmark me-1"></i> Đóng
+  </button>
+  <button nz-button nzType="primary" nzSize="small" [nzLoading]="loading" (click)="onSubmit(false)" *ngIf="!isEdit"
+    style="font-size: 12px;">
+    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
+  </button>
+  <button nz-button nzType="primary" nzSize="small" [nzLoading]="loading" (click)="onSubmit(true)"
+    style="font-size: 12px;">
+    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu và đóng
+  </button>
+</div>

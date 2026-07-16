@@ -1,0 +1,150 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-uppercase text-white">
+    {{ isEdit ? 'CẬP NHẬT CẤU HÌNH GATE DỰ ÁN' : 'THÊM MỚI CẤU HÌNH GATE DỰ ÁN' }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body fs-12" style="font-size: 12px;">
+  <form nz-form [formGroup]="form" nzLayout="vertical">
+
+    <!-- Row 1: STT, GateCode, Type -->
+    <nz-row [nzGutter]="[16, 8]">
+      <!-- STT -->
+      <nz-col [nzSpan]="5">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">STT <span class="text-danger ps-1">*</span></nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập số thứ tự">
+            <nz-input-number formControlName="STT" [nzMin]="1" [nzStep]="1" class="w-100" style="font-size: 12px;"></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- GateCode -->
+      <nz-col [nzSpan]="10">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">Mã Gate <span class="text-danger ps-1">*</span></nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã gate (Tối đa 200 ký tự)">
+            <input nz-input formControlName="GateCode" placeholder="Nhập mã gate" style="font-size: 12px;" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- Type -->
+      <nz-col [nzSpan]="9">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">Loại Gate</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-select formControlName="Type" nzPlaceHolder="-- Chọn loại --" nzAllowClear style="width: 100%; font-size: 12px;">
+              <nz-option *ngFor="let opt of typeOptions" [nzValue]="opt.value" [nzLabel]="opt.label"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <!-- Row 2: GateName, StepName -->
+    <nz-row [nzGutter]="[16, 8]">
+      <!-- GateName -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">Tên Gate <span class="text-danger ps-1">*</span></nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên gate (Tối đa 550 ký tự)">
+            <input nz-input formControlName="GateName" placeholder="Nhập tên gate" style="font-size: 12px;" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- StepName -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">Tên bước quy trình <span class="text-danger ps-1">*</span></nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên bước quy trình (Tối đa 550 ký tự)">
+            <input nz-input formControlName="StepName" placeholder="Nhập tên bước quy trình" style="font-size: 12px;" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <!-- Row 3: Optional checkbox + ParentID (conditional) -->
+    <nz-row [nzGutter]="[16, 8]">
+      <nz-col [nzSpan]="6">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">Tùy chọn (Optional)</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <label nz-checkbox formControlName="Optional" style="font-size: 12px;">Không bắt buộc</label>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- ParentID - only show when Optional is checked -->
+      <nz-col [nzSpan]="18" *ngIf="isOptional">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">
+            Thuộc nhóm Gate cha
+            <span class="text-muted fw-normal ms-1" style="font-size: 11px;">(lọc theo cùng loại)</span>
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-select formControlName="ParentID" nzPlaceHolder="-- Chọn gate cha --" nzAllowClear
+              nzShowSearch style="width: 100%; font-size: 12px;">
+              <nz-option *ngFor="let gate of parentGateOptions"
+                [nzValue]="gate.ID"
+                [nzLabel]="gate.GateCode + ' - ' + gate.GateName">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <!-- Target -->
+    <nz-form-item class="mb-2">
+      <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">Mục tiêu</nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Tối đa 550 ký tự">
+        <input nz-input formControlName="Target" placeholder="Nhập mục tiêu của gate" style="font-size: 12px;" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-row [nzGutter]="[16, 8]">
+      <!-- RequireInput -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">Yêu cầu Đầu vào</nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Tối đa 550 ký tự">
+            <textarea nz-input formControlName="RequireInput" placeholder="Nhập yêu cầu đầu vào" rows="3" style="font-size: 12px;"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- RequireOuput -->
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="mb-2">
+          <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">Yêu cầu Đầu ra</nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Tối đa 550 ký tự">
+            <textarea nz-input formControlName="RequireOuput" placeholder="Nhập yêu cầu đầu ra" rows="3" style="font-size: 12px;"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <!-- ActionIfRejected -->
+    <nz-form-item class="mb-2">
+      <nz-form-label [nzSpan]="24" class="p-0 fw-bold" style="font-size: 12px;">Hành động nếu bị từ chối</nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Tối đa 550 ký tự">
+        <input nz-input formControlName="ActionIfRejected" placeholder="Nhập hành động nếu từ chối" style="font-size: 12px;" />
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</div>
+
+<div class="modal-footer fs-12 py-2" style="font-size: 12px;">
+  <button nz-button nzType="default" nzDanger nzSize="small" (click)="onCancel()" style="font-size: 12px;">
+    <i class="fa-solid fa-xmark me-1"></i> Đóng
+  </button>
+  <button nz-button nzType="primary" nzSize="small" [nzLoading]="loading" (click)="onSubmit(false)" *ngIf="!isEdit" style="font-size: 12px;">
+    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
+  </button>
+  <button nz-button nzType="primary" nzSize="small" [nzLoading]="loading" (click)="onSubmit(true)" style="font-size: 12px;">
+    <i class="fa-solid fa-floppy-disk me-1"></i> Lưu và đóng
+  </button>
+</div>

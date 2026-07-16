@@ -1,3 +1,5 @@
+<p-contextMenu #cm [model]="contextMenuItems" [baseZIndex]="99999"></p-contextMenu>
+
 <div class="d-flex flex-column w-100" style="font-size: 12px !important; height:94vh !important;">
 
 
@@ -23,6 +25,18 @@
     <div class="flex-grow-1 bg-white p-3 d-flex flex-column overflow-hidden" style="min-width: 0; height: 100%;">
       <!-- Action Header -->
       <div class="d-flex justify-content-end align-items-center gap-2 mb-2 pb-2 border-bottom flex-shrink-0">
+        @if (activeProjectTypeId && hasNoSavedSteps(activeProjectTypeId)) {
+        <div class="d-flex align-items-center gap-1 me-auto">
+          <span class="text-muted fw-bold">Mẫu công đoạn:</span>
+          <nz-select nzSize="small" style="width: 250px; font-size: 12px !important;" [(ngModel)]="selectedTemplateId"
+            (ngModelChange)="onTemplateChange(activeProjectTypeId, $event)" nzPlaceHolder="Chọn mẫu công đoạn...">
+            <nz-option [nzValue]="null" nzLabel="-- Tất cả công đoạn --"></nz-option>
+            @for (t of templates; track t.ID) {
+            <nz-option [nzValue]="t.ID" [nzLabel]="t.Name"></nz-option>
+            }
+          </nz-select>
+        </div>
+        }
         <button nz-button nzType="default" (click)="closeModal()" [disabled]="isSaving" style="font-size: 12px;">
           <i class="fa-solid fa-arrow-left me-1"></i> Đóng
         </button>
@@ -49,7 +63,13 @@
           rowGroupMode="subheader" groupRowsBy="groupName" [style]="{'min-width': '2200px', 'table-layout': 'fixed'}">
           <ng-template pTemplate="header">
             <tr class="header-row">
-              <th style="width: 60px; text-align: center;">Xóa</th>
+              <th style="width: 60px; text-align: center;">
+                <button nz-button nzType="text" (click)="addBlankStep(activeProjectTypeId)"
+                  class="text-primary p-0 d-flex align-items-center justify-content-center mx-auto"
+                  style="height: 24px; width: 24px;" title="Thêm công đoạn">
+                  <i class="fa-solid fa-plus" style="font-size: 14px;"></i>
+                </button>
+              </th>
               <th style="width: 50px;" class="text-center">TT</th>
               <th style="width: 60px;" class="text-center">Thứ tự</th>
               <th style="width: 150px;" class="text-center">Bước/Giai đoạn</th>
@@ -57,6 +77,9 @@
               <th style="width: 320px;" class="text-center">Nội dung công việc</th>
               <th style="width: 180px;" class="text-center">Vị trí/PIC</th>
               <th style="width: 250px;" class="text-center">Checklist/Output bắt buộc</th>
+              <th style="width: 200px;" class="text-center">Đường dẫn</th>
+              <th style="width: 220px;" class="text-center">File đính kèm</th>
+
               <th style="width: 120px;" class="text-center">Ngày bắt đầu</th>
               <th style="width: 80px;" class="text-center">Repeat</th>
               <th style="width: 80px;" class="text-center">Số người</th>
@@ -71,14 +94,14 @@
           <ng-template pTemplate="groupheader" let-item>
             @if (isFirstSubgroupOfMachine(activeProjectTypeId, item)) {
             <tr class="machine-group-header">
-              <td colspan="16" class="fw-bold text-primary px-3 py-2 text-start"
+              <td colspan="18" class="fw-bold text-primary px-3 py-2 text-start"
                 style="font-size: 12px !important; font-weight: 800 !important; background-color: #e6f7ff !important; color: #0050b3 !important; border: 1px solid #dee2e6 !important;">
                 {{ getMachineHeaderName(item) }}
               </td>
             </tr>
             }
             <tr pRowGroupHeader class="row-group-header">
-              <td colspan="13" class="bg-light fw-bold text-primary px-3 py-1 text-start" style="font-size: 12px;">
+              <td colspan="15" class="bg-light fw-bold text-primary px-3 py-1 text-start" style="font-size: 12px;">
                 {{ getSubgroupHeaderName(item) }}
               </td>
               <td class="bg-light fw-bold text-primary text-center px-1 py-1" style="width: 100px; font-size: 12px;">
@@ -92,7 +115,7 @@
           </ng-template>
 
           <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
-            <tr class="body-row">
+            <tr class="body-row" [class.passed-step]="isStepPassed(item)" (contextmenu)="onRowContextMenu($event, item)">
               <td class="text-center" style="width: 60px;">
                 <button nz-button nzType="text" nzDanger (click)="removeStep(activeProjectTypeId, item.ID)"
                   class="btn-delete-step p-0 d-flex align-items-center justify-content-center mx-auto"
@@ -100,19 +123,81 @@
                   <i class="fa-solid fa-xmark"></i>
                 </button>
               </td>
-              <td class="text-center" style="width: 50px;">{{ item.TT }}</td>
-              <td class="text-center" style="width: 60px;">{{ item.SortOrder }}</td>
-              <td style="width: 150px;">{{ item.GateCode }}-{{item.GateName}}</td>
-              <td style="width: 180px; white-space: pre-wrap;">{{ item.DepartmentNames }}</td>
-              <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.Content }}</td>
-              <td style="width: 180px; white-space: pre-wrap;">{{ item.PositionNames }}</td>
-              <td style="width: 250px; white-space: pre-wrap;">{{ item.CheckListNames }}</td>
+              <td class="text-center" style="width: 50px;">{{ item.isNew ? '' : item.TT }}</td>
+              <td class="text-center" style="width: 60px;">{{ item.isNew ? '' : item.SortOrder }}</td>
+              <td style="width: 150px;">
+                @if (item.isNew) {
+                <nz-select nzSize="small" class="w-100" style="font-size: 12px; min-width: 130px;"
+                  [nzDropdownMatchSelectWidth]="false"
+                  [nzDropdownStyle]="{ 'min-width': '300px' }"
+                  [(ngModel)]="item.selectedTemplateStepId"
+                  (ngModelChange)="onNewStepSelect(activeProjectTypeId, item, $event)"
+                  nzPlaceHolder="Chọn công đoạn...">
+                  @for (step of getAvailableStepsForSelect(activeProjectTypeId); track step.ID) {
+                  <nz-option [nzValue]="step.ID" [nzLabel]="step.GateCode + ' - ' + step.GateName"></nz-option>
+                  }
+                </nz-select>
+                } @else {
+                {{ item.GateCode }}-{{item.GateName}}
+                }
+              </td>
+              <td style="width: 180px; white-space: pre-wrap;">{{ item.isNew ? '' : item.DepartmentNames }}</td>
+              <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content }}</td>
+              <td style="width: 180px; white-space: pre-wrap;">{{ item.isNew ? '' : item.PositionNames }}</td>
+              <td style="width: 250px; font-size: 11px; white-space: pre-wrap;">
+                @if (!item.isNew && item.CheckLists && item.CheckLists.length > 0) {
+                  @for (cl of item.CheckLists; track cl.ProjectGateStepCheckListID) {
+                    <div class="d-flex align-items-center gap-1 py-0.5" style="line-height: 1.4;">
+                      <span class="text-danger fw-bold" [style.visibility]="cl.IsRequired ? 'visible' : 'hidden'" title="Bắt buộc">*</span>
+                      <span class="text-truncate flex-grow-1" [title]="cl.Description">{{ cl.Description }}</span>
+                      @if (cl.IsPass) {
+                        <i class="fa-solid fa-circle-check text-success" title="Đã hoàn thành" style="font-size: 11px;"></i>
+                      } @else {
+                        <i class="fa-regular fa-circle text-muted" title="Chưa hoàn thành" style="font-size: 11px;"></i>
+                      }
+                    </div>
+                  }
+                } @else {
+                  {{ item.isNew ? '' : item.CheckListNames }}
+                }
+              </td>
+              <!-- Cột Đường dẫn -->
+              <td style="width: 200px; font-size: 11px; word-break: break-all;">
+                @if (!item.isNew && item.CheckLists && item.CheckLists.length > 0) {
+                  @for (cl of item.CheckLists; track cl.ProjectGateStepCheckListID) {
+                    @if (cl.PathFolder) {
+                      <div class="text-muted" style="line-height: 1.4; padding: 1px 0;" [title]="cl.PathFolder">
+                        <i class="fa-solid fa-folder-open text-warning me-1" style="font-size: 10px;"></i>
+                        {{ cl.PathFolder }}
+                      </div>
+                    }
+                  }
+                }
+              </td>
+              <!-- Cột File đính kèm -->
+              <td style="width: 220px; font-size: 11px; text-align: center;">
+                @if (!item.isNew && item.CheckLists && item.CheckLists.length > 0) {
+                  @for (cl of item.CheckLists; track cl.ProjectGateStepCheckListID) {
+                    <div style="height: 20px; display: flex; align-items: center; justify-content: center;">
+                      @if (cl.Files && cl.Files.length > 0) {
+                        <button nz-button nzType="link" nzSize="small" (click)="openFileListModal(item, cl)" class="p-0 d-inline-flex align-items-center">
+                          <i class="fa-solid fa-paperclip me-1"></i>Xem thêm ({{ cl.Files.length }})
+                        </button>
+                      } @else {
+                        <button nz-button nzType="text" nzSize="small" (click)="triggerFileUpload(item)" class="p-0 text-muted d-inline-flex align-items-center" title="Tải file lên">
+                          <i class="fa-solid fa-arrow-up-from-bracket me-1"></i>Tải lên
+                        </button>
+                      }
+                    </div>
+                  }
+                }
+              </td>
               <td style="width: 120px; text-align: center;">
                 <input type="date" nz-input nzSize="small" class="text-center w-100 input-date" style="font-size: 12px;"
                   [(ngModel)]="item.StartDate" (ngModelChange)="onStartDateValueChange(item, activeProjectTypeId)" />
               </td>
               <td style="width: 80px; text-align: center;">
-                @if (item.machineIndex === 1) {
+                @if (item.machineIndex === 1 && !item.isNew) {
                 <input type="checkbox" [(ngModel)]="item.isRepeatChecked"
                   (change)="onRepeatToggle(activeProjectTypeId, item)" />
                 }
@@ -156,7 +241,7 @@
 
           <ng-template pTemplate="footer">
             <tr class="fw-bold bg-light footer-row">
-              <td colspan="13" class="text-end pe-3" style="font-size: 12px;">Tổng cộng:</td>
+              <td colspan="16" class="text-end pe-3" style="font-size: 12px;">Tổng cộng:</td>
               <td style="width: 100px; text-align: center; font-size: 12px;">
                 {{ getTotalEffort(activeProjectTypeId) | number:'1.0-2' }}
               </td>
@@ -170,7 +255,7 @@
 
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="16" class="text-center p-3 text-muted">Không có dữ liệu</td>
+              <td colspan="19" class="text-center p-3 text-muted">Không có dữ liệu</td>
             </tr>
           </ng-template>
         </p-table>
@@ -274,7 +359,7 @@
                     (ngModelChange)="toggleSelectAllDeleted($event)" />
                 </th>
                 <th style="width: 50px;">STT</th>
-                <th style="width: 120px;">Kiểu dự án ID</th>
+                <th style="width: 120px;">Kiểu dự án</th>
                 <th style="width: 150px;">Bước/Giai đoạn</th>
                 <th style="width: 180px;">Phòng ban</th>
                 <th>Nội dung công việc</th>
@@ -289,7 +374,7 @@
                   <input type="checkbox" [(ngModel)]="item.selected" />
                 </td>
                 <td class="text-center">{{ i + 1 }}</td>
-                <td class="text-center">{{ item.ProjectTypeID }}</td>
+                <td class="text-center">{{ item.ProjectTypeName || item.ProjectTypeID }}</td>
                 <td class="fw-bold">{{ item.GateCode }} - {{ item.GateName }}</td>
                 <td>{{ item.DepartmentNames }}</td>
                 <td style="white-space: pre-wrap; word-break: break-word;">{{ item.Content }}</td>
@@ -298,7 +383,7 @@
                   <span class="badge bg-warning text-dark">Yes</span>
                   }
                 </td>
-                <td class="text-center">{{ item.StartDate | date:'yyyy-MM-dd' }}</td>
+                <td class="text-center">{{ item.StartDate | date:'dd/MM/yyyy' }}</td>
               </tr>
               }
             </tbody>

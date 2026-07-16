@@ -50,6 +50,64 @@ export class ProjectGateStepService {
         return this.http.get<any>(`${environment.host}api/ProjectGateStepLink/GetDeletedByProject/${projectId}`);
     }
 
+    saveFile(checkListLinkId: number, fileDto: any): Observable<any> {
+        return this.http.post<any>(`${environment.host}api/ProjectGateStepLink/SaveFile/${checkListLinkId}`, fileDto);
+    }
+
+    getFiles(checkListLinkId: number): Observable<any> {
+        return this.http.get<any>(`${environment.host}api/ProjectGateStepLink/GetFiles/${checkListLinkId}`);
+    }
+
+    deleteFile(fileId: number): Observable<any> {
+        return this.http.delete<any>(`${environment.host}api/ProjectGateStepLink/DeleteFile/${fileId}`);
+    }
+
+    approve(linkId: number, comment?: string): Observable<any> {
+        return this.http.post<any>(`${environment.host}api/ProjectGateStepLink/Approve/${linkId}`, comment ? JSON.stringify(comment) : null, {
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+
+    reject(linkId: number, comment?: string): Observable<any> {
+        return this.http.post<any>(`${environment.host}api/ProjectGateStepLink/Reject/${linkId}`, comment ? JSON.stringify(comment) : null, {
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+
+    downloadFile(filePath: string): Observable<Blob> {
+        return this.http.get(`${environment.host}api/home/download`, {
+            params: { path: filePath },
+            responseType: 'blob'
+        });
+    }
+
+    // ProjectGateStepCheckList + CheckListDetail API
+    private checkListApiUrl = environment.host + 'api/ProjectGateStepCheckList';
+
+    getCheckListByStep(stepId: number): Observable<any> {
+        return this.http.get<any>(`${this.checkListApiUrl}/get-by-step/${stepId}`);
+    }
+
+    getCheckListsOnly(stepId: number): Observable<any> {
+        return this.http.get<any>(`${this.checkListApiUrl}/get-checklist-by-step/${stepId}`);
+    }
+
+    getCheckListDetailsOnly(checkListId: number): Observable<any> {
+        return this.http.get<any>(`${this.checkListApiUrl}/get-details-by-checklist/${checkListId}`);
+    }
+
+    saveCheckListByStep(stepId: number, data: any[]): Observable<any> {
+        return this.http.post<any>(`${this.checkListApiUrl}/save-by-step/${stepId}`, data);
+    }
+
+    saveCheckLists(stepId: number, data: any[]): Observable<any> {
+        return this.http.post<any>(`${this.checkListApiUrl}/save-checklist/${stepId}`, data);
+    }
+
+    saveCheckListDetails(checkListId: number, data: any): Observable<any> {
+        return this.http.post<any>(`${this.checkListApiUrl}/save-details/${checkListId}`, data);
+    }
+
     // ProjectGateStepTemplate API
     private templateApiUrl = environment.host + 'api/ProjectGateStepTemplate';
 

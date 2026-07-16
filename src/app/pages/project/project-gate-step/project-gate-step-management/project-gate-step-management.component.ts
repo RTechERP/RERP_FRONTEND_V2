@@ -25,6 +25,8 @@ import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESP
 import { ProjectGateStepService } from '../project-gate-step.service';
 import { ProjectGateStepFormComponent } from '../project-gate-step-form/project-gate-step-form.component';
 import { ProjectGateStepTemplateModalComponent } from '../project-gate-step-template-modal/project-gate-step-template-modal.component';
+import { ProjectGateStepChecklistComponent } from '../project-gate-step-checklist/project-gate-step-checklist.component';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
 
 export interface ColDef {
   field: string; header: string; width: string;
@@ -89,7 +91,8 @@ export class ProjectGateStepManagementComponent implements OnInit {
     private service: ProjectGateStepService,
     private notification: NzNotificationService,
     private modal: NzModalService,
-    private ngbModal: NgbModal
+    private ngbModal: NgbModal,
+    private tabService: TabServiceService
   ) { }
 
   ngOnInit(): void {
@@ -118,8 +121,14 @@ export class ProjectGateStepManagementComponent implements OnInit {
         disabled: this.selectedItems.length === 0
       },
       {
+        label: 'CheckList',
+        icon: 'fa-solid fa-list-check text-info',
+        command: () => this.onOpenChecklist(),
+        disabled: this.selectedItems.length !== 1
+      },
+      {
         label: 'Khai báo Template',
-        icon: 'fa-solid fa-gears text-info',
+        icon: 'fa-solid fa-gears text-secondary',
         command: () => this.onManageTemplates()
       },
       {
@@ -139,6 +148,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
     this.menuBars = this.menuBars.map(item => {
       if (item.label === 'Sửa') return { ...item, disabled: this.selectedItems.length !== 1 };
       if (item.label === 'Xóa') return { ...item, disabled: this.selectedItems.length === 0 };
+      if (item.label === 'CheckList') return { ...item, disabled: this.selectedItems.length !== 1 };
       return item;
     });
   }
@@ -267,6 +277,26 @@ export class ProjectGateStepManagementComponent implements OnInit {
   }
 
   onAdd(): void { this.openForm(null); }
+
+  onOpenChecklist(): void {
+    if (this.selectedItems.length !== 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đúng 1 công đoạn để quản lý checklist!');
+      return;
+    }
+    const step = this.selectedItems[0];
+    const tabKey = `checklist-step-${step.ID}`;
+    this.tabService.openTabComp({
+      comp: ProjectGateStepChecklistComponent,
+      title: `CheckList: [${step.GateCode || step.ID}] ${step.Content || step.GateName || ''}`,
+      key: tabKey,
+      data: {
+        stepId: step.ID,
+        stepCode: step.GateCode || '',
+        stepName: step.Content || step.GateName || '',
+        stepData: step
+      }
+    });
+  }
 
   onEdit(): void {
     if (this.selectedItems.length !== 1) return;

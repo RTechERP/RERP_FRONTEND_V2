@@ -434,9 +434,6 @@
           </form>
         </div>
       </nz-tab>
-
-
-
       <nz-tab nzTitle="Cập nhật leader" *ngIf="false">
         <div style="height: calc(70vh - 50px); overflow-y: auto; padding-right: 4px; overflow-x: hidden;">
           <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated">
@@ -522,70 +519,3 @@
   <input nz-input type="date" [(ngModel)]="tempDateChangeStatus" name="dateChangeStatus" class="w-100"
     (ngModelChange)="onDateChangeStatusChange($event)" />
 </ng-template>
-
-<!-- Workers Lookup Popover -->
-<p-popover #workerLookupPanel appendTo="body" [style]="{ 'min-width': '450px', 'max-width': '750px' }">
-  <div style="display: flex; flex-direction: column; gap: 12px; padding: 8px;">
-    <!-- Search Header -->
-    <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
-      <p-iconfield style="flex: 1;">
-        <p-inputicon styleClass="pi pi-search" />
-        <input pInputText type="text" [(ngModel)]="workersSearchText" (input)="filterWorkersData()"
-          style="width: 100%;" />
-      </p-iconfield>
-      <p-button label="Bỏ chọn" icon="pi pi-times" [text]="true" severity="secondary" size="small"
-        (click)="clearWorkerSelection()"></p-button>
-    </div>
-
-    <!-- Data Table -->
-    <div class="lookup-table-container">
-      <p-table [value]="workersFilteredData" [scrollable]="true" scrollHeight="350px"
-        styleClass="p-datatable-sm p-datatable-gridlines" [rows]="100">
-        <ng-template pTemplate="header">
-          <tr>
-            <th style="width: 3rem; text-align: center;">
-              <p-checkbox [binary]="true"
-                [ngModel]="workersFilteredData.length > 0 && activeManpowerItem?.Workers?.length >= workersFilteredData.length"
-                (ngModelChange)="toggleAllWorkers()">
-              </p-checkbox>
-            </th>
-            <th style="width: 100px;">Mã nhân viên</th>
-            <th>Tên nhân viên</th>
-            <th>Phòng ban</th>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="body" let-row>
-          <tr class="lookup-row cursor-pointer" [class.lookup-row-selected]="isWorkerSelected(row)"
-            (click)="toggleWorkerSelection(row)">
-            <td style="width: 3rem; text-align: center;" (click)="$event.stopPropagation()">
-              <p-checkbox [binary]="true" [ngModel]="isWorkerSelected(row)"
-                (ngModelChange)="toggleWorkerSelection(row)"></p-checkbox>
-            </td>
-            <td>{{ row.Code }}</td>
-            <td>{{ row.FullName }}</td>
-            <td>{{ row.DepartmentName }}</td>
-          </tr>
-        </ng-template>
-        <ng-template pTemplate="emptymessage">
-          <tr>
-            <td colspan="4" class="text-center text-500 p-4">
-              Không tìm thấy kết quả
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
-    </div>
-
-    <!-- Multi-select Footer -->
-    <div
-      style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding-top: 12px; border-top: 1px solid var(--p-surface-200);">
-      <span style="font-size: 0.875rem; color: var(--p-text-muted-color);">
-        Đã chọn <b style="color: var(--p-primary-color);">{{ activeManpowerItem?.Workers?.length || 0 }}</b> nhân viên
-      </span>
-      <div style="display: flex; gap: 8px;">
-        <p-button label="Đóng" icon="pi pi-times" [text]="true" severity="danger" size="small"
-          (click)="workerLookupPanel.hide()"></p-button>
-      </div>
-    </div>
-  </div>
-</p-popover>

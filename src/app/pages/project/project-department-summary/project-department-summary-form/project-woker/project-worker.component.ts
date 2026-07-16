@@ -840,6 +840,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
   deleteProjectSolutionVersion(typenumber: number): void {
     var ID: number = 0;
     var IsActive: boolean = false;
+    let selectedData: any = null;
     if (typenumber === 1) {
       const data = this.tb_solutionVersion.getSelectedData();
       if (data.length <= 0) {
@@ -858,6 +859,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         }
       }
       ID = data[0].ID;
+      selectedData = data[0];
     } else {
       const data = this.tb_POVersion.getSelectedData();
       if (data.length <= 0) {
@@ -872,6 +874,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         return;
       }
       ID = data[0].ID;
+      selectedData = data[0];
     }
 
     this.modal.confirm({
@@ -881,11 +884,12 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       nzOkType: 'primary',
       nzOkDanger: true,
       nzOnOk: () => {
+        const payloadToSend = { ...selectedData };
+        payloadToSend.IsDeleted = true;
         const payload = {
-          ID: ID,
-          IsDeleted: true,
+          ProjectWorkerVersion: payloadToSend,
+          ProjectHistoryProblemIds: selectedData.ProjectHistoryProblemIds || []
         };
-        console.log('payload', payload);
         this.projectWorkerService.saveSolutionVersion(payload).subscribe({
           next: (response: any) => {
             if (response.status === 1) {

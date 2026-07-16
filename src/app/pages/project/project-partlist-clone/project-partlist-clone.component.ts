@@ -1057,7 +1057,7 @@ export class ProjectPartlistCloneComponent implements OnInit {
       }
     }
 
-    this.projectPartListService.cloneProjectPartList(dataSubmit).subscribe({
+    this.projectPartListService.cloneProjectPartList(dataSubmit, this.sourceProjectId, this.sourceStatus).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
           this.notification.success(

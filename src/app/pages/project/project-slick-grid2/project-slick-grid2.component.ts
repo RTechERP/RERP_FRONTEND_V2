@@ -68,6 +68,7 @@ import { TabServiceService } from '../../../layouts/tab-service.service';
 import { ProjectHistoryProblemNewComponent } from '../project-history-problem-new/project-history-problem-new.component';
 import { ProjectHistoryProblemSyntheticComponent } from '../project-history-problem-new/project-history-problem-synthetic/project-history-problem-synthetic.component';
 import { DrawingProjectComponent } from '../drawing-project/drawing-project.component';
+import { ProjectGateStepByProjectComponent } from '../project-gate-step/project-gate-step-by-project/project-gate-step-by-project.component';
 
 @Component({
     selector: 'app-project-prime-ng2',
@@ -105,6 +106,7 @@ import { DrawingProjectComponent } from '../drawing-project/drawing-project.comp
         NgbModalModule,
         RouterModule,
         DrawingProjectComponent,
+        ProjectGateStepByProjectComponent,
     ],
     templateUrl: './project-slick-grid2.component.html',
     styleUrls: ['./project-slick-grid2.component.css']
@@ -342,6 +344,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 label: 'Nhân công',
                 icon: 'fa-solid fa-users fa-lg text-primary',
                 command: () => this.openProjectWorkerModal(),
+            },
+            {
+                label: 'Chi tiết nhân công',
+                icon: 'fa-solid fa-people-group fa-lg text-info',
+                command: () => this.openProjectGateStepByProjectModal(),
             },
             {
                 label: 'Danh mục vật tư',
@@ -1301,9 +1308,9 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
 
         const modalRef = this.modalService.open(ProjectDetailComponent, {
             centered: true,
-            size: 'xl',
             backdrop: 'static',
             keyboard: false,
+            windowClass: 'full-screen-modal',
         });
 
         modalRef.componentInstance.projectId = status == 0 ? 0 : selectedIDs[0];
@@ -1688,6 +1695,33 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
             data: {
                 projectId: projectId,
                 projectCodex: projectCode,
+            }
+        });
+    }
+
+    openProjectGateStepByProjectModal() {
+        const selectedIDs = this.getSelectedIds();
+        const selectedRows = this.getSelectedRows();
+
+        if (selectedIDs.length != 1) {
+            this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+            return;
+        }
+
+        const projectId = selectedIDs[0];
+        const projectCode = selectedRows[0]?.ProjectCode;
+        const projectName = selectedRows[0]?.ProjectName;
+        const key = `project-gate-step-by-project/${projectId}`;
+
+        this.tabService.openTabComp({
+            comp: ProjectGateStepByProjectComponent,
+            title: `Chi tiết nhân công - ${projectCode}`,
+            key: key,
+            data: {
+                projectId: projectId,
+                projectCode: projectCode,
+                projectName: projectName,
+                _tabKey: key
             }
         });
     }

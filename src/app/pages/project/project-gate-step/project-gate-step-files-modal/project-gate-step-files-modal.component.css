@@ -1,0 +1,33 @@
+.modal-content-wrapper {
+  padding: 10px 5px;
+}
+.file-name-link {
+  cursor: pointer;
+  text-decoration: none;
+  white-space: normal;
+  word-break: break-all;
+}
+.file-name-link:hover {
+  text-decoration: underline;
+  color: #096dd9 !important;
+}
+.word-break-all {
+  word-break: break-all;
+}
+.fs-11 {
+  font-size: 11px;
+}
+
+/* Custom border styling to make columns extremely distinct */
+::ng-deep .ant-table-bordered .ant-table-container {
+  border-left: 1px solid #dee2e6 !important;
+  border-bottom: 1px solid #dee2e6 !important;
+}
+::ng-deep .ant-table-bordered .ant-table-content > table {
+  border-top: 1px solid #dee2e6 !important;
+}
+::ng-deep .ant-table-bordered .ant-table-tbody > tr > td, 
+::ng-deep .ant-table-bordered .ant-table-thead > tr > th {
+  border-right: 1px solid #dee2e6 !important;
+  border-bottom: 1px solid #dee2e6 !important;
+}

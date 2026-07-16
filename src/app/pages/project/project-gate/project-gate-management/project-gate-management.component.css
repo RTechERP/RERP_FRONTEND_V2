@@ -1,0 +1,78 @@
+:host {
+    display: block;
+    height: 93vh;
+    overflow: hidden;
+    background-color: #fff;
+}
+
+.project-gate-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    font-size: 12px !important;
+}
+
+:host ::ng-deep * {
+    font-size: 12px !important;
+}
+
+.custom-menubar {
+    background-color: #f8f9fa;
+}
+
+.filter-bar {
+    padding: 10px 15px;
+    background: #fff;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* Fix ng-zorro spin to take full height and be a flex container */
+:host ::ng-deep .ant-spin-nested-loading {
+    height: 100%;
+}
+
+:host ::ng-deep .ant-spin-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.table-wrapper {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Fix PrimeNG table to take full height and scroll internally */
+:host ::ng-deep .p-datatable {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+:host ::ng-deep .p-datatable-wrapper {
+    flex: 1;
+}
+
+:host ::ng-deep .p-paginator {
+    flex-shrink: 0;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+    white-space: normal !important;
+    word-break: break-word;
+    vertical-align: top;
+}
+
+.fs-12 {
+    font-size: 12px !important;
+}
+
+:host ::ng-deep .p-menubar .p-menuitem-link {
+    padding: 0.5rem 0.75rem !important;
+}
+
+:host ::ng-deep .p-menubar .p-menuitem-text {
+    font-size: 12px;
+}

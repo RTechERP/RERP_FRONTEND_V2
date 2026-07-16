@@ -1,61 +1,52 @@
-import { Component, ViewEncapsulation } from '@angular/core';
-import { NzCardModule } from 'ng-zorro-antd/card';
-import { FormsModule } from '@angular/forms';
-import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzRadioModule } from 'ng-zorro-antd/radio';
-import { NzSpaceModule } from 'ng-zorro-antd/space';
-import { NzLayoutModule } from 'ng-zorro-antd/layout';
-import { NzFlexModule, NzWrap } from 'ng-zorro-antd/flex';
-import { NzDrawerModule, NzDrawerPlacement } from 'ng-zorro-antd/drawer';
-import { NzSplitterModule } from 'ng-zorro-antd/splitter';
-import { NzGridModule } from 'ng-zorro-antd/grid';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
-import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzTableModule } from 'ng-zorro-antd/table';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
-import { ApplicationRef, createComponent, Type } from '@angular/core';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
-import { EnvironmentInjector } from '@angular/core';
-import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { DateTime } from 'luxon';
-import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
-import * as ExcelJS from 'exceljs';
-import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NgModel } from '@angular/forms';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Router } from '@angular/router';
-import { SupplierSaleService } from './supplier-sale.service';
-import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { CommonModule } from '@angular/common';
+import { AfterViewInit, ApplicationRef, Component, EnvironmentInjector, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import * as ExcelJS from 'exceljs';
+import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzDrawerModule } from 'ng-zorro-antd/drawer';
+import { NzFlexModule } from 'ng-zorro-antd/flex';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzLayoutModule } from 'ng-zorro-antd/layout';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzRadioModule } from 'ng-zorro-antd/radio';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzSpaceModule } from 'ng-zorro-antd/space';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
+import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { ProjectService } from '../../project/project-service/project.service';
 import { SupplierSaleDetailComponent } from './supplier-sale-detail/supplier-sale-detail.component';
 import { SupplierSaleImportExcelComponent } from './supplier-sale-import-excel/supplier-sale-import-excel.component';
+import { SupplierSaleService } from './supplier-sale.service';
 
 import {
   AngularGridInstance,
   AngularSlickgridModule,
   Column,
   Filters,
-  GridOption,
-  MultipleSelectOption,
   Formatters,
-  BackendServiceApi,
-  PaginationChangedArgs,
+  GridOption,
+  MultipleSelectOption
 } from 'angular-slickgrid';
 
 import { MenuItem } from 'primeng/api';
-import { ToolbarModule } from 'primeng/toolbar';
-import { MenubarModule } from 'primeng/menubar';
-import { PermissionService } from '../../../services/permission.service';
 import { InputTextModule } from 'primeng/inputtext';
+import { MenubarModule } from 'primeng/menubar';
+import { ToolbarModule } from 'primeng/toolbar';
+import { PermissionService } from '../../../services/permission.service';
 @Component({
   selector: 'app-supplier-sale',
   imports: [

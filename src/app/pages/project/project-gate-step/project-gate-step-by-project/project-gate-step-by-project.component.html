@@ -5,11 +5,11 @@
 
   <div class="modal-body p-0 bg-light w-100 d-flex flex-grow-1"
     style="height: 0; flex-direction: row; align-items: stretch; overflow: hidden;">
-    <!-- Left Sidebar Menu -->
+    <!-- Menu Sidebar bên trái -->
     <div class="sidebar-menu border-end bg-white p-2 d-flex flex-column"
       style="width: 250px; min-width: 250px; height: 100%; overflow: hidden;">
 
-      <!-- Top Level Header: Nhân công -->
+      <!-- Tiêu đề cấp cao nhất: Nhân công -->
       <div class="fw-bold px-2 py-2 border-bottom mb-2 text-primary d-flex align-items-center" style="font-size: 13px;">
         <i class="fa-solid fa-users me-2"></i> Nhân công
       </div>
@@ -17,7 +17,7 @@
       <div class="flex-grow-1 overflow-y-auto">
         @for (group of groupedMenuDepartments; track group.id) {
         <div class="dept-group mb-3">
-          <!-- Department Group Header -->
+          <!-- Tiêu đề nhóm Phòng ban -->
           <div class="fw-bold px-2 py-1 text-uppercase text-secondary mb-1"
             style="font-size: 11px; letter-spacing: 0.5px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #23458a;">
             {{ group.name }}
@@ -40,9 +40,9 @@
       </div>
     </div>
 
-    <!-- Main Content Area (Right side) -->
+    <!-- Vùng nội dung chính (Bên phải) -->
     <div class="flex-grow-1 bg-white p-3 d-flex flex-column overflow-hidden" style="min-width: 0; height: 100%;">
-      <!-- Action Header -->
+      <!-- Thanh thao tác phía trên -->
       <div class="d-flex justify-content-end align-items-center gap-2 mb-2 pb-2 border-bottom flex-shrink-0">
         @if (activeProjectTypeId && activeDepartmentId !== undefined && hasNoSavedSteps(activeProjectTypeId,
         activeDepartmentId)) {
@@ -279,7 +279,7 @@
   </div>
 </div>
 
-<!-- Workers Lookup Popover -->
+<!-- Popover tra cứu nhân viên -->
 <p-popover #workerLookupPanel appendTo="body"
   [style]="{ 'min-width': '450px', 'max-width': '750px', 'font-size': '12px' }">
   <div class="p-2 d-flex flex-column" style="max-height: 480px;">
@@ -329,7 +329,7 @@
   </div>
 </p-popover>
 
-<!-- Deleted Steps Recovery Modal -->
+<!-- Modal khôi phục các công đoạn đã xóa -->
 @if (showDeletedModal) {
 <div class="modal fade show d-block" tabindex="-1"
   style="background-color: rgba(0,0,0,0.5); z-index: 1050; font-size: 12px !important;">

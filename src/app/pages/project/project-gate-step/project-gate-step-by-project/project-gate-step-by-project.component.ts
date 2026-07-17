@@ -83,17 +83,17 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   isSaving: boolean = false;
   isLoading: boolean = false;
 
-  // For templates
+  // Dành cho các mẫu (templates)
   templates: any[] = [];
   selectedTemplateId: number | null = null;
   projectTypeTemplateMap: { [key: string]: number | null } = {};
 
-  // For deleted steps list
+  // Dành cho danh sách các công đoạn đã xóa
   showDeletedModal: boolean = false;
   isLoadingDeleted: boolean = false;
   deletedSteps: any[] = [];
 
-  // For worker lookup popover
+  // Dành cho popover tra cứu/chọn nhân viên
   activeManpowerItem: any = null;
   workersSearchText: string = '';
   workersFilteredData: any[] = [];
@@ -119,7 +119,6 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    console.log('[ProjectGateStepByProjectComponent] ngOnInit tabData:', this.tabData);
     if (this.tabData) {
       if (this.tabData.projectId !== undefined) {
         this.projectId = Number(this.tabData.projectId);
@@ -131,7 +130,6 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.projectName = this.tabData.projectName;
       }
     }
-    console.log('[ProjectGateStepByProjectComponent] resolved projectId:', this.projectId);
 
     this.isLoading = true;
     this.getUsers();
@@ -183,16 +181,12 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   }
 
   getProjectTypeLinks(): void {
-    console.log('[ProjectGateStepByProjectComponent] getProjectTypeLinks called with projectId:', this.projectId);
     combineLatest([
       this.projectService.getProjectTypeLinks(this.projectId),
       this.projectService.getProjectApplicationLinks(this.projectId),
       this.projectService.getProjectTechnologyLinks(this.projectId)
     ]).subscribe({
       next: ([responseLinks, responseApps, responseTechs]: any) => {
-        console.log('[ProjectGateStepByProjectComponent] responseLinks:', responseLinks);
-        console.log('[ProjectGateStepByProjectComponent] responseApps:', responseApps);
-        console.log('[ProjectGateStepByProjectComponent] responseTechs:', responseTechs);
         const links = responseLinks.data || [];
         const apps = (responseApps.data || []);
         const techs = (responseTechs.data || []);
@@ -205,12 +199,10 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         const treeData = this.projectService.setDataTree(links, 'ID');
         this.projectTypeNodes = this.mapToTreeNodes(treeData);
 
-        // Sync initial selection
+        // Đồng bộ danh sách các node được chọn ban đầu
         this.selectedTypeNodes = [];
         this.getFlatNodes(this.projectTypeNodes, this.selectedTypeNodes);
-        console.log('[ProjectGateStepByProjectComponent] selectedTypeNodes:', this.selectedTypeNodes);
         this.updateCheckedProjectTypes();
-        console.log('[ProjectGateStepByProjectComponent] checkedProjectTypes:', this.checkedProjectTypes);
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
@@ -265,7 +257,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
     this.updateGroupedMenuDepartments();
 
-    // Set active Project Type and Department to the first item if not selected yet
+    // Đặt loại dự án và phòng ban hoạt động thành mục đầu tiên nếu chưa được chọn
     if (this.groupedMenuDepartments.length > 0 && !this.activeProjectTypeId) {
       const firstGroup = this.groupedMenuDepartments[0];
       if (firstGroup.projectTypes && firstGroup.projectTypes.length > 0) {
@@ -323,25 +315,30 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     }
 
     this.groupedMenuDepartments.forEach(group => {
-      const deptId = group.id; // number or null
+      const deptId = group.id; // ID phòng ban (kiểu số hoặc null)
       group.projectTypes.forEach((pt: any) => {
         const key = `${pt.ID}_${deptId}`;
 
         if (!this.projectTypeStepsMap[key]) {
           const allSteps = JSON.parse(JSON.stringify(this.allGateSteps));
 
-          // Check if there is saved data for this combo
+          // Kiểm tra xem có dữ liệu đã lưu cho sự kết hợp này không (khớp theo ProjectTypeID + DepartmentID)
           const savedForThisCombo = (this.savedGateSteps || []).filter((x: any) => {
             if (x.ProjectTypeID !== pt.ID) return false;
+            // Nếu liên kết đã lưu có DepartmentID, khớp trực tiếp
+            if (x.DepartmentID !== undefined && x.DepartmentID !== null) {
+              return x.DepartmentID === deptId;
+            }
+            // Phương án dự phòng: khớp theo DepartmentIDs của công đoạn (dữ liệu cũ không có DepartmentID)
             if (deptId === null) return true;
-            const step = this.allGateSteps.find(s => s.ID === x.ProjectGateStepID);
+            const step = this.allGateSteps.find((s: any) => s.ID === x.ProjectGateStepID);
             return step && step.DepartmentIDs && step.DepartmentIDs.includes(deptId);
           });
 
           let steps: any[];
 
           if (savedForThisCombo.length > 0) {
-            // Only include steps that exist in saved data for this combo
+            // Chỉ bao gồm các công đoạn tồn tại trong dữ liệu đã lưu cho sự kết hợp này
             steps = allSteps.filter((step: any) => savedForThisCombo.some((s: any) => s.ProjectGateStepID === step.ID));
             steps.forEach((step: any) => {
               step.machineIndex = 1;
@@ -398,29 +395,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
               }
             });
           } else {
-            // No saved data - use default steps for this combo, optionally filtered by template
-            const ptTemplateId = this.projectTypeTemplateMap[key] || null;
-            if (ptTemplateId) {
-              steps = allSteps.filter((step: any) => step.ProjectGateStepTemplateID === ptTemplateId);
-            } else {
-              // Filter steps that belong to this department
-              steps = allSteps.filter((step: any) =>
-                deptId === null || (step.DepartmentIDs && step.DepartmentIDs.includes(deptId))
-              );
-            }
-            steps.forEach((step: any) => {
-              step.machineIndex = 1;
-              step.isRepeatChecked = false;
-              step.repeatOrder = 0;
-              step.isRepeated = false;
-              step.parentStepId = null;
-              step.groupName = this.getGateGroupNameForMachine(step.GateCode, 1);
-              step.PeopleCount = null;
-              step.DayCount = null;
-              step.TotalEffort = 1;
-              step.UnitPrice = null;
-              step.Workers = [];
-            });
+            // Không có dữ liệu đã lưu — mặc định là rỗng; người dùng phải chọn một mẫu hoặc thêm thủ công
+            steps = [];
           }
 
           this.projectTypeStepsMap[key] = steps;
@@ -428,13 +404,13 @@ export class ProjectGateStepByProjectComponent implements OnInit {
           steps.filter((s: any) => s.isRepeatChecked).forEach((s: any) => {
             this.addRepeatedStep(key, s);
 
-            // Bind data for the repeated step
+            // Gán dữ liệu cho công đoạn lặp lại
             const repeatedStep = this.projectTypeStepsMap[key].find((x: any) => x.isRepeated && x.parentStepId === s.ID);
             const repeatedItem = savedForThisCombo.find((x: any) => x.ProjectGateStepID === s.ID && x.IsRepeat);
 
             if (repeatedStep && repeatedItem) {
               repeatedStep.StartDate = repeatedItem.StartDate ? repeatedItem.StartDate.substring(0, 10) : null;
-              
+
               if (repeatedItem.CheckLists && repeatedItem.CheckLists.length > 0) {
                 repeatedStep.CheckLists = (repeatedStep.CheckLists || []).map((tc: any) => {
                   const savedLink = repeatedItem.CheckLists.find((c: any) => c.ProjectGateStepCheckListID === tc.ID);
@@ -474,7 +450,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       });
     });
 
-    // Cleanup keys that are no longer active
+    // Dọn dẹp các khóa (keys) không còn hoạt động
     const activeKeys = new Set<string>();
     this.groupedMenuDepartments.forEach(group => {
       group.projectTypes.forEach((pt: any) => {
@@ -550,7 +526,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
     const repeatedStep = JSON.parse(JSON.stringify(item));
     repeatedStep.ID = -Date.now() - Math.floor(Math.random() * 1000);
-    repeatedStep.machineIndex = 2; // Duplicated to Machine II
+    repeatedStep.machineIndex = 2; // Nhân bản sang Máy II
     repeatedStep.isRepeated = true;
     repeatedStep.parentStepId = item.ID;
     repeatedStep.isRepeatChecked = false;
@@ -623,7 +599,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     });
 
     this.projectTypeStepsMap[comboKey] = [...steps];
-    // Only recalculate dates if there is no saved data for this project type
+    // Chỉ tính toán lại ngày nếu không có dữ liệu đã lưu cho loại dự án này
     const ptId = Number(comboKey.split('_')[0]);
     const hasSavedData = this.savedGateSteps && this.savedGateSteps.some(x => x.ProjectTypeID === ptId);
     if (!hasSavedData) {
@@ -754,7 +730,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       }, 0);
   }
 
-  // Workers selection lookup handlers
+  // Bộ xử lý tra cứu/chọn nhân viên thực hiện
   getWorkersDisplay(workerIds: any[]): string {
     if (!workerIds || workerIds.length === 0) return '';
     return this.usersFlat
@@ -780,7 +756,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     if (!comboKey) return;
     const steps = this.projectTypeStepsMap[comboKey] || [];
 
-    // Check if there is already a blank step
+    // Kiểm tra xem đã có dòng trống nào đang được thêm hay chưa
     const hasBlank = steps.some((s: any) => s.isNew);
     if (hasBlank) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Đã có một dòng trống đang được thêm mới.', {
@@ -832,7 +808,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     const templateStep = this.allGateSteps.find(s => s.ID === templateStepId);
     if (!templateStep) return;
 
-    // Bind data from the template to the row
+    // Gán dữ liệu từ mẫu vào dòng
     item.ID = templateStep.ID;
     item.GateCode = templateStep.GateCode;
     item.GateName = templateStep.GateName;
@@ -856,7 +832,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     item.UnitPrice = null;
     item.Workers = [];
 
-    // Recalculate sort, sequence numbers and dates
+    // Tính toán lại thứ tự sắp xếp, số thứ tự và ngày tháng
     this.recalculateSequenceNumbers(comboKey);
   }
 
@@ -945,6 +921,9 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     Object.keys(this.projectTypeStepsMap).forEach(key => {
       const parts = key.split('_');
       const typeId = Number(parts[0]);
+      const deptId = parts[1] === 'null' ? null : Number(parts[1]);
+      const templateId = this.projectTypeTemplateMap[key] ?? null;
+
       let steps = (this.projectTypeStepsMap as any)[key]
         .filter((s: any) => !s.isNew)
         .map((s: any) => {
@@ -956,6 +935,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
             Content: s.Content,
             DayCount: s.DayCount,
             PeopleCount: s.PeopleCount,
+            DepartmentID: deptId,
+            ProjectGateStepTemplateID: templateId,
             Workers: (s.Workers || []).map((wId: any) => {
               return {
                 EmployeeID: wId,
@@ -1050,8 +1031,13 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     if (!ptId) return false;
     const savedForThisCombo = (this.savedGateSteps || []).filter((x: any) => {
       if (x.ProjectTypeID !== ptId) return false;
+      // If the saved link has DepartmentID set, match directly
+      if (x.DepartmentID !== undefined && x.DepartmentID !== null) {
+        return x.DepartmentID === deptId;
+      }
+      // Fallback: legacy data without DepartmentID
       if (deptId === null) return true;
-      const step = this.allGateSteps.find(s => s.ID === x.ProjectGateStepID);
+      const step = this.allGateSteps.find((s: any) => s.ID === x.ProjectGateStepID);
       return step && step.DepartmentIDs && step.DepartmentIDs.includes(deptId);
     });
     return savedForThisCombo.length === 0;
@@ -1061,9 +1047,32 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     const numericId = templateId ? Number(templateId) : null;
     const key = `${ptId}_${deptId}`;
     this.projectTypeTemplateMap[key] = numericId;
-    // Clear current steps for this combo so updateTabsSteps will recreate it
-    delete this.projectTypeStepsMap[key];
-    this.updateTabsSteps();
+
+    if (numericId) {
+      // Tải các công đoạn từ mẫu được chọn
+      const filteredSteps = JSON.parse(JSON.stringify(this.allGateSteps))
+        .filter((step: any) => step.ProjectGateStepTemplateID === numericId);
+
+      filteredSteps.forEach((step: any) => {
+        step.machineIndex = 1;
+        step.isRepeatChecked = false;
+        step.repeatOrder = 0;
+        step.isRepeated = false;
+        step.parentStepId = null;
+        step.groupName = this.getGateGroupNameForMachine(step.GateCode, 1);
+        step.PeopleCount = null;
+        step.DayCount = null;
+        step.TotalEffort = 1;
+        step.UnitPrice = null;
+        step.Workers = [];
+      });
+
+      this.projectTypeStepsMap[key] = filteredSteps;
+      this.recalculateSequenceNumbers(key);
+    } else {
+      // Không chọn mẫu nào — xóa các công đoạn hiện tại
+      this.projectTypeStepsMap[key] = [];
+    }
   }
 
   getDeletedSteps() {
@@ -1072,7 +1081,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     this.projectGateStepService.getDeletedByProject(this.projectId).subscribe({
       next: (res: any) => {
         const deletedLinks = res.data || [];
-        // Map to template steps to show full details
+        // Ánh xạ sang các công đoạn mẫu để hiển thị đầy đủ chi tiết
         this.deletedSteps = deletedLinks.map((link: any) => {
           const template = this.allGateSteps.find(s => s.ID === link.ProjectGateStepID);
           return {
@@ -1136,7 +1145,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         if (!template) return;
 
         if (link.IsRepeat) {
-          // Parent original step needs to be present in active steps
+          // Công đoạn gốc cha cần phải có mặt trong danh sách công đoạn hoạt động
           let parentStep = steps.find(s => s.ID === link.ProjectGateStepID && !s.isRepeated);
           if (!parentStep) {
             parentStep = JSON.parse(JSON.stringify(template));
@@ -1156,7 +1165,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
             parentStep.isRepeatChecked = true;
           }
 
-          // Add repeated step
+          // Thêm công đoạn lặp lại
           const repeatedExists = steps.some(s => s.isRepeated && s.parentStepId === link.ProjectGateStepID);
           if (!repeatedExists) {
             const repeatedStep = JSON.parse(JSON.stringify(parentStep));
@@ -1179,7 +1188,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
             steps.push(repeatedStep);
           }
         } else {
-          // Original step
+          // Công đoạn gốc
           let existingStep = steps.find(s => s.ID === link.ProjectGateStepID && !s.isRepeated);
           if (!existingStep) {
             existingStep = JSON.parse(JSON.stringify(template));
@@ -1251,11 +1260,11 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     const groupsMap = new Map<number | null, any[]>();
 
     this.departments.forEach(dept => {
-      // Find all project types linked to this department in configurations
+      // Tìm tất cả loại dự án được liên kết với phòng ban này trong cấu hình
       const linksForDept = this.projectTypeDepartmentLinks.filter(l => l.DepartmentID === dept.ID && !l.IsDeleted);
       const linkedTypeIds = new Set(linksForDept.map(l => l.ProjectTypeID));
 
-      // Filter checked project types of this project that are linked to this department
+      // Lọc các loại dự án đã chọn của dự án này mà được liên kết với phòng ban hiện tại
       const ptsInDept = this.checkedProjectTypes.filter(pt => linkedTypeIds.has(pt.ID));
 
       if (ptsInDept.length > 0) {
@@ -1263,7 +1272,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       }
     });
 
-    // Handle project types that are not linked to any department
+    // Xử lý các loại dự án không được liên kết với bất kỳ phòng ban nào
     const allLinkedTypeIds = new Set(this.projectTypeDepartmentLinks.filter(l => !l.IsDeleted).map(l => l.ProjectTypeID));
     const unlinkedPts = this.checkedProjectTypes.filter(pt => !allLinkedTypeIds.has(pt.ID));
     if (unlinkedPts.length > 0) {
@@ -1286,7 +1295,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       });
     });
 
-    // Sort groups so "Chưa phân phòng ban" is last, and others sorted alphabetically
+    // Sắp xếp các nhóm để nhóm "Chưa phân phòng ban" nằm ở cuối, các nhóm khác sắp xếp theo bảng chữ cái
     groups.sort((a, b) => {
       if (a.id === null) return 1;
       if (b.id === null) return -1;
@@ -1298,9 +1307,10 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
   getTemplatesForActiveType(): any[] {
     if (!this.activeProjectTypeId) return [];
-    // Show all templates for this project type, regardless of which department group is active
-    // A template for Vision should appear for ALL departments that have Vision
-    return this.templates.filter(t => t.ProjectTypeID === this.activeProjectTypeId);
+    return this.templates.filter(t =>
+      t.ProjectTypeID === this.activeProjectTypeId &&
+      (this.activeDepartmentId === null || t.DepartmentID === this.activeDepartmentId)
+    );
   }
 
   hasUploadFolder(item: any): boolean {

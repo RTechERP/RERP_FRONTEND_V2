@@ -345,11 +345,11 @@ export class ProjectSlickGrid2Component implements OnInit, AfterViewInit, OnDest
                 icon: 'fa-solid fa-users fa-lg text-primary',
                 command: () => this.openProjectWorkerModal(),
             },
-            // {
-            //     label: 'Chi tiết nhân công',
-            //     icon: 'fa-solid fa-people-group fa-lg text-info',
-            //     command: () => this.openProjectGateStepByProjectModal(),
-            // },
+            {
+                label: 'Chi tiết nhân công',
+                icon: 'fa-solid fa-people-group fa-lg text-info',
+                command: () => this.openProjectGateStepByProjectModal(),
+            },
             {
                 label: 'Danh mục vật tư',
                 icon: 'fa-solid fa-box fa-lg text-warning',

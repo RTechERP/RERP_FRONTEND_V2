@@ -387,6 +387,43 @@ export class KpiSaleV2Service {
     return this.http.delete<KpiApiResponse<any>>(`${this.apiUrl}/team-templates/${id}`);
   }
 
+  // ============== Team Weight Override APIs ==============
+  // Lấy trọng số override của team cho kỳ KPI (dựa trên KPISaleTeamTemplate + KPISaleIndex + KPISaleTarget EmployeeID=0).
+  getTeamWeights(teamId: number, periodId: number): Observable<KpiApiResponse<any>> {
+    return this.http.get<KpiApiResponse<any>>(
+      `${this.apiUrl}/teams/${teamId}/weights`,
+      { params: new HttpParams().set('periodId', periodId.toString()) }
+    );
+  }
+
+  // Cập nhật trọng số override của team cho kỳ KPI.
+  updateTeamWeights(
+    teamId: number,
+    periodId: number,
+    weights: { PeriodID: number; KpiIndexID: number; WeightPercent: number }[]
+  ): Observable<KpiApiResponse<any>> {
+    return this.http.put<KpiApiResponse<any>>(
+      `${this.apiUrl}/teams/${teamId}/weights?periodId=${periodId}`,
+      weights
+    );
+  }
+
+  // Reset 1 chỉ tiêu về weight mặc định (xóa bản ghi KPISaleTarget EmployeeID=0 tương ứng).
+  deleteTeamWeight(
+    teamId: number,
+    periodId: number,
+    kpiIndexId: number
+  ): Observable<KpiApiResponse<any>> {
+    return this.http.delete<KpiApiResponse<any>>(
+      `${this.apiUrl}/teams/${teamId}/weights`,
+      {
+        params: new HttpParams()
+          .set('periodId', periodId.toString())
+          .set('kpiIndexId', kpiIndexId.toString())
+      }
+    );
+  }
+
   saveTargets(targets: any[]): Observable<KpiApiResponse<any>> {
     return this.http.put<KpiApiResponse<any>>(`${this.apiUrl}/targets`, targets);
   }

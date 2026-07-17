@@ -19,6 +19,7 @@ import { finalize } from 'rxjs';
 import * as ExcelJS from 'exceljs';
 import { SummaryKpiErrorEmployeeService } from '../summary-kpi-error-employee/summary-kpi-error-employee-service/summary-kpi-error-employee.service';
 import { environment } from '../../../../../environments/environment';
+import { AppUserService } from '../../../../services/app-user.service';
 
 type KpiColumnType = 'text' | 'number' | 'money' | 'date' | 'totalError' | 'coefficient' | 'week';
 type LoadingKey = 'th' | 'file' | 'tk' | 'chart' | 'employee';
@@ -67,6 +68,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
     kpiErrors: any[] = [];
     employees: any[] = [];
     departmentIdFromRoute: number = 0;
+    userLoginDepartmentId: number = 0;
 
     departmentId_T1: number[] = [];
     employeeId_T1: any = null;
@@ -127,15 +129,21 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
     constructor(
         private service: SummaryKpiErrorEmployeeService,
         private notification: NzNotificationService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private appUserService: AppUserService
     ) { }
 
     ngOnInit(): void {
+        this.userLoginDepartmentId = this.appUserService.departmentID || 0;
+
         this.route.queryParams.subscribe(params => {
             this.departmentIdFromRoute = params['departmentId'] ? Number(params['departmentId']) : 0;
-            this.departmentId_T1 = this.departmentIdFromRoute ? [this.departmentIdFromRoute] : [];
-            this.departmentId_T2 = this.departmentIdFromRoute ? [this.departmentIdFromRoute] : [];
-            this.departmentId_T3 = this.departmentIdFromRoute ? [this.departmentIdFromRoute] : [];
+            const defaultDepartmentIds = this.departmentIdFromRoute
+                ? [this.departmentIdFromRoute]
+                : this.userLoginDepartmentId === 6 ? [6] : [];
+            this.departmentId_T1 = [...defaultDepartmentIds];
+            this.departmentId_T2 = [...defaultDepartmentIds];
+            this.departmentId_T3 = [...defaultDepartmentIds];
 
             this.initColumns();
             this.initChartOptions();
@@ -231,7 +239,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
         this.startLoading('th');
         this.service.getDataTongHop(
             this.month, this.year, this.kpiErrorId_T1 || 0, this.employeeId_T1 || 0,
-            this.departmentId_T1, this.keyword_T1
+            this.departmentId_T1, this.keyword_T1, this.userLoginDepartmentId
         ).pipe(finalize(() => this.stopLoading('th'))).subscribe(res => {
             if (res.status === 1 && res.data) {
                 this.datasetTH1 = this.prepareRows(res.data.data1 || [], 'FullName');
@@ -243,7 +251,7 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
         this.startLoading('file');
         this.service.getDataFile(
             this.month, this.year, this.kpiErrorId_T1 || 0, this.employeeId_T1 || 0,
-            this.departmentId_T1, 0, this.keyword_T1
+            this.departmentId_T1, 0, this.keyword_T1, this.userLoginDepartmentId
         ).pipe(finalize(() => this.stopLoading('file'))).subscribe(res => {
             if (res.status === 1) {
                 this.datasetFile = this.prepareRows(res.data || [], 'ErrorName', 'Employee');
@@ -473,7 +481,8 @@ export class SummaryKpiErrorEmployeePrimengComponent implements OnInit {
         this.service.getDataTongHop(
             this.month, this.year, this.kpiErrorId_T1 || 0, this.employeeId_T1 || 0,
             0,
-            this.keyword_T1
+            this.keyword_T1,
+            this.userLoginDepartmentId
         ).subscribe(async (res: any) => {
             if (res.status === 1 && res.data) {
                 const datasetAll = this.prepareRows(res.data.data1 || [], 'FullName');

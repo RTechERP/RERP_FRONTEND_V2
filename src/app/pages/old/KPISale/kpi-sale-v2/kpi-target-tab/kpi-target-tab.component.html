@@ -177,11 +177,137 @@
                 (click)="autoAddMissingTargets()">
                 <i nz-icon nzType="appstore-add"></i> Tự động thêm chỉ tiêu theo mẫu
               </button>
+              <!-- Nút bật/tắt Trọng số Team (chỉ hiện khi đã chọn Team và có quyền xem/sửa) -->
+              <button *ngIf="canViewTeamWeight" nz-button nzSize="small"
+                [nzType]="isTeamWeightMode ? 'primary' : 'default'"
+                nz-tooltip nzTooltipTitle="Xem / sửa trọng số riêng cho Team (lưu vào KPISaleTarget với EmployeeID=0)"
+                (click)="toggleTeamWeightMode()">
+                <i nz-icon nzType="team"></i>
+                {{ isTeamWeightMode ? 'Ẩn trọng số Team' : 'Trọng số Team' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- ===== TEAM WEIGHT OVERRIDE SECTION (chế độ xem/sửa trọng số riêng cho Team) ===== -->
+          <div *ngIf="isTeamWeightMode" class="team-weight-section">
+            <div class="team-weight-body">
+              <div class="team-weight-header">
+                <h6>
+                  <i nz-icon nzType="team"></i>
+                  Trọng số Team:
+                  <span style="color:#1677ff;">
+                    {{ (selectedTeamId ? getTeamName(selectedTeamId) : '') }}
+                  </span>
+                </h6>
+                <small style="color:#94a3b8;">
+                  Mẫu KPI của Team:
+                  <strong style="color:#262626;">{{ teamWeightTemplateName || '(chưa gán template cho team ở kỳ này)' }}</strong>.
+                  Mỗi dòng tương ứng 1 chỉ tiêu KPI trong mẫu Team.
+                  Team không cần Goal (đã tự tính từ thành viên).
+                  <span *ngIf="!canEditTeamWeight" style="color:#faad14;">— Bạn chỉ có quyền xem.</span>
+                </small>
+                <div *ngIf="canEditTeamWeight && getCurrentSelectedPeriodType() !== 'MONTH'"
+                  style="margin-top:6px; padding:6px 10px; background:#fff7e6; border:1px solid #ffd591; border-radius:4px; color:#ad6800; font-size:12px;">
+                  <i nz-icon nzType="info-circle"></i>
+                  Bạn đang lưu cho kỳ <strong>QUARTER/YEAR</strong>
+                  ({{ getCurrentSelectedPeriodCode() }}). Hệ thống sẽ <strong>tự động đồng bộ trọng số</strong>
+                  này cho tất cả các tháng con. Nếu muốn chỉnh riêng từng tháng, hãy chuyển sang kỳ MONTH.
+                </div>
+                <div *ngIf="canEditTeamWeight && getCurrentSelectedPeriodType() === 'MONTH'"
+                  style="margin-top:6px; padding:6px 10px; background:#f6ffed; border:1px solid #b7eb8f; border-radius:4px; color:#389e0d; font-size:12px;">
+                  <i nz-icon nzType="info-circle"></i>
+                  Đang lưu cho kỳ <strong>MONTH</strong> ({{ getCurrentSelectedPeriodCode() }}).
+                  Trọng số sẽ chỉ áp dụng cho riêng tháng này, không ảnh hưởng các tháng khác.
+                </div>
+              </div>
+
+              <nz-table #teamWeightTable [nzData]="teamWeightItems" [nzFrontPagination]="false"
+                nzSize="small" nzBordered>
+                <thead>
+                  <tr>
+                    <th nzWidth="60px" nzAlign="center">STT</th>
+                    <th nzWidth="120px" nzAlign="center">Loại</th>
+                    <th>Chỉ tiêu KPI</th>
+                    <th nzWidth="160px" nzAlign="center">Trọng số team (%)</th>
+                    <th nzWidth="120px" nzAlign="center">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let it of teamWeightTable.data; let i = index"
+                    [class.row-group]="it.indexType === 'GROUP'">
+                    <td nzAlign="center">{{ i + 1 }}</td>
+                    <td nzAlign="center">
+                      <nz-tag [nzColor]="getTeamWeightIndexTypeColor(it.indexType)">
+                        {{ getTeamWeightIndexTypeLabel(it.indexType) }}
+                      </nz-tag>
+                    </td>
+                    <td class="mono">
+                      {{ it.indexCode ? it.indexCode + ' - ' : '' }}{{ it.indexName }}
+                    </td>
+                    <td nzAlign="center">
+                      <input nz-input nzSize="small" type="number"
+                        [disabled]="!canEditTeamWeight"
+                        [ngModel]="getTeamWeightValue(it.kpiIndexId)"
+                        (ngModelChange)="onTeamWeightChange(it.kpiIndexId, $event)"
+                        [min]="0" [max]="100" [step]="1"
+                        style="width:100px; text-align:center;"
+                        nz-tooltip [nzTooltipTitle]="getTeamWeightValue(it.kpiIndexId) != null ? 'Đã ghi đè mặc định' : 'Chưa ghi đè — hệ thống sẽ dùng weight mặc định từ mẫu'" />
+                    </td>
+                    <td nzAlign="center">
+                      <button *ngIf="canEditTeamWeight && getTeamWeightValue(it.kpiIndexId) != null"
+                        nz-button nzType="text" nzSize="small" nzDanger
+                        nz-tooltip nzTooltipTitle="Reset về weight mặc định"
+                        nz-popconfirm nzPopconfirmTitle="Reset trọng số này về mặc định?"
+                        nzPopconfirmPlacement="top"
+                        nzOkText="Reset" nzCancelText="Hủy"
+                        (nzOnConfirm)="resetTeamWeight(it.kpiIndexId)">
+                        <i nz-icon nzType="rest"></i>
+                      </button>
+                      <span *ngIf="getTeamWeightValue(it.kpiIndexId) == null" style="color:#94a3b8; font-size:12px;">
+                        <i nz-icon nzType="info-circle"></i> Mặc định
+                      </span>
+                    </td>
+                  </tr>
+                  <tr *ngIf="teamWeightItems.length === 0">
+                    <td colspan="5" style="text-align:center; color:#94a3b8; padding:24px;">
+                      Team chưa được gán mẫu KPI cho kỳ này. Vui lòng bấm "Gán mẫu theo Team" trên thanh menu
+                      để gán template trước khi chỉnh trọng số.
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot *ngIf="teamWeightItems.length > 0">
+                  <tr>
+                    <td colspan="3" style="text-align:right; font-weight:600;">Tổng Weight:</td>
+                    <td nzAlign="center" style="font-weight:600;">
+                      {{ calculateTotalTeamWeight() | number:'1.0-2' }}%
+                    </td>
+                    <td nzAlign="center">
+                      <nz-tag *ngIf="calculateTotalTeamWeight() !== 100" nzColor="red">
+                        <i nz-icon nzType="warning"></i> ≠ 100%
+                      </nz-tag>
+                      <nz-tag *ngIf="calculateTotalTeamWeight() === 100" nzColor="green">
+                        <i nz-icon nzType="check-circle"></i> = 100%
+                      </nz-tag>
+                    </td>
+                  </tr>
+                </tfoot>
+              </nz-table>
+            </div>
+
+            <div *ngIf="canEditTeamWeight" class="team-weight-footer">
+              <button nz-button nzType="default" nzSize="small" (click)="toggleTeamWeightMode()">
+                <i nz-icon nzType="close"></i> Đóng
+              </button>
+              <button nz-button nzType="primary" nzSize="small"
+                [disabled]="!hasTeamWeightChanges() || isTeamWeightLoading"
+                (click)="saveTeamWeightChanges()">
+                <i nz-icon nzType="save"></i> Lưu Trọng số Team
+              </button>
             </div>
           </div>
 
           <!-- ===== CHẾ ĐỘ QUÝ / NĂM: PIVOT TABLE ===== -->
-          <div *ngIf="isQuarterMode()" style="flex: 1; min-height: 0; overflow: hidden;" class="target-table-wrapper">
+          <div *ngIf="isQuarterMode() && !isTeamWeightMode" style="flex: 1; min-height: 0; overflow: hidden;" class="target-table-wrapper">
             <nz-table #pivotTable [nzData]="quarterlyRows" [nzFrontPagination]="false"
               nzSize="small" nzBordered style="height: 100%;"
               [nzScroll]="{ x: '900px', y: 'calc(100vh - 340px)' }">
@@ -338,7 +464,7 @@
           </div>
 
           <!-- ===== CHẾ ĐỘ THÁNG: FLAT TABLE (giữ nguyên) ===== -->
-          <div *ngIf="!isQuarterMode()" style="flex: 1; min-height: 0; overflow: hidden;" class="target-table-wrapper">
+          <div *ngIf="!isQuarterMode() && !isTeamWeightMode" style="flex: 1; min-height: 0; overflow: hidden;" class="target-table-wrapper">
             <nz-table #targetTable [nzData]="tableRows" [nzFrontPagination]="false"
               nzSize="small" nzBordered style="height: 100%;"
               [nzScroll]="{ y: 'calc(100vh - 340px)' }"

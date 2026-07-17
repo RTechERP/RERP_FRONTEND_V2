@@ -41,7 +41,8 @@ export class KpiErrorEmployeeService {
     employeeID: number,
     typeID: number,
     departmentIDs: number[] | string | number,
-    keywords: string = ''
+    keywords: string = '',
+    userLoginDepartmentId: number = 0
   ): Observable<any> {
     const params = new HttpParams()
       .set('startDate', this.formatLocalDate(startDate))
@@ -50,7 +51,8 @@ export class KpiErrorEmployeeService {
       .set('employeeID', (employeeID || 0).toString())
       .set('typeID', (typeID || 0).toString())
       .set('departmentIDs', this.normalizeDepartmentIDs(departmentIDs))
-      .set('keywords', keywords);
+      .set('keywords', keywords)
+      .set('userLoginDepartmentID', (userLoginDepartmentId || 0).toString());
 
     return this.http.get(this._url + 'load-data', { params });
   }

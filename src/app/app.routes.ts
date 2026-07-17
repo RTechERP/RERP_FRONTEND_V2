@@ -1350,6 +1350,10 @@ export const routes: Routes = [
       { path: 'vehicle-rental-request', component: VehicleRentalRequestComponent, canActivate: [authGuard] },
       { path: 'business-visa-request', component: VisaRequestComponent, canActivate: [authGuard] },
       { path: 'inventory-not-export', component: InventoryNotExportComponent, canActivate: [authGuard] },
+      //QUẢN LÝ LỖI HR
+      { path: 'kpi-error-hr', component: KpiErrorComponent, canActivate: [authGuard] }, // danh sách lỗi kt
+      { path: 'kpi-error-employee-hr', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
+      { path: 'summary-kpi-error-employee-new-hr', component: SummaryKpiErrorEmployeePrimengComponent, canActivate: [authGuard] },
 
     ],
   },

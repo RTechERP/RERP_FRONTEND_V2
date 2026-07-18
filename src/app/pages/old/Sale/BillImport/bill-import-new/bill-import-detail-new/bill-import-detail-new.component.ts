@@ -2028,7 +2028,7 @@ export class BillImportDetailNewComponent
                 Unit: item.UnitName || item.Unit || productInfo.Unit || '',
                 QtyRequest: item.QtyRequest || 0,
                 Qty: item.QuantityRemain || 0,
-                IsNotKeep: false,
+                IsNotKeep: item.IsNotKeep || false,
                 ProcessedGoods: false,
                 ProjectID: item.ProjectID || 0,
                 ProjectCode: item.ProductCodeOfSupplier || '',

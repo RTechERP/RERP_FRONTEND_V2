@@ -1008,7 +1008,20 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
                     headerSort: false
                 },
                 {
-                    title: 'không mua', field: 'IsPurchase', width: 150, headerSort: false, hozAlign: 'center',
+                    title: 'Không mua', field: 'IsPurchase', width: 150, headerSort: false, hozAlign: 'center',
+                    formatter: function (cell: any) {
+                        const value = cell.getValue();
+                        const checked = value === true || value === 'true' || value === 1 || value === '1';
+                        return `<input type="checkbox" ${checked ? 'checked' : ''} style="accent-color: #1677ff;" />`;
+                    },
+                    cellClick: (e: any, cell: any) => {
+                        const currentValue = cell.getValue();
+                        const newValue = !(currentValue === true || currentValue === 'true' || currentValue === 1 || currentValue === '1');
+                        cell.setValue(newValue);
+                    }
+                },
+                {
+                    title: 'Không giữ', field: 'IsNotKeep', width: 150, headerSort: false, hozAlign: 'center',
                     formatter: function (cell: any) {
                         const value = cell.getValue();
                         const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -1488,8 +1501,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
             ? product.ProductName
             : `${product.ProductName} ${product.ProductCode || ''}`;
         productCodeOfSupplier = productGroupIDHR.includes(product.ProductGroupID || 0)
-          ? product.ProductName
-          : productCodeOfSupplier;
+            ? product.ProductName
+            : productCodeOfSupplier;
         const updateData: any = {
             ProductSaleID: isProductSale ? productId : 0,
             ProductRTCID: isProductSale ? 0 : productId,
@@ -1935,6 +1948,7 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
             ProjectPartlistPurchaseRequestID: row.ProjectPartlistPurchaseRequestID || 0,
             ProjectPartlistID: row.ProjectPartListID || 0,
             IsDeleted: isDeleted,
+            IsNotKeep: row.IsNotKeep || false,
         });
 
         const ponccDetails = [

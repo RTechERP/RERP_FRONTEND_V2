@@ -1,0 +1,64 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+}
+
+.tabulator-cell {
+  padding: 4px;
+  white-space: pre-wrap !important;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+
+.import-container {
+  padding: 10px 0;
+}
+
+.preview-table {
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  padding: 10px;
+  background: #fafafa;
+}
+
+.table-container {
+  border: 1px solid #e8e8e8;
+  background: #fff;
+  min-height: 300px;
+}
+
+.text-wrap {
+  white-space: normal !important;
+  word-break: break-word;
+}
+
+.status-msg {
+  font-size: 0.9rem;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+::ng-deep .row-error {
+  background-color: #f8d7da !important;
+  color: #842029 !important;
+}
+
+::ng-deep .row-error .tabulator-cell {
+  background-color: #f8d7da !important;
+  color: #842029 !important;
+}

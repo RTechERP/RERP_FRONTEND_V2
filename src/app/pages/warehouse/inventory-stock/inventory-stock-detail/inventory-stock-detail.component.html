@@ -1,0 +1,127 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary text-uppercase py-2">
+    <!-- TN.Binh update 17/20/25 -->
+    <h6 class="modal-title text-white" id="addProductGroupModalLabel">
+      Thông tin chi tiết sản phẩm
+    </h6>
+    <button type="button" class="btn-close" (click)="activeModal.close()" aria-label="Close"></button>
+  </div>
+  <div class="modal-body">
+    <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="container-fluid">
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="18">
+          <nz-form-item class="mb-3">
+            <nz-form-label required>
+              Sản phẩm
+              <span class="ms-1" style="color: red">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="'Vui lòng chọn sản phẩm'">
+              <nz-input-group [nzSuffix]="suffixIconButton" class="w-100">
+                <input
+                  nz-dropdown
+                  [nzDropdownMenu]="productMenu"
+                  nzTrigger="click"
+                  [(nzVisible)]="isProductDropdownVisible"
+                  (nzVisibleChange)="onDropdownVisibleChange($event)"
+                  [nzClickHide]="false"
+                  type="text"
+                  nz-input
+                  placeholder="Gõ mã hoặc tên sản phẩm..."
+                  [value]="selectedProductName"
+                  (input)="onProductSearch($event)"
+                />
+              </nz-input-group>
+              <ng-template #suffixIconButton>
+                <span
+                  *ngIf="selectedProductName"
+                  nz-icon
+                  nzType="close-circle"
+                  nzTheme="fill"
+                  class="text-muted clickable-icon me-2"
+                  (click)="clearProduct()"
+                ></span>
+                <span nz-icon nzType="down" class="text-muted"></span>
+              </ng-template>
+              <input type="hidden" formControlName="ProductSaleID" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="6">
+          <nz-form-item class="mb-3">
+            <nz-form-label>Tồn tối thiểu Y/c
+              <span class="ms-1" style="color: red">(*)</span></nz-form-label>
+            <nz-form-control [nzErrorTip]="'Tồn tối thiểu Y/c phải lớn hơn 0'">
+              <nz-input-number class="w-100" formControlName="MinQuantity" [nzMin]="1" nzMax="99999999999999"
+                [nzPrecision]="2" [nzStep]="0.01" [nzFormatter]="moneyFormatter"
+                [nzParser]="moneyParser"></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="24">
+          <nz-form-item class="mb-3">
+            <nz-form-label>Ghi chú</nz-form-label>
+            <nz-form-control>
+              <textarea nz-input rows="4" formControlName="Note"></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer py-1">
+    <button class="fs-12 btn" nz-button nzDanger (click)="activeModal.close()">
+      Đóng
+    </button>
+    <button class="fs-12 btn" nz-button nzType="primary" [disabled]="isDisabledSave" [nzLoading]="isSaving" (click)="onSave(true)">
+      Lưu & Thêm mới
+    </button>
+    <button class="fs-12 btn" nz-button nzType="primary" [disabled]="isDisabledSave" [nzLoading]="isSaving" (click)="onSave(false)">
+      Lưu & Đóng
+    </button>
+  </div>
+</div>
+
+<!-- Dropdown Menu dạng bảng (Combobox Grid) -->
+<nz-dropdown-menu #productMenu="nzDropdownMenu">
+  <div class="bg-white border rounded shadow p-2" style="width: 750px;">
+    <nz-table
+      #productTable
+      [nzData]="filteredProductSaleList"
+      nzBordered
+      [nzPageSize]="50"
+      [(nzPageIndex)]="productPageIndex"
+      [nzScroll]="{ y: '350px' }"
+      [nzFrontPagination]="true"
+      nzSize="small"
+      [nzShowSizeChanger]="false"
+    >
+      <thead>
+        <tr>
+          <th nzWidth="50px" class="text-center">STT</th>
+          <th nzWidth="130px">Mã nội bộ</th>
+          <th nzWidth="130px">Mã sản phẩm</th>
+          <th>Tên sản phẩm</th>
+          <th nzWidth="80px" class="text-center">ĐVT</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let data of productTable.data; let i = index"
+          (click)="selectProduct(data)"
+          class="clickable-row"
+          [class.selected-row]="data.ProductSaleID === formGroup.get('ProductSaleID')?.value"
+        >
+          <td class="text-center">
+            {{ (productTable.nzPageIndex - 1) * productTable.nzPageSize + i + 1 }}
+          </td>
+          <td>{{ data.ProductNewCode }}</td>
+          <td>
+            <strong>{{ data.ProductCode }}</strong>
+          </td>
+          <td>{{ data.ProductName }}</td>
+          <td class="text-center">{{ data.Unit || '' }}</td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </div>
+</nz-dropdown-menu>

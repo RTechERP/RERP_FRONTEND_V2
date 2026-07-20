@@ -358,6 +358,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
               const repeatedItem = savedItems.find((x: any) => x.IsRepeat);
 
               if (originalItem) {
+                step.ProjectGateStepLinkID = originalItem.ID;
                 step.StartDate = originalItem.StartDate ? originalItem.StartDate.substring(0, 10) : null;
                 step.isRepeatChecked = !!repeatedItem;
 
@@ -409,6 +410,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
             const repeatedItem = savedForThisCombo.find((x: any) => x.ProjectGateStepID === s.ID && x.IsRepeat);
 
             if (repeatedStep && repeatedItem) {
+              repeatedStep.ProjectGateStepLinkID = repeatedItem.ID;
               repeatedStep.StartDate = repeatedItem.StartDate ? repeatedItem.StartDate.substring(0, 10) : null;
 
               if (repeatedItem.CheckLists && repeatedItem.CheckLists.length > 0) {
@@ -1176,6 +1178,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
             repeatedStep.isRepeatChecked = false;
             repeatedStep.groupName = this.getGateGroupNameForMachine(parentStep.GateCode, 2);
             repeatedStep.repeatOrder = Date.now();
+            repeatedStep.ProjectGateStepLinkID = link.ID;
 
             repeatedStep.StartDate = link.StartDate ? link.StartDate.substring(0, 10) : null;
             if (link.Workers && link.Workers.length > 0) {
@@ -1205,6 +1208,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
             existingStep.Workers = [];
             steps.push(existingStep);
           }
+
+          existingStep.ProjectGateStepLinkID = link.ID;
 
           existingStep.StartDate = link.StartDate ? link.StartDate.substring(0, 10) : null;
           if (link.Workers && link.Workers.length > 0) {
@@ -1318,9 +1323,16 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     return item.CheckLists.some((c: any) => c.PathFolder && c.PathFolder.trim() !== '');
   }
 
+  countCompletedRules(item: any): number {
+    if (!item || !item.CheckLists) return 0;
+    return item.CheckLists.filter((c: any) => c.IsPass === true).length;
+  }
+
   isStepPassed(item: any): boolean {
     if (!item || !item.CheckLists || item.CheckLists.length === 0) return false;
-    return item.CheckLists.every((c: any) => c.IsPass === true);
+    const requiredRules = item.CheckLists.filter((c: any) => c.IsRequired === true);
+    if (requiredRules.length === 0) return true;
+    return requiredRules.every((c: any) => c.IsPass === true);
   }
 
   getRelativeSubPath(pathFolder: string): string {
@@ -1493,21 +1505,17 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       keyboard: false,
     });
 
-    modalRef.componentInstance.checklists = item.CheckLists || [];
-    modalRef.componentInstance.checklistLink = cl || (item.CheckLists && item.CheckLists[0]);
+    modalRef.componentInstance.stepLinkId = item.ProjectGateStepLinkID;
+    modalRef.componentInstance.selectedRuleId = cl?.ID || null;
     modalRef.componentInstance.gateCode = item.GateCode || '';
     modalRef.componentInstance.gateName = item.GateName || '';
 
     modalRef.result
       .then((result: any) => {
-        if (cl && cl.Files && cl.Files.length > 0) {
-          cl.IsPass = true;
-        }
+        this.loadAllGateSteps();
       })
       .catch((error: any) => {
-        if (cl && cl.Files && cl.Files.length > 0) {
-          cl.IsPass = true;
-        }
+        this.loadAllGateSteps();
       });
   }
 

@@ -1,131 +1,244 @@
-<div class="modal-dialog-scrollable">
-  <div class="modal-header bg-primary text-uppercase py-2">
+<div class="modal-dialog-scrollable" style="height: 90vh; display: flex; flex-direction: column;">
+  <!-- Modal Header -->
+  <div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
     <h6 class="modal-title text-white">
-      Quản lý file đính kèm - Bước: {{ gateCode }} - {{ gateName }}
+      Danh sách Checklist & File công đoạn: {{ gateCode }} - {{ gateName }}
     </h6>
     <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"></button>
   </div>
 
-  <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
-    @if (checklists && checklists.length > 1) {
-    <div class="mb-3 p-2 bg-white border rounded">
-      <label class="fw-bold mb-1 d-block text-secondary" style="font-size: 11px;">CHECKLIST:</label>
-      <div class="d-flex flex-wrap gap-1">
-        @for (cl of checklists; track cl.ProjectGateStepCheckListID) {
-        <button nz-button
-          [nzType]="checklistLink?.ProjectGateStepCheckListID === cl.ProjectGateStepCheckListID ? 'primary' : 'default'"
-          nzSize="small" (click)="onChecklistChange(cl)" class="d-flex align-items-center"
-          style="font-size: 11px; height: 26px;">
-          <span class="text-danger fw-bold me-1" [style.visibility]="cl.IsRequired ? 'visible' : 'hidden'">*</span>
-          {{ cl.Description }}
-          @if (cl.Files && cl.Files.length > 0) {
-          <span class="badge bg-light text-primary ms-1" style="font-size: 9px;">{{ cl.Files.length }}</span>
-          }
-        </button>
-        }
-      </div>
-    </div>
-    }
+  <!-- Modal Body with Top-Bottom Split Layout -->
+  <div class="modal-body p-3 flex-grow-1 overflow-auto bg-light d-flex flex-column gap-3" style="min-height: 0;">
 
-    <!-- Quy tắc file đính kèm -->
-    @if (checklistDetails && checklistDetails.length > 0) {
-    <div class="mb-3 p-2 bg-light border rounded text-dark">
-      <div class="fw-bold mb-1 text-secondary" style="font-size: 11px;">
-        <i class="fa-solid fa-circle-info me-1 text-primary"></i> Chi tiết
+    <!-- ══ SECTION 1: TOP CHECKLIST RULES TABLE ════════════════════ -->
+    <div class="d-flex flex-column border rounded bg-white flex-grow-1"
+      style="min-height: 250px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+
+      <!-- Table Header & Bulk Actions Toolbar -->
+      <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center flex-shrink-0">
+        <span class="fw-bold text-secondary" style="font-size: 12px;">
+          <i class="fa-solid fa-list-check me-1"></i> BẢNG CHECKLIST ({{ checklists?.length || 0 }})
+        </span>
+ 
+        <!-- Bulk Checklist Actions -->
+        <div class="d-flex gap-2">
+          <button nz-button nzType="default" nzSize="small" (click)="bulkComplete(true)"
+            style="color:#52c41a; border-color:#52c41a;">
+            <i class="fa-solid fa-check me-1"></i> NV Xác nhận
+          </button>
+          <button nz-button nzType="default" nzSize="small" (click)="bulkComplete(false)" nzDanger>
+            <i class="fa-solid fa-xmark me-1"></i> NV Hủy xác nhận
+          </button>
+          <button nz-button nzType="primary" nzSize="small" *ngIf="isUserLeader" (click)="bulkApprove(1)"
+            style="background:#52c41a; border-color:#52c41a;">
+            <i class="fa-solid fa-check-double me-1"></i> TBP Duyệt
+          </button>
+          <button nz-button nzType="primary" nzSize="small" *ngIf="isUserLeader" (click)="bulkApprove(0)" nzDanger>
+            <i class="fa-solid fa-ban me-1"></i> TBP Hủy duyệt
+          </button>
+        </div>
       </div>
-      <div class="table-responsive">
-        <table class="table table-sm table-bordered mb-0 bg-white align-middle" style="font-size: 11px;">
-          <thead>
-            <tr class="table-light text-center fw-bold">
-              <th>Quy tắc file</th>
-              <th style="width: 150px;">Định dạng</th>
-              <th style="width: 120px;">Số lượng tối thiểu</th>
-              <th style="width: 90px;">Bắt buộc</th>
+ 
+      <!-- Checklist Rules Grid -->
+      <div class="flex-grow-1 overflow-auto p-2" style="min-height: 0;">
+        <p-table [value]="checklists || []" styleClass="p-datatable-sm p-datatable-gridlines"
+          [scrollable]="true" scrollHeight="flex" [style]="{'table-layout': 'fixed'}"
+          [resizableColumns]="true" columnResizeMode="expand"
+          selectionMode="single" [(selection)]="selectedRule" dataKey="ID"
+          [metaKeySelection]="false"
+          (onRowSelect)="onRowSelect($event)" (onRowUnselect)="onRowUnselect($event)">
+          <ng-template pTemplate="colgroup">
+            <colgroup>
+              <col style="width: 40px;">
+              <col style="width: 45px;">
+              <col>
+              <col style="width: 130px;">
+              <col style="width: 90px;">
+              <col style="width: 80px;">
+              <col style="width: 100px;">
+              <col style="width: 100px;">
+            </colgroup>
+          </ng-template>
+          <ng-template pTemplate="header">
+            <tr class="header-row">
+              <th style="width: 40px; text-align: center;">
+                <label nz-checkbox [ngModel]="isAllChecklistsSelected()"
+                  (ngModelChange)="toggleSelectAllChecklists($event)"></label>
+              </th>
+              <th style="width: 45px; text-align: center;" pResizableColumn pSortableColumn="STT"># <p-sortIcon field="STT"></p-sortIcon></th>
+              <th pResizableColumn pSortableColumn="Description">Quy tắc / Yêu cầu <p-sortIcon field="Description"></p-sortIcon></th>
+              <th style="width: 130px; text-align: center;" pResizableColumn pSortableColumn="FileName">Tên file quy chuẩn <p-sortIcon field="FileName"></p-sortIcon></th>
+              <th style="width: 90px; text-align: center;" pResizableColumn pSortableColumn="Type">Định dạng <p-sortIcon field="Type"></p-sortIcon></th>
+              <th style="width: 80px; text-align: center;" pResizableColumn pSortableColumn="FileQuantity">SL File YC <p-sortIcon field="FileQuantity"></p-sortIcon></th>
+              <th style="width: 100px; text-align: center;" pResizableColumn pSortableColumn="IsPass">Trạng thái NV <p-sortIcon field="IsPass"></p-sortIcon></th>
+              <th style="width: 100px; text-align: center;" pResizableColumn pSortableColumn="IsApprovedTBP">Trạng thái TBP <p-sortIcon field="IsApprovedTBP"></p-sortIcon></th>
             </tr>
-          </thead>
-          <tbody>
-            @for (detail of checklistDetails; track detail.ID) {
-            <tr>
-              <td style="white-space: pre-wrap; word-break: break-word;">{{ detail.FileRule || 'Không có' }}</td>
-              <td class="text-center">{{ detail.FileFormat || 'Tất cả' }}</td>
-              <td class="text-center fw-bold">{{ detail.FileQuantity }}</td>
-              <td class="text-center">
-                @if (detail.IsCheck) {
-                <span class="badge bg-danger">Bắt buộc</span>
+          </ng-template>
+          <ng-template pTemplate="body" let-cl let-rowIndex="rowIndex">
+            <tr class="body-row" [pSelectableRow]="cl" [pSelectableRowDisabled]="!cl.IsFile" [class.cursor-pointer]="cl.IsFile"
+              [class.invalid-file-qty-row]="invalidRuleIds.has(cl.ID)"
+              style="transition: background 0.15s; font-size: 11px;">
+              <td class="text-center" style="width: 40px;" (click)="$event.stopPropagation()">
+                <label nz-checkbox [(ngModel)]="cl._selected"></label>
+              </td>
+              <td class="text-center text-muted fw-bold" style="width: 45px;">
+                {{ cl.STT || (rowIndex + 1) }}
+              </td>
+              <td class="word-break-all">
+                <span class="text-danger fw-bold me-1" *ngIf="cl.IsRequired" title="Bắt buộc">*</span>
+                <span class="fw-bold text-dark">{{ cl.Description || 'Quy tắc công đoạn' }}</span>
+              </td>
+              <td style="width: 130px;" class="word-break-all">
+                <span class="text-muted" *ngIf="cl.FileName">{{ cl.FileName }}</span>
+                <span class="text-muted" *ngIf="!cl.FileName"></span>
+              </td>
+              <td style="width: 90px;" class="text-center">
+                @if (cl.IsFile) {
+                <span class="badge bg-info text-white" style="font-size: 9px;">{{ cl.Type || 'Tất cả' }}</span>
                 } @else {
-                <span class="badge bg-secondary">Không</span>
+                <span class="text-muted"></span>
+                }
+              </td>
+              <td style="width: 80px;" class="text-center font-weight-bold text-primary">
+                @if (cl.IsFile) {
+                <span>{{ cl.FileQuantity || 0 }}</span>
+                } @else {
+                <span class="text-muted">-</span>
+                }
+              </td>
+              <td style="width: 100px;" class="text-center">
+                <span class="badge" [class.bg-success]="cl.IsPass" [class.bg-secondary]="!cl.IsPass"
+                  style="font-size: 9px;">
+                  {{ cl.IsPass ? 'Đã hoàn thành' : 'Chưa xong' }}
+                </span>
+              </td>
+              <td style="width: 100px;" class="text-center">
+                @if (cl.IsApprovedTBP === 1) {
+                <span class="badge bg-success" style="font-size: 9px;"
+                  [title]="cl.ApprovedTBPDate ? (cl.ApprovedTBPDate | date:'dd/MM/yyyy HH:mm') : ''">Đã duyệt</span>
+                } @else if (cl.IsApprovedTBP === 2) {
+                <span class="badge bg-danger" style="font-size: 9px;">Bị từ chối</span>
+                } @else {
+                <span class="badge bg-warning text-dark" style="font-size: 9px;">Chờ duyệt</span>
                 }
               </td>
             </tr>
-            }
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td colspan="8" class="text-center p-3 text-muted">Không có quy tắc/yêu cầu nào.</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+
+    <!-- ══ SECTION 2: BOTTOM FILE ATTACHMENTS TABLE ═════════════════ -->
+    <div class="d-flex flex-column border rounded bg-white"
+      style="height: 280px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04); flex-shrink: 0;">
+
+      <!-- File Toolbar -->
+      <div class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center flex-shrink-0">
+        <span class="fw-bold text-secondary" style="font-size: 12px;">
+          <i class="fa-solid fa-file-arrow-up me-1"></i>
+          @if (selectedRule) {
+          TỆP ĐÍNH KÈM CỦA QUY TẮC: <strong class="text-dark">{{ selectedRule.Description || selectedRule.FileRule
+            }}</strong>
+          } @else {
+          TẤT CẢ TỆP ĐÍNH KÈM CỦA CÔNG ĐOẠN
+          }
+          ({{ displayFiles.length }})
+        </span>
+
+        <!-- File Upload / Delete Controls -->
+        <div class="d-flex gap-2">
+          <!-- Reset Focus Filter to All Files -->
+          <button nz-button nzType="default" nzSize="small" *ngIf="selectedRule"
+            (click)="selectedRule = null; selectedFileIds.clear(); allChecked = false; indeterminate = false; refreshDisplayFiles()">
+            <i class="fa-solid fa-eye me-1"></i> Xem tất cả
+          </button>
+
+          <button nz-button nzType="primary" nzSize="small" (click)="triggerUpload()" [disabled]="selectedRule?.IsApprovedTBP === 1">
+            <i class="fa-solid fa-plus me-1"></i> Tải file lên
+          </button>
+
+          <button nz-button nzDanger nzType="default" nzSize="small" [disabled]="selectedFileIds.size === 0"
+            (click)="deleteSelectedFiles()">
+            <i class="fa-solid fa-trash me-1"></i> Xóa đã chọn ({{ selectedFileIds.size }})
+          </button>
+        </div>
+      </div>
+
+      <!-- File Attachment Table Grid -->
+      <div class="flex-grow-1 overflow-auto p-2" style="min-height: 0;">
+        <nz-table #fileTable [nzData]="displayFiles" [nzSize]="'small'" [nzShowPagination]="false"
+          [nzBordered]="true">
+          <thead>
+            <tr class="table-light text-center fw-bold text-secondary">
+              <th nzWidth="40px" class="text-center">
+                <label nz-checkbox [ngModel]="allChecked" [nzIndeterminate]="indeterminate"
+                  (ngModelChange)="onAllChecked($event)"></label>
+              </th>
+              <th>Tên file</th>
+              <th>Thuộc quy tắc</th>
+              <th nzWidth="120px">Người tải</th>
+              <th nzWidth="120px">Ngày tải</th>
+              <th nzWidth="60px" class="text-center">Xóa</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let file of fileTable.data">
+              <!-- Select Checkbox -->
+              <td class="text-center">
+                <label nz-checkbox [ngModel]="selectedFileIds.has(file.ID)" [nzDisabled]="file.isRuleApproved"
+                  (ngModelChange)="onItemChecked(file.ID, $event)"></label>
+              </td>
+
+              <!-- File Name and download link -->
+              <td class="word-break-all">
+                <div class="d-flex align-items-center gap-2">
+                  <i [class]="getFileIcon(file.ContentType, file.FileName)" style="font-size: 14px;"></i>
+                  <a class="file-name-link text-primary font-weight-500" (click)="downloadFile(file)"
+                    [title]="'Tải: ' + file.FileName" style="cursor: pointer;">
+                    {{ file.FileName }}
+                  </a>
+                </div>
+              </td>
+
+              <!-- Rule Description of file -->
+              <td>
+                <span class="text-muted" style="font-size: 11px;">{{ file.ruleDescription }}</span>
+              </td>
+
+              <!-- Uploaded User -->
+              <td>{{ file.CreatorFullName || file.CreatedBy || 'System' }}</td>
+
+              <!-- Uploaded Date -->
+              <td>{{ file.CreatedDate ? (file.CreatedDate | date:'dd/MM HH:mm') : '' }}</td>
+
+              <!-- Actions -->
+              <td class="text-center">
+                <button nz-button nzType="text" nzDanger nzSize="small" (click)="deleteOneFile(file)"
+                  [disabled]="file.isRuleApproved"
+                  style="padding:0; height:24px; width:24px;">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="displayFiles.length === 0">
+              <td colspan="6" class="text-center text-muted py-4">Chưa có tệp đính kèm nào được tải lên.</td>
+            </tr>
           </tbody>
-        </table>
+        </nz-table>
       </div>
     </div>
-    }
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div class="d-flex gap-2">
-        <button nz-button nzType="primary" nzSize="small" (click)="triggerUpload()">
-          <i class="fa-solid fa-plus me-1"></i> Thêm file
-        </button>
-        <button nz-button nzDanger nzType="default" nzSize="small" [disabled]="selectedFileIds.size === 0"
-          (click)="deleteSelectedFiles()">
-          <i class="fa-solid fa-trash me-1"></i> Xóa đã chọn ({{ selectedFileIds.size }})
-        </button>
-      </div>
-    </div>
-
-    <div class="mb-2 text-muted fs-11 word-break-all">
-      <i class="fa-solid fa-folder me-1 text-warning"></i>
-      <!-- <strong>Thư mục lưu trữ:</strong> {{ checklistLink?.PathFolder || 'Chưa cấu hình' }} -->
-    </div>
-
-    <nz-table #fileTable [nzData]="checklistLink?.Files || []" [nzSize]="'small'" [nzShowPagination]="false"
-      [nzScroll]="{ y: '350px' }" [nzBordered]="true">
-      <thead>
-        <tr>
-          <th nzWidth="40px" class="text-center">
-            <label nz-checkbox [ngModel]="allChecked" [nzIndeterminate]="indeterminate"
-              (ngModelChange)="onAllChecked($event)"></label>
-          </th>
-          <th>Tên file</th>
-          <th nzWidth="120px">Người tải lên</th>
-          <th nzWidth="140px">Ngày tải lên</th>
-          <th nzWidth="70px" class="text-center">Tác vụ</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let file of fileTable.data">
-          <td class="text-center">
-            <label nz-checkbox [ngModel]="selectedFileIds.has(file.ID)"
-              (ngModelChange)="onItemChecked(file.ID, $event)"></label>
-          </td>
-          <td class="word-break-all">
-            <div class="d-flex align-items-center gap-2">
-              <i [class]="getFileIcon(file.ContentType, file.FileName)" style="font-size: 14px;"></i>
-              <a class="file-name-link text-primary font-weight-500" (click)="downloadFile(file)"
-                [title]="'Tải xuống: ' + file.FileName">
-                {{ file.FileName }}
-              </a>
-            </div>
-          </td>
-          <td class="word-break-all">{{ file.CreatedBy || 'System' }}</td>
-          <td>{{ file.CreatedDate ? (file.CreatedDate | date:'dd/MM/yyyy HH:mm') : '' }}</td>
-          <td class="text-center">
-            <button nz-button nzType="text" nzDanger nzSize="small" (click)="deleteOneFile(file.ID)" title="Xóa file">
-              <i class="fa-solid fa-trash-can"></i>
-            </button>
-          </td>
-        </tr>
-        <tr *ngIf="(!checklistLink?.Files || checklistLink.Files.length === 0)">
-          <td colspan="5" class="text-center text-muted py-4">Chưa có tài liệu đính kèm nào.</td>
-        </tr>
-      </tbody>
-    </nz-table>
   </div>
 
-  <div class="modal-footer py-2">
-    <button nz-button nzType="default" (click)="activeModal.close()">Đóng</button>
+  <!-- Modal Footer -->
+  <div class="modal-footer py-2 flex-shrink-0">
+    <button nz-button nzType="default" (click)="activeModal.close(true)">Hoàn tất & Đóng</button>
   </div>
+
+  <!-- Hidden input file element managed by Angular -->
+  <input type="file" #fileInputHidden style="display: none;" multiple (change)="onFileSelected($event)">
 </div>

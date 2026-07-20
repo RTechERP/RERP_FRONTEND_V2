@@ -82,50 +82,88 @@
       <div class="table-wrapper flex-grow-1 w-100 overflow-auto" style="height: 100%;">
         <p-table [value]="projectTypeStepsMap[activeProjectTypeId + '_' + activeDepartmentId] || []"
           styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true" scrollHeight="flex"
-          rowGroupMode="subheader" groupRowsBy="groupName" [style]="{'min-width': '2200px', 'table-layout': 'fixed'}">
+          rowGroupMode="subheader" groupRowsBy="groupName" [style]="{'min-width': '2200px', 'table-layout': 'fixed'}"
+          [resizableColumns]="true" columnResizeMode="expand">
+          <ng-template pTemplate="colgroup">
+            <colgroup>
+              <col style="width: 60px;">
+              <col style="width: 50px;">
+              <col style="width: 60px;">
+              <col style="width: 150px;">
+              <col style="width: 180px;">
+              <col style="width: 320px;">
+              <col style="width: 180px;">
+              <col style="width: 180px;">
+              <col style="width: 320px;">
+              <col style="width: 180px;">
+              <col style="width: 140px;">
+              <col style="width: 120px;">
+              <col style="width: 80px;">
+              <col style="width: 80px;">
+              <col style="width: 80px;">
+              <col style="width: 220px;">
+              <col style="width: 100px;">
+              <col style="width: 130px;">
+              <col style="width: 140px;">
+            </colgroup>
+          </ng-template>
           <ng-template pTemplate="header">
             <tr class="header-row">
-              <th style="width: 60px; text-align: center;">
+              <th style="width: 60px; text-align: center;" pResizableColumn>
                 <button nz-button nzType="text" (click)="addBlankStep(activeProjectTypeId + '_' + activeDepartmentId)"
                   class="text-primary p-0 d-flex align-items-center justify-content-center mx-auto"
                   style="height: 24px; width: 24px;" title="Thêm công đoạn">
                   <i class="fa-solid fa-plus" style="font-size: 14px;"></i>
                 </button>
               </th>
-              <th style="width: 50px;" class="text-center">TT</th>
-              <th style="width: 60px;" class="text-center">Thứ tự</th>
-              <th style="width: 150px;" class="text-center">Bước/Giai đoạn</th>
-              <th style="width: 180px;" class="text-center">Phòng ban</th>
-              <th style="width: 320px;" class="text-center">Nội dung công việc</th>
-              <th style="width: 180px;" class="text-center">Vị trí/PIC</th>
-              <th style="width: 180px;" class="text-center">Phòng ban thực tế</th>
-              <th style="width: 320px;" class="text-center">Nội dung thực tế</th>
-              <th style="width: 180px;" class="text-center">Vị trí thực tế</th>
-              <th style="width: 200px;" class="text-center">Đường dẫn</th>
-              <th style="width: 220px;" class="text-center">File đính kèm</th>
+              <th style="width: 50px;" class="text-center" pResizableColumn pSortableColumn="TT">TT <p-sortIcon
+                  field="TT"></p-sortIcon></th>
+              <th style="width: 60px;" class="text-center" pResizableColumn pSortableColumn="SortOrder">Thứ tự
+                <p-sortIcon field="SortOrder"></p-sortIcon></th>
+              <th style="width: 150px;" class="text-center" pResizableColumn pSortableColumn="GateCode">Bước/Giai đoạn
+                <p-sortIcon field="GateCode"></p-sortIcon></th>
+              <th style="width: 180px;" class="text-center" pResizableColumn pSortableColumn="DepartmentNames">Phòng ban
+                <p-sortIcon field="DepartmentNames"></p-sortIcon></th>
+              <th style="width: 320px;" class="text-center" pResizableColumn pSortableColumn="Content">Nội dung công
+                việc <p-sortIcon field="Content"></p-sortIcon></th>
+              <th style="width: 180px;" class="text-center" pResizableColumn pSortableColumn="PositionNames">Vị trí/PIC
+                <p-sortIcon field="PositionNames"></p-sortIcon></th>
+              <th style="width: 180px;" class="text-center" pResizableColumn pSortableColumn="DepartmentNames">Phòng ban
+                thực tế <p-sortIcon field="DepartmentNames"></p-sortIcon></th>
+              <th style="width: 320px;" class="text-center" pResizableColumn pSortableColumn="Content">Nội dung thực tế
+                <p-sortIcon field="Content"></p-sortIcon></th>
+              <th style="width: 180px;" class="text-center" pResizableColumn pSortableColumn="PositionNames">Vị trí thực
+                tế <p-sortIcon field="PositionNames"></p-sortIcon></th>
+              <th style="width: 140px;" class="text-center" pResizableColumn>Checklist</th>
 
-              <th style="width: 120px;" class="text-center">Ngày bắt đầu</th>
-              <th style="width: 80px;" class="text-center">Repeat</th>
-              <th style="width: 80px;" class="text-center">Số người</th>
-              <th style="width: 80px;" class="text-center">Số ngày</th>
-              <th style="width: 220px;" class="text-center">Nhân viên thực hiện</th>
-              <th style="width: 100px;" class="text-center">Tổng nhân công</th>
-              <th style="width: 130px;" class="text-center">Đơn giá</th>
-              <th style="width: 140px;" class="text-center">Thành tiền</th>
+              <th style="width: 120px;" class="text-center" pResizableColumn pSortableColumn="StartDate">Ngày bắt đầu
+                <p-sortIcon field="StartDate"></p-sortIcon></th>
+              <th style="width: 80px;" class="text-center" pResizableColumn>Repeat</th>
+              <th style="width: 80px;" class="text-center" pResizableColumn pSortableColumn="PeopleCount">Số người
+                <p-sortIcon field="PeopleCount"></p-sortIcon></th>
+              <th style="width: 80px;" class="text-center" pResizableColumn pSortableColumn="DayCount">Số ngày
+                <p-sortIcon field="DayCount"></p-sortIcon></th>
+              <th style="width: 220px;" class="text-center" pResizableColumn>Nhân viên thực hiện</th>
+              <th style="width: 100px;" class="text-center" pResizableColumn pSortableColumn="TotalEffort">Tổng nhân
+                công <p-sortIcon field="TotalEffort"></p-sortIcon></th>
+              <th style="width: 130px;" class="text-center" pResizableColumn pSortableColumn="UnitPrice">Đơn giá
+                <p-sortIcon field="UnitPrice"></p-sortIcon></th>
+              <th style="width: 140px;" class="text-center" pResizableColumn pSortableColumn="TotalAmount">Thành tiền
+                <p-sortIcon field="TotalAmount"></p-sortIcon></th>
             </tr>
           </ng-template>
 
           <ng-template pTemplate="groupheader" let-item>
             @if (isFirstSubgroupOfMachine(activeProjectTypeId + '_' + activeDepartmentId, item)) {
             <tr class="machine-group-header">
-              <td colspan="20" class="fw-bold text-primary px-3 py-2 text-start"
+              <td colspan="19" class="fw-bold text-primary px-3 py-2 text-start"
                 style="font-size: 12px !important; font-weight: 800 !important; background-color: #e6f7ff !important; color: #0050b3 !important; border: 1px solid #dee2e6 !important;">
                 {{ getMachineHeaderName(item) }}
               </td>
             </tr>
             }
             <tr pRowGroupHeader class="row-group-header">
-              <td colspan="17" class="bg-light fw-bold text-primary px-3 py-1 text-start" style="font-size: 12px;">
+              <td colspan="16" class="bg-light fw-bold text-primary px-3 py-1 text-start" style="font-size: 12px;">
                 {{ getSubgroupHeaderName(item) }}
               </td>
               <td class="bg-light fw-bold text-primary text-center px-1 py-1" style="width: 100px; font-size: 12px;">
@@ -170,32 +208,21 @@
                 }
               </td>
               <td style="width: 180px; white-space: pre-wrap;">{{ item.isNew ? '' : item.DepartmentNames }}</td>
-              <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content }}</td>
+              <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content
+                }}</td>
               <td style="width: 180px; white-space: pre-wrap;">{{ item.isNew ? '' : item.PositionNames }}</td>
               <td style="width: 180px; white-space: pre-wrap;">{{ item.isNew ? '' : item.DepartmentNames }}</td>
-              <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content }}</td>
+              <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content
+                }}</td>
               <td style="width: 180px; white-space: pre-wrap;">{{ item.isNew ? '' : item.PositionNames }}</td>
-              <!-- Cột Đường dẫn -->
-              <td style="width: 200px; font-size: 11px; word-break: break-all;">
-                @if (!item.isNew && item.CheckLists && item.CheckLists.length > 0) {
-                @for (cl of item.CheckLists; track cl.ProjectGateStepCheckListID) {
-                @if (cl.PathFolder) {
-                <div class="text-muted" style="line-height: 1.4; padding: 1px 0;" [title]="cl.PathFolder">
-                  <i class="fa-solid fa-folder-open text-warning me-1" style="font-size: 10px;"></i>
-                  {{ cl.PathFolder }}
-                </div>
-                }
-                }
-                }
-              </td>
-              <!-- Cột File đính kèm -->
-              <td style="width: 220px; font-size: 11px; text-align: center;">
+              <!-- Cột Checklist -->
+              <td style="width: 140px; font-size: 11px; text-align: center;">
                 @if (!item.isNew && item.CheckLists && item.CheckLists.length > 0) {
                 <div style="height: 20px; display: flex; align-items: center; justify-content: center;">
                   <button nz-button nzType="link" nzSize="small" (click)="openFileListModal(item)"
-                    class="p-0 d-inline-flex align-items-center" [class.text-muted]="getStepFilesCount(item) === 0">
-                    <i class="fa-solid me-1" [class.fa-paperclip]="getStepFilesCount(item) > 0" [class.fa-arrow-up-from-bracket]="getStepFilesCount(item) === 0"></i>
-                    {{ getStepFilesCount(item) > 0 ? 'Xem thêm (' + getStepFilesCount(item) + ')' : 'Tải lên' }}
+                    class="p-0 d-inline-flex align-items-center">
+                    <i class="fa-solid fa-list-check me-1"></i>
+                    Chi tiết ({{ countCompletedRules(item) }}/{{ item.CheckLists.length }})
                   </button>
                 </div>
                 }
@@ -250,7 +277,7 @@
 
           <ng-template pTemplate="footer">
             <tr class="fw-bold bg-light footer-row">
-              <td colspan="17" class="text-end pe-3" style="font-size: 12px;">Tổng cộng:</td>
+              <td colspan="16" class="text-end pe-3" style="font-size: 12px;">Tổng cộng:</td>
               <td style="width: 100px; text-align: center; font-size: 12px;">
                 {{ getTotalEffort(activeProjectTypeId + '_' + activeDepartmentId) | number:'1.0-2' }}
               </td>
@@ -264,7 +291,7 @@
 
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="20" class="text-center p-3 text-muted">Không có dữ liệu</td>
+              <td colspan="19" class="text-center p-3 text-muted">Không có dữ liệu</td>
             </tr>
           </ng-template>
         </p-table>

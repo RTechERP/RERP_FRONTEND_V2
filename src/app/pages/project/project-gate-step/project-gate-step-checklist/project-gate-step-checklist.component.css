@@ -26,63 +26,12 @@
   flex-shrink: 0;
 }
 
-
-/* ══ Split body layout ════════════════════════════ */
-.split-body {
-  box-sizing: border-box;
-}
-
-:host ::ng-deep .p-splitter {
-  border: none;
-  background: transparent;
-}
-
-:host ::ng-deep .p-splitter-panel {
-  display: flex !important;
-  flex-direction: column !important;
-  height: 100% !important;
-  overflow: hidden !important;
-}
-
-:host ::ng-deep .p-splitter-gutter {
-  background: #e4e7ed !important;
-  width: 8px !important;
-  transition: background 0.2s;
-  cursor: col-resize;
-  border-left: 1px solid #dcdfe6;
-  border-right: 1px solid #dcdfe6;
-}
-
-:host ::ng-deep .p-splitter-gutter:hover {
-  background: #1890ff !important;
-}
-
-
-/* ══ Panel headers ═══════════════════════════════════════════ */
-.panel-header {
-  background: #fafafa;
-  border-bottom: 1px solid #f0f0f0;
-  flex-shrink: 0;
-}
-
-/* ══ Selected Row on Left Table ════════════════════════════ */
-tr.selected-row td {
-  background-color: #e6f4ff !important;
-  font-weight: 500;
-  border-left: 3px solid #1890ff !important;
-}
-
 /* ══ Highlight detail new rows ═════════════════════════════ */
 tr.detail-new td {
   background-color: #f6ffed !important;
 }
 
 /* ══ Table formatting and sizes ════════════════════════════ */
-.left-panel, .right-panel {
-  height: 100% !important;
-  overflow: hidden;
-}
-
-.left-panel .p-datatable, .right-panel .p-datatable {
+.p-datatable {
   height: 100%;
 }

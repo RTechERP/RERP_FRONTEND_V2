@@ -51,15 +51,23 @@ export class ProjectGateStepService {
     }
 
     saveFile(checkListLinkId: number, fileDto: any): Observable<any> {
-        return this.http.post<any>(`${environment.host}api/ProjectGateStepLink/SaveFile/${checkListLinkId}`, fileDto);
+        return this.http.post<any>(`${environment.host}api/ProjectGateStepCheckListDetailLink/SaveFile/${checkListLinkId}`, fileDto);
     }
 
     getFiles(checkListLinkId: number): Observable<any> {
-        return this.http.get<any>(`${environment.host}api/ProjectGateStepLink/GetFiles/${checkListLinkId}`);
+        return this.http.get<any>(`${environment.host}api/ProjectGateStepCheckListDetailLink/GetFiles/${checkListLinkId}`);
+    }
+
+    getCheckListsByStep(stepLinkId: number): Observable<any> {
+        return this.http.get<any>(`${environment.host}api/ProjectGateStepCheckListDetailLink/GetCheckLists/${stepLinkId}`);
+    }
+
+    getFilesByStep(stepLinkId: number): Observable<any> {
+        return this.http.get<any>(`${environment.host}api/ProjectGateStepCheckListDetailLink/GetFilesByStep/${stepLinkId}`);
     }
 
     deleteFile(fileId: number): Observable<any> {
-        return this.http.delete<any>(`${environment.host}api/ProjectGateStepLink/DeleteFile/${fileId}`);
+        return this.http.delete<any>(`${environment.host}api/ProjectGateStepCheckListDetailLink/DeleteFile/${fileId}`);
     }
 
     approve(linkId: number, comment?: string): Observable<any> {
@@ -121,5 +129,25 @@ export class ProjectGateStepService {
 
     deleteTemplates(ids: number[]): Observable<any> {
         return this.http.post<any>(`${this.templateApiUrl}/delete`, ids);
+    }
+
+    completeRules(detailLinkIds: number[], isCompleted: boolean): Observable<any> {
+        const body = {
+            DetailLinkIDs: detailLinkIds,
+            IsCompleted: isCompleted
+        };
+        return this.http.post<any>(`${environment.host}api/ProjectGateStepCheckListDetailLink/CompleteRules`, body);
+    }
+
+    checkRequiredFiles(detailLinkIds: number[]): Observable<any> {
+        return this.http.post<any>(`${environment.host}api/ProjectGateStepCheckListDetailLink/CheckRequiredFiles`, detailLinkIds);
+    }
+
+    approveRule(detailLinkId: number, isApprovedTBP: number, approvedTBPBy: number): Observable<any> {
+        const body = {
+            IsApprovedTBP: isApprovedTBP,
+            ApprovedTBPBy: approvedTBPBy
+        };
+        return this.http.post<any>(`${environment.host}api/ProjectGateStepCheckListDetailLink/ApproveRule/${detailLinkId}`, body);
     }
 }

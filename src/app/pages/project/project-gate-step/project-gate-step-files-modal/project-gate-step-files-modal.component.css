@@ -1,21 +1,42 @@
-.modal-content-wrapper {
-  padding: 10px 5px;
-}
 .file-name-link {
   cursor: pointer;
   text-decoration: none;
   white-space: normal;
   word-break: break-all;
 }
+
 .file-name-link:hover {
   text-decoration: underline;
   color: #096dd9 !important;
 }
+
 .word-break-all {
   word-break: break-all;
 }
+
 .fs-11 {
   font-size: 11px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Custom list-group-item active behavior for our sidebar */
+.rules-sidebar .list-group-item.active {
+  background-color: #e6f7ff !important;
+  color: #1890ff !important;
+  border-left: 4px solid #1890ff !important;
+  font-weight: 500;
+}
+
+.rules-sidebar .list-group-item:not(.active):hover {
+  background-color: #f5f5f5;
+}
+
+.rules-sidebar .list-group-item {
+  border-left: 4px solid transparent;
+  transition: all 0.15s ease;
 }
 
 /* Custom border styling to make columns extremely distinct */
@@ -23,11 +44,87 @@
   border-left: 1px solid #dee2e6 !important;
   border-bottom: 1px solid #dee2e6 !important;
 }
-::ng-deep .ant-table-bordered .ant-table-content > table {
+
+::ng-deep .ant-table-bordered .ant-table-content>table {
   border-top: 1px solid #dee2e6 !important;
 }
-::ng-deep .ant-table-bordered .ant-table-tbody > tr > td, 
-::ng-deep .ant-table-bordered .ant-table-thead > tr > th {
+
+::ng-deep .ant-table-bordered .ant-table-tbody>tr>td,
+::ng-deep .ant-table-bordered .ant-table-thead>tr>th {
   border-right: 1px solid #dee2e6 !important;
   border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Custom Action Button Styles */
+.btn-action-nv-confirm {
+  font-size: 10px;
+  height: 22px;
+  padding: 0 8px;
+}
+
+.btn-action-nv-cancel {
+  font-size: 10px;
+  height: 22px;
+  padding: 0 8px;
+  border-color: #ff9c6e !important;
+  color: #fa541c !important;
+  background-color: #fff2e8 !important;
+  transition: all 0.2s;
+}
+.btn-action-nv-cancel:hover {
+  border-color: #fa541c !important;
+  color: #d4380d !important;
+  background-color: #ffd8bf !important;
+}
+
+.btn-action-tbp-approve {
+  font-size: 10px;
+  height: 22px;
+  padding: 0 8px;
+  background-color: #52c41a !important;
+  border-color: #52c41a !important;
+  color: #fff !important;
+  transition: all 0.2s;
+}
+.btn-action-tbp-approve:hover:not([disabled]) {
+  background-color: #73d13d !important;
+  border-color: #73d13d !important;
+  color: #fff !important;
+}
+.btn-action-tbp-approve[disabled] {
+  background-color: #f5f5f5 !important;
+  border-color: #d9d9d9 !important;
+  color: rgba(0, 0, 0, 0.25) !important;
+}
+
+.btn-action-tbp-cancel {
+  font-size: 10px;
+  height: 22px;
+  padding: 0 8px;
+  border-color: #ff4d4f !important;
+  color: #ff4d4f !important;
+  background-color: #fff2f0 !important;
+  transition: all 0.2s;
+}
+.btn-action-tbp-cancel:hover:not([disabled]) {
+  border-color: #ff7875 !important;
+  color: #ff2a2a !important;
+  background-color: #ffeef0 !important;
+}
+.btn-action-tbp-cancel[disabled] {
+  background-color: #f5f5f5 !important;
+  border-color: #d9d9d9 !important;
+  color: rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Cảnh báo viền đỏ cho hàng chưa đủ file */
+.invalid-file-qty-row td {
+  border-top: 2px solid #ff4d4f !important;
+  border-bottom: 2px solid #ff4d4f !important;
+}
+.invalid-file-qty-row td:first-child {
+  border-left: 2px solid #ff4d4f !important;
+}
+.invalid-file-qty-row td:last-child {
+  border-right: 2px solid #ff4d4f !important;
 }

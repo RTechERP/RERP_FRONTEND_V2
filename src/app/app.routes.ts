@@ -72,6 +72,7 @@ import { ProjectGateStepManagementComponent } from './pages/project/project-gate
 import { ProjectGateStepByProjectComponent } from './pages/project/project-gate-step/project-gate-step-by-project/project-gate-step-by-project.component';
 //import { HandoverNewComponent } from './pages/hrm/handover/handover-new/handover-new.component';
 import { ProjectGateManagementComponent } from './pages/project/project-gate/project-gate-management/project-gate-management.component';
+import { ProjectGateCheckListTypeManagementComponent } from './pages/project/project-gate/project-gate-checklist-type/project-gate-checklist-type-management.component';
 import { HolidayComponent } from './pages/hrm/holiday/holiday.component';
 import { HrPurchaseProposalComponent } from './pages/hrm/hr-purchase-proposal/hr-purchase-proposal.component';
 import { HrhiringRequestComponent } from './pages/hrm/hr-recruitment/hrhiring-request/hrhiring-request.component';
@@ -1358,6 +1359,7 @@ export const routes: Routes = [
       { path: 'inventory-not-export', component: InventoryNotExportComponent, canActivate: [authGuard] },
       { path: 'project-gate-step', component: ProjectGateStepManagementComponent, canActivate: [authGuard] },
       { path: 'project-gate', component: ProjectGateManagementComponent, canActivate: [authGuard] },
+      { path: 'project-gate-checklist-type', component: ProjectGateCheckListTypeManagementComponent, canActivate: [authGuard] },
       { path: 'project-type-department', component: ProjectTypeDepartmentComponent, canActivate: [authGuard] },
     ],
   },

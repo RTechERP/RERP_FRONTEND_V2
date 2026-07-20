@@ -134,13 +134,10 @@
             <nz-col [nzSpan]="8">
               <nz-form-item class="mb-0">
                 <nz-form-control nzErrorTip="Chọn loại checklist">
-                  <nz-select formControlName="Type" nzPlaceHolder="-- Loại checklist --"
+                  <nz-select formControlName="ProjectGateCheckListType" nzPlaceHolder="-- Loại checklist --"
+                    (ngModelChange)="onCheckListTypeChange(i, $event)"
                     style="width: 100%; font-size: 12px;">
-                    <nz-option nzValue="File_Path" nzLabel="File_Path"></nz-option>
-                    <nz-option nzValue="Part_list" nzLabel="Part_list"></nz-option>
-                    <nz-option nzValue="Document" nzLabel="Document"></nz-option>
-                    <nz-option nzValue="Folder" nzLabel="Folder"></nz-option>
-                    <nz-option nzValue="Form" nzLabel="Form"></nz-option>
+                    <nz-option *ngFor="let t of checkListTypes" [nzValue]="t.ID" [nzLabel]="t.TypeCode"></nz-option>
                   </nz-select>
                 </nz-form-control>
               </nz-form-item>

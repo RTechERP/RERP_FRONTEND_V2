@@ -12,6 +12,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 import { ProjectGateStepService } from '../project-gate-step.service';
+import { ProjectGateCheckListTypeService } from '../../project-gate/project-gate-checklist-type/project-gate-checklist-type.service';
 
 @Component({
   selector: 'app-project-gate-step-form',
@@ -41,6 +42,7 @@ export class ProjectGateStepFormComponent implements OnInit {
   @Input() positionList: any[] = [];
   private _templateList: any[] = [];
   templateGroups: Array<{ label: string; templates: any[] }> = [];
+  checkListTypes: any[] = [];
 
   @Input()
   set templateList(value: any[]) {
@@ -100,16 +102,18 @@ export class ProjectGateStepFormComponent implements OnInit {
     public activeModal: NgbActiveModal,
     private fb: FormBuilder,
     private service: ProjectGateStepService,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+    private checkListTypeService: ProjectGateCheckListTypeService
   ) { }
 
   ngOnInit(): void {
-    this.isEdit = !!this.dataInput;
+    this.isEdit = !!this.dataInput && this.dataInput.ID > 0;
     this.initForm();
+    this.loadCheckListTypes();
 
-    if (this.isEdit) {
+    if (this.dataInput) {
       this.form.patchValue({
-        ID: this.dataInput.ID,
+        ID: this.dataInput.ID || 0,
         ProjectGateID: this.dataInput.ProjectGateID ?? null,
         TT: this.dataInput.TT ?? '',
         SortOrder: this.dataInput.SortOrder ?? null,
@@ -120,11 +124,52 @@ export class ProjectGateStepFormComponent implements OnInit {
         ProjectGateStepTemplateID: this.dataInput.ProjectGateStepTemplateID ?? null
       });
 
+      if (this.dataInput.ProjectGateStepTemplateID) {
+        this.form.get('ProjectGateStepTemplateID')?.disable();
+      }
+
       if (this.dataInput.CheckLists && this.dataInput.CheckLists.length > 0) {
         this.dataInput.CheckLists.forEach((item: any) => {
           this.addCheckListItem(item);
         });
       }
+    }
+  }
+
+  loadCheckListTypes(): void {
+    this.checkListTypeService.getAll().subscribe({
+      next: (res: any) => {
+        this.checkListTypes = res.data || [];
+        this.resolveLegacyCheckListTypes();
+      },
+      error: (err: any) => {
+        console.error('Error loading checklist types', err);
+      }
+    });
+  }
+
+  resolveLegacyCheckListTypes(): void {
+    if (!this.checkListTypes || this.checkListTypes.length === 0) return;
+    const controls = this.checkListsFormArray.controls;
+    controls.forEach((ctrl) => {
+      const typeVal = ctrl.get('Type')?.value;
+      const typeIdVal = ctrl.get('ProjectGateCheckListType')?.value;
+      if (typeVal && !typeIdVal) {
+        const found = this.checkListTypes.find(t => t.TypeCode?.toLowerCase() === typeVal.toLowerCase());
+        if (found) {
+          ctrl.patchValue({ ProjectGateCheckListType: found.ID });
+        }
+      }
+    });
+  }
+
+  onCheckListTypeChange(index: number, typeId: number): void {
+    const selectedType = this.checkListTypes.find(t => t.ID === typeId);
+    const itemGroup = this.checkListsFormArray.at(index) as FormGroup;
+    if (selectedType) {
+      itemGroup.patchValue({
+        Type: selectedType.TypeCode
+      });
     }
   }
 
@@ -147,7 +192,8 @@ export class ProjectGateStepFormComponent implements OnInit {
     return this.fb.group({
       ID: [item ? item.ID : 0],
       ProjectGateStepID: [item ? item.ProjectGateStepID : 0],
-      Type: [item ? item.Type : null, [Validators.required]],
+      Type: [item ? item.Type : null],
+      ProjectGateCheckListType: [item ? item.ProjectGateCheckListType : null, [Validators.required]],
       Description: [item ? item.Description : '', [Validators.required, Validators.maxLength(550)]]
     });
   }
@@ -163,7 +209,7 @@ export class ProjectGateStepFormComponent implements OnInit {
   onSubmit(closeAfterSave: boolean): void {
     if (this.form.valid) {
       this.loading = true;
-      const payload = [this.form.value];
+      const payload = [this.form.getRawValue()];
 
       this.service.save(payload).subscribe({
         next: (res: any) => {
@@ -208,7 +254,7 @@ export class ProjectGateStepFormComponent implements OnInit {
       ChucVuID: null,
       DepartmentIDs: [],
       PositionIDs: [],
-      ProjectGateStepTemplateID: null
+      ProjectGateStepTemplateID: this.dataInput?.ProjectGateStepTemplateID ?? null
     });
     while (this.checkListsFormArray.length !== 0) {
       this.checkListsFormArray.removeAt(0);

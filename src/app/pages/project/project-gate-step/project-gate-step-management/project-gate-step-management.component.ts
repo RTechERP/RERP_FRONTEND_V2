@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Optional, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MenuItem } from 'primeng/api';
@@ -67,6 +67,10 @@ export class ProjectGateStepManagementComponent implements OnInit {
   searchKeyword: string = '';
   showSearchBar: boolean = true;
 
+  templateId: number | null = null;
+  templateName: string = '';
+  templateCode: string = '';
+
   // Produce data
   gateList: any[] = [];
   departmentList: any[] = [];
@@ -92,10 +96,16 @@ export class ProjectGateStepManagementComponent implements OnInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private ngbModal: NgbModal,
-    private tabService: TabServiceService
+    private tabService: TabServiceService,
+    @Optional() @Inject('tabData') public tabData: any
   ) { }
 
   ngOnInit(): void {
+    if (this.tabData) {
+      this.templateId = this.tabData.templateId ?? null;
+      this.templateName = this.tabData.templateName ?? '';
+      this.templateCode = this.tabData.templateCode ?? '';
+    }
     this.initMenu();
     this.loadProduce();
     this.loadData();
@@ -192,6 +202,9 @@ export class ProjectGateStepManagementComponent implements OnInit {
 
   onFilterChange(): void {
     this.filteredDataset = this.applyFilters(this.dataset, this.columns);
+    if (this.templateId !== null && this.templateId !== undefined) {
+      this.filteredDataset = this.filteredDataset.filter(row => row.ProjectGateStepTemplateID === this.templateId);
+    }
     this.onKeywordSearch();
   }
 
@@ -246,6 +259,11 @@ export class ProjectGateStepManagementComponent implements OnInit {
       keyboard: false,
       centered: true
     });
+    
+    if (!dataInput && this.templateId) {
+      dataInput = { ProjectGateStepTemplateID: this.templateId };
+    }
+
     modalRef.componentInstance.dataInput = dataInput;
     modalRef.componentInstance.gateList = this.gateList;
     modalRef.componentInstance.departmentList = this.departmentList;

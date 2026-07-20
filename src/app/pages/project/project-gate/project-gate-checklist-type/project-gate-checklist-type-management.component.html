@@ -1,0 +1,108 @@
+<div class="project-gate-container h-100 d-flex flex-column bg-white" style="height: 93vh !important; font-size: 12px;">
+  <!-- Main Action MenuBar -->
+  <p-menubar [model]="menuBars" styleClass="fs-12 border-0 mb-0 shadow-sm custom-menubar">
+    <ng-template pTemplate="item" let-item>
+      <a class="p-menuitem-link" [class.p-disabled]="item.disabled">
+        <i [class]="item.icon"></i>
+        <span class="p-menuitem-text ms-1" style="font-size: 12px;">{{ item.label }}</span>
+      </a>
+    </ng-template>
+    <ng-template pTemplate="end">
+      <div class="d-flex items-center gap-2 pe-2">
+        <button nz-button nzType="text" nzShape="circle" (click)="toggleSearchPanel()">
+          <nz-icon nzType="search" />
+        </button>
+      </div>
+    </ng-template>
+  </p-menubar>
+
+  <!-- Search Filter Panel -->
+  <div class="filter-bar bg-light border-bottom p-2" *ngIf="showSearchBar" style="font-size: 12px;">
+    <form nz-form>
+      <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12 fw-bold" style="font-size: 12px; font-weight: 600;">Từ khóa tìm kiếm</nz-form-label>
+            <nz-form-control>
+              <input nz-input placeholder="Nhập mã loại checklist..." nzSize="small" [(ngModel)]="searchKeyword"
+                name="searchKeyword" class="w-100" (keyup.enter)="onSearch()" style="font-size: 12px;" />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
+          <nz-form-item class="mb-0">
+            <nz-form-control>
+              <button nz-button nzType="primary" nzSize="small" (click)="onSearch()" class="me-2" style="font-size: 12px;">
+                <i class="fa-solid fa-magnifying-glass me-1"></i> Tìm kiếm
+              </button>
+              <button nz-button nzType="default" nzSize="small" (click)="onReset()" style="font-size: 12px;">
+                <i class="fa-solid fa-arrows-rotate me-1"></i> Đặt lại
+              </button>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </form>
+  </div>
+
+  <!-- PrimeNG Table Listing -->
+  <div class="flex-grow-1 overflow-hidden p-2 bg-light" style="font-size: 12px;">
+    <nz-spin [nzSpinning]="loading" nzTip="Đang tải dữ liệu..." class="h-100">
+      <div class="table-wrapper h-100 bg-white border rounded">
+        <p-table #dt [value]="filteredDataset" [(selection)]="selectedItems" selectionMode="multiple" dataKey="ID"
+          (onRowSelect)="updateMenuState()" (onRowUnselect)="updateMenuState()"
+          (onHeaderCheckboxToggle)="updateMenuState()" styleClass="p-datatable-sm p-datatable-gridlines fs-12"
+          [scrollable]="true" scrollHeight="flex" [paginator]="true" [rows]="50"
+          [rowsPerPageOptions]="[50, 100, 200, 500]">
+
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 3rem; text-align: center;">
+                <p-tableHeaderCheckbox />
+              </th>
+              <th *ngFor="let col of columns" [pSortableColumn]="col.field" [style.width]="col.width"
+                class="text-center" style="font-size: 12px;">
+                {{col.header}} <p-sortIcon [field]="col.field" />
+              </th>
+            </tr>
+            <tr>
+              <th></th>
+              <th *ngFor="let col of columns">
+                <input pInputText type="text" [(ngModel)]="col.filterValue"
+                  (input)="onFilterChange()" [placeholder]="'Lọc ' + col.header + '...'"
+                  class="p-column-filter w-100 fs-12 px-2 py-1"
+                  style="height: 28px; border: 1px solid #ced4da; border-radius: 4px; font-size: 12px;">
+              </th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+            <tr [pSelectableRow]="item">
+              <td class="text-center">
+                <p-tableCheckbox [value]="item" />
+              </td>
+              <ng-container *ngFor="let col of columns">
+                <td [style.width]="col.width"
+                  [class.text-center]="col.field === 'STT' || col.field === 'CreatedDate' || col.field === 'UpdatedDate'">
+                  <span *ngIf="col.field === 'CreatedDate' || col.field === 'UpdatedDate'" style="font-size: 12px;">
+                    {{ formatDate(item[col.field]) }}
+                  </span>
+                  <span *ngIf="col.field !== 'CreatedDate' && col.field !== 'UpdatedDate'" style="font-size: 12px;">
+                    {{ item[col.field] }}
+                  </span>
+                </td>
+              </ng-container>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="emptymessage">
+            <tr>
+              <td [attr.colspan]="columns.length + 1" class="text-center p-3 text-muted" style="font-size: 12px;">Không có dữ liệu</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </nz-spin>
+  </div>
+</div>

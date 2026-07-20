@@ -16,6 +16,8 @@ import { ProjectTypeDepartmentService } from './project-type-department.service'
 import { ProjectTypeDepartmentFormComponent } from './project-type-department-form/project-type-department-form.component';
 import { ProjectTypeDepartmentTemplateFormComponent } from './project-type-department-template-form/project-type-department-template-form.component';
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { ProjectGateStepManagementComponent } from '../../project-gate-step/project-gate-step-management/project-gate-step-management.component';
 
 @Component({
   selector: 'app-project-type-department',
@@ -58,7 +60,8 @@ export class ProjectTypeDepartmentComponent implements OnInit {
     private service: ProjectTypeDepartmentService,
     private ngbModal: NgbModal,
     private notification: NzNotificationService,
-    private nzModal: NzModalService
+    private nzModal: NzModalService,
+    private tabService: TabServiceService
   ) { }
 
   ngOnInit(): void {
@@ -170,6 +173,73 @@ export class ProjectTypeDepartmentComponent implements OnInit {
         this.loadTemplatesForSelectedProjectType();
       }
     }).catch(() => {});
+  }
+
+  openEditTemplateModal(row: any): void {
+    if (!this.selectedProjectType || !this.selectedProjectType.ProjectTypeDepartmentID) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một kiểu dự án trước.');
+      return;
+    }
+
+    const modalRef = this.ngbModal.open(ProjectTypeDepartmentTemplateFormComponent, {
+      size: 'md',
+      backdrop: 'static',
+      centered: true
+    });
+
+    modalRef.componentInstance.projectTypeDepartmentId = this.selectedProjectType.ProjectTypeDepartmentID;
+    modalRef.componentInstance.projectTypeName = this.selectedProjectType.ProjectTypeName;
+    modalRef.componentInstance.templateData = row;
+
+    modalRef.result.then((res) => {
+      if (res === 'save') {
+        this.loadTemplatesForSelectedProjectType();
+      }
+    }).catch(() => {});
+  }
+
+  goToTemplateSteps(row: any): void {
+    const tabKey = `template-steps-${row.ID}`;
+    this.tabService.openTabComp({
+      comp: ProjectGateStepManagementComponent,
+      title: `Cấu hình bước: ${row.Name || row.Code}`,
+      key: tabKey,
+      data: {
+        templateId: row.ID,
+        templateName: row.Name || '',
+        templateCode: row.Code || ''
+      }
+    });
+  }
+
+  deleteTemplate(row: any): void {
+    if (!this.selectedProjectType) return;
+
+    this.nzModal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa template "${row.Name}" không?`,
+      nzOkText: 'Xóa',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.loadingTemplates = true;
+        this.service.deleteTemplate([row.ID]).subscribe({
+          next: (res: any) => {
+            this.loadingTemplates = false;
+            if (res.status === 1) {
+              this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Xóa template thành công');
+              this.loadTemplatesForSelectedProjectType();
+            } else {
+              this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Xóa template thất bại');
+            }
+          },
+          error: (err) => {
+            this.loadingTemplates = false;
+            this.showErrorNotification(err);
+          }
+        });
+      }
+    });
   }
 
   openAddProjectTypeModal(): void {

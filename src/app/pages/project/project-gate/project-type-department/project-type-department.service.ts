@@ -42,4 +42,8 @@ export class ProjectTypeDepartmentService {
   saveTemplate(payload: any[]): Observable<any> {
     return this.http.post<any>(`${environment.host}api/ProjectGateStepTemplate/save-data`, payload);
   }
+
+  deleteTemplate(ids: number[]): Observable<any> {
+    return this.http.post<any>(`${environment.host}api/ProjectGateStepTemplate/delete`, ids);
+  }
 }

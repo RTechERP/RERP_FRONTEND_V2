@@ -25,10 +25,12 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
 export class ProjectTypeDepartmentTemplateFormComponent implements OnInit {
   @Input() projectTypeDepartmentId!: number;
   @Input() projectTypeName!: string;
+  @Input() templateData?: any;
 
   loading = false;
   code = '';
   name = '';
+  templateId = 0;
 
   constructor(
     public activeModal: NgbActiveModal,
@@ -37,6 +39,11 @@ export class ProjectTypeDepartmentTemplateFormComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    if (this.templateData) {
+      this.templateId = this.templateData.ID || 0;
+      this.code = this.templateData.Code || '';
+      this.name = this.templateData.Name || '';
+    }
   }
 
   onSubmit(): void {
@@ -47,6 +54,7 @@ export class ProjectTypeDepartmentTemplateFormComponent implements OnInit {
 
     this.loading = true;
     const payload = [{
+      ID: this.templateId,
       Code: this.code.trim(),
       Name: this.name.trim(),
       ProjectTypeDepartmentID: this.projectTypeDepartmentId

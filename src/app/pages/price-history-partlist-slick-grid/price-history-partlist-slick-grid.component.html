@@ -24,8 +24,8 @@
                         <nz-select [(ngModel)]="projectId" [ngModelOptions]="{standalone: true}" nzShowSearch
                             nzAllowClear nzSize="small" nzPlaceHolder="Dự án" style="width: 250px;">
                             @for (item of projects; track $index) {
-                            <nz-option nzCustomContent="true"
-                                [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName" [nzValue]="item.ID">
+                            <nz-option nzCustomContent="true" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"
+                                [nzValue]="item.ID">
                                 {{ item.ProjectCode + " - " + item.ProjectName }}
                             </nz-option>
                             }
@@ -56,20 +56,25 @@
                             }
                         </nz-select>
 
-                        <input nz-input nzSize="small" placeholder="Nhập từ khóa..." style="width: 250px"
-                            [(ngModel)]="keyword" [ngModelOptions]="{standalone: true}" (keyup.enter)="getPriceHistoryPartlist()" />
+                        <input nz-input nzSize="small"
+                            placeholder="Nhập từ khóa (Mã sản phẩm / Tên sản phẩm / Hãng)..." style="width: 380px"
+                            [(ngModel)]="keyword" [ngModelOptions]="{standalone: true}"
+                            (keyup.enter)="getPriceHistoryPartlist()" />
 
                         <button nz-button nzType="primary" nzSize="small" (click)="getPriceHistoryPartlist()">
                             <nz-icon nzType="search" />
                         </button>
 
-                       
+                        <nz-form-label style="font-size: 14px; color: red; margin-left: 10px;">Note: Nhập từ khóa để
+                            tìm
+                            kiếm lịch sử giá</nz-form-label>
                     </div>
                 </div>
 
                 <div class="card-body p-0" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
                     <nz-spin [nzSpinning]="isLoadTable" [nzDelay]="200">
-                        <div class="grid-container" id="grid-container-price-history" style="height: calc(100% - 50px);">
+                        <div class="grid-container" id="grid-container-price-history"
+                            style="height: calc(100% - 50px);">
                             <angular-slickgrid gridId="grvPriceHistory-{{tableId}}" [columns]="columnDefinitions"
                                 [options]="gridOptions" [dataset]="dataset"
                                 (onAngularGridCreated)="angularGridReady($event.detail)">
@@ -97,13 +102,15 @@
                                     <span class="fs-12">Số dòng</span>
                                     <nz-select style="width: 80px;" nzSize="small" [ngModel]="pageSize"
                                         (ngModelChange)="onPageSizeChange($event)">
-                                        <nz-option *ngFor="let s of pageSizeOptions" [nzValue]="s" [nzLabel]="s"></nz-option>
+                                        <nz-option *ngFor="let s of pageSizeOptions" [nzValue]="s"
+                                            [nzLabel]="s"></nz-option>
                                     </nz-select>
                                 </div>
                                 <div class="d-flex align-items-center gap-1">
                                     <span class="fs-12">Đi tới</span>
-                                    <input nz-input nzSize="small" style="width: 50px;" type="number" [min]="1" [max]="totalPage || 1"
-                                        [(ngModel)]="pageNumber" (keyup.enter)="goToPage(pageNumber)">
+                                    <input nz-input nzSize="small" style="width: 50px;" type="number" [min]="1"
+                                        [max]="totalPage || 1" [(ngModel)]="pageNumber"
+                                        (keyup.enter)="goToPage(pageNumber)">
                                 </div>
                             </div>
                         </div>

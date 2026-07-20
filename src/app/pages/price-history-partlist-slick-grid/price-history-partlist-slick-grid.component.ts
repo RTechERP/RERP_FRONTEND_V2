@@ -128,7 +128,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
     if (keywordFromTab) {
       this.keyword = keywordFromTab;
     }
-    setTimeout(() => this.getPriceHistoryPartlist(), 0);
+    // setTimeout(() => this.getPriceHistoryPartlist(), 0);
   }
 
   generateUUIDv4(): string {
@@ -290,7 +290,7 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
 
   initGrid() {
     this.columnDefinitions = [
-     {
+      {
         id: 'ProjectTypeName',
         name: 'Kiểu dự án',
         field: 'ProjectTypeName',

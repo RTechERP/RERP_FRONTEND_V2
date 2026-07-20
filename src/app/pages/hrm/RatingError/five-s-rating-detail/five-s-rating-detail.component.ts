@@ -26,6 +26,7 @@ import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATI
 import { FiveSRatingDetailService } from './five-s-rating-detail.service';
 import { RatingErrorService } from '../rating-error-service/rating-error.service';
 import { EmployeeService } from '../../employee/employee-service/employee.service';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
 
 @Component({
     standalone: true,
@@ -64,6 +65,7 @@ export class FiveSRatingDetailComponent implements OnInit {
     private nzModal = inject(NzModalService);
     private route = inject(ActivatedRoute);
     private router = inject(Router);
+    private tabService = inject(TabServiceService);
 
     // State
     isLoading = false;
@@ -129,6 +131,7 @@ export class FiveSRatingDetailComponent implements OnInit {
                 visible: this.currentTab === 1,
                 command: () => {
                     if (this.ticketId) {
+                        this.tabService.closeTabByKey('five-s-rating-detail');
                         this.router.navigate(['/five-s-rating']);
                     } else {
                         this.currentTab = 0;

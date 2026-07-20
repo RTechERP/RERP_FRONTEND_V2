@@ -23,6 +23,8 @@ import { FiveSRatingFormComponent } from './five-s-rating-form/five-s-rating-for
 import { FiveSRatingDetailService } from '../five-s-rating-detail/five-s-rating-detail.service';
 import { EmployeeService } from '../../employee/employee-service/employee.service';
 import { Router } from '@angular/router';
+import { TabServiceService } from '../../../../layouts/tab-service.service';
+import { FiveSRatingDetailComponent } from '../five-s-rating-detail/five-s-rating-detail.component';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
@@ -99,7 +101,8 @@ export class FiveSRatingComponent implements OnInit {
         private employeeService: EmployeeService,
         private notification: NzNotificationService,
         private nzModal: NzModalService,
-        private router: Router
+        private router: Router,
+        private tabService: TabServiceService
     ) {
         const currentYear = new Date().getFullYear();
         for (let i = currentYear - 5; i <= currentYear + 2; i++) {
@@ -1256,6 +1259,12 @@ Tự giác thực hiện 5S hàng ngày`
 
     goToRating(item: any) {
         if (item.ID === 0) return;
+        this.tabService.openTabComp({
+            comp: FiveSRatingDetailComponent,
+            title: 'Chấm điểm 5S',
+            key: 'five-s-rating-detail',
+            data: { ticketId: item.ID, sessionId: item.Rating5SID }
+        });
         this.router.navigate(['/five-s-rating-detail'], { queryParams: { ticketId: item.ID, sessionId: item.Rating5SID } });
     }
 }

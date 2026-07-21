@@ -122,6 +122,10 @@
                       (click)="deleteDetail()" style="font-size: 12px;">
                       <span nz-icon nzType="delete"></span> Xóa
                     </button>
+                    <button nz-button nzType="default" nzSize="small" [disabled]="checkedDetailIds.size === 0"
+                      [nzLoading]="loadingPreview" (click)="openPreviewMail()" style="font-size: 12px;">
+                      <span nz-icon nzType="eye"></span> Xem trước mail
+                    </button>
                     <button nz-button nzType="primary" nzSize="small" [disabled]="checkedDetailIds.size === 0"
                       [nzLoading]="sendingMail" (click)="openSendMail('sync')"
                       style="font-size: 12px; background-color: #52c41a; border-color: #52c41a;">

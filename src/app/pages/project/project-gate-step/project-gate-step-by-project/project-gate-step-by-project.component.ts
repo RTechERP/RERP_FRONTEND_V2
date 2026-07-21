@@ -93,6 +93,13 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   isLoadingDeleted: boolean = false;
   deletedSteps: any[] = [];
 
+  // Dành cho view tổng hợp
+  isSummaryActive: boolean = true;
+  selectedSummaryGateId: number | null = null;
+  summaryGates: any[] = [];
+  summaryGateDetails: any = null;
+  gateList: any[] = [];
+
   // Dành cho popover tra cứu/chọn nhân viên
   activeManpowerItem: any = null;
   workersSearchText: string = '';
@@ -262,7 +269,11 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       const firstGroup = this.groupedMenuDepartments[0];
       if (firstGroup.projectTypes && firstGroup.projectTypes.length > 0) {
         const pt = firstGroup.projectTypes[0];
-        this.selectProjectType(pt.ID, firstGroup.id);
+        this.activeProjectTypeId = pt.ID;
+        this.activeDepartmentId = firstGroup.id;
+        const key = `${pt.ID}_${firstGroup.id}`;
+        this.selectedTemplateId = this.projectTypeTemplateMap[key] || null;
+        this.updateMenuItems();
       }
     }
 
@@ -283,12 +294,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
               this.savedGateSteps = res2.data || [];
               this.isGateStepsLoaded = true;
               this.updateTabsSteps();
+              this.buildSummaryData();
             },
             error: (err: any) => {
               console.error('Error loading saved gate steps:', err);
               this.savedGateSteps = [];
               this.isGateStepsLoaded = true;
               this.updateTabsSteps();
+              this.buildSummaryData();
             }
           });
         } else {
@@ -296,6 +309,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
           this.isGateStepsLoaded = true;
           this.isLoading = false;
           this.updateTabsSteps();
+          this.buildSummaryData();
         }
       },
       error: (err: any) => {
@@ -482,6 +496,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   }
 
   selectProjectType(ptId: number, deptId: number | null): void {
+    this.isSummaryActive = false;
     this.activeProjectTypeId = ptId;
     this.activeDepartmentId = deptId;
     const key = `${ptId}_${deptId}`;
@@ -1021,12 +1036,136 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       next: (res: any) => {
         if (res?.data) {
           this.templates = res.data.templates || [];
+          this.gateList = res.data.gates || [];
+          this.buildSummaryData();
         }
       },
       error: (err: any) => {
         console.error('Error loading templates:', err);
       }
     });
+  }
+
+  selectSummaryView(): void {
+    this.isSummaryActive = true;
+    this.activeProjectTypeId = null;
+    this.activeDepartmentId = null;
+    this.buildSummaryData();
+  }
+
+  buildSummaryData(): void {
+    if (!this.savedGateSteps || this.savedGateSteps.length === 0) {
+      this.summaryGates = [];
+      return;
+    }
+
+    const gateMap: { [gateId: number]: any } = {};
+
+    this.savedGateSteps.forEach(link => {
+      const stepDef = this.allGateSteps.find(s => s.ID === link.ProjectGateStepID);
+      if (!stepDef) return;
+
+      const gateId = stepDef.ProjectGateID;
+      if (!gateId) return;
+
+      const gateMeta = this.gateList.find(g => g.ID === gateId);
+      const gateType = gateMeta ? gateMeta.Type : 1;
+
+      if (!gateMap[gateId]) {
+        gateMap[gateId] = {
+          gateId: gateId,
+          gateCode: stepDef.GateCode || `G${gateId}`,
+          gateName: stepDef.GateName || 'Không tên',
+          type: gateType,
+          sortOrder: stepDef.SortOrder || 0,
+          departments: {}
+        };
+      }
+
+      const deptId = link.DepartmentID ?? 0;
+      const deptName = this.getDepartmentName(deptId);
+
+      if (!gateMap[gateId].departments[deptId]) {
+        gateMap[gateId].departments[deptId] = {
+          deptId: deptId,
+          deptName: deptName,
+          steps: []
+        };
+      }
+
+      const totalChecklists = link.CheckLists ? link.CheckLists.length : 0;
+      const passedChecklists = link.CheckLists ? link.CheckLists.filter((c: any) => c.IsPass).length : 0;
+      const isCompleted = totalChecklists > 0 && totalChecklists === passedChecklists;
+
+      gateMap[gateId].departments[deptId].steps.push({
+        stepLinkId: link.ID,
+        projectGateStepID: link.ProjectGateStepID,
+        content: stepDef.Content || 'Không nội dung',
+        startDate: link.StartDate,
+        isApproved: link.IsApproved,
+        totalChecklists: totalChecklists,
+        passedChecklists: passedChecklists,
+        isCompleted: isCompleted
+      });
+    });
+
+    const gates = Object.values(gateMap).map((g: any) => {
+      const deptsArray = Object.values(g.departments).map((d: any) => {
+        const totalSteps = d.steps.length;
+        const completedSteps = d.steps.filter((s: any) => s.isCompleted).length;
+        const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+        return {
+          ...d,
+          totalSteps,
+          completedSteps,
+          progress
+        };
+      });
+
+      let totalGateSteps = 0;
+      let completedGateSteps = 0;
+      deptsArray.forEach((d: any) => {
+        totalGateSteps += d.totalSteps;
+        completedGateSteps += d.completedSteps;
+      });
+      const gateProgress = totalGateSteps > 0 ? Math.round((completedGateSteps / totalGateSteps) * 100) : 0;
+
+      return {
+        ...g,
+        departments: deptsArray,
+        totalSteps: totalGateSteps,
+        completedSteps: completedGateSteps,
+        progress: gateProgress
+      };
+    });
+
+    gates.sort((a, b) => {
+      if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+      return a.gateCode.localeCompare(b.gateCode);
+    });
+
+    this.summaryGates = gates;
+
+    if (this.summaryGates.length > 0) {
+      if (!this.selectedSummaryGateId || !this.summaryGates.some(g => g.gateId === this.selectedSummaryGateId)) {
+        this.selectSummaryGate(this.summaryGates[0].gateId);
+      } else {
+        this.selectSummaryGate(this.selectedSummaryGateId);
+      }
+    } else {
+      this.summaryGateDetails = null;
+    }
+  }
+
+  getDepartmentName(deptId: number): string {
+    if (deptId === 0) return 'Mẫu chung';
+    const dept = this.departments.find(d => d.ID === deptId);
+    return dept ? dept.Name : `Phòng ban ID ${deptId}`;
+  }
+
+  selectSummaryGate(gateId: number): void {
+    this.selectedSummaryGateId = gateId;
+    this.summaryGateDetails = this.summaryGates.find(g => g.gateId === gateId) || null;
   }
 
   hasNoSavedSteps(ptId: number | null, deptId: number | null): boolean {

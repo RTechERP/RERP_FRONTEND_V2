@@ -64,7 +64,6 @@ export class ProjectGateStepManagementComponent implements OnInit {
   loading = false;
   selectedItems: any[] = [];
   menuBars: MenuItem[] = [];
-  searchKeyword: string = '';
   showSearchBar: boolean = true;
 
   templateId: number | null = null;
@@ -76,8 +75,15 @@ export class ProjectGateStepManagementComponent implements OnInit {
   departmentList: any[] = [];
   positionList: any[] = [];
   templateList: any[] = [];
-  selectedGateId: number | null = null;
-  selectedDepartmentId: number | null = null;
+  groupedTemplates: Array<{
+    label: string;
+    options: Array<{
+      label: string;
+      value: number | null;
+      disabled: boolean;
+      isHeader?: boolean;
+    }>;
+  }> = [];
 
   columns: ColDef[] = [
     { field: 'TT', header: 'TT', width: '40px', filterType: 'text' },
@@ -108,7 +114,6 @@ export class ProjectGateStepManagementComponent implements OnInit {
     }
     this.initMenu();
     this.loadProduce();
-    this.loadData();
   }
 
   initMenu(): void {
@@ -136,11 +141,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
         command: () => this.onOpenChecklist(),
         disabled: this.selectedItems.length !== 1
       },
-      {
-        label: 'Khai báo Template',
-        icon: 'fa-solid fa-gears text-secondary',
-        command: () => this.onManageTemplates()
-      },
+
       {
         label: 'Xuất excel',
         icon: 'fa-solid fa-file-excel text-success',
@@ -164,6 +165,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
   }
 
   loadProduce(): void {
+    this.loading = true;
     this.service.getProduce().subscribe({
       next: (res: any) => {
         const data = res.data || {};
@@ -171,26 +173,110 @@ export class ProjectGateStepManagementComponent implements OnInit {
         this.departmentList = data.departments || [];
         this.positionList = data.positions || [];
         this.templateList = data.templates || [];
+        this.groupTemplates();
+        this.loadData();
       },
-      error: () => { }
+      error: () => {
+        this.loading = false;
+      }
     });
+  }
+
+  groupTemplates(): void {
+    // 1. Group templates by Department Name first
+    const deptMap: { [dept: string]: { [projType: string]: any[] } } = {};
+    const noDeptName = 'Mẫu chung';
+
+    this.templateList.forEach(t => {
+      const dept = t.DepartmentName ? t.DepartmentName.trim() : noDeptName;
+      const projType = t.ProjectTypeName ? t.ProjectTypeName.trim() : 'Không xác định kiểu dự án';
+
+      if (!deptMap[dept]) {
+        deptMap[dept] = {};
+      }
+      if (!deptMap[dept][projType]) {
+        deptMap[dept][projType] = [];
+      }
+      deptMap[dept][projType].push(t);
+    });
+
+    const groups: typeof this.groupedTemplates = [];
+
+    // Sort departments
+    const depts = Object.keys(deptMap).sort((a, b) => {
+      if (a === noDeptName) return 1;
+      if (b === noDeptName) return -1;
+      return a.localeCompare(b);
+    });
+
+    depts.forEach(dept => {
+      const options: Array<{ label: string; value: number | null; disabled: boolean; isHeader?: boolean }> = [];
+      const projTypesMap = deptMap[dept];
+      const projTypes = Object.keys(projTypesMap).sort((a, b) => a.localeCompare(b));
+
+      projTypes.forEach(projType => {
+        // Add Project Type header (disabled option)
+        options.push({
+          label: `--- ${projType} ---`,
+          value: null,
+          disabled: true,
+          isHeader: true
+        });
+
+        // Add templates under this Project Type
+        const templates = projTypesMap[projType];
+        // Sort templates by Code
+        templates.sort((a, b) => (a.Code || '').localeCompare(b.Code || ''));
+
+        templates.forEach(tpl => {
+          options.push({
+            label: `   ${tpl.Code} - ${tpl.Name}`,
+            value: tpl.ID,
+            disabled: false
+          });
+        });
+      });
+
+      groups.push({
+        label: dept,
+        options: options
+      });
+    });
+
+    this.groupedTemplates = groups;
   }
 
   loadData(): void {
     this.loading = true;
-    this.service.getAll(this.selectedGateId, this.selectedDepartmentId)
+    this.service.getAll(null, null)
       .pipe(finalize(() => this.loading = false))
       .subscribe({
         next: (res: any) => {
           const rawData = res.data || [];
-          // Sắp xếp theo mã template để gom nhóm chính xác
-          rawData.sort((a: any, b: any) => {
-            const codeA = a.TemplateCode || '';
-            const codeB = b.TemplateCode || '';
-            if (codeA === '' && codeB !== '') return 1;
-            if (codeA !== '' && codeB === '') return -1;
-            return codeA.localeCompare(codeB);
+
+          // Map GateType from gateList
+          rawData.forEach((row: any) => {
+            const gate = this.gateList.find(g => g.ID === row.ProjectGateID);
+            if (gate) {
+              row.GateType = gate.Type; // 1 = Giải pháp, 2 = Triển khai
+            }
           });
+
+          // Sắp xếp theo GateType trước, sau đó theo SortOrder & TT
+          rawData.sort((a: any, b: any) => {
+            const typeA = a.GateType ?? 0;
+            const typeB = b.GateType ?? 0;
+            if (typeA !== typeB) {
+              return typeA - typeB;
+            }
+            const orderA = a.SortOrder ?? 0;
+            const orderB = b.SortOrder ?? 0;
+            if (orderA !== orderB) {
+              return orderA - orderB;
+            }
+            return (a.TT || '').localeCompare(b.TT || '');
+          });
+
           this.dataset = rawData;
           this.selectedItems = [];
           this.onFilterChange();
@@ -205,21 +291,19 @@ export class ProjectGateStepManagementComponent implements OnInit {
     if (this.templateId !== null && this.templateId !== undefined) {
       this.filteredDataset = this.filteredDataset.filter(row => row.ProjectGateStepTemplateID === this.templateId);
     }
-    this.onKeywordSearch();
   }
 
-  onKeywordSearch(): void {
-    if (this.searchKeyword && this.searchKeyword.trim() !== '') {
-      const keyword = this.searchKeyword.toLowerCase().trim();
-      this.filteredDataset = this.filteredDataset.filter(row =>
-        (row.GateCode && row.GateCode.toLowerCase().includes(keyword)) ||
-        (row.GateName && row.GateName.toLowerCase().includes(keyword)) ||
-        (row.Content && row.Content.toLowerCase().includes(keyword)) ||
-        (row.CheckListNames && row.CheckListNames.toLowerCase().includes(keyword)) ||
-        (row.DepartmentNames && row.DepartmentNames.toLowerCase().includes(keyword)) ||
-        (row.PositionNames && row.PositionNames.toLowerCase().includes(keyword))
-      );
+  onTemplateChange(value: number | null): void {
+    this.templateId = value;
+    const selectedTpl = this.templateList.find(t => t.ID === value);
+    if (selectedTpl) {
+      this.templateName = selectedTpl.Name;
+      this.templateCode = selectedTpl.Code;
+    } else {
+      this.templateName = '';
+      this.templateCode = '';
     }
+    this.onFilterChange();
   }
 
   applyFilters(data: any[], columns: ColDef[]): any[] {
@@ -234,22 +318,12 @@ export class ProjectGateStepManagementComponent implements OnInit {
     );
   }
 
-  onSearch(): void { this.onFilterChange(); }
-
   onReset(): void {
-    this.searchKeyword = '';
-    this.selectedGateId = null;
-    this.selectedDepartmentId = null;
+    this.templateId = null;
+    this.templateName = '';
+    this.templateCode = '';
     this.columns.forEach(col => col.filterValue = null);
-    this.loadData();
-  }
-
-  onGateFilterChange(): void {
-    this.loadData();
-  }
-
-  onDepartmentFilterChange(): void {
-    this.loadData();
+    this.onFilterChange();
   }
 
   openForm(dataInput: any | null): void {
@@ -259,7 +333,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
       keyboard: false,
       centered: true
     });
-    
+
     if (!dataInput && this.templateId) {
       dataInput = { ProjectGateStepTemplateID: this.templateId };
     }

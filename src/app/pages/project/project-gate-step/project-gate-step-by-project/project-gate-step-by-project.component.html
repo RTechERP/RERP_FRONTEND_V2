@@ -9,26 +9,35 @@
     <div class="sidebar-menu border-end bg-white p-2 d-flex flex-column"
       style="width: 250px; min-width: 250px; height: 100%; overflow: hidden;">
 
+      <!-- Tiêu đề: Tổng hợp Gate -->
+      <div class="fw-bold px-2 py-2 border-bottom mb-2 d-flex align-items-center sidebar-header cursor-pointer"
+        [class.text-primary]="isSummaryActive" [class.text-secondary]="!isSummaryActive"
+        (click)="selectSummaryView()">
+        <i class="fa-solid fa-chart-pie me-2"></i> TỔNG HỢP GATE
+      </div>
+
       <!-- Tiêu đề cấp cao nhất: Nhân công -->
-      <div class="fw-bold px-2 py-2 border-bottom mb-2 text-primary d-flex align-items-center" style="font-size: 13px;">
-        <i class="fa-solid fa-users me-2"></i> Nhân công
+      <div class="fw-bold px-2 py-2 border-bottom mb-2 d-flex align-items-center sidebar-header"
+        [class.text-primary]="!isSummaryActive" [class.text-secondary]="isSummaryActive">
+        <i class="fa-solid fa-users me-2"></i> NHÂN CÔNG
       </div>
 
       <div class="flex-grow-1 overflow-y-auto">
         @for (group of groupedMenuDepartments; track group.id) {
         <div class="dept-group mb-3">
           <!-- Tiêu đề nhóm Phòng ban -->
-          <div class="fw-bold px-2 py-1 text-uppercase text-secondary mb-1"
-            style="font-size: 11px; letter-spacing: 0.5px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #23458a;">
+          <div class="fw-bold px-2 py-1 text-uppercase text-secondary mb-1 dept-title"
+            style="letter-spacing: 0.5px; background: #f8f9fa; border-radius: 4px; border-left: 3px solid #23458a;">
             {{ group.name }}
           </div>
 
           <ul class="nav flex-column gap-1 ps-2">
             @for (pt of group.projectTypes; track pt.ID) {
             <li class="nav-item">
-              <button class="nav-link w-100 text-start d-flex align-items-center py-2 px-3 border-0 rounded"
+              <button
+                class="nav-link w-100 text-start d-flex align-items-center py-2 px-3 border-0 rounded sub-menu-item"
                 [class.active]="activeProjectTypeId === pt.ID && activeDepartmentId === group.id"
-                (click)="selectProjectType(pt.ID, group.id)" style="font-size: 12px; transition: all 0.2s;">
+                (click)="selectProjectType(pt.ID, group.id)" style="transition: all 0.2s;">
                 <i class="fa-solid fa-circle-nodes me-2 text-secondary" style="font-size: 10px;"></i>
                 {{ pt.ProjectTypeName }}
               </button>
@@ -44,29 +53,31 @@
     <div class="flex-grow-1 bg-white p-3 d-flex flex-column overflow-hidden" style="min-width: 0; height: 100%;">
       <!-- Thanh thao tác phía trên -->
       <div class="d-flex justify-content-end align-items-center gap-2 mb-2 pb-2 border-bottom flex-shrink-0">
-        @if (activeProjectTypeId && activeDepartmentId !== undefined && hasNoSavedSteps(activeProjectTypeId,
-        activeDepartmentId)) {
-        <div class="d-flex align-items-center gap-1 me-auto">
-          <span class="text-muted fw-bold">Mẫu công đoạn:</span>
-          <nz-select nzSize="small" style="width: 250px; font-size: 12px !important;" [(ngModel)]="selectedTemplateId"
-            (ngModelChange)="onTemplateChange(activeProjectTypeId, activeDepartmentId, $event)"
-            nzPlaceHolder="Chọn mẫu công đoạn...">
-            <nz-option [nzValue]="null" nzLabel="-- Tất cả công đoạn --"></nz-option>
-            @for (t of getTemplatesForActiveType(); track t.ID) {
-            <nz-option [nzValue]="t.ID" [nzLabel]="t.Name"></nz-option>
-            }
-          </nz-select>
-        </div>
+        @if (!isSummaryActive) {
+          @if (activeProjectTypeId && activeDepartmentId !== undefined && hasNoSavedSteps(activeProjectTypeId,
+          activeDepartmentId)) {
+          <div class="d-flex align-items-center gap-1 me-auto">
+            <span class="text-muted fw-bold">Mẫu công đoạn:</span>
+            <nz-select nzSize="small" style="width: 250px; font-size: 12px !important;" [(ngModel)]="selectedTemplateId"
+              (ngModelChange)="onTemplateChange(activeProjectTypeId, activeDepartmentId, $event)"
+              nzPlaceHolder="Chọn mẫu công đoạn...">
+              <nz-option [nzValue]="null" nzLabel="-- Tất cả công đoạn --"></nz-option>
+              @for (t of getTemplatesForActiveType(); track t.ID) {
+              <nz-option [nzValue]="t.ID" [nzLabel]="t.Name"></nz-option>
+              }
+            </nz-select>
+          </div>
+          }
+          <button nz-button nzType="default" nzDanger (click)="openDeletedStepsModal()" [disabled]="isSaving || isLoading"
+            style="font-size: 12px;">
+            <i class="fa-solid fa-trash-can me-1"></i> Danh sách đã xóa
+          </button>
+          <button nz-button nzType="primary" (click)="save()" [nzLoading]="isSaving" style="font-size: 12px;">
+            <i class="fa-solid fa-floppy-disk me-1"></i> Lưu thông tin
+          </button>
         }
         <button nz-button nzType="default" (click)="closeModal()" [disabled]="isSaving" style="font-size: 12px;">
           <i class="fa-solid fa-arrow-left me-1"></i> Đóng
-        </button>
-        <button nz-button nzType="default" nzDanger (click)="openDeletedStepsModal()" [disabled]="isSaving || isLoading"
-          style="font-size: 12px;">
-          <i class="fa-solid fa-trash-can me-1"></i> Danh sách đã xóa
-        </button>
-        <button nz-button nzType="primary" (click)="save()" [nzLoading]="isSaving" style="font-size: 12px;">
-          <i class="fa-solid fa-floppy-disk me-1"></i> Lưu thông tin
         </button>
       </div>
 
@@ -77,6 +88,139 @@
         </div>
         <span>Đang tải dữ liệu nhân công...</span>
       </div>
+      } @else if (isSummaryActive) {
+        <!-- TỔNG HỢP GATE VIEW -->
+        <div class="summary-container d-flex flex-column flex-grow-1 overflow-hidden" style="height: 100%;">
+          
+          <!-- Sơ đồ pipeline Gate: G1 -> G2 -> G3 -->
+          <div class="gate-pipeline-scroll py-2 px-1 mb-3 bg-light border rounded flex-shrink-0 overflow-x-auto w-100">
+            <div class="d-flex align-items-center gap-3 px-2 py-1" style="min-width: max-content;">
+              
+              @for (gate of summaryGates; track gate.gateId; let idx = $index) {
+                <!-- Cột Gate card -->
+                <div class="gate-node-card cursor-pointer p-2 rounded border shadow-sm transition-all text-center position-relative"
+                  [class.border-primary]="selectedSummaryGateId === gate.gateId"
+                  [class.bg-primary-subtle]="selectedSummaryGateId === gate.gateId"
+                  [class.bg-white]="selectedSummaryGateId !== gate.gateId"
+                  (click)="selectSummaryGate(gate.gateId)"
+                  style="width: 180px; min-width: 180px; transition: all 0.2s;">
+                  
+                  <div class="fw-bold text-truncate text-uppercase fs-12 mb-1"
+                    [class.text-primary]="selectedSummaryGateId === gate.gateId"
+                    [class.text-dark]="selectedSummaryGateId !== gate.gateId">
+                    {{ gate.gateCode }}
+                  </div>
+                  
+                  <div class="text-muted text-truncate fs-11 mb-2" title="{{ gate.gateName }}">
+                    {{ gate.gateName }}
+                  </div>
+                  
+                  <!-- Tiến độ hoàn thành của Gate -->
+                  <div class="d-flex align-items-center justify-content-center gap-1 fs-11">
+                    <span class="badge" [class.bg-success]="gate.progress === 100" [class.bg-info]="gate.progress > 0 && gate.progress < 100" [class.bg-secondary]="gate.progress === 0">
+                      {{ gate.progress }}%
+                    </span>
+                    <span class="text-muted">({{ gate.completedSteps }}/{{ gate.totalSteps }} bước)</span>
+                  </div>
+                </div>
+
+                <!-- Mũi tên kết nối (Arrow) giữa các Gate -->
+                @if (idx < summaryGates.length - 1) {
+                  <div class="d-flex align-items-center justify-content-center text-muted flex-shrink-0" style="width: 24px;">
+                    <i class="fa-solid fa-chevron-right fs-14"></i>
+                  </div>
+                }
+              }
+              
+              @if (summaryGates.length === 0) {
+                <div class="text-center text-muted py-3 w-100 fs-12">Không có dữ liệu Gate nào</div>
+              }
+              
+            </div>
+          </div>
+
+          <!-- Chi tiết các phòng ban tham gia và trạng thái các bước trong Gate đang chọn -->
+          @if (summaryGateDetails) {
+            <div class="d-flex flex-column flex-grow-1 overflow-hidden bg-light p-2 border rounded">
+              
+              <div class="fw-bold text-primary mb-2 d-flex align-items-center justify-content-between flex-shrink-0 px-2 py-1 bg-white border rounded">
+                <span>
+                  <i class="fa-solid fa-circle-info me-2"></i>
+                  CHI TIẾT: {{ summaryGateDetails.gateCode }} - {{ summaryGateDetails.gateName }}
+                </span>
+                <span class="fs-12 text-muted fw-normal">
+                  Tổng cộng: <strong>{{ summaryGateDetails.departments.length }}</strong> phòng ban tham gia
+                </span>
+              </div>
+              
+              <!-- Grid/Danh sách các Phòng ban -->
+              <div class="flex-grow-1 overflow-y-auto w-100 p-1">
+                <div class="row g-3">
+                  @for (dept of summaryGateDetails.departments; track dept.deptId) {
+                    <div class="col-12 col-md-6 col-lg-4">
+                      <div class="card h-100 border-0 shadow-sm rounded">
+                        
+                        <!-- Header Phòng ban -->
+                        <div class="card-header bg-white border-bottom p-2 d-flex align-items-center justify-content-between">
+                          <span class="fw-bold text-dark fs-12 text-truncate" title="{{ dept.deptName }}" style="max-width: 70%;">
+                            <i class="fa-solid fa-building me-1 text-secondary"></i>
+                            {{ dept.deptName }}
+                          </span>
+                          <span class="badge" [class.bg-success]="dept.progress === 100" [class.bg-info]="dept.progress > 0 && dept.progress < 100" [class.bg-secondary]="dept.progress === 0">
+                            {{ dept.progress }}% Hoàn thành
+                          </span>
+                        </div>
+                        
+                        <!-- Body: Danh sách các bước và trạng thái -->
+                        <div class="card-body p-2 bg-white" style="max-height: 350px; overflow-y: auto;">
+                          <ul class="list-group list-group-flush gap-1">
+                            @for (step of dept.steps; track step.stepLinkId) {
+                              <li class="list-group-item p-2 border rounded d-flex flex-column gap-1 bg-light-subtle mb-1" style="font-size: 11px;">
+                                <div class="d-flex align-items-start justify-content-between gap-2">
+                                  <span class="fw-semibold text-dark text-wrap" style="line-height: 1.3;">
+                                    {{ step.content }}
+                                  </span>
+                                  <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0">
+                                    <!-- Trạng thái hoàn thành -->
+                                    <span class="badge" [class.bg-success]="step.isCompleted" [class.bg-warning]="!step.isCompleted" style="font-size: 10px;">
+                                      {{ step.isCompleted ? 'Xong' : 'Chưa xong' }}
+                                    </span>
+                                    <!-- Trạng thái duyệt của TBP -->
+                                    @if (step.isApproved) {
+                                      <span class="badge bg-success-subtle text-success border border-success" style="font-size: 9px; padding: 2px 4px;">
+                                        Đã duyệt
+                                      </span>
+                                    } @else {
+                                      <span class="badge bg-danger-subtle text-danger border border-danger" style="font-size: 9px; padding: 2px 4px;">
+                                        Chờ duyệt
+                                      </span>
+                                    }
+                                  </div>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between text-muted mt-1" style="font-size: 10px;">
+                                  <span>Bắt đầu: {{ step.startDate ? (step.startDate | date:'dd/MM/yyyy') : '---' }}</span>
+                                  <span>Checklist: <strong>{{ step.passedChecklists }}/{{ step.totalChecklists }}</strong></span>
+                                </div>
+                              </li>
+                            }
+                          </ul>
+                        </div>
+                        
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+              
+            </div>
+          } @else {
+            <div class="d-flex flex-column align-items-center justify-content-center flex-grow-1 p-5 text-muted bg-light border rounded">
+              <i class="fa-solid fa-diagram-project fs-36 mb-3"></i>
+              <span>Chọn một Gate ở sơ đồ trên để xem chi tiết phòng ban tham gia</span>
+            </div>
+          }
+          
+        </div>
       } @else if (activeProjectTypeId && activeDepartmentId !== undefined && projectTypeStepsMap[activeProjectTypeId +
       '_' + activeDepartmentId]) {
       <div class="table-wrapper flex-grow-1 w-100 overflow-auto" style="height: 100%;">

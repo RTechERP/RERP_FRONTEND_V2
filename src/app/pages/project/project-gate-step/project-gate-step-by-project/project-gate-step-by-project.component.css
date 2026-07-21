@@ -150,6 +150,73 @@
 
 /* Màu nền xanh lá nhạt cho các dòng có isPass = true */
 ::ng-deep .p-datatable .p-datatable-tbody>tr.passed-step>td {
-  background-color: #d4edda !important; /* Xanh lá nhạt của Bootstrap */
+  background-color: #d4edda !important;
+  /* Xanh lá nhạt của Bootstrap */
   color: #155724 !important;
+}
+
+/* Định dạng kích thước chữ menu sidebar: menu cha to hơn menu con */
+.sidebar-menu .dept-title {
+  font-size: 12px !important;
+}
+
+.sidebar-menu .sub-menu-item {
+  font-size: 11px !important;
+}
+
+.sidebar-menu .sub-menu-item i {
+  font-size: 10px !important;
+}
+
+.sidebar-menu .sidebar-header {
+  font-size: 16px !important;
+}
+
+.sidebar-menu .sidebar-header i {
+  font-size: 16px !important;
+}
+
+/* Sơ đồ Gate summary styles */
+.gate-pipeline-scroll {
+  white-space: nowrap;
+  background-color: #fdfdfd;
+}
+
+.gate-node-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-color: #dee2e6;
+  border-width: 1px;
+}
+
+.gate-node-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+  border-color: #23458a;
+}
+
+.gate-node-card.border-primary {
+  border-color: #23458a !important;
+  border-width: 2px !important;
+  box-shadow: 0 4px 8px rgba(35, 69, 138, 0.15) !important;
+}
+
+.fs-11 {
+  font-size: 11px !important;
+}
+
+.fs-14 {
+  font-size: 14px !important;
+}
+
+.fs-36 {
+  font-size: 36px !important;
+}
+
+.sidebar-menu .sidebar-header.cursor-pointer {
+  cursor: pointer;
+  transition: color 0.15s ease-in-out;
+}
+
+.sidebar-menu .sidebar-header.cursor-pointer:hover {
+  color: #23458a !important;
 }

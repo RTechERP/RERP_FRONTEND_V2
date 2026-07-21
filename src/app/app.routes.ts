@@ -410,6 +410,7 @@ import { VisaRequestComponent } from './pages/hrm/visa-request/visa-request.comp
 import { InventoryNotExportComponent } from './pages/old/Sale/Inventory/inventory-not-export/inventory-not-export.component';
 import { ContractTransferReviewTbpComponent } from './pages/hrm/contract-transfer-review/contract-transfer-review-tbp/contract-transfer-review-tbp.component';
 import { ContractTransferReviewBgdComponent } from './pages/hrm/contract-transfer-review/contract-transfer-review-bgd/contract-transfer-review-bgd.component';
+import { SalaryIncreaseComponent } from './pages/hrm/salary-increase/salary-increase.component';
 export const routes: Routes = [
 
   {
@@ -1353,7 +1354,9 @@ export const routes: Routes = [
       { path: 'contract-transfer-review-tbp-hr', component: ContractTransferReviewComponent, canActivate: [authGuard] },
       { path: 'kpi-error-hr', component: KpiErrorComponent, canActivate: [authGuard] }, // danh sách lỗi kt
       { path: 'kpi-error-employee-hr', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
-      { path: 'summary-kpi-error-employee-new-hr', component: SummaryKpiErrorEmployeePrimengComponent, canActivate: [authGuard] }
+      { path: 'summary-kpi-error-employee-new-hr', component: SummaryKpiErrorEmployeePrimengComponent, canActivate: [authGuard] },
+      { path: 'salary-increase', component: SalaryIncreaseComponent, canActivate: [authGuard] },
+
     ],
   },
 ];

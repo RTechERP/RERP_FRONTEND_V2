@@ -653,6 +653,30 @@
             </div>
 
 
+            <!-- Xác nhận thông tin du lịch -->
+            <div *ngIf="unconfirmedTravelRegistrations && unconfirmedTravelRegistrations.length > 0">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i nz-icon nzType="rocket" nzTheme="outline" style="font-size: 20px; color: #1890ff;"></i>
+                    <h6 class="m-0 fw-bold" style="font-size: 13px; color: #1890ff;">Đăng ký du lịch chưa xác nhận ({{
+                        unconfirmedTravelRegistrations.length }})</h6>
+                </div>
+                <div class="card mb-2" style="border-left: 4px solid #1890ff;">
+                    <div class="card-body p-3 d-flex align-items-center justify-content-between gap-3">
+                        <div>
+                            <h6 class="m-0 fw-bold" style="font-size: 13px;">Xác nhận thông tin đăng ký du lịch</h6>
+                            <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                                Bạn có {{ unconfirmedTravelRegistrations.length }} đăng ký (bao gồm nhân viên và người
+                                thân) cần xác nhận thông tin.
+                            </div>
+                        </div>
+                        <button nz-button nzType="primary" (click)="openTravelConfirmModal()"
+                            style="font-size: 12px; height: 32px; border-radius: 4px; white-space: nowrap; background-color: #1890ff; border-color: #1890ff;">
+                            Kiểm tra
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Bình chọn chưa hoàn thành -->
             <div *ngIf="pendingPolls && pendingPolls.length > 0">
                 <div class="d-flex align-items-center gap-2 mb-2">
@@ -683,6 +707,72 @@
 
         </div>
     </ng-container>
+
+    <!-- Modal Xác nhận Đăng ký du lịch -->
+    <nz-modal [(nzVisible)]="isTravelConfirmModalVisible" nzTitle="Xác nhận thông tin đăng ký du lịch"
+        (nzOnCancel)="closeTravelConfirmModal()" nzWidth="1800px" [nzFooter]="travelConfirmFooter">
+        <ng-container *nzModalContent>
+            <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center" style="font-size: 13px;">
+                <i nz-icon nzType="info-circle" nzTheme="fill" class="me-2 text-info fs-5"></i>
+                Vui lòng kiểm tra kỹ thông tin đăng ký du lịch của bạn và người thân trước khi xác nhận.
+                <br>
+                Nếu thông tin đăng ký không chính xác, vui lòng liên hệ Phòng HCNS để chỉnh sửa thông tin đăng
+                ký.
+            </div>
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-bordered table-hover mb-0" style="font-size: 13px; white-space: nowrap;">
+                    <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+                        <tr>
+                            <th class="text-center" style="width: 50px;">STT</th>
+                            <th class="text-center">Mã nhân viên</th>
+                            <th class="text-center">Họ và tên</th>
+                            <th class="text-center">Phòng ban</th>
+                            <th class="text-center">Chức vụ</th>
+                            <th class="text-center">Mối quan hệ</th>
+                            <th class="text-center">Ngày sinh</th>
+                            <th class="text-center">Tuổi</th>
+                            <th class="text-center">Chiều cao</th>
+                            <th class="text-center">Giới tính</th>
+                            <th class="text-center">Địa chỉ thường trú</th>
+                            <th class="text-center">CCCD/CMND</th>
+                            <th class="text-center">Ngày cấp</th>
+                            <th class="text-center">Nơi cấp</th>
+                            <th class="text-center">Điện thoại</th>
+                            <th class="text-center">Khởi hành / Về</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of unconfirmedTravelRegistrations; let i = index">
+                            <td class="text-center">{{ i + 1 }}</td>
+                            <td class="text-center">{{ item.EmployeeCode }}</td>
+                            <td class="fw-medium text-primary">{{ item.EmployeeName }}</td>
+                            <td class="text-center">{{ item.Department }}</td>
+                            <td class="text-center">{{ item.PositionName }}</td>
+                            <td class="text-center">{{ item.Relationship}}</td>
+                            <td class="text-center">{{ item.BirthDay | date: 'dd/MM/yyyy' }}</td>
+                            <td class="text-center">{{ item.Age }}</td>
+                            <td class="text-center">{{ item.Height }}</td>
+                            <td class="text-center">{{ item.Gender }}</td>
+                            <td>{{ item.Address }}</td>
+                            <td class="text-center">{{ item.CCCD }}</td>
+                            <td class="text-center">{{ item.CCCDIssueDate | date: 'dd/MM/yyyy' }}</td>
+                            <td>{{ item.CCCDIssuePlace }}</td>
+                            <td class="text-center">{{ item.PhoneNumber }}</td>
+                            <td class="text-center">{{ item.DepartureLocation }}</td>
+                        </tr>
+                        <tr *ngIf="unconfirmedTravelRegistrations.length === 0">
+                            <td colspan="16" class="text-center text-muted py-3">Không có dữ liệu</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </ng-container>
+        <ng-template #travelConfirmFooter>
+            <button nz-button nzType="default" (click)="closeTravelConfirmModal()">Đóng</button>
+            <button nz-button nzType="primary" (click)="confirmTravelRegistration()"
+                [nzLoading]="isConfirmingTravel">Xác nhận tất cả ({{ unconfirmedTravelRegistrations.length }})</button>
+        </ng-template>
+    </nz-modal>
 
     <ng-template #modalFooter>
         <button nz-button nzType="default" (click)="handleNotifModalCancel()"

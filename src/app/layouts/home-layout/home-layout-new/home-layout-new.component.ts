@@ -53,6 +53,8 @@ import { HistoryBorrowSaleService } from '../../../pages/old/Sale/HistoryBorrowS
 import { ProjectTaskService } from '../../../pages/project_task/project-task/project-task.service';
 import { PollFormService } from '../../../pages/poll-form/poll-form.service';
 import { ConfigNotificationService } from '../../../pages/systems/app-user/config-notification-key/config-notification-service/config-notification.service';
+import { TravelRegistrationServiceService } from '../../../pages/hrm/travel-registration/travel-registration-service/travel-registration-service.service';
+
 @Component({
   selector: 'app-home-layout-new',
   imports: [
@@ -85,6 +87,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
   lixis: LiXi[] = [];
   isNotifModalVisible: boolean = false;
   pendingPolls: any[] = [];
+  unconfirmedTravelRegistrations: any[] = [];
   showLixiRain: boolean = false;
   hasNewVersion: boolean = false;
   latestVersionDetails: any = null;
@@ -184,7 +187,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     private projectTaskService: ProjectTaskService,
     private projectTaskAttendanceService: ProjectTaskSumaryAttendanceService,
     private pollFormService: PollFormService,
-    private configNotificationService: ConfigNotificationService
+    private configNotificationService: ConfigNotificationService,
+    private travelRegistrationService: TravelRegistrationServiceService
   ) { }
 
   get notifItems(): NotifyItem[] { return this.notifService.items; }
@@ -228,6 +232,7 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
       this.getPendingContractReview(),
       this.getProjectTaskAttendance(),
       this.getPendingPollCount(),
+      this.getUnconfirmedTravelRegistrations(),
     ]).subscribe({
       next: () => {
         console.log('Tất cả API quan trọng đã load xong. Khởi tạo SSE và check version...');
@@ -625,6 +630,76 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         return of(null);
       }))
   };
+  getUnconfirmedTravelRegistrations() {
+    const employeeId = this.appUserService.currentUser?.EmployeeID;
+    if (!employeeId) return of(null);
+    return this.travelRegistrationService.getByEmployeeId(employeeId).pipe(
+      tap((res: any) => {
+        if (res?.status === 1 && res.data) {
+          this.unconfirmedTravelRegistrations = res.data.filter((x: any) => x.ConfirmStatus != 1);
+          const count = this.unconfirmedTravelRegistrations.length;
+          if (count > 0) {
+            this.notifService.addItem({
+              id: 13,
+              time: new Date().toISOString(),
+              title: 'Đăng ký du lịch',
+              text: `Bạn có ${count} đăng ký du lịch chưa xác nhận`,
+              group: 'today',
+              icon: 'plane',
+              route: '',
+              queryParams: {}
+            });
+          }
+        }
+      }),
+      catchError(() => of(null))
+    );
+  }
+
+  isTravelConfirmModalVisible = false;
+  isConfirmingTravel = false;
+
+  openTravelConfirmModal() {
+    this.isNotifModalVisible = false;
+    this.isTravelConfirmModalVisible = true;
+  }
+
+  closeTravelConfirmModal() {
+    this.isTravelConfirmModalVisible = false;
+  }
+
+  confirmTravelRegistration() {
+    if (this.unconfirmedTravelRegistrations.length === 0) return;
+    this.isConfirmingTravel = true;
+    const confirmRequests = this.unconfirmedTravelRegistrations.map(row =>
+      this.travelRegistrationService.confirm(row.EmployeeID || row.OwnerEmployeeID, 1)
+    );
+
+    forkJoin(confirmRequests).subscribe({
+      next: (responses: any[]) => {
+        this.isConfirmingTravel = false;
+        const successCount = responses.filter(r => r?.status === 1).length;
+        if (successCount === responses.length) {
+          this.notification.success(NOTIFICATION_TITLE.success, 'Xác nhận đăng ký du lịch thành công');
+        } else {
+          this.notification.warning(NOTIFICATION_TITLE.warning, `Đã xác nhận ${successCount}/${responses.length} đăng ký`);
+        }
+        this.isTravelConfirmModalVisible = false;
+        this.unconfirmedTravelRegistrations = []; // Clear them since they are now confirmed
+        this.notifService.setItems(this.notifService.items.filter(x => x.id !== 13));
+      },
+      error: (err: any) => {
+        this.isConfirmingTravel = false;
+        this.notification.create(
+          NOTIFICATION_TYPE_MAP[err.status] || 'error',
+          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+          err?.error?.message || `${err.error}\n${err.message}`,
+          { nzStyle: { whiteSpace: 'pre-line' } }
+        );
+      }
+    });
+  }
+
   getPendingPollCount() {
     return this.pollFormService.getPendingCount().pipe(
       tap((res: any) => {
@@ -662,9 +737,10 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
     const hasOverdueSale = this.quantityBorrowExpriedSale > 0;
     const hasSemiExpiredSale = this.quantityBorrowSale > 0;
     const hasPendingPolls = this.pendingPolls && this.pendingPolls.length > 0;
+    const hasUnconfirmedTravel = this.unconfirmedTravelRegistrations && this.unconfirmedTravelRegistrations.length > 0;
 
     if (hasOverdueDemo || hasSemiExpiredDemo || hasOverdueSale || hasSemiExpiredSale
-      || hasPendingPolls) {
+      || hasPendingPolls || hasUnconfirmedTravel) {
       this.isNotifModalVisible = true;
     }
   }
@@ -687,6 +763,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
   onPick(n: NotifyItem) {
     if (n.route) {
       this.newTab(n.route, n.title || 'Thông báo', n.queryParams);
+    } else if (n.id === 13) {
+      this.openTravelConfirmModal();
     }
   }
 

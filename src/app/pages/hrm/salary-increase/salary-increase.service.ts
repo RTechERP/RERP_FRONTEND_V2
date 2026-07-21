@@ -42,6 +42,8 @@ export interface SalaryIncreaseMailConfig {
   HRMEmail?: string;
   KTTEmail?: string;
   TestRecipientEmail?: string;
+  /** Footer công ty được backend tự gắn vào khi gửi mail thật - dùng để ghép khi xem trước cho khớp. */
+  Footer?: string;
 }
 
 export interface SalaryIncreaseSendMailItem {

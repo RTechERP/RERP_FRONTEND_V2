@@ -1,0 +1,73 @@
+<div class="email-composer">
+  <!-- HEADER -->
+  <div class="email-header">
+    <div class="header-icon">
+      <i class="fa-solid fa-envelope-open-text"></i>
+    </div>
+    <div class="header-text">
+      <h4>Xem trước mail điều chỉnh lương</h4>
+      <span class="form-code">Hiển thị đúng như email sẽ nhận được</span>
+    </div>
+    <div class="header-meta">
+      <span class="candidate-count">
+        <i class="fa-solid fa-users"></i> {{ items.length }} nhân viên
+      </span>
+      <button class="modal-close-btn" (click)="onClose()" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <nz-tabset [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="activeTabIndex = $any($event)" nzType="card"
+    class="candidate-tabs">
+    <nz-tab *ngFor="let item of items" [nzTitle]="tabTitle">
+      <ng-template #tabTitle>
+        <i class="fa-solid fa-user" style="margin-right:4px;color:#2e86c1"></i>
+        {{ item.EmployeeName }}
+      </ng-template>
+
+      <div class="preview-panel">
+        <div class="email-preview-card">
+
+          <div class="email-client-header">
+            <div class="echeader-row">
+              <span class="echeader-key">Đến:</span>
+              <span class="echeader-val">{{ item.EmployeeName }} &lt;{{ item.EmailTo || 'chưa có email' }}&gt;</span>
+            </div>
+            <div class="echeader-row" *ngIf="ccList(item).length > 0">
+              <span class="echeader-key">CC:</span>
+              <span class="echeader-val">{{ ccList(item).join('; ') }}</span>
+            </div>
+            <div class="echeader-row">
+              <span class="echeader-key">Tiêu đề:</span>
+              <span class="echeader-val bold">{{ item.Subject }}</span>
+            </div>
+          </div>
+
+          <div class="echeader-divider"></div>
+
+          <div class="email-body-preview" [innerHTML]="getSafeBody(item)"></div>
+
+        </div>
+      </div>
+    </nz-tab>
+  </nz-tabset>
+
+  <!-- FOOTER -->
+  <div class="email-footer">
+    <span class="footer-hint">
+      <i class="fa-solid fa-circle-info text-primary"></i>
+      Kiểm tra kỹ nội dung trước khi gửi mail thật.
+    </span>
+    <div class="footer-right">
+      <button nz-button nzType="default" nzDanger nzSize="small" (click)="onClose()" [disabled]="sending">
+        Đóng
+      </button>
+      <button nz-button nzType="primary" nzSize="small" [nzLoading]="sending" (click)="onSend()"
+        style="background-color: #52c41a; border-color: #52c41a;">
+        <span nz-icon nzType="mail"></span> Gửi mail ({{ items.length }})
+      </button>
+    </div>
+  </div>
+
+</div>

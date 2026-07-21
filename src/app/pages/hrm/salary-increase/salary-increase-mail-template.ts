@@ -6,6 +6,7 @@ export interface SalaryIncreaseMailData {
   OldSalary: string;
   NewSalary: string;
   EffectiveDate: string;
+  Footer: string;
 }
 
 const SALARY_INCREASE_MAIL_TEMPLATE = `<!DOCTYPE html>
@@ -43,7 +44,7 @@ const SALARY_INCREASE_MAIL_TEMPLATE = `<!DOCTYPE html>
                     Căn cứ Quy chế lương, thưởng của Công ty;<br>
 
                     Căn cứ tính chất công việc của ông/bà
-                    {{EmployeeName}} - {{Position}};
+                    {{EmployeeName}} - {{Position}},
 
                 </div>
 
@@ -124,7 +125,7 @@ const SALARY_INCREASE_MAIL_TEMPLATE = `<!DOCTYPE html>
                     Phòng Hành chính Nhân sự, Tài chính Kế toán,
                     Phòng ban liên quan và ông/bà
                     {{EmployeeName}}
-                    căn cứ Quyết định thi hành.
+                    căn cứ Quyết định thi hành./.
 
                 </div>
 
@@ -152,8 +153,12 @@ const SALARY_INCREASE_MAIL_TEMPLATE = `<!DOCTYPE html>
 
             </td>
         </tr>
+        <tr>
+            <td>
+                {{footer}}
+            </td>
+        </tr>
     </table>
-
 </body>
 
 </html>`;
@@ -164,7 +169,8 @@ function renderPlaceholders(template: string, data: SalaryIncreaseMailData): str
     .replace(/\{\{Position\}\}/g, data.Position || '')
     .replace(/\{\{OldSalary\}\}/g, data.OldSalary || '')
     .replace(/\{\{NewSalary\}\}/g, data.NewSalary || '')
-    .replace(/\{\{EffectiveDate\}\}/g, data.EffectiveDate || '');
+    .replace(/\{\{EffectiveDate\}\}/g, data.EffectiveDate || '')
+    .replace(/\{\{footer\}\}/g, data.Footer || '');
 }
 
 export function buildSalaryIncreaseMailBody(data: SalaryIncreaseMailData): string {

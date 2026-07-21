@@ -23,6 +23,7 @@ import {
 import { SalaryIncreaseFormComponent } from './salary-increase-form/salary-increase-form.component';
 import { SalaryIncreaseDetailFormComponent } from './salary-increase-detail-form/salary-increase-detail-form.component';
 import { SalaryIncreaseImportExcelComponent } from './salary-increase-import-excel/salary-increase-import-excel.component';
+import { SalaryIncreasePreviewMailComponent } from './salary-increase-preview-mail/salary-increase-preview-mail.component';
 import { buildSalaryIncreaseMailBody, buildSalaryIncreaseMailSubject } from './salary-increase-mail-template';
 import { DateInputComponent } from '../../../shared/components/date-input/date-input.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
@@ -69,8 +70,10 @@ export class SalaryIncreaseComponent implements OnInit {
   // Chọn nhiều detail để gửi mail (độc lập với selectedDetailRow dùng để sửa/xóa)
   checkedDetailIds = new Set<number>();
   sendingMail = false;
+  loadingPreview = false;
   private employeesCache: any[] | null = null;
   private mailConfigCache: SalaryIncreaseMailConfig | null = null;
+  private departmentsCache: any[] | null = null;
 
   constructor(
     private service: SalaryIncreaseService,
@@ -209,6 +212,45 @@ export class SalaryIncreaseComponent implements OnInit {
     }
   }
 
+  // --- Xem trước mail quyết định điều chỉnh lương ---
+
+  openPreviewMail(): void {
+    const rows = this.detailList.filter(r => this.isDetailChecked(r));
+    if (rows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 nhân viên để xem trước mail.');
+      return;
+    }
+
+    this.loadingPreview = true;
+    forkJoin({
+      employees: this.employeesCache ? of(this.employeesCache) : this.loadEmployeesOnce(),
+      mailConfig: this.mailConfigCache ? of(this.mailConfigCache) : this.loadMailConfigOnce(),
+      departments: this.departmentsCache ? of(this.departmentsCache) : this.loadDepartmentsOnce()
+    }).subscribe({
+      next: ({ employees, mailConfig, departments }) => {
+        this.loadingPreview = false;
+        const items = this.buildSendMailItems(rows, employees, mailConfig, departments);
+
+        const modalRef = this.ngbModal.open(SalaryIncreasePreviewMailComponent, {
+          backdrop: 'static',
+          centered: true,
+          fullscreen: true
+        });
+        modalRef.componentInstance.items = items;
+        modalRef.result.then((res) => {
+          if (res === 'sent') {
+            this.checkedDetailIds.clear();
+            this.loadDetailData();
+          }
+        }).catch(() => { });
+      },
+      error: () => {
+        this.loadingPreview = false;
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không tải được dữ liệu nhân viên / cấu hình mail');
+      }
+    });
+  }
+
   // --- Gửi mail quyết định điều chỉnh lương ---
 
   openSendMail(mode: 'sync' | 'queue'): void {
@@ -238,10 +280,11 @@ export class SalaryIncreaseComponent implements OnInit {
 
     forkJoin({
       employees: this.employeesCache ? of(this.employeesCache) : this.loadEmployeesOnce(),
-      mailConfig: this.mailConfigCache ? of(this.mailConfigCache) : this.loadMailConfigOnce()
+      mailConfig: this.mailConfigCache ? of(this.mailConfigCache) : this.loadMailConfigOnce(),
+      departments: this.departmentsCache ? of(this.departmentsCache) : this.loadDepartmentsOnce()
     }).subscribe({
-      next: ({ employees, mailConfig }) => {
-        const items = this.buildSendMailItems(rows, employees, mailConfig);
+      next: ({ employees, mailConfig, departments }) => {
+        const items = this.buildSendMailItems(rows, employees, mailConfig, departments);
         // 'sync': chờ SMTP gửi xong mới trả response, có kết quả từng nhân viên.
         // 'queue': trả về ngay sau khi đưa vào hàng đợi nền, không chờ gửi xong.
         const request$ = mode === 'queue' ? this.service.sendMailQueue(items) : this.service.sendMail(items);
@@ -256,8 +299,29 @@ export class SalaryIncreaseComponent implements OnInit {
               let failCount = 0;
               if (mode === 'sync') {
                 const results: SalaryIncreaseSendMailResultItem[] = res.data || [];
-                failCount = results.filter(r => !r.Success).length;
+                const failedResults = results.filter(r => !r.Success);
+                failCount = failedResults.length;
+
+                if (failCount > 0) {
+                  const failedLabels = failedResults.map(r => {
+                    const row = rows.find(x => x.ID === r.DetailID);
+                    const name = row ? `${row.EmployeeCode || ''} ${row.EmployeeName || ''}`.trim() : `#${r.DetailID}`;
+                    return r.ErrorMessage ? `${name} (${r.ErrorMessage})` : name;
+                  });
+                  this.notification.warning(
+                    NOTIFICATION_TITLE.warning,
+                    `Gửi thất bại cho: ${failedLabels.join('; ')}`,
+                    { nzDuration: 0 }
+                  );
+                }
+              } else if (rows.length > 0) {
+                this.notification.info(
+                  NOTIFICATION_TITLE.success,
+                  'Mail đang được gửi ở nền. Vui lòng chờ ít phút rồi xem cột "Đã gửi" trong bảng để biết ai gửi thành công/thất bại.',
+                  { nzDuration: 6000 }
+                );
               }
+
               const summary = `${res.message || 'Gửi mail thành công'}`;
               if (failCount === 0) {
                 this.notification.success(NOTIFICATION_TITLE.success, summary);
@@ -311,14 +375,33 @@ export class SalaryIncreaseComponent implements OnInit {
     });
   }
 
+  private loadDepartmentsOnce(): Observable<any[]> {
+    return new Observable<any[]>(subscriber => {
+      this.service.getDepartments().subscribe({
+        next: (res: any) => {
+          const departments = res?.status === 1 ? (res.data || []) : [];
+          this.departmentsCache = departments;
+          subscriber.next(departments);
+          subscriber.complete();
+        },
+        error: (err: any) => subscriber.error(err)
+      });
+    });
+  }
+
   private buildSendMailItems(
     rows: SalaryIncreaseDetail[],
     employees: any[],
-    mailConfig: SalaryIncreaseMailConfig
-  ): SalaryIncreaseSendMailItem[] {
+    mailConfig: SalaryIncreaseMailConfig,
+    departments: any[]
+  ): (SalaryIncreaseSendMailItem & { EmployeeName: string; IsSend?: boolean })[] {
     const employeeMap = new Map<number, any>();
     for (const emp of employees) {
       if (emp?.ID) employeeMap.set(emp.ID, emp);
+    }
+    const departmentMap = new Map<number, any>();
+    for (const dept of departments || []) {
+      if (dept?.ID) departmentMap.set(dept.ID, dept);
     }
 
     const ccFixed = [mailConfig.BGDEmail, mailConfig.HRMEmail, mailConfig.KTTEmail]
@@ -326,6 +409,10 @@ export class SalaryIncreaseComponent implements OnInit {
 
     return rows.map(row => {
       const emp = row.EmployeeID ? employeeMap.get(row.EmployeeID) : null;
+      const dept = emp?.DepartmentID ? departmentMap.get(emp.DepartmentID) : null;
+      // Nhân viên được tăng lương chính là trưởng bộ phận -> không cc EmailTBP nữa (trùng người),
+      // chỉ cc BGĐ/HRM/KTT.
+      const isHeadOfDepartment = !!dept && !!row.EmployeeID && dept.HeadofDepartment === row.EmployeeID;
 
       const mailData = {
         EmployeeName: row.EmployeeName || emp?.FullName || '',
@@ -334,18 +421,23 @@ export class SalaryIncreaseComponent implements OnInit {
         NewMonth: this.selectedMasterRow?.MonthTo || '',
         OldSalary: this.formatNumber(row.PreviousBaseSalary),
         NewSalary: this.formatNumber(row.CurrentBaseSalary),
-        EffectiveDate: this.formatDate(this.selectedMasterRow?.EffectiveDate)
+        EffectiveDate: this.formatDate(this.selectedMasterRow?.EffectiveDate),
+        Footer: mailConfig.Footer || ''
       };
 
-      const cc = [row.EmailTBP, ...ccFixed].filter(x => !!x && x.trim().length > 0).join(';');
+      const cc = (isHeadOfDepartment ? ccFixed : [row.EmailTBP, ...ccFixed])
+        .filter(x => !!x && x.trim().length > 0)
+        .join(';');
       const emailTo = emp?.EmailCongTy || emp?.EmailCaNhan || '';
 
       return {
         DetailID: row.ID!,
+        EmployeeName: mailData.EmployeeName,
         EmailTo: emailTo,
         EmailCC: cc,
         Subject: buildSalaryIncreaseMailSubject(mailData),
-        Body: buildSalaryIncreaseMailBody(mailData)
+        Body: buildSalaryIncreaseMailBody(mailData),
+        IsSend: row.IsSend
       };
     });
   }

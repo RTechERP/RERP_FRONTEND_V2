@@ -1,0 +1,70 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-uppercase text-white">
+    {{ formGroup.get('ID')?.value ? 'Cập nhật đợt tăng lương' : 'Thêm đợt tăng lương mới' }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body p-3 fs-12" style="font-size: 12px;">
+  <nz-spin [nzSpinning]="loading" nzTip="Đang xử lý...">
+    <form nz-form [formGroup]="formGroup" nzLayout="vertical">
+      
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label nzRequired [nzNoColon]="true" class="fs-12" style="font-size: 12px;">Mã đợt</nz-form-label>
+            <nz-form-control nzErrorTip="Mã đợt tăng lương là bắt buộc">
+              <input nz-input type="text" formControlName="Code" placeholder="Nhập mã đợt..." nzSize="small" class="fs-12" style="font-size: 12px;" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label nzRequired [nzNoColon]="true" class="fs-12" style="font-size: 12px;">Ngày hiệu lực</nz-form-label>
+            <nz-form-control nzErrorTip="Ngày hiệu lực là bắt buộc">
+              <nz-date-picker formControlName="EffectiveDate" nzFormat="dd/MM/yyyy" nzSize="small" class="fs-12 w-100" style="font-size: 12px;"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <nz-form-item>
+        <nz-form-label nzRequired [nzNoColon]="true" class="fs-12" style="font-size: 12px;">Tên đợt tăng lương</nz-form-label>
+        <nz-form-control nzErrorTip="Tên đợt tăng lương là bắt buộc">
+          <input nz-input formControlName="Name" placeholder="Ví dụ: Tăng lương định kỳ năm 2026..." nzSize="small" class="fs-12" style="font-size: 12px;" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label [nzNoColon]="true" class="fs-12" style="font-size: 12px;">Áp dụng từ tháng</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="MonthFrom" placeholder="Ví dụ: T6/2026" nzSize="small" class="fs-12" style="font-size: 12px;" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label [nzNoColon]="true" class="fs-12" style="font-size: 12px;">Áp dụng đến tháng</nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="MonthTo" placeholder="Ví dụ: T7/2026" nzSize="small" class="fs-12" style="font-size: 12px;" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+    </form>
+  </nz-spin>
+</div>
+
+<div class="modal-footer fs-12 p-2">
+  <button nz-button type="button" nzType="default" (click)="onCancel()" [nzLoading]="loading">
+    Hủy
+  </button>
+  <button nz-button type="button" nzType="primary" (click)="onSubmit()" [nzLoading]="loading">
+    Lưu
+  </button>
+</div>

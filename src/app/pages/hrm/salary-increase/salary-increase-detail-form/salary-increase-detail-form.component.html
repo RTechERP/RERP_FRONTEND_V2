@@ -1,0 +1,62 @@
+<div class="modal-header bg-primary py-2">
+  <h6 class="modal-title text-uppercase text-white">
+    {{ formGroup.get('ID')?.value ? 'Cập nhật nhân viên tăng lương' : 'Thêm nhân viên tăng lương mới' }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+
+<div class="modal-body p-3 fs-12" style="font-size: 12px;">
+  <nz-spin [nzSpinning]="loading" nzTip="Đang xử lý...">
+    <form nz-form [formGroup]="formGroup" nzLayout="vertical">
+      
+      <nz-form-item>
+        <nz-form-label nzRequired [nzNoColon]="true" class="fs-12" style="font-size: 12px;">Nhân viên</nz-form-label>
+        <nz-form-control nzErrorTip="Chọn nhân viên là bắt buộc">
+          <nz-select formControlName="EmployeeID" (ngModelChange)="onEmployeeChange($event)" 
+                     nzShowSearch nzAllowClear nzPlaceHolder="Tìm theo tên hoặc mã nhân viên..." nzSize="small" class="fs-12 w-100" style="font-size: 12px;">
+            <nz-option-group *ngFor="let group of groupedEmployees" [nzLabel]="group.DepartmentName">
+              <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID" [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+            </nz-option-group>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzNoColon]="true" class="fs-12" style="font-size: 12px;">Email Trưởng bộ phận nhận thông báo</nz-form-label>
+        <nz-form-control nzErrorTip="Email không hợp lệ">
+          <input nz-input formControlName="EmailTBP" placeholder="Ví dụ: truongbophan@company.com" nzSize="small" class="fs-12" style="font-size: 12px;" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label [nzNoColon]="true" class="fs-12" style="font-size: 12px;">Mức lương hiện tại trước tăng</nz-form-label>
+            <nz-form-control>
+              <nz-input-number formControlName="PreviousBaseSalary" [nzMin]="0" [nzStep]="100000" nzPlaceHolder="Nhập mức lương cũ..." nzSize="small" class="fs-12 w-100" style="font-size: 12px;" [nzFormatter]="formatter" [nzParser]="parser"></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label nzRequired [nzNoColon]="true" class="fs-12" style="font-size: 12px;">Mức lương mới sau tăng</nz-form-label>
+            <nz-form-control nzErrorTip="Mức lương mới là bắt buộc và lớn hơn hoặc bằng 0">
+              <nz-input-number formControlName="CurrentBaseSalary" [nzMin]="0" [nzStep]="100000" nzPlaceHolder="Nhập mức lương mới..." nzSize="small" class="fs-12 w-100" style="font-size: 12px;" [nzFormatter]="formatter" [nzParser]="parser"></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+    </form>
+  </nz-spin>
+</div>
+
+<div class="modal-footer fs-12 p-2">
+  <button nz-button type="button" nzType="default" (click)="onCancel()" [nzLoading]="loading">
+    Hủy
+  </button>
+  <button nz-button type="button" nzType="primary" (click)="onSubmit()" [nzLoading]="loading">
+    Lưu
+  </button>
+</div>

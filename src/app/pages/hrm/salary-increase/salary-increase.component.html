@@ -1,0 +1,221 @@
+<div class="salary-increase-container h-100 d-flex flex-column bg-white" style="height: 93vh !important; position: relative;">
+
+    <!-- Overlay chặn thao tác khi đang gửi mail -->
+    <div *ngIf="sendingMail"
+      style="position:absolute; inset:0; z-index:1050; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; cursor:not-allowed;">
+      <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+      <span class="ms-2 fw-bold">Đang gửi mail, vui lòng chờ...</span>
+    </div>
+
+    <!-- Main split container -->
+    <div class="flex-grow-1 overflow-hidden p-2 bg-light">
+      <p-splitter [panelSizes]="[40, 60]" [minSizes]="[30, 45]" styleClass="h-100 border-0">
+
+        <!-- Cột 1: Master (Đợt tăng lương) -->
+        <ng-template pTemplate>
+          <div class="h-100 pe-2 w-100 d-flex flex-column">
+            <div class="card h-100 border-0 rounded-0 shadow-sm d-flex flex-column">
+
+              <div class="card-header bg-white p-2 border-bottom">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-bold text-uppercase fs-12" style="color: #1890ff; font-size: 12px;">
+                    Đợt tăng lương
+                    <span class="text-lowercase text-danger ms-1">({{ masterList.length }})</span>
+                  </span>
+                  <div class="d-flex gap-1">
+                    <button nz-button nzType="primary" nzSize="small" (click)="openAddMaster()"
+                      style="font-size: 12px;">
+                      <span nz-icon nzType="plus"></span> Thêm đợt
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" [disabled]="!selectedMasterRow"
+                      (click)="openEditMaster()" style="font-size: 12px;">
+                      <span nz-icon nzType="edit"></span> Sửa
+                    </button>
+                    <button nz-button nzType="primary" nzDanger nzSize="small" [disabled]="!selectedMasterRow"
+                      (click)="deleteMaster()" style="font-size: 12px;">
+                      <span nz-icon nzType="delete"></span> Xóa
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Quick filter master -->
+                <div class="d-flex gap-1 align-items-center">
+                  <app-date-input [(ngModel)]="startDateMaster" [format]="'date'"></app-date-input>
+                  <app-date-input [(ngModel)]="endDateMaster" [format]="'date'"></app-date-input>
+
+                  <input type="text" nz-input placeholder="Mã hoặc tên đợt..." nzSize="small"
+                    [(ngModel)]="keywordMaster" (keyup.enter)="loadMasterData()" class="fs-12"
+                    style="font-size: 12px; width: 230px;" />
+                  <button nz-button nzType="primary" nzSize="small" (click)="loadMasterData()" title="Tìm kiếm">
+                    <span nz-icon nzType="search"></span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Master Data Grid (PrimeNG Table) -->
+              <div class="card-body p-0 flex-grow-1 overflow-hidden" style="height: calc(100% - 85px);">
+                <nz-spin [nzSpinning]="loadingMaster" class="h-100">
+                  <p-table [value]="masterList" [scrollable]="true" scrollHeight="flex"
+                    styleClass="p-datatable-sm p-datatable-gridlines h-100" class="fs-12 w-100">
+                    <ng-template pTemplate="header">
+                      <tr>
+                        <th class="text-center" style="width: 50px; font-size: 12px;">STT</th>
+                        <th style="width: 100px; font-size: 12px;">Mã đợt</th>
+                        <th style="font-size: 12px;">Tên đợt</th>
+                        <th class="text-center" style="width: 90px; font-size: 12px;">Từ tháng</th>
+                        <th class="text-center" style="width: 90px; font-size: 12px;">Đến tháng</th>
+                        <th class="text-center" style="width: 100px; font-size: 12px;">Hiệu lực</th>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
+                      <tr class="cursor-pointer" [class.active-row]="selectedMasterRow?.ID === row.ID"
+                        (click)="onSelectMaster(row)">
+                        <td class="text-center" style="font-size: 12px;">{{ rowIndex + 1 }}</td>
+                        <td style="font-size: 12px;" class="fw-semibold">{{ row.Code }}</td>
+                        <td style="font-size: 12px;">{{ row.Name }}</td>
+                        <td class="text-center" style="font-size: 12px;">{{ row.MonthFrom }}</td>
+                        <td class="text-center" style="font-size: 12px;">{{ row.MonthTo }}</td>
+                        <td class="text-center" style="font-size: 12px;">{{ formatDate(row.EffectiveDate) }}</td>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                      <tr>
+                        <td colspan="6" class="text-center text-muted py-4" style="font-size: 12px;">Không có dữ liệu
+                        </td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </nz-spin>
+              </div>
+
+            </div>
+          </div>
+        </ng-template>
+
+        <!-- Cột 2: Detail (Danh sách nhân viên) -->
+        <ng-template pTemplate>
+          <div class="h-100 ps-2 w-100 d-flex flex-column">
+            <div class="card h-100 border-0 rounded-0 shadow-sm d-flex flex-column">
+
+              <div class="card-header bg-white p-2 border-bottom">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-bold text-uppercase fs-12" style="color: #52c41a; font-size: 12px;">
+                    Nhân viên được tăng lương
+                    <span *ngIf="selectedMasterRow" class="text-lowercase text-danger ms-1">
+                      (Đợt {{ selectedMasterRow.Code }} - {{ detailList.length }} NV)
+                    </span>
+                  </span>
+                  <div class="d-flex gap-1">
+                    <button nz-button nzType="primary" nzSize="small" [disabled]="!selectedMasterRow"
+                      (click)="openAddDetail()" style="font-size: 12px;">
+                      <span nz-icon nzType="plus"></span> Thêm NV
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" [disabled]="!selectedMasterRow"
+                      (click)="openImportExcel()" style="font-size: 12px;">
+                      <span nz-icon nzType="file-excel"></span> Nhập Excel
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" [disabled]="!selectedDetailRow"
+                      (click)="openEditDetail()" style="font-size: 12px;">
+                      <span nz-icon nzType="edit"></span> Sửa
+                    </button>
+                    <button nz-button nzType="primary" nzDanger nzSize="small" [disabled]="!selectedDetailRow"
+                      (click)="deleteDetail()" style="font-size: 12px;">
+                      <span nz-icon nzType="delete"></span> Xóa
+                    </button>
+                    <button nz-button nzType="primary" nzSize="small" [disabled]="checkedDetailIds.size === 0"
+                      [nzLoading]="sendingMail" (click)="openSendMail('sync')"
+                      style="font-size: 12px; background-color: #52c41a; border-color: #52c41a;">
+                      <span nz-icon nzType="mail"></span> Gửi mail ({{ checkedDetailIds.size }})
+                    </button>
+                    <!-- <button nz-button nzType="primary" nzSize="small" [disabled]="checkedDetailIds.size === 0"
+                    [nzLoading]="sendingMail" (click)="openSendMail('queue')"
+                    style="font-size: 12px; background-color: #722ed1; border-color: #722ed1;">
+                    <span nz-icon nzType="thunderbolt"></span> Gửi hàng đợi ({{ checkedDetailIds.size }})
+                  </button> -->
+                  </div>
+                </div>
+
+                <!-- Quick filter detail -->
+                <div class="d-flex gap-1 align-items-center">
+                  <input type="text" nz-input placeholder="Tên hoặc mã nhân viên..." nzSize="small"
+                    [(ngModel)]="keywordDetail" (keyup.enter)="loadDetailData()" [disabled]="!selectedMasterRow"
+                    class="fs-12" style="font-size: 12px; width: 220px;" />
+                  <button nz-button nzType="primary" nzSize="small" (click)="loadDetailData()"
+                    [disabled]="!selectedMasterRow" title="Tìm kiếm">
+                    <span nz-icon nzType="search"></span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Detail Data Grid (PrimeNG Table) -->
+              <div class="card-body p-0 flex-grow-1 overflow-hidden" style="height: calc(100% - 85px);">
+                <nz-spin [nzSpinning]="loadingDetail" class="h-100">
+                  <p-table [value]="detailList" [scrollable]="true" scrollHeight="flex"
+                    styleClass="p-datatable-sm p-datatable-gridlines h-100" class="fs-12 w-100"
+                    [rowGroupMode]="'subheader'" groupRowsBy="DepartmentName">
+                    <ng-template pTemplate="header">
+                      <tr>
+                        <th class="text-center" style="width: 36px; font-size: 12px;">
+                          <input type="checkbox" [checked]="isAllDetailChecked()"
+                            [indeterminate]="isSomeDetailChecked()" (change)="toggleAllDetailChecked()"
+                            title="Chọn tất cả để gửi mail" />
+                        </th>
+                        <th class="text-center" style="width: 50px; font-size: 12px;">STT</th>
+                        <th style="width: 90px; font-size: 12px;">Mã NV</th>
+                        <th style="width: 140px; font-size: 12px;">Họ tên</th>
+                        <th class="text-end" style="width: 110px; font-size: 12px;">Lương cũ</th>
+                        <th class="text-end" style="width: 110px; font-size: 12px;">Lương mới</th>
+                        <th style="font-size: 12px;">Email TBP</th>
+                        <th class="text-center" style="width: 80px; font-size: 12px;">Đã gửi</th>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="groupheader" let-row>
+                      <tr pRowGroupHeader class="department-header cursor-pointer"
+                        (click)="toggleGroup(row.DepartmentName)">
+                        <td colspan="8">
+                          <i class="fa-solid me-1" [class.fa-chevron-down]="isGroupExpanded(row.DepartmentName)"
+                            [class.fa-chevron-right]="!isGroupExpanded(row.DepartmentName)"
+                            style="width: 12px; display: inline-block; font-size: 10px;"></i>
+                          <i class="fa-solid fa-folder-open text-primary me-2"></i>
+                          <strong>{{ row.DepartmentName || 'Khác' }}</strong>
+                        </td>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-row let-rowIndex="rowIndex">
+                      <tr *ngIf="isGroupExpanded(row.DepartmentName)" class="cursor-pointer"
+                        [class.active-row]="selectedDetailRow?.ID === row.ID" (click)="onSelectDetail(row)">
+                        <td class="text-center" (click)="$event.stopPropagation()">
+                          <input type="checkbox" [checked]="isDetailChecked(row)" (change)="toggleDetailChecked(row)" />
+                        </td>
+                        <td class="text-center" style="font-size: 12px;">{{ rowIndex + 1 }}</td>
+                        <td style="font-size: 12px;" class="fw-semibold">{{ row.EmployeeCode }}</td>
+                        <td style="font-size: 12px;">{{ row.EmployeeName }}</td>
+                        <td class="text-end" style="font-size: 12px;">{{ formatNumber(row.PreviousBaseSalary) }}</td>
+                        <td class="text-end" style="font-size: 12px;">{{ formatNumber(row.CurrentBaseSalary) }}</td>
+                        <td style="font-size: 12px;">{{ row.EmailTBP }}</td>
+                        <td class="text-center" style="font-size: 12px;">
+                          <i *ngIf="row.IsSend" class="fa-solid fa-check text-success"></i>
+                          <i *ngIf="!row.IsSend" class="fa-solid fa-xmark text-danger"></i>
+                        </td>
+                      </tr>
+                    </ng-template>
+                    <ng-template pTemplate="emptymessage">
+                      <tr>
+                        <td colspan="8" class="text-center text-muted py-4" style="font-size: 12px;">
+                          {{ selectedMasterRow ? 'Chưa có nhân viên nào trong đợt này' : 'Chọn đợt tăng lương để xem chi
+                          tiết' }}
+                        </td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                </nz-spin>
+              </div>
+
+            </div>
+          </div>
+        </ng-template>
+
+      </p-splitter>
+    </div>
+
+</div>

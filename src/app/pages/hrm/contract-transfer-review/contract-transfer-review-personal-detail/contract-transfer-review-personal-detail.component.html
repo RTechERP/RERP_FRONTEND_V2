@@ -148,7 +148,7 @@
                         </th>
 
                         <!-- TBP đánh giá -->
-                        <th colspan="2" class="text-center" style="color:#b8000c"><b>TBP đánh giá</b></th>
+                        <th colspan="2" class="text-center" style="color:#b8000c"><b>Cán bộ quản lý đánh giá</b></th>
                     </tr>
                     <tr>
                         <!-- NLĐ -->
@@ -214,8 +214,9 @@
                             <td class="text-center" [class.row-error]="isRowInvalid(it)">
                                 <ng-container *ngIf="canEditNLDScores; else nldDisplay">
                                     <div class="score-input-wrap">
-                                        <input type="number" min="0" max="100" class="score-input" [(ngModel)]="it.nldScore"
-                                            [id]="'nld-score-' + i" (keydown.arrowdown)="moveFocus($any($event), i, 'down')"
+                                        <input type="number" min="0" max="100" class="score-input"
+                                            [(ngModel)]="it.nldScore" [id]="'nld-score-' + i"
+                                            (keydown.arrowdown)="moveFocus($any($event), i, 'down')"
                                             (keydown.arrowup)="moveFocus($any($event), i, 'up')" (blur)="clampScore(it)"
                                             [class.score-invalid]="it.nldScore !== null && it.nldScore !== undefined && (it.nldScore < 0 || it.nldScore > 100)"
                                             placeholder="-" />
@@ -281,7 +282,7 @@
                             <td class="comment-label" rowspan="3">Tổng kết</td>
                             <td class="comment-sub"></td>
                             <td class="comment-head">NLĐ tự đánh giá</td>
-                            <td class="comment-head">TBP đánh giá</td>
+                            <td class="comment-head">Cán bộ quản lý đánh giá</td>
                         </tr>
 
                         <tr>

@@ -95,7 +95,8 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     public activeModal: NgbActiveModal,
     private notification: NzNotificationService,
     private PoRequestBuySlickgridService: PoRequestBuySlickgridService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private modal: NzModalService
   ) { }
 
   dataDepartment: any[] = [];
@@ -142,7 +143,19 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     this.PoRequestBuySlickgridService.getPOKHProductForRequestBuy(id).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
-          this.gridData = response.data;
+          const rawData = Array.isArray(response.data) ? response.data : [];
+          const unapproved = rawData.filter((item: any) => item.IsApproved !== true && item.ProductCode);
+          if (unapproved.length > 0) {
+            const unapprovedCodes = unapproved.map((item: any) => item.ProductCode || item.ProductName || 'Không rõ').filter(Boolean);
+            this.modal.warning({
+              nzTitle: 'Sản phẩm chưa được duyệt',
+              nzContent: `Có ${unapproved.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách yêu cầu mua hàng:<br/><br/><b>${unapprovedCodes.join(', ')}</b>`,
+              nzOkText: 'Đồng ý'
+            });
+          }
+
+          // Chỉ lấy sản phẩm thực sự được duyệt và có ProductCode
+          this.gridData = rawData.filter((item: any) => item.IsApproved === true && item.ProductCode);
           this.dataset = this.gridData.map((item: any) => ({
             ...item,
             id: item.ID
@@ -180,7 +193,19 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     this.isLoading = true;
     this.PoRequestBuySlickgridService.getPOKHProductsForRequestBuy(normalizedIds).subscribe({
       next: (result: any) => {
-        this.gridData = Array.isArray(result?.data) ? result.data : [];
+        const rawData = Array.isArray(result?.data) ? result.data : [];
+        const unapproved = rawData.filter((item: any) => item.IsApproved !== true && item.ProductCode);
+        if (unapproved.length > 0) {
+          const unapprovedCodes = unapproved.map((item: any) => item.ProductCode || item.ProductName || 'Không rõ').filter(Boolean);
+          this.modal.warning({
+            nzTitle: 'Sản phẩm chưa được duyệt',
+            nzContent: `Có ${unapproved.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách yêu cầu mua hàng:<br/><br/><b>${unapprovedCodes.join(', ')}</b>`,
+            nzOkText: 'Đồng ý'
+          });
+        }
+
+        // Chỉ lấy sản phẩm thực sự được duyệt và có ProductCode
+        this.gridData = rawData.filter((item: any) => item.IsApproved === true && item.ProductCode);
         this.dataset = this.gridData.map((item: any, index: number) => ({
           ...item,
           id: `${item.__pokhId || 'pokh'}_${item.POKHDetailID || item.ID || index}`

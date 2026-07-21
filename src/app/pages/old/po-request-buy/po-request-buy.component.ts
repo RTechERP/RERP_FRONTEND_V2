@@ -88,7 +88,8 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
     public activeModal: NgbActiveModal,
     private notification: NzNotificationService,
     private PoRequestBuyService: PoRequestBuyService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private modal: NzModalService
   ) { }
 
   dataDepartment: any[] = [];
@@ -132,9 +133,39 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
     this.PoRequestBuyService.getPOKHProductForRequestBuy(id).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          const gridData = response.data;
-          console.log('gridData', gridData);
-          this.dataTable.setData(gridData);
+          const rawData = Array.isArray(response.data) ? response.data : [];
+          const unapproved = rawData.filter((item: any) => item.IsApproved !== true && item.ProductCode);
+          if (unapproved.length > 0) {
+            const unapprovedCodes = unapproved.map((item: any) => item.ProductCode || item.ProductName || 'Không rõ').filter(Boolean);
+            this.modal.warning({
+              nzTitle: 'Sản phẩm chưa được duyệt',
+              nzContent: `Có ${unapproved.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách yêu cầu mua hàng:<br/><br/><b>${unapprovedCodes.join(', ')}</b>`,
+              nzOkText: 'Đồng ý'
+            });
+          }
+
+          // Lọc dữ liệu bảo toàn cấu trúc Tree
+          const approvedIds = new Set<number>();
+          rawData.forEach((item: any) => {
+            if (item.IsApproved === true && item.ProductCode) {
+              approvedIds.add(item.ID);
+            }
+          });
+
+          const itemMap = new Map<number, any>();
+          rawData.forEach((item: any) => itemMap.set(item.ID, item));
+
+          const keepIds = new Set<number>(approvedIds);
+          approvedIds.forEach((id: number) => {
+            let current = itemMap.get(id);
+            while (current && current.ParentID && current.ParentID !== 0) {
+              keepIds.add(current.ParentID);
+              current = itemMap.get(current.ParentID);
+            }
+          });
+
+          const approvedData = rawData.filter((item: any) => keepIds.has(item.ID));
+          this.dataTable.setData(approvedData);
         } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,

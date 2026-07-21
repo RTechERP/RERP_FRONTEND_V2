@@ -82,6 +82,15 @@ export class ProjectGateStepService {
         });
     }
 
+    approveMultiple(linkIds: number[], isApproved: boolean, forceApprove: boolean = false): Observable<any> {
+        const body = {
+            LinkIDs: linkIds,
+            IsApproved: isApproved,
+            ForceApprove: forceApprove
+        };
+        return this.http.post<any>(`${environment.host}api/ProjectGateStepLink/ApproveMultiple`, body);
+    }
+
     downloadFile(filePath: string): Observable<Blob> {
         return this.http.get(`${environment.host}api/home/download`, {
             params: { path: filePath },

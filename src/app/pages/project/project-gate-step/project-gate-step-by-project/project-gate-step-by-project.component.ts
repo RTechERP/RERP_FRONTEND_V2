@@ -105,6 +105,10 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   workersSearchText: string = '';
   workersFilteredData: any[] = [];
 
+  // Dành cho duyệt/hủy duyệt nhiều công đoạn
+  selectedStepLinkIds: Set<number> = new Set<number>();
+  isApprovingMultiple: boolean = false;
+
   formatAmount = (value: number) => value != null ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '';
   parseAmount = (value: string): number => {
     const cleaned = value.replace(/,/g, ''); // bỏ dấu phẩy
@@ -373,6 +377,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
               if (originalItem) {
                 step.ProjectGateStepLinkID = originalItem.ID;
+                step.IsApproved = originalItem.IsApproved;
                 step.StartDate = originalItem.StartDate ? originalItem.StartDate.substring(0, 10) : null;
                 step.isRepeatChecked = !!repeatedItem;
 
@@ -425,6 +430,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
             if (repeatedStep && repeatedItem) {
               repeatedStep.ProjectGateStepLinkID = repeatedItem.ID;
+              repeatedStep.IsApproved = repeatedItem.IsApproved;
               repeatedStep.StartDate = repeatedItem.StartDate ? repeatedItem.StartDate.substring(0, 10) : null;
 
               if (repeatedItem.CheckLists && repeatedItem.CheckLists.length > 0) {
@@ -1468,10 +1474,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   }
 
   isStepPassed(item: any): boolean {
-    if (!item || !item.CheckLists || item.CheckLists.length === 0) return false;
-    const requiredRules = item.CheckLists.filter((c: any) => c.IsRequired === true);
-    if (requiredRules.length === 0) return true;
-    return requiredRules.every((c: any) => c.IsPass === true);
+    return item?.IsApproved === true;
   }
 
   getRelativeSubPath(pathFolder: string): string {
@@ -1664,5 +1667,92 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     } else if (this.tabData && this.tabData._tabKey) {
       this.tabService.closeTabByKey(this.tabData._tabKey);
     }
+  }
+
+  // ─── Duyệt / Hủy duyệt nhiều công đoạn ───────────────────────────────────
+
+  /** Bật/tắt chọn 1 công đoạn đã lưu (isNew=false mới được chọn) */
+  toggleSelectStep(item: any): void {
+    if (item.isNew || !item.ProjectGateStepLinkID) return;
+    if (this.selectedStepLinkIds.has(item.ProjectGateStepLinkID)) {
+      this.selectedStepLinkIds.delete(item.ProjectGateStepLinkID);
+    } else {
+      this.selectedStepLinkIds.add(item.ProjectGateStepLinkID);
+    }
+  }
+
+  isStepSelected(item: any): boolean {
+    return !!item?.ProjectGateStepLinkID && this.selectedStepLinkIds.has(item.ProjectGateStepLinkID);
+  }
+
+  /** Lấy danh sách item đã được chọn thuộc tab đang hiển thị */
+  getSelectedSavedSteps(): any[] {
+    const key = this.activeProjectTypeId + '_' + this.activeDepartmentId;
+    const steps = this.projectTypeStepsMap[key] || [];
+    return steps.filter((s: any) => !s.isNew && s.ProjectGateStepLinkID && this.selectedStepLinkIds.has(s.ProjectGateStepLinkID));
+  }
+
+  /** Entry point: hỏi xác nhận rồi gọi API duyệt */
+  confirmApproveMultiple(isApproved: boolean): void {
+    const selected = this.getSelectedSavedSteps();
+    if (!selected.length) {
+      this.notification.warning('Chú ý', 'Vui lòng chọn ít nhất một công đoạn.');
+      return;
+    }
+
+    const action = isApproved ? 'duyệt' : 'hủy duyệt';
+    const count = selected.length;
+
+    this.modalService.confirm({
+      nzTitle: `<b>Xác nhận ${action} công đoạn</b>`,
+      nzContent: `Bạn có chắc muốn <b>${action}</b> <b style="color:#1677ff">${count}</b> công đoạn đã chọn không?`,
+      nzOkText: isApproved ? 'Duyệt' : 'Hủy duyệt',
+      nzOkType: isApproved ? 'primary' : 'default',
+      nzOkDanger: !isApproved,
+      nzCancelText: 'Không',
+      nzOnOk: () => this.doApproveMultiple(selected.map((s: any) => s.ProjectGateStepLinkID), isApproved)
+    });
+  }
+
+  /** Gọi API ApproveMultiple, xử lý HasPendingTBP và reload */
+  private doApproveMultiple(linkIds: number[], isApproved: boolean, force: boolean = false): void {
+    this.isApprovingMultiple = true;
+    this.projectGateStepService.approveMultiple(linkIds, isApproved, force).subscribe({
+      next: (res: any) => {
+        const data = res?.data;
+
+        // API trả về cảnh báo TBP chưa duyệt
+        if (data && !data.Success && data.HasPendingTBP) {
+          this.isApprovingMultiple = false;
+
+          this.modalService.confirm({
+            nzTitle: '<b>Cảnh báo: Còn checklist TBP chưa duyệt</b>',
+            nzContent: `
+              <div style="font-size:13px">
+                <p>${data.Message}</p>
+                <p class="mt-2 mb-0 text-muted">Bạn vẫn muốn tiếp tục duyệt không?</p>
+              </div>`,
+            nzOkText: 'Tiếp tục duyệt',
+            nzOkType: 'primary',
+            nzCancelText: 'Hủy',
+            nzOnOk: () => this.doApproveMultiple(linkIds, isApproved, true)
+          });
+          return;
+        }
+
+        // Thành công
+        const action = isApproved ? 'Duyệt' : 'Hủy duyệt';
+        this.notification.success('Thành công', data?.Message || `${action} thành công`);
+        this.selectedStepLinkIds.clear();
+        this.loadAllGateSteps(); // reload để cập nhật màu xanh lá
+      },
+      error: (err: any) => {
+        const msg = err?.error?.message || err?.message || 'Lỗi không xác định';
+        this.notification.error('Lỗi', msg);
+      },
+      complete: () => {
+        this.isApprovingMultiple = false;
+      }
+    });
   }
 }

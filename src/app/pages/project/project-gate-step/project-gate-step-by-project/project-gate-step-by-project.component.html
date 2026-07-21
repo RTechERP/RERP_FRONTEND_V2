@@ -11,8 +11,7 @@
 
       <!-- Tiêu đề: Tổng hợp Gate -->
       <div class="fw-bold px-2 py-2 border-bottom mb-2 d-flex align-items-center sidebar-header cursor-pointer"
-        [class.text-primary]="isSummaryActive" [class.text-secondary]="!isSummaryActive"
-        (click)="selectSummaryView()">
+        [class.text-primary]="isSummaryActive" [class.text-secondary]="!isSummaryActive" (click)="selectSummaryView()">
         <i class="fa-solid fa-chart-pie me-2"></i> TỔNG HỢP GATE
       </div>
 
@@ -54,27 +53,37 @@
       <!-- Thanh thao tác phía trên -->
       <div class="d-flex justify-content-end align-items-center gap-2 mb-2 pb-2 border-bottom flex-shrink-0">
         @if (!isSummaryActive) {
-          @if (activeProjectTypeId && activeDepartmentId !== undefined && hasNoSavedSteps(activeProjectTypeId,
-          activeDepartmentId)) {
-          <div class="d-flex align-items-center gap-1 me-auto">
-            <span class="text-muted fw-bold">Mẫu công đoạn:</span>
-            <nz-select nzSize="small" style="width: 250px; font-size: 12px !important;" [(ngModel)]="selectedTemplateId"
-              (ngModelChange)="onTemplateChange(activeProjectTypeId, activeDepartmentId, $event)"
-              nzPlaceHolder="Chọn mẫu công đoạn...">
-              <nz-option [nzValue]="null" nzLabel="-- Tất cả công đoạn --"></nz-option>
-              @for (t of getTemplatesForActiveType(); track t.ID) {
-              <nz-option [nzValue]="t.ID" [nzLabel]="t.Name"></nz-option>
-              }
-            </nz-select>
-          </div>
-          }
-          <button nz-button nzType="default" nzDanger (click)="openDeletedStepsModal()" [disabled]="isSaving || isLoading"
-            style="font-size: 12px;">
-            <i class="fa-solid fa-trash-can me-1"></i> Danh sách đã xóa
-          </button>
-          <button nz-button nzType="primary" (click)="save()" [nzLoading]="isSaving" style="font-size: 12px;">
-            <i class="fa-solid fa-floppy-disk me-1"></i> Lưu thông tin
-          </button>
+        @if (activeProjectTypeId && activeDepartmentId !== undefined && hasNoSavedSteps(activeProjectTypeId,
+        activeDepartmentId)) {
+        <div class="d-flex align-items-center gap-1 me-auto">
+          <span class="text-muted fw-bold">Mẫu công đoạn:</span>
+          <nz-select nzSize="small" style="width: 250px; font-size: 12px !important;" [(ngModel)]="selectedTemplateId"
+            (ngModelChange)="onTemplateChange(activeProjectTypeId, activeDepartmentId, $event)"
+            nzPlaceHolder="Chọn mẫu công đoạn...">
+            <nz-option [nzValue]="null" nzLabel="-- Tất cả công đoạn --"></nz-option>
+            @for (t of getTemplatesForActiveType(); track t.ID) {
+            <nz-option [nzValue]="t.ID" [nzLabel]="t.Name"></nz-option>
+            }
+          </nz-select>
+        </div>
+        }
+        <button nz-button nzType="default" nzDanger (click)="openDeletedStepsModal()" [disabled]="isSaving || isLoading"
+          style="font-size: 12px;">
+          <i class="fa-solid fa-trash-can me-1"></i> Danh sách đã xóa
+        </button>
+        @if (selectedStepLinkIds.size > 0) {
+        <button nz-button nzType="default" nzDanger (click)="confirmApproveMultiple(false)"
+          [nzLoading]="isApprovingMultiple" style="font-size: 12px;">
+          <i class="fa-solid fa-xmark me-1"></i> Hủy duyệt ({{ selectedStepLinkIds.size }})
+        </button>
+        <button nz-button nzType="primary" style="background:#52c41a;border-color:#52c41a;font-size:12px"
+          (click)="confirmApproveMultiple(true)" [nzLoading]="isApprovingMultiple">
+          <i class="fa-solid fa-circle-check me-1"></i> Duyệt công đoạn ({{ selectedStepLinkIds.size }})
+        </button>
+        }
+        <button nz-button nzType="primary" (click)="save()" [nzLoading]="isSaving" style="font-size: 12px;">
+          <i class="fa-solid fa-floppy-disk me-1"></i> Lưu thông tin
+        </button>
         }
         <button nz-button nzType="default" (click)="closeModal()" [disabled]="isSaving" style="font-size: 12px;">
           <i class="fa-solid fa-arrow-left me-1"></i> Đóng
@@ -89,357 +98,376 @@
         <span>Đang tải dữ liệu nhân công...</span>
       </div>
       } @else if (isSummaryActive) {
-        <!-- TỔNG HỢP GATE VIEW -->
-        <div class="summary-container d-flex flex-column flex-grow-1 overflow-hidden" style="height: 100%;">
-          
-          <!-- Sơ đồ pipeline Gate: G1 -> G2 -> G3 -->
-          <div class="gate-pipeline-scroll py-2 px-1 mb-3 bg-light border rounded flex-shrink-0 overflow-x-auto w-100">
-            <div class="d-flex align-items-center gap-3 px-2 py-1" style="min-width: max-content;">
-              
-              @for (gate of summaryGates; track gate.gateId; let idx = $index) {
-                <!-- Cột Gate card -->
-                <div class="gate-node-card cursor-pointer p-2 rounded border shadow-sm transition-all text-center position-relative"
-                  [class.border-primary]="selectedSummaryGateId === gate.gateId"
-                  [class.bg-primary-subtle]="selectedSummaryGateId === gate.gateId"
-                  [class.bg-white]="selectedSummaryGateId !== gate.gateId"
-                  (click)="selectSummaryGate(gate.gateId)"
-                  style="width: 180px; min-width: 180px; transition: all 0.2s;">
-                  
-                  <div class="fw-bold text-truncate text-uppercase fs-12 mb-1"
-                    [class.text-primary]="selectedSummaryGateId === gate.gateId"
-                    [class.text-dark]="selectedSummaryGateId !== gate.gateId">
-                    {{ gate.gateCode }}
-                  </div>
-                  
-                  <div class="text-muted text-truncate fs-11 mb-2" title="{{ gate.gateName }}">
-                    {{ gate.gateName }}
-                  </div>
-                  
-                  <!-- Tiến độ hoàn thành của Gate -->
-                  <div class="d-flex align-items-center justify-content-center gap-1 fs-11">
-                    <span class="badge" [class.bg-success]="gate.progress === 100" [class.bg-info]="gate.progress > 0 && gate.progress < 100" [class.bg-secondary]="gate.progress === 0">
-                      {{ gate.progress }}%
-                    </span>
-                    <span class="text-muted">({{ gate.completedSteps }}/{{ gate.totalSteps }} bước)</span>
-                  </div>
-                </div>
+      <!-- TỔNG HỢP GATE VIEW -->
+      <div class="summary-container d-flex flex-column flex-grow-1 overflow-hidden" style="height: 100%;">
 
-                <!-- Mũi tên kết nối (Arrow) giữa các Gate -->
-                @if (idx < summaryGates.length - 1) {
-                  <div class="d-flex align-items-center justify-content-center text-muted flex-shrink-0" style="width: 24px;">
-                    <i class="fa-solid fa-chevron-right fs-14"></i>
-                  </div>
-                }
-              }
-              
-              @if (summaryGates.length === 0) {
-                <div class="text-center text-muted py-3 w-100 fs-12">Không có dữ liệu Gate nào</div>
-              }
-              
+        <!-- Sơ đồ pipeline Gate: G1 -> G2 -> G3 -->
+        <div class="gate-pipeline-scroll py-2 px-1 mb-3 bg-light border rounded flex-shrink-0 overflow-x-auto w-100">
+          <div class="d-flex align-items-center gap-3 px-2 py-1" style="min-width: max-content;">
+
+            @for (gate of summaryGates; track gate.gateId; let idx = $index) {
+            <!-- Cột Gate card -->
+            <div
+              class="gate-node-card cursor-pointer p-2 rounded border shadow-sm transition-all text-center position-relative"
+              [class.border-primary]="selectedSummaryGateId === gate.gateId"
+              [class.bg-primary-subtle]="selectedSummaryGateId === gate.gateId"
+              [class.bg-white]="selectedSummaryGateId !== gate.gateId" (click)="selectSummaryGate(gate.gateId)"
+              style="width: 180px; min-width: 180px; transition: all 0.2s;">
+
+              <div class="fw-bold text-truncate text-uppercase fs-12 mb-1"
+                [class.text-primary]="selectedSummaryGateId === gate.gateId"
+                [class.text-dark]="selectedSummaryGateId !== gate.gateId">
+                {{ gate.gateCode }}
+              </div>
+
+              <div class="text-muted text-truncate fs-11 mb-2" title="{{ gate.gateName }}">
+                {{ gate.gateName }}
+              </div>
+
+              <!-- Tiến độ hoàn thành của Gate -->
+              <div class="d-flex align-items-center justify-content-center gap-1 fs-11">
+                <span class="badge" [class.bg-success]="gate.progress === 100"
+                  [class.bg-info]="gate.progress > 0 && gate.progress < 100" [class.bg-secondary]="gate.progress === 0">
+                  {{ gate.progress }}%
+                </span>
+                <span class="text-muted">({{ gate.completedSteps }}/{{ gate.totalSteps }} bước)</span>
+              </div>
             </div>
+
+            <!-- Mũi tên kết nối (Arrow) giữa các Gate -->
+            @if (idx < summaryGates.length - 1) { <div
+              class="d-flex align-items-center justify-content-center text-muted flex-shrink-0" style="width: 24px;">
+              <i class="fa-solid fa-chevron-right fs-14"></i>
           </div>
-
-          <!-- Chi tiết các phòng ban tham gia và trạng thái các bước trong Gate đang chọn -->
-          @if (summaryGateDetails) {
-            <div class="d-flex flex-column flex-grow-1 overflow-hidden bg-light p-2 border rounded">
-              
-              <div class="fw-bold text-primary mb-2 d-flex align-items-center justify-content-between flex-shrink-0 px-2 py-1 bg-white border rounded">
-                <span>
-                  <i class="fa-solid fa-circle-info me-2"></i>
-                  CHI TIẾT: {{ summaryGateDetails.gateCode }} - {{ summaryGateDetails.gateName }}
-                </span>
-                <span class="fs-12 text-muted fw-normal">
-                  Tổng cộng: <strong>{{ summaryGateDetails.departments.length }}</strong> phòng ban tham gia
-                </span>
-              </div>
-              
-              <!-- Grid/Danh sách các Phòng ban -->
-              <div class="flex-grow-1 overflow-y-auto w-100 p-1">
-                <div class="row g-3">
-                  @for (dept of summaryGateDetails.departments; track dept.deptId) {
-                    <div class="col-12 col-md-6 col-lg-4">
-                      <div class="card h-100 border-0 shadow-sm rounded">
-                        
-                        <!-- Header Phòng ban -->
-                        <div class="card-header bg-white border-bottom p-2 d-flex align-items-center justify-content-between">
-                          <span class="fw-bold text-dark fs-12 text-truncate" title="{{ dept.deptName }}" style="max-width: 70%;">
-                            <i class="fa-solid fa-building me-1 text-secondary"></i>
-                            {{ dept.deptName }}
-                          </span>
-                          <span class="badge" [class.bg-success]="dept.progress === 100" [class.bg-info]="dept.progress > 0 && dept.progress < 100" [class.bg-secondary]="dept.progress === 0">
-                            {{ dept.progress }}% Hoàn thành
-                          </span>
-                        </div>
-                        
-                        <!-- Body: Danh sách các bước và trạng thái -->
-                        <div class="card-body p-2 bg-white" style="max-height: 350px; overflow-y: auto;">
-                          <ul class="list-group list-group-flush gap-1">
-                            @for (step of dept.steps; track step.stepLinkId) {
-                              <li class="list-group-item p-2 border rounded d-flex flex-column gap-1 bg-light-subtle mb-1" style="font-size: 11px;">
-                                <div class="d-flex align-items-start justify-content-between gap-2">
-                                  <span class="fw-semibold text-dark text-wrap" style="line-height: 1.3;">
-                                    {{ step.content }}
-                                  </span>
-                                  <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0">
-                                    <!-- Trạng thái hoàn thành -->
-                                    <span class="badge" [class.bg-success]="step.isCompleted" [class.bg-warning]="!step.isCompleted" style="font-size: 10px;">
-                                      {{ step.isCompleted ? 'Xong' : 'Chưa xong' }}
-                                    </span>
-                                    <!-- Trạng thái duyệt của TBP -->
-                                    @if (step.isApproved) {
-                                      <span class="badge bg-success-subtle text-success border border-success" style="font-size: 9px; padding: 2px 4px;">
-                                        Đã duyệt
-                                      </span>
-                                    } @else {
-                                      <span class="badge bg-danger-subtle text-danger border border-danger" style="font-size: 9px; padding: 2px 4px;">
-                                        Chờ duyệt
-                                      </span>
-                                    }
-                                  </div>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-between text-muted mt-1" style="font-size: 10px;">
-                                  <span>Bắt đầu: {{ step.startDate ? (step.startDate | date:'dd/MM/yyyy') : '---' }}</span>
-                                  <span>Checklist: <strong>{{ step.passedChecklists }}/{{ step.totalChecklists }}</strong></span>
-                                </div>
-                              </li>
-                            }
-                          </ul>
-                        </div>
-                        
-                      </div>
-                    </div>
-                  }
-                </div>
-              </div>
-              
-            </div>
-          } @else {
-            <div class="d-flex flex-column align-items-center justify-content-center flex-grow-1 p-5 text-muted bg-light border rounded">
-              <i class="fa-solid fa-diagram-project fs-36 mb-3"></i>
-              <span>Chọn một Gate ở sơ đồ trên để xem chi tiết phòng ban tham gia</span>
-            </div>
           }
-          
+          }
+
+          @if (summaryGates.length === 0) {
+          <div class="text-center text-muted py-3 w-100 fs-12">Không có dữ liệu Gate nào</div>
+          }
+
         </div>
-      } @else if (activeProjectTypeId && activeDepartmentId !== undefined && projectTypeStepsMap[activeProjectTypeId +
-      '_' + activeDepartmentId]) {
-      <div class="table-wrapper flex-grow-1 w-100 overflow-auto" style="height: 100%;">
-        <p-table [value]="projectTypeStepsMap[activeProjectTypeId + '_' + activeDepartmentId] || []"
-          styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true" scrollHeight="flex"
-          rowGroupMode="subheader" groupRowsBy="groupName" [style]="{'min-width': '2050px', 'table-layout': 'fixed'}"
-          [resizableColumns]="true" columnResizeMode="expand">
-          <ng-template pTemplate="colgroup">
-            <colgroup>
-              <col style="width: 60px;">
-              <col style="width: 50px;">
-              <col style="width: 60px;">
-              <col style="width: 150px;">
-              <col style="width: 320px;">
-              <col style="width: 320px;">
-              <col style="width: 140px;">
-              <col style="width: 120px;">
-              <col style="width: 80px;">
-              <col style="width: 80px;">
-              <col style="width: 80px;">
-              <col style="width: 220px;">
-              <col style="width: 100px;">
-              <col style="width: 130px;">
-              <col style="width: 140px;">
-            </colgroup>
-          </ng-template>
-          <ng-template pTemplate="header">
-            <tr class="header-row">
-              <th style="width: 60px; text-align: center;" pResizableColumn>
-                <button nz-button nzType="text" (click)="addBlankStep(activeProjectTypeId + '_' + activeDepartmentId)"
-                  class="text-primary p-0 d-flex align-items-center justify-content-center mx-auto"
-                  style="height: 24px; width: 24px;" title="Thêm công đoạn">
-                  <i class="fa-solid fa-plus" style="font-size: 14px;"></i>
-                </button>
-              </th>
-              <th style="width: 50px;" class="text-center" pResizableColumn pSortableColumn="TT">TT <p-sortIcon
-                  field="TT"></p-sortIcon></th>
-              <th style="width: 60px;" class="text-center" pResizableColumn pSortableColumn="SortOrder">Thứ tự
-                <p-sortIcon field="SortOrder"></p-sortIcon>
-              </th>
-              <th style="width: 150px;" class="text-center" pResizableColumn pSortableColumn="GateCode">Bước/Giai đoạn
-                <p-sortIcon field="GateCode"></p-sortIcon>
-              </th>
-              <th style="width: 320px;" class="text-center" pResizableColumn pSortableColumn="Content">Nội dung công
-                việc <p-sortIcon field="Content"></p-sortIcon></th>
-              <th style="width: 320px;" class="text-center" pResizableColumn pSortableColumn="Content">Nội dung thực tế
-                <p-sortIcon field="Content"></p-sortIcon>
-              </th>
-              <th style="width: 140px;" class="text-center" pResizableColumn>Checklist</th>
+      </div>
 
-              <th style="width: 120px;" class="text-center" pResizableColumn pSortableColumn="StartDate">Ngày bắt đầu
-                <p-sortIcon field="StartDate"></p-sortIcon>
-              </th>
-              <th style="width: 80px;" class="text-center" pResizableColumn>Repeat</th>
-              <th style="width: 80px;" class="text-center" pResizableColumn pSortableColumn="PeopleCount">Số người
-                <p-sortIcon field="PeopleCount"></p-sortIcon>
-              </th>
-              <th style="width: 80px;" class="text-center" pResizableColumn pSortableColumn="DayCount">Số ngày
-                <p-sortIcon field="DayCount"></p-sortIcon>
-              </th>
-              <th style="width: 220px;" class="text-center" pResizableColumn>Nhân viên thực hiện</th>
-              <th style="width: 100px;" class="text-center" pResizableColumn pSortableColumn="TotalEffort">Tổng nhân
-                công <p-sortIcon field="TotalEffort"></p-sortIcon></th>
-              <th style="width: 130px;" class="text-center" pResizableColumn pSortableColumn="UnitPrice">Đơn giá
-                <p-sortIcon field="UnitPrice"></p-sortIcon>
-              </th>
-              <th style="width: 140px;" class="text-center" pResizableColumn pSortableColumn="TotalAmount">Thành tiền
-                <p-sortIcon field="TotalAmount"></p-sortIcon>
-              </th>
-            </tr>
-          </ng-template>
+      <!-- Chi tiết các phòng ban tham gia và trạng thái các bước trong Gate đang chọn -->
+      @if (summaryGateDetails) {
+      <div class="d-flex flex-column flex-grow-1 overflow-hidden bg-light p-2 border rounded">
 
-          <ng-template pTemplate="groupheader" let-item>
-            @if (isFirstSubgroupOfMachine(activeProjectTypeId + '_' + activeDepartmentId, item)) {
-            <tr class="machine-group-header">
-              <td colspan="15" class="fw-bold text-primary px-3 py-2 text-start"
-                style="font-size: 12px !important; font-weight: 800 !important; background-color: #e6f7ff !important; color: #0050b3 !important; border: 1px solid #dee2e6 !important;">
-                {{ getMachineHeaderName(item) }}
-              </td>
-            </tr>
-            }
-            <tr pRowGroupHeader class="row-group-header">
-              <td colspan="12" class="bg-light fw-bold text-primary px-3 py-1 text-start" style="font-size: 12px;">
-                {{ getSubgroupHeaderName(item) }}
-              </td>
-              <td class="bg-light fw-bold text-primary text-center px-1 py-1" style="width: 100px; font-size: 12px;">
-                {{ getGroupTotalEffort(activeProjectTypeId + '_' + activeDepartmentId, item.groupName) | number:'1.0-2'
-                }}
-              </td>
-              <td class="bg-light" style="width: 130px;"></td>
-              <td class="bg-light fw-bold text-primary text-end px-1 py-1" style="width: 140px; font-size: 12px;">
-                {{ getGroupTotalAmount(activeProjectTypeId + '_' + activeDepartmentId, item.groupName) | number:'1.0-2'
-                }}
-              </td>
-            </tr>
-          </ng-template>
+        <div
+          class="fw-bold text-primary mb-2 d-flex align-items-center justify-content-between flex-shrink-0 px-2 py-1 bg-white border rounded">
+          <span>
+            <i class="fa-solid fa-circle-info me-2"></i>
+            CHI TIẾT: {{ summaryGateDetails.gateCode }} - {{ summaryGateDetails.gateName }}
+          </span>
+          <span class="fs-12 text-muted fw-normal">
+            Tổng cộng: <strong>{{ summaryGateDetails.departments.length }}</strong> phòng ban tham gia
+          </span>
+        </div>
 
-          <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
-            <tr class="body-row" [class.passed-step]="isStepPassed(item)"
-              (contextmenu)="onRowContextMenu($event, item)">
-              <td class="text-center" style="width: 60px;">
-                <button nz-button nzType="text" nzDanger
-                  (click)="removeStep(activeProjectTypeId + '_' + activeDepartmentId, item.ID)"
-                  class="btn-delete-step p-0 d-flex align-items-center justify-content-center mx-auto"
-                  style="height: 24px; width: 24px;">
-                  <i class="fa-solid fa-xmark"></i>
-                </button>
-              </td>
-              <td class="text-center" style="width: 50px;">{{ item.isNew ? '' : item.TT }}</td>
-              <td class="text-center" style="width: 60px;">{{ item.isNew ? '' : item.SortOrder }}</td>
-              <td style="width: 150px;">
-                @if (item.isNew) {
-                <nz-select nzSize="small" class="w-100" style="font-size: 12px; min-width: 130px;"
-                  [nzDropdownMatchSelectWidth]="false" [nzDropdownStyle]="{ 'min-width': '300px' }"
-                  [(ngModel)]="item.selectedTemplateStepId"
-                  (ngModelChange)="onNewStepSelect(activeProjectTypeId + '_' + activeDepartmentId, item, $event)"
-                  nzPlaceHolder="Chọn công đoạn...">
-                  @for (step of getAvailableStepsForSelect(activeProjectTypeId + '_' + activeDepartmentId); track
-                  step.ID) {
-                  <nz-option [nzValue]="step.ID" [nzLabel]="step.GateCode + ' - ' + step.GateName"></nz-option>
-                  }
-                </nz-select>
-                } @else {
-                {{ item.GateCode }}-{{item.GateName}}
-                }
-              </td>
-              <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content
-                }}</td>
-              <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content
-                }}</td>
-              <!-- Cột Checklist -->
-              <td style="width: 140px; font-size: 11px; text-align: center;">
-                @if (!item.isNew && item.CheckLists && item.CheckLists.length > 0) {
-                <div style="height: 20px; display: flex; align-items: center; justify-content: center;">
-                  <button nz-button nzType="link" nzSize="small" (click)="openFileListModal(item)"
-                    class="p-0 d-inline-flex align-items-center">
-                    <i class="fa-solid fa-list-check me-1"></i>
-                    Chi tiết ({{ countCompletedRules(item) }}/{{ item.CheckLists.length }})
-                  </button>
-                </div>
-                }
-              </td>
-              <td style="width: 120px; text-align: center;">
-                <input type="date" nz-input nzSize="small" class="text-center w-100 input-date" style="font-size: 12px;"
-                  [(ngModel)]="item.StartDate"
-                  (ngModelChange)="onStartDateValueChange(item, activeProjectTypeId + '_' + activeDepartmentId)" />
-              </td>
-              <td style="width: 80px; text-align: center;">
-                @if (item.machineIndex === 1 && !item.isNew) {
-                <input type="checkbox" [(ngModel)]="item.isRepeatChecked"
-                  (change)="onRepeatToggle(activeProjectTypeId + '_' + activeDepartmentId, item)" />
-                }
-              </td>
-              <td style="width: 80px; text-align: center;">
-                <input type="number" nz-input nzSize="small" class="text-center w-100" style="font-size: 12px;"
-                  [(ngModel)]="item.PeopleCount" (ngModelChange)="onGateStepValueChange(item)" />
-              </td>
-              <td style="width: 80px; text-align: center;">
-                <input type="number" nz-input nzSize="small" class="text-center w-100" style="font-size: 12px;"
-                  [(ngModel)]="item.DayCount" (ngModelChange)="onGateStepValueChange(item)" />
-              </td>
-              <td style="width: 220px; padding: 0 !important; position: relative;">
-                <div #workerLookupCell class="table-lookup-cell"
-                  (click)="openWorkersLookup($event, item, workerLookupPanel)"
-                  style="width: 100%; height: 100%; min-height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; cursor: pointer;">
-                  <span class="table-lookup-value" [class.text-400]="!item.Workers || item.Workers.length === 0"
-                    style="white-space: pre-wrap; word-break: break-word; flex: 1; padding: 4px 0;"
-                    [title]="getWorkersDisplay(item.Workers) || 'Chọn nhân viên'">
-                    {{ getWorkersDisplay(item.Workers) || 'Chọn nhân viên' }}
+        <!-- Grid/Danh sách các Phòng ban -->
+        <div class="flex-grow-1 overflow-y-auto w-100 p-1">
+          <div class="row g-3">
+            @for (dept of summaryGateDetails.departments; track dept.deptId) {
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="card h-100 border-0 shadow-sm rounded">
+
+                <!-- Header Phòng ban -->
+                <div class="card-header bg-white border-bottom p-2 d-flex align-items-center justify-content-between">
+                  <span class="fw-bold text-dark fs-12 text-truncate" title="{{ dept.deptName }}"
+                    style="max-width: 70%;">
+                    <i class="fa-solid fa-building me-1 text-secondary"></i>
+                    {{ dept.deptName }}
                   </span>
-                  <i class="pi pi-chevron-down table-lookup-chevron"
-                    style="font-size: 0.8rem; color: #6c757d; margin-left: 4px;"></i>
+                  <span class="badge" [class.bg-success]="dept.progress === 100"
+                    [class.bg-info]="dept.progress > 0 && dept.progress < 100"
+                    [class.bg-secondary]="dept.progress === 0">
+                    {{ dept.progress }}% Hoàn thành
+                  </span>
                 </div>
-              </td>
-              <td style="width: 100px; text-align: center;">
-                <input type="number" nz-input nzSize="small" class="text-center w-100" style="font-size: 12px;"
-                  [(ngModel)]="item.TotalEffort" />
-              </td>
-              <td style="width: 130px; text-align: center;">
-                <nz-input-number [(ngModel)]="item.UnitPrice" [nzMin]="0" [nzStep]="10000" [nzFormatter]="formatAmount"
-                  [nzParser]="parseAmount" nzSize="small" class="text-end w-100" style="font-size: 12px; width: 100%;">
-                </nz-input-number>
-              </td>
-              <td style="width: 140px; text-align: right; font-weight: bold; font-size: 12px; padding-right: 8px;">
-                {{ (item.UnitPrice != null && item.TotalEffort != null) ? (item.UnitPrice * item.TotalEffort |
-                number:'1.0-2') : '' }}
-              </td>
-            </tr>
-          </ng-template>
 
-          <ng-template pTemplate="footer">
-            <tr class="fw-bold bg-light footer-row">
-              <td colspan="12" class="text-end pe-3" style="font-size: 12px;">Tổng cộng:</td>
-              <td style="width: 100px; text-align: center; font-size: 12px;">
-                {{ getTotalEffort(activeProjectTypeId + '_' + activeDepartmentId) | number:'1.0-2' }}
-              </td>
-              <td style="width: 130px;"></td>
-              <td style="width: 140px; text-align: right; font-weight: bold; font-size: 12px;"
-                class="text-primary pe-2">
-                {{ getTotalAmount(activeProjectTypeId + '_' + activeDepartmentId) | number:'1.0-2' }}
-              </td>
-            </tr>
-          </ng-template>
+                <!-- Body: Danh sách các bước và trạng thái -->
+                <div class="card-body p-2 bg-white" style="max-height: 350px; overflow-y: auto;">
+                  <ul class="list-group list-group-flush gap-1">
+                    @for (step of dept.steps; track step.stepLinkId) {
+                    <li class="list-group-item p-2 border rounded d-flex flex-column gap-1 bg-light-subtle mb-1"
+                      style="font-size: 11px;">
+                      <div class="d-flex align-items-start justify-content-between gap-2">
+                        <span class="fw-semibold text-dark text-wrap" style="line-height: 1.3;">
+                          {{ step.content }}
+                        </span>
+                        <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0">
+                          <!-- Trạng thái hoàn thành -->
+                          <span class="badge" [class.bg-success]="step.isCompleted"
+                            [class.bg-warning]="!step.isCompleted" style="font-size: 10px;">
+                            {{ step.isCompleted ? 'Xong' : 'Chưa xong' }}
+                          </span>
+                          <!-- Trạng thái duyệt của TBP -->
+                          @if (step.isApproved) {
+                          <span class="badge bg-success-subtle text-success border border-success"
+                            style="font-size: 9px; padding: 2px 4px;">
+                            Đã duyệt
+                          </span>
+                          } @else {
+                          <span class="badge bg-danger-subtle text-danger border border-danger"
+                            style="font-size: 9px; padding: 2px 4px;">
+                            Chờ duyệt
+                          </span>
+                          }
+                        </div>
+                      </div>
+                      <div class="d-flex align-items-center justify-content-between text-muted mt-1"
+                        style="font-size: 10px;">
+                        <span>Bắt đầu: {{ step.startDate ? (step.startDate | date:'dd/MM/yyyy') : '---' }}</span>
+                        <span>Checklist: <strong>{{ step.passedChecklists }}/{{ step.totalChecklists }}</strong></span>
+                      </div>
+                    </li>
+                    }
+                  </ul>
+                </div>
 
-          <ng-template pTemplate="emptymessage">
-            <tr>
-              <td colspan="15" class="text-center p-3 text-muted">Không có dữ liệu</td>
-            </tr>
-          </ng-template>
-        </p-table>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+
       </div>
       } @else {
-      <div class="text-center py-5 my-auto text-muted d-flex flex-column align-items-center justify-content-center">
-        <i class="fa-solid fa-inbox fa-3x mb-3 text-secondary"></i>
-        <p class="mb-0">Chưa có dữ liệu nhân công hoặc chưa chọn kiểu dự án</p>
+      <div
+        class="d-flex flex-column align-items-center justify-content-center flex-grow-1 p-5 text-muted bg-light border rounded">
+        <i class="fa-solid fa-diagram-project fs-36 mb-3"></i>
+        <span>Chọn một Gate ở sơ đồ trên để xem chi tiết phòng ban tham gia</span>
       </div>
       }
+
     </div>
+    } @else if (activeProjectTypeId && activeDepartmentId !== undefined && projectTypeStepsMap[activeProjectTypeId +
+    '_' + activeDepartmentId]) {
+    <div class="table-wrapper flex-grow-1 w-100 overflow-auto" style="height: 100%;">
+      <p-table [value]="projectTypeStepsMap[activeProjectTypeId + '_' + activeDepartmentId] || []"
+        styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true" scrollHeight="flex"
+        rowGroupMode="subheader" groupRowsBy="groupName" [style]="{'min-width': '2050px', 'table-layout': 'fixed'}"
+        [resizableColumns]="true" columnResizeMode="expand">
+        <ng-template pTemplate="colgroup">
+          <colgroup>
+            <col style="width: 40px;">
+            <col style="width: 60px;">
+            <col style="width: 50px;">
+            <col style="width: 60px;">
+            <col style="width: 150px;">
+            <col style="width: 320px;">
+            <col style="width: 320px;">
+            <col style="width: 140px;">
+            <col style="width: 120px;">
+            <col style="width: 80px;">
+            <col style="width: 80px;">
+            <col style="width: 80px;">
+            <col style="width: 220px;">
+            <col style="width: 100px;">
+            <col style="width: 130px;">
+            <col style="width: 140px;">
+          </colgroup>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr class="header-row">
+            <th style="width: 40px; text-align: center;" pResizableColumn title="Chọn để duyệt">
+              <i class="fa-solid fa-circle-check text-success" style="font-size: 13px;"></i>
+            </th>
+            <th style="width: 60px; text-align: center;" pResizableColumn>
+              <button nz-button nzType="text" (click)="addBlankStep(activeProjectTypeId + '_' + activeDepartmentId)"
+                class="text-primary p-0 d-flex align-items-center justify-content-center mx-auto"
+                style="height: 24px; width: 24px;" title="Thêm công đoạn">
+                <i class="fa-solid fa-plus" style="font-size: 14px;"></i>
+              </button>
+            </th>
+            <th style="width: 50px;" class="text-center" pResizableColumn pSortableColumn="TT">TT <p-sortIcon
+                field="TT"></p-sortIcon></th>
+            <th style="width: 60px;" class="text-center" pResizableColumn pSortableColumn="SortOrder">Thứ tự
+              <p-sortIcon field="SortOrder"></p-sortIcon>
+
+            </th>
+            <th style="width: 150px;" class="text-center" pResizableColumn pSortableColumn="GateCode">Bước/Giai đoạn
+              <p-sortIcon field="GateCode"></p-sortIcon>
+            </th>
+            <th style="width: 320px;" class="text-center" pResizableColumn pSortableColumn="Content">Nội dung công
+              việc <p-sortIcon field="Content"></p-sortIcon></th>
+            <th style="width: 320px;" class="text-center" pResizableColumn pSortableColumn="Content">Nội dung thực tế
+              <p-sortIcon field="Content"></p-sortIcon>
+            </th>
+            <th style="width: 140px;" class="text-center" pResizableColumn>Checklist</th>
+
+            <th style="width: 120px;" class="text-center" pResizableColumn pSortableColumn="StartDate">Ngày bắt đầu
+              <p-sortIcon field="StartDate"></p-sortIcon>
+            </th>
+            <th style="width: 80px;" class="text-center" pResizableColumn>Repeat</th>
+            <th style="width: 80px;" class="text-center" pResizableColumn pSortableColumn="PeopleCount">Số người
+              <p-sortIcon field="PeopleCount"></p-sortIcon>
+            </th>
+            <th style="width: 80px;" class="text-center" pResizableColumn pSortableColumn="DayCount">Số ngày
+              <p-sortIcon field="DayCount"></p-sortIcon>
+            </th>
+            <th style="width: 220px;" class="text-center" pResizableColumn>Nhân viên thực hiện</th>
+            <th style="width: 100px;" class="text-center" pResizableColumn pSortableColumn="TotalEffort">Tổng nhân
+              công <p-sortIcon field="TotalEffort"></p-sortIcon></th>
+            <th style="width: 130px;" class="text-center" pResizableColumn pSortableColumn="UnitPrice">Đơn giá
+              <p-sortIcon field="UnitPrice"></p-sortIcon>
+            </th>
+            <th style="width: 140px;" class="text-center" pResizableColumn pSortableColumn="TotalAmount">Thành tiền
+              <p-sortIcon field="TotalAmount"></p-sortIcon>
+            </th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="groupheader" let-item>
+          @if (isFirstSubgroupOfMachine(activeProjectTypeId + '_' + activeDepartmentId, item)) {
+          <tr class="machine-group-header">
+            <td colspan="16" class="fw-bold text-primary px-3 py-2 text-start"
+              style="font-size: 12px !important; font-weight: 800 !important; background-color: #e6f7ff !important; color: #0050b3 !important; border: 1px solid #dee2e6 !important;">
+              {{ getMachineHeaderName(item) }}
+            </td>
+          </tr>
+          }
+          <tr pRowGroupHeader class="row-group-header">
+            <td colspan="13" class="bg-light fw-bold text-primary px-3 py-1 text-start" style="font-size: 12px;">
+              {{ getSubgroupHeaderName(item) }}
+            </td>
+            <td class="bg-light fw-bold text-primary text-center px-1 py-1" style="width: 100px; font-size: 12px;">
+              {{ getGroupTotalEffort(activeProjectTypeId + '_' + activeDepartmentId, item.groupName) | number:'1.0-2'
+              }}
+            </td>
+            <td class="bg-light" style="width: 130px;"></td>
+            <td class="bg-light fw-bold text-primary text-end px-1 py-1" style="width: 140px; font-size: 12px;">
+              {{ getGroupTotalAmount(activeProjectTypeId + '_' + activeDepartmentId, item.groupName) | number:'1.0-2'
+              }}
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+          <tr class="body-row" [class.passed-step]="isStepPassed(item)" (contextmenu)="onRowContextMenu($event, item)">
+            <td class="text-center" style="width: 40px;">
+              @if (!item.isNew && item.ProjectGateStepLinkID) {
+              <input type="checkbox" [ngModel]="isStepSelected(item)" (change)="toggleSelectStep(item)" />
+              }
+            </td>
+            <td class="text-center" style="width: 60px;">
+              <button nz-button nzType="text" nzDanger
+                (click)="removeStep(activeProjectTypeId + '_' + activeDepartmentId, item.ID)"
+                class="btn-delete-step p-0 d-flex align-items-center justify-content-center mx-auto"
+                style="height: 24px; width: 24px;">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </td>
+            <td class="text-center" style="width: 50px;">{{ item.isNew ? '' : item.TT }}</td>
+            <td class="text-center" style="width: 60px;">{{ item.isNew ? '' : item.SortOrder }}</td>
+            <td style="width: 150px;">
+              @if (item.isNew) {
+              <nz-select nzSize="small" class="w-100" style="font-size: 12px; min-width: 130px;"
+                [nzDropdownMatchSelectWidth]="false" [nzDropdownStyle]="{ 'min-width': '300px' }"
+                [(ngModel)]="item.selectedTemplateStepId"
+                (ngModelChange)="onNewStepSelect(activeProjectTypeId + '_' + activeDepartmentId, item, $event)"
+                nzPlaceHolder="Chọn công đoạn...">
+                @for (step of getAvailableStepsForSelect(activeProjectTypeId + '_' + activeDepartmentId); track
+                step.ID) {
+                <nz-option [nzValue]="step.ID" [nzLabel]="step.GateCode + ' - ' + step.GateName"></nz-option>
+                }
+              </nz-select>
+              } @else {
+              {{ item.GateCode }}-{{item.GateName}}
+              }
+            </td>
+            <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content
+              }}</td>
+            <td style="width: 320px; white-space: pre-wrap; word-break: break-word;">{{ item.isNew ? '' : item.Content
+              }}</td>
+            <!-- Cột Checklist -->
+            <td style="width: 140px; font-size: 11px; text-align: center;">
+              @if (!item.isNew && item.CheckLists && item.CheckLists.length > 0) {
+              <div style="height: 20px; display: flex; align-items: center; justify-content: center;">
+                <button nz-button nzType="link" nzSize="small" (click)="openFileListModal(item)"
+                  class="p-0 d-inline-flex align-items-center">
+                  <i class="fa-solid fa-list-check me-1"></i>
+                  Chi tiết
+                </button>
+              </div>
+              }
+            </td>
+            <td style="width: 120px; text-align: center;">
+              <input type="date" nz-input nzSize="small" class="text-center w-100 input-date" style="font-size: 12px;"
+                [(ngModel)]="item.StartDate"
+                (ngModelChange)="onStartDateValueChange(item, activeProjectTypeId + '_' + activeDepartmentId)" />
+            </td>
+            <td style="width: 80px; text-align: center;">
+              @if (item.machineIndex === 1 && !item.isNew) {
+              <input type="checkbox" [(ngModel)]="item.isRepeatChecked"
+                (change)="onRepeatToggle(activeProjectTypeId + '_' + activeDepartmentId, item)" />
+              }
+            </td>
+            <td style="width: 80px; text-align: center;">
+              <input type="number" nz-input nzSize="small" class="text-center w-100" style="font-size: 12px;"
+                [(ngModel)]="item.PeopleCount" (ngModelChange)="onGateStepValueChange(item)" />
+            </td>
+            <td style="width: 80px; text-align: center;">
+              <input type="number" nz-input nzSize="small" class="text-center w-100" style="font-size: 12px;"
+                [(ngModel)]="item.DayCount" (ngModelChange)="onGateStepValueChange(item)" />
+            </td>
+            <td style="width: 220px; padding: 0 !important; position: relative;">
+              <div #workerLookupCell class="table-lookup-cell"
+                (click)="openWorkersLookup($event, item, workerLookupPanel)"
+                style="width: 100%; height: 100%; min-height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; cursor: pointer;">
+                <span class="table-lookup-value" [class.text-400]="!item.Workers || item.Workers.length === 0"
+                  style="white-space: pre-wrap; word-break: break-word; flex: 1; padding: 4px 0;"
+                  [title]="getWorkersDisplay(item.Workers) || 'Chọn nhân viên'">
+                  {{ getWorkersDisplay(item.Workers) || 'Chọn nhân viên' }}
+                </span>
+                <i class="pi pi-chevron-down table-lookup-chevron"
+                  style="font-size: 0.8rem; color: #6c757d; margin-left: 4px;"></i>
+              </div>
+            </td>
+            <td style="width: 100px; text-align: center;">
+              <input type="number" nz-input nzSize="small" class="text-center w-100" style="font-size: 12px;"
+                [(ngModel)]="item.TotalEffort" />
+            </td>
+            <td style="width: 130px; text-align: center;">
+              <nz-input-number [(ngModel)]="item.UnitPrice" [nzMin]="0" [nzStep]="10000" [nzFormatter]="formatAmount"
+                [nzParser]="parseAmount" nzSize="small" class="text-end w-100" style="font-size: 12px; width: 100%;">
+              </nz-input-number>
+            </td>
+            <td style="width: 140px; text-align: right; font-weight: bold; font-size: 12px; padding-right: 8px;">
+              {{ (item.UnitPrice != null && item.TotalEffort != null) ? (item.UnitPrice * item.TotalEffort |
+              number:'1.0-2') : '' }}
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="footer">
+          <tr class="fw-bold bg-light footer-row">
+            <td colspan="13" class="text-end pe-3" style="font-size: 12px;">Tổng cộng:</td>
+            <td style="width: 100px; text-align: center; font-size: 12px;">
+              {{ getTotalEffort(activeProjectTypeId + '_' + activeDepartmentId) | number:'1.0-2' }}
+            </td>
+            <td style="width: 130px;"></td>
+            <td style="width: 140px; text-align: right; font-weight: bold; font-size: 12px;" class="text-primary pe-2">
+              {{ getTotalAmount(activeProjectTypeId + '_' + activeDepartmentId) | number:'1.0-2' }}
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="16" class="text-center p-3 text-muted">Không có dữ liệu</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+    } @else {
+    <div class="text-center py-5 my-auto text-muted d-flex flex-column align-items-center justify-content-center">
+      <i class="fa-solid fa-inbox fa-3x mb-3 text-secondary"></i>
+      <p class="mb-0">Chưa có dữ liệu nhân công hoặc chưa chọn kiểu dự án</p>
+    </div>
+    }
   </div>
+</div>
 </div>
 
 <!-- Popover tra cứu nhân viên -->

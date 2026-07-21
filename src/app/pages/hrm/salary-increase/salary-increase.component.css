@@ -1,0 +1,56 @@
+.active-row {
+  background-color: #e6f7ff !important;
+}
+
+.active-row td {
+  font-weight: bold !important;
+  color: #1890ff !important;
+}
+
+::ng-deep .fs-12, ::ng-deep .fs-12 * {
+  font-size: 12px !important;
+}
+
+.custom-menubar {
+  border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Group Headers Styling */
+::ng-deep .department-header {
+    background-color: #f0f2f5 !important;
+}
+
+::ng-deep .department-header td {
+    padding: 8px 12px !important;
+    border-bottom: 2px solid #dee2e6 !important;
+    font-size: 12px;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-thead>tr>th {
+    font-size: 12px;
+    padding: 6px 8px;
+    background: #f5f5f5;
+    font-weight: 600;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+/* nz-spin bọc p-table không tự propagate height:100% xuống các div bên trong nó,
+   làm scrollHeight="flex" của p-table không tính được chiều cao -> bảng tràn ra
+   ngoài thay vì tự scroll. Ép các lớp div nội bộ của nz-spin kế thừa chiều cao. */
+:host ::ng-deep nz-spin.h-100,
+:host ::ng-deep nz-spin.h-100 .ant-spin-nested-loading,
+:host ::ng-deep nz-spin.h-100 .ant-spin-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+:host ::ng-deep nz-spin.h-100 .p-datatable {
+    flex: 1;
+    min-height: 0;
+}

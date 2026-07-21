@@ -30,6 +30,12 @@ export class ProductsaleServiceService {
       // `${this.productgroupUrl}/get-all`
     );
   }
+
+  getdataProductSaleNew(): Observable<any> {
+    return this.httpclient.get<any>(
+      `${this.baseUrl}/get-product-sale-new`
+    );
+  }
   getdataProductSalebyID(
     id: number,
     keyword: string,
@@ -140,5 +146,20 @@ export class ProductsaleServiceService {
   visibleProductGroup(data: any) {
     return this.httpclient.post<any>(`${this.productgroupUrl}/visible-product-group`, data);
   }
-}
 
+  standardizeProductGroup(data: any) {
+    return this.httpclient.post<any>(`${this.baseUrl}/standardize-product-group`, data);
+  }
+
+  saveDataProductSaleImportExport(data: any) {
+    return this.httpclient.post<any>(`${this.baseUrl}/products-sale-import-export`, data);
+  }
+
+  projectApprovedIsfix(data: any): Observable<any> {
+    return this.httpclient.post<any>(`${this.baseUrl}/products-sale-approved-isfix`, data);
+  }
+
+  getlogHistoryImportExport() {
+    return this.httpclient.get<any>(`${this.baseUrl}/activity-log`);
+  }
+}

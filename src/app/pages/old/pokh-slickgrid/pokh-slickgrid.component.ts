@@ -1585,23 +1585,84 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             );
             return;
         }
-        const modalRef = this.modalService.open(PoRequestBuySlickgridComponent, {
-            centered: true,
-            backdrop: 'static',
-            windowClass: 'full-screen-modal',
-        });
-        modalRef.componentInstance.pokhId = this.selectedId;
-        modalRef.componentInstance.pokhIds = effectivePokhIds;
 
-        modalRef.result.then(
-            (result) => {
-                if (result) {
+        this.isLoadingPOKHProduct = true;
+        const checks = effectivePokhIds.map(id => this.POKHService.getPOKHProduct(id, 0));
+
+        forkJoin(checks).subscribe({
+            next: (responses: any[]) => {
+                this.isLoadingPOKHProduct = false;
+                const invalidPokhs: string[] = [];
+                const unapprovedProducts: string[] = [];
+
+                const unapprovedProductIds: number[] = [];
+                responses.forEach((res, index) => {
+                    const id = effectivePokhIds[index];
+                    const products = res?.data || [];
+                    const hasApproved = products.some((p: any) => p.IsApproved === true);
+                    if (!hasApproved) {
+                        const poRow = this.selectedPOKHRows.find(r => r.ID === id) || (this.selectedId === id ? this.selectedRow : null);
+                        const poCode = poRow ? poRow.POCode : `ID ${id}`;
+                        invalidPokhs.push(poCode);
+                    }
+
+                    products.forEach((p: any) => {
+                        if (p.IsApproved !== true && p.ProductCode) {
+                            unapprovedProducts.push(p.ProductCode);
+                            if (p.ProductID) {
+                                unapprovedProductIds.push(p.ProductID);
+                            }
+                        }
+                    });
+                });
+
+                if (unapprovedProductIds.length > 0) {
+                    this.sendMailApprovedWithAntiSpam(unapprovedProductIds);
                 }
+
+                if (invalidPokhs.length > 0) {
+                    this.notification.warning(
+                        NOTIFICATION_TITLE.warning,
+                        `Các POKH sau không có sản phẩm nào được duyệt: ${invalidPokhs.join(', ')}`
+                    );
+                    return;
+                }
+
+                if (unapprovedProducts.length > 0) {
+                    this.notification.warning(
+                        NOTIFICATION_TITLE.warning,
+                        `Sản phẩm chưa được duyệt: ${unapprovedProducts.join(', ')}`
+                    );
+                }
+
+                const modalRef = this.modalService.open(PoRequestBuySlickgridComponent, {
+                    centered: true,
+                    backdrop: 'static',
+                    windowClass: 'full-screen-modal',
+                });
+                modalRef.componentInstance.pokhId = this.selectedId;
+                modalRef.componentInstance.pokhIds = effectivePokhIds;
+
+                modalRef.result.then(
+                    (result) => {
+                        if (result) {
+                        }
+                    },
+                    (reason) => {
+                        console.log('Modal dismissed');
+                    }
+                );
             },
-            (reason) => {
-                console.log('Modal dismissed');
+            error: (err: any) => {
+                this.isLoadingPOKHProduct = false;
+                this.notification.create(
+                    NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                    NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                    err?.error?.message || `${err.error}\n${err.message}`,
+                    { nzStyle: { whiteSpace: 'pre-line' } }
+                );
             }
-        );
+        });
     }
 
     formatFileSize(bytes: number): string {
@@ -1685,32 +1746,106 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         });
     }
 
+    sendMailApprovedWithAntiSpam(productIds: number[]) {
+        const SPAM_INTERVAL = 5 * 60 * 1000; // Chặn gửi trùng lặp trong 5 phút
+        const now = Date.now();
+        let sentMailCache: { [key: number]: number } = {};
+        
+        try {
+            const cacheStr = localStorage.getItem('sent_approved_mail_products');
+            if (cacheStr) {
+                sentMailCache = JSON.parse(cacheStr);
+            }
+        } catch (e) {
+            console.error('Error parsing mail cache:', e);
+        }
+
+        // Lọc các ID chưa gửi mail hoặc gửi cách đây đã lâu
+        const idsToSend = productIds.filter(id => {
+            const lastSent = sentMailCache[id];
+            return !lastSent || (now - lastSent > SPAM_INTERVAL);
+        });
+
+        if (idsToSend.length === 0) {
+            console.log('Tất cả sản phẩm chưa duyệt đã được gửi email phê duyệt gần đây. Chặn gửi spam.');
+            return;
+        }
+
+        this.POKHService.sendMailApproved(idsToSend).subscribe({
+            next: (mailRes) => {
+                console.log('Send mail approved success:', mailRes);
+                // Lưu lại mốc thời gian gửi thành công
+                idsToSend.forEach(id => {
+                    sentMailCache[id] = now;
+                });
+                localStorage.setItem('sent_approved_mail_products', JSON.stringify(sentMailCache));
+            },
+            error: (err) => {
+                console.error('Send mail approved error:', err);
+            }
+        });
+    }
+
     openPORequestPriceRTC() {
         if (!this.selectedId) {
             this.notification.warning('Thông báo', 'Vui lòng chọn POKH trước!');
             return;
         }
-        this.isModalOpen = true;
-        this.modalRef = this.modalService.open(PoRequestPriceRtcComponent, {
-            backdrop: 'static',
-            keyboard: false,
-            centered: true,
-            size: 'xl',
-        });
 
-        // Truyền dữ liệu sang modal con
-        this.modalRef.componentInstance.id = this.selectedId;
-
-        this.modalRef.result.then(
-            (result: any) => {
-                console.log('result: ', result);
-                if (result.success) {
+        this.POKHService.getPOKHProduct(this.selectedId, 0).subscribe({
+            next: (res: any) => {
+                const products = res?.data || [];
+                if (products.length === 0) {
+                    this.notification.warning('Thông báo', 'POKH này chưa có sản phẩm nào!');
+                    return;
                 }
+
+                // Tìm các sản phẩm chưa được duyệt
+                const unapprovedProducts = products.filter((p: any) => p.IsApproved !== true && p.ProductCode);
+                const unapprovedProductIds = unapprovedProducts.map((p: any) => p.ProductID).filter(Boolean);
+                if (unapprovedProductIds.length > 0) {
+                    this.sendMailApprovedWithAntiSpam(unapprovedProductIds);
+                }
+
+                // Chỉ chặn nếu không có bất kỳ sản phẩm thực tế nào được duyệt
+                const hasApproved = products.some((p: any) => p.IsApproved === true && p.ProductCode);
+                if (!hasApproved) {
+                    this.modal.warning({
+                        nzTitle: 'Không thể yêu cầu báo giá',
+                        nzContent: `Không có sản phẩm nào được duyệt trong PO này.<br/><br/>Bạn có thể kiểm tra trạng thái duyệt ngay tại bảng <b>Chi tiết sản phẩm</b> phía dưới.`,
+                        nzOkText: 'Đồng ý'
+                    });
+                    return;
+                }
+
+                // Tiến hành mở form bình thường
+                this.isModalOpen = true;
+                this.modalRef = this.modalService.open(PoRequestPriceRtcComponent, {
+                    backdrop: 'static',
+                    keyboard: false,
+                    centered: true,
+                    size: 'xl',
+                });
+
+                // Truyền dữ liệu sang modal con
+                this.modalRef.componentInstance.id = this.selectedId;
+
+                this.modalRef.result.then(
+                    (result: any) => {
+                        console.log('result: ', result);
+                        if (result.success) {
+                        }
+                    },
+                    (reason: any) => {
+                        console.log('Modal dismissed:', reason);
+                    }
+                );
             },
-            (reason: any) => {
-                console.log('Modal dismissed:', reason);
+            error: (err: any) => {
+                this.notification.error('Thông báo', 'Lỗi khi kiểm tra thông tin sản phẩm POKH!');
+                console.error(err);
             }
-        );
+        });
     }
 
     openFollowProductReturnModal() {

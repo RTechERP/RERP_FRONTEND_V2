@@ -172,7 +172,20 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
     this.poRequestPriceRtcService.loadData(id).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          this.data = response.data;
+          const rawData = Array.isArray(response.data) ? response.data : [];
+          const unapprovedItems = rawData.filter((item: any) => item.IsApproved !== true && item.ProductCode);
+          if (unapprovedItems.length > 0) {
+            const productCodes = unapprovedItems.map((item: any) => item.ProductCode || item.ProductName || 'Không rõ').filter(Boolean);
+            this.modal.warning({
+              nzTitle: 'Sản phẩm chưa được duyệt',
+              nzContent: `Có ${unapprovedItems.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách yêu cầu báo giá:<br/><br/><b>${productCodes.join(', ')}</b>`,
+              nzOkText: 'Đồng ý'
+            });
+          }
+
+          // Chỉ lấy sản phẩm thực sự được duyệt và có ProductCode
+          this.data = rawData.filter((item: any) => item.IsApproved === true && item.ProductCode);
+
           // Cập nhật dữ liệu vào bảng nếu đã khởi tạo
           if (this.tb_Table) {
             this.tb_Table.setData(this.data);

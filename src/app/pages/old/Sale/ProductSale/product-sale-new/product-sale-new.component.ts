@@ -51,9 +51,12 @@ import { ProjectPartlistPriceRequestNewComponent } from '../../../../purchase/pr
 import { MarketingPurchaseRequestComponent } from '../../../../purchase/marketing-purchase-request/marketing-purchase-request.component';
 import { ProjectPartListPurchaseRequestSlickGridComponent } from '../../../../purchase/project-partlist-purchase-request/project-part-list-purchase-request-slick-grid/project-part-list-purchase-request-slick-grid.component';
 import { ProjectPartListService } from '../../../../project/project-department-summary/project-department-summary-form/project-part-list/project-partlist-service/project-part-list-service.service';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { ProductGroupSettingComponent } from '../product-group-setting/product-group-setting.component';
+import { ProductSaleStandardizedComponent } from '../product-sale-standardized/product-sale-standardized.component';
+import { ProductSaleImportExportComponent } from '../product-sale-import-export/product-sale-import-export.component';
+import { TabServiceService } from '../../../../../layouts/tab-service.service';
 
 interface ProductGroup {
     ID?: number;
@@ -198,6 +201,7 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
         private projectPartListService: ProjectPartListService,
         private route: ActivatedRoute,
         private elementRef: ElementRef,
+        private tabService: TabServiceService,
         @Optional() @Inject('tabData') private tabData: any,
         @Optional() public activeModal: NgbActiveModal
     ) { }
@@ -609,6 +613,29 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
                 },
                 formatter: (_r, _c, v) => v, // UI
                 exportCustomFormatter: (_r, _c, v) => this.cleanXml(v)
+            },
+            {
+                id: 'IsApproved',
+                field: 'IsApproved',
+                name: 'TBP duyệt',
+                width: 95,
+                sortable: true,
+                filterable: true,
+                formatter: Formatters.checkmarkMaterial,
+                cssClass: 'text-center',
+                headerCssClass: 'text-center',
+                filter: {
+                    model: Filters['singleSelect'],
+                    collection: [
+                        { value: '', label: '' },
+                        { value: true, label: 'Có' },
+                        { value: false, label: 'Không' },
+                    ],
+                    filterOptions: {
+                        autoAdjustDropHeight: true,
+                    } as MultipleSelectOption,
+                },
+                exportCustomFormatter: this.excelBooleanFormatter,
             },
             {
                 id: 'IsFix',
@@ -1402,7 +1429,6 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
     }
 
     openModalProductSale() {
-        debugger;
         const modalRef = this.modalService.open(ProductSaleDetailComponent, {
             centered: true,
             size: 'lg',
@@ -1573,5 +1599,94 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
         });
     }
 
+    //#endregion
+
+    //#region Chuẩn hóa TB
+    openModalSettingProductSale(): void {
+        const modalRef = this.modalService.open(ProductSaleStandardizedComponent, {
+            size: 'xl',
+            backdrop: 'static',
+            keyboard: false,
+            centered: true,
+        });
+    }
+
+    openModalProductSaleImportExport() {
+        this.tabService.openTabComp({
+            comp: ProductSaleImportExportComponent,
+            title: 'Chuẩn hóa nhập xuất',
+            key: `product-sale-import-export-new-${Date.now()}`,
+            data: {}
+        });
+    }
+
+    projectApprovedIsfix(isApproved: boolean): void {
+        const selectedData = this.getSelectedProductSaleRows();
+        if (!selectedData || selectedData.length === 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Vui lòng chọn ít nhất 1 sản phẩm để ${isApproved ? 'duyệt' : 'hủy duyệt'}!`
+            );
+            return;
+        }
+
+        // Lọc các dòng có IsApproved khác với trạng thái mong muốn và có ID > 0
+        const filteredData = selectedData.filter((row: any) => {
+            return row.IsApproved != isApproved && row.ID > 0;
+        });
+
+        if (filteredData.length === 0) {
+            this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                `Tất cả sản phẩm đã chọn đã ở trạng thái ${isApproved ? 'Đã duyệt' : 'Chưa duyệt'}!`
+            );
+            return;
+        }
+
+        const actionText = isApproved ? 'Duyệt' : 'Hủy duyệt';
+        this.modal.confirm({
+            nzTitle: `Xác nhận ${actionText}`,
+            nzContent: `Bạn có chắc chắn muốn ${actionText.toLowerCase()} cho ${filteredData.length} sản phẩm đã chọn không?`,
+            nzOkText: actionText,
+            nzCancelText: 'Hủy',
+            nzOkDanger: !isApproved,
+            nzOnOk: () => {
+                const payload = filteredData.map((row: any) => ({
+                    ID: row.ID,
+                    IsApproved: isApproved
+                }));
+
+                this.isLoading = true;
+                this.productsaleSV.projectApprovedIsfix(payload).subscribe({
+                    next: (res: any) => {
+                        this.isLoading = false;
+                        if (res?.status === 1 || res?.success || res?.status === 'success') {
+                            this.notification.success(
+                                NOTIFICATION_TITLE.success,
+                                `${actionText} thành công!`
+                            );
+                            if (this.id) {
+                                this.getProductSaleByID(this.id);
+                            }
+                        } else {
+                            this.notification.warning(
+                                NOTIFICATION_TITLE.warning,
+                                res?.message || `${actionText} thất bại!`
+                            );
+                        }
+                    },
+                    error: (err: any) => {
+                        this.isLoading = false;
+                        this.notification.create(
+                            NOTIFICATION_TYPE_MAP[err.status] || 'error',
+                            NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
+                            err?.error?.message || `${err.error}\n${err.message}`,
+                            { nzStyle: { whiteSpace: 'pre-line' } }
+                        );
+                    }
+                });
+            }
+        });
+    }
     //#endregion
 }

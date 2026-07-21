@@ -145,6 +145,19 @@ export class ContractTransferReviewComponent implements OnInit, OnDestroy {
         return { color: '#007bff' }; // Màu xanh dương cho "Chờ duyệt"
       }
     },
+    {
+      field: 'BGDDateApproved',
+      header: 'Thời gian BGĐ duyệt',
+      width: '150px',
+      sortable: true,
+      filterType: 'date',
+      filterMode: 'datetime',
+      format: (v) => {
+        if (!v) return '';
+        const date = new Date(v);
+        return isNaN(date.getTime()) ? '' : date.toLocaleDateString('vi-VN');
+      }
+    },
     { field: 'ReasonUnApproved', header: 'Lý do không duyệt', width: '140px', sortable: true },
   ];
 

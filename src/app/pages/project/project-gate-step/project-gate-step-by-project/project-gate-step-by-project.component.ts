@@ -100,6 +100,13 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   summaryGateDetails: any = null;
   gateList: any[] = [];
 
+  // Chi tiết step khi click trong view tổng hợp
+  selectedStepDetail: any = null;
+  selectedStepDetailDept: any = null;
+  selectedDetailTab: number = 1; // 1: Công việc, 2: Checklist
+  detailTasks: any[] = [];
+  isLoadingDetailTasks: boolean = false;
+
   // Dành cho popover tra cứu/chọn nhân viên
   activeManpowerItem: any = null;
   workersSearchText: string = '';
@@ -1100,7 +1107,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       }
 
       const totalChecklists = link.CheckLists ? link.CheckLists.length : 0;
-      const passedChecklists = link.CheckLists ? link.CheckLists.filter((c: any) => c.IsPass).length : 0;
+      const passedChecklists = link.CheckLists ? link.CheckLists.filter((c: any) => c.IsApprovedTBP === 1).length : 0;
       const isCompleted = totalChecklists > 0 && totalChecklists === passedChecklists;
 
       gateMap[gateId].departments[deptId].steps.push({
@@ -1111,7 +1118,9 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         isApproved: link.IsApproved,
         totalChecklists: totalChecklists,
         passedChecklists: passedChecklists,
-        isCompleted: isCompleted
+        isCompleted: isCompleted,
+        checkLists: link.CheckLists || [],
+        projectTaskID: link.ProjectTaskID
       });
     });
 
@@ -1119,14 +1128,22 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       const deptsArray = Object.values(g.departments).map((d: any) => {
         const totalSteps = d.steps.length;
         const completedSteps = d.steps.filter((s: any) => s.isCompleted).length;
+        const approvedSteps = d.steps.filter((s: any) => s.isApproved).length;
+        const isApproved = totalSteps > 0 && totalSteps === approvedSteps;
         const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
         return {
           ...d,
           totalSteps,
           completedSteps,
+          approvedSteps,
+          isApproved,
           progress
         };
       });
+
+      const totalDepartments = deptsArray.length;
+      const approvedDepartments = deptsArray.filter((d: any) => d.isApproved).length;
+      const gateProgress = totalDepartments > 0 ? Math.round((approvedDepartments / totalDepartments) * 100) : 0;
 
       let totalGateSteps = 0;
       let completedGateSteps = 0;
@@ -1134,13 +1151,14 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         totalGateSteps += d.totalSteps;
         completedGateSteps += d.completedSteps;
       });
-      const gateProgress = totalGateSteps > 0 ? Math.round((completedGateSteps / totalGateSteps) * 100) : 0;
 
       return {
         ...g,
         departments: deptsArray,
         totalSteps: totalGateSteps,
         completedSteps: completedGateSteps,
+        totalDepartments,
+        approvedDepartments,
         progress: gateProgress
       };
     });
@@ -1153,10 +1171,33 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     this.summaryGates = gates;
 
     if (this.summaryGates.length > 0) {
-      if (!this.selectedSummaryGateId || !this.summaryGates.some(g => g.gateId === this.selectedSummaryGateId)) {
-        this.selectSummaryGate(this.summaryGates[0].gateId);
+      let targetGateId = this.selectedSummaryGateId;
+
+      if (!targetGateId || !this.summaryGates.some(g => g.gateId === targetGateId)) {
+        const firstUncompleted = this.summaryGates.find(g => g.progress < 100);
+        if (firstUncompleted) {
+          targetGateId = firstUncompleted.gateId;
+        } else {
+          targetGateId = this.summaryGates[this.summaryGates.length - 1].gateId;
+        }
       } else {
-        this.selectSummaryGate(this.selectedSummaryGateId);
+        const currentGate = this.summaryGates.find(g => g.gateId === targetGateId);
+        if (currentGate && currentGate.progress === 100) {
+          const currentIndex = this.summaryGates.findIndex(g => g.gateId === targetGateId);
+          const nextUncompleted = this.summaryGates.slice(currentIndex + 1).find(g => g.progress < 100);
+          if (nextUncompleted) {
+            targetGateId = nextUncompleted.gateId;
+          } else {
+            const anyUncompleted = this.summaryGates.find(g => g.progress < 100);
+            if (anyUncompleted) {
+              targetGateId = anyUncompleted.gateId;
+            }
+          }
+        }
+      }
+
+      if (targetGateId !== null) {
+        this.selectSummaryGate(targetGateId);
       }
     } else {
       this.summaryGateDetails = null;
@@ -1172,6 +1213,39 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   selectSummaryGate(gateId: number): void {
     this.selectedSummaryGateId = gateId;
     this.summaryGateDetails = this.summaryGates.find(g => g.gateId === gateId) || null;
+    this.selectedStepDetail = null;
+    this.selectedStepDetailDept = null;
+    this.detailTasks = [];
+  }
+
+  selectStepDetail(step: any, dept: any): void {
+    if (this.selectedStepDetail && this.selectedStepDetail.stepLinkId === step.stepLinkId) {
+      this.selectedStepDetail = null;
+      this.selectedStepDetailDept = null;
+      this.detailTasks = [];
+      return;
+    }
+
+    this.selectedStepDetail = step;
+    this.selectedStepDetailDept = dept;
+    this.detailTasks = [];
+    this.selectedDetailTab = 1; // Mặc định chuyển về Tab 1 khi click chọn bước mới
+
+    if (step.projectTaskID) {
+      this.isLoadingDetailTasks = true;
+      this.projectGateStepService.getProjectItemParentChild(step.projectTaskID).subscribe({
+        next: (res: any) => {
+          this.detailTasks = res?.data || [];
+          this.isLoadingDetailTasks = false;
+        },
+        error: (err: any) => {
+          console.error('Error fetching parent-child tasks:', err);
+          this.isLoadingDetailTasks = false;
+        }
+      });
+    } else {
+      console.warn('selectStepDetail - step.projectTaskID is null/undefined. No API call triggered.');
+    }
   }
 
   hasNoSavedSteps(ptId: number | null, deptId: number | null): boolean {

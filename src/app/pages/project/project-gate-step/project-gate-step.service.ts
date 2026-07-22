@@ -159,4 +159,8 @@ export class ProjectGateStepService {
         };
         return this.http.post<any>(`${environment.host}api/ProjectGateStepCheckListDetailLink/ApproveRule/${detailLinkId}`, body);
     }
+
+    getProjectItemParentChild(projectTaskId: number): Observable<any> {
+        return this.http.get<any>(`${environment.host}api/ProjectGateStepLink/GetProjectItemParentChild/${projectTaskId}`);
+    }
 }

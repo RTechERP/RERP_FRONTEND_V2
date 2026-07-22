@@ -220,3 +220,27 @@
 .sidebar-menu .sidebar-header.cursor-pointer:hover {
   color: #23458a !important;
 }
+
+/* Custom scrollbar for horizontal scrollable area */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Hover effect for step items in summary view */
+.list-group-item.cursor-pointer:hover {
+  background-color: #f0f2f5 !important;
+}

@@ -62,6 +62,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { PoRequestPriceRtcService } from './po-request-price-rtc-service/po-request-price-rtc.service';
 import { TradePriceService } from '../Sale/TinhGia/trade-price/trade-price/trade-price.service';
 import { AppUserService } from '../../../services/app-user.service';
+import { PokhSlickgridService } from '../pokh-slickgrid/pokh-slickgrid-service/pokh-slickgrid.service';
 @Component({
   selector: 'app-po-request-price-rtc',
   imports: [
@@ -96,7 +97,7 @@ import { AppUserService } from '../../../services/app-user.service';
   templateUrl: './po-request-price-rtc.component.html',
   styleUrl: './po-request-price-rtc.component.css'
 })
-export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
+export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_Table', { static: false }) tableElementRef!: ElementRef;
   tb_Table!: Tabulator;
 
@@ -104,11 +105,11 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
 
   formData: any = {
     requestDate: new Date(),
-    userId: 0, 
+    userId: 0,
   };
 
   formUserData: any[] = [];
-  data: any[]= [];
+  data: any[] = [];
   isUserIdDisabled: boolean = false;
 
   constructor(
@@ -119,15 +120,62 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
     private appRef: ApplicationRef,
     private modalService: NgbModal,
     public activeModal: NgbActiveModal,
-    private tradePriceService : TradePriceService,
-    private appUserService: AppUserService
-  ) {}
+    private tradePriceService: TradePriceService,
+    private appUserService: AppUserService,
+    private POKHService: PokhSlickgridService
+  ) { }
+
+  private handleUnapprovedProducts(unapprovedItems: any[], context: string): void {
+    if (!unapprovedItems || unapprovedItems.length === 0) return;
+
+    const productCodes = unapprovedItems.map((item: any) => item.ProductCode || item.ProductName || 'Không rõ').filter(Boolean);
+
+    if (this.POKHService) {
+      this.POKHService.inforUserApproved().subscribe({
+        next: (res: any) => {
+          let userNames = '';
+          if (res?.data) {
+            if (typeof res.data === 'string') {
+              userNames = res.data.trim();
+            } else if (Array.isArray(res.data)) {
+              userNames = res.data
+                .map((x: any) => typeof x === 'string' ? x : (x.FullName || x.Name || x.UserName || ''))
+                .filter(Boolean)
+                .join(', ');
+            } else if (typeof res.data === 'object') {
+              userNames = res.data.FullName || res.data.Name || res.data.UserName || '';
+            }
+          }
+
+          const contactText = userNames ? `<br/><br/><b>Vui lòng liên hệ 1 trong các TBP [${userNames}] để duyệt sản phẩm.</b>` : '';
+          this.modal.warning({
+            nzTitle: 'Sản phẩm chưa được duyệt',
+            nzContent: `Có ${unapprovedItems.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách ${context}:<br/><br/><b>${productCodes.join(', ')}</b>${contactText}`,
+            nzOkText: 'Đồng ý'
+          });
+        },
+        error: () => {
+          this.modal.warning({
+            nzTitle: 'Sản phẩm chưa được duyệt',
+            nzContent: `Có ${unapprovedItems.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách ${context}:<br/><br/><b>${productCodes.join(', ')}</b>`,
+            nzOkText: 'Đồng ý'
+          });
+        }
+      });
+    } else {
+      this.modal.warning({
+        nzTitle: 'Sản phẩm chưa được duyệt',
+        nzContent: `Có ${unapprovedItems.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách ${context}:<br/><br/><b>${productCodes.join(', ')}</b>`,
+        nzOkText: 'Đồng ý'
+      });
+    }
+  }
 
   ngOnInit(): void {
     // Kiểm tra quyền admin và set userId
     const isAdmin = this.appUserService.isAdmin;
     this.isUserIdDisabled = !isAdmin;
-    
+
     // Nếu không phải admin, set userId của user hiện tại
     if (!isAdmin) {
       const currentUserId = this.appUserService.employeeID;
@@ -145,7 +193,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
       this.initTable();
     }, 0);
   }
-  
+
   loadUserData() {
     this.tradePriceService.getEmployees(0).subscribe({
       next: (response) => {
@@ -175,12 +223,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
           const rawData = Array.isArray(response.data) ? response.data : [];
           const unapprovedItems = rawData.filter((item: any) => item.IsApproved !== true && item.ProductCode);
           if (unapprovedItems.length > 0) {
-            const productCodes = unapprovedItems.map((item: any) => item.ProductCode || item.ProductName || 'Không rõ').filter(Boolean);
-            this.modal.warning({
-              nzTitle: 'Sản phẩm chưa được duyệt',
-              nzContent: `Có ${unapprovedItems.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách yêu cầu báo giá:<br/><br/><b>${productCodes.join(', ')}</b>`,
-              nzOkText: 'Đồng ý'
-            });
+            this.handleUnapprovedProducts(unapprovedItems, 'yêu cầu báo giá');
           }
 
           // Chỉ lấy sản phẩm thực sự được duyệt và có ProductCode
@@ -214,7 +257,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
 
     // Lấy các dòng được chọn
     const selectedRows = this.tb_Table?.getSelectedRows() || [];
-    
+
     if (selectedRows.length <= 0) {
       this.notification.warning(
         'Thông báo',
@@ -233,10 +276,10 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
 
     selectedRows.forEach((row) => {
       const rowData = row.getData();
-      
+
       // Lấy số lượng yêu cầu
       const quantityRequest = Number(rowData['QuantityRequestRemain']) || 0;
-      
+
       // Bỏ qua nếu số lượng <= 0
       if (quantityRequest <= 0) {
         return;
@@ -244,11 +287,11 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
 
       // Tạo request mới
       const request: any = {
-        DateRequest: this.formData.requestDate 
+        DateRequest: this.formData.requestDate
           ? DateTime.fromJSDate(new Date(this.formData.requestDate)).toFormat('yyyy-MM-dd\'T\'HH:mm:ss')
           : DateTime.now().toFormat('yyyy-MM-dd\'T\'HH:mm:ss'),
         EmployeeID: this.formData.userId || 0,
-        Deadline: rowData['Deadline'] 
+        Deadline: rowData['Deadline']
           ? DateTime.fromISO(rowData['Deadline']).toFormat('yyyy-MM-dd\'T\'HH:mm:ss')
           : null,
         ProductCode: rowData['ProductCode'] || '',
@@ -322,7 +365,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
     for (const row of selectedRows) {
       const rowData = row.getData();
       const quantityRequest = Number(rowData['QuantityRequestRemain']) || 0;
-      
+
       if (quantityRequest > 0) {
         hasValidQuantity = true;
         break;
@@ -342,7 +385,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
 
   deleteRequest() {
     const selectedRows = this.tb_Table?.getSelectedRows() || [];
-    
+
     if (selectedRows.length <= 0) {
       this.notification.warning(
         'Thông báo',
@@ -355,7 +398,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
 
     selectedRows.forEach((row) => {
       const rowData = row.getData();
-      
+
       const requestId = rowData['ProjectPartlistPriceRequestID']
 
       if (requestId && requestId !== 0) {
@@ -462,7 +505,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
       height: '55vh',
       movableColumns: true,
       resizableRows: true,
-      validationMode:"highlight",
+      validationMode: "highlight",
       selectableRows: true,
       langs: {
         vi: {
@@ -484,7 +527,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
         vertAlign: 'middle',
         resizable: true,
       },
-      columns: [ 
+      columns: [
         {
           title: '',
           field: '',
@@ -503,7 +546,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
               field: 'ProductNewCode',
               sorter: 'string',
               width: 100,
-              
+
             },
             {
               title: 'Mã Sản Phẩm',
@@ -669,7 +712,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
               width: 200,
             },
             {
-              
+
               title: 'Thành tiền chưa VAT',
               field: 'TotalPrice',
               sorter: 'number',
@@ -705,7 +748,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
               },
             },
             {
-              
+
               title: 'Thành tiền quy đổi VND',
               field: 'TotalPriceExchange',
               sorter: 'number',
@@ -754,7 +797,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit{
             },
           ]
         }
-        
+
       ],
     });
   }

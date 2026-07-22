@@ -38,7 +38,8 @@
   <!-- ══ Main Body ════════════════════════════════════════ -->
   <nz-spin [nzSpinning]="isLoading" class="flex-grow-1 overflow-hidden" style="display:flex; flex-direction:column;">
     <div class="flex-grow-1 overflow-hidden p-3" style="background: #f0f2f5;">
-      <div class="h-100 d-flex flex-column border rounded bg-white" style="box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;">
+      <div class="h-100 d-flex flex-column border rounded bg-white"
+        style="box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;">
         <div class="flex-grow-1 overflow-hidden p-2">
           <p-table [value]="details" dataKey="_tempId" styleClass="p-datatable-sm p-datatable-gridlines"
             [scrollable]="true" scrollHeight="flex" [resizableColumns]="true" columnResizeMode="expand">
@@ -62,14 +63,17 @@
                 <th style="width:200px; font-size:12px;" pResizableColumn [pSortableColumn]="'FileFormat'">
                   Định dạng cho phép <p-sortIcon field="FileFormat"></p-sortIcon>
                 </th>
-                <th style="width:80px; text-align:center; font-size:12px;" pResizableColumn [pSortableColumn]="'FileQuantity'">
+                <th style="width:80px; text-align:center; font-size:12px;" pResizableColumn
+                  [pSortableColumn]="'FileQuantity'">
                   Số lượng <p-sortIcon field="FileQuantity"></p-sortIcon>
                 </th>
-                <th style="width:90px; text-align:center; font-size:12px;" pResizableColumn [pSortableColumn]="'IsCheck'">
-                  Bắt buộc <p-sortIcon field="IsCheck"></p-sortIcon>
-                </th>
-                <th style="width:100px; text-align:center; font-size:12px;" pResizableColumn [pSortableColumn]="'IsFile'">
+                <th style="width:100px; text-align:center; font-size:12px;" pResizableColumn
+                  [pSortableColumn]="'IsFile'">
                   Cần tải file <p-sortIcon field="IsFile"></p-sortIcon>
+                </th>
+                <th style="width:90px; text-align:center; font-size:12px;" pResizableColumn
+                  [pSortableColumn]="'IsCheck'">
+                  Bắt buộc <p-sortIcon field="IsCheck"></p-sortIcon>
                 </th>
                 <th style="width:52px; text-align:center; font-size:12px;" pResizableColumn>Xóa</th>
               </tr>
@@ -90,38 +94,29 @@
                 <!-- STT (Order number) -->
                 <td style="padding:8px 8px; text-align:center; vertical-align: middle;">
                   <nz-input-number [(ngModel)]="row.STT" (ngModelChange)="markDetailDirty(row)"
-                    (keydown)="onKeyDown(rowIndex, 'STT', $event)" [attr.data-row]="rowIndex"
-                    [attr.data-col]="'STT'" [nzMin]="1" [nzMax]="999" nzSize="small" class="w-100"
-                    style="font-size:12px;" />
+                    (keydown)="onKeyDown(rowIndex, 'STT', $event)" [attr.data-row]="rowIndex" [attr.data-col]="'STT'"
+                    [nzMin]="1" [nzMax]="999" nzSize="small" class="w-100" style="font-size:12px;" />
                 </td>
 
                 <!-- FileName (Standard File Name) -->
                 <td style="padding:8px 8px; vertical-align: middle;">
-                  <input nz-input nzSize="small"
-                    [(ngModel)]="row.FileName"
-                    (ngModelChange)="markDetailDirty(row)"
-                    (keydown)="onKeyDown(rowIndex, 'FileName', $event)"
-                    [attr.data-row]="rowIndex"
-                    [attr.data-col]="'FileName'"
-                    placeholder="VD: ban_ve_2d.dwg"
-                    class="w-100"
+                  <input nz-input nzSize="small" [(ngModel)]="row.FileName" (ngModelChange)="markDetailDirty(row)"
+                    (keydown)="onKeyDown(rowIndex, 'FileName', $event)" [attr.data-row]="rowIndex"
+                    [attr.data-col]="'FileName'" placeholder="VD: ban_ve_2d.dwg" class="w-100"
                     style="font-size:12px;" />
                 </td>
 
                 <!-- FileRule (Description) -->
                 <td style="padding:8px 8px; vertical-align: middle;">
-                  <textarea nz-input nzSize="small" 
-                    [(ngModel)]="row.FileRule" 
-                    (ngModelChange)="markDetailDirty(row)"
-                    (keydown)="onKeyDown(rowIndex, 'FileRule', $event)" 
-                    [attr.data-row]="rowIndex"
-                    [attr.data-col]="'FileRule'" 
+                  <textarea nz-input nzSize="small" [(ngModel)]="row.FileRule" (ngModelChange)="markDetailDirty(row)"
+                    (keydown)="onKeyDown(rowIndex, 'FileRule', $event)" [attr.data-row]="rowIndex"
+                    [attr.data-col]="'FileRule'"
                     [nzStatus]="(isSubmitted && (!row.FileRule || !row.FileRule.trim())) ? 'error' : ''"
                     [nzAutosize]="{ minRows: 2, maxRows: 4 }"
-                    placeholder="VD: Bản vẽ thiết kế 2D mặt bằng được phê duyệt..." 
-                    class="w-100"
+                    placeholder="VD: Bản vẽ thiết kế 2D mặt bằng được phê duyệt..." class="w-100"
                     style="font-size:12px; resize: none;"></textarea>
-                  <div *ngIf="isSubmitted && (!row.FileRule || !row.FileRule.trim())" class="text-danger" style="font-size: 10px; margin-top: 2px; text-align: left;">
+                  <div *ngIf="isSubmitted && (!row.FileRule || !row.FileRule.trim())" class="text-danger"
+                    style="font-size: 10px; margin-top: 2px; text-align: left;">
                     Không được bỏ trống!
                   </div>
                 </td>
@@ -130,8 +125,8 @@
                 <td style="padding:8px 8px; vertical-align: middle;">
                   <nz-select [(ngModel)]="row._selectedFormats" (ngModelChange)="markDetailDirty(row)"
                     (keydown)="onKeyDown(rowIndex, 'FileFormat', $event)" [attr.data-row]="rowIndex"
-                    [attr.data-col]="'FileFormat'" nzMode="multiple" nzPlaceHolder="Chọn định dạng..."
-                    nzSize="small" nzShowSearch nzAllowClear class="w-100" style="font-size:12px;" [nzDisabled]="!row.IsFile">
+                    [attr.data-col]="'FileFormat'" nzMode="multiple" nzPlaceHolder="Chọn định dạng..." nzSize="small"
+                    nzShowSearch nzAllowClear class="w-100" style="font-size:12px;" [nzDisabled]="!row.IsFile">
                     <nz-option *ngFor="let opt of getFormatOptions(row._selectedFormats)" [nzValue]="opt.value"
                       [nzLabel]="opt.label"></nz-option>
                   </nz-select>
@@ -145,14 +140,6 @@
                     style="font-size:12px;" [nzDisabled]="!row.IsFile" />
                 </td>
 
-                <!-- IsCheck (Required) -->
-                <td style="padding:8px 8px; text-align:center; vertical-align: middle;">
-                  <label nz-checkbox [(ngModel)]="row.IsCheck" (ngModelChange)="markDetailDirty(row)"
-                    (keydown)="onKeyDown(rowIndex, 'IsCheck', $event)" [attr.data-row]="rowIndex"
-                    [attr.data-col]="'IsCheck'">
-                  </label>
-                </td>
-
                 <!-- IsFile (Upload required vs Checkbox only) -->
                 <td style="padding:8px 8px; text-align:center; vertical-align: middle;">
                   <label nz-checkbox [(ngModel)]="row.IsFile" (ngModelChange)="onIsFileChange(row)"
@@ -161,6 +148,13 @@
                   </label>
                 </td>
 
+                <!-- IsCheck (Required) -->
+                <td style="padding:8px 8px; text-align:center; vertical-align: middle;">
+                  <label nz-checkbox [(ngModel)]="row.IsCheck" (ngModelChange)="markDetailDirty(row)"
+                    (keydown)="onKeyDown(rowIndex, 'IsCheck', $event)" [attr.data-row]="rowIndex"
+                    [attr.data-col]="'IsCheck'">
+                  </label>
+                </td>
                 <!-- Delete Action -->
                 <td style="padding:8px 8px; text-align:center; vertical-align: middle;">
                   <button nz-button nzType="text" nzDanger nzSize="small" (click)="removeDetail(row)"
@@ -175,8 +169,7 @@
             <ng-template pTemplate="emptymessage">
               <tr>
                 <td colspan="10" class="text-center py-5 text-muted" style="font-size:12px;">
-                  <i class="fa-solid fa-file-circle-plus mb-2"
-                    style="font-size:32px; opacity:0.3; display:block;"></i>
+                  <i class="fa-solid fa-file-circle-plus mb-2" style="font-size:32px; opacity:0.3; display:block;"></i>
                   Chưa có quy tắc nào cho công đoạn này — nhấn "Thêm dòng quy tắc" để bắt đầu cấu hình
                 </td>
               </tr>

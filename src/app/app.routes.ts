@@ -70,6 +70,7 @@ import { FilmManagementComponent } from './pages/hrm/film-management/film-manage
 import { HandoverComponent } from './pages/hrm/handover/handover.component';
 import { ProjectGateStepManagementComponent } from './pages/project/project-gate-step/project-gate-step-management/project-gate-step-management.component';
 import { ProjectGateStepByProjectComponent } from './pages/project/project-gate-step/project-gate-step-by-project/project-gate-step-by-project.component';
+import { ProjectControlDashboardViewComponent } from './pages/project/project-control-dashboard-view/project-control-dashboard-view.component';
 //import { HandoverNewComponent } from './pages/hrm/handover/handover-new/handover-new.component';
 import { ProjectGateManagementComponent } from './pages/project/project-gate/project-gate-management/project-gate-management.component';
 import { ProjectGateCheckListTypeManagementComponent } from './pages/project/project-gate/project-gate-checklist-type/project-gate-checklist-type-management.component';
@@ -817,6 +818,7 @@ export const routes: Routes = [
       { path: 'project-part-list', component: ProjectPartListSlickGridComponent, canActivate: [authGuard] },
       { path: 'project-gate-step-by-project', component: ProjectGateStepByProjectComponent, canActivate: [authGuard] },
       { path: 'project-gate-step-by-project/:id', component: ProjectGateStepByProjectComponent, canActivate: [authGuard] },
+      { path: 'project-control-dashboard-view', component: ProjectControlDashboardViewComponent, canActivate: [authGuard] },
       //{ path: 'project-worker', component: ProjectWokerSlickGridComponent, canActivate: [authGuard] },
       { path: 'project-task-setting', component: ProjectTaskSettingComponent, canActivate: [authGuard] },
       { path: 'project-task-time-line-project', component: ProjectTaskTimeLineProjectComponent, canActivate: [authGuard] },

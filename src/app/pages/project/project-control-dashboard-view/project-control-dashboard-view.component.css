@@ -1,0 +1,92 @@
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.dashboard-container {
+  min-height: 100%;
+  background-color: #f8fafc !important;
+}
+
+.filter-card {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.kpi-card {
+  padding: 10px 14px !important;
+  transition: all 0.2s ease-in-out;
+  border-radius: 6px;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+}
+
+.kpi-icon {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+}
+
+.chart-card {
+  border-radius: 8px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.chart-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+}
+
+.font-size-12 {
+  font-size: 12px !important;
+}
+
+/* ===== Custom PrimeNG Table & Filter Row Styling (Tham khảo project-slick-grid2) ===== */
+:host ::ng-deep .p-datatable-sm .p-datatable-thead>tr>th {
+  padding: 6px 8px !important;
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+}
+
+/* Style cho dòng Filter: ăn theo 100% độ rộng của cột & font chữ nhỏ (11px) */
+:host ::ng-deep .p-datatable .p-column-filter {
+  width: 100% !important;
+  display: block !important;
+}
+
+:host ::ng-deep .p-datatable .p-column-filter input,
+:host ::ng-deep .p-datatable .p-column-filter .p-select,
+:host ::ng-deep .p-datatable .p-column-filter .p-select .p-select-label {
+  width: 100% !important;
+  font-size: 11px !important;
+  padding: 2px 6px !important;
+  height: 26px !important;
+  border-radius: 4px !important;
+}
+
+/* Dữ liệu trong ô tự động xuống dòng khi dài quá (Word-wrap) */
+:host ::ng-deep .p-datatable-sm .p-datatable-tbody>tr>td {
+  padding: 6px 8px !important;
+  font-size: 12px !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  line-height: 1.4 !important;
+}
+
+.progress {
+  background-color: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+}

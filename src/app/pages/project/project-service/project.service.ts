@@ -130,6 +130,11 @@ export class ProjectService {
     return this.http.get<any>(this.urlProject + `get-project-status`);
   }
 
+  // Lấy dữ liệu Báo cáo Dashboard Theo dõi Dự án (Project Control Dashboard)
+  getProjectControlDashboard(data: any): Observable<any> {
+    return this.http.post<any>(this.urlProject + 'get-control-dashboard', data);
+  }
+
   // Cập nhật trạng thái dự án
   updateProjectStatus(projectID: number, projectStatusID: number, dateLog: Date): Observable<any> {
     const params = new HttpParams()

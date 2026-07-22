@@ -394,29 +394,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
                 step.StartDate = originalItem.StartDate ? originalItem.StartDate.substring(0, 10) : null;
                 step.isRepeatChecked = !!repeatedItem;
 
-                if (originalItem.CheckLists && originalItem.CheckLists.length > 0) {
-                  step.CheckLists = (step.CheckLists || []).map((tc: any) => {
-                    const savedLink = originalItem.CheckLists.find((c: any) => c.ProjectGateStepCheckListID === tc.ID);
-                    if (savedLink) {
-                      return {
-                        ...savedLink,
-                        Description: tc.Description || savedLink.Description,
-                        IsRequired: tc.IsCheck || savedLink.IsRequired || tc.IsRequired,
-                        Type: tc.Type || savedLink.Type
-                      };
-                    }
-                    return {
-                      ID: 0,
-                      ProjectGateStepCheckListID: tc.ID,
-                      PathFolder: tc.PathFolder || '',
-                      IsPass: false,
-                      IsRequired: tc.IsCheck || tc.IsRequired,
-                      Description: tc.Description,
-                      Type: tc.Type,
-                      Files: []
-                    };
-                  });
-                }
+                step.CheckLists = originalItem.CheckLists || [];
 
                 if (originalItem.Workers && originalItem.Workers.length > 0) {
                   step.Workers = originalItem.Workers.map((w: any) => w.EmployeeID);
@@ -446,29 +424,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
               repeatedStep.IsApproved = repeatedItem.IsApproved;
               repeatedStep.StartDate = repeatedItem.StartDate ? repeatedItem.StartDate.substring(0, 10) : null;
 
-              if (repeatedItem.CheckLists && repeatedItem.CheckLists.length > 0) {
-                repeatedStep.CheckLists = (repeatedStep.CheckLists || []).map((tc: any) => {
-                  const savedLink = repeatedItem.CheckLists.find((c: any) => c.ProjectGateStepCheckListID === tc.ID);
-                  if (savedLink) {
-                    return {
-                      ...savedLink,
-                      Description: tc.Description || savedLink.Description,
-                      IsRequired: tc.IsCheck || savedLink.IsRequired || tc.IsRequired,
-                      Type: tc.Type || savedLink.Type
-                    };
-                  }
-                  return {
-                    ID: 0,
-                    ProjectGateStepCheckListID: tc.ID,
-                    PathFolder: tc.PathFolder || '',
-                    IsPass: false,
-                    IsRequired: tc.IsCheck || tc.IsRequired,
-                    Description: tc.Description,
-                    Type: tc.Type,
-                    Files: []
-                  };
-                });
-              }
+              repeatedStep.CheckLists = repeatedItem.CheckLists || [];
 
               if (repeatedItem.Workers && repeatedItem.Workers.length > 0) {
                 repeatedStep.Workers = repeatedItem.Workers.map((w: any) => w.EmployeeID);
@@ -1653,7 +1609,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
   countCompletedRules(item: any): number {
     if (!item || !item.CheckLists) return 0;
-    return item.CheckLists.filter((c: any) => c.IsApprovedTBP === true).length;
+    return item.CheckLists.filter((c: any) => c.IsApprovedTBP === 1 || c.IsApprovedTBP === true).length;
   }
 
   isStepPassed(item: any): boolean {

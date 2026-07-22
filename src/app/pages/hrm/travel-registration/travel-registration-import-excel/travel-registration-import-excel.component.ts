@@ -404,28 +404,66 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
   }
 
   onDownloadTemplate() {
-    // this.notification.info(NOTIFICATION_TITLE.info, 'Chức năng tải file mẫu đang được cập nhật');
+    const fileName = 'TemplateCheckSheetDulich.xlsx';
+    this.travelRegistrationService.downloadTemplate(fileName).subscribe({
+      next: (blob: Blob) => {
+        if (blob && blob.size > 0) {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          this.notification.success(NOTIFICATION_TITLE.success, 'Tải file mẫu thành công!');
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, 'File tải về không hợp lệ!');
+        }
+      },
+      error: (err: any) => {
+        console.error('Lỗi khi tải file mẫu:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải xuống file mẫu!');
+      }
+    });
   }
 
   /* ===== Save ===== */
-  private parseDateString(str: string): string | null {
-    if (!str || typeof str !== 'string') return null;
+  private parseDateString(str: any): string | null {
+    if (!str) return null;
+    if (typeof str !== 'string') {
+      if (str instanceof Date && !isNaN(str.getTime())) {
+        return DateTime.fromJSDate(str).toFormat('yyyy-MM-dd');
+      }
+      str = String(str);
+    }
+    const s = str.trim();
+    if (!s || s.toLowerCase() === 'null' || s.toLowerCase() === 'undefined') return null;
 
-    // Check if it's ISO format
-    if (str.includes('-')) {
-      const d = new Date(str);
-      return isNaN(d.getTime()) ? null : d.toISOString();
+    // Try parse DD/MM/YYYY or D/M/YYYY
+    let parsed = DateTime.fromFormat(s, 'dd/MM/yyyy');
+    if (parsed.isValid) return parsed.toFormat('yyyy-MM-dd');
+
+    parsed = DateTime.fromFormat(s, 'd/M/yyyy');
+    if (parsed.isValid) return parsed.toFormat('yyyy-MM-dd');
+
+    parsed = DateTime.fromFormat(s, 'dd-MM-yyyy');
+    if (parsed.isValid) return parsed.toFormat('yyyy-MM-dd');
+
+    // Try parse YYYY-MM-DD
+    parsed = DateTime.fromFormat(s, 'yyyy-MM-dd');
+    if (parsed.isValid) return parsed.toFormat('yyyy-MM-dd');
+
+    // Try parse ISO format (or string with T)
+    parsed = DateTime.fromISO(s);
+    if (parsed.isValid) return parsed.toFormat('yyyy-MM-dd');
+
+    const jsDate = new Date(s);
+    if (!isNaN(jsDate.getTime())) {
+      return DateTime.fromJSDate(jsDate).toFormat('yyyy-MM-dd');
     }
 
-    // Try parse DD/MM/YYYY
-    const parsed = DateTime.fromFormat(str.trim(), 'dd/MM/yyyy');
-    if (parsed.isValid) {
-      return parsed.toJSDate().toISOString();
-    }
-
-    // Fallback
-    const fallback = new Date(str);
-    return isNaN(fallback.getTime()) ? null : fallback.toISOString();
+    return null;
   }
 
   async onImport(): Promise<void> {
@@ -450,24 +488,24 @@ export class TravelRegistrationImportExcelComponent implements OnInit, AfterView
 
       return {
         EmployeeID: isCBNV ? parsedEmployeeID : 0,
-        EmployeeCode: r.EmployeeCode,
-        EmployeeName: r.EmployeeName,
-        Department: r.Department,
-        PositionName: r.PositionName,
+        EmployeeCode: r.EmployeeCode || '',
+        EmployeeName: r.EmployeeName || '',
+        Department: r.Department || '',
+        PositionName: r.PositionName || '',
         BirthDay: this.parseDateString(r.BirthDay),
-        Age: typeof r.Age === 'number' ? r.Age : 0,
-        Height: typeof r.Height === 'number' ? r.Height : 0,
-        Gender: r.Gender,
-        Relationship: r.Relationship,
-        Address: r.Address,
-        CCCD: r.CCCD,
+        Age: parseNumberSmart(r.Age) ?? null,
+        Height: parseNumberSmart(r.Height) ?? null,
+        Gender: r.Gender || '',
+        Relationship: r.Relationship || '',
+        Address: r.Address || '',
+        CCCD: r.CCCD || '',
         CCCDIssueDate: this.parseDateString(r.CCCDIssueDate),
-        CCCDIssuePlace: r.CCCDIssuePlace,
-        PhoneNumber: r.PhoneNumber,
-        DepartureLocation: r.DepartureLocation,
+        CCCDIssuePlace: r.CCCDIssuePlace || '',
+        PhoneNumber: r.PhoneNumber || '',
+        DepartureLocation: r.DepartureLocation || '',
         ConfirmStatus: r.ConfirmStatus === '0' ? 0 : r.ConfirmStatus === '1' ? 1 : Number(r.ConfirmStatus) || 0,
         ConfirmDate: this.parseDateString(r.ConfirmDate),
-        ConfirmBy: r.ConfirmBy,
+        ConfirmBy: r.ConfirmBy || '',
         OwnerEmployeeID: lastCBNVEmployeeID
       };
     });

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../../../environments/environment';
 
 @Injectable({
@@ -32,13 +33,27 @@ export class TravelRegistrationServiceService {
       params: { employeeId: employeeId.toString(), confirmStatus: confirmStatus.toString() }
     });
   }
-  getByEmployeeId(employeeId: number) {
-    return this.http.get<any>(this._url + 'get-by-employee', {
-      params: { employeeId: employeeId.toString() }
-    });
+  getByEmployeeId(employeeId?: number) {
+    const params: any = {};
+    if (employeeId) {
+      params.employeeId = employeeId.toString();
+    }
+    return this.http.get<any>(this._url + 'get-by-employee', { params });
   }
 
   importExcel(formData: FormData) {
     return this.http.post<any>(this._url + 'import-excel', formData);
+  }
+
+  downloadTemplate(fileName: string): Observable<Blob> {
+    const url = `${environment.host}api/share/software/Template/ImportExcel/${fileName}`;
+    return this.http.get(url, {
+      responseType: 'blob',
+      observe: 'response'
+    }).pipe(
+      map((response: HttpResponse<Blob>) => {
+        return response.body as Blob;
+      })
+    );
   }
 }

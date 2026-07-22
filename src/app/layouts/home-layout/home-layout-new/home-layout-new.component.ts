@@ -6,6 +6,7 @@ import { AppUserDropdownComponent } from "../../../pages/systems/app-user/app-us
 import { NzBadgeComponent } from "ng-zorro-antd/badge";
 import { NzDropDownModule } from "ng-zorro-antd/dropdown";
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 
 import { CommonModule, NgSwitchCase } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -75,7 +76,8 @@ import { TravelRegistrationServiceService } from '../../../pages/hrm/travel-regi
     HasPermissionDirective,
     NgbModalModule,
     NzModalModule,
-    NzButtonModule
+    NzButtonModule,
+    NzIconModule
   ],
   templateUrl: './home-layout-new.component.html',
   styleUrl: './home-layout-new.component.css'
@@ -631,9 +633,8 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
       }))
   };
   getUnconfirmedTravelRegistrations() {
-    const employeeId = this.appUserService.currentUser?.EmployeeID;
-    if (!employeeId) return of(null);
-    return this.travelRegistrationService.getByEmployeeId(employeeId).pipe(
+    this.unconfirmedTravelRegistrations = [];
+    return this.travelRegistrationService.getByEmployeeId().pipe(
       tap((res: any) => {
         if (res?.status === 1 && res.data) {
           this.unconfirmedTravelRegistrations = res.data.filter((x: any) => x.ConfirmStatus != 1);
@@ -652,7 +653,10 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
           }
         }
       }),
-      catchError(() => of(null))
+      catchError(() => {
+        this.unconfirmedTravelRegistrations = [];
+        return of(null);
+      })
     );
   }
 

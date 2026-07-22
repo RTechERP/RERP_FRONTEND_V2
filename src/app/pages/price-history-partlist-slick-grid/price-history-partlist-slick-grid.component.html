@@ -22,7 +22,7 @@
                     <div class="d-flex gap-1 align-items-center flex-wrap">
                         <nz-form-label class="fs-12" style="font-size: 12px;">Dự án</nz-form-label>
                         <nz-select [(ngModel)]="projectId" [ngModelOptions]="{standalone: true}" nzShowSearch
-                            nzAllowClear nzSize="small" nzPlaceHolder="Dự án" style="width: 250px;">
+                            nzAllowClear nzSize="small" nzPlaceHolder="Dự án" style="width: 300px;">
                             @for (item of projects; track $index) {
                             <nz-option nzCustomContent="true" [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"
                                 [nzValue]="item.ID">
@@ -33,7 +33,7 @@
 
                         <nz-form-label class="fs-12" style="font-size: 12px;">Nhà cung cấp</nz-form-label>
                         <nz-select [(ngModel)]="supplierId" [ngModelOptions]="{standalone: true}" nzShowSearch
-                            nzAllowClear nzSize="small" nzPlaceHolder="Nhà cung cấp" style="width: 200px;">
+                            nzAllowClear nzSize="small" nzPlaceHolder="Nhà cung cấp" style="width: 300px;">
                             @for (item of suppliers; track $index) {
                             <nz-option nzCustomContent="true" [nzLabel]="item.CodeNCC" [nzValue]="item.ID">
                                 {{ item.CodeNCC }}
@@ -43,7 +43,7 @@
 
                         <nz-form-label class="fs-12" style="font-size: 12px;">Người yêu cầu</nz-form-label>
                         <nz-select [(ngModel)]="employeeRequestId" [ngModelOptions]="{standalone: true}" nzShowSearch
-                            nzAllowClear nzSize="small" nzPlaceHolder="Người yêu cầu" style="width: 200px;">
+                            nzAllowClear nzSize="small" nzPlaceHolder="Người yêu cầu" style="width: 300px;">
                             @for (parent of employeeRequests; track $index) {
                             <nz-option-group [nzLabel]="parent.label">
                                 @for (child of parent.options; track $index) {
@@ -57,17 +57,13 @@
                         </nz-select>
 
                         <input nz-input nzSize="small"
-                            placeholder="Nhập từ khóa (Mã sản phẩm / Tên sản phẩm / Hãng)..." style="width: 380px"
+                            placeholder="Nhập từ khóa (Mã sản phẩm / Tên sản phẩm / Hãng)..." style="width: 400px"
                             [(ngModel)]="keyword" [ngModelOptions]="{standalone: true}"
                             (keyup.enter)="getPriceHistoryPartlist()" />
 
                         <button nz-button nzType="primary" nzSize="small" (click)="getPriceHistoryPartlist()">
                             <nz-icon nzType="search" />
                         </button>
-
-                        <nz-form-label style="font-size: 14px; color: red; margin-left: 10px;">Note: Nhập từ khóa để
-                            tìm
-                            kiếm lịch sử giá</nz-form-label>
                     </div>
                 </div>
 

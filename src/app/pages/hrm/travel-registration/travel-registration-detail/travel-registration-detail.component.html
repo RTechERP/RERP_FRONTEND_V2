@@ -1,0 +1,178 @@
+<div class="modal-header bg-primary py-2">
+    <h6 class="modal-title text-uppercase text-white">
+        {{ title }}
+    </h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button>
+</div>
+<div class="modal-body fs-12 p-3">
+    <nz-spin [nzSpinning]="isLoading">
+        <form nz-form [formGroup]="form" nzLayout="vertical">
+            <!-- Row 1 -->
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Mã nhân viên</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="EmployeeCode" placeholder="Mã NV" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired>Tên nhân viên</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập tên NV">
+                            <input nz-input formControlName="EmployeeName" placeholder="Tên NV" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Giới tính</nz-form-label>
+                        <nz-form-control>
+                            <nz-select formControlName="Gender" nzSize="small" style="width: 100%;">
+                                <nz-option [nzValue]="'Nam'" nzLabel="Nam"></nz-option>
+                                <nz-option [nzValue]="'Nữ'" nzLabel="Nữ"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <!-- Row 2 -->
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Phòng ban</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="Department" placeholder="Phòng ban" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Chức vụ</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="PositionName" placeholder="Chức vụ" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="4">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Tuổi</nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number formControlName="Age" [nzMin]="0" style="width: 100%"
+                                nzSize="small"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="4">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Chiều cao (cm)</nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number formControlName="Height" [nzMin]="0" style="width: 100%"
+                                nzSize="small"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <!-- Row 3 -->
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label nzRequired>CCCD / CMND</nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập CCCD">
+                            <input nz-input formControlName="CCCD" placeholder="Số CCCD" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Ngày cấp CCCD</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker formControlName="CCCDIssueDate" nzFormat="dd/MM/yyyy" nzSize="small"
+                                style="width: 100%"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Nơi cấp CCCD</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="CCCDIssuePlace" placeholder="Nơi cấp" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <!-- Row 4 -->
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Ngày sinh</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker formControlName="BirthDay" nzFormat="dd/MM/yyyy" nzSize="small"
+                                style="width: 100%"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Số điện thoại</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="PhoneNumber" placeholder="Số điện thoại" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Mối quan hệ</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="Relationship" placeholder="Mối quan hệ" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <!-- Row 5 -->
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="12">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Địa chỉ</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="Address" placeholder="Địa chỉ" nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="12">
+                    <nz-form-item class="mb-2">
+                        <nz-form-label>Nơi xuất phát</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="DepartureLocation" placeholder="Nơi xuất phát"
+                                nzSize="small" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <!-- Row 6 -->
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="8">
+                    <nz-form-item class="mb-0">
+                        <nz-form-label>Trạng thái xác nhận</nz-form-label>
+                        <nz-form-control>
+                            <nz-select formControlName="ConfirmStatus" nzSize="small" style="width: 100%;">
+                                <nz-option [nzValue]="0" nzLabel="Đang chờ"></nz-option>
+                                <nz-option [nzValue]="1" nzLabel="Đã xác nhận"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </form>
+    </nz-spin>
+</div>
+<div class="modal-footer fs-12 p-2">
+    <button nz-button type="button" nzDanger nzType="default" (click)="onCancel()" [nzLoading]="isLoading">Đóng</button>
+    <button nz-button type="button" nzType="primary" (click)="onSubmit()" [nzLoading]="isLoading">Lưu dữ liệu</button>
+</div>

@@ -154,7 +154,11 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
     this.supplierId = null;
     this.keyword = '';
     this.pageNumber = 1;
-    this.getPriceHistoryPartlist();
+    this.dataset = [];
+    if (this.angularGrid?.dataView) {
+      this.angularGrid.dataView.setItems([]);
+      this.angularGrid.dataView.refresh();
+    }
   }
 
   prevPage(): void {
@@ -182,6 +186,16 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
   }
 
   async getPriceHistoryPartlist() {
+    if (!this.projectId && !this.supplierId && !this.employeeRequestId && !this.keyword?.trim()) {
+      this.notification.warning('Thông báo', 'Vui lòng điền thông tin để tìm kiếm!');
+      this.dataset = [];
+      if (this.angularGrid?.dataView) {
+        this.angularGrid.dataView.setItems([]);
+        this.angularGrid.dataView.refresh();
+      }
+      return;
+    }
+
     this.isLoadTable = true;
     const data = {
       pageNumber: this.pageNumber || 1,
@@ -191,7 +205,6 @@ export class PriceHistoryPartlistSlickGridComponent implements OnInit, AfterView
       employeeRequestId: this.employeeRequestId ?? 0,
       keyword: this.keyword?.trim() ?? '',
     };
-    0
     this.projectService.getPriceHistoryPartlist(data).subscribe({
       next: (response: any) => {
         let rawData = response.data || [];

@@ -410,6 +410,9 @@ import { VisaRequestComponent } from './pages/hrm/visa-request/visa-request.comp
 import { InventoryNotExportComponent } from './pages/old/Sale/Inventory/inventory-not-export/inventory-not-export.component';
 import { ContractTransferReviewTbpComponent } from './pages/hrm/contract-transfer-review/contract-transfer-review-tbp/contract-transfer-review-tbp.component';
 import { ContractTransferReviewBgdComponent } from './pages/hrm/contract-transfer-review/contract-transfer-review-bgd/contract-transfer-review-bgd.component';
+import { TravelRegistrationComponent } from './pages/hrm/travel-registration/travel-registration.component';
+import { TravelRegistrationImportExcelComponent } from './pages/hrm/travel-registration/travel-registration-import-excel/travel-registration-import-excel.component';
+import { TravelRegistrationDetailComponent } from './pages/hrm/travel-registration/travel-registration-detail/travel-registration-detail.component';
 import { SalaryIncreaseComponent } from './pages/hrm/salary-increase/salary-increase.component';
 export const routes: Routes = [
 
@@ -1354,6 +1357,10 @@ export const routes: Routes = [
       { path: 'contract-transfer-review-tbp-hr', component: ContractTransferReviewComponent, canActivate: [authGuard] },
       { path: 'kpi-error-hr', component: KpiErrorComponent, canActivate: [authGuard] }, // danh sách lỗi kt
       { path: 'kpi-error-employee-hr', component: KpiErrorEmployeeComponent, canActivate: [authGuard] },
+      { path: 'summary-kpi-error-employee-new-hr', component: SummaryKpiErrorEmployeePrimengComponent, canActivate: [authGuard] },
+      { path: 'travel-registration', component: TravelRegistrationComponent, canActivate: [authGuard] },
+      { path: 'travel-registration-import-excel', component: TravelRegistrationImportExcelComponent, canActivate: [authGuard] },
+      { path: 'travel-registration-detail', component: TravelRegistrationDetailComponent, canActivate: [authGuard] }
       { path: 'summary-kpi-error-employee-new-hr', component: SummaryKpiErrorEmployeePrimengComponent, canActivate: [authGuard] },
       { path: 'salary-increase', component: SalaryIncreaseComponent, canActivate: [authGuard] },
 

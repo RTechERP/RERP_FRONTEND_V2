@@ -1,0 +1,167 @@
+<p-menubar [model]="menuBars">
+    <ng-template pTemplate="item" let-item>
+        <a class="p-menuitem-link" [ngClass]="item.styleClass" (click)="item.command ? item.command() : null">
+            <i [class]="item.icon"></i>
+            <span class="p-menuitem-text" style="font-size: 12px;">{{ item.label }}</span>
+        </a>
+    </ng-template>
+</p-menubar>
+
+<ng-container class="w-100">
+    <div class="card border-0 rounded-0" style="height: 85vh !important;">
+        <div class="card-body p-0 d-flex flex-column" style="height: 100%;">
+            <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu..."
+                style="flex: 1; display: flex; flex-direction: column;">
+                <div class="grid-container" id="grid-container-travel-registration" style="height: 100%; flex: 1;">
+                    <p-table #dt [value]="dataset" selectionMode="multiple" [(selection)]="selectedRows"
+                        [scrollable]="true" scrollHeight="calc(100vh - 230px)"
+                        styleClass="p-datatable-sm p-datatable-gridlines" dataKey="ID" [paginator]="true" [rows]="20"
+                        [rowsPerPageOptions]="[10, 20, 50, 100]">
+                        <ng-template pTemplate="header">
+                            <tr style="font-size: 12px; white-space: nowrap;">
+                                <th style="width: 40px; text-align: center">
+                                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                                </th>
+                                <th style="width: 60px; text-align: center" pSortableColumn="STT">STT <p-sortIcon
+                                        field="STT"></p-sortIcon></th>
+                                <th style="width: 150px; text-align: center" pSortableColumn="ConfirmStatus">Trạng
+                                    thái<p-sortIcon field="ConfirmStatus"></p-sortIcon></th>
+                                <th style="width: 150px;" pSortableColumn="EmployeeCode">Mã nhân viên <p-sortIcon
+                                        field="EmployeeCode"></p-sortIcon></th>
+                                <th style="width: 200px;" pSortableColumn="EmployeeName">Tên nhân viên <p-sortIcon
+                                        field="EmployeeName"></p-sortIcon></th>
+                                <th style="width: 150px;" pSortableColumn="Department">Phòng ban <p-sortIcon
+                                        field="Department"></p-sortIcon></th>
+                                <th style="width: 150px;" pSortableColumn="PositionName">Chức vụ <p-sortIcon
+                                        field="PositionName"></p-sortIcon></th>
+                                <th style="width: 120px; text-align: center" pSortableColumn="BirthDay">Ngày sinh
+                                    <p-sortIcon field="BirthDay"></p-sortIcon>
+                                </th>
+                                <th style="width: 80px; text-align: center" pSortableColumn="Age">Tuổi <p-sortIcon
+                                        field="Age"></p-sortIcon></th>
+                                <th style="width: 100px; text-align: center" pSortableColumn="Height">Chiều cao (cm)
+                                    <p-sortIcon field="Height"></p-sortIcon>
+                                </th>
+                                <th style="width: 100px; text-align: center" pSortableColumn="Gender">Giới tính
+                                    <p-sortIcon field="Gender"></p-sortIcon>
+                                </th>
+                                <th style="width: 150px;">Mối quan hệ</th>
+                                <th style="width: 250px;">Địa chỉ</th>
+                                <th style="width: 150px;">CCCD</th>
+                                <th style="width: 120px; text-align: center">Ngày cấp</th>
+                                <th style="width: 200px;">Nơi cấp</th>
+                                <th style="width: 120px;">SĐT</th>
+                                <th style="width: 200px;">Nơi xuất phát</th>
+                                <th style="width: 120px; text-align: center">Ngày xác nhận</th>
+                                <th style="width: 150px;">Người xác nhận</th>
+                            </tr>
+                            <tr style="font-size: 12px;">
+                                <th></th>
+                                <th></th>
+                                <th>
+                                    <select class="form-control form-control-sm"
+                                        (change)="dt.filter($any($event.target).value, 'ConfirmStatus', 'equals')"
+                                        style="padding: 2px 4px; font-size: 11px;">
+                                        <option value="">Tất cả</option>
+                                        <option value="1">Đã xác nhận</option>
+                                        <option value="0">Chưa xác nhận</option>
+                                    </select>
+                                </th>
+                                <th><input type="text" class="form-control form-control-sm"
+                                        (input)="dt.filter($any($event.target).value, 'EmployeeCode', 'contains')"
+                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm"
+                                        (input)="dt.filter($any($event.target).value, 'EmployeeName', 'contains')"
+                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm"
+                                        (input)="dt.filter($any($event.target).value, 'Department', 'contains')"
+                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm"
+                                        (input)="dt.filter($any($event.target).value, 'PositionName', 'contains')"
+                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th><input type="text" class="form-control form-control-sm"
+                                        (input)="dt.filter($any($event.target).value, 'Relationship', 'contains')"
+                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm"
+                                        (input)="dt.filter($any($event.target).value, 'Address', 'contains')"
+                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm"
+                                        (input)="dt.filter($any($event.target).value, 'CCCD', 'contains')"
+                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th></th>
+                                <th><input type="text" class="form-control form-control-sm"
+                                        (input)="dt.filter($any($event.target).value, 'CCCDIssuePlace', 'contains')"
+                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm"
+                                        (input)="dt.filter($any($event.target).value, 'PhoneNumber', 'contains')"
+                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th><input type="text" class="form-control form-control-sm"
+                                        (input)="dt.filter($any($event.target).value, 'DepartureLocation', 'contains')"
+                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                                <th></th>
+                                <th><input type="text" class="form-control form-control-sm"
+                                        (input)="dt.filter($any($event.target).value, 'ConfirmBy', 'contains')"
+                                        placeholder="Tìm..." style="padding: 2px 4px; font-size: 11px;"></th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                            <tr [pSelectableRow]="item" style="font-size: 12px; white-space: nowrap;"
+                                [ngClass]="{'row-non-employee': item.Relationship && item.Relationship !== 'CBNV'}">
+                                <td style="text-align: center">
+                                    <p-tableCheckbox [value]="item"></p-tableCheckbox>
+                                </td>
+                                <td style="text-align: center">{{ item.STT || rowIndex + 1 }}</td>
+                                <td style="text-align: center">
+                                    <span class="badge"
+                                        [ngClass]="{'bg-success': item.ConfirmStatus == 1, 'bg-warning': item.ConfirmStatus != 1}">
+                                        {{ item.ConfirmStatus === 1 ? 'Đã xác nhận' : 'Chưa xác nhận' }}
+                                    </span>
+                                </td>
+                                <td>{{ item.EmployeeCode }}</td>
+                                <td>{{ item.EmployeeName }}</td>
+                                <td>{{ item.Department }}</td>
+                                <td>{{ item.PositionName }}</td>
+                                <td style="text-align: center">{{ formatDate(item.BirthDay) }}</td>
+                                <td style="text-align: center">{{ item.Age }}</td>
+                                <td style="text-align: center">{{ item.Height }}</td>
+                                <td style="text-align: center">{{ item.Gender }}</td>
+                                <td>{{ item.Relationship }}</td>
+                                <td class="cell-wrap" [pTooltip]="item.Address" tooltipPosition="top">
+                                    <span
+                                        style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width: 230px;">
+                                        {{ item.Address }}
+                                    </span>
+                                </td>
+                                <td>{{ item.CCCD }}</td>
+                                <td style="text-align: center">{{ formatDate(item.CCCDIssueDate) }}</td>
+                                <td class="cell-wrap" [pTooltip]="item.CCCDIssuePlace" tooltipPosition="top">
+                                    <span
+                                        style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width: 180px;">
+                                        {{ item.CCCDIssuePlace }}
+                                    </span>
+                                </td>
+                                <td>{{ item.PhoneNumber }}</td>
+                                <td>{{ item.DepartureLocation }}</td>
+
+                                <td style="text-align: center">{{ formatDate(item.ConfirmDate) }}</td>
+                                <td>{{ item.ConfirmBy }}</td>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="20"
+                                    style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
+                                    Không có dữ liệu.
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </nz-spin>
+        </div>
+    </div>
+</ng-container>

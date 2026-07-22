@@ -625,7 +625,7 @@
                 <button nz-button nzType="link" nzSize="small" (click)="openFileListModal(item)"
                   class="p-0 d-inline-flex align-items-center">
                   <i class="fa-solid fa-list-check me-1"></i>
-                  Chi tiết
+                  Chi tiết ({{ countCompletedRules(item) }}/{{ item.CheckLists.length }})
                 </button>
               </div>
               }
@@ -633,25 +633,30 @@
             <td style="width: 120px; text-align: center;">
               <input type="date" nz-input nzSize="small" class="text-center w-100 input-date" style="font-size: 12px;"
                 [(ngModel)]="item.StartDate"
-                (ngModelChange)="onStartDateValueChange(item, activeProjectTypeId + '_' + activeDepartmentId)" />
+                (ngModelChange)="onStartDateValueChange(item, activeProjectTypeId + '_' + activeDepartmentId)"
+                [disabled]="isStepPassed(item)" />
             </td>
             <td style="width: 80px; text-align: center;">
               @if (item.machineIndex === 1 && !item.isNew) {
               <input type="checkbox" [(ngModel)]="item.isRepeatChecked"
-                (change)="onRepeatToggle(activeProjectTypeId + '_' + activeDepartmentId, item)" />
+                (change)="onRepeatToggle(activeProjectTypeId + '_' + activeDepartmentId, item)"
+                [disabled]="isStepPassed(item)" />
               }
             </td>
             <td style="width: 80px; text-align: center;">
               <input type="number" nz-input nzSize="small" class="text-center w-100" style="font-size: 12px;"
-                [(ngModel)]="item.PeopleCount" (ngModelChange)="onGateStepValueChange(item)" />
+                [(ngModel)]="item.PeopleCount" (ngModelChange)="onGateStepValueChange(item)"
+                [disabled]="isStepPassed(item)" />
             </td>
             <td style="width: 80px; text-align: center;">
               <input type="number" nz-input nzSize="small" class="text-center w-100" style="font-size: 12px;"
-                [(ngModel)]="item.DayCount" (ngModelChange)="onGateStepValueChange(item)" />
+                [(ngModel)]="item.DayCount" (ngModelChange)="onGateStepValueChange(item)"
+                [disabled]="isStepPassed(item)" />
             </td>
             <td style="width: 220px; padding: 0 !important; position: relative;">
               <div #workerLookupCell class="table-lookup-cell"
-                (click)="openWorkersLookup($event, item, workerLookupPanel)"
+                (click)="!isStepPassed(item) && openWorkersLookup($event, item, workerLookupPanel)"
+                [class.disabled-cell]="isStepPassed(item)"
                 style="width: 100%; height: 100%; min-height: 28px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; cursor: pointer;">
                 <span class="table-lookup-value" [class.text-400]="!item.Workers || item.Workers.length === 0"
                   style="white-space: pre-wrap; word-break: break-word; flex: 1; padding: 4px 0;"
@@ -664,11 +669,13 @@
             </td>
             <td style="width: 100px; text-align: center;">
               <input type="number" nz-input nzSize="small" class="text-center w-100" style="font-size: 12px;"
-                [(ngModel)]="item.TotalEffort" />
+                [(ngModel)]="item.TotalEffort"
+                [disabled]="isStepPassed(item)" />
             </td>
             <td style="width: 130px; text-align: center;">
               <nz-input-number [(ngModel)]="item.UnitPrice" [nzMin]="0" [nzStep]="10000" [nzFormatter]="formatAmount"
-                [nzParser]="parseAmount" nzSize="small" class="text-end w-100" style="font-size: 12px; width: 100%;">
+                [nzParser]="parseAmount" nzSize="small" class="text-end w-100" style="font-size: 12px; width: 100%;"
+                [nzDisabled]="isStepPassed(item)">
               </nz-input-number>
             </td>
             <td style="width: 140px; text-align: right; font-weight: bold; font-size: 12px; padding-right: 8px;">

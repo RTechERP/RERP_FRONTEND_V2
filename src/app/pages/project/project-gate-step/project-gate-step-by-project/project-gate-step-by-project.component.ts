@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, Optional, Inject, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, Optional, Inject, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -133,7 +133,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     private projectTypeDeptService: ProjectTypeDepartmentService,
     private projectWorkerService: ProjectWorkerService,
     private modalService: NzModalService,
-    private ngbModal: NgbModal
+    private ngbModal: NgbModal,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -1544,7 +1545,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
   countCompletedRules(item: any): number {
     if (!item || !item.CheckLists) return 0;
-    return item.CheckLists.filter((c: any) => c.IsPass === true).length;
+    return item.CheckLists.filter((c: any) => c.IsApprovedTBP === true).length;
   }
 
   isStepPassed(item: any): boolean {
@@ -1818,7 +1819,22 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         const action = isApproved ? 'Duyệt' : 'Hủy duyệt';
         this.notification.success('Thành công', data?.Message || `${action} thành công`);
         this.selectedStepLinkIds.clear();
-        this.loadAllGateSteps(); // reload để cập nhật màu xanh lá
+        
+        // Reload dữ liệu từ server để cập nhật savedGateSteps
+        this.projectGateStepService.getByProject(this.projectId).subscribe({
+          next: (res: any) => {
+            this.savedGateSteps = res.data || [];
+            // Rebuild projectTypeStepsMap từ savedGateSteps đã cập nhật
+            this.updateTabsSteps();
+            // Cập nhật summary data
+            this.buildSummaryData();
+            // Trigger change detection
+            this.cdr.markForCheck();
+          },
+          error: (err: any) => {
+            console.error('Lỗi', err);
+          }
+        });
       },
       error: (err: any) => {
         const msg = err?.error?.message || err?.message || 'Lỗi không xác định';

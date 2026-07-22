@@ -248,6 +248,7 @@ export class TaskDetailComponent implements OnInit {
 
     estimatedTime: string = '';
     dateValidationError: string = '';  // loi validate ngay
+    isFromGateStep: boolean = false;  // công việc sinh ra từ projectgatesteplink
 
     get maxEstimatedHours(): number {
         if (this.planStartDate && this.planEndDate) {
@@ -318,6 +319,25 @@ export class TaskDetailComponent implements OnInit {
             const e = new Date(this.endDate).setHours(0, 0, 0, 0);
             if (e < s) {
                 this.dateValidationError = 'Ngày KT thực tế không được trước Ngày BĐ thực tế';
+            }
+        }
+
+        // Ràng buộc: Nếu có công việc cha thì ngày dự kiến kết thúc của công việc con không được bỏ trống
+        // if (this.parentTaskId && !this.planEndDate) {
+        //     this.dateValidationError = 'Vui lòng điền ngày dự kiến kết thúc của công việc!';
+        //     return;
+        // }
+
+        // Ràng buộc: Ngày kết thúc dự kiến của công việc con không được vượt quá ngày kết thúc dự kiến của công việc cha
+        if (this.parentTaskId && this.planEndDate) {
+            const parentTask = this.parentTaskList.find((t: any) => t.ID === this.parentTaskId);
+            if (parentTask && parentTask.PlanEndDate) {
+                const parentEndDate = new Date(parentTask.PlanEndDate).setHours(0, 0, 0, 0);
+                const childEndDate = new Date(this.planEndDate).setHours(0, 0, 0, 0);
+                if (childEndDate > parentEndDate) {
+                    const parentEndDateStr = this.toDateInputString(new Date(parentTask.PlanEndDate));
+                    this.dateValidationError = `Ngày KT dự kiến của công việc con không được vượt quá ngày KT dự kiến của công việc cha (${parentEndDateStr})`;
+                }
             }
         }
     }
@@ -662,7 +682,15 @@ export class TaskDetailComponent implements OnInit {
 
     // Parent Task properties
     parentTaskList: any[] = [];
-    parentTaskId?: number;
+    _parentTaskId?: number;
+    get parentTaskId(): number | undefined {
+        return this._parentTaskId;
+    }
+    set parentTaskId(value: number | undefined) {
+        this._parentTaskId = value;
+        // Kiểm tra validation khi thay đổi công việc cha
+        this.validateDates();
+    }
 
     // Employee properties
     assigneeIds: number[] = []; // Array of assignee IDs
@@ -1755,12 +1783,30 @@ export class TaskDetailComponent implements OnInit {
 
     // Không cho chọn ngày kết thúc dự kiến trước ngày bắt đầu dự kiến
     disabledPlanEndDate = (endValue: Date): boolean => {
+        // Nếu công việc sinh ra từ projectgatesteplink thì disable tất cả ngày
+        if (this.isFromGateStep) {
+            return true;
+        }
+
         if (!endValue || !this.planStartDate) {
             return false;
         }
         const e = new Date(endValue).setHours(0, 0, 0, 0);
         const s = new Date(this.planStartDate).setHours(0, 0, 0, 0);
-        return e < s;
+        if (e < s) {
+            return true;
+        }
+
+        // Không cho chọn ngày kết thúc dự kiến vượt quá ngày kết thúc dự kiến của công việc cha
+        if (this.parentTaskId) {
+            const parentTask = this.parentTaskList.find((t: any) => t.ID === this.parentTaskId);
+            if (parentTask && parentTask.PlanEndDate) {
+                const parentEndDate = new Date(parentTask.PlanEndDate).setHours(0, 0, 0, 0);
+                return e > parentEndDate;
+            }
+        }
+
+        return false;
     };
 
     // Khi chọn ngày kết thúc mà chưa có ngày bắt đầu, mặc định là hôm nay
@@ -2408,6 +2454,9 @@ export class TaskDetailComponent implements OnInit {
                         taskData.ApprovalStatus = this.tabData.ApprovalStatus;
                     }
                     this.initializeWithTask(taskData);
+
+                    // Kiểm tra xem công việc có sinh ra từ projectgatesteplink không
+                    this.checkIsGateStep(id);
                 } else {
                     this.message.error('Không thể tải chi tiết công việc');
                 }
@@ -2417,6 +2466,24 @@ export class TaskDetailComponent implements OnInit {
             error: () => {
                 this.message.error('Lỗi khi tải chi tiết công việc');
                 this.isLoading = false;
+                this.cdr.detectChanges();
+            }
+        });
+    }
+
+    private checkIsGateStep(taskId: number): void {
+        this.kanbanService.checkIsGateStep(taskId).subscribe({
+            next: (res: any) => {
+                console.log('checkIsGateStep response:', res);
+                if (res.status === 200 || res.status === 1) {
+                    this.isFromGateStep = res.data != null;
+                    console.log('isFromGateStep set to:', this.isFromGateStep);
+                    this.cdr.detectChanges();
+                }
+            },
+            error: () => {
+                this.isFromGateStep = false;
+                console.log('checkIsGateStep error, set isFromGateStep to false');
                 this.cdr.detectChanges();
             }
         });
@@ -3586,12 +3653,12 @@ export class TaskDetailComponent implements OnInit {
                     }
                 } else {
                     this.isSaving = false;
-                    this.message.error(res.message || 'Lỗi khi tạo công việc');
+                    this.message.error(res.error.message || res.error.error.message || 'Lỗi khi tạo công việc');
                 }
             },
             error: (err: any) => {
                 this.isSaving = false;
-                this.message.error('Lỗi khi tạo công việc');
+                this.message.error(err.error.message || err.message || 'Lỗi khi tạo công việc');
                 console.error('Error creating task', err);
             }
         });
@@ -3613,7 +3680,8 @@ export class TaskDetailComponent implements OnInit {
         this.pendingLinkDeletes = [];
         this.parentTaskId = undefined;
         this.loadParentTasks();
-        
+        this.isFromGateStep = false;
+
         // Reset Child Tasks
         this.childTasks = [];
         this.pendingChildTaskOps = [];
@@ -3700,12 +3768,12 @@ export class TaskDetailComponent implements OnInit {
                 if (res.status === 200 || res.status === 1) {
                     // Success - no toast to avoid spam
                 } else {
-                    this.message.error('Lưu thất bại');
+                    this.message.error(res.error.message || res.message ||'Lưu thất bại');
                 }
             },
             error: (err) => {
                 this.isSaving = false;
-                this.message.error('Lưu thất bại. Vui lòng thử lại.');
+                this.message.error(err.error.message || err.message ||'Lưu thất bại. Vui lòng thử lại.');
                 console.error('Auto-save failed', err);
             }
         });

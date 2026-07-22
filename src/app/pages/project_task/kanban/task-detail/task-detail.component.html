@@ -380,6 +380,7 @@
                                             </label>
                                             <input type="date" [(ngModel)]="planEndDateStr"
                                                 class="rd-input"
+                                                [disabled]="isFromGateStep"
                                                 [class.has-error]="dateValidationError && dateValidationError.includes('du kien')" />
                                         </div>
                                     </div>

@@ -148,11 +148,22 @@
   padding: 4px;
 }
 
-/* Màu nền xanh lá nhạt cho các dòng có isPass = true */
+/* Màu nền xanh lá nhạt cho các dòng có isApproved = true */
 ::ng-deep .p-datatable .p-datatable-tbody>tr.passed-step>td {
   background-color: #d4edda !important;
   /* Xanh lá nhạt của Bootstrap */
   color: #155724 !important;
+}
+
+/* Style cho cell bị disable khi công đoạn đã duyệt */
+.table-lookup-cell.disabled-cell {
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  background-color: #f8f9fa;
+}
+
+.table-lookup-cell.disabled-cell .table-lookup-chevron {
+  opacity: 0.5;
 }
 
 /* Định dạng kích thước chữ menu sidebar: menu cha to hơn menu con */

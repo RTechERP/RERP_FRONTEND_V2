@@ -262,5 +262,9 @@ export class KanbanService {
     getDayOff(dateStart: string, dateEnd: string): Observable<any> {
         return this.http.post<any>(`${this.apiUrl}/day-off?dateStart=${dateStart}&dateEnd=${dateEnd}`, {});
     }
+
+    checkIsGateStep(projectTaskID: number): Observable<any> {
+        return this.http.get<any>(`${this.apiUrl}/check-is-gate-step?projectTaskID=${projectTaskID}`);
+    }
 }
 

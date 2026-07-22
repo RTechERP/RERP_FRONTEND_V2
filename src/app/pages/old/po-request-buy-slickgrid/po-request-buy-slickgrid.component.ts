@@ -56,6 +56,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { PoRequestBuySlickgridService } from './po-request-buy-slickgrid-service/po-request-buy-slickgrid.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { AppUserService } from '../../../services/app-user.service';
+import { PokhSlickgridService } from '../pokh-slickgrid/pokh-slickgrid-service/pokh-slickgrid.service';
 @Component({
   selector: 'app-po-request-buy-slickgrid',
   imports: [
@@ -96,7 +97,8 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     private notification: NzNotificationService,
     private PoRequestBuySlickgridService: PoRequestBuySlickgridService,
     private appUserService: AppUserService,
-    private modal: NzModalService
+    private modal: NzModalService,
+    private POKHService: PokhSlickgridService
   ) { }
 
   dataDepartment: any[] = [];
@@ -115,7 +117,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     // Kiểm tra quyền admin và set employeeId
     const isAdmin = this.appUserService.isAdmin;
     this.isEmployeeDisabled = !isAdmin;
-    
+
     // Nếu không phải admin, set employeeId của user hiện tại
     if (!isAdmin) {
       const currentUserId = this.appUserService.employeeID;
@@ -132,7 +134,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     this.selectedPokhIds = this.normalizePokhIds(this.pokhIds, this.pokhId);
     this.loadPOKHProductsByPokhIds(this.selectedPokhIds);
   }
-  
+
   closeModal(): void {
     this.activeModal.close();
   }
@@ -146,12 +148,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
           const rawData = Array.isArray(response.data) ? response.data : [];
           const unapproved = rawData.filter((item: any) => item.IsApproved !== true && item.ProductCode);
           if (unapproved.length > 0) {
-            const unapprovedCodes = unapproved.map((item: any) => item.ProductCode || item.ProductName || 'Không rõ').filter(Boolean);
-            this.modal.warning({
-              nzTitle: 'Sản phẩm chưa được duyệt',
-              nzContent: `Có ${unapproved.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách yêu cầu mua hàng:<br/><br/><b>${unapprovedCodes.join(', ')}</b>`,
-              nzOkText: 'Đồng ý'
-            });
+            this.handleUnapprovedProducts(unapproved, 'yêu cầu mua hàng');
           }
 
           // Chỉ lấy sản phẩm thực sự được duyệt và có ProductCode
@@ -164,7 +161,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
           setTimeout(() => {
             this.applyDistinctFiltersToGrid(this.angularGrid, this.columnDefinitions, ['Maker', 'Unit']);
           }, 1000);
-          
+
         } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,
@@ -182,6 +179,52 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     });
   }
 
+  private handleUnapprovedProducts(unapproved: any[], requestType: string = 'yêu cầu mua hàng'): void {
+    if (!unapproved || unapproved.length === 0) return;
+
+    const unapprovedCodes = unapproved.map((item: any) => item.ProductCode || item.ProductName || 'Không rõ').filter(Boolean);
+
+    if (this.POKHService) {
+      this.POKHService.inforUserApproved().subscribe({
+        next: (res: any) => {
+          let userNames = '';
+          if (res?.data) {
+            if (typeof res.data === 'string') {
+              userNames = res.data.trim();
+            } else if (Array.isArray(res.data)) {
+              userNames = res.data
+                .map((x: any) => typeof x === 'string' ? x : (x.FullName || x.Name || x.UserName || ''))
+                .filter(Boolean)
+                .join(', ');
+            } else if (typeof res.data === 'object') {
+              userNames = res.data.FullName || res.data.Name || res.data.UserName || '';
+            }
+          }
+
+          const contactText = userNames ? `<br/><br/><b>Vui lòng liên hệ 1 trong các TBP [${userNames}] để duyệt sản phẩm.</b>` : '';
+          this.modal.warning({
+            nzTitle: 'Sản phẩm chưa được duyệt',
+            nzContent: `Có ${unapproved.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách ${requestType}:<br/><br/><b>${unapprovedCodes.join(', ')}</b>${contactText}`,
+            nzOkText: 'Đồng ý'
+          });
+        },
+        error: () => {
+          this.modal.warning({
+            nzTitle: 'Sản phẩm chưa được duyệt',
+            nzContent: `Có ${unapproved.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách ${requestType}:<br/><br/><b>${unapprovedCodes.join(', ')}</b>`,
+            nzOkText: 'Đồng ý'
+          });
+        }
+      });
+    } else {
+      this.modal.warning({
+        nzTitle: 'Sản phẩm chưa được duyệt',
+        nzContent: `Có ${unapproved.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách ${requestType}:<br/><br/><b>${unapprovedCodes.join(', ')}</b>`,
+        nzOkText: 'Đồng ý'
+      });
+    }
+  }
+
   loadPOKHProductsByPokhIds(ids: number[] = []): void {
     const normalizedIds = this.normalizePokhIds(ids);
     if (normalizedIds.length === 0) {
@@ -196,12 +239,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
         const rawData = Array.isArray(result?.data) ? result.data : [];
         const unapproved = rawData.filter((item: any) => item.IsApproved !== true && item.ProductCode);
         if (unapproved.length > 0) {
-          const unapprovedCodes = unapproved.map((item: any) => item.ProductCode || item.ProductName || 'Không rõ').filter(Boolean);
-          this.modal.warning({
-            nzTitle: 'Sản phẩm chưa được duyệt',
-            nzContent: `Có ${unapproved.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách yêu cầu mua hàng:<br/><br/><b>${unapprovedCodes.join(', ')}</b>`,
-            nzOkText: 'Đồng ý'
-          });
+          this.handleUnapprovedProducts(unapproved, 'yêu cầu mua hàng');
         }
 
         // Chỉ lấy sản phẩm thực sự được duyệt và có ProductCode
@@ -314,7 +352,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn người yêu cầu!');
       return;
     }
-    
+
     const selectedRows = this.getSelectedRows();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.error(
@@ -323,7 +361,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
       );
       return;
     }
-    
+
     // Chuẩn bị dữ liệu gửi lên API
     const requestData = selectedRows.map((row) => ({
       EmployeeID: this.selectedEmployee,
@@ -345,7 +383,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
       DateReceive: row.DeliveryRequestedDate,
       ParentProductCode: row.ParentProductCode,
     }));
-    
+
     this.isLoading = true;
     this.PoRequestBuySlickgridService.saveData(requestData).subscribe({
       next: (res: any) => {

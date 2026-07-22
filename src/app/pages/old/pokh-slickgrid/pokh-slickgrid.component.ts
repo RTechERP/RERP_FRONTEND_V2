@@ -1750,7 +1750,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         const SPAM_INTERVAL = 5 * 60 * 1000; // Chặn gửi trùng lặp trong 5 phút
         const now = Date.now();
         let sentMailCache: { [key: number]: number } = {};
-        
+
         try {
             const cacheStr = localStorage.getItem('sent_approved_mail_products');
             if (cacheStr) {
@@ -2331,6 +2331,35 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
     initGridPOKHProduct(): void {
         this.columnDefinitionsPOKHProduct = [
             { id: 'STT', name: 'STT', field: 'STT', width: 70, minWidth: 70, sortable: true, filterable: true, formatter: Formatters.tree, filter: { model: Filters['compoundInputNumber'] } },
+            {
+                id: 'IsApproved',
+                name: 'TBP duyệt',
+                field: 'IsApproved',
+                width: 100,
+                minWidth: 90,
+                sortable: true,
+                filterable: true,
+                cssClass: 'text-center',
+                formatter: (_row, _cell, value) => {
+                    if (value === true || value === 1 || String(value).toLowerCase() === 'true') {
+                        return `<div style="text-align: center; color: #52c41a; font-weight: bold;"><i class="fa fa-check"></i></div>`;
+                    }
+                    return '';
+                },
+                filter: {
+                    model: Filters['singleSelect'],
+                    collection: [
+                        { value: true, label: 'Có' },
+                        { value: false, label: 'Không' }
+                    ],
+                    collectionOptions: {
+                        addBlankEntry: true
+                    },
+                    filterOptions: {
+                        autoAdjustDropHeight: true
+                    } as any
+                }
+            },
             { id: 'ProductNewCode', name: 'Mã Nội Bộ', field: 'ProductNewCode', width: 100, minWidth: 100, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'ProductCode', name: 'Mã Sản Phẩm (Cũ)', field: 'ProductCode', width: 150, minWidth: 150, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },
             { id: 'ProductName', name: 'Tên sản phẩm', field: 'ProductName', width: 200, minWidth: 200, sortable: true, filterable: true, formatter: this.commonTooltipFormatter, filter: { model: Filters['compoundInputText'] } },

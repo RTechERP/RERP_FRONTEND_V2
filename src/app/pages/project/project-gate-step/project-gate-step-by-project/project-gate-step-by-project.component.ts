@@ -107,6 +107,11 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   detailTasks: any[] = [];
   isLoadingDetailTasks: boolean = false;
 
+  // Dành cho Tab 2 Checklist detail files
+  selectedRuleInTab: any = null;
+  displayFilesInTab: any[] = [];
+  isLoadingRuleFiles: boolean = false;
+
   // Dành cho popover tra cứu/chọn nhân viên
   activeManpowerItem: any = null;
   workersSearchText: string = '';
@@ -761,13 +766,18 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       }, 0);
   }
 
-  // Bộ xử lý tra cứu/chọn nhân viên thực hiện
+  // Bộ xử lý tra cứu/chọn nhân viên thực hiện (mỗi người 1 dòng nếu có từ 2 người trở lên)
   getWorkersDisplay(workerIds: any[]): string {
     if (!workerIds || workerIds.length === 0) return '';
     return this.usersFlat
       .filter(u => workerIds.includes(u.EmployeeID))
       .map(u => u.FullName)
-      .join(', ');
+      .join('\n');
+  }
+
+  getFormattedNames(names: string | null | undefined): string {
+    if (!names) return '';
+    return names.split(',').map(n => n.trim()).filter(n => n).join('\n');
   }
 
   openWorkersLookup(event: Event, item: any, lookupPanel: any) {
@@ -1217,6 +1227,8 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     this.selectedStepDetail = null;
     this.selectedStepDetailDept = null;
     this.detailTasks = [];
+    this.selectedRuleInTab = null;
+    this.displayFilesInTab = [];
   }
 
   selectStepDetail(step: any, dept: any): void {
@@ -1224,12 +1236,16 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       this.selectedStepDetail = null;
       this.selectedStepDetailDept = null;
       this.detailTasks = [];
+      this.selectedRuleInTab = null;
+      this.displayFilesInTab = [];
       return;
     }
 
     this.selectedStepDetail = step;
     this.selectedStepDetailDept = dept;
     this.detailTasks = [];
+    this.selectedRuleInTab = null;
+    this.displayFilesInTab = [];
     this.selectedDetailTab = 1; // Mặc định chuyển về Tab 1 khi click chọn bước mới
 
     if (step.projectTaskID) {
@@ -1249,6 +1265,98 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     }
   }
 
+  selectDetailTab(tabIndex: number): void {
+    this.selectedDetailTab = tabIndex;
+    if (tabIndex === 2) {
+      if (!this.selectedRuleInTab && this.selectedStepDetail?.checkLists?.length > 0) {
+        this.selectRuleInTab(this.selectedStepDetail.checkLists[0]);
+      } else {
+        this.refreshDisplayFilesInTab();
+      }
+    }
+  }
+
+  selectRuleInTab(cl: any): void {
+    if (this.selectedRuleInTab?.ID === cl?.ID && cl?.Files?.length) {
+      this.refreshDisplayFilesInTab();
+      return;
+    }
+
+    this.selectedRuleInTab = cl;
+    if (!cl || !cl.ID) {
+      this.displayFilesInTab = [];
+      return;
+    }
+
+    this.isLoadingRuleFiles = true;
+    this.projectGateStepService.getFiles(cl.ID).subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          cl.Files = res.data || [];
+        } else {
+          cl.Files = [];
+        }
+        this.refreshDisplayFilesInTab();
+        this.isLoadingRuleFiles = false;
+      },
+      error: (err: any) => {
+        console.error('Lỗi tải file cho quy tắc:', err);
+        cl.Files = [];
+        this.refreshDisplayFilesInTab();
+        this.isLoadingRuleFiles = false;
+      }
+    });
+  }
+
+  refreshDisplayFilesInTab(): void {
+    if (this.selectedRuleInTab) {
+      this.displayFilesInTab = (this.selectedRuleInTab.Files || []).map((f: any) => ({
+        ...f,
+        ruleId: this.selectedRuleInTab.ID,
+        ruleDescription: this.selectedRuleInTab.Description || this.selectedRuleInTab.FileRule
+      }));
+    } else {
+      const list: any[] = [];
+      if (this.selectedStepDetail?.checkLists) {
+        this.selectedStepDetail.checkLists.forEach((cl: any) => {
+          if (cl.Files && cl.Files.length > 0) {
+            cl.Files.forEach((f: any) => {
+              list.push({
+                ...f,
+                ruleId: cl.ID,
+                ruleDescription: cl.Description || cl.FileRule
+              });
+            });
+          }
+        });
+      }
+      this.displayFilesInTab = list;
+    }
+    this.cdr.markForCheck();
+  }
+
+  downloadFileInTab(file: any): void {
+    if (!file || !file.FilePath) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'File không có đường dẫn để tải về.');
+      return;
+    }
+    this.projectGateStepService.downloadFile(file.FilePath).subscribe({
+      next: (blob: Blob) => {
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = file.FileName || 'downloaded_file';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      },
+      error: (err: any) => {
+        console.error('Lỗi tải file:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải file xuống.');
+      }
+    });
+  }
   hasNoSavedSteps(ptId: number | null, deptId: number | null): boolean {
     if (!ptId) return false;
     const savedForThisCombo = (this.savedGateSteps || []).filter((x: any) => {
@@ -1819,7 +1927,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         const action = isApproved ? 'Duyệt' : 'Hủy duyệt';
         this.notification.success('Thành công', data?.Message || `${action} thành công`);
         this.selectedStepLinkIds.clear();
-        
+
         // Reload dữ liệu từ server để cập nhật savedGateSteps
         this.projectGateStepService.getByProject(this.projectId).subscribe({
           next: (res: any) => {

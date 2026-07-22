@@ -111,12 +111,15 @@
               class="gate-node-card cursor-pointer p-2 rounded border shadow-sm transition-all text-center position-relative"
               [class.border-primary]="selectedSummaryGateId === gate.gateId"
               [class.bg-primary-subtle]="selectedSummaryGateId === gate.gateId"
-              [class.bg-white]="selectedSummaryGateId !== gate.gateId" (click)="selectSummaryGate(gate.gateId)"
-              style="width: 180px; min-width: 180px; transition: all 0.2s;">
+              [class.border-success]="selectedSummaryGateId !== gate.gateId && gate.progress === 100"
+              [class.bg-success-subtle]="selectedSummaryGateId !== gate.gateId && gate.progress === 100"
+              [class.bg-white]="selectedSummaryGateId !== gate.gateId && gate.progress < 100"
+              (click)="selectSummaryGate(gate.gateId)" style="width: 180px; min-width: 180px; transition: all 0.2s;">
 
               <div class="fw-bold text-truncate text-uppercase fs-12 mb-1"
                 [class.text-primary]="selectedSummaryGateId === gate.gateId"
-                [class.text-dark]="selectedSummaryGateId !== gate.gateId">
+                [class.text-success]="selectedSummaryGateId !== gate.gateId && gate.progress === 100"
+                [class.text-dark]="selectedSummaryGateId !== gate.gateId && gate.progress < 100">
                 {{ gate.gateCode }}
               </div>
 
@@ -136,7 +139,9 @@
 
             <!-- Mũi tên kết nối (Arrow) giữa các Gate -->
             @if (idx < summaryGates.length - 1) { <div
-              class="d-flex align-items-center justify-content-center text-muted flex-shrink-0" style="width: 24px;">
+              class="d-flex align-items-center justify-content-center flex-shrink-0"
+              [class.text-success]="summaryGates[idx].progress === 100"
+              [class.text-muted]="summaryGates[idx].progress < 100" style="width: 24px;">
               <i class="fa-solid fa-chevron-right fs-14"></i>
           </div>
           }
@@ -199,10 +204,10 @@
                         </span>
                         <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0">
                           <!-- Trạng thái hoàn thành -->
-                          <span class="badge" [class.bg-success]="step.isCompleted"
+                          <!-- <span class="badge" [class.bg-success]="step.isCompleted"
                             [class.bg-warning]="!step.isCompleted" style="font-size: 10px;">
                             {{ step.isCompleted ? 'Xong' : 'Chưa xong' }}
-                          </span>
+                          </span> -->
                           <!-- Trạng thái duyệt của TBP -->
                           @if (step.isApproved) {
                           <span class="badge bg-success-subtle text-success border border-success"
@@ -259,7 +264,7 @@
           </button>
           <button type="button" class="btn btn-sm px-3 py-2 fw-semibold rounded-0 border-0"
             [class.btn-primary]="selectedDetailTab === 2" [class.btn-light]="selectedDetailTab !== 2"
-            (click)="selectedDetailTab = 2" style="font-size: 12px;">
+            (click)="selectDetailTab(2)" style="font-size: 12px;">
             <i class="fa-solid fa-list-check me-1"></i> Checklist ({{ selectedStepDetail.passedChecklists }}/{{
             selectedStepDetail.totalChecklists }})
           </button>
@@ -277,16 +282,14 @@
           </div>
           } @else {
           <div class="table-responsive">
-            <table class="table table-sm table-bordered align-middle"
-              style="font-size: 11px; margin-bottom: 0;">
+            <table class="table table-sm table-bordered align-middle" style="font-size: 11px; margin-bottom: 0;">
               <thead class="table-light">
                 <tr style="font-size: 11px;">
                   <th style="width: 40px;" class="text-center">#</th>
                   <th style="width: 100px;">Mã</th>
                   <th style="min-width: 220px;">Tên công việc</th>
-                  <th style="width: 130px;">Người thực hiện</th>
+                  <th style="width: 200px;">Người thực hiện</th>
                   <th style="width: 130px;">Người giao</th>
-                  <th style="width: 150px;">Người tham gia</th>
                   <th style="width: 85px;" class="text-center">Bắt đầu</th>
                   <th style="width: 85px;" class="text-center">Kết thúc</th>
                   <th style="width: 75px;" class="text-center">Dự kiến (h)</th>
@@ -328,9 +331,9 @@
                   <!-- Người thực hiện -->
                   <td style="font-size: 11px;">
                     @if (task.AssigneeName) {
-                    <div class="d-flex align-items-center gap-1 text-truncate" title="{{ task.AssigneeName }}">
-                      <i class="fa-solid fa-user-check me-1 text-primary" style="font-size: 10px;"></i>
-                      <span class="fw-semibold text-dark">{{ task.AssigneeName }}</span>
+                    <div class="d-flex align-items-center gap-1" style="white-space: pre-wrap;"
+                      title="{{ task.AssigneeName }}">
+                      <span class="fw-semibold text-dark">{{ getFormattedNames(task.AssigneeName) }}</span>
                     </div>
                     } @else {
                     <span class="text-muted fst-italic">Chưa giao</span>
@@ -340,21 +343,9 @@
                   <!-- Người giao -->
                   <td style="font-size: 11px;">
                     @if (task.AssignerName) {
-                    <div class="d-flex align-items-center gap-1 text-truncate" title="{{ task.AssignerName }}">
-                      <i class="fa-solid fa-user-gear me-1 text-secondary" style="font-size: 10px;"></i>
-                      <span>{{ task.AssignerName }}</span>
-                    </div>
-                    } @else {
-                    <span class="text-muted fst-italic">---</span>
-                    }
-                  </td>
-
-                  <!-- Người tham gia -->
-                  <td style="font-size: 11px;">
-                    @if (task.ParticipantNames) {
-                    <div class="d-flex align-items-center gap-1 text-truncate" title="{{ task.ParticipantNames }}">
-                      <i class="fa-solid fa-users me-1 text-info" style="font-size: 10px;"></i>
-                      <span>{{ task.ParticipantNames }}</span>
+                    <div class="d-flex align-items-center gap-1" style="white-space: pre-wrap;"
+                      title="{{ task.AssignerName }}">
+                      <span>{{ getFormattedNames(task.AssignerName) }}</span>
                     </div>
                     } @else {
                     <span class="text-muted fst-italic">---</span>
@@ -410,59 +401,147 @@
 
           <!-- Tab 2: Checklist -->
           @if (selectedDetailTab === 2) {
-          <div class="table-responsive">
-            <table class="table table-sm table-bordered table-striped align-middle"
-              style="font-size: 11px; margin-bottom: 0;">
-              <thead class="table-light">
-                <tr style="font-size: 11px;">
-                  <th style="width: 50px;" class="text-center">#</th>
-                  <th>Quy tắc / Yêu cầu</th>
-                  <th style="width: 180px;">Tên file quy chuẩn</th>
-                  <th style="width: 100px;" class="text-center">Định dạng</th>
-                  <th style="width: 100px;" class="text-center">Trạng thái NV</th>
-                  <th style="width: 100px;" class="text-center">Trạng thái TBP</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (cl of selectedStepDetail.checkLists; track cl.ID; let idx = $index) {
-                <tr>
-                  <td class="text-center text-muted fw-bold">{{ cl.STT || (idx + 1) }}</td>
-                  <td>
-                    <span class="text-danger fw-bold me-1" *ngIf="cl.IsRequired" title="Bắt buộc">*</span>
-                    <span class="fw-bold text-dark">{{ cl.Description || 'Quy tắc công đoạn' }}</span>
-                  </td>
-                  <td>{{ cl.FileName || '---' }}</td>
-                  <td class="text-center">
-                    @if (cl.IsFile) {
-                    <span class="badge bg-info text-white" style="font-size: 9px;">{{ cl.Type || 'Tất cả' }}</span>
-                    } @else {
-                    <span class="text-muted">-</span>
+          <div class="d-flex flex-column gap-3 overflow-auto" style="min-height: 0;">
+            <!-- Bảng Quy tắc / Checklist -->
+            <div class="table-responsive border rounded">
+              <table class="table table-sm table-bordered table-hover align-middle mb-0" style="font-size: 11px;">
+                <thead class="table-light">
+                  <tr style="font-size: 11px;">
+                    <th style="width: 40px;" class="text-center">#</th>
+                    <th>Quy tắc / Yêu cầu</th>
+                    <th style="width: 180px;">Tên file quy chuẩn</th>
+                    <th style="width: 100px;" class="text-center">Định dạng</th>
+                    <th style="width: 100px;" class="text-center">Trạng thái NV</th>
+                    <th style="width: 100px;" class="text-center">Trạng thái TBP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (cl of selectedStepDetail.checkLists; track cl.ID; let idx = $index) {
+                  <tr class="cursor-pointer" [class.table-primary]="selectedRuleInTab?.ID === cl.ID"
+                    (click)="selectRuleInTab(cl)">
+                    <td class="text-center text-muted fw-bold">{{ cl.STT || (idx + 1) }}</td>
+                    <td>
+                      <span class="text-danger fw-bold me-1" *ngIf="cl.IsRequired" title="Bắt buộc">*</span>
+                      <span class="fw-bold" [class.text-primary]="selectedRuleInTab?.ID === cl.ID"
+                        [class.text-dark]="selectedRuleInTab?.ID !== cl.ID">{{ cl.Description || 'Quy tắc công đoạn'
+                        }}</span>
+                    </td>
+                    <td>{{ cl.FileName || '---' }}</td>
+                    <td class="text-center">
+                      @if (cl.IsFile) {
+                      <span class="badge bg-info text-white" style="font-size: 9px;">{{ cl.Type || 'Tất cả' }}</span>
+                      } @else {
+                      <span class="text-muted">-</span>
+                      }
+                    </td>
+                    <td class="text-center">
+                      <span class="badge" [class.bg-success]="cl.IsPass" [class.bg-secondary]="!cl.IsPass"
+                        style="font-size: 9px;">
+                        {{ cl.IsPass ? 'Đã hoàn thành' : 'Chưa xong' }}
+                      </span>
+                    </td>
+                    <td class="text-center">
+                      @if (cl.IsApprovedTBP === 1) {
+                      <span class="badge bg-success" style="font-size: 9px;">Đã duyệt</span>
+                      } @else if (cl.IsApprovedTBP === 2) {
+                      <span class="badge bg-danger" style="font-size: 9px;">Bị từ chối</span>
+                      } @else {
+                      <span class="badge bg-warning text-dark" style="font-size: 9px;">Chờ duyệt</span>
+                      }
+                    </td>
+                  </tr>
+                  }
+                  @if (!selectedStepDetail.checkLists || selectedStepDetail.checkLists.length === 0) {
+                  <tr>
+                    <td colspan="6" class="text-center text-muted p-3">Không có quy tắc/checklist nào cho bước này.</td>
+                  </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Bảng Detail File đính kèm / tham khảo (tương tự layout files-modal) -->
+            <div class="border rounded bg-white p-2">
+              <div
+                class="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center mb-2 border rounded">
+                <span class="fw-bold text-secondary" style="font-size: 12px;">
+                  <i class="fa-solid fa-file-arrow-up me-1 text-primary"></i>
+                  @if (selectedRuleInTab) {
+                  TỆP ĐÍNH KÈM CỦA QUY TẮC: <strong class="text-dark">{{ selectedRuleInTab.Description ||
+                    selectedRuleInTab.FileRule }}</strong>
+                  } @else {
+                  TẤT CẢ TỆP ĐÍNH KÈM CỦA CÔNG ĐOẠN
+                  }
+                  ({{ displayFilesInTab.length }})
+                </span>
+
+                <button nz-button nzType="default" nzSize="small" *ngIf="selectedRuleInTab"
+                  (click)="selectedRuleInTab = null; refreshDisplayFilesInTab()">
+                  <i class="fa-solid fa-eye me-1"></i> Xem tất cả
+                </button>
+              </div>
+
+              @if (isLoadingRuleFiles) {
+              <div class="text-center p-3 text-muted" style="font-size: 12px;">
+                <i class="fa-solid fa-spinner fa-spin me-2"></i> Đang tải danh sách file...
+              </div>
+              } @else {
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle mb-0" style="font-size: 11px;">
+                  <thead class="table-light">
+                    <tr class="text-center fw-bold text-secondary" style="font-size: 11px;">
+                      <th style="width: 40px;" class="text-center">#</th>
+                      <th>Tên file</th>
+                      <th>Thuộc quy tắc</th>
+                      <th style="width: 130px;">Người tải</th>
+                      <th style="width: 120px;" class="text-center">Ngày tải</th>
+                      <th style="width: 90px;" class="text-center">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (file of displayFilesInTab; track file.ID; let fIdx = $index) {
+                    <tr>
+                      <td class="text-center text-muted fw-bold">{{ fIdx + 1 }}</td>
+                      <td>
+                        <div class="d-flex align-items-center gap-2">
+                          <i [class]="getFileIcon(file.ContentType, file.FileName)" style="font-size: 14px;"></i>
+                          <a class="text-primary fw-semibold" (click)="downloadFileInTab(file)" style="cursor: pointer;"
+                            [title]="'Tải file: ' + file.FileName">
+                            {{ file.FileName }}
+                          </a>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="text-muted" style="font-size: 11px;">{{ file.ruleDescription }}</span>
+                      </td>
+                      <td>{{ file.CreatorFullName || file.CreatedBy || 'System' }}</td>
+                      <td class="text-center">{{ file.CreatedDate ? (file.CreatedDate | date:'dd/MM HH:mm') : '---' }}
+                      </td>
+                      <td class="text-center">
+                        <button nz-button nzType="primary" nzSize="small" (click)="downloadFileInTab(file)"
+                          style="font-size: 11px; padding: 1px 8px;">
+                          <i class="fa-solid fa-download me-1"></i> Tải về
+                        </button>
+                      </td>
+                    </tr>
                     }
-                  </td>
-                  <td class="text-center">
-                    <span class="badge" [class.bg-success]="cl.IsPass" [class.bg-secondary]="!cl.IsPass"
-                      style="font-size: 9px;">
-                      {{ cl.IsPass ? 'Đã hoàn thành' : 'Chưa xong' }}
-                    </span>
-                  </td>
-                  <td class="text-center">
-                    @if (cl.IsApprovedTBP === 1) {
-                    <span class="badge bg-success" style="font-size: 9px;">Đã duyệt</span>
-                    } @else if (cl.IsApprovedTBP === 2) {
-                    <span class="badge bg-danger" style="font-size: 9px;">Bị từ chối</span>
-                    } @else {
-                    <span class="badge bg-warning text-dark" style="font-size: 9px;">Chờ duyệt</span>
+                    @if (displayFilesInTab.length === 0) {
+                    <tr>
+                      <td colspan="6" class="text-center text-muted p-3">
+                        @if (selectedRuleInTab) {
+                        Chưa có tệp đính kèm nào được tải lên cho quy tắc này.
+                        } @else {
+                        Chưa có tệp đính kèm nào cho công đoạn này.
+                        }
+                      </td>
+                    </tr>
                     }
-                  </td>
-                </tr>
-                }
-                @if (!selectedStepDetail.checkLists || selectedStepDetail.checkLists.length === 0) {
-                <tr>
-                  <td colspan="6" class="text-center text-muted p-3">Không có quy tắc/checklist nào cho bước này.</td>
-                </tr>
-                }
-              </tbody>
-            </table>
+                  </tbody>
+                </table>
+              </div>
+              }
+            </div>
+
           </div>
           }
 
@@ -484,7 +563,7 @@
     <div class="table-wrapper flex-grow-1 w-100 overflow-auto" style="height: 100%;">
       <p-table [value]="projectTypeStepsMap[activeProjectTypeId + '_' + activeDepartmentId] || []"
         styleClass="p-datatable-sm p-datatable-gridlines" [scrollable]="true" scrollHeight="flex"
-        rowGroupMode="subheader" groupRowsBy="groupName" [style]="{'min-width': '2050px', 'table-layout': 'fixed'}"
+        rowGroupMode="subheader" groupRowsBy="groupName" [style]="{'min-width': '2130px', 'table-layout': 'fixed'}"
         [resizableColumns]="true" columnResizeMode="expand">
         <ng-template pTemplate="colgroup">
           <colgroup>
@@ -500,7 +579,7 @@
             <col style="width: 80px;">
             <col style="width: 80px;">
             <col style="width: 80px;">
-            <col style="width: 220px;">
+            <col style="width: 300px;">
             <col style="width: 100px;">
             <col style="width: 130px;">
             <col style="width: 140px;">
@@ -544,7 +623,7 @@
             <th style="width: 80px;" class="text-center" pResizableColumn pSortableColumn="DayCount">Số ngày
               <p-sortIcon field="DayCount"></p-sortIcon>
             </th>
-            <th style="width: 220px;" class="text-center" pResizableColumn>Nhân viên thực hiện</th>
+            <th style="width: 300px;" class="text-center" pResizableColumn>Nhân viên thực hiện</th>
             <th style="width: 100px;" class="text-center" pResizableColumn pSortableColumn="TotalEffort">Tổng nhân
               công <p-sortIcon field="TotalEffort"></p-sortIcon></th>
             <th style="width: 130px;" class="text-center" pResizableColumn pSortableColumn="UnitPrice">Đơn giá
@@ -653,7 +732,7 @@
                 [(ngModel)]="item.DayCount" (ngModelChange)="onGateStepValueChange(item)"
                 [disabled]="isStepPassed(item)" />
             </td>
-            <td style="width: 220px; padding: 0 !important; position: relative;">
+            <td style="width: 300px; padding: 0 !important; position: relative;">
               <div #workerLookupCell class="table-lookup-cell"
                 (click)="!isStepPassed(item) && openWorkersLookup($event, item, workerLookupPanel)"
                 [class.disabled-cell]="isStepPassed(item)"
@@ -669,8 +748,7 @@
             </td>
             <td style="width: 100px; text-align: center;">
               <input type="number" nz-input nzSize="small" class="text-center w-100" style="font-size: 12px;"
-                [(ngModel)]="item.TotalEffort"
-                [disabled]="isStepPassed(item)" />
+                [(ngModel)]="item.TotalEffort" [disabled]="isStepPassed(item)" />
             </td>
             <td style="width: 130px; text-align: center;">
               <nz-input-number [(ngModel)]="item.UnitPrice" [nzMin]="0" [nzStep]="10000" [nzFormatter]="formatAmount"

@@ -211,6 +211,12 @@
   box-shadow: 0 4px 8px rgba(35, 69, 138, 0.15) !important;
 }
 
+.gate-node-card.border-success {
+  border-color: #198754 !important;
+  border-width: 1px !important;
+  box-shadow: 0 2px 5px rgba(25, 135, 84, 0.12) !important;
+}
+
 .fs-11 {
   font-size: 11px !important;
 }

@@ -404,9 +404,6 @@ export class SalaryIncreaseComponent implements OnInit {
       if (dept?.ID) departmentMap.set(dept.ID, dept);
     }
 
-    const ccFixed = [mailConfig.BGDEmail, mailConfig.HRMEmail, mailConfig.KTTEmail]
-      .filter(x => !!x && x.trim().length > 0);
-
     return rows.map(row => {
       const emp = row.EmployeeID ? employeeMap.get(row.EmployeeID) : null;
       const dept = emp?.DepartmentID ? departmentMap.get(emp.DepartmentID) : null;
@@ -425,8 +422,14 @@ export class SalaryIncreaseComponent implements OnInit {
         Footer: mailConfig.Footer || ''
       };
 
-      const cc = (isHeadOfDepartment ? ccFixed : [row.EmailTBP, ...ccFixed])
-        .filter(x => !!x && x.trim().length > 0)
+      // Thứ tự Cc: BGĐ -> TBP -> HRM -> KTT (bỏ TBP nếu chính nhân viên là trưởng bộ phận, tránh trùng người).
+      const cc = [
+        mailConfig.BGDEmail,
+        isHeadOfDepartment ? '' : row.EmailTBP,
+        mailConfig.HRMEmail,
+        mailConfig.KTTEmail
+      ]
+        .filter((x): x is string => !!x && x.trim().length > 0)
         .join(';');
       const emailTo = emp?.EmailCongTy || emp?.EmailCaNhan || '';
 

@@ -618,6 +618,16 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         }
     }
 
+    // Kiểm tra loại tiền tệ hiện tại đang chọn có phải VNĐ không
+    private isCurrentCurrencyVND(): boolean {
+        const currencyId = this.companyForm.get('CurrencyID')?.value;
+        const currency = this.currencies.find(c => c.ID === currencyId);
+        if (!currency) {
+            return true;
+        }
+        return currency.Code.trim().toLowerCase() === 'vnd';
+    }
+
     onCurrencyChange(selectedCurrencyID: number): void {
         try {
             const currency = this.currencies.find(c => c.ID === selectedCurrencyID);
@@ -657,6 +667,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
                 }
             }
 
+            const isVNDCurrency = currency ? currency.Code.trim().toLowerCase() === 'vnd' : true;
+
             // Tính toán lại tất cả các dòng trong bảng
             if (this.tabulatorHangTien) {
                 const currencyRate = this.companyForm.get('CurrencyRate')?.value || 0;
@@ -674,9 +686,13 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
                     const totalPrice = thanhTien + totalMoneyVAT + feeShip - discount;
                     const currencyExchange = selectedCurrencyID !== 0 ? totalPrice * currencyRate : 0;
 
+                    // Tự động tích checkbox "Hóa đơn" khi loại tiền không phải VNĐ, hoặc VNĐ nhưng có VAT
+                    const isBill = !isVNDCurrency || totalMoneyVAT > 0;
+
                     row.update({
                         TotalPrice: totalPrice,
-                        CurrencyExchange: currencyExchange
+                        CurrencyExchange: currencyExchange,
+                        IsBill: isBill
                     });
                 });
 
@@ -1360,8 +1376,8 @@ export class PonccDetailComponent implements OnInit, AfterViewInit {
         const totalPrice = thanhTien + vatMoney - discount + feeShip;
         const currencyExchange = totalPrice * currencyRate;
 
-        // Tự động tích checkbox "Hóa đơn" khi VATMoney > 0
-        const isBill = vatMoney > 0;
+        // Tự động tích checkbox "Hóa đơn" khi loại tiền không phải VNĐ, hoặc VNĐ nhưng có VAT
+        const isBill = !this.isCurrentCurrencyVND() || vatMoney > 0;
 
         row.update({
             ThanhTien: thanhTien,

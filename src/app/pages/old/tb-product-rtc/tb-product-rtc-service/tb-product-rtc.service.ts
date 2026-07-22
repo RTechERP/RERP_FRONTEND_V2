@@ -66,6 +66,15 @@ export class TbProductRtcService {
       responseType: 'arraybuffer' as 'json',
     });
   }
+  getProductFiles(productRTCID: number): Observable<any> {
+    return this.http.get<any>(`${this.url}get-files?productRTCID=${productRTCID}`);
+  }
+  saveProductFiles(files: any[]): Observable<any> {
+    return this.http.post<any>(`${this.url}save-files`, files);
+  }
+  deleteProductFile(id: number): Observable<any> {
+    return this.http.post<any>(`${this.url}delete-file?id=${id}`, null);
+  }
   // Update location for a product
   updateLocation(id: number, locationID: number): Observable<any> {
     const params = new HttpParams()

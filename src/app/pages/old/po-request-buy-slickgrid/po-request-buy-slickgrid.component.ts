@@ -202,7 +202,7 @@ export class PoRequestBuySlickgridComponent implements OnInit {
             }
           }
 
-          const contactText = userNames ? `<br/><br/><b>Vui lòng liên hệ 1 trong các TBP [${userNames}] để duyệt sản phẩm.</b>` : '';
+          const contactText = `<br/><br/><b>Vui lòng liên hệ TBP kỹ thuật để duyệt sản phẩm.</b>`;
           this.modal.warning({
             nzTitle: 'Sản phẩm chưa được duyệt',
             nzContent: `Có ${unapproved.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách ${requestType}:<br/><br/><b>${unapprovedCodes.join(', ')}</b>${contactText}`,

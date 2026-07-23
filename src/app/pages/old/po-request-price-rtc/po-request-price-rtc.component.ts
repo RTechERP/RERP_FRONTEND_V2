@@ -147,7 +147,7 @@ export class PoRequestPriceRtcComponent implements OnInit, AfterViewInit {
             }
           }
 
-          const contactText = userNames ? `<br/><br/><b>Vui lòng liên hệ 1 trong các TBP [${userNames}] để duyệt sản phẩm.</b>` : '';
+          const contactText = `<br/><br/><b>Vui lòng liên hệ TBP kỹ thuật để duyệt sản phẩm.</b>`;
           this.modal.warning({
             nzTitle: 'Sản phẩm chưa được duyệt',
             nzContent: `Có ${unapprovedItems.length} sản phẩm chưa được duyệt sẽ không hiển thị trên danh sách ${context}:<br/><br/><b>${productCodes.join(', ')}</b>${contactText}`,

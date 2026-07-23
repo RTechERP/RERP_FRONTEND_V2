@@ -1360,7 +1360,7 @@ export const routes: Routes = [
       { path: 'summary-kpi-error-employee-new-hr', component: SummaryKpiErrorEmployeePrimengComponent, canActivate: [authGuard] },
       { path: 'travel-registration', component: TravelRegistrationComponent, canActivate: [authGuard] },
       { path: 'travel-registration-import-excel', component: TravelRegistrationImportExcelComponent, canActivate: [authGuard] },
-      { path: 'travel-registration-detail', component: TravelRegistrationDetailComponent, canActivate: [authGuard] }
+      { path: 'travel-registration-detail', component: TravelRegistrationDetailComponent, canActivate: [authGuard] },
       { path: 'summary-kpi-error-employee-new-hr', component: SummaryKpiErrorEmployeePrimengComponent, canActivate: [authGuard] },
       { path: 'salary-increase', component: SalaryIncreaseComponent, canActivate: [authGuard] },
 

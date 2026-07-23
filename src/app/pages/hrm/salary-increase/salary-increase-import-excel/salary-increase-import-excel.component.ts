@@ -6,6 +6,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
+import { NzModalService } from 'ng-zorro-antd/modal';
 import { TabulatorFull as Tabulator, ColumnDefinition } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { forkJoin } from 'rxjs';
@@ -28,6 +29,7 @@ interface SalaryIncreaseExcelRow {
   standalone: true,
   selector: 'app-salary-increase-import-excel',
   imports: [CommonModule, FormsModule, NzButtonModule, NzIconModule, NzInputModule, NzProgressModule],
+  providers: [NzModalService],
   templateUrl: './salary-increase-import-excel.component.html',
   styleUrls: ['./salary-increase-import-excel.component.css']
 })
@@ -35,10 +37,14 @@ export class SalaryIncreaseImportExcelComponent implements OnInit {
   private notification = inject(NzNotificationService);
   private activeModal = inject(NgbActiveModal);
   private service = inject(SalaryIncreaseService);
+  private nzModal = inject(NzModalService);
 
   @Input() salaryIncreaseId: number = 0;
-  /** Danh sách EmployeeID đã có sẵn trong đợt tăng lương này - dòng Excel trùng sẽ tự bỏ qua. */
-  @Input() existingEmployeeIds: number[] = [];
+  /** Danh sách nhân viên đã có sẵn trong đợt tăng lương này - dùng để phát hiện trùng và lấy DetailID khi cần ghi đè. */
+  @Input() existingDetails: SalaryIncreaseDetail[] = [];
+
+  /** EmployeeID -> DetailID (bản ghi cũ) để xóa khi người dùng chọn ghi đè. */
+  private existingDetailByEmployeeId = new Map<number, number>();
 
   filePath: string = '';
   excelSheets: string[] = [];
@@ -54,6 +60,10 @@ export class SalaryIncreaseImportExcelComponent implements OnInit {
   private departments: any[] = [];
 
   ngOnInit(): void {
+    for (const d of this.existingDetails || []) {
+      if (d.EmployeeID && d.ID) this.existingDetailByEmployeeId.set(d.EmployeeID, d.ID);
+    }
+
     forkJoin({
       employees: this.service.getEmployees(),
       departments: this.service.getDepartments()
@@ -199,8 +209,12 @@ export class SalaryIncreaseImportExcelComponent implements OnInit {
       const getText = (field: string) => {
         const col = fieldToCol[field];
         if (!col) return '';
-        const v = row.getCell(col).value;
-        return v?.toString()?.trim() || '';
+        const cell = row.getCell(col);
+        // Excel có thể tự chuyển ô email thành hyperlink (đặc biệt khi gõ nhiều email
+        // cách nhau bởi ; hoặc ,) - lúc đó cell.value là object {text, hyperlink} chứ
+        // không phải string, dùng cell.text để luôn lấy đúng nội dung hiển thị.
+        const raw = (cell as any).text ?? cell.value;
+        return raw?.toString()?.trim() || '';
       };
       const getNumber = (field: string) => {
         const n = parseFloat(getText(field).replace(/,/g, ''));
@@ -289,8 +303,8 @@ export class SalaryIncreaseImportExcelComponent implements OnInit {
           if (row.EmployeeCode && !row.EmployeeID) {
             return `<span class="text-danger">Không tìm thấy mã NV</span>`;
           }
-          if (row.EmployeeID && (this.existingEmployeeIds || []).includes(row.EmployeeID)) {
-            return `${cell.getValue() || ''} <span class="text-warning">(đã có trong đợt - sẽ bỏ qua)</span>`;
+          if (row.EmployeeID && this.existingDetailByEmployeeId.has(row.EmployeeID)) {
+            return `${cell.getValue() || ''} <span class="text-warning">(đã có trong đợt)</span>`;
           }
           return cell.getValue() || '';
         }
@@ -395,52 +409,91 @@ export class SalaryIncreaseImportExcelComponent implements OnInit {
       return;
     }
 
-    // Bỏ qua nhân viên đã có sẵn trong đợt hoặc trùng lặp ngay trong file Excel (chỉ giữ dòng đầu tiên).
-    const seen = new Set<number>(this.existingEmployeeIds || []);
-    const skippedCodes: string[] = [];
-    const rowsToSave = this.dataTableExcel.filter(r => {
-      if (seen.has(r.EmployeeID)) {
-        skippedCodes.push(r.EmployeeCode);
-        return false;
-      }
-      seen.add(r.EmployeeID);
+    // Trùng ngay trong chính file Excel: chỉ giữ dòng đầu tiên cho mỗi mã NV.
+    const seenInFile = new Set<number>();
+    const uniqueRows = this.dataTableExcel.filter(r => {
+      if (seenInFile.has(r.EmployeeID)) return false;
+      seenInFile.add(r.EmployeeID);
       return true;
     });
 
+    const duplicateRows = uniqueRows.filter(r => this.existingDetailByEmployeeId.has(r.EmployeeID));
+    const newRows = uniqueRows.filter(r => !this.existingDetailByEmployeeId.has(r.EmployeeID));
+
+    if (duplicateRows.length === 0) {
+      this.doSave(newRows, []);
+      return;
+    }
+
+    const names = duplicateRows.map(r => r.EmployeeCode).join(', ');
+    this.nzModal.confirm({
+      nzTitle: 'Nhân viên đã có trong đợt',
+      nzContent: `Có ${duplicateRows.length} nhân viên đã có trong đợt tăng lương này: ${names}. Bạn có muốn ghi đè không?`,
+      nzOkText: 'Ghi đè',
+      nzOkDanger: true,
+      nzCancelText: 'Bỏ qua nhân viên trùng',
+      nzOnOk: () => {
+        const oldDetailIds = duplicateRows
+          .map(r => this.existingDetailByEmployeeId.get(r.EmployeeID))
+          .filter((id): id is number => !!id);
+        this.doSave([...newRows, ...duplicateRows], oldDetailIds);
+      },
+      nzOnCancel: () => {
+        if (newRows.length === 0) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Tất cả nhân viên trong file đều đã có trong đợt tăng lương này.');
+          return;
+        }
+        this.doSave(newRows, []);
+      }
+    });
+  }
+
+  private doSave(rowsToSave: SalaryIncreaseExcelRow[], oldDetailIdsToDelete: number[]): void {
     if (rowsToSave.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Tất cả nhân viên trong file đều đã có trong đợt tăng lương này.');
       return;
     }
 
     this.saving = true;
-    const payload: SalaryIncreaseDetail[] = rowsToSave.map(r => ({
-      ID: 0,
-      SalaryIncreaseID: this.salaryIncreaseId,
-      EmployeeID: r.EmployeeID,
-      EmailTBP: r.EmailTBP || '',
-      PreviousBaseSalary: Number(r.PreviousBaseSalary || 0),
-      CurrentBaseSalary: Number(r.CurrentBaseSalary || 0),
-      IsSend: false,
-      IsDeleted: false
-    }));
 
-    this.service.saveDataDetail(payload).subscribe({
-      next: (res: any) => {
-        this.saving = false;
-        if (res?.status === 1) {
-          this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Nhập Excel thành công');
-          if (skippedCodes.length > 0) {
-            this.notification.warning(NOTIFICATION_TITLE.warning, `Đã bỏ qua ${skippedCodes.length} nhân viên đã có trong đợt: ${skippedCodes.join(', ')}`);
+    const saveNew = () => {
+      const payload: SalaryIncreaseDetail[] = rowsToSave.map(r => ({
+        ID: 0,
+        SalaryIncreaseID: this.salaryIncreaseId,
+        EmployeeID: r.EmployeeID,
+        EmailTBP: r.EmailTBP || '',
+        PreviousBaseSalary: Number(r.PreviousBaseSalary || 0),
+        CurrentBaseSalary: Number(r.CurrentBaseSalary || 0),
+        IsSend: false,
+        IsDeleted: false
+      }));
+
+      this.service.saveDataDetail(payload).subscribe({
+        next: (res: any) => {
+          this.saving = false;
+          if (res?.status === 1) {
+            this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Nhập Excel thành công');
+            this.activeModal.close('save');
+          } else {
+            this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Nhập Excel thất bại');
           }
-          this.activeModal.close('save');
-        } else {
-          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Nhập Excel thất bại');
+        },
+        error: (err: any) => {
+          this.saving = false;
+          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Có lỗi xảy ra');
         }
-      },
-      error: (err: any) => {
-        this.saving = false;
-        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Có lỗi xảy ra');
-      }
-    });
+      });
+    };
+
+    if (oldDetailIdsToDelete.length > 0) {
+      this.service.deleteDetail(oldDetailIdsToDelete).subscribe({
+        next: () => saveNew(),
+        error: (err: any) => {
+          this.saving = false;
+          this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Xóa bản ghi cũ để ghi đè thất bại');
+        }
+      });
+    } else {
+      saveNew();
+    }
   }
 }

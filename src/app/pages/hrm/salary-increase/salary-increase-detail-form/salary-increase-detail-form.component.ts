@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -13,6 +13,20 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { forkJoin } from 'rxjs';
 import { SalaryIncreaseService, SalaryIncreaseDetail } from '../salary-increase.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+
+/** Cho phép nhập nhiều email cách nhau bởi ';' hoặc ',' (dùng để CC nhiều người). */
+function multiEmailValidator(control: AbstractControl): ValidationErrors | null {
+  const value = (control.value || '').toString().trim();
+  if (!value) return null;
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const invalid = value
+    .split(/[;,]/)
+    .map((x: string) => x.trim())
+    .filter((x: string) => x.length > 0 && !emailRegex.test(x));
+
+  return invalid.length > 0 ? { multiEmail: true } : null;
+}
 
 @Component({
   selector: 'app-salary-increase-detail-form',
@@ -63,7 +77,7 @@ export class SalaryIncreaseDetailFormComponent implements OnInit {
     this.formGroup = this.fb.group({
       ID: [0],
       EmployeeID: [null, [Validators.required]],
-      EmailTBP: ['', [Validators.email, Validators.maxLength(500)]],
+      EmailTBP: ['', [multiEmailValidator, Validators.maxLength(500)]],
       PreviousBaseSalary: [null, [Validators.min(0)]],
       CurrentBaseSalary: [null, [Validators.required, Validators.min(0)]],
       SalaryIncreaseID: [this.salaryIncreaseId || 0],

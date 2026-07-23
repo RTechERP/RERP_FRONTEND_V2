@@ -9,6 +9,7 @@ import {
   AfterViewInit,
 } from '@angular/core';
 import { DateTime } from 'luxon';
+import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -49,6 +50,7 @@ import { FirmFormComponent } from '../../../general-category/firm/firm-form/firm
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { ProductLocationTechnicalDetailComponent } from '../../Technical/product-location-technical/product-location-technical-detail/product-location-technical-detail.component';
 import { AppUserService } from '../../../../services/app-user.service';
+import { FilePreviewComponent } from '../../../general-category/file-preview/file-preview.component';
 @Component({
   standalone: true,
   selector: 'app-tb-product-rtc-form',
@@ -75,20 +77,19 @@ import { AppUserService } from '../../../../services/app-user.service';
 export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any;
   formDeviceInfo!: FormGroup;
-  fileToUpload: File | null = null;
   @Input() warehouseType: number = 1;
   private ngbModal = inject(NgbModal);
   private nzModal = inject(NzModalService);
   public activeModal = inject(NgbActiveModal);
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
-  previewImageUrl: string | null = null;
-  imageFileName: string | null = null;
-  // Để thu hồi URL khi cần
-  previewObjectUrl: string | null = null;
+  productFiles: any[] = [];
+  pendingFiles: File[] = [];
+  filesToDelete: number[] = [];
+  legacyImagePath: string | null = null;
+  hadLegacyImage = false;
   productGroupData: any[] = [];
   CreateDate = new Date();
-  LocationImg: string = '';
   isSubmitted = false;
   productCode: string = '';
   constructor(
@@ -176,15 +177,9 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       SerialNumber: [''],
       Serial: [''],
       SLKiemKe: [''],
-      FirmID: [
-        null,
-        [Validators.required, this.inIdListValidator(() => this.firmData)],
-      ],
-      UnitCountID: [
-        null,
-        [Validators.required, this.inIdListValidator(() => this.unitData)],
-      ],
-      CreateDate: [this.CreateDate, Validators.required],
+      FirmID: [null],
+      UnitCountID: [null],
+      CreateDate: [this.CreateDate],
       CodeHCM: [''],
       BorrowCustomer: [false],
       Note: [''],
@@ -209,12 +204,8 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       OutputValue: [''],
       CurrentIntensityMax: [''],
       Size: [''],
-      ProductLocationID: [
-        null,
-        [Validators.required, this.inIdListValidator(() => this.locationData)],
-      ],
+      ProductLocationID: [null],
       NumberInStore: [{ value: null, disabled: !this.appUserService.isAdmin }],
-      LocationImg: [null],
     });
   }
   private toNumberOrNull(val: any): number | null {
@@ -238,31 +229,37 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       CreateDate: data.CreateDate
         ? DateTime.fromISO(data.CreateDate).toJSDate()
         : null,
-      LocationImg: data.LocationImg
-        ? data.LocationImg.split(/[\\/]/).pop()
-        : null,
     });
-    if (data.LocationImg) {
-      this.tbProductRtcService.downloadFile(data.LocationImg).subscribe({
-        next: (buffer) => {
-          const lower = data.LocationImg.toLowerCase();
-          const mime =
-            lower.endsWith('.jpg') || lower.endsWith('.jpeg')
-              ? 'image/jpeg'
-              : lower.endsWith('.png')
-                ? 'image/png'
-                : 'application/octet-stream';
-          const blob = new Blob([buffer], { type: mime });
-          if (this.previewObjectUrl) URL.revokeObjectURL(this.previewObjectUrl);
-          this.previewObjectUrl = URL.createObjectURL(blob);
-          this.previewImageUrl = this.previewObjectUrl;
-          this.imageFileName = data.LocationImg.split(/[\\/]/).pop();
-        },
-        error: () => {
-          this.previewImageUrl = null;
-        },
-      });
+    if (data.ID) {
+      this.loadProductFiles(data.ID, data.LocationImg);
     }
+  }
+
+  loadProductFiles(productRTCID: number, legacyImagePath?: string) {
+    this.tbProductRtcService.getProductFiles(productRTCID).subscribe({
+      next: (r) => {
+        this.productFiles = r.data || [];
+        this.addLegacyImageIfPresent(legacyImagePath);
+      },
+      error: () => {
+        this.productFiles = [];
+        this.addLegacyImageIfPresent(legacyImagePath);
+      },
+    });
+  }
+
+  private addLegacyImageIfPresent(legacyImagePath?: string): void {
+    if (!legacyImagePath) return;
+    this.hadLegacyImage = true;
+    const alreadyExists = this.productFiles.some((f) => f.ServerPath === legacyImagePath);
+    if (alreadyExists) return;
+    this.legacyImagePath = legacyImagePath;
+    this.productFiles.push({
+      ID: 0,
+      FileName: legacyImagePath.split(/[\\/]/).pop(),
+      ServerPath: legacyImagePath,
+      isLegacyImage: true,
+    });
   }
   formatDateForInput(dateString: string): string {
     if (!dateString) return '';
@@ -346,38 +343,71 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     this.activeModal.dismiss('cancel');
   }
   handleBeforeUpload = (file: NzUploadFile): boolean => {
-    const rawFile = file as any as File;
-    this.fileToUpload = rawFile;
-
-    this.imageFileName = file.name;
-
-    // Check null before set property
-    if (this.dataInput) {
-      // this.dataInput.LocationImg = file.name;
-      this.formDeviceInfo.get('LocationImg')?.setValue(file.name); // bind vào form
-    } else {
+    if (!this.dataInput) {
       this.notification.error(
         'Lỗi',
-        'Dữ liệu chưa được khởi tạo. Không thể upload ảnh.'
+        'Dữ liệu chưa được khởi tạo. Không thể chọn file.'
       );
       return false;
     }
-
-    const fileReader = new FileReader();
-    fileReader.onload = (e: any) => {
-      this.previewImageUrl = e.target.result;
-    };
-    fileReader.readAsDataURL(rawFile);
-
+    this.pendingFiles.push(file as any as File);
     return false;
-    // const reader = new FileReader();
-    // reader.onload = (e: any) => {
-    //   this.previewImageUrl = e.target.result;
-    // };
-    // reader.readAsDataURL(rawFile);
-
-    // return false;
   };
+
+  removePendingFile(index: number): void {
+    this.pendingFiles.splice(index, 1);
+  }
+
+  removeSavedFile(file: any): void {
+    if (file?.isLegacyImage) {
+      this.legacyImagePath = null;
+      this.productFiles = this.productFiles.filter((f) => f !== file);
+      return;
+    }
+    if (!file?.ID) return;
+    // Chỉ đánh dấu xóa, thực sự xóa khi bấm Lưu
+    this.filesToDelete.push(file.ID);
+    this.productFiles = this.productFiles.filter((f) => f.ID !== file.ID);
+  }
+
+  private getMimeType(fileName: string): string {
+    const lower = (fileName || '').toLowerCase();
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.gif')) return 'image/gif';
+    if (lower.endsWith('.bmp')) return 'image/bmp';
+    if (lower.endsWith('.pdf')) return 'application/pdf';
+    return 'application/octet-stream';
+  }
+
+  private openFilePreviewModal(fileUrl: string, fileName: string): void {
+    const modalRef = this.ngbModal.open(FilePreviewComponent, {
+      fullscreen: true,
+      backdrop: 'static',
+      scrollable: true,
+    });
+    modalRef.componentInstance.fileUrl = fileUrl;
+    modalRef.componentInstance.fileName = fileName;
+  }
+
+  previewPendingFile(file: File): void {
+    const url = URL.createObjectURL(file);
+    this.openFilePreviewModal(url, file.name);
+  }
+
+  previewSavedFile(file: any): void {
+    if (!file?.ServerPath) return;
+    this.tbProductRtcService.downloadFile(file.ServerPath).subscribe({
+      next: (buffer) => {
+        const blob = new Blob([buffer], { type: this.getMimeType(file.FileName) });
+        const url = URL.createObjectURL(blob);
+        this.openFilePreviewModal(url, file.FileName);
+      },
+      error: () => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải file xem trước');
+      },
+    });
+  }
 
   validateField(fieldName: string) {
     const value = this.dataInput[fieldName];
@@ -497,7 +527,6 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       Serial: '',
       SerialNumber: '',
       PartNumber: '',
-      LocationImg: '',
       BorrowCustomer: false,
       ProductLocationID: '',
       Resolution: '',
@@ -561,13 +590,14 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       Size: '',
       ProductLocationID: null,
       NumberInStore: null,
-      LocationImg: '',
     });
     this.formDeviceInfo.get('NumberInStore')?.disable();
     this.formDeviceInfo.get('SLKiemKe')?.disable();
-    this.fileToUpload = null;
-    this.imageFileName = null;
-    this.previewImageUrl = null;
+    this.pendingFiles = [];
+    this.productFiles = [];
+    this.filesToDelete = [];
+    this.legacyImagePath = null;
+    this.hadLegacyImage = false;
     this.productCode = '';
   }
 
@@ -597,85 +627,112 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     if (isDuplicate) {
       return; // Ngừng lưu nếu bị trùng mã
     }
-    if (this.fileToUpload) {
-      const formValue = this.formDeviceInfo.value;
-      const year = new Date().getFullYear().toString();
-      const group = this.productGroupData.find(
-        (g) => Number(g.ID) === Number(formValue.ProductGroupRTCID)
-      );
-      const groupNo = group?.ProductGroupNo || 'UnknownGroup';
-      const productCode = formValue.ProductCode || 'UnknownProduct';
-
-      const sanitize = (s: string) =>
-        s
-          .toString()
-          .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '')
-          .trim();
-      const subPath = [
-        sanitize(year),
-        sanitize(groupNo),
-        sanitize(productCode),
-      ].join('/');
-
-      this.tbProductRtcService
-        .uploadMultipleFiles([this.fileToUpload], subPath)
-        .subscribe({
-          next: (uploadRes) => {
-            if (
-              uploadRes.status === 1 &&
-              Array.isArray(uploadRes.data) &&
-              uploadRes.data.length > 0
-            ) {
-              const u = uploadRes.data[0];
-              this.imageFileName =
-                u?.OriginalFileName || u?.SavedFileName || this.imageFileName;
-              // Giữ preview hiện tại (DataURL từ FileReader) để ảnh hiển thị ngay
-              this.formDeviceInfo.get('LocationImg')?.setValue(u.FilePath);
-              // Sau khi upload xong => lưu dữ liệu
-              this.saveProductData();
-            } else {
-              this.notification.error(
-                NOTIFICATION_TITLE.error,
-                uploadRes.message || 'Upload ảnh thất bại!'
-              );
-            }
-          },
-          error: (err) => {
-            this.notification.error(
-              NOTIFICATION_TITLE.error,
-              'Upload ảnh thất bại: ' +
-              (err.error?.message || err.message || '')
-            );
-          },
-        });
-    } else {
-      this.saveProductData();
-    }
+    this.saveProductData();
   }
   onFirmChange(selectedFirmID: number): void {
     const selectedFirm = this.firmData.find((f) => f.ID === selectedFirmID);
     this.dataInput.Maker = selectedFirm ? selectedFirm.FirmName : null;
   }
+  private buildUploadSubPath(formValue: any): string {
+    const year = new Date().getFullYear().toString();
+    const group = this.productGroupData.find(
+      (g) => Number(g.ID) === Number(formValue.ProductGroupRTCID)
+    );
+    const groupNo = group?.ProductGroupNo || 'UnknownGroup';
+    const productCode = formValue.ProductCode || 'UnknownProduct';
+    const sanitize = (s: string) =>
+      s
+        .toString()
+        .replace(/[<>:"/\\|?*]/g, '')
+        .trim();
+    return [sanitize(year), sanitize(groupNo), sanitize(productCode)].join('/');
+  }
+
+  private deleteStagedFiles(done: () => void): void {
+    if (!this.filesToDelete.length) {
+      done();
+      return;
+    }
+    const deletes = this.filesToDelete.map((id) => this.tbProductRtcService.deleteProductFile(id));
+    forkJoin(deletes).subscribe({
+      next: () => {
+        this.filesToDelete = [];
+        done();
+      },
+      error: () => {
+        this.filesToDelete = [];
+        done();
+      },
+    });
+  }
+
+  private migrateLegacyImageThenUploadPendingFiles(productRTCID: number, done: () => void): void {
+    if (!this.legacyImagePath || !productRTCID) {
+      this.uploadPendingFiles(productRTCID, done);
+      return;
+    }
+    const row = {
+      ID: 0,
+      ProductRTCID: productRTCID,
+      FileName: this.legacyImagePath.split(/[\\/]/).pop(),
+      OriginPath: '',
+      ServerPath: this.legacyImagePath,
+    };
+    this.tbProductRtcService.saveProductFiles([row]).subscribe({
+      next: () => {
+        this.legacyImagePath = null;
+        this.uploadPendingFiles(productRTCID, done);
+      },
+      error: () => {
+        this.legacyImagePath = null;
+        this.uploadPendingFiles(productRTCID, done);
+      },
+    });
+  }
+
+  private uploadPendingFiles(productRTCID: number, done: () => void): void {
+    if (!this.pendingFiles.length || !productRTCID) {
+      done();
+      return;
+    }
+    const subPath = this.buildUploadSubPath(this.formDeviceInfo.value);
+    this.tbProductRtcService
+      .uploadMultipleFiles(this.pendingFiles, subPath)
+      .subscribe({
+        next: (uploadRes) => {
+          if (uploadRes.status === 1 && Array.isArray(uploadRes.data) && uploadRes.data.length > 0) {
+            const rows = uploadRes.data.map((u: any) => ({
+              ID: 0,
+              ProductRTCID: productRTCID,
+              FileName: u.OriginalFileName || u.SavedFileName,
+              OriginPath: '',
+              ServerPath: u.FilePath,
+            }));
+            this.tbProductRtcService.saveProductFiles(rows).subscribe({
+              next: () => {
+                this.pendingFiles = [];
+                done();
+              },
+              error: () => {
+                this.notification.error(NOTIFICATION_TITLE.error, 'Lưu file thất bại!');
+                done();
+              },
+            });
+          } else {
+            this.notification.error(NOTIFICATION_TITLE.error, uploadRes.message || 'Upload file thất bại!');
+            done();
+          }
+        },
+        error: () => {
+          this.notification.error(NOTIFICATION_TITLE.error, 'Upload file thất bại!');
+          done();
+        },
+      });
+  }
+
   saveProductData() {
     const formValue = this.formDeviceInfo.value;
     console.log('CHECKBOX VALUE:', formValue.BorrowCustomer);
-
-    const formLocationImg = this.formDeviceInfo.get('LocationImg')?.value;
-    let finalLocationImg = '';
-
-    if (this.fileToUpload) {
-      // Ảnh mới vừa upload: dùng đường dẫn server trả về
-      finalLocationImg =
-        typeof formLocationImg === 'string' ? formLocationImg : '';
-    } else {
-      // Người dùng đã xóa ảnh: form rỗng => lưu rỗng
-      if (formLocationImg === null || formLocationImg === '') {
-        finalLocationImg = '';
-      } else {
-        // Không xóa, không upload mới: giữ ảnh cũ
-        finalLocationImg = this.dataInput?.LocationImg || '';
-      }
-    }
 
     const payload = {
       productRTCs: [
@@ -693,8 +750,6 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
           Serial: formValue.Serial,
           SerialNumber: formValue.SerialNumber,
           PartNumber: formValue.PartNumber,
-          LocationImg: finalLocationImg,
-          // LocationImg: formValue.LocationImg || '',
           // Khi sửa: giữ nguyên ProductCodeRTC cũ, khi thêm mới: dùng code mới
           ProductCodeRTC: (this.dataInput?.ID && this.dataInput?.ProductCodeRTC)
             ? this.dataInput.ProductCodeRTC
@@ -729,6 +784,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
           Size: formValue.Size,
           CodeHCM: formValue.CodeHCM,
           CreateDate: formValue.CreateDate,
+          ...(this.hadLegacyImage ? { LocationImg: '' } : {}),
         },
       ],
     };
@@ -736,11 +792,16 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     this.tbProductRtcService.saveData(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success(
-            NOTIFICATION_TITLE.success,
-            res.message || 'Lưu dữ liệu thành công'
-          );
-          this.activeModal.close({ refresh: true });
+          const savedID = res.data?.productRTCs?.[0]?.ID || this.dataInput.ID;
+          this.deleteStagedFiles(() => {
+            this.migrateLegacyImageThenUploadPendingFiles(savedID, () => {
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                res.message || 'Lưu dữ liệu thành công'
+              );
+              this.activeModal.close({ refresh: true });
+            });
+          });
         } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,
@@ -823,19 +884,6 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       this.getunit();
     });
   }
-  // hàm xóa ảnh
-  clearImage() {
-    this.formDeviceInfo.patchValue({
-      LocationImg: null,
-    });
-    this.previewImageUrl = null;
-    this.fileToUpload = null;
-    this.imageFileName = null;
-    if (this.dataInput) {
-      this.dataInput.LocationImg = null;
-    }
-  }
-
   private inIdListValidator = (
     listGetter: () => Array<{ ID: number }>
   ): ValidatorFn => {

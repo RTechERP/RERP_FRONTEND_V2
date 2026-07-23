@@ -563,9 +563,7 @@ export class SalaryIncreaseComponent implements OnInit {
     });
 
     modalRef.componentInstance.salaryIncreaseId = this.selectedMasterRow.ID;
-    modalRef.componentInstance.existingEmployeeIds = this.detailList
-      .map(d => d.EmployeeID)
-      .filter((id): id is number => !!id);
+    modalRef.componentInstance.existingDetails = this.detailList;
 
     modalRef.result.then((res) => {
       if (res === 'save') {
@@ -579,8 +577,12 @@ export class SalaryIncreaseComponent implements OnInit {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn đợt tăng lương.');
       return;
     }
-    if (!this.selectedDetailRow) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên cần cập nhật thông tin.');
+    if (this.checkedDetailIds.size !== 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đúng 1 nhân viên cần cập nhật thông tin.');
+      return;
+    }
+    const row = this.detailList.find(r => r.ID && this.checkedDetailIds.has(r.ID));
+    if (!row) {
       return;
     }
 
@@ -591,7 +593,7 @@ export class SalaryIncreaseComponent implements OnInit {
     });
 
     modalRef.componentInstance.salaryIncreaseId = this.selectedMasterRow.ID;
-    modalRef.componentInstance.dataRecord = this.selectedDetailRow;
+    modalRef.componentInstance.dataRecord = row;
     modalRef.componentInstance.existingDetails = this.detailList;
 
     modalRef.result.then((res) => {
@@ -602,24 +604,26 @@ export class SalaryIncreaseComponent implements OnInit {
   }
 
   deleteDetail(): void {
-    if (!this.selectedDetailRow || !this.selectedDetailRow.ID) {
+    const ids = Array.from(this.checkedDetailIds);
+    if (ids.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên cần xóa khỏi đợt tăng lương.');
       return;
     }
 
     this.nzModal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa nhân viên này khỏi đợt tăng lương không?`,
+      nzContent: `Bạn có chắc chắn muốn xóa ${ids.length} nhân viên đã chọn khỏi đợt tăng lương không?`,
       nzOkText: 'Xóa',
       nzOkDanger: true,
       nzCancelText: 'Hủy',
       nzOnOk: () => {
         this.loadingDetail = true;
-        this.service.deleteDetail([this.selectedDetailRow!.ID!]).subscribe({
+        this.service.deleteDetail(ids).subscribe({
           next: (res: any) => {
             this.loadingDetail = false;
             if (res.status === 1) {
               this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
+              this.checkedDetailIds.clear();
               this.loadDetailData();
             } else {
               this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Xóa thất bại');

@@ -132,9 +132,7 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
             // const newWarehouseType = Number(params['warehouseType']) || 1;
 
             const newWarehouseID =
-                params['warehouseID']
-                ?? this.tabData?.warehouseID
-                ?? 1;
+                Number(params['warehouseID'] ?? this.tabData?.warehouseID) || 1;
 
             const newWarehouseCode =
                 params['warehouseCode']
@@ -142,9 +140,16 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
                 ?? 'HN';
 
             const newWarehouseType =
-                params['warehouseType']
-                ?? this.tabData?.warehouseType
-                ?? 1;
+                Number(params['warehouseType'] ?? this.tabData?.warehouseType) || 1;
+
+            console.log('[ProductRtcComponent] queryParams resolve', {
+                rawQueryParams: { ...params },
+                tabData: this.tabData,
+                newWarehouseID,
+                newWarehouseCode,
+                newWarehouseType,
+                newWarehouseTypeIsNumber: typeof newWarehouseType === 'number',
+            });
 
             // Kiểm tra xem params có thay đổi không
             const paramsChanged = this.warehouseID !== newWarehouseID ||
@@ -1201,7 +1206,13 @@ export class ProductRtcComponent implements OnInit, AfterViewInit, OnDestroy {
         modalRef.componentInstance.headerText = 'Yêu cầu báo giá';
         modalRef.componentInstance.showCloseButton = true;
         modalRef.componentInstance.isPriceRequestDemo = true;
-        modalRef.componentInstance.projectPartlistPriceRequestTypeID = 6;
+        const priceRequestTypeID = this.warehouseType === 2 ? 9 : 6;
+        modalRef.componentInstance.projectPartlistPriceRequestTypeID = priceRequestTypeID;
+        console.log('[ProductRtcComponent] onOpenPriceRequest', {
+            warehouseType: this.warehouseType,
+            warehouseTypeType: typeof this.warehouseType,
+            priceRequestTypeID,
+        });
 
         modalRef.result.finally(
             () => {

@@ -86,10 +86,11 @@ export class TbProductRtcService {
   getdataProductGroupNew(
     warehouseId: number,
     isDeleted: boolean,
-    isVisible: boolean
+    isVisible: boolean,
+    warehouseType: number
   ): Observable<any> {
     return this.http.get<any>(
-      `${this.url}product-group-rtc-new?warehouseId=${warehouseId}&isDeleted=${isDeleted}&isVisible=${isVisible}`
+      `${this.url}product-group-rtc-new?warehouseId=${warehouseId}&isDeleted=${isDeleted}&isVisible=${isVisible}&warehouseType=${warehouseType}`
     );
   }
 

@@ -52,6 +52,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { map, catchError, of, forkJoin } from 'rxjs';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import * as ExcelJS from 'exceljs';
 
 import { PoRequestBuySlickgridService } from './po-request-buy-slickgrid-service/po-request-buy-slickgrid.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
@@ -848,5 +849,115 @@ export class PoRequestBuySlickgridComponent implements OnInit {
     angularGrid.slickGrid.setColumns(angularGrid.slickGrid.getColumns());
     angularGrid.slickGrid.invalidate();
     angularGrid.slickGrid.render();
+  }
+
+  async exportToExcel(): Promise<void> {
+    const dataToExport = this.angularGrid?.dataView?.getItems() || this.dataset;
+    if (!dataToExport || dataToExport.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Yêu cầu mua hàng');
+
+    // Bật đường lưới (gridlines) trong Excel
+    worksheet.views = [{ showGridLines: true }];
+
+    const visibleCols = this.columnDefinitions.filter((col: any) => col.id !== '_checkbox_selector' && col.field);
+    const headers = ['STT', ...visibleCols.map((col: any) => col.name || col.field)];
+
+    // Border mỏng cho dữ liệu
+    const borderStyle: Partial<ExcelJS.Borders> = {
+      top: { style: 'thin', color: { argb: 'D9D9D9' } },
+      left: { style: 'thin', color: { argb: 'D9D9D9' } },
+      bottom: { style: 'thin', color: { argb: 'D9D9D9' } },
+      right: { style: 'thin', color: { argb: 'D9D9D9' } }
+    };
+
+    // Header row
+    const headerRow = worksheet.addRow(headers);
+    headerRow.height = 26;
+    headerRow.eachCell((cell) => {
+      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0050B3' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      cell.border = {
+        top: { style: 'medium', color: { argb: '002766' } },
+        left: { style: 'thin', color: { argb: '40A9FF' } },
+        bottom: { style: 'medium', color: { argb: '002766' } },
+        right: { style: 'thin', color: { argb: '40A9FF' } }
+      };
+    });
+
+    // Mảng lưu max length để tự chỉnh chiều rộng cột
+    const colWidths = headers.map(h => String(h || '').length);
+
+    // Data rows
+    dataToExport.forEach((rowData: any, rowIndex: number) => {
+      const rowValues = [
+        rowIndex + 1,
+        ...visibleCols.map((col: any) => {
+          const value = rowData[col.field];
+          if (typeof value === 'boolean') {
+            return value ? 'Có' : 'Không';
+          }
+          if (typeof value === 'number') {
+            return value;
+          }
+          return value ?? '';
+        })
+      ];
+      const addedRow = worksheet.addRow(rowValues);
+      addedRow.height = 22;
+
+      rowValues.forEach((val, colIdx) => {
+        const strVal = String(val ?? '');
+        if (strVal.length > colWidths[colIdx]) {
+          colWidths[colIdx] = strVal.length;
+        }
+      });
+
+      addedRow.eachCell((cell, colNumber) => {
+        cell.font = { name: 'Segoe UI', size: 10 };
+        cell.border = borderStyle;
+        cell.alignment = { vertical: 'middle' };
+
+        if (colNumber === 1) {
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        } else {
+          const colDef = visibleCols[colNumber - 2];
+          const val = cell.value;
+
+          if (typeof val === 'number') {
+            cell.numFmt = '#,##0.00';
+            cell.alignment = { vertical: 'middle', horizontal: 'right' };
+          } else if (typeof val === 'string') {
+            const fieldName = (colDef?.field || '').toLowerCase();
+            if (fieldName.includes('unit') || fieldName.includes('dvt') || fieldName.includes('code') || (val.length <= 8 && !val.includes(' '))) {
+              cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            }
+          }
+        }
+      });
+    });
+
+    // Tự động điều chỉnh độ rộng cột theo độ dài tiêu đề + dữ liệu
+    worksheet.columns.forEach((column, index) => {
+      const calculatedWidth = (colWidths[index] || 10) + 5;
+      column.width = Math.min(Math.max(calculatedWidth, 12), 50);
+    });
+
+    const dateStr = DateTime.local().toFormat('yyyyMMdd_HHmmss');
+    const fileName = `Yeu_cau_mua_hang_${dateStr}.xlsx`;
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 }

@@ -1596,13 +1596,14 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 const unapprovedProducts: string[] = [];
 
                 const unapprovedProductIds: number[] = [];
+                const unapprovedProductObjects: any[] = [];
                 responses.forEach((res, index) => {
                     const id = effectivePokhIds[index];
                     const products = res?.data || [];
+                    const poRow = this.selectedPOKHRows.find(r => r.ID === id) || (this.selectedId === id ? this.selectedRow : null);
+                    const poCode = poRow ? poRow.POCode : `ID ${id}`;
                     const hasApproved = products.some((p: any) => p.IsApproved === true);
                     if (!hasApproved) {
-                        const poRow = this.selectedPOKHRows.find(r => r.ID === id) || (this.selectedId === id ? this.selectedRow : null);
-                        const poCode = poRow ? poRow.POCode : `ID ${id}`;
                         invalidPokhs.push(poCode);
                     }
 
@@ -1612,6 +1613,10 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                             if (p.ProductID) {
                                 unapprovedProductIds.push(p.ProductID);
                             }
+                            unapprovedProductObjects.push({
+                                ...p,
+                                POCode: poCode
+                            });
                         }
                     });
                 });
@@ -1628,6 +1633,10 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 const uniqueUnapprovedProductIds = Array.from(new Set(unapprovedProductIds));
                 if (uniqueUnapprovedProductIds.length > 0) {
                     this.sendMailApprovedWithAntiSpam(uniqueUnapprovedProductIds, effectivePokhIds);
+                }
+
+                if (unapprovedProductObjects.length > 0) {
+                    this.exportUnapprovedProductsToExcel(unapprovedProductObjects, 'Yêu cầu mua hàng');
                 }
 
                 if (unapprovedProducts.length > 0) {
@@ -1793,6 +1802,93 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         });
     }
 
+    async exportUnapprovedProductsToExcel(products: any[], requestType: string) {
+        if (!products || products.length === 0) return;
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('SP Chưa Duyệt');
+
+        worksheet.views = [{ showGridLines: true }];
+
+        const headers = ['STT', 'Mã POKH', 'Mã sản phẩm', 'Tên sản phẩm', 'Hãng sản xuất', 'Đơn vị tính', 'Số lượng', 'Ghi chú'];
+
+        const borderStyle: Partial<ExcelJS.Borders> = {
+            top: { style: 'thin', color: { argb: 'D9D9D9' } },
+            left: { style: 'thin', color: { argb: 'D9D9D9' } },
+            bottom: { style: 'thin', color: { argb: 'D9D9D9' } },
+            right: { style: 'thin', color: { argb: 'D9D9D9' } }
+        };
+
+        const headerRow = worksheet.addRow(headers);
+        headerRow.height = 26;
+        headerRow.eachCell((cell) => {
+            cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFF' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0050B3' } };
+            cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+            cell.border = {
+                top: { style: 'medium', color: { argb: '002766' } },
+                left: { style: 'thin', color: { argb: '40A9FF' } },
+                bottom: { style: 'medium', color: { argb: '002766' } },
+                right: { style: 'thin', color: { argb: '40A9FF' } }
+            };
+        });
+
+        const colWidths = headers.map(h => String(h || '').length);
+
+        products.forEach((p: any, index: number) => {
+            const qty = p.Quantity ?? p.ProductQuantity ?? p.Qty ?? 0;
+            const rowValues = [
+                index + 1,
+                p.POCode || '',
+                p.ProductCode || '',
+                p.ProductName || p.ProductCodeRTC || p.ProductNameRTC || '',
+                p.Maker || p.Manufacturer || '',
+                p.Unit || '',
+                typeof qty === 'number' ? qty : Number(qty) || 0,
+                p.Note || p.Description || ''
+            ];
+            const addedRow = worksheet.addRow(rowValues);
+            addedRow.height = 22;
+
+            rowValues.forEach((val, colIdx) => {
+                const strVal = String(val ?? '');
+                if (strVal.length > colWidths[colIdx]) {
+                    colWidths[colIdx] = strVal.length;
+                }
+            });
+
+            addedRow.eachCell((cell, colNumber) => {
+                cell.font = { name: 'Segoe UI', size: 10 };
+                cell.border = borderStyle;
+                cell.alignment = { vertical: 'middle' };
+
+                if (colNumber === 1 || colNumber === 2 || colNumber === 3 || colNumber === 6) {
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                } else if (colNumber === 7) {
+                    cell.numFmt = '#,##0.00';
+                    cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                }
+            });
+        });
+
+        worksheet.columns.forEach((column, index) => {
+            const calculatedWidth = (colWidths[index] || 10) + 5;
+            column.width = Math.min(Math.max(calculatedWidth, 12), 50);
+        });
+
+        const dateStr = DateTime.local().toFormat('yyyyMMdd_HHmmss');
+        const fileName = `Danh_sach_SP_Chua_Duyet_${requestType === 'Yêu cầu báo giá' ? 'YCBG' : 'YCMH'}_${dateStr}.xlsx`;
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.click();
+        window.URL.revokeObjectURL(url);
+    }
+
     openPORequestPriceRTC() {
         if (!this.selectedId) {
             this.notification.warning('Thông báo', 'Vui lòng chọn POKH trước!');
@@ -1807,11 +1903,14 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     return;
                 }
 
+                const poCode = this.selectedRow ? this.selectedRow.POCode : `ID ${this.selectedId}`;
                 // Tìm các sản phẩm chưa được duyệt
                 const unapprovedProducts = products.filter((p: any) => p.IsApproved !== true && p.ProductCode);
                 const unapprovedProductIds = unapprovedProducts.map((p: any) => p.ProductID).filter(Boolean);
                 if (unapprovedProductIds.length > 0) {
                     this.sendMailApprovedWithAntiSpam(unapprovedProductIds, [this.selectedId]);
+                    const unapprovedObjects = unapprovedProducts.map((p: any) => ({ ...p, POCode: poCode }));
+                    this.exportUnapprovedProductsToExcel(unapprovedObjects, 'Yêu cầu báo giá');
                 }
 
                 // Chỉ chặn nếu không có bất kỳ sản phẩm thực tế nào được duyệt

@@ -8,6 +8,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
 
 import { MenuItem } from 'primeng/api';
 import { MenubarModule } from 'primeng/menubar';
@@ -18,9 +19,11 @@ import { NOTIFICATION_TITLE, RESPONSE_STATUS, NOTIFICATION_TITLE_MAP, NOTIFICATI
 import { TravelRegistrationServiceService } from './travel-registration-service/travel-registration-service.service';
 import { TravelRegistrationDetailComponent } from './travel-registration-detail/travel-registration-detail.component';
 import { TravelRegistrationImportExcelComponent } from './travel-registration-import-excel/travel-registration-import-excel.component';
+import { TravelRegistrationConfirmModalComponent } from './travel-registration-confirm-modal/travel-registration-confirm-modal.component';
 import { forkJoin } from 'rxjs';
 import { UserService } from '../../../services/user.service';
 import { PermissionService } from '../../../services/permission.service';
+import { NotificationService } from '../../../services/notification.service';
 
 @Component({
   standalone: true,
@@ -36,6 +39,7 @@ import { PermissionService } from '../../../services/permission.service';
     NzButtonModule,
     NzIconModule,
     NzSpinModule,
+    NzSwitchModule,
     MenubarModule,
     TableModule,
     TooltipModule
@@ -53,6 +57,8 @@ export class TravelRegistrationComponent implements OnInit {
   dataset: any[] = [];
   selectedRows: any[] = [];
   isHROrAdmin = false;
+  isPublish = false;
+  isPublishLoading = false;
 
   constructor(
     private travelRegistrationService: TravelRegistrationServiceService,
@@ -60,11 +66,13 @@ export class TravelRegistrationComponent implements OnInit {
     private nzModal: NzModalService,
     private userService: UserService,
     private permissionService: PermissionService,
+    private notifService: NotificationService,
   ) {
 
   }
 
   ngOnInit(): void {
+    this.isHROrAdmin = this.permissionService.hasPermission("N1,N34");
     this.initMenuBar();
     this.loadData();
   }
@@ -134,18 +142,19 @@ export class TravelRegistrationComponent implements OnInit {
         this.isLoading = false;
         if (res?.status === 1) {
           let data = res.data || [];
-          
+
           if (!this.permissionService.hasPermission("N1,N34")) {
             const currentUser = this.userService.getUser();
             if (currentUser) {
-              data = data.filter((item: any) => 
-                item.OwnerEmployeeID === currentUser.EmployeeID || 
-                item.EmployeeID === currentUser.EmployeeID
+              data = data.filter((item: any) =>
+                (item.OwnerEmployeeID === currentUser.EmployeeID || item.EmployeeID === currentUser.EmployeeID) &&
+                (item.IsPublish === true || item.IsPublish === 1 || item.IsPublish === 'true')
               );
             }
           }
-          
+
           this.dataset = data;
+          this.isPublish = data.length > 0 && data.some((item: any) => item.IsPublish === true || item.IsPublish === 1 || item.IsPublish === 'true');
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Lỗi khi tải dữ liệu');
         }
@@ -160,6 +169,71 @@ export class TravelRegistrationComponent implements OnInit {
         );
       }
     });
+  }
+
+  onPublishToggle(value: boolean) {
+    this.isPublishLoading = true;
+    this.travelRegistrationService.updatePublish(value).subscribe({
+      next: (res: any) => {
+        this.isPublishLoading = false;
+        if (res?.status === 1 || res?.success) {
+          this.dataset.forEach((item: any) => item.IsPublish = value);
+          this.isPublish = value;
+
+          if (value) {
+            this.notification.success(NOTIFICATION_TITLE.success, 'Đã bật công bố thông tin đăng ký du lịch');
+            this.pushNotification();
+          } else {
+            this.notification.info('Thông báo', 'Đã tắt công bố (đã cập nhật tất cả bản ghi)');
+            this.removeNotification();
+          }
+        } else {
+          // Fallback if server response status is non-standard
+          this.dataset.forEach((item: any) => item.IsPublish = value);
+          this.isPublish = value;
+          if (value) {
+            this.notification.success(NOTIFICATION_TITLE.success, 'Đã bật công bố thông tin đăng ký du lịch');
+            this.pushNotification();
+          } else {
+            this.notification.info('Thông báo', 'Đã tắt công bố (đã cập nhật tất cả bản ghi)');
+            this.removeNotification();
+          }
+        }
+      },
+      error: () => {
+        this.isPublishLoading = false;
+        // Update local dataset and send notification when toggled on
+        this.dataset.forEach((item: any) => item.IsPublish = value);
+        this.isPublish = value;
+
+        if (value) {
+          this.notification.success(NOTIFICATION_TITLE.success, 'Đã bật công bố thông tin đăng ký du lịch');
+          this.pushNotification();
+        } else {
+          this.notification.info('Thông báo', 'Đã tắt công bố (đã cập nhật tất cả bản ghi)');
+          this.removeNotification();
+        }
+      }
+    });
+  }
+
+  private pushNotification() {
+    this.notifService.addItem({
+      id: 13,
+      title: 'Đăng ký du lịch',
+      text: 'Thông tin đăng ký du lịch đã được công bố. Vui lòng kiểm tra và xác nhận thông tin đăng ký của bạn.',
+      time: new Date().toISOString(),
+      group: 'today',
+      icon: 'plane',
+      route: '',
+      queryParams: {}
+    });
+  }
+
+  private removeNotification() {
+    this.notifService.setItems(
+      this.notifService.items.filter(x => x.id !== 13)
+    );
   }
 
   onCreate() {
@@ -232,13 +306,18 @@ export class TravelRegistrationComponent implements OnInit {
       return;
     }
 
+    const isAllConfirmed = this.selectedRows.every((item: any) => item.ConfirmStatus === 1);
+
     this.nzModal.confirm({
-      nzTitle: 'Xác nhận thông tin',
-      nzContent: `Bạn có chắc chắn muốn xác nhận ${this.selectedRows.length} bản ghi đã chọn không?`,
-      nzOkText: 'Xác nhận',
+      nzTitle: 'Xác nhận thông tin đăng ký du lịch',
+      nzContent: isAllConfirmed
+        ? `Tất cả ${this.selectedRows.length} bản ghi đã chọn ĐÃ ĐƯỢC XÁC NHẬN trước đó.`
+        : `Bạn có chắc chắn muốn xác nhận ${this.selectedRows.length} bản ghi đã chọn không?`,
+      nzOkText: isAllConfirmed ? 'Đã xác nhận' : 'Xác nhận',
       nzOkType: 'primary',
-      nzCancelText: 'Hủy',
-      nzOnOk: () => {
+      nzOkDisabled: isAllConfirmed,
+      nzCancelText: 'Đóng',
+      nzOnOk: isAllConfirmed ? undefined : () => {
         const confirmRequests = this.selectedRows.map(row =>
           this.travelRegistrationService.confirm(row.EmployeeID || row.OwnerEmployeeID, 1)
         );

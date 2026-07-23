@@ -290,7 +290,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
         //     });
         // this.subscriptions.push(sub);
 
-         const sub = this.tbProductRtcService.getdataProductGroupNew(this.warehouseID, false, false)
+         const sub = this.tbProductRtcService.getdataProductGroupNew(this.warehouseID, false, false, this.warehouseType)
             .subscribe({
                 next: (response: any) => {
                     const data = response.data?.data1 || [];
@@ -338,6 +338,7 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
                 width: 150,
                 sortable: true,
                 filterable: true,
+                formatter: this.productCodeFormatter.bind(this),
                 filter: {
                     model: Filters['multipleSelect'],
                     collection: [],
@@ -1107,6 +1108,13 @@ export class InventoryDemoNewComponent implements OnInit, AfterViewInit, OnDestr
     private multilineFormatter(_row: number, _cell: number, value: any): string {
         const displayValue = value || '';
         return `<div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: pre-wrap; word-wrap: break-word; line-height: 1.4; max-height: calc(1.4em * 3); padding: 4px;" title="${displayValue}">${displayValue}</div>`;
+    }
+
+    // Formatter cho cột ProductCode: multiline + bôi màu cell khi dòng có IsFix = true
+    private productCodeFormatter(_row: number, _cell: number, value: any, _columnDef: any, dataContext: any): any {
+        const html = this.multilineFormatter(_row, _cell, value);
+        const isFix = dataContext?.IsFix === true || dataContext?.IsFix === 'true';
+        return isFix ? { text: html, addClasses: 'cell-is-fix' } : html;
     }
 
     loadTableData(): void {

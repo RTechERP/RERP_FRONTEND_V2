@@ -1258,15 +1258,16 @@ export class ProductSaleNewComponent implements OnInit, AfterViewInit, OnDestroy
         this.isCheckmode = true;
         const selectedRows = this.getSelectedProductSaleRows();
         this.selectedList = selectedRows;
-        const ids = this.selectedList.map((item) => item.ID);
+        const ids = this.selectedList.filter((item) => item.IsApproved != true).map((item) => item.ID);
 
         if (ids.length === 0) {
             this.notification.warning(
                 'Thông báo',
-                'Vui lòng chọn ít nhất 1 sản phẩm để sửa!'
+                'Vui lòng chọn ít nhất 1 sản phẩm chưa được duyệt để sửa!'
             );
             return;
         }
+
         if (ids.length > 1) {
             this.notification.warning(
                 'Thông báo',

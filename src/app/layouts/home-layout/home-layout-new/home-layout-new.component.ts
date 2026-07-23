@@ -33,6 +33,7 @@ import { ApproveTpService } from '../../../pages/person/approve-tp/approve-tp-se
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { HostListener } from '@angular/core';
+import { TravelRegistrationConfirmModalComponent } from '../../../pages/hrm/travel-registration/travel-registration-confirm-modal/travel-registration-confirm-modal.component';
 import { UpdateVersionService } from '../../../pages/systems/update-version/update-version.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NotificationService } from '../../../services/notification.service';
@@ -632,75 +633,65 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
         return of(null);
       }))
   };
+  allTravelRegistrations: any[] = [];
+
+  get isAllTravelConfirmed(): boolean {
+    const list = this.travelRegistrationsForModal;
+    return list.length > 0 && list.every((x: any) => x.ConfirmStatus === 1);
+  }
+
+  get travelRegistrationsForModal(): any[] {
+    return this.allTravelRegistrations.length > 0 ? this.allTravelRegistrations : this.unconfirmedTravelRegistrations;
+  }
+
   getUnconfirmedTravelRegistrations() {
     this.unconfirmedTravelRegistrations = [];
+    this.allTravelRegistrations = [];
     return this.travelRegistrationService.getByEmployeeId().pipe(
       tap((res: any) => {
         if (res?.status === 1 && res.data) {
-          this.unconfirmedTravelRegistrations = res.data.filter((x: any) => x.ConfirmStatus != 1);
-          const count = this.unconfirmedTravelRegistrations.length;
-          if (count > 0) {
+          const publishedList = res.data || [];
+          this.allTravelRegistrations = publishedList;
+          this.unconfirmedTravelRegistrations = publishedList.filter((x: any) => x.ConfirmStatus != 1);
+          const countUnconfirmed = this.unconfirmedTravelRegistrations.length;
+
+          if (publishedList.length > 0) {
             this.notifService.addItem({
               id: 13,
               time: new Date().toISOString(),
               title: 'Đăng ký du lịch',
-              text: `Bạn có ${count} đăng ký du lịch chưa xác nhận`,
+              text: countUnconfirmed > 0
+                ? `Bạn có ${countUnconfirmed} đăng ký du lịch chưa xác nhận`
+                : `Vui lòng kiểm tra lại thông tin đăng ký du lịch. Nhấp để xem lại chi tiết.`,
               group: 'today',
               icon: 'plane',
               route: '',
               queryParams: {}
             });
+          } else {
+            this.notifService.setItems(this.notifService.items.filter(x => x.id !== 13));
           }
+        } else {
+          this.notifService.setItems(this.notifService.items.filter(x => x.id !== 13));
         }
       }),
       catchError(() => {
+        this.allTravelRegistrations = [];
         this.unconfirmedTravelRegistrations = [];
+        this.notifService.setItems(this.notifService.items.filter(x => x.id !== 13));
         return of(null);
       })
     );
   }
 
-  isTravelConfirmModalVisible = false;
-  isConfirmingTravel = false;
-
   openTravelConfirmModal() {
     this.isNotifModalVisible = false;
-    this.isTravelConfirmModalVisible = true;
-  }
-
-  closeTravelConfirmModal() {
-    this.isTravelConfirmModalVisible = false;
-  }
-
-  confirmTravelRegistration() {
-    if (this.unconfirmedTravelRegistrations.length === 0) return;
-    this.isConfirmingTravel = true;
-    const confirmRequests = this.unconfirmedTravelRegistrations.map(row =>
-      this.travelRegistrationService.confirm(row.EmployeeID || row.OwnerEmployeeID, 1)
-    );
-
-    forkJoin(confirmRequests).subscribe({
-      next: (responses: any[]) => {
-        this.isConfirmingTravel = false;
-        const successCount = responses.filter(r => r?.status === 1).length;
-        if (successCount === responses.length) {
-          this.notification.success(NOTIFICATION_TITLE.success, 'Xác nhận đăng ký du lịch thành công');
-        } else {
-          this.notification.warning(NOTIFICATION_TITLE.warning, `Đã xác nhận ${successCount}/${responses.length} đăng ký`);
-        }
-        this.isTravelConfirmModalVisible = false;
-        this.unconfirmedTravelRegistrations = []; // Clear them since they are now confirmed
-        this.notifService.setItems(this.notifService.items.filter(x => x.id !== 13));
-      },
-      error: (err: any) => {
-        this.isConfirmingTravel = false;
-        this.notification.create(
-          NOTIFICATION_TYPE_MAP[err.status] || 'error',
-          NOTIFICATION_TITLE_MAP[err.status as RESPONSE_STATUS] || 'Lỗi',
-          err?.error?.message || `${err.error}\n${err.message}`,
-          { nzStyle: { whiteSpace: 'pre-line' } }
-        );
-      }
+    const modalRef = this.modalService.open(TravelRegistrationConfirmModalComponent, { size: 'xl', backdrop: 'static', centered: true });
+    modalRef.componentInstance.dataInput = this.travelRegistrationsForModal;
+    modalRef.result.then(() => {
+      this.getUnconfirmedTravelRegistrations().subscribe();
+    }, () => {
+      this.getUnconfirmedTravelRegistrations().subscribe();
     });
   }
 
@@ -765,10 +756,10 @@ export class HomeLayoutNewComponent implements OnInit, OnDestroy {
   }
 
   onPick(n: NotifyItem) {
-    if (n.route) {
-      this.newTab(n.route, n.title || 'Thông báo', n.queryParams);
-    } else if (n.id === 13) {
+    if (n.id === 13 || n.title === 'Đăng ký du lịch' || n.title?.includes('du lịch')) {
       this.openTravelConfirmModal();
+    } else if (n.route) {
+      this.newTab(n.route, n.title || 'Thông báo', n.queryParams);
     }
   }
 

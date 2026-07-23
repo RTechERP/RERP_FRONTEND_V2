@@ -5,6 +5,12 @@
             <span class="p-menuitem-text" style="font-size: 12px;">{{ item.label }}</span>
         </a>
     </ng-template>
+    <ng-template pTemplate="end">
+        <div *ngIf="isHROrAdmin" class="d-flex align-items-center me-3" style="font-size: 12px; gap: 8px;">
+            <span style="font-size: 12px; font-weight: 600; color: #333;">Công bố:</span>
+            <nz-switch [(ngModel)]="isPublish" (ngModelChange)="onPublishToggle($event)" [nzLoading]="isPublishLoading" nzCheckedChildren="Bật" nzUnCheckedChildren="Tắt"></nz-switch>
+        </div>
+    </ng-template>
 </p-menubar>
 
 <ng-container class="w-100">

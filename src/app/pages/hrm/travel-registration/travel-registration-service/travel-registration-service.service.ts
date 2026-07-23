@@ -33,6 +33,12 @@ export class TravelRegistrationServiceService {
       params: { employeeId: employeeId.toString(), confirmStatus: confirmStatus.toString() }
     });
   }
+  updatePublish(isPublish: boolean) {
+    return this.http.get<any>(this._url + 'update-publish', {
+      params: { isPublish: isPublish.toString() }
+    });
+  }
+
   getByEmployeeId(employeeId?: number) {
     const params: any = {};
     if (employeeId) {

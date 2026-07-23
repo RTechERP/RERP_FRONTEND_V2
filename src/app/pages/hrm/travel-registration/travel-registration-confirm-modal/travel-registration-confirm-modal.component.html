@@ -1,0 +1,139 @@
+<div class="modal-header border-0 pb-0">
+  <h5 class="modal-title fw-bold" style="font-size: 15px; color: #1f2937;">
+    XÁC NHẬN THÔNG TIN ĐĂNG KÝ DU LỊCH
+  </h5>
+  <button type="button" class="btn-close shadow-none" (click)="close()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-3">
+  <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+    <div class="travel-modal-container">
+      <!-- Hero Header Banner -->
+      <div class="travel-hero-banner">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+          <div class="travel-hero-title">
+            <div class="travel-hero-icon">
+              <i nz-icon nzType="car" nzTheme="outline" style="font-size: 22px; color: #ffffff;"></i>
+            </div>
+            <div>
+              <span style="font-size: 15px; font-weight: 700; color: #ffffff;">
+                DANH SÁCH ĐĂNG KÝ THAM GIA DU LỊCH
+              </span>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="travel-hero-stat-badge">
+              <i nz-icon nzType="team" nzTheme="outline"></i>
+              Tổng số: {{ travelRegistrations.length }} thành viên
+            </span>
+          </div>
+        </div>
+
+        <!-- Callout Alert -->
+        <div class="travel-alert-box">
+          <div class="d-flex align-items-start gap-2">
+            <i nz-icon nzType="warning" nzTheme="fill" class="text-warning mt-1" style="font-size: 16px;"></i>
+            <div style="font-size: 12px; line-height: 1.6; color: #1f2937;" class="text-danger">
+              <strong>Lưu ý quan trọng:</strong> Vui lòng rà soát chính xác các thông tin: Họ tên, Ngày sinh, CCCD/CMND,
+              Điện thoại liên hệ.
+              Trường hợp thông tin không chính xác, vui lòng liên hệ ngay <strong>Phòng HCNS</strong> để cập nhật kịp
+              thời trước khi bấm nút xác nhận bên dưới.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table Content Container -->
+      <div class="travel-table-wrapper">
+        <div class="table-responsive" style="max-height: 55vh; overflow-y: auto;">
+          <table class="table table-bordered table-hover travel-table mb-0" style="white-space: nowrap;">
+            <thead>
+              <tr>
+                <th class="text-center" style="width: 45px;">STT</th>
+                <th class="text-center">Mã NV</th>
+                <th class="text-center">Họ và tên</th>
+                <th class="text-center">Phòng ban</th>
+                <th class="text-center">Chức vụ</th>
+                <th class="text-center">Mối quan hệ</th>
+                <th class="text-center">Ngày sinh</th>
+                <th class="text-center">Tuổi</th>
+                <th class="text-center">Chiều cao</th>
+                <th class="text-center">Giới tính</th>
+                <th class="text-center">Địa chỉ thường trú</th>
+                <th class="text-center">CCCD/CMND</th>
+                <th class="text-center">Ngày cấp</th>
+                <th class="text-center">Nơi cấp</th>
+                <th class="text-center">Điện thoại</th>
+                <th class="text-center">Khởi hành / Về</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of travelRegistrations; let i = index">
+                <td class="text-center">
+                  <span class="stt-badge">{{ i + 1 }}</span>
+                </td>
+                <td class="text-center fw-semibold text-secondary" style="font-size: 12px;">
+                  {{ item.EmployeeCode }}
+                </td>
+                <td>
+                  <span class="fw-bold text-primary" style="font-size: 12px;">
+                    <i nz-icon nzType="user" nzTheme="outline" class="me-1 text-primary"></i>
+                    {{ item.EmployeeName }}
+                  </span>
+                </td>
+                <td class="text-center" style="font-size: 12px;">{{ item.Department }}</td>
+                <td class="text-center" style="font-size: 12px;">{{ item.PositionName }}</td>
+                <td class="text-center">
+                  <span class="rel-badge"
+                    [ngClass]="item.Relationship === 'Bản thân' || !item.Relationship ? 'rel-badge-self' : 'rel-badge-other'">
+                    {{ item.Relationship || 'Bản thân' }}
+                  </span>
+                </td>
+                <td class="text-center" style="font-size: 12px;">{{ item.BirthDay | date: 'dd/MM/yyyy' }}</td>
+                <td class="text-center" style="font-size: 12px;">{{ item.Age }}</td>
+                <td class="text-center" style="font-size: 12px;">{{ item.Height ? item.Height + ' cm' : '' }}</td>
+                <td class="text-center">
+                  <span *ngIf="item.Gender" [ngClass]="item.Gender === 'Nam' ? 'gender-badge-nam' : 'gender-badge-nu'">
+                    {{ item.Gender }}
+                  </span>
+                </td>
+                <td style="font-size: 12px; max-width: 250px; overflow: hidden; text-overflow: ellipsis;"
+                  [title]="item.Address || ''">
+                  {{ item.Address }}
+                </td>
+                <td class="text-center font-monospace" style="font-size: 12px;">{{ item.CCCD }}</td>
+                <td class="text-center" style="font-size: 12px;">{{ item.CCCDIssueDate | date: 'dd/MM/yyyy' }}</td>
+                <td style="font-size: 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;"
+                  [title]="item.CCCDIssuePlace || ''">
+                  {{ item.CCCDIssuePlace }}
+                </td>
+                <td class="text-center fw-medium" style="font-size: 12px;">{{ item.PhoneNumber }}</td>
+                <td class="text-center" style="font-size: 12px;">{{ item.DepartureLocation }}</td>
+              </tr>
+              <tr *ngIf="travelRegistrations.length === 0">
+                <td colspan="16" class="text-center text-muted py-4" style="font-size: 12px;">
+                  <i nz-icon nzType="inbox" nzTheme="outline" style="font-size: 32px; opacity: 0.4;"
+                    class="d-block mb-2"></i>
+                  Không có dữ liệu đăng ký du lịch
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </nz-spin>
+</div>
+
+<div class="modal-footer border-top pt-2 pb-2">
+  <div class="d-flex align-items-center justify-content-end w-100 gap-2">
+    <button nz-button nzType="default" (click)="close()" style="font-size: 12px; height: 32px; border-radius: 6px;">
+      <i nz-icon nzType="close-circle" nzTheme="outline"></i> Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="onConfirmAll()" [nzLoading]="isConfirming" [disabled]="isAllConfirmed"
+      style="font-size: 12px; height: 32px; border-radius: 6px; font-weight: 600;">
+      <i nz-icon nzType="check-square" nzTheme="outline"></i>
+      {{ isAllConfirmed ? 'Đã xác nhận' : ('Xác nhận tất cả (' + unconfirmedList.length + ')') }}
+    </button>
+  </div>
+</div>

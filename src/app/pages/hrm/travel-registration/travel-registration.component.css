@@ -6,11 +6,11 @@
     background-color: #f8f9fa;
 }
 
-::ng-deep .p-menubar .p-menubar-root-list > .p-menuitem > .p-menuitem-link {
+::ng-deep .p-menubar .p-menubar-root-list>.p-menuitem>.p-menuitem-link {
     padding: 0.5rem 0.75rem;
 }
 
-::ng-deep .p-menubar .p-menubar-root-list > .p-menuitem > .p-menuitem-link .p-menuitem-icon {
+::ng-deep .p-menubar .p-menubar-root-list>.p-menuitem>.p-menuitem-link .p-menuitem-icon {
     margin-right: 0.5rem;
 }
 
@@ -18,34 +18,34 @@
     background-color: #e9ecef !important;
 }
 
-::ng-deep .p-datatable .p-datatable-thead > tr > th {
+::ng-deep .p-datatable .p-datatable-thead>tr>th {
     background-color: #f8f9fa;
     padding: 0.5rem;
     font-weight: 600;
 }
 
-::ng-deep .p-datatable .p-datatable-tbody > tr > td {
+::ng-deep .p-datatable .p-datatable-tbody>tr>td {
     padding: 0.25rem 0.5rem;
 }
 
-::ng-deep .p-datatable .p-datatable-tbody > tr.p-highlight {
+::ng-deep .p-datatable .p-datatable-tbody>tr.p-highlight {
     background-color: #e9ecef !important;
     color: #495057;
 }
 
-::ng-deep .p-datatable .p-datatable-tbody > tr.row-non-employee {
+::ng-deep .p-datatable .p-datatable-tbody>tr.row-non-employee {
     background-color: #fff3cd;
 }
 
-::ng-deep .p-datatable .p-datatable-tbody > tr.row-non-employee:hover {
+::ng-deep .p-datatable .p-datatable-tbody>tr.row-non-employee:hover {
     background-color: #ffe69c;
 }
 
-::ng-deep .p-datatable .p-datatable-tbody > tr.row-success {
+::ng-deep .p-datatable .p-datatable-tbody>tr.row-success {
     background-color: #d1e7dd;
 }
 
-::ng-deep .p-datatable .p-datatable-tbody > tr.row-success:hover {
+::ng-deep .p-datatable .p-datatable-tbody>tr.row-success:hover {
     background-color: #badbcc;
 }
 
@@ -53,6 +53,11 @@
     padding: 0 !important;
 }
 
-.cell-wrap > span {
+.cell-wrap>span {
     padding: 0.25rem 0.5rem;
+}
+
+::ng-deep .p-menubar .p-menubar-end {
+    margin-left: auto;
+    font-size: 12px !important;
 }

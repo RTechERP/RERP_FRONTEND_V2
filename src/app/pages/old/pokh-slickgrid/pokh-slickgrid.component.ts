@@ -1616,16 +1616,18 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     });
                 });
 
-                if (unapprovedProductIds.length > 0) {
-                    this.sendMailApprovedWithAntiSpam(unapprovedProductIds);
-                }
-
                 if (invalidPokhs.length > 0) {
                     this.notification.warning(
                         NOTIFICATION_TITLE.warning,
                         `Các POKH sau không có sản phẩm nào được duyệt: ${invalidPokhs.join(', ')}`
                     );
                     return;
+                }
+
+                // Lọc trùng ID sản phẩm chưa duyệt từ nhiều POKH trước khi gửi mail
+                const uniqueUnapprovedProductIds = Array.from(new Set(unapprovedProductIds));
+                if (uniqueUnapprovedProductIds.length > 0) {
+                    this.sendMailApprovedWithAntiSpam(uniqueUnapprovedProductIds, effectivePokhIds);
                 }
 
                 if (unapprovedProducts.length > 0) {
@@ -1640,7 +1642,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     backdrop: 'static',
                     windowClass: 'full-screen-modal',
                 });
-                modalRef.componentInstance.pokhId = this.selectedId;
+                modalRef.componentInstance.pokhId = effectivePokhIds[0] || this.selectedId;
                 modalRef.componentInstance.pokhIds = effectivePokhIds;
 
                 modalRef.result.then(
@@ -1746,7 +1748,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
         });
     }
 
-    sendMailApprovedWithAntiSpam(productIds: number[]) {
+    sendMailApprovedWithAntiSpam(productIds: number[], pokhIds: number[]) {
         const SPAM_INTERVAL = 5 * 60 * 1000; // Chặn gửi trùng lặp trong 5 phút
         const now = Date.now();
         let sentMailCache: { [key: number]: number } = {};
@@ -1771,7 +1773,12 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
             return;
         }
 
-        this.POKHService.sendMailApproved(idsToSend).subscribe({
+        var data = {
+            productSaleIDs: idsToSend,
+            pokhIds: pokhIds
+        }
+
+        this.POKHService.sendMailApproved(data).subscribe({
             next: (mailRes) => {
                 console.log('Send mail approved success:', mailRes);
                 // Lưu lại mốc thời gian gửi thành công
@@ -1804,7 +1811,7 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                 const unapprovedProducts = products.filter((p: any) => p.IsApproved !== true && p.ProductCode);
                 const unapprovedProductIds = unapprovedProducts.map((p: any) => p.ProductID).filter(Boolean);
                 if (unapprovedProductIds.length > 0) {
-                    this.sendMailApprovedWithAntiSpam(unapprovedProductIds);
+                    this.sendMailApprovedWithAntiSpam(unapprovedProductIds, [this.selectedId]);
                 }
 
                 // Chỉ chặn nếu không có bất kỳ sản phẩm thực tế nào được duyệt

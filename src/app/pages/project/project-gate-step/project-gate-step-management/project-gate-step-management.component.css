@@ -1,1 +1,75 @@
 /* ProjectGateStepManagement styles - inherits from project-gate-management pattern */
+
+.project-gate-step-container {
+  font-size: 12px;
+}
+
+/* ══ Fix NgZorro nz-spin flex stretching bug ═══════════════ */
+::ng-deep nz-spin, 
+::ng-deep .nz-spin-container, 
+::ng-deep .nz-spin-nested-loading {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex-grow: 1 !important;
+  min-height: 0 !important;
+}
+
+/* ══ Fix PrimeNG Table flex scrollbar ══════════════════════ */
+.table-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+:host ::ng-deep .p-datatable {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+:host ::ng-deep .p-datatable-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+:host ::ng-deep .p-datatable-scrollable-header {
+  flex: 0 0 auto !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  background: #f8f9fa !important;
+}
+
+:host ::ng-deep .p-datatable-scrollable-body {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+  max-height: calc(100vh - 200px) !important;
+}
+
+/* Highlight newly added unsaved rows */
+tr.table-success td {
+  background-color: #f6ffed !important;
+}
+
+/* Ensure inputs and selects in table cells fit nicely and use 12px font */
+.p-datatable td input,
+.p-datatable td .ant-select-selector,
+.p-datatable td .ant-input-number {
+  font-size: 12px !important;
+}
+
+.p-datatable-sm .p-datatable-tbody > tr > td {
+  padding: 4px 6px !important;
+}
+

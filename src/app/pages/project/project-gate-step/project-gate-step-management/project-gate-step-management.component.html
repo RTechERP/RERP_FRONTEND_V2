@@ -8,7 +8,15 @@
       </a>
     </ng-template>
     <ng-template pTemplate="end">
-      <div class="d-flex items-center gap-2 pe-2">
+      <div class="d-flex align-items-center gap-2 pe-2">
+        <button nz-button nzType="primary" nzSize="small" (click)="onSave()" [nzLoading]="loading"
+          style="font-size: 12px; height: 28px; background: #1890ff; border-color: #1890ff;">
+          <i class="fa-solid fa-floppy-disk me-1"></i>Lưu
+        </button>
+        <button nz-button nzType="default" nzSize="small" (click)="onAddRow()"
+          style="font-size: 12px; height: 28px; border-color: #1890ff; color: #1890ff;">
+          <i class="fa-solid fa-plus me-1"></i>Thêm dòng
+        </button>
         <button nz-button nzType="text" nzShape="circle" (click)="toggleSearchPanel()">
           <nz-icon nzType="search" />
         </button>
@@ -37,82 +45,126 @@
             </nz-form-control>
           </nz-form-item>
         </nz-col>
-
       </nz-row>
     </form>
   </div>
 
   <!-- PrimeNG Table -->
-  <div class="flex-grow-1 overflow-hidden p-2 bg-light">
-    <nz-spin [nzSpinning]="loading" nzTip="Đang tải dữ liệu..." class="h-100">
-      <div class="table-wrapper h-100 bg-white border rounded">
-        <p-table #dt [value]="filteredDataset" [(selection)]="selectedItems" selectionMode="multiple" dataKey="ID"
+  <div class="flex-grow-1 overflow-hidden p-2 bg-light d-flex flex-column" style="min-height: 0; height: calc(100vh - 110px);">
+    <nz-spin [nzSpinning]="loading" nzTip="Đang tải dữ liệu..." class="h-100 flex-grow-1" style="display: flex; flex-direction: column; min-height: 0;">
+      <div class="table-wrapper h-100 bg-white border rounded flex-grow-1" style="display: flex; flex-direction: column; min-height: 0;">
+        <p-table #dt [value]="filteredDataset" [(selection)]="selectedItems" selectionMode="multiple" dataKey="_tempId"
           (onRowSelect)="updateMenuState()" (onRowUnselect)="updateMenuState()"
-          (onHeaderCheckboxToggle)="updateMenuState()" styleClass="p-datatable-sm p-datatable-gridlines fs-12 h-100"
-          [scrollable]="true" scrollHeight="flex" rowGroupMode="subheader" groupRowsBy="GateType">
+          (onHeaderCheckboxToggle)="updateMenuState()" styleClass="p-datatable-sm p-datatable-gridlines fs-12"
+          [scrollable]="true" [scrollHeight]="showSearchBar ? 'calc(100vh - 195px)' : 'calc(100vh - 140px)'" rowGroupMode="subheader" groupRowsBy="GateType">
 
           <ng-template pTemplate="header">
             <tr>
               <th style="width: 3rem; text-align: center;">
                 <p-tableHeaderCheckbox />
               </th>
-              <th *ngFor="let col of columns" [pSortableColumn]="col.field" [style.width]="col.width"
-                class="text-center" style="font-size: 12px;">
-                {{col.header}} <p-sortIcon [field]="col.field" />
-              </th>
+              <th style="width: 80px; text-align: center; font-size: 12px;">Thứ tự</th>
+              <th style="width: 220px; text-align: center; font-size: 12px;">Gate</th>
+              <th style="width: 350px; text-align: center; font-size: 12px;">Nội dung công việc</th>
+              <th style="width: 250px; text-align: center; font-size: 12px;">Checklist / Yêu cầu</th>
+              <th style="width: 60px; text-align: center; font-size: 12px;">Thao tác</th>
             </tr>
             <tr>
               <th></th>
-              <th *ngFor="let col of columns">
-                <input *ngIf="col.filterType === 'text'" pInputText type="text" [(ngModel)]="col.filterValue"
-                  (input)="onFilterChange()" [placeholder]="'Lọc ' + col.header + '...'"
-                  class="p-column-filter w-100 fs-12 px-2 py-1"
-                  style="height: 28px; border: 1px solid #ced4da; border-radius: 4px; font-size: 12px;">
-                <input *ngIf="col.filterType === 'number'" pInputText type="number" [(ngModel)]="col.filterValue"
-                  (input)="onFilterChange()" placeholder="Lọc số..." class="p-column-filter w-100 fs-12 px-2 py-1"
-                  style="height: 28px; border: 1px solid #ced4da; border-radius: 4px; font-size: 12px;">
+              <th>
+                <input pInputText type="number" [(ngModel)]="sortOrderFilter" (input)="onFilterChange()" placeholder="Lọc thứ tự..."
+                  class="p-column-filter w-100 fs-12 px-2 py-1" style="height: 28px; border: 1px solid #ced4da; border-radius: 4px; font-size: 12px;">
               </th>
+              <th>
+                <input pInputText type="text" [(ngModel)]="gateFilter" (input)="onFilterChange()" placeholder="Lọc Gate..."
+                  class="p-column-filter w-100 fs-12 px-2 py-1" style="height: 28px; border: 1px solid #ced4da; border-radius: 4px; font-size: 12px;">
+              </th>
+              <th>
+                <input pInputText type="text" [(ngModel)]="contentFilter" (input)="onFilterChange()" placeholder="Lọc nội dung..."
+                  class="p-column-filter w-100 fs-12 px-2 py-1" style="height: 28px; border: 1px solid #ced4da; border-radius: 4px; font-size: 12px;">
+              </th>
+              <th>
+                <input pInputText type="text" [(ngModel)]="checklistFilter" (input)="onFilterChange()" placeholder="Lọc checklist..."
+                  class="p-column-filter w-100 fs-12 px-2 py-1" style="height: 28px; border: 1px solid #ced4da; border-radius: 4px; font-size: 12px;">
+              </th>
+              <th></th>
             </tr>
           </ng-template>
 
           <ng-template pTemplate="groupheader" let-item>
             <tr pRowGroupHeader>
-              <td [attr.colspan]="columns.length + 1" class="bg-light fw-bold"
-                style="font-size: 12px; padding: 6px 12px;">
-                <span class="text-primary">
+              <td colspan="6" class="bg-light fw-bold" style="font-size: 12px; padding: 6px 12px;">
+                <span class="text-primary" *ngIf="item.GateType === 1 || item.GateType === 2">
                   <i class="fa-solid fa-layer-group me-1"></i>
-                  {{ item.GateType === 1 ? 'GIẢI PHÁP' : (item.GateType === 2 ? 'TRIỂN KHAI' : 'KHÁC') }}
+                  {{ item.GateType === 1 ? 'GIẢI PHÁP' : 'TRIỂN KHAI' }}
+                </span>
+                <span class="text-secondary" *ngIf="item.GateType !== 1 && item.GateType !== 2">
+                  <i class="fa-solid fa-plus-circle me-1"></i>
+                  MỚI THÊM / CHƯA CHỌN GATE
                 </span>
               </td>
             </tr>
           </ng-template>
 
           <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
-            <tr [pSelectableRow]="item">
+            <tr [pSelectableRow]="item" [class.table-success]="item._isNew">
               <td class="text-center">
                 <p-tableCheckbox [value]="item" />
               </td>
-              <ng-container *ngFor="let col of columns">
-                <!-- DepartmentNames, PositionNames & CheckListNames columns: wrap text -->
-                <td
-                  *ngIf="col.field === 'DepartmentNames' || col.field === 'PositionNames' || col.field === 'CheckListNames'"
-                  [style.width]="col.width">
-                  <span style="font-size: 12px; white-space: pre-wrap;">{{item[col.field]}}</span>
-                </td>
-                <!-- Remaining columns -->
-                <td
-                  *ngIf="col.field !== 'DepartmentNames' && col.field !== 'PositionNames' && col.field !== 'CheckListNames'"
-                  [style.width]="col.width" [class.text-center]="col.field === 'TT' || col.field === 'SortOrder'">
-                  <span style="font-size: 12px;">{{item[col.field]}}</span>
-                </td>
-              </ng-container>
+
+              <!-- SortOrder input -->
+              <td style="width: 80px;" class="text-center p-1">
+                <nz-input-number [(ngModel)]="item.SortOrder" [nzMin]="1" [nzStep]="1" nzSize="small" class="w-100"
+                  style="font-size: 12px;" [attr.data-row]="rowIndex" data-col="SortOrder"
+                  (keydown)="onKeyDown(rowIndex, 'SortOrder', $event)">
+                </nz-input-number>
+              </td>
+
+              <!-- Gate Select -->
+              <td style="width: 220px;" class="p-1">
+                <nz-select [(ngModel)]="item.ProjectGateID" nzPlaceHolder="-- Chọn Gate --" nzAllowClear nzShowSearch nzSize="small"
+                  style="width: 100%; font-size: 12px;" [attr.data-row]="rowIndex" data-col="ProjectGateID"
+                  (ngModelChange)="onGateChange(item, $event)"
+                  (keydown)="onKeyDown(rowIndex, 'ProjectGateID', $event)">
+                  <nz-option *ngFor="let gate of gateList" [nzValue]="gate.ID"
+                    [nzLabel]="gate.GateCode + ' - ' + gate.GateName">
+                  </nz-option>
+                </nz-select>
+              </td>
+
+              <!-- Content Input -->
+              <td style="width: 350px;" class="p-1">
+                <input nz-input [(ngModel)]="item.Content" placeholder="Nhập nội dung công việc..." style="font-size: 12px; height: 28px;"
+                  [attr.data-row]="rowIndex" data-col="Content"
+                  (keydown)="onKeyDown(rowIndex, 'Content', $event)" />
+              </td>
+
+              <!-- Checklist Column -->
+              <td style="width: 250px;" class="p-1">
+                <div class="d-flex align-items-center justify-content-between gap-1">
+                  <span style="font-size: 12px; white-space: pre-wrap;" class="text-truncate flex-grow-1">
+                    {{ item.CheckListNames || 'Chưa có checklist' }}
+                  </span>
+                  <button nz-button nzType="default" nzSize="small" type="button" (click)="openChecklistForRow(item)"
+                    title="Cấu hình Quy tắc Checklist" style="font-size: 12px; height: 26px; border-color: #1890ff; color: #1890ff;">
+                    <i class="fa-solid fa-list-check me-1"></i>Cấu hình
+                  </button>
+                </div>
+              </td>
+
+              <!-- Action Column (Delete row) -->
+              <td style="width: 60px;" class="text-center p-1">
+                <button nz-button nzType="text" nzDanger nzSize="small" type="button" (click)="removeSingleRow(item)"
+                  title="Xóa dòng này" style="font-size: 12px;">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </td>
             </tr>
           </ng-template>
 
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td [attr.colspan]="columns.length + 1" class="text-center p-3 text-muted" style="font-size: 12px;">Không
-                có dữ liệu</td>
+              <td colspan="6" class="text-center p-3 text-muted" style="font-size: 12px;">Không có dữ liệu</td>
             </tr>
           </ng-template>
         </p-table>
@@ -120,3 +172,56 @@
     </nz-spin>
   </div>
 </div>
+
+<!-- Modal Cấu hình Checklist giống ở Form -->
+<nz-modal [(nzVisible)]="isChecklistModalVisible"
+  [nzTitle]="checklistModalTitle"
+  [nzWidth]="650"
+  (nzOnCancel)="closeChecklistModal()"
+  (nzOnOk)="confirmChecklistModal()"
+  nzOkText="Xác nhận"
+  nzCancelText="Hủy">
+  <ng-container *nzModalContent>
+    <div class="p-2 fs-12" style="font-size: 12px;">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="fw-bold text-primary" style="font-size: 12px;">
+          <i class="fa-solid fa-list-check me-1"></i>Danh sách checklist yêu cầu
+        </span>
+        <button nz-button nzType="dashed" nzSize="small" type="button" (click)="addModalCheckListItem()"
+          style="font-size: 12px; border-color: #1890ff; color: #1890ff;">
+          <i class="fa-solid fa-plus me-1"></i>Thêm checklist
+        </button>
+      </div>
+
+      <div *ngIf="editingStepCheckLists.length === 0" class="text-center text-muted py-4 border rounded bg-light" style="font-size: 12px;">
+        Chưa có quy tắc checklist nào. Bấm "Thêm checklist" để tạo mới.
+      </div>
+
+      <div *ngFor="let item of editingStepCheckLists; let i = index" class="mb-2 p-2 bg-light border rounded">
+        <nz-row [nzGutter]="[8, 8]" class="align-items-center">
+          <!-- Type Select -->
+          <nz-col [nzSpan]="8">
+            <nz-select [(ngModel)]="item.ProjectGateCheckListType" nzPlaceHolder="-- Loại checklist --"
+              nzSize="small" style="width: 100%; font-size: 12px;"
+              (ngModelChange)="onModalCheckListTypeChange(item, $event)">
+              <nz-option *ngFor="let t of checkListTypes" [nzValue]="t.ID" [nzLabel]="t.TypeCode"></nz-option>
+            </nz-select>
+          </nz-col>
+
+          <!-- Description Input -->
+          <nz-col [nzSpan]="14">
+            <input nz-input [(ngModel)]="item.Description" placeholder="Mô tả checklist..." style="font-size: 12px; height: 28px;" />
+          </nz-col>
+
+          <!-- Delete Action -->
+          <nz-col [nzSpan]="2" class="text-end">
+            <button nz-button nzType="text" nzDanger nzSize="small" type="button" (click)="removeModalCheckListItem(i)"
+              style="font-size: 12px;">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </nz-col>
+        </nz-row>
+      </div>
+    </div>
+  </ng-container>
+</nz-modal>

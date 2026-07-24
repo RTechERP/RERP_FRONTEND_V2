@@ -22,7 +22,6 @@ import { finalize } from 'rxjs/operators';
 
 import { ProjectGateStepService } from '../project-gate-step.service';
 import { ProjectService } from '../../project-service/project.service';
-import { AuthService } from '../../../../auth/auth.service';
 import { ProjectTypeDepartmentService } from '../../project-gate/project-type-department/project-type-department.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
@@ -96,7 +95,9 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   // Dành cho view tổng hợp
   isSummaryActive: boolean = true;
   selectedSummaryGateId: number | null = null;
+  selectedSummaryDepartmentId: number | null = null;
   summaryGates: any[] = [];
+  summaryGateGroups: any[] = [];
   summaryGateDetails: any = null;
   gateList: any[] = [];
 
@@ -133,7 +134,6 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     private tabService: TabServiceService,
     private projectGateStepService: ProjectGateStepService,
     private projectService: ProjectService,
-    private authService: AuthService,
     private notification: NzNotificationService,
     private projectTypeDeptService: ProjectTypeDepartmentService,
     private projectWorkerService: ProjectWorkerService,
@@ -690,6 +690,18 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     return item.groupName.replace(/^[IVX]+\.\s*/, '');
   }
 
+  isGiaiPhapGroup(item: any): boolean {
+    if (!item || !item.groupName) return false;
+    const name = item.groupName.toLowerCase();
+    return name.includes('giải pháp') || name.includes('g0->g3');
+  }
+
+  isTrienKhaiGroup(item: any): boolean {
+    if (!item || !item.groupName) return false;
+    const name = item.groupName.toLowerCase();
+    return name.includes('triển khai') || name.includes('g4->g12');
+  }
+
   getTotalEffort(comboKey: string): number {
     const steps = this.projectTypeStepsMap[comboKey] || [];
     return steps.reduce((sum, item) => sum + (Number(item.TotalEffort) || 0), 0);
@@ -791,13 +803,40 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
   getAvailableStepsForSelect(comboKey: string): any[] {
     const steps = this.projectTypeStepsMap[comboKey] || [];
-    const deptIdStr = comboKey.split('_')[1];
+    if (!comboKey) return [];
+
+    const parts = comboKey.split('_');
+    const ptId = Number(parts[0]);
+    const deptIdStr = parts[1];
     const deptId = deptIdStr === 'null' ? null : Number(deptIdStr);
 
-    return this.allGateSteps.filter((templateStep: any) =>
-      !steps.some((s: any) => s.ID === templateStep.ID && !s.isNew) &&
-      (deptId === null || (templateStep.DepartmentIDs && templateStep.DepartmentIDs.includes(deptId)))
+    const selectedTemplateId = this.projectTypeTemplateMap[comboKey];
+
+    // Lấy danh sách ID mẫu trùng khớp với Kiểu dự án (ptId) và Phòng ban (deptId)
+    const matchingTemplateIds = new Set(
+      (this.templates || [])
+        .filter(t => t.ProjectTypeID === ptId && (deptId === null || t.DepartmentID === deptId))
+        .map(t => t.ID)
     );
+
+    return (this.allGateSteps || []).filter((templateStep: any) => {
+      // 1. Bỏ qua các bước đã được chọn trong danh sách
+      const isAlreadyAdded = steps.some((s: any) => s.ID === templateStep.ID && !s.isNew);
+      if (isAlreadyAdded) return false;
+
+      // 2. Nếu người dùng chọn một Mẫu công đoạn cụ thể
+      if (selectedTemplateId) {
+        return templateStep.ProjectGateStepTemplateID === selectedTemplateId;
+      }
+
+      // 3. Nếu chưa chọn mẫu cụ thể, lọc các công đoạn thuộc các Mẫu của Kiểu dự án & Phòng ban đó
+      if (matchingTemplateIds.size > 0) {
+        return matchingTemplateIds.has(templateStep.ProjectGateStepTemplateID);
+      }
+
+      // 4. Dự phòng nếu không có Mẫu cấu hình: lọc theo phòng ban
+      return deptId === null || (templateStep.DepartmentIDs && templateStep.DepartmentIDs.includes(deptId));
+    });
   }
 
   onNewStepSelect(comboKey: string, item: any, templateStepId: any) {
@@ -912,7 +951,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     this.onGateStepValueChange(item);
   }
 
-  save() {
+  save(closeAfterSave: boolean = false) {
     this.isSaving = true;
     let allSteps: any[] = [];
     Object.keys(this.projectTypeStepsMap).forEach(key => {
@@ -968,7 +1007,11 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thông tin nhân công dự án thành công!', {
           nzStyle: { fontSize: '12px' }
         });
-        this.closeModal();
+        if (closeAfterSave) {
+          this.closeModal();
+        } else {
+          this.reloadGateSteps();
+        }
       },
       error: (err: any) => {
         console.error('Error saving Manpower steps:', err);
@@ -976,6 +1019,26 @@ export class ProjectGateStepByProjectComponent implements OnInit {
         this.notification.error(NOTIFICATION_TITLE.error, msg, {
           nzStyle: { fontSize: '12px' }
         });
+      }
+    });
+  }
+
+  reloadGateSteps(): void {
+    this.isLoading = true;
+    this.projectGateStepService.getByProject(this.projectId).pipe(
+      finalize(() => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: (res: any) => {
+        this.savedGateSteps = res.data || [];
+        this.projectTypeStepsMap = {};
+        this.updateTabsSteps();
+        this.buildSummaryData();
+      },
+      error: (err: any) => {
+        console.error('Lỗi khi tải lại dữ liệu công đoạn:', err);
       }
     });
   }
@@ -1036,6 +1099,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
   buildSummaryData(): void {
     if (!this.savedGateSteps || this.savedGateSteps.length === 0) {
       this.summaryGates = [];
+      this.summaryGateGroups = [];
       return;
     }
 
@@ -1049,7 +1113,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       if (!gateId) return;
 
       const gateMeta = this.gateList.find(g => g.ID === gateId);
-      const gateType = gateMeta ? gateMeta.Type : 1;
+      const gateType = gateMeta ? (gateMeta.Type ?? 1) : 1;
 
       if (!gateMap[gateId]) {
         gateMap[gateId] = {
@@ -1063,6 +1127,11 @@ export class ProjectGateStepByProjectComponent implements OnInit {
       }
 
       const deptId = link.DepartmentID ?? 0;
+
+      if (this.selectedSummaryDepartmentId !== null && deptId !== this.selectedSummaryDepartmentId) {
+        return;
+      }
+
       const deptName = this.getDepartmentName(deptId);
 
       if (!gateMap[gateId].departments[deptId]) {
@@ -1131,11 +1200,36 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     });
 
     gates.sort((a, b) => {
+      const typeA = a.type ?? 1;
+      const typeB = b.type ?? 1;
+      if (typeA !== typeB) return typeA - typeB;
       if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
       return a.gateCode.localeCompare(b.gateCode);
     });
 
     this.summaryGates = gates;
+
+    // Gom nhóm theo Type (1: GIẢI PHÁP, 2: TRIỂN KHAI, khác)
+    const typeNameMap: { [key: number]: string } = {
+      1: 'GIẢI PHÁP',
+      2: 'TRIỂN KHAI'
+    };
+
+    const groupsMap: { [key: number]: { type: number; typeName: string; gates: any[] } } = {};
+
+    this.summaryGates.forEach((g: any) => {
+      const t = g.type ?? 1;
+      if (!groupsMap[t]) {
+        groupsMap[t] = {
+          type: t,
+          typeName: typeNameMap[t] || (t === 1 ? 'GIẢI PHÁP' : t === 2 ? 'TRIỂN KHAI' : 'KHÁC'),
+          gates: []
+        };
+      }
+      groupsMap[t].gates.push(g);
+    });
+
+    this.summaryGateGroups = Object.values(groupsMap).sort((a, b) => a.type - b.type);
 
     if (this.summaryGates.length > 0) {
       let targetGateId = this.selectedSummaryGateId;
@@ -1171,10 +1265,43 @@ export class ProjectGateStepByProjectComponent implements OnInit {
     }
   }
 
-  getDepartmentName(deptId: number): string {
+  getDepartmentName(deptId: number | null | undefined): string {
+    if (deptId === null || deptId === undefined) return 'Tất cả phòng ban';
     if (deptId === 0) return 'Mẫu chung';
-    const dept = this.departments.find(d => d.ID === deptId);
-    return dept ? dept.Name : `Phòng ban ID ${deptId}`;
+    const dept = this.departments.find(d => d.ID === deptId || d.id === deptId);
+    return dept ? (dept.Name || dept.name) : `Phòng ban ID ${deptId}`;
+  }
+
+  get summaryDepartmentOptions(): any[] {
+    if (!this.savedGateSteps || this.savedGateSteps.length === 0) {
+      return [];
+    }
+
+    const deptIds = new Set<number>();
+    this.savedGateSteps.forEach((x: any) => {
+      deptIds.add(x.DepartmentID ?? 0);
+    });
+
+    const options: any[] = [];
+    deptIds.forEach(id => {
+      if (id === 0) {
+        options.push({ ID: 0, Name: 'Mẫu chung' });
+      } else {
+        const dept = (this.departments || []).find((d: any) => (d.ID === id || d.id === id));
+        if (dept) {
+          options.push({ ID: id, Name: dept.Name || dept.name });
+        } else {
+          options.push({ ID: id, Name: `Phòng ban ID ${id}` });
+        }
+      }
+    });
+
+    return options.sort((a, b) => (a.Name || '').localeCompare(b.Name || ''));
+  }
+
+  onSummaryDepartmentChange(deptId: number | null): void {
+    this.selectedSummaryDepartmentId = deptId;
+    this.buildSummaryData();
   }
 
   selectSummaryGate(gateId: number): void {
@@ -1376,6 +1503,7 @@ export class ProjectGateStepByProjectComponent implements OnInit {
             GateName: template?.GateName || '',
             Content: template?.Content || '',
             DepartmentNames: template?.DepartmentNames || '',
+            DepartmentName: this.getDepartmentName(link.DepartmentID),
             ProjectTypeName: this.getProjectTypeName(link.ProjectTypeID),
             selected: false
           };
@@ -1413,100 +1541,100 @@ export class ProjectGateStepByProjectComponent implements OnInit {
 
     selected.forEach(link => {
       const ptId = link.ProjectTypeID;
-      // Find the department groups that contain this project type
-      const deptGroups = this.groupedMenuDepartments.filter(g =>
-        g.projectTypes.some((pt: any) => pt.ID === ptId)
-      );
-      const comboKeys: string[] = deptGroups.length > 0
-        ? deptGroups.map(g => `${ptId}_${g.id}`)
-        : [`${ptId}_null`];
+      let targetDeptId: number | null = null;
 
-      comboKeys.forEach(comboKey => {
-        if (!this.projectTypeStepsMap[comboKey]) {
-          this.projectTypeStepsMap[comboKey] = [];
-        }
+      if (link.DepartmentID !== undefined && link.DepartmentID !== null && link.DepartmentID !== 0) {
+        targetDeptId = link.DepartmentID;
+      } else if (this.activeDepartmentId !== undefined && this.activeDepartmentId !== null) {
+        targetDeptId = this.activeDepartmentId;
+      }
 
-        const steps = this.projectTypeStepsMap[comboKey];
-        const template = this.allGateSteps.find(s => s.ID === link.ProjectGateStepID);
-        if (!template) return;
+      const comboKey = `${ptId}_${targetDeptId}`;
 
-        if (link.IsRepeat) {
-          // Công đoạn gốc cha cần phải có mặt trong danh sách công đoạn hoạt động
-          let parentStep = steps.find(s => s.ID === link.ProjectGateStepID && !s.isRepeated);
-          if (!parentStep) {
-            parentStep = JSON.parse(JSON.stringify(template));
-            parentStep.machineIndex = 1;
-            parentStep.isRepeatChecked = true;
-            parentStep.repeatOrder = 0;
-            parentStep.isRepeated = false;
-            parentStep.parentStepId = null;
-            parentStep.groupName = this.getGateGroupNameForMachine(parentStep.GateCode, 1);
-            parentStep.PeopleCount = null;
-            parentStep.DayCount = null;
-            parentStep.TotalEffort = 1;
-            parentStep.UnitPrice = null;
-            parentStep.Workers = [];
-            steps.push(parentStep);
-          } else {
-            parentStep.isRepeatChecked = true;
-          }
+      if (!this.projectTypeStepsMap[comboKey]) {
+        this.projectTypeStepsMap[comboKey] = [];
+      }
 
-          // Thêm công đoạn lặp lại
-          const repeatedExists = steps.some(s => s.isRepeated && s.parentStepId === link.ProjectGateStepID);
-          if (!repeatedExists) {
-            const repeatedStep = JSON.parse(JSON.stringify(parentStep));
-            repeatedStep.ID = -Date.now() - Math.floor(Math.random() * 1000);
-            repeatedStep.machineIndex = 2;
-            repeatedStep.isRepeated = true;
-            repeatedStep.parentStepId = link.ProjectGateStepID;
-            repeatedStep.isRepeatChecked = false;
-            repeatedStep.groupName = this.getGateGroupNameForMachine(parentStep.GateCode, 2);
-            repeatedStep.repeatOrder = Date.now();
-            repeatedStep.ProjectGateStepLinkID = link.ID;
+      const steps = this.projectTypeStepsMap[comboKey];
+      const template = this.allGateSteps.find(s => s.ID === link.ProjectGateStepID);
+      if (!template) return;
 
-            repeatedStep.StartDate = link.StartDate ? link.StartDate.substring(0, 10) : null;
-            if (link.Workers && link.Workers.length > 0) {
-              repeatedStep.Workers = link.Workers.map((w: any) => w.EmployeeID);
-              repeatedStep.PeopleCount = link.Workers.length;
-              repeatedStep.DayCount = link.Workers[0].DayCount;
-              repeatedStep.UnitPrice = link.Workers[0].UnitPrice;
-              repeatedStep.TotalEffort = repeatedStep.PeopleCount * repeatedStep.DayCount;
-            }
-            steps.push(repeatedStep);
-          }
+      if (link.IsRepeat) {
+        // Công đoạn gốc cha cần phải có mặt trong danh sách công đoạn hoạt động
+        let parentStep = steps.find(s => s.ID === link.ProjectGateStepID && !s.isRepeated);
+        if (!parentStep) {
+          parentStep = JSON.parse(JSON.stringify(template));
+          parentStep.machineIndex = 1;
+          parentStep.isRepeatChecked = true;
+          parentStep.repeatOrder = 0;
+          parentStep.isRepeated = false;
+          parentStep.parentStepId = null;
+          parentStep.groupName = this.getGateGroupNameForMachine(parentStep.GateCode, 1);
+          parentStep.PeopleCount = null;
+          parentStep.DayCount = null;
+          parentStep.TotalEffort = 1;
+          parentStep.UnitPrice = null;
+          parentStep.Workers = [];
+          steps.push(parentStep);
         } else {
-          // Công đoạn gốc
-          let existingStep = steps.find(s => s.ID === link.ProjectGateStepID && !s.isRepeated);
-          if (!existingStep) {
-            existingStep = JSON.parse(JSON.stringify(template));
-            existingStep.machineIndex = 1;
-            existingStep.isRepeatChecked = false;
-            existingStep.repeatOrder = 0;
-            existingStep.isRepeated = false;
-            existingStep.parentStepId = null;
-            existingStep.groupName = this.getGateGroupNameForMachine(existingStep.GateCode, 1);
-            existingStep.PeopleCount = null;
-            existingStep.DayCount = null;
-            existingStep.TotalEffort = 1;
-            existingStep.UnitPrice = null;
-            existingStep.Workers = [];
-            steps.push(existingStep);
-          }
-
-          existingStep.ProjectGateStepLinkID = link.ID;
-
-          existingStep.StartDate = link.StartDate ? link.StartDate.substring(0, 10) : null;
-          if (link.Workers && link.Workers.length > 0) {
-            existingStep.Workers = link.Workers.map((w: any) => w.EmployeeID);
-            existingStep.PeopleCount = link.Workers.length;
-            existingStep.DayCount = link.Workers[0].DayCount;
-            existingStep.UnitPrice = link.Workers[0].UnitPrice;
-            existingStep.TotalEffort = existingStep.PeopleCount * existingStep.DayCount;
-          }
+          parentStep.isRepeatChecked = true;
         }
 
-        this.recalculateSequenceNumbers(comboKey);
-      });
+        // Thêm công đoạn lặp lại
+        const repeatedExists = steps.some(s => s.isRepeated && s.parentStepId === link.ProjectGateStepID);
+        if (!repeatedExists) {
+          const repeatedStep = JSON.parse(JSON.stringify(parentStep));
+          repeatedStep.ID = -Date.now() - Math.floor(Math.random() * 1000);
+          repeatedStep.machineIndex = 2;
+          repeatedStep.isRepeated = true;
+          repeatedStep.parentStepId = link.ProjectGateStepID;
+          repeatedStep.isRepeatChecked = false;
+          repeatedStep.groupName = this.getGateGroupNameForMachine(parentStep.GateCode, 2);
+          repeatedStep.repeatOrder = Date.now();
+          repeatedStep.ProjectGateStepLinkID = link.ID;
+
+          repeatedStep.StartDate = link.StartDate ? link.StartDate.substring(0, 10) : null;
+          if (link.Workers && link.Workers.length > 0) {
+            repeatedStep.Workers = link.Workers.map((w: any) => w.EmployeeID);
+            repeatedStep.PeopleCount = link.Workers.length;
+            repeatedStep.DayCount = link.Workers[0].DayCount;
+            repeatedStep.UnitPrice = link.Workers[0].UnitPrice;
+            repeatedStep.TotalEffort = repeatedStep.PeopleCount * repeatedStep.DayCount;
+          }
+          steps.push(repeatedStep);
+        }
+      } else {
+        // Công đoạn gốc
+        let existingStep = steps.find(s => s.ID === link.ProjectGateStepID && !s.isRepeated);
+        if (!existingStep) {
+          existingStep = JSON.parse(JSON.stringify(template));
+          existingStep.machineIndex = 1;
+          existingStep.isRepeatChecked = false;
+          existingStep.repeatOrder = 0;
+          existingStep.isRepeated = false;
+          existingStep.parentStepId = null;
+          existingStep.groupName = this.getGateGroupNameForMachine(existingStep.GateCode, 1);
+          existingStep.PeopleCount = null;
+          existingStep.DayCount = null;
+          existingStep.TotalEffort = 1;
+          existingStep.UnitPrice = null;
+          existingStep.Workers = [];
+          steps.push(existingStep);
+        }
+
+        existingStep.ProjectGateStepLinkID = link.ID;
+
+        existingStep.StartDate = link.StartDate ? link.StartDate.substring(0, 10) : null;
+        if (link.Workers && link.Workers.length > 0) {
+          existingStep.Workers = link.Workers.map((w: any) => w.EmployeeID);
+          existingStep.PeopleCount = link.Workers.length;
+          existingStep.DayCount = link.Workers[0].DayCount;
+          existingStep.UnitPrice = link.Workers[0].UnitPrice;
+          existingStep.TotalEffort = existingStep.PeopleCount * existingStep.DayCount;
+        }
+      }
+
+      this.recalculateSequenceNumbers(comboKey);
     });
 
     this.notification.success(NOTIFICATION_TITLE.success, 'Khôi phục các bước công việc thành công! Vui lòng bấm "Lưu thông tin" để hoàn tất.', {
@@ -1879,26 +2007,11 @@ export class ProjectGateStepByProjectComponent implements OnInit {
           return;
         }
 
-        // Thành công
+        // Thành công: Xóa danh sách đã chọn và gọi reloadGateSteps để làm mới dữ liệu
         const action = isApproved ? 'Duyệt' : 'Hủy duyệt';
-        this.notification.success('Thành công', data?.Message || `${action} thành công`);
+        this.notification.success(NOTIFICATION_TITLE.success, data?.Message || `${action} thành công`);
         this.selectedStepLinkIds.clear();
-
-        // Reload dữ liệu từ server để cập nhật savedGateSteps
-        this.projectGateStepService.getByProject(this.projectId).subscribe({
-          next: (res: any) => {
-            this.savedGateSteps = res.data || [];
-            // Rebuild projectTypeStepsMap từ savedGateSteps đã cập nhật
-            this.updateTabsSteps();
-            // Cập nhật summary data
-            this.buildSummaryData();
-            // Trigger change detection
-            this.cdr.markForCheck();
-          },
-          error: (err: any) => {
-            console.error('Lỗi', err);
-          }
-        });
+        this.reloadGateSteps();
       },
       error: (err: any) => {
         const msg = err?.error?.message || err?.message || 'Lỗi không xác định';

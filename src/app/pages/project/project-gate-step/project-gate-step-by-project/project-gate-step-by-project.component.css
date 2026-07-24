@@ -103,6 +103,20 @@
   font-weight: bold;
 }
 
+.row-group-header.group-giai-phap td {
+  background-color: #fffbe6 !important;
+  color: #d48806 !important;
+  border-top: 1px solid #ffe58f !important;
+  border-bottom: 1px solid #ffe58f !important;
+}
+
+.row-group-header.group-trien-khai td {
+  background-color: #e6f7ff !important;
+  color: #0050b3 !important;
+  border-top: 1px solid #91caff !important;
+  border-bottom: 1px solid #91caff !important;
+}
+
 /* Ô tra cứu (lookup cell) */
 .table-lookup-cell {
   background-color: #ffffff;

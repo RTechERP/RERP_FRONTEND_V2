@@ -11,6 +11,8 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 import { TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { MenubarModule } from 'primeng/menubar';
@@ -23,7 +25,7 @@ import { DateTime } from 'luxon';
 
 import { NOTIFICATION_TITLE, NOTIFICATION_TITLE_MAP, NOTIFICATION_TYPE_MAP, RESPONSE_STATUS } from '../../../../app.config';
 import { ProjectGateStepService } from '../project-gate-step.service';
-import { ProjectGateStepFormComponent } from '../project-gate-step-form/project-gate-step-form.component';
+import { ProjectGateCheckListTypeService } from '../../project-gate/project-gate-checklist-type/project-gate-checklist-type.service';
 import { ProjectGateStepTemplateModalComponent } from '../project-gate-step-template-modal/project-gate-step-template-modal.component';
 import { ProjectGateStepChecklistComponent } from '../project-gate-step-checklist/project-gate-step-checklist.component';
 import { TabServiceService } from '../../../../layouts/tab-service.service';
@@ -49,6 +51,8 @@ export interface ColDef {
     NzSelectModule,
     NzGridModule,
     NzFormModule,
+    NzInputNumberModule,
+    NzTagModule,
     TableModule,
     TooltipModule,
     MenubarModule,
@@ -70,11 +74,18 @@ export class ProjectGateStepManagementComponent implements OnInit {
   templateName: string = '';
   templateCode: string = '';
 
+  // Filter models
+  sortOrderFilter: any = null;
+  gateFilter: string = '';
+  contentFilter: string = '';
+  checklistFilter: string = '';
+
   // Produce data
   gateList: any[] = [];
   departmentList: any[] = [];
   positionList: any[] = [];
   templateList: any[] = [];
+  checkListTypes: any[] = [];
   groupedTemplates: Array<{
     label: string;
     options: Array<{
@@ -85,20 +96,22 @@ export class ProjectGateStepManagementComponent implements OnInit {
     }>;
   }> = [];
 
-  columns: ColDef[] = [
-    { field: 'TT', header: 'TT', width: '40px', filterType: 'text' },
-    { field: 'SortOrder', header: 'Thứ tự', width: '40px', filterType: 'number' },
-    { field: 'GateCode', header: 'Mã Gate', width: '120px', filterType: 'text' },
-    { field: 'GateName', header: 'Tên Gate', width: '180px', filterType: 'text' },
+  // Checklist modal state
+  isChecklistModalVisible: boolean = false;
+  checklistModalTitle: string = 'Cấu hình Checklist';
+  editingStep: any = null;
+  editingStepCheckLists: any[] = [];
 
-    { field: 'Content', header: 'Nội dung công việc', width: '260px', filterType: 'text' },
-    { field: 'CheckListNames', header: 'Yêu cầu hoàn thành', width: '200px', filterType: 'text' },
-    { field: 'DepartmentNames', header: 'Phòng ban', width: '150px', filterType: 'text' },
-    { field: 'PositionNames', header: 'Chức vụ', width: '150px', filterType: 'text' }
+  columns: ColDef[] = [
+    { field: 'SortOrder', header: 'Thứ tự', width: '80px', filterType: 'number' },
+    { field: 'ProjectGateID', header: 'Gate', width: '220px', filterType: 'text' },
+    { field: 'Content', header: 'Nội dung công việc', width: '350px', filterType: 'text' },
+    { field: 'CheckListNames', header: 'Checklist / Yêu cầu', width: '250px', filterType: 'text' }
   ];
 
   constructor(
     private service: ProjectGateStepService,
+    private checkListTypeService: ProjectGateCheckListTypeService,
     private notification: NzNotificationService,
     private modal: NzModalService,
     private ngbModal: NgbModal,
@@ -113,21 +126,21 @@ export class ProjectGateStepManagementComponent implements OnInit {
       this.templateCode = this.tabData.templateCode ?? '';
     }
     this.initMenu();
+    this.loadCheckListTypes();
     this.loadProduce();
   }
 
   initMenu(): void {
     this.menuBars = [
       {
-        label: 'Thêm mới',
-        icon: 'fa-solid fa-circle-plus text-primary',
-        command: () => this.onAdd()
+        label: 'Thêm dòng',
+        icon: 'fa-solid fa-plus text-primary',
+        command: () => this.onAddRow()
       },
       {
-        label: 'Sửa',
-        icon: 'fa-solid fa-file-pen text-warning',
-        command: () => this.onEdit(),
-        disabled: this.selectedItems.length !== 1
+        label: 'Lưu',
+        icon: 'fa-solid fa-floppy-disk text-success',
+        command: () => this.onSave()
       },
       {
         label: 'Xóa',
@@ -141,7 +154,6 @@ export class ProjectGateStepManagementComponent implements OnInit {
         command: () => this.onOpenChecklist(),
         disabled: this.selectedItems.length !== 1
       },
-
       {
         label: 'Xuất excel',
         icon: 'fa-solid fa-file-excel text-success',
@@ -155,9 +167,19 @@ export class ProjectGateStepManagementComponent implements OnInit {
     ];
   }
 
+  loadCheckListTypes(): void {
+    this.checkListTypeService.getAll().subscribe({
+      next: (res: any) => {
+        this.checkListTypes = res.data || [];
+      },
+      error: (err: any) => {
+        console.error('Error loading checklist types', err);
+      }
+    });
+  }
+
   updateMenuState(): void {
     this.menuBars = this.menuBars.map(item => {
-      if (item.label === 'Sửa') return { ...item, disabled: this.selectedItems.length !== 1 };
       if (item.label === 'Xóa') return { ...item, disabled: this.selectedItems.length === 0 };
       if (item.label === 'CheckList') return { ...item, disabled: this.selectedItems.length !== 1 };
       return item;
@@ -183,7 +205,6 @@ export class ProjectGateStepManagementComponent implements OnInit {
   }
 
   groupTemplates(): void {
-    // 1. Group templates by Department Name first
     const deptMap: { [dept: string]: { [projType: string]: any[] } } = {};
     const noDeptName = 'Mẫu chung';
 
@@ -202,7 +223,6 @@ export class ProjectGateStepManagementComponent implements OnInit {
 
     const groups: typeof this.groupedTemplates = [];
 
-    // Sort departments
     const depts = Object.keys(deptMap).sort((a, b) => {
       if (a === noDeptName) return 1;
       if (b === noDeptName) return -1;
@@ -215,7 +235,6 @@ export class ProjectGateStepManagementComponent implements OnInit {
       const projTypes = Object.keys(projTypesMap).sort((a, b) => a.localeCompare(b));
 
       projTypes.forEach(projType => {
-        // Add Project Type header (disabled option)
         options.push({
           label: `--- ${projType} ---`,
           value: null,
@@ -223,9 +242,7 @@ export class ProjectGateStepManagementComponent implements OnInit {
           isHeader: true
         });
 
-        // Add templates under this Project Type
         const templates = projTypesMap[projType];
-        // Sort templates by Code
         templates.sort((a, b) => (a.Code || '').localeCompare(b.Code || ''));
 
         templates.forEach(tpl => {
@@ -254,27 +271,27 @@ export class ProjectGateStepManagementComponent implements OnInit {
         next: (res: any) => {
           const rawData = res.data || [];
 
-          // Map GateType from gateList
-          rawData.forEach((row: any) => {
+          rawData.forEach((row: any, idx: number) => {
+            row._tempId = row.ID || -(idx + 1);
+            row.CheckLists = row.CheckLists || [];
             const gate = this.gateList.find(g => g.ID === row.ProjectGateID);
             if (gate) {
               row.GateType = gate.Type; // 1 = Giải pháp, 2 = Triển khai
+            } else {
+              row.GateType = 999;
             }
           });
 
-          // Sắp xếp theo GateType trước, sau đó theo SortOrder & TT
+          // Sắp xếp theo GateType trước, sau đó theo SortOrder
           rawData.sort((a: any, b: any) => {
-            const typeA = a.GateType ?? 0;
-            const typeB = b.GateType ?? 0;
+            const typeA = a.GateType ?? 999;
+            const typeB = b.GateType ?? 999;
             if (typeA !== typeB) {
               return typeA - typeB;
             }
             const orderA = a.SortOrder ?? 0;
             const orderB = b.SortOrder ?? 0;
-            if (orderA !== orderB) {
-              return orderA - orderB;
-            }
-            return (a.TT || '').localeCompare(b.TT || '');
+            return orderA - orderB;
           });
 
           this.dataset = rawData;
@@ -287,10 +304,35 @@ export class ProjectGateStepManagementComponent implements OnInit {
   }
 
   onFilterChange(): void {
-    this.filteredDataset = this.applyFilters(this.dataset, this.columns);
+    let result = [...this.dataset];
+
     if (this.templateId !== null && this.templateId !== undefined) {
-      this.filteredDataset = this.filteredDataset.filter(row => row.ProjectGateStepTemplateID === this.templateId);
+      result = result.filter(row => row.ProjectGateStepTemplateID === this.templateId);
     }
+
+    if (this.sortOrderFilter !== null && this.sortOrderFilter !== undefined && this.sortOrderFilter !== '') {
+      result = result.filter(row => row.SortOrder != null && String(row.SortOrder).includes(String(this.sortOrderFilter)));
+    }
+
+    if (this.gateFilter) {
+      const gf = this.gateFilter.toLowerCase();
+      result = result.filter(row =>
+        (row.GateCode && row.GateCode.toLowerCase().includes(gf)) ||
+        (row.GateName && row.GateName.toLowerCase().includes(gf))
+      );
+    }
+
+    if (this.contentFilter) {
+      const cf = this.contentFilter.toLowerCase();
+      result = result.filter(row => row.Content && row.Content.toLowerCase().includes(cf));
+    }
+
+    if (this.checklistFilter) {
+      const chkf = this.checklistFilter.toLowerCase();
+      result = result.filter(row => row.CheckListNames && row.CheckListNames.toLowerCase().includes(chkf));
+    }
+
+    this.filteredDataset = result;
   }
 
   onTemplateChange(value: number | null): void {
@@ -306,69 +348,187 @@ export class ProjectGateStepManagementComponent implements OnInit {
     this.onFilterChange();
   }
 
-  applyFilters(data: any[], columns: ColDef[]): any[] {
-    return data.filter(row =>
-      columns.every(col => {
-        const fv = col.filterValue;
-        if (fv === null || fv === undefined || fv === '') return true;
-        const rv = row[col.field];
-        if (col.filterType === 'number') return rv != null && String(rv).includes(String(fv));
-        return rv != null && String(rv).toLowerCase().includes(String(fv).toLowerCase());
-      })
-    );
-  }
-
   onReset(): void {
     this.templateId = null;
     this.templateName = '';
     this.templateCode = '';
-    this.columns.forEach(col => col.filterValue = null);
+    this.sortOrderFilter = null;
+    this.gateFilter = '';
+    this.contentFilter = '';
+    this.checklistFilter = '';
     this.onFilterChange();
   }
 
-  openForm(dataInput: any | null): void {
-    const modalRef = this.ngbModal.open(ProjectGateStepFormComponent, {
-      size: 'lg',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true
-    });
+  onAddRow(): void {
+    const maxSortOrder = this.dataset.reduce((max, item) => {
+      const val = Number(item.SortOrder);
+      return !isNaN(val) && val > max ? val : max;
+    }, 0);
 
-    if (!dataInput && this.templateId) {
-      dataInput = { ProjectGateStepTemplateID: this.templateId };
+    const newRow: any = {
+      ID: 0,
+      ProjectGateID: null,
+      GateCode: '',
+      GateName: '',
+      GateType: 999,
+      TT: '',
+      SortOrder: maxSortOrder + 1,
+      Content: '',
+      ProjectGateStepTemplateID: this.templateId ?? null,
+      CheckListNames: '',
+      CheckLists: [],
+      _isNew: true,
+      _tempId: -Date.now() - Math.floor(Math.random() * 1000)
+    };
+
+    this.dataset = [...this.dataset, newRow];
+    this.onFilterChange();
+
+    setTimeout(() => {
+      const newRowIndex = this.filteredDataset.length - 1;
+      this.focusRowInput(newRowIndex, 'Content');
+    }, 100);
+  }
+
+  onGateChange(row: any, gateId: number | null): void {
+    row.ProjectGateID = gateId;
+    const gate = this.gateList.find(g => g.ID === gateId);
+    if (gate) {
+      row.GateCode = gate.GateCode;
+      row.GateName = gate.GateName;
+      row.GateType = gate.Type;
+    } else {
+      row.GateCode = '';
+      row.GateName = '';
+      row.GateType = 999;
+    }
+  }
+
+  onSave(): void {
+    if (!this.dataset || this.dataset.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để lưu');
+      return;
     }
 
-    modalRef.componentInstance.dataInput = dataInput;
-    modalRef.componentInstance.gateList = this.gateList;
-    modalRef.componentInstance.departmentList = this.departmentList;
-    modalRef.componentInstance.positionList = this.positionList;
-    modalRef.componentInstance.templateList = this.templateList;
+    // Validate required fields
+    for (let i = 0; i < this.dataset.length; i++) {
+      const item = this.dataset[i];
+      if (!item.ProjectGateID) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, `Dòng ${i + 1}: Vui lòng chọn Gate!`);
+        this.focusRowInput(i, 'ProjectGateID');
+        return;
+      }
+    }
 
-    modalRef.result.then(
-      (result) => { if (result === 'save') this.loadData(); },
-      () => { }
-    );
-  }
+    this.loading = true;
+    const payload = this.dataset.map(item => ({
+      ID: item.ID || 0,
+      ProjectGateID: item.ProjectGateID,
+      TT: item.TT || '',
+      SortOrder: item.SortOrder ?? null,
+      Content: item.Content || '',
+      ProjectGateStepTemplateID: item.ProjectGateStepTemplateID || this.templateId || null,
+      CheckLists: (item.CheckLists || []).map((c: any) => ({
+        ID: c.ID || 0,
+        ProjectGateStepID: item.ID || 0,
+        Type: c.Type || '',
+        ProjectGateCheckListType: c.ProjectGateCheckListType || null,
+        Description: c.Description || ''
+      }))
+    }));
 
-  onManageTemplates(): void {
-    const modalRef = this.ngbModal.open(ProjectGateStepTemplateModalComponent, {
-      size: 'lg',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true
-    });
-
-    modalRef.result.then(
-      (result) => {
-        if (result === 'save') {
-          this.loadProduce(); // Tải lại template list trong select box
-        }
+    this.service.save(payload).subscribe({
+      next: (res: any) => {
+        this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Lưu thành công');
+        this.loadData();
       },
-      () => { }
-    );
+      error: (err: any) => {
+        this.loading = false;
+        this.showError(err);
+      }
+    });
   }
 
-  onAdd(): void { this.openForm(null); }
+  // ── Modal Cấu hình Checklist giống ở Form ───────────────────────────
+  openChecklistForRow(step: any): void {
+    this.editingStep = step;
+    this.checklistModalTitle = `Cấu hình Checklist: [${step.GateCode || 'Mới'}] ${step.Content || 'Công đoạn chưa lưu'}`;
+
+    if (step.CheckLists && step.CheckLists.length > 0) {
+      this.editingStepCheckLists = step.CheckLists.map((c: any) => ({ ...c }));
+      this.isChecklistModalVisible = true;
+    } else if (step.ID > 0) {
+      // Tải checklist hiện có từ backend nếu có
+      this.loading = true;
+      this.service.getCheckListsOnly(step.ID)
+        .pipe(finalize(() => this.loading = false))
+        .subscribe({
+          next: (res: any) => {
+            const list = res.data || [];
+            step.CheckLists = list;
+            this.editingStepCheckLists = list.map((c: any) => ({ ...c }));
+            this.isChecklistModalVisible = true;
+          },
+          error: () => {
+            this.editingStepCheckLists = [];
+            this.isChecklistModalVisible = true;
+          }
+        });
+    } else {
+      this.editingStepCheckLists = [];
+      this.isChecklistModalVisible = true;
+    }
+  }
+
+  addModalCheckListItem(): void {
+    this.editingStepCheckLists.push({
+      ID: 0,
+      ProjectGateStepID: this.editingStep?.ID || 0,
+      Type: null,
+      ProjectGateCheckListType: null,
+      Description: ''
+    });
+  }
+
+  onModalCheckListTypeChange(item: any, typeId: number): void {
+    const selectedType = this.checkListTypes.find(t => t.ID === typeId);
+    if (selectedType) {
+      item.Type = selectedType.TypeCode;
+    }
+  }
+
+  removeModalCheckListItem(index: number): void {
+    this.editingStepCheckLists.splice(index, 1);
+  }
+
+  confirmChecklistModal(): void {
+    // Validate that description is not empty if checklist item exists
+    for (let i = 0; i < this.editingStepCheckLists.length; i++) {
+      const c = this.editingStepCheckLists[i];
+      if (!c.ProjectGateCheckListType) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, `Checklist dòng ${i + 1}: Vui lòng chọn loại checklist!`);
+        return;
+      }
+      if (!c.Description || !c.Description.trim()) {
+        this.notification.warning(NOTIFICATION_TITLE.warning, `Checklist dòng ${i + 1}: Vui lòng nhập mô tả!`);
+        return;
+      }
+    }
+
+    if (this.editingStep) {
+      this.editingStep.CheckLists = [...this.editingStepCheckLists];
+      const summaryNames = this.editingStep.CheckLists
+        .map((c: any) => (c.Type ? `[${c.Type}] ` : '') + c.Description)
+        .join('; ');
+      this.editingStep.CheckListNames = summaryNames;
+    }
+
+    this.isChecklistModalVisible = false;
+  }
+
+  closeChecklistModal(): void {
+    this.isChecklistModalVisible = false;
+  }
 
   onOpenChecklist(): void {
     if (this.selectedItems.length !== 1) {
@@ -376,6 +536,10 @@ export class ProjectGateStepManagementComponent implements OnInit {
       return;
     }
     const step = this.selectedItems[0];
+    if (!step || !step.ID) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng lưu công đoạn trước khi quản lý quy tắc checklist!');
+      return;
+    }
     const tabKey = `checklist-step-${step.ID}`;
     this.tabService.openTabComp({
       comp: ProjectGateStepChecklistComponent,
@@ -390,14 +554,37 @@ export class ProjectGateStepManagementComponent implements OnInit {
     });
   }
 
-  onEdit(): void {
-    if (this.selectedItems.length !== 1) return;
-    this.openForm({ ...this.selectedItems[0] });
+  removeSingleRow(item: any): void {
+    if (item.ID > 0) {
+      this.modal.confirm({
+        nzTitle: 'Xác nhận xóa',
+        nzContent: `Bạn có chắc muốn xóa công đoạn "${item.Content || item.GateCode || ''}" không?`,
+        nzOkText: 'Xóa',
+        nzOkDanger: true,
+        nzOnOk: () => {
+          this.loading = true;
+          this.service.delete([item.ID]).subscribe({
+            next: () => {
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
+              this.loadData();
+            },
+            error: (err: any) => {
+              this.loading = false;
+              this.showError(err);
+            }
+          });
+        }
+      });
+    } else {
+      this.dataset = this.dataset.filter(d => d._tempId !== item._tempId);
+      this.onFilterChange();
+    }
   }
 
   onDelete(): void {
     if (this.selectedItems.length === 0) return;
-    const ids = this.selectedItems.map(x => x.ID);
+    const savedIds = this.selectedItems.filter(x => x.ID > 0).map(x => x.ID);
+    const unsavedTempIds = this.selectedItems.filter(x => !x.ID).map(x => x._tempId);
     const count = this.selectedItems.length;
 
     this.modal.confirm({
@@ -406,19 +593,96 @@ export class ProjectGateStepManagementComponent implements OnInit {
       nzOkText: 'Xóa',
       nzOkDanger: true,
       nzOnOk: () => {
-        this.loading = true;
-        this.service.delete(ids).subscribe({
-          next: () => {
-            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
-            this.loadData();
-          },
-          error: (err: any) => {
-            this.loading = false;
-            this.showError(err);
-          }
-        });
+        if (savedIds.length > 0) {
+          this.loading = true;
+          this.service.delete(savedIds).subscribe({
+            next: () => {
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
+              this.loadData();
+            },
+            error: (err: any) => {
+              this.loading = false;
+              this.showError(err);
+            }
+          });
+        } else {
+          this.dataset = this.dataset.filter(d => !unsavedTempIds.includes(d._tempId));
+          this.selectedItems = [];
+          this.onFilterChange();
+          this.updateMenuState();
+        }
       }
     });
+  }
+
+  onKeyDown(rowIndex: number, column: string, event: KeyboardEvent): void {
+    if (event.key === 'ArrowDown') {
+      if (rowIndex === this.filteredDataset.length - 1) {
+        event.preventDefault();
+        this.onAddRow();
+        setTimeout(() => {
+          this.focusRowInput(rowIndex + 1, 'Content');
+        }, 100);
+      } else {
+        event.preventDefault();
+        this.focusRowInput(rowIndex + 1, column);
+      }
+    } else if (event.key === 'ArrowUp') {
+      if (rowIndex > 0) {
+        event.preventDefault();
+        this.focusRowInput(rowIndex - 1, column);
+      }
+    } else if (event.key === 'Tab') {
+      if (rowIndex === this.filteredDataset.length - 1 && column === 'Content') {
+        event.preventDefault();
+        this.onAddRow();
+        setTimeout(() => {
+          this.focusRowInput(rowIndex + 1, 'SortOrder');
+        }, 100);
+      }
+    }
+  }
+
+  focusRowInput(rowIndex: number, column: string): void {
+    const selector = `[data-row="${rowIndex}"][data-col="${column}"]`;
+    const element = document.querySelector(selector) as HTMLElement;
+    if (element) {
+      if (column === 'ProjectGateID') {
+        const selectControl = element.querySelector('.ant-select-selector') as HTMLElement;
+        if (selectControl) {
+          selectControl.focus();
+        } else {
+          element.focus();
+        }
+      } else if (column === 'SortOrder') {
+        const inputNum = element.querySelector('input') as HTMLElement;
+        if (inputNum) {
+          inputNum.focus();
+        } else {
+          element.focus();
+        }
+      } else {
+        element.focus();
+      }
+    }
+  }
+
+  onManageTemplates(): void {
+    const modalRef = this.ngbModal.open(ProjectGateStepTemplateModalComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true
+    });
+
+    modalRef.result.then(
+      (result) => {
+        if (result === 'save') {
+          this.loadProduce();
+        }
+      },
+      () => { }
+    );
   }
 
   showError(err: any): void {
@@ -442,26 +706,20 @@ export class ProjectGateStepManagementComponent implements OnInit {
     const worksheet = workbook.addWorksheet('Danh sách Bước Gate');
 
     worksheet.columns = [
+      { header: 'Thứ tự sắp xếp', key: 'SortOrder', width: 15 },
       { header: 'Mã Gate', key: 'GateCode', width: 15 },
       { header: 'Tên Gate', key: 'GateName', width: 25 },
-      { header: 'TT', key: 'TT', width: 10 },
-      { header: 'Thứ tự sắp xếp', key: 'SortOrder', width: 15 },
       { header: 'Nội dung công việc', key: 'Content', width: 40 },
-      { header: 'Yêu cầu hoàn thành', key: 'CheckListNames', width: 30 },
-      { header: 'Phòng ban phụ trách', key: 'DepartmentNames', width: 30 },
-      { header: 'Chức vụ phụ trách', key: 'PositionNames', width: 30 }
+      { header: 'Yêu cầu hoàn thành', key: 'CheckListNames', width: 30 }
     ];
 
     this.filteredDataset.forEach((item) => {
       worksheet.addRow({
+        SortOrder: item.SortOrder ?? '',
         GateCode: item.GateCode ?? '',
         GateName: item.GateName ?? '',
-        TT: item.TT ?? '',
-        SortOrder: item.SortOrder ?? '',
         Content: item.Content ?? '',
-        CheckListNames: item.CheckListNames ?? '',
-        DepartmentNames: item.DepartmentNames ?? '',
-        PositionNames: item.PositionNames ?? ''
+        CheckListNames: item.CheckListNames ?? ''
       });
     });
 
@@ -500,3 +758,4 @@ export class ProjectGateStepManagementComponent implements OnInit {
     });
   }
 }
+

@@ -1610,8 +1610,9 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     products.forEach((p: any) => {
                         if (p.IsApproved !== true && p.ProductCode) {
                             unapprovedProducts.push(p.ProductCode);
-                            if (p.ProductID) {
-                                unapprovedProductIds.push(p.ProductID);
+                            const prodId = p.ProductID || p.ID || p.ProductSaleID;
+                            if (prodId) {
+                                unapprovedProductIds.push(prodId);
                             }
                             unapprovedProductObjects.push({
                                 ...p,
@@ -1621,14 +1622,6 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
                     });
                 });
 
-                if (invalidPokhs.length > 0) {
-                    this.notification.warning(
-                        NOTIFICATION_TITLE.warning,
-                        `Các POKH sau không có sản phẩm nào được duyệt: ${invalidPokhs.join(', ')}`
-                    );
-                    return;
-                }
-
                 // Lọc trùng ID sản phẩm chưa duyệt từ nhiều POKH trước khi gửi mail
                 const uniqueUnapprovedProductIds = Array.from(new Set(unapprovedProductIds));
                 if (uniqueUnapprovedProductIds.length > 0) {
@@ -1637,6 +1630,14 @@ export class PokhSlickgridComponent implements OnInit, AfterViewInit, OnDestroy 
 
                 if (unapprovedProductObjects.length > 0) {
                     this.exportUnapprovedProductsToExcel(unapprovedProductObjects, 'Yêu cầu mua hàng');
+                }
+
+                if (invalidPokhs.length > 0) {
+                    this.notification.warning(
+                        NOTIFICATION_TITLE.warning,
+                        `Các POKH sau không có sản phẩm nào được duyệt: ${invalidPokhs.join(', ')}`
+                    );
+                    return;
                 }
 
                 if (unapprovedProducts.length > 0) {
